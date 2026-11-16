@@ -5,7 +5,7 @@
 
 #include <QSize>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelEditKind;
 struct ModelEdit;
@@ -89,4 +89,4 @@ bool validModelUvToolSettings(const ModelEdit &edit, QString *error = nullptr);
 [[nodiscard]] QSize modelUvSnapSize(const ModelMesh &mesh, QSize requested = {});
 // The UV a coordinate snaps to on a `size` texel grid.
 [[nodiscard]] ModelTexCoord modelUvSnapped(ModelTexCoord uv, QSize size, ModelUvSnapMode mode);
-} // namespace vibestudio
+} // namespace slopstudio

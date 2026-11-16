@@ -34,7 +34,7 @@
 #include <atomic>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct WorkState {
@@ -73,8 +73,8 @@ PackageReadControl readControl(const std::shared_ptr<WorkState>& state, const Pa
 		{
 			QMutexLocker lock(&state->pathMutex);
 			state->sourcePath = path;
-			state->checkingSourceProtections = path == QCoreApplication::translate("VibeStudioPackageStaging", "Retaining package source protections")
-				|| path == QCoreApplication::translate("VibeStudioPackageStaging", "Checking package source protections");
+			state->checkingSourceProtections = path == QCoreApplication::translate("SlopStudioPackageStaging", "Retaining package source protections")
+				|| path == QCoreApplication::translate("SlopStudioPackageStaging", "Checking package source protections");
 			state->bytesRead = static_cast<quint64>(completed);
 			state->sourceBytes = static_cast<quint64>(total);
 		}
@@ -84,7 +84,7 @@ PackageReadControl readControl(const std::shared_ptr<WorkState>& state, const Pa
 }
 
 class PackageOperationDialog final : public QDialog {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioPackageDialog)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioPackageDialog)
 public:
 	explicit PackageOperationDialog(QWidget* parent) : QDialog(parent)
 	{
@@ -218,7 +218,7 @@ public:
 		const auto state = m_state;
 		const auto workerControl = readControl(state, control);
 		auto* worker = QThread::create([state, path, workerControl]() {
-			if (path.endsWith(QStringLiteral(".vibepackage"), Qt::CaseInsensitive)) {
+			if (path.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) {
 				if (PackageDraft::load(path, &state->load.staging, &state->load.error, workerControl)) {
 					state->load.archive = PackageDraft::baseArchive(state->load.staging, &state->load.error, workerControl);
 				}
@@ -868,7 +868,7 @@ PackageSaveResult reopenSavedPackage(const PackageWriteReport& report, const Pac
 	if (!report.succeeded() || report.dryRun) { return result; }
 	if (result.archive.load(report.outputPath, &result.reloadError, control)) {
 		if (QString::fromLatin1(result.archive.contentId().toHex()) != report.sha256) {
-			result.reloadError = QCoreApplication::translate("VibeStudioPackageDialog", "The saved package changed before it could be reopened. Open it again to review the current file.");
+			result.reloadError = QCoreApplication::translate("SlopStudioPackageDialog", "The saved package changed before it could be reopened. Open it again to review the current file.");
 			result.archive.clear();
 		} else {
 			if (result.staging.loadBaseArchive(result.archive, &result.reloadError, control)) { result.staging.preparePlan(&result.reloadError, control); }
@@ -992,4 +992,4 @@ QDialog* showPackageValidationDialog(QWidget* parent, const PackageArchive& sour
 	return dialog;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

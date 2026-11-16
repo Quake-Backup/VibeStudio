@@ -13,7 +13,7 @@
 #include <iostream>
 #include <filesystem>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& error = {})
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
 		// Force a failure after fragment commit: the map backup directory is a file.
 		const auto folder = temp.filePath("save-failure"); QDir().mkpath(folder);
 		const auto failedMap = QDir(folder).filePath("map.map"), failedCopy = QDir(folder).filePath("copy.map");
-		expect(write(failedMap, original) && write(QDir(folder).filePath(".vibestudio"), "occupied"), "late save failure fixture");
+		expect(write(failedMap, original) && write(QDir(folder).filePath(".slopstudio"), "occupied"), "late save failure fixture");
 		result = cli({"map", "cut", failedMap, "--object", "brush:0", "--clipboard", failedCopy, "--output", failedMap, "--overwrite"}, false);
 		expect(result.value("clipboardWritten").toBool() && !result.value("mapWritten").toBool() && !read(failedCopy).isEmpty()
 			&& read(failedMap) == original, "partial publication is explicit and never loses cut objects");

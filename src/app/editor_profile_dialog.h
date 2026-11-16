@@ -8,7 +8,7 @@ class QListWidget;
 class QPushButton;
 class QTextBrowser;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class EditorProfileDialog final : public QDialog {
 	Q_OBJECT
@@ -25,4 +25,4 @@ private:
 	QLabel* m_count = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -9,7 +9,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct AiToolDescriptor {
 	QString id;
@@ -99,4 +99,4 @@ AiWorkflowResult fixAndRetryPlanAiExperiment(const QString& compilerLogText, con
 AiWorkflowResult stageAssetGenerationRequestAiExperiment(const QString& connectorId, const QString& kind, const QString& prompt, const AiAutomationPreferences& preferences, const QString& modelId = QString());
 AiWorkflowResult compareProviderOutputsAiExperiment(const QString& prompt, const QString& providerA, const QString& providerB, const AiAutomationPreferences& preferences, const QString& modelA = QString(), const QString& modelB = QString());
 
-} // namespace vibestudio
+} // namespace slopstudio

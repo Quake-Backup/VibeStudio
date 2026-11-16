@@ -5,7 +5,7 @@
 
 class QWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 struct RecoveredAssemblyDraft
 {
@@ -14,4 +14,4 @@ struct RecoveredAssemblyDraft
 	ModelAssemblyRecoveryRecord record;
 };
 std::optional<RecoveredAssemblyDraft> chooseModelAssemblyRecovery(QWidget *parent, const QString &directory);
-} // namespace vibestudio
+} // namespace slopstudio

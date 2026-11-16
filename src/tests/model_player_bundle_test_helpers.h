@@ -6,7 +6,7 @@
 
 #include <QBuffer>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 struct PlayerBundleFixture
 {
@@ -102,4 +102,4 @@ struct PlayerBundleFixture
 			   resolveModelAssembly(assembly, context, &resolved, error);
 	}
 };
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

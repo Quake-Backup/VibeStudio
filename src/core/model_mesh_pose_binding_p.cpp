@@ -2,7 +2,7 @@
 #include "core/model_skeleton.h"
 #include <QCoreApplication>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -77,4 +77,4 @@ const QVector<ModelJointMatrix> &ModelMeshPoseBinding::pose(const ModelMesh &mes
 	const int clip = mesh.skeleton.bakedClipForFrame[frame];
 	return clip < 0 ? bindPose : mesh.skeleton.clips[clip].frames[localFrames[frame]];
 }
-} // namespace vibestudio
+} // namespace slopstudio

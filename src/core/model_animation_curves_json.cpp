@@ -2,7 +2,7 @@
 #include "core/model_rotation_tracks.h"
 #include <QCoreApplication>
 #include <cmath>
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -118,4 +118,4 @@ bool modelClipCurvesFromJson(const QJsonValue &value, int frameCount, QVector<Mo
 	*groups = std::move(result);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

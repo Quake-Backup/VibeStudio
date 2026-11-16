@@ -21,7 +21,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct CodeRecoveryWriter::Result { QString id, path, error; int revision = 0; };
 
@@ -208,4 +208,4 @@ QString chooseTextRecovery(QWidget* parent, const QString& directory)
 	return accepted && selected ? result->records.at(selected->data(Qt::UserRole).toInt()).path : QString();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -51,19 +51,19 @@ bool checkModelStageEntry(const QString &virtualPath, const QByteArray &bytes, Q
 	const QString suffix = QFileInfo(normalized.normalizedPath).suffix().toLower();
 	const bool skin = suffix == QStringLiteral("skin");
 	if (!normalized.isSafe() || normalized.normalizedPath.isEmpty() || (!modelStageSuffixes().contains(suffix) && !skin))
-		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "Choose a safe MD3, MDL, MD2, MD5, IQM or ASE package path: %1")
+		return fail(error, QCoreApplication::translate("SlopStudioModelStage", "Choose a safe MD3, MDL, MD2, MD5, IQM or ASE package path: %1")
 							   .arg(virtualPath));
 	// The Quake engines keep model and skin paths in 64-byte fields (MAX_QPATH).
 	if ((quakeFamily(suffix) || skin) && normalized.normalizedPath.toUtf8().size() >= 64)
-		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "%1 is 64 bytes or longer; the game cannot load it.")
+		return fail(error, QCoreApplication::translate("SlopStudioModelStage", "%1 is 64 bytes or longer; the game cannot load it.")
 							   .arg(normalized.normalizedPath));
 	if (bytes.size() > modelDocumentMaxSourceBytes)
-		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "%1 is larger than 64 MiB.").arg(normalized.normalizedPath));
+		return fail(error, QCoreApplication::translate("SlopStudioModelStage", "%1 is larger than 64 MiB.").arg(normalized.normalizedPath));
 	// A Quake III .skin is text: "surface,shader" records.
 	if (skin)
 	{
 		if (bytes.trimmed().isEmpty() || bytes.contains('\0') || !bytes.contains(','))
-			return fail(error, QCoreApplication::translate("VibeStudioModelStage", "%1 does not hold a Quake III skin.")
+			return fail(error, QCoreApplication::translate("SlopStudioModelStage", "%1 does not hold a Quake III skin.")
 								   .arg(normalized.normalizedPath));
 		return true;
 	}
@@ -76,7 +76,7 @@ bool checkModelStageEntry(const QString &virtualPath, const QByteArray &bytes, Q
 						 : suffix == QStringLiteral("ase")	   ? head.startsWith("*3DSMAX_ASCIIEXPORT")
 															   : head.startsWith("MD5Version 10");
 	if (!matches)
-		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "%1 does not hold a %2 model.")
+		return fail(error, QCoreApplication::translate("SlopStudioModelStage", "%1 does not hold a %2 model.")
 							   .arg(normalized.normalizedPath, suffix.toUpper()));
 	return true;
 }
@@ -85,13 +85,13 @@ bool prepareModelStageSet(const ModelMesh &mesh, const ModelStageRequest &reques
 						  QString *error, const ModelWorkControl &control)
 {
 	if (!set)
-		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "Staging a model needs somewhere to put the set."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelStage", "Staging a model needs somewhere to put the set."));
 	ModelStageSet result;
 	const auto normalized = normalizePackageVirtualPath(request.virtualPath, false);
 	const QString base = normalized.normalizedPath;
 	const QString suffix = QFileInfo(base).suffix().toLower();
 	if (!normalized.isSafe() || !modelStageSuffixes().contains(suffix))
-		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "Choose a safe MD3, MDL, MD2, MD5, IQM or ASE package path: %1")
+		return fail(error, QCoreApplication::translate("SlopStudioModelStage", "Choose a safe MD3, MDL, MD2, MD5, IQM or ASE package path: %1")
 							   .arg(request.virtualPath));
 	const auto add = [&](const QString &path, const QByteArray &bytes, const QString &role)
 	{
@@ -134,17 +134,17 @@ bool prepareModelStageSet(const ModelMesh &mesh, const ModelStageRequest &reques
 		paths << entry.virtualPath.toLower();
 	paths.removeDuplicates();
 	if (paths.size() != result.entries.size())
-		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "Two files of the set share a package path."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelStage", "Two files of the set share a package path."));
 	if (view && view->isOpen())
 	{
 		result.dependencies = inspectModelMaterialDependencies(mesh, *view);
 		if (result.dependencies.cancelled || !modelWorkCheckpoint(control, ModelWorkPhase::Validating, 1, 1, error))
-			return fail(error, error && !error->isEmpty() ? *error : QCoreApplication::translate("VibeStudioModelStage", "Staging was cancelled."));
+			return fail(error, error && !error->isEmpty() ? *error : QCoreApplication::translate("SlopStudioModelStage", "Staging was cancelled."));
 		if (request.requireMaterials && result.dependencies.missingCount > 0)
-			return fail(error, QCoreApplication::translate("VibeStudioModelStage", "%n material(s) the model uses are missing from the package.", nullptr,
+			return fail(error, QCoreApplication::translate("SlopStudioModelStage", "%n material(s) the model uses are missing from the package.", nullptr,
 														   result.dependencies.missingCount));
 		if (result.dependencies.missingCount > 0)
-			result.notes << QCoreApplication::translate("VibeStudioModelStage",
+			result.notes << QCoreApplication::translate("SlopStudioModelStage",
 														 "%n material(s) the model uses are missing from the package; the game draws them as missing textures.",
 														 nullptr, result.dependencies.missingCount);
 	}
@@ -182,7 +182,7 @@ bool prepareModelStageExtras(const ModelMesh &mesh, const ModelStageRequest &req
 		for (const int clip : std::as_const(clips))
 		{
 			if (clip < 0 || clip >= mesh.skeleton.clips.size())
-				return fail(error, QCoreApplication::translate("VibeStudioModelStage", "There is no clip %1 to stage.").arg(clip));
+				return fail(error, QCoreApplication::translate("SlopStudioModelStage", "There is no clip %1 to stage.").arg(clip));
 			auto options = request.options;
 			options.clip = clip;
 			ModelExportReport report;
@@ -276,23 +276,23 @@ QString modelStageEntryStateText(ModelStageEntryState state)
 	switch (state)
 	{
 	case ModelStageEntryState::ReplacesPackageFile:
-		return QCoreApplication::translate("VibeStudioModelStage", "Replaces a package file");
+		return QCoreApplication::translate("SlopStudioModelStage", "Replaces a package file");
 	case ModelStageEntryState::ReplacesStagedFile:
-		return QCoreApplication::translate("VibeStudioModelStage", "Replaces a staged file");
+		return QCoreApplication::translate("SlopStudioModelStage", "Replaces a staged file");
 	case ModelStageEntryState::New:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioModelStage", "New");
+	return QCoreApplication::translate("SlopStudioModelStage", "New");
 }
 
 bool stageModelSet(const ModelStageSet &set, PackageStagingModel *staging, bool replaceExisting, QString *error)
 {
 	if (set.entries.isEmpty())
-		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "Prepare the model files before staging them."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelStage", "Prepare the model files before staging them."));
 	if (!staging || !staging->isLoaded() || staging->sourceFormat() == PackageArchiveFormat::Wad)
-		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "Open a folder, PAK, ZIP, or PK3 before staging a model."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelStage", "Open a folder, PAK, ZIP, or PK3 before staging a model."));
 	auto staged = *staging;
-	if (!staged.beginOperationGroup(QCoreApplication::translate("VibeStudioModelStage", "Stage model set"), error))
+	if (!staged.beginOperationGroup(QCoreApplication::translate("SlopStudioModelStage", "Stage model set"), error))
 		return false;
 	for (const auto &entry : set.entries)
 	{
@@ -307,7 +307,7 @@ bool stageModelSet(const ModelStageSet &set, PackageStagingModel *staging, bool 
 	if (!staged.endOperationGroup(true, error))
 		return false;
 	if (!staged.summary().canSave)
-		return fail(error, QCoreApplication::translate("VibeStudioModelStage", "Resolve package staging conflicts before staging the model."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelStage", "Resolve package staging conflicts before staging the model."));
 	*staging = std::move(staged);
 	return true;
 }
@@ -328,4 +328,4 @@ QJsonObject modelStageSetJson(const ModelStageSet &set)
 			{QStringLiteral("dependencies"), levelDependencyReportJson(set.dependencies)}};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

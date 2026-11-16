@@ -18,7 +18,7 @@
 #include <QTreeWidget>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 // The plan view's projection, for its screen and depth axes (core/level_nudge.h).
 MapRenderProjection planRenderProjection(MapViewportProjection projection)
@@ -581,4 +581,4 @@ void ApplicationShell::showLevelTextureResetDialog()
 		m_levelSurfaceTools->setStatus(error, levelSurfaceEditsPending()); statusBar()->showMessage(error, 6000);
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

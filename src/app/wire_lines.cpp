@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -324,4 +324,4 @@ bool renderWireLines(const QSize &size, const QVector<WireSegment> &segments, co
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

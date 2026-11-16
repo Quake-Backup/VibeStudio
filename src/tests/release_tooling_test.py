@@ -58,9 +58,9 @@ class VersionTests(unittest.TestCase):
         self.assertEqual(release_meta.tag_for(version), "v0.1.0-alpha.1")
         self.assertEqual(str(release_meta.version_from_tag("refs/tags/v0.1.0-alpha.1")), "0.1.0-alpha.1")
         names = release_meta.asset_names("0.1.0-alpha.1")
-        self.assertEqual(names["windows-installer"], "VibeStudio-0.1.0-alpha.1-windows-x64-setup.exe")
-        self.assertEqual(names["linux-appimage"], "VibeStudio-0.1.0-alpha.1-linux-x86_64.AppImage")
-        self.assertEqual(names["docs"], "VibeStudio-0.1.0-alpha.1-docs.zip")
+        self.assertEqual(names["windows-installer"], "SlopStudio-0.1.0-alpha.1-windows-x64-setup.exe")
+        self.assertEqual(names["linux-appimage"], "SlopStudio-0.1.0-alpha.1-linux-x86_64.AppImage")
+        self.assertEqual(names["docs"], "SlopStudio-0.1.0-alpha.1-docs.zip")
 
     def test_repository_version_is_valid(self):
         version = release_meta.read_version()
@@ -89,8 +89,8 @@ SAMPLE = textwrap.dedent("""\
 
     - First preview.
 
-    [Unreleased]: https://github.com/themuffinator/VibeStudio/compare/v0.1.0-alpha.1...HEAD
-    [0.1.0-alpha.1]: https://github.com/themuffinator/VibeStudio/releases/tag/v0.1.0-alpha.1
+    [Unreleased]: https://github.com/themuffinator/SlopStudio/compare/v0.1.0-alpha.1...HEAD
+    [0.1.0-alpha.1]: https://github.com/themuffinator/SlopStudio/releases/tag/v0.1.0-alpha.1
     """)
 
 
@@ -121,7 +121,7 @@ class ChangelogTests(unittest.TestCase):
         log.links = changelog.compare_links(log)
         self.assertEqual(changelog.check(log, "0.1.0-alpha.2"), [])
         self.assertEqual(log.links["0.1.0-alpha.2"],
-                         "https://github.com/themuffinator/VibeStudio/compare/v0.1.0-alpha.1...v0.1.0-alpha.2")
+                         "https://github.com/themuffinator/SlopStudio/compare/v0.1.0-alpha.1...v0.1.0-alpha.2")
         self.assertTrue(log.links["Unreleased"].endswith("compare/v0.1.0-alpha.2...HEAD"))
         notes = changelog.notes_text(released)
         self.assertIn("### Fixed", notes)
@@ -166,13 +166,13 @@ class ReleaseTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             artifacts = Path(temp) / "artifacts"
             files = {
-                "release-windows/VibeStudio-0.1.0-alpha.1-windows-x64-setup.exe": b"installer",
-                "release-windows/vibestudio-0.1.0-alpha.1-win64-x86_64.zip": b"portable",
-                "release-windows/vibestudio-0.1.0-alpha.1-win64-x86_64-source.zip": b"runtime source",
-                "release-macos/VibeStudio-0.1.0-alpha.1-macos-arm64.dmg": b"dmg",
-                "release-linux/VibeStudio-0.1.0-alpha.1-linux-x86_64.AppImage": b"appimage",
-                "release-docs/VibeStudio-0.1.0-alpha.1-docs.zip": b"docs",
-                "release-source/VibeStudio-0.1.0-alpha.1-source.tar.gz": b"source",
+                "release-windows/SlopStudio-0.1.0-alpha.1-windows-x64-setup.exe": b"installer",
+                "release-windows/slopstudio-0.1.0-alpha.1-win64-x86_64.zip": b"portable",
+                "release-windows/slopstudio-0.1.0-alpha.1-win64-x86_64-source.zip": b"runtime source",
+                "release-macos/SlopStudio-0.1.0-alpha.1-macos-arm64.dmg": b"dmg",
+                "release-linux/SlopStudio-0.1.0-alpha.1-linux-x86_64.AppImage": b"appimage",
+                "release-docs/SlopStudio-0.1.0-alpha.1-docs.zip": b"docs",
+                "release-source/SlopStudio-0.1.0-alpha.1-source.tar.gz": b"source",
             }
             for name, data in files.items():
                 path = artifacts / name
@@ -181,22 +181,22 @@ class ReleaseTests(unittest.TestCase):
             output = Path(temp) / "dist"
             manifest = release.stage(artifacts, output, "0.1.0-alpha.1")
             published = sorted(p.name for p in output.iterdir())
-            self.assertIn("VibeStudio-0.1.0-alpha.1-windows-x64-portable.zip", published)
-            self.assertIn("VibeStudio-0.1.0-alpha.1-windows-x64-runtime-source.zip", published)
+            self.assertIn("SlopStudio-0.1.0-alpha.1-windows-x64-portable.zip", published)
+            self.assertIn("SlopStudio-0.1.0-alpha.1-windows-x64-runtime-source.zip", published)
             self.assertIn("SHA256SUMS.txt", published)
             self.assertEqual(len(manifest["assets"]), 7)
             sums = (output / "SHA256SUMS.txt").read_text(encoding="utf-8").splitlines()
             self.assertEqual(len(sums), 7)
             self.assertTrue(all(len(line.split("  ")[0]) == 64 for line in sums))
-            (artifacts / "release-macos" / "VibeStudio-0.1.0-alpha.1-macos-arm64.dmg").unlink()
+            (artifacts / "release-macos" / "SlopStudio-0.1.0-alpha.1-macos-arm64.dmg").unlink()
             with self.assertRaises(ValueError):
                 release.stage(artifacts, output, "0.1.0-alpha.1")
 
     def test_notes_include_status_downloads_and_checksums(self):
-        manifest = {"assets": [{"file": "VibeStudio-0.1.0-alpha.1-docs.zip", "bytes": 2 << 20}]}
+        manifest = {"assets": [{"file": "SlopStudio-0.1.0-alpha.1-docs.zip", "bytes": 2 << 20}]}
         notes = release.render_notes(Version.parse("0.1.0-alpha.1"), "0.1.0-alpha.1", "HEAD", manifest, True)
         self.assertIn("[!WARNING]", notes)
-        self.assertIn("VibeStudio-0.1.0-alpha.1-docs.zip` (2.0 MB)", notes)
+        self.assertIn("SlopStudio-0.1.0-alpha.1-docs.zip` (2.0 MB)", notes)
         self.assertIn("SHA256SUMS.txt", notes)
         self.assertIn("## Build details", notes)
 
@@ -235,7 +235,7 @@ class DocumentationTests(unittest.TestCase):
             self.assertIn('class="hero"', index)
             self.assertIn('aria-current="page"', index)
             search = (output / "assets" / "search-index.js").read_text(encoding="utf-8")
-            self.assertTrue(search.startswith("window.VIBESTUDIO_SEARCH="))
+            self.assertTrue(search.startswith("window.SLOPSTUDIO_SEARCH="))
             levels = (output / "levels.html").read_text(encoding="utf-8")
             self.assertIn("chip-partial", levels)
             self.assertNotIn('href="levels.md', levels)

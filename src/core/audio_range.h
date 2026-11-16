@@ -1,7 +1,7 @@
 #pragma once
 #include "core/audio_session.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioRangeEdit {
 	// Half-open sample-time range. Exactly one scope: all tracks, or distinct
@@ -24,4 +24,4 @@ struct AudioRangeResult {
 
 // Transactional descriptor/envelope edit; samples and caller state are retained.
 AudioRangeResult editAudioRange(const AudioSession &session, const AudioRangeEdit &edit);
-} // namespace vibestudio
+} // namespace slopstudio

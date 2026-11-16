@@ -4,7 +4,7 @@
 #include <array>
 #include <span>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioSession;
 inline constexpr int AudioMeterStripLimit = 65; // 64 tracks/buses and master.
@@ -78,4 +78,4 @@ AudioMeterReport measureAudioSessionMeters(const AudioSession &session, qint64 f
                                            int blockFrames = 4096, const AudioWorkControl &control = {},
                                            const std::function<void(qint64, qint64)> &progress = {});
 QJsonObject audioMeterReportToJson(const AudioSession &session, const AudioMeterReport &report);
-} // namespace vibestudio
+} // namespace slopstudio

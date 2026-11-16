@@ -19,7 +19,7 @@
 
 // `model uv-layout` (skin templates) and `model skin-transfer` (rebaking a
 // skin onto changed UVs), both writing images through the guarded model writer.
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -395,4 +395,4 @@ ModelToolsCliResult runModelSkinTransfer(const QStringList &args)
 							.arg(report.maxProjectionDistance, 0, 'g', 6);
 	return output;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

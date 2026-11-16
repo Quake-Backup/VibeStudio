@@ -2,7 +2,7 @@
 #include "core/audio_effects.h"
 #include "core/audio_project.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr qint64 AudioEffectPresetByteLimit = 64 * 1024;
 struct AudioEffectPreset {
@@ -28,4 +28,4 @@ bool readAudioEffectPreset(const QString &path, AudioEffectPreset *preset, Audio
 AudioProjectSaveReport writeAudioEffectPreset(const AudioEffectPreset &preset, const AudioProjectSaveRequest &request,
                                               const QStringList &protectedPaths = {},
                                               const AudioWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

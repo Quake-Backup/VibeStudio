@@ -23,7 +23,7 @@
 
 #include <optional>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -338,4 +338,4 @@ void ModelAssemblyDialog::chooseWeaponBundle()
 	fitDialogToScreen(&dialog, QSize(640, 640));
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

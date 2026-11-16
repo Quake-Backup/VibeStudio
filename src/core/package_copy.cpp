@@ -7,9 +7,9 @@
 #include <QFileInfo>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
-QString text(const char* message) { return QCoreApplication::translate("VibeStudioPackageCopy", message); }
+QString text(const char* message) { return QCoreApplication::translate("SlopStudioPackageCopy", message); }
 QString key(const QString& path) { return path.normalized(QString::NormalizationForm_C).toCaseFolded(); }
 bool hasParent(const QString& path, const QSet<QString>& directories)
 {
@@ -60,8 +60,8 @@ public:
 			storage->setAutoRemove(false);
 			if (reservation) { reservation->retain(true); }
 			if (sharedReservation) { sharedReservation->retain(true); }
-			error = text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "Temporary copy cleanup failed; files may remain in %1.")).arg(storage->path());
-			if (reservation) { error += QLatin1Char('\n') + text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "The full reservation remains charged for this session.")); }
+			error = text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "Temporary copy cleanup failed; files may remain in %1.")).arg(storage->path());
+			if (reservation) { error += QLatin1Char('\n') + text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "The full reservation remains charged for this session.")); }
 		}
 		reservation.reset(); sharedReservation.reset(); storage.reset(); pending = false;
 		return error;
@@ -115,10 +115,10 @@ PackageCopyResult preparePackageCopyEntries(const PackageArchiveReader& source, 
 	if (cancelled()) { result.cancelled = true; return result; }
 	if (!source.isOpen() && !source.errorString().isEmpty()) { return fail(source.errorString()); }
 	if (!source.isOpen() || request.entryIndexes.isEmpty()) {
-		return fail(text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "Select package entries to copy.")));
+		return fail(text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "Select package entries to copy.")));
 	}
 	if (request.maximumFiles <= 0 || request.maximumEntries <= 0 || request.entryIndexes.size() > request.maximumEntries) {
-		return fail(text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "The copy selection exceeds its entry limit. Use Extract Selected for larger selections.")));
+		return fail(text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "The copy selection exceeds its entry limit. Use Extract Selected for larger selections.")));
 	}
 	const auto entries = source.entries();
 	QSet<qsizetype> roots;
@@ -126,7 +126,7 @@ PackageCopyResult preparePackageCopyEntries(const PackageArchiveReader& source, 
 	for (const qsizetype index : request.entryIndexes) {
 		if (cancelled()) { result.cancelled = true; return result; }
 		if (index < 0 || index >= entries.size() || !isSafePackageVirtualPath(entries.at(index).virtualPath)) {
-			return fail(text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "The selected package entry is missing or has an unsafe path.")));
+			return fail(text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "The selected package entry is missing or has an unsafe path.")));
 		}
 		roots.insert(index);
 		if (entries.at(index).kind == PackageEntryKind::Directory) { directories.insert(key(entries.at(index).virtualPath)); }
@@ -140,22 +140,22 @@ PackageCopyResult preparePackageCopyEntries(const PackageArchiveReader& source, 
 		const QString name = key(entry.virtualPath);
 		if (!roots.contains(index) && !directories.contains(name) && !hasParent(name, directories)) { continue; }
 		if (++selectedCount > request.maximumEntries) {
-			return fail(text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "The copy selection exceeds its entry limit. Use Extract Selected for larger selections.")));
+			return fail(text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "The copy selection exceeds its entry limit. Use Extract Selected for larger selections.")));
 		}
 		int parents = entry.kind == PackageEntryKind::Directory ? 1 : 0;
 		for (QString path = entry.virtualPath; !path.isEmpty(); path = packageVirtualPathParent(path)) {
 			payloadEntries.insert(path);
 			if (payloadEntries.size() > request.maximumEntries) {
-				return fail(text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "The copy selection exceeds its entry limit. Use Extract Selected for larger selections.")));
+				return fail(text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "The copy selection exceeds its entry limit. Use Extract Selected for larger selections.")));
 			}
 			if (!packageVirtualPathParent(path).isEmpty()) { ++parents; }
 		}
 		if ((request.session || !request.storeDirectory.isEmpty()) && parents >= PackageCopyStoreDepthLimit) {
-			return fail(text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "Temporary copy paths exceed the managed storage depth limit. Use Extract Selected for this layout.")));
+			return fail(text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "Temporary copy paths exceed the managed storage depth limit. Use Extract Selected for this layout.")));
 		}
 		if (entry.kind != PackageEntryKind::File) { continue; }
 		if (++result.fileCount > request.maximumFiles || entry.sizeBytes > request.maximumBytes - result.totalBytes) {
-			return fail(text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "The copy selection exceeds its file or byte limit. Use Extract Selected for larger selections.")));
+			return fail(text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "The copy selection exceeds its file or byte limit. Use Extract Selected for larger selections.")));
 		}
 		result.totalBytes += entry.sizeBytes;
 		extraction.entrySelections << PackageExtractionSelection{index, {}};
@@ -185,11 +185,11 @@ PackageCopyResult preparePackageCopyEntries(const PackageArchiveReader& source, 
 	result.session = session;
 	if (session && (!session->isValid() || (!request.parentDirectory.isEmpty()
 		&& QDir::cleanPath(request.parentDirectory) != QDir::cleanPath(session->path())))) {
-		return fail(text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "The temporary copy session changed or does not own the requested directory.")));
+		return fail(text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "The temporary copy session changed or does not own the requested directory.")));
 	}
 	const QString parentDirectory = session ? session->path() : request.parentDirectory;
 	if (!safeParent(parentDirectory)) {
-		return fail(text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "Package copies require an existing session directory without symbolic links or junctions.")));
+		return fail(text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "Package copies require an existing session directory without symbolic links or junctions.")));
 	}
 	std::unique_ptr<PackageCopyStoreReservation> sharedReservation;
 	if (session) {
@@ -202,7 +202,7 @@ PackageCopyResult preparePackageCopyEntries(const PackageArchiveReader& source, 
 		[session](QTemporaryDir* directory) { delete directory; });
 	if (session) { storage->setAutoRemove(false); }
 	if (!storage->isValid()) {
-		return fail(text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "Unable to create a temporary package copy directory.")));
+		return fail(text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "Unable to create a temporary package copy directory.")));
 	}
 	const auto discard = [&] {
 		if (!storage->remove()) {
@@ -210,8 +210,8 @@ PackageCopyResult preparePackageCopyEntries(const PackageArchiveReader& source, 
 			if (reservation) { reservation->retain(true); }
 			if (sharedReservation) { sharedReservation->retain(true); }
 			if (!result.error.isEmpty()) { result.error += QLatin1Char('\n'); }
-			result.error += text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "Temporary copy cleanup failed; files may remain in %1.")).arg(storage->path());
-			if (reservation) { result.error += QLatin1Char('\n') + text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "The full reservation remains charged for this session.")); }
+			result.error += text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "Temporary copy cleanup failed; files may remain in %1.")).arg(storage->path());
+			if (reservation) { result.error += QLatin1Char('\n') + text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "The full reservation remains charged for this session.")); }
 		}
 		return result;
 	};
@@ -220,7 +220,7 @@ PackageCopyResult preparePackageCopyEntries(const PackageArchiveReader& source, 
 	result.cancelled = result.extraction.cancelled || cancelled();
 	if (result.cancelled) { return discard(); }
 	if (!result.extraction.succeeded() || result.extraction.skippedCount || result.extraction.processedCount != selectedCount) {
-		result.error = text(QT_TRANSLATE_NOOP("VibeStudioPackageCopy", "Package copies were not completed; no files were handed off. %1"))
+		result.error = text(QT_TRANSLATE_NOOP("SlopStudioPackageCopy", "Package copies were not completed; no files were handed off. %1"))
 			.arg(result.extraction.warnings.join(QLatin1Char('\n')));
 		return discard();
 	}
@@ -243,4 +243,4 @@ PackageCopyResult copyPackageEntries(const PackageArchiveReader& source, const P
 	return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

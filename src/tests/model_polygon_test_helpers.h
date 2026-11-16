@@ -19,7 +19,7 @@
 #include <functional>
 #include <iostream>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 struct PolygonChecks
 {
@@ -232,4 +232,4 @@ inline bool runPolygonCli(const QString &executable, const QString &directory, c
 		*json = QJsonDocument::fromJson(out).object();
 	return process.exitStatus() == QProcess::NormalExit && process.exitCode() == expected;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

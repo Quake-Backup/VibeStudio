@@ -6,7 +6,7 @@
 // Workflow reference: NRC radiant/selection_mtor_uv.cpp UVManipulator
 // (testSelect, Transform, its snapping and freezeTransform) and
 // radiant/tools.cpp MouseUV at 449778b3 (GPL-2.0-or-later). Original
-// implementation over VibeStudio's Face inspector and UV Editor services; see
+// implementation over SlopStudio's Face inspector and UV Editor services; see
 // docs/CREDITS.md.
 
 #include "core/level_uv_tool.h"
@@ -20,11 +20,11 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelUvTool)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelUvTool)
 };
 
 bool fail(QString* error, const QString& message)
@@ -929,4 +929,4 @@ bool applyLevelUvToolEdit(LevelMapDocument* document, const LevelUvLayout& layou
 	return prepareLevelUvToolEdit(*document, layout, edit, &plan, result, error) && commitLevelSurfaceEdit(document, plan, error);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

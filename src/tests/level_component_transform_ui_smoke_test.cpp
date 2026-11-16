@@ -17,13 +17,13 @@
 #include <QTimer>
 #include <QTranslator>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 class Expansion final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context,const char* text,const char*,int) const override {
-		if (QByteArray(context) != "vibestudio::LevelComponentTransformDialog" && QByteArray(context) != "LevelComponentTransformDialog") { return {}; }
+		if (QByteArray(context) != "slopstudio::LevelComponentTransformDialog" && QByteArray(context) != "LevelComponentTransformDialog") { return {}; }
 		const auto source = QString::fromUtf8(text); return QStringLiteral("[%1%2]").arg(source,QString(source.size()/3,'~'));
 	}
 };
@@ -73,7 +73,7 @@ int main(int argc,char** argv)
 		expect(dialog.request().pivot.valid && dialog.request().pivot.x == 7 && dialog.request().amount == 15,"custom pivot and angle");
 		dialog.setApplyHandler([](const auto&,QString* problem) { *problem = QStringLiteral("Geometry refused; adjust the transform."); return false; });
 		apply->click(); expect(dialog.isVisible() && !dialog.findChild<QLabel*>("componentTransformError")->text().isEmpty(),"failed transform keeps editable dialog");
-		const auto evidence = qEnvironmentVariable("VIBESTUDIO_COMPONENT_UI_EVIDENCE");
+		const auto evidence = qEnvironmentVariable("SLOPSTUDIO_COMPONENT_UI_EVIDENCE");
 		if (!evidence.isEmpty()) { QImage rendered(dialog.size(),QImage::Format_ARGB32_Premultiplied); rendered.fill(Qt::transparent); dialog.render(&rendered); expect(rendered.save(QDir(evidence).filePath(QStringLiteral("components-%1.png").arg(scale))),"owned widget render"); }
 		dialog.setApplyHandler({}); apply->click(); expect(dialog.result() == QDialog::Accepted,"successful dialog closes");
 		if (scale == 200) { app.removeTranslator(&expansion); }

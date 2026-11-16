@@ -141,7 +141,7 @@ also given (the editor's **Add as a new surface**). Without a binding on a skinn
 exit code 4. See [binding new geometry](../MODEL_SKIN_PROVENANCE.md#bind-new-geometry).
 
 ```sh
-vibestudio --cli model tool ./models/player.mesh.json --tool add --primitive cube --at 0,0,64 --size 12,12,12 --bind-joint head --output ./models/helmet.mesh.json
+slopstudio --cli model tool ./models/player.mesh.json --tool add --primitive cube --at 0,0,64 --size 12,12,12 --bind-joint head --output ./models/helmet.mesh.json
 ```
 
 On skeletal models with a skinned surface, `model edit --operation
@@ -200,7 +200,7 @@ DIR` writes the md5mesh, every clip's md5anim and the `.def`. See
 [game declarations](../MODEL_GAME_DECLARATIONS.md).
 
 ```sh
-vibestudio --cli model declarations ./models/imp.mesh.json --target doom3 --name monster_imp --set ./out/base --json
+slopstudio --cli model declarations ./models/imp.mesh.json --target doom3 --name monster_imp --set ./out/base --json
 ```
 
 `model ik` solves two-bone inverse kinematics over an inclusive clip sample
@@ -213,7 +213,7 @@ per sample. It shares the GUI pose service, source writer and dry-run validation
 See [inverse kinematics](../MODEL_IK.md) for required options and examples.
 
 ```sh
-vibestudio --cli model ik ./models/monster.mesh.json --clip 0 --first 0 --last 20 --root-joint tail1 --end-joint tail6 --solver fabrik --target 0,-40,8 --pole 0,-20,30 --output ./out/tail.mesh.json --json
+slopstudio --cli model ik ./models/monster.mesh.json --clip 0 --first 0 --last 20 --root-joint tail1 --end-joint tail6 --solver fabrik --target 0,-40,8 --pole 0,-20,30 --output ./out/tail.mesh.json --json
 ```
 
 `model build` first checks the model against a delivery target, the game the
@@ -341,21 +341,21 @@ q2-player-review|q2-player-export --player-name N --body B --weapon W --q2-skin
 NAME=IMAGE` a Quake II player, whose inputs may also be `package:PATH` entries. See [weapon packages](../MODEL_ASSEMBLY.md#weapon-packages)
 and [Quake II player packages](../MODEL_ASSEMBLY.md#quake-ii-player-packages).
 
-VibeStudio includes a full command line that runs the same services as the studio. Use it to script
-package checks, builds and conversions, to run VibeStudio in CI, or to inspect files without opening
+SlopStudio includes a full command line that runs the same services as the studio. Use it to script
+package checks, builds and conversions, to run SlopStudio in CI, or to inspect files without opening
 the studio. This page shows how to run it, the options every command shares, and how to use its
 output in scripts.
 
 > [!NOTE]
 > **Status: Available.** The command line covers every studio area, from projects and packages to
 > maps, models, builds and diagnostics, and shares its services and tests with the studio. Like the
-> rest of VibeStudio, it has had little real-world use so far.
+> rest of SlopStudio, it has had little real-world use so far.
 
 ## Connect map entities
 
 ```sh
-vibestudio --cli map connect maps/start.map --profile netradiant-custom --object entity:2 --object brush:0 --output maps/linked.map --json
-vibestudio --cli map connect maps/start.map --object entity:2 --object entity:7 --kill-target --game quake --output maps/kill-linked.map --dry-run --json
+slopstudio --cli map connect maps/start.map --profile netradiant-custom --object entity:2 --object brush:0 --output maps/linked.map --json
+slopstudio --cli map connect maps/start.map --object entity:2 --object entity:7 --kill-target --game quake --output maps/kill-linked.map --dry-run --json
 ```
 
 `map connect` (alias `map connect-entities`) connects sources to the last selected
@@ -380,10 +380,10 @@ transaction, and preserve the input file.
 ## Move brushes between map entities
 
 ```sh
-vibestudio --cli map move-to-entity maps/start.map --object brush:12 --object brush:7 --output maps/moved.map --json
-vibestudio --cli map move-to-world maps/start.map --object brush:12 --selected-only --output maps/world.map --json
-vibestudio --cli map explode-entity maps/start.map --object entity:4 --rename-targetnames --output maps/pieces.map --json
-vibestudio --cli map detail maps/start.map --object brush:12 --structural --policy trenchbroom --output maps/structural.map --json
+slopstudio --cli map move-to-entity maps/start.map --object brush:12 --object brush:7 --output maps/moved.map --json
+slopstudio --cli map move-to-world maps/start.map --object brush:12 --selected-only --output maps/world.map --json
+slopstudio --cli map explode-entity maps/start.map --object entity:4 --rename-targetnames --output maps/pieces.map --json
+slopstudio --cli map detail maps/start.map --object brush:12 --structural --policy trenchbroom --output maps/structural.map --json
 ```
 
 `map move-to-entity` (alias `map move-primitives`) moves the `--object` brushes
@@ -410,9 +410,9 @@ or `--policy` is a usage error (2). JSON reports `target`, `targetClass`,
 ## Colour map entities
 
 ```sh
-vibestudio --cli map entity-colour maps/start.map --object entity:3 --object brush:12 --colour "1 0.5 0" --output maps/orange.map --json
-vibestudio --cli map entity-colour maps/start.map --object entity:5 --object entity:3 --normalise --output maps/normalised.map --json
-vibestudio --cli map entity-colour maps/start.map --where class=light --normalise --each --output maps/lights.map --json
+slopstudio --cli map entity-colour maps/start.map --object entity:3 --object brush:12 --colour "1 0.5 0" --output maps/orange.map --json
+slopstudio --cli map entity-colour maps/start.map --object entity:5 --object entity:3 --normalise --output maps/normalised.map --json
+slopstudio --cli map entity-colour maps/start.map --where class=light --normalise --each --output maps/lights.map --json
 ```
 
 `map entity-colour` (alias `map entity-color`) writes the `_color` key of the
@@ -438,9 +438,9 @@ still writes the `--output` copy, with `changed` empty.
 ## Create map entities by class
 
 ```sh
-vibestudio --cli map create-entity maps/start.map --class light --origin 64,0,96 --output maps/lit.map --json
-vibestudio --cli map create-entity maps/start.map --class info_player_start --definitions defs/game.fgd --ray-origin 32,32,500 --ray-direction 0,0,-1 --view-direction 0,0,-1 --grid 16 --output maps/start-spawn.map --json
-vibestudio --cli map create-entity maps/start.map --class func_door --object brush:12 --key speed=100 --output maps/door.map --json
+slopstudio --cli map create-entity maps/start.map --class light --origin 64,0,96 --output maps/lit.map --json
+slopstudio --cli map create-entity maps/start.map --class info_player_start --definitions defs/game.fgd --ray-origin 32,32,500 --ray-direction 0,0,-1 --view-direction 0,0,-1 --grid 16 --output maps/start-spawn.map --json
+slopstudio --cli map create-entity maps/start.map --class func_door --object brush:12 --key speed=100 --output maps/door.map --json
 ```
 
 `map create-entity` does what a **Create** command on the Levels page does,
@@ -468,9 +468,9 @@ or `brushes` and `patches` for a brush class.
 ## Expand and move map layers
 
 ```sh
-vibestudio --cli editor scene select maps/start.map --objects brush:12 --expand-layers --json
-vibestudio --cli editor scene move-to-layer maps/start.map --id LAYER-ID --objects brush:12,entity:3 --output maps/layered.map --json
-vibestudio --cli editor scene move-to-layer maps/start.map --id default --objects brush:12 --output maps/default.map --dry-run
+slopstudio --cli editor scene select maps/start.map --objects brush:12 --expand-layers --json
+slopstudio --cli editor scene move-to-layer maps/start.map --id LAYER-ID --objects brush:12,entity:3 --output maps/layered.map --json
+slopstudio --cli editor scene move-to-layer maps/start.map --id default --objects brush:12 --output maps/default.map --dry-run
 ```
 
 `editor scene select --expand-layers` does what **Expand Selection to Layers**
@@ -495,9 +495,9 @@ was. See [Work with layers](levels.md#work-with-layers) for the editing workflow
 ## Keep groups for TrenchBroom
 
 ```sh
-vibestudio --cli editor scene list maps/tb.map --json
-vibestudio --cli editor scene save maps/start.map --scene-format trenchbroom --output maps/start-tb.map --json
-vibestudio --cli editor scene save maps/start-tb.map --scene-format vibestudio --output maps/start.map --overwrite
+slopstudio --cli editor scene list maps/tb.map --json
+slopstudio --cli editor scene save maps/start.map --scene-format trenchbroom --output maps/start-tb.map --json
+slopstudio --cli editor scene save maps/start-tb.map --scene-format slopstudio --output maps/start.map --overwrite
 ```
 
 A map that TrenchBroom saved opens with its layers, groups and linked groups in
@@ -505,7 +505,7 @@ the scene, read from its `_tb_` keys, and `editor scene list` reports the scene
 with `storage` `trenchbroom`. `editor scene save` writes the map again;
 `--scene-format trenchbroom` writes its layers and groups as TrenchBroom's
 `func_group` entities too, so TrenchBroom opens it with the same groups and
-linked groups, and `--scene-format vibestudio` keeps them in VibeStudio's scene
+linked groups, and `--scene-format slopstudio` keeps them in SlopStudio's scene
 note alone. Every other writing `editor scene` operation takes the same option;
 without it a map keeps the form it opened with. JSON reports the form written as
 `sceneStorage`. WADs refuse `trenchbroom` (exit code 2). See
@@ -514,11 +514,11 @@ without it a map keeps the form it opened with. JSON reports the form written as
 ## Import maps and export copies
 
 ```sh
-vibestudio --cli map import maps/start.map --from maps/room.map --output maps/start-room.map --json
-vibestudio --cli map import maps/start.map --from maps/old.bsp --output maps/start-old.map --dry-run --json
-vibestudio --cli editor scene omit-from-export maps/start.map --id LAYER-ID --omit true --output maps/start-marked.map
-vibestudio --cli map export maps/start-marked.map --output build/start-export.map --json
-vibestudio --cli map copy maps/start.map --object brush:12 --object entity:3 --standalone --worldspawn-keys --output maps/piece.map
+slopstudio --cli map import maps/start.map --from maps/room.map --output maps/start-room.map --json
+slopstudio --cli map import maps/start.map --from maps/old.bsp --output maps/start-old.map --dry-run --json
+slopstudio --cli editor scene omit-from-export maps/start.map --id LAYER-ID --omit true --output maps/start-marked.map
+slopstudio --cli map export maps/start-marked.map --output build/start-export.map --json
+slopstudio --cli map copy maps/start.map --object brush:12 --object entity:3 --standalone --worldspawn-keys --output maps/piece.map
 ```
 
 `map import` does what **Import Map…** does: it adds every brush, patch and
@@ -529,7 +529,7 @@ groups keep their structure, but layers are not recreated: everything joins the
 creation layer, or the group `--context UUID` opens. Names this map already uses
 (`targetname`, `target`, `killtarget` and the other target keys) get the next
 free number, `door` becoming `door1`; `--keep-target-names` keeps them. A `.bsp`
-is converted to a `.map` with the VibeMap3 convert profile first, for the game
+is converted to a `.map` with the SlopMap3 convert profile first, for the game
 its header names; add `--workspace-root` for a project's compiler paths, game
 and installation folder, or `--game KEY` (such as `et` or `jk2`) to choose
 between games that share a BSP format. JSON reports the `preview` counts and
@@ -550,9 +550,9 @@ more layers, or use `--include-omitted` to keep marked ones. JSON reports
 ## Read and set map properties
 
 ```sh
-vibestudio --cli map inspect maps/start.map --json
-vibestudio --cli map properties maps/start.map --game-root C:/Games/Quake --json
-vibestudio --cli map properties maps/start.map --soft-bounds "-2048 -2048 -512 2048 2048 1024" --enable-mod hipnotic --output maps/start-props.map
+slopstudio --cli map inspect maps/start.map --json
+slopstudio --cli map properties maps/start.map --game-root C:/Games/Quake --json
+slopstudio --cli map properties maps/start.map --soft-bounds "-2048 -2048 -512 2048 2048 1024" --enable-mod hipnotic --output maps/start-props.map
 ```
 
 `map inspect --json` reports Map Info in `statistics`: `groupEntityCount`,
@@ -578,9 +578,9 @@ See [Check maps and entities](levels.md#check-maps-and-entities).
 ## Export geometry as OBJ
 
 ```sh
-vibestudio --cli map export-obj maps/start.map --package baseq3 --output build/start.obj --json
-vibestudio --cli map export-obj maps/start.map --object brush:12 --group material --output build/piece.obj --dry-run
-vibestudio --cli map export-obj maps/start.map --package baseq3 --material-paths export --ignore sky1 --output build/start.obj --overwrite
+slopstudio --cli map export-obj maps/start.map --package baseq3 --output build/start.obj --json
+slopstudio --cli map export-obj maps/start.map --object brush:12 --group material --output build/piece.obj --dry-run
+slopstudio --cli map export-obj maps/start.map --package baseq3 --material-paths export --ignore sky1 --output build/start.obj --overwrite
 ```
 
 `map export-obj` does what **Export Map as OBJ…** does, or, with repeatable
@@ -611,20 +611,20 @@ See [Export geometry to a modeller](levels.md#export-geometry-to-a-modeller).
 ## Repeat a compile and set launch arguments
 
 ```sh
-vibestudio --cli compiler rerun --last maps/start.map --workspace-root . --json
-vibestudio --cli launch profiles --json
-vibestudio --cli launch profile-set user-dev --name "Developer" --arguments "+set fs_game {mod} +set developer 1 +devmap {map}" --engine idTech3
-vibestudio --cli launch extra-args --arguments "+set developer 1"
-vibestudio --cli launch plan --map start --launch-profile user-dev --json
+slopstudio --cli compiler rerun --last maps/start.map --workspace-root . --json
+slopstudio --cli launch profiles --json
+slopstudio --cli launch profile-set user-dev --name "Developer" --arguments "+set fs_game {mod} +set developer 1 +devmap {map}" --engine idTech3
+slopstudio --cli launch extra-args --arguments "+set developer 1"
+slopstudio --cli launch plan --map start --launch-profile user-dev --json
 ```
 
 `compiler rerun --last <map>` replays the map's newest saved compile, as
-**Re-run Last Compile** does: it looks in `.vibestudio/compiler-runs` under
+**Re-run Last Compile** does: it looks in `.slopstudio/compiler-runs` under
 `--workspace-root` and the map's folder, and saves the new run beside the one it
 repeats (or at `--manifest`). JSON adds `replayedManifestPath`; no saved run of
 the map exits with code 3. A saved run can come from someone else, so its
 program must be one of your configured compilers for its game (`compiler
-set-path`, `--compiler-search-paths`, VibeStudio's compiler folders or PATH) or
+set-path`, `--compiler-search-paths`, SlopStudio's compiler folders or PATH) or
 trusted before for that project; otherwise the command exits with code 4,
 prints the command line and JSON `programTrust`, and `--trust-programs` trusts
 it in your settings and replays it. `launch profiles` lists the built-in launch profiles
@@ -646,7 +646,7 @@ For a one-off unique copy or array, use the same operation as **Duplicate, Make
 Unique** in the editor:
 
 ```sh
-vibestudio --cli map duplicate maps/start.map --object brush:0 --object entity:2 --make-unique --delta 64,0,0 --copies 3 --output maps/copied.map --json
+slopstudio --cli map duplicate maps/start.map --object brush:0 --object entity:2 --make-unique --delta 64,0,0 --copies 3 --output maps/copied.map --json
 ```
 
 `--make-unique` clones partial brush/patch entity owners and remaps copied names
@@ -659,7 +659,7 @@ See [duplication](levels.md#edit-quake-family-maps) for the editing workflow.
 **Copy Repeat Recipe** in Levels exports a recorded sequence for automation:
 
 ```sh
-vibestudio --cli map repeat maps/start.map --recipe repeat.json --object brush:0 --output maps/repeated.map --json
+slopstudio --cli map repeat maps/start.map --recipe repeat.json --object brush:0 --output maps/repeated.map --json
 ```
 
 The shared core validates the entire sequence before saving. Repeated `--object`
@@ -720,10 +720,10 @@ written inside that package. `--palette quake|quake2|doom|heretic|hexen|generic`
 chooses the palette family for MDL skins when the package has none.
 
 ```sh
-vibestudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./out/player.mesh.json --dry-run --json
-vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --json
-vibestudio --cli model pose ./out/monster.mesh.json --operation working-set --clips idle,run --output ./out/run.mesh.json
-vibestudio --cli model pose ./out/walk.mesh.json --operation mirror --clip 0 --first 0 --last 11 --output ./out/walk-mirrored.mesh.json
+slopstudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./out/player.mesh.json --dry-run --json
+slopstudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --json
+slopstudio --cli model pose ./out/monster.mesh.json --operation working-set --clips idle,run --output ./out/run.mesh.json
+slopstudio --cli model pose ./out/walk.mesh.json --operation mirror --clip 0 --first 0 --last 11 --output ./out/walk-mirrored.mesh.json
 ```
 
 `model inspect --json` gives every decode warning a severity in `issues`
@@ -736,8 +736,8 @@ advisories and accepted omissions. See
 [Decode issues](../MODEL_FORMATS.md#decode-issues).
 
 ```sh
-vibestudio --cli model inspect ./models/crate.lwo --json
-vibestudio --cli model import ./models/crate.lwo --accept-omissions --output ./out/crate.mesh.json --json
+slopstudio --cli model inspect ./models/crate.lwo --json
+slopstudio --cli model import ./models/crate.lwo --accept-omissions --output ./out/crate.mesh.json --json
 ```
 
 `model audit PATH` checks every model in a package, a folder or a whole game
@@ -753,8 +753,8 @@ the source, and `--strict` exits 4 when anything fails, is damaged or drifts
 past its tolerance, so a run can guard against decoder regressions.
 
 ```sh
-vibestudio --cli model audit ./quake/id1 --formats mdl --round-trip --json
-vibestudio --cli model audit ./baseq3/pak0.pk3 --report ./out/pak0-audit.json --strict
+slopstudio --cli model audit ./quake/id1 --formats mdl --round-trip --json
+slopstudio --cli model audit ./baseq3/pak0.pk3 --report ./out/pak0-audit.json --strict
 ```
 
 `model game-skin MODEL --output FILE` writes what the engine puts on one
@@ -777,9 +777,9 @@ Both report a SHA-256 of the image in JSON. See [Bake maps](../MODEL_BAKE.md)
 and [Paint skins in 3D](../MODEL_SKIN_PAINT.md).
 
 ```sh
-vibestudio --cli model game-skin ./progs/player.mdl --top 4 --bottom 12 --output ./out/player.png --json
-vibestudio --cli model bake ./models/crate.mesh.json --type ao --size 512x512 --output ./out/crate_ao.png --json
-vibestudio --cli model paint-skin ./progs/ogre.mdl --strokes ./strokes.json --output ./out/ogre_skin.png --json
+slopstudio --cli model game-skin ./progs/player.mdl --top 4 --bottom 12 --output ./out/player.png --json
+slopstudio --cli model bake ./models/crate.mesh.json --type ao --size 512x512 --output ./out/crate_ao.png --json
+slopstudio --cli model paint-skin ./progs/ogre.mdl --strokes ./strokes.json --output ./out/ogre_skin.png --json
 ```
 
 `model outputs` lists the receipts a project keeps of the game files made from
@@ -793,8 +793,8 @@ receipt, and `--receipt PACKAGE` checks a player package's embedded receipt (wit
 [Model outputs and receipts](../MODEL_OUTPUTS.md).
 
 ```sh
-vibestudio --cli model outputs ./models/crate.mesh.json --json
-vibestudio --cli model outputs --project ./mymod --refresh stale --dry-run --json
+slopstudio --cli model outputs ./models/crate.mesh.json --json
+slopstudio --cli model outputs --project ./mymod --refresh stale --dry-run --json
 ```
 
 `model stage` stages an editable source in a package as the files the game
@@ -805,7 +805,7 @@ MDL or MD2 in a Quake map and an MD3 or ASE in a Quake III map, with optional
 `--angles`, `--modelscale`, `--class` and `--definitions`.
 
 ```sh
-vibestudio --cli model stage ./models/crate.mesh.json --package ./mymod.pk3 --as models/props/crate.md3 --lod 2 --output ./out/mymod.pk3 --dry-run --json
+slopstudio --cli model stage ./models/crate.mesh.json --package ./mymod.pk3 --as models/props/crate.md3 --lod 2 --output ./out/mymod.pk3 --dry-run --json
 ```
 
 `model stage --skins` stages an MD3's Quake III skins beside it, as
@@ -838,31 +838,31 @@ Joint transforms also accept an exclusive `--matrix` with twelve row-major
 The command line is the studio program itself, started with `--cli`:
 
 ```text
-vibestudio --cli [--json] <family> <command> [arguments]
+slopstudio --cli [--json] <family> <command> [arguments]
 ```
 
-| How you got VibeStudio | Program to run |
+| How you got SlopStudio | Program to run |
 | --- | --- |
-| Windows installer or portable zip | `vibestudio.exe` in the `bin` folder where you installed or extracted VibeStudio |
-| macOS disk image | `/Applications/VibeStudio.app/Contents/MacOS/vibestudio` |
-| Linux AppImage | `./VibeStudio-<version>-linux-x86_64.AppImage` |
-| Nightly package on macOS or Linux | `bin/vibestudio` in the folder you extracted |
-| Built from source | `builddir/src/vibestudio`, or `builddir\src\vibestudio.exe` on Windows; see [Build from source](building-from-source.md) |
+| Windows installer or portable zip | `slopstudio.exe` in the `bin` folder where you installed or extracted SlopStudio |
+| macOS disk image | `/Applications/SlopStudio.app/Contents/MacOS/slopstudio` |
+| Linux AppImage | `./SlopStudio-<version>-linux-x86_64.AppImage` |
+| Nightly package on macOS or Linux | `bin/slopstudio` in the folder you extracted |
+| Built from source | `builddir/src/slopstudio`, or `builddir\src\slopstudio.exe` on Windows; see [Build from source](building-from-source.md) |
 
-The examples in this manual write `vibestudio`. Replace it with the program's path, or add its folder
+The examples in this manual write `slopstudio`. Replace it with the program's path, or add its folder
 to your PATH. For example:
 
 ```sh
-/Applications/VibeStudio.app/Contents/MacOS/vibestudio --cli --version
-./VibeStudio-<version>-linux-x86_64.AppImage --cli package info ./id1/pak0.pak
+/Applications/SlopStudio.app/Contents/MacOS/slopstudio --cli --version
+./SlopStudio-<version>-linux-x86_64.AppImage --cli package info ./id1/pak0.pak
 ```
 
-`vibestudio --cli` on its own, or with `--help`, prints the full help: the shared options, then every
+`slopstudio --cli` on its own, or with `--help`, prints the full help: the shared options, then every
 command with an example. Each command there lists the options it supports in brackets, such as
 `[--json --dry-run]`. Quote paths that contain spaces, as in PowerShell:
 
 ```powershell
-vibestudio --cli package validate "C:\Games\Quake\id1\pak0.pak" --json
+slopstudio --cli package validate "C:\Games\Quake\id1\pak0.pak" --json
 ```
 
 ## Options every command shares
@@ -886,12 +886,12 @@ Options can go anywhere after `--cli`.
 
 The command line uses the same settings as the studio, so commands such as `install add`,
 `compiler set-path` or `editor select` change what the studio sees. In scripts and CI, pass
-`--settings-file` with a file of your own to keep them apart. `vibestudio --cli --settings-report`
+`--settings-file` with a file of your own to keep them apart. `slopstudio --cli --settings-report`
 prints where the settings in use are stored.
 
 ## Command families
 
-Commands are grouped into families. `vibestudio --cli cli commands` prints the complete, current
+Commands are grouped into families. `slopstudio --cli cli commands` prints the complete, current
 list, and `--json` adds whether each command supports `--json`, `--dry-run` and `--watch`.
 
 | Family | Covers |
@@ -900,7 +900,7 @@ list, and `--json` adds whether each command supports `--json`, `--dry-run` and 
 | `ui` | Status chips, default keyboard shortcuts and command palette entries |
 | `project` | Project manifests, health checks and file lists |
 | `install` | Game installation profiles, Steam and GOG detection, and the index of each game's own assets |
-| `workspace` | `.vibeworkspace` files |
+| `workspace` | `.slopworkspace` files |
 | `package` | Inspecting, extracting, validating, comparing, staging and saving packages, drafts and recovery |
 | `release` | Packaging and releasing a project, map, model or textures: plans, release notes, the changelog, publishing and release history |
 | `asset` | Format capabilities, image conversion, audio editing, and project text search and replace |
@@ -930,15 +930,15 @@ list, and `--json` adds whether each command supports `--json`, `--dry-run` and 
 List every command:
 
 ```sh
-vibestudio --cli cli commands
+slopstudio --cli cli commands
 ```
 
 Inspect, filter and validate a package:
 
 ```sh
-vibestudio --cli package info ./id1/pak0.pak
-vibestudio --cli package list ./id1/pak0.pak --where "ext=wav"
-vibestudio --cli package validate ./release.pk3 --json
+slopstudio --cli package info ./id1/pak0.pak
+slopstudio --cli package list ./id1/pak0.pak --where "ext=wav"
+slopstudio --cli package validate ./release.pk3 --json
 ```
 
 Render a map to an SVG picture, optionally with a compiler leak trail. The projection is `top`,
@@ -950,34 +950,34 @@ none and say so in a warning. With `--json` the report's `blockGrid` gives the `
 `value` it came from, how many numbers the compiler reads from it (`numbersRead`) and the `drawnLines`.
 
 ```sh
-vibestudio --cli map render ./maps/start.map --output ./start.svg
-vibestudio --cli map render ./maps/start.map --projection front --leak ./maps/start.pts --output ./start-leak.svg --overwrite
-vibestudio --cli map render ./maps/arena.map --block-grid --projection front --output ./arena-blocks.svg
+slopstudio --cli map render ./maps/start.map --output ./start.svg
+slopstudio --cli map render ./maps/start.map --projection front --leak ./maps/start.pts --output ./start-leak.svg --overwrite
+slopstudio --cli map render ./maps/arena.map --block-grid --projection front --output ./arena-blocks.svg
 ```
 
 Index a game's own files once, then review and publish a map release with only your own files:
 
 ```sh
-vibestudio --cli install register build quake3-games-quake3
-vibestudio --cli release plan ./mymod --map maps/arena1.map
-vibestudio --cli release publish ./mymod --map maps/arena1.map --release-version 1.0.0
+slopstudio --cli install register build quake3-games-quake3
+slopstudio --cli release plan ./mymod --map maps/arena1.map
+slopstudio --cli release publish ./mymod --map maps/arena1.map --release-version 1.0.0
 ```
 
 Plan a build without running anything, then run it with live progress:
 
 ```sh
-vibestudio --cli build list
-vibestudio --cli build plan quake-full --input ./maps/start.map
-vibestudio --cli build run quake-full --input ./maps/start.map --watch
+slopstudio --cli build list
+slopstudio --cli build plan quake-full --input ./maps/start.map
+slopstudio --cli build run quake-full --input ./maps/start.map --watch
 ```
 
 Keep pipelines of your own in a project, as **Build Pipelines…** does, and run them:
 
 ```sh
-vibestudio --cli build pipeline-set fast-light --workspace-root ./mymod --name "Fast light" --from quake-full --disable-stage vis --stage-args 'light=-extra -threads ${CPU_COUNT}'
-vibestudio --cli build list --workspace-root ./mymod
-vibestudio --cli build run fast-light --workspace-root ./mymod --input ./mymod/maps/start.map --variable MOD=mymod
-vibestudio --cli build pipeline-remove fast-light --workspace-root ./mymod --dry-run
+slopstudio --cli build pipeline-set fast-light --workspace-root ./mymod --name "Fast light" --from quake-full --disable-stage vis --stage-args 'light=-extra -threads ${CPU_COUNT}'
+slopstudio --cli build list --workspace-root ./mymod
+slopstudio --cli build run fast-light --workspace-root ./mymod --input ./mymod/maps/start.map --variable MOD=mymod
+slopstudio --cli build pipeline-remove fast-light --workspace-root ./mymod --dry-run
 ```
 
 `build pipeline-set` starts a new pipeline from `--from` (a built-in or project
@@ -994,9 +994,9 @@ named by the project's own compiler paths, and shows its command line; add
 Ask a model through your Claude Code login, or build a level with Quake-MapGen:
 
 ```sh
-vibestudio --cli ai test-connection --provider claude-code --json
-vibestudio --cli ai ask --provider claude-code --model sonnet --prompt "why does qbsp report a leak?" --context-file build/qbsp.log --yes
-vibestudio --cli map generate --generator quake-mapgen --prompt "Quake 2 deathmatch, 8 rooms" --output maps/qmg.map --report maps/qmg.json
+slopstudio --cli ai test-connection --provider claude-code --json
+slopstudio --cli ai ask --provider claude-code --model sonnet --prompt "why does qbsp report a leak?" --context-file build/qbsp.log --yes
+slopstudio --cli map generate --generator quake-mapgen --prompt "Quake 2 deathmatch, 8 rooms" --output maps/qmg.map --report maps/qmg.json
 ```
 
 `--provider` takes a connector ID from the table in [Use a cloud provider](ai.md#use-a-cloud-provider),
@@ -1007,24 +1007,24 @@ also take `claude-code`, `codex`, `custom-command` and `local-gguf`. For `claude
 ranks its layouts through ggml in builds made with `-Dggml=enabled`; the default, `scalar`, gives the
 same scores. AI is off until you allow it; see [AI assistant](ai.md).
 
-Write a diagnostics bundle to `./diagnostics/vibestudio-diagnostics.json` for a bug report:
+Write a diagnostics bundle to `./diagnostics/slopstudio-diagnostics.json` for a bug report:
 
 ```sh
-vibestudio --cli diagnostics bundle --output ./diagnostics
+slopstudio --cli diagnostics bundle --output ./diagnostics
 ```
 
 List the target languages, then report on one of them:
 
 ```sh
-vibestudio --cli localization targets
-vibestudio --cli localization report --locale ar --json
+slopstudio --cli localization targets
+slopstudio --cli localization report --locale ar --json
 ```
 
 Print the status chips with their non-colour signals, the default shortcuts with any conflicts, and
 the command palette entries:
 
 ```sh
-vibestudio --cli ui semantics
+slopstudio --cli ui semantics
 ```
 
 More examples are on the pages for each area, such as [Packages](packages.md),
@@ -1086,12 +1086,12 @@ command failed". For example, `package validate`, `package compare` and `entity 
 when they find problems or differences:
 
 ```sh
-vibestudio --cli package validate ./release.pk3 --json > validation.json
+slopstudio --cli package validate ./release.pk3 --json > validation.json
 if [ $? -eq 4 ]; then echo "release.pk3 has problems"; fi
 ```
 
 ```powershell
-vibestudio --cli package validate .\release.pk3 --json | Out-File validation.json
+slopstudio --cli package validate .\release.pk3 --json | Out-File validation.json
 if ($LASTEXITCODE -eq 4) { Write-Host "release.pk3 has problems" }
 ```
 
@@ -1206,8 +1206,8 @@ prints it) limits it to those faces instead, with **--context GROUP** to open a
 group first. The two cannot be combined.
 
 ```sh
-vibestudio --cli map select-textured room.map --material base/wall --json
-vibestudio --cli map replace-texture room.map --from base/wall --to base/metal --face face:6:5 --face face:9:5 --output room-metal.map
+slopstudio --cli map select-textured room.map --material base/wall --json
+slopstudio --cli map replace-texture room.map --from base/wall --to base/metal --face face:6:5 --face face:9:5 --output room-metal.map
 ```
 
 Hidden and locked objects, and anything outside **--context**, keep their
@@ -1225,8 +1225,8 @@ with repeated **--face face:brushId:faceNumber** to transform those faces
 without selecting their brushes:
 
 ```sh
-vibestudio --cli map select-textured room.map --material stone --json
-vibestudio --cli map transform-components room.map --face face:6:5 --face face:9:5 --operation move --delta 0,0,16 --uv-lock on --output raised.map
+slopstudio --cli map select-textured room.map --material stone --json
+slopstudio --cli map transform-components room.map --face face:6:5 --face face:9:5 --operation move --delta 0,0,16 --uv-lock on --output raised.map
 ```
 
 **--face** can be combined with **--set** in the same edit and accepts the same
@@ -1248,8 +1248,8 @@ its sign instead, and `0` leaves that axis alone. **--degrees N** turns about
 each face centre, or about the texture origin with **--anchor origin**:
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --scale-step -0.5,0 --output narrower.map --json
-vibestudio --cli map align-textures room.map --face 12:3 --degrees -45 --anchor origin --output turned.map
+slopstudio --cli map align-textures room.map --object brush:12 --scale-step -0.5,0 --output narrower.map --json
+slopstudio --cli map align-textures room.map --face 12:3 --degrees -45 --anchor origin --output turned.map
 ```
 
 Brush-primitive faces need **--package** or **--texture-size** for a scale step,
@@ -1273,8 +1273,8 @@ face's texture axes runs most nearly that way. **--camera-flip horizontal** or
 of each face:
 
 ```sh
-vibestudio --cli map align-textures room.map --face 12:3 --camera-shift 0,16 --camera-yaw 90 --camera-pitch -20 --output moved.map --json
-vibestudio --cli map align-textures room.map --object brush:12 --camera-flip horizontal --camera-yaw 45 --output flipped.map
+slopstudio --cli map align-textures room.map --face 12:3 --camera-shift 0,16 --camera-yaw 90 --camera-pitch -20 --output moved.map --json
+slopstudio --cli map align-textures room.map --object brush:12 --camera-flip horizontal --camera-yaw 45 --output flipped.map
 ```
 
 Brush-primitive faces and patches need **--package** or **--texture-size** for
@@ -1293,8 +1293,8 @@ brush-primitive faces and on patches, whether the texture reads the right way
 round or mirrored:
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --clockwise 15 --output turned.map --json
-vibestudio --cli map align-textures room.map --face 12:3 --clockwise -90 --output turned.map
+slopstudio --cli map align-textures room.map --object brush:12 --clockwise 15 --output turned.map --json
+slopstudio --cli map align-textures room.map --face 12:3 --clockwise -90 --output turned.map
 ```
 
 Patches need **--package** or **--texture-size**; faces need no image.
@@ -1313,8 +1313,8 @@ resets as **Radiant Texture Reset** does: Valve 220 and brush-primitive faces
 take their plane's own basis and patches are capped:
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --reset-alignment 1,1 --output reset.map --json
-vibestudio --cli map align-textures room.map --object entity:4 --radiant-reset 0.5,0.5 --package ./assets --output reset.map
+slopstudio --cli map align-textures room.map --object brush:12 --reset-alignment 1,1 --output reset.map --json
+slopstudio --cli map align-textures room.map --object entity:4 --radiant-reset 0.5,0.5 --package ./assets --output reset.map
 ```
 
 Instead of an operation, Reset Textures values set absolute numbers, as the
@@ -1327,7 +1327,7 @@ surfaces using one texture, ignoring case and a leading `textures/`. Patches
 take only the new name:
 
 ```sh
-vibestudio --cli map align-textures room.map --whole-map --only-texture base_wall/concrete --rename base_wall/metal --set-scale-u 0.5 --set-scale-v 0.5 --output retextured.map --json
+slopstudio --cli map align-textures room.map --whole-map --only-texture base_wall/concrete --rename base_wall/metal --set-scale-u 0.5 --set-scale-v 0.5 --output retextured.map --json
 ```
 
 Brush-primitive faces need **--package** or **--texture-size** for a reset or
@@ -1358,9 +1358,9 @@ camera at **--camera-yaw** and **--camera-pitch**, and
 **--project-direction X,Y,Z** along any direction:
 
 ```sh
-vibestudio --cli map align-textures room.map --face 12:3 --fit 2,0 --keep-proportions --package ./assets --output fitted.map
-vibestudio --cli map align-textures room.map --object brush:12 --project z --output projected.map --json
-vibestudio --cli map align-textures room.map --object brush:12 --project camera --camera-yaw 45 --camera-pitch -30 --output projected.map
+slopstudio --cli map align-textures room.map --face 12:3 --fit 2,0 --keep-proportions --package ./assets --output fitted.map
+slopstudio --cli map align-textures room.map --object brush:12 --project z --output projected.map --json
+slopstudio --cli map align-textures room.map --object brush:12 --project camera --camera-yaw 45 --camera-pitch -30 --output projected.map
 ```
 
 Faces the direction runs along, and patches it flattens to a line, keep their
@@ -1383,8 +1383,8 @@ Without a change, it reports each face's flags by name, and with no faces the
 names the map's game gives its flags:
 
 ```sh
-vibestudio --cli map face-flags base.map --face 3:1 --json
-vibestudio --cli map face-flags base.map --json
+slopstudio --cli map face-flags base.map --face 3:1 --json
+slopstudio --cli map face-flags base.map --json
 ```
 
 To change them, give **--set-content**, **--clear-content**, **--set-surface**
@@ -1395,8 +1395,8 @@ does. Bits you do not name stay as they are, so a change works on faces whose
 flags differ. A change needs **--output**:
 
 ```sh
-vibestudio --cli map face-flags base.map --object brush:3 --set-content playerclip --clear-surface light --output base-clip.map
-vibestudio --cli map face-flags base.map --face 3:2 --set-surface light --value 300 --output base-light.map --json
+slopstudio --cli map face-flags base.map --object brush:3 --set-content playerclip --clear-surface light --output base-clip.map
+slopstudio --cli map face-flags base.map --face 3:2 --set-surface light --value 300 --output base-light.map --json
 ```
 
 The detail flag belongs to whole brushes, so use `map detail` for it. Quake
@@ -1420,7 +1420,7 @@ what the **Face** section shows for them all, with values that differ as
 `null`:
 
 ```sh
-vibestudio --cli map face-attributes base.map --face 3:1 --json
+slopstudio --cli map face-attributes base.map --face 3:1 --json
 ```
 
 To change them, give one or more of **--offset-u**, **--offset-v** (texels),
@@ -1429,7 +1429,7 @@ To change them, give one or more of **--offset-u**, **--offset-v** (texels),
 format and keeps the others:
 
 ```sh
-vibestudio --cli map face-attributes base.map --object brush:3 --scale-u 0.5 --scale-v 0.5 --output base-fine.map
+slopstudio --cli map face-attributes base.map --object brush:3 --scale-u 0.5 --scale-v 0.5 --output base-fine.map
 ```
 
 **--pivot X,Y,Z** keeps that map point's place on the texture through a new
@@ -1437,7 +1437,7 @@ scale or rotation, as the section's turn and stretch handles do, and
 **--move U,V** then moves the texture by texels:
 
 ```sh
-vibestudio --cli map face-attributes base.map --face 3:2 --rotation 30 --pivot 0,64,128 --move 8,0 --output base-turned.map --json
+slopstudio --cli map face-attributes base.map --face 3:2 --rotation 30 --pivot 0,64,128 --move 8,0 --output base-turned.map --json
 ```
 
 Brush-primitive faces need their image size: **--package** (with **--palette**
@@ -1460,7 +1460,7 @@ Without a change, it lists each point's number, world position and texel
 coordinates (and repeats, when the image size is known):
 
 ```sh
-vibestudio --cli map edit-uv base.map --target face:3:1 --json
+slopstudio --cli map edit-uv base.map --target face:3:1 --json
 ```
 
 Give one change and **--output**:
@@ -1485,9 +1485,9 @@ of control points, alongside or instead of **--points**, for **--offset**,
 **--rotate**, **--stretch** and the skews.
 
 ```sh
-vibestudio --cli map edit-uv base.map --target face:3:1 --rotate 15 --anchor 1 --output base-turned.map
-vibestudio --cli map edit-uv curves.map --target patch:0 --move-point 5 --to 32,16 --texture-size 128,128 --output curves-uv.map --json
-vibestudio --cli map edit-uv base.map --target face:3:1 --stretch 2,1 --pivot 0,0 --output base-stretched.map
+slopstudio --cli map edit-uv base.map --target face:3:1 --rotate 15 --anchor 1 --output base-turned.map
+slopstudio --cli map edit-uv curves.map --target patch:0 --move-point 5 --to 32,16 --texture-size 128,128 --output curves-uv.map --json
+slopstudio --cli map edit-uv base.map --target face:3:1 --stretch 2,1 --pivot 0,0 --output base-stretched.map
 ```
 
 Brush-primitive faces and patches count repeats, so they need **--package**
@@ -1513,8 +1513,8 @@ entities round their brushes and patches and keep their origin key. Repeat
 **--set** to round only picked components instead:
 
 ```sh
-vibestudio --cli map round-to-grid room.map --object brush:12 --object entity:3 --grid 8 --output rounded.map --json
-vibestudio --cli map round-to-grid room.map --set brush:12/vertex/0,3 --grid 16 --uv-lock fit --output rounded.map
+slopstudio --cli map round-to-grid room.map --object brush:12 --object entity:3 --grid 8 --output rounded.map --json
+slopstudio --cli map round-to-grid room.map --set brush:12/vertex/0,3 --grid 16 --uv-lock fit --output rounded.map
 ```
 
 Hidden objects and brushes the grid would collapse are left as they were and
@@ -1542,8 +1542,8 @@ moves the **--object** objects, or the repeated **--set** components, by
 degrees, yaw 0 along +X and counter-clockwise, pitch up positive:
 
 ```sh
-vibestudio --cli map nudge room.map --object brush:12 --direction depth-up --view front --grid 8 --output nudged.map --json
-vibestudio --cli map nudge room.map --set brush:0/face/2 --direction forward --camera-yaw 60 --uv-lock on --output nudged.map
+slopstudio --cli map nudge room.map --object brush:12 --direction depth-up --view front --grid 8 --output nudged.map --json
+slopstudio --cli map nudge room.map --set brush:0/face/2 --direction forward --camera-yaw 60 --uv-lock on --output nudged.map
 ```
 
 In the front view `depth-up` is towards the viewer, -Y; in the camera it is up
@@ -1563,7 +1563,7 @@ instead, as the Levels **Duplicate and Move** commands do. JSON adds
 `duplicate` and the `copies`:
 
 ```sh
-vibestudio --cli map nudge room.map --object brush:12 --direction right --duplicate --grid 32 --output copied.map --json
+slopstudio --cli map nudge room.map --object brush:12 --direction right --duplicate --grid 32 --output copied.map --json
 ```
 
 See [Copy and move in one step](levels.md#copy-and-move-in-one-step).
@@ -1581,7 +1581,7 @@ already at the camera fails and writes nothing. JSON reports `camera`, `delta`,
 `grid` and the save fields:
 
 ```sh
-vibestudio --cli map move room.map --object brush:3 --object entity:2 --camera 128,0,64 --grid 16 --output at-camera.map --json
+slopstudio --cli map move room.map --object brush:3 --object entity:2 --camera 128,0,64 --grid 16 --output at-camera.map --json
 ```
 
 ## Move a selection as the Translate tool does
@@ -1599,8 +1599,8 @@ Quake-family maps only. JSON reports `delta`, `pivotBefore`, `pivotAfter`,
 `mins`, `maxs`, `objects`, `selection`, `snap`, `grid` and the save fields:
 
 ```sh
-vibestudio --cli map move room.map --object brush:3 --object brush:4 --delta 5,0,0 --snap bounds --grid 16 --output translated.map --json
-vibestudio --cli map move room.map --object brush:3 --to 256,0,64 --pivot 0,0,0 --output at-point.map
+slopstudio --cli map move room.map --object brush:3 --object brush:4 --delta 5,0,0 --snap bounds --grid 16 --output translated.map --json
+slopstudio --cli map move room.map --object brush:3 --to 256,0,64 --pivot 0,0,0 --output at-point.map
 ```
 
 See [Move the selection with the Translate tool](levels.md#move-the-selection-with-the-translate-tool).
@@ -1624,8 +1624,8 @@ the plain `map rotate` and cannot be combined with this form. JSON reports
 `pivot`, `mins`, `maxs`, `objects`, `selection`, `angleStep` and the save fields:
 
 ```sh
-vibestudio --cli map rotate room.map --object brush:3 --object patch:1 --around 0,0,1 --degrees 100 --angle-step 45 --output turned.map --json
-vibestudio --cli map rotate room.map --object brush:3 --around 1,1,0 --degrees 30 --pivot 0,0,0 --allow-valve220 --output tilted.map
+slopstudio --cli map rotate room.map --object brush:3 --object patch:1 --around 0,0,1 --degrees 100 --angle-step 45 --output turned.map --json
+slopstudio --cli map rotate room.map --object brush:3 --around 1,1,0 --degrees 30 --pivot 0,0,0 --allow-valve220 --output tilted.map
 ```
 
 See [Turn the selection with the Rotate tool](levels.md#turn-the-selection-with-the-rotate-tool).
@@ -1650,8 +1650,8 @@ fails and writes nothing. Quake-family maps only. JSON reports `factors`,
 `drag`, `equal`, `grid` and `sizeGrid`:
 
 ```sh
-vibestudio --cli map resize room.map --object brush:3 --object brush:4 --axis x --drag 24 --grid 16 --equal --output bigger.map --json
-vibestudio --cli map resize room.map --object brush:3 --view top --drag 10 --size-grid 16 --pivot 0,0,0 --output wider.map
+slopstudio --cli map resize room.map --object brush:3 --object brush:4 --axis x --drag 24 --grid 16 --equal --output bigger.map --json
+slopstudio --cli map resize room.map --object brush:3 --view top --drag 10 --size-grid 16 --pivot 0,0,0 --output wider.map
 ```
 
 To resize a box by its sides, as the tool's box handles do with <kbd>Shift</kbd>
@@ -1682,8 +1682,8 @@ JSON reports `side`, `offset`, `anchor` (the coordinate that stays),
 `factors`, `matrix`, `mins`, `maxs`, `objects` and `selection`:
 
 ```sh
-vibestudio --cli map shear room.map --object brush:3 --axis x --along z --angle 30 --about 0 --output slanted.map
-vibestudio --cli map shear room.map --object brush:3 --object brush:4 --side z+ --offset 16,8,0 --output leaning.map --json
+slopstudio --cli map shear room.map --object brush:3 --axis x --along z --angle 30 --about 0 --output slanted.map
+slopstudio --cli map shear room.map --object brush:3 --object brush:4 --side z+ --offset 16,8,0 --output leaning.map --json
 ```
 
 See [Transform the selection with the Transform tool](levels.md#transform-the-selection-with-the-transform-tool).
@@ -1722,8 +1722,8 @@ with exit code 4 and writes nothing. Quake-family maps only. JSON reports
 `translation` or `distance` and `normal`, and `selection`:
 
 ```sh
-vibestudio --cli map drag-planes room.map --object brush:0 --from 200,0,0 --view top --delta 32,0,0 --grid 16 --output wider.map
-vibestudio --cli map drag-planes room.map --object brush:0 --mode extrude --from 80,0,200 --direction 0,0,-1 --camera --distance 16 --output raised.map --json
+slopstudio --cli map drag-planes room.map --object brush:0 --from 200,0,0 --view top --delta 32,0,0 --grid 16 --output wider.map
+slopstudio --cli map drag-planes room.map --object brush:0 --mode extrude --from 80,0,200 --direction 0,0,-1 --camera --distance 16 --output raised.map --json
 ```
 
 The **Build** tool's chain of copies is `map duplicate` with **--delta** set
@@ -1742,8 +1742,8 @@ they are transformed in place instead, with **--uv-lock off|on|fit** and
 **--allow-collapse**:
 
 ```sh
-vibestudio --cli map repeat-transforms room.map --object brush:4 --rotate z,15 --translate 64,0,0 --output array.map --json
-vibestudio --cli map repeat-transforms room.map --set brush:0/face/2 --translate 0,0,8 --uv-lock on --output raised.map
+slopstudio --cli map repeat-transforms room.map --object brush:4 --rotate z,15 --translate 64,0,0 --output array.map --json
+slopstudio --cli map repeat-transforms room.map --set brush:0/face/2 --translate 0,0,8 --uv-lock on --output raised.map
 ```
 
 Objects take **--texture-lock on|off** (on by default). Quake-family maps only.
@@ -1767,8 +1767,8 @@ view-relative commands: **Roll Clockwise** and **Counter-clockwise**, **Rotate
 **--camera-yaw** with **--camera-pitch** names a camera, as for `map nudge`:
 
 ```sh
-vibestudio --cli map view-transform room.map --object brush:12 --transform roll-clockwise --view front --pivot-grid 16 --output rolled.map --json
-vibestudio --cli map view-transform room.map --object entity:3 --transform flip-horizontal --camera-yaw 60 --camera-pitch -20 --output flipped.map
+slopstudio --cli map view-transform room.map --object brush:12 --transform roll-clockwise --view front --pivot-grid 16 --output rolled.map --json
+slopstudio --cli map view-transform room.map --object entity:3 --transform flip-horizontal --camera-yaw 60 --camera-pitch -20 --output flipped.map
 ```
 
 From the front view, `roll-clockwise` turns +90° about Z; from a camera looking
@@ -1796,8 +1796,8 @@ NetRadiant Custom and TrenchBroom profiles, so a brush whose sides differ by an
 odd number of grid steps stays on the grid:
 
 ```sh
-vibestudio --cli map rotate room.map --object brush:12 --axis x --turns -1 --pivot-grid 16 --output turned.map --json
-vibestudio --cli map flip room.map --object brush:12 --axis z --output flipped.map
+slopstudio --cli map rotate room.map --object brush:12 --axis x --turns -1 --pivot-grid 16 --output turned.map --json
+slopstudio --cli map flip room.map --object brush:12 --axis z --output flipped.map
 ```
 
 **--pivot-grid** cannot be combined with **--pivot**. JSON adds the resolved
@@ -1823,8 +1823,8 @@ numbers leave z at 1, which Doom maps need. **--factors** replaces **--size**
 and **--mins**/**--maxs**, and **--pivot** goes only with it:
 
 ```sh
-vibestudio --cli map rotate room.map --object brush:12 --euler 15,0,45 --pivot 0,0,0 --output turned.map --json
-vibestudio --cli map resize room.map --object brush:12 --factors -1,2,1 --texture-lock on --output mirrored.map --json
+slopstudio --cli map rotate room.map --object brush:12 --euler 15,0,45 --pivot 0,0,0 --output turned.map --json
+slopstudio --cli map resize room.map --object brush:12 --factors -1,2,1 --texture-lock on --output mirrored.map --json
 ```
 
 JSON adds `eulerXyz` for a rotation and `factors`, `mirrored`, `pivot` (when
@@ -1853,7 +1853,7 @@ options match **Make Room Options…**, and also work with `--mode overlap` and
   opening stop flush with it, and the faces lining it keep its material.
 
 ```sh
-vibestudio --cli map hollow room.map --object brush:12 --mode room --thickness 16 --caulk --open-face face:12:6 --output room-made.map --json
+slopstudio --cli map hollow room.map --object brush:12 --mode room --thickness 16 --caulk --open-face face:12:6 --output room-made.map --json
 ```
 
 JSON adds `caulkTexture`, `caulkedFaces` (wall faces that now carry it),
@@ -1867,9 +1867,9 @@ Levels editor's **Make Room** uses, the ones **Make Room Options…** saves, use
 `editor make-room`:
 
 ```sh
-vibestudio --cli editor make-room --json
-vibestudio --cli editor make-room --set caulkTexture=common/nodraw --set openPickedFaces=off --dry-run --json
-vibestudio --cli editor make-room --reset
+slopstudio --cli editor make-room --json
+slopstudio --cli editor make-room --set caulkTexture=common/nodraw --set openPickedFaces=off --dry-run --json
+slopstudio --cli editor make-room --reset
 ```
 
 Repeat `--set` with `caulk=on|off`, `caulkTexture=NAME` (leave the name out,
@@ -1887,9 +1887,9 @@ The Levels camera's **Far Clip in Camera** and its draw distance are saved
 settings, so automation can read or set them with `editor far-clip`:
 
 ```sh
-vibestudio --cli editor far-clip --json
-vibestudio --cli editor far-clip --clip on --distance 2048
-vibestudio --cli editor far-clip --shorter --dry-run --json
+slopstudio --cli editor far-clip --json
+slopstudio --cli editor far-clip --clip on --distance 2048
+slopstudio --cli editor far-clip --shorter --dry-run --json
 ```
 
 `--clip on|off` turns the clip on or off. Choose the distance with one of
@@ -1939,10 +1939,10 @@ and `patch-classic-cone` take `--rows`, and they and `patch-sphere` take
 round shapes `ringStart` and `square`.
 
 ```sh
-vibestudio --cli map add-patch start.map --shape classic-cone --axis z --size 128,128,192 --texture textures/base/metal --texture-size 256,256 --output cone.map --json
-vibestudio --cli map add-shape start.map --shape patch-cylinder --sides 4 --object brush:3 --object patch:1 --texture base/pipe --texture-size 128,128 --output pipe.map --json
-vibestudio --cli map add-shape start.map --shape patch-plane --columns 5 --rows 7 --mins 0,0,0 --maxs 256,256,64 --texture base/floor --output floor.map
-vibestudio --cli map add-patch start.map --shape cylinder --segments 6 --rows 5 --ring-start exact --square --size 128,128,256 --texture textures/base/pipe --output pipe.map --json
+slopstudio --cli map add-patch start.map --shape classic-cone --axis z --size 128,128,192 --texture textures/base/metal --texture-size 256,256 --output cone.map --json
+slopstudio --cli map add-shape start.map --shape patch-cylinder --sides 4 --object brush:3 --object patch:1 --texture base/pipe --texture-size 128,128 --output pipe.map --json
+slopstudio --cli map add-shape start.map --shape patch-plane --columns 5 --rows 7 --mins 0,0,0 --maxs 256,256,64 --texture base/floor --output floor.map
+slopstudio --cli map add-patch start.map --shape cylinder --segments 6 --rows 5 --ring-start exact --square --size 128,128,256 --texture textures/base/pipe --output pipe.map --json
 ```
 
 A bad `--mapping`, `--texture-size` or `--ring-start`, either of the first two
@@ -1987,9 +1987,9 @@ a seed is drawn, and JSON reports it as `seed` with `max`, `axis`, `changed`
 and `skipped` (hidden patches).
 
 ```sh
-vibestudio --cli map cap-patch curves.map --patch 0 --patch 3 --style cylinder --texture base/pipe_cap --output capped.map --json
-vibestudio --cli map convert-patches arena.map --object brush:4 --face face:7:2 --columns 5 --rows 5 --package ./baseq3 --output arena-patches.map --json
-vibestudio --cli map deform-patch cave.map --patch 2 --max 16 --axis z --seed 7 --output cave-rough.map --json
+slopstudio --cli map cap-patch curves.map --patch 0 --patch 3 --style cylinder --texture base/pipe_cap --output capped.map --json
+slopstudio --cli map convert-patches arena.map --object brush:4 --face face:7:2 --columns 5 --rows 5 --package ./baseq3 --output arena-patches.map --json
+slopstudio --cli map deform-patch cave.map --patch 2 --max 16 --axis z --seed 7 --output cave-rough.map --json
 ```
 
 All three run as one undo step through the Levels editor's services and need
@@ -2013,8 +2013,8 @@ to the first axis; `--fit box` (the default) stretches it to the bounds.
 views give it.
 
 ```sh
-vibestudio --cli map add-shape start.map --shape cylinder --sides 6 --axis z --fit circle --in-place --object brush:4 --object brush:7 --texture base/pillar --output pillars.map --json
-vibestudio --cli map add-shape start.map --shape sphere --sides 8 --bands 8 --fit circle --in-place --object brush:9 --texture base/orb --output orb.map --json
+slopstudio --cli map add-shape start.map --shape cylinder --sides 6 --axis z --fit circle --in-place --object brush:4 --object brush:7 --texture base/pillar --output pillars.map --json
+slopstudio --cli map add-shape start.map --shape sphere --sides 8 --bands 8 --fit circle --in-place --object brush:9 --texture base/orb --output orb.map --json
 ```
 
 JSON reports `inPlace`, `fit`, the rebuilt `brushes` and `skipped`, the
@@ -2042,9 +2042,9 @@ brush is built, so a flat outline becomes a prism, as Shift-drag does in the
 **Assemble Brush Tool**.
 
 ```sh
-vibestudio --cli map add-brush start.map --points "0,0,0 128,0,0 0,128,0 0,0,64" --texture base/metal --output start-wedge.map --json
-vibestudio --cli map add-brush start.map --points "(256 0 0) (384 0 0) (256 128 0)" --points "(256 0 64) (384 0 64) (256 128 64)" --texture base/metal --output start-ramp.map
-vibestudio --cli map add-brush start.map --points "0,0,0 128,0,0 128,64,0 0,64,0" --extrude 0,0,96 --texture base/metal --output start-block.map
+slopstudio --cli map add-brush start.map --points "0,0,0 128,0,0 0,128,0 0,0,64" --texture base/metal --output start-wedge.map --json
+slopstudio --cli map add-brush start.map --points "(256 0 0) (384 0 0) (256 128 0)" --points "(256 0 64) (384 0 64) (256 128 64)" --texture base/metal --output start-ramp.map
+slopstudio --cli map add-brush start.map --points "0,0,0 128,0,0 128,64,0 0,64,0" --extrude 0,0,96 --texture base/metal --output start-block.map
 ```
 
 JSON reports `shape` as `points` and a `points` object with `brushId`,
@@ -2066,8 +2066,8 @@ first brush and adds `brushes` for all of them, each face with a `positions`
 array.
 
 ```sh
-vibestudio --cli map brush-components start.map --brush 0,3 --brush 7
-vibestudio --cli map brush-components start.map --brush 0 --brush 3 --json
+slopstudio --cli map brush-components start.map --brush 0,3 --brush 7
+slopstudio --cli map brush-components start.map --brush 0 --brush 3 --json
 ```
 
 The editing commands (`map move-components` and the others) still take one
@@ -2105,9 +2105,9 @@ no brush can change, the command fails (exit 1) and writes nothing. `--context`
 opens a group first.
 
 ```sh
-vibestudio --cli map hollow room.map --object brush:12 --mode diagonal --thickness 16 --exclude-facing z --keep-inner --caulk --output shaft.map --json
-vibestudio --cli map shrink-brushes room.map --object brush:12 --thickness 8 --exclude-face face:12:6 --output thinner.map --json
-vibestudio --cli map expand-brushes room.map --object entity:3 --thickness 4 --output wider.map --json
+slopstudio --cli map hollow room.map --object brush:12 --mode diagonal --thickness 16 --exclude-facing z --keep-inner --caulk --output shaft.map --json
+slopstudio --cli map shrink-brushes room.map --object brush:12 --thickness 8 --exclude-face face:12:6 --output thinner.map --json
+slopstudio --cli map expand-brushes room.map --object entity:3 --thickness 4 --output wider.map --json
 ```
 
 `map hollow` JSON adds `keepInner` and `innerKept`. The shrink and expand JSON
@@ -2144,7 +2144,7 @@ Use **--map MAP02** to choose a map in a Doom/Hexen WAD; **--engine** supplies
 the same optional engine hint as other map queries.
 
 **--profile ID** selects a registered editor profile, defaulting to
-**vibestudio-default**. TB defaults to inherited hiding; NRC and VibeStudio default
+**slopstudio-default**. TB defaults to inherited hiding; NRC and SlopStudio default
 to flat hiding. Explicit **--policy** overrides that hiding choice. Insertion
 behaviour still follows the profile: NRC copies start with fresh inherited
 states, while TB/default copies retain explicit descendants and reveal roots.
@@ -2175,7 +2175,7 @@ hide: `effectiveHidden` and `classFiltered` together. Class filters leave the
 session's hidden and shown states as they are.
 
 ```text
-vibestudio --cli map visibility start.map --mode inspect --class light --json
+slopstudio --cli map visibility start.map --mode inspect --class light --json
 ```
 
 See [Temporary visibility](levels.md#temporary-visibility) for profile behaviour
@@ -2238,11 +2238,11 @@ one by one under several of them (caulk and skip sides, say); its faces then
 leave `filteredFaces`. A class whose name holds a comma has no filter.
 
 ```text
-vibestudio --cli map filters start.map --json
-vibestudio --cli map filters start.map --off world --invert --objects
-vibestudio --cli map filters q3dm1.map --package baseq3 --off translucent --objects
-vibestudio --cli map filters q3dm1.map --tags Quake3.cfg --package baseq3 --off tag:fog --json
-vibestudio --cli map filters start.map --class light,info_null --classes
+slopstudio --cli map filters start.map --json
+slopstudio --cli map filters start.map --off world --invert --objects
+slopstudio --cli map filters q3dm1.map --package baseq3 --off translucent --objects
+slopstudio --cli map filters q3dm1.map --tags Quake3.cfg --package baseq3 --off tag:fog --json
+slopstudio --cli map filters start.map --class light,info_null --classes
 ```
 
 The query writes nothing: the map, `mapWritten: false`, and the saved filters
@@ -2283,10 +2283,10 @@ take their size from **--definitions file** (a `.def`, `.fgd` or `.ent` file),
 else the game's built-in classes, else a 16-unit cube.
 
 ```text
-vibestudio --cli map camera-focus start.map --object brush:12 --camera-yaw 45 --camera-pitch -30 --fov 100 --aspect 16:9 --json
-vibestudio --cli map camera-focus start.map --level --camera-yaw 50 --camera-pitch 20 --camera-position 0,0,64
-vibestudio --cli map camera-focus start.map --floor up --camera-position 128,64,72 --json
-vibestudio --cli map camera-focus start.map --floor up --camera-position 100,100,448 --selected entity:2 --json
+slopstudio --cli map camera-focus start.map --object brush:12 --camera-yaw 45 --camera-pitch -30 --fov 100 --aspect 16:9 --json
+slopstudio --cli map camera-focus start.map --level --camera-yaw 50 --camera-pitch 20 --camera-position 0,0,64
+slopstudio --cli map camera-focus start.map --floor up --camera-position 128,64,72 --json
+slopstudio --cli map camera-focus start.map --floor up --camera-position 100,100,448 --selected entity:2 --json
 ```
 
 JSON reports `camera` (`position`, `yaw`, `pitch`, `fieldOfView`, `aspect`),
@@ -2318,9 +2318,9 @@ shader definitions for surfaceparm matching; **--definitions FILE** supplies
 brush classes.
 
 ```sh
-vibestudio --cli map smart-tag ./maps/start.map --tags ./tags.json --tag clip --choices --json
-vibestudio --cli map smart-tag ./maps/start.map --tags ./tags.json --tag clip --object brush:0 --choice common/clip --output ./maps/clipped.map
-vibestudio --cli map smart-tag ./maps/start.map --tags ./tags.json --tag detail --object brush:0 --disable --output ./maps/structural.map
+slopstudio --cli map smart-tag ./maps/start.map --tags ./tags.json --tag clip --choices --json
+slopstudio --cli map smart-tag ./maps/start.map --tags ./tags.json --tag clip --object brush:0 --choice common/clip --output ./maps/clipped.map
+slopstudio --cli map smart-tag ./maps/start.map --tags ./tags.json --tag detail --object brush:0 --disable --output ./maps/structural.map
 ```
 
 Use repeated **--object brush:ID|patch:ID|entity:ID**, or repeated

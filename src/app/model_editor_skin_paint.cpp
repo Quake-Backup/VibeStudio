@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -120,7 +120,7 @@ ModelBakeDialog *ModelEditorTools::openBake()
 	{
 		if (sameBakeInput(baked, editor->document().mesh(), frame))
 			return true;
-		*error = QCoreApplication::translate("VibeStudioModelBake",
+		*error = QCoreApplication::translate("SlopStudioModelBake",
 			"The model's faces, UVs or pose changed since Bake Maps opened, so this map no longer lines up with the skin. Close Bake Maps and bake again.");
 		return false;
 	};
@@ -129,7 +129,7 @@ ModelBakeDialog *ModelEditorTools::openBake()
 	if (const int slot = modelSkinPaintMdlSlot(mesh, surface); slot >= 0)
 	{
 		dialog->setApplyTarget(
-			QCoreApplication::translate("VibeStudioModelBake", "Shade MDL skin %1 with an occlusion or lighting map, as one undo step.").arg(slot + 1),
+			QCoreApplication::translate("SlopStudioModelBake", "Shade MDL skin %1 with an occlusion or lighting map, as one undo step.").arg(slot + 1),
 			[editor, surface, slot, fits](const QImage &map, ModelBakeType type, double strength, QString *error)
 			{
 				const auto &current = editor->document().mesh();
@@ -137,7 +137,7 @@ ModelBakeDialog *ModelEditorTools::openBake()
 					return false;
 				if (modelSkinPaintMdlSlot(current, surface) != slot)
 				{
-					*error = QCoreApplication::translate("VibeStudioModelBake",
+					*error = QCoreApplication::translate("SlopStudioModelBake",
 						"The surface's MDL skin changed since Bake Maps opened. Close Bake Maps and open it again.");
 					return false;
 				}
@@ -155,7 +155,7 @@ ModelBakeDialog *ModelEditorTools::openBake()
 		// A package image: occlusion and lighting shade it, a normal map is
 		// staged beside it (Doom 3's _local for tangent space).
 		dialog->setApplyTarget(
-			QCoreApplication::translate("VibeStudioModelBake", "Shade %1 with an occlusion or lighting map, or stage a normal map beside it, in the open package.")
+			QCoreApplication::translate("SlopStudioModelBake", "Shade %1 with an occlusion or lighting map, or stage a normal map beside it, in the open package.")
 				.arg(imagePath),
 			[editor, imagePath, skin, fits](const QImage &map, ModelBakeType type, double strength, QString *error)
 			{
@@ -213,13 +213,13 @@ ModelSkinPaintDialog *ModelEditorTools::openSkinPaint()
 		if (painted && surface < now.surfaces.size() && surface < painted->surfaces.size() && now.surfaces.size() == surfaceCount &&
 			sameSurfaceLayout(painted->surfaces[surface], now.surfaces[surface]))
 			return true;
-		*error = QCoreApplication::translate("VibeStudioModelSkinPaint",
+		*error = QCoreApplication::translate("SlopStudioModelSkinPaint",
 			"The surface or its UVs changed since Paint Skin opened, so the painting no longer lines up with the model. Close Paint Skin and open it again.");
 		return false;
 	};
 	const auto skinChanged = []
 	{
-		return QCoreApplication::translate("VibeStudioModelSkinPaint",
+		return QCoreApplication::translate("SlopStudioModelSkinPaint",
 			"The skin changed since Paint Skin opened (a bake or another paint was applied to it); applying would discard that change. Close Paint Skin and open it again.");
 	};
 	// Apply to Model: an MDL skin member as one undo step, or the image
@@ -230,7 +230,7 @@ ModelSkinPaintDialog *ModelEditorTools::openSkinPaint()
 		// and each it applied (Undo and Redo move between them).
 		auto known = std::make_shared<QVector<QImage>>(QVector<QImage>{modelSurfaceIndexedSkin(mesh, surface)});
 		dialog->setApplyTarget(
-			QCoreApplication::translate("VibeStudioModelSkinPaint", "Replace MDL skin %1 with the painted skin, as one undo step.").arg(slot + 1),
+			QCoreApplication::translate("SlopStudioModelSkinPaint", "Replace MDL skin %1 with the painted skin, as one undo step.").arg(slot + 1),
 			[editor, surface, slot, fits, skinChanged, known](const QImage &painted, QString *error)
 			{
 				if (!fits(error))
@@ -256,7 +256,7 @@ ModelSkinPaintDialog *ModelEditorTools::openSkinPaint()
 		// The package's file as the dialog opened on it and as it staged it.
 		auto staged = std::make_shared<QByteArray>(packageBytes(editor, imagePath));
 		dialog->setApplyTarget(
-			QCoreApplication::translate("VibeStudioModelSkinPaint", "Stage the painted skin as %1 in the open package.").arg(imagePath),
+			QCoreApplication::translate("SlopStudioModelSkinPaint", "Stage the painted skin as %1 in the open package.").arg(imagePath),
 			[editor, imagePath, fits, skinChanged, staged](const QImage &painted, QString *error)
 			{
 				if (!fits(error))
@@ -319,7 +319,7 @@ ModelSkinPaintDialog *ModelEditorTools::openSkinPaint()
 					if (view->frame() != guard->frame())
 					{
 						guard->setPaintInView(true);
-						editor->m_status->setText(QCoreApplication::translate("VibeStudioModelSkinPaint",
+						editor->m_status->setText(QCoreApplication::translate("SlopStudioModelSkinPaint",
 							"Paint Skin paints frame %1; show it in the view to paint there.").arg(guard->frame()), LiveStatus::Problem);
 						return false;
 					}
@@ -348,4 +348,4 @@ ModelSkinPaintDialog *ModelEditorTools::openSkinPaint()
 	return dialog;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

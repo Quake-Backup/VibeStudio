@@ -21,7 +21,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 struct PackageSubsetDialog::Work {
 	std::atomic_bool cancel{false};
 	QMutex mutex;
@@ -169,4 +169,4 @@ void PackageSubsetDialog::exportSubset()
 		m_details->setPlainText(packageWriteReportText(*report)); if (exported) { exported(*report); }
 	});
 }
-} // namespace vibestudio
+} // namespace slopstudio

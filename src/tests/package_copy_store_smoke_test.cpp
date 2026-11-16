@@ -15,7 +15,7 @@
 #include <windows.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 using namespace package_copy_test;
 namespace {
 bool write(const QString& path, const QByteArray& bytes)

@@ -13,7 +13,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -498,4 +498,4 @@ bool modelUvHealthHas(const ModelUvHealthReport &report, const QString &problem)
 		return report.floodFillHazard();
 	return false;
 }
-} // namespace vibestudio
+} // namespace slopstudio

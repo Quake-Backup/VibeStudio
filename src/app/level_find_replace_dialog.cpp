@@ -13,7 +13,7 @@
 #include <QStandardItemModel>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 QComboBox* textureField(QWidget* parent, const QString& objectName, const QString& accessibleName)
@@ -195,4 +195,4 @@ void LevelFindReplaceDialog::refreshDefaultButton()
 	m_findButton->setDefault(!replacing);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,4 +1,4 @@
-# VibeStudio Credits
+# SlopStudio Credits
 
 ## Panic Protocol campaign (2026-10-28)
 
@@ -36,14 +36,14 @@ June 2000, mirrored at revision `cfcea55553fb59ac57ebf2a237f72cad4296f2b0`.
 The [upstream readme](https://github.com/sinshu/freeverb/blob/cfcea55553fb59ac57ebf2a237f72cad4296f2b0/readme.txt)
 and component headers explicitly dedicate the implementation to the public
 domain and permit unrestricted reuse. Reviewed 2026-10-06 for compatibility
-with VibeStudio's GPL-3.0 licence. The upstream work carries no warranty.
+with SlopStudio's GPL-3.0 licence. The upstream work carries no warranty.
 The source retains the author's name, date and public-domain notice.
 
-VibeStudio adds original sample-rate/room scaling, per-comb low-frequency decay,
+SlopStudio adds original sample-rate/room scaling, per-comb low-frequency decay,
 frequency-based damping, stereo-preserving excitation, pre-delay, true allpass
 sections, double precision, memory admission and constant-time history reset.
 No VST SDK, binary or third-party runtime is incorporated. Chorus, flanger,
-tremolo, phaser, preset handling and their integration are original VibeStudio code.
+tremolo, phaser, preset handling and their integration are original SlopStudio code.
 
 ## Audio session EQ
 
@@ -51,7 +51,7 @@ The low/high-pass, notch, peaking and shelving coefficients in
 `src/core/audio_effects.cpp` implement the mathematical formulae in section 2 of
 Robert Bristow-Johnson / W3C's [Audio EQ Cookbook, 2021-06-08 Note](https://www.w3.org/TR/2021/NOTE-audio-eq-cookbook-20210608/).
 The C++ processing, parameter model, dynamics, delay, saturation, routing and
-tests are original VibeStudio work. The formula reference is published under
+tests are original SlopStudio work. The formula reference is published under
 the [W3C Software and Document License, 2015](https://www.w3.org/copyright/software-license-2015/).
 Reviewed 2026-10-05 against this repository's GPL-3.0 license; W3C explicitly
 [documents GPL compatibility](https://www.w3.org/news/2015/w3c-adopts-new-software-and-document-license/).
@@ -59,7 +59,7 @@ No external effect binary or runtime library is linked.
 
 This software includes material derived from the Audio EQ Cookbook linked
 above. Copyright © 2021 W3C® (MIT, ERCIM, Keio, Beihang). The changes are an
-original C++ coefficient implementation and integration into VibeStudio's
+original C++ coefficient implementation and integration into SlopStudio's
 bounded stereo effects engine. The following notice is retained in this
 credits document, which is included in portable license bundles.
 
@@ -100,7 +100,7 @@ copyright holders.
 ## Recording APIs
 
 `core/audio_take`, `app/audio_capture`, `app/audio_input_device` and the take
-review/CLI are original VibeStudio C++ implementations. Public interface
+review/CLI are original SlopStudio C++ implementations. Public interface
 references reviewed 2026-10-05 are Qt's
 [QAudioSource](https://doc.qt.io/qt-6.10/qaudiosource.html) byte-stream API
 (Qt 6.4.2/6.10.1) and [application permissions](https://doc.qt.io/qt-6.10/permissions.html)
@@ -128,7 +128,7 @@ native image/shader lookup in
 and TGA layout in
 [`qfiles.h`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/qcommon/qfiles.h).
 Local `master` snapshots were reviewed on 2026-10-06 under GPL-2.0-or-later,
-compatible with VibeStudio's GPL-3.0 licence. Production bundling and fixtures
+compatible with SlopStudio's GPL-3.0 licence. Production bundling and fixtures
 are original implementations with no game assets. The optional
 `model_player_bundle_engine_oracle.py` extracts unmodified discovery, skin, TGA,
 animation and token-parser functions into a separately compiled test harness,
@@ -196,7 +196,7 @@ fallback and reverse/loop timing reference id Software's
 and [`CG_ParseAnimationFile` / `CG_RunLerpFrame`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/cgame/cg_players.c).
 The local `master` source was reviewed on 2026-10-06; its GPL-2.0-or-later licence
 is compatible with this GPL-3.0 project. Production parsing, validation,
-sampling, assembly integration and synthetic fixtures are original VibeStudio
+sampling, assembly integration and synthetic fixtures are original SlopStudio
 implementations. No game assets are included. The
 [supported authoring contract](MODEL_ASSEMBLY.md#quake-iii-native-animation)
 deliberately rejects unsupported directives and unsafe ranges.
@@ -206,7 +206,7 @@ parser and playback-selection functions, plus the token parser from
 from a supplied source checkout into the project test output directory. It
 preserves the GPL-2.0-or-later header and records source digests. These functions
 are compiled only into the acceptance harness; the production library uses the
-original VibeStudio implementation described above.
+original SlopStudio implementation described above.
 
 ## Model Skin Bindings
 
@@ -216,15 +216,15 @@ Software's [Quake III skin reader](https://github.com/id-Software/Quake-III-Aren
 [MD3 surface-name normalization](https://github.com/id-Software/Quake-III-Arena/blob/master/code/renderer/tr_model.c)
 and [custom-skin lookup](https://github.com/id-Software/Quake-III-Arena/blob/master/code/renderer/tr_mesh.c).
 The local `master` reference was reviewed on 2026-10-05. These sources are
-GPL-2.0-or-later, compatible with VibeStudio's GPL-3.0-or-later licence.
+GPL-2.0-or-later, compatible with SlopStudio's GPL-3.0-or-later licence.
 No upstream implementation or game assets were copied. The bounded authoring
 parser, strict coverage/duplicate validation, transactional edits, package
-selection, CLI and fixtures are original VibeStudio code. See
+selection, CLI and fixtures are original SlopStudio code. See
 [the supported contract](MODEL_MESH.md#quake-iii-skin-assignments); import does
 not emulate missing-surface fallback or source-port extensions.
 The assembly linked-skin workflow reuses this reader and matching contract
 through `core/model_assembly_skin.cpp` (integrated 2026-10-06). Source references,
-verified snapshots, history, preview and bake handoffs are original VibeStudio
+verified snapshots, history, preview and bake handoffs are original SlopStudio
 integration; no additional upstream code, assets or dependencies were imported.
 
 The `.skin` writer (`writeModelQ3Skin`, 2026-10-22) emits records this reader
@@ -250,9 +250,9 @@ id Software's [Quake II `game/q_shared.h`](https://github.com/id-Software/Quake-
 [`q3map/map.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/q3map/map.c)
 and [`q3map/shaders.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/q3map/shaders.c)
 (shader-derived contents, `playerclip` and `nodraw`). id Software `master` snapshots
-reviewed 2026-10-05; GPL-2.0-or-later references compatible with VibeStudio's
-GPL-3.0. Original VibeStudio code implements the box document, controls, parsing,
-serialization and fixtures and reuses existing VibeStudio hull/placement services.
+reviewed 2026-10-05; GPL-2.0-or-later references compatible with SlopStudio's
+GPL-3.0. Original SlopStudio code implements the box document, controls, parsing,
+serialization and fixtures and reuses existing SlopStudio hull/placement services.
 No upstream implementation, commercial shader, texture, model or palette is copied.
 
 The independent compiler acceptance reader in
@@ -264,7 +264,7 @@ at the same revision, and NetRadiant Custom
 and [`bspfile_ibsp.cpp`](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/bspfile_ibsp.cpp)
 at `68ecbed64b7be78741878c730279b5471d978c7c`. These GPL-2.0-or-later references
 were reviewed for GPL-3.0 compatibility on 2026-10-05. BSP readers, membership
-oracles, fixtures and workflow code are original VibeStudio implementations.
+oracles, fixtures and workflow code are original SlopStudio implementations.
 
 Collision hulls and recorded placement (reviewed 2026-10-28). The Doom 3 trace
 model budget (16 polygons, 32 edges, 32 vertices) follows `MAX_TRACEMODEL_POLYS`,
@@ -295,7 +295,7 @@ ericw-tools `qbsp`, Quake II `qbsp3` and q3map2 do and as
 [TrenchBroom](https://github.com/TrenchBroom/TrenchBroom) uses it for groups.
 The instance transform is the level preview's existing reading of `angles`,
 `angle`, `modelscale` and `modelscale_vec`. The hull builder, conservative
-simplification and records are original VibeStudio implementations.
+simplification and records are original SlopStudio implementations.
 
 ## Placed Model Compiler Appearances
 
@@ -312,7 +312,7 @@ matching and shader-slot-zero behavior follow the bundled Assimp
 and `MD3Loader.h`, under
 [BSD-3-Clause](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/libs/assimp/LICENSE).
 All references are pinned to `68ecbed64b7be78741878c730279b5471d978c7c` and were
-reviewed for GPL-3.0 compatibility on 2026-10-06. VibeStudio's bounded parser,
+reviewed for GPL-3.0 compatibility on 2026-10-06. SlopStudio's bounded parser,
 immutable package reads, cache keys, receipts, dependency integration and
 synthetic fixtures are original implementations. No upstream implementation or
 commercial model/skin content was copied or linked.
@@ -340,9 +340,9 @@ use public interface/format facts from these local source references, reviewed
   WAD2 directory records and four-level miptexture layout, local `master` snapshot,
   GPL-2.0-or-later, copyright Id Software (1996–1997).
 
-The licenses were verified as compatible with VibeStudio's GPL-3.0. Bounded
+The licenses were verified as compatible with SlopStudio's GPL-3.0. Bounded
 parsing, deterministic WAD assembly, dependency integration and orchestration
-are original VibeStudio code. No upstream implementation, commercial textures,
+are original SlopStudio code. No upstream implementation, commercial textures,
 models, palettes or sounds were imported. Existing package reader/writer and
 WAL decoding retain their PakFu/id Software credits elsewhere in this document.
 
@@ -366,9 +366,9 @@ interface facts from id Software's public source releases:
 
 Local `master` source snapshots reviewed 2026-10-05. Their GPL-2.0-or-later
 headers, copyright id Software 1996–1997 (Quake) and 1997–2001 (Quake II), were
-verified as compatible with VibeStudio's GPL-3.0. No upstream implementation or
+verified as compatible with SlopStudio's GPL-3.0. No upstream implementation or
 game content was copied. The slot receipts, bounded review, package-service
-integration and recorder fixtures are original VibeStudio code.
+integration and recorder fixtures are original SlopStudio code.
 
 ## Doom Camera Materials
 
@@ -380,7 +380,7 @@ Their GPL-2.0-or-later notices were verified and reviewed for GPL-3.0
 compatibility on 2026-10-04. Copyright Id Software (1993–1996) and Simon Howard
 (2005–2014); notices remain beside the adaptations. Sector decomposition,
 bounded Qt parsing/composition, namespace resolution and fixtures are original
-VibeStudio code. No game assets or palettes were imported.
+SlopStudio code. No game assets or palettes were imported.
 
 ## WAD Semantic Groups
 
@@ -390,7 +390,7 @@ Shared WAD subset/edit map/GL-group recognition and new-document assembly in
 as a format reference, including binary map members and delimited UDMF maps.
 Revision `bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659`; GPL-2.0-or-later was
 verified in that file and reviewed for GPL-3.0 compatibility on 2026-10-04.
-The selection, group-expansion and plan-ordering code is original VibeStudio code; no upstream
+The selection, group-expansion and plan-ordering code is original SlopStudio code; no upstream
 source or prose was copied. Namespace recognition reuses the existing credited
 package reader.
 
@@ -399,7 +399,7 @@ package reader.
 
 ## Package Draft Reader Protection
 
-Saved-draft reader protection uses an original GPL-3.0 VibeStudio adapter to the
+Saved-draft reader protection uses an original GPL-3.0 SlopStudio adapter to the
 public [Windows directory sharing](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew),
 [Linux flock](https://man7.org/linux/man-pages/man2/flock.2.html) and
 [Apple flock](https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/flock.2.html)
@@ -408,11 +408,11 @@ copied. These operating-system APIs add no bundled library.
 
 The adapter lives in `src/core/package_draft_access.cpp`. Windows uses directory
 sharing and native file identity; Unix uses shared/exclusive advisory locks on
-an existing directory. The implementations and fixtures are VibeStudio code.
+an existing directory. The implementations and fixtures are SlopStudio code.
 
 ## Working Import Lock Recovery
 
-`src/core/package_import_locks.cpp` is an original GPL-3.0 VibeStudio adapter
+`src/core/package_import_locks.cpp` is an original GPL-3.0 SlopStudio adapter
 to [Windows file sharing](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew),
 [handle-based deletion](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-setfileinformationbyhandle),
 [Linux flock](https://man7.org/linux/man-pages/man2/flock.2.html) and the Apple
@@ -424,17 +424,17 @@ Reviewed 2026-10-04. No source or documentation prose was copied; no bundled
 dependency was added. Native macOS/Linux execution remains a release gate.
 
 ## Core Technology
-- Prepared deployment launch flags follow id Software's Quake III [`FS_Startup` in files.c](https://github.com/id-Software/Quake-III-Arena/blob/master/code/qcommon/files.c), [`Com_StartupVariable` in common.c](https://github.com/id-Software/Quake-III-Arena/blob/master/code/qcommon/common.c), and [`r_fullscreen` in tr_init.c](https://github.com/id-Software/Quake-III-Arena/blob/master/code/renderer/tr_init.c). Local `master` source reviewed 2026-10-05; GPL-2.0-or-later is compatible with this GPL-3.0 repository. Only interface behavior informed the existing profile adapter; no implementation or game content was copied. Package review/deployment and the recorder fixtures are original VibeStudio code.
-- Prepared build filesystem flags follow q3map2's [path initialization](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/path_init.cpp) and shader-list behavior in its [shader loader](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/shaders.cpp), NetRadiant Custom revision `68ecbed64b7be78741878c730279b5471d978c7c`. GPL-2.0-or-later was reviewed for this GPL-3.0 repository on 2026-10-05. The independent-copy inventory and Qt orchestration are original VibeStudio code; no upstream code or proprietary assets were copied.
+- Prepared deployment launch flags follow id Software's Quake III [`FS_Startup` in files.c](https://github.com/id-Software/Quake-III-Arena/blob/master/code/qcommon/files.c), [`Com_StartupVariable` in common.c](https://github.com/id-Software/Quake-III-Arena/blob/master/code/qcommon/common.c), and [`r_fullscreen` in tr_init.c](https://github.com/id-Software/Quake-III-Arena/blob/master/code/renderer/tr_init.c). Local `master` source reviewed 2026-10-05; GPL-2.0-or-later is compatible with this GPL-3.0 repository. Only interface behavior informed the existing profile adapter; no implementation or game content was copied. Package review/deployment and the recorder fixtures are original SlopStudio code.
+- Prepared build filesystem flags follow q3map2's [path initialization](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/path_init.cpp) and shader-list behavior in its [shader loader](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/shaders.cpp), NetRadiant Custom revision `68ecbed64b7be78741878c730279b5471d978c7c`. GPL-2.0-or-later was reviewed for this GPL-3.0 repository on 2026-10-05. The independent-copy inventory and Qt orchestration are original SlopStudio code; no upstream code or proprietary assets were copied.
 - `core/level_build_artifacts` follows that pinned revision's generated `scripts/q3map2_<map>.shader` naming in [shaders.cpp](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/shaders.cpp), external map-directory layout in [lightmaps_ydnar.cpp](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/lightmaps_ydnar.cpp), and `EXTERNAL_LIGHTMAP` naming in [q3map2.h](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/q3map2.h). The 17-lump IBSP v46 validator correction uses id Software's [Quake III qfiles.h](https://github.com/id-Software/Quake-III-Arena/blob/master/code/qcommon/qfiles.h), reviewed locally on 2026-10-05; the Quake Live advertisement extension follows the pinned [bspfile_ibsp.cpp](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/bspfile_ibsp.cpp). All are GPL-2.0-or-later references, compatible with this GPL-3.0 repository. Only format/interface facts are used; receipt verification, history retention, Qt review and package orchestration are original implementations. Compiler proofs use original generated assets only.
-- Level texture projection conventions use [q3map2's classic mapping](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/map.cpp) and [brush-primitive basis](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/common/qmath.h), from NetRadiant Custom revision `68ecbed64b7be78741878c730279b5471d978c7c`. The GPL-2.0-or-later Quake III tools licence was reviewed for GPL-3.0 compatibility on 2026-10-04. Original id Software and contributor notices are retained in `src/core/level_texture_mapping.cpp`; the inverse mapping and rotation solver is VibeStudio code.
+- Level texture projection conventions use [q3map2's classic mapping](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/map.cpp) and [brush-primitive basis](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/common/qmath.h), from NetRadiant Custom revision `68ecbed64b7be78741878c730279b5471d978c7c`. The GPL-2.0-or-later Quake III tools licence was reviewed for GPL-3.0 compatibility on 2026-10-04. Original id Software and contributor notices are retained in `src/core/level_texture_mapping.cpp`; the inverse mapping and rotation solver is SlopStudio code.
 - [Qt 6](https://www.qt.io/product/qt6)
   - Application framework and primary UI toolkit.
   - Theme replacement was checked against Qt 6.10.1's
     [application stylesheet lifecycle](https://github.com/qt/qtbase/blob/v6.10.1/src/widgets/kernel/qapplication.cpp)
     and [recursive stylesheet refresh](https://github.com/qt/qtbase/blob/v6.10.1/src/widgets/styles/qstylesheetstyle.cpp),
     reviewed 2026-10-06. GPL-3.0/LGPL-3.0 alternatives are compatible with this
-    GPL-3.0 repository. VibeStudio's detach/install sequence uses public Qt APIs;
+    GPL-3.0 repository. SlopStudio's detach/install sequence uses public Qt APIs;
     its implementation and nesting regression are original. No Qt code or
     documentation prose was copied.
     Shell page construction also defers application styling until the widget
@@ -472,12 +472,12 @@ dependency was added. Native macOS/Linux execution remains a release gate.
     [QMediaDevices](https://doc.qt.io/qt-6.10/qmediadevices.html) contracts.
     Reviewed against Qt 6.10.1 headers on 2026-10-04; their existing GPL-3.0/
     LGPL-3.0 alternatives are compatible with this GPL-3.0 repository. The
-    adapter and lifecycle controller are original VibeStudio code. No Qt source
+    adapter and lifecycle controller are original SlopStudio code. No Qt source
     or documentation prose was copied; dependency and packaging remain unchanged.
     The [Qt 6.4.2 FFmpeg player](https://github.com/qt/qtmultimedia/blob/v6.4.2/src/plugins/multimedia/ffmpeg/qffmpegmediaplayer.cpp)
     was also reviewed on 2026-10-04 to explain an observed end-of-stream event
     despite Infinite looping. Its GPL-3.0/LGPL-3.0 alternatives are compatible;
-    VibeStudio's deferred, cancellable repeat fallback is original code.
+    SlopStudio's deferred, cancellable repeat fallback is original code.
   - Qt 6.10.1 [PNG handler](https://github.com/qt/qtbase/blob/v6.10.1/src/gui/image/qpnghandler.cpp)
     and [QImage grayscale semantics](https://github.com/qt/qtbase/blob/v6.10.1/src/gui/image/qimage.cpp)
     informed regression tests and original code restoring identity grayscale
@@ -519,7 +519,7 @@ licence texts remain in the archive. Their pinned inputs are
 (LGPL-2.1-or-later/permissive deployed profile) and
 [zlib 1.3.1](https://github.com/madler/zlib/releases/tag/v1.3.1) (zlib licence).
 Reviewed 2026-10-05. These are source-distribution references; no downloaded
-recipe is executed or newly linked into VibeStudio. The audit records Qt's
+recipe is executed or newly linked into SlopStudio. The audit records Qt's
 zlib build adjustments, archive hashes and SDK source-SPDX comparisons.
 
 The source companion also retains [QtTools 6.10.1](https://github.com/qt/qttools/tree/9e0030f889168f7a0ec1bb47a7d7138a497b3c96)
@@ -568,9 +568,9 @@ SVG paths for the artwork and subsets them to Latin WOFF2 files for the HTML
 documentation; both are documents or derivatives the OFL permits, and the
 licence travels with the fonts. Reviewed 2026-10-07.
 
-**Artwork.** The VibeStudio mark, wordmark, lockups, icons at every size,
+**Artwork.** The SlopStudio mark, wordmark, lockups, icons at every size,
 social preview, installer art and documentation theme are original, generated
-by `scripts/generate_branding.py` from one geometry description. Vibe Orange is
+by `scripts/generate_branding.py` from one geometry description. Slop Orange is
 the studio's own dark-theme accent (`src/app/studio_theme.cpp`). See
 [Branding](BRANDING.md).
 
@@ -580,7 +580,7 @@ that prints GitHub outputs follow the pattern of
 [FnQL](https://github.com/themuffinator/FnQL/tree/e24b4dfd319f55e094e8e446d6e2b4e864d6f848)'s
 `scripts/changelog.py`, `scripts/manual_release.py`, `scripts/version.py` and
 `.github/workflows/release.yml` (GPL-2.0, same author, revision `e24b4df`,
-2026-09-24, reviewed 2026-10-07). Pattern only: VibeStudio's
+2026-09-24, reviewed 2026-10-07). Pattern only: SlopStudio's
 `scripts/release_meta.py`, `version.py`, `changelog.py` and `release.py` are
 original implementations, and no FnQL code was copied. The changelog follows
 [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) (Olivier Lacan,
@@ -590,11 +590,11 @@ MIT) and versions follow [Semantic Versioning 2.0.0](https://semver.org/spec/v2.
 GitHub's documented [alert syntax](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#alerts).
 
 **Build and packaging tools** (run by the release workflow; not linked into
-VibeStudio):
+SlopStudio):
 
 - [Inno Setup 6](https://jrsoftware.org/isinfo.php) (Jordan Russell and Martijn
   Laan, Inno Setup License) builds the Windows installer from
-  `packaging/windows/vibestudio.iss`; the installer carries Inno Setup's setup
+  `packaging/windows/slopstudio.iss`; the installer carries Inno Setup's setup
   runtime, which its licence allows redistributing.
 - [linuxdeploy](https://github.com/linuxdeploy/linuxdeploy) and
   [linuxdeploy-plugin-qt](https://github.com/linuxdeploy/linuxdeploy-plugin-qt)
@@ -624,13 +624,13 @@ permission/disclaimer and non-binding requests remain in each source and the
 distributed license. Source hashes and the exact selection are recorded in
 `external/audio/portaudio/UPSTREAM.json`. No ASIO SDK is imported.
 
-VibeStudio's checked build-time patches repair packet timing/flags, silent
+SlopStudio's checked build-time patches repair packet timing/flags, silent
 input, explicit channel mapping and output drain in WASAPI, and atomic xrun
 consumption in CoreAudio. Packet interpretation follows Microsoft's
 [IAudioCaptureClient::GetBuffer](https://learn.microsoft.com/en-us/windows/win32/api/audioclient/nf-audioclient-iaudiocaptureclient-getbuffer)
 and [buffer flags](https://learn.microsoft.com/en-us/windows/win32/api/audioclient/ne-audioclient-_audclnt_bufferflags)
 contracts, reviewed 2026-10-06; no Microsoft sample code is copied. See the
-[integration and patch record](../external/audio/portaudio/VIBESTUDIO.md).
+[integration and patch record](../external/audio/portaudio/SLOPSTUDIO.md).
 
 ## Audio Loudness Metering
 
@@ -642,8 +642,8 @@ Chris Moeller's MIT R128Scan notice for derived filter code, and the University
 of California BSD-3-Clause queue notice. All were reviewed for GPLv3 compatibility
 before incorporation on 2026-10-04. Notices and pinned hashes are retained under
 `external/audio/libebur128` and included in distribution licence bundles.
-The C++ adapter, channel review controls and synthetic fixtures are VibeStudio
-code. See the [integration record](../external/audio/libebur128/VIBESTUDIO.md).
+The C++ adapter, channel review controls and synthetic fixtures are SlopStudio
+code. See the [integration record](../external/audio/libebur128/SLOPSTUDIO.md).
 Calibration and speaker-weight facts were checked against the
 [ITU-R BS.1770-5 recommendation (November 2023)](https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.1770-5-202311-I!!PDF-E.pdf)
 on 2026-10-04. No ITU text or audio sequences are redistributed. The optional
@@ -664,7 +664,7 @@ revision `be05b13e98b048f0b5a0f5fa8ce514d56db5f822`, supply reference Vorbis/con
 decoding under BSD-3-Clause. These licences were reviewed on 2026-10-04 as
 compatible with GPLv3. Original notices and sources remain intact;
 `UPSTREAM.json` records hashes. Meson adapters and allocation wrappers are
-VibeStudio code. The static source subset omits the separate encoder API.
+SlopStudio code. The static source subset omits the separate encoder API.
 
 The unbuilt evaluation copy of Sean Barrett and contributors'
 [stb_vorbis.c 1.22](https://github.com/nothings/stb/blob/2c980bb59875b0d32144a71867fbdebb2f77cd20/stb_vorbis.c)
@@ -674,7 +674,7 @@ source notices and hash manifest remain in `external/audio/stb`. This evaluation
 copy is excluded from Meson, application binaries and portable bundles; the
 active Vorbis implementation is Xiph.
 
-Synthetic test assets are generated by VibeStudio's fixture script. Independent
+Synthetic test assets are generated by SlopStudio's fixture script. Independent
 reference samples use [FFmpeg](https://ffmpeg.org/) and
 [libsndfile](https://libsndfile.github.io/libsndfile/) through
 [python-soundfile](https://python-soundfile.readthedocs.io/); versions are recorded
@@ -695,10 +695,10 @@ xatlas, thekla_atlas (Thekla, Inc.; NVIDIA / Ignacio Castaño) and Fast-BVH
 (Brandon Pelfrey); the embedded OpenNL implementation credits Bruno Lévy under
 BSD-3-Clause terms. All are GPLv3 compatible. Original notices are retained and
 the OpenNL notice is reproduced in binary licence bundles. No example assets
-are included. [Integration and maintenance notes](../external/modelling/xatlas/VIBESTUDIO.md)
+are included. [Integration and maintenance notes](../external/modelling/xatlas/SLOPSTUDIO.md)
 describe the build adaptations that preserve indexed seams and chart shape,
 the independent width/height packing adaptation reviewed 2026-10-06, and the
-bounded VibeStudio worker wrapper. Original vendored source and header bytes
+bounded SlopStudio worker wrapper. Original vendored source and header bytes
 remain unchanged; generated copies retain all upstream notices.
 
 Quarter-turn packing (2026-10-28) leaves xatlas's `rotateCharts` off, because
@@ -763,7 +763,7 @@ Behaviour only; no Blender code, icons or assets are used. The implementation
 in `src/core/model_geometric_topology.*`, `src/core/model_mesh_tools*.*`,
 `src/core/model_mesh_decimate.cpp`, `src/core/model_selection_tools.*`,
 `src/cli/model_tools.*`, `src/app/model_editor_tools.*` and
-`src/app/model_editor_modal.cpp` is VibeStudio's own.
+`src/app/model_editor_modal.cpp` is SlopStudio's own.
 
 Knife interaction was reviewed on 2026-10-21 against the
 [Blender 5.4 development knife manual](https://docs.blender.org/manual/en/dev/modeling/meshes/editing/mesh/knife_topology_tool.html)
@@ -771,7 +771,7 @@ Knife interaction was reviewed on 2026-10-21 against the
 confirmation/cancellation, disconnected chains, path undo, midpoint snapping,
 cut-through and angle constraints. `src/core/model_knife*` and
 `src/app/model_editor_knife.cpp` are original implementations; no upstream
-source, prose, icons or assets were incorporated. VibeStudio's S selection
+source, prose, icons or assets were incorporated. SlopStudio's S selection
 scope and semantic keyboard crosshair are documented in [Knife](MODEL_KNIFE.md).
 
 Spin's centre/axis/angle/steps and radial duplication workflow references the
@@ -779,7 +779,7 @@ Spin's centre/axis/angle/steps and radial duplication workflow references the
 (CC-BY-SA-4.0; application GPL-2.0-or-later, reviewed for GPL-3.0 compatibility
 on 2026-10-21). `src/core/model_spin.cpp` and the Qt/CLI integration are original
 implementations. No upstream source, prose, icons or assets were incorporated.
-See [Spin](MODEL_SPIN.md) for VibeStudio's closure, pose and skinning semantics.
+See [Spin](MODEL_SPIN.md) for SlopStudio's closure, pose and skinning semantics.
 
 Rip's vertex/edge separation, side choice and optional gap fill reference the
 [Blender 4.5 Rip Vertices manual](https://docs.blender.org/manual/en/4.5/modeling/meshes/editing/vertex/rip_vertices.html)
@@ -787,7 +787,7 @@ and [Rip Vertices and Fill](https://docs.blender.org/manual/en/4.5/modeling/mesh
 (CC-BY-SA-4.0; application GPL-2.0-or-later, reviewed for GPL-3.0 compatibility
 on 2026-10-21). `src/core/model_rip.cpp`, `model_rip_apply.cpp` and the Qt/CLI
 integration are original implementations. No upstream source, prose, icons or
-assets were incorporated. [Rip](MODEL_RIP.md) documents VibeStudio's explicit
+assets were incorporated. [Rip](MODEL_RIP.md) documents SlopStudio's explicit
 side-face, nonzero movement, all-pose behaviour and whole-operation cancellation.
 
 The polygon modelling round of 2026-10-28 follows documented behaviour only,
@@ -858,7 +858,7 @@ used). All implementations are original; no third-party code is used.
 The Levels page's vertex editing, patch matrix commands, Thicken, hollow modes,
 regions and navigation follow the behaviour of GtkRadiant 1.5, NetRadiant Custom,
 TrenchBroom and Hammer. NetRadiant Custom's editor sources were read at revision
-`8216133984031afaa9a857b56ea66dd9c3d54b26` (the revision VibeMap3 continues
+`8216133984031afaa9a857b56ea66dd9c3d54b26` (the revision SlopMap3 continues
 from) on 2026-10-15; they are GPL-2.0-or-later (copyright William Joseph and
 the GtkRadiant contributors), compatible with this GPL-3.0 repository:
 
@@ -905,7 +905,7 @@ the GtkRadiant contributors), compatible with this GPL-3.0 repository:
   start, for each control point). Behaviour only; original code in
   `src/core/level_patch_cap.cpp`, `src/core/level_patch_tools.cpp`,
   `src/app/patch_cap_dialog.cpp` and
-  `src/app/level_patch_convert_deform_actions.cpp`. VibeStudio's Deform draws
+  `src/app/level_patch_convert_deform_actions.cpp`. SlopStudio's Deform draws
   from a seeded 32-bit Mersenne Twister rather than `rand()`, so a run can be
   repeated.
 - TrenchBroom's Convert Selection to Patches (2026-10-29), read at
@@ -913,7 +913,7 @@ the GtkRadiant contributors), compatible with this GPL-3.0 repository:
   (GPL-3.0-or-later): `MapWindow::convertSelectionToPatches` (3 by 3 patches,
   then the Control Point Tool) and its Ctrl+P in `ActionManager.cpp`.
   Behaviour only; the face-to-patch construction in
-  `src/core/level_patch_convert.cpp` is VibeStudio's own, as TrenchBroom's
+  `src/core/level_patch_convert.cpp` is SlopStudio's own, as TrenchBroom's
   model library was not in the reviewed checkout.
 - [`radiant/csg.cpp`](https://github.com/Garux/netradiant-custom/blob/8216133984031afaa9a857b56ea66dd9c3d54b26/radiant/csg.cpp): `CSG_Hollow`'s wrapped walls
   (`eWrap`), which meet without overlapping, and `CSG_MakeRoom`, which builds
@@ -928,9 +928,9 @@ the GtkRadiant contributors), compatible with this GPL-3.0 repository:
   revision `449778b3840f8f2062daab15c87cb012f2ac945c`, GPL-2.0-or-later, reviewed
   before implementation. `core/level_hollow.*`, the options in
   `hollowLevelMapSelection`, `cli/level_hollow_options.*`, **Make Room
-  Options…** and `editor make-room` are original VibeStudio implementations;
+  Options…** and `editor make-room` are original SlopStudio implementations;
   no upstream code was copied. As upstream, wall faces sharing an open face's
-  plane keep its material; unlike upstream, VibeStudio fills the outer corners
+  plane keep its material; unlike upstream, SlopStudio fills the outer corners
   and makes both options switchable.
 - The CSG Tool (2026-10-25) follows
   [`CSG_Tool`, `CSGdlg_getSettings`, `CSG_Hollow`, `HollowSettings`, `FaceMakeBrush`, `brush_extrudeDiag`, `FaceOffset` and `CSGdlg_BrushShrink`/`CSGdlg_BrushExpand`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/csg.cpp)
@@ -942,7 +942,7 @@ the GtkRadiant contributors), compatible with this GPL-3.0 repository:
   (`app/level_csg_tool_actions.cpp`), the Diagonal and Extrude modes and
   keep-inner option of `hollowLevelMapSelection`, `levelCsgExcludedFaces`,
   `offsetLevelMapSelectionFaces` and `map shrink-brushes`/`expand-brushes` are
-  original VibeStudio implementations; no upstream code was copied. Diagonal
+  original SlopStudio implementations; no upstream code was copied. Diagonal
   walls are built as the points of the grown shell furthest outside their
   face rather than by sewing windings; with Keep inner brush, caulk covers the
   faces between the walls and the brush and leaves the outside's materials,
@@ -959,7 +959,7 @@ the GtkRadiant contributors), compatible with this GPL-3.0 repository:
   circle fit in `core/level_primitive.*`, `rebuildLevelMapBrushesAsShape`
   (`core/level_shapes.*`), `rebuildLevelMapBrushHulls` (`core/level_map.cpp`),
   `app/level_prism_actions.cpp` and `map add-shape --in-place --fit` are
-  original VibeStudio implementations built on its own hull builder: they
+  original SlopStudio implementations built on its own hull builder: they
   compute the solid's corners rather than writing NetRadiant Custom's plane
   points, and no upstream code was copied. Unlike upstream, every selected
   brush is rebuilt rather than only the last one, its content flags are kept,
@@ -984,7 +984,7 @@ in `src/core/level_patch.cpp`, `src/core/level_patch_tools.*`,
 (`hollowLevelMapSelection`), `src/core/level_selection_tools.*`,
 `src/core/level_prefab.cpp` (`replaceLevelMapSelectionWithPrefab`),
 `src/app/map_viewport_components.cpp` and `src/app/level_geometry_actions.cpp`
-is VibeStudio's own, and the source comments name the upstream functions.
+is SlopStudio's own, and the source comments name the upstream functions.
 
 ### Level deletion policy
 
@@ -995,10 +995,10 @@ and [`vertexModeBuildHull`](https://github.com/Garux/netradiant-custom/blob/4497
 revision `449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later), and TB
 [`MapWindow::deleteSelection`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapWindow.cpp),
 v2026.2 / `4c756be1a54a28d921d18c77716a5f170bdc31d0` (GPL-3.0-or-later).
-These licences are compatible with VibeStudio's GPL-3.0. No code was copied.
+These licences are compatible with SlopStudio's GPL-3.0. No code was copied.
 The original Qt routing and worker integration preserve NRC's empty-component
 object fallback and ignored patch points, and TB's clip-point priority.
-VibeStudio refuses a whole invalid multi-brush edit atomically; NRC's per-brush
+SlopStudio refuses a whole invalid multi-brush edit atomically; NRC's per-brush
 hull builder can retain an invalid brush while changing another one.
 
 ### Brushes from points and vertex listings
@@ -1010,12 +1010,12 @@ hull builder can retain an invalid brush while changing another one.
 and their Debug menu entries in
 [`ActionManager.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ActionManager.cpp),
 v2026.2 / `4c756be1a54a28d921d18c77716a5f170bdc31d0` (Kristian Duske and
-contributors, GPL-3.0-or-later, compatible with VibeStudio's GPL-3.0). Facts
+contributors, GPL-3.0-or-later, compatible with SlopStudio's GPL-3.0). Facts
 about behaviour only: a list of at least four `(x y z)` points becomes the
 convex brush enclosing them in the current material, and the selected faces'
 corners, or else the selected brushes', are written out at full precision.
 `core/level_brush_points.*`, `app/level_brush_points_*` and the CLI routes are
-original VibeStudio code over its own envelope builder and hull insertion; no
+original SlopStudio code over its own envelope builder and hull insertion; no
 code was copied. Unlike upstream, both are ordinary commands rather than
 debug-build ones, the dialog previews the brush and names flat or malformed
 input, several point forms and comments are accepted, edges, vertices and patch
@@ -1032,14 +1032,14 @@ The **Assemble Brush Tool**, **Create Assembled Brush** and
 Tool" (B) and "Controls/Map view/Create brush" (Return) entries in
 [`ActionManager.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ActionManager.cpp),
 v2026.2 / `4c756be1a54a28d921d18c77716a5f170bdc31d0` (Kristian Duske and
-contributors, GPL-3.0-or-later, compatible with VibeStudio's GPL-3.0). Facts
+contributors, GPL-3.0-or-later, compatible with SlopStudio's GPL-3.0). Facts
 about behaviour only: a click on a face adds the grid point in its plane, a drag
 from a face draws the grid rectangle on that plane, a double-click adds the
 face's corners, Shift-drag duplicates a flat outline along its normal by grid
 steps, Escape clears the points, and Return builds their convex hull in the
 current material and clears them. `core/level_brush_assemble.*`,
 `app/level_brush_assemble_*`, `app/model_viewport_assemble.cpp`,
-`app/map_viewport_assemble.cpp` and the CLI option are original VibeStudio code
+`app/map_viewport_assemble.cpp` and the CLI option are original SlopStudio code
 over its own envelope builder; no code was copied. Unlike upstream, the 2D views
 collect, move and extrude points too, an empty camera view uses the Draw Brush
 construction plane, Backspace removes the last point, and the hull is checked on
@@ -1083,21 +1083,21 @@ The node graph, its layout, the text edits that keep a script's layout, the
 renderer (GLSL shaders on OpenGL or Vulkan since 2026-10-08; see
 [3D Rendering: OpenGL And Vulkan](#3d-rendering-opengl-and-vulkan-2026-10-08)),
 the library scan, the layered base packages, the map usage scan and every
-user interface are VibeStudio's own.
+user interface are SlopStudio's own.
 
 ## 3D Rendering: OpenGL And Vulkan (2026-10-08)
 
 Every 3D view (the Levels camera, model previews, the modeller, the Doom
-preview) and the material previews draw on the GPU through VibeStudio's own
+preview) and the material previews draw on the GPU through SlopStudio's own
 frame layer in `src/core/render_*`, with an OpenGL and a Vulkan backend; the
 CPU renderers they replace are removed. The layer, its shaders in
 `src/core/shaders/`, the material shaders' port of the engine rules credited
-above, the wireframe coverage and the ID-buffer picking are VibeStudio's own.
+above, the wireframe coverage and the ID-buffer picking are SlopStudio's own.
 
 | Upstream | Used for | Licence | Revision and review |
 | --- | --- | --- | --- |
-| [Vulkan-Headers](https://github.com/KhronosGroup/Vulkan-Headers/tree/409c16be502e39fe70dd6fe2d9ad4842ef2c9a53) (The Khronos Group) | `include/vulkan/vulkan_core.h`, `vk_platform.h` and the `include/vk_video` headers it includes, vendored unchanged in `external/graphics/vulkan-headers` with `LICENSE.md` and `LICENSES/` ([integration notes](../external/graphics/vulkan-headers/VIBESTUDIO.md)) | Apache-2.0 (the repository also offers MIT for other files) | v1.4.313, `409c16be502e39fe70dd6fe2d9ad4842ef2c9a53`, reviewed 2026-10-08 |
-| [glslang](https://github.com/KhronosGroup/glslang) (The Khronos Group) | `glslangValidator` from the Vulkan SDK compiles the shaders to SPIR-V and checks their OpenGL 3.3 core and OpenGL ES 3.0 forms in `scripts/build_render_shaders.py`; only its output, compiled from VibeStudio's sources, is committed | BSD-3-Clause and others (tool only; not linked or distributed) | 15.x, reviewed 2026-10-08 |
+| [Vulkan-Headers](https://github.com/KhronosGroup/Vulkan-Headers/tree/409c16be502e39fe70dd6fe2d9ad4842ef2c9a53) (The Khronos Group) | `include/vulkan/vulkan_core.h`, `vk_platform.h` and the `include/vk_video` headers it includes, vendored unchanged in `external/graphics/vulkan-headers` with `LICENSE.md` and `LICENSES/` ([integration notes](../external/graphics/vulkan-headers/SLOPSTUDIO.md)) | Apache-2.0 (the repository also offers MIT for other files) | v1.4.313, `409c16be502e39fe70dd6fe2d9ad4842ef2c9a53`, reviewed 2026-10-08 |
+| [glslang](https://github.com/KhronosGroup/glslang) (The Khronos Group) | `glslangValidator` from the Vulkan SDK compiles the shaders to SPIR-V and checks their OpenGL 3.3 core and OpenGL ES 3.0 forms in `scripts/build_render_shaders.py`; only its output, compiled from SlopStudio's sources, is committed | BSD-3-Clause and others (tool only; not linked or distributed) | 15.x, reviewed 2026-10-08 |
 | [Mesa](https://docs.mesa3d.org/drivers/llvmpipe.html) lavapipe, Windows build from [mesa-dist-win](https://github.com/pal1000/mesa-dist-win) (pal1000) | CI only: Mesa's Vulkan driver that runs on the processor draws the 3D tests on hosted runners. Windows CI uses `vulkan_lvp.dll` and `lvp_icd.x86_64.json` from the `mesa3d-26.2.4-release-msvc.7z` package, fetched and hash-checked by `scripts/install_software_vulkan.py`; Linux CI installs Ubuntu's `mesa-vulkan-drivers` | MIT (Mesa and mesa-dist-win); the driver contains LLVM (Apache-2.0 with LLVM exceptions); test tool only, not linked or distributed | Mesa 26.2.4, SHA-256 `351fc8c8b695878ffb3eaa044b3ead08672a48b1a045e3c3e3975811df0f6695`, reviewed 2026-10-09 |
 | [Vulkan Runtime](https://vulkan.lunarg.com/sdk/home#windows) (LunarG; the Khronos Vulkan loader) | CI only: `vulkan-1.dll` and `vulkaninfo.exe` from the runtime components ZIP give Windows CI a Vulkan loader for lavapipe, fetched and hash-checked by `scripts/install_software_vulkan.py` | Apache-2.0 and MIT; test tool only, not linked or distributed | 1.4.363.0, SHA-256 `a25a927aa8b9f0371048f1861cf88ac3b9bc9b1fb332c42d897c8ab32695769a`, reviewed 2026-10-09 |
 | [Vulkan 1.0 specification](https://registry.khronos.org/vulkan/specs/1.0/html/), [OpenGL 3.3 core](https://registry.khronos.org/OpenGL/specs/gl/glspec33.core.pdf), [OpenGL ES 3.0](https://registry.khronos.org/OpenGL/specs/es/3.0/es_spec_3.0.pdf) and [GLSL](https://registry.khronos.org/OpenGL/index_gl.php) specifications | API, synchronisation, rasterisation and texel-fetch rules both backends follow | Specification text; facts only | Read 2026-10-08 |
@@ -1107,7 +1107,7 @@ above, the wireframe coverage and the ID-buffer picking are VibeStudio's own.
 
 No code was copied from these sources. The renderer opens the Vulkan loader
 (`vulkan-1`, `libvulkan.so.1`, the macOS loader or MoltenVK) and the system's
-OpenGL driver at run time; VibeStudio does not distribute either.
+OpenGL driver at run time; SlopStudio does not distribute either.
 
 ## Audio Sample Rate Conversion
 
@@ -1126,32 +1126,32 @@ Sample rate converter designed by Aleksey Vaneev of Voxengo.
 from **r8brain-free-src 7.5**, revision
 `cb2abb9977efe2471979b380ed95daa56ab4fdb9`, are included unchanged in
 `external/audio/r8brain-free-src`. The MIT licence was reviewed on 2026-10-04
-before incorporation and is compatible with VibeStudio's GPL-3.0 licence.
+before incorporation and is compatible with SlopStudio's GPL-3.0 licence.
 The included [`fft/fft4g.h`](https://github.com/avaneev/r8brain-free-src/blob/cb2abb9977efe2471979b380ed95daa56ab4fdb9/fft/fft4g.h)
 wraps Takuya Ooura's FFT, copyright 1996–2001, under the
 [author's permissive use/copy/modify/distribute terms](https://www.kurims.kyoto-u.ac.jp/~ooura/fft.html),
 also reviewed for GPL-3.0 compatibility. Original notices, both licence texts,
 and a file-hash manifest are retained; portable releases and Meson installs
 include the attribution. Optional PFFFT and Intel IPP backends are not included.
-VibeStudio's bounded worker/CLI wrapper and numerical tests are original code.
+SlopStudio's bounded worker/CLI wrapper and numerical tests are original code.
 
 ## PakFu Lineage
-VibeStudio intentionally uses [PakFu](https://github.com/themuffinator/PakFu)
+SlopStudio intentionally uses [PakFu](https://github.com/themuffinator/PakFu)
 as a reference for repository layout, Meson/Qt conventions, README style,
 GitHub Actions structure, archive/package handling, game installation
 detection, parser hardening, and credits practice.
 
-When PakFu code is moved into VibeStudio, this file must name the source module
+When PakFu code is moved into SlopStudio, this file must name the source module
 and revision when practical.
 
 Current adapted modules:
 
-| VibeStudio area | PakFu reference | Revision | Notes |
+| SlopStudio area | PakFu reference | Revision | Notes |
 |---|---|---|---|
-| Package/archive interface, read-only readers, and virtual path safety in `src/core/package_archive.*` | `src/archive/archive_entry.h`, `src/archive/archive.h`, `src/archive/archive_session.h`, `src/archive/dir_archive.*`, `src/archive/path_safety.h`, `src/pak/pak_archive.*`, `src/wad/wad_archive.*`, and `src/zip/zip_archive.*` | `c82dfb0ef0b5d7442e243ace8cd83bc45f82f257` | VibeStudio reimplements the concepts as a smaller core layer with explicit path-safety issue reporting, normalized virtual paths, safe output joining, folder/PAK/WAD/ZIP/PK3 entry listing, and mount-layer metadata. |
-| Package staging, manifest, and save-as writer concepts in `src/core/package_staging.*` | PakFu archive write-back direction, including deterministic archive handling and explicit safe output paths | `c82dfb0ef0b5d7442e243ace8cd83bc45f82f257` | Conceptual adaptation only: VibeStudio owns the staged operation model, conflict reporting, package manifests, deterministic PAK/ZIP/PK3 writers, and tested PWAD writer implementation in this repository. |
-| Asset preview/edit workflow concepts in `src/core/asset_tools.*` and `src/core/package_preview.*` | PakFu package browsing, format-aware preview, and durable CLI workflow direction | `c82dfb0ef0b5d7442e243ace8cd83bc45f82f257` | Conceptual adaptation only: VibeStudio owns the Qt image conversion path, WAV helper, local text highlighter boundary, and native MDL/MD2/MD3 metadata readers in this repository. No third-party game assets are imported. |
-| Game installation profile and detection workflow concepts in `src/core/game_installation.*` | PakFu's profile-driven game installation and detection workflow direction | `c82dfb0ef0b5d7442e243ace8cd83bc45f82f257` | Conceptual adaptation only: VibeStudio owns the Qt-native profile structs, defaults, validation, and Steam/GOG candidate heuristics in this repository. |
+| Package/archive interface, read-only readers, and virtual path safety in `src/core/package_archive.*` | `src/archive/archive_entry.h`, `src/archive/archive.h`, `src/archive/archive_session.h`, `src/archive/dir_archive.*`, `src/archive/path_safety.h`, `src/pak/pak_archive.*`, `src/wad/wad_archive.*`, and `src/zip/zip_archive.*` | `c82dfb0ef0b5d7442e243ace8cd83bc45f82f257` | SlopStudio reimplements the concepts as a smaller core layer with explicit path-safety issue reporting, normalized virtual paths, safe output joining, folder/PAK/WAD/ZIP/PK3 entry listing, and mount-layer metadata. |
+| Package staging, manifest, and save-as writer concepts in `src/core/package_staging.*` | PakFu archive write-back direction, including deterministic archive handling and explicit safe output paths | `c82dfb0ef0b5d7442e243ace8cd83bc45f82f257` | Conceptual adaptation only: SlopStudio owns the staged operation model, conflict reporting, package manifests, deterministic PAK/ZIP/PK3 writers, and tested PWAD writer implementation in this repository. |
+| Asset preview/edit workflow concepts in `src/core/asset_tools.*` and `src/core/package_preview.*` | PakFu package browsing, format-aware preview, and durable CLI workflow direction | `c82dfb0ef0b5d7442e243ace8cd83bc45f82f257` | Conceptual adaptation only: SlopStudio owns the Qt image conversion path, WAV helper, local text highlighter boundary, and native MDL/MD2/MD3 metadata readers in this repository. No third-party game assets are imported. |
+| Game installation profile and detection workflow concepts in `src/core/game_installation.*` | PakFu's profile-driven game installation and detection workflow direction | `c82dfb0ef0b5d7442e243ace8cd83bc45f82f257` | Conceptual adaptation only: SlopStudio owns the Qt-native profile structs, defaults, validation, and Steam/GOG candidate heuristics in this repository. |
 
 ## Level Dependencies And Selective Packages (2026-10-03)
 
@@ -1166,13 +1166,13 @@ The shader parser's skybox and light-image reference extraction follows factual
 syntax in the [Quake III Shader Manual, revision 12, sections 3.1 and 4.6](https://icculus.org/gtkradiant/documentation/Q3AShader_Manual/index.htm),
 by Paul Jaquays and Brian Hook and credited contributors (consulted 2026-10-03).
 The manual is a specification reference; no manual prose or implementation code
-was imported. Fixture data is generated by VibeStudio's tests.
+was imported. Fixture data is generated by SlopStudio's tests.
 
 The connected model-design/package/level workflow also reviewed PakFu's model
 surface/material representation in
 [`src/formats/model.h`](https://github.com/themuffinator/PakFu/blob/13111e4c07513548a29fd7eb74fc9d004c44aa59/src/formats/model.h)
 and the archive search index linked above (GPL-3.0, same checkout and review
-date). VibeStudio's parametric design editor, generated-byte staging snapshots,
+date). SlopStudio's parametric design editor, generated-byte staging snapshots,
 material dependency expansion, and atomic stage-and-place service are original
 implementations; no PakFu code was copied.
 
@@ -1293,7 +1293,7 @@ copied or added to the studio. UV health's flood-fill check
 255) with original code that only measures the region. Pixel projection/oracles and all generated assets
 are original. Pillow's existing external-test attribution below also covers this
 runner; external [Mesa](https://docs.mesa3d.org/license.html) supplies EGL/llvmpipe
-(primarily MIT; no Mesa code is imported or linked into VibeStudio).
+(primarily MIT; no Mesa code is imported or linked into SlopStudio).
 
 The assembly workflow's direct MD2/MD3 layout checks use the same id Software
 model-format references credited above. Its closed-form attachment geometry,
@@ -1309,7 +1309,7 @@ The reference checkout has no revision metadata;
 the audit retains its per-file SHA-256 inventory and built-tool hashes. FTE and
 FTEQCC remain separate external GPL tools, with their licence notices preserved
 in the temporary reference copy. No engine/compiler implementation is copied
-into VibeStudio or linked into its binaries.
+into SlopStudio or linked into its binaries.
 
 ## Model Delivery Targets And The Skeletal Writer Oracle (2026-10-22)
 
@@ -1321,7 +1321,7 @@ detail levels (`src/core/model_targets.*`, `src/core/model_target_prepare.*`,
 `src/app/model_editor_export.cpp`, `src/app/model_editor_targets.cpp`,
 `src/app/model_lod_dialog.*`) and the independent writer oracle
 (`src/tests/model_skeletal_writer_oracle.py`,
-`model_skeletal_writer_oracle_test.cpp`) are original VibeStudio code. The
+`model_skeletal_writer_oracle_test.cpp`) are original SlopStudio code. The
 sources below supplied facts only: each engine's model count limits, as the
 constants and checks of its loader and renderer state them, and the
 conventions the oracle reimplements to read MD5, IQM and ASE files the way the
@@ -1357,7 +1357,7 @@ retargeting, animation events and the game declaration writers
 `src/app/model_editor_pose.*`, `src/app/model_ik_dialog.*`,
 `src/app/model_clip_import_dialog.*`, `src/app/model_events_dialog.*`,
 `src/app/model_declarations_dialog.*`, `src/cli/model_ik.cpp`,
-`src/cli/model_events.cpp`) are original VibeStudio code. The chain solvers
+`src/cli/model_events.cpp`) are original SlopStudio code. The chain solvers
 follow published algorithm descriptions and the declarations follow the
 published formats below; no code was copied. See
 [inverse kinematics](MODEL_IK.md#solve-longer-chains) and
@@ -1379,37 +1379,37 @@ published formats below; no code was copied. See
 
 | Tool | Role | Upstream | Imported revision | License notes |
 |---|---|---|---|---|
-| VibeMap2 | VibeStudio's Quake/idTech2 compilers: `vibemap2-bsp`, `vibemap2-vis`, `vibemap2-light`, the `vibemap2-bspinfo`, `vibemap2-bsputil` and `vibemap2-maputil` utilities, and the `vibemap2-hub` build and preview GUI. A fork developed as part of the VibeStudio project, derived from ericw-tools. | [themuffinator/VibeyMapTools](https://github.com/themuffinator/VibeyMapTools), branch `main` (to be renamed VibeMap2) | `4495049a9e4c1f6deadae3a76b8256614840af35` | GPL-3.0; keeps ericw-tools' history and notices. See `external/compilers/vibemap2/COPYING`; release bundles carry it as `licenses/external/compilers/VibeMap2/COPYING`. |
-| VibeMap3 | VibeStudio's Quake III/idTech3 compiler (`vibemap3`) for BSP compile, VIS, light, conversion and packaging, plus the `vibemap3-workbench` GUI. A fork developed as part of the VibeStudio project: a performance-focused continuation of q3map2 from NetRadiant Custom revision `8216133`. | [themuffinator/q3mapx](https://github.com/themuffinator/q3mapx), branch `main` (to be renamed VibeMap3) | `897524439cb58d2b736bc96b16c231d22dc5ddce` | GPL-3.0-or-later; imported q3map2 files keep their GPL-2.0-or-later notices, and the inherited NetRadiant Custom tree keeps its per-file GPL/LGPL/BSD licensing. See `external/compilers/vibemap3/COPYING`, `LICENSE`, `GPL`, and `LGPL`; release bundles carry `licenses/external/compilers/VibeMap3/COPYING`. |
+| SlopMap2 | SlopStudio's Quake/idTech2 compilers: `slopmap2-bsp`, `slopmap2-vis`, `slopmap2-light`, the `slopmap2-bspinfo`, `slopmap2-bsputil` and `slopmap2-maputil` utilities, and the `slopmap2-hub` build and preview GUI. A fork developed as part of the SlopStudio project, derived from ericw-tools. | [themuffinator/VibeyMapTools](https://github.com/themuffinator/VibeyMapTools), branch `main` (to be renamed SlopMap2) | `4495049a9e4c1f6deadae3a76b8256614840af35` | GPL-3.0; keeps ericw-tools' history and notices. See `external/compilers/slopmap2/COPYING`; release bundles carry it as `licenses/external/compilers/SlopMap2/COPYING`. |
+| SlopMap3 | SlopStudio's Quake III/idTech3 compiler (`slopmap3`) for BSP compile, VIS, light, conversion and packaging, plus the `slopmap3-workbench` GUI. A fork developed as part of the SlopStudio project: a performance-focused continuation of q3map2 from NetRadiant Custom revision `8216133`. | [themuffinator/q3mapx](https://github.com/themuffinator/q3mapx), branch `main` (to be renamed SlopMap3) | `897524439cb58d2b736bc96b16c231d22dc5ddce` | GPL-3.0-or-later; imported q3map2 files keep their GPL-2.0-or-later notices, and the inherited NetRadiant Custom tree keeps its per-file GPL/LGPL/BSD licensing. See `external/compilers/slopmap3/COPYING`, `LICENSE`, `GPL`, and `LGPL`; release bundles carry `licenses/external/compilers/SlopMap3/COPYING`. |
 | ZDBSP | Doom-family node builder | [rheit/zdbsp](https://github.com/rheit/zdbsp) | `bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659` | GPL-2.0-or-later. See `external/compilers/zdbsp/COPYING`. |
 | ZokumBSP | Doom-family node/blockmap/reject builder | [zokum-no/zokumbsp](https://github.com/zokum-no/zokumbsp) | `22af6defeb84ce836e0b184d6be5e80f127d9451` | GPL-2.0 text in `external/compilers/zokumbsp/src/COPYING`; based on ZenNode lineage credited upstream. |
 
 These compiler projects are imported as submodules so their history and license
-files remain intact. VibeStudio invokes them as external tools until a specific
-source-level integration has a documented compatibility review. VibeMap2 and
-VibeMap3 are VibeStudio's own forks; their URLs, branch, pins and reasons are
-recorded in [Compiler Integration](COMPILER_INTEGRATION.md#vibestudio-compilers).
+files remain intact. SlopStudio invokes them as external tools until a specific
+source-level integration has a documented compatibility review. SlopMap2 and
+SlopMap3 are SlopStudio's own forks; their URLs, branch, pins and reasons are
+recorded in [Compiler Integration](COMPILER_INTEGRATION.md#slopstudio-compilers).
 
 ### Compiler Upstreams
 
 The compiler known-issue reconciliation and Quake map preflight decisions use
-VibeMap2's [upstream audit](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/docs/upstream-audit.rst)
+SlopMap2's [upstream audit](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/docs/upstream-audit.rst)
 and [3.1.0 changelog](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/CHANGELOG.md),
 reviewed 2026-10-09 at that pinned revision (GPL-3.0). These are documented
 behaviour/evidence references; no compiler implementation was copied.
 
-VibeMap2 and VibeMap3 build on these projects, which stay credited as their
-upstreams. Until VibeStudio moved to its own compilers, both were imported here
-as submodules at the revisions below, and VibeStudio's code comments and format
+SlopMap2 and SlopMap3 build on these projects, which stay credited as their
+upstreams. Until SlopStudio moved to its own compilers, both were imported here
+as submodules at the revisions below, and SlopStudio's code comments and format
 credits still cite those revisions.
 
 | Upstream | Relationship | Link | Reviewed revision | License notes |
 |---|---|---|---|---|
-| ericw-tools | Upstream of VibeMap2. Its `qbsp`, `vis`, `light`, `bspinfo`, `bsputil` and `lightpreview` were VibeStudio's Quake/idTech2 compilers before VibeMap2, and its issue tracker supplies the known-issue catalogue's issue numbers. | [ericwa/ericw-tools](https://github.com/ericwa/ericw-tools) | `f80b1e216a415581aea7475cb52b16b8c4859084` | GPL-2.0-or-later; upstream notes GPL-3.0+ compatibility for Embree-enabled builds (its `COPYING` and `gpl_v3.txt`). |
-| q3map2 from NetRadiant Custom | Upstream of VibeMap3, which starts from NetRadiant Custom revision `8216133`. q3map2 was VibeStudio's Quake III compiler before VibeMap3. | [Garux/netradiant-custom](https://github.com/Garux/netradiant-custom) | `68ecbed64b7be78741878c730279b5471d978c7c` | Mixed GPL/LGPL/BSD by file; upstream marks Quake III tools, including q3map2, as GPL (its `LICENSE`, `GPL`, and `LGPL`). |
+| ericw-tools | Upstream of SlopMap2. Its `qbsp`, `vis`, `light`, `bspinfo`, `bsputil` and `lightpreview` were SlopStudio's Quake/idTech2 compilers before SlopMap2, and its issue tracker supplies the known-issue catalogue's issue numbers. | [ericwa/ericw-tools](https://github.com/ericwa/ericw-tools) | `f80b1e216a415581aea7475cb52b16b8c4859084` | GPL-2.0-or-later; upstream notes GPL-3.0+ compatibility for Embree-enabled builds (its `COPYING` and `gpl_v3.txt`). |
+| q3map2 from NetRadiant Custom | Upstream of SlopMap3, which starts from NetRadiant Custom revision `8216133`. q3map2 was SlopStudio's Quake III compiler before SlopMap3. | [Garux/netradiant-custom](https://github.com/Garux/netradiant-custom) | `68ecbed64b7be78741878c730279b5471d978c7c` | Mixed GPL/LGPL/BSD by file; upstream marks Quake III tools, including q3map2, as GPL (its `LICENSE`, `GPL`, and `LGPL`). |
 
 ## Format And Engine Lineage
-VibeStudio targets public idTech-era formats and workflows from the Doom,
+SlopStudio targets public idTech-era formats and workflows from the Doom,
 Quake, Quake II, and Quake III ecosystems. Format behavior should be credited
 to public specifications, open-source engine/tool references, or source-port
 documentation whenever implementation details are derived from them.
@@ -1439,7 +1439,7 @@ code that depends on it without guessing.
   describes itself as "Procedurally generated ramp palette (not a game
   palette)", and a decode that falls back to one raises an explicit warning.
   They intentionally do not reproduce any commercial palette.
-- Specifications are consulted for layout and algorithm only. Where VibeStudio
+- Specifications are consulted for layout and algorithm only. Where SlopStudio
   follows a released tool's convention - for example the `PlaneFromPoints`
   winding convention and the qbsp epsilon constants in
   `src/core/map_geometry.cpp` - the code reimplements it and says so in the
@@ -1448,12 +1448,12 @@ code that depends on it without guessing.
 ### Compression And Archive Formats
 
 The incremental `DeflateStreamEncoder` and two-pass ZIP writer are original
-VibeStudio GPL-3.0 implementations, reviewed against RFC 1951 version 1.3
+SlopStudio GPL-3.0 implementations, reviewed against RFC 1951 version 1.3
 (May 1996), sections 3.2.4–3.2.7, on 2026-10-04. They reuse the already credited
 format tables and package-merge implementation below. No upstream compressor
 code or specification prose was copied, and no dependency/license changed.
 
-| Specification | Reference | VibeStudio modules | Revision / date |
+| Specification | Reference | SlopStudio modules | Revision / date |
 |---|---|---|---|
 | DEFLATE Compressed Data Format Specification | [IETF RFC 1951](https://www.rfc-editor.org/rfc/rfc1951) | `src/core/deflate.h`, `src/core/deflate.cpp` - inflate, fixed-Huffman deflate, length/distance/code-length tables transcribed from sections 3.2.4-3.2.7 | Version 1.3, May 1996 |
 | DEFLATE dynamic Huffman blocks, RFC 1951 sections 3.2.2 and 3.2.7 | [IETF RFC 1951](https://www.rfc-editor.org/rfc/rfc1951) | `src/core/deflate.cpp` - `buildDynamicTrees()` writes the `HLIT`/`HDIST`/`HCLEN` header, `runLengthEncodeLengths()` emits the 16/17/18 repeat codes in the code-length transmission order, `canonicaliseCodes()` assigns canonical codes, and `deflateRaw()` measures a stored, a fixed and a dynamic block per chunk and keeps the smallest | Version 1.3, May 1996 |
@@ -1465,7 +1465,7 @@ code or specification prose was copied, and no dependency/license changed.
 | idTech2 PACK (`.pak`) directory layout | [Quake Wiki `.pak`](https://quakewiki.org/wiki/.pak) and the released id Software Quake sources | `src/core/package_archive.cpp` - `PackageArchive::loadPak()` | Living wiki page; no pinned revision |
 | Doom IWAD/PWAD and Quake/Half-Life WAD2/WAD3 directories | [Unofficial Doom Specs v1.666](https://www.gamers.org/dhs/helpdocs/dmsp1666.html), [Quake Wiki WAD](https://quakewiki.org/wiki/WAD), [Valve Developer Community WAD3](https://developer.valvesoftware.com/wiki/WAD) | `src/core/package_archive.cpp` - `PackageArchive::loadWad()`; `src/core/package_staging.cpp` - the PWAD and WAD2/WAD3 writers | Unofficial Doom Specs v1.666 (1994); wiki pages have no pinned revision |
 
-The ZIP reader changes use format facts permitted for reader/writer implementations by APPNOTE section 1.4; no PKWARE implementation or specification prose is copied. Encryption, central-directory encryption and signature authentication are not implemented. The Unicode License V3 permits modification and redistribution of the CP437 mapping with its notice retained, making the mapping compatible with this repository’s GPL-3.0 distribution. The complete Unicode notice is preserved in `docs/licenses/UNICODE-LICENSE.txt` and installed under `share/vibestudio/licenses/unicode`. All 128 high-byte values were checked against the published table.
+The ZIP reader changes use format facts permitted for reader/writer implementations by APPNOTE section 1.4; no PKWARE implementation or specification prose is copied. Encryption, central-directory encryption and signature authentication are not implemented. The Unicode License V3 permits modification and redistribution of the CP437 mapping with its notice retained, making the mapping compatible with this repository’s GPL-3.0 distribution. The complete Unicode notice is preserved in `docs/licenses/UNICODE-LICENSE.txt` and installed under `share/slopstudio/licenses/unicode`. All 128 high-byte values were checked against the published table.
 
 ### idTech Image And Palette Formats
 All rows below are implemented in `src/core/idtech_image.h` and
@@ -1473,7 +1473,7 @@ All rows below are implemented in `src/core/idtech_image.h` and
 
 The modeller's package-to-indexed-skin handoff reuses these decoders and palette
 parsers in `src/core/model_mdl_edit.cpp` and `src/core/model_skin_source.cpp`.
-Its snapshot selection, validation and UI/CLI adapters are VibeStudio code; no
+Its snapshot selection, validation and UI/CLI adapters are SlopStudio code; no
 additional upstream implementation, palette or game asset was imported.
 
 | Specification | Reference | What it covers | Revision / date |
@@ -1481,7 +1481,7 @@ additional upstream implementation, palette or game asset was imported.
 | Unofficial Doom Specs | [dmsp1666](https://www.gamers.org/dhs/helpdocs/dmsp1666.html) | Doom picture posts, flats, `PLAYPAL`, `COLORMAP`, and the WAD directory | v1.666, 1994 |
 | Doom Wiki picture format | [Picture format](https://doomwiki.org/wiki/Picture_format) | Patch header, per-column offsets, post `{topdelta, length, pad, pixels, pad}` runs | Living wiki page |
 | Doom Wiki flat format | [Flat](https://doomwiki.org/wiki/Flat) | Raw 64x64 indexed flat lumps | Living wiki page |
-| Doom Wiki PLAYPAL | [PLAYPAL](https://doomwiki.org/wiki/PLAYPAL) | 14 banks of 256 RGB triplets; VibeStudio reads the first bank | Living wiki page |
+| Doom Wiki PLAYPAL | [PLAYPAL](https://doomwiki.org/wiki/PLAYPAL) | 14 banks of 256 RGB triplets; SlopStudio reads the first bank | Living wiki page |
 | Quake Specifications (Olivier Montanuy / Quake Standards Group) | [Quake Documentation](https://www.gamers.org/dEngine/quake/spec/quake-spec34/) | Quake `.lmp` pictures, WAD2 miptex, `gfx/palette.lmp`, and the `.spr` sprite header | "Quake Documentation Version 3.4" |
 | Released id Software Quake sources | [id-Software/Quake](https://github.com/id-Software/Quake) | Cross-check for miptex and `spritegn.h` sprite layout; layouts reimplemented, no code copied | GPL source release |
 | Quake II BSP / WAL format notes | [flipcode archive](https://www.flipcode.com/archives/Quake_2_BSP_File_Format.shtml) plus the released id Software Quake II headers | Quake II `.wal` 100-byte header, mip chain, and `pics/colormap.pcx` palette | Community reference; no pinned revision |
@@ -1503,12 +1503,12 @@ The explicit indexed PNG writer independently implements the [PNG third edition,
 transparency and scanline layout. The reference carries the [W3C Software and
 Document License 2023](https://www.w3.org/copyright/software-license-2023/), reviewed
 2026-10-04; no sample code or specification prose is incorporated. Compression
-uses the existing Qt dependency and CRC uses VibeStudio's existing core service.
+uses the existing Qt dependency and CRC uses SlopStudio's existing core service.
 
 Texture export layouts in `src/core/texture_export.*` are independently implemented
 from the following primary sources, reviewed 2026-10-04. No engine source code or
 game content was copied. The GPL-2.0-or-later and BSD-3-Clause source licenses are
-compatible with VibeStudio's GPL-3.0 license.
+compatible with SlopStudio's GPL-3.0 license.
 
 - [Quake `bspfile.h`](https://github.com/id-Software/Quake/blob/master/WinQuake/bspfile.h),
   [`wad.h`](https://github.com/id-Software/Quake/blob/master/WinQuake/wad.h),
@@ -1527,7 +1527,7 @@ compatible with VibeStudio's GPL-3.0 license.
   patch header and column post fields, GPL-2.0-or-later, tag `chocolate-doom-3.1.0`.
 - [GZDoom `patchtexture.cpp`](https://github.com/ZDoom/gzdoom/blob/master/src/common/textures/formats/patchtexture.cpp):
   relative top-delta interpretation and patch recognition limits, BSD-3-Clause,
-  master reviewed on the date above. VibeStudio's encoder and bounded decoder
+  master reviewed on the date above. SlopStudio's encoder and bounded decoder
   apply these format rules with independent implementations.
 
 The sprite, WAD3, SWL and mipmapped DDS writers in `src/core/texture_formats.*`
@@ -1552,7 +1552,7 @@ engine or tool source code and no game content was copied:
   living page, read 2026-10-28.
 - SiN's `sinmiptex_t`, as read by [PakFu `src/formats/swl_image.cpp`](https://github.com/themuffinator/PakFu/tree/13111e4c07513548a29fd7eb74fc9d004c44aa59/src/formats)
   (revision `13111e4c07513548a29fd7eb74fc9d004c44aa59`, GPL-3.0): field
-  offsets for the writer, which is VibeStudio code.
+  offsets for the writer, which is SlopStudio code.
 - Microsoft's [DDS_HEADER](https://learn.microsoft.com/windows/win32/direct3ddds/dds-header)
   and [DDS_PIXELFORMAT](https://learn.microsoft.com/windows/win32/direct3ddds/dds-pixelformat)
   documentation: mip count and capability flags; read 2026-10-28.
@@ -1562,11 +1562,11 @@ engine or tool source code and no game content was copied:
   GPL-2.0-or-later tag `chocolate-doom-3.1.0`, living wiki page read 2026-10-28.
 - The colour adjustments, filters, gradients, median-cut palette and seamless
   cross-fade in `src/core/texture_adjust.*` and `src/core/texture_formats.*`
-  are standard image-processing techniques implemented by VibeStudio; no
+  are standard image-processing techniques implemented by SlopStudio; no
   third-party code was used.
 
 ### idTech Map Formats
-| Specification | Reference | VibeStudio modules | Revision / date |
+| Specification | Reference | SlopStudio modules | Revision / date |
 |---|---|---|---|
 | Doom Wiki map lump pages | [WAD](https://doomwiki.org/wiki/WAD), [Linedef](https://doomwiki.org/wiki/Linedef), [Sidedef](https://doomwiki.org/wiki/Sidedef), [Sector](https://doomwiki.org/wiki/Sector), [Thing](https://doomwiki.org/wiki/Thing) | `src/core/level_map.cpp` (lump recognition, record strides, two-sided flag `0x0004`, geometry validation), `src/core/map_geometry.cpp` (sector outline tracing), `src/core/map_render.cpp` and `src/app/map_viewport.cpp` (thing angles, light levels) | Living wiki pages |
 | Doom Wiki linedef types and Boom's generalized linedefs | [Linedef type](https://doomwiki.org/wiki/Linedef_type), [Generalized linedef](https://doomwiki.org/wiki/Generalized_linedef) (Boom's `boomref.txt`) | `src/core/level_map.cpp` `doomSpecialActsBehindLine()`: vanilla's manual doors (specials 1, 26-28, 31-34, 117 and 118) and Boom's generalized types with a D1 or DR trigger in their low three bits act on the sector behind the line, so their tags draw no links | Living wiki pages; Boom 2.02 reference |
@@ -1577,15 +1577,15 @@ engine or tool source code and no game content was copied:
 | Valve 220 `.map` texture axes | [Valve Developer Community MAP (file format)](https://developer.valvesoftware.com/wiki/MAP_%28file_format%29) | `src/core/level_map.cpp` - Valve 220 face parsing | Living wiki page |
 | Q3Radiant / GtkRadiant brush primitives | [Q3Radiant manual](https://icculus.org/gtkradiant/documentation/q3radiant_manual/) | `src/core/level_map.cpp` - `brushDef`, `brushDef3`, `patchDef2`, `patchDef3` | Manual as published by the GtkRadiant project |
 | q3map2 shader manual | [q3map2 shader manual](https://q3map2.robotrenegade.com/docs/shader_manual/) | `src/app/syntax_highlight.cpp` - shader keyword highlighting | Living document |
-| ericw-tools sources (VibeMap2's upstream) | [ericwa/ericw-tools](https://github.com/ericwa/ericw-tools), reviewed at the revision VibeStudio imported as a submodule before moving to VibeMap2 | `src/core/map_geometry.cpp` - the `PlaneFromPoints` winding convention and the `ON_EPSILON`/`DIST_EPSILON` tolerance conventions, reimplemented rather than copied | Pinned revision `f80b1e216a415581aea7475cb52b16b8c4859084` |
-| q3map2 sources from NetRadiant Custom (VibeMap3's upstream) | [Garux/netradiant-custom](https://github.com/Garux/netradiant-custom), reviewed at the revision VibeStudio imported as a submodule before moving to VibeMap3 | `src/core/map_geometry.cpp` - the +/-65536 `MAX_WORLD_COORD` base-winding extent and quadratic Bezier patch tessellation of `(2n+1)x(2m+1)` control grids | Pinned revision `68ecbed64b7be78741878c730279b5471d978c7c` |
+| ericw-tools sources (SlopMap2's upstream) | [ericwa/ericw-tools](https://github.com/ericwa/ericw-tools), reviewed at the revision SlopStudio imported as a submodule before moving to SlopMap2 | `src/core/map_geometry.cpp` - the `PlaneFromPoints` winding convention and the `ON_EPSILON`/`DIST_EPSILON` tolerance conventions, reimplemented rather than copied | Pinned revision `f80b1e216a415581aea7475cb52b16b8c4859084` |
+| q3map2 sources from NetRadiant Custom (SlopMap3's upstream) | [Garux/netradiant-custom](https://github.com/Garux/netradiant-custom), reviewed at the revision SlopStudio imported as a submodule before moving to SlopMap3 | `src/core/map_geometry.cpp` - the +/-65536 `MAX_WORLD_COORD` base-winding extent and quadratic Bezier patch tessellation of `(2n+1)x(2m+1)` control grids | Pinned revision `68ecbed64b7be78741878c730279b5471d978c7c` |
 
 Patch authoring (`src/core/level_patch.*`, reviewed 2026-10-04) uses the
 31-point axis limit and width-major map layout documented by NetRadiant Custom's
 [q3map2 header](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/q3map2.h)
 and [patch parser](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/patch.cpp)
 at revision `68ecbed64b7be78741878c730279b5471d978c7c`,
-GPL-2.0-or-later, compatible with VibeStudio's GPL-3.0 license. Preset generation,
+GPL-2.0-or-later, compatible with SlopStudio's GPL-3.0 license. Preset generation,
 control editing and Bézier splitting are original implementations; no upstream
 code or game assets were copied.
 
@@ -1602,11 +1602,11 @@ All rows below are implemented in `src/core/bsp_inspect.h` and
 | Specification | Reference | What it covers | Revision / date |
 |---|---|---|---|
 | Quake Specifications, chapter 4 "BSP files" | [qkspec_4](https://www.gamers.org/dEngine/quake/spec/quake-spec34/qkspec_4.htm) | BSP29 lump order and record layouts | "Quake Documentation Version 3.4" |
-| ericw-tools documentation | [ericw-tools docs](https://ericwa.github.io/ericw-tools/) | The `BSP2` and `2PSB` widened node/leaf/clipnode/edge/marksurface records, and the `.prt` / `.pts` / `.lin` files the compilers write | Matches revision `f80b1e216a415581aea7475cb52b16b8c4859084`, VibeStudio's ericw-tools submodule pin before VibeMap2 |
+| ericw-tools documentation | [ericw-tools docs](https://ericwa.github.io/ericw-tools/) | The `BSP2` and `2PSB` widened node/leaf/clipnode/edge/marksurface records, and the `.prt` / `.pts` / `.lin` files the compilers write | Matches revision `f80b1e216a415581aea7475cb52b16b8c4859084`, SlopStudio's ericw-tools submodule pin before SlopMap2 |
 | Released id Software Quake II sources | [`qcommon/qfiles.h`](https://github.com/id-Software/Quake-2/blob/master/qcommon/qfiles.h) | IBSP v38 header and lump records | GPL source release |
 | q2tools-220 / qbism extended Quake II BSP | [qbism/q2tools-220](https://github.com/qbism/q2tools-220) | The `QBSP` widened `dqnode_t`, `dqleaf_t`, `dqface_t`, `dqbrushside_t`, `dqedge_t` records | Upstream project; not imported as a submodule |
 | Released id Software Quake III Arena sources | [`code/qcommon/qfiles.h`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/qcommon/qfiles.h) | IBSP v46 header and lump records | GPL source release |
-| q3map2 sources from NetRadiant Custom (VibeMap3's upstream) | [Garux/netradiant-custom](https://github.com/Garux/netradiant-custom), at VibeStudio's q3map2 submodule pin before VibeMap3 | Raven `RBSP` v1 draw-surface and draw-vertex records | Pinned revision `68ecbed64b7be78741878c730279b5471d978c7c` |
+| q3map2 sources from NetRadiant Custom (SlopMap3's upstream) | [Garux/netradiant-custom](https://github.com/Garux/netradiant-custom), at SlopStudio's q3map2 submodule pin before SlopMap3 | Raven `RBSP` v1 draw-surface and draw-vertex records | Pinned revision `68ecbed64b7be78741878c730279b5471d978c7c` |
 
 `src/core/asset_tools.cpp` reads the `IDPO` (Quake MDL), `IDP2` (MD2) and
 `IDP3` (MD3) headers for metadata only; those layouts come from the same
@@ -1659,7 +1659,7 @@ and `entity validate` CLI commands.
 
 The original implementation in `src/core/audio_delivery.cpp` follows format facts
 and reader behaviour in these references, reviewed 2026-10-04. Their
-GPL-2.0-or-later licences are compatible with VibeStudio's GPL-3.0. No engine
+GPL-2.0-or-later licences are compatible with SlopStudio's GPL-3.0. No engine
 source or game assets are copied; preset defaults and encoding code are our own.
 
 | Reference | Behaviour used | Revision / date |
@@ -1679,7 +1679,7 @@ and [Quake III `code/game/g_target.c`](https://github.com/id-Software/Quake-III-
 master reviewed 2026-10-04. These specify `target_speaker`, `noise`, looping
 flags, trigger target names, the 64-byte path limit and Quake II's `sound/`
 lookup. Their GPL-2.0-or-later notices were reviewed for GPL-3.0 compatibility.
-VibeStudio's validation, transaction, dialog and CLI are original implementations;
+SlopStudio's validation, transaction, dialog and CLI are original implementations;
 no engine source, entity definition files or game assets were imported.
 
 ### Audio Container Formats
@@ -1717,7 +1717,7 @@ Preview metadata is separate from the fully decoded/imported audio checks above.
 | Chocolate Doom `i_sdlsound.c` (GPL-2.0) | [chocolate-doom/src/i_sdlsound.c](https://github.com/chocolate-doom/chocolate-doom/blob/master/src/i_sdlsound.c) | Behaviour only, no code copied: the DMX library skips 16 bytes at each end of the samples and does not play sounds of 48 samples or fewer, which `parseDmxSound()` and the analysis warning follow | Behaviour as of the `master` branch, September 2026 |
 
 ### Output And Presentation Formats
-| Specification | Reference | VibeStudio modules | Revision / date |
+| Specification | Reference | SlopStudio modules | Revision / date |
 |---|---|---|---|
 | SVG 1.1 (Second Edition) | [W3C SVG 1.1](https://www.w3.org/TR/SVG11/) | `src/core/map_render.cpp` - the deterministic headless map renderer emits only the static subset: no scripting, no external references, no embedded raster data | W3C Recommendation, 16 August 2011 |
 | Unicode CLDR layout guidance | [CLDR layout](https://cldr.unicode.org/translation/getting-started/layout) | `src/core/localization.cpp` - `rightToLeftLanguageCodes()`, derived from CLDR's per-language `characterOrder` | Living document |
@@ -1748,7 +1748,7 @@ Optional interoperability verification used
 [Ruff 0.16.4](https://github.com/astral-sh/ruff/tree/0.16.4), © Charles Marsh and
 contributors, as a separate test executable under its MIT license and retained
 third-party notices. The PyPI Windows wheel and binary hashes are recorded in
-isolated test output. No Ruff implementation is bundled or linked into VibeStudio.
+isolated test output. No Ruff implementation is bundled or linked into SlopStudio.
 Code-action literal, diagnostic context and lazy resolution facts follow the
 [code action and resolve specification](https://github.com/microsoft/language-server-protocol/blob/gh-pages/_specifications/lsp/3.17/language/codeAction.md),
 reviewed 2026-10-04 under CC-BY-4.0. No upstream code or prose was copied.
@@ -1802,10 +1802,10 @@ The GtkRadiant version and QeRadiant profile expansion was audited on 2026-10-07
   hosted by the GtkRadiant project, informed the QeRadiant-specific fit keys,
   shared camera gestures and removal of Q3-only shortcuts. The manual credits
   Eutectic and is reproduced upstream by permission; its prose is not imported.
-  Only behavioural facts inform the original VibeStudio preset. Classic camera
+  Only behavioural facts inform the original SlopStudio preset. Classic camera
   services retain the compatible Q3Radiant attribution below.
 
-Version presets use VibeStudio's shared geometry, surface, camera, undo and
+Version presets use SlopStudio's shared geometry, surface, camera, undo and
 CLI services. [Adaptations and unsupported behaviours](EDITOR_PROFILES.md#gtkradiant-14-and-15)
 remain visible in the profile reference. No upstream assets or game data are imported.
 
@@ -1815,14 +1815,14 @@ revision `dbe4ddb10315479fc00086f08e25d968b4b43c49`:
 [`MainFrm.cpp`](https://github.com/id-Software/Quake-III-Arena/blob/dbe4ddb10315479fc00086f08e25d968b4b43c49/q3radiant/MainFrm.cpp)
 supplies command keys and fixed movement steps;
 its texture shift, rotation and fit key table also informs the seven Q3Radiant
-quick surface bindings. The actions use VibeStudio's existing surface mapping
+quick surface bindings. The actions use SlopStudio's existing surface mapping
 service, with explicit target/step controls and documented mapping differences;
 [`CamWnd.cpp`](https://github.com/id-Software/Quake-III-Arena/blob/dbe4ddb10315479fc00086f08e25d968b4b43c49/q3radiant/CamWnd.cpp)
 supplies position steering, dead-zone/speed behavior and ground-plane movement;
 `XYWnd.cpp`, `DRAG.CPP`, `PrefsDlg.cpp` and `QE3.CPP` supply plan gestures,
 selection and layout/grid defaults. Copyright (C) 1999–2005 id Software, Inc.
 The source headers permit GPL-2.0-or-later, reviewed as compatible with this
-GPL-3.0 repository. VibeStudio independently expresses these behaviors in
+GPL-3.0 repository. SlopStudio independently expresses these behaviors in
 `level_editor_familiar_controls`, `level_camera_keys` and `model_viewport_drive`,
 with portable Qt lifecycle handling. No native Windows input code, artwork or
 game data is imported. [Profile differences](EDITOR_PROFILES.md#classic-q3radiant)
@@ -1850,7 +1850,7 @@ Standalone NetRadiant and Sledge profile behavior was audited on 2026-10-05:
 
 Only behavioral facts were used. No upstream implementation, artwork, runtime
 or game data is incorporated. The shared C++ profile, navigation, validation,
-preferences and tests are original VibeStudio code. Remaining differences are
+preferences and tests are original SlopStudio code. Remaining differences are
 listed in [Editor Profiles](EDITOR_PROFILES.md#standalone-netradiant-and-sledge).
 
 Temporary level-view maximization and equal sizing follow behavioral facts in
@@ -1862,7 +1862,7 @@ the [original Hammer 3.4 hotkey reference](https://documentation.help/Valve-Hamm
 Hammer and J.A.C.K. are proprietary references; their code/prose was not copied.
 The Radiant file's GPL-2.0-or-later notice is compatible with this GPLv3 repository;
 only command facts informed the original Qt visibility/snapshot implementation
-in `src/app/level_view_actions.cpp`. VibeStudio targets the focused pane and
+in `src/app/level_view_actions.cpp`. SlopStudio targets the focused pane and
 keeps the studio's inspector and asset context visible.
 
 The DoomEdit and BSP profile additions were reviewed on 7 October 2026.
@@ -1872,7 +1872,7 @@ and [`XYWnd.cpp`](https://github.com/id-Software/DOOM-3/blob/a9c49da5afb18201d31
 at `a9c49da5afb18201d31e3f0a429a037e56ce2b9a` supply command and gesture facts.
 Their [GPL-3.0-or-later licence with additional terms](https://github.com/id-Software/DOOM-3/blob/a9c49da5afb18201d31e3f0a429a037e56ce2b9a/COPYING.txt)
 was read before implementation; no upstream code is incorporated or linked.
-The independently written C++ profile remains under VibeStudio's GPLv3 licence.
+The independently written C++ profile remains under SlopStudio's GPLv3 licence.
 
 [BSP Quake Editor 0.97q7](https://www.bspquakeeditor.com/downloads.php),
 specifically `Settings/bspmouse.cfg`, `Settings/bspmou3d.cfg` and
@@ -1886,7 +1886,7 @@ game assets were copied into the repository. Differences are listed in
 
 The October 5, 2026 familiarity expansion is an independent implementation of
 documented interaction behavior. No upstream code, documentation prose, assets
-or proprietary SDKs were incorporated, and no new library is linked. VibeStudio
+or proprietary SDKs were incorporated, and no new library is linked. SlopStudio
 remains GPLv3. The reference software/documentation retains its own license;
 proprietary references supply behavioral facts only.
 
@@ -1907,26 +1907,26 @@ proprietary references supply behavioral facts only.
 The actual adaptations and remaining differences are documented in
 [Editor Profiles](EDITOR_PROFILES.md) and in the Controls reference. Shared
 four-view layout, numeric tools, package/build handoff and explicit material
-tools are VibeStudio behavior, not claims of exact upstream implementation.
+tools are SlopStudio behavior, not claims of exact upstream implementation.
 
-VibeStudio's adaptable level-editor profiles and the look of its shell are
+SlopStudio's adaptable level-editor profiles and the look of its shell are
 intended to help users feel at home without copying third-party assets or
 proprietary content. Profile and interface inspiration and compatibility
 research should credit:
 - [GtkRadiant](https://github.com/TTimo/GtkRadiant) (GPL-2.0), especially the GtkRadiant 1.6.0-era layout and control expectations. The GtkRadiant 1.6.0 editor profile's controls are its default bindings, read from the `1.6-release` branch at `270af88f3c2471f6773bded0b5760a3115b52965` (August 2024): key bindings from the `g_Commands[]` table in `radiant/mainframe.cpp`, the 2D view's mouse from `radiant/xywindow.cpp` (right drag pans, Shift+right zooms, the middle button aims and with Ctrl moves the camera, a left drag with nothing selected draws a brush), selection from `radiant/drag.cpp` (Shift toggles, Shift+Alt drills, Alt+drag selects an area, Ctrl+Shift picks a face in the camera), the camera from `radiant/camwindow.cpp` (a right click toggles free look, the wheel moves along the view), defaults from `radiant/preferences.cpp` (free look on, wheel zoom about the centre), and the 8-unit grid from `radiant/qe3.cpp`. Facts about behaviour only; no GtkRadiant code is used.
-- [NetRadiant Custom](https://github.com/Garux/netradiant-custom) (GPL-2.0), for modern Radiant-family workflow refinements and q3map2-oriented editing expectations. The NetRadiant Custom editor profile's controls are its default bindings, read from its sources at `68ecbed` (January 2026; the revision VibeStudio's q3map2 submodule pinned before the move to VibeMap3): key bindings from the `GlobalCommands_insert`, `GlobalToggles_insert`, and `GlobalShortcuts_insert` calls in `radiant/*.cpp`, the 2D view's mouse from `radiant/xywindow.cpp` (right drag pans, Alt+right zooms, the middle button aims and moves the camera, a left drag with nothing selected draws a brush), selection from `radiant/selection.cpp` (Shift toggles, Ctrl picks faces, a plain click tunnels), and the camera from `radiant/camwindow.cpp` (a right click toggles free look, strafe mode 3, Alt+right orbits, a 100 degree field of view) and `radiant/grid.cpp` (16-unit grid). Facts about behaviour only; no NetRadiant Custom editor code is used, and the implementation in `src/core/level_editor_controls.*`, `src/app/map_viewport.*`, and `src/app/model_viewport.*` is VibeStudio's own.
+- [NetRadiant Custom](https://github.com/Garux/netradiant-custom) (GPL-2.0), for modern Radiant-family workflow refinements and q3map2-oriented editing expectations. The NetRadiant Custom editor profile's controls are its default bindings, read from its sources at `68ecbed` (January 2026; the revision SlopStudio's q3map2 submodule pinned before the move to SlopMap3): key bindings from the `GlobalCommands_insert`, `GlobalToggles_insert`, and `GlobalShortcuts_insert` calls in `radiant/*.cpp`, the 2D view's mouse from `radiant/xywindow.cpp` (right drag pans, Alt+right zooms, the middle button aims and moves the camera, a left drag with nothing selected draws a brush), selection from `radiant/selection.cpp` (Shift toggles, Ctrl picks faces, a plain click tunnels), and the camera from `radiant/camwindow.cpp` (a right click toggles free look, strafe mode 3, Alt+right orbits, a 100 degree field of view) and `radiant/grid.cpp` (16-unit grid). Facts about behaviour only; no NetRadiant Custom editor code is used, and the implementation in `src/core/level_editor_controls.*`, `src/app/map_viewport.*`, and `src/app/model_viewport.*` is SlopStudio's own.
 - [TrenchBroom](https://trenchbroom.github.io/) (GPL-3.0), for modern single-window brush editing and project workflow expectations. The TrenchBroom editor profile's controls are its default bindings, read from [its sources](https://github.com/TrenchBroom/TrenchBroom) at `master` `90de03c` (September 2026): the camera from `lib/TbAppLib/src/CameraTool3D.cpp` (right drag looks, Alt+right orbits, middle pans, the wheel moves, Shift+wheel zooms), fly keys from `lib/TbPreferencesLib/include/prefs/Preferences.h` (W S A D, Q up, X down) and `lib/TbUiLib/src/FlyModeHelper.cpp` (Shift faster, Alt slower), selection from `lib/TbAppLib/src/SelectionTool.cpp` (Ctrl toggles, Shift picks faces), menu keys from `lib/TbUiLib/src/ActionManager.cpp`, and the 16-unit grid from `lib/TbMdlLib/src/Map.cpp`. Facts about behaviour only; no TrenchBroom code is used.
 - [QuArK](https://quark.sourceforge.io/), for integrated object/package/map editing lineage.
-- [Ultimate Doom Builder](https://github.com/UltimateDoomBuilder/UltimateDoomBuilder) (GPL-3.0), and the Doom Builder line it continues, for how Doom map editing behaves: drawing, deleting, merging, and joining sectors, and Make Door (`Source/Plugins/BuilderModes/ClassicModes/SectorsMode.cs`, `MakeDoor`), whose rules VibeStudio's `makeLevelMapDoors` follows: ceiling to floor, lines facing out with the door action, door and track textures, lower-unpegged tracks. Behaviour only; no Doom Builder code is used, and the implementation in `src/core/level_map.cpp` is VibeStudio's own. Reference as of the `master` branch, September 2026.
-- [idStudio](https://idstudio.idsoftware.com/), id Software's editor for DOOM Eternal (public beta, August 2024), for the visual language of the studio shell: neutral charcoal panels with an orange accent, black-backed viewports with corner readouts, dense panel groups with bottom-edge tabs, a grouped Key / Value entity property grid, and an asset browser with a folder tree, breadcrumb path, and thumbnail tiles. Inspiration only: idStudio is proprietary, and no idStudio code, icons, assets, or content are used. The corresponding implementation is VibeStudio's own, in `src/app/studio_theme.*`, `src/app/studio_icons.*`, `src/app/studio_layout.*`, and `src/app/application_shell.cpp`.
-- [Visual Studio Code](https://github.com/microsoft/vscode) (MIT), for the arrangement of the studio bar adopted in October 2026: the menus, the history buttons, and a command search centred on the window share one row, as VS Code's title bar does with its Command Center (the `window.commandCenter` setting), and command shortcuts read as key caps. Pattern only, reviewed 2026-10-06: no VS Code code, icons, or assets are used, and the implementation (`CommandSearchButton`, `keepCentredInToolBar()`, and `paintKeyCaps()` in `src/app/studio_layout.*`, and `buildToolBar()` in `src/app/application_shell.cpp`) is VibeStudio's own.
+- [Ultimate Doom Builder](https://github.com/UltimateDoomBuilder/UltimateDoomBuilder) (GPL-3.0), and the Doom Builder line it continues, for how Doom map editing behaves: drawing, deleting, merging, and joining sectors, and Make Door (`Source/Plugins/BuilderModes/ClassicModes/SectorsMode.cs`, `MakeDoor`), whose rules SlopStudio's `makeLevelMapDoors` follows: ceiling to floor, lines facing out with the door action, door and track textures, lower-unpegged tracks. Behaviour only; no Doom Builder code is used, and the implementation in `src/core/level_map.cpp` is SlopStudio's own. Reference as of the `master` branch, September 2026.
+- [idStudio](https://idstudio.idsoftware.com/), id Software's editor for DOOM Eternal (public beta, August 2024), for the visual language of the studio shell: neutral charcoal panels with an orange accent, black-backed viewports with corner readouts, dense panel groups with bottom-edge tabs, a grouped Key / Value entity property grid, and an asset browser with a folder tree, breadcrumb path, and thumbnail tiles. Inspiration only: idStudio is proprietary, and no idStudio code, icons, assets, or content are used. The corresponding implementation is SlopStudio's own, in `src/app/studio_theme.*`, `src/app/studio_icons.*`, `src/app/studio_layout.*`, and `src/app/application_shell.cpp`.
+- [Visual Studio Code](https://github.com/microsoft/vscode) (MIT), for the arrangement of the studio bar adopted in October 2026: the menus, the history buttons, and a command search centred on the window share one row, as VS Code's title bar does with its Command Center (the `window.commandCenter` setting), and command shortcuts read as key caps. Pattern only, reviewed 2026-10-06: no VS Code code, icons, or assets are used, and the implementation (`CommandSearchButton`, `keepCentredInToolBar()`, and `paintKeyCaps()` in `src/app/studio_layout.*`, and `buildToolBar()` in `src/app/application_shell.cpp`) is SlopStudio's own.
 
 ## Level Editor Sidebars, Shapes And Tools (2026-10-08)
 
 The Levels page's tabbed sidebars, Shapes tab, region selections, brush-entity
 tools, CSG intersect, detail tools, drop to floor, display filters, built-in
 entity catalogues and linked groups were added on 8 October 2026. They are
-original VibeStudio code (`src/app/studio_sidebar.*`, `src/app/tile_grid.*`,
+original SlopStudio code (`src/app/studio_sidebar.*`, `src/app/tile_grid.*`,
 `src/app/level_sidebar_actions.cpp`, `src/app/level_sidebar_panels.cpp`,
 `src/app/level_asset_browsers.cpp`, `src/app/level_editing_actions.cpp`,
 `src/app/level_shapes_panel.cpp`, `src/app/level_scene_panel.cpp`,
@@ -1939,7 +1939,7 @@ copied; the references below supplied patterns and behavioural facts.
 |---|---|---|---|
 | [VibeRadiant](https://github.com/themuffinator/VibeRadiant) [`radiant/assetbrowser.cpp`](https://github.com/themuffinator/VibeRadiant/blob/f2fb5340333099dc8767c8d08f7e4757b8d23a02/radiant/assetbrowser.cpp) | One tabbed browser for entities, materials, surfaces, sounds and models, and its Globals tab's worldspawn editor and checklist, which the Map tab's **Worldspawn** and **Checklist** follow | `f2fb5340333099dc8767c8d08f7e4757b8d23a02` (2026-08-26), read 2026-10-08 | GPL-2.0 (GtkRadiant licence); pattern only |
 | [Blender's sidebar and panels](https://docs.blender.org/manual/en/latest/interface/window_system/regions.html#sidebar) | Tabs down a side region, collapsible panels, folding to the tab column, and the Item panel's numeric transform | Current manual | GPL software, CC-BY-SA-4.0 manual; pattern only |
-| [NetRadiant Custom](https://github.com/Garux/netradiant-custom) [`radiant/select.cpp`](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/radiant/select.cpp) and [`radiant/brushmanip.cpp`](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/radiant/brushmanip.cpp) | Select Inside and Select Touching; Make Detail and Make Structural; the Prism, Cone and Sphere commands that replace the selected brush with a shape filling its bounds | `68ecbed64b7be78741878c730279b5471d978c7c`, the revision of VibeStudio's former q3map2 submodule, read 2026-10-08 | GPL-2.0-or-later; behaviour only |
+| [NetRadiant Custom](https://github.com/Garux/netradiant-custom) [`radiant/select.cpp`](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/radiant/select.cpp) and [`radiant/brushmanip.cpp`](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/radiant/brushmanip.cpp) | Select Inside and Select Touching; Make Detail and Make Structural; the Prism, Cone and Sphere commands that replace the selected brush with a shape filling its bounds | `68ecbed64b7be78741878c730279b5471d978c7c`, the revision of SlopStudio's former q3map2 submodule, read 2026-10-08 | GPL-2.0-or-later; behaviour only |
 | [id Software's Q3Radiant `SELECT.CPP`](https://github.com/id-Software/Quake-III-Arena/blob/dbe4ddb10315479fc00086f08e25d968b4b43c49/q3radiant/SELECT.CPP) | Select Complete Tall and Select Partial Tall, looking along the view's depth | `dbe4ddb10315479fc00086f08e25d968b4b43c49`, read 2026-10-08 | GPL-2.0-or-later; behaviour only |
 | [TrenchBroom](https://trenchbroom.github.io/) | CSG Intersect; the shear tool; linked groups, groups that take on each other's edits while each keeps its place and frame (see [Linked group frames, nesting and commands](#linked-group-frames-nesting-and-commands)); one inspector of Map, Entity and Face tabs; bundled definitions standing in when a game has none; the `_tb_` map keys of its layers, groups and linked groups (see [TrenchBroom map keys](#trenchbroom-map-keys)) | The release credited under Editor Workflow Inspirations (`90de03c`); linked groups at `4c756be1`; map keys from the 2026.2 manual, read 2026-10-23 | GPL-3.0; behaviour and the documented map format only, no code |
 | Hammer and [J.A.C.K.](https://valvedev.info/tools/jack/jack_manual.pdf) | Tie to Entity and Move to World; the object bar's block, wedge, cylinder, spike, sphere, arch and torus fitted to a drawn box; the Properties, Face Edit and Primitives names | J.A.C.K. manual 1.1 (November 2016), credited above | Proprietary software and documentation; behaviour only |
@@ -1951,7 +1951,7 @@ copied; the references below supplied patterns and behavioural facts.
 The built-in entity catalogues record facts (class names, keys and their
 defaults, spawnflag bits, editor sizes and colours) from id Software's GPL
 releases, each checked against the code where comments and code disagree; every
-description is VibeStudio's own wording:
+description is SlopStudio's own wording:
 
 - Quake: the [QuakeC v1.01 release in Quake-Tools](https://github.com/id-Software/Quake-Tools/tree/c0d1b91c74eb654365ac7755bc837e497caaca73/qcc/v101qc),
   checked against the [1.06 progs](https://github.com/maddes-b/QuakeC-releases) at
@@ -1980,7 +1980,7 @@ The model decoders and writers added on 8 October 2026
 (`src/core/model_editor_controls.*`, `src/core/model_sidebar.*`,
 `src/app/model_editor_layout.cpp`, `src/app/model_editor_profiles.cpp`,
 `src/app/model_controls_dialog.*`, `src/cli/model_controls.*`) are original
-VibeStudio code. The sources below supplied byte layouts, conventions and
+SlopStudio code. The sources below supplied byte layouts, conventions and
 behaviour; each decoder's header comment names the files and functions it was
 checked against. No upstream code is copied, apart from format constants
 (magics, versions, limits and scale factors) that a reader must match. No game
@@ -2001,8 +2001,8 @@ built by the tests.
 | [GtkRadiant `qdata_heretic2`](https://github.com/TTimo/GtkRadiant/tree/270af88f3c24/tools/quake2/qdata_heretic2) (`qcommon/fmodel.h`, `qcommon/flex.h`, `fmodels.c`) | Heretic II FM chunks, frames, mesh nodes and GL commands | 1.6-release at `270af88f3c24`, read 2026-10-08 | GPL-2.0-or-later; layout only |
 | [Heretic2R](https://github.com/m-x-d/Heretic2R/tree/4d677156a458) (`src/ref_gl1/src/gl1_FlexModel.c`) | How FM models are loaded | `4d677156a458`, read 2026-10-08 | GPL-3.0; behaviour only |
 | [GZDoom](https://github.com/ZDoom/gzdoom/tree/c26ce2e6ca2a0c770f140cb25dde0d30073ca8f7) (`src/common/models/voxels.cpp`, `models_voxel.cpp`) and Ken Silverman's `slab6.txt` | KVX layout, slab meshing, VOXELDEF placement and palette colours | `c26ce2e6ca2a0c770f140cb25dde0d30073ca8f7` (2026-08-10), read 2026-10-08 | `voxels.cpp` BSD-3-Clause, GZDoom GPL-3.0; layout and behaviour only |
-| picomodel and q3map2 in [NetRadiant Custom](https://github.com/Garux/netradiant-custom/tree/68ecbed64b7be78741878c730279b5471d978c7c) (`libs/picomodel/pm_ase.c`, `pm_lwo.c`, `tools/quake3/q3map2/model.cpp`) | How q3map2 reads ASE and LWO for `misc_model`: sub-materials, winding, texture paths | `68ecbed64b7be78741878c730279b5471d978c7c` (VibeStudio's former q3map2 submodule), read 2026-10-08 | picomodel BSD-style, q3map2 GPL-2.0-or-later; behaviour only |
-| [Blender keymap](https://docs.blender.org/manual/en/latest/interface/keymap/blender_default.html) and [3D viewport navigation](https://docs.blender.org/manual/en/latest/editors/3dview/navigate/index.html) | The Blender and VibeStudio profiles' navigation, selection, modal transforms and keys; the Blender sidebar names | Blender 4 manual, read 2026-10-08 | Manual CC-BY-SA-4.0; behaviour only |
+| picomodel and q3map2 in [NetRadiant Custom](https://github.com/Garux/netradiant-custom/tree/68ecbed64b7be78741878c730279b5471d978c7c) (`libs/picomodel/pm_ase.c`, `pm_lwo.c`, `tools/quake3/q3map2/model.cpp`) | How q3map2 reads ASE and LWO for `misc_model`: sub-materials, winding, texture paths | `68ecbed64b7be78741878c730279b5471d978c7c` (SlopStudio's former q3map2 submodule), read 2026-10-08 | picomodel BSD-style, q3map2 GPL-2.0-or-later; behaviour only |
+| [Blender keymap](https://docs.blender.org/manual/en/latest/interface/keymap/blender_default.html) and [3D viewport navigation](https://docs.blender.org/manual/en/latest/editors/3dview/navigate/index.html) | The Blender and SlopStudio profiles' navigation, selection, modal transforms and keys; the Blender sidebar names | Blender 4 manual, read 2026-10-08 | Manual CC-BY-SA-4.0; behaviour only |
 | [Autodesk 3ds Max keyboard shortcuts](https://help.autodesk.com/view/3DSMAX/2024/ENU/?guid=GUID-A73E1B09-7BFE-4A22-8153-1D3D2237B8E9) | The 3ds Max profile's views, navigation, selection, tools, sub-object levels and keys; command panel names | 3ds Max 2024 help, read 2026-10-08 | Proprietary documentation; behaviour only |
 | [MilkShape 3D](https://chumbalum.swissquake.ch/) by chUmbaLum sOft | The MilkShape 3D profile's four views, navigation, tools, keys and tab names | MilkShape 3D 1.8 documentation, read 2026-10-08 | Proprietary software and documentation; behaviour only |
 
@@ -2014,22 +2014,22 @@ notes and publishing (`src/core/game_asset_register.*`,
 `src/core/release_script_refs.*`, `src/core/release_notes.*`,
 `src/core/release_publish.*`, `src/cli/release.*`,
 `src/app/release_dialog.*`, `src/app/release_actions.cpp`) are original
-VibeStudio code. The references below supplied file formats, conventions and
+SlopStudio code. The references below supplied file formats, conventions and
 engine behaviour only; no upstream code, text or game data is copied, and the
 tests generate every package and script they read. Packages are read and written with
-VibeStudio's existing PAK, WAD and ZIP/PK3 code, credited under
+SlopStudio's existing PAK, WAD and ZIP/PK3 code, credited under
 [Compression and archive formats](#compression-and-archive-formats).
 
 | Reference | What it informed | Revision | Licence / use |
 |---|---|---|---|
-| [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) by Olivier Lacan | The project changelog VibeStudio reads and writes: the Unreleased section, `## [version] - date` headings and the six change categories | 1.1.0, read 2026-10-08 | MIT; format only |
+| [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) by Olivier Lacan | The project changelog SlopStudio reads and writes: the Unreleased section, `## [version] - date` headings and the six change categories | 1.1.0, read 2026-10-08 | MIT; format only |
 | [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html) by Tom Preston-Werner | Patch, minor and major bumps, and pre-release versions bumping to their release | 2.0.0, read 2026-10-08 | CC BY 3.0; rules only |
 | The [/idgames archive](https://www.doomworld.com/idgames/)'s text file template | The field layout of the generated readme (Title, Filename, Author, Description, the construction and copyright fields) | Read 2026-10-08 | Community convention; field names only |
 | [Quake GPL source](https://github.com/id-Software/Quake) (`WinQuake/common.c`, `COM_AddGameDirectory`) | The numbered `pak*.pak` search order, which decides which stock file shadows another, and why a release should not take a numbered slot | Read 2026-10-08 | GPL-2.0-or-later; behaviour only |
 | [Quake II GPL source](https://github.com/id-Software/Quake-2/tree/372afde46e7defc9dd2d719a1732b8ace1fa096e) (`qcommon/files.c`, `FS_AddGameDirectory`) | The same order for Quake II's game folders | `372afde46e7defc9dd2d719a1732b8ace1fa096e`, read 2026-10-08 | GPL-2.0-or-later; behaviour only |
 | [Quake III Arena GPL source](https://github.com/id-Software/Quake-III-Arena/tree/dbe4ddb10315479fc00086f08e25d968b4b43c49) (`code/qcommon/files.c`, `code/q3_ui/ui_gameinfo.c`, `code/botlib`) | PK3 load order by name; `.arena` scripts and `levelshots/`; `.aas` bot files beside the BSP | `dbe4ddb10315479fc00086f08e25d968b4b43c49`, read 2026-10-08 | GPL-2.0-or-later; behaviour only |
-| q3map2 in [NetRadiant Custom](https://github.com/Garux/netradiant-custom/tree/68ecbed64b7be78741878c730279b5471d978c7c) (VibeMap3's upstream) | External lightmaps in `maps/<map>/lm_*.tga` and the generated `scripts/q3map2_<map>.shader`, which VibeMap3 keeps | `68ecbed64b7be78741878c730279b5471d978c7c`, read 2026-10-08 | GPL-2.0-or-later; behaviour only |
-| [ericw-tools](https://github.com/ericwa/ericw-tools) (VibeMap2's upstream) | `.lit` and `.lux` lighting files beside Quake BSPs, which VibeMap2 keeps | `f80b1e216a415581aea7475cb52b16b8c4859084`, read 2026-10-08 | GPL-2.0-or-later; behaviour only |
+| q3map2 in [NetRadiant Custom](https://github.com/Garux/netradiant-custom/tree/68ecbed64b7be78741878c730279b5471d978c7c) (SlopMap3's upstream) | External lightmaps in `maps/<map>/lm_*.tga` and the generated `scripts/q3map2_<map>.shader`, which SlopMap3 keeps | `68ecbed64b7be78741878c730279b5471d978c7c`, read 2026-10-08 | GPL-2.0-or-later; behaviour only |
+| [ericw-tools](https://github.com/ericwa/ericw-tools) (SlopMap2's upstream) | `.lit` and `.lux` lighting files beside Quake BSPs, which SlopMap2 keeps | `f80b1e216a415581aea7475cb52b16b8c4859084`, read 2026-10-08 | GPL-2.0-or-later; behaviour only |
 | [Quake GPL source](https://github.com/id-Software/Quake) (`WinQuake/pr_cmds.c`, `WinQuake/snd_mem.c`) | The QuakeC builtins that load a file by name (`precache_model`, `precache_sound`, `precache_file` and registered Quake's `2` variants, `setmodel`, `sound`, `ambientsound`) and the `sound/` folder sounds load from (`src/core/release_script_refs.cpp`) | Read 2026-10-09 | GPL-2.0-or-later; names and behaviour only |
 | [Quake III Arena GPL source](https://github.com/id-Software/Quake-III-Arena/tree/dbe4ddb10315479fc00086f08e25d968b4b43c49) (`code/ui/ui_shared.c`, `code/ui/ui_main.c`, `code/client/cl_cin.c`, `code/qcommon/cmd.c`, `code/client/snd_dma.c`, `code/renderer/tr_image.c`) | The menu keywords whose values are files, `loadMenu`, cinematics under `video/`, `exec` adding `.cfg`, the `play` and `music` commands, and a `.jpg` loaded in place of a missing `.tga` | `dbe4ddb10315479fc00086f08e25d968b4b43c49`, read 2026-10-09 | GPL-2.0-or-later; names and behaviour only |
 | [ioquake3](https://github.com/ioquake/ioq3) (`code/client/snd_codec.c`) | A sound loaded in another format when the named file is missing, which is why `.ogg` and `.wav` are both tried | Read 2026-10-09 | GPL-2.0-or-later; behaviour only |
@@ -2074,11 +2074,11 @@ VibeStudio's existing PAK, WAD and ZIP/PK3 code, credited under
   `grammars/semantic-plan-v1.gbnf`, the C++ unit tests and golden maps in
   `tests`, `LICENSE` and `.clang-format`. `src/mapgen/UPSTREAM.json` lists each
   file's upstream SHA-256. `src/mapgen/generate_profile_tables.py` ports its
-  `cmake/GenerateGameProfileTables.cmake`. VibeStudio's changes (the ggml-free
+  `cmake/GenerateGameProfileTables.cmake`. SlopStudio's changes (the ggml-free
   `LayoutRanker`, connector-named planner models, the JSON Schema and first
   request, prompt overrides, the rules fallback, the optional ggml ranker
   (`QMG_HAVE_GGML`) and GGUF planning through the Local GGUF connector) are
-  marked `VibeStudio:` and listed in `src/mapgen/VIBESTUDIO.md`. The licence
+  marked `SlopStudio:` and listed in `src/mapgen/SLOPSTUDIO.md`. The licence
   is installed with the application.
 - Quake-MapGen's research tooling, from the same working tree and imported the
   same day into `src/mapgen/tools`, `knowledge`, `docs` and `tests`: the map
@@ -2114,7 +2114,7 @@ the installed rerelease game DLL's `Pmove` export through the public
 [`game.h` interface](https://github.com/id-Software/quake2-rerelease-dll/blob/main/game.h)
 and associated headers (GPL-2.0, reviewed 2026-10-28). Its build record pins
 the local input hashes. These external test binaries, upstream headers and
-game DLL are neither linked into VibeStudio nor shipped with the map.
+game DLL are neither linked into SlopStudio nor shipped with the map.
 
 Rerelease entity keys, shadow-light configstrings and fog behaviour were
 checked against [id Software's rerelease game source](https://github.com/id-Software/quake2-rerelease-dll)
@@ -2142,7 +2142,7 @@ texture-origin offset; the compiler and engine remain unchanged.
   semantic plan made by rules or by a schema-constrained model and repaired,
   an integer-grid layout, lowering into sealed brushes, and validation before
   anything is written. The planner, layout, 2.5D cell builder, Doom sector
-  tracing, map writers and preview are original VibeStudio code; no source,
+  tracing, map writers and preview are original SlopStudio code; no source,
   grammar, knowledge cards, maps or model weights were copied.
 - [TexAI](https://github.com/themuffinator/TexAI) (GPL-3.0), `7f56a4b`
   (2026-02-14), `src/core/pbr_generator.cpp` and
@@ -2151,7 +2151,7 @@ texture-origin offset; the compiler and engine remain unchanged.
   per-surface prompt design (straight on, evenly lit, no framing or text, keep
   tileability), its use of the OpenAI Images edits endpoint as a multipart
   form, and the idea of deriving companion layers (normal, roughness/gloss,
-  glow) from one texture. VibeStudio derives those layers deterministically
+  glow) from one texture. SlopStudio derives those layers deterministically
   (Sobel normals, gloss, glow masks) and adds seam blending, wrap-around
   resampling, palette conversion and game writers; no TexAI code was copied.
 - Companion map names follow the ports that read them: DarkPlaces and FTE
@@ -2171,20 +2171,20 @@ texture-origin offset; the compiler and engine remain unchanged.
   a waveform (square with duty, saw, sine, noise), a pitch slide, vibrato,
   an arpeggio jump, an attack-sustain-punch-decay envelope, and filters.
   The kinds' parameters, layering, the state-variable filter, loops and
-  delivery are VibeStudio's own; no sfxr code was copied.
+  delivery are SlopStudio's own; no sfxr code was copied.
 
 ## Accessibility And Localization References
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/), the baseline accessibility reference where web-oriented guidance applies to desktop UI. The wide text spacing preference uses success criterion 1.4.12's letter (0.12em) and word (0.16em) spacing, and the status message durations answer 2.2.1 (Timing Adjustable).
 - [Ethnologue 200](https://www.ethnologue.com/insights/ethnologue200/) (2025 figures) and the [Steam supported languages](https://partner.steamgames.com/doc/store/localization/languages) list, the references the 47-language target set was reviewed against on 2026-10-07.
 - [Unicode CLDR](https://cldr.unicode.org/) parent locales and likely subtags, read through Qt's `QLocale`, for resolving regional tags (`es-MX` to `es-419`, `zh-HK` to Traditional Chinese). Data only, through Qt.
-- [Primer Primitives](https://github.com/primer/primitives) (GitHub's design tokens, MIT), whose protanopia/deuteranopia and tritanopia themes mark success in blue: the pattern behind the red-green safe palette. Pattern only, reviewed 2026-10-07; VibeStudio's colours were chosen and contrast-checked independently.
+- [Primer Primitives](https://github.com/primer/primitives) (GitHub's design tokens, MIT), whose protanopia/deuteranopia and tritanopia themes mark success in blue: the pattern behind the red-green safe palette. Pattern only, reviewed 2026-10-07; SlopStudio's colours were chosen and contrast-checked independently.
 - Gustavo M. Machado, Manuel M. Oliveira, and Leandro A. F. Fernandes, "A Physiologically-based Model for Simulation of Color Vision Deficiency", IEEE Transactions on Visualization and Computer Graphics 15(6), 2009: the severity 1.0 protanopia, deuteranopia, and tritanopia matrices `src/tests/studio_theme_smoke_test.cpp` uses to check that each colour-vision palette keeps success, warning, and danger apart. Published coefficients only; no code from the authors' materials.
-- Microsoft Edge's Read Aloud shortcut (Ctrl+Shift+U), adopted as the default key of VibeStudio's Read Aloud command. Key choice only.
+- Microsoft Edge's Read Aloud shortcut (Ctrl+Shift+U), adopted as the default key of SlopStudio's Read Aloud command. Key choice only.
 - Speech engines driven but not shipped: the Windows Speech API (SAPI 5, part of Windows; `sapi.h` from the Windows SDK), macOS `say`, [Speech Dispatcher](https://freebsoft.org/speechd) (`spd-say`, GPL-2.0-or-later), and [eSpeak NG](https://github.com/espeak-ng/espeak-ng) (GPL-3.0-or-later). The Unix engines run as separate programs; no code from any of them is included.
 
 ## Community Thanks
 - The idTech mapping, modding, speedrunning, source-port, and preservation communities who kept these workflows usable and documented across decades.
-- The maintainers and contributors of the imported compiler projects listed above, and of ericw-tools and NetRadiant Custom, on whose work VibeMap2 and VibeMap3 build.
+- The maintainers and contributors of the imported compiler projects listed above, and of ericw-tools and NetRadiant Custom, on whose work SlopMap2 and SlopMap3 build.
 
 ## Doom Node Readiness
 
@@ -2195,7 +2195,7 @@ classic and extended layouts checked against ZDBSP's
 and [`doomdata.h`](https://github.com/rheit/zdbsp/blob/bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659/doomdata.h).
 Revision `bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659`, reviewed 2026-10-05;
 copyright Randy Heit (2002–2006), GPL-2.0-or-later, checked as compatible with
-VibeStudio's GPL-3.0 before implementation. These are original readers and
+SlopStudio's GPL-3.0 before implementation. These are original readers and
 generated fixtures, with no upstream implementation or game assets copied.
 Compressed nodes use the existing RFC 1950/1951 decoder with cancellation.
 
@@ -2207,8 +2207,8 @@ Compressed nodes use the existing RFC 1950/1951 decoder with cancellation.
   retaining side ownership. Revision `6d9f6038db30adfee0edd74221b74b2de4837f6f`,
   reviewed 2026-10-05; file copyright Pascal vd Heiden (2007). Upstream
   [GPL-3.0 licence](https://github.com/jewalky/UltimateDoomBuilder/blob/6d9f6038db30adfee0edd74221b74b2de4837f6f/LICENSE.txt)
-  is compatible with VibeStudio's GPL-3.0 and was checked before implementation.
-  Workflow reference only; no C# implementation copied. VibeStudio explicitly
+  is compatible with SlopStudio's GPL-3.0 and was checked before implementation.
+  Workflow reference only; no C# implementation copied. SlopStudio explicitly
   rejects attached partial reflection and provides its own connected-selection
   service, native undo, cancellation and WAD-preservation tests. The same
   reflection rules also apply to UDMF native transforms through the original
@@ -2237,7 +2237,7 @@ The compatible implementation interface was checked against
 and [`sc_man.cpp`](https://github.com/rheit/zdbsp/blob/bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659/sc_man.cpp),
 revision `bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659`, reviewed 2026-10-05.
 UDMF reader/writer copyright Christoph Oelckers (2009), GPL-2.0-or-later,
-compatible with VibeStudio's GPL-3.0. No upstream implementation was copied;
+compatible with SlopStudio's GPL-3.0. No upstream implementation was copied;
 existing submodule notices remain intact. Real-node tests invoke ZDBSP as a
 separate executable against generated noncommercial room fixtures.
 
@@ -2257,13 +2257,13 @@ FTX/SWL layouts and DDS/FTX writing in `src/core/extra_image.cpp` derive from
 (`ftx_image.cpp`, `swl_image.cpp`, `image_writer.cpp`). Reviewed local working-tree
 snapshot 2026-10-05, based on `13111e4c07513548a29fd7eb74fc9d004c44aa59`; the
 DDS/writer files contain local changes beyond that commit. PakFu's GPL-3.0 is
-compatible with VibeStudio's GPL-3.0. VibeStudio adds dimension/payload bounds,
+compatible with SlopStudio's GPL-3.0. SlopStudio adds dimension/payload bounds,
 cancellation, supported-surface restrictions, mask validation, native export
 integration and synthetic fixtures. No commercial assets are included.
 
 The catalog's separation of inspection, decoding, conversion and runtime
 availability is informed by PakFu's support matrix at the same snapshot.
-The catalog and `.vibeworkspace` schema/implementation are VibeStudio-owned code.
+The catalog and `.slopworkspace` schema/implementation are SlopStudio-owned code.
 
 
 ### Level material gesture references
@@ -2278,7 +2278,7 @@ The material-name gesture defaults were checked on 2026-10-06 against
 [NetRadiant Custom selection.cpp](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/radiant/selection.cpp)
 (`68ecbed64b7be78741878c730279b5471d978c7c`). These files are
 GPL-2.0-or-later, compatible with this GPL-3.0 repository. The implementation is
-original VibeStudio code: exact profile routing, semantic hit APIs and existing
+original SlopStudio code: exact profile routing, semantic hit APIs and existing
 material transactions. No upstream implementation or game assets were copied.
 All four use middle-click sampling; Q3Radiant/GtkRadiant's Shift+middle material-
 only face application supplies the paint default.
@@ -2287,7 +2287,7 @@ The same pinned Q3Radiant and GtkRadiant `DRAG.CPP`/`drag.cpp` files were review
 again on 2026-10-06 for middle-click texture-definition sampling, Ctrl+middle
 whole-brush application and Ctrl+Shift+middle single-face application. Their
 GPL-2.0-or-later notices were verified as compatible before implementation.
-VibeStudio's original surface clipboard retains material, mapping and flags,
+SlopStudio's original surface clipboard retains material, mapping and flags,
 routes paste through its shared asynchronous edit plan, and keeps the copied
 material fixed instead of adopting later changes in the texture picker.
 Brush-primitive values are reused with that copied material. Explicit world
@@ -2306,7 +2306,7 @@ fallback follow `Face_setTexture` in its pinned
 was reviewed to distinguish native Project from the studio's world-UV mode.
 All are GPL-2.0-or-later, verified compatible before implementation on 2026-10-06.
 The double-precision hinge/Rodrigues solver, asynchronous publication, conversion
-consent and independent synthetic tests are original VibeStudio implementations.
+consent and independent synthetic tests are original SlopStudio implementations.
 Custom's Shift+middle hit-and-selection values and Alt mapping-only variants
 also reference `Scene_applyClosestTexture` in the same surface dialog,
 [`select.cpp`](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/radiant/select.cpp),
@@ -2325,14 +2325,14 @@ The GPL-2.0-or-later source was rechecked for GPL-3.0 compatibility on 2026-10-0
 Native classic/Valve assignments, matrix repeat normalization, patch control-point
 projection and edge-on results inform the independent implementation; no code was
 copied. Atomic mixed transactions, contextual dimension lookup and the synthetic
-serialized/compiler oracles are original VibeStudio work.
+serialized/compiler oracles are original SlopStudio work.
 Held Values/Project/Wrap ordering also follows `TexManipulator_` in the pinned
 [`selection.cpp`](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/radiant/selection.cpp):
 selected objects on mouse-down only, current modifiers on subsequent hits,
 advancing seamless source and one undo group. Its GPL-2.0-or-later licence was
 rechecked for GPL-3.0 compatibility on 2026-10-06. The bounded private transaction,
 worker snapshots, live preview/frozen picking and CLI replay are original
-VibeStudio work. No upstream code was copied.
+SlopStudio work. No upstream code was copied.
 Patch-source copying/wrapping, NetRadiant's additional
 paste aliases, work-zone depth and light-color sampling remain adaptations or gaps.
 
@@ -2344,15 +2344,15 @@ component selection and movement follow behavioural facts from
 and [extrusion manual](https://trenchbroom.github.io/manual/latest/#extrusion),
 version 2026.2, reviewed 2026-10-18. The editor's
 [GPL-3.0 licence](https://github.com/TrenchBroom/TrenchBroom/blob/v2026.2/LICENSE.txt)
-is compatible with VibeStudio's GPL-3.0-or-later licence. No upstream source,
+is compatible with SlopStudio's GPL-3.0-or-later licence. No upstream source,
 manual text or artwork is copied. The convex-hull implementation, face
 inheritance, plane/split extrusion, normal drag mathematics, validation, GUI,
 CLI and tests in `src/core/level_brush.*`, `src/core/level_brush_extrusion.cpp`,
 `src/core/model_transform.*` and
 `src/app/brush_editor_dialog.*`, `src/app/model_viewport_components.cpp` and
-`src/app/level_camera_component_actions.cpp` are original VibeStudio code.
+`src/app/level_camera_component_actions.cpp` are original SlopStudio code.
 The bounded draft worker, source guards and shared plan/camera selection are
-VibeStudio implementations, not copied upstream code or manual text.
+SlopStudio implementations, not copied upstream code or manual text.
 
 ## Shared clipper
 
@@ -2366,25 +2366,25 @@ controls, two-point plan cycling and double-click preferences also follow
 [NetRadiant Custom's clippertool.cpp](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/clippertool.cpp),
 revision `449778b3840f8f2062daab15c87cb012f2ac945c`, GPL-2.0-or-later
 (William Joseph / GtkRadiant notices). Both licences are compatible with
-VibeStudio's GPL-3.0-or-later licence. These references were reviewed before
+SlopStudio's GPL-3.0-or-later licence. These references were reviewed before
 implementation; no upstream source or manual text was copied. The follow-up
 review on 2026-10-19 covered
 [selection_mtor_clip.h](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtor_clip.h),
 [selection_mtor_clip.cpp](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection_mtor_clip.cpp),
 [csg.cpp](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/csg.cpp) and
 [filterbar.cpp](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/filterbar.cpp)
-at the same revision and compatible licence. VibeStudio retains its previous
+at the same revision and compatible licence. SlopStudio retains its previous
 defaults and uses explicit game-specific material names rather than assuming
 that every game ships the same caulk resource.
 `level_clip_state.h`, `map_viewport_clip.cpp`, `model_viewport_clip.cpp`,
 `level_clip_actions.cpp`, `level_clipper_preferences.cpp`, `core/level_clipper.*`,
 atomic core clipping and the generated fixture tests
-are original VibeStudio implementations.
+are original SlopStudio implementations.
 
 One-point and no-change-plane wrapping follows `CSG_WrapMerge` and
 `Scene_BrushSplitByPlane` in the credited `radiant/csg.cpp` at the same revision,
 reviewed 2026-10-19. The compatible GPL-2.0-or-later source was checked before
-implementation. VibeStudio uses its own bounded convex-hull implementation;
+implementation. SlopStudio uses its own bounded convex-hull implementation;
 no upstream hull code or QuickHull dependency was imported. The shared map
 service, original format/undo/scene fixtures and `level_clip_wrap_smoke_test.cpp`
 implement and test these behavioural facts independently.
@@ -2395,7 +2395,7 @@ Standalone Ctrl+U and component-only wrapping also follow `CSG_WrapMerge`,
 GPL-2.0-or-later licence. These define source retention, brush and patch component
 inputs, the current material on every component-hull face and the last-selected
 destination. `core/level_wrap.*`, the hull insertion options, `app/level_wrap_*`,
-the CLI command and component wrap fixtures are independent VibeStudio code.
+the CLI command and component wrap fixtures are independent SlopStudio code.
 
 NRC's two-point camera plane follows `viewdir_set`, `viewdir_fixup` and
 `viewdir_make_cut_worthy` in the same `selection_mtor_clip.cpp`, with camera
@@ -2435,7 +2435,7 @@ TrenchBroom 2026.2's
 [`Map_Groups.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbMdlLib/src/Map_Groups.cpp),
 revision `4c756be1a54a28d921d18c77716a5f170bdc31d0`, on 2026-10-19.
 TrenchBroom's [GPL-3.0-or-later licence](https://github.com/TrenchBroom/TrenchBroom/blob/v2026.2/LICENSE.txt)
-is compatible with VibeStudio's licence. The VibeStudio implementation in
+is compatible with SlopStudio's licence. The SlopStudio implementation in
 `level_linked_objects.cpp`, its scene version 4 codec and transfer/history
 integration are original code. No upstream code or metadata format was copied.
 This establishes object correspondence; it does not claim extraction parity.
@@ -2451,10 +2451,10 @@ and the protection column in
 [`EntityPropertyModel.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/EntityPropertyModel.cpp),
 revision `4c756be1a54a28d921d18c77716a5f170bdc31d0`, on 2026-10-19.
 The [GPL-3.0-or-later licence](https://github.com/TrenchBroom/TrenchBroom/blob/v2026.2/LICENSE.txt)
-is compatible with VibeStudio's GPL-3.0-or-later licence. The shared protection
+is compatible with SlopStudio's GPL-3.0-or-later licence. The shared protection
 service, native scene version 5, Qt inspector/dialog, CLI and tests are original
-VibeStudio implementations. No upstream source or metadata format was copied.
-VibeStudio retains its existing case-insensitive entity-key matching. Full
+SlopStudio implementations. No upstream source or metadata format was copied.
+SlopStudio retains its existing case-insensitive entity-key matching. Full
 workflow, platform and assistive-technology parity remains unverified.
 
 ## Clipboard placement
@@ -2474,8 +2474,8 @@ NRC's centre-to-camera translation and Shift+V binding were reviewed against
 [`select.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/select.cpp)
 at `449778b3840f8f2062daab15c87cb012f2ac945c`, under GPL-2.0-or-later
 (id Software and contributors, 1999–2006). Both licences are compatible with
-VibeStudio's GPL-3.0-or-later licence. The bounded parser, value-only requests,
-Qt worker/actions, ray clipping, CLI and generated fixtures are VibeStudio code.
+SlopStudio's GPL-3.0-or-later licence. The bounded parser, value-only requests,
+Qt worker/actions, ray clipping, CLI and generated fixtures are SlopStudio code.
 No game assets are included. See [Clipboard placement](LEVEL_PASTE.md) for
 behavioural differences and unverified acceptance gates.
 
@@ -2493,7 +2493,7 @@ The source credits Kristian Duske (2020/2025) under
 [GPL-3.0-or-later](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/LICENSE.txt),
 compatible with this repository's GPL-3.0-or-later licence. The value-based core,
 atomic worker/undo integration, JSON recipe, CLI and generated test fixtures are
-original implementations. No upstream code or assets were copied. VibeStudio's
+original implementations. No upstream code or assets were copied. SlopStudio's
 single-undo replay and bounded coverage differ from full TrenchBroom parity;
 see [Repeat object commands](LEVEL_REPEAT.md).
 
@@ -2505,7 +2505,7 @@ The partial-selection extraction workflow was reviewed against TrenchBroom
 revision `4c756be1a54a28d921d18c77716a5f170bdc31d0`, on 2026-10-19.
 The source credits Kristian Duske (2025) under
 [GPL-3.0-or-later](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/LICENSE.txt),
-compatible with VibeStudio's GPL-3.0-or-later licence. The reference covers
+compatible with SlopStudio's GPL-3.0-or-later licence. The reference covers
 duplicating each instance independently, partitioning two linked families,
 preserving local properties and splitting partially selected brush entities.
 `src/core/level_linked_extraction.*`, the cancellable Qt/CLI integration,
@@ -2531,12 +2531,12 @@ names and protected properties); and
 [`UpdateLinkedGroupsHelper.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbMdlLib/src/UpdateLinkedGroupsHelper.cpp)
 (ordering nested updates and refusing two changed members of one link set).
 The sources credit Kristian Duske under
-[GPL-3.0-or-later](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/LICENSE.txt), compatible with VibeStudio's
+[GPL-3.0-or-later](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/LICENSE.txt), compatible with SlopStudio's
 GPL-3.0-or-later licence. Behaviour and names only: `level_linked_groups.*`
 (affine frames detected from each transform's recorded map, outermost-first
 nested propagation, identity-based agreement checks and out-of-sync marks, where
 TrenchBroom refuses the edit), the scene version 6 codec, the 2D-view boxes and
-arrows, the Qt commands and the CLI are original VibeStudio work. No upstream
+arrows, the Qt commands and the CLI are original SlopStudio work. No upstream
 code was copied. TrenchBroom's `_tb_` map keys are read and written from its
 documented format; see [TrenchBroom map keys](#trenchbroom-map-keys).
 
@@ -2553,12 +2553,12 @@ member entities. The format comes from the
 ("Linked Groups in the Map File"), TrenchBroom 2026.2, read 2026-10-23, and from
 the layout of maps TrenchBroom writes. TrenchBroom is
 [GPL-3.0-or-later](https://github.com/TrenchBroom/TrenchBroom/blob/v2026.2/LICENSE.txt),
-compatible with VibeStudio's GPL-3.0-or-later licence. The implementation is
+compatible with SlopStudio's GPL-3.0-or-later licence. The implementation is
 independent: no TrenchBroom code was used. Taking the entities out of the text
 and writing them back, matching corresponding objects by their place in each
 group, the stable ids, the out-of-sync check, scene note version 7 and its
 precedence, the Save As type, the CLI option and the tests are original
-VibeStudio work.
+SlopStudio work.
 
 ## Group editing context
 
@@ -2567,9 +2567,9 @@ group and double-click navigation follow the behaviour documented in the
 [TrenchBroom groups manual](https://trenchbroom.github.io/manual/latest/#groups),
 version 2026.2, reviewed 2026-10-18. TrenchBroom uses
 [GPL-3.0](https://github.com/TrenchBroom/TrenchBroom/blob/v2026.2/LICENSE.txt),
-compatible with VibeStudio's GPL-3.0-or-later licence. No upstream implementation
+compatible with SlopStudio's GPL-3.0-or-later licence. No upstream implementation
 was copied. `src/core/level_scene_context.cpp`, shared transaction isolation,
-linked-propagation scoping, GUI/CLI integration and tests are original VibeStudio
+linked-propagation scoping, GUI/CLI integration and tests are original SlopStudio
 work. Complete-group duplication, portable group hierarchies, fresh linked-family
 identities on clipboard/prefab transfer and linked ordinary duplicates also use
 this behavioural reference (2026.2, reviewed 2026-10-18).
@@ -2589,12 +2589,12 @@ Pivoted affine transform behaviour also uses
 as a reference, revision `449778b3840f8f2062daab15c87cb012f2ac945c`, reviewed
 2026-10-19. Its GPL-2.0-or-later licence and William Joseph 2001–2006 notices
 were checked before implementation. Both licences are compatible with
-VibeStudio's GPL-3.0-or-later licence. No source or manual text was copied.
+SlopStudio's GPL-3.0-or-later licence. No source or manual text was copied.
 `level_component_transform.cpp`, the corner-correspondence UV fitter in
 `level_brush.cpp`, atomic batch publication, Qt controls, CLI and fixture tests
 are original implementations. The shared direct rotate/scale/shear and pivot
 controls in `src/app/level_component_gizmo.*` and its view/shell adapters reuse
-VibeStudio's existing modeller drag mathematics. Their axis, pivot and
+SlopStudio's existing modeller drag mathematics. Their axis, pivot and
 component behaviours reference the same upstream sources and licences above;
 no upstream implementation was copied. Full native profile parity remains
 separate work.
@@ -2754,7 +2754,7 @@ v2026.2, which never refuses a vertex edit. NetRadiant Custom revision
 `4c756be1` (GPL-3.0-or-later) were reviewed on 2026-10-22. The choice of the
 three corners (unmoved corners first), the least-squares nearest classic
 mapping in `nearestClassicLevelTextureProjection()` and the tests are original
-VibeStudio implementations; no upstream source was copied.
+SlopStudio implementations; no upstream source was copied.
 
 **Round Selection to Grid** (`src/core/level_grid_round.*`,
 `src/app/level_grid_round_actions.cpp`, `src/cli/level_grid_round.*`) follows
@@ -2764,7 +2764,7 @@ the behaviour of NetRadiant Custom's Snap To Grid: `Selection_SnapToGrid`,
 at `449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later, reviewed
 2026-10-22), which rounds brush vertices, patch control points and entity
 origins one by one, or only the picked components, on Ctrl+G. The
-implementation over VibeStudio's component transform service, its skip policy
+implementation over SlopStudio's component transform service, its skip policy
 for collapsing brushes and hidden objects, the CLI and the tests are original.
 
 Shared component clumping and TrenchBroom's plain-toggle/Ctrl-add lasso policy
@@ -2772,11 +2772,11 @@ also follow the vertex, edge and face tool behaviour in the same 2026.2 manual,
 reviewed 2026-10-19 under GPL-3.0. `src/core/level_component_selection.*` and
 the viewport adapters are original code. The camera compares full component
 geometry rather than handle centres; additive/subtractive alternatives and
-command routing are VibeStudio adaptations. Native input parity is unverified.
+command routing are SlopStudio adaptations. Native input parity is unverified.
 
 Complete/touching mode conversion, topology Grow/Shrink/Connected queries and
 patch-grid boundary erosion in `src/core/level_component_selection_topology.cpp`
-are original VibeStudio extensions of that shared selection workflow. They
+are original SlopStudio extensions of that shared selection workflow. They
 contain no imported implementation and do not claim an upstream-specific
 gesture or shortcut match.
 
@@ -2784,8 +2784,8 @@ Component depth cycling extends the drill-selection workflow described in the
 [TrenchBroom 2026.2 selection manual](https://trenchbroom.github.io/manual/latest/#selection),
 reviewed 2026-10-19 under the GPL-3.0 licence linked above. The shared grouping,
 ordering, wheel accumulation, Qt view adapters and keyboard commands are original
-VibeStudio implementations. Applying this workflow to component handles and the
-Alt+wheel default are VibeStudio choices, not claims of native TrenchBroom or
+SlopStudio implementations. Applying this workflow to component handles and the
+Alt+wheel default are SlopStudio choices, not claims of native TrenchBroom or
 NetRadiant Custom component bindings. No upstream code or manual text is copied.
 
 ### Direct vertex insertion
@@ -2798,10 +2798,10 @@ and
 TrenchBroom tag `v2026.2`, on 2026-10-19. These files carry Kristian Duske's
 copyright and GPL-3.0-or-later notices; the
 [licence](https://github.com/TrenchBroom/TrenchBroom/blob/v2026.2/LICENSE.txt)
-was reviewed before implementation and is compatible with VibeStudio's
+was reviewed before implementation and is compatible with SlopStudio's
 GPL-3.0-or-later licence. The picking, controller, asynchronous transaction and
 fixture code here are original; no upstream source or manual prose was copied.
-VibeStudio's explicit tool, optional view-plane movement, strict retained-corner policy
+SlopStudio's explicit tool, optional view-plane movement, strict retained-corner policy
 and atomic asynchronous release are its own choices; full native gesture
 parity is not claimed.
 
@@ -2815,10 +2815,10 @@ against TrenchBroom tag `v2026.2` on 2026-10-19:
 [NodeHandleToolBase.h](https://github.com/TrenchBroom/TrenchBroom/blob/v2026.2/lib/TbUiLib/include/ui/NodeHandleToolBase.h)
 and [NodeHandleToolControllerParts.h](https://github.com/TrenchBroom/TrenchBroom/blob/v2026.2/lib/TbUiLib/include/ui/NodeHandleToolControllerParts.h).
 These sources carry Kristian Duske's copyright and GPL-3.0-or-later notices,
-compatible with VibeStudio's GPL-3.0-or-later licence. Licence review preceded
+compatible with SlopStudio's GPL-3.0-or-later licence. Licence review preceded
 implementation. The controller, integration and regression fixtures are
 original implementations of behavioural facts; no upstream code or prose is
-copied. VibeStudio retains asynchronous validation and its existing numeric and
+copied. SlopStudio retains asynchronous validation and its existing numeric and
 explicit-axis tools. Remaining differences are recorded in the
 [behaviour audit](plans/level-editor-production.md#component-drag-behaviour-audit).
 
@@ -2828,7 +2828,7 @@ and [VertexTool.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/v2026.2/lib
 at the same tag, under GPL-3.0-or-later, reviewed 2026-10-19. The single geometric
 vertex, Alt+Shift click and exact target displacement are behavioural
 references. The movement trace's successive labelled axis segments reference
-`MoveHandleDragTracker.h` above. VibeStudio's core/CLI preparation, target
+`MoveHandleDragTracker.h` above. SlopStudio's core/CLI preparation, target
 dialogue, profile migration and palette-aware trace layout are original code;
 no upstream implementation or prose was copied.
 
@@ -2841,12 +2841,12 @@ generated report record command identifiers and locations from:
   tag `v2026.2`, revision `4c756be1a54a28d921d18c77716a5f170bdc31d0`.
   Kristian Duske's source carries GPL-3.0-or-later notices; the
   [licence](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/LICENSE.txt)
-  is compatible with VibeStudio's GPL-3.0-or-later licence.
+  is compatible with SlopStudio's GPL-3.0-or-later licence.
 - [NetRadiant Custom's core registrations](https://github.com/Garux/netradiant-custom/tree/449778b3840f8f2062daab15c87cb012f2ac945c/radiant),
   including [filters](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/filters.cpp)
   and the [plugin registration bridge](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/pluginmanager.cpp),
   revision `449778b3840f8f2062daab15c87cb012f2ac945c`. These files carry
-  GPL-2.0-or-later notices, compatible with VibeStudio's licence.
+  GPL-2.0-or-later notices, compatible with SlopStudio's licence.
 - The same NRC revision's [plugin](https://github.com/Garux/netradiant-custom/tree/449778b3840f8f2062daab15c87cb012f2ac945c/plugins)
   and [contributed plugin](https://github.com/Garux/netradiant-custom/tree/449778b3840f8f2062daab15c87cb012f2ac945c/contrib)
   command tables, including Joel Baxter's GPL-2.0-or-later
@@ -2855,12 +2855,12 @@ generated report record command identifiers and locations from:
   and qeradiant.com), Portal Viewer (Geoffrey Dewan, Loki Software and
   qeradiant.com) and SunPlug (Topsun) carry LGPL-2.1-or-later headers;
   the other inspected plugin headers are GPL-2.0-or-later. These licences
-  are compatible with VibeStudio's licence. The terrain generator has no
+  are compatible with SlopStudio's licence. The terrain generator has no
   file-level licence header; only its public command names and locations
   are recorded, with no implementation imported.
 
 Reviewed 2026-10-19. The scanner, validation tests and parity reviews are original
-VibeStudio code. No upstream implementation, artwork or game content is copied
+SlopStudio code. No upstream implementation, artwork or game content is copied
 or linked. Source locations retain access to upstream copyright/licence notices.
 The catalogue includes optional and legacy source providers without claiming
 that they build or work. Its pinned command-discovery baseline is separate from
@@ -2869,7 +2869,7 @@ does not establish workflow parity or production acceptance.
 
 ## Brush face sweep
 
-VibeStudio's sweep geometry and repetition follow behavioural references from
+SlopStudio's sweep geometry and repetition follow behavioural references from
 TrenchBroom `v2026.2`, revision
 `4c756be1a54a28d921d18c77716a5f170bdc31d0`, reviewed 2026-10-19:
 [SweepToolUtils.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/SweepToolUtils.cpp),
@@ -2877,12 +2877,12 @@ TrenchBroom `v2026.2`, revision
 and [SweepToolPage.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/SweepToolPage.cpp).
 These sources credit Jackson Palmer and Kristian Duske (2026) under
 [GPL-3.0-or-later](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/LICENSE.txt),
-compatible with VibeStudio's licence.
+compatible with SlopStudio's licence.
 
 The reference covers face-bound centres and combined normals, straight/arc/
 S-bend station interpolation, shortest rotation, world-axis taper, repeated
 destination transforms, integer station alignment, skipped invalid sections,
-source retention and current-material/default-face semantics. VibeStudio's
+source retention and current-material/default-face semantics. SlopStudio's
 double-precision geometry, native map transaction, asynchronous numeric preview,
 CLI and synthetic compiler fixtures are original implementations. No upstream
 code, UI assets or game content is copied.
@@ -2895,7 +2895,7 @@ at the same revision, reviewed 2026-10-19: centre/ring/scale hit priority,
 world-axis rotation composition, source-arm scaling, nearest grid-plane
 snapping, increment/decrement and layered cancellation. These files credit
 Jackson Palmer and Kristian Duske under GPL-3.0-or-later (the Grid copyright
-starts in 2010), compatible with VibeStudio's GPL-3.0-or-later licence.
+starts in 2010), compatible with SlopStudio's GPL-3.0-or-later licence.
 The double-precision controls, shared Qt view bindings, command routing,
 asynchronous preview integration and synthetic tests are original code.
 
@@ -2910,10 +2910,10 @@ were reviewed on 2026-10-20 against TrenchBroom v2026.2, revision
 [UpdateBrushFaceAttributes.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbMdlLib/src/UpdateBrushFaceAttributes.cpp)
 and [ParallelUVCoordSystem.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbMdlLib/src/ParallelUVCoordSystem.cpp).
 These are Kristian Duske and contributors' GPL-3.0-or-later sources, compatible
-with VibeStudio's GPL-3.0-or-later licence. The attribute-copy and UV-normal
+with SlopStudio's GPL-3.0-or-later licence. The attribute-copy and UV-normal
 rotation behaviours are adapted; parser, Qt dispatch, CLI and synthetic fixtures
-are VibeStudio implementations. No upstream implementation text or assets were
-copied. Matrix transfer is a VibeStudio extension; optional colours, complete
+are SlopStudio implementations. No upstream implementation text or assets were
+copied. Matrix transfer is a SlopStudio extension; optional colours, complete
 foreign-format conversion and game-default semantics are not claimed equivalent.
 See [face clipboard behaviour](LEVEL_PASTE.md#face-clipboard).
 
@@ -2928,9 +2928,9 @@ behaviour were checked in
 [MapWindow.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapWindow.cpp).
 These Kristian Duske sources are
 [GPL-3.0-or-later](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/LICENSE.txt),
-compatible with VibeStudio's GPL-3.0-or-later licence. The implementation is
+compatible with SlopStudio's GPL-3.0-or-later licence. The implementation is
 original; no source was copied. Shared workers, incomplete native group handling,
-clipboard race checks and two-file CLI publication are VibeStudio additions.
+clipboard race checks and two-file CLI publication are SlopStudio additions.
 See [object clipboard behaviour](LEVEL_PASTE.md#copy-and-cut-objects).
 
 NRC's selected-tree export was also reviewed on 2026-10-20 at revision
@@ -2938,7 +2938,7 @@ NRC's selected-tree export was also reviewed on 2026-10-20 at revision
 [select.cpp](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/select.cpp)
 and [map.cpp](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/map.cpp)
 (`Map_ExportSelected` / `IncludeSelectedWalker`). These files credit id Software
-and contributors and permit GPL-2.0-or-later, compatible with VibeStudio's
+and contributors and permit GPL-2.0-or-later, compatible with SlopStudio's
 GPL-3.0-or-later licence. No code was copied. Differences in worldspawn-property
 export and child ordering remain explicit in the Partial command review.
 
@@ -2962,10 +2962,10 @@ NetRadiant Custom's individual AABB tests and Inside/Touching source-retention
 rules were reviewed in
 [select.cpp](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/select.cpp)
 at `449778b3840f8f2062daab15c87cb012f2ac945c`, copyright id Software and
-contributors, GPL-2.0-or-later. Both licences are compatible with VibeStudio's
+contributors, GPL-2.0-or-later. Both licences are compatible with SlopStudio's
 GPL-3.0-or-later licence. No implementation text was copied. Convex SAT, projected
 hulls, cancellation, transactional history, Qt/CLI integration and synthetic
-fixtures are original VibeStudio code. See the
+fixtures are original SlopStudio code. See the
 [documented limits](manual/levels.md#select-by-brush-volume), including NRC model
 bounds, TB world limits and native patch-grid intersection limitations.
 
@@ -2976,7 +2976,7 @@ TrenchBroom v2026.2, revision `4c756be1a54a28d921d18c77716a5f170bdc31d0`:
 [SelectionCommand.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbMdlLib/src/SelectionCommand.cpp),
 [CommandProcessor.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbMdlLib/src/CommandProcessor.cpp)
 and [Map_Groups.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbMdlLib/src/Map_Groups.cpp).
-The upstream GPL-3.0-or-later licence is compatible with VibeStudio.
+The upstream GPL-3.0-or-later licence is compatible with SlopStudio.
 These are behavioural references; the implementation and fixtures are original.
 The shared timeline distinguishes content changes from object-selection/context
 changes, preserves reachable equivalent save points, and rejects stale staged
@@ -2995,7 +2995,7 @@ and [ActionManager.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1
 [radiant/select.cpp](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/select.cpp)
 at revision `449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later)
 informed transient hiding, deselection, entity-label suppression and worldspawn
-visibility. Both licences are compatible with VibeStudio's GPL-3.0-or-later.
+visibility. Both licences are compatible with SlopStudio's GPL-3.0-or-later.
 
 Implementation and fixtures are original. Non-content TB history, whole-scene
 isolation and profile bindings follow the references. Document-owned session
@@ -3005,7 +3005,7 @@ queries are local adaptations. The 2026-10-21 inheritance review also used
 and [Map_Nodes.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbMdlLib/src/Map_Nodes.cpp)
 at that same GPL-3.0-or-later revision. They inform temporary Inherited/Hidden/
 Shown states, resetting shown descendants when hiding a container, and ensuring
-newly authored nodes are visible. VibeStudio retains saved scene visibility as
+newly authored nodes are visible. SlopStudio retains saved scene visibility as
 a separate mask and supports explicit
 child memberships through a shared hierarchy resolver. Layer-transfer resets and
 recursive attribute cloning follow those sources; the distinction between
@@ -3026,7 +3026,7 @@ and the point-entity constructors in
 [`generic.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/plugins/entity/generic.cpp)
 and [`eclassmodel.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/plugins/entity/eclassmodel.cpp).
 These GPL-2.0-or-later sources initialise fresh visibility flags on new and cloned
-nodes. That licence is compatible with VibeStudio's GPL-3.0-or-later. The profile
+nodes. That licence is compatible with SlopStudio's GPL-3.0-or-later. The profile
 policy, session revision handling and tests are original; no code was copied.
 NRC uses fresh inherited insertion states, while TB/default retain the earlier
 attribute-preserving root-reveal policy. Shared scene groups, native Doom formats
@@ -3034,7 +3034,7 @@ and linked copies are local adaptations, with saved-layer/filter equivalence and
 native interaction still Partial. Hidden-parent culling was checked against
 [`ForEachVisible`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/renderer.h)
 at the same revision. NRC's `HideSelectedWalker` stores an owner flag when all
-children become hidden; VibeStudio currently derives that label state, so the
+children become hidden; SlopStudio currently derives that label state, so the
 later-child insertion interaction remains a separate parity gap.
 
 ## Hierarchy and source-line selection
@@ -3048,9 +3048,9 @@ TrenchBroom v2026.2, revision `4c756be1a54a28d921d18c77716a5f170bdc31d0`:
 [ActionManager.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ActionManager.cpp)
 and [MapWindow.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapWindow.cpp).
 These Kristian Duske and contributors' sources are GPL-3.0-or-later, compatible
-with VibeStudio's licence. Behaviour was used as a reference; implementation and
+with SlopStudio's licence. Behaviour was used as a reference; implementation and
 fixtures are original. Native parent traversal, entity-property fallback and
-Ctrl+B informed the commands. Strict input validation, VibeStudio scene units,
+Ctrl+B informed the commands. Strict input validation, SlopStudio scene units,
 worker cancellation, source-snapshot wording and CLI integration are local
 adaptations. Foreign TB group/layer metadata and native-platform input remain
 Partial; see [selection limits](manual/levels.md#select-by-hierarchy-or-source-line).
@@ -3064,9 +3064,9 @@ without displacement. NRC
 [`Selection_Clone`, `AxisBase_forViewType` and `NudgeAfterClone`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/select.cpp)
 (Id Software and contributors, GPL-2.0-or-later) require primitive mode and offer
 a right/down grid nudge that defaults off. Both licences are compatible with
-VibeStudio's GPL-3.0-or-later. No source was copied; profile data, preference
+SlopStudio's GPL-3.0-or-later. No source was copied; profile data, preference
 integration and tests are original. Per-profile portable preferences, stale
-worker rejection and native Doom adaptation use VibeStudio services. Native
+worker rejection and native Doom adaptation use SlopStudio services. Native
 input, cross-platform and real-project acceptance remain Partial.
 
 The unique-clone implementation was also reviewed against NRC's
@@ -3074,12 +3074,12 @@ The unique-clone implementation was also reviewed against NRC's
 [`uniquenames.h`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/libs/uniquenames.h)
 and [`namekeys.h`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/plugins/entity/namekeys.h)
 at that revision on 2026-10-21 (William Joseph and other contributors,
-GPL-2.0-or-later, compatible with VibeStudio's GPL-3.0-or-later). The original
+GPL-2.0-or-later, compatible with SlopStudio's GPL-3.0-or-later). The original
 implementation in `src/core/level_duplicate.cpp` and `level_map.cpp` follows the
 partial-owner and shared name/reference namespace behaviour. It uses dynamic
 strings and overflow-safe decimal suffix comparison instead of importing the
 upstream integer parsing or fixed buffers. CLI, Repeat, scene/visibility and Qt
-integration, plus synthetic tests, are VibeStudio adaptations. No source was copied.
+integration, plus synthetic tests, are SlopStudio adaptations. No source was copied.
 
 ## NRC entity connections
 
@@ -3087,12 +3087,12 @@ Reviewed on 2026-10-21: NRC's
 [`Entity_connectSelected`, `Entity_killconnectSelected` and `game_has_killConnect`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/entity.cpp)
 and [`Quake3EntityCreator::connectEntities` and `ConnectEntities`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/plugins/entity/entity.cpp),
 revision `449778b3840f8f2062daab15c87cb012f2ac945c` (William Joseph and other
-contributors, GPL-2.0-or-later). That licence is compatible with VibeStudio's
+contributors, GPL-2.0-or-later). That licence is compatible with SlopStudio's
 GPL-3.0-or-later. The original service in `level_entity_connections.cpp` follows
 the exact two-instance selection, source-value priority, destination-class name
 generation and Quake/Nexuiz/Xonotic KillConnect gate. It shares the independently
 implemented namespace allocator credited above. No source was copied; atomic
-history, scene locks, cancellation and project game context use VibeStudio
+history, scene locks, cancellation and project game context use SlopStudio
 services. Doom 3's separate `name`/numbered-target scheme is outside the current
 idTech1/2/3 authoring scope.
 
@@ -3108,7 +3108,7 @@ revision `449778b3840f8f2062daab15c87cb012f2ac945c` (William Joseph, Gordon
 Biggans and other contributors, GPL-2.0-or-later); and TrenchBroom's
 [`MapViewBase::makeStructural` and the Alt+S "Make structural" action](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1/lib/TbUiLib/src/MapViewBase.cpp)
 at `4c756be1` (v2026.2, Kristian Duske and contributors, GPL-3.0-or-later). Both
-licences are compatible with VibeStudio's GPL-3.0-or-later. The original
+licences are compatible with SlopStudio's GPL-3.0-or-later. The original
 service declared in `src/core/level_entity_ownership.h` and implemented in
 `level_map.cpp` follows the last- or first-selected target, removal of emptied
 source entities, selected-only ungrouping, TrenchBroom's reparenting to the
@@ -3116,7 +3116,7 @@ world or current group, and one entity copy per primitive with identical keys.
 No source was copied. Primitives keep their ids through one undo step; scene
 locks, linked groups, temporary visibility, the open group, the optional unique
 `targetname` and the `map move-to-entity`/`map explode-entity` commands are
-VibeStudio adaptations. TrenchBroom's smart-tag clearing beyond the detail flag
+SlopStudio adaptations. TrenchBroom's smart-tag clearing beyond the detail flag
 is not reproduced.
 
 ## NRC entity colour commands
@@ -3126,7 +3126,7 @@ Reviewed on 2026-10-21: NRC's
 `EntityColorSet` K binding and the remembered `EntitySelectedColor`
 preference](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/entity.cpp),
 revision `449778b3840f8f2062daab15c87cb012f2ac945c` (William Joseph and other
-contributors, GPL-2.0-or-later, compatible with VibeStudio's
+contributors, GPL-2.0-or-later, compatible with SlopStudio's
 GPL-3.0-or-later). The original service in `src/core/level_entity_colour.cpp`
 follows the picker seeded from the primary entity's `_color` or the last
 colour, one value written to the selected entities and the entities holding
@@ -3134,7 +3134,7 @@ selected brushes, and normalising so the brightest channel is 1 with black
 becoming white. No source was copied. Keeping each key's 0-255 or 0-1 form
 and trailing text, leaving worldspawn alone when only a world brush is
 selected, skipping hidden entities, Normalise Each, the shared Inspector
-colour parser and the `map entity-colour` command are VibeStudio adaptations;
+colour parser and the `map entity-colour` command are SlopStudio adaptations;
 scene locks, linked copies, the open group and one undo step come from the
 shared key-editing service. The NetRadiant profile's K binding follows
 [Xonotic NetRadiant's `EntityColor` command](https://github.com/xonotic/netradiant/blob/b4b295d7a37797cc2752e48aa8ce42492e7016f0/radiant/entity.cpp),
@@ -3153,7 +3153,7 @@ with `computePointEntityPosition` in
 [`MapView2D.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapView2D.cpp)
 and [`MapView3D.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapView3D.cpp),
 revision `4c756be1a54a28d921d18c77716a5f170bdc31d0` (v2026.2, Kristian Duske and
-contributors, GPL-3.0-or-later, compatible with VibeStudio's licence). The
+contributors, GPL-3.0-or-later, compatible with SlopStudio's licence). The
 original service in `src/core/level_entity_create.cpp` and the Levels commands
 in `src/app/level_entity_create_actions.cpp` follow the behaviour only: a
 bindable Create command per point and brush class, without default keys; a
@@ -3163,7 +3163,7 @@ by the cursor placement already adapted from TrenchBroom's Grid (see
 brushes. No source was copied. Commands regenerated when the definitions
 change, keys kept for classes not loaded, the Create Entity… picker, patches
 and selected brush entities as brush-class input, refusing hidden, locked or
-out-of-group brushes, and the `map create-entity` command are VibeStudio
+out-of-group brushes, and the `map create-entity` command are SlopStudio
 adaptations.
 
 ## NRC layer commands and TB Move to Layer
@@ -3177,7 +3177,7 @@ and other contributors, GPL-2.0-or-later), and TrenchBroom's
 [Move to Layer submenu of `MapViewBase`'s context menu](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapViewBase.cpp)
 at `4c756be1a54a28d921d18c77716a5f170bdc31d0` (v2026.2, Kristian Duske and
 contributors, GPL-3.0-or-later). Both licences are compatible with
-VibeStudio's GPL-3.0-or-later. The original service in
+SlopStudio's GPL-3.0-or-later. The original service in
 `src/core/level_scene_layers.cpp` and the Levels commands in
 `src/app/level_scene_layer_actions.cpp` follow the behaviour only: the layers
 of the selected objects expanded to every visible object in them, and a menu
@@ -3187,7 +3187,7 @@ groups rather than nested layers, closed groups kept whole, brush entities
 moved whole as TrenchBroom moves them, locks, the open group, one scene undo
 step, Ctrl+Shift+Q instead of Quit's Ctrl+Q, Doom maps, and the `editor scene
 select --expand-layers` and `editor scene move-to-layer` commands are
-VibeStudio adaptations.
+SlopStudio adaptations.
 
 ## NRC connected-entity selection
 
@@ -3195,12 +3195,12 @@ Reviewed on 2026-10-21: NRC's
 [`Select_ConnectedEntities`, `EntityGetSelectedPropertyValuesWalker_nonEmpty`
 and `EntityFindByPropertyValueWalker`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/select.cpp),
 revision `449778b3840f8f2062daab15c87cb012f2ac945c` (Id Software and contributors,
-GPL-2.0-or-later, compatible with VibeStudio's GPL-3.0-or-later). The original
+GPL-2.0-or-later, compatible with SlopStudio's GPL-3.0-or-later). The original
 `level_entity_selection.cpp` follows additive, one-hop incoming/outgoing
 `target`/`targetname` matching with exact keys and values, owner-based seeds,
 worldspawn exclusion and visible result traversal. No source was copied.
 Closed groups, locks, open-group boundaries, cancellable preparation and
-selection-only undo use VibeStudio services. A whole-owner selector is omitted
+selection-only undo use SlopStudio services. A whole-owner selector is omitted
 when it would implicitly select excluded children; visible children can still
 be added. Loaded mixed primitive order uses source spans; new mixed primitives
 without spans use stable native-array order. Doom 3's `name` key is outside the
@@ -3214,14 +3214,14 @@ Reviewed on 2026-10-21: NRC's
 [`Scene_PatchSelectByShader`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/patchmanip.cpp), and
 [`shader_equal`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/libs/shaderlib.h),
 revision `449778b3840f8f2062daab15c87cb012f2ac945c` (Id Software, William Joseph
-and contributors, GPL-2.0-or-later). The licence is compatible with VibeStudio's
+and contributors, GPL-2.0-or-later). The licence is compatible with SlopStudio's
 GPL-3.0-or-later. No source was copied. The original shared entity-selection
 service follows owner-class collection, exact class comparison, material
 fallback, case-insensitive shader comparison, face replacement and vertex/edge
 no-op behaviour. The current texture browser and material picker share the
 material source; NRC Shift+A uses the separate **Select All of Type** action.
 
-VibeStudio's group, hidden-object, filter, lock, cancellation and history rules
+SlopStudio's group, hidden-object, filter, lock, cancellation and history rules
 remain shared studio services. Face selection includes brush geometry implied
 by an entity selector, uses validated solved-face identities, and excludes
 hidden, locked and closed-group geometry. NRC's face walker visits directly
@@ -3246,7 +3246,7 @@ Reviewed on 2026-10-21: NRC's
 the [brush face-instance traversal](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/brush.h)
 and [shader comparison](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/libs/shaderlib.h),
 revision `449778b3840f8f2062daab15c87cb012f2ac945c` (Id Software, William Joseph
-and contributors, GPL-2.0-or-later). This licence is compatible with VibeStudio's
+and contributors, GPL-2.0-or-later). This licence is compatible with SlopStudio's
 GPL-3.0-or-later. No source was copied.
 
 The original `level_textured_selection.cpp` service follows additive independent
@@ -3296,14 +3296,14 @@ and the "Reveal in texture browser" action in
 [`Scene_PatchFindReplaceShader*`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/patchmanip.cpp)
 and [`TextureBrowser_SetSelectedShader`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/texwindow.cpp)
 (Id Software, Leonardo Zide, TTimo and contributors, GPL-2.0-or-later). Both
-licences are compatible with VibeStudio's GPL-3.0-or-later. No source was copied.
+licences are compatible with SlopStudio's GPL-3.0-or-later. No source was copied.
 
 **Reveal Material** follows TrenchBroom's rule that the selected faces, or the
 faces of the selected brushes, must all share one material, and its browser
 reveal clearing the filter before scrolling to the material. Patches, Doom
 walls and flats, the Textures-tab tile selection that makes the material
 current, the early stop on a second material and the status-tip explanation
-are VibeStudio additions. **Find and Replace Textures** follows NetRadiant
+are SlopStudio additions. **Find and Replace Textures** follows NetRadiant
 Custom's modeless window: a texture-browser pick fills the field that last had
 focus, a pick does not texture the selection while the window is open, an
 empty replacement means search, and a replacement is one undo step across the
@@ -3324,15 +3324,15 @@ and [ClipTool.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a2
 (Kristian Duske, GPL-3.0-or-later), and NetRadiant Custom revision
 `449778b3840f8f2062daab15c87cb012f2ac945c`,
 [`BrushSplitByPlaneSelected` and `SubtractBrushesFromUnselected`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/csg.cpp)
-(GPL-2.0-or-later). Both licences are compatible with VibeStudio's
+(GPL-2.0-or-later). Both licences are compatible with SlopStudio's
 GPL-3.0-or-later licence. Both editors keep an edited brush in its parent's
 child order, so its place in the saved file stays; NRC's clipper keeps the
 clipped brush in place and adds only the split fragment to the parent. No
 source was copied. `levelMapBrushSaveLine()`, the splice fields on
 `LevelMapBrush`, the replacement heir rule (identity first, then the first
 recorded piece) and `level_brush_file_order_smoke_test.cpp` are original
-VibeStudio implementations; giving the first CSG fragment the original's place
-is a VibeStudio choice that keeps more brush numbers stable than appending
+SlopStudio implementations; giving the first CSG fragment the original's place
+is a SlopStudio choice that keeps more brush numbers stable than appending
 every fragment.
 
 ## Familiar keys for registered Levels commands
@@ -3354,9 +3354,9 @@ and Ctrl+Shift+Tab (`CenterXYView`,
 are default bindings read from revision
 `449778b3840f8f2062daab15c87cb012f2ac945c` (Id Software, William Joseph and
 contributors, GPL-2.0-or-later). Both licences are compatible with
-VibeStudio's GPL-3.0-or-later licence. Only key facts were used; the commands
+SlopStudio's GPL-3.0-or-later licence. Only key facts were used; the commands
 they reach, the shared command registry entries in `src/core/studio_semantics.cpp`
-and `level_palette_coverage_ui_smoke_test.cpp` are original VibeStudio work.
+and `level_palette_coverage_ui_smoke_test.cpp` are original SlopStudio work.
 Keys the studio already gives window-wide commands (Ctrl+Shift+I, Ctrl+W)
 are left unbound.
 
@@ -3378,11 +3378,11 @@ profile's keys are unchanged. The Eureka profile's 9 and 0 keys for the 512-
 and 1024-unit grids are the `GRID_Set` lines of Eureka's
 [`bindings.cfg`](https://github.com/ioan-chera/eureka-editor/blob/f951281878f1f8f2619e0073592b6995aeea0dfc/bindings.cfg)
 at `f9512818` (GPL-2.0-or-later per upstream README). All three licences are
-compatible with VibeStudio's GPL-3.0-or-later licence. Only behavioural and key
+compatible with SlopStudio's GPL-3.0-or-later licence. Only behavioural and key
 facts were used; no source was copied. `levelEditorGridSizes()`,
 `LevelEditorControls::gridChangeEnablesSnap`, the `editing.gridChangeEnablesSnap`
 gesture preference, `src/app/level_grid_actions.cpp`, the plan-view grid lines in
-`src/app/map_grid.cpp` and the `level-large-grid` tests are original VibeStudio
+`src/app/map_grid.cpp` and the `level-large-grid` tests are original SlopStudio
 work.
 
 ## Fractional working grids
@@ -3399,13 +3399,13 @@ default key) in
 [`lib/TbUiLib/src/ActionManager.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ActionManager.cpp)
 and `canDecGridSize` in `lib/TbUiLib/src/MapWindow.cpp` of TrenchBroom
 v2026.2 (`4c756be1a54a28d921d18c77716a5f170bdc31d0`, Kristian Duske and
-contributors, GPL-3.0-or-later). Both licences are compatible with VibeStudio's
+contributors, GPL-3.0-or-later). Both licences are compatible with SlopStudio's
 GPL-3.0-or-later licence. Only behavioural facts were used; no source was
 copied. Keeping binary Doom and Hexen maps on whole units, the thinned-line
 status text, `levelEditorFinestGridUnits()`, `levelEditorSteppedGridUnits()`,
 `levelEditorGridCommandId()`, `ApplicationShell::levelMapGridUnits()`,
 `refreshLevelMapGridChoices()`, `mapGridDrawnSpacing()` and the
-`level-fractional-grid` tests are original VibeStudio work.
+`level-fractional-grid` tests are original SlopStudio work.
 
 ## World-axis quick transforms and the quick-turn pivot
 
@@ -3425,13 +3425,13 @@ half-grid reference point, TrenchBroom issue 1495) in
 [`lib/TbUiLib/src/MapViewBase.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapViewBase.cpp)
 of TrenchBroom v2026.2 (`4c756be1a54a28d921d18c77716a5f170bdc31d0`, Kristian
 Duske and contributors, GPL-3.0-or-later). Both licences are compatible with
-VibeStudio's GPL-3.0-or-later licence. Only behavioural facts were used; no
+SlopStudio's GPL-3.0-or-later licence. Only behavioural facts were used; no
 source was copied. `src/core/level_quick_transform.*`,
 `src/app/level_axis_transform_actions.cpp`,
 `LevelEditorControls::quickTurnSnapsPivot`, the `editing.quickTurnSnapsPivot`
 gesture preference, `map rotate --pivot-grid`, keeping flips on the exact
 centre outside the TrenchBroom profile (see the next-but-one entry) and the
-`level-axis-transform` tests are original VibeStudio work.
+`level-axis-transform` tests are original SlopStudio work.
 
 ## Directional and depth nudges
 
@@ -3458,14 +3458,14 @@ their single undo step follow `NudgeSelection`, `AxisBase_forViewType`,
 [`radiant/select.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/select.cpp)
 of NetRadiant Custom revision `449778b3840f8f2062daab15c87cb012f2ac945c`
 (William Joseph and other contributors, GPL-2.0-or-later), which keeps them
-from GtkRadiant. Both licences are compatible with VibeStudio's
+from GtkRadiant. Both licences are compatible with SlopStudio's
 GPL-3.0-or-later licence. Only behavioural and key facts were used; no source
 was copied. `src/core/level_nudge.*`, `src/app/level_nudge_actions.cpp`, the
 views claiming nudge keys ahead of window-wide commands
 (`StudioCommandRegistry::setShortcutScopeClaims`), Doom maps keeping
 <kbd>Page Up</kbd> and <kbd>Page Down</kbd> for Raise Floor and Lower Floor,
 the <kbd>Shift</kbd> eight-step nudge, `map nudge` and the `level-nudge` tests
-are original VibeStudio work.
+are original SlopStudio work.
 
 ### Duplicate and Move, Move to Camera and Repeat Transforms
 
@@ -3492,14 +3492,14 @@ and `RadiantSelectionSystem::repeatTransforms`, `resetTransforms` and the
 [`radiant/selection.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/selection.cpp)
 of NetRadiant Custom revision `449778b3840f8f2062daab15c87cb012f2ac945c`
 (William Joseph and other contributors, GPL-2.0-or-later). Both licences are
-compatible with VibeStudio's GPL-3.0-or-later licence. Only behavioural and key
+compatible with SlopStudio's GPL-3.0-or-later licence. Only behavioural and key
 facts were used; no source was copied. `levelDuplicateMoveCommands()` in
 `src/core/level_nudge.*`, the repeatable-transform slots and replay in
 `src/core/level_repeat.*`, the Affine component transform,
 `moveLevelMapSelectionToCamera()` in `src/core/level_paste.*`,
 `src/app/level_duplicate_move_actions.cpp`, `src/cli/level_move_repeat.*`,
 `map nudge --duplicate`, `map move --camera`, `map repeat-transforms` and the
-`level-duplicate-move` tests are original VibeStudio work.
+`level-duplicate-move` tests are original SlopStudio work.
 
 ### Import Map, Export Selection as Map and Export Map
 
@@ -3524,18 +3524,18 @@ and the layer editor's Omit From Export toggle in
 [`lib/TbUiLib/src/LayerEditor.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/LayerEditor.cpp)
 of TrenchBroom v2026.2 (`4c756be1a54a28d921d18c77716a5f170bdc31d0`, Kristian
 Duske and contributors, GPL-3.0-or-later). Both licences are compatible with
-VibeStudio's GPL-3.0-or-later licence. Only behavioural facts were used; no
+SlopStudio's GPL-3.0-or-later licence. Only behavioural facts were used; no
 source was copied. `src/core/level_map_transfer.*`, `pasteLevelMapDocumentAt()`,
 `writeLevelMapBytes()`, the worldspawn wrapper of `levelMapSelectionText()`,
 `setLevelSceneOmitFromExport()`, `src/app/level_map_transfer_actions.cpp`,
 `src/app/level_map_import_dialog.*`, `src/cli/level_map_transfer.*`, `map
 import`, `map export`, `map copy --standalone`, `editor scene omit-from-export`
-and the `level-map-transfer` tests are original VibeStudio work. Unlike
+and the `level-map-transfer` tests are original SlopStudio work. Unlike
 NetRadiant Custom, layers of an imported map are not recreated, and the import
 is previewed before it runs. The `.bsp` conversion passes `-game`,
 `-fs_basepath` and `-fs_game` as `Map_ImportFile` does; the game is read from
-the BSP header with the VibeMap3 game profiles of `tools/quake3/q3map2/games.cpp`
-in the pinned VibeMap3 submodule.
+the BSP header with the SlopMap3 game profiles of `tools/quake3/q3map2/games.cpp`
+in the pinned SlopMap3 submodule.
 
 ### Export Map as OBJ and Export Selection as OBJ
 
@@ -3556,12 +3556,12 @@ written as `x z -y`) follow the brushexport plugin in
 (`export.cpp`, `interface.cpp`, `callbacks.cpp`, `plugin.cpp`) of NetRadiant
 Custom revision `449778b3840f8f2062daab15c87cb012f2ac945c` (Thomas Nitschke
 and other contributors, GPL-2.0-or-later). Both licences are compatible with
-VibeStudio's GPL-3.0-or-later licence. Only behavioural facts were used; no
+SlopStudio's GPL-3.0-or-later licence. Only behavioural facts were used; no
 source was copied. `src/core/level_map_obj_export.*`,
 `src/app/level_map_obj_export_dialog.*`, the OBJ commands in
 `src/app/level_map_transfer_actions.cpp`, `map export-obj` in
 `src/cli/level_map_transfer.*` and the `level-map-obj-export` tests are
-original VibeStudio work. Unlike the brushexport plugin, materials keep their
+original SlopStudio work. Unlike the brushexport plugin, materials keep their
 names in every grouping, patches are exported, and faces are rewound against
 their outward normal rather than by reversing the solver's winding.
 
@@ -3588,14 +3588,14 @@ and
 and the `"Menu/View/Switch to Map Inspector"` action and its Ctrl+1 key in
 `lib/TbUiLib/src/ActionManager.cpp`, of TrenchBroom v2026.2
 (`4c756be1a54a28d921d18c77716a5f170bdc31d0`, GPL-3.0-or-later). The game
-defaults are VibeStudio's own: ±4096 for Quake-format maps, whose engines send
+defaults are SlopStudio's own: ±4096 for Quake-format maps, whose engines send
 coordinates as 1/8-unit shorts, and ±65536 for Quake III maps, from
 `MIN_WORLD_COORD` and `MAX_WORLD_COORD` in
-`external/compilers/vibemap3/tools/quake3/common/maxworld.h`. Only behavioural
+`external/compilers/slopmap3/tools/quake3/common/maxworld.h`. Only behavioural
 facts were used; no source was copied. `src/core/level_map_inspector.*`, the
 Map Info counts in `src/core/level_map.cpp`, `src/app/level_map_inspector*.*`,
 `map properties` in `src/cli/level_map_properties.*` and the `level-map-info`
-tests are original VibeStudio work. Map settings changing with a group open
+tests are original SlopStudio work. Map settings changing with a group open
 follow the same `MapPropertiesEditor` and `ModEditor`, which change the world
 node whatever group is open.
 
@@ -3619,7 +3619,7 @@ the user's launch profiles (a named engine with a parameter line of variables)
 follow TrenchBroom's game engine profiles and Launch Engine dialog
 (`GameEngineProfile`, `GameEngineDialog`, `GameEngineProfileEditor` and
 `LaunchGameEngineDialog` in `lib/TbUiLib/src`), all of TrenchBroom v2026.2
-(`4c756be1a54a28d921d18c77716a5f170bdc31d0`, GPL-3.0-or-later). VibeStudio
+(`4c756be1a54a28d921d18c77716a5f170bdc31d0`, GPL-3.0-or-later). SlopStudio
 replays the saved command manifest rather than re-planning, and its tokens
 (`{map}`, `{mod}`, `{basedir}`, `{bsp}`, `{iwad}`, `{warp}`) are its own. Only
 behavioural facts were used; no source was copied.
@@ -3627,7 +3627,7 @@ behavioural facts were used; no source was copied.
 `src/core/studio_settings_build.cpp`, the user-profile and manifest functions
 in `src/core/build_pipeline.cpp` and `src/core/compiler_runner.cpp`,
 `src/cli/launch_profiles.*` and the `build-rerun` tests are original
-VibeStudio work.
+SlopStudio work.
 
 ### Project build pipelines
 
@@ -3642,14 +3642,14 @@ registered as `BuildMenuCustomize` in `radiant/mainframe.cpp`, revision
 TrenchBroom's compilation profiles (`CompilationProfileManager`,
 `CompilationProfileEditor` and the `${MAP_BASE_NAME}`- and `${CPU_COUNT}`-style
 variables of `CompilationVariables` in `lib/TbUiLib/src` of TrenchBroom v2026.2,
-`4c756be1a54a28d921d18c77716a5f170bdc31d0`, GPL-3.0-or-later). VibeStudio's
+`4c756be1a54a28d921d18c77716a5f170bdc31d0`, GPL-3.0-or-later). SlopStudio's
 pipelines are lists of its own compiler profiles kept in the project manifest,
 with variable names, switch-group dropping and the program trust check of its
 own. Only behavioural facts were used; no source was copied.
 `src/app/build_pipelines_dialog.*`, `src/app/build_pipeline_actions.cpp`,
 `src/core/build_program_trust.*`, the project-pipeline functions in
 `src/core/build_pipeline.cpp`, `src/cli/build_pipelines.*` and the
-`build-project-pipelines` tests are original VibeStudio work.
+`build-project-pipelines` tests are original SlopStudio work.
 
 ## View-relative turns and flips
 
@@ -3671,7 +3671,7 @@ and the plan and camera flip axes of `MapView2D::flipAxis` and
 `MapView3D::flipAxis` in `lib/TbUiLib/src/MapView2D.cpp` and
 `lib/TbUiLib/src/MapView3D.cpp` of TrenchBroom v2026.2
 (`4c756be1a54a28d921d18c77716a5f170bdc31d0`, Kristian Duske and contributors,
-GPL-3.0-or-later), whose licence is VibeStudio's own. Only behavioural and key
+GPL-3.0-or-later), whose licence is SlopStudio's own. Only behavioural and key
 facts were used; no source was copied. The view frames in
 `src/core/level_quick_transform.*` (built on the nudge axes of
 `src/core/level_nudge.*`), `flipLevelMapSelection()` with a pivot,
@@ -3679,7 +3679,7 @@ facts were used; no source was copied. The view frames in
 preference, `LevelSweepGizmo::rotateDestination()`,
 `ApplicationShell::applyLevelViewTransformFromUi()`, the views claiming the
 keys ahead of Go Back, Go Forward and Find, `map view-transform` and the
-`level-view-transform` tests are original VibeStudio work.
+`level-view-transform` tests are original SlopStudio work.
 
 ## View filter commands and Radiant's world rule
 
@@ -3710,13 +3710,13 @@ brushes" action in
 [`lib/TbUiLib/src/ActionManager.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ActionManager.cpp)
 and its use in `lib/TbUiLib/src/MapViewBase.cpp` of TrenchBroom v2026.2
 (`4c756be1a54a28d921d18c77716a5f170bdc31d0`, Kristian Duske and contributors,
-GPL-3.0-or-later). All three licences are compatible with VibeStudio's
+GPL-3.0-or-later). All three licences are compatible with SlopStudio's
 GPL-3.0-or-later licence. Only behavioural and key facts were used; no source
 was copied. `levelViewFilterKinds()`, `levelViewFilterCommandId()`,
 `levelViewFilterWorldClass()`, `levelViewFiltersInverted()`, the saved-list
 helpers in `src/core/level_view_filters.*`, `src/app/level_view_filter_actions.cpp`,
 `map filters` (`src/cli/level_view_filters.*`) and the `level-view-filters`
-tests are original VibeStudio work.
+tests are original SlopStudio work.
 
 Reviewed on 2026-10-24. The texture kinds follow the same revisions. Area
 Portals (any areaportal face), Cluster Portals, Light Grid and Bot Clip (every
@@ -3743,7 +3743,7 @@ CONTENTS_CLUSTERPORTAL, CONTENTS_DONOTENTER and CONTENTS_BOTCLIP are the values
 of Quake III Arena's `code/game/surfaceflags.h` (id Software, GPL-2.0-or-later);
 only the numbers are used. The matching rules, `levelViewFilterFaceMatches()`,
 `levelViewFilteredFaces()`, the camera's `hiddenFaces` option and the
-`level-filter-texture-kinds` tests are original VibeStudio work.
+`level-filter-texture-kinds` tests are original SlopStudio work.
 
 Reviewed on 2026-10-24. The material kinds follow the same NetRadiant Custom
 revision. Translucent (any face whose shader carries QER_TRANS or
@@ -3772,13 +3772,13 @@ and [`ufoai_filters.cpp`](https://github.com/Garux/netradiant-custom/blob/449778
 (SURF_NODRAW 0x80 and CONTENTS_ACTORCLIP 0x10000), judged here on every face. Quake II's
 SURF_TRANS33, SURF_TRANS66 and SURF_NODRAW and the CONTENTS_PLAYERCLIP and
 CONTENTS_MONSTERCLIP values are those of the id Software Quake II source
-(`qcommon/qfiles.h`, GPL-2.0-or-later); only the numbers are used. VibeStudio's
+(`qcommon/qfiles.h`, GPL-2.0-or-later); only the numbers are used. SlopStudio's
 additions (a stage's alphaFunc, surfaceparm monsterclip and donotenter, images
 without a script as plain shaders, Quake's `{` fence textures, the player,
 monster and weapon clip split), `levelViewFilterShader()`,
 `levelViewFilterMaterials()`, `scanLevelViewFilterMaterials()`, the shell's
 background read and status line, `map filters --package` and the
-`level-filter-material-kinds` tests are original VibeStudio work over its own
+`level-filter-material-kinds` tests are original SlopStudio work over its own
 material library; no source was copied.
 
 Reviewed on 2026-10-26. Filter tags that game or project data define, and one
@@ -3793,13 +3793,13 @@ visible" actions of `ActionManager::createTagActions` and
 and the tag check boxes and the prefix-grouped `EntityDefinitionCheckBoxList`
 with Show all and Hide all in
 [`lib/TbUiLib/src/ViewEditor.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ViewEditor.cpp).
-The tag layout VibeStudio reads (`"tags"` with `"brush"` and `"brushface"`
+The tag layout SlopStudio reads (`"tags"` with `"brush"` and `"brushface"`
 lists of `name`, `match` = material/texture, surfaceparm, contentflag,
 surfaceflag or classname, `pattern` and `flags`, and `"faceattribs"` flag names
 in bit order) is TrenchBroom's documented game configuration format, read so
 that a game configuration can be used as it is; no TrenchBroom game
-configuration ships with VibeStudio. The text those configurations are written
-in is TrenchBroom's expression language, a superset of JSON; VibeStudio reads
+configuration ships with SlopStudio. The text those configurations are written
+in is TrenchBroom's expression language, a superset of JSON; SlopStudio reads
 the parts its game configurations use (`//` and `/* */` comments, bare names,
 a comma before a closing bracket, and a backslash JSON does not define kept as
 written, as TrenchBroom keeps `"\**"`) by turning the text into strict JSON in
@@ -3817,7 +3817,7 @@ Only behaviour and data layout were used; no source was copied.
 configuration text reader, the face-by-face hiding of skip and face tags,
 `src/app/level_filter_tag_actions.cpp`,
 `map filters --tags/--project/--class/--classes`, `map visibility --class` and
-the `level-filter-tags` tests are original VibeStudio work.
+the `level-filter-tags` tests are original SlopStudio work.
 
 ## Level camera levelling, focus and zoom reset
 
@@ -3849,14 +3849,14 @@ additional terms). **Reset Camera Zoom** on <kbd>Ctrl+Alt+Z</kbd> follows the
 [`lib/TbUiLib/src/ActionManager.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ActionManager.cpp)
 and `MapViewBase::resetCameraZoom` of TrenchBroom v2026.2
 (`4c756be1a54a28d921d18c77716a5f170bdc31d0`, Kristian Duske and contributors,
-GPL-3.0-or-later). All of these licences are compatible with VibeStudio's
+GPL-3.0-or-later). All of these licences are compatible with SlopStudio's
 GPL-3.0-or-later licence. Only behavioural and key facts were used; no source
 was copied. The frustum fit, the near clearance, the rounding of exact half
 steps, the geometric wheel offset (eight notches halve or double the distance),
 Tab acting only during mouse look, `src/core/level_camera_focus.*`,
 `src/app/level_camera_focus_actions.cpp`, `map camera-focus`
 (`src/cli/level_camera_focus.*`) and the `level-camera-focus` tests are
-original VibeStudio work.
+original SlopStudio work.
 
 Reviewed on 2026-10-29. **Camera Floor Up** and **Camera Floor Down** (the
 camera to the nearest standing height 32 units above the top of a visible
@@ -3887,7 +3887,7 @@ behavioural and key facts were used; no source was copied. The sector variant,
 selected brush entities counting through their brushes, definition boxes for
 point entities, hidden and filtered objects left out, the plan-view key
 hand-off to Raise and Lower Floor, `levelCameraFloorStep`, `map camera-focus
---floor` and the `level-camera-floor` tests are original VibeStudio work.
+--floor` and the `level-camera-floor` tests are original SlopStudio work.
 
 Reviewed on 2026-10-29. The camera's drive keys working from the 2D views
 follow `CamWnd_Move_Discrete_Enable` and `CamWnd_Move_Enable`, which connect
@@ -3907,7 +3907,7 @@ fixed speed list, stepping from the map-scaled speed, the command hand-off in
 the 2D views, the 89-degree camera stop, the readout,
 `src/app/level_camera_drive_actions.cpp`, the `camera.moveSpeed` and
 `plan.cameraDriveKeys` gestures and the `level-camera-drive-keys` tests are
-original VibeStudio work.
+original SlopStudio work.
 
 ## Level camera display modes
 
@@ -3926,14 +3926,14 @@ wrapping cycle of wireframe, flat, textured and textured with edges, saved, on
 `CameraModeNext`, `CameraModePrev` and the `CameraRenderMode` preference in
 [`radiant/camwindow.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/camwindow.cpp)
 of NetRadiant Custom revision `449778b3840f8f2062daab15c87cb012f2ac945c`
-(GPL-2.0-or-later). Both licences are compatible with VibeStudio's
+(GPL-2.0-or-later). Both licences are compatible with SlopStudio's
 GPL-3.0-or-later licence. Only behavioural and key facts were used; no source
 was copied. The three saved choices, 3D Wireframe keeping the textures and
 edges choices, the status announcements, polygon-edge outlines that leave fan
 diagonals out of the edge overlay and wireframe (`ModelViewport::setPolygonEdges`
 and the surface shader's diagonal bits), `src/core/level_camera_render.*`,
 `src/app/level_camera_render_actions.cpp` and the `level-camera-render` tests
-are original VibeStudio work.
+are original SlopStudio work.
 
 Reviewed on 2026-10-28. **Shade Faces in Camera** (on by default, no key) and
 **Fog in Camera** (off by default, no key) follow the "Controls/Map
@@ -3951,7 +3951,7 @@ camera's background, the fog distances on the **View** tab, the face grid in
 the plane of each face's dominant world axes with contrast-chosen line colour
 and crowding fade, the brush-face marks (`levelCameraFaceGridTriangles`), the
 surface shader's new uniforms and corner bit, and the `level-camera-shading`
-tests are original VibeStudio work.
+tests are original SlopStudio work.
 
 Reviewed on 2026-10-29. **Far Clip in Camera**, **Shorter Draw Distance** and
 **Longer Draw Distance** (a saved far plane, off by default, whose distance is
@@ -3980,7 +3980,7 @@ clipping that repeat it, the fog ending at the clip while both are on
 (`levelCameraFogWithinFarClip`), whole-unit distances, the **View** tab's
 **Draw distance** list, the camera readout, `editor far-clip`
 (`src/cli/level_camera_far_clip.*`) and the `level-camera-far-clip` tests and
-camera frames in `render-device-smoke` are original VibeStudio work.
+camera frames in `render-device-smoke` are original SlopStudio work.
 
 ## Plan pane visibility
 
@@ -3994,13 +3994,13 @@ and their **View** menu items in
 [`radiant/mainframe.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/mainframe.cpp)
 of NetRadiant Custom revision `449778b3840f8f2062daab15c87cb012f2ac945c`
 (William Joseph and contributors, GPL-2.0-or-later, compatible with
-VibeStudio's GPL-3.0-or-later licence). Only the behaviour was used; no source
+SlopStudio's GPL-3.0-or-later licence). Only the behaviour was used; no source
 was copied. NRC offers the toggles for floating windows only; applying them to
 fixed splitter panes, keeping one pane shown, moving the active plan, per
 combination splitter proportions, revealing a pane from **Top/Front/Side View**,
 `LevelPlanPanes` in `src/core/level_editor_controls.*`,
 `src/app/level_plan_pane_actions.cpp`, `editor layout --panes` and the
-`level-plan-panes` tests are original VibeStudio work.
+`level-plan-panes` tests are original SlopStudio work.
 
 ## Plan framing
 
@@ -4027,7 +4027,7 @@ the views are linked) follows the "Menu/View/Camera/Reset 2D Cameras" action in
 `MapWindow::reset2dCameras` and `MapView2D::reset2dCameras` of TrenchBroom
 v2026.2 (`4c756be1a54a28d921d18c77716a5f170bdc31d0`, Kristian Duske and
 contributors, GPL-3.0-or-later). These licences are compatible with
-VibeStudio's GPL-3.0-or-later licence. Only behaviour and key facts were used;
+SlopStudio's GPL-3.0-or-later licence. Only behaviour and key facts were used;
 no source was copied. Applying the recentre to every one-plan profile, the
 whole-map fallback with neither a selection nor a camera, the
 `plan.radiantFraming` gesture, recentring while the three-plan panes also take
@@ -4037,7 +4037,7 @@ unbound, the focus claim that scopes a user's key for it to the 2D views while
 it can act, `levelPlanCentreFor`, `resetLevelPlanNavigation` and
 `levelPlanFocusState` in `src/core/level_navigation.*`,
 `src/app/level_plan_framing_actions.cpp` and the `level-plan-framing-ui` and
-`level-navigation` tests are original VibeStudio work.
+`level-navigation` tests are original SlopStudio work.
 
 ## Grid coordinates and block grid
 
@@ -4051,11 +4051,11 @@ leaving an axis unsplit, kept inside the region, no default keys) follow the
 and their **View** > **Show** menu items in
 [`radiant/mainframe.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/mainframe.cpp)
 of NetRadiant Custom revision `449778b3840f8f2062daab15c87cb012f2ac945c`
-(GPL-2.0-or-later, compatible with VibeStudio's GPL-3.0-or-later licence).
+(GPL-2.0-or-later, compatible with SlopStudio's GPL-3.0-or-later licence).
 How the key is read (`_blocksize`, then `blocksize` and `chopsize`, `%d %d %d`
 with the legacy one- and two-number forms) follows `ProcessWorldModel` in
-`tools/quake3/q3map2/bsp.cpp` of VibeMap3 (the q3map2 fork pinned under
-`external/compilers/vibemap3`, GPL-2.0). Only behaviour was used; no source was
+`tools/quake3/q3map2/bsp.cpp` of SlopMap3 (the q3map2 fork pinned under
+`external/compilers/slopmap3`, GPL-2.0). Only behaviour was used; no source was
 copied. Unlike NetRadiant Custom, the views draw the size the compiler uses
 rather than clamping it to 256-65536, thin dense block lines onto real
 boundaries, dash them, keep coordinate labels clear of the status tags and of
@@ -4064,7 +4064,7 @@ to right, and leave both overlays off by default. `src/core/level_block_grid.*`,
 the label and block-line helpers in `src/app/map_grid.*`,
 `src/app/map_viewport_grid_overlays.cpp`, `src/app/level_grid_overlay_actions.cpp`,
 `map render --block-grid` and the `level-block-grid` and `level-grid-overlays`
-tests are original VibeStudio work.
+tests are original SlopStudio work.
 
 ## Radiant texture steps
 
@@ -4086,12 +4086,12 @@ and [radiant/brush.h](https://github.com/Garux/netradiant-custom/blob/449778b384
 [radiant/patchdialog.cpp](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/patchdialog.cpp);
 and the `si_globals_t` increments in
 [radiant/surfacedialog.h](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/surfacedialog.h).
-The licence is compatible with VibeStudio's GPL-3.0-or-later licence. Only the
+The licence is compatible with SlopStudio's GPL-3.0-or-later licence. Only the
 arithmetic, defaults and key bindings were used as behavioural facts; no source
 was copied. `RadiantScale`, `RadiantRotate`, `levelSurfaceRadiantScaleStep()` and
 the shared centre turn in `src/core/level_surface.*`, the Surfaces tab controls,
 the `map align-textures --scale-step` and `--anchor` options and the
-`level-surface-step` tests are original VibeStudio work. Patches turn in texels
+`level-surface-step` tests are original SlopStudio work. Patches turn in texels
 rather than NRC's normalised coordinates; see
 [EDITOR_PROFILES.md](EDITOR_PROFILES.md#nrc-texture-steps).
 
@@ -4109,7 +4109,7 @@ right vectors handed on by `MapViewBase::moveUV`, `moveUVOffset`,
 `moveUVDistance` and `flipUV` in
 [`lib/TbUiLib/src/MapViewBase.cpp`](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/MapViewBase.cpp)
 of TrenchBroom v2026.2 (`4c756be1a54a28d921d18c77716a5f170bdc31d0`, Kristian
-Duske and contributors, GPL-3.0-or-later), whose licence is VibeStudio's own.
+Duske and contributors, GPL-3.0-or-later), whose licence is SlopStudio's own.
 Only behavioural and key facts were used; no source was copied. The pinned
 checkout does not include TrenchBroom's model library, so its per-face axis
 choice and mirror anchor were not compared. The axis choice in
@@ -4117,7 +4117,7 @@ choice and mirror anchor were not compared. The axis choice in
 operations in `src/core/level_surface.*` (patches included), the camera claim
 layer in `StudioCommandRegistry`, `app/level_camera_texture_actions.cpp`,
 `map align-textures --camera-shift` and `--camera-flip`, and the
-`level-camera-texture` tests are original VibeStudio work.
+`level-camera-texture` tests are original SlopStudio work.
 
 **Rotate Textures Clockwise** and **Counter-clockwise**, with their
 **(Coarse)** and **(Fine)** forms, were added on 2026-10-25 from the same
@@ -4130,7 +4130,7 @@ were used; no source was copied. TrenchBroom's `mdl::rotateUV` is not in the
 pinned checkout, so its per-format direction was not compared.
 `ClockwiseRotate` in `src/core/level_surface.*`, `levelTextureTurnSense()` in
 `src/core/level_camera_texture.*`, `map align-textures --clockwise` and the
-on-screen direction checks are original VibeStudio work.
+on-screen direction checks are original SlopStudio work.
 
 ## Texture resets
 
@@ -4146,7 +4146,7 @@ and `MapViewBase::resetUV` and `resetUVToWorld` in
 TrenchBroom's `mdl::resetAll` is not in the pinned checkout, so its per-format
 axes were not compared. **Radiant Texture Reset** and **Reset Textures…**
 follow NetRadiant Custom at `449778b3840f8f2062daab15c87cb012f2ac945c`
-(GPL-2.0-or-later, compatible with VibeStudio's GPL-3.0-or-later licence):
+(GPL-2.0-or-later, compatible with SlopStudio's GPL-3.0-or-later licence):
 `SurfaceInspector_ResetTexture` and its "TextureReset/Cap"
 (<kbd>Shift</kbd>+<kbd>N</kbd>) registration in
 [`radiant/surfacedialog.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/surfacedialog.cpp),
@@ -4167,7 +4167,7 @@ The `Reset` and `RadiantReset` operations and `prepareLevelTextureReset` in
 `src/core/level_surface.*`, `levelPlaneBasisTextureProjection()` in
 `src/core/level_texture_mapping.*`, the Reset Textures window in
 `src/app/level_texture_reset_dialog.*`, the `map align-textures` options and
-the `level-texture-reset` tests are original VibeStudio work; the plane basis
+the `level-texture-reset` tests are original SlopStudio work; the plane basis
 reuses the `ComputeAxisBase` convention already credited for
 `level_texture_mapping.cpp`.
 
@@ -4177,7 +4177,7 @@ reuses the `ComputeAxisBase` convention already credited for
 commands were added on 2026-10-26 from behavioural facts only; no source was
 copied. They follow NetRadiant Custom at
 `449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later, compatible with
-VibeStudio's GPL-3.0-or-later licence): the "FitTextureWidth",
+SlopStudio's GPL-3.0-or-later licence): the "FitTextureWidth",
 "FitTextureHeight", "FitTextureWidthOnly", "FitTextureHeightOnly",
 "TextureProjectAxial", "TextureProjectOrtho" and "TextureProjectCam"
 registrations and `SurfaceInspector_ProjectTexture` in
@@ -4191,7 +4191,7 @@ registrations and `SurfaceInspector_ProjectTexture` in
 and `Patch::ProjectTexture`, `Patch::SetTextureRepeat` and
 `Patch::Calculate_AvgNormal` in
 [`radiant/patch.cpp`](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/patch.cpp).
-VibeStudio departs from it in three documented places: classic faces take a
+SlopStudio departs from it in three documented places: classic faces take a
 projection wherever the classic format holds it exactly, rather than never;
 brush-primitive faces and patches take the Valve 220 direction projection,
 which reads the right way round, rather than one mirrored down V; and a
@@ -4200,7 +4200,7 @@ repeat. The `keepProportions` fit, the `ProjectAxial` and `ProjectDirection`
 operations in `src/core/level_surface.*`, `axialLevelPatchTexture()` and
 `projectedLevelPatchTexture()` in `src/core/level_patch_tools.*`, the Levels
 commands, the `map align-textures` options and the `level-texture-projection`
-tests are original VibeStudio work; the projection axes reuse the
+tests are original SlopStudio work; the projection axes reuse the
 `TextureAxisFromPlane` and `ComputeAxisBase` conventions already credited for
 `level_texture_mapping.cpp`.
 
@@ -4210,7 +4210,7 @@ The **Flags** section of the Levels **Surfaces** tab, **Clear Face Flags**,
 `map face-flags` and the **Show Surfaces** toggle were added on 2026-10-26 from
 behavioural facts only; no source was copied. They follow NetRadiant Custom at
 `449778b3840f8f2062daab15c87cb012f2ac945c` (GPL-2.0-or-later, compatible with
-VibeStudio's GPL-3.0-or-later licence): the Surface Inspector's flag boxes,
+SlopStudio's GPL-3.0-or-later licence): the Surface Inspector's flag boxes,
 Value field and Unset button (`SurfaceInspector::ApplyFlags`, `OnBtnUnsetFlags`)
 and the "SurfaceInspector" toggle on <kbd>S</kbd>
 (`SurfaceInspector_toggleShown`) in
@@ -4228,7 +4228,7 @@ facts from id Software's
 (through the Materials module's existing lists) and
 [Quake III Arena `code/game/surfaceflags.h`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/game/surfaceflags.h)
 (GPL-2.0, read 2026-10-26), and the note that a Quake III face's flags reach
-the compiler only as the detail bit follows `ParseRawBrush` in VibeMap3's
+the compiler only as the detail bit follows `ParseRawBrush` in SlopMap3's
 `tools/quake3/q3map2/map.cpp` (GPL-2.0, pinned under `external/compilers`).
 Unlike NetRadiant Custom, one box changes only its own flag on every targeted
 face, so faces whose flags differ keep the rest (NetRadiant Custom writes the
@@ -4237,14 +4237,14 @@ ticked, Quake III maps get flag names too, and Show Surfaces hides the tab by
 going back to the tab it replaced or folding the sidebar it opened.
 `src/core/level_face_flags.*`, `src/app/level_face_flags_actions.cpp`, the
 Flags section in `src/app/level_surface_tools.cpp`, `src/cli/level_face_flags.*`
-and the `level-face-flags` tests are original VibeStudio work.
+and the `level-face-flags` tests are original SlopStudio work.
 
 ## UV Editor
 
 The Levels **UV Editor** and `map edit-uv` were added on 2026-10-26 from
 behavioural facts only; no source was copied. They follow NetRadiant Custom's
 TexTool plugin at `449778b3840f8f2062daab15c87cb012f2ac945c`
-(GPL-2.0-or-later, compatible with VibeStudio's GPL-3.0-or-later licence; Id
+(GPL-2.0-or-later, compatible with SlopStudio's GPL-3.0-or-later licence; Id
 Software and contributors, GtkRadiant port by Leonardo Zide, original by
 Timothee Besset): the face winding or patch control grid drawn over the tiled
 texture, a dragged face point that moves the whole texture and becomes the
@@ -4266,7 +4266,7 @@ turns, point stepping, its own undo and redo, a point list with exact
 coordinates and an embedded preview. `src/core/level_uv_edit.*`,
 `src/app/level_uv_view.*`, `src/app/level_uv_editor_dialog.*`,
 `src/app/level_uv_editor_actions.cpp`, `src/cli/level_uv_edit.*` and the
-`level-uv-edit` and `level-uv-editor-ui` tests are original VibeStudio work.
+`level-uv-edit` and `level-uv-editor-ui` tests are original SlopStudio work.
 
 ## Face inspector
 
@@ -4305,7 +4305,7 @@ keep working elsewhere. `src/core/level_face_attributes.*`, the handles in
 `src/app/level_face_inspector_actions.cpp`, the focus-layer key claims in
 `src/app/studio_actions.*`, `src/cli/level_face_attributes.*` and the
 `level-face-attributes` and `level-face-inspector-ui` tests are original
-VibeStudio work.
+SlopStudio work.
 
 ## Camera UV tool
 
@@ -4340,7 +4340,7 @@ camera previews the texture live by replacing the face's texture coordinates.
 `src/app/level_camera_uv_tool_actions.cpp`, the texture-coordinate preview in
 `src/app/model_viewport_tools.cpp`, the `map edit-uv` additions in
 `src/cli/level_uv_edit.cpp` and the `level-uv-tool` and
-`level-camera-uv-tool-ui` tests are original VibeStudio work.
+`level-camera-uv-tool-ui` tests are original SlopStudio work.
 
 ## Arbitrary rotation and scale
 
@@ -4355,7 +4355,7 @@ the `SaveMapAs` registration without a key in
 [radiant/map.cpp](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/map.cpp),
 and the X-then-Y-then-Z order of `matrix4_rotation_for_euler_xyz` in
 [libs/math/matrix.h](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/libs/math/matrix.h).
-The licence is compatible with VibeStudio's GPL-3.0-or-later licence. Only the
+The licence is compatible with SlopStudio's GPL-3.0-or-later licence. Only the
 window workflow (X, Y and Z fields, Apply that keeps the window open, OK that
 applies and closes, negative factors that mirror), the rotation order and the
 key bindings were used as behavioural facts; no source was copied. The Euler
@@ -4365,7 +4365,7 @@ path of `rotateLevelMapSelection()` and `scaleLevelMapSelection()` in
 `src/app/level_rotation_dialog.*`, `src/app/level_scale_dialog.*`,
 `src/app/level_rotation_actions.cpp`, `map rotate --euler`,
 `map resize --factors` and the `level-arbitrary-transform` tests are original
-VibeStudio work.
+SlopStudio work.
 
 ## Model Decode Issues, glTF Import And Legacy Fuzzing (2026-10-29)
 
@@ -4378,7 +4378,7 @@ the bulk model audit (`src/core/model_audit.*`), the Game preview
 the map baker (`src/core/model_bake.*`, `src/core/model_bvh.*`,
 `src/app/model_bake_dialog.*`), skin painting (`src/core/model_skin_paint.*`,
 `src/app/model_skin_paint_dialog.*`) and the MDS writer
-(`src/core/model_format_mds_writer.cpp`) are original VibeStudio code.
+(`src/core/model_format_mds_writer.cpp`) are original SlopStudio code.
 
 | Reference | What it informed | Revision | Licence / use |
 |---|---|---|---|
@@ -4396,9 +4396,9 @@ the map baker (`src/core/model_bake.*`, `src/core/model_bvh.*`,
 **Make &lt;tag&gt;** and **Make non-&lt;tag&gt;** follow the behavioural review of
 [TrenchBroom 2026.2 tag actions](https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbUiLib/src/ActionManager.cpp)
 and game-configuration tags at revision `4c756be1a54a28d921d18c77716a5f170bdc31d0`
-(reviewed 2026-10-26, GPL-3.0-or-later, compatible with VibeStudio's licence).
+(reviewed 2026-10-26, GPL-3.0-or-later, compatible with SlopStudio's licence).
 The reviewed behaviour includes matching material/shader choices, content and
 surface masks, classname conversion and optional tag textures. No source was
 copied. The shared tag matcher, candidate transaction, Qt commands, CLI and
 fixtures in `level_smart_tags.*` and `level_smart_tags_*_test.cpp` are original
-VibeStudio code.
+SlopStudio code.

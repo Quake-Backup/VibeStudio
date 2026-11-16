@@ -4,7 +4,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 
 struct LaunchProfilesCliResult {
 	int exitCode = 0;
@@ -25,4 +25,4 @@ struct LaunchProfilesCliResult {
 // Changes support --dry-run, which reports without saving.
 LaunchProfilesCliResult runLaunchProfiles(const QStringList& arguments);
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

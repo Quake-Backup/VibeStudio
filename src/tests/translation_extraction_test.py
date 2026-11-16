@@ -24,7 +24,7 @@ class TranslationExtraction(unittest.TestCase):
         temporary = tempfile.TemporaryDirectory(dir=temporary_root)
         self.addCleanup(temporary.cleanup)
         self.root = Path(temporary.name)
-        self.catalogs = [self.root / "vibestudio_en.ts", self.root / "vibestudio_ar.ts"]
+        self.catalogs = [self.root / "slopstudio_en.ts", self.root / "slopstudio_ar.ts"]
         self.originals = {}
         for catalog, language in zip(self.catalogs, ("en", "ar")):
             content = (
@@ -121,7 +121,7 @@ class TranslationExtraction(unittest.TestCase):
             self.assertEqual(catalog.read_bytes(), self.originals[catalog])
 
     def unsupported_catalog(self):
-        catalog = self.root / "vibestudio_pcm.ts"
+        catalog = self.root / "slopstudio_pcm.ts"
         catalog.write_text(
             '<TS version="2.1" language="pcm"><context><name>Example</name>'
             '<message><location filename="src/old.cpp" line="+3"/>'

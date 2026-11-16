@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 bool MapViewport::objectGizmoShown() const
 {
@@ -142,4 +142,4 @@ void MapViewport::paintObjectGizmo(QPainter& painter, const Palette& palette) co
 	m_objectGizmo->paint(painter, componentGizmoFrame(), m_highContrast);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

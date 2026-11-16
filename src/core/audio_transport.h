@@ -4,7 +4,7 @@
 #include <array>
 #include <vector>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioTransportRange {
 	qint64 first = 0;
@@ -57,4 +57,4 @@ class AudioTransport {
 	qint64 m_renderPosition = 0;
 	quint64 m_rendered = 0, m_loops = 0;
 };
-} // namespace vibestudio
+} // namespace slopstudio

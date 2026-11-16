@@ -4,7 +4,7 @@
 
 #include <QStringList>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 enum class AudioDeliveryPreset { Wav, Doom, Quake, Quake2, Quake3 };
@@ -54,4 +54,4 @@ bool isGeneratedAudioDmx(const QByteArray& bytes);
 bool stageAudioDelivery(const QByteArray& bytes, const QString& virtualPath, PackageStagingModel* staging, bool replace,
                         QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

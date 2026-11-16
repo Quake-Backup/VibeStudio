@@ -18,7 +18,7 @@
 #include "core/level_map_transfer.h"
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 enum class LevelPlacementOperation { Snap, Duplicate, Paste, Mirror, SelectConnectedDoom, Move, Rotate, Resize, AddBrush, AddEntity, AddThing, TransformComponents, WrapMerge, Sweep, ExtractLinkedGroups, Repeat, Copy, Cut, SelectRegion, SelectObjects, Visibility, ConnectEntities, SelectTextured, DeleteObjects, RemoveComponents, RoundToGrid, CreateEntity, MoveToCamera, RepeatTransforms, Scale, SmartTag, ImportMap };
 enum class LevelPlacementPhase { Preparing, Parsing, Transforming, Inserting, Finalizing, Complete, Building, Arraying, Extracting, Repeating, Copying, Cutting, Selecting, SelectingObjects, Visibility, Connecting, Deleting };
 
@@ -110,4 +110,4 @@ struct LevelPlacementResult {
 LevelPlacementResult prepareLevelPlacement(const LevelMapDocument& source, const LevelPlacementRequest& request,
 										   const LevelPlacementControl& control = {});
 QString levelPlacementPhaseName(LevelPlacementPhase phase);
-} // namespace vibestudio
+} // namespace slopstudio

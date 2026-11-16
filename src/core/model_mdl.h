@@ -4,7 +4,7 @@
 
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelExportReport;
 struct ModelEdit;
@@ -92,4 +92,4 @@ QByteArray exportModelMdl(const ModelMesh &mesh, const ModelTargetLimits &limits
 // MDL settings, one surface and UVs inside the tile. False on cancellation or
 // a mesh the writer cannot lay out.
 bool modelMdlVertexCounts(const ModelMesh &mesh, int *stored, int *render, QString *error = nullptr, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

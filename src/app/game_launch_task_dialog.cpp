@@ -10,7 +10,7 @@
 #include <atomic>
 #include <exception>
 
-namespace vibestudio {
+namespace slopstudio {
 GameLaunchTaskDialog::GameLaunchTaskDialog(QWidget* parent) : QDialog(parent) {
 	setObjectName(QStringLiteral("gameLaunchTaskDialog"));
 	setWindowTitle(tr("Prepare Game Launch"));
@@ -98,4 +98,4 @@ GameLaunchTaskResult GameLaunchTaskDialog::start(QWidget* parent, const GameLaun
 	return run(parent, true,
 			   [&](auto& result, const auto& cancel) { result.started = startGameLaunch(plan, &result.pid, &result.error, cancel); });
 }
-} // namespace vibestudio
+} // namespace slopstudio

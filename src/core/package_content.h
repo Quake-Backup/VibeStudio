@@ -9,7 +9,7 @@
 #include <functional>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct PackageImportOptions;
 struct PackageDraftSaveLimits;
@@ -94,4 +94,4 @@ private:
 	bool m_failed = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

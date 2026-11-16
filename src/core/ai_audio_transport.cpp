@@ -17,7 +17,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -112,22 +112,22 @@ bool buildAiSoundHttpRequest(const AiSoundRequest& request, const QString& apiKe
 		return false;
 	}
 	if (aiSoundApiFor(request.connectorId) == AiSoundApi::None) {
-		return fail(QCoreApplication::translate("VibeStudioAiAudioTransport", "This connector does not make sounds."));
+		return fail(QCoreApplication::translate("SlopStudioAiAudioTransport", "This connector does not make sounds."));
 	}
 	if (request.prompt.trimmed().isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioAiAudioTransport", "Describe the sound to make."));
+		return fail(QCoreApplication::translate("SlopStudioAiAudioTransport", "Describe the sound to make."));
 	}
 	QString base = aiEffectiveSoundEndpoint(request.connectorId, request.endpoint);
 	while (base.endsWith(QLatin1Char('/'))) {
 		base.chop(1);
 	}
 	if (base.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioAiAudioTransport", "No sound endpoint is set for this connector."));
+		return fail(QCoreApplication::translate("SlopStudioAiAudioTransport", "No sound endpoint is set for this connector."));
 	}
 	// The API's path is versioned; a base already ending in /v1 keeps it.
 	QUrl url(base.endsWith(QStringLiteral("/v1")) ? base + QStringLiteral("/sound-generation") : base + QStringLiteral("/v1/sound-generation"));
 	if (!url.isValid() || (url.scheme() != QStringLiteral("https") && url.scheme() != QStringLiteral("http"))) {
-		return fail(QCoreApplication::translate("VibeStudioAiAudioTransport", "The endpoint does not make a valid address."));
+		return fail(QCoreApplication::translate("SlopStudioAiAudioTransport", "The endpoint does not make a valid address."));
 	}
 	if (!request.outputFormat.isEmpty()) {
 		QUrlQuery query(url);
@@ -192,7 +192,7 @@ AiSoundResponse parseAiSoundResponse(int httpStatus, const QByteArray& body, con
 		QString status;
 		QString message = root.isEmpty() ? QString::fromUtf8(body.left(400)).trimmed() : errorMessageFrom(root, &status);
 		if (message.isEmpty()) {
-			message = QCoreApplication::translate("VibeStudioAiAudioTransport", "The provider answered HTTP %1.").arg(httpStatus);
+			message = QCoreApplication::translate("SlopStudioAiAudioTransport", "The provider answered HTTP %1.").arg(httpStatus);
 		}
 		if (status.contains(QStringLiteral("moderation")) || status.contains(QStringLiteral("blocked"))) {
 			response.failure = AiChatFailure::Refused;
@@ -204,8 +204,8 @@ AiSoundResponse parseAiSoundResponse(int httpStatus, const QByteArray& body, con
 	}
 	if (body.isEmpty() || !root.isEmpty()) {
 		response.failure = AiChatFailure::BadResponse;
-		response.errorMessage = root.isEmpty() ? QCoreApplication::translate("VibeStudioAiAudioTransport", "The provider's answer had no sound in it.")
-											   : QCoreApplication::translate("VibeStudioAiAudioTransport", "The provider answered with JSON instead of a sound: %1")
+		response.errorMessage = root.isEmpty() ? QCoreApplication::translate("SlopStudioAiAudioTransport", "The provider's answer had no sound in it.")
+											   : QCoreApplication::translate("SlopStudioAiAudioTransport", "The provider answered with JSON instead of a sound: %1")
 													 .arg(redactAiText(QString::fromUtf8(body.left(300))));
 		return response;
 	}
@@ -298,26 +298,26 @@ QString aiSoundConnectionBlockText(const AiSoundConnection& connection)
 {
 	switch (connection.block) {
 	case AiSoundConnectionBlock::None: {
-		const QString model = connection.model.isEmpty() ? QCoreApplication::translate("VibeStudioAiAudioTransport", "its default model") : connection.model;
+		const QString model = connection.model.isEmpty() ? QCoreApplication::translate("SlopStudioAiAudioTransport", "its default model") : connection.model;
 		return connection.local
-			? QCoreApplication::translate("VibeStudioAiAudioTransport", "Ready: %1 makes sounds with %2, on this machine.").arg(connection.displayName, model)
-			: QCoreApplication::translate("VibeStudioAiAudioTransport", "Ready: %1 makes sounds with %2, at %3.").arg(connection.displayName, model, QUrl(connection.endpoint).host());
+			? QCoreApplication::translate("SlopStudioAiAudioTransport", "Ready: %1 makes sounds with %2, on this machine.").arg(connection.displayName, model)
+			: QCoreApplication::translate("SlopStudioAiAudioTransport", "Ready: %1 makes sounds with %2, at %3.").arg(connection.displayName, model, QUrl(connection.endpoint).host());
 	}
 	case AiSoundConnectionBlock::AiFreeMode:
-		return QCoreApplication::translate("VibeStudioAiAudioTransport", "AI-free mode is on. Turn it off in Settings > AI and Automation to generate sounds with a model; the synthesizer works without it.");
+		return QCoreApplication::translate("SlopStudioAiAudioTransport", "AI-free mode is on. Turn it off in Settings > AI and Automation to generate sounds with a model; the synthesizer works without it.");
 	case AiSoundConnectionBlock::ProjectAiFree:
 		return aiProjectAiFreeText();
 	case AiSoundConnectionBlock::NoConnector:
-		return QCoreApplication::translate("VibeStudioAiAudioTransport", "No sound connector is chosen. Pick ElevenLabs or a custom endpoint as the Audio connector in Settings > AI and Automation.");
+		return QCoreApplication::translate("SlopStudioAiAudioTransport", "No sound connector is chosen. Pick ElevenLabs or a custom endpoint as the Audio connector in Settings > AI and Automation.");
 	case AiSoundConnectionBlock::NoSoundTransport:
-		return QCoreApplication::translate("VibeStudioAiAudioTransport", "%1 does not make sounds. Pick ElevenLabs or a custom endpoint.").arg(connection.displayName);
+		return QCoreApplication::translate("SlopStudioAiAudioTransport", "%1 does not make sounds. Pick ElevenLabs or a custom endpoint.").arg(connection.displayName);
 	case AiSoundConnectionBlock::NoEndpoint:
-		return QCoreApplication::translate("VibeStudioAiAudioTransport", "%1 has no sound endpoint. Set one in Settings > AI and Automation.").arg(connection.displayName);
+		return QCoreApplication::translate("SlopStudioAiAudioTransport", "%1 has no sound endpoint. Set one in Settings > AI and Automation.").arg(connection.displayName);
 	case AiSoundConnectionBlock::CloudNotAllowed:
-		return QCoreApplication::translate("VibeStudioAiAudioTransport", "%1 sends to %2, off this machine, and cloud connectors are not allowed. Allow them in Settings > AI and Automation, or use the synthesizer.")
+		return QCoreApplication::translate("SlopStudioAiAudioTransport", "%1 sends to %2, off this machine, and cloud connectors are not allowed. Allow them in Settings > AI and Automation, or use the synthesizer.")
 			.arg(connection.displayName, QUrl(connection.endpoint).host());
 	case AiSoundConnectionBlock::NoCredential:
-		return QCoreApplication::translate("VibeStudioAiAudioTransport", "%1 needs an API key in the %2 environment variable, which is not set.").arg(connection.displayName, connection.credentialVariable);
+		return QCoreApplication::translate("SlopStudioAiAudioTransport", "%1 needs an API key in the %2 environment variable, which is not set.").arg(connection.displayName, connection.credentialVariable);
 	}
 	return {};
 }
@@ -375,7 +375,7 @@ bool AiSoundClient::send(const AiSoundRequest& request, const QString& apiKey, C
 {
 	if (busy()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioAiAudioTransport", "A request is already running.");
+			*error = QCoreApplication::translate("SlopStudioAiAudioTransport", "A request is already running.");
 		}
 		return false;
 	}
@@ -405,7 +405,7 @@ bool AiSoundClient::send(const AiSoundRequest& request, const QString& apiKey, C
 		if (state.cancelled || state.timedOut) {
 			response.failure = state.cancelled ? AiChatFailure::Cancelled : AiChatFailure::Timeout;
 			response.errorMessage = state.cancelled ? aiChatFailureText(AiChatFailure::Cancelled)
-												  : QCoreApplication::translate("VibeStudioAiAudioTransport", "No sound after %1 seconds.").arg(state.timeoutMsecs / 1000);
+												  : QCoreApplication::translate("SlopStudioAiAudioTransport", "No sound after %1 seconds.").arg(state.timeoutMsecs / 1000);
 		} else if (status <= 0) {
 			response.failure = AiChatFailure::Network;
 			response.errorMessage = reply->errorString();
@@ -451,4 +451,4 @@ int AiSoundClient::timeoutMsecs() const
 	return m_state->timeoutMsecs;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

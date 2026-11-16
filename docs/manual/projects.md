@@ -1,7 +1,7 @@
 # Projects and game installations
 
 A project is a folder that holds your mod or map sources. This page shows how to open one, describe it
-with a project manifest, tell VibeStudio where your games are installed, search and replace text
+with a project manifest, tell SlopStudio where your games are installed, search and replace text
 across the project, and save your place as a workspace file.
 
 > [!NOTE]
@@ -19,7 +19,7 @@ The Workspace page is the studio's start page. Choose **Workspace** on the left 
 - A tile for each work page, from **Levels** to **Build**, says what that page holds now, such as the
   open map with its entity and brush counts. Select a tile to go to its page.
 - **Project Health** collects the open project's state in five tabs (see the table below).
-- **Recent Projects** and **Game Installations** list the folders and games VibeStudio remembers.
+- **Recent Projects** and **Game Installations** list the folders and games SlopStudio remembers.
 - **Releases** shows the project's unreleased changes and latest releases, with **Record Change…** and
   **Package and Release…**. See [Package and release](releases.md).
 - **Workspace Details** shows the manifest and health details of the open or selected project.
@@ -49,19 +49,19 @@ all; neither touches your files. **File** > **Close Project** closes the current
 in the recent list.
 
 > [!TIP]
-> Portable builds of VibeStudio include a `samples` folder with small Doom, Quake and Quake III-family
+> Portable builds of SlopStudio include a `samples` folder with small Doom, Quake and Quake III-family
 > projects. They are a safe place to try the studio without risking your own work.
 
 ## Describe the project with a manifest
 
-The project manifest is the file `.vibestudio/project.json` inside the project folder. It records the
+The project manifest is the file `.slopstudio/project.json` inside the project folder. It records the
 project's game and folders, its game installation, compiler paths, release settings and per-project
 settings. The Workspace, Build and release pages and the command line read it.
 
 To create or refresh it, open the project and choose **Initialize Manifest** on the Workspace header,
 or **File** > **Initialize Project Manifest** (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd>). A new
 manifest treats the whole project folder as source, uses `build` as the output folder and keeps
-temporary files in `.vibestudio/tmp`. Refreshing an existing manifest keeps its folders and records
+temporary files in `.slopstudio/tmp`. Refreshing an existing manifest keeps its folders and records
 the game installation and editor profile you are using now, and the game when the manifest names
 none.
 
@@ -77,7 +77,7 @@ project:
   "sourceFolders": ["maps", "scripts"],
   "packageFolders": ["packages"],
   "outputFolder": "out",
-  "tempFolder": ".vibestudio/cache",
+  "tempFolder": ".slopstudio/cache",
   "selectedInstallationId": "",
   "createdUtc": "2026-04-30T00:00:00Z",
   "updatedUtc": "2026-04-30T00:00:00Z"
@@ -105,7 +105,7 @@ project:
 | `release` | How the project is packaged and described when released; see [Release settings](releases.md#release-settings). |
 | `createdUtc`, `updatedUtc` | When the manifest was created and last saved. |
 
-Keys VibeStudio does not know, for example from a newer version, are kept when it saves the manifest.
+Keys SlopStudio does not know, for example from a newer version, are kept when it saves the manifest.
 
 </details>
 
@@ -130,7 +130,7 @@ feature comparisons, and passed 60 rerelease movement checks.
 The project's readme records its design, engine captures and verification limits;
 human multiplayer balance testing remains outstanding.
 
-Map versions are independent of VibeStudio's application version. The project
+Map versions are independent of SlopStudio's application version. The project
 uses `0.1.0-alpha.5` in release settings, **Alpha 5** in player-facing text, and
 `hingeworks_a5` as its engine map name. Development revisions stay on Alpha 5
 until its release is approved; subsequent versions keep earlier released
@@ -157,26 +157,26 @@ do not establish combat balance, and the available MMREX build rejected local
 split-screen clients sharing one Steam identity. Human single-player and
 independent multiplayer playtesting remain necessary.
 
-Campaign versions are independent of VibeStudio's version. The project keeps
+Campaign versions are independent of SlopStudio's version. The project keeps
 each released archive and checksum immutable; `next_alpha.py` starts the next
 revision and reopens its planning checkpoint. No commercial game assets or
 engine binaries are included.
 
 ## Check project health
 
-Choose **Project** > **Validate Project** to run the health checks. VibeStudio switches to the
+Choose **Project** > **Validate Project** to run the health checks. SlopStudio switches to the
 Workspace page and lists anything that needs attention under **Problems**: a missing manifest or
 source folder, a newer manifest version, no linked game installation, or a game whose assets are not
 indexed or whose index is out of date. Activate the asset index problem to index the game. Output
 and temporary folders that do not exist yet are not problems: they are created when first needed.
-Warnings alone do not block your work. `vibestudio --cli project validate` exits with code 4 only for blocking problems, and with code 3
+Warnings alone do not block your work. `slopstudio --cli project validate` exits with code 4 only for blocking problems, and with code 3
 when the folder has no manifest yet.
 
 ## Add your game installations
 
-A game installation profile tells VibeStudio where a game is installed, which game it is, and which
+A game installation profile tells SlopStudio where a game is installed, which game it is, and which
 packages it loads. Profiles tell the Build page which game to launch, and a Doom installation's base
-packages give your PWADs their palette. VibeStudio never writes into a game folder without your
+packages give your PWADs their palette. SlopStudio never writes into a game folder without your
 permission.
 
 ### Detect Steam and GOG games
@@ -213,11 +213,11 @@ also record an installation for the project, which the project health checks rep
 
 ### Index the game's assets
 
-Select a profile and choose **Index Assets**, or **Project** > **Index Game Assets**. VibeStudio reads
+Select a profile and choose **Index Assets**, or **Project** > **Index Game Assets**. SlopStudio reads
 the game's own packages once, in the background, and remembers every file they hold, the Quake III
 shaders they declare and the Doom-family names they define. Releases use this index to leave the
 game's own files out, and the Levels page's **Dependencies** uses it to mark references the game
-provides. The index is kept with VibeStudio's own data, never in the game folder.
+provides. The index is kept with SlopStudio's own data, never in the game folder.
 
 Each row says **assets indexed**, **assets not indexed** or **asset index out of date**; an index
 goes out of date when the game's packages change, for example after a patch. Indexing knows the
@@ -255,7 +255,7 @@ Open documents get the change as an unsaved edit you can undo; files that are no
 straight away, keeping their encoding and line endings. If a file changed since the preview, the whole
 batch is refused, and a failure part-way does not undo files already saved: the report lists them.
 
-Search skips untitled documents, package entries and folders such as `.git`, `.vibestudio`, `build`
+Search skips untitled documents, package entries and folders such as `.git`, `.slopstudio`, `build`
 and `external`. See [Code and scripts](code.md) for the editor itself.
 
 ## Save and restore a workspace
@@ -264,8 +264,8 @@ A workspace file remembers what you were working on: the project, the open packa
 the map, the saved Code tabs, the editable model sources open in the Mesh Editor, **Design Prop** and
 **Assemble**, the selected texture, model and sound, and the page you were on.
 
-- Choose **File** > **Save Workspace As…** to write a `.vibeworkspace` file.
-- Choose **File** > **Open Workspace…**, drop the file on the window, or start VibeStudio with
+- Choose **File** > **Save Workspace As…** to write a `.slopworkspace` file.
+- Choose **File** > **Open Workspace…**, drop the file on the window, or start SlopStudio with
   `--open <file>` to restore it.
 
 A workspace stores references, not contents: save your maps, packages and other documents first.
@@ -277,26 +277,26 @@ you can move a folder that contains both.
 
 | Task | Command |
 | --- | --- |
-| Create or refresh a manifest | `vibestudio --cli project init <folder>` |
-| Show the manifest and health | `vibestudio --cli project info <folder>` |
-| Check health | `vibestudio --cli project validate <folder>` |
-| List project files | `vibestudio --cli project files <folder> --where "kind=image"` |
-| List, detect or add installations | `vibestudio --cli install list`, `install detect`, `install add <root>` |
-| Use, check or remove a profile | `vibestudio --cli install select <id>`, `install validate <id>`, `install remove <id>` |
-| Index a game's assets, or check its index | `vibestudio --cli install register build <id>`, `install register info <id>` |
-| Package and release the project | `vibestudio --cli release plan <folder>`, `release publish <folder>` |
-| Search project text | `vibestudio --cli asset find <folder> --find <text>` |
-| Replace project text | `vibestudio --cli asset replace <folder> --find <old> --replace <new>` |
-| Save or check a workspace | `vibestudio --cli workspace create <file>`, `workspace inspect <file>` |
+| Create or refresh a manifest | `slopstudio --cli project init <folder>` |
+| Show the manifest and health | `slopstudio --cli project info <folder>` |
+| Check health | `slopstudio --cli project validate <folder>` |
+| List project files | `slopstudio --cli project files <folder> --where "kind=image"` |
+| List, detect or add installations | `slopstudio --cli install list`, `install detect`, `install add <root>` |
+| Use, check or remove a profile | `slopstudio --cli install select <id>`, `install validate <id>`, `install remove <id>` |
+| Index a game's assets, or check its index | `slopstudio --cli install register build <id>`, `install register info <id>` |
+| Package and release the project | `slopstudio --cli release plan <folder>`, `release publish <folder>` |
+| Search project text | `slopstudio --cli asset find <folder> --find <text>` |
+| Replace project text | `slopstudio --cli asset replace <folder> --find <old> --replace <new>` |
+| Save or check a workspace | `slopstudio --cli workspace create <file>`, `workspace inspect <file>` |
 
 For example:
 
 ```sh
-vibestudio --cli install detect --root "D:/SteamLibrary"
-vibestudio --cli install add "C:/Games/Quake" --install-game quake --install-name "Quake" --dry-run
-vibestudio --cli asset find ./mymod --find player --whole-word --include "*.qc;*.qh" --json
-vibestudio --cli asset replace ./mymod --find old_shader --replace new_shader --include "scripts/*"
-vibestudio --cli workspace create ./work.vibeworkspace --project ./mymod --active-module levels
+slopstudio --cli install detect --root "D:/SteamLibrary"
+slopstudio --cli install add "C:/Games/Quake" --install-game quake --install-name "Quake" --dry-run
+slopstudio --cli asset find ./mymod --find player --whole-word --include "*.qc;*.qh" --json
+slopstudio --cli asset replace ./mymod --find old_shader --replace new_shader --include "scripts/*"
+slopstudio --cli workspace create ./work.slopworkspace --project ./mymod --active-module levels
 ```
 
 `asset replace` only previews unless you add `--write`. `install detect` never saves profiles. See
@@ -308,5 +308,5 @@ vibestudio --cli workspace create ./work.vibeworkspace --project ./mymod --activ
 - [Game installations](../GAME_INSTALLATIONS.md): profile data, detection sources, the asset index and
   safety rules.
 - [Project search](../PROJECT_SEARCH.md): matching rules, limits and partial-write reporting.
-- [Portable workspaces](../WORKSPACES.md): the `.vibeworkspace` format.
+- [Portable workspaces](../WORKSPACES.md): the `.slopworkspace` format.
 - [CLI strategy](../CLI_STRATEGY.md): every `project`, `install` and `workspace` option.

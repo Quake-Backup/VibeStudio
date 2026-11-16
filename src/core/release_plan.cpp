@@ -27,7 +27,7 @@
 #include <limits>
 #include <numeric>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -125,7 +125,7 @@ FileClass classifyFile(const QString& virtualPath, const QString& gameKey)
 		QStringLiteral("kra"), QStringLiteral("ora"), QStringLiteral("blend"), QStringLiteral("blend1"), QStringLiteral("max"), QStringLiteral("fbx"),
 		QStringLiteral("ma"), QStringLiteral("mb"), QStringLiteral("ms3d"), QStringLiteral("3ds"), QStringLiteral("c4d"), QStringLiteral("spp"),
 		QStringLiteral("sbsar"), QStringLiteral("sbs"), QStringLiteral("aseprite"), QStringLiteral("pdn"), QStringLiteral("afphoto"),
-		QStringLiteral("vprefab"), QStringLiteral("vtexture"), QStringLiteral("vsaudio"), QStringLiteral("vsfx"), QStringLiteral("vibeworkspace"),
+		QStringLiteral("vprefab"), QStringLiteral("vtexture"), QStringLiteral("vsaudio"), QStringLiteral("vsfx"), QStringLiteral("slopworkspace"),
 		QStringLiteral("qc"), QStringLiteral("qh"), QStringLiteral("src"),
 	};
 	static const QSet<QString> intermediates {
@@ -408,13 +408,13 @@ public:
 			break;
 		case ReleaseScope::Maps:
 			for (int i = 0; i < m_request.items.size() && !m_plan.cancelled; ++i) {
-				tick(QCoreApplication::translate("VibeStudioReleasePlan", "Checking maps"), i, int(m_request.items.size()));
+				tick(QCoreApplication::translate("SlopStudioReleasePlan", "Checking maps"), i, int(m_request.items.size()));
 				planMapItem(m_request.items[i]);
 			}
 			break;
 		case ReleaseScope::Models:
 			for (int i = 0; i < m_request.items.size() && !m_plan.cancelled; ++i) {
-				tick(QCoreApplication::translate("VibeStudioReleasePlan", "Checking models"), i, int(m_request.items.size()));
+				tick(QCoreApplication::translate("SlopStudioReleasePlan", "Checking models"), i, int(m_request.items.size()));
 				planModelItem(m_request.items[i]);
 			}
 			break;
@@ -426,7 +426,7 @@ public:
 			planModelOutputs();
 		}
 		if (m_request.scope != ReleaseScope::Project && m_request.items.isEmpty()) {
-			addProblem(QStringLiteral("empty"), QString(), QCoreApplication::translate("VibeStudioReleasePlan", "Choose at least one item to release."), {}, true);
+			addProblem(QStringLiteral("empty"), QString(), QCoreApplication::translate("SlopStudioReleasePlan", "Choose at least one item to release."), {}, true);
 		}
 		return finish();
 	}
@@ -455,16 +455,16 @@ private:
 		}
 		static const QStringList known {QStringLiteral("pk3"), QStringLiteral("pak"), QStringLiteral("wad"), QStringLiteral("zip")};
 		if (!known.contains(format)) {
-			addProblem(QStringLiteral("format"), format, QCoreApplication::translate("VibeStudioReleasePlan", "Unknown package format %1. Choose pk3, pak, wad or zip.").arg(format), {}, true);
+			addProblem(QStringLiteral("format"), format, QCoreApplication::translate("SlopStudioReleasePlan", "Unknown package format %1. Choose pk3, pak, wad or zip.").arg(format), {}, true);
 			return false;
 		}
 		const bool doomFamily = m_plan.gameKey == QStringLiteral("doom") || m_plan.gameKey == QStringLiteral("heretic-hexen");
 		if (format == QStringLiteral("wad") && !doomFamily) {
-			addProblem(QStringLiteral("format"), format, QCoreApplication::translate("VibeStudioReleasePlan", "Only Doom-family games load WAD packages. Choose pk3, pak or zip."), {}, true);
+			addProblem(QStringLiteral("format"), format, QCoreApplication::translate("SlopStudioReleasePlan", "Only Doom-family games load WAD packages. Choose pk3, pak or zip."), {}, true);
 			return false;
 		}
 		if (format == QStringLiteral("pak") && (m_plan.gameKey == QStringLiteral("quake3") || doomFamily)) {
-			addProblem(QStringLiteral("format"), format, QCoreApplication::translate("VibeStudioReleasePlan", "%1 does not load PAK packages.").arg(gameDefinitionForKey(m_plan.gameKey).displayName), {}, true);
+			addProblem(QStringLiteral("format"), format, QCoreApplication::translate("SlopStudioReleasePlan", "%1 does not load PAK packages.").arg(gameDefinitionForKey(m_plan.gameKey).displayName), {}, true);
 			return false;
 		}
 		m_plan.formatId = format;
@@ -479,7 +479,7 @@ private:
 				m_plan.packageFileName = QStringLiteral("pak0.pak");
 			} else {
 				m_plan.packageFileName = packageName + QStringLiteral(".pak");
-				m_plan.warnings << QCoreApplication::translate("VibeStudioReleasePlan", "%1 loads only numbered packs (pak0.pak, pak1.pak...). Players must rename %2 to a free number, which can clash with other releases. Release into a mod folder, or as loose files (zip), instead.")
+				m_plan.warnings << QCoreApplication::translate("SlopStudioReleasePlan", "%1 loads only numbered packs (pak0.pak, pak1.pak...). Players must rename %2 to a free number, which can clash with other releases. Release into a mod folder, or as loose files (zip), instead.")
 										.arg(gameDefinitionForKey(m_plan.gameKey).displayName, m_plan.packageFileName);
 			}
 		} else {
@@ -513,7 +513,7 @@ private:
 				roots << root;
 			}
 		}
-		tick(QCoreApplication::translate("VibeStudioReleasePlan", "Reading the project"), 0, 1);
+		tick(QCoreApplication::translate("SlopStudioReleasePlan", "Reading the project"), 0, 1);
 		auto content = std::make_shared<ProjectContentReader>();
 		ProjectContentOptions options = m_request.contentOptions;
 		const auto previous = options.isCancelled;
@@ -692,7 +692,7 @@ private:
 			entry.layer = layer;
 			entry.layerIndex = m_reader->layerIndexOf(readerIndex);
 			if (const auto* info = m_reader->layer(layer)) {
-				entry.note = QCoreApplication::translate("VibeStudioReleasePlan", "From %1").arg(info->label);
+				entry.note = QCoreApplication::translate("SlopStudioReleasePlan", "From %1").arg(info->label);
 			}
 		}
 		if (!requiredBy.isEmpty()) {
@@ -753,7 +753,7 @@ private:
 				const qsizetype index = m_reader->indexOf(dependency.resolvedPath);
 				if (index < 0) {
 					addProblem(QStringLiteral("unreadable"), dependency.reference,
-						QCoreApplication::translate("VibeStudioReleasePlan", "%1 resolved to %2, which the project no longer lists.").arg(dependency.reference, dependency.resolvedPath), {requiredBy}, true);
+						QCoreApplication::translate("SlopStudioReleasePlan", "%1 resolved to %2, which the project no longer lists.").arg(dependency.reference, dependency.resolvedPath), {requiredBy}, true);
 					break;
 				}
 				addReaderEntry(index, roleForDependency(dependency), requiredBy);
@@ -767,25 +767,25 @@ private:
 			case LevelDependencyStatus::Missing:
 				if (m_stock) {
 					addProblem(QStringLiteral("missing"), dependency.reference,
-						QCoreApplication::translate("VibeStudioReleasePlan", "%1 is neither in the project nor in the game's own files. Searched: %2")
+						QCoreApplication::translate("SlopStudioReleasePlan", "%1 is neither in the project nor in the game's own files. Searched: %2")
 							.arg(dependency.reference, dependency.candidates.join(QStringLiteral(", "))), {requiredBy}, true);
 				} else {
 					addProblem(QStringLiteral("unverified"), dependency.reference,
-						QCoreApplication::translate("VibeStudioReleasePlan", "%1 is not in the project. It is assumed to come with the game; index the game's assets to check.")
+						QCoreApplication::translate("SlopStudioReleasePlan", "%1 is not in the project. It is assumed to come with the game; index the game's assets to check.")
 							.arg(dependency.reference), {requiredBy}, false);
 				}
 				break;
 			case LevelDependencyStatus::Ambiguous:
 				addProblem(QStringLiteral("ambiguous"), dependency.reference,
-					QCoreApplication::translate("VibeStudioReleasePlan", "%1 matches more than one file or shader declaration: %2").arg(dependency.reference, dependency.candidates.join(QStringLiteral(", "))), {requiredBy}, true);
+					QCoreApplication::translate("SlopStudioReleasePlan", "%1 matches more than one file or shader declaration: %2").arg(dependency.reference, dependency.candidates.join(QStringLiteral(", "))), {requiredBy}, true);
 				break;
 			case LevelDependencyStatus::Unreadable:
 				addProblem(QStringLiteral("unreadable"), dependency.reference,
-					QCoreApplication::translate("VibeStudioReleasePlan", "%1 could not be read: %2").arg(dependency.reference, dependency.note), {requiredBy}, true);
+					QCoreApplication::translate("SlopStudioReleasePlan", "%1 could not be read: %2").arg(dependency.reference, dependency.note), {requiredBy}, true);
 				break;
 			case LevelDependencyStatus::Unsafe:
 				addProblem(QStringLiteral("unsafe"), dependency.reference,
-					QCoreApplication::translate("VibeStudioReleasePlan", "%1 is not a safe package path.").arg(dependency.reference), {requiredBy}, true);
+					QCoreApplication::translate("SlopStudioReleasePlan", "%1 is not a safe package path.").arg(dependency.reference), {requiredBy}, true);
 				break;
 			}
 		}
@@ -794,10 +794,10 @@ private:
 			m_plan.complete = false;
 		} else if (!report.complete) {
 			addProblem(QStringLiteral("incomplete"), requiredBy,
-				QCoreApplication::translate("VibeStudioReleasePlan", "The dependency check for %1 could not finish, so a file it needs may be missing from the release: %2")
+				QCoreApplication::translate("SlopStudioReleasePlan", "The dependency check for %1 could not finish, so a file it needs may be missing from the release: %2")
 					.arg(requiredBy, report.warnings.isEmpty() ? QString() : report.warnings.first()), {requiredBy}, false);
 		}
-		appendUnique(&m_plan.limitations, QCoreApplication::translate("VibeStudioReleasePlan",
+		appendUnique(&m_plan.limitations, QCoreApplication::translate("SlopStudioReleasePlan",
 			"Checks what maps, models and shaders name directly: textures, shader images, models, skins, sounds and music, and the files that the project's QuakeC, DECORATE, ZScript and MAPINFO load for a map's entities. Paths that code builds at run time are not followed; add them with the release's include patterns."));
 	}
 
@@ -833,7 +833,7 @@ private:
 		const QString path = absoluteItemPath(item);
 		const QFileInfo info(path);
 		if (!info.isFile()) {
-			addProblem(QStringLiteral("missing"), item, QCoreApplication::translate("VibeStudioReleasePlan", "Map file not found: %1").arg(QDir::toNativeSeparators(path)), {}, true);
+			addProblem(QStringLiteral("missing"), item, QCoreApplication::translate("SlopStudioReleasePlan", "Map file not found: %1").arg(QDir::toNativeSeparators(path)), {}, true);
 			return;
 		}
 		const QString ext = info.suffix().toLower();
@@ -865,7 +865,7 @@ private:
 		LevelMapDocument document;
 		QString error;
 		if (!loadLevelMap(load, &document, &error)) {
-			addProblem(QStringLiteral("unreadable"), name, QCoreApplication::translate("VibeStudioReleasePlan", "Unable to read map %1: %2").arg(QDir::toNativeSeparators(path), error), {name}, true);
+			addProblem(QStringLiteral("unreadable"), name, QCoreApplication::translate("SlopStudioReleasePlan", "Unable to read map %1: %2").arg(QDir::toNativeSeparators(path), error), {name}, true);
 			return;
 		}
 		if (document.format == LevelMapFormat::DoomWad) {
@@ -885,7 +885,7 @@ private:
 			target = m_plan.gameKey;
 		}
 		if (!target.isEmpty() && target != m_plan.gameKey && knownGameKeys().contains(m_plan.gameKey)) {
-			appendUnique(&m_plan.warnings, QCoreApplication::translate("VibeStudioReleasePlan", "%1 is a %2 map, but the release targets %3.")
+			appendUnique(&m_plan.warnings, QCoreApplication::translate("SlopStudioReleasePlan", "%1 is a %2 map, but the release targets %3.")
 				.arg(name, gameDefinitionForKey(target).displayName, gameDefinitionForKey(m_plan.gameKey).displayName));
 		}
 		map.compiledPath = findCompiledMap(path);
@@ -894,9 +894,9 @@ private:
 			map.stale = QFileInfo(map.compiledPath).lastModified() < info.lastModified();
 		}
 		if (!map.built) {
-			addProblem(QStringLiteral("unbuilt-map"), name, QCoreApplication::translate("VibeStudioReleasePlan", "%1 has not been built. Build it, then package again.").arg(name), {name}, true);
+			addProblem(QStringLiteral("unbuilt-map"), name, QCoreApplication::translate("SlopStudioReleasePlan", "%1 has not been built. Build it, then package again.").arg(name), {name}, true);
 		} else if (map.stale) {
-			addProblem(QStringLiteral("stale-map"), name, QCoreApplication::translate("VibeStudioReleasePlan", "%1 changed after it was last built. Rebuild it so the release matches the source.").arg(name), {name}, false);
+			addProblem(QStringLiteral("stale-map"), name, QCoreApplication::translate("SlopStudioReleasePlan", "%1 changed after it was last built. Rebuild it so the release matches the source.").arg(name), {name}, false);
 		}
 		m_plan.maps.push_back(map);
 		if (map.built) {
@@ -911,7 +911,7 @@ private:
 		options.stock = m_request.stock;
 		options.quakeTexturesEmbedded = (target.isEmpty() ? m_plan.gameKey : target) == QStringLiteral("quake");
 		const LevelDependencyReport report = inspectLevelDependencies(document, *m_reader, [this, name](int completed, int total) {
-			return tick(QCoreApplication::translate("VibeStudioReleasePlan", "Checking %1").arg(name), completed, total);
+			return tick(QCoreApplication::translate("SlopStudioReleasePlan", "Checking %1").arg(name), completed, total);
 		}, options);
 		absorbDependencies(report, name, options.quakeTexturesEmbedded);
 		planMapExtras(document, name, target.isEmpty() ? m_plan.gameKey : target);
@@ -923,7 +923,7 @@ private:
 		const QString name = sourceName.isEmpty() ? QFileInfo(bspPath).completeBaseName() : sourceName;
 		const BspInspection bsp = inspectBspFile(bspPath);
 		if (!bsp.valid) {
-			addProblem(QStringLiteral("unreadable"), name, QCoreApplication::translate("VibeStudioReleasePlan", "%1 is not a readable BSP: %2").arg(QDir::toNativeSeparators(bspPath), bsp.error), {name}, true);
+			addProblem(QStringLiteral("unreadable"), name, QCoreApplication::translate("SlopStudioReleasePlan", "%1 is not a readable BSP: %2").arg(QDir::toNativeSeparators(bspPath), bsp.error), {name}, true);
 			return;
 		}
 		ReleaseMapInfo map;
@@ -936,7 +936,7 @@ private:
 		m_plan.maps.push_back(map);
 		const QString target = gameTargetForBspFamily(bsp.family);
 		if (!target.isEmpty() && target != m_plan.gameKey && knownGameKeys().contains(m_plan.gameKey)) {
-			appendUnique(&m_plan.warnings, QCoreApplication::translate("VibeStudioReleasePlan", "%1 is a %2 map, but the release targets %3.")
+			appendUnique(&m_plan.warnings, QCoreApplication::translate("SlopStudioReleasePlan", "%1 is a %2 map, but the release targets %3.")
 				.arg(name, gameDefinitionForKey(target).displayName, gameDefinitionForKey(m_plan.gameKey).displayName));
 		}
 		addCompiledMapFiles(bspPath, name, target.isEmpty() ? m_plan.gameKey : target);
@@ -946,7 +946,7 @@ private:
 		options.stock = m_request.stock;
 		options.quakeTexturesEmbedded = target == QStringLiteral("quake");
 		const LevelDependencyReport report = inspectLevelDependencies(document, *m_reader, [this, name](int completed, int total) {
-			return tick(QCoreApplication::translate("VibeStudioReleasePlan", "Checking %1").arg(name), completed, total);
+			return tick(QCoreApplication::translate("SlopStudioReleasePlan", "Checking %1").arg(name), completed, total);
 		}, options);
 		absorbDependencies(report, name, options.quakeTexturesEmbedded);
 		planMapExtras(document, name, target.isEmpty() ? m_plan.gameKey : target);
@@ -1002,13 +1002,13 @@ private:
 			// Menus show a levelshot; bots and the arena list read the .arena script.
 			if (!resolveOptional({QStringLiteral("levelshots/%1.jpg").arg(name), QStringLiteral("levelshots/%1.tga").arg(name), QStringLiteral("levelshots/%1.png").arg(name)},
 					QStringLiteral("map-companion"), QStringLiteral("levelshot"), name)) {
-				appendUnique(&m_plan.warnings, QCoreApplication::translate("VibeStudioReleasePlan", "%1 has no levelshot (levelshots/%1.jpg); the map menu will show a placeholder.").arg(name));
+				appendUnique(&m_plan.warnings, QCoreApplication::translate("SlopStudioReleasePlan", "%1 has no levelshot (levelshots/%1.jpg); the map menu will show a placeholder.").arg(name));
 			}
 			if (!resolveOptional({QStringLiteral("scripts/%1.arena").arg(name)}, QStringLiteral("map-companion"), QStringLiteral("arena"), name)) {
 				if (const qsizetype index = m_reader->indexOf(QStringLiteral("scripts/arenas.txt")); index >= 0) {
 					addReaderEntry(index, QStringLiteral("map-companion"), name);
 				} else {
-					appendUnique(&m_plan.warnings, QCoreApplication::translate("VibeStudioReleasePlan", "%1 has no scripts/%1.arena, so it will not appear in the game's map list or for bots.").arg(name));
+					appendUnique(&m_plan.warnings, QCoreApplication::translate("SlopStudioReleasePlan", "%1 has no scripts/%1.arena, so it will not appear in the game's map list or for bots.").arg(name));
 				}
 			}
 			return;
@@ -1029,7 +1029,7 @@ private:
 				found += resolveOptional(candidates, QStringLiteral("texture"), QStringLiteral("sky"), name) ? 1 : 0;
 			}
 			if (found < skyFaces.size()) {
-				appendUnique(&m_plan.warnings, QCoreApplication::translate("VibeStudioReleasePlan", "%1 names the sky %2, but only %3 of its 6 images were found in the project or the game.").arg(name, sky).arg(found));
+				appendUnique(&m_plan.warnings, QCoreApplication::translate("SlopStudioReleasePlan", "%1 names the sky %2, but only %3 of its 6 images were found in the project or the game.").arg(name, sky).arg(found));
 			}
 		}
 		// A CD track number plays music/trackNN when a port finds the file.
@@ -1051,7 +1051,7 @@ private:
 		QString error;
 		const QStringList mapNames = levelMapNamesInWad(path, &error);
 		if (mapNames.isEmpty()) {
-			addProblem(QStringLiteral("unreadable"), label, error.isEmpty() ? QCoreApplication::translate("VibeStudioReleasePlan", "%1 holds no maps.").arg(label) : error, {label}, true);
+			addProblem(QStringLiteral("unreadable"), label, error.isEmpty() ? QCoreApplication::translate("SlopStudioReleasePlan", "%1 holds no maps.").arg(label) : error, {label}, true);
 			return;
 		}
 		ReleaseMapInfo map;
@@ -1085,7 +1085,7 @@ private:
 		QSet<QString> neededWads {mapLayer};
 		QHash<QString, QSet<int>> thingTypes;
 		for (const QString& mapName : mapNames) {
-			if (!tick(QCoreApplication::translate("VibeStudioReleasePlan", "Checking %1").arg(mapName), 0, 1)) {
+			if (!tick(QCoreApplication::translate("SlopStudioReleasePlan", "Checking %1").arg(mapName), 0, 1)) {
 				return;
 			}
 			LevelMapLoadRequest load;
@@ -1094,7 +1094,7 @@ private:
 			load.isCancelled = [this]() { return m_plan.cancelled; };
 			LevelMapDocument document;
 			if (!loadLevelMap(load, &document, &error)) {
-				addProblem(QStringLiteral("unreadable"), mapName, QCoreApplication::translate("VibeStudioReleasePlan", "Unable to read %1 in %2: %3").arg(mapName, label, error), {mapName}, true);
+				addProblem(QStringLiteral("unreadable"), mapName, QCoreApplication::translate("SlopStudioReleasePlan", "Unable to read %1 in %2: %3").arg(mapName, label, error), {mapName}, true);
 				continue;
 			}
 			for (const LevelMapDoomThing& thing : document.doomThings) {
@@ -1103,7 +1103,7 @@ private:
 			LevelDependencyOptions options;
 			options.stock = m_request.stock;
 			const LevelDependencyReport report = inspectLevelDependencies(document, resources, [this, mapName](int completed, int total) {
-				return tick(QCoreApplication::translate("VibeStudioReleasePlan", "Checking %1").arg(mapName), completed, total);
+				return tick(QCoreApplication::translate("SlopStudioReleasePlan", "Checking %1").arg(mapName), completed, total);
 			}, options);
 			for (const LevelDependency& dependency : report.dependencies) {
 				if (dependency.kind == QStringLiteral("doom-input")) {
@@ -1128,10 +1128,10 @@ private:
 				case LevelDependencyStatus::Unsafe:
 					if (m_stock) {
 						addProblem(QStringLiteral("missing"), dependency.reference,
-							QCoreApplication::translate("VibeStudioReleasePlan", "%1 is neither defined by the project's WADs nor by the IWAD: %2").arg(dependency.reference, dependency.note), {mapName}, true);
+							QCoreApplication::translate("SlopStudioReleasePlan", "%1 is neither defined by the project's WADs nor by the IWAD: %2").arg(dependency.reference, dependency.note), {mapName}, true);
 					} else {
 						addProblem(QStringLiteral("unverified"), dependency.reference,
-							QCoreApplication::translate("VibeStudioReleasePlan", "%1 is not defined by the project's WADs. It is assumed to come with the IWAD; index the game's assets to check.").arg(dependency.reference), {mapName}, false);
+							QCoreApplication::translate("SlopStudioReleasePlan", "%1 is not defined by the project's WADs. It is assumed to come with the IWAD; index the game's assets to check.").arg(dependency.reference), {mapName}, false);
 					}
 					break;
 				}
@@ -1278,21 +1278,21 @@ private:
 			}
 			std::sort(models.begin(), models.end());
 			if (models.isEmpty()) {
-				addProblem(QStringLiteral("missing"), item, QCoreApplication::translate("VibeStudioReleasePlan", "No models were found in %1.").arg(QDir::toNativeSeparators(path)), {}, true);
+				addProblem(QStringLiteral("missing"), item, QCoreApplication::translate("SlopStudioReleasePlan", "No models were found in %1.").arg(QDir::toNativeSeparators(path)), {}, true);
 			}
 		} else if (info.isFile()) {
 			models << path;
 		} else {
-			addProblem(QStringLiteral("missing"), item, QCoreApplication::translate("VibeStudioReleasePlan", "Model not found: %1").arg(QDir::toNativeSeparators(path)), {}, true);
+			addProblem(QStringLiteral("missing"), item, QCoreApplication::translate("SlopStudioReleasePlan", "Model not found: %1").arg(QDir::toNativeSeparators(path)), {}, true);
 			return;
 		}
 		for (const QString& model : std::as_const(models)) {
-			if (!tick(QCoreApplication::translate("VibeStudioReleasePlan", "Checking models"), 0, 1)) {
+			if (!tick(QCoreApplication::translate("SlopStudioReleasePlan", "Checking models"), 0, 1)) {
 				return;
 			}
 			const QString virtualPath = virtualPathFor(model);
 			if (virtualPath.isEmpty()) {
-				addProblem(QStringLiteral("outside-project"), model, QCoreApplication::translate("VibeStudioReleasePlan", "%1 is outside the project's content folders, so its game path is unknown. Move it under models/ in the project.")
+				addProblem(QStringLiteral("outside-project"), model, QCoreApplication::translate("SlopStudioReleasePlan", "%1 is outside the project's content folders, so its game path is unknown. Move it under models/ in the project.")
 					.arg(QDir::toNativeSeparators(model)), {}, true);
 				continue;
 			}
@@ -1301,16 +1301,16 @@ private:
 			ModelWorkControl control;
 			control.cancelled = [this]() { return m_plan.cancelled; };
 			if (m_reader->entries().at(index).sizeBytes > quint64(kMaximumModelBytes)) {
-				addProblem(QStringLiteral("incomplete"), virtualPath, QCoreApplication::translate("VibeStudioReleasePlan", "%1 is too large to inspect; its materials were not checked.").arg(virtualPath), {virtualPath}, false);
+				addProblem(QStringLiteral("incomplete"), virtualPath, QCoreApplication::translate("SlopStudioReleasePlan", "%1 is too large to inspect; its materials were not checked.").arg(virtualPath), {virtualPath}, false);
 				continue;
 			}
 			const ModelMesh mesh = decodeModelMeshFromArchive(*m_reader, virtualPath, QString(), control);
 			if (!mesh.error.isEmpty()) {
-				addProblem(QStringLiteral("unreadable"), virtualPath, QCoreApplication::translate("VibeStudioReleasePlan", "%1 could not be decoded: %2").arg(virtualPath, mesh.error), {virtualPath}, true);
+				addProblem(QStringLiteral("unreadable"), virtualPath, QCoreApplication::translate("SlopStudioReleasePlan", "%1 could not be decoded: %2").arg(virtualPath, mesh.error), {virtualPath}, true);
 				continue;
 			}
 			const LevelDependencyReport report = inspectModelMaterialDependencies(mesh, *m_reader, [this, virtualPath](int completed, int total) {
-				return tick(QCoreApplication::translate("VibeStudioReleasePlan", "Checking %1").arg(virtualPath), completed, total);
+				return tick(QCoreApplication::translate("SlopStudioReleasePlan", "Checking %1").arg(virtualPath), completed, total);
 			}, m_request.stock);
 			absorbDependencies(report, virtualPath, false);
 			planModelSkins(virtualPath);
@@ -1351,7 +1351,7 @@ private:
 				}
 				if (!resolveOptional(candidates, QStringLiteral("texture"), QStringLiteral("skin-image"), modelPath)) {
 					addProblem(m_stock ? QStringLiteral("missing") : QStringLiteral("unverified"), image,
-						QCoreApplication::translate("VibeStudioReleasePlan", "%1 names %2, which is neither in the project nor in the game's own files.").arg(entry.virtualPath, image), {modelPath}, m_stock != nullptr);
+						QCoreApplication::translate("SlopStudioReleasePlan", "%1 names %2, which is neither in the project nor in the game's own files.").arg(entry.virtualPath, image), {modelPath}, m_stock != nullptr);
 				}
 			}
 		}
@@ -1387,7 +1387,7 @@ private:
 			} else {
 				virtualPath = virtualPathFor(path);
 				if (virtualPath.isEmpty()) {
-					addProblem(QStringLiteral("outside-project"), item, QCoreApplication::translate("VibeStudioReleasePlan", "%1 is outside the project's content folders, so its game path is unknown.")
+					addProblem(QStringLiteral("outside-project"), item, QCoreApplication::translate("SlopStudioReleasePlan", "%1 is outside the project's content folders, so its game path is unknown.")
 						.arg(QDir::toNativeSeparators(path)), {}, true);
 					continue;
 				}
@@ -1446,7 +1446,7 @@ private:
 				}
 				if (!resolveOptional(candidates, QStringLiteral("texture"), QStringLiteral("shader-image"), entry.virtualPath)) {
 					addProblem(m_stock ? QStringLiteral("missing") : QStringLiteral("unverified"), clean,
-						QCoreApplication::translate("VibeStudioReleasePlan", "%1 uses %2, which is neither in the project nor in the game's own files.").arg(entry.virtualPath, clean),
+						QCoreApplication::translate("SlopStudioReleasePlan", "%1 uses %2, which is neither in the project nor in the game's own files.").arg(entry.virtualPath, clean),
 						{entry.virtualPath}, m_stock != nullptr);
 				}
 			}
@@ -1469,7 +1469,7 @@ private:
 				continue;
 			}
 			const QString output = record.outputs.isEmpty() ? record.kind : record.outputs.first().display();
-			addProblem(QStringLiteral("stale-model"), output, QCoreApplication::translate("VibeStudioReleasePlan", "%1 is out of date with its source %2: %3 Refresh it (model outputs --refresh stale) so the release matches the source.")
+			addProblem(QStringLiteral("stale-model"), output, QCoreApplication::translate("SlopStudioReleasePlan", "%1 is out of date with its source %2: %3 Refresh it (model outputs --refresh stale) so the release matches the source.")
 				.arg(output, QDir::toNativeSeparators(record.sourcePath), status.detail), {output}, false);
 		}
 	}
@@ -1483,7 +1483,7 @@ private:
 		QStringList doomWads;
 		QSet<QString> sourceNames;
 		for (qsizetype i = 0; i < entries.size(); ++i) {
-			if (i % 64 == 0 && !tick(QCoreApplication::translate("VibeStudioReleasePlan", "Sorting project files"), int(i), int(entries.size()))) {
+			if (i % 64 == 0 && !tick(QCoreApplication::translate("SlopStudioReleasePlan", "Sorting project files"), int(i), int(entries.size()))) {
 				return;
 			}
 			const PackageEntry& entry = entries[i];
@@ -1507,7 +1507,7 @@ private:
 				if (lower.startsWith(QStringLiteral("maps/")) && lower.count(QLatin1Char('/')) == 1 && onDisk) {
 					compiledMaps << m_content->absolutePath(m_reader->layerIndexOf(i));
 				} else {
-					appendUnique(&m_plan.warnings, QCoreApplication::translate("VibeStudioReleasePlan", "%1 was left out: engines load compiled maps only from maps/.").arg(path));
+					appendUnique(&m_plan.warnings, QCoreApplication::translate("SlopStudioReleasePlan", "%1 was left out: engines load compiled maps only from maps/.").arg(path));
 				}
 				continue;
 			}
@@ -1532,7 +1532,7 @@ private:
 					++documents;
 					continue;
 				case FileClass::Executable:
-					appendUnique(&m_plan.warnings, QCoreApplication::translate("VibeStudioReleasePlan", "%1 is a program or script and was left out. Add it to the release's include patterns to ship it.").arg(path));
+					appendUnique(&m_plan.warnings, QCoreApplication::translate("SlopStudioReleasePlan", "%1 is a program or script and was left out. Add it to the release's include patterns to ship it.").arg(path));
 					continue;
 				case FileClass::NativeCode:
 				case FileClass::Content:
@@ -1552,7 +1552,7 @@ private:
 				m_plan.entries[added].loose = true;
 			}
 			if (m_plan.entries[added].loose && role == QStringLiteral("code")) {
-				appendUnique(&m_plan.warnings, QCoreApplication::translate("VibeStudioReleasePlan", "%1 is native game code; engines cannot load it from a package, so it ships beside the package.").arg(path));
+				appendUnique(&m_plan.warnings, QCoreApplication::translate("SlopStudioReleasePlan", "%1 is native game code; engines cannot load it from a package, so it ships beside the package.").arg(path));
 			}
 		}
 		if (lumpMode()) {
@@ -1572,13 +1572,13 @@ private:
 			const int total = int(mapSources.size() + compiledMaps.size());
 			int done = 0;
 			for (const QString& map : std::as_const(mapSources)) {
-				if (!tick(QCoreApplication::translate("VibeStudioReleasePlan", "Checking maps"), done++, total)) {
+				if (!tick(QCoreApplication::translate("SlopStudioReleasePlan", "Checking maps"), done++, total)) {
 					return;
 				}
 				planSourceMap(map);
 			}
 			for (const QString& bsp : std::as_const(compiledMaps)) {
-				if (!tick(QCoreApplication::translate("VibeStudioReleasePlan", "Checking maps"), done++, total)) {
+				if (!tick(QCoreApplication::translate("SlopStudioReleasePlan", "Checking maps"), done++, total)) {
 					return;
 				}
 				if (!sourceNames.contains(QFileInfo(bsp).completeBaseName().toCaseFolded())) {
@@ -1587,19 +1587,19 @@ private:
 			}
 		}
 		if (sources > 0) {
-			m_plan.limitations << QCoreApplication::translate("VibeStudioReleasePlan", "%1 source file(s) such as maps and source art were left out. Turn on Include sources to ship them.").arg(sources);
+			m_plan.limitations << QCoreApplication::translate("SlopStudioReleasePlan", "%1 source file(s) such as maps and source art were left out. Turn on Include sources to ship them.").arg(sources);
 		}
 		if (intermediates > 0) {
-			m_plan.limitations << QCoreApplication::translate("VibeStudioReleasePlan", "%1 compiler, backup or editor scratch file(s) were left out.").arg(intermediates);
+			m_plan.limitations << QCoreApplication::translate("SlopStudioReleasePlan", "%1 compiler, backup or editor scratch file(s) were left out.").arg(intermediates);
 		}
 		if (documents > 0) {
-			m_plan.limitations << QCoreApplication::translate("VibeStudioReleasePlan", "The project's changelog and release notes are written beside the package, not inside it.");
+			m_plan.limitations << QCoreApplication::translate("SlopStudioReleasePlan", "The project's changelog and release notes are written beside the package, not inside it.");
 		}
 		if (excluded > 0) {
-			m_plan.limitations << QCoreApplication::translate("VibeStudioReleasePlan", "%1 file(s) matched the release's exclude patterns.").arg(excluded);
+			m_plan.limitations << QCoreApplication::translate("SlopStudioReleasePlan", "%1 file(s) matched the release's exclude patterns.").arg(excluded);
 		}
 		planProjectScripts();
-		m_plan.limitations << QCoreApplication::translate("VibeStudioReleasePlan",
+		m_plan.limitations << QCoreApplication::translate("SlopStudioReleasePlan",
 			"Files named in QuakeC, menus, configs, DECORATE, ZScript, SNDINFO and MAPINFO are checked. Compiled game code (QVM, DLL, progs.dat), ACS and paths that code builds at run time are not.");
 	}
 
@@ -1684,7 +1684,7 @@ private:
 		options.gameKey = m_plan.gameKey;
 		options.isCancelled = [this]() { return m_plan.cancelled; };
 		options.progress = [this](int completed, int total) {
-			return tick(QCoreApplication::translate("VibeStudioReleasePlan", "Reading game code and scripts"), completed, total);
+			return tick(QCoreApplication::translate("SlopStudioReleasePlan", "Reading game code and scripts"), completed, total);
 		};
 		m_scripts = scanScriptReferences(*m_reader, wads, options);
 		m_plan.scriptsRead = int(m_scripts.scripts.size());
@@ -1692,7 +1692,7 @@ private:
 			m_plan.cancelled = true;
 			m_plan.complete = false;
 		} else if (!m_scripts.complete) {
-			addProblem(QStringLiteral("incomplete"), QString(), QCoreApplication::translate("VibeStudioReleasePlan",
+			addProblem(QStringLiteral("incomplete"), QString(), QCoreApplication::translate("SlopStudioReleasePlan",
 				"Not every game code or script file could be read, so a file one of them loads may be missing from the release: %1").arg(m_scripts.warnings.value(0)), {}, false);
 		}
 		return m_scripts;
@@ -2065,7 +2065,7 @@ private:
 	void applyScriptResolution(int rowIndex, const ScriptAssetReference& reference, const ScriptResolution& resolution, bool ship, QSet<QString>* neededWads)
 	{
 		const QString label = reference.script;
-		const QString where = QCoreApplication::translate("VibeStudioReleasePlan", "%1, line %2").arg(label).arg(reference.line);
+		const QString where = QCoreApplication::translate("SlopStudioReleasePlan", "%1, line %2").arg(label).arg(reference.line);
 		if (!resolution.project.isEmpty()) {
 			bool shipped = false;
 			bool stock = false;
@@ -2111,7 +2111,7 @@ private:
 			ReleaseScriptReference& row = m_plan.scriptReferences[rowIndex];
 			row.status = shipped ? QStringLiteral("included") : stock ? QStringLiteral("stock") : QStringLiteral("left-out");
 			if (leftOut && !shipped && !stock) {
-				addProblem(QStringLiteral("left-out"), reference.reference, QCoreApplication::translate("VibeStudioReleasePlan",
+				addProblem(QStringLiteral("left-out"), reference.reference, QCoreApplication::translate("SlopStudioReleasePlan",
 					"%1 names %2, which is in the project but left out of the release. Add it to the release's include patterns if players need it.")
 					.arg(where, reference.reference), {label}, false);
 			}
@@ -2132,11 +2132,11 @@ private:
 		const QString searched = resolution.searched.join(QStringLiteral(", "));
 		if (m_stock) {
 			row.status = QStringLiteral("missing");
-			addProblem(QStringLiteral("unresolved"), reference.reference, QCoreApplication::translate("VibeStudioReleasePlan",
+			addProblem(QStringLiteral("unresolved"), reference.reference, QCoreApplication::translate("SlopStudioReleasePlan",
 				"%1 names %2, which is neither in the project nor in the game's own files. Searched: %3").arg(where, reference.reference, searched), {label}, false);
 		} else {
 			row.status = QStringLiteral("unverified");
-			addProblem(QStringLiteral("unverified"), reference.reference, QCoreApplication::translate("VibeStudioReleasePlan",
+			addProblem(QStringLiteral("unverified"), reference.reference, QCoreApplication::translate("SlopStudioReleasePlan",
 				"%1 names %2, which is not in the project. It is assumed to come with the game; index the game's assets to check.").arg(where, reference.reference), {label}, false);
 		}
 	}
@@ -2147,7 +2147,7 @@ private:
 	{
 		const ScriptReferenceScan& scan = scriptScan();
 		for (qsizetype i = 0; i < scan.references.size() && !m_plan.cancelled; ++i) {
-			if (i % 256 == 0 && !tick(QCoreApplication::translate("VibeStudioReleasePlan", "Checking game code and scripts"), int(i), int(scan.references.size()))) {
+			if (i % 256 == 0 && !tick(QCoreApplication::translate("SlopStudioReleasePlan", "Checking game code and scripts"), int(i), int(scan.references.size()))) {
 				return;
 			}
 			absorbScriptReference(int(i), QStringLiteral("project"), false, nullptr);
@@ -2188,7 +2188,7 @@ private:
 			}
 		}
 		const QString shown = defined.size() > 4 ? QStringList(defined.mid(0, 4)).join(QStringLiteral(", ")) + QStringLiteral(", ...") : defined.join(QStringLiteral(", "));
-		appendUnique(&m_plan.warnings, QCoreApplication::translate("VibeStudioReleasePlan",
+		appendUnique(&m_plan.warnings, QCoreApplication::translate("SlopStudioReleasePlan",
 			"%1 uses entity classes that the project's QuakeC defines (%2). The release ships the files they load, but players also need the mod's compiled game code; release the whole project to ship it.")
 			.arg(name, shown));
 	}
@@ -2290,14 +2290,14 @@ private:
 			m_plan.overrideCount += entry.replacesStock ? 1 : 0;
 		}
 		if (m_plan.overrideCount > 0) {
-			m_plan.warnings.prepend(QCoreApplication::translate("VibeStudioReleasePlan",
+			m_plan.warnings.prepend(QCoreApplication::translate("SlopStudioReleasePlan",
 				"%1 file(s) replace the game's own files of the same name. Every map players load will use these versions; rename them unless that is the intent.").arg(m_plan.overrideCount));
 		}
 		if (!m_plan.cancelled && m_plan.entries.isEmpty() && m_plan.problems.isEmpty()) {
-			addProblem(QStringLiteral("empty"), QString(), QCoreApplication::translate("VibeStudioReleasePlan", "Nothing to release: everything chosen is either the game's own content or not content."), {}, true);
+			addProblem(QStringLiteral("empty"), QString(), QCoreApplication::translate("SlopStudioReleasePlan", "Nothing to release: everything chosen is either the game's own content or not content."), {}, true);
 		}
 		if (!m_stock) {
-			m_plan.limitations.prepend(QCoreApplication::translate("VibeStudioReleasePlan",
+			m_plan.limitations.prepend(QCoreApplication::translate("SlopStudioReleasePlan",
 				"The game's own files are unknown, so nothing was checked against them. Index the game's assets on the Workspace page to leave stock files out and find missing ones."));
 		}
 		return m_plan;
@@ -2384,31 +2384,31 @@ QString releaseScopeDisplayName(ReleaseScope scope)
 {
 	switch (scope) {
 	case ReleaseScope::Project:
-		return QCoreApplication::translate("VibeStudioReleasePlan", "Whole project");
+		return QCoreApplication::translate("SlopStudioReleasePlan", "Whole project");
 	case ReleaseScope::Maps:
-		return QCoreApplication::translate("VibeStudioReleasePlan", "Maps");
+		return QCoreApplication::translate("SlopStudioReleasePlan", "Maps");
 	case ReleaseScope::Models:
-		return QCoreApplication::translate("VibeStudioReleasePlan", "Models");
+		return QCoreApplication::translate("SlopStudioReleasePlan", "Models");
 	case ReleaseScope::Textures:
-		return QCoreApplication::translate("VibeStudioReleasePlan", "Textures");
+		return QCoreApplication::translate("SlopStudioReleasePlan", "Textures");
 	}
 	return {};
 }
 
 QString releaseRoleDisplayName(const QString& role)
 {
-	if (role == QStringLiteral("map")) { return QCoreApplication::translate("VibeStudioReleasePlan", "Map"); }
-	if (role == QStringLiteral("map-companion")) { return QCoreApplication::translate("VibeStudioReleasePlan", "Map extra"); }
-	if (role == QStringLiteral("map-source")) { return QCoreApplication::translate("VibeStudioReleasePlan", "Source"); }
-	if (role == QStringLiteral("texture")) { return QCoreApplication::translate("VibeStudioReleasePlan", "Texture"); }
-	if (role == QStringLiteral("shader")) { return QCoreApplication::translate("VibeStudioReleasePlan", "Shader"); }
-	if (role == QStringLiteral("model")) { return QCoreApplication::translate("VibeStudioReleasePlan", "Model"); }
-	if (role == QStringLiteral("skin")) { return QCoreApplication::translate("VibeStudioReleasePlan", "Skin"); }
-	if (role == QStringLiteral("sound")) { return QCoreApplication::translate("VibeStudioReleasePlan", "Sound"); }
-	if (role == QStringLiteral("music")) { return QCoreApplication::translate("VibeStudioReleasePlan", "Music"); }
-	if (role == QStringLiteral("script")) { return QCoreApplication::translate("VibeStudioReleasePlan", "Script"); }
-	if (role == QStringLiteral("code")) { return QCoreApplication::translate("VibeStudioReleasePlan", "Game code"); }
-	return QCoreApplication::translate("VibeStudioReleasePlan", "Other");
+	if (role == QStringLiteral("map")) { return QCoreApplication::translate("SlopStudioReleasePlan", "Map"); }
+	if (role == QStringLiteral("map-companion")) { return QCoreApplication::translate("SlopStudioReleasePlan", "Map extra"); }
+	if (role == QStringLiteral("map-source")) { return QCoreApplication::translate("SlopStudioReleasePlan", "Source"); }
+	if (role == QStringLiteral("texture")) { return QCoreApplication::translate("SlopStudioReleasePlan", "Texture"); }
+	if (role == QStringLiteral("shader")) { return QCoreApplication::translate("SlopStudioReleasePlan", "Shader"); }
+	if (role == QStringLiteral("model")) { return QCoreApplication::translate("SlopStudioReleasePlan", "Model"); }
+	if (role == QStringLiteral("skin")) { return QCoreApplication::translate("SlopStudioReleasePlan", "Skin"); }
+	if (role == QStringLiteral("sound")) { return QCoreApplication::translate("SlopStudioReleasePlan", "Sound"); }
+	if (role == QStringLiteral("music")) { return QCoreApplication::translate("SlopStudioReleasePlan", "Music"); }
+	if (role == QStringLiteral("script")) { return QCoreApplication::translate("SlopStudioReleasePlan", "Script"); }
+	if (role == QStringLiteral("code")) { return QCoreApplication::translate("SlopStudioReleasePlan", "Game code"); }
+	return QCoreApplication::translate("SlopStudioReleasePlan", "Other");
 }
 
 int ReleasePlan::blockingCount() const
@@ -2628,7 +2628,7 @@ std::shared_ptr<const GameAssetRegister> requirementAssetRegister(const ProjectR
 	const QString trimmed = requirement.path.trimmed();
 	if (trimmed.isEmpty()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleasePlan", "Requirement %1 has no path.").arg(requirement.name);
+			*error = QCoreApplication::translate("SlopStudioReleasePlan", "Requirement %1 has no path.").arg(requirement.name);
 		}
 		return {};
 	}
@@ -2637,7 +2637,7 @@ std::shared_ptr<const GameAssetRegister> requirementAssetRegister(const ProjectR
 	const QFileInfo info(absolute);
 	if (!info.exists()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleasePlan", "Requirement %1 was not found at %2.").arg(requirement.name, QDir::toNativeSeparators(absolute));
+			*error = QCoreApplication::translate("SlopStudioReleasePlan", "Requirement %1 was not found at %2.").arg(requirement.name, QDir::toNativeSeparators(absolute));
 		}
 		return {};
 	}
@@ -2714,23 +2714,23 @@ ReleaseStockContext prepareReleaseStock(const GameInstallationProfile* installat
 	} else if (installation) {
 		context.status = gameAssetRegisterStatus(*installation, loaded.get());
 		if (!context.status.exists) {
-			context.warnings << QCoreApplication::translate("VibeStudioReleasePlan",
-				"%1 has not been indexed yet, so the game's own files cannot be told apart from yours. Index its assets on the Workspace page, or run: vibestudio --cli install register build %2")
+			context.warnings << QCoreApplication::translate("SlopStudioReleasePlan",
+				"%1 has not been indexed yet, so the game's own files cannot be told apart from yours. Index its assets on the Workspace page, or run: slopstudio --cli install register build %2")
 				.arg(installation->displayName, installation->id);
 		} else if (!context.status.loaded) {
 			context.warnings << context.status.error;
 		} else {
 			have = true;
 			if (!context.status.fresh) {
-				context.warnings << QCoreApplication::translate("VibeStudioReleasePlan", "The asset index for %1 is out of date: %2 Index it again for an exact check.")
+				context.warnings << QCoreApplication::translate("SlopStudioReleasePlan", "The asset index for %1 is out of date: %2 Index it again for an exact check.")
 					.arg(installation->displayName, context.status.staleReasons.join(QLatin1Char(' ')));
 			}
 		}
 	} else {
-		context.warnings << QCoreApplication::translate("VibeStudioReleasePlan", "No game installation is linked to the project, so the game's own files cannot be told apart from yours.");
+		context.warnings << QCoreApplication::translate("SlopStudioReleasePlan", "No game installation is linked to the project, so the game's own files cannot be told apart from yours.");
 	}
 	if (have && normalizedGameKey(loaded->gameKey) != game && game != QStringLiteral("custom")) {
-		context.warnings << QCoreApplication::translate("VibeStudioReleasePlan", "The asset index is for %1, but the release targets %2; it was not used.")
+		context.warnings << QCoreApplication::translate("SlopStudioReleasePlan", "The asset index is for %1, but the release targets %2; it was not used.")
 			.arg(gameDefinitionForKey(loaded->gameKey).displayName, gameDefinitionForKey(game).displayName);
 		have = false;
 	}
@@ -2743,7 +2743,7 @@ ReleaseStockContext prepareReleaseStock(const GameInstallationProfile* installat
 				known = known || source.id.compare(id, Qt::CaseInsensitive) == 0;
 			}
 			if (!known) {
-				context.warnings << QCoreApplication::translate("VibeStudioReleasePlan", "The release names stock package %1, which the installation does not have.").arg(id);
+				context.warnings << QCoreApplication::translate("SlopStudioReleasePlan", "The release names stock package %1, which the installation does not have.").arg(id);
 			}
 		}
 		auto filtered = std::make_shared<GameAssetRegister>(loaded->filtered(sources));
@@ -2751,7 +2751,7 @@ ReleaseStockContext prepareReleaseStock(const GameInstallationProfile* installat
 		for (const GameAssetRegisterSource& source : filtered->sources) {
 			labels << source.relativePath;
 		}
-		context.description = QCoreApplication::translate("VibeStudioReleasePlan", "%1: %2 (%3 files)")
+		context.description = QCoreApplication::translate("SlopStudioReleasePlan", "%1: %2 (%3 files)")
 			.arg(gameDefinitionForKey(game).displayName, labels.join(QStringLiteral(", ")), QLocale().toString(filtered->files.size()));
 		registers << filtered;
 	}
@@ -2935,25 +2935,25 @@ QJsonObject releasePlanJson(const ReleasePlan& plan)
 QString releasePlanText(const ReleasePlan& plan)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioReleasePlan", "%1 %2 (%3): %4 in %5")
+	lines << QCoreApplication::translate("SlopStudioReleasePlan", "%1 %2 (%3): %4 in %5")
 				 .arg(plan.release.title, plan.release.version, releaseScopeDisplayName(plan.scope))
-				 .arg(QCoreApplication::translate("VibeStudioReleasePlan", "%n file(s)", nullptr, int(plan.entries.size())) + QStringLiteral(", ")
+				 .arg(QCoreApplication::translate("SlopStudioReleasePlan", "%n file(s)", nullptr, int(plan.entries.size())) + QStringLiteral(", ")
 					 + QLocale().formattedDataSize(qint64(std::min<quint64>(plan.totalBytes, quint64(std::numeric_limits<qint64>::max())))))
 				 .arg(plan.packageFileName);
-	lines << (plan.stockChecked ? QCoreApplication::translate("VibeStudioReleasePlan", "Provided by the game or requirements, not packaged: %1").arg(plan.stock.size())
-								: QCoreApplication::translate("VibeStudioReleasePlan", "The game's own files were not checked."));
+	lines << (plan.stockChecked ? QCoreApplication::translate("SlopStudioReleasePlan", "Provided by the game or requirements, not packaged: %1").arg(plan.stock.size())
+								: QCoreApplication::translate("SlopStudioReleasePlan", "The game's own files were not checked."));
 	if (!plan.stockDescription.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioReleasePlan", "Checked against: %1").arg(plan.stockDescription);
+		lines << QCoreApplication::translate("SlopStudioReleasePlan", "Checked against: %1").arg(plan.stockDescription);
 	}
 	for (const ReleaseMapInfo& map : plan.maps) {
-		lines << QCoreApplication::translate("VibeStudioReleasePlan", "Map %1%2: %3").arg(map.name, map.title.isEmpty() ? QString() : QStringLiteral(" (\"%1\")").arg(map.title),
-			!map.built ? QCoreApplication::translate("VibeStudioReleasePlan", "not built") : map.stale ? QCoreApplication::translate("VibeStudioReleasePlan", "built, out of date")
-			: QCoreApplication::translate("VibeStudioReleasePlan", "built"));
+		lines << QCoreApplication::translate("SlopStudioReleasePlan", "Map %1%2: %3").arg(map.name, map.title.isEmpty() ? QString() : QStringLiteral(" (\"%1\")").arg(map.title),
+			!map.built ? QCoreApplication::translate("SlopStudioReleasePlan", "not built") : map.stale ? QCoreApplication::translate("SlopStudioReleasePlan", "built, out of date")
+			: QCoreApplication::translate("SlopStudioReleasePlan", "built"));
 	}
 	for (const ReleaseEntry& entry : plan.entries) {
 		lines << QStringLiteral("  + %1  [%2]%3%4").arg(entry.virtualPath, entry.role,
-			entry.replacesStock ? QCoreApplication::translate("VibeStudioReleasePlan", "  replaces the game's file") : QString(),
-			entry.loose ? QCoreApplication::translate("VibeStudioReleasePlan", "  beside the package") : QString());
+			entry.replacesStock ? QCoreApplication::translate("SlopStudioReleasePlan", "  replaces the game's file") : QString(),
+			entry.loose ? QCoreApplication::translate("SlopStudioReleasePlan", "  beside the package") : QString());
 	}
 	if (!plan.scriptReferences.isEmpty()) {
 		int included = 0;
@@ -2971,7 +2971,7 @@ QString releasePlanText(const ReleasePlan& plan)
 				++notFound;
 			}
 		}
-		lines << QCoreApplication::translate("VibeStudioReleasePlan", "Names in game code and scripts (%1 read): %2 in the release, %3 from the game, %4 not found or left out, %5 left to the engine.")
+		lines << QCoreApplication::translate("SlopStudioReleasePlan", "Names in game code and scripts (%1 read): %2 in the release, %3 from the game, %4 not found or left out, %5 left to the engine.")
 					 .arg(plan.scriptsRead).arg(included).arg(stock).arg(notFound).arg(engine);
 	}
 	for (const ReleaseProblem& problem : plan.problems) {
@@ -2983,9 +2983,9 @@ QString releasePlanText(const ReleasePlan& plan)
 	for (const QString& limitation : plan.limitations) {
 		lines << QStringLiteral("  ") + limitation;
 	}
-	lines << (plan.canPublish() ? QCoreApplication::translate("VibeStudioReleasePlan", "Ready to publish.")
-								: QCoreApplication::translate("VibeStudioReleasePlan", "Not ready: %1 blocking problem(s).").arg(plan.blockingCount()));
+	lines << (plan.canPublish() ? QCoreApplication::translate("SlopStudioReleasePlan", "Ready to publish.")
+								: QCoreApplication::translate("SlopStudioReleasePlan", "Not ready: %1 blocking problem(s).").arg(plan.blockingCount()));
 	return lines.join(QLatin1Char('\n'));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

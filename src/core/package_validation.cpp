@@ -4,7 +4,7 @@
 #include <QCryptographicHash>
 #include <QJsonArray>
 
-namespace vibestudio {
+namespace slopstudio {
 
 bool PackageValidationReport::valid() const
 {
@@ -18,7 +18,7 @@ PackageValidationReport validatePackage(const PackageArchive& archive, const Pac
 	report.sourcePath = archive.sourcePath();
 	report.warnings = archive.warnings();
 	if (!archive.isOpen()) {
-		report.warnings.append({{}, archive.errorString().isEmpty() ? QCoreApplication::translate("VibeStudioPackageValidation", "Open a package before validating it.") : archive.errorString()});
+		report.warnings.append({{}, archive.errorString().isEmpty() ? QCoreApplication::translate("SlopStudioPackageValidation", "Open a package before validating it.") : archive.errorString()});
 		return report;
 	}
 	const auto entries = archive.entries();
@@ -42,7 +42,7 @@ PackageValidationReport validatePackage(const PackageArchive& archive, const Pac
 				? entry.sizeBytes > 0 : entry.sizeBytes > request.maxTotalBytes - report.bytesRead));
 		if (exceedsBudget) {
 			result.status = QStringLiteral("unchecked");
-			result.message = QCoreApplication::translate("VibeStudioPackageValidation", "Entry exceeds the requested validation byte budget.");
+			result.message = QCoreApplication::translate("SlopStudioPackageValidation", "Entry exceeds the requested validation byte budget.");
 			++report.uncheckedCount;
 		} else {
 			QCryptographicHash hash(QCryptographicHash::Sha256);
@@ -123,14 +123,14 @@ QJsonObject packageValidationJson(const PackageValidationReport& report)
 QString packageValidationText(const PackageValidationReport& report)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioPackageValidation", "Package: %1").arg(report.sourcePath);
-	lines << (report.cancelled ? QCoreApplication::translate("VibeStudioPackageValidation", "Validation cancelled.")
-		: report.valid() ? QCoreApplication::translate("VibeStudioPackageValidation", "Validation passed.")
-		: QCoreApplication::translate("VibeStudioPackageValidation", "Validation did not pass."));
-	lines << QCoreApplication::translate("VibeStudioPackageValidation", "Verified: %1 / %2; failed: %3; unchecked: %4; bytes read: %5")
+	lines << QCoreApplication::translate("SlopStudioPackageValidation", "Package: %1").arg(report.sourcePath);
+	lines << (report.cancelled ? QCoreApplication::translate("SlopStudioPackageValidation", "Validation cancelled.")
+		: report.valid() ? QCoreApplication::translate("SlopStudioPackageValidation", "Validation passed.")
+		: QCoreApplication::translate("SlopStudioPackageValidation", "Validation did not pass."));
+	lines << QCoreApplication::translate("SlopStudioPackageValidation", "Verified: %1 / %2; failed: %3; unchecked: %4; bytes read: %5")
 		.arg(report.verifiedCount).arg(report.fileCount).arg(report.failedCount).arg(report.uncheckedCount).arg(report.bytesRead);
-	lines << QCoreApplication::translate("VibeStudioPackageValidation", "Source identity verified: %1; source bytes read: %2")
-		.arg(report.sourceVerified ? QCoreApplication::translate("VibeStudioPackageValidation", "yes") : QCoreApplication::translate("VibeStudioPackageValidation", "no"))
+	lines << QCoreApplication::translate("SlopStudioPackageValidation", "Source identity verified: %1; source bytes read: %2")
+		.arg(report.sourceVerified ? QCoreApplication::translate("SlopStudioPackageValidation", "yes") : QCoreApplication::translate("SlopStudioPackageValidation", "no"))
 		.arg(report.sourceBytesRead);
 	for (const auto& entry : report.entries) {
 		if (!entry.message.isEmpty()) { lines << QStringLiteral("%1 [%2]: %3").arg(entry.virtualPath).arg(entry.sourceOrdinal).arg(entry.message); }
@@ -139,4 +139,4 @@ QString packageValidationText(const PackageValidationReport& report)
 	return lines.join(QLatin1Char('\n'));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -12,7 +12,7 @@ class QLineEdit;
 class QPlainTextEdit;
 class QPushButton;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Export Map as OBJ's options, as TrenchBroom's OBJ export dialog and
 // NetRadiant Custom's brushexport window offer them: the file, how faces are
@@ -47,4 +47,4 @@ class LevelMapObjExportDialog final : public QDialog {
 	QPushButton* m_export = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

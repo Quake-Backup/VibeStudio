@@ -6,12 +6,12 @@
 #include <functional>
 #include <optional>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // A harmless map comment keeps a deliberately chosen Quake II target distinct
 // from Quake's identical text grammar after reopening in GUI/CLI or recovery.
-inline constexpr auto kQuake2MapTargetHeader = "// VibeStudio target: quake2\n";
+inline constexpr auto kQuake2MapTargetHeader = "// SlopStudio target: quake2\n";
 
 struct LevelMapCreateRequest {
 	// quake, quake2, quake3, doom, or hexen. Stable CLI/profile identifiers.
@@ -31,7 +31,7 @@ struct LevelDocumentSaveRequest {
 	bool dryRun = false;
 	bool overwrite = false;
 	bool keepBackup = true;
-	// Empty selects <destination folder>/.vibestudio/map-backups.
+	// Empty selects <destination folder>/.slopstudio/map-backups.
 	QString backupDirectory;
 	// How to write the scene; empty keeps the document's. A save that writes
 	// carries the choice on to the document (adoptLevelDocumentSave).
@@ -75,4 +75,4 @@ QVector<LevelMapRecovery> listLevelMapRecoveries(const QString& directory);
 bool restoreLevelMapRecovery(const QString& path, LevelMapDocument* document, QString* error = nullptr);
 bool removeLevelMapRecovery(const QString& directory, const QString& id, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

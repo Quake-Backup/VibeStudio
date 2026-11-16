@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct PackageRecoveryWriter::Storage {
 	QString directory;
@@ -99,4 +99,4 @@ void PackageRecoveryWriter::startNext()
 	m_thread->start();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

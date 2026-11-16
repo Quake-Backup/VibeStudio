@@ -35,7 +35,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool condition, const char *message)
@@ -52,7 +52,7 @@ class Expansion final : public QTranslator
 	bool isEmpty() const override { return false; }
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelEditor")
+		if (QByteArray(context) != "SlopStudioModelEditor")
 		{
 			return {};
 		}
@@ -71,14 +71,14 @@ int main(int argc, char **argv)
 #endif
 	QApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-editor-ui-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-editor-ui-smoke"); skip >= 0) {
 		return skip;
 	}
 	QElapsedTimer elapsed;
 	elapsed.start();
 	const auto timing = [&](const char *stage)
 	{
-		if (qEnvironmentVariableIsSet("VIBESTUDIO_MODELLER_TIMING"))
+		if (qEnvironmentVariableIsSet("SLOPSTUDIO_MODELLER_TIMING"))
 		{
 			std::cout << "TIMING " << stage << ' ' << elapsed.elapsed() << " ms" << std::endl;
 		}
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -288,7 +288,7 @@ int main(int argc, char **argv)
 			ok &= expect(editor->document().mesh().triangleCount == 4 && editor->document().selection().edges.size() == 2 &&
 							 preview->highlightedEdgeCount() == 2,
 						 "Split Edges control creates conforming topology and selects its child edges");
-			const auto topologyEvidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+			const auto topologyEvidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 			if (!topologyEvidence.isEmpty())
 			{
 				auto *geometry = tests::pageScroll(editor->sidebarPage(QStringLiteral("item")));
@@ -363,7 +363,7 @@ int main(int argc, char **argv)
 		ok &= expect(handoffs == 2 && editor->findChild<QLabel *>(QStringLiteral("meshStatus"))->text().contains(QStringLiteral("162")),
 					 "worker prepares MD2 handoff and reports quantization");
 		auto *tabs = editor->findChild<QTabWidget *>(QStringLiteral("meshInspector"));
-		const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+		const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 		for (int tab = 0; tab < tabs->count(); ++tab)
 		{
 			tabs->setCurrentIndex(tab);

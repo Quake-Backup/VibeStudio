@@ -20,7 +20,7 @@
 #include <QPointer>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 const char* const kLoadSerial = "levelLoadSerial";
 const char* const kComponents = "levelComponents";
@@ -247,4 +247,4 @@ void ApplicationShell::refreshLevelArbitraryTransformDialogs()
 		dialog->setSource(m_levelMapDocument);
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

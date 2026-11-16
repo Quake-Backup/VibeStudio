@@ -16,7 +16,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelPatchConvertRequest {
 	// Each patch's control grid: odd, 3 to 31. TrenchBroom makes 3 by 3.
@@ -58,4 +58,4 @@ bool levelBrushFacePatches(const LevelMapBrush& brush, int faceIndex, const Leve
 bool convertLevelMapFacesToPatches(LevelMapDocument* document, const QVector<LevelSurfaceFace>& faces, const QVector<int>& wholeBrushes,
 	const LevelPatchConvertRequest& request, LevelPatchConvertReport* report = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

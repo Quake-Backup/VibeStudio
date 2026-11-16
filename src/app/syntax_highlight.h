@@ -17,7 +17,7 @@
 
 class QTextDocument;
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class StudioLanguage {
 	PlainText,
@@ -119,4 +119,4 @@ private:
 	bool m_hasBlockComments = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

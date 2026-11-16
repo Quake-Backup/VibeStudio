@@ -8,7 +8,7 @@
 #include <QStatusBar>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 bool ApplicationShell::canChangeLevelVisibility(LevelVisibilityOperation operation) const
 {
 	if (m_levelVisibilityBusy || m_levelObjectSelectionBusy || m_levelRegionSelectionBusy || !m_levelMapViewport
@@ -52,4 +52,4 @@ void ApplicationShell::changeLevelVisibility(LevelVisibilityOperation operation)
 		? tr("Temporary hiding cleared. Scene visibility and filters still apply.")
 		: tr("%n object(s) temporarily hidden. Show All Hidden restores temporary visibility.",nullptr,hidden));
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -26,7 +26,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 #include <cmath>
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -412,4 +412,4 @@ void ModelCurveTransferDialog::reject()
 	}
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

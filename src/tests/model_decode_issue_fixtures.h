@@ -10,7 +10,7 @@
 #include <array>
 #include <cstring>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline void lwoU16(QByteArray &bytes, quint32 value)
 {
@@ -102,4 +102,4 @@ inline QByteArray layeredLightWave(bool secondLayer)
 	bytes.append(chunks);
 	return bytes;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

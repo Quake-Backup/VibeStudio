@@ -34,8 +34,8 @@
 #include <QTreeWidget>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::test;
+using namespace slopstudio;
+using namespace slopstudio::test;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -167,7 +167,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temp(QDir(root).filePath("recording-ui-XXXXXX"));
@@ -522,7 +522,7 @@ int main(int argc, char **argv)
 		                 openAudioRecordingReview(base, target.path).review.groupRegions == !multiple.groupRegions,
 		             "Save completes the guarded write before the requested close");
 	}
-	const auto renders = qEnvironmentVariable("VIBESTUDIO_AUDIO_RECORDING_RENDER_DIR");
+	const auto renders = qEnvironmentVariable("SLOPSTUDIO_AUDIO_RECORDING_RENDER_DIR");
 	if (!renders.isEmpty())
 		ok &= expect(QDir().mkpath(renders), "create recording layout evidence directory");
 	struct Layout {

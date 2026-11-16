@@ -2,7 +2,7 @@
 #include "core/model_design.h"
 #include "core/model_document.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh skinBindingMesh()
 {
@@ -47,4 +47,4 @@ inline QByteArray skinBindings()
 	return "// Original surface/shader fixture\nBoDy,models/new_body\n\"head\",\"models/new_head\"\n"
 		   "tag_mount,\n/* for another mesh */ other,models/unused\n";
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

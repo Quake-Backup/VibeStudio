@@ -14,7 +14,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class StudioIconTone {
 	Normal,   // Chrome icons: toolbars, menus, rails.
@@ -45,4 +45,4 @@ enum class StudioIconAlignment {
 [[nodiscard]] bool studioIconExists(const QString& name);
 [[nodiscard]] QStringList studioIconNames();
 
-} // namespace vibestudio
+} // namespace slopstudio

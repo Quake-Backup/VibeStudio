@@ -20,7 +20,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& detail = {})
@@ -108,7 +108,7 @@ void pivotRounding()
 	const auto exact = levelQuickTurnPivot(mins, maxs, 0);
 	const auto snapped = levelQuickTurnPivot(mins, maxs, 16);
 	expect(exact.valid && exact.x == 8 && exact.y == 16 && exact.z == 24, "no grid keeps the exact centre");
-	// Ties round away from zero, as every VibeStudio grid snap does.
+	// Ties round away from zero, as every SlopStudio grid snap does.
 	expect(snapped.valid && snapped.x == 16 && snapped.y == 16 && snapped.z == 32, "grid rounds the centre", QStringLiteral("%1 %2 %3").arg(snapped.x).arg(snapped.y).arg(snapped.z));
 	const auto negative = levelQuickTurnPivot({-16, -16, -16, true}, {0, 0, 0, true}, 16);
 	expect(negative.x == -16 && negative.y == -16 && negative.z == -16, "negative ties mirror positive ones");
@@ -186,14 +186,14 @@ void profilePolicy()
 		bool row = false;
 		for (const auto& reference : levelEditorControlRows(profile.controls)) {
 			row |= reference.section == QLatin1String("layout") && !reference.gesture.isEmpty()
-				&& reference.action == QCoreApplication::translate("VibeStudioLevelControls", "Quick-turn pivot");
+				&& reference.action == QCoreApplication::translate("SlopStudioLevelControls", "Quick-turn pivot");
 		}
 		expect(row, "the controls reference names the policy", profile.id);
 	}
 	LevelEditorControls effective;
 	QJsonObject normalized;
 	QString error;
-	expect(applyLevelGestureOverrides(vibeStudioLevelControls(), {{QStringLiteral("editing.quickTurnSnapsPivot"), QStringLiteral("on")}}, &effective,
+	expect(applyLevelGestureOverrides(slopStudioLevelControls(), {{QStringLiteral("editing.quickTurnSnapsPivot"), QStringLiteral("on")}}, &effective,
 			   &normalized, &error)
 			&& effective.quickTurnSnapsPivot && normalized.value(QStringLiteral("editing.quickTurnSnapsPivot")) == QStringLiteral("on"),
 		"any profile can opt in", error);
@@ -245,11 +245,11 @@ void cli(const QString& binary, const QDir& root)
 	expect(!QFile::exists(root.filePath(QStringLiteral("zero.map"))) && !QFile::exists(root.filePath(QStringLiteral("both.map"))), "usage errors write nothing");
 	// The profile policy reaches the editor CLI and its gesture route.
 	const auto nrc = run({QStringLiteral("editor"), QStringLiteral("controls"), QStringLiteral("netradiant-custom")}, 0).value(QStringLiteral("controls")).toObject();
-	const auto vibe = run({QStringLiteral("editor"), QStringLiteral("controls"), QStringLiteral("vibestudio-default")}, 0).value(QStringLiteral("controls")).toObject();
-	expect(nrc.value(QStringLiteral("quickTurnPivot")) == QStringLiteral("grid") && vibe.value(QStringLiteral("quickTurnPivot")) == QStringLiteral("centre"),
+	const auto slop = run({QStringLiteral("editor"), QStringLiteral("controls"), QStringLiteral("slopstudio-default")}, 0).value(QStringLiteral("controls")).toObject();
+	expect(nrc.value(QStringLiteral("quickTurnPivot")) == QStringLiteral("grid") && slop.value(QStringLiteral("quickTurnPivot")) == QStringLiteral("centre"),
 		"editor controls reports the quick-turn pivot");
-	run({QStringLiteral("editor"), QStringLiteral("gestures"), QStringLiteral("vibestudio-default"), QStringLiteral("--set"), QStringLiteral("editing.quickTurnSnapsPivot=on")}, 0);
-	expect(run({QStringLiteral("editor"), QStringLiteral("controls"), QStringLiteral("vibestudio-default")}, 0).value(QStringLiteral("controls")).toObject()
+	run({QStringLiteral("editor"), QStringLiteral("gestures"), QStringLiteral("slopstudio-default"), QStringLiteral("--set"), QStringLiteral("editing.quickTurnSnapsPivot=on")}, 0);
+	expect(run({QStringLiteral("editor"), QStringLiteral("controls"), QStringLiteral("slopstudio-default")}, 0).value(QStringLiteral("controls")).toObject()
 				   .value(QStringLiteral("quickTurnPivot")) == QStringLiteral("grid"),
 		"the gesture preference changes the policy");
 }

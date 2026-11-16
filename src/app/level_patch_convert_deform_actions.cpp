@@ -38,7 +38,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 bool ApplicationShell::levelSelectionConvertibleToPatches() const
 {
@@ -202,4 +202,4 @@ void ApplicationShell::deformLevelPatchesFromUi()
 	statusBar()->showMessage(message, 8000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

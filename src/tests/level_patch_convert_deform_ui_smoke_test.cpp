@@ -49,14 +49,14 @@
 #include <QTimer>
 #include <QTranslator>
 #include <QVBoxLayout>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -188,7 +188,7 @@ int main(int argc, char** argv)
 		expect(commandPaletteEntryForCommandId(id, &entry) && !entry.label.isEmpty() && !entry.summary.isEmpty(), "palette entry", id);
 	}
 
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 	// The registry's typing guard: in a field that types inside a guarded
 	// surface no editing command takes a key, even one the field ignores
 	// (Ctrl+P, Ctrl+D, Return); the window-wide owner of a shared key still
@@ -353,7 +353,7 @@ int main(int argc, char** argv)
 			action(QStringLiteral("map.vertexTool"))->trigger();
 			undo->trigger();
 			expect(until([&] { return bytes() == start; }, 5000) && shell.levelDocument().undoStack.size() == depth, "undo restores the box exactly");
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 			if (trenchBroom) {
 				// Ctrl+P in a view converts; Go to File keeps it elsewhere.
 				expect(action(QStringLiteral("shell.goToFile")) && action(QStringLiteral("shell.goToFile"))->shortcuts().contains(ctrlP),

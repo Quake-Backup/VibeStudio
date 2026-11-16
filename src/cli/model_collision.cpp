@@ -13,7 +13,7 @@
 #include <cmath>
 #include <tuple>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -676,4 +676,4 @@ ModelCollisionCliResult runModelCollision(const QStringList &arguments)
 	result.lines << (dry ? Text::tr("Validated without writing: %1") : Text::tr("Wrote: %1")).arg(output);
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

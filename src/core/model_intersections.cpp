@@ -7,13 +7,13 @@
 #include <numeric>
 #include <tuple>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelIntersections)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelIntersections)
 };
 bool fail(QString *error, const QString &message)
 {
@@ -245,4 +245,4 @@ bool inspectModelIntersections(const ModelMesh &mesh, const ModelIntersectionOpt
 	*result = std::move(report);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

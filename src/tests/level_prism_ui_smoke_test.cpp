@@ -6,7 +6,7 @@
 // step; NetRadiant Custom's Ctrl+3 to Ctrl+9 claimed by the views while a
 // brush is selected and left to the mode keys otherwise and in the other
 // profiles; and the Shapes tab's Fit choice and raised side limits.
-// NetRadiant Custom, TrenchBroom and VibeStudio profiles at 100%, and at 200%
+// NetRadiant Custom, TrenchBroom and SlopStudio profiles at 100%, and at 200%
 // with high contrast, expanded translations and right-to-left layout. Owned
 // offscreen widgets and synthetic Qt Test key events only.
 #include "app/application_shell.h"
@@ -43,7 +43,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -161,7 +161,7 @@ int main(int argc, char** argv)
 		ids << QStringLiteral("map.make%1SidedPrism").arg(sides);
 	}
 
-	for (const auto* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const auto* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		const bool nrc = QLatin1String(profile) == QLatin1String("netradiant-custom");
 		for (int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);

@@ -17,7 +17,7 @@
 // sphelper.h, which some SDKs tie to ATL; class and interface ids come from
 // __uuidof, so no GUID library has to be linked.
 #if defined(Q_OS_WIN) && defined(_MSC_VER) && __has_include(<sapi.h>)
-#define VIBESTUDIO_HAVE_SAPI 1
+#define SLOPSTUDIO_HAVE_SAPI 1
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -29,7 +29,7 @@
 #pragma comment(lib, "ole32.lib")
 #endif
 
-namespace vibestudio {
+namespace slopstudio {
 
 class SpeechBackend {
 public:
@@ -48,7 +48,7 @@ public:
 namespace {
 
 // Text the studio asked to be spoken, kept by the "log" engine that tests
-// select with VIBESTUDIO_SPEECH_ENGINE=log so nothing is heard while they run.
+// select with SLOPSTUDIO_SPEECH_ENGINE=log so nothing is heard while they run.
 QStringList& loggedSpeech()
 {
 	static QStringList spoken;
@@ -87,7 +87,7 @@ public:
 	bool usable() const override { return true; }
 	QString engineName() const override
 	{
-		return QCoreApplication::translate("VibeStudioSpeech", "Test log (silent)");
+		return QCoreApplication::translate("SlopStudioSpeech", "Test log (silent)");
 	}
 	QString unavailableReason() const override { return {}; }
 	SpeechCapabilities capabilities() const override { return {true, true, true, true}; }
@@ -112,7 +112,7 @@ public:
 	bool isSpeaking() const override { return false; }
 };
 
-#if defined(VIBESTUDIO_HAVE_SAPI)
+#if defined(SLOPSTUDIO_HAVE_SAPI)
 
 template <typename T>
 void releaseCom(T*& pointer)
@@ -190,7 +190,7 @@ public:
 
 	QString engineName() const override
 	{
-		return QCoreApplication::translate("VibeStudioSpeech", "Windows Speech API");
+		return QCoreApplication::translate("SlopStudioSpeech", "Windows Speech API");
 	}
 
 	QString unavailableReason() const override
@@ -198,7 +198,7 @@ public:
 		if (m_voice) {
 			return {};
 		}
-		return QCoreApplication::translate("VibeStudioSpeech", "The Windows Speech API could not be started (error 0x%1).")
+		return QCoreApplication::translate("SlopStudioSpeech", "The Windows Speech API could not be started (error 0x%1).")
 			.arg(static_cast<quint32>(m_error), 8, 16, QLatin1Char('0'));
 	}
 
@@ -342,11 +342,11 @@ public:
 	{
 		switch (m_kind) {
 		case Kind::Say:
-			return QCoreApplication::translate("VibeStudioSpeech", "macOS speech (say)");
+			return QCoreApplication::translate("SlopStudioSpeech", "macOS speech (say)");
 		case Kind::SpeechDispatcher:
-			return QCoreApplication::translate("VibeStudioSpeech", "Speech Dispatcher");
+			return QCoreApplication::translate("SlopStudioSpeech", "Speech Dispatcher");
 		case Kind::Espeak:
-			return QCoreApplication::translate("VibeStudioSpeech", "eSpeak NG");
+			return QCoreApplication::translate("SlopStudioSpeech", "eSpeak NG");
 		}
 		return {};
 	}
@@ -508,17 +508,17 @@ private:
 
 std::unique_ptr<SpeechBackend> createSpeechBackend()
 {
-	// VIBESTUDIO_SPEECH_ENGINE picks an engine by name: "none" silences the
+	// SLOPSTUDIO_SPEECH_ENGINE picks an engine by name: "none" silences the
 	// studio, and "log" records what would be said without a sound, which is
 	// what the tests use.
-	const QString requested = qEnvironmentVariable("VIBESTUDIO_SPEECH_ENGINE").trimmed().toLower();
+	const QString requested = qEnvironmentVariable("SLOPSTUDIO_SPEECH_ENGINE").trimmed().toLower();
 	if (requested == QStringLiteral("none") || requested == QStringLiteral("off")) {
-		return std::make_unique<UnavailableSpeechBackend>(QCoreApplication::translate("VibeStudioSpeech", "Speech is turned off for this run by VIBESTUDIO_SPEECH_ENGINE."));
+		return std::make_unique<UnavailableSpeechBackend>(QCoreApplication::translate("SlopStudioSpeech", "Speech is turned off for this run by SLOPSTUDIO_SPEECH_ENGINE."));
 	}
 	if (requested == QStringLiteral("log")) {
 		return std::make_unique<LoggingSpeechBackend>();
 	}
-#if defined(VIBESTUDIO_HAVE_SAPI)
+#if defined(SLOPSTUDIO_HAVE_SAPI)
 	if (requested.isEmpty() || requested == QStringLiteral("sapi")) {
 		auto sapi = std::make_unique<SapiSpeechBackend>();
 		if (sapi->usable() || requested == QStringLiteral("sapi")) {
@@ -548,11 +548,11 @@ std::unique_ptr<SpeechBackend> createSpeechBackend()
 		}
 	}
 #if defined(Q_OS_WIN)
-	return std::make_unique<UnavailableSpeechBackend>(QCoreApplication::translate("VibeStudioSpeech", "This build has no Windows Speech API support."));
+	return std::make_unique<UnavailableSpeechBackend>(QCoreApplication::translate("SlopStudioSpeech", "This build has no Windows Speech API support."));
 #elif defined(Q_OS_MACOS)
-	return std::make_unique<UnavailableSpeechBackend>(QCoreApplication::translate("VibeStudioSpeech", "The macOS say command was not found."));
+	return std::make_unique<UnavailableSpeechBackend>(QCoreApplication::translate("SlopStudioSpeech", "The macOS say command was not found."));
 #else
-	return std::make_unique<UnavailableSpeechBackend>(QCoreApplication::translate("VibeStudioSpeech", "No speech engine was found. Install Speech Dispatcher (spd-say) or eSpeak NG to hear status changes read aloud."));
+	return std::make_unique<UnavailableSpeechBackend>(QCoreApplication::translate("SlopStudioSpeech", "No speech engine was found. Install Speech Dispatcher (spd-say) or eSpeak NG to hear status changes read aloud."));
 #endif
 }
 
@@ -645,7 +645,7 @@ int normalizedSpeechVolume(int volume)
 
 QString speechTestPhrase()
 {
-	return QCoreApplication::translate("VibeStudioSpeech", "This is how VibeStudio reads status changes aloud.");
+	return QCoreApplication::translate("SlopStudioSpeech", "This is how SlopStudio reads status changes aloud.");
 }
 
 QStringList loggedSpeechForTesting()
@@ -660,4 +660,4 @@ void clearLoggedSpeechForTesting()
 	loggedSpeech().clear();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

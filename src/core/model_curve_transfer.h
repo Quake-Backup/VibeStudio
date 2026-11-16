@@ -1,6 +1,6 @@
 #pragma once
 #include "core/model_curve_key_tools.h"
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelCurveTransferOptions
 {
@@ -16,4 +16,4 @@ struct ModelCurveTransferOptions
 bool applyModelCurveTransfer(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});
 bool describeModelCurveTransfer(const ModelMesh &before, const ModelMesh &after, const ModelCurveTransferOptions &options,
 								ModelCurveKeyReport *report, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

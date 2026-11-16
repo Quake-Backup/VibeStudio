@@ -26,7 +26,7 @@
 #include <QStackedWidget>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 
 bool ApplicationShell::levelCursorPlacement(LevelPastePlacement* placement, QString* error)
 {
@@ -285,4 +285,4 @@ void ApplicationShell::showLevelEntityCreatePicker()
 	m_levelEntityCreatePicker->activateWindow();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

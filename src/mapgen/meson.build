@@ -1,7 +1,7 @@
-# VibeStudio Map Generator: the Quake-MapGen prompt-to-blockout pipeline for Quake, Quake II and
+# SlopStudio Map Generator: the Quake-MapGen prompt-to-blockout pipeline for Quake, Quake II and
 # Quake III Arena, imported from https://github.com/themuffinator/Quake-MapGen (MIT) and developed
 # here from now on. Plain C++20 with no Qt: core/level_mapgen bridges it into the studio. See
-# VIBESTUDIO.md for its provenance and what VibeStudio changed.
+# SLOPSTUDIO.md for its provenance and what SlopStudio changed.
 mapgen_python = find_program('python', 'python3')
 mapgen_root = meson.current_source_dir()
 mapgen_profile_files = files(
@@ -51,7 +51,7 @@ mapgen_sources = files(
 
 # The generator's own version and the llama.cpp revision its report records: the pinned one in
 # builds with -Dggml=enabled, else "not-linked".
-mapgen_version = '0.4.0+vibestudio'
+mapgen_version = '0.4.0+slopstudio'
 mapgen_args = [
   '-DQMG_VERSION="' + mapgen_version + '"',
   '-DQMG_LLAMA_REVISION="' + (ggml_revision != '' ? ggml_revision : 'not-linked') + '"',
@@ -62,8 +62,8 @@ if ggml_dep.found()
 endif
 mapgen_includes = include_directories('include')
 
-vibestudio_mapgen = static_library(
-  'vibestudio_mapgen',
+slopstudio_mapgen = static_library(
+  'slopstudio_mapgen',
   mapgen_sources, mapgen_profile_tables,
   include_directories: mapgen_includes,
   cpp_args: mapgen_args,
@@ -74,12 +74,12 @@ vibestudio_mapgen = static_library(
 mapgen_dep = declare_dependency(
   include_directories: mapgen_includes,
   compile_args: mapgen_args,
-  link_with: vibestudio_mapgen,
+  link_with: slopstudio_mapgen,
   dependencies: ggml_dep,
   sources: mapgen_profile_tables,
 )
 
-install_data('LICENSE', 'VIBESTUDIO.md', install_dir: get_option('datadir') / 'vibestudio/licenses/quake-mapgen')
+install_data('LICENSE', 'SLOPSTUDIO.md', install_dir: get_option('datadir') / 'slopstudio/licenses/quake-mapgen')
 
 # Quake-MapGen's own unit tests, unchanged apart from the ranker backend they expect. Timeouts allow
 # for debug builds, where the slowest take a minute or more.

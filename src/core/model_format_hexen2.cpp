@@ -25,7 +25,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::model_formats {
+namespace slopstudio::model_formats {
 
 namespace {
 
@@ -150,12 +150,12 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 	if (!work.check()) { return; }
 	// newmdl_t, 88 bytes.
 	if (!rangeOk(bytes, 0, kHeaderBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL header is truncated.");
 		return;
 	}
 	mesh->version = readI32(bytes, 4);
 	if (bytes.left(4) != QByteArrayLiteral("RAPO") || mesh->version != kVersion) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported Hexen II MDL version %1; only RAPO version 50 is decoded.").arg(mesh->version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported Hexen II MDL version %1; only RAPO version 50 is decoded.").arg(mesh->version);
 		return;
 	}
 	ModelVec3 scale;
@@ -177,52 +177,52 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 	const int stCount = readI32(bytes, 84);
 
 	if (!isFinite(scale) || !isFinite(translate)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL header has a non-finite scale or translation.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL header has a non-finite scale or translation.");
 		return;
 	}
 	if (skinCount < 0 || skinCount > kMaxSkins || vertexCount <= 0 || vertexCount > kMaxSurfaceVertices || stCount <= 0 || stCount > kMaxSurfaceVertices
 		|| triangleCount <= 0 || triangleCount > kMaxSurfaceTriangles || frameCount <= 0 || frameCount > kMaxFrames) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL header declares counts outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL header declares counts outside the supported range.");
 		return;
 	}
 	const qint64 skinPixels = qint64(std::max(0, skinWidth)) * qint64(std::max(0, skinHeight));
 	if (skinCount > 0 && (skinWidth <= 0 || skinHeight <= 0 || skinWidth > kMaxSkinDimension || skinHeight > kMaxSkinDimension || skinPixels > kMaxSkinPixels)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL skin size is outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL skin size is outside the supported range.");
 		return;
 	}
 	if (qint64(vertexCount) * qint64(frameCount) > kMaxVertexSlots) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL declares more frame vertices than can be decoded.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL declares more frame vertices than can be decoded.");
 		return;
 	}
 
 	mesh->skinCount = skinCount;
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skin size: %1 x %2").arg(skinWidth).arg(skinHeight);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Positions: %1").arg(vertexCount);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Texture coordinates: %1").arg(stCount);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Scale: %1").arg(formatVector(scale));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Translation: %1").arg(formatVector(translate));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Eye position: %1").arg(formatVector(eyePosition));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Declared bounding radius: %1").arg(formatCoordinate(declaredRadius));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Declared size: %1").arg(formatCoordinate(declaredSize));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Sync type: %1").arg(syncType);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Flags: 0x%1").arg(QString::number(flags, 16));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skin size: %1 x %2").arg(skinWidth).arg(skinHeight);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Positions: %1").arg(vertexCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Texture coordinates: %1").arg(stCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Scale: %1").arg(formatVector(scale));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Translation: %1").arg(formatVector(translate));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Eye position: %1").arg(formatVector(eyePosition));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Declared bounding radius: %1").arg(formatCoordinate(declaredRadius));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Declared size: %1").arg(formatCoordinate(declaredSize));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Sync type: %1").arg(syncType);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Flags: 0x%1").arg(QString::number(flags, 16));
 	if (flags & kFlagTransparent) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Translucent (EF_TRANSPARENT): index 0 is cut out and odd indices blend.");
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Translucent (EF_TRANSPARENT): index 0 is cut out and odd indices blend.");
 	}
 	if (flags & kFlagHoley) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Holey (EF_HOLEY): skin index 0 is transparent.");
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Holey (EF_HOLEY): skin index 0 is transparent.");
 	}
 	if (flags & kFlagSpecialTrans) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Special translucency (EF_SPECIAL_TRANS): the game blends the skin through its translucency table.");
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Special translucency (EF_SPECIAL_TRANS): the game blends the skin through its translucency table.");
 	}
 	if (flags & kFlagFaceView) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Faces the viewer (EF_FACE_VIEW).");
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Faces the viewer (EF_FACE_VIEW).");
 	}
 	if (flags & kFlagRotate) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Rotates in the game (EF_ROTATE).");
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Rotates in the game (EF_ROTATE).");
 	}
 	if (flags & kFlagMipMap) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Uses mip-mapped skins (EF_MIP_MAP).");
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Uses mip-mapped skins (EF_MIP_MAP).");
 	}
 
 	qint64 offset = kHeaderBytes;
@@ -232,30 +232,30 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 	for (int index = 0; index < skinCount; ++index) {
 		if (!work.step()) { return; }
 		if (!rangeOk(bytes, offset, 4)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL skin data is truncated.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL skin data is truncated.");
 			return;
 		}
 		const int type = readI32(bytes, offset);
 		offset += 4;
 		if (type != 0 && type != 1) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL skin type is neither a single image nor a group.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL skin type is neither a single image nor a group.");
 			return;
 		}
 		ModelEmbeddedSkin skin;
 		int members = 1;
 		if (type == 1) {
 			if (!rangeOk(bytes, offset, 4)) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL skin data is truncated.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL skin data is truncated.");
 				return;
 			}
 			members = readI32(bytes, offset);
 			offset += 4;
 			if (members <= 0 || members > kMaxSkinGroupFrames) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "A Hexen II MDL skin group declares an unsupported frame count.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "A Hexen II MDL skin group declares an unsupported frame count.");
 				return;
 			}
 			if (!rangeOk(bytes, offset, qint64(members) * 4)) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL skin data is truncated.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL skin data is truncated.");
 				return;
 			}
 			float previous = 0.0f;
@@ -263,7 +263,7 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 				if (!work.step()) { return; }
 				const float interval = readF32(bytes, offset + qint64(member) * 4);
 				if (!std::isfinite(interval) || interval <= previous) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Hexen II MDL skin group end times must be finite, positive and strictly increasing.");
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Hexen II MDL skin group end times must be finite, positive and strictly increasing.");
 					return;
 				}
 				skin.intervals.append(interval);
@@ -273,11 +273,11 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 		}
 		const qint64 block = skinPixels * members;
 		if (!rangeOk(bytes, offset, block)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL skin data is truncated.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL skin data is truncated.");
 			return;
 		}
 		if (block > kMaxSkinPixels - totalSkinPixels) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Hexen II MDL skin members exceed the 64-megapixel preview limit.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Hexen II MDL skin members exceed the 64-megapixel preview limit.");
 			return;
 		}
 		totalSkinPixels += block;
@@ -291,7 +291,7 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 		skin.image = indexedSkinImage(bytes, offset, skinWidth, skinHeight, palette, flags, work);
 		if (!mesh->error.isEmpty()) { return; }
 		if (skin.image.isNull()) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Embedded skin %1 could not be decoded.").arg(index);
+			mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "Embedded skin %1 could not be decoded.").arg(index);
 		}
 		mesh->embeddedSkins.append(skin);
 		offset += block;
@@ -299,7 +299,7 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 
 	// Texture coordinates (stvert_t: onseam, s, t).
 	if (!rangeOk(bytes, offset, qint64(stCount) * kStVertBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL texture coordinates are truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL texture coordinates are truncated.");
 		return;
 	}
 	const qint64 stOffset = offset;
@@ -307,7 +307,7 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 
 	// Triangles (dnewtriangle_t: facesfront, vertindex[3], stindex[3]).
 	if (!rangeOk(bytes, offset, qint64(triangleCount) * kTriangleBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL triangle list is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL triangle list is truncated.");
 		return;
 	}
 	ModelSurface surface;
@@ -366,10 +366,10 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 		surface.triangles.append(triangle);
 	}
 	if (skippedTriangles > 0) {
-		surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
+		surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
 	}
 	if (surface.triangles.isEmpty()) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL contains no usable triangles.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL contains no usable triangles.");
 		return;
 	}
 	offset += qint64(triangleCount) * kTriangleBytes;
@@ -381,29 +381,29 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 	for (int group = 0; group < frameCount; ++group) {
 		if (!work.step()) { return; }
 		if (!rangeOk(bytes, offset, 4)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL frame data is truncated.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL frame data is truncated.");
 			return;
 		}
 		const int type = readI32(bytes, offset);
 		offset += 4;
 		if (type != 0 && type != 1) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL frame type is neither a single pose nor a group.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL frame type is neither a single pose nor a group.");
 			return;
 		}
 		int members = 1;
 		if (type == 1) {
 			if (!rangeOk(bytes, offset, 12)) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL frame data is truncated.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL frame data is truncated.");
 				return;
 			}
 			members = readI32(bytes, offset);
 			offset += 12; // numframes, then the group's bounding box
 			if (members <= 0 || members > kMaxFrames || poses.size() + members > kMaxFrames) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "A Hexen II MDL frame group declares an unsupported frame count.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "A Hexen II MDL frame group declares an unsupported frame count.");
 				return;
 			}
 			if (!rangeOk(bytes, offset, qint64(members) * 4)) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL frame data is truncated.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL frame data is truncated.");
 				return;
 			}
 			float previous = 0.0f;
@@ -411,7 +411,7 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 				if (!work.step()) { return; }
 				const float interval = readF32(bytes, offset + qint64(member) * 4);
 				if (!std::isfinite(interval) || interval <= previous) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Hexen II MDL frame group end times must be finite, positive and strictly increasing.");
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Hexen II MDL frame group end times must be finite, positive and strictly increasing.");
 					return;
 				}
 				previous = interval;
@@ -422,7 +422,7 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 			if (!work.step()) { return; }
 			const qint64 poseBytes = 8 + kFrameNameBytes + qint64(vertexCount) * kVertexBytes;
 			if (!rangeOk(bytes, offset, poseBytes)) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL frame data is truncated.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL frame data is truncated.");
 				return;
 			}
 			Pose pose;
@@ -435,13 +435,13 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 			poses.append(pose);
 			offset += poseBytes;
 			if (poses.size() > kMaxFrames) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL declares more frames than can be decoded.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL declares more frames than can be decoded.");
 				return;
 			}
 		}
 	}
 	if (qint64(combinedCount) * poses.size() > kMaxVertexSlots) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL declares more frame vertices than can be decoded.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL declares more frame vertices than can be decoded.");
 		return;
 	}
 
@@ -475,7 +475,7 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 		mesh->frames.append(info);
 	}
 	if (invalidNormals > 0) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The Hexen II MDL contains invalid normal indices; preview uses fallback normals.");
+		mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "The Hexen II MDL contains invalid normal indices; preview uses fallback normals.");
 	}
 	mesh->surfaces.append(surface);
 	mesh->animations = inferAnimations(mesh->frames, work);
@@ -483,4 +483,4 @@ void decodeHexen2Mdl(const QByteArray& bytes, const IdTechPalette& palette, Mode
 	mesh->geometryAvailable = true;
 }
 
-} // namespace vibestudio::model_formats
+} // namespace slopstudio::model_formats

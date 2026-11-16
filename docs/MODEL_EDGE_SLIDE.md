@@ -1,7 +1,7 @@
 # Slide mesh edges
 
 **Available** — edge chains and loops can slide along the surrounding quad
-faces through the Mesh Editor and `model tool --tool edge-slide`. VibeStudio
+faces through the Mesh Editor and `model tool --tool edge-slide`. SlopStudio
 remains pre-alpha; this tool does not establish the wider modeller release gate.
 
 ## Shape an existing loop
@@ -76,8 +76,8 @@ after accepting the new shape. Native exports retain their own format limits.
 ## Automate an edge slide
 
 ```sh
-vibestudio --cli model tool models/prop.mesh.json --tool edge-slide --edges 2:7,7:12,12:17 --slide 0.25 --output models/slid.mesh.json --dry-run --json
-vibestudio --cli model tool models/prop.mesh.json --tool edge-slide --edges 2:7,7:12,12:17 --distance -2 --reference-frame 0 --frame all --output models/slid.mesh.json --json
+slopstudio --cli model tool models/prop.mesh.json --tool edge-slide --edges 2:7,7:12,12:17 --slide 0.25 --output models/slid.mesh.json --dry-run --json
+slopstudio --cli model tool models/prop.mesh.json --tool edge-slide --edges 2:7,7:12,12:17 --distance -2 --reference-frame 0 --frame all --output models/slid.mesh.json --json
 ```
 
 Use exactly one of `--slide` and `--distance`, with an explicit edge selection.

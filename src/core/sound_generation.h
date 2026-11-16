@@ -26,7 +26,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct SoundGameProfile {
 	// doom, quake, quake2, quake3, or generic.
@@ -61,7 +61,7 @@ struct SoundGenerationSpec {
 	// Empty makes one from the prompt.
 	QString name;
 	// The folder under sound/ for Quake-family games.
-	QString folder = QStringLiteral("vibestudio");
+	QString folder = QStringLiteral("slopstudio");
 	// 0 takes the kind's own length (synthesizer) or the model's choice.
 	double durationSeconds = 0.0;
 	bool loop = false;
@@ -79,10 +79,10 @@ struct SoundGenerationSpec {
 [[nodiscard]] SoundGenerationSpec soundGenerationVariantSpec(const SoundGenerationSpec& spec, int index, int count);
 // What the game file or lump is called: DSDOORSL for Doom, door_slam for the rest.
 [[nodiscard]] QString soundGenerationName(const SoundGenerationSpec& spec);
-// Where it goes in a package: DSDOORSL, or sound/vibestudio/door_slam.wav.
+// Where it goes in a package: DSDOORSL, or sound/slopstudio/door_slam.wav.
 [[nodiscard]] QString soundGenerationVirtualPath(const SoundGenerationSpec& spec);
-// How maps and scripts name it: vibestudio/door_slam.wav for Quake and Quake
-// II (under sound/), sound/vibestudio/door_slam.wav for Quake III, the lump
+// How maps and scripts name it: slopstudio/door_slam.wav for Quake and Quake
+// II (under sound/), sound/slopstudio/door_slam.wav for Quake III, the lump
 // name for Doom.
 [[nodiscard]] QString soundGenerationReference(const SoundGenerationSpec& spec);
 // The model's prompt, in English: the model reads it.
@@ -119,7 +119,7 @@ struct GeneratedSound {
 struct SoundGenerationOutput {
 	// The project or output folder.
 	QString folder;
-	// Doom: the PWAD the lump goes into; empty uses wads/vibestudio_sounds.wad
+	// Doom: the PWAD the lump goes into; empty uses wads/slopstudio_sounds.wad
 	// under the folder.
 	QString wadPath;
 	bool replaceExisting = false;
@@ -139,7 +139,7 @@ struct SoundGenerationWriteReport {
 };
 
 // Writes the sound where its game reads it, then a record of what made it to
-// .vibestudio/generated/sounds/<name>.json.
+// .slopstudio/generated/sounds/<name>.json.
 SoundGenerationWriteReport writeGeneratedSound(const GeneratedSound& sound, const SoundGenerationSpec& spec, const SoundGenerationOutput& output);
 
 [[nodiscard]] QJsonObject soundGenerationSpecJson(const SoundGenerationSpec& spec);
@@ -148,4 +148,4 @@ SoundGenerationWriteReport writeGeneratedSound(const GeneratedSound& sound, cons
 // Name, length, format, and peak, for lists and the CLI.
 [[nodiscard]] QString generatedSoundSummary(const GeneratedSound& sound);
 
-} // namespace vibestudio
+} // namespace slopstudio

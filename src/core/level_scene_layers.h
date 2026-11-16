@@ -5,7 +5,7 @@
 #include <QHash>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 // Layer commands over the scene tree of core/level_scene.h: NetRadiant Custom's
 // Expand Selection to Layers and its layers menu, which TrenchBroom offers as
 // Move to Layer. Layers sit at the scene root; groups nest beneath a layer or
@@ -70,4 +70,4 @@ QStringList levelMapSelectionLayerMoveBlockedReasons(const LevelMapDocument& doc
 // selection already in the layer succeeds with `changed` false and no undo step.
 bool moveLevelMapSelectionToLayer(LevelMapDocument* document, const QString& layerId, LevelSceneLayerMoveReport* report = nullptr,
 	QString* error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

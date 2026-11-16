@@ -10,7 +10,7 @@
 #include <cmath>
 #include <utility>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -377,4 +377,4 @@ bool applyModelWeightPaint(ModelMesh *mesh, const ModelEdit &edit, QString *erro
 		}
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

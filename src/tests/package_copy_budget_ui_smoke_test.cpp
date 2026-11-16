@@ -19,7 +19,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 class Expanded final : public QTranslator {
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
 			if (!caption->buddy()) { continue; }
 			ok &= expect(caption->height() >= caption->heightForWidth(caption->width()), "wrapped window limit labels have their full required height");
 		}
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog.render(&image);
 			ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("package-copy-storage-%1.png").arg(scale))), "render storage limits");

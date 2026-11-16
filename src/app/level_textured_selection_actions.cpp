@@ -13,7 +13,7 @@
 // NRC Select_FacesAndPatchesByShader / Selection_Deselect, revision
 // 449778b3840f8f2062daab15c87cb012f2ac945c, GPL-2.0-or-later: workflow
 // reference only. Original Qt state and publication; see docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 bool ApplicationShell::canSelectLevelMapTextured() const
 {
 	return canSelectLevelMapObjects(true, true) && !m_levelPaintMaterial.isEmpty()
@@ -153,4 +153,4 @@ void ApplicationShell::selectLevelMapTexturedFromUi(const QString& material, boo
 	statusBar()->showMessage(tr("Added %n textured face(s).",nullptr,result.texturedSelectionReport.addedFaces) + QLatin1Char(' ')
 		+ tr("Added %n whole patch(es).",nullptr,result.texturedSelectionReport.addedPatches));
 }
-} // namespace vibestudio
+} // namespace slopstudio

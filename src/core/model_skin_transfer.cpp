@@ -10,7 +10,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -505,4 +505,4 @@ QJsonObject modelSkinTransferJson(const ModelSkinTransferReport &report)
 			{"projectedFaces", projected},
 			{"maxProjectionDistance", report.maxProjectionDistance}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

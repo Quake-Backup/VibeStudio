@@ -20,13 +20,13 @@
 // CG_AddPlayerWeapon (tag_weapon, tag_barrel, tag_flash, barrel roll).
 // GPL-2.0-or-later reference, reviewed 2026-10-28; original implementation.
 // https://github.com/id-Software/Quake-III-Arena/blob/master/code/cgame/cg_weapons.c
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelWeaponBundle)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelWeaponBundle)
 };
 bool fail(QString *error, const QString &message)
 {
@@ -321,7 +321,7 @@ bool prepareModelWeaponBundle(const ModelAssembly &assembly, const ModelAssembly
 		package.receipt.insert("detailLevels", levelReceipts);
 		package.receipt.insert("sounds", soundReceipts);
 	}
-	if (!addModelBundleFile(&package, QStringLiteral("vibestudio/weapon-%1.json").arg(options.weaponName), "receipt",
+	if (!addModelBundleFile(&package, QStringLiteral("slopstudio/weapon-%1.json").arg(options.weaponName), "receipt",
 							QJsonDocument(package.receipt).toJson(), error) ||
 		!modelWorkCheckpoint(control, ModelWorkPhase::Validating, package.totalBytes, package.totalBytes, error))
 		return false;
@@ -372,4 +372,4 @@ PackageWriteReport writeModelWeaponBundle(const ModelWeaponBundle &bundle, const
 {
 	return writeModelPlayerBundle(bundle.package, path, overwrite, dryRun, control);
 }
-} // namespace vibestudio
+} // namespace slopstudio

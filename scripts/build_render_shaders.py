@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Compile VibeStudio's GPU shaders into src/core/render_shader_data.inc.
+"""Compile SlopStudio's GPU shaders into src/core/render_shader_data.inc.
 
 Each stage in src/core/shaders is written once. This script resolves its
 #include lines and produces two forms of it:
 
 - SPIR-V for the Vulkan backend, compiled by glslangValidator with
-  "#version 450" and VIBE_VULKAN defined (Vulkan 1.0 environment);
+  "#version 450" and SLOP_VULKAN defined (Vulkan 1.0 environment);
 - GLSL text for the OpenGL backend, which prefixes "#version 330 core" or
   "#version 300 es" at run time. Both prefixes are compiled here too, so a
   shader that only one OpenGL flavour accepts fails the build early.
 
-The generated file is committed, so building VibeStudio needs no shader
+The generated file is committed, so building SlopStudio needs no shader
 compiler. It records a hash of the sources and the glslang version used.
 
     python scripts/build_render_shaders.py           # regenerate the include
@@ -55,7 +55,7 @@ STAGES = [
     ("material_screen_frag", "material_screen.frag", "frag"),
 ]
 
-VULKAN_PREFIX = "#version 450\n#define VIBE_VULKAN 1\n"
+VULKAN_PREFIX = "#version 450\n#define SLOP_VULKAN 1\n"
 GL_PREFIXES = {
     "330 core": "#version 330 core\n",
     "300 es": "#version 300 es\nprecision highp float;\nprecision highp int;\nprecision highp sampler2D;\n",
@@ -144,9 +144,9 @@ def c_string(text: str) -> str:
     if current or not chunks:
         chunks.append(current)
     for chunk in chunks:
-        if ")vibeglsl\"" in chunk:
+        if ")slopglsl\"" in chunk:
             raise SystemExit("Shader text contains the raw string terminator")
-    return "\n".join(f'R"vibeglsl({chunk})vibeglsl"' for chunk in chunks)
+    return "\n".join(f'R"slopglsl({chunk})slopglsl"' for chunk in chunks)
 
 
 def c_words(data: bytes) -> str:
@@ -167,7 +167,7 @@ def generate(tool: str) -> str:
         f"// sources-sha256: {sources_hash()}",
         f"// glslang: {version}",
         "",
-        "namespace vibestudio::render_shader_data {",
+        "namespace slopstudio::render_shader_data {",
         "",
     ]
     for identifier, file_name, stage in STAGES:
@@ -185,7 +185,7 @@ def generate(tool: str) -> str:
         parts.append(f"inline constexpr char {identifier}_glsl[] =\n{c_string(source)};")
         parts.append(f"inline constexpr quint32 {identifier}_spirv[] = {{\n{c_words(spirv)}\n}};")
         parts.append("")
-    parts.append("} // namespace vibestudio::render_shader_data")
+    parts.append("} // namespace slopstudio::render_shader_data")
     return "\n".join(parts) + "\n"
 
 

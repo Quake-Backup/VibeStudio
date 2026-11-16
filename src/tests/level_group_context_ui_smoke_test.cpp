@@ -20,7 +20,7 @@
 #include <QTreeWidget>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label)
 {
@@ -137,7 +137,7 @@ int main(int argc, char** argv)
 	ok &= settleCamera();
 	ok &= expect(camera->activateGroupAt(QPointF(5,5)) && shell.levelDocument().openSceneGroups.isEmpty(),"camera empty-space activation closes context");
 
-	const auto output = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR"); if (!output.isEmpty()) { QDir().mkpath(output); }
+	const auto output = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR"); if (!output.isEmpty()) { QDir().mkpath(output); }
 	for (int scale : {100,200}) {
 		Expanded translator; if (scale == 200) { app.installTranslator(&translator); }
 		applyStudioTheme(app,studioThemeTokens(scale == 200 ? StudioTheme::HighContrastLight : StudioTheme::Dark,UiDensity::Standard,scale));

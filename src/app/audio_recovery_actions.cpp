@@ -15,7 +15,7 @@
 #include <QTimer>
 #include <utility>
 
-namespace vibestudio
+namespace slopstudio
 {
 QWidget *ApplicationShell::buildAudioRecoveryPreferences()
 {
@@ -169,4 +169,4 @@ void ApplicationShell::offerAudioRecoveryNotice()
 		recoverAudioFromUi();
 	});
 }
-} // namespace vibestudio
+} // namespace slopstudio

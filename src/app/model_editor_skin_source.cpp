@@ -6,7 +6,7 @@
 #include <QDoubleSpinBox>
 #include <QLabel>
 
-namespace vibestudio
+namespace slopstudio
 {
 void ModelEditorDialog::chooseMdlPackageSkin()
 {
@@ -24,7 +24,7 @@ void ModelEditorDialog::chooseMdlPackageSkin()
 	if (source.archive != m_materialSource.archive || source.revision != m_materialSource.revision ||
 		source.paletteId != m_materialSource.paletteId)
 	{
-		m_status->setText(QCoreApplication::translate("VibeStudioModelEditor",
+		m_status->setText(QCoreApplication::translate("SlopStudioModelEditor",
 													  "The package changed while choosing a skin. Open the texture picker again."));
 		return;
 	}
@@ -43,7 +43,7 @@ bool ModelEditorDialog::importMdlSkinFromPackage(const ModelSkinSourceReference 
 	{
 		if (error)
 		{
-			*error = QCoreApplication::translate("VibeStudioModelEditor", "Choose an open package and a skin import operation.");
+			*error = QCoreApplication::translate("SlopStudioModelEditor", "Choose an open package and a skin import operation.");
 		}
 		return false;
 	}
@@ -55,7 +55,7 @@ bool ModelEditorDialog::importMdlSkinFromPackage(const ModelSkinSourceReference 
 	edit.mdlDuration = m_mdlSkinDuration->value();
 	ModelSkinSourceReceipt receipt;
 	if (!performWork(
-			QCoreApplication::translate("VibeStudioModelEditor", "Import Package Skin"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Import Package Skin"),
 			[source, reference, edit, &receipt](ModelDocument &candidate, QString *failure, const ModelWorkControl &control) mutable
 			{
 				return readModelSkinSource(*source.archive, reference, modelMdlPreviewPalette(candidate.mesh()), source.paletteId,
@@ -76,12 +76,12 @@ bool ModelEditorDialog::importMdlSkinFromPackage(const ModelSkinSourceReference 
 		m_mdlMember->setCurrentIndex(m_mdlMember->count() - 1);
 	}
 	const auto palette =
-		receipt.paletteKind == QStringLiteral("embedded")  ? QCoreApplication::translate("VibeStudioModelEditor", "embedded image palette")
+		receipt.paletteKind == QStringLiteral("embedded")  ? QCoreApplication::translate("SlopStudioModelEditor", "embedded image palette")
 		: receipt.paletteKind == QStringLiteral("package") ? receipt.paletteSource
-														   : QCoreApplication::translate("VibeStudioModelEditor", "model fallback palette");
-	m_status->setText(QCoreApplication::translate("VibeStudioModelEditor", "Imported entry %1: %2 (%3). Undo restores the previous skin.")
+														   : QCoreApplication::translate("SlopStudioModelEditor", "model fallback palette");
+	m_status->setText(QCoreApplication::translate("SlopStudioModelEditor", "Imported entry %1: %2 (%3). Undo restores the previous skin.")
 						  .arg(receipt.entryIndex)
 						  .arg(receipt.path, palette));
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

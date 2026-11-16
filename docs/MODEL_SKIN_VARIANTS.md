@@ -4,7 +4,7 @@ Status: **Partial**. Skin variants are stored, edited with undo, previewed and
 written as Quake III `.skin` files and Doom 3 skin declarations. Player packages
 publish them. Choosing a variant in model browsers or on placed level models, and
 staging variant skins with a model, are planned. The Doom 3 output is checked by
-VibeStudio's own reader and the material decl parser, not yet in Doom 3.
+SlopStudio's own reader and the material decl parser, not yet in Doom 3.
 
 A skin variant is a named skin an editable source owns beside its primary
 materials, such as `red` and `blue` for team colours or `winter` for an alternate
@@ -65,12 +65,12 @@ the intended material.
 
 A Doom 3 skin maps materials to materials, not surfaces: `idDeclSkin` replaces a
 surface's material with the first mapping whose source is that material, and a
-`model` line only associates the skin with a model in the editors. VibeStudio
+`model` line only associates the skin with a model in the editors. SlopStudio
 writes one mapping per changed primary material, quoted, plus the model line when
 a model path is given:
 
 ```text
-// Doom 3 skin declaration written by VibeStudio: variant red.
+// Doom 3 skin declaration written by SlopStudio: variant red.
 skin skins/models/md5/monsters/imp/imp_red
 {
 	model	"models/md5/monsters/imp/imp.md5mesh"
@@ -102,15 +102,15 @@ skins (red and blue)**.
 ## CLI
 
 ```sh
-vibestudio --cli model skin-variants ./models/prop.mesh.json --json
-vibestudio --cli model skin-variants ./models/prop.mesh.json --operation add \
+slopstudio --cli model skin-variants ./models/prop.mesh.json --json
+slopstudio --cli model skin-variants ./models/prop.mesh.json --operation add \
   --name red --surface-material body=models/prop/body_red.tga \
   --output ./models/prop.mesh.json --overwrite --json
-vibestudio --cli model skin-variants ./models/prop.mesh.json --operation set \
+slopstudio --cli model skin-variants ./models/prop.mesh.json --operation set \
   --name red --surface-material visor= --output ./models/prop.mesh.json --overwrite
-vibestudio --cli model skin-export ./models/prop.mesh.json --variant red \
+slopstudio --cli model skin-export ./models/prop.mesh.json --variant red \
   --output ./out/prop_red.skin --json
-vibestudio --cli model skin-export ./models/imp.mesh.json --variant red --format doom3 \
+slopstudio --cli model skin-export ./models/imp.mesh.json --variant red --format doom3 \
   --model-path models/md5/monsters/imp/imp.md5mesh --output ./out/imp_red.skin --json
 ```
 

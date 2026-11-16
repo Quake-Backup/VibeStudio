@@ -10,17 +10,17 @@
 #include <cstring>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool stopped(const PackageReadControl& control, QString* error)
 {
 	if (!control.isCancelled || !control.isCancelled()) { return false; }
-	if (error) { *error = QCoreApplication::translate("VibeStudioPackageContent", "Package source verification cancelled."); }
+	if (error) { *error = QCoreApplication::translate("SlopStudioPackageContent", "Package source verification cancelled."); }
 	return true;
 }
 QString changedMessage(const QString& path)
 {
-	return QCoreApplication::translate("VibeStudioPackageContent", "Package source content changed: %1. Reopen or restage it before continuing.").arg(path);
+	return QCoreApplication::translate("SlopStudioPackageContent", "Package source content changed: %1. Reopen or restage it before continuing.").arg(path);
 }
 } // namespace
 
@@ -38,13 +38,13 @@ PackageFileIdentityPtr capturePackageFileIdentity(const QString& path, QString* 
 	if (stopped(control, error)) { return {}; }
 	const QFileInfo info(path);
 	if (!info.isFile() || info.size() < 0 || info.canonicalFilePath().isEmpty()) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageContent", "Package source is not a readable regular file: %1").arg(path); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageContent", "Package source is not a readable regular file: %1").arg(path); }
 		return {};
 	}
 	const qint64 chunks = info.size() / PackageFileIdentity::chunkBytes + (info.size() % PackageFileIdentity::chunkBytes != 0);
 	if (maximumHashBytes >= 0 && chunks > maximumHashBytes / 32) {
 		if (limitExceeded) { *limitExceeded = true; }
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageContent", "Source fingerprint metadata exceeds the remaining %1-byte indexing limit: %2").arg(maximumHashBytes).arg(path); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageContent", "Source fingerprint metadata exceeds the remaining %1-byte indexing limit: %2").arg(maximumHashBytes).arg(path); }
 		return {};
 	}
 	auto identity = std::make_shared<PackageFileIdentity>();
@@ -62,7 +62,7 @@ PackageFileIdentityPtr capturePackageFileIdentity(const QString& path, QString* 
 		const qint64 count = std::min(PackageFileIdentity::chunkBytes, identity->size - completed);
 		const QByteArray chunk = input.read(count);
 		if (chunk.size() != count || input.error() != QFileDevice::NoError) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioPackageContent", "Unable to fingerprint the complete source file: %1").arg(identity->path); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioPackageContent", "Unable to fingerprint the complete source file: %1").arg(identity->path); }
 			return {};
 		}
 		hash.addData(chunk);
@@ -95,7 +95,7 @@ PackageFileIdentityPtr retainPackageFileContent(const PackageFileIdentityPtr& id
 		const QByteArray bytes = input.read(count);
 		if (bytes.size() != count || input.failed()) { if (error) { *error = input.errorString(); } return {}; }
 		if (output.write(bytes) != bytes.size()) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioPackageContent", "Unable to retain the imported file: %1").arg(output.errorString()); } return {};
+			if (error) { *error = QCoreApplication::translate("SlopStudioPackageContent", "Unable to retain the imported file: %1").arg(output.errorString()); } return {};
 		}
 		copied += count;
 		if (control.progress) { control.progress(identity->path, copied, identity->size); }
@@ -111,12 +111,12 @@ PackageFileIdentityPtr retainPackageFileContent(const PackageFileIdentityPtr& id
 	const auto captured = capturePackageFileIdentity(output.fileName(), error, verify, identity->chunkHashes.size());
 	if (!captured || stopped(control, error)) { return {}; }
 	if (captured->sha256 != identity->sha256 || captured->size != identity->size) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageContent", "The retained import failed its content check."); } return {};
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageContent", "The retained import failed its content check."); } return {};
 	}
 	auto retained = std::make_shared<PackageFileIdentity>(*captured);
 	retained->storageDirectory = reservation->directory();
 	retained->storage = reservation->retain(*captured);
-	if (!retained->storage) { if (error) { *error = QCoreApplication::translate("VibeStudioPackageContent", "The working import reservation did not match its verified content."); } return {}; }
+	if (!retained->storage) { if (error) { *error = QCoreApplication::translate("SlopStudioPackageContent", "The working import reservation did not match its verified content."); } return {}; }
 	return retained;
 }
 
@@ -138,7 +138,7 @@ bool PackageContentDevice::open(OpenMode mode)
 	close();
 	m_failed = false;
 	if (mode != QIODevice::ReadOnly || !m_identity) {
-		return fail(QCoreApplication::translate("VibeStudioPackageContent", "Verified package reads require a captured source identity and read-only mode."));
+		return fail(QCoreApplication::translate("SlopStudioPackageContent", "Verified package reads require a captured source identity and read-only mode."));
 	}
 	// A directory replacement can preserve every payload statistic. An older
 	// snapshot must keep using the directory whose native reader lease it owns.
@@ -231,4 +231,4 @@ bool verifyPackageFileIdentity(const PackageFileIdentityPtr& identity, QString* 
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

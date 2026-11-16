@@ -5,7 +5,7 @@
 #include <QJsonObject>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 class PackageStagingModel;
 
 // Positions always address plannedEntries() in WAD directory order, never a
@@ -61,4 +61,4 @@ bool expandPackageWadGroups(const QStringList& names, const QSet<qsizetype>& req
 // sidecars and namespace regions retain their order. Existing WADs bypass this.
 bool orderNewPackageDoomLumps(const QStringList& names, QVector<qsizetype>* order,
 	QString* error, const PackageReadControl& control = {});
-} // namespace vibestudio
+} // namespace slopstudio

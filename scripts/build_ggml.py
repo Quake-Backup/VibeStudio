@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Build the pinned llama.cpp and ggml that VibeStudio's optional ggml support links.
+"""Build the pinned llama.cpp and ggml that SlopStudio's optional ggml support links.
 
     python scripts/build_ggml.py [--source <llama.cpp checkout>] [--prefix <install folder>]
                                  [--config Debug|Release] [--jobs N]
 
-VibeStudio builds without them by default. With them (meson setup ... -Dggml=enabled), the Local
+SlopStudio builds without them by default. With them (meson setup ... -Dggml=enabled), the Local
 GGUF connector runs GGUF language models inside the studio, grammar-constrained, for every text
 pipeline (the Assistant, both level generators' planners, map AI edits), and Quake-MapGen can rank
 its candidate layouts through a ggml graph as it did upstream.
@@ -14,7 +14,7 @@ clean clone is made under external/ai/ggml-work. The build is CPU only, static, 
 options Quake-MapGen used (no OpenMP, no llamafile SGEMM, no native instructions, no GPU backends),
 so results do not depend on the machine it was built on. Match --config to the Meson build type:
 Debug for buildtype=debug (the debug C runtime), Release otherwise. On Windows the compilers in
-CC/CXX are used (VibeStudio builds with clang-cl).
+CC/CXX are used (SlopStudio builds with clang-cl).
 
 Prints the meson setup options to use when it finishes.
 """
@@ -92,7 +92,7 @@ def cloned_source(work: Path) -> Path:
 
 
 def main(arguments: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="Build the pinned llama.cpp and ggml for VibeStudio's -Dggml=enabled.")
+    parser = argparse.ArgumentParser(description="Build the pinned llama.cpp and ggml for SlopStudio's -Dggml=enabled.")
     parser.add_argument("--source", type=Path, help="An existing clean llama.cpp checkout at the pinned revision.")
     parser.add_argument("--prefix", type=Path, default=DEFAULT_PREFIX, help="Install folder (default: external/ai/ggml).")
     parser.add_argument("--work", type=Path, default=DEFAULT_WORK, help="Clone and build folder (default: external/ai/ggml-work).")
@@ -116,11 +116,11 @@ def main(arguments: list[str]) -> int:
     run(configure)
     run(["cmake", "--build", str(build), "--config", options.config, "--parallel", str(options.jobs)])
     run(["cmake", "--install", str(build), "--config", options.config])
-    (prefix / "VIBESTUDIO_GGML.txt").write_text(
+    (prefix / "SLOPSTUDIO_GGML.txt").write_text(
         f"llama.cpp {PINNED_REVISION}\nconfig {options.config}\nsource {source}\n", encoding="utf-8")
     print()
     print(f"Installed llama.cpp {PINNED_REVISION[:7]} ({options.config}) into {prefix}.")
-    print(f"Configure VibeStudio with: meson setup <builddir> -Dggml=enabled -Dggml_prefix={prefix.as_posix()}")
+    print(f"Configure SlopStudio with: meson setup <builddir> -Dggml=enabled -Dggml_prefix={prefix.as_posix()}")
     return 0
 
 

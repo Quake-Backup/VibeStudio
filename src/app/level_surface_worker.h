@@ -7,7 +7,7 @@
 
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 class PackageStagingModel;
 struct LevelSurfaceWork {
 	LevelMapDocument document;
@@ -87,4 +87,4 @@ private:
 	QThread* m_thread = nullptr;
 	std::shared_ptr<Work> m_work;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -4,7 +4,7 @@
 #include <QHash>
 #include <QJsonValue>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LanguageWorkspaceEditRequest {
 	QString rootPath, provider, title, findText, replaceText, error;
@@ -21,4 +21,4 @@ struct LanguageWorkspaceEditRequest {
 AssetTextSearchReport prepareLanguageWorkspaceEdit(const LanguageWorkspaceEditRequest& request);
 QByteArray languageWorkspaceEditPlanHash(const AssetTextSearchReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

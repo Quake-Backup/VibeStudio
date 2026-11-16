@@ -25,7 +25,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -121,7 +121,7 @@ int main(int argc, char** argv)
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
 	app.setQuitOnLastWindowClosed(false);
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-level-ui-XXXXXX")));
 	if (!temporary.isValid()) {
@@ -131,7 +131,7 @@ int main(int argc, char** argv)
 	QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, temporary.path());
 	StudioSettings::setOverrideFilePath(QDir(temporary.path()).filePath(QStringLiteral("settings.ini")));
 	StudioSettings().setAudioRecoveryEnabled(false);
-	qputenv("VIBESTUDIO_AUDIO_RECOVERY_ROOT",
+	qputenv("SLOPSTUDIO_AUDIO_RECOVERY_ROOT",
 	        QDir(temporary.path()).filePath(QStringLiteral("recovery")).toUtf8());
 	bool ok = true;
 	QString error;
@@ -186,7 +186,7 @@ int main(int argc, char** argv)
 		             "apply remains visible at 100/200 percent");
 		ok &= expect(dialog.findChild<QScrollArea*>()->horizontalScrollBar()->maximum() == 0,
 		             "expanded RTL placement form fits without horizontal body scrolling");
-		const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied);
 			image.fill(Qt::transparent);

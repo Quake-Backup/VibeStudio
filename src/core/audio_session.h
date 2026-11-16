@@ -11,7 +11,7 @@
 #include <optional>
 #include <span>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Session media is an immutable, implicitly shared sample snapshot. Timeline
@@ -265,4 +265,4 @@ AudioClipResult renderAudioSession(const AudioSession &session, qint64 first = 0
                                    const AudioWorkControl &control = {});
 QJsonObject audioSessionSummary(const AudioSession &session);
 
-} // namespace vibestudio
+} // namespace slopstudio

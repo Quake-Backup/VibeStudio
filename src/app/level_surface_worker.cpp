@@ -8,7 +8,7 @@
 #include <QThread>
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelSurfaceWorker::Work {
 	std::atomic_bool cancelled{false};
 	LevelSurfaceResult result;
@@ -236,4 +236,4 @@ bool LevelSurfaceWorker::start(LevelSurfaceWork request)
 	m_thread->start();
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

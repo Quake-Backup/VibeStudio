@@ -31,7 +31,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -64,7 +64,7 @@ class Expansion final : public QTranslator
 	bool isEmpty() const override { return false; }
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelEditor" && QByteArray(context) != "VibeStudioModelObj")
+		if (QByteArray(context) != "SlopStudioModelEditor" && QByteArray(context) != "SlopStudioModelObj")
 		{
 			return {};
 		}
@@ -77,7 +77,7 @@ const QByteArray fixture("v -50 -20 0\nv -10 -20 0\nv -10 20 0\nv -50 20 0\nv 10
 						 "g right\nusemtl models/blue.png\nf 5/1/1 6/2/1 7/3/1 8/4/1\n");
 bool capture(QWidget &widget, const QString &name)
 {
-	const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (evidence.isEmpty())
 	{
 		return true;
@@ -125,13 +125,13 @@ int main(int argc, char **argv)
 #endif
 	QApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-obj-ui-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-obj-ui-smoke"); skip >= 0) {
 		return skip;
 	}
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -254,12 +254,12 @@ int main(int argc, char **argv)
 		ok &= expect(
 			plan.loadBaseArchive(*archive, &error) && plan.addBytes(fixture, "models/staged.obj", &error) &&
 				plan.addBytes(exportEditableModel(decodeModelObj("fixture.obj", fixture), "md3", 0, &error), "models/native.md3", &error) &&
-				PackageDraft::save(path("models.vibepackage"), &plan, false, &error),
+				PackageDraft::save(path("models.sloppackage"), &plan, false, &error),
 			"save staged OBJ fixture for the shell handoff");
 		ApplicationShell shell;
 		shell.resize(1450, 960);
 		shell.show();
-		shell.openPathFromCommandLine(path("models.vibepackage"));
+		shell.openPathFromCommandLine(path("models.sloppackage"));
 		if (auto *mode = shell.findChild<QAction *>("shell.mode.models"))
 		{
 			mode->trigger();

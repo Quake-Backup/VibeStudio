@@ -10,7 +10,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -513,4 +513,4 @@ QVector<ModelEdge> modelEdgeRing(const ModelQuadTopology &topology, ModelEdge ge
 	}
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

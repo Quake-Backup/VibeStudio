@@ -3,7 +3,7 @@
 #include "tests/model_rig_test_helpers.h"
 #include <cmath>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh jointFixture()
 {
@@ -30,4 +30,4 @@ inline bool jointNear(ModelVec3 a, ModelVec3 b, double tolerance = .0003)
 {
 	return std::abs(double(a.x) - b.x) < tolerance && std::abs(double(a.y) - b.y) < tolerance && std::abs(double(a.z) - b.z) < tolerance;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

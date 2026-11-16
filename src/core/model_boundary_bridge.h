@@ -2,7 +2,7 @@
 
 #include "core/model_boundary_fill.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelBoundaryBridgeReport
 {
@@ -49,4 +49,4 @@ bool bridgeModelBoundaries(const ModelSurface &source, const QSet<ModelEdge> &se
 bool bridgeModelFaceRegions(const ModelSurface &source, const QSet<int> &faces, const ModelBoundaryBridgeOptions &options,
 	int triangleLimit, int vertexLimit, ModelSurface *result, ModelBoundaryBridgeReport *report, QString *error,
 	const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

@@ -2,7 +2,7 @@
 #include "core/audio_session.h"
 #include <QStringList>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioArrangementEdit {
 	// move, duplicate, remove, split, group, ungroup, gain, fades, mute.
@@ -34,4 +34,4 @@ QStringList audioArrangementSelection(const AudioSession &session, const QString
 AudioArrangementResult editAudioArrangement(const AudioSession &session, const AudioArrangementEdit &edit);
 // Used after clip/track removal too. A singleton becomes an ordinary clip.
 void pruneAudioSessionGroups(AudioSession *session);
-} // namespace vibestudio
+} // namespace slopstudio

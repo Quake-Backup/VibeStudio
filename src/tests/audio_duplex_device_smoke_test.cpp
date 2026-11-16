@@ -1,7 +1,7 @@
 #include "app/audio_portaudio_api.h"
 #include "core/audio_duplex_queue.h"
 #include "core/audio_take.h"
-#include "vibestudio_config.h"
+#include "slopstudio_config.h"
 #include <QCoreApplication>
 #include <QDir>
 #include <QTemporaryDir>
@@ -13,11 +13,11 @@
 #include <iostream>
 #include <new>
 #include <thread>
-#include <vibestudio_wasapi_packet.h>
+#include <slopstudio_wasapi_packet.h>
 #ifdef Q_OS_WIN
 #include <pa_win_wasapi.h>
 #endif
-#if VIBESTUDIO_HAVE_AUDIO_DUPLEX
+#if SLOPSTUDIO_HAVE_AUDIO_DUPLEX
 extern "C" {
 #include <pa_process.h>
 }
@@ -42,7 +42,7 @@ void *operator new[](std::size_t size) { return ::operator new(size); }
 void operator delete[](void *p) noexcept { ::operator delete(p); }
 void operator delete[](void *p, std::size_t) noexcept { ::operator delete(p); }
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 using State = AudioDuplexDeviceStatus::State;
@@ -243,7 +243,7 @@ bool flagsAndFailures()
 	if (!device->open(req, probe, &error) || !device->start(&error))
 		return false;
 	host.invoke(0, 8,
-	            paInputOverflow | paInputUnderflow | paOutputOverflow | paOutputUnderflow | VIBE_PA_TIMESTAMP_ERROR);
+	            paInputOverflow | paInputUnderflow | paOutputOverflow | paOutputUnderflow | SLOP_PA_TIMESTAMP_ERROR);
 	if (!expect(probe.time.inputOverflow && probe.time.inputUnderflow && probe.time.outputOverflow &&
 	                probe.time.outputUnderflow && std::isnan(probe.time.inputAdc) && probe.inputSize == 32 &&
 	                probe.outputSize == 16,
@@ -256,7 +256,7 @@ bool flagsAndFailures()
 	host.active = 0;
 	if (!expect(device->status().state == State::Complete, "inactive after a successful drain completes"))
 		return false;
-	host.stopped = VIBE_PA_HOST_ERROR;
+	host.stopped = SLOP_PA_HOST_ERROR;
 	if (!expect(device->status().state == State::Error, "drain failure never claims completion"))
 		return false;
 	device->close();
@@ -345,32 +345,32 @@ bool failedClose()
 }
 bool packets()
 {
-	VibeWasapiPacketState packet{};
-	VibeWasapiPadding(&packet, 0);
-	VibeWasapiPacket(&packet, 100, 100000000, 16, 1, 0);
+	SlopWasapiPacketState packet{};
+	SlopWasapiPadding(&packet, 0);
+	SlopWasapiPacket(&packet, 100, 100000000, 16, 1, 0);
 	if (!expect(packet.flags == 0 && packet.inputTime == 10 && packet.nextInput == 116,
 	            "first packet establishes QPC origin"))
 		return false;
-	VibeWasapiPacket(&packet, 116, 100003333, 16, 0, 0);
+	SlopWasapiPacket(&packet, 116, 100003333, 16, 0, 0);
 	if (!expect(packet.flags == 0, "contiguous packets preserve valid clock"))
 		return false;
-	VibeWasapiPacket(&packet, 133, 100006666, 16, 0, 0);
+	SlopWasapiPacket(&packet, 133, 100006666, 16, 0, 0);
 	if (!expect(packet.flags & paInputOverflow, "device position gap catches unflagged loss"))
 		return false;
 	packet.flags = 0;
-	VibeWasapiPacket(&packet, 149, 100010000, 16, 1, 0);
+	SlopWasapiPacket(&packet, 149, 100010000, 16, 1, 0);
 	if (!expect(packet.flags & paInputOverflow, "subsequent discontinuity flags are retained"))
 		return false;
 	packet.flags = 0;
-	VibeWasapiPacket(&packet, 165, 0, 16, 0, 1);
-	VibeWasapiPadding(&packet, 0);
-	if (!expect(packet.flags == VIBE_PA_TIMESTAMP_ERROR, "uncertain clock fails, startup padding does not signal loss"))
+	SlopWasapiPacket(&packet, 165, 0, 16, 0, 1);
+	SlopWasapiPadding(&packet, 0);
+	if (!expect(packet.flags == SLOP_PA_TIMESTAMP_ERROR, "uncertain clock fails, startup padding does not signal loss"))
 		return false;
 	packet.outputWritten = 1;
-	VibeWasapiPadding(&packet, 1);
+	SlopWasapiPadding(&packet, 1);
 	if (!expect(!(packet.flags & paOutputUnderflow), "queued output is not an underrun"))
 		return false;
-	VibeWasapiPadding(&packet, 0);
+	SlopWasapiPadding(&packet, 0);
 	return expect(packet.flags & paOutputUnderflow, "empty output after real audio conservatively signals loss");
 }
 struct Engine : AudioDuplexDeviceCallback {
@@ -469,7 +469,7 @@ bool endToEnd()
 	}
 	return expect(read == 73, "entire capture prefix reaches normal journal storage");
 }
-#if VIBESTUDIO_HAVE_AUDIO_DUPLEX
+#if SLOPSTUDIO_HAVE_AUDIO_DUPLEX
 bool silentConversion()
 {
 	// Exercise the actual pinned buffer processor. No Pa_Initialize or devices.
@@ -510,7 +510,7 @@ int main(int argc, char **argv)
 	QCoreApplication application(argc, argv);
 	if (!lifecycle() || !flagsAndFailures() || !failedClose() || !packets() || !endToEnd())
 		return 1;
-#if VIBESTUDIO_HAVE_AUDIO_DUPLEX
+#if SLOPSTUDIO_HAVE_AUDIO_DUPLEX
 	if (!silentConversion())
 		return 1;
 #else

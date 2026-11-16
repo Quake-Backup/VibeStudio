@@ -26,12 +26,12 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* message)
 {
 	if (!condition) { std::cerr << message << '\n'; }
-	else if (qEnvironmentVariableIsSet("VIBESTUDIO_TEST_TRACE")) { std::cerr << "PASS: " << message << std::endl; }
+	else if (qEnvironmentVariableIsSet("SLOPSTUDIO_TEST_TRACE")) { std::cerr << "PASS: " << message << std::endl; }
 	return condition;
 }
 bool writeFile(const QString& path, const QByteArray& bytes)
@@ -56,14 +56,14 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "CodeRecovery" && QByteArray(context) != "vibestudio::ApplicationShell") { return {}; }
+		if (QByteArray(context) != "CodeRecovery" && QByteArray(context) != "slopstudio::ApplicationShell") { return {}; }
 		const QString text = QString::fromUtf8(source);
 		return QStringLiteral("[%1%2]").arg(text, QStringLiteral(" ~").repeated(text.size() / 6));
 	}
 };
 bool render(QWidget& widget, const QString& name)
 {
-	const QString evidence = qEnvironmentVariable("VIBESTUDIO_TEXT_TEST_EVIDENCE");
+	const QString evidence = qEnvironmentVariable("SLOPSTUDIO_TEXT_TEST_EVIDENCE");
 	QImage image(widget.size(), QImage::Format_ARGB32_Premultiplied);
 	image.fill(Qt::transparent);
 	widget.render(&image);

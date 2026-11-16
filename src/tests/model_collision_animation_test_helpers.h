@@ -3,7 +3,7 @@
 #include "core/model_collision.h"
 #include "tests/model_animation_test_helpers.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh collisionAnimationFixture()
 {
@@ -40,4 +40,4 @@ inline ModelMesh collisionMaximumFixture()
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

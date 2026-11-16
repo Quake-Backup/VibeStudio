@@ -7,7 +7,7 @@
 #include <QScopedValueRollback>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 LevelMapVec3 inPlane(MapViewportProjection projection, QPointF point, LevelMapVec3 p = {0,0,0,true})
 {
@@ -179,4 +179,4 @@ void MapViewport::paintClip(QPainter& painter, const Palette& palette) const
 	}
 	painter.restore();
 }
-} // namespace vibestudio
+} // namespace slopstudio

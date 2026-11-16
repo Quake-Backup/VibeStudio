@@ -7,7 +7,7 @@
 #include <numbers>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool finite(QPointF p) { return std::isfinite(p.x()) && std::isfinite(p.y()); }
 bool finite(LevelMapVec3 p) { return p.valid && std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z) && std::abs(p.x) <= 32768 && std::abs(p.y) <= 32768 && std::abs(p.z) <= 32768; }
@@ -1135,4 +1135,4 @@ void LevelComponentGizmo::paint(QPainter& painter,const LevelComponentGizmoFrame
 	}
 	painter.restore();
 }
-} // namespace vibestudio
+} // namespace slopstudio

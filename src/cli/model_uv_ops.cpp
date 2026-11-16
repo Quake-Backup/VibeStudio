@@ -5,7 +5,7 @@
 #include <QRegularExpression>
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -157,4 +157,4 @@ bool readModelUvToolOptions(const QStringList &args, ModelEdit *edit, QString *e
 	}
 	return true;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

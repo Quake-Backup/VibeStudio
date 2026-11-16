@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // A one-surface vertex animation with `count` distinct poses: frames walk1..3
 // then run1.., one attachment tag and one animated collision box per frame,
@@ -49,4 +49,4 @@ inline ModelMesh frameRangeFixture(int count = 6)
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

@@ -24,7 +24,7 @@
 
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelSourceWatchState
 {
@@ -119,21 +119,21 @@ void ModelEditorDialog::showSourceChange(int kind, const QString &path)
 	watch.quiet = true;
 	if (removed)
 	{
-		watch.notice->showNotice(QStringLiteral("warning"), QCoreApplication::translate("VibeStudioModelEditor", "Source file removed"),
-								 QCoreApplication::translate("VibeStudioModelEditor", "%1 was deleted or moved outside the studio. Your edits stay open; Save As keeps them.").arg(name));
-		auto *saveAs = watch.notice->addAction(QCoreApplication::translate("VibeStudioModelEditor", "Save As…"), QStringLiteral("save"), true);
+		watch.notice->showNotice(QStringLiteral("warning"), QCoreApplication::translate("SlopStudioModelEditor", "Source file removed"),
+								 QCoreApplication::translate("SlopStudioModelEditor", "%1 was deleted or moved outside the studio. Your edits stay open; Save As keeps them.").arg(name));
+		auto *saveAs = watch.notice->addAction(QCoreApplication::translate("SlopStudioModelEditor", "Save As…"), QStringLiteral("save"), true);
 		saveAs->setObjectName(QStringLiteral("meshSourceSaveAs"));
 		connect(saveAs, &QPushButton::clicked, this, [this]() { save(true); });
 	}
 	else
 	{
-		watch.notice->showNotice(QStringLiteral("warning"), QCoreApplication::translate("VibeStudioModelEditor", "Source changed on disk"),
-								 QCoreApplication::translate("VibeStudioModelEditor", "%1 was changed outside the studio. Reload it, compare it with this document, or keep "
+		watch.notice->showNotice(QStringLiteral("warning"), QCoreApplication::translate("SlopStudioModelEditor", "Source changed on disk"),
+								 QCoreApplication::translate("SlopStudioModelEditor", "%1 was changed outside the studio. Reload it, compare it with this document, or keep "
 									  "editing; Save then asks before replacing it.")
 									 .arg(name));
-		auto *reload = watch.notice->addAction(QCoreApplication::translate("VibeStudioModelEditor", "Reload from Disk"), QStringLiteral("refresh"), true);
+		auto *reload = watch.notice->addAction(QCoreApplication::translate("SlopStudioModelEditor", "Reload from Disk"), QStringLiteral("refresh"), true);
 		reload->setObjectName(QStringLiteral("meshSourceReload"));
-		reload->setAccessibleDescription(QCoreApplication::translate("VibeStudioModelEditor", "Replace this document with the file on disk."));
+		reload->setAccessibleDescription(QCoreApplication::translate("SlopStudioModelEditor", "Replace this document with the file on disk."));
 		connect(reload, &QPushButton::clicked, this,
 				[this]()
 				{
@@ -141,21 +141,21 @@ void ModelEditorDialog::showSourceChange(int kind, const QString &path)
 					if (!reloadSource(&error) && !error.isEmpty())
 						announceStatus(m_status, error, LiveStatus::Problem);
 				});
-		auto *compare = watch.notice->addAction(QCoreApplication::translate("VibeStudioModelEditor", "Compare"), QStringLiteral("info"));
+		auto *compare = watch.notice->addAction(QCoreApplication::translate("SlopStudioModelEditor", "Compare"), QStringLiteral("info"));
 		compare->setObjectName(QStringLiteral("meshSourceCompare"));
 		connect(compare, &QPushButton::clicked, this,
 				[this]()
 				{
-					QMessageBox::information(this, QCoreApplication::translate("VibeStudioModelEditor", "Compare with Disk"), sourceComparisonText());
+					QMessageBox::information(this, QCoreApplication::translate("SlopStudioModelEditor", "Compare with Disk"), sourceComparisonText());
 				});
 	}
-	auto *keep = watch.notice->addAction(QCoreApplication::translate("VibeStudioModelEditor", "Keep Editing"));
+	auto *keep = watch.notice->addAction(QCoreApplication::translate("SlopStudioModelEditor", "Keep Editing"));
 	keep->setObjectName(QStringLiteral("meshSourceKeepEditing"));
-	keep->setAccessibleDescription(QCoreApplication::translate("VibeStudioModelEditor", "Hide this notice until the file changes again. Save asks before replacing the file."));
+	keep->setAccessibleDescription(QCoreApplication::translate("SlopStudioModelEditor", "Hide this notice until the file changes again. Save asks before replacing the file."));
 	connect(keep, &QPushButton::clicked, this, [this]() { keepEditingOverSourceChange(); });
 	watch.quiet = false;
-	const QString message = removed ? QCoreApplication::translate("VibeStudioModelEditor", "The mesh source %1 was removed on disk.").arg(name)
-									: QCoreApplication::translate("VibeStudioModelEditor", "The mesh source %1 changed on disk.").arg(name);
+	const QString message = removed ? QCoreApplication::translate("SlopStudioModelEditor", "The mesh source %1 was removed on disk.").arg(name)
+									: QCoreApplication::translate("SlopStudioModelEditor", "The mesh source %1 changed on disk.").arg(name);
 	m_status->setText(message);
 	announceStatus(m_status, message, LiveStatus::Problem);
 }
@@ -170,7 +170,7 @@ void ModelEditorDialog::keepEditingOverSourceChange()
 	watch.quiet = true;
 	watch.notice->dismiss();
 	watch.quiet = false;
-	m_status->setText(QCoreApplication::translate("VibeStudioModelEditor", "Kept editing. The source on disk differs; Save asks before replacing it."));
+	m_status->setText(QCoreApplication::translate("SlopStudioModelEditor", "Kept editing. The source on disk differs; Save asks before replacing it."));
 }
 
 int ModelEditorDialog::sourceSaveDecision(const QString &path)
@@ -191,14 +191,14 @@ int ModelEditorDialog::sourceSaveDecision(const QString &path)
 	}
 	else
 	{
-		QMessageBox box(QMessageBox::Warning, QCoreApplication::translate("VibeStudioModelEditor", "Source Changed on Disk"),
-						QCoreApplication::translate("VibeStudioModelEditor", "%1 changed outside the studio after you opened it. Replacing it loses those changes.").arg(name),
+		QMessageBox box(QMessageBox::Warning, QCoreApplication::translate("SlopStudioModelEditor", "Source Changed on Disk"),
+						QCoreApplication::translate("SlopStudioModelEditor", "%1 changed outside the studio after you opened it. Replacing it loses those changes.").arg(name),
 						QMessageBox::NoButton, this);
-		box.setInformativeText(draftOverSource ? QCoreApplication::translate("VibeStudioModelEditor",
+		box.setInformativeText(draftOverSource ? QCoreApplication::translate("SlopStudioModelEditor",
 																			 "The file was saved or replaced after this recovery copy was taken.")
 											   : sourceComparisonText());
-		auto *saveAs = box.addButton(QCoreApplication::translate("VibeStudioModelEditor", "Save As…"), QMessageBox::AcceptRole);
-		auto *replace = box.addButton(QCoreApplication::translate("VibeStudioModelEditor", "Replace Changed File"), QMessageBox::DestructiveRole);
+		auto *saveAs = box.addButton(QCoreApplication::translate("SlopStudioModelEditor", "Save As…"), QMessageBox::AcceptRole);
+		auto *replace = box.addButton(QCoreApplication::translate("SlopStudioModelEditor", "Replace Changed File"), QMessageBox::DestructiveRole);
 		box.addButton(QMessageBox::Cancel);
 		box.setDefaultButton(saveAs);
 		box.exec();
@@ -224,7 +224,7 @@ bool ModelEditorDialog::reloadSource(QString *error)
 	if (!QFileInfo(path).isFile())
 	{
 		if (error)
-			*error = QCoreApplication::translate("VibeStudioModelEditor", "%1 no longer exists. Use Save As to keep this document.").arg(QFileInfo(path).fileName());
+			*error = QCoreApplication::translate("SlopStudioModelEditor", "%1 no longer exists. Use Save As to keep this document.").arg(QFileInfo(path).fileName());
 		return false;
 	}
 	if (m_document.isModified())
@@ -236,10 +236,10 @@ bool ModelEditorDialog::reloadSource(QString *error)
 		}
 		else
 		{
-			QMessageBox box(QMessageBox::Warning, QCoreApplication::translate("VibeStudioModelEditor", "Reload Mesh Source"),
-							QCoreApplication::translate("VibeStudioModelEditor", "Reloading replaces your unsaved edits with the file on disk."), QMessageBox::NoButton, this);
-			auto *saveAs = box.addButton(QCoreApplication::translate("VibeStudioModelEditor", "Save Edits As…"), QMessageBox::AcceptRole);
-			auto *discard = box.addButton(QCoreApplication::translate("VibeStudioModelEditor", "Discard Edits and Reload"), QMessageBox::DestructiveRole);
+			QMessageBox box(QMessageBox::Warning, QCoreApplication::translate("SlopStudioModelEditor", "Reload Mesh Source"),
+							QCoreApplication::translate("SlopStudioModelEditor", "Reloading replaces your unsaved edits with the file on disk."), QMessageBox::NoButton, this);
+			auto *saveAs = box.addButton(QCoreApplication::translate("SlopStudioModelEditor", "Save Edits As…"), QMessageBox::AcceptRole);
+			auto *discard = box.addButton(QCoreApplication::translate("SlopStudioModelEditor", "Discard Edits and Reload"), QMessageBox::DestructiveRole);
 			box.addButton(QMessageBox::Cancel);
 			box.setDefaultButton(saveAs);
 			box.exec();
@@ -252,7 +252,7 @@ bool ModelEditorDialog::reloadSource(QString *error)
 	const bool reloaded = openSource(path, error);
 	m_discardConfirmed = false;
 	if (reloaded)
-		announceStatus(m_status, QCoreApplication::translate("VibeStudioModelEditor", "Reloaded %1 from disk.").arg(QFileInfo(path).fileName()), LiveStatus::Result);
+		announceStatus(m_status, QCoreApplication::translate("SlopStudioModelEditor", "Reloaded %1 from disk.").arg(QFileInfo(path).fileName()), LiveStatus::Result);
 	return reloaded;
 }
 
@@ -262,19 +262,19 @@ QString ModelEditorDialog::sourceComparisonText()
 	const QLocale locale;
 	const auto summary = [&](const ModelMesh &mesh)
 	{
-		return QStringList{QCoreApplication::translate("VibeStudioModelEditor", "%Ln surface(s)", nullptr, mesh.surfaceCount),
-					   QCoreApplication::translate("VibeStudioModelEditor", "%Ln vert(ex)(ices)", nullptr, mesh.vertexCount),
-					   QCoreApplication::translate("VibeStudioModelEditor", "%Ln triangle(s)", nullptr, mesh.triangleCount),
-					   QCoreApplication::translate("VibeStudioModelEditor", "%Ln frame(s)", nullptr, mesh.frameCount)}
+		return QStringList{QCoreApplication::translate("SlopStudioModelEditor", "%Ln surface(s)", nullptr, mesh.surfaceCount),
+					   QCoreApplication::translate("SlopStudioModelEditor", "%Ln vert(ex)(ices)", nullptr, mesh.vertexCount),
+					   QCoreApplication::translate("SlopStudioModelEditor", "%Ln triangle(s)", nullptr, mesh.triangleCount),
+					   QCoreApplication::translate("SlopStudioModelEditor", "%Ln frame(s)", nullptr, mesh.frameCount)}
 			.join(QStringLiteral(", "));
 	};
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioModelEditor", "This document: %1%2.")
-				 .arg(summary(m_document.mesh()), m_document.isModified() ? QCoreApplication::translate("VibeStudioModelEditor", ", with unsaved edits") : QString());
+	lines << QCoreApplication::translate("SlopStudioModelEditor", "This document: %1%2.")
+				 .arg(summary(m_document.mesh()), m_document.isModified() ? QCoreApplication::translate("SlopStudioModelEditor", ", with unsaved edits") : QString());
 	const QFileInfo info(path);
 	if (path.isEmpty() || !info.isFile())
 	{
-		lines << QCoreApplication::translate("VibeStudioModelEditor", "On disk: the file is missing.");
+		lines << QCoreApplication::translate("SlopStudioModelEditor", "On disk: the file is missing.");
 		return lines.join(QLatin1Char('\n'));
 	}
 	const QString when = locale.toString(info.lastModified(), QLocale::ShortFormat);
@@ -284,7 +284,7 @@ QString ModelEditorDialog::sourceComparisonText()
 	auto disk = std::make_shared<ModelMesh>();
 	auto parsed = std::make_shared<bool>(false);
 	if (info.size() <= 16LL * 1024 * 1024 &&
-		performWork(QCoreApplication::translate("VibeStudioModelEditor", "Read the File on Disk"),
+		performWork(QCoreApplication::translate("SlopStudioModelEditor", "Read the File on Disk"),
 			[path, disk, parsed](ModelDocument &, QString *, const ModelWorkControl &)
 			{
 				QByteArray bytes;
@@ -296,12 +296,12 @@ QString ModelEditorDialog::sourceComparisonText()
 			nullptr, false, WorkKind::Preview) &&
 		*parsed)
 	{
-		lines << QCoreApplication::translate("VibeStudioModelEditor", "On disk: %1, saved %2.").arg(summary(*disk), when);
+		lines << QCoreApplication::translate("SlopStudioModelEditor", "On disk: %1, saved %2.").arg(summary(*disk), when);
 	}
 	else
 	{
-		lines << QCoreApplication::translate("VibeStudioModelEditor", "On disk: %1, saved %2; the file was not read here.").arg(locale.formattedDataSize(info.size()), when);
+		lines << QCoreApplication::translate("SlopStudioModelEditor", "On disk: %1, saved %2; the file was not read here.").arg(locale.formattedDataSize(info.size()), when);
 	}
 	return lines.join(QLatin1Char('\n'));
 }
-} // namespace vibestudio
+} // namespace slopstudio

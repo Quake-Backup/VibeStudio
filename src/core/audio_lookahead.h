@@ -3,7 +3,7 @@
 #include <array>
 #include <vector>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Original stereo-linked sample-peak lookahead limiter. This is not a true-peak
 // reconstruction guarantee. Preparation owns all storage; tick/reset allocate
@@ -29,4 +29,4 @@ class AudioLookaheadLimiter {
 	quint64 m_frame = 0;
 	double m_ceiling = 1, m_attack = 0, m_release = 0, m_envelope = 1, m_gain = 1;
 };
-} // namespace vibestudio
+} // namespace slopstudio

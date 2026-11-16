@@ -9,7 +9,7 @@ textures, Quake II WAL textures, Quake III shaders and Doom 3 materials.
 > **Status: Partial.** Browsing, the live preview, checking, text and node
 > editing and saving work and have automated tests on generated files, but
 > they have not been proven on real game packages yet. The preview is drawn
-> by VibeStudio itself and approximates each engine: see
+> by SlopStudio itself and approximates each engine: see
 > [What the preview leaves out](#what-the-preview-leaves-out).
 
 ## Open materials
@@ -49,7 +49,7 @@ from them too, a PWAD's textures merge with its IWAD's, and the game's own
 materials are listed, marked **(base)** and read only. To change one, choose
 **Override in Package** on its context menu or under **More**: the material
 is copied into a script the game reads after its own
-(`scripts/zz_vibestudio_overrides.shader`), where your copy wins. Save to stage
+(`scripts/zz_slopstudio_overrides.shader`), where your copy wins. Save to stage
 it into the package.
 
 ### Which Quake III game
@@ -216,11 +216,11 @@ file in **Code**, and shows a script on the **Packages** page.
 ## Command-line equivalents
 
 ```sh
-vibestudio --cli material list ./baseq3 --where "animated=yes" --json
-vibestudio --cli material validate ./mymod --base ./baseq3
-vibestudio --cli material render ./baseq3 --material textures/sfx/fire_ctfblue --frames 8 --fps 10 --output fire.png
-vibestudio --cli material usage ./mymod --unused
-vibestudio --cli material inspect ./scripts/jk.shader --dialect jediknight
+slopstudio --cli material list ./baseq3 --where "animated=yes" --json
+slopstudio --cli material validate ./mymod --base ./baseq3
+slopstudio --cli material render ./baseq3 --material textures/sfx/fire_ctfblue --frames 8 --fps 10 --output fire.png
+slopstudio --cli material usage ./mymod --unused
+slopstudio --cli material inspect ./scripts/jk.shader --dialect jediknight
 ```
 
 `material render` draws with the same renderer; add `--renderer opengl` or

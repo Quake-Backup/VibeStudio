@@ -3,7 +3,7 @@
 #include "core/level_patch.h"
 #include "core/level_prefab.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline QString prefabProperty(const LevelMapEntity &entity, const QString &key)
 {
@@ -55,4 +55,4 @@ inline bool loadPrefabFixture(LevelMapDocument *map, QString *error = nullptr)
 								 {LevelMapSelectionKind::Entity, 4}},
 								error);
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

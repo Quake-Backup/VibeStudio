@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelRegionSelectionCliResult {
 	int exitCode = 0;
 	QString error;
@@ -10,4 +10,4 @@ struct LevelRegionSelectionCliResult {
 	QStringList lines;
 };
 LevelRegionSelectionCliResult runLevelRegionSelection(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

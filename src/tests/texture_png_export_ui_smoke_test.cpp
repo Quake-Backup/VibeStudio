@@ -17,7 +17,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 bool until(const std::function<bool()>& ready)
@@ -33,7 +33,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		return QByteArray(context).startsWith("VibeStudioTexture") ? QStringLiteral("[%1 expanded text]").arg(QString::fromUtf8(source)) : QString{};
+		return QByteArray(context).startsWith("SlopStudioTexture") ? QStringLiteral("[%1 expanded text]").arg(QString::fromUtf8(source)) : QString{};
 	}
 };
 }
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 				ok &= expect(dialog->rect().contains(QRect(label->mapTo(dialog, QPoint()), label->size())) &&
 					label->height() >= label->heightForWidth(label->width()), "scaled and translated status/destination labels remain unclipped");
 			}
-			const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!captures.isEmpty()) {
 				QImage capture(dialog->size(), QImage::Format_ARGB32_Premultiplied); capture.fill(Qt::transparent); dialog->render(&capture);
 				ok &= expect(capture.save(QDir(captures).filePath(QStringLiteral("texture-png-output-%1.png").arg(static_cast<int>(theme)))), "render the actual PNG export widgets");

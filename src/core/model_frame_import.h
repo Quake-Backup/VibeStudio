@@ -23,7 +23,7 @@
 
 #include <QStringList>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelFrameMatch
 {
@@ -79,4 +79,4 @@ bool applyModelFrameImportEdit(ModelMesh *candidate, const ModelEdit &edit, QStr
 bool exportModelFrameObjSequence(const ModelMesh &mesh, int first, int last, const QString &pattern, bool overwrite, bool dryRun,
 								 const QStringList &protectedFiles, QStringList *written, QString *error = nullptr,
 								 const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

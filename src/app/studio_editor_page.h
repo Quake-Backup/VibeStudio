@@ -5,7 +5,7 @@
 class QDialog;
 class QTabWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Hosts an authoring document in the studio while retaining its save, recovery
 // and asynchronous close guards. The document owns the decision to close.
@@ -25,4 +25,4 @@ private:
 	QTabWidget* m_tabs;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -7,7 +7,7 @@
 #include <QSet>
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Original implementation. Interaction follows the Blender knife workflow
 // (manual, reviewed 2026-10-21); see docs/CREDITS.md. No upstream code is used.
@@ -38,4 +38,4 @@ struct ModelKnifeCut
 // crossings. Other surfaces can occlude, but only the active surface is cut.
 bool planModelKnife(const ModelMesh &mesh, int surface, int frame, const QSet<int> &selectedFaces, const ModelKnifeOptions &options,
 					QVector<ModelKnifeCut> *cuts, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

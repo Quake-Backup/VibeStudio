@@ -14,8 +14,8 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -150,7 +150,7 @@ int main(int argc, char **argv)
 			   QJsonDocument(editableModelJson(odd)).toJson() == before,
 		   "a skin width that is not a multiple of 4 is refused", error);
 	// CLI: model tool reports the predicted native counts.
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	QTemporaryDir temp(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("uv-frontback-XXXXXX"));
 	if (argc > 1 && temp.isValid())
 	{

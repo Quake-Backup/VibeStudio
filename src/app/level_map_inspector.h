@@ -26,7 +26,7 @@ class QPushButton;
 class QRadioButton;
 class QToolButton;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Map Info's class table: every entity class with how many entities have it
 // and how many reach the game, sorted by any column.
@@ -73,7 +73,7 @@ public:
 	void setProblem(const QString& problem);
 
 Q_SIGNALS:
-	void softBoundsRequested(const vibestudio::LevelMapSoftBoundsChange& change);
+	void softBoundsRequested(const slopstudio::LevelMapSoftBoundsChange& change);
 
 private:
 	void requestCustom(bool fromRadio);
@@ -124,4 +124,4 @@ private:
 	bool m_applies = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

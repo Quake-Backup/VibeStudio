@@ -31,7 +31,7 @@
 #include <memory>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct AssembleDraft {
 	LevelMapDocument document;
@@ -433,4 +433,4 @@ void ApplicationShell::connectLevelBrushAssemble()
 		return false;
 	});
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -13,7 +13,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 template<class Predicate> bool until(Predicate predicate)
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 		CountPresentation probe; auto* original = view.model(); probe.setSourceModel(original); view.setModel(&probe);
 		view.show(); int ticks = 0; QTimer timer; timer.setInterval(0); QObject::connect(&timer, &QTimer::timeout, &app, [&] { ++ticks; }); timer.start();
 		const auto render = [&](const QString& name) {
-			const auto directory = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT"); if (directory.isEmpty()) { return true; }
+			const auto directory = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT"); if (directory.isEmpty()) { return true; }
 			QImage image(view.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); view.render(&image);
 			return image.save(QDir(directory).filePath(QStringLiteral("package-staging-%1-%2.png").arg(name).arg(scale)));
 		};

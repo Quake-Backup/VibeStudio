@@ -7,12 +7,12 @@
 #include <array>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool fail(QString* error, const QString& message) { if (error) { *error = message; } return false; }
 bool checkpoint(const TextureProgress& progress, qint64 done, qint64 total, QString* error)
 {
-	return !progress || progress(done, total) || fail(error, QCoreApplication::translate("VibeStudioTextureAdjust", "Texture operation cancelled."));
+	return !progress || progress(done, total) || fail(error, QCoreApplication::translate("SlopStudioTextureAdjust", "Texture operation cancelled."));
 }
 int clampChannel(int value) { return std::clamp(value, 0, 255); }
 int clampChannel(double value) { return std::clamp(int(std::floor(value + 0.5)), 0, 255); }
@@ -23,11 +23,11 @@ int wrapped(int value, int size) { const int remainder = value % size; return re
 QImage workingCopy(const QImage& source, QRect area, QString* error)
 {
 	if (source.isNull() || area.isEmpty() || !source.rect().contains(area)) {
-		fail(error, QCoreApplication::translate("VibeStudioTextureAdjust", "The edited area must lie inside the canvas."));
+		fail(error, QCoreApplication::translate("SlopStudioTextureAdjust", "The edited area must lie inside the canvas."));
 		return {};
 	}
 	QImage image = source.convertToFormat(QImage::Format_ARGB32);
-	if (image.isNull()) { fail(error, QCoreApplication::translate("VibeStudioTextureAdjust", "Unable to allocate texture pixels.")); }
+	if (image.isNull()) { fail(error, QCoreApplication::translate("SlopStudioTextureAdjust", "Unable to allocate texture pixels.")); }
 	return image;
 }
 
@@ -141,7 +141,7 @@ bool textureGradientShapeFromId(const QString& id, TextureGradientShape* shape)
 
 QImage adjustTextureColors(const QImage& source, QRect area, const TextureColorAdjustment& a, QString* error, const TextureProgress& progress)
 {
-	if (!validTextureColorAdjustment(a)) { fail(error, QCoreApplication::translate("VibeStudioTextureAdjust", "Colour adjustments are out of range.")); return {}; }
+	if (!validTextureColorAdjustment(a)) { fail(error, QCoreApplication::translate("SlopStudioTextureAdjust", "Colour adjustments are out of range.")); return {}; }
 	QImage image = workingCopy(source, area, error);
 	if (image.isNull()) { return {}; }
 	// Order: invert, brightness, contrast, hue/saturation/lightness, greyscale,
@@ -184,7 +184,7 @@ QImage adjustTextureColors(const QImage& source, QRect area, const TextureColorA
 
 QImage filterTexturePixels(const QImage& source, QRect area, const TextureFilterSettings& s, QString* error, const TextureProgress& progress)
 {
-	if (!validTextureFilterSettings(s)) { fail(error, QCoreApplication::translate("VibeStudioTextureAdjust", "Choose a filter, a radius of 1–16 and an amount of 1–255.")); return {}; }
+	if (!validTextureFilterSettings(s)) { fail(error, QCoreApplication::translate("SlopStudioTextureAdjust", "Choose a filter, a radius of 1–16 and an amount of 1–255.")); return {}; }
 	QImage image = workingCopy(source, area, error);
 	if (image.isNull()) { return {}; }
 	const int width = area.width(), height = area.height();
@@ -272,7 +272,7 @@ QImage filterTexturePixels(const QImage& source, QRect area, const TextureFilter
 
 QImage gradientTexturePixels(const QImage& source, QRect area, const TextureGradient& g, QString* error, const TextureProgress& progress)
 {
-	if (g.mode == TexturePaintMode::Clone || textureGradientShapeId(g.shape).isEmpty()) { fail(error, QCoreApplication::translate("VibeStudioTextureAdjust", "Choose a linear, radial or reflected gradient that replaces or blends.")); return {}; }
+	if (g.mode == TexturePaintMode::Clone || textureGradientShapeId(g.shape).isEmpty()) { fail(error, QCoreApplication::translate("SlopStudioTextureAdjust", "Choose a linear, radial or reflected gradient that replaces or blends.")); return {}; }
 	QImage image = workingCopy(source, area, error);
 	if (image.isNull()) { return {}; }
 	static constexpr int bayer[4][4] = {{0, 8, 2, 10}, {12, 4, 14, 6}, {3, 11, 1, 9}, {15, 7, 13, 5}};
@@ -302,7 +302,7 @@ QImage gradientTexturePixels(const QImage& source, QRect area, const TextureGrad
 
 QImage replaceTextureColor(const QImage& source, QRect area, QRgb from, QRgb to, int tolerance, bool keepAlpha, QString* error, const TextureProgress& progress)
 {
-	if (tolerance < 0 || tolerance > 255) { fail(error, QCoreApplication::translate("VibeStudioTextureAdjust", "Colour tolerance must be 0–255.")); return {}; }
+	if (tolerance < 0 || tolerance > 255) { fail(error, QCoreApplication::translate("SlopStudioTextureAdjust", "Colour tolerance must be 0–255.")); return {}; }
 	QImage image = workingCopy(source, area, error);
 	if (image.isNull()) { return {}; }
 	for (int y = area.top(); y <= area.bottom(); ++y) {
@@ -321,7 +321,7 @@ QImage replaceTextureColor(const QImage& source, QRect area, QRgb from, QRgb to,
 QImage seamlessTexturePixels(const QImage& source, QRect area, int blend, QString* error, const TextureProgress& progress)
 {
 	if (blend < 1 || blend > std::min(area.width(), area.height()) / 2) {
-		fail(error, QCoreApplication::translate("VibeStudioTextureAdjust", "The seam blend width must be 1 to half the shorter side of the edited area."));
+		fail(error, QCoreApplication::translate("SlopStudioTextureAdjust", "The seam blend width must be 1 to half the shorter side of the edited area."));
 		return {};
 	}
 	QImage image = workingCopy(source, area, error);
@@ -379,4 +379,4 @@ int textureDistinctColors(const QImage& image, int limit)
 	return int(colors.size());
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

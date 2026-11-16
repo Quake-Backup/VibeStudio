@@ -5,7 +5,7 @@
 #include <QMessageBox>
 #include <QStatusBar>
 
-namespace vibestudio
+namespace slopstudio
 {
 void ApplicationShell::showLevelPrefab(bool capture, bool stage, const QString &path, bool packageEntry)
 {
@@ -20,7 +20,7 @@ void ApplicationShell::showLevelPrefab(bool capture, bool stage, const QString &
 	QString input = path;
 	if (!capture && input.isEmpty()) {
 		input =
-			QFileDialog::getOpenFileName(this, tr("Insert Prefab"), m_settings.currentProjectPath(), tr("VibeStudio prefabs (*.vprefab)"));
+			QFileDialog::getOpenFileName(this, tr("Insert Prefab"), m_settings.currentProjectPath(), tr("SlopStudio prefabs (*.vprefab)"));
 		if (input.isEmpty()) {
 			return;
 		}
@@ -108,4 +108,4 @@ void ApplicationShell::showLevelPrefab(bool capture, bool stage, const QString &
 		}
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

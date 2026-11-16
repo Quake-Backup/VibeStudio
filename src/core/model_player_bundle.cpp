@@ -27,13 +27,13 @@
 // and snd_mem.c S_LoadSound (mono Microsoft PCM).
 // GPL-2.0-or-later reference, reviewed 2026-10-06 and 2026-10-22; original implementation.
 // https://github.com/id-Software/Quake-III-Arena/blob/master/code/cgame/cg_players.c
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelPlayerBundle)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelPlayerBundle)
 };
 constexpr qint64 bundleLimit = 256 * 1024 * 1024;
 constexpr qint64 soundLimit = 16 * 1024 * 1024;
@@ -685,7 +685,7 @@ bool prepareModelPlayerBundle(const ModelAssembly &assembly, const ModelAssembly
 		candidate.receipt.insert("detailLevels", levelReceipts);
 		candidate.receipt.insert("sounds", soundReceipts);
 	}
-	if (!add(&candidate, "vibestudio/player-bundle.json", "receipt", QJsonDocument(candidate.receipt).toJson(), error) ||
+	if (!add(&candidate, "slopstudio/player-bundle.json", "receipt", QJsonDocument(candidate.receipt).toJson(), error) ||
 		!modelWorkCheckpoint(control, ModelWorkPhase::Validating, candidate.totalBytes, candidate.totalBytes, error))
 		return false;
 	std::sort(candidate.files.begin(), candidate.files.end(), [](const auto &a, const auto &b) { return a.path < b.path; });
@@ -829,8 +829,8 @@ PackageWriteReport writeModelBundleArchive(const ModelPlayerBundle &bundle, cons
 	const auto target = inspectModelWriteTarget(path, control);
 	if (!target.isValid())
 		return reject(target.error);
-	const QStringList outputs{target.path, target.resolvedPath, target.path + ".bak", target.path + ".vibestudio-save.lock",
-							  target.resolvedPath + ".bak", target.resolvedPath + ".vibestudio-save.lock"};
+	const QStringList outputs{target.path, target.resolvedPath, target.path + ".bak", target.path + ".slopstudio-save.lock",
+							  target.resolvedPath + ".bak", target.resolvedPath + ".slopstudio-save.lock"};
 	QString error;
 	if (!validateModelArchiveOutputs(bundle.sourceArchive.get(), outputs, &error, control))
 		return reject(error);
@@ -857,4 +857,4 @@ PackageWriteReport writeModelBundleArchive(const ModelPlayerBundle &bundle, cons
 	};
 	return staging.writeArchive(request);
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -31,7 +31,7 @@
 
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class MaterialEngine {
 	Unknown,
@@ -704,4 +704,4 @@ QJsonObject materialScriptJson(const MaterialScript& script, bool includeDirecti
 // A readable multi-line summary for the CLI and the detail drawer.
 QStringList materialDefinitionSummaryLines(const MaterialDefinition& definition);
 
-} // namespace vibestudio
+} // namespace slopstudio

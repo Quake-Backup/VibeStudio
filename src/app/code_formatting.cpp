@@ -9,7 +9,7 @@
 #include <QTextCursor>
 #include <QTextDocument>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::retireCodeFormatting(const QString& reason, OperationState state)
 {
@@ -88,4 +88,4 @@ void ApplicationShell::formatCodeDocument(bool selection)
 	if (m_codeFormattingRequest < 0) { retireCodeFormatting(tr("The language server could not start formatting."), OperationState::Failed); }
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

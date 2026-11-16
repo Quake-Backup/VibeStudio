@@ -5,7 +5,7 @@
 
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr qint64 modelSkinBindingByteLimit = 64 * 1024;
 struct ModelSkinAssignment
@@ -48,4 +48,4 @@ bool planModelSkinBindings(const ModelMesh &mesh, const QByteArray &bytes, Model
 bool writeModelQ3Skin(const ModelMesh &mesh, QByteArray *bytes, QString *error = nullptr, const ModelWorkControl &control = {});
 QJsonObject modelSkinBindingPlanJson(const ModelSkinBindingPlan &plan);
 QStringList modelSkinBindingPlanText(const ModelSkinBindingPlan &plan);
-} // namespace vibestudio
+} // namespace slopstudio

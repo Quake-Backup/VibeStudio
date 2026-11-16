@@ -139,7 +139,7 @@ opening a newly created source file also requests a refresh when needed.
 
 The default list stops at 4,000 files or 100,000 directory entries and explicitly
 reports partial results. It excludes links and prunes `.git`, `.hg`, `.svn`,
-`.agents`, `.vibestudio`, `node_modules`, `__pycache__`, `build`, `builddir*`,
+`.agents`, `.slopstudio`, `node_modules`, `__pycache__`, `build`, `builddir*`,
 `dist`, and `external` at every depth. A linked project root is rejected. Filtering
 a partial catalog only searches the files already gathered; use a narrower project
 root or the CLI's larger file bound to inspect more. Unopened external changes
@@ -148,7 +148,7 @@ require **Refresh Tree**.
 `code files` uses the same catalog and metadata filters without reading contents:
 
 ```sh
-vibestudio --cli code files ./mymod --where "ext=qc size>1kb" --max-files 4000 --json
+slopstudio --cli code files ./mymod --where "ext=qc size>1kb" --max-files 4000 --json
 ```
 
 `--max-files` accepts 1–20,000. JSON's `codeFiles` object contains matching `files`
@@ -190,7 +190,7 @@ project root or browse the package directly when these bounds are reached.
 The equivalent project catalog is available without the GUI:
 
 ```sh
-vibestudio --cli project files ./mymod --where "kind=image" --max-files 20000 --json
+slopstudio --cli project files ./mymod --where "kind=image" --max-files 20000 --json
 ```
 
 `project files` defaults to 20,000 candidates, accepts the same 1–20,000 bound,
@@ -289,7 +289,7 @@ index with warnings. A missing match in a partial index is not proof of absence.
 reads saved files; GUI snapshots remain local to the running editor. For example:
 
 ```sh
-vibestudio --cli code index ./mymod --find monster --max-files 4096 --json
+slopstudio --cli code index ./mymod --find monster --max-files 4096 --json
 ```
 
 `--max-files` accepts 1–20,000. JSON reports `complete`, `cancelled`, `filesSkipped`,
@@ -332,9 +332,9 @@ surfaces. Drafts join saved-file session history only after Save As.
 for a later guarded save:
 
 ```sh
-vibestudio --cli code text-info ./scripts/game.qc --json
-vibestudio --cli code text-save ./scripts/game.qc --input ./edited.qc --dry-run --json
-vibestudio --cli code text-save ./scripts/game.qc --input ./edited.qc --expected-sha256 <sha256-from-text-info> --write --json
+slopstudio --cli code text-info ./scripts/game.qc --json
+slopstudio --cli code text-save ./scripts/game.qc --input ./edited.qc --dry-run --json
+slopstudio --cli code text-save ./scripts/game.qc --input ./edited.qc --expected-sha256 <sha256-from-text-info> --write --json
 ```
 
 The input file supplies edited text in any supported encoding. The target
@@ -347,11 +347,11 @@ missing target. GUI and CLI share `src/core/text_document.*`.
 New documents, copies and recovery exports use the same destination checks:
 
 ```sh
-vibestudio --cli code text-create ./scripts/new.qc --dry-run --json
-vibestudio --cli code text-create ./scripts/new.qc --input ./template.qc --write --json
-vibestudio --cli code text-save-as ./scripts/game.qc --output ./scripts/copy.qc --input ./edited.qc --dry-run --json
-vibestudio --cli code recoveries --directory ./code-recovery --json
-vibestudio --cli code text-recover ./code-recovery/<id>.vstextrecovery --output ./restored.qc --dry-run --json
+slopstudio --cli code text-create ./scripts/new.qc --dry-run --json
+slopstudio --cli code text-create ./scripts/new.qc --input ./template.qc --write --json
+slopstudio --cli code text-save-as ./scripts/game.qc --output ./scripts/copy.qc --input ./edited.qc --dry-run --json
+slopstudio --cli code recoveries --directory ./code-recovery --json
+slopstudio --cli code text-recover ./code-recovery/<id>.vstextrecovery --output ./restored.qc --dry-run --json
 ```
 
 `text-create` creates an empty UTF-8 file unless `--input` supplies initial text

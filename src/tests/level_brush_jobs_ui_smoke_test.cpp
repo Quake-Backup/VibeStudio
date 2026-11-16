@@ -27,7 +27,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* message, const QString& error = {})
@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 				expect(modal->windowTitle().contains("Add Brush") && phase && !phase->text().isEmpty(), "visible brush progress");
 				expect(bar && QAccessible::queryAccessibleInterface(bar)->role() == QAccessible::ProgressBar &&
 					cancel && cancel->focusPolicy() != Qt::NoFocus && !cancel->accessibleDescription().isEmpty(), "accessible progress/cancel");
-				const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+				const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 				if (!capture.isEmpty()) {
 					QDir().mkpath(capture); QImage image(modal->size(), QImage::Format_ARGB32_Premultiplied);
 					image.fill(Qt::transparent); modal->render(&image);

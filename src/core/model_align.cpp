@@ -10,7 +10,7 @@
 #include <cmath>
 #include <map>
 
-namespace vibestudio
+namespace slopstudio
 {
 using namespace model_tools;
 
@@ -240,4 +240,4 @@ bool alignModelVertices(ModelMesh *candidate, const ModelEdit &edit, ModelSelect
 	}
 	return refreshNormals(&surface, around, work, edit.frame);
 }
-} // namespace vibestudio
+} // namespace slopstudio

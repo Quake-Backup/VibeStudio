@@ -26,7 +26,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 class MeasuredApplication final : public QApplication
@@ -36,7 +36,7 @@ class MeasuredApplication final : public QApplication
 	void beginStage()
 	{
 		m_slow.clear();
-		m_tracing = qEnvironmentVariableIntValue("VIBESTUDIO_MODELLER_TRACE_AUTHORING_EVENTS") != 0;
+		m_tracing = qEnvironmentVariableIntValue("SLOPSTUDIO_MODELLER_TRACE_AUTHORING_EVENTS") != 0;
 	}
 	QJsonArray slowEvents() const
 	{
@@ -95,13 +95,13 @@ int main(int argc, char **argv)
 #endif
 	MeasuredApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-editor-latency-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-editor-latency-smoke"); skip >= 0) {
 		return skip;
 	}
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -178,7 +178,7 @@ int main(int argc, char **argv)
 			record.insert(QStringLiteral("slowEvents"), app.slowEvents());
 		}
 		std::cout << QJsonDocument(record).toJson(QJsonDocument::Compact).constData() << std::endl;
-		const int budget = qEnvironmentVariableIntValue("VIBESTUDIO_MODELLER_MAX_AUTHORING_GAP_MS");
+		const int budget = qEnvironmentVariableIntValue("SLOPSTUDIO_MODELLER_MAX_AUTHORING_GAP_MS");
 		if (budget > 0)
 		{
 			ok &= expect(maximumGap / 1e6 <= budget, "configured authoring event-loop budget");
@@ -195,7 +195,7 @@ int main(int argc, char **argv)
 	QObject::connect(table->model(), &QAbstractItemModel::modelReset, &app, [&] { ++resets; });
 	const auto capture = [&](const QString &stage)
 	{
-		const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+		const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 		if (evidence.isEmpty())
 		{
 			return;

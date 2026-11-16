@@ -24,7 +24,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 void ModelEditorDialog::createDocumentBudget(QBoxLayout *row)
 {
@@ -34,17 +34,17 @@ void ModelEditorDialog::createDocumentBudget(QBoxLayout *row)
 	auto *summary = new StatusLineLabel;
 	m_documentBudget = summary;
 	m_documentBudget->setObjectName(QStringLiteral("meshDocumentBudget"));
-	m_documentBudget->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Source size and undo history"));
+	m_documentBudget->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Source size and undo history"));
 	row->addWidget(m_documentBudget, 1);
 	// The limit is a setting for every Mesh Editor, so it sits in the Model
 	// menu beside Keep Local Recovery Copies and opens a small window: the
 	// status strip keeps its room at any text scale or translation.
 	auto *dialog = new QDialog(this);
 	dialog->setObjectName(QStringLiteral("meshHistoryLimitDialog"));
-	dialog->setWindowTitle(QCoreApplication::translate("VibeStudioModelEditor", "Undo History Limit"));
+	dialog->setWindowTitle(QCoreApplication::translate("SlopStudioModelEditor", "Undo History Limit"));
 	auto *layout = new QVBoxLayout(dialog);
 	const auto description = QCoreApplication::translate(
-		"VibeStudioModelEditor", "The most memory undo and redo keep beyond the current model, for every Mesh Editor. Steps that "
+		"SlopStudioModelEditor", "The most memory undo and redo keep beyond the current model, for every Mesh Editor. Steps that "
 								 "share unchanged data cost only what they changed. When an edit fills it, the oldest undo steps "
 								 "are discarded first; the step before the current one and every redo step are always kept.");
 	auto *about = new QLabel(description);
@@ -54,14 +54,14 @@ void ModelEditorDialog::createDocumentBudget(QBoxLayout *row)
 	layout->addWidget(about);
 	auto *form = new QFormLayout;
 	// No mnemonic: Alt+H reveals hidden geometry in the Blender profile.
-	auto *label = new QLabel(QCoreApplication::translate("VibeStudioModelEditor", "Undo history limit:"));
+	auto *label = new QLabel(QCoreApplication::translate("SlopStudioModelEditor", "Undo history limit:"));
 	label->setObjectName(QStringLiteral("meshHistoryLimitLabel"));
 	m_historyLimit = new QSpinBox;
 	m_historyLimit->setObjectName(QStringLiteral("meshHistoryLimit"));
 	m_historyLimit->setRange(16, 4096);
 	m_historyLimit->setSingleStep(16);
-	m_historyLimit->setSuffix(QCoreApplication::translate("VibeStudioModelEditor", " MiB"));
-	m_historyLimit->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Undo history limit"));
+	m_historyLimit->setSuffix(QCoreApplication::translate("SlopStudioModelEditor", " MiB"));
+	m_historyLimit->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Undo history limit"));
 	m_historyLimit->setAccessibleDescription(description);
 	m_historyLimit->setToolTip(description);
 	label->setBuddy(m_historyLimit);
@@ -72,7 +72,7 @@ void ModelEditorDialog::createDocumentBudget(QBoxLayout *row)
 	buttons->button(QDialogButtonBox::Close)->setAutoDefault(false);
 	connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::reject);
 	layout->addWidget(buttons);
-	auto *open = new QAction(QCoreApplication::translate("VibeStudioModelEditor", "Undo History Limit…"), this);
+	auto *open = new QAction(QCoreApplication::translate("SlopStudioModelEditor", "Undo History Limit…"), this);
 	open->setObjectName(QStringLiteral("meshHistoryLimitAction"));
 	open->setToolTip(description);
 	open->setStatusTip(description);
@@ -129,39 +129,39 @@ void ModelEditorDialog::refreshDocumentBudget()
 	const bool over = m_document.sourceBytes() > modelDocumentMaxSourceBytes;
 	const int undoSteps = m_document.undoSteps(), redoSteps = m_document.redoSteps();
 	static_cast<StatusLineLabel *>(m_documentBudget)
-		->setText(over ? QCoreApplication::translate("VibeStudioModelEditor", "Source %1, over the 64 MiB limit · Undo: %n step(s), %2 of %3",
+		->setText(over ? QCoreApplication::translate("SlopStudioModelEditor", "Source %1, over the 64 MiB limit · Undo: %n step(s), %2 of %3",
 														 nullptr, undoSteps)
 								 .arg(source, history, limit)
-						   : QCoreApplication::translate("VibeStudioModelEditor", "Source %1 of 64 MiB · Undo: %n step(s), %2 of %3", nullptr,
+						   : QCoreApplication::translate("SlopStudioModelEditor", "Source %1 of 64 MiB · Undo: %n step(s), %2 of %3", nullptr,
 														 undoSteps)
 								 .arg(source, history, limit));
 	// The full account, for the tooltip and screen readers.
-	QString text = over ? QCoreApplication::translate("VibeStudioModelEditor", "Source: %1, over the 64 MiB limit. Saving and recovery "
+	QString text = over ? QCoreApplication::translate("SlopStudioModelEditor", "Source: %1, over the 64 MiB limit. Saving and recovery "
 																			   "copies are unavailable until edits make it smaller.")
 							  .arg(source)
-						: QCoreApplication::translate("VibeStudioModelEditor", "Source: %1 of the 64 MiB limit.").arg(source);
+						: QCoreApplication::translate("SlopStudioModelEditor", "Source: %1 of the 64 MiB limit.").arg(source);
 	text += QLatin1Char(' ');
 	text += m_document.discardedHistorySteps() > 0
-		? QCoreApplication::translate("VibeStudioModelEditor", "Undo history: %n step(s), %1 of %2; older steps were discarded to stay "
+		? QCoreApplication::translate("SlopStudioModelEditor", "Undo history: %n step(s), %1 of %2; older steps were discarded to stay "
 															   "within it.", nullptr, undoSteps)
 			  .arg(history, limit)
-		: QCoreApplication::translate("VibeStudioModelEditor", "Undo history: %n step(s), %1 of %2.", nullptr, undoSteps).arg(history, limit);
+		: QCoreApplication::translate("SlopStudioModelEditor", "Undo history: %n step(s), %1 of %2.", nullptr, undoSteps).arg(history, limit);
 	m_documentBudget->setAccessibleDescription(text);
 	m_documentBudget->setToolTip(
 		text + QStringLiteral("\n\n") +
-		QCoreApplication::translate("VibeStudioModelEditor",
+		QCoreApplication::translate("SlopStudioModelEditor",
 									"The size is that of the packed source, or of the readable one when only that fits, which the "
 									"64 MiB limit for saving and recovery applies to. Sources stay readable JSON while that form fits, "
 									"so a saved file can be larger. An edit that would pass the limit is refused. Model > Undo "
 									"History Limit… sets how much memory undo and redo keep."));
-	m_undo->setToolTip(QCoreApplication::translate("VibeStudioModelEditor", "Undo: %n step(s) available, %1 of history kept.", nullptr, undoSteps)
+	m_undo->setToolTip(QCoreApplication::translate("SlopStudioModelEditor", "Undo: %n step(s) available, %1 of history kept.", nullptr, undoSteps)
 						   .arg(history));
-	m_redo->setToolTip(QCoreApplication::translate("VibeStudioModelEditor", "Redo: %n step(s) available.", nullptr, redoSteps));
+	m_redo->setToolTip(QCoreApplication::translate("SlopStudioModelEditor", "Redo: %n step(s) available.", nullptr, redoSteps));
 }
 
 QString ModelEditorDialog::historyTrimNotice() const
 {
-	return QCoreApplication::translate("VibeStudioModelEditor", "Undo history reached its %1 limit, so the oldest steps were discarded. "
+	return QCoreApplication::translate("SlopStudioModelEditor", "Undo history reached its %1 limit, so the oldest steps were discarded. "
 																"Raise it in Model > Undo History Limit… to keep more.")
 		.arg(modelMebibytesText(modelDocumentHistoryLimit(), QLocale()));
 }
@@ -177,4 +177,4 @@ void ModelEditorDialog::noteHistoryTrim(int discardedBefore)
 	m_status->setText(m_status->text().isEmpty() ? notice : m_status->text() + QLatin1Char(' ') + notice);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

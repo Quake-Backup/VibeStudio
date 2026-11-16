@@ -25,7 +25,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct PatchCapDialog::Work {
 	LevelPatchCapResult result;
@@ -435,4 +435,4 @@ void PatchCapDialog::accept()
 	}
 	QDialog::accept();
 }
-} // namespace vibestudio
+} // namespace slopstudio

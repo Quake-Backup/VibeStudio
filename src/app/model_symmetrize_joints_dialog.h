@@ -12,7 +12,7 @@ class QLabel;
 class QPushButton;
 class QTableWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 // Confirms the joint mirror map Symmetrize applies to a skinned surface. One
 // row lists each off-centre joint that weights the surface with its mirror
@@ -44,4 +44,4 @@ class ModelSymmetrizeJointsDialog final : public QDialog
 	LiveStatusLabel *m_status = nullptr;
 	QPushButton *m_detect = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

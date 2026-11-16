@@ -7,7 +7,7 @@
 #include <QLockFile>
 #include <QSaveFile>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -152,4 +152,4 @@ AudioProjectSaveReport commitAudioOutput(const AudioProjectSaveRequest &request,
 	}
 	return report;
 }
-} // namespace vibestudio
+} // namespace slopstudio

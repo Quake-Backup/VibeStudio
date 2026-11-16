@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const char* message)
@@ -30,7 +30,7 @@ bool recordsAndRecovery(const QDir& root)
 		"New edits refuse plan overflow before entering history.");
 	PackageStagingModel legacy; legacy.createEmpty(PackageArchiveFormat::Zip);
 	legacy.addBytes("a", "a"); legacy.addBytes("b", "b"); legacy.addBytes("c", "c");
-	const auto legacyDraft = root.filePath("legacy.vibepackage");
+	const auto legacyDraft = root.filePath("legacy.sloppackage");
 	ok &= expect(PackageDraft::save(legacyDraft, &legacy, false, &error) && PackageDraft::load(legacyDraft, &model, &error),
 		"A draft from a larger policy retains history for rejected-plan recovery.");
 	const auto revision = model.revision();
@@ -44,7 +44,7 @@ bool recordsAndRecovery(const QDir& root)
 	PackageReadControl cancelled; cancelled.isCancelled = [] { return true; };
 	ok &= expect(!model.preparePlan(&error, cancelled) && error.contains("cancelled")
 		&& !model.preparePlan(&error) && error.contains("2-record"), "Cancellation does not replace a cached resource refusal.");
-	const auto draft = root.filePath("limited.vibepackage");
+	const auto draft = root.filePath("limited.sloppackage");
 	ok &= expect(PackageDraft::save(draft, &model, false, &error), "A rejected derived plan can still save its history as a draft.");
 	PackageStagingModel loaded({}, {}, limits);
 	ok &= expect(PackageDraft::load(draft, &loaded, &error) && loaded.planLimits().maximumRecords == 2
@@ -156,7 +156,7 @@ bool identity()
 		PackageStagingModel model({}, {}, limits);
 		ok &= expect(!model.createEmpty(PackageArchiveFormat::Zip, {}, &error) && error.contains("Invalid package plan limits")
 			&& !model.isLoaded(), "Invalid caller limits cannot create a document.");
-		ok &= expect(!PackageDraft::load("missing-policy-fixture.vibepackage", &model, &error)
+		ok &= expect(!PackageDraft::load("missing-policy-fixture.sloppackage", &model, &error)
 			&& error.contains("Invalid package plan limits") && !model.isLoaded(),
 			"Draft loading validates caller plan limits before attempting filesystem access.");
 	}
@@ -193,7 +193,7 @@ bool adoptionAndPublication(const QDir& root)
 		&& policy.value("maximumMetadataBytes").toString() == "134217728", "Manifest exposes the actual plan policy as decimal strings.");
 	PackageStagingModel legacy; legacy.createEmpty(PackageArchiveFormat::Zip);
 	legacy.addBytes("a", "a"); legacy.addBytes("b", "b"); legacy.addBytes("c", "c");
-	const auto legacyDraft = root.filePath("publication-legacy.vibepackage");
+	const auto legacyDraft = root.filePath("publication-legacy.sloppackage");
 	ok &= expect(PackageDraft::save(legacyDraft, &legacy, false, &error) && PackageDraft::load(legacyDraft, &model, &error),
 		"Prepare publication refusal from a draft saved under a larger policy.");
 	const auto write = [](const QString& path, const QByteArray& bytes) { QFile file(path); return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size(); };

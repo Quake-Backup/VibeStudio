@@ -10,7 +10,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -304,4 +304,4 @@ bool applyModelAnimationEvents(ModelMesh *mesh, const ModelEdit &edit, QString *
 	*events = updated;
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

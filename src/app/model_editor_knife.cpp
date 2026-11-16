@@ -12,14 +12,14 @@
 #include <algorithm>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 using namespace model_geometry;
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelKnife)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelKnife)
 };
 P3 vector(const std::array<double, 3> &v) { return {v[0], v[1], v[2]}; }
 std::array<double, 3> array(ModelVec3 v) { return {v.x, v.y, v.z}; }
@@ -435,4 +435,4 @@ void ModelEditorTools::remapHiddenAfterEdit(const ModelEdit &edit, const ModelEd
 	m_editor->m_presentedMeshRevision.clear();
 	m_editor->refresh();
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -10,7 +10,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -171,7 +171,7 @@ BspHeaderInfo inspectBspHeader(const QByteArray& bytes)
 			return info;
 		}
 		info.family = version == 46 ? BspFamily::Quake3Ibsp : version == 47 ? BspFamily::QuakeLiveIbsp : BspFamily::Quake2Ibsp;
-		info.displayName = version == 46 ? QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Quake III IBSP v46") : version == 47 ? QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Quake Live IBSP v47") : QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Quake II IBSP v%1").arg(version);
+		info.displayName = version == 46 ? QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Quake III IBSP v46") : version == 47 ? QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Quake Live IBSP v47") : QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Quake II IBSP v%1").arg(version);
 		info.headerBytes = headerBytes;
 		info.lumps = readLumps(bytes, 8, version == 46 ? kQ3HeaderLumps : version == 47 ? kQuakeLiveHeaderLumps : kQ2HeaderLumps);
 		info.usesQ2Layout = version != 46 && version != 47;
@@ -180,7 +180,7 @@ BspHeaderInfo inspectBspHeader(const QByteArray& bytes)
 	}
 	if (ident == "QBSP" && bytes.size() >= kQ2HeaderBytes && readI32(bytes, 4) == 38) {
 		info.family = BspFamily::QbismIbsp;
-		info.displayName = QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Qbism IBSP v%1").arg(readI32(bytes, 4));
+		info.displayName = QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Qbism IBSP v%1").arg(readI32(bytes, 4));
 		info.headerBytes = kQ2HeaderBytes;
 		info.lumps = readLumps(bytes, 8, kQ2HeaderLumps);
 		info.usesQ2Layout = true;
@@ -188,7 +188,7 @@ BspHeaderInfo inspectBspHeader(const QByteArray& bytes)
 	}
 	if (ident == "BSP2" && bytes.size() >= kQ1HeaderBytes) {
 		info.family = BspFamily::QuakeBsp2;
-		info.displayName = QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Quake BSP2");
+		info.displayName = QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Quake BSP2");
 		info.headerBytes = kQ1HeaderBytes;
 		info.lumps = readLumps(bytes, 4, kQ1HeaderLumps);
 		info.usesQ1Layout = true;
@@ -196,7 +196,7 @@ BspHeaderInfo inspectBspHeader(const QByteArray& bytes)
 	}
 	if (ident == "2PSB" && bytes.size() >= kQ1HeaderBytes) {
 		info.family = BspFamily::QuakeBsp2Rmq;
-		info.displayName = QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Quake BSP2-RMQ");
+		info.displayName = QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Quake BSP2-RMQ");
 		info.headerBytes = kQ1HeaderBytes;
 		info.lumps = readLumps(bytes, 4, kQ1HeaderLumps);
 		info.usesQ1Layout = true;
@@ -204,7 +204,7 @@ BspHeaderInfo inspectBspHeader(const QByteArray& bytes)
 	}
 	if ((firstWord == 29 || firstWord == 30) && bytes.size() >= kQ1HeaderBytes) {
 		info.family = firstWord == 30 ? BspFamily::HalfLifeBsp30 : BspFamily::QuakeBsp29;
-		info.displayName = firstWord == 30 ? QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Half-Life BSP v30") : QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Quake BSP v29");
+		info.displayName = firstWord == 30 ? QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Half-Life BSP v30") : QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Quake BSP v29");
 		info.headerBytes = kQ1HeaderBytes;
 		info.lumps = readLumps(bytes, 4, kQ1HeaderLumps);
 		info.usesQ1Layout = true;
@@ -236,7 +236,7 @@ void validateLumpBounds(const QString& path, const QByteArray& bytes, const BspH
 		}
 		const quint64 end = static_cast<quint64>(lump.offset) + lump.length;
 		if (lump.offset < static_cast<quint32>(info.headerBytes) || end > static_cast<quint64>(bytes.size()) || end < lump.offset) {
-			addError(report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: BSP lump %1 points outside %2; the output is truncated or corrupt (#278/#344).").arg(i).arg(nativePath(path)));
+			addError(report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: BSP lump %1 points outside %2; the output is truncated or corrupt (#278/#344).").arg(i).arg(nativePath(path)));
 		}
 	}
 }
@@ -247,7 +247,7 @@ void validateRecordSize(const QString& path, const BspHeaderInfo& info, qsizetyp
 		return;
 	}
 	if (!lumpLengthDivisible(info.lumps.at(lumpIndex), recordSize)) {
-		addError(report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: BSP %1 lump has a non-record-aligned size; this can indicate crash-prone output (#344).").arg(label));
+		addError(report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: BSP %1 lump has a non-record-aligned size; this can indicate crash-prone output (#344).").arg(label));
 	}
 }
 
@@ -269,11 +269,11 @@ void validateFaceReferences(const QString& path, const QByteArray& bytes, const 
 		const qint32 numedges = bsp2Face ? readI32(bytes, offset + 16) : readI16(bytes, offset + 8);
 		const qint32 texinfo = bsp2Face ? readI32(bytes, offset + 20) : readI16(bytes, offset + 10);
 		if (numedges < 0 || firstedge < 0 || static_cast<quint64>(firstedge) + static_cast<quint64>(std::max(0, numedges)) > surfedgeCount) {
-			addError(report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: BSP face %1 references surfedges outside the surfedge lump; this is a crash-risk sanity failure (#344).").arg(i));
+			addError(report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: BSP face %1 references surfedges outside the surfedge lump; this is a crash-risk sanity failure (#344).").arg(i));
 			return;
 		}
 		if (texinfo < 0 || static_cast<quint32>(texinfo) >= texinfoCount) {
-			addError(report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: BSP face %1 references missing texture info; surface extents may be unsafe (#344).").arg(i));
+			addError(report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: BSP face %1 references missing texture info; surface extents may be unsafe (#344).").arg(i));
 			return;
 		}
 	}
@@ -288,13 +288,13 @@ QStringList parseBspxLumps(const QByteArray& bytes, const BspHeaderInfo& info, b
 	}
 	if (bytes.mid(offset, 4) != "BSPX") {
 		if (expectedBspx) {
-			addWarning(report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: BSPX metadata was requested, but the aligned extension header is absent or invalid (#309/#399/#415/#249)."));
+			addWarning(report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: BSPX metadata was requested, but the aligned extension header is absent or invalid (#309/#399/#415/#249)."));
 		}
 		return names;
 	}
 	const quint32 count = readU32(bytes, offset + 4);
 	if (count > 4096 || offset + 8 + static_cast<qsizetype>(count) * 32 > bytes.size()) {
-		addWarning(report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: BSPX lump table is outside the file; lightmap metadata cannot be trusted (#309/#399/#415)."));
+		addWarning(report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: BSPX lump table is outside the file; lightmap metadata cannot be trusted (#309/#399/#415)."));
 		return names;
 	}
 	for (quint32 i = 0; i < count; ++i) {
@@ -303,7 +303,7 @@ QStringList parseBspxLumps(const QByteArray& bytes, const BspHeaderInfo& info, b
 		const quint32 lumpOffset = readU32(bytes, entryOffset + 24);
 		const quint32 lumpLength = readU32(bytes, entryOffset + 28);
 		if (static_cast<quint64>(lumpOffset) + lumpLength > static_cast<quint64>(bytes.size())) {
-			addWarning(report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: BSPX lump %1 points outside the file; metadata validation is incomplete (#309/#399/#415).").arg(name.isEmpty() ? QString::number(i) : name));
+			addWarning(report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: BSPX lump %1 points outside the file; metadata validation is incomplete (#309/#399/#415).").arg(name.isEmpty() ? QString::number(i) : name));
 			continue;
 		}
 		if (!name.isEmpty()) {
@@ -316,7 +316,7 @@ QStringList parseBspxLumps(const QByteArray& bytes, const BspHeaderInfo& info, b
 QStringList expectedBspxLumps(const CompilerCommandManifest& manifest)
 {
 	QStringList expected;
-	if (manifest.profileId.compare(QStringLiteral("vibemap2-light"), Qt::CaseInsensitive) != 0) {
+	if (manifest.profileId.compare(QStringLiteral("slopmap2-light"), Qt::CaseInsensitive) != 0) {
 		return expected;
 	}
 	const QStringList arguments = manifest.arguments;
@@ -348,23 +348,23 @@ QStringList expectedBspxLumps(const CompilerCommandManifest& manifest)
 bool outputLooksLikeRequestedFamily(const CompilerCommandManifest& manifest, BspFamily family)
 {
 	const bool idTech3Profile = manifest.engineFamily.compare(QStringLiteral("idTech3"), Qt::CaseInsensitive) == 0
-		|| manifest.profileId.startsWith(QStringLiteral("vibemap3-"), Qt::CaseInsensitive);
+		|| manifest.profileId.startsWith(QStringLiteral("slopmap3-"), Qt::CaseInsensitive);
 	if (idTech3Profile) {
 		return family == BspFamily::Quake3Ibsp || family == BspFamily::QuakeLiveIbsp;
 	}
-	const bool vibemap2Profile = manifest.toolId.startsWith(QStringLiteral("vibemap2-"), Qt::CaseInsensitive);
-	if (!vibemap2Profile) {
+	const bool slopmap2Profile = manifest.toolId.startsWith(QStringLiteral("slopmap2-"), Qt::CaseInsensitive);
+	if (!slopmap2Profile) {
 		return true;
 	}
-	// VibeMap2 src/vis/vis.cc and src/light/light.cc load and preserve the input BSP's
+	// SlopMap2 src/vis/vis.cc and src/light/light.cc load and preserve the input BSP's
 	// dialect; unlike qbsp they do not accept a -q2bsp target switch.
-	if ((manifest.toolId.compare(QStringLiteral("vibemap2-vis"), Qt::CaseInsensitive) == 0 ||
-		 manifest.toolId.compare(QStringLiteral("vibemap2-light"), Qt::CaseInsensitive) == 0) &&
+	if ((manifest.toolId.compare(QStringLiteral("slopmap2-vis"), Qt::CaseInsensitive) == 0 ||
+		 manifest.toolId.compare(QStringLiteral("slopmap2-light"), Qt::CaseInsensitive) == 0) &&
 		(family == BspFamily::Quake2Ibsp || family == BspFamily::QbismIbsp)) {
 		return true;
 	}
 	// qbsp's target flags are "-q2bsp", "-qbism", "-hlbsp", "-bsp2" and "-hexen2"
-	// (external/compilers/vibemap2/src/qbsp/qbsp.cc, game_target_group).
+	// (external/compilers/slopmap2/src/qbsp/qbsp.cc, game_target_group).
 	if (containsArgument(manifest.arguments, {QStringLiteral("-q2bsp"), QStringLiteral("-qbism")})) {
 		return family == BspFamily::Quake2Ibsp || family == BspFamily::QbismIbsp;
 	}
@@ -377,11 +377,11 @@ bool outputLooksLikeRequestedFamily(const CompilerCommandManifest& manifest, Bsp
 void validateHeaderFamily(const QString& path, const CompilerCommandManifest& manifest, const BspHeaderInfo& info, CompilerArtifactValidationReport* report)
 {
 	if (info.family == BspFamily::Unknown) {
-		addError(report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: %1 does not begin with a recognized Quake-family BSP header; expected output may be corrupt (#278).").arg(nativePath(path)));
+		addError(report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: %1 does not begin with a recognized Quake-family BSP header; expected output may be corrupt (#278).").arg(nativePath(path)));
 		return;
 	}
 	if (!outputLooksLikeRequestedFamily(manifest, info.family)) {
-		addWarning(report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: %1 header looks like %2, which does not match the selected compiler profile; check conversion and destination expectations (#213/#278).").arg(nativePath(path), info.displayName));
+		addWarning(report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: %1 header looks like %2, which does not match the selected compiler profile; check conversion and destination expectations (#213/#278).").arg(nativePath(path), info.displayName));
 	}
 }
 
@@ -400,9 +400,9 @@ void validateHexen2Heuristic(const QString& path, const CompilerCommandManifest&
 	const bool q1Aligned = modelLength % 64 == 0;
 	const bool h2Aligned = modelLength % 80 == 0;
 	if (!q1Aligned && h2Aligned) {
-		addWarning(report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: model data is aligned like Hexen II, not Quake, although the profile did not request Hexen II; inspect for the corrupt-BSP misidentification risk tracked as ericw-tools #278."));
+		addWarning(report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: model data is aligned like Hexen II, not Quake, although the profile did not request Hexen II; inspect for the corrupt-BSP misidentification risk tracked as ericw-tools #278."));
 	} else if (q1Aligned && h2Aligned) {
-		addWarning(report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: model data is ambiguous between Quake and Hexen II layouts; VibeStudio only performs a lightweight #278 header check, so use a BSP inspector before release if an engine reports Hexen II."));
+		addWarning(report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: model data is ambiguous between Quake and Hexen II layouts; SlopStudio only performs a lightweight #278 header check, so use a BSP inspector before release if an engine reports Hexen II."));
 	}
 }
 
@@ -432,20 +432,20 @@ void validateBspArtifact(const QString& path, const CompilerCommandManifest& man
 	validateLumpBounds(path, bytes, info, report);
 	if (info.usesQ1Layout) {
 		const bool bsp29 = info.family == BspFamily::QuakeBsp29 || info.family == BspFamily::HalfLifeBsp30;
-		validateRecordSize(path, info, 1, 20, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "planes"), report);
-		validateRecordSize(path, info, 3, 12, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "vertices"), report);
-		validateRecordSize(path, info, 5, info.family == BspFamily::QuakeBsp2Rmq ? 32 : 24, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "nodes"), report);
-		validateRecordSize(path, info, kQ1TexinfoLump, 40, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "texture info"), report);
-		validateRecordSize(path, info, kQ1FaceLump, bsp29 ? 20 : 32, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "faces"), report);
-		validateRecordSize(path, info, 9, bsp29 ? 8 : 12, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "clipnodes"), report);
-		validateRecordSize(path, info, kQ1SurfedgesLump, 4, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "surfedges"), report);
+		validateRecordSize(path, info, 1, 20, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "planes"), report);
+		validateRecordSize(path, info, 3, 12, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "vertices"), report);
+		validateRecordSize(path, info, 5, info.family == BspFamily::QuakeBsp2Rmq ? 32 : 24, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "nodes"), report);
+		validateRecordSize(path, info, kQ1TexinfoLump, 40, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "texture info"), report);
+		validateRecordSize(path, info, kQ1FaceLump, bsp29 ? 20 : 32, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "faces"), report);
+		validateRecordSize(path, info, 9, bsp29 ? 8 : 12, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "clipnodes"), report);
+		validateRecordSize(path, info, kQ1SurfedgesLump, 4, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "surfedges"), report);
 		validateFaceReferences(path, bytes, info, kQ1FaceLump, kQ1TexinfoLump, kQ1SurfedgesLump, bsp29 ? 20 : 32, 40, !bsp29, report);
 		validateHexen2Heuristic(path, manifest, info, report);
 	}
 	if (info.usesQ2Layout) {
-		validateRecordSize(path, info, kQ2TexinfoLump, 76, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "texture info"), report);
-		validateRecordSize(path, info, kQ2FaceLump, 20, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "faces"), report);
-		validateRecordSize(path, info, kQ2SurfedgesLump, 4, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "surfedges"), report);
+		validateRecordSize(path, info, kQ2TexinfoLump, 76, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "texture info"), report);
+		validateRecordSize(path, info, kQ2FaceLump, 20, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "faces"), report);
+		validateRecordSize(path, info, kQ2SurfedgesLump, 4, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "surfedges"), report);
 		validateFaceReferences(path, bytes, info, kQ2FaceLump, kQ2TexinfoLump, kQ2SurfedgesLump, 20, 76, false, report);
 	}
 
@@ -453,7 +453,7 @@ void validateBspArtifact(const QString& path, const CompilerCommandManifest& man
 	const QStringList actualLumps = parseBspxLumps(bytes, info, !expectedLumps.isEmpty(), path, report);
 	for (const QString& expected : expectedLumps) {
 		if (!actualLumps.contains(expected, Qt::CaseInsensitive)) {
-			addWarning(report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: expected BSPX lump %1 was not found; this preserves the validation gap around lightmap metadata compatibility (#309/#399/#415/#249).").arg(expected));
+			addWarning(report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: expected BSPX lump %1 was not found; this preserves the validation gap around lightmap metadata compatibility (#309/#399/#415/#249).").arg(expected));
 		}
 	}
 }
@@ -479,20 +479,20 @@ CompilerArtifactValidationReport validateCompilerArtifacts(const CompilerCommand
 		const QString path = QDir::cleanPath(outputPath);
 		const QFileInfo info(path);
 		if (!info.exists()) {
-			addError(&report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: expected compiler output is missing after a successful process exit: %1").arg(nativePath(path)));
+			addError(&report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: expected compiler output is missing after a successful process exit: %1").arg(nativePath(path)));
 			if (containsArgument(manifest.arguments, {QStringLiteral("-convert")}) && containsArgument(manifest.arguments, {QStringLiteral("valve")})) {
 				const QStringList alternates = likelyAlternateOutputs(path);
-				const QString suffix = alternates.isEmpty() ? QString() : QCoreApplication::translate("VibeStudioCompilerArtifactValidation", " Alternate output found: %1").arg(nativePath(alternates.first()));
-				addWarning(&report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: conversion output naming did not match VibeStudio's expected destination; check ericw-tools #213.%1").arg(suffix));
+				const QString suffix = alternates.isEmpty() ? QString() : QCoreApplication::translate("SlopStudioCompilerArtifactValidation", " Alternate output found: %1").arg(nativePath(alternates.first()));
+				addWarning(&report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: conversion output naming did not match SlopStudio's expected destination; check ericw-tools #213.%1").arg(suffix));
 			}
 			continue;
 		}
 		if (!info.isFile()) {
-			addError(&report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: expected compiler output is not a file: %1").arg(nativePath(path)));
+			addError(&report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: expected compiler output is not a file: %1").arg(nativePath(path)));
 			continue;
 		}
 		if (info.size() == 0) {
-			addError(&report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: expected compiler output is empty after a successful process exit: %1").arg(nativePath(path)));
+			addError(&report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: expected compiler output is empty after a successful process exit: %1").arg(nativePath(path)));
 			continue;
 		}
 
@@ -526,12 +526,12 @@ CompilerArtifactValidationReport validateCompilerArtifacts(const CompilerCommand
 
 		QFile file(path);
 		if (!file.open(QIODevice::ReadOnly)) {
-			addWarning(&report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: unable to read BSP output for header checks: %1").arg(nativePath(path)));
+			addWarning(&report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: unable to read BSP output for header checks: %1").arg(nativePath(path)));
 			continue;
 		}
 		const QByteArray bytes = file.readAll();
 		if (bytes.size() < kQ1HeaderBytes) {
-			addError(&report, path, QCoreApplication::translate("VibeStudioCompilerArtifactValidation", "Post-run artifact validation: BSP output is too small to contain a complete header: %1 (#278/#344).").arg(nativePath(path)));
+			addError(&report, path, QCoreApplication::translate("SlopStudioCompilerArtifactValidation", "Post-run artifact validation: BSP output is too small to contain a complete header: %1 (#278/#344).").arg(nativePath(path)));
 			continue;
 		}
 		validateBspArtifact(path, manifest, bytes, &report);
@@ -541,4 +541,4 @@ CompilerArtifactValidationReport validateCompilerArtifacts(const CompilerCommand
 	return report;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

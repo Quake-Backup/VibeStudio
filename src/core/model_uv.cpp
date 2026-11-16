@@ -8,7 +8,7 @@
 #include <cmath>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -16,7 +16,7 @@ bool invalid(QString *error)
 {
 	if (error)
 	{
-		*error = QCoreApplication::translate("VibeStudioModelUv", "UV topology contains invalid coordinates, edges, or faces.");
+		*error = QCoreApplication::translate("SlopStudioModelUv", "UV topology contains invalid coordinates, edges, or faces.");
 	}
 	return false;
 }
@@ -257,4 +257,4 @@ bool expandModelUvIslands(const ModelSurface &surface, const ModelUvTopology &to
 	*result = std::move(selected);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

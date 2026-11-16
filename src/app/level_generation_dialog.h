@@ -30,7 +30,7 @@ class QSpinBox;
 class QTabWidget;
 class QToolButton;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelGenerationDialogHooks {
 	// The game the open map or project targets, or empty.
@@ -51,7 +51,7 @@ struct LevelGenerationDialogHooks {
 };
 
 class LevelGenerationDialog final : public QDialog {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelGenerationDialog)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelGenerationDialog)
 
 public:
 	LevelGenerationDialog(QWidget* parent, LevelGenerationDialogHooks hooks);
@@ -145,4 +145,4 @@ private:
 	QPushButton* m_saveReport = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

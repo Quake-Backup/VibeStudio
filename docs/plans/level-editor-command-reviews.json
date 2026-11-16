@@ -60,7 +60,7 @@
       "cli": [
         "map clip"
       ],
-      "limitation": "VibeStudio has an explicit Both state. Native side-cycling, orientation and reset behaviour need full profile acceptance.",
+      "limitation": "SlopStudio has an explicit Both state. Native side-cycling, orientation and reset behaviour need full profile acceptance.",
       "evidence": [
         "src/core/level_clipper.cpp",
         "src/app/level_clip_actions.cpp",
@@ -89,14 +89,14 @@
     {
       "id": "nrc:Copy",
       "status": "Partial",
-      "workflow": "Normal object Copy exports selected entities, brushes and patches through the shared worker. Partial brush-entity selections keep owner properties and selected children. Complete VibeStudio groups and protected properties survive copy/paste; asset references continue through dependency review, compilation and packaging.",
+      "workflow": "Normal object Copy exports selected entities, brushes and patches through the shared worker. Partial brush-entity selections keep owner properties and selected children. Complete SlopStudio groups and protected properties survive copy/paste; asset references continue through dependency review, compilation and packaging.",
       "gui": [
         "map.copy-selection"
       ],
       "cli": [
         "map copy"
       ],
-      "limitation": "Partial: NRC selected-tree export was reviewed in select.cpp and map.cpp. VibeStudio strips project worldspawn properties and orders partial entity children by selection; NRC traverses its source graph. Complete native/foreign format and group conversion, OS clipboard and real-map/platform/accessibility acceptance remain open.",
+      "limitation": "Partial: NRC selected-tree export was reviewed in select.cpp and map.cpp. SlopStudio strips project worldspawn properties and orders partial entity children by selection; NRC traverses its source graph. Complete native/foreign format and group conversion, OS clipboard and real-map/platform/accessibility acceptance remain open.",
       "evidence": [
         "docs/LEVEL_PASTE.md",
         "src/core/level_map.cpp",
@@ -255,7 +255,7 @@
       "cli": [
         "map select-region"
       ],
-      "limitation": "Native platform/input/accessibility and dense real-project acceptance remain open. NRC model-derived entity bounds, TB game-specific Tall world-limit clipping and complete foreign group/filter equivalence remain integration gaps. Patch touching follows sampled grid-edge semantics, not continuous curved-surface intersection. NRC Tall and TB Partial Tall are VibeStudio extensions.",
+      "limitation": "Native platform/input/accessibility and dense real-project acceptance remain open. NRC model-derived entity bounds, TB game-specific Tall world-limit clipping and complete foreign group/filter equivalence remain integration gaps. Patch touching follows sampled grid-edge semantics, not continuous curved-surface intersection. NRC Tall and TB Partial Tall are SlopStudio extensions.",
       "evidence": [
         "docs/manual/levels.md",
         "src/core/level_region_selection.cpp",
@@ -276,7 +276,7 @@
       "cli": [
         "map select-region"
       ],
-      "limitation": "Native platform/input/accessibility and dense real-project acceptance remain open. NRC model-derived entity bounds, TB game-specific Tall world-limit clipping and complete foreign group/filter equivalence remain integration gaps. Patch touching follows sampled grid-edge semantics, not continuous curved-surface intersection. NRC Tall and TB Partial Tall are VibeStudio extensions.",
+      "limitation": "Native platform/input/accessibility and dense real-project acceptance remain open. NRC model-derived entity bounds, TB game-specific Tall world-limit clipping and complete foreign group/filter equivalence remain integration gaps. Patch touching follows sampled grid-edge semantics, not continuous curved-surface intersection. NRC Tall and TB Partial Tall are SlopStudio extensions.",
       "evidence": [
         "docs/manual/levels.md",
         "src/core/level_region_selection.cpp",
@@ -409,7 +409,7 @@
       "cli": [
         "map clip"
       ],
-      "limitation": "VibeStudio has an explicit Both state. Native side-cycling, orientation and reset behaviour need full profile acceptance.",
+      "limitation": "SlopStudio has an explicit Both state. Native side-cycling, orientation and reset behaviour need full profile acceptance.",
       "evidence": [
         "src/core/level_clipper.cpp",
         "src/app/level_clip_actions.cpp",
@@ -447,7 +447,7 @@
       "cli": [
         "editor scene"
       ],
-      "limitation": "Native keyboard and assistive-technology acceptance, dense real maps and cross-platform testing remain unverified. Keys use VibeStudio's case-insensitive matching.",
+      "limitation": "Native keyboard and assistive-technology acceptance, dense real maps and cross-platform testing remain unverified. Keys use SlopStudio's case-insensitive matching.",
       "evidence": [
         "src/core/level_protected_properties.cpp",
         "src/core/level_linked_groups.cpp",
@@ -785,7 +785,7 @@
       "cli": [
         "map select-region"
       ],
-      "limitation": "Native platform/input/accessibility and dense real-project acceptance remain open. NRC model-derived entity bounds, TB game-specific Tall world-limit clipping and complete foreign group/filter equivalence remain integration gaps. Patch touching follows sampled grid-edge semantics, not continuous curved-surface intersection. NRC Tall and TB Partial Tall are VibeStudio extensions.",
+      "limitation": "Native platform/input/accessibility and dense real-project acceptance remain open. NRC model-derived entity bounds, TB game-specific Tall world-limit clipping and complete foreign group/filter equivalence remain integration gaps. Patch touching follows sampled grid-edge semantics, not continuous curved-surface intersection. NRC Tall and TB Partial Tall are SlopStudio extensions.",
       "evidence": [
         "docs/manual/levels.md",
         "src/core/level_region_selection.cpp",
@@ -833,7 +833,7 @@
       "cli": [
         "map select-region"
       ],
-      "limitation": "Native platform/input/accessibility and dense real-project acceptance remain open. NRC model-derived entity bounds, TB game-specific Tall world-limit clipping and complete foreign group/filter equivalence remain integration gaps. Patch touching follows sampled grid-edge semantics, not continuous curved-surface intersection. NRC Tall and TB Partial Tall are VibeStudio extensions.",
+      "limitation": "Native platform/input/accessibility and dense real-project acceptance remain open. NRC model-derived entity bounds, TB game-specific Tall world-limit clipping and complete foreign group/filter equivalence remain integration gaps. Patch touching follows sampled grid-edge semantics, not continuous curved-surface intersection. NRC Tall and TB Partial Tall are SlopStudio extensions.",
       "evidence": [
         "docs/manual/levels.md",
         "src/core/level_region_selection.cpp",
@@ -854,7 +854,7 @@
       "cli": [
         "map select-region"
       ],
-      "limitation": "Native platform/input/accessibility and dense real-project acceptance remain open. NRC model-derived entity bounds, TB game-specific Tall world-limit clipping and complete foreign group/filter equivalence remain integration gaps. Patch touching follows sampled grid-edge semantics, not continuous curved-surface intersection. NRC Tall and TB Partial Tall are VibeStudio extensions.",
+      "limitation": "Native platform/input/accessibility and dense real-project acceptance remain open. NRC model-derived entity bounds, TB game-specific Tall world-limit clipping and complete foreign group/filter equivalence remain integration gaps. Patch touching follows sampled grid-edge semantics, not continuous curved-surface intersection. NRC Tall and TB Partial Tall are SlopStudio extensions.",
       "evidence": [
         "docs/manual/levels.md",
         "src/core/level_region_selection.cpp",
@@ -1016,7 +1016,7 @@
       "cli": [
         "map select-siblings"
       ],
-      "limitation": "Foreign TB group/layer metadata conversion, native platform input/accessibility and large real-project acceptance remain open. VibeStudio's independently assigned child memberships and whole-group exclusions are explicit adaptations. Doom maps are not supported by this query.",
+      "limitation": "Foreign TB group/layer metadata conversion, native platform input/accessibility and large real-project acceptance remain open. SlopStudio's independently assigned child memberships and whole-group exclusions are explicit adaptations. Doom maps are not supported by this query.",
       "evidence": [
         "src/core/level_object_selection.cpp",
         "src/app/level_object_selection_actions.cpp",
@@ -1036,7 +1036,7 @@
       "cli": [
         "map select-lines"
       ],
-      "limitation": "Lines refer to the loaded-source snapshot until reopen, including after save; newly created objects have no source span. VibeStudio scene metadata has no group-bracket source line. Foreign TB metadata, Doom text selection and native platform/real-project acceptance remain open. Strict input validation differs from TB's ignored invalid tokens.",
+      "limitation": "Lines refer to the loaded-source snapshot until reopen, including after save; newly created objects have no source span. SlopStudio scene metadata has no group-bracket source line. Foreign TB metadata, Doom text selection and native platform/real-project acceptance remain open. Strict input validation differs from TB's ignored invalid tokens.",
       "evidence": [
         "docs/manual/levels.md",
         "src/core/level_object_selection.cpp",
@@ -1525,7 +1525,7 @@
       "workflow": "No automatic caulking yet. Mappers apply common/caulk by hand with **Paint Map Materials**, the surface tools or `map paint-material`. The Region writer and Compile Region already seal and compile part of a map, and generated Quake III levels caulk their own hidden faces. Existing control: None",
       "gui": [],
       "cli": [],
-      "limitation": "Hidden faces must be found and caulked by hand. The studio has no compiler profile for VibeMap3's -autocaulk mode and does not read its .caulk output. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add **Auto Caulk Selected** for Quake III. Write the selection, a sealing box and a player start with the region writer. Run VibeMap3 -autocaulk -fulldetail through the compiler wrapper with logs and cancellation. Parse the .caulk face list and apply caulk, liquid caulk or nodraw as one undoable paint edit. Add `map autocaulk`, F4 in the NRC profile and a compiler workflow test.",
+      "limitation": "Hidden faces must be found and caulked by hand. The studio has no compiler profile for SlopMap3's -autocaulk mode and does not read its .caulk output. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add **Auto Caulk Selected** for Quake III. Write the selection, a sealing box and a player start with the region writer. Run SlopMap3 -autocaulk -fulldetail through the compiler wrapper with logs and cancellation. Parse the .caulk face list and apply caulk, liquid caulk or nodraw as one undoable paint edit. Add `map autocaulk`, F4 in the NRC profile and a compiler workflow test.",
       "evidence": [
         "src/core/level_material_paint.cpp",
         "src/app/level_sidebar_panels.cpp",
@@ -1781,7 +1781,7 @@
         "build pipeline-set",
         "build pipeline-remove"
       ],
-      "limitation": "Pipelines are per project rather than per game, and a project must be open. Stages run VibeStudio compiler profiles only, not free command lines or copy steps. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Pipelines are per project rather than per game, and a project must be open. Stages run SlopStudio compiler profiles only, not free command lines or copy steps. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/build_pipeline.cpp",
         "src/core/build_program_trust.cpp",
@@ -1805,7 +1805,7 @@
         "build run",
         "compiler rerun"
       ],
-      "limitation": "Run Last Build re-plans the recorded pipeline or profile with the current settings rather than replaying it exactly (Re-run Last Compile does that), and refuses when the last build was for another game. A region compile is not recorded as the last build. NRC's customisable build menu entries are VibeStudio's fixed pipelines and profiles. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Run Last Build re-plans the recorded pipeline or profile with the current settings rather than replaying it exactly (Re-run Last Compile does that), and refuses when the last build was for another game. A region compile is not recorded as the last build. NRC's customisable build menu entries are SlopStudio's fixed pipelines and profiles. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/build_rerun_actions.cpp",
         "src/core/studio_settings_build.cpp",
@@ -1825,7 +1825,7 @@
       "cli": [
         "map intersect"
       ],
-      "limitation": "All selected brushes must belong to one entity, whereas NRC accepts brushes from several and keeps the last brush's node. On an empty result NRC deletes the brushes, while VibeStudio refuses safely. The NRC profile lacks Ctrl+Shift+U, which is the global Read Aloud key. Native physical input and macOS/Linux acceptance remain open.",
+      "limitation": "All selected brushes must belong to one entity, whereas NRC accepts brushes from several and keeps the last brush's node. On an empty result NRC deletes the brushes, while SlopStudio refuses safely. The NRC profile lacks Ctrl+Shift+U, which is the global Read Aloud key. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/app/level_editing_actions.cpp",
@@ -1904,7 +1904,7 @@
         "map hollow",
         "editor make-room"
       ],
-      "limitation": "VibeStudio fills the outer corners, where NRC leaves them open. Games without a caulk material, such as Quake II, need a named one. The GUI Hollow and Hollow Touching commands do not offer the caulk and open-face options (only the map hollow flags do). Native physical input and macOS/Linux acceptance remain open.",
+      "limitation": "SlopStudio fills the outer corners, where NRC leaves them open. Games without a caulk material, such as Quake II, need a named one. The GUI Hollow and Hollow Touching commands do not offer the caulk and open-face options (only the map hollow flags do). Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_hollow.h",
         "src/core/level_hollow.cpp",
@@ -2497,7 +2497,7 @@
     {
       "id": "nrc:CapCurrentCurve",
       "status": "Partial",
-      "workflow": "Select patches and choose **Cap Patch\u2026** (Shift+C in the NetRadiant Custom, GtkRadiant 1.4/1.5 and Q3Radiant profiles). **Cap style** offers Radial (VibeStudio's planar disc and chord caps) and NetRadiant Custom's Bevel, Endcap, Inverted Bevel, Inverted Endcap and Cylinder seams with upstream's control layouts and width checks (3 or 5, 5 and 9). **All selected patches** caps every visible selected patch, first and last rows by default, the seam styles in the current material, with planar (Cap Texture) or boundary UVs, as one undo step that selects the caps; patches of the wrong width are left uncapped with the reason. `map cap-patch --style` with repeatable `--patch` does the same.",
+      "workflow": "Select patches and choose **Cap Patch\u2026** (Shift+C in the NetRadiant Custom, GtkRadiant 1.4/1.5 and Q3Radiant profiles). **Cap style** offers Radial (SlopStudio's planar disc and chord caps) and NetRadiant Custom's Bevel, Endcap, Inverted Bevel, Inverted Endcap and Cylinder seams with upstream's control layouts and width checks (3 or 5, 5 and 9). **All selected patches** caps every visible selected patch, first and last rows by default, the seam styles in the current material, with planar (Cap Texture) or boundary UVs, as one undo step that selects the caps; patches of the wrong width are left uncapped with the reason. `map cap-patch --style` with repeatable `--patch` does the same.",
       "gui": [
         "map.cap-patch"
       ],
@@ -2518,7 +2518,7 @@
     {
       "id": "nrc:CenterView",
       "status": "Partial",
-      "workflow": "**View** > **Camera** > **Level Camera** (<kbd>End</kbd> in the NetRadiant Custom, NetRadiant, GtkRadiant 1.4/1.5/1.6, Q3Radiant and DoomEdit profiles; also **Tools** > **Navigate** and command search) keeps the 3D camera where it stands, sets pitch to zero and turns the heading to the nearest 22.5 degrees. The 2D views, the map and its undo history are unchanged, and the status bar announces the new heading. In the orbiting VibeStudio Default view it levels the orbit. `map camera-focus --level --camera-yaw Y --camera-pitch P` reports the same angles.",
+      "workflow": "**View** > **Camera** > **Level Camera** (<kbd>End</kbd> in the NetRadiant Custom, NetRadiant, GtkRadiant 1.4/1.5/1.6, Q3Radiant and DoomEdit profiles; also **Tools** > **Navigate** and command search) keeps the 3D camera where it stands, sets pitch to zero and turns the heading to the nearest 22.5 degrees. The 2D views, the map and its undo history are unchanged, and the status bar announces the new heading. In the orbiting SlopStudio Default view it levels the orbit. `map camera-focus --level --camera-yaw Y --camera-pitch P` reports the same angles.",
       "gui": [
         "map.level-camera"
       ],
@@ -2564,7 +2564,7 @@
     {
       "id": "nrc:CheckForUpdate",
       "status": "Planned",
-      "workflow": "Not covered. **Help > About VibeStudio** (and `about show`) report the running version, and releases are published on GitHub as described in the release documentation. Existing control: None.",
+      "workflow": "Not covered. **Help > About SlopStudio** (and `about show`) report the running version, and releases are published on GitHub as described in the release documentation. Existing control: None.",
       "gui": [],
       "cli": [],
       "limitation": "There is no update link and no update check. Any automatic version comparison would need opt-in consent under the offline and AI-free rules; a plain link would not. Remaining work: Add a help.checkForUpdates command that opens the latest-release page for the repository named in the release metadata. Compare VERSION with the latest tag only after the user opts in.",
@@ -2666,7 +2666,7 @@
       "cli": [
         "map entity-colour"
       ],
-      "limitation": "Like Set Entity Colour, worldspawn is reached only when selected itself and hidden entities are skipped. Normalise Each is a CLI-only VibeStudio extension with no GUI command. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Like Set Entity Colour, worldspawn is reached only when selected itself and hidden entities are skipped. Normalise Each is a CLI-only SlopStudio extension with no GUI command. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_entity_colour.h",
         "src/core/level_entity_colour.cpp",
@@ -2859,7 +2859,7 @@
       "cli": [
         "editor scene"
       ],
-      "limitation": "VibeStudio layers hold nested groups, not NRC's nested layers, so a layer's groups stand in for NRC's child layers. Ctrl+Q stays Quit, so the NetRadiant Custom profile uses Ctrl+Shift+Q. Brush entities join through their brushes. Doom lines and vertices belong to a layer only when assigned to it. Native physical input and macOS/Linux acceptance remain open.",
+      "limitation": "SlopStudio layers hold nested groups, not NRC's nested layers, so a layer's groups stand in for NRC's child layers. Ctrl+Q stays Quit, so the NetRadiant Custom profile uses Ctrl+Shift+Q. Brush entities join through their brushes. Doom lines and vertices belong to a layer only when assigned to it. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_scene_layers.h",
         "src/core/level_scene_layers.cpp",
@@ -3192,7 +3192,7 @@
     {
       "id": "nrc:FilterPatches",
       "status": "Planned",
-      "workflow": "On Quake III maps, the **Patches** check box in the View tab's **Filters** section hides every patch in the 2D views and the camera. It shows a live count. VibeStudio remembers the state, and **Show Every Kind** brings everything back. The map, builds and packages are unchanged. Existing control: Levels > View tab > Filters > Patches check box (levelFilter-patches)",
+      "workflow": "On Quake III maps, the **Patches** check box in the View tab's **Filters** section hides every patch in the 2D views and the camera. It shows a live count. SlopStudio remembers the state, and **Show Every Kind** brings everything back. The map, builds and packages are unchanged. Existing control: Levels > View tab > Filters > Patches check box (levelFilter-patches)",
       "gui": [],
       "cli": [],
       "limitation": "The filter is a check box only. It has no command id, palette entry, profile shortcut (NRC binds Ctrl+P) or CLI report, and the manual's Filters list omits it. Viewport masking is tested, but filter classification has no dedicated test. Native physical-input and macOS/Linux acceptance remain open.",
@@ -3271,7 +3271,7 @@
       "cli": [
         "map filters"
       ],
-      "limitation": "A brush counts as detail when any face carries the detail flag, following VibeStudio's Detail kind; NRC needs every face, so mixed brushes differ. Detail set only in a shader is not read, and patches are not filtered. Native physical input and macOS/Linux acceptance remain open.",
+      "limitation": "A brush counts as detail when any face carries the detail flag, following SlopStudio's Detail kind; NRC needs every face, so mixed brushes differ. Detail set only in a shader is not read, and patches are not filtered. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_view_filters.cpp",
         "src/app/level_view_filter_actions.cpp",
@@ -3327,7 +3327,7 @@
       "workflow": "No route, as no supported game uses visportal brushes. Quake II and Quake III areaportals are reviewed under nrc:FilterAreaportals.",
       "gui": [],
       "cli": [],
-      "limitation": "Visportals are an idTech4 (Doom 3) mechanism and NRC registers the toggle only for doom3. VibeStudio's level editor targets Doom WADs and Quake, Quake II and Quake III .map files (LevelMapFormat); brushDef3 faces parse only as a Quake III dialect, with no Doom 3 game target, and idTech1-3 compilers have no visportals. Out of scope while the level editor targets idTech1-3; it would need an idTech4 game target first.",
+      "limitation": "Visportals are an idTech4 (Doom 3) mechanism and NRC registers the toggle only for doom3. SlopStudio's level editor targets Doom WADs and Quake, Quake II and Quake III .map files (LevelMapFormat); brushDef3 faces parse only as a Quake III dialect, with no Doom 3 game target, and idTech1-3 compilers have no visportals. Out of scope while the level editor targets idTech1-3; it would need an idTech4 game target first.",
       "evidence": [
         "src/core/level_map.h",
         "src/core/level_map.cpp",
@@ -3603,7 +3603,7 @@
     {
       "id": "nrc:ImportMap",
       "status": "Partial",
-      "workflow": "**File** > **Import Map\u2026** reads a .map on a worker, previews its entities, brushes, patches, groups and layers, renames names the open map already uses to the next free number, and inserts everything at its own coordinates through the paste service as one undo step that selects it; worldspawn brushes join the open worldspawn and complete groups keep their structure. In a Quake III-family map a .bsp is converted first through the VibeMap3 convert profile with -game from the BSP header and the project's game and -fs_basepath/-fs_game from its installation, as NetRadiant Custom's Map_ImportFile does; Quake and Quake II BSPs are refused before anything runs, and a silent VibeMap3 failure is reported with its exit code. File input has no clipboard size or block limits. `map import --from other.map|other.bsp [--game KEY]` does the same on the command line.",
+      "workflow": "**File** > **Import Map\u2026** reads a .map on a worker, previews its entities, brushes, patches, groups and layers, renames names the open map already uses to the next free number, and inserts everything at its own coordinates through the paste service as one undo step that selects it; worldspawn brushes join the open worldspawn and complete groups keep their structure. In a Quake III-family map a .bsp is converted first through the SlopMap3 convert profile with -game from the BSP header and the project's game and -fs_basepath/-fs_game from its installation, as NetRadiant Custom's Map_ImportFile does; Quake and Quake II BSPs are refused before anything runs, and a silent SlopMap3 failure is reported with its exit code. File input has no clipboard size or block limits. `map import --from other.map|other.bsp [--game KEY]` does the same on the command line.",
       "gui": [
         "map.import-map",
         "map.paste-at-original",
@@ -3613,7 +3613,7 @@
         "map import",
         "map paste"
       ],
-      "limitation": "Imported layers are not recreated (NRC merges identical layer trees); everything joins the creation layer or open group. Different brush formats are refused rather than converted. Only targetname and the target, killtarget, pathtarget, combattarget and deathtarget keys are renamed. The .bsp route needs a built or configured VibeMap3 and was tested with a fake VibeMap3, not a real conversion. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Imported layers are not recreated (NRC merges identical layer trees); everything joins the creation layer or open group. Different brush formats are refused rather than converted. Only targetname and the target, killtarget, pathtarget, combattarget and deathtarget keys are renamed. The .bsp route needs a built or configured SlopMap3 and was tested with a fake SlopMap3, not a real conversion. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_map_transfer.cpp",
         "src/core/level_map.cpp",
@@ -3637,7 +3637,7 @@
         "map patch-matrix",
         "map edit-patch"
       ],
-      "limitation": "VibeStudio mirrors each row's columns, whereas NRC reverses the rows. Facing matches, but later first/last row or column commands reach different edges. Tests only check that inverting twice restores a patch; the facing flip itself, the matrix operation and the CLI routes are untested. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "SlopStudio mirrors each row's columns, whereas NRC reverses the rows. Facing matches, but later first/last row or column commands reach different edges. Tests only check that inverting twice restores a patch; the facing flip itself, the matrix operation and the CLI routes are untested. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch.cpp",
         "src/core/level_patch_tools.cpp",
@@ -3661,7 +3661,7 @@
       "cli": [
         "map align-textures"
       ],
-      "limitation": "VibeStudio mirrors about the patch's UV centre, while NRC negates coordinates about zero, so the result can land at a different offset. The command also changes selected brush faces, and the **Picked Faces** target skips patches. The NetRadiant Custom profile has no key for it, because Ctrl+Shift+I runs **Initialize Project Manifest** window-wide. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "SlopStudio mirrors about the patch's UV centre, while NRC negates coordinates about zero, so the result can land at a different offset. The command also changes selected brush faces, and the **Picked Faces** target skips patches. The NetRadiant Custom profile has no key for it, because Ctrl+Shift+I runs **Initialize Project Manifest** window-wide. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/level_surface_tools.cpp",
         "src/app/level_surface_quick_actions.cpp",
@@ -3705,7 +3705,7 @@
       "cli": [
         "map filters"
       ],
-      "limitation": "Inverting covers only the kinds VibeStudio filters, so Radiant's areaportal, translucent, clusterportal, structural, lightgrid, botclip and decal flags have no counterpart. No default key, as in NRC. Native physical input and macOS/Linux acceptance remain open.",
+      "limitation": "Inverting covers only the kinds SlopStudio filters, so Radiant's areaportal, translucent, clusterportal, structural, lightgrid, botclip and decal flags have no counterpart. No default key, as in NRC. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_view_filters.cpp",
         "src/core/level_view_filters.h",
@@ -3744,7 +3744,7 @@
     {
       "id": "nrc:MakeDetail",
       "status": "Partial",
-      "workflow": "**Make Detail** (Levels Geometry tools, Tools tab **Brush** group) sets the detail content flag on every face in Quake II and III maps. In Quake maps it moves the brushes into a `func_detail` for VibeMap2. Either way it is one undo step with an activity record. `map detail --object brush:N --output` uses the same service. The NetRadiant Custom profile binds Alt+D.",
+      "workflow": "**Make Detail** (Levels Geometry tools, Tools tab **Brush** group) sets the detail content flag on every face in Quake II and III maps. In Quake maps it moves the brushes into a `func_detail` for SlopMap2. Either way it is one undo step with an activity record. `map detail --object brush:N --output` uses the same service. The NetRadiant Custom profile binds Alt+D.",
       "gui": [
         "map.make-detail"
       ],
@@ -3861,7 +3861,7 @@
       "cli": [
         "map flip"
       ],
-      "limitation": "NRC snaps the pivot to the grid, so its flip can shift the selection by a grid step; VibeStudio mirrors in place. Component-mode flips use component UV Lock and do not feed Repeat. Neither NRC nor VibeStudio's NRC profile binds a default key. Native physical input and macOS/Linux acceptance remain open.",
+      "limitation": "NRC snaps the pivot to the grid, so its flip can shift the selection by a grid step; SlopStudio mirrors in place. Component-mode flips use component UV Lock and do not feed Repeat. Neither NRC nor SlopStudio's NRC profile binds a default key. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/level_map.cpp",
@@ -3882,7 +3882,7 @@
       "cli": [
         "map flip"
       ],
-      "limitation": "NRC's grid-snapped pivot can shift the result by a grid step; VibeStudio mirrors in place. Component-mode flips do not feed Repeat. Automated UI coverage of Flip Vertical uses Doom maps, and core tests cover Quake axes. Native physical input and macOS/Linux acceptance remain open.",
+      "limitation": "NRC's grid-snapped pivot can shift the result by a grid step; SlopStudio mirrors in place. Component-mode flips do not feed Repeat. Automated UI coverage of Flip Vertical uses Doom maps, and core tests cover Quake axes. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/level_map.cpp",
@@ -4375,7 +4375,7 @@
         "map.cycle-view"
       ],
       "cli": [],
-      "limitation": "In NRC's split layout Next View only recentres; VibeStudio also moves focus to the next pane. Pure view navigation, so no CLI route. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "In NRC's split layout Next View only recentres; SlopStudio also moves focus to the next pane. Pure view navigation, so no CLI route. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/level_plan_framing_actions.cpp",
@@ -4514,7 +4514,7 @@
       "cli": [
         "map deform-patch"
       ],
-      "limitation": "The offsets come from VibeStudio's seeded Mersenne Twister, so the same settings do not reproduce upstream's rand() results. No profile binds a key, as upstream has none. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "The offsets come from SlopStudio's seeded Mersenne Twister, so the same settings do not reproduce upstream's rand() results. No profile binds a key, as upstream has none. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch_tools.cpp",
         "src/app/level_patch_convert_deform_actions.cpp",
@@ -4654,7 +4654,7 @@
       "cli": [
         "map patch-matrix"
       ],
-      "limitation": "At 31 columns VibeStudio refuses the edit, where NRC silently inserts rows. `map patch-matrix` has no dedicated CLI test. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "At 31 columns SlopStudio refuses the edit, where NRC silently inserts rows. `map patch-matrix` has no dedicated CLI test. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch_tools.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -4705,7 +4705,7 @@
       "cli": [
         "map patch-matrix"
       ],
-      "limitation": "At 31 columns VibeStudio refuses the edit rather than inserting rows. `map patch-matrix` has no dedicated CLI test. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "At 31 columns SlopStudio refuses the edit rather than inserting rows. `map patch-matrix` has no dedicated CLI test. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch_tools.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -4730,7 +4730,7 @@
       "cli": [
         "map patch-matrix"
       ],
-      "limitation": "The label differs: NRC's Insert Last Rows is VibeStudio's **Add Patch Rows**. One patch at the row limit refuses the whole selection, whereas NRC skips that patch. Add Rows itself has no direct test (only Add Columns and Insert Rows are checked), and the CLI route is untested. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "The label differs: NRC's Insert Last Rows is SlopStudio's **Add Patch Rows**. One patch at the row limit refuses the whole selection, whereas NRC skips that patch. Add Rows itself has no direct test (only Add Columns and Insert Rows are checked), and the CLI route is untested. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch_tools.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -4799,7 +4799,7 @@
       "cli": [
         "map thicken-patch"
       ],
-      "limitation": "VibeStudio accepts fractional thickness, whereas NRC uses whole units, and it selects only the new pieces, whereas NRC keeps the source selected too. The CLI route has no automated test. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "SlopStudio accepts fractional thickness, whereas NRC uses whole units, and it selects only the new pieces, whereas NRC keeps the source selected too. The CLI route has no automated test. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch_tools.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -4994,7 +4994,7 @@
     {
       "id": "nrc:Redo2",
       "status": "Partial",
-      "workflow": "The NetRadiant Custom profile binds Ctrl+Y as a second shortcut for **Redo Map Edit**, alongside Ctrl+Shift+Z. VibeStudio needs no separate command id.",
+      "workflow": "The NetRadiant Custom profile binds Ctrl+Y as a second shortcut for **Redo Map Edit**, alongside Ctrl+Shift+Z. SlopStudio needs no separate command id.",
       "gui": [
         "map.redo"
       ],
@@ -5026,7 +5026,7 @@
     {
       "id": "nrc:RefreshShaders",
       "status": "Partial",
-      "workflow": "**Reload Previews** on the Textures page rereads images and palette sources from the open package and staged changes, then re-resolves the Levels camera materials, the Levels **Textures** tiles and model materials, keeping the camera. **Reload** on the Levels preview strip does the camera part alone. If the package changes on disk, VibeStudio asks whether to reopen it. Each `map materials` run reads the scripts afresh.",
+      "workflow": "**Reload Previews** on the Textures page rereads images and palette sources from the open package and staged changes, then re-resolves the Levels camera materials, the Levels **Textures** tiles and model materials, keeping the camera. **Reload** on the Levels preview strip does the camera part alone. If the package changes on disk, SlopStudio asks whether to reopen it. Each `map materials` run reads the scripts afresh.",
       "gui": [],
       "cli": [
         "map materials"
@@ -5172,7 +5172,7 @@
     {
       "id": "nrc:RotateSelectionAnticlockwise",
       "status": "Partial",
-      "workflow": "**Rotate 90\u00b0 Left** turns the selection a quarter turn anticlockwise in the active view, using upstream's axis and sign for each view. It is one undo step with Texture Lock, entity angles, Repeat and picked-component support. In the NRC and TB profiles, while Snap is on, it pivots on the centre rounded to the grid unless a custom component pivot is set. UI tests check each projection, with odd footprints, under the NRC, TB and VibeStudio profiles.",
+      "workflow": "**Rotate 90\u00b0 Left** turns the selection a quarter turn anticlockwise in the active view, using upstream's axis and sign for each view. It is one undo step with Texture Lock, entity angles, Repeat and picked-component support. In the NRC and TB profiles, while Snap is on, it pivots on the centre rounded to the grid unless a custom component pivot is set. UI tests check each projection, with odd footprints, under the NRC, TB and SlopStudio profiles.",
       "gui": [
         "map.rotate-left"
       ],
@@ -5192,7 +5192,7 @@
     {
       "id": "nrc:RotateSelectionClockwise",
       "status": "Partial",
-      "workflow": "**Rotate 90\u00b0 Right** turns the selection a quarter turn clockwise in the active view, using upstream's axis and sign for each view. It is one undo step that applies Texture Lock, updates entity angles, records the step for Repeat and supports picked components. In the NRC and TB profiles, while Snap is on, it pivots on the selection's (or picked components') centre rounded to the grid unless a custom component pivot is set, so odd-footprint brushes stay on grid. The UI test drives it in every projection under the NRC, TB and VibeStudio profiles. `map rotate --turns --pivot-grid` gives exact axes with the same pivot.",
+      "workflow": "**Rotate 90\u00b0 Right** turns the selection a quarter turn clockwise in the active view, using upstream's axis and sign for each view. It is one undo step that applies Texture Lock, updates entity angles, records the step for Repeat and supports picked components. In the NRC and TB profiles, while Snap is on, it pivots on the selection's (or picked components') centre rounded to the grid unless a custom component pivot is set, so odd-footprint brushes stay on grid. The UI test drives it in every projection under the NRC, TB and SlopStudio profiles. `map rotate --turns --pivot-grid` gives exact axes with the same pivot.",
       "gui": [
         "map.rotate-right"
       ],
@@ -5573,7 +5573,7 @@
         "map.grid1024"
       ],
       "cli": [],
-      "limitation": "NRC's Grid menu shows the size as a checked radio item; VibeStudio palette commands are not checkable, so the size shows in the grid lists and the 2D view's status overlay. The CLI keeps no working grid; editor controls --json lists the sizes, and scripted edits pass --grid 1024 to each command. Acceptance with physical input and on macOS and Linux is still open.",
+      "limitation": "NRC's Grid menu shows the size as a checked radio item; SlopStudio palette commands are not checkable, so the size shows in the grid lists and the 2D view's status overlay. The CLI keeps no working grid; editor controls --json lists the sizes, and scripted edits pass --grid 1024 to each command. Acceptance with physical input and on macOS and Linux is still open.",
       "evidence": [
         "src/core/level_editor_controls.h",
         "src/core/level_editor_controls.cpp",
@@ -5621,7 +5621,7 @@
         "map.grid16"
       ],
       "cli": [],
-      "limitation": "VibeStudio reopens on the last grid used, not on a default-grid preference. The CLI keeps no working grid; scripted edits pass --grid, and map snap defaults to 16. Acceptance with physical keys and on macOS and Linux is still open.",
+      "limitation": "SlopStudio reopens on the last grid used, not on a default-grid preference. The CLI keeps no working grid; scripted edits pass --grid, and map snap defaults to 16. Acceptance with physical keys and on macOS and Linux is still open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/level_editor_controls.cpp",
@@ -5727,7 +5727,7 @@
         "map.grid512"
       ],
       "cli": [],
-      "limitation": "NRC's Grid menu shows the size as a checked radio item; VibeStudio palette commands are not checkable, so the size shows in the grid lists and the 2D view's status overlay. The CLI keeps no working grid; editor controls --json lists the sizes, and scripted edits pass --grid 512 to each command. Acceptance with physical input and on macOS and Linux is still open.",
+      "limitation": "NRC's Grid menu shows the size as a checked radio item; SlopStudio palette commands are not checkable, so the size shows in the grid lists and the 2D view's status overlay. The CLI keeps no working grid; editor controls --json lists the sizes, and scripted edits pass --grid 512 to each command. Acceptance with physical input and on macOS and Linux is still open.",
       "evidence": [
         "src/core/level_editor_controls.h",
         "src/core/level_editor_controls.cpp",
@@ -5890,7 +5890,7 @@
       "cli": [
         "map render"
       ],
-      "limitation": "Draws the compiler's actual size rather than NetRadiant Custom's 256-65536 display clamp. Doom maps hide it. The 3D camera does not show block boundaries. VibeMap2 does not split on `_blocksize`, so the lines are a guide for q3map2-family builds. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Draws the compiler's actual size rather than NetRadiant Custom's 256-65536 display clamp. Doom maps hide it. The 3D camera does not show block boundaries. SlopMap2 does not split on `_blocksize`, so the lines are a guide for q3map2-family builds. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_block_grid.cpp",
         "src/app/map_grid.cpp",
@@ -6095,7 +6095,7 @@
     {
       "id": "nrc:ShowWorkzone3d",
       "status": "Planned",
-      "workflow": "No 3D work-zone guides exist. With an unlocked selection, the camera draws a dashed bounding box with axis-labelled resize handles, but nothing beyond it. VibeStudio keeps a Radiant-style work zone in the 2D views only for brush depth (**Use Work Zone**).",
+      "workflow": "No 3D work-zone guides exist. With an unlocked selection, the camera draws a dashed bounding box with axis-labelled resize handles, but nothing beyond it. SlopStudio keeps a Radiant-style work zone in the 2D views only for brush depth (**Use Work Zone**).",
       "gui": [],
       "cli": [],
       "limitation": "The camera draws no grid-dashed guides beyond the selection bounds and has no toggle, so 3D alignment relies on snapping, the 2D views and the resize box. Native physical-input and macOS/Linux acceptance would remain open once built. Remaining work: Paint lines along the selection box edges, dashed at grid spacing and extending 1024 units past the bounds, in the level camera when a selection exists outside surface tools, reusing the resize-box projection. Add a persisted 3D Work Zone toggle to the level display options and palette, keep it legible in high-contrast themes, and add an offscreen render test.",
@@ -6143,7 +6143,7 @@
       "cli": [
         "map patch-matrix"
       ],
-      "limitation": "VibeStudio wraps only patches at least five columns wide. The CLI route has no automated test. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "SlopStudio wraps only patches at least five columns wide. The CLI route has no automated test. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch_tools.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -6167,7 +6167,7 @@
       "cli": [
         "map patch-matrix"
       ],
-      "limitation": "Ctrl+W is not bound in the NetRadiant Custom profile, because **Close Package** keeps it window-wide. VibeStudio wraps only patches at least five rows tall. Only the column variant is checked in core; the UI test only checks that the row command is named and explained, and the CLI route is untested. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Ctrl+W is not bound in the NetRadiant Custom profile, because **Close Package** keeps it window-wide. SlopStudio wraps only patches at least five rows tall. Only the column variant is checked in core; the UI test only checks that the row command is named and explained, and the CLI route is untested. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_patch_tools.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -6194,7 +6194,7 @@
         "map snap",
         "map snap-vertices"
       ],
-      "limitation": "In face mode, NRC snaps the picked face's plane points; VibeStudio rounds the face's corners. NRC silently keeps a brush that would degenerate; VibeStudio reports it as skipped. Brush-entity origin keys are left alone (NRC rounds Doom 3 group origins). Doom-format maps fall back to Snap Selection to Grid. Native physical input and macOS/Linux acceptance remain open.",
+      "limitation": "In face mode, NRC snaps the picked face's plane points; SlopStudio rounds the face's corners. NRC silently keeps a brush that would degenerate; SlopStudio reports it as skipped. Brush-entity origin keys are left alone (NRC rounds Doom 3 group origins). Doom-format maps fall back to Snap Selection to Grid. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_grid_round.cpp",
         "src/core/level_placement.cpp",
@@ -6271,7 +6271,7 @@
     {
       "id": "nrc:TagDelete",
       "status": "Planned",
-      "workflow": "None. VibeStudio has no texture tags to delete.",
+      "workflow": "None. SlopStudio has no texture tags to delete.",
       "gui": [],
       "cli": [],
       "limitation": "There is no tag list or tag store, so a delete route cannot exist yet. Remaining work: Once the tag store exists, delete the selected tags from the tag panel after a confirmation that says how many textures lose each tag. Make the deletion undoable within the session and add a matching CLI option.",
@@ -6283,7 +6283,7 @@
     {
       "id": "nrc:TagPaste",
       "status": "Planned",
-      "workflow": "None. VibeStudio has no texture tags to paste.",
+      "workflow": "None. SlopStudio has no texture tags to paste.",
       "gui": [],
       "cli": [],
       "limitation": "There is no tag store or tag clipboard. **Paste Surface** applies a face's material and mapping, not tags. Remaining work: Once the tag store and Copy Tags exist, add Paste Tags for one or more selected Textures tiles. Merge without duplicates, allow undo within the session and add a CLI option that assigns several tags at once.",
@@ -6296,7 +6296,7 @@
     {
       "id": "nrc:TagRename",
       "status": "Planned",
-      "workflow": "None. VibeStudio has no texture tags to rename.",
+      "workflow": "None. SlopStudio has no texture tags to rename.",
       "gui": [],
       "cli": [],
       "limitation": "There is no tag list or tag store, so a rename route cannot exist yet. Remaining work: Once the tag store exists (see TagAdd), rename a tag in place in the Textures tab's tag panel. Reject empty or duplicate names with an inline message, update every assignment atomically, and add a matching CLI option.",
@@ -6331,10 +6331,10 @@
     {
       "id": "nrc:TagSearchUntagged",
       "status": "Planned",
-      "workflow": "None yet. The Levels **Textures** tab lists the map's textures, and with **Package Textures** on it adds the open package's. The Materials filter tests traits read from the scripts. VibeStudio has no user tags, so no texture can be shown as untagged.",
+      "workflow": "None yet. The Levels **Textures** tab lists the map's textures, and with **Package Textures** on it adds the open package's. The Materials filter tests traits read from the scripts. SlopStudio has no user tags, so no texture can be shown as untagged.",
       "gui": [],
       "cli": [],
-      "limitation": "There is no texture tag store, so an untagged view cannot exist. NRC builds its list from a ShaderPlug index. VibeStudio would take its candidates from the open package and the material library instead. Remaining work: Once a project tag store exists (see TagAdd), add an untagged filter such as tags=none. It should work in the Levels Textures filter, the Materials filter and material list --where, and be computed asynchronously over the package's textures and shaders.",
+      "limitation": "There is no texture tag store, so an untagged view cannot exist. NRC builds its list from a ShaderPlug index. SlopStudio would take its candidates from the open package and the material library instead. Remaining work: Once a project tag store exists (see TagAdd), add an untagged filter such as tags=none. It should work in the Levels Textures filter, the Materials filter and material list --where, and be computed asynchronously over the package's textures and shaders.",
       "evidence": [
         "src/app/level_sidebar_actions.cpp",
         "src/core/material_library.cpp",
@@ -6344,7 +6344,7 @@
     {
       "id": "nrc:TagsToggleGui",
       "status": "Planned",
-      "workflow": "Nothing equivalent. VibeStudio has no texture tags. The Levels **Textures** tab offers only a text filter, **Package Textures** and **Tile Size**, and the Materials library filters by typed properties. Existing control: None",
+      "workflow": "Nothing equivalent. SlopStudio has no texture tags. The Levels **Textures** tab offers only a text filter, **Package Textures** and **Tile Size**, and the Materials library filters by typed properties. Existing control: None",
       "gui": [],
       "cli": [],
       "limitation": "There is no tag store, so there is no panel to show. NRC's tag add, rename, delete, copy, paste and search commands are also not implemented. Native physical input and macOS/Linux acceptance remain open once built. Remaining work: Build a project-level texture tag store with add, rename, delete, copy, paste and untagged search. Then add a collapsible Tags section with tag filtering to the Levels Textures tab, shown or hidden by this toggle. Reuse it in the Materials library and in a material CLI action.",
@@ -6752,7 +6752,7 @@
       "cli": [
         "editor layout"
       ],
-      "limitation": "Upstream hides its camera window in every layout, whereas VibeStudio swaps panes in single-view layouts. Semantic Qt tests cover the toggle and the profile binding. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Upstream hides its camera window in every layout, whereas SlopStudio swaps panes in single-view layouts. Semantic Qt tests cover the toggle and the profile binding. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/level_editor_controls.cpp",
@@ -6899,7 +6899,7 @@
         "map.toggle-snap"
       ],
       "cli": [],
-      "limitation": "The NRC profile gives it no default key, as NRC does. VibeStudio keeps the snap state between sessions, whereas NRC starts every session with snapping on. In the NetRadiant Custom and NetRadiant profiles grid presets, grid-list choices and grid steps turn snapping back on, as NRC's do (a gesture preference can turn that off). The CLI keeps no snap state; scripted edits decide per command whether to pass --grid. Acceptance with physical keys and on macOS and Linux is still open.",
+      "limitation": "The NRC profile gives it no default key, as NRC does. SlopStudio keeps the snap state between sessions, whereas NRC starts every session with snapping on. In the NetRadiant Custom and NetRadiant profiles grid presets, grid-list choices and grid steps turn snapping back on, as NRC's do (a gesture preference can turn that off). The CLI keeps no snap state; scripted edits decide per command whether to pass --grid. Acceptance with physical keys and on macOS and Linux is still open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/map_viewport.cpp",
@@ -6949,7 +6949,7 @@
     {
       "id": "nrc:TogglePointfile",
       "status": "Partial",
-      "workflow": "A leaking build of the open map run from VibeStudio draws its trail automatically, and a clean build removes it. **Build** > **Load Leak Trail\u2026** reads a .pts or .lin file by hand, and **Clear Leak Trail** removes the trail. The Health and Problems rows frame it. `map render --leak` and `bsp inspect` read the same file from the CLI.",
+      "workflow": "A leaking build of the open map run from SlopStudio draws its trail automatically, and a clean build removes it. **Build** > **Load Leak Trail\u2026** reads a .pts or .lin file by hand, and **Clear Leak Trail** removes the trail. The Health and Problems rows frame it. `map render --leak` and `bsp inspect` read the same file from the CLI.",
       "gui": [
         "map.load-leak-trail",
         "map.clear-leak-trail"
@@ -6976,7 +6976,7 @@
       "workflow": "There is no counterpart. The Levels camera draws wireframe, flat-shaded surfaces, or textured ones with **Textures** ticked. It does not simulate light.",
       "gui": [],
       "cli": [],
-      "limitation": "Upstream registers this only for Doom 3 game types; it switches the camera to idTech4's real-time per-light, bump-mapped renderer. VibeStudio's level editor targets Doom WADs and Quake, Quake II and Quake III .map files, whose lighting the compiler bakes. brushDef3 faces parse, but Doom 3 is not a level-editing target. docs/EDITOR_PROFILES.md records Doom 3 rendering and lights as unsupported in the DoomEdit profile. The Materials workbench lights Doom 3 materials with one preview light, but the level camera has none. A compiled-lighting preview for Quake-family maps would be a separate feature, not this command.",
+      "limitation": "Upstream registers this only for Doom 3 game types; it switches the camera to idTech4's real-time per-light, bump-mapped renderer. SlopStudio's level editor targets Doom WADs and Quake, Quake II and Quake III .map files, whose lighting the compiler bakes. brushDef3 faces parse, but Doom 3 is not a level-editing target. docs/EDITOR_PROFILES.md records Doom 3 rendering and lights as unsupported in the DoomEdit profile. The Materials workbench lights Doom 3 materials with one preview light, but the level camera has none. A compiled-lighting preview for Quake-family maps would be a separate feature, not this command.",
       "evidence": [
         "docs/EDITOR_PROFILES.md",
         "docs/SUPPORT_MATRIX.md",
@@ -6990,7 +6990,7 @@
       "workflow": "Nothing equivalent. The Levels **Textures** tab is a flat list of tiles with no folder groups, and the Materials library lists every script. The build workspace only warns that the compiler honours scripts/shaderlist.txt while the dependency preview scans every shader. Existing control: None",
       "gui": [],
       "cli": [],
-      "limitation": "VibeStudio does not read shaderlist.txt when browsing, so shaders from unlisted scripts appear beside listed ones, and there is no folder tree to restrict. Native physical input and macOS/Linux acceptance remain open once built. Remaining work: Parse scripts/shaderlist.txt in the material library and mark each definition as listed or unlisted. Add a remembered Listed Shaders Only toggle, with folder grouping, to the Levels Textures tab and the Materials library. Expose listed=yes|no to material list --where.",
+      "limitation": "SlopStudio does not read shaderlist.txt when browsing, so shaders from unlisted scripts appear beside listed ones, and there is no folder tree to restrict. Native physical input and macOS/Linux acceptance remain open once built. Remaining work: Parse scripts/shaderlist.txt in the material library and mark each definition as listed or unlisted. Add a remembered Listed Shaders Only toggle, with folder grouping, to the Levels Textures tab and the Materials library. Expose listed=yes|no to material list --where.",
       "evidence": [
         "src/core/level_build_workspace.cpp",
         "src/core/material_library.cpp",
@@ -7171,7 +7171,7 @@
       "cli": [
         "map camera-focus"
       ],
-      "limitation": "Point entities with models count by their definition box, not the model's bounds as NRC's scene AABB does. The orthographic orbit camera of the VibeStudio Default profile has no floor stepping. Doom things, slopes and 3D floors are not considered. A key pressed while the camera rebuilds after an edit does nothing until it is ready. DarkRadiant's keys await an audit. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Point entities with models count by their definition box, not the model's bounds as NRC's scene AABB does. The orthographic orbit camera of the SlopStudio Default profile has no floor stepping. Doom things, slopes and 3D floors are not considered. A key pressed while the camera rebuilds after an edit does nothing until it is ready. DarkRadiant's keys await an audit. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_camera_focus.h",
         "src/core/level_camera_focus.cpp",
@@ -7193,7 +7193,7 @@
       "cli": [
         "map render"
       ],
-      "limitation": "In NRC's split layout the command only recentres; VibeStudio also focuses the pane. Native keypad input and macOS/Linux acceptance remain open.",
+      "limitation": "In NRC's split layout the command only recentres; SlopStudio also focuses the pane. Native keypad input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/level_plan_framing_actions.cpp",
@@ -7214,7 +7214,7 @@
       "cli": [
         "map render"
       ],
-      "limitation": "In NRC's split layout the command only recentres; VibeStudio also focuses the pane. Native keypad input and macOS/Linux acceptance remain open.",
+      "limitation": "In NRC's split layout the command only recentres; SlopStudio also focuses the pane. Native keypad input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/level_plan_framing_actions.cpp",
@@ -7235,7 +7235,7 @@
       "cli": [
         "map render"
       ],
-      "limitation": "In NRC's split layout the command only recentres; VibeStudio also focuses the pane. Native keypad input and macOS/Linux acceptance remain open.",
+      "limitation": "In NRC's split layout the command only recentres; SlopStudio also focuses the pane. Native keypad input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/level_plan_framing_actions.cpp",
@@ -7249,14 +7249,14 @@
     {
       "id": "nrc:XYFocusOnSelected",
       "status": "Partial",
-      "workflow": "**Frame Selection** (backtick in the NetRadiant Custom profile; also **Zoom to Selection** and the map menu) follows the profile's `plan.radiantFraming` gesture, on in NetRadiant Custom and NetRadiant: only the visible 2D views move, each fitting the selection's bounds in two-thirds of the view and never closer than 384 units across, or a 256-unit box round the camera when nothing is selected, as XY_Focus and XYWnd::FocusOnBounds do; the 3D camera stays and the status bar says which. Linked zoom takes the smallest framed scale. Other profiles keep VibeStudio's framing, which also turns the camera to the selection; the gesture switches either way in Customize Gestures or `editor gestures --set plan.radiantFraming=on|off`.",
+      "workflow": "**Frame Selection** (backtick in the NetRadiant Custom profile; also **Zoom to Selection** and the map menu) follows the profile's `plan.radiantFraming` gesture, on in NetRadiant Custom and NetRadiant: only the visible 2D views move, each fitting the selection's bounds in two-thirds of the view and never closer than 384 units across, or a 256-unit box round the camera when nothing is selected, as XY_Focus and XYWnd::FocusOnBounds do; the 3D camera stays and the status bar says which. Linked zoom takes the smallest framed scale. Other profiles keep SlopStudio's framing, which also turns the camera to the selection; the gesture switches either way in Customize Gestures or `editor gestures --set plan.radiantFraming=on|off`.",
       "gui": [
         "map.frame-selection"
       ],
       "cli": [
         "editor gestures"
       ],
-      "limitation": "Radiant framing is on only for NRC and NetRadiant; GtkRadiant, Q3Radiant, QeRadiant, DoomEdit and DarkRadiant await audits of their focus commands. NRC's component-mode selection bounds are not used. Automatic framing after Find Brush, placement and Scene list picks keeps VibeStudio's behaviour. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Radiant framing is on only for NRC and NetRadiant; GtkRadiant, Q3Radiant, QeRadiant, DoomEdit and DarkRadiant await audits of their focus commands. NRC's component-mode selection bounds are not used. Automatic framing after Find Brush, placement and Scene list picks keeps SlopStudio's behaviour. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/level_plan_framing_actions.cpp",
         "src/core/level_navigation.cpp",
@@ -7322,14 +7322,14 @@
     {
       "id": "nrc:plugin/contrib/bkgrnd2d/plugin.cpp/About...",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** and `about show` report version, platform and credits. Upstream projects whose behaviour VibeStudio studies are credited in docs/CREDITS.md.",
+      "workflow": "**About SlopStudio** and `about show` report version, platform and credits. Upstream projects whose behaviour SlopStudio studies are credited in docs/CREDITS.md.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "It is only a plugin credits box. VibeStudio does not load NRC plugins: features are built in, and attribution for studied upstream behaviour lives in About VibeStudio and docs/CREDITS.md. There are no per-plugin about boxes, because nothing is loaded as a plugin. The background-image feature this box belongs to does not exist yet (see Configure...).",
+      "limitation": "It is only a plugin credits box. SlopStudio does not load NRC plugins: features are built in, and attribution for studied upstream behaviour lives in About SlopStudio and docs/CREDITS.md. There are no per-plugin about boxes, because nothing is loaded as a plugin. The background-image feature this box belongs to does not exist yet (see Configure...).",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/studio_semantics.cpp",
@@ -7353,10 +7353,10 @@
     {
       "id": "nrc:plugin/contrib/bkgrnd2d/plugin.cpp/{command}",
       "status": "Planned",
-      "workflow": "There is no background-image route. The About entry is covered by **About VibeStudio**. The plan views show only map geometry, the grid, and leak-trail or portal overlays. Existing control: None",
+      "workflow": "There is no background-image route. The About entry is covered by **About SlopStudio**. The plan views show only map geometry, the grid, and leak-trail or portal overlays. Existing control: None",
       "gui": [],
       "cli": [],
-      "limitation": "VibeStudio has no reference images, per-plane toggles, opacity or bounds fitting, and no saved image state per map. Native physical-input and macOS/Linux acceptance would follow once built. Remaining work: Build per-plane reference images in the 2D views: image loading, bounds from the selection, the map or mapcoords, opacity, and three checkable show toggles plus a configure dialog, all in the palette. Persist them per map and add UI smoke tests for scaling, high-contrast and RTL.",
+      "limitation": "SlopStudio has no reference images, per-plane toggles, opacity or bounds fitting, and no saved image state per map. Native physical-input and macOS/Linux acceptance would follow once built. Remaining work: Build per-plane reference images in the 2D views: image loading, bounds from the selection, the map or mapcoords, opacity, and three checkable show toggles plus a configure dialog, all in the palette. Persist them per map and add UI smoke tests for scaling, high-contrast and RTL.",
       "evidence": [
         "src/app/map_viewport.cpp",
         "src/app/map_viewport_overlay.cpp"
@@ -7365,14 +7365,14 @@
     {
       "id": "nrc:plugin/contrib/bobtoolz/bobToolz-GTK.cpp/About...",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** (Shift+F1) and `about show` print the version, platform, imported compilers and a pointer to the credits. docs/CREDITS.md records bobToolz and its LGPL-2.1-or-later headers.",
+      "workflow": "**About SlopStudio** (Shift+F1) and `about show` print the version, platform, imported compilers and a pointer to the credits. docs/CREDITS.md records bobToolz and its LGPL-2.1-or-later headers.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "A plugin's own credits box has no counterpart because VibeStudio has no plugin layer. Version and attribution for the whole studio live in About VibeStudio and docs/CREDITS.md, which credits bobToolz. There is no About box for each plugin. The About dialog points to docs/CREDITS.md rather than naming each referenced plugin and its contributors.",
+      "limitation": "A plugin's own credits box has no counterpart because SlopStudio has no plugin layer. Version and attribution for the whole studio live in About SlopStudio and docs/CREDITS.md, which credits bobToolz. There is no About box for each plugin. The About dialog points to docs/CREDITS.md rather than naming each referenced plugin and its contributors.",
       "evidence": [
         "src/app/application_shell.cpp",
         "docs/CREDITS.md",
@@ -7411,7 +7411,7 @@
         "map inspect",
         "map find"
       ],
-      "limitation": "VibeStudio only detects brushes that cannot be solved. Its geometry solver already notices duplicate planes, but that warning is not shown on the Health tab or in `map inspect`, and nothing removes duplicate, zero-normal or redundant planes. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Surface the solver's duplicate-plane warning, and planes that add no corner, as a Health issue and in `map inspect`. Add a Brush Cleanup command for the map or the selection that removes them, prefers to drop caulk copies, reports counts per brush, refuses unsafe text rewrites and applies as one undo step, with a GUI command, a `map cleanup-brushes` CLI command and tests.",
+      "limitation": "SlopStudio only detects brushes that cannot be solved. Its geometry solver already notices duplicate planes, but that warning is not shown on the Health tab or in `map inspect`, and nothing removes duplicate, zero-normal or redundant planes. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Surface the solver's duplicate-plane warning, and planes that add no corner, as a Health issue and in `map inspect`. Add a Brush Cleanup command for the map or the selection that removes them, prefers to drop caulk copies, reports counts per brush, refuses unsafe text rewrites and applies as one undo step, with a GUI command, a `map cleanup-brushes` CLI command and tests.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/core/map_geometry.cpp",
@@ -7474,7 +7474,7 @@
       "cli": [
         "map drop-to-floor"
       ],
-      "limitation": "VibeStudio searches below each entity rather than from the top of the world. It keeps the class's height above the surface instead of putting the origin on it, and needs no Tree Planter mode. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "SlopStudio searches below each entity rather than from the top of the world. It keeps the class's height above the surface instead of putting the origin on it, and needs no Tree Planter mode. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/app/level_editing_actions.cpp",
@@ -7790,7 +7790,7 @@
       "cli": [
         "bsp inspect"
       ],
-      "limitation": "VibeStudio does not decode leaves, clusters or the PVS, so it cannot show what is visible from the camera or a selected point; portals show cuts, not visibility. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Decode BSP leaves, clusters and PVS for Quake, Quake II and Quake III (VibeMap outputs included), find the cluster at the camera or selection centre, highlight visible faces or leaf bounds in plan and camera overlays, and report counts from bsp inspect.",
+      "limitation": "SlopStudio does not decode leaves, clusters or the PVS, so it cannot show what is visible from the camera or a selected point; portals show cuts, not visibility. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Decode BSP leaves, clusters and PVS for Quake, Quake II and Quake III (SlopMap outputs included), find the cluster at the camera or selection centre, highlight visible faces or leaf bounds in plan and camera overlays, and report counts from bsp inspect.",
       "evidence": [
         "src/core/portal_file.cpp",
         "src/core/bsp_inspect.cpp",
@@ -7801,7 +7801,7 @@
     {
       "id": "nrc:plugin/contrib/bobtoolz/bobToolz-GTK.cpp/{command}",
       "status": "Partial",
-      "workflow": "VibeStudio maps the useful commands to native tools instead of hosting the plugin: **Shapes** tab replacement for Polygon and Stair Builder, **Find and Replace Textures\u2026**, **Paste Surface** and **Surface Alignment**, **Stitch Patches\u2026**, **Drop to Floor**, **Place at Camera Surface**, **Target Links** and **Load Portal File\u2026**. External tools can be wrapped as reviewed extension command plans with `extension discover` and `extension run`.",
+      "workflow": "SlopStudio maps the useful commands to native tools instead of hosting the plugin: **Shapes** tab replacement for Polygon and Stair Builder, **Find and Replace Textures\u2026**, **Paste Surface** and **Surface Alignment**, **Stitch Patches\u2026**, **Drop to Floor**, **Place at Camera Surface**, **Target Links** and **Load Portal File\u2026**. External tools can be wrapped as reviewed extension command plans with `extension discover` and `extension run`.",
       "gui": [
         "map.align-surfaces",
         "map.pasteSurface",
@@ -7830,14 +7830,14 @@
     {
       "id": "nrc:plugin/contrib/bobtoolz/ctfToolz-GTK.cpp/About...",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** (Shift+F1) and `about show` print the version, platform, imported compilers and a pointer to the credits. docs/CREDITS.md records bobToolz/ctfToolz and their LGPL-2.1-or-later headers.",
+      "workflow": "**About SlopStudio** (Shift+F1) and `about show` print the version, platform, imported compilers and a pointer to the credits. docs/CREDITS.md records bobToolz/ctfToolz and their LGPL-2.1-or-later headers.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "A plugin's own credits box has no counterpart because VibeStudio has no plugin layer. Version and attribution for the whole studio live in About VibeStudio and docs/CREDITS.md, which credits bobToolz/ctfToolz. There is no About box for each plugin. The About dialog names the editors that inspired VibeStudio and points to docs/CREDITS.md rather than listing each referenced plugin.",
+      "limitation": "A plugin's own credits box has no counterpart because SlopStudio has no plugin layer. Version and attribution for the whole studio live in About SlopStudio and docs/CREDITS.md, which credits bobToolz/ctfToolz. There is no About box for each plugin. The About dialog names the editors that inspired SlopStudio and points to docs/CREDITS.md rather than listing each referenced plugin.",
       "evidence": [
         "src/app/application_shell.cpp",
         "docs/CREDITS.md",
@@ -7955,14 +7955,14 @@
     {
       "id": "nrc:plugin/contrib/brushexport/plugin.cpp/About",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** and `about show` report version, platform and credits. Upstream references are credited in docs/CREDITS.md, including the brushexport plugin behind **Export Selection as OBJ\u2026**.",
+      "workflow": "**About SlopStudio** and `about show` report version, platform and credits. Upstream references are credited in docs/CREDITS.md, including the brushexport plugin behind **Export Selection as OBJ\u2026**.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "It is only a plugin credits box. VibeStudio does not load NRC plugins, and attribution for studied upstream behaviour lives in About VibeStudio and docs/CREDITS.md. There is no per-plugin about box. OBJ export of brushes, the feature this plugin provides, is Partial (see Export .obj).",
+      "limitation": "It is only a plugin credits box. SlopStudio does not load NRC plugins, and attribution for studied upstream behaviour lives in About SlopStudio and docs/CREDITS.md. There is no per-plugin about box. OBJ export of brushes, the feature this plugin provides, is Partial (see Export .obj).",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/studio_semantics.cpp",
@@ -7994,7 +7994,7 @@
     {
       "id": "nrc:plugin/contrib/brushexport/plugin.cpp/{command}",
       "status": "Partial",
-      "workflow": "Export .obj is **Export Selection as OBJ\u2026** (and **Export Map as OBJ\u2026** for the whole map) in the **File** menu, the Create menu, the Tools tab and command search, with the plugin's ignore list, collapse modes, objects or groups, welding, material library and short names, and `map export-obj` with dry run and guarded writes. About is covered by **About VibeStudio**.",
+      "workflow": "Export .obj is **Export Selection as OBJ\u2026** (and **Export Map as OBJ\u2026** for the whole map) in the **File** menu, the Create menu, the Tools tab and command search, with the plugin's ignore list, collapse modes, objects or groups, welding, material library and short names, and `map export-obj` with dry run and guarded writes. About is covered by **About SlopStudio**.",
       "gui": [
         "map.export-selection-as-obj",
         "map.export-map-as-obj",
@@ -8016,14 +8016,14 @@
     {
       "id": "nrc:plugin/contrib/camera/camera.cpp/About...",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** (Help menu, Shift+F1) shows the version, Qt runtime, platform and imported compilers, and points to the credits. `about show` prints the version, repository, update channel, licence summary and credits documents. docs/CREDITS.md holds attribution for each borrowed source.",
+      "workflow": "**About SlopStudio** (Help menu, Shift+F1) shows the version, Qt runtime, platform and imported compilers, and points to the credits. `about show` prints the version, repository, update channel, licence summary and credits documents. docs/CREDITS.md holds attribution for each borrowed source.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "A per-plugin About box exists because NetRadiant loads libraries written by different people. VibeStudio has no third-party plugin loader or plugin menu; version, platform and attribution for borrowed code are gathered in About VibeStudio, `about show`, the README Credits section and docs/CREDITS.md. There is no camera-path tool to credit yet. If one is derived from the Splash Damage plugin or id's splines library (GPL-2.0-or-later), its attribution belongs in docs/CREDITS.md and the README Credits section, not a separate box. Tests check the command, shortcut and CLI output, not the dialog's content; macOS/Linux acceptance remains open.",
+      "limitation": "A per-plugin About box exists because NetRadiant loads libraries written by different people. SlopStudio has no third-party plugin loader or plugin menu; version, platform and attribution for borrowed code are gathered in About SlopStudio, `about show`, the README Credits section and docs/CREDITS.md. There is no camera-path tool to credit yet. If one is derived from the Splash Damage plugin or id's splines library (GPL-2.0-or-later), its attribution belongs in docs/CREDITS.md and the README Credits section, not a separate box. Tests check the command, shortcut and CLI output, not the dialog's content; macOS/Linux acceptance remains open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/cli/cli.cpp",
@@ -8052,7 +8052,7 @@
     {
       "id": "nrc:plugin/contrib/camera/camera.cpp/Load Camera...",
       "status": "Planned",
-      "workflow": "Nothing in VibeStudio parses .camera files or draws their paths against the map. **Saved Level Views** imports only VibeStudio's own level views files (GUI **Import\u2026** and `editor bookmarks import`).",
+      "workflow": "Nothing in SlopStudio parses .camera files or draws their paths against the map. **Saved Level Views** imports only SlopStudio's own level views files (GUI **Import\u2026** and `editor bookmarks import`).",
       "gui": [],
       "cli": [],
       "limitation": "There is no .camera parser, no path model and no check for a file loaded twice. Once built, native file dialogs and macOS/Linux behaviour would still need acceptance testing. Remaining work: A bounded, fixture-tested reader and writer for cameraPathDef text: fixed, interpolated and spline positions, targets, time and events, with line-numbered diagnostics. Add a GUI open action that links the file to the open map and a read-only CLI inspect command. Credit id's splines library (GPL-2.0-or-later) in docs/CREDITS.md and the README.",
@@ -8066,7 +8066,7 @@
     {
       "id": "nrc:plugin/contrib/camera/camera.cpp/New Fixed Camera",
       "status": "Planned",
-      "workflow": "VibeStudio cannot author game cameras. **Save Current Level View** records a named, static editor viewpoint (position, angles, field of view, plan views and layout). It is only for navigation and is never written out as game camera data.",
+      "workflow": "SlopStudio cannot author game cameras. **Save Current Level View** records a named, static editor viewpoint (position, angles, field of view, plan views and layout). It is only for navigation and is never written out as game camera data.",
       "gui": [],
       "cli": [],
       "limitation": "There is no fixed-position path type, no target, no timed events and no .camera output. Saved views cannot be turned into game cameras. Remaining work: Create a fixed camera from the current 3D camera or a point picked in a 2D view, with a name, length and optional target. Hold it in the shared path model as an undoable, staged edit and save it as cameraPathDef text. Add a matching CLI create option.",
@@ -8092,7 +8092,7 @@
     {
       "id": "nrc:plugin/contrib/camera/camera.cpp/New Spline Camera",
       "status": "Planned",
-      "workflow": "There are no curved camera paths. VibeStudio's existing curves are patch meshes and sweep paths for geometry; neither drives a camera.",
+      "workflow": "There are no curved camera paths. SlopStudio's existing curves are patch meshes and sweep paths for geometry; neither drives a camera.",
       "gui": [],
       "cli": [],
       "limitation": "There is no spline evaluation for cameras, no control-point editing and no .camera output. Once built, native pointer gestures and macOS/Linux behaviour would still need acceptance testing. Remaining work: Spline camera paths that match the splines library's curve evaluation. Support adding, inserting, moving and deleting control points in the 2D views with undo, and draw the curve at an adjustable resolution. Add fixture tests comparing sampled positions against reference values.",
@@ -8118,7 +8118,7 @@
     {
       "id": "nrc:plugin/contrib/camera/camera.cpp/{command}",
       "status": "Planned",
-      "workflow": "VibeStudio has no camera-path module. The closest existing service is **Saved Level Views** (GUI and `editor bookmarks`), which stores named, static editor viewpoints for each map.",
+      "workflow": "SlopStudio has no camera-path module. The closest existing service is **Saved Level Views** (GUI and `editor bookmarks`), which stores named, static editor viewpoints for each map.",
       "gui": [],
       "cli": [],
       "limitation": "Nothing covers path types, targets, events, reading or writing .camera files, path editing in the 2D views, or playback. Because the upstream plugin is not built, parity would be checked against its source and the splines library, not a running editor. Remaining work: A camera-path module shared by the GUI and CLI: a cameraPathDef reader and writer; fixed, interpolated and spline evaluation; 2D overlays and point editing through the normal undo and staging services; an inspector panel; and 3D playback. Add path overlays in `map render`, CLI inspect, create and sample commands, fixtures, and credits for id's splines library.",
@@ -8132,14 +8132,14 @@
     {
       "id": "nrc:plugin/contrib/gtkgensurf/plugin.cpp/About...",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** (Shift+F1) and `about show` report the studio version, platform, imported compilers and credits, and point to README.md and docs/CREDITS.md for full attribution. docs/CREDITS.md records GtkGenSurf's authors and its LGPL-2.1-or-later header.",
+      "workflow": "**About SlopStudio** (Shift+F1) and `about show` report the studio version, platform, imported compilers and credits, and point to README.md and docs/CREDITS.md for full attribution. docs/CREDITS.md records GtkGenSurf's authors and its LGPL-2.1-or-later header.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "VibeStudio has no GenSurf plugin binary for an About box to describe, and no Radiant plugin layer. Version and attribution are given for the whole studio. docs/CREDITS.md credits GtkGenSurf's authors for the inspected command table, and a built-in surface generator would be credited there rather than in a box of its own. No tool has its own About box. GenSurf attribution lives in docs/CREDITS.md, not in the dialogue, because VibeStudio contains no GenSurf code or feature to describe.",
+      "limitation": "SlopStudio has no GenSurf plugin binary for an About box to describe, and no Radiant plugin layer. Version and attribution are given for the whole studio. docs/CREDITS.md credits GtkGenSurf's authors for the inspected command table, and a built-in surface generator would be credited there rather than in a box of its own. No tool has its own About box. GenSurf attribution lives in docs/CREDITS.md, not in the dialogue, because SlopStudio contains no GenSurf code or feature to describe.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/cli/cli.cpp",
@@ -8338,7 +8338,7 @@
     {
       "id": "nrc:plugin/contrib/gtkgensurf/plugin.cpp/{command}",
       "status": "Partial",
-      "workflow": "On Quake III maps, flat patch planes go on any axis plane from selected bounds or typed extents with **Shapes** > **Patch Plane**, **Add Patch\u2026**, `map add-shape` or `map add-patch`. They are reshaped by hand with **Edit Patch Control Points\u2026**, **Edit Vertices**, the patch row and column commands and `map edit-patch`. On every Quake-family map, **Edit Vertices** moves shared brush-terrain corners together, and `map transform-components` moves picked corners of several brushes at once. **About VibeStudio** covers attribution.",
+      "workflow": "On Quake III maps, flat patch planes go on any axis plane from selected bounds or typed extents with **Shapes** > **Patch Plane**, **Add Patch\u2026**, `map add-shape` or `map add-patch`. They are reshaped by hand with **Edit Patch Control Points\u2026**, **Edit Vertices**, the patch row and column commands and `map edit-patch`. On every Quake-family map, **Edit Vertices** moves shared brush-terrain corners together, and `map transform-components` moves picked corners of several brushes at once. **About SlopStudio** covers attribution.",
       "gui": [
         "map.edit-patch",
         "app.about",
@@ -8375,14 +8375,14 @@
     {
       "id": "nrc:plugin/contrib/hydratoolz/plugin.cpp/About...",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** and `about show` report version, platform and credits. Upstream references are credited in docs/CREDITS.md.",
+      "workflow": "**About SlopStudio** and `about show` report version, platform and credits. Upstream references are credited in docs/CREDITS.md.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "It is only a plugin credits box. VibeStudio does not load NRC plugins, and attribution lives in About VibeStudio and docs/CREDITS.md. There is no per-plugin about box. WAD key maintenance is reviewed under Create/Update WAD keypair.",
+      "limitation": "It is only a plugin credits box. SlopStudio does not load NRC plugins, and attribution lives in About SlopStudio and docs/CREDITS.md. There is no per-plugin about box. WAD key maintenance is reviewed under Create/Update WAD keypair.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/studio_semantics.cpp",
@@ -8420,7 +8420,7 @@
     {
       "id": "nrc:plugin/contrib/hydratoolz/plugin.cpp/{command}",
       "status": "Partial",
-      "workflow": "**Dependencies** and `map dependencies` show which package WAD2 holds each used texture. The **Worldspawn** list, the checklist and `map edit` set the wad key by hand. For builds, **Prepare Build Workspace\u2026** and `build prepare` pack the package's miptextures into one WAD2 and point wad/_wad at it in the build copy. **About VibeStudio** covers credits.",
+      "workflow": "**Dependencies** and `map dependencies` show which package WAD2 holds each used texture. The **Worldspawn** list, the checklist and `map edit` set the wad key by hand. For builds, **Prepare Build Workspace\u2026** and `build prepare` pack the package's miptextures into one WAD2 and point wad/_wad at it in the build copy. **About SlopStudio** covers credits.",
       "gui": [
         "app.about",
         "map.edit-property",
@@ -8445,14 +8445,14 @@
     {
       "id": "nrc:plugin/contrib/meshtex/PluginModule.cpp/MeshTex.About",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** (Shift+F1) shows version, platform, module and credits information, and `about show` prints version, platform, imported compiler and credits metadata.",
+      "workflow": "**About SlopStudio** (Shift+F1) shows version, platform, module and credits information, and `about show` prints version, platform, imported compiler and credits metadata.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "It identifies the third-party MeshTex plugin. VibeStudio has no plugin host for MeshTex and builds patch texturing into the editor, so there is no plugin to describe. The product's own About and credits do this job. MeshTex is credited only in docs/CREDITS.md, as a source of the recorded command table. No MeshTex code is imported, so About VibeStudio does not name it.",
+      "limitation": "It identifies the third-party MeshTex plugin. SlopStudio has no plugin host for MeshTex and builds patch texturing into the editor, so there is no plugin to describe. The product's own About and credits do this job. MeshTex is credited only in docs/CREDITS.md, as a source of the recorded command table. No MeshTex code is imported, so About SlopStudio does not name it.",
       "evidence": [
         "src/app/application_shell.cpp",
         "docs/CREDITS.md",
@@ -8516,7 +8516,7 @@
       "cli": [
         "cli commands"
       ],
-      "limitation": "**Help > Documentation** (help.documentation) has no palette registry entry, and neither the Surfaces tab nor the patch editor links to the relevant manual section. The help covers only the patch texture tools VibeStudio has, not MeshTex's missing dialogs.",
+      "limitation": "**Help > Documentation** (help.documentation) has no palette registry entry, and neither the Surfaces tab nor the patch editor links to the relevant manual section. The help covers only the patch texture tools SlopStudio has, not MeshTex's missing dialogs.",
       "evidence": [
         "docs/manual/levels.md",
         "src/app/application_shell.cpp",
@@ -8641,7 +8641,7 @@
       "cli": [
         "map align-textures"
       ],
-      "limitation": "VibeStudio never chooses the repeat count. The GUI fits one repeat on patches (**Surface Alignment\u2026** takes any count but only for brush faces), and the CLI needs the count worked out by hand from the current UVs. Fit moves the minimum to 0 rather than the next whole number, which looks the same. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a fit-to-whole-repeats operation with auto, stretch (round down) and shrink (round up) modes per axis, keeping the minimum edge on a tile boundary, for patches and brush faces. Add Surfaces tab buttons and a matching `map align-textures` option.",
+      "limitation": "SlopStudio never chooses the repeat count. The GUI fits one repeat on patches (**Surface Alignment\u2026** takes any count but only for brush faces), and the CLI needs the count worked out by hand from the current UVs. Fit moves the minimum to 0 rather than the next whole number, which looks the same. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add a fit-to-whole-repeats operation with auto, stretch (round down) and shrink (round up) modes per axis, keeping the minimum edge on a tile boundary, for patches and brush faces. Add Surfaces tab buttons and a matching `map align-textures` option.",
       "evidence": [
         "src/core/level_surface.cpp",
         "src/app/level_surface_tools.cpp",
@@ -8825,14 +8825,14 @@
     {
       "id": "nrc:plugin/contrib/prtview/prtview.cpp/About Portal Viewer",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** (Shift+F1) and `about show` report the studio version, platform, modules and credits. The portal reader is original VibeStudio code. docs/CREDITS.md credits the Portal Viewer authors and licence for the NRC command table that was inspected.",
+      "workflow": "**About SlopStudio** (Shift+F1) and `about show` report the studio version, platform, modules and credits. The portal reader is original SlopStudio code. docs/CREDITS.md credits the Portal Viewer authors and licence for the NRC command table that was inspected.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "VibeStudio's portal display is built into the studio, not a loadable plugin, so there is no separate version or author to show. The studio version appears in About VibeStudio, and the inspected NRC Portal Viewer command table is credited in docs/CREDITS.md. There is no about box for a single feature. None is needed while the portal viewer is part of the studio rather than a plugin.",
+      "limitation": "SlopStudio's portal display is built into the studio, not a loadable plugin, so there is no separate version or author to show. The studio version appears in About SlopStudio, and the inspected NRC Portal Viewer command table is credited in docs/CREDITS.md. There is no about box for a single feature. None is needed while the portal viewer is part of the studio rather than a plugin.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/studio_semantics.cpp",
@@ -8955,14 +8955,14 @@
     {
       "id": "nrc:plugin/contrib/shaderplug/shaderplug.cpp/About",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** and `about show` report version, platform and credits. Upstream references are credited in docs/CREDITS.md.",
+      "workflow": "**About SlopStudio** and `about show` report version, platform and credits. Upstream references are credited in docs/CREDITS.md.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "It is only a plugin credits box. VibeStudio does not load NRC plugins, and attribution lives in About VibeStudio and docs/CREDITS.md. There is no per-plugin about box. Texture tagging is reviewed under Create tag file.",
+      "limitation": "It is only a plugin credits box. SlopStudio does not load NRC plugins, and attribution lives in About SlopStudio and docs/CREDITS.md. There is no per-plugin about box. Texture tagging is reviewed under Create tag file.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/studio_semantics.cpp",
@@ -8974,7 +8974,7 @@
     {
       "id": "nrc:plugin/contrib/shaderplug/shaderplug.cpp/Create tag file",
       "status": "Planned",
-      "workflow": "VibeStudio has no tag system. The Levels **Textures** tab lists the map's textures, or every package texture with **Package Textures**, behind a text filter. Materials mode filters by material properties, and `material list` lists every material a package defines, with --where filters. Existing control: None",
+      "workflow": "SlopStudio has no tag system. The Levels **Textures** tab lists the map's textures, or every package texture with **Package Textures**, behind a text filter. Materials mode filters by material properties, and `material list` lists every material a package defines, with --where filters. Existing control: None",
       "gui": [],
       "cli": [],
       "limitation": "Textures and materials have no user tags, tag file or tag filter; filters match only names and built-in properties. Native physical-input and macOS/Linux acceptance would follow once built. Remaining work: Add material tags: a project tag store (JSON) seeded from the material library, tag and untag actions in the Levels Textures tab and Materials mode, and a tag key in the shared query filter syntax. Add a `material tags` CLI to seed, list and edit tags, with smoke tests.",
@@ -8988,7 +8988,7 @@
     {
       "id": "nrc:plugin/contrib/shaderplug/shaderplug.cpp/{command}",
       "status": "Planned",
-      "workflow": "VibeStudio has no tagging. Materials are found through the **Textures** tab filter, the **Package Textures** listing, the Materials mode property filter and `material list --where`. The About entry is covered by **About VibeStudio**. Existing control: None",
+      "workflow": "SlopStudio has no tagging. Materials are found through the **Textures** tab filter, the **Package Textures** listing, the Materials mode property filter and `material list --where`. The About entry is covered by **About SlopStudio**. Existing control: None",
       "gui": [],
       "cli": [],
       "limitation": "Nothing creates, stores or filters by texture or material tags. Native physical-input and macOS/Linux acceptance would follow once built. Remaining work: Build a project material-tag store with a seed-from-package action, tag editing and filtering in the Textures tab and Materials mode, a `material tags` CLI, and tests.",
@@ -9002,14 +9002,14 @@
     {
       "id": "nrc:plugin/contrib/sunplug/sunplug.cpp/About...",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** and `about show` report version, platform and credits. docs/CREDITS.md names SunPlug (Topsun) among the inspected NRC plugin tables.",
+      "workflow": "**About SlopStudio** and `about show` report version, platform and credits. docs/CREDITS.md names SunPlug (Topsun) among the inspected NRC plugin tables.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "It is only a plugin credits box. VibeStudio does not load NRC plugins. SunPlug's licence and command table are already credited in docs/CREDITS.md. There is no per-plugin about box. Command map coordinates are reviewed under ET-MapCoordinator.",
+      "limitation": "It is only a plugin credits box. SlopStudio does not load NRC plugins. SunPlug's licence and command table are already credited in docs/CREDITS.md. There is no per-plugin about box. Command map coordinates are reviewed under ET-MapCoordinator.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/studio_semantics.cpp",
@@ -9031,7 +9031,7 @@
         "map inspect",
         "map edit"
       ],
-      "limitation": "VibeStudio does not compute the square or the ET ordering and has no dialog. In the GUI the two keys are separate undo steps. Enemy Territory is not a first-class game profile, and its keys are not among the built-in worldspawn suggestions. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add **Set Command Map Coordinates\u2026**. It should compute ET's square (at least 350 units, centred on the world bounds, in ET corner order), show current and proposed values, and write both keys as one undo step. Add a `map mapcoords` CLI, ET worldspawn key suggestions and smoke tests.",
+      "limitation": "SlopStudio does not compute the square or the ET ordering and has no dialog. In the GUI the two keys are separate undo steps. Enemy Territory is not a first-class game profile, and its keys are not among the built-in worldspawn suggestions. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add **Set Command Map Coordinates\u2026**. It should compute ET's square (at least 350 units, centred on the world bounds, in ET corner order), show current and proposed values, and write both keys as one undo step. Add a `map mapcoords` CLI, ET worldspawn key suggestions and smoke tests.",
       "evidence": [
         "src/app/level_sidebar_panels.cpp",
         "src/cli/cli.cpp",
@@ -9043,7 +9043,7 @@
     {
       "id": "nrc:plugin/contrib/sunplug/sunplug.cpp/{command}",
       "status": "Partial",
-      "workflow": "`map inspect`, or **Select All** with the **Inspector** **Transform** section, reports the map's bounds. The **Worldspawn** list and `map edit` set the mapcoords keys by hand. **About VibeStudio** covers credits.",
+      "workflow": "`map inspect`, or **Select All** with the **Inspector** **Transform** section, reports the map's bounds. The **Worldspawn** list and `map edit` set the mapcoords keys by hand. **About SlopStudio** covers credits.",
       "gui": [
         "app.about",
         "map.select-all",
@@ -9065,14 +9065,14 @@
     {
       "id": "nrc:plugin/contrib/terrain_generator/terrain_generator.cpp/About",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** and `about show` report version, platform and credits. docs/CREDITS.md notes that the terrain generator has no file-level licence header and that no implementation was imported.",
+      "workflow": "**About SlopStudio** and `about show` report version, platform and credits. docs/CREDITS.md notes that the terrain generator has no file-level licence header and that no implementation was imported.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "It is only a plugin credits box. VibeStudio does not load NRC plugins. docs/CREDITS.md records that only the generator's command names and locations were read. There is no per-plugin about box. Terrain generation is reviewed under Generate Terrain.",
+      "limitation": "It is only a plugin credits box. SlopStudio does not load NRC plugins. docs/CREDITS.md records that only the generator's command names and locations were read. There is no per-plugin about box. Terrain generation is reviewed under Generate Terrain.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/studio_semantics.cpp",
@@ -9104,7 +9104,7 @@
     {
       "id": "nrc:plugin/contrib/terrain_generator/terrain_generator.cpp/{command}",
       "status": "Partial",
-      "workflow": "Terrain is built by hand. **Shapes** and `map add-shape` fill bounds with primitives or patch planes. **Edit Vertices** shapes the corners, moving adjacent terrain brushes' shared corners together, and `map move-components` edits one brush at a time. **About VibeStudio** covers credits.",
+      "workflow": "Terrain is built by hand. **Shapes** and `map add-shape` fill bounds with primitives or patch planes. **Edit Vertices** shapes the corners, moving adjacent terrain brushes' shared corners together, and `map move-components` edits one brush at a time. **About SlopStudio** covers credits.",
       "gui": [
         "app.about",
         "map.vertex-tool"
@@ -9125,14 +9125,14 @@
     {
       "id": "nrc:plugin/contrib/ufoaiplug/ufoai.cpp/About",
       "status": "Not applicable",
-      "workflow": "**About VibeStudio** (Shift+F1) and `about show` report VibeStudio's version, platform, imported compilers and credits. The dialog also names the editors whose workflows VibeStudio borrows and points to the full credits.",
+      "workflow": "**About SlopStudio** (Shift+F1) and `about show` report SlopStudio's version, platform, imported compilers and credits. The dialog also names the editors whose workflows SlopStudio borrows and points to the full credits.",
       "gui": [
         "app.about"
       ],
       "cli": [
         "about show"
       ],
-      "limitation": "It describes NetRadiant Custom's UFO:AI plugin, which serves UFO: Alien Invasion. VibeStudio does not target that game and has no Radiant plugin interface, so there is no plugin to describe. There are no per-component about boxes, because VibeStudio has no Radiant-style plugins; extension manifests describe themselves through `extension inspect` instead.",
+      "limitation": "It describes NetRadiant Custom's UFO:AI plugin, which serves UFO: Alien Invasion. SlopStudio does not target that game and has no Radiant plugin interface, so there is no plugin to describe. There are no per-component about boxes, because SlopStudio has no Radiant-style plugins; extension manifests describe themselves through `extension inspect` instead.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/cli/cli.cpp",
@@ -9177,7 +9177,7 @@
         "map.region-clear"
       ],
       "cli": [],
-      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and VibeStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. VibeStudio does not read UFO:AI content bits as storeys.",
+      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and SlopStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. SlopStudio does not read UFO:AI content bits as storeys.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -9200,7 +9200,7 @@
         "map.region-clear"
       ],
       "cli": [],
-      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and VibeStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. VibeStudio does not read UFO:AI content bits as storeys.",
+      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and SlopStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. SlopStudio does not read UFO:AI content bits as storeys.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -9223,7 +9223,7 @@
         "map.region-clear"
       ],
       "cli": [],
-      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and VibeStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. VibeStudio does not read UFO:AI content bits as storeys.",
+      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and SlopStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. SlopStudio does not read UFO:AI content bits as storeys.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -9246,7 +9246,7 @@
         "map.region-clear"
       ],
       "cli": [],
-      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and VibeStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. VibeStudio does not read UFO:AI content bits as storeys.",
+      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and SlopStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. SlopStudio does not read UFO:AI content bits as storeys.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -9269,7 +9269,7 @@
         "map.region-clear"
       ],
       "cli": [],
-      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and VibeStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. VibeStudio does not read UFO:AI content bits as storeys.",
+      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and SlopStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. SlopStudio does not read UFO:AI content bits as storeys.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -9292,7 +9292,7 @@
         "map.region-clear"
       ],
       "cli": [],
-      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and VibeStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. VibeStudio does not read UFO:AI content bits as storeys.",
+      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and SlopStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. SlopStudio does not read UFO:AI content bits as storeys.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -9315,7 +9315,7 @@
         "map.region-clear"
       ],
       "cli": [],
-      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and VibeStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. VibeStudio does not read UFO:AI content bits as storeys.",
+      "limitation": "CONTENTS_LEVEL1\u20138 and the matching spawnflag bits are UFO: Alien Invasion's storey markers for its battlescape. No Doom, Quake, Quake II or Quake III game uses these bits as storeys, and SlopStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. SlopStudio does not read UFO:AI content bits as storeys.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -9338,7 +9338,7 @@
         "map.region-clear"
       ],
       "cli": [],
-      "limitation": "CONTENTS_LEVEL1\u20138 are UFO: Alien Invasion's storey markers. In Quake II and Quake III 0x8000 is CONTENTS_AREAPORTAL, so the test would misread areaportal brushes. VibeStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. VibeStudio does not read UFO:AI content bits as storeys.",
+      "limitation": "CONTENTS_LEVEL1\u20138 are UFO: Alien Invasion's storey markers. In Quake II and Quake III 0x8000 is CONTENTS_AREAPORTAL, so the test would misread areaportal brushes. SlopStudio does not target UFO:AI. Regions slice by position, not by per-brush level flags or entity spawnflags. SlopStudio does not read UFO:AI content bits as storeys.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/app/level_geometry_actions.cpp",
@@ -9380,7 +9380,7 @@
         "entity validate",
         "map inspect"
       ],
-      "limitation": "The rules are UFO: Alien Invasion game rules: storey limits, team and civilian starts, and coloured lights. They have no meaning for Doom, Quake, Quake II or Quake III maps, and VibeStudio does not target UFO:AI. No UFO:AI rules are checked. Unlike the plugin, which clamps maxlevel, VibeStudio never rewrites keys during a check. The Checklist has no palette entry and no dedicated automated test.",
+      "limitation": "The rules are UFO: Alien Invasion game rules: storey limits, team and civilian starts, and coloured lights. They have no meaning for Doom, Quake, Quake II or Quake III maps, and SlopStudio does not target UFO:AI. No UFO:AI rules are checked. Unlike the plugin, which clamps maxlevel, SlopStudio never rewrites keys during a check. The Checklist has no palette entry and no dedicated automated test.",
       "evidence": [
         "src/app/level_sidebar_panels.cpp",
         "src/core/entity_definitions.cpp",
@@ -9396,7 +9396,7 @@
       "workflow": "None. The **Filters** section of the **View** tab offers only idTech1\u20133 kinds and does not read a stepon content.",
       "gui": [],
       "cli": [],
-      "limitation": "Stepon is a UFO: Alien Invasion movement content. The bit is unused by Quake II brushes and is CONTENTS_TRIGGER in Quake III, where trigger volumes are entities that the Triggers filter already covers by class. VibeStudio does not target UFO:AI. UFO:AI content bits are neither recognised nor filterable.",
+      "limitation": "Stepon is a UFO: Alien Invasion movement content. The bit is unused by Quake II brushes and is CONTENTS_TRIGGER in Quake III, where trigger volumes are entities that the Triggers filter already covers by class. SlopStudio does not target UFO:AI. UFO:AI content bits are neither recognised nor filterable.",
       "evidence": [
         "src/core/level_view_filters.cpp",
         "docs/SUPPORT_MATRIX.md"
@@ -9423,7 +9423,7 @@
       "cli": [
         "map edit"
       ],
-      "limitation": "maxlevel and maxteams are UFO: Alien Invasion worldspawn keys for storeys and teams. Doom, Quake, Quake II and Quake III worldspawn has no such keys or derivable defaults, and VibeStudio does not target UFO:AI. Nothing derives default values from map contents, such as counting starts or inferring teams. Keys are entered by hand or picked from suggestions, and the section has no palette entry.",
+      "limitation": "maxlevel and maxteams are UFO: Alien Invasion worldspawn keys for storeys and teams. Doom, Quake, Quake II and Quake III worldspawn has no such keys or derivable defaults, and SlopStudio does not target UFO:AI. Nothing derives default values from map contents, such as counting starts or inferring teams. Keys are entered by hand or picked from suggestions, and the section has no palette entry.",
       "evidence": [
         "src/app/level_sidebar_panels.cpp",
         "src/core/level_map.cpp",
@@ -9440,7 +9440,7 @@
       "cli": [
         "map edit"
       ],
-      "limitation": "maxlevel and maxteams are UFO: Alien Invasion worldspawn keys for storeys and teams. Doom, Quake, Quake II and Quake III worldspawn has no such keys or derivable defaults, and VibeStudio does not target UFO:AI. No command resets worldspawn keys to values computed from the map. Each key is changed explicitly.",
+      "limitation": "maxlevel and maxteams are UFO: Alien Invasion worldspawn keys for storeys and teams. Doom, Quake, Quake II and Quake III worldspawn has no such keys or derivable defaults, and SlopStudio does not target UFO:AI. No command resets worldspawn keys to values computed from the map. Each key is changed explicitly.",
       "evidence": [
         "src/app/level_sidebar_panels.cpp",
         "src/core/level_map.cpp",
@@ -9462,7 +9462,7 @@
         "entity validate",
         "map edit"
       ],
-      "limitation": "The provider exists for UFO: Alien Invasion, which VibeStudio does not target, and depends on Radiant's plugin interface. Its two generic behaviours, hiding nodraw and player clip brushes, are reviewed under the NoDraw and ActorClip entries. There is no Radiant plugin compatibility, no UFO:AI game profile or toolbar, and no UFO:AI content-flag names, storey filters or entity rules.",
+      "limitation": "The provider exists for UFO: Alien Invasion, which SlopStudio does not target, and depends on Radiant's plugin interface. Its two generic behaviours, hiding nodraw and player clip brushes, are reviewed under the NoDraw and ActorClip entries. There is no Radiant plugin compatibility, no UFO:AI game profile or toolbar, and no UFO:AI content-flag names, storey filters or entity rules.",
       "evidence": [
         "docs/SUPPORT_MATRIX.md",
         "src/core/advanced_studio.cpp",
@@ -9473,10 +9473,10 @@
     {
       "id": "nrc:plugin/plugins/sample/sample.cpp/About",
       "status": "Not applicable",
-      "workflow": "No counterpart is needed. Third-party tools reach VibeStudio through extension manifests, which run as separate processes and stage their output, not through in-process menu plugins.",
+      "workflow": "No counterpart is needed. Third-party tools reach SlopStudio through extension manifests, which run as separate processes and stage their output, not through in-process menu plugins.",
       "gui": [],
       "cli": [],
-      "limitation": "This is a developer template. Its console output is fixed, it changes nothing in the map, and NRC does not even build it. VibeStudio has no in-process Radiant plugin API, so a mapper gains nothing from an equivalent. Not applicable. VibeStudio deliberately offers no plugin interface compatible with Radiant's.",
+      "limitation": "This is a developer template. Its console output is fixed, it changes nothing in the map, and NRC does not even build it. SlopStudio has no in-process Radiant plugin API, so a mapper gains nothing from an equivalent. Not applicable. SlopStudio deliberately offers no plugin interface compatible with Radiant's.",
       "evidence": [
         "src/core/advanced_studio.cpp",
         "src/tests/advanced_studio_smoke_test.cpp",
@@ -9486,10 +9486,10 @@
     {
       "id": "nrc:plugin/plugins/sample/sample.cpp/Do Something",
       "status": "Not applicable",
-      "workflow": "No counterpart is needed. Custom automation uses VibeStudio extension manifests, whose commands run as separate, reviewed processes with staged output.",
+      "workflow": "No counterpart is needed. Custom automation uses SlopStudio extension manifests, whose commands run as separate, reviewed processes with staged output.",
       "gui": [],
       "cli": [],
-      "limitation": "This placeholder command only prints a fixed string and has no editing effect. VibeStudio has no Radiant plugin API that it could demonstrate. Not applicable. VibeStudio deliberately offers no plugin interface compatible with Radiant's.",
+      "limitation": "This placeholder command only prints a fixed string and has no editing effect. SlopStudio has no Radiant plugin API that it could demonstrate. Not applicable. SlopStudio deliberately offers no plugin interface compatible with Radiant's.",
       "evidence": [
         "src/core/advanced_studio.cpp",
         "src/tests/advanced_studio_smoke_test.cpp",
@@ -9499,10 +9499,10 @@
     {
       "id": "nrc:plugin/plugins/sample/sample.cpp/{command}",
       "status": "Not applicable",
-      "workflow": "No counterpart is needed. Third-party commands come through VibeStudio extension manifests (discover, inspect, run), which execute out of process with staged output rather than as in-editor menu plugins.",
+      "workflow": "No counterpart is needed. Third-party commands come through SlopStudio extension manifests (discover, inspect, run), which execute out of process with staged output rather than as in-editor menu plugins.",
       "gui": [],
       "cli": [],
-      "limitation": "The whole family is a plugin-author template with no mapping behaviour. VibeStudio has no Radiant plugin interface for it to exercise. Not applicable. Extensions do not receive the live selection bounds that Radiant plugins get.",
+      "limitation": "The whole family is a plugin-author template with no mapping behaviour. SlopStudio has no Radiant plugin interface for it to exercise. Not applicable. Extensions do not receive the live selection bounds that Radiant plugins get.",
       "evidence": [
         "src/core/advanced_studio.cpp",
         "src/tests/advanced_studio_smoke_test.cpp",
@@ -9512,10 +9512,10 @@
     {
       "id": "nrc:plugin/plugins/textool/TexTool.cpp/About...",
       "status": "Not applicable",
-      "workflow": "No counterpart is needed. About VibeStudio and the credits documents list every borrowed component.",
+      "workflow": "No counterpart is needed. About SlopStudio and the credits documents list every borrowed component.",
       "gui": [],
       "cli": [],
-      "limitation": "This is plugin housekeeping with no editing effect. VibeStudio has no per-plugin About boxes. If a TexTool-style UV editor is built, its credits belong in About VibeStudio and docs/CREDITS.md. Not applicable.",
+      "limitation": "This is plugin housekeeping with no editing effect. SlopStudio has no per-plugin About boxes. If a TexTool-style UV editor is built, its credits belong in About SlopStudio and docs/CREDITS.md. Not applicable.",
       "evidence": [
         "docs/CREDITS.md",
         "docs/plans/level-editor-commands.md"
@@ -9826,7 +9826,7 @@
         "map view-transform",
         "map flip"
       ],
-      "limitation": "TrenchBroom disables flips for every modal tool. VibeStudio disables them only while Sweep is on: it flips picked components in vertex, edge and face modes, and still flips in the clip tool. With nothing selected, Ctrl+F in a view focuses search. NetRadiant Custom's full-grid flip pivot is not reproduced; that profile flips about the exact centre. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "TrenchBroom disables flips for every modal tool. SlopStudio disables them only while Sweep is on: it flips picked components in vertex, edge and face modes, and still flips in the clip tool. With nothing selected, Ctrl+F in a view focuses search. NetRadiant Custom's full-grid flip pivot is not reproduced; that profile flips about the exact centre. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_quick_transform.cpp",
         "src/core/level_map.cpp",
@@ -9852,7 +9852,7 @@
         "map view-transform",
         "map flip"
       ],
-      "limitation": "VibeStudio disables flips only during Sweep, where TrenchBroom disables them for every modal tool. Doom maps refuse the camera's Z flip. NetRadiant Custom's full-grid flip pivot is not reproduced. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "SlopStudio disables flips only during Sweep, where TrenchBroom disables them for every modal tool. Doom maps refuse the camera's Z flip. NetRadiant Custom's full-grid flip pivot is not reproduced. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_quick_transform.cpp",
         "src/core/level_map.cpp",
@@ -9875,7 +9875,7 @@
       "cli": [
         "map align-textures"
       ],
-      "limitation": "VibeStudio mirrors about each face's middle, as Flip U and Flip V do. TrenchBroom's mirror anchor and per-face axis choice live in its model library, which the pinned checkout lacks, so they were not compared, and the offset after a flip can differ. Only the TrenchBroom profile has a key. Native physical input and macOS/Linux acceptance remain open.",
+      "limitation": "SlopStudio mirrors about each face's middle, as Flip U and Flip V do. TrenchBroom's mirror anchor and per-face axis choice live in its model library, which the pinned checkout lacks, so they were not compared, and the offset after a flip can differ. Only the TrenchBroom profile has a key. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_camera_texture.cpp",
         "src/core/level_surface.cpp",
@@ -9898,7 +9898,7 @@
       "cli": [
         "map align-textures"
       ],
-      "limitation": "VibeStudio mirrors about each face's middle, as Flip U and Flip V do. TrenchBroom's mirror anchor and per-face axis choice live in its model library, which the pinned checkout lacks, so they were not compared, and the offset after a flip can differ. Only the TrenchBroom profile has a key. Native physical input and macOS/Linux acceptance remain open.",
+      "limitation": "SlopStudio mirrors about each face's middle, as Flip U and Flip V do. TrenchBroom's mirror anchor and per-face axis choice live in its model library, which the pinned checkout lacks, so they were not compared, and the offset after a flip can differ. Only the TrenchBroom profile has a key. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_camera_texture.cpp",
         "src/core/level_surface.cpp",
@@ -10495,7 +10495,7 @@
         "map view-transform",
         "map rotate"
       ],
-      "limitation": "TrenchBroom's Rotate-tool angle and centre have no counterpart (VibeStudio has no object rotate tool), so a roll is always 90\u00b0. The key acts while a Levels view has focus; from menus and command search, the last focused view decides. The Radiant-family cameras use the last plan view's axes. Doom maps refuse roll. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "TrenchBroom's Rotate-tool angle and centre have no counterpart (SlopStudio has no object rotate tool), so a roll is always 90\u00b0. The key acts while a Levels view has focus; from menus and command search, the last focused view decides. The Radiant-family cameras use the last plan view's axes. Doom maps refuse roll. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_quick_transform.cpp",
         "src/app/level_axis_transform_actions.cpp",
@@ -10542,7 +10542,7 @@
       "cli": [
         "map align-textures"
       ],
-      "limitation": "TrenchBroom's mdl::rotateUV is not in the pinned checkout, so its own on-screen direction per face format was not compared; VibeStudio guarantees clockwise as seen from each face's front. In vertex, edge and face editing Page Up stays with the component nudge. Patches need the material's image size. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "TrenchBroom's mdl::rotateUV is not in the pinned checkout, so its own on-screen direction per face format was not compared; SlopStudio guarantees clockwise as seen from each face's front. In vertex, edge and face editing Page Up stays with the component nudge. Patches need the material's image size. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_camera_texture.cpp",
         "src/core/level_surface.cpp",
@@ -10671,7 +10671,7 @@
     {
       "id": "tb:Controls/Map view/View Filter > Hide faces",
       "status": "Partial",
-      "workflow": "**View** > **Camera Display** > **Hide Faces in Camera** sets the saved face mode to hidden. **3D Wireframe** toggles it (W in the VibeStudio profile, unbound in TrenchBroom and the Radiant profiles, as upstream). The camera then draws brush and patch polygon edges, not triangle diagonals, and keeps doing so across preview rebuilds after edits, undo or Reload. Turning it off brings back the textured or flat faces and edges chosen before. The choice is kept for the next session.",
+      "workflow": "**View** > **Camera Display** > **Hide Faces in Camera** sets the saved face mode to hidden. **3D Wireframe** toggles it (W in the SlopStudio profile, unbound in TrenchBroom and the Radiant profiles, as upstream). The camera then draws brush and patch polygon edges, not triangle diagonals, and keeps doing so across preview rebuilds after edits, undo or Reload. Turning it off brings back the textured or flat faces and edges chosen before. The choice is kept for the next session.",
       "gui": [
         "map.hide-camera-faces",
         "map.preview-wireframe"
@@ -10831,7 +10831,7 @@
       "workflow": "Not covered. Brush entities are drawn as their brushes, in the brush-entity colour. The **Brush Entities** filter on the **View** tab hides whole entities, but no bounding boxes are drawn. Existing control: None",
       "gui": [],
       "cli": [],
-      "limitation": "VibeStudio draws no brush-entity bounds, so there is no outline to toggle. Hiding the entities with the filter is a different job. Remaining work: Draw brush-entity bounds in the 2D views and the camera overlay, tinted by class colour where definitions provide one. Put them behind a remembered Show-menu toggle with a command id and add overlay snapshot tests.",
+      "limitation": "SlopStudio draws no brush-entity bounds, so there is no outline to toggle. Hiding the entities with the filter is a different job. Remaining work: Draw brush-entity bounds in the 2D views and the camera overlay, tinted by class colour where definitions provide one. Put them behind a remembered Show-menu toggle with a command id and add overlay snapshot tests.",
       "evidence": [
         "src/app/map_viewport.cpp",
         "src/core/level_view_filters.cpp",
@@ -10875,7 +10875,7 @@
     {
       "id": "tb:Controls/Map view/View Filter > Toggle show group bounds",
       "status": "Planned",
-      "workflow": "Not covered. VibeStudio has closed and open groups and reports the selected or open group in the status bar, but draws no group bounds. Existing control: None",
+      "workflow": "Not covered. SlopStudio has closed and open groups and reports the selected or open group in the status bar, but draws no group bounds. Existing control: None",
       "gui": [],
       "cli": [],
       "limitation": "No group bounds are drawn in either view, so there is nothing to toggle. Remaining work: Draw closed-group bounds, optionally with names, in the 2D views and the camera overlay from scene membership. Put them behind a remembered Show-menu toggle with a command id, respect hidden and filtered members, and add an overlay snapshot test.",
@@ -11095,7 +11095,7 @@
       "workflow": "There is no command that crashes the studio on purpose. With **Keep a crash report on this machine** on, a real crash writes a report and the next start offers it; kept reports are reviewed under **Help > Crash Reports\u2026** (see Show Crash Report Dialog).",
       "gui": [],
       "cli": [],
-      "limitation": "A developer-only fault trigger with no use in mapping. VibeStudio tests crash capture without crashing: studio_runtime_smoke_test checks report formatting and parsing, and checkCrashRecovery writes a dead-session marker and a report to drive the recovery offer. No in-app trigger exercises the signal handler on a real fault; tests use fixture reports instead. Crash capture on native macOS and Linux still needs acceptance.",
+      "limitation": "A developer-only fault trigger with no use in mapping. SlopStudio tests crash capture without crashing: studio_runtime_smoke_test checks report formatting and parsing, and checkCrashRecovery writes a dead-session marker and a report to drive the recovery offer. No in-app trigger exercises the signal handler on a real fault; tests use fixture reports instead. Crash capture on native macOS and Linux still needs acceptance.",
       "evidence": [
         "src/app/studio_runtime.cpp",
         "src/tests/studio_runtime_smoke_test.cpp",
@@ -11207,7 +11207,7 @@
       "workflow": "There is no palette inspector. applyStudioTheme applies colours from StudioThemeTokens, Preferences chooses the theme (including both high-visibility themes), and studio_theme_smoke_test checks the tokens.",
       "gui": [],
       "cli": [],
-      "limitation": "Developer theme inspection with no use in mapping. VibeStudio's colours come from its own theme tokens, which automated theme tests check; users choose themes in Preferences. There is no live view of the resolved Qt palette roles. Theme rendering on native macOS and Linux still needs acceptance.",
+      "limitation": "Developer theme inspection with no use in mapping. SlopStudio's colours come from its own theme tokens, which automated theme tests check; users choose themes in Preferences. There is no live view of the resolved Qt palette roles. Theme rendering on native macOS and Linux still needs acceptance.",
       "evidence": [
         "src/app/studio_theme.cpp",
         "src/app/studio_theme.h",
@@ -11220,7 +11220,7 @@
       "workflow": "There is no fault-injection command. Map edits go through core services designed to commit one undo step or leave the document unchanged; with locks present, guardLevelSceneEdit runs the edit on a candidate copy first. Smoke tests run refused edits directly.",
       "gui": [],
       "cli": [],
-      "limitation": "Fault injection for TrenchBroom's command processor, which mappers never need. VibeStudio smoke tests cover refusal paths by feeding invalid input instead. No injected fault tests rollback after an unexpected exception part-way through an edit; refusal paths are tested only through invalid input.",
+      "limitation": "Fault injection for TrenchBroom's command processor, which mappers never need. SlopStudio smoke tests cover refusal paths by feeding invalid input instead. No injected fault tests rollback after an unexpected exception part-way through an edit; refusal paths are tested only through invalid input.",
       "evidence": [
         "src/core/level_map.cpp",
         "src/core/level_scene_locks.h",
@@ -11436,7 +11436,7 @@
       "cli": [
         "map add-brush"
       ],
-      "limitation": "Points cannot be dragged in the camera (as upstream), the hull wire is hidden while a new check runs, and each check copies the whole map, which is slower on very large maps. The 2D-view gestures are a VibeStudio extension. Native physical input, screen readers and macOS/Linux acceptance remain open.",
+      "limitation": "Points cannot be dragged in the camera (as upstream), the hull wire is hidden while a new check runs, and each check copies the whole map, which is slower on very large maps. The 2D-view gestures are a SlopStudio extension. Native physical input, screen readers and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_brush_assemble.cpp",
         "src/app/level_brush_assemble_actions.cpp",
@@ -11569,7 +11569,7 @@
         "map transform-components",
         "map round-to-grid"
       ],
-      "limitation": "TrenchBroom re-fits each face from its matching old face; VibeStudio keeps exact corner UVs where it can and otherwise fits three corners, unmoved corners first, so drifting corners can differ from TrenchBroom. Insertion, splitting, removal and face extrusion follow their own mapping policies. Native physical input and macOS/Linux acceptance remain open.",
+      "limitation": "TrenchBroom re-fits each face from its matching old face; SlopStudio keeps exact corner UVs where it can and otherwise fits three corners, unmoved corners first, so drifting corners can differ from TrenchBroom. Insertion, splitting, removal and face extrusion follow their own mapping policies. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_brush.cpp",
         "src/core/level_component_transform.cpp",
@@ -11586,7 +11586,7 @@
     {
       "id": "tb:Menu/File/About TrenchBroom",
       "status": "Partial",
-      "workflow": "**Help > About VibeStudio** (Shift+F1) shows the version, platform, imported compilers and credits. `about show` prints the same information.",
+      "workflow": "**Help > About SlopStudio** (Shift+F1) shows the version, platform, imported compilers and credits. `about show` prints the same information.",
       "gui": [
         "app.about"
       ],
@@ -11718,7 +11718,7 @@
       "cli": [
         "map new"
       ],
-      "limitation": "VibeStudio holds one map at a time instead of opening a new window. Creation offers no Valve 220 or UDMF format and no game configurations beyond the five games. Ctrl+N only works while Levels has focus. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "SlopStudio holds one map at a time instead of opening a new window. Creation offers no Valve 220 or UDMF format and no game configurations beyond the five games. Ctrl+N only works while Levels has focus. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/level_document_actions.cpp",
         "src/app/level_document_dialog.cpp",
@@ -11804,7 +11804,7 @@
     {
       "id": "tb:Menu/File/Reload Point File",
       "status": "Partial",
-      "workflow": "When a build runs from VibeStudio, the open map's trail is read again automatically, and a build that no longer leaks clears it. After an outside compile, **Clear Leak Trail** followed by **Load Leak Trail\u2026** reads the file again.",
+      "workflow": "When a build runs from SlopStudio, the open map's trail is read again automatically, and a build that no longer leaks clears it. After an outside compile, **Clear Leak Trail** followed by **Load Leak Trail\u2026** reads the file again.",
       "gui": [
         "map.load-leak-trail"
       ],
@@ -11824,7 +11824,7 @@
         "map.load-portals"
       ],
       "cli": [],
-      "limitation": "There is no one-step Reload. A build run from VibeStudio does not refresh the shown portals the way it refreshes the leak trail. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add map.reloadPortals, which reads m_levelPortalPath again, and refresh the shown portals after a build that rewrites the .prt.",
+      "limitation": "There is no one-step Reload. A build run from SlopStudio does not refresh the shown portals the way it refreshes the leak trail. Native physical-input and macOS/Linux acceptance remain open. Remaining work: Add map.reloadPortals, which reads m_levelPortalPath again, and refresh the shown portals after a build that rewrites the .prt.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/core/portal_file.cpp",
@@ -11834,7 +11834,7 @@
     {
       "id": "tb:Menu/File/Revert",
       "status": "Planned",
-      "workflow": "The **Reload** button on the Levels toolbar reads the map from disk again. If there are unsaved edits it offers **Save**, **Discard Edits** or **Cancel**. Changes made to the file outside VibeStudio also prompt a reload. Existing control: Levels toolbar > Reload",
+      "workflow": "The **Reload** button on the Levels toolbar reads the map from disk again. If there are unsaved edits it offers **Save**, **Discard Edits** or **Cancel**. Changes made to the file outside SlopStudio also prompt a reload. Existing control: Levels toolbar > Reload",
       "gui": [],
       "cli": [],
       "limitation": "There is no command named Revert, and no palette entry or shortcut. Reload reads whatever path is in the path field, which can differ from the open document if someone edited the field. Native physical-input and macOS/Linux acceptance remain open.",
@@ -11928,7 +11928,7 @@
     {
       "id": "tb:Menu/Run/Compile...",
       "status": "Partial",
-      "workflow": "Pick a compiler profile on the Levels document bar and choose **Run Profile**: VibeStudio asks to save, shows the compile plan and Map Health in the drawer, then runs a cancellable Activity task with logs, diagnostics and a command manifest. **Compile Region** compiles only the active region. In Build mode, **Use Open Map** and **Run Build Pipeline** (F7) run chained pipelines on the open map. **Copy CLI** and the compile-plan, compiler run and build run commands use the same services.",
+      "workflow": "Pick a compiler profile on the Levels document bar and choose **Run Profile**: SlopStudio asks to save, shows the compile plan and Map Health in the drawer, then runs a cancellable Activity task with logs, diagnostics and a command manifest. **Compile Region** compiles only the active region. In Build mode, **Use Open Map** and **Run Build Pipeline** (F7) run chained pipelines on the open map. **Copy CLI** and the compile-plan, compiler run and build run commands use the same services.",
       "gui": [
         "build.run-pipeline",
         "compiler.run",
@@ -11958,7 +11958,7 @@
     {
       "id": "tb:Menu/Run/Launch...",
       "status": "Partial",
-      "workflow": "**Launch Game** (Ctrl+G) uses the **Launch and Test** tab: launch profile (Automatic, the built-in source ports or your own), map name (defaulting to the compiled map), game folder, **Extra arguments** (kept per installation, split as a shell would) and **Copy build to game**. **Launch Profiles\u2026** (also **Build** > **Launch Profiles\u2026**) edits your own engine profiles, as TrenchBroom's game engine profiles: a name, an engine and an argument line with {map}, {mod}, {basedir}, {bsp}, {iwad} and {warp}, a live preview with the current values and problems named in words. VibeStudio validates the plan and shows the exact command line, plus any files it will copy, before starting the game; from Levels this review appears over the map without changing mode. `launch plan`/`launch run` use the same service with your profiles and the saved extra arguments, and `launch profiles`, `launch profile-set`, `launch profile-remove` and `launch extra-args` manage them.",
+      "workflow": "**Launch Game** (Ctrl+G) uses the **Launch and Test** tab: launch profile (Automatic, the built-in source ports or your own), map name (defaulting to the compiled map), game folder, **Extra arguments** (kept per installation, split as a shell would) and **Copy build to game**. **Launch Profiles\u2026** (also **Build** > **Launch Profiles\u2026**) edits your own engine profiles, as TrenchBroom's game engine profiles: a name, an engine and an argument line with {map}, {mod}, {basedir}, {bsp}, {iwad} and {warp}, a live preview with the current values and problems named in words. SlopStudio validates the plan and shows the exact command line, plus any files it will copy, before starting the game; from Levels this review appears over the map without changing mode. `launch plan`/`launch run` use the same service with your profiles and the saved extra arguments, and `launch profiles`, `launch profile-set`, `launch profile-remove` and `launch extra-args` manage them.",
       "gui": [
         "game.launch",
         "game.edit-launch-profiles",
@@ -11988,14 +11988,14 @@
     {
       "id": "tb:Menu/Run/Rerun...",
       "status": "Partial",
-      "workflow": "**Build** > **Re-run Last Compile** (command search, the **Tools** tab, no default key as in TrenchBroom) replays the open map's newest saved compile from .vibestudio/compiler-runs (in the project, or beside the map with no project open) exactly as it ran, the same program, arguments and folder, through the shared rerunCompilerCommandManifest(), and saves the replay beside it as the new newest run. It is enabled only when the open map has a saved run, asks to save unsaved edits first and, when saving writes a new file, compiles that file with the same profile. Run Profile remembers the profile for each game, and the next map of that game opens with it chosen. `compiler rerun --last <map>` does the same from the command line.",
+      "workflow": "**Build** > **Re-run Last Compile** (command search, the **Tools** tab, no default key as in TrenchBroom) replays the open map's newest saved compile from .slopstudio/compiler-runs (in the project, or beside the map with no project open) exactly as it ran, the same program, arguments and folder, through the shared rerunCompilerCommandManifest(), and saves the replay beside it as the new newest run. It is enabled only when the open map has a saved run, asks to save unsaved edits first and, when saving writes a new file, compiles that file with the same profile. Run Profile remembers the profile for each game, and the next map of that game opens with it chosen. `compiler rerun --last <map>` does the same from the command line.",
       "gui": [
         "compiler.rerun-last"
       ],
       "cli": [
         "compiler rerun"
       ],
-      "limitation": "It replays the saved command rather than reopening a compile dialog, offers only the newest run (the enablement check reads the newest 64 runs per folder), and build pipelines' own stage manifests are not replayed. VibeStudio's remembered profile must suit the map's format. Native physical input and macOS/Linux acceptance remain open.",
+      "limitation": "It replays the saved command rather than reopening a compile dialog, offers only the newest run (the enablement check reads the newest 64 runs per folder), and build pipelines' own stage manifests are not replayed. SlopStudio's remembered profile must suit the map's format. Native physical input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/compiler_runner.cpp",
         "src/app/build_rerun_actions.cpp",
@@ -12091,7 +12091,7 @@
     {
       "id": "tb:Menu/View/Camera/Reset 2D Cameras",
       "status": "Partial",
-      "workflow": "**Reset 2D Views** (View menu, the viewport **Layout** button menu, the **Tools** tab's **Navigate** group and command search) gives the other 2D views the focused one's zoom and its position on the axes they share, each keeping its own value on its remaining axis, as TB's MapView2D::reset2dCameras does, once and without changing **Link Plan Centres**, **Link Plan Zoom** or their saved defaults. It is available in the three-plan layouts with two or more panes showing and waits while centres and zoom are both linked, as TB disables it while Link 2D Cameras is on. TrenchBroom's <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> is VibeStudio's Read Aloud, which keeps the key in every view, so the TrenchBroom profile leaves the command unbound as a documented adaptation; users who give it that key in Keyboard Shortcuts get it only in a 2D view while it can act. **Link Plan Centres**, **Link Plan Zoom** and **Centre Plan Views on Camera** remain for lasting links; `editor view-links` reads or sets their defaults.",
+      "workflow": "**Reset 2D Views** (View menu, the viewport **Layout** button menu, the **Tools** tab's **Navigate** group and command search) gives the other 2D views the focused one's zoom and its position on the axes they share, each keeping its own value on its remaining axis, as TB's MapView2D::reset2dCameras does, once and without changing **Link Plan Centres**, **Link Plan Zoom** or their saved defaults. It is available in the three-plan layouts with two or more panes showing and waits while centres and zoom are both linked, as TB disables it while Link 2D Cameras is on. TrenchBroom's <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> is SlopStudio's Read Aloud, which keeps the key in every view, so the TrenchBroom profile leaves the command unbound as a documented adaptation; users who give it that key in Keyboard Shortcuts get it only in a 2D view while it can act. **Link Plan Centres**, **Link Plan Zoom** and **Centre Plan Views on Camera** remain for lasting links; `editor view-links` reads or sets their defaults.",
       "gui": [
         "map.reset-plan-views",
         "map.link-plan-centers",
@@ -12122,7 +12122,7 @@
         "map.grid-smaller"
       ],
       "cli": [],
-      "limitation": "VibeStudio's Larger Grid goes beyond TrenchBroom's 256, up to 1024. Fine grid lines thin out when closer than 6 pixels, and the view's status lines give the drawn spacing; TrenchBroom fades them instead. The CLI keeps no working grid. Acceptance with physical input and on macOS and Linux is still open.",
+      "limitation": "SlopStudio's Larger Grid goes beyond TrenchBroom's 256, up to 1024. Fine grid lines thin out when closer than 6 pixels, and the view's status lines give the drawn spacing; TrenchBroom fades them instead. The CLI keeps no working grid. Acceptance with physical input and on macOS and Linux is still open.",
       "evidence": [
         "src/core/level_editor_controls.h",
         "src/core/level_editor_controls.cpp",
@@ -12146,7 +12146,7 @@
         "map.grid-larger"
       ],
       "cli": [],
-      "limitation": "TrenchBroom keeps a grid for each document; VibeStudio keeps one grid for the whole shell. A grid change during a component drag cancels that drag. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "TrenchBroom keeps a grid for each document; SlopStudio keeps one grid for the whole shell. A grid change during a component drag cancels that drag. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/map_viewport.cpp",
@@ -12234,12 +12234,12 @@
     {
       "id": "tb:Menu/View/Grid/Set Grid Size 1",
       "status": "Partial",
-      "workflow": "**Grid 1** (palette, view-bar grid list, or **1 unit** in the sidebar **View** tab) sets the shared grid for every plan pane and for camera drags. The TrenchBroom profile binds 1, as upstream does. The size is kept between sessions; 1 unit is VibeStudio's finest step, so **Smaller Grid** is disabled there.",
+      "workflow": "**Grid 1** (palette, view-bar grid list, or **1 unit** in the sidebar **View** tab) sets the shared grid for every plan pane and for camera drags. The TrenchBroom profile binds 1, as upstream does. The size is kept between sessions; 1 unit is SlopStudio's finest step, so **Smaller Grid** is disabled there.",
       "gui": [
         "map.grid1"
       ],
       "cli": [],
-      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; VibeStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; SlopStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/level_sidebar_actions.cpp",
@@ -12278,7 +12278,7 @@
         "map.grid16"
       ],
       "cli": [],
-      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; VibeStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; SlopStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/level_sidebar_actions.cpp",
@@ -12297,7 +12297,7 @@
         "map.grid2"
       ],
       "cli": [],
-      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; VibeStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; SlopStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/level_sidebar_actions.cpp",
@@ -12311,7 +12311,7 @@
     {
       "id": "tb:Menu/View/Grid/Set Grid Size 256",
       "status": "Partial",
-      "workflow": "**Grid 256** sets the shared Levels grid from the View menu, the command palette or the viewport grid list; 256 is also VibeStudio's largest preset. The TrenchBroom, NetRadiant Custom and GtkRadiant profiles bind 9. All plan panes share the grid and snap state. `editor controls` reports the binding, and CLI edits that snap take --grid.",
+      "workflow": "**Grid 256** sets the shared Levels grid from the View menu, the command palette or the viewport grid list; 256 is also SlopStudio's largest preset. The TrenchBroom, NetRadiant Custom and GtkRadiant profiles bind 9. All plan panes share the grid and snap state. `editor controls` reports the binding, and CLI edits that snap take --grid.",
       "gui": [
         "map.grid256"
       ],
@@ -12336,7 +12336,7 @@
         "map.grid32"
       ],
       "cli": [],
-      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; VibeStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; SlopStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/level_sidebar_actions.cpp",
@@ -12355,7 +12355,7 @@
         "map.grid4"
       ],
       "cli": [],
-      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; VibeStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; SlopStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/level_sidebar_actions.cpp",
@@ -12374,7 +12374,7 @@
         "map.grid64"
       ],
       "cli": [],
-      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; VibeStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; SlopStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/level_sidebar_actions.cpp",
@@ -12393,7 +12393,7 @@
         "map.grid8"
       ],
       "cli": [],
-      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; VibeStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "Palette commands are not checkable, so the current size shows in the grid lists rather than as a checked menu item. TrenchBroom keeps a grid for each document; SlopStudio keeps one for the whole shell. The CLI keeps no working grid; scripted edits pass --grid to each command. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/app/application_shell.cpp",
         "src/app/level_sidebar_actions.cpp",
@@ -12450,7 +12450,7 @@
     {
       "id": "tb:Menu/View/Maximize Current View",
       "status": "Partial",
-      "workflow": "**Maximize Active View**, a checkable item in the View menu and the viewport **Layout** button menu, enlarges the focused pane and turns into **Restore View Layout**, which brings back the exact splitter sizes and focus. Edits, undo and saved views keep working while a pane is maximised. VibeStudio Default binds Ctrl+Space, the NetRadiant profiles F12 and the Hammer-family profiles Shift+Z.",
+      "workflow": "**Maximize Active View**, a checkable item in the View menu and the viewport **Layout** button menu, enlarges the focused pane and turns into **Restore View Layout**, which brings back the exact splitter sizes and focus. Edits, undo and saved views keep working while a pane is maximised. SlopStudio Default binds Ctrl+Space, the NetRadiant profiles F12 and the Hammer-family profiles Shift+Z.",
       "gui": [
         "map.maximizeView"
       ],
@@ -12526,7 +12526,7 @@
         "map inspect",
         "editor scene"
       ],
-      "limitation": "The layer summary is read-only; showing, locking and editing layers stay in the Outliner. Soft bounds are not drawn in the views or reported on Health, and VibeStudio does not load assets from the enabled mods. Native physical-input and macOS/Linux acceptance remain open.",
+      "limitation": "The layer summary is read-only; showing, locking and editing layers stay in the Outliner. Soft bounds are not drawn in the views or reported on Health, and SlopStudio does not load assets from the enabled mods. Native physical-input and macOS/Linux acceptance remain open.",
       "evidence": [
         "src/core/level_map_inspector.cpp",
         "src/app/level_map_inspector.cpp",

@@ -17,7 +17,7 @@ class QLineEdit;
 class QProgressBar;
 class QToolButton;
 
-namespace vibestudio {
+namespace slopstudio {
 class LevelUvView;
 class SidebarSection;
 class StudioCommandRegistry;
@@ -113,4 +113,4 @@ private:
 	bool m_faceRefreshing = false;
 	QString m_faceLayoutKey;
 };
-} // namespace vibestudio
+} // namespace slopstudio

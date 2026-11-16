@@ -1,7 +1,7 @@
 #include "app/application_shell.h"
 #include "app/level_gestures_dialog.h"
 
-namespace vibestudio {
+namespace slopstudio {
 void ApplicationShell::showLevelGesturePreferences()
 {
 	LevelGesturesDialog dialog(m_settings, m_settings.selectedEditorProfileId(), this);

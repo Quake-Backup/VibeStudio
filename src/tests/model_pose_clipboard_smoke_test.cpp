@@ -11,8 +11,8 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -62,7 +62,7 @@ QJsonObject runJson(const QStringList &arguments, int *code)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir tmp(QDir(root).filePath("pose-clipboard-XXXXXX"));
@@ -210,23 +210,23 @@ int main(int argc, char **argv)
 	expect(saved.setMesh(mesh, &error) && saved.edit(addClip("dest", 4), &error) && saved.save(source, false, &error), "save CLI source");
 	const auto poseFile = QDir(tmp.path()).filePath("pose.json"), out = QDir(tmp.path()).filePath("out.mesh.json");
 	int code = 0;
-	auto payload = runJson({"vibestudio", "--cli", "model", "pose", source, "--operation", "copy-out", "--clip", "0", "--first", "1", "--last", "2", "--output", poseFile}, &code);
+	auto payload = runJson({"slopstudio", "--cli", "model", "pose", source, "--operation", "copy-out", "--clip", "0", "--first", "1", "--last", "2", "--output", poseFile}, &code);
 	expect(code == 0 && QFile::exists(poseFile) && payload["samples"].toInt() == 2 && payload["kind"].toString() == "pose", "CLI copy-out writes a pose file");
-	expect(runJson({"vibestudio", "--cli", "model", "pose", source, "--operation", "copy-out", "--clip", "0", "--first", "1", "--output", poseFile}, &code).isEmpty() && code == 1,
+	expect(runJson({"slopstudio", "--cli", "model", "pose", source, "--operation", "copy-out", "--clip", "0", "--first", "1", "--output", poseFile}, &code).isEmpty() && code == 1,
 		   "CLI copy-out keeps overwrites explicit");
-	payload = runJson({"vibestudio", "--cli", "model", "pose", source, "--operation", "paste", "--clipboard", poseFile, "--clip", "1", "--first", "1", "--output", out}, &code);
+	payload = runJson({"slopstudio", "--cli", "model", "pose", source, "--operation", "paste", "--clipboard", poseFile, "--clip", "1", "--first", "1", "--output", out}, &code);
 	ModelDocument reopened;
 	expect(code == 0 && reopened.load(out, &error) && samePoses(reopened.mesh().skeleton.clips[1].frames[2], mesh.skeleton.clips[0].frames[2]),
 		   "CLI paste applies the copy");
-	payload = runJson({"vibestudio", "--cli", "model", "pose", source, "--operation", "mirror", "--clip", "0", "--first", "0", "--last", "3", "--output", out, "--overwrite"}, &code);
+	payload = runJson({"slopstudio", "--cli", "model", "pose", source, "--operation", "mirror", "--clip", "0", "--first", "0", "--last", "3", "--output", out, "--overwrite"}, &code);
 	expect(code == 0 && payload["mirror"].toString() == "y" && payload["mirrorJoints"].toObject().size() == 4 && reopened.load(out, &error) &&
 			   near(origin(reopened.mesh(), 0, 2, 5), {origin(mesh, 0, 2, 3).x, -origin(mesh, 0, 2, 3).y, origin(mesh, 0, 2, 3).z}),
 		   "CLI mirror detects the axis and pairs");
-	expect(runJson({"vibestudio", "--cli", "model", "pose", source, "--operation", "paste", "--clipboard", poseFile, "--clip", "1", "--first", "3", "--output", out, "--overwrite"}, &code).isEmpty() && code == 4,
+	expect(runJson({"slopstudio", "--cli", "model", "pose", source, "--operation", "paste", "--clipboard", poseFile, "--clip", "1", "--first", "3", "--output", out, "--overwrite"}, &code).isEmpty() && code == 4,
 		   "CLI paste refuses a range past the clip end");
-	expect(runJson({"vibestudio", "--cli", "model", "pose", source, "--operation", "paste", "--clipboard", poseFile, "--clip", "1", "--first", "0", "--output", source, "--overwrite"}, &code).isEmpty() && code == 1,
+	expect(runJson({"slopstudio", "--cli", "model", "pose", source, "--operation", "paste", "--clipboard", poseFile, "--clip", "1", "--first", "0", "--output", source, "--overwrite"}, &code).isEmpty() && code == 1,
 		   "CLI paste refuses to overwrite its input");
-	expect(runJson({"vibestudio", "--cli", "model", "pose", source, "--operation", "copy-out", "--clip", "0", "--first", "0", "--replace-keys", "--output", poseFile, "--overwrite"}, &code).isEmpty() && code == 2,
+	expect(runJson({"slopstudio", "--cli", "model", "pose", source, "--operation", "copy-out", "--clip", "0", "--first", "0", "--replace-keys", "--output", poseFile, "--overwrite"}, &code).isEmpty() && code == 2,
 		   "CLI refuses inapplicable flags");
 	// The shared key splice: the pasted span replaces the keys inside it.
 	{

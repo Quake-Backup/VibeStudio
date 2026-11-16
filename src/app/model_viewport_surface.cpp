@@ -2,7 +2,7 @@
 #include <QScopedValueRollback>
 #include <QTimer>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ModelViewport::setMaterialGesturesEnabled(bool enabled)
 {
@@ -186,4 +186,4 @@ void ModelViewport::setSurfaceStrokePreview(const QVector<int>& triangles, int s
 	update();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

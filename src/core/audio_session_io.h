@@ -3,7 +3,7 @@
 #include "core/audio_export.h"
 #include "core/audio_session.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 
 inline constexpr qint64 AudioSessionByteLimit = AudioSessionSampleLimit * 4 + 64 * 1024 * 1024;
@@ -40,4 +40,4 @@ struct AudioSessionMixdownReport {
 AudioSessionMixdownReport writeAudioSessionMixdown(const AudioSession &session, const AudioSessionMixdown &request,
                                                    const AudioWorkControl &control = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

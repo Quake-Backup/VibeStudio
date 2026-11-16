@@ -48,7 +48,7 @@ class QProgressBar;
 class QPushButton;
 class QSpinBox;
 
-namespace vibestudio
+namespace slopstudio
 {
 class DocumentWatcher;
 class ModelComponentTable;
@@ -218,7 +218,7 @@ class ModelEditorDialog final : public QDialog
 	// Edit Skin… (model_editor_skin.cpp, core/model_skin_roundtrip.h): writes
 	// the active surface's skin (the displayed material image or the current
 	// MDL member) with a UV guide layer as a texture project in the project's
-	// .vibestudio/model-skins folder, opens it in Textures and watches it
+	// .slopstudio/model-skins folder, opens it in Textures and watches it
 	// (core/document_watch.h). When Textures saves it, the skin is offered
 	// to the model, or applied at once with Apply Saved Skins Automatically.
 	bool editSurfaceSkin(QString *error = nullptr);
@@ -232,7 +232,7 @@ class ModelEditorDialog final : public QDialog
 	[[nodiscard]] bool hasPendingSkin() const { return !m_skinPending.isNull(); }
 	[[nodiscard]] QStringList skinRoundTripFiles() const { return m_skinLinks.keys(); }
 	// Where Edit Skin writes its texture projects: the open project's
-	// .vibestudio/model-skins folder, else the studio's local data folder.
+	// .slopstudio/model-skins folder, else the studio's local data folder.
 	[[nodiscard]] QString skinRoundTripDirectory() const;
 	// Shows `mesh` in the viewport in place of the document, changing nothing;
 	// nullptr shows the document again.
@@ -812,4 +812,4 @@ class ModelEditorDialog final : public QDialog
 	void addStrictExportControl(QFormLayout *form);
 	void stage(bool place);
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -7,7 +7,7 @@
 // for point entities, and on Doom maps the sector eye height with its
 // ceiling gap. The profile keys (Page Up and Page Down in the Radiant
 // profiles, none in TrenchBroom) and `map camera-focus --floor` over the same
-// service are checked too; the CLI part runs with the vibestudio binary as
+// service are checked too; the CLI part runs with the slopstudio binary as
 // the first argument.
 
 #include "core/editor_profiles.h"
@@ -33,7 +33,7 @@
 #include <tuple>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -253,7 +253,7 @@ void profiles()
 				&& keysOf(profile, "map.cameraFloorDown") == QStringList {QStringLiteral("PgDown")},
 			"Page Up and Page Down step floors in the Radiant profiles", QString::fromLatin1(profile));
 	}
-	for (const char* profile : {"trenchbroom", "vibestudio-default", "hammer", "darkradiant"}) {
+	for (const char* profile : {"trenchbroom", "slopstudio-default", "hammer", "darkradiant"}) {
 		expect(keysOf(profile, "map.cameraFloorUp").isEmpty() && keysOf(profile, "map.cameraFloorDown").isEmpty(), "no floor keys",
 			QString::fromLatin1(profile));
 	}

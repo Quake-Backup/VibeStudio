@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -1178,4 +1178,4 @@ AudioSessionCliResult runAudioSession(const QStringList &arguments)
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

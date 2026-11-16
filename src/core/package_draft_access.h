@@ -3,7 +3,7 @@
 #include <QString>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // A directory handle coordinates readers/savers with destructive maintenance.
 // It creates no lock file, survives manifest replacement, and is shared by every
@@ -22,4 +22,4 @@ private:
 	std::unique_ptr<State> m_state;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

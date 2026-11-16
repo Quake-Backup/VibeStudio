@@ -14,17 +14,17 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 void ModelEditorDialog::addSkinBindingControls(QFormLayout *surface)
 {
-	m_skinBindingsFile = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Apply .skin File…"), 2);
-	m_skinBindingsPackage = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Apply Package .skin…"), 2);
-	m_skinBindingsDetails = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Last Skin Import Details…"), 2);
+	m_skinBindingsFile = new WrappingActionButton(QCoreApplication::translate("SlopStudioModelEditor", "Apply .skin File…"), 2);
+	m_skinBindingsPackage = new WrappingActionButton(QCoreApplication::translate("SlopStudioModelEditor", "Apply Package .skin…"), 2);
+	m_skinBindingsDetails = new WrappingActionButton(QCoreApplication::translate("SlopStudioModelEditor", "Last Skin Import Details…"), 2);
 	m_skinBindingsFile->setObjectName(QStringLiteral("applyMeshSkinFile"));
 	m_skinBindingsPackage->setObjectName(QStringLiteral("applyMeshPackageSkin"));
 	m_skinBindingsDetails->setObjectName(QStringLiteral("meshSkinBindingDetails"));
-	const auto help = QCoreApplication::translate("VibeStudioModelEditor",
+	const auto help = QCoreApplication::translate("SlopStudioModelEditor",
 												  "Match Quake III surface names and replace primary shader paths in one undo step. Every "
 												  "surface must be covered. Embedded MDL skins use the Quake MDL inspector.");
 	for (auto *button : {m_skinBindingsFile, m_skinBindingsPackage})
@@ -36,13 +36,13 @@ void ModelEditorDialog::addSkinBindingControls(QFormLayout *surface)
 	}
 	m_skinBindingsDetails->setAccessibleName(m_skinBindingsDetails->text());
 	m_skinBindingsDetails->setAccessibleDescription(QCoreApplication::translate(
-		"VibeStudioModelEditor", "Inspect the last successful skin import, including unused bindings and ignored attachment markers."));
+		"SlopStudioModelEditor", "Inspect the last successful skin import, including unused bindings and ignored attachment markers."));
 	m_skinBindingsDetails->setEnabled(false);
 	surface->addRow(m_skinBindingsDetails);
 	connect(m_skinBindingsFile, &QPushButton::clicked, this, [this] {
 		const auto path =
-			QFileDialog::getOpenFileName(this, QCoreApplication::translate("VibeStudioModelEditor", "Apply Skin Assignments"), QString(),
-										 QCoreApplication::translate("VibeStudioModelEditor", "Quake III skin assignments (*.skin)"));
+			QFileDialog::getOpenFileName(this, QCoreApplication::translate("SlopStudioModelEditor", "Apply Skin Assignments"), QString(),
+										 QCoreApplication::translate("SlopStudioModelEditor", "Quake III skin assignments (*.skin)"));
 		if (path.isEmpty())
 		{
 			return;
@@ -57,7 +57,7 @@ void ModelEditorDialog::addSkinBindingControls(QFormLayout *surface)
 	connect(m_skinBindingsDetails, &QPushButton::clicked, this, [this] {
 		QDialog dialog(this);
 		dialog.setObjectName(QStringLiteral("meshSkinBindingDetailsDialog"));
-		dialog.setWindowTitle(QCoreApplication::translate("VibeStudioModelEditor", "Last Skin Import Details"));
+		dialog.setWindowTitle(QCoreApplication::translate("SlopStudioModelEditor", "Last Skin Import Details"));
 		dialog.setAccessibleName(dialog.windowTitle());
 		auto *layout = new QVBoxLayout(&dialog);
 		auto *text = new QPlainTextEdit(m_lastSkinBindings.join(QLatin1Char('\n')));
@@ -77,7 +77,7 @@ bool ModelEditorDialog::importSkinBindingsWork(std::function<bool(ModelSkinBindi
 	ModelSkinBindingPlan plan;
 	ModelSkinBindingInput input;
 	if (!performWork(
-			QCoreApplication::translate("VibeStudioModelEditor", "Apply Skin Assignments"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Apply Skin Assignments"),
 			[read, &plan, &input](ModelDocument &candidate, QString *failure, const ModelWorkControl &control) {
 				if (!read(&input, failure, control) || !planModelSkinBindings(candidate.mesh(), input.bytes, &plan, failure, control))
 				{
@@ -96,20 +96,20 @@ bool ModelEditorDialog::importSkinBindingsWork(std::function<bool(ModelSkinBindi
 	refresh();
 	m_lastSkinBindings = {
 		input.entryIndex >= 0
-			? QCoreApplication::translate("VibeStudioModelEditor", "Package entry %1: %2").arg(input.entryIndex).arg(input.path)
+			? QCoreApplication::translate("SlopStudioModelEditor", "Package entry %1: %2").arg(input.entryIndex).arg(input.path)
 			: input.path};
 	m_lastSkinBindings += modelSkinBindingPlanText(plan);
 	m_skinBindingsDetails->setEnabled(true);
 	if (std::none_of(plan.assignments.cbegin(), plan.assignments.cend(),
 					 [](const auto &item) { return item.previousMaterial != item.material; }))
 	{
-		m_status->setText(QCoreApplication::translate("VibeStudioModelEditor",
+		m_status->setText(QCoreApplication::translate("SlopStudioModelEditor",
 													  "Skin assignments already match the model. No edit was added to undo history."));
 		return true;
 	}
 	m_status->setText(
 		QCoreApplication::translate(
-			"VibeStudioModelEditor",
+			"SlopStudioModelEditor",
 			"Skin assignments applied. Surfaces: %1; unused bindings: %2; attachment markers: %3. Undo restores the previous materials.")
 			.arg(plan.assignments.size())
 			.arg(plan.unusedSurfaces.size())
@@ -129,7 +129,7 @@ bool ModelEditorDialog::importSkinBindingsFromPackage(const ModelSkinSourceRefer
 	{
 		if (error)
 		{
-			*error = QCoreApplication::translate("VibeStudioModelEditor", "Choose an open package before applying skin assignments.");
+			*error = QCoreApplication::translate("SlopStudioModelEditor", "Choose an open package before applying skin assignments.");
 		}
 		return false;
 	}
@@ -154,7 +154,7 @@ void ModelEditorDialog::choosePackageSkinBindings()
 	if (source.archive != m_materialSource.archive || source.revision != m_materialSource.revision)
 	{
 		m_status->setText(
-			QCoreApplication::translate("VibeStudioModelEditor", "The package changed while choosing a skin. Open the picker again."));
+			QCoreApplication::translate("SlopStudioModelEditor", "The package changed while choosing a skin. Open the picker again."));
 		return;
 	}
 	QString error;
@@ -163,4 +163,4 @@ void ModelEditorDialog::choosePackageSkinBindings()
 		m_status->setText(error);
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

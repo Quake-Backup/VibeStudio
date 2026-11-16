@@ -4,7 +4,7 @@
     python scripts/package_source_tarball.py --output dist
 
 Every file Git tracks, in this repository and its submodules, goes into
-VibeStudio-<version>-source.tar.gz under one top-level folder. Owners,
+SlopStudio-<version>-source.tar.gz under one top-level folder. Owners,
 permissions and timestamps are normalised (to the commit time), so the same
 commit always produces the same archive contents.
 """

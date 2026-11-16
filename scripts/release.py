@@ -34,8 +34,8 @@ from release_meta import (ASSETS, CHANGELOG, CURATED_NOTES, ROOT, TAG_PREFIX, Ve
 # matched against file names inside the downloaded artifact folders.
 ARTIFACT_PATTERNS = {
     "windows-installer": ["*-setup.exe"],
-    "windows-portable": ["vibestudio-*-win64-x86_64.zip"],
-    "windows-runtime-source": ["vibestudio-*-win64-x86_64-source.zip"],
+    "windows-portable": ["slopstudio-*-win64-x86_64.zip"],
+    "windows-runtime-source": ["slopstudio-*-win64-x86_64-source.zip"],
     "macos-dmg": ["*.dmg"],
     "linux-appimage": ["*.AppImage"],
     "docs": ["*-docs.zip"],
@@ -117,7 +117,7 @@ def stage(artifacts: Path, output: Path, label: str, allow_missing: bool = False
         shutil.rmtree(output)
     output.mkdir(parents=True)
     descriptions = asset_descriptions()
-    manifest = {"schemaVersion": 1, "project": "VibeStudio", "version": label,
+    manifest = {"schemaVersion": 1, "project": "SlopStudio", "version": label,
                 "createdUtc": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
                 "commit": os.environ.get("GITHUB_SHA") or git("rev-parse", "HEAD"), "assets": []}
     lines = []
@@ -199,7 +199,7 @@ def render_notes(version: Version, label: str, commit: str, manifest: dict | Non
     if prerelease:
         out += [
             "> [!WARNING]",
-            "> VibeStudio is pre-alpha and largely untested in real projects. Work on copies of your maps and",
+            "> SlopStudio is pre-alpha and largely untested in real projects. Work on copies of your maps and",
             "> packages, keep backups, and please report problems. See the",
             f"> [project status]({repository_url(f'/blob/{tag}/docs/manual/status.md')}) page for known limitations.",
             "",

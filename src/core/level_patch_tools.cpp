@@ -4,7 +4,7 @@
  * TransposeMatrix, Redisperse, Smooth, NaturalTexture, CapTexture,
  * createThickenedOpposite, createThickenedWall) and radiant/patchmanip.cpp
  * (Patch_thicken), GPL-2.0-or-later, revision
- * 8216133984031afaa9a857b56ea66dd9c3d54b26. The code here is VibeStudio's
+ * 8216133984031afaa9a857b56ea66dd9c3d54b26. The code here is SlopStudio's
  * own: it reproduces those commands' results, not their source. See
  * docs/CREDITS.md.
  */
@@ -26,13 +26,13 @@
 #include <optional>
 #include <random>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 bool fail(QString* error, const char* message)
 {
 	if (error) {
-		*error = QCoreApplication::translate("VibeStudioLevelPatch", message);
+		*error = QCoreApplication::translate("SlopStudioLevelPatch", message);
 	}
 	return false;
 }
@@ -113,7 +113,7 @@ LevelMapPatch transposed(const LevelMapPatch& patch)
 bool insertColumns(LevelMapPatch* patch, bool atEnd, QString* error)
 {
 	if (patch->width + 2 > kLevelPatchMaxDimension) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch already has 31 control columns or rows, the most it can have."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "The patch already has 31 control columns or rows, the most it can have."));
 	}
 	Rows rows = rowsOf(*patch);
 	const int first = atEnd ? patch->width - 3 : 0;
@@ -133,7 +133,7 @@ bool insertColumns(LevelMapPatch* patch, bool atEnd, QString* error)
 bool deleteColumns(LevelMapPatch* patch, bool atEnd, QString* error)
 {
 	if (patch->width - 2 < 3) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch has only three control columns or rows, the fewest it can have."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "The patch has only three control columns or rows, the fewest it can have."));
 	}
 	Rows rows = rowsOf(*patch);
 	const int first = atEnd ? patch->width - 5 : 0;
@@ -228,7 +228,7 @@ bool applyLevelPatchMatrixOperation(LevelMapPatch* patch, LevelPatchMatrixOperat
 		error->clear();
 	}
 	if (!patch || !validateLevelPatch(*patch, error)) {
-		return patch ? false : fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Missing patch destination."));
+		return patch ? false : fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Missing patch destination."));
 	}
 	LevelMapPatch result = *patch;
 	// Row operations are the column operations on the transposed grid.
@@ -274,7 +274,7 @@ bool applyLevelPatchMatrixOperation(LevelMapPatch* patch, LevelPatchMatrixOperat
 			return true;
 		});
 		break;
-	default: return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Unknown patch matrix operation."));
+	default: return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Unknown patch matrix operation."));
 	}
 	if (!done) {
 		return false;
@@ -332,10 +332,10 @@ LevelMapVec3 levelPatchAverageNormal(const LevelMapPatch& patch)
 bool naturalLevelPatchTexture(LevelMapPatch* patch, double unitsPerRepeatU, double unitsPerRepeatV, QString* error)
 {
 	if (!patch || !validateLevelPatch(*patch, error)) {
-		return patch ? false : fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Missing patch destination."));
+		return patch ? false : fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Missing patch destination."));
 	}
 	if (!std::isfinite(unitsPerRepeatU) || !std::isfinite(unitsPerRepeatV) || unitsPerRepeatU <= 0 || unitsPerRepeatV <= 0) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "A natural patch texture needs a positive size for each repeat."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "A natural patch texture needs a positive size for each repeat."));
 	}
 	// Each column's U is the last one's plus the longest step any row takes
 	// between them; V likewise down the rows, running the way Radiant's does.
@@ -368,10 +368,10 @@ bool naturalLevelPatchTexture(LevelMapPatch* patch, double unitsPerRepeatU, doub
 bool planarLevelPatchTexture(LevelMapPatch* patch, double unitsPerRepeatU, double unitsPerRepeatV, QString* error)
 {
 	if (!patch || !validateLevelPatch(*patch, error)) {
-		return patch ? false : fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Missing patch destination."));
+		return patch ? false : fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Missing patch destination."));
 	}
 	if (!std::isfinite(unitsPerRepeatU) || !std::isfinite(unitsPerRepeatV) || unitsPerRepeatU <= 0 || unitsPerRepeatV <= 0) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "A projected patch texture needs a positive size for each repeat."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "A projected patch texture needs a positive size for each repeat."));
 	}
 	const auto [s, t] = levelTexturePrimitiveBasis(levelPatchAverageNormal(*patch));
 	for (int i = 0; i < patch->controlPoints.size(); ++i) {
@@ -392,10 +392,10 @@ bool planarLevelPatchTexture(LevelMapPatch* patch, double unitsPerRepeatU, doubl
 bool axialLevelPatchTexture(LevelMapPatch* patch, double unitsPerRepeatU, double unitsPerRepeatV, QString* error)
 {
 	if (!patch || !validateLevelPatch(*patch, error)) {
-		return patch ? false : fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Missing patch destination."));
+		return patch ? false : fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Missing patch destination."));
 	}
 	if (!std::isfinite(unitsPerRepeatU) || !std::isfinite(unitsPerRepeatV) || unitsPerRepeatU <= 0 || unitsPerRepeatV <= 0) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "A projected patch texture needs a positive size for each repeat."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "A projected patch texture needs a positive size for each repeat."));
 	}
 	// A face facing the patch's way takes the same world axes as Natural.
 	LevelMapBrushFace facing;
@@ -403,7 +403,7 @@ bool axialLevelPatchTexture(LevelMapPatch* patch, double unitsPerRepeatU, double
 	facing.planeNormal = levelPatchAverageNormal(*patch);
 	const auto projection = levelNaturalTextureProjection(facing, unitsPerRepeatU, unitsPerRepeatV);
 	if (!projection.valid) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch has no direction to project its texture along."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "The patch has no direction to project its texture along."));
 	}
 	for (int i = 0; i < patch->controlPoints.size(); ++i) {
 		const QPointF uv = projection.at(patch->controlPoints.at(i));
@@ -417,14 +417,14 @@ bool axialLevelPatchTexture(LevelMapPatch* patch, double unitsPerRepeatU, double
 bool projectedLevelPatchTexture(LevelMapPatch* patch, const LevelMapVec3& direction, double unitsPerRepeatU, double unitsPerRepeatV, QString* error)
 {
 	if (!patch || !validateLevelPatch(*patch, error)) {
-		return patch ? false : fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Missing patch destination."));
+		return patch ? false : fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Missing patch destination."));
 	}
 	if (!std::isfinite(unitsPerRepeatU) || !std::isfinite(unitsPerRepeatV) || unitsPerRepeatU <= 0 || unitsPerRepeatV <= 0) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "A projected patch texture needs a positive size for each repeat."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "A projected patch texture needs a positive size for each repeat."));
 	}
 	const double size = length(direction);
 	if (!std::isfinite(size) || size < 1e-9) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch has no direction to project its texture along."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "The patch has no direction to project its texture along."));
 	}
 	const auto [s, t] = levelTexturePrimitiveBasis(times(direction, 1.0 / size));
 	for (int i = 0; i < patch->controlPoints.size(); ++i) {
@@ -441,14 +441,14 @@ bool thickenLevelPatch(const LevelMapPatch& source, const LevelPatchThickenReque
 		error->clear();
 	}
 	if (!created) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Missing patch destination."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Missing patch destination."));
 	}
 	if (!validateLevelPatch(source, error)) {
 		return false;
 	}
 	if (!std::isfinite(request.thickness) || std::abs(request.thickness) < 0.01 || std::abs(request.thickness) > 65536
 		|| request.axis < -1 || request.axis > 2) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch",
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch",
 			"Thicken needs a thickness from 0.01 to 65536 units either way, along the patch's normals or the x, y or z axis."));
 	}
 	const int width = source.width, height = source.height;
@@ -676,7 +676,7 @@ bool thickenLevelPatch(const LevelMapPatch& source, const LevelPatchThickenReque
 		result.prepend(opposite);
 	}
 	if (result.isEmpty()) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Thickening this patch makes nothing but flat pieces."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Thickening this patch makes nothing but flat pieces."));
 	}
 	*created = result;
 	return true;
@@ -708,10 +708,10 @@ bool applyLevelMapPatchMatrixOperation(LevelMapDocument* document, const QVector
 		error->clear();
 	}
 	if (!document || document->format != LevelMapFormat::Quake3Map) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Open a Quake III-family map to edit a patch."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Open a Quake III-family map to edit a patch."));
 	}
 	if (patchIds.isEmpty() || patchIds.size() > 256) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Select between 1 and 256 patches."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Select between 1 and 256 patches."));
 	}
 	QMap<int, LevelMapPatch> replacements;
 	const QSet<int> wanted(patchIds.cbegin(), patchIds.cend());
@@ -723,7 +723,7 @@ bool applyLevelMapPatchMatrixOperation(LevelMapDocument* document, const QVector
 		QString problem;
 		if (!applyLevelPatchMatrixOperation(&after, operation, &problem)) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioLevelPatch", "Patch %1: %2").arg(patch.id).arg(problem);
+				*error = QCoreApplication::translate("SlopStudioLevelPatch", "Patch %1: %2").arg(patch.id).arg(problem);
 			}
 			return false;
 		}
@@ -737,7 +737,7 @@ bool applyLevelMapPatchMatrixOperation(LevelMapDocument* document, const QVector
 	if (replacements.isEmpty() && wanted.size() > 0) {
 		for (int id : patchIds) {
 			if (std::none_of(document->patches.cbegin(), document->patches.cend(), [id](const auto& patch) { return patch.id == id; })) {
-				return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch no longer exists."));
+				return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "The patch no longer exists."));
 			}
 		}
 	}
@@ -764,10 +764,10 @@ bool thickenLevelMapPatches(LevelMapDocument* document, const QVector<int>& patc
 		error->clear();
 	}
 	if (!document || document->format != LevelMapFormat::Quake3Map) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Open a Quake III-family map to edit a patch."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Open a Quake III-family map to edit a patch."));
 	}
 	if (patchIds.isEmpty() || patchIds.size() > 64) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Select between 1 and 64 patches to thicken."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Select between 1 and 64 patches to thicken."));
 	}
 	// Each source's pieces join its own entity, as Radiant puts them.
 	QMap<int, QVector<LevelMapPatch>> byOwner;
@@ -782,14 +782,14 @@ bool thickenLevelMapPatches(LevelMapDocument* document, const QVector<int>& patc
 		QString problem;
 		if (!thickenLevelPatch(patch, request, &pieces, &problem)) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioLevelPatch", "Patch %1: %2").arg(patch.id).arg(problem);
+				*error = QCoreApplication::translate("SlopStudioLevelPatch", "Patch %1: %2").arg(patch.id).arg(problem);
 			}
 			return false;
 		}
 		byOwner[patch.entityId] += pieces;
 	}
 	if (found != wanted.size()) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch no longer exists."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "The patch no longer exists."));
 	}
 	LevelMapDocument working = *document;
 	QVector<int> ids;
@@ -806,8 +806,8 @@ bool thickenLevelMapPatches(LevelMapDocument* document, const QVector<int>& patc
 	}
 	if (steps > 1
 		&& !collapseLevelMapUndoSteps(&working, steps,
-			QCoreApplication::translate("VibeStudioLevelPatch", "Thicken %n patch(es)", nullptr, found),
-			QCoreApplication::translate("VibeStudioLevelPatch", "Remove the thickened patches"), error)) {
+			QCoreApplication::translate("SlopStudioLevelPatch", "Thicken %n patch(es)", nullptr, found),
+			QCoreApplication::translate("SlopStudioLevelPatch", "Remove the thickened patches"), error)) {
 		return false;
 	}
 	QVector<LevelMapSelectionRef> selection;
@@ -868,16 +868,16 @@ bool deformLevelMapPatches(LevelMapDocument* document, const QVector<int>& patch
 		error->clear();
 	}
 	if (!document || document->format != LevelMapFormat::Quake3Map) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Open a Quake III-family map to edit a patch."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Open a Quake III-family map to edit a patch."));
 	}
 	if (patchIds.isEmpty() || patchIds.size() > 256) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Select between 1 and 256 patches."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Select between 1 and 256 patches."));
 	}
 	if (request.axis < 0 || request.axis > 2) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The deform axis must be X, Y or Z."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "The deform axis must be X, Y or Z."));
 	}
 	if (request.maximum < -9999 || request.maximum > 9999) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The maximum deform must be a whole number of units from -9999 to 9999."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "The maximum deform must be a whole number of units from -9999 to 9999."));
 	}
 	const QSet<int> wanted(patchIds.cbegin(), patchIds.cend());
 	const QSet<QString> hidden = levelMapHiddenObjects(*document);
@@ -903,10 +903,10 @@ bool deformLevelMapPatches(LevelMapDocument* document, const QVector<int>& patch
 		points += static_cast<int>(patch.controlPoints.size());
 	}
 	if (found != wanted.size()) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch no longer exists."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "The patch no longer exists."));
 	}
 	if (targets.isEmpty()) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Every chosen patch is hidden or outside the open group."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Every chosen patch is hidden or outside the open group."));
 	}
 	// One draw per control point, patch after patch, as upstream's single
 	// rand() stream runs through them.
@@ -922,7 +922,7 @@ bool deformLevelMapPatches(LevelMapDocument* document, const QVector<int>& patch
 			component += offset;
 			moved = moved || offset != 0;
 			if (std::abs(component) > 1048576) {
-				return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Deforming would move a control point beyond ±1048576 units."));
+				return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Deforming would move a control point beyond ±1048576 units."));
 			}
 		}
 		if (moved) {
@@ -943,4 +943,4 @@ bool deformLevelMapPatches(LevelMapDocument* document, const QVector<int>& patch
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

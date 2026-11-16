@@ -12,7 +12,7 @@
 //   with consistent counts.
 //
 // Nothing is random at run time: the corpus comes from kDefaultSeed unless
-// VIBESTUDIO_FUZZ_SEED overrides it, and a failure prints the seed and the
+// SLOPSTUDIO_FUZZ_SEED overrides it, and a failure prints the seed and the
 // case so it can be re-run (the parser-fuzz convention). The run stops adding
 // cases after kTimeBudgetMs so CI stays bounded on slow machines.
 #include "core/model_decode_issues.h"
@@ -31,13 +31,13 @@
 #include <iostream>
 #include <iterator>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 
 namespace
 {
 constexpr quint64 kDefaultSeed = 0x46d7a10c3be20010ull;
-constexpr const char *kSeedVariable = "VIBESTUDIO_FUZZ_SEED";
+constexpr const char *kSeedVariable = "SLOPSTUDIO_FUZZ_SEED";
 constexpr int kFlipCasesPerSeed = 192;
 constexpr int kObjCases = 384;
 constexpr qint64 kTimeBudgetMs = 90000;

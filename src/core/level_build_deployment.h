@@ -2,7 +2,7 @@
 #include "core/level_build_artifacts.h"
 #include "core/level_build_pak_deployment.h"
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelBuildDeploymentPlan {
 	GameInstallationProfile installation;
 	QString gameDirectory, packagePath, backupPath;
@@ -51,4 +51,4 @@ QJsonObject levelBuildDeploymentPlanJson(const LevelBuildDeploymentPlan& plan);
 QString levelBuildDeploymentReviewSha256(const LevelBuildDeploymentPlan& plan);
 QJsonObject levelBuildDeploymentJson(const LevelBuildDeploymentResult& result);
 QString levelBuildDeploymentPlanText(const LevelBuildDeploymentPlan& plan);
-} // namespace vibestudio
+} // namespace slopstudio

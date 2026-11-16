@@ -15,7 +15,7 @@ class QObject;
 class QProgressBar;
 class QStatusBar;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Asks the screen reader to speak `message` without moving focus, through
 // QAccessibleAnnouncementEvent (Qt 6.8 and later). Assertive announcements
@@ -83,4 +83,4 @@ QString localizedColorVisionName(ColorVision vision);
 QString localizedMessageDurationName(MessageDuration duration);
 QString localizedSpeechEventName(const QString& eventId);
 
-} // namespace vibestudio
+} // namespace slopstudio

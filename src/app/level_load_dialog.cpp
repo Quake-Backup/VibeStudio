@@ -15,7 +15,7 @@
 #include <atomic>
 #include <exception>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct LoadProgress {
 	QMutex mutex;
@@ -124,4 +124,4 @@ LevelMapOpenResult LevelMapLoadDialog::openMap(QWidget* parent, const LevelMapLo
 	if (!result.succeeded) { result.document = {}; result.geometry.reset(); }
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

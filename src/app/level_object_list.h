@@ -7,7 +7,7 @@
 class QThread;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class LevelObjectList final : public QListView {
 	Q_OBJECT
@@ -56,4 +56,4 @@ private:
 	bool m_propertiesReady = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

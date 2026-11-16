@@ -19,7 +19,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const char* message, const QString& error = {})
@@ -42,7 +42,7 @@ bool historyCounterBoundaries(const QDir& root)
 	QString error; bool ok = true;
 	const auto fixture = [&](const QString& name, quint64 operationSerial, quint64 revisionSerial, PackageStagingModel* model) {
 		PackageStagingModel seed;
-		const QString path = root.filePath(name + QStringLiteral(".vibepackage"));
+		const QString path = root.filePath(name + QStringLiteral(".sloppackage"));
 		if (!seed.createEmpty(PackageArchiveFormat::Zip) || !seed.addBytes("one", QStringLiteral("one.txt"))
 			|| !seed.addBytes("two", QStringLiteral("two.txt")) || !seed.undo()
 			|| !PackageDraft::save(path, &seed, false, &error)) { return false; }
@@ -71,7 +71,7 @@ bool historyCounterBoundaries(const QDir& root)
 	ok &= expect(!revision.addBytes("no", QStringLiteral("no.txt"), &error), "groups cannot bypass revision admission");
 	revision.endOperationGroup();
 	ok &= expect(revision.revision() == oldRevision && revision.canRedo(), "refused empty group preserves revision and redo");
-	const QString savedRevision = root.filePath(QStringLiteral("revision-saved.vibepackage"));
+	const QString savedRevision = root.filePath(QStringLiteral("revision-saved.sloppackage"));
 	PackageStagingModel revisionReloaded;
 	ok &= expect(PackageDraft::save(savedRevision, &revision, false, &error)
 		&& PackageDraft::load(savedRevision, &revisionReloaded, &error) && revisionReloaded.redo()
@@ -100,7 +100,7 @@ bool historyCounterBoundaries(const QDir& root)
 	ok &= expect(grouped.revision() == ceiling && grouped.undo() && grouped.operations().size() == 1 && grouped.redo()
 		&& payload(grouped, QStringLiteral("a.txt")) == "A" && payload(grouped, QStringLiteral("b.txt")) == "B",
 		"the final grouped revision remains atomic and reversible");
-	const QString groupedPath = root.filePath(QStringLiteral("group-saved.vibepackage"));
+	const QString groupedPath = root.filePath(QStringLiteral("group-saved.sloppackage"));
 	PackageStagingModel groupedReloaded;
 	ok &= expect(PackageDraft::save(groupedPath, &grouped, false, &error) && PackageDraft::load(groupedPath, &groupedReloaded, &error)
 		&& groupedReloaded.undo() && groupedReloaded.redo() && groupedReloaded.revision() == ceiling,
@@ -119,7 +119,7 @@ bool historyCounterBoundaries(const QDir& root)
 	ok &= expect(operation.clearOperation(operation.operations().first().id, &error) && operation.operations().isEmpty()
 		&& operation.undo() && payload(operation, QStringLiteral("one.txt")) == "one",
 		"unstage and its undo still work when only operation ids are exhausted", error);
-	const QString operationPath = root.filePath(QStringLiteral("operation-saved.vibepackage"));
+	const QString operationPath = root.filePath(QStringLiteral("operation-saved.sloppackage"));
 	PackageStagingModel operationReloaded;
 	ok &= expect(PackageDraft::save(operationPath, &operation, false, &error) && PackageDraft::load(operationPath, &operationReloaded, &error)
 		&& operationReloaded.canRedo() && !operationReloaded.addBytes("no", QStringLiteral("no.txt"), &error)
@@ -201,7 +201,7 @@ int main(int argc, char** argv)
 	ok &= plan.addFile(redoFile, QStringLiteral("redo.txt"));
 	const QString redoId = plan.operations().last().id;
 	ok &= plan.undo();
-	const QString draft = root.filePath(QStringLiteral("work.vibepackage"));
+	const QString draft = root.filePath(QStringLiteral("work.sloppackage"));
 	ok &= expect(PackageDraft::save(draft, &plan, false, &error), "save draft with undone disk input", error);
 	if (!ok) { return 1; }
 	ok &= expect(!plan.isModified() && plan.canRedo() && plan.draftPath() == draft, "saving marks current revision and retains redo");
@@ -213,7 +213,7 @@ int main(int argc, char** argv)
 	ok &= expect(PackageDraft::load(draft, &reopened, &error), "reopen without original sources", error);
 	ok &= expect(payload(reopened, QStringLiteral("generated.txt")) == "generated" && reopened.redo()
 		&& payload(reopened, QStringLiteral("redo.txt")) == "redo-only", "generated and redo-only payloads survive reopening");
-	const QString copiedDraft = root.filePath(QStringLiteral("copy.vibepackage"));
+	const QString copiedDraft = root.filePath(QStringLiteral("copy.sloppackage"));
 	auto independent = reopened;
 	ok &= expect(PackageDraft::save(copiedDraft, &independent, false, &error) && independent.canUndo(), "Save Draft As carries independent history", error);
 	ok &= expect(reopened.operations().last().id == redoId && reopened.isModified(), "restored history keeps stable operation identities");
@@ -300,7 +300,7 @@ int main(int argc, char** argv)
 	const QString wadPath = root.filePath(QStringLiteral("maps.wad")); write(wadPath, wad());
 	PackageArchive wadArchive; PackageStagingModel wadPlan;
 	ok &= wadArchive.load(wadPath, &error) && wadPlan.loadBaseArchive(wadArchive, &error);
-	const QString wadDraft = root.filePath(QStringLiteral("maps.vibepackage"));
+	const QString wadDraft = root.filePath(QStringLiteral("maps.sloppackage"));
 	ok &= expect(PackageDraft::save(wadDraft, &wadPlan, false, &error), "snapshot repeated WAD lumps", error);
 	write(wadPath, "no original WAD remains");
 	ok &= expect(PackageDraft::load(wadDraft, &wadPlan, &error), "reopen repeated WAD draft", error);
@@ -339,7 +339,7 @@ int main(int argc, char** argv)
 			&& occurrenceBytes(edited, 1) == "AAAA" && occurrenceBytes(edited, 3).isEmpty(),
 			"path lookup finds the surviving occurrence after another was renamed", error);
 		ok &= expect(edited.undo() && occurrenceBytes(edited, 3) == "CCCC", "undo restores the removed occurrence");
-		const QString selectedDraft = root.filePath(QStringLiteral("occurrences.vibepackage"));
+		const QString selectedDraft = root.filePath(QStringLiteral("occurrences.sloppackage"));
 		ok &= expect(PackageDraft::save(selectedDraft, &edited, false, &error), "save occurrence edits and their redo branch", error);
 		PackageStagingModel restored;
 		ok &= expect(PackageDraft::load(selectedDraft, &restored, &error) && restored.canRedo() && restored.redo()
@@ -366,7 +366,7 @@ int main(int argc, char** argv)
 			"reopened WAD preserves selected payloads and source positions", error);
 		// Version 1 remains readable, while selectors require version 2 so old
 		// builds cannot silently discard identity fields and replay by name.
-		const QString legacy = root.filePath(QStringLiteral("legacy.vibepackage"));
+		const QString legacy = root.filePath(QStringLiteral("legacy.sloppackage"));
 		auto oldPlan = wadPlan;
 		oldPlan.renameEntry(QStringLiteral("MAP01"), QStringLiteral("E1M1"));
 		ok &= PackageDraft::save(legacy, &oldPlan, false, &error);
@@ -437,7 +437,7 @@ int main(int argc, char** argv)
 		auto blocked = derived;
 		blocked.renameEntry(QStringLiteral("original.txt"), QStringLiteral("../unsafe.txt"));
 		blocked.addFile(root.filePath(QStringLiteral("missing-input")), QStringLiteral("missing.txt"));
-		const QString target = root.filePath(QStringLiteral("blocked.vibepackage"));
+		const QString target = root.filePath(QStringLiteral("blocked.sloppackage"));
 		ok &= expect(!blocked.summary().canSave && PackageDraft::save(target, &blocked, false, &error), "drafts preserve unresolved operations for later repair", error);
 		PackageStagingModel restored;
 		ok &= expect(PackageDraft::load(target, &restored, &error) && !restored.summary().canSave && restored.canUndo()
@@ -447,7 +447,7 @@ int main(int argc, char** argv)
 		auto candidate = derived;
 		candidate.addBytes("first object", QStringLiteral("first.bin"));
 		candidate.addBytes("second object", QStringLiteral("second.bin"));
-		const QString target = root.filePath(QStringLiteral("changed-object.vibepackage"));
+		const QString target = root.filePath(QStringLiteral("changed-object.sloppackage"));
 		const QString firstHash = QString::fromLatin1(QCryptographicHash::hash("first object", QCryptographicHash::Sha256).toHex());
 		bool changed = false;
 		PackageReadControl mutate;
@@ -470,7 +470,7 @@ int main(int argc, char** argv)
 		PackageReadControl stop;
 		stop.isCancelled = [&]() { return readBytes >= 65536; };
 		stop.progress = [&](const QString& name, qint64 count, qint64) { if (name == QStringLiteral("generated-base.bin")) { readBytes = count; } };
-		const QString target = root.filePath(QStringLiteral("inline-cancel.vibepackage"));
+		const QString target = root.filePath(QStringLiteral("inline-cancel.sloppackage"));
 		ok &= expect(!PackageDraft::save(target, &generatedBase, false, &error, stop) && readBytes == 65536
 			&& !QFileInfo::exists(QDir(target).filePath(QStringLiteral("document.json"))), "generated base snapshots also cancel at chunk boundaries", error);
 	}

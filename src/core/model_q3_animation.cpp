@@ -16,7 +16,7 @@
 // reviewed 2026-10-06, GPL-2.0-or-later (compatible with this GPL-3.0 project).
 // https://github.com/id-Software/Quake-III-Arena/blob/master/code/cgame/cg_players.c
 // Original bounded implementation; no upstream parser or game assets copied.
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -253,7 +253,7 @@ QByteArray exportModelQ3Animation(const ModelQ3AnimationConfig &config, QString 
 {
 	if (!validateModelQ3Animation(config, error))
 		return {};
-	QByteArray bytes = "// VibeStudio Quake III player animation configuration\nfootsteps " + config.footsteps.toLatin1() + "\nsex " +
+	QByteArray bytes = "// SlopStudio Quake III player animation configuration\nfootsteps " + config.footsteps.toLatin1() + "\nsex " +
 					   config.sex.toLatin1() + "\nheadoffset " + QByteArray::number(config.headOffset.x, 'g', 9) + " " +
 					   QByteArray::number(config.headOffset.y, 'g', 9) + " " + QByteArray::number(config.headOffset.z, 'g', 9) + "\n";
 	if (config.fixedLegs)
@@ -319,4 +319,4 @@ bool sampleModelQ3Animation(const ModelQ3AnimationConfig &config, int slot, doub
 	*sample = result;
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

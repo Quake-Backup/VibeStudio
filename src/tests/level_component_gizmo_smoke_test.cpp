@@ -22,7 +22,7 @@
 #include <limits>
 #include <numbers>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value,const char* label,const QString& detail = {}) {
@@ -224,6 +224,6 @@ int main(int argc,char** argv) {
 	settings.setRestoreSession(false); settings.setReducedMotion(true); settings.setLevelViewLayoutPreference(QStringLiteral("four-views")); settings.sync();
 	expect(settings.levelComponentTransformSteps() == std::array<double,3>{15,.125,.125},"default transform steps");
 	expect(!settings.setLevelComponentTransformSteps({15,std::numeric_limits<double>::quiet_NaN(),0}) && settings.levelComponentTransformSteps()[1] == .125,"invalid steps refused atomically");
-	controllerChecks(); shellChecks(app,qEnvironmentVariable("VIBESTUDIO_COMPONENT_UI_EVIDENCE"));
+	controllerChecks(); shellChecks(app,qEnvironmentVariable("SLOPSTUDIO_COMPONENT_UI_EVIDENCE"));
 	return ok ? 0 : 1;
 }

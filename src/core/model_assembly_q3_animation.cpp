@@ -4,7 +4,7 @@
 
 #include <QCoreApplication>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -30,7 +30,7 @@ bool validateModelAssemblyQ3Animation(const ModelAssembly &assembly, const Model
 			upper = int(input.mesh.frames.size());
 	}
 	if (lower < 0 || upper < 0)
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 													   "Resolve both native animation model inputs before validation or export."));
 	return validateModelQ3Animation(assembly.q3Animation->config, error, lower, upper);
 }
@@ -41,12 +41,12 @@ bool exportModelAssemblyQ3Animation(const ModelAssembly &assembly, const ModelAs
 	if (error)
 		error->clear();
 	if (!assembly.q3Animation || resolved.recipeSha256 != modelAssemblyFingerprint(assembly))
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 													   "Configure native animation and reload its model inputs before export."));
 	if (!validateModelAssemblyQ3Animation(assembly, resolved, error))
 		return false;
 	if (!path.endsWith(QStringLiteral(".cfg"), Qt::CaseInsensitive))
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "Native animation outputs must use the .cfg extension."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly", "Native animation outputs must use the .cfg extension."));
 	const auto target = inspectModelWriteTarget(path, control);
 	if (!target.isValid())
 		return fail(error, target.error);
@@ -58,7 +58,7 @@ bool exportModelAssemblyQ3Animation(const ModelAssembly &assembly, const ModelAs
 	for (const auto &input : resolved.inputs)
 		protectedInput |= modelAssemblyInputProtectsPath(input, path);
 	if (protectedInput || (target.existed && !overwrite))
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 													   "Choose a separate configuration output; model, assembly and package inputs are "
 													   "protected. Replacing an existing output requires overwrite."));
 	const auto bytes = exportModelQ3Animation(assembly.q3Animation->config, error);
@@ -67,4 +67,4 @@ bool exportModelAssemblyQ3Animation(const ModelAssembly &assembly, const ModelAs
 	return dryRun ? modelWorkCheckpoint(control, ModelWorkPhase::Writing, bytes.size(), bytes.size(), error)
 				  : writeModelFile(target, bytes, error, control);
 }
-} // namespace vibestudio
+} // namespace slopstudio

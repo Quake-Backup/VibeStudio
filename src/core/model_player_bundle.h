@@ -7,7 +7,7 @@
 #include <array>
 #include <optional>
 
-namespace vibestudio
+namespace slopstudio
 {
 // A file (absolute, or relative to the assembly's folder) or a package entry,
 // checked as linked skins are (validateModelAssemblySkin).
@@ -137,4 +137,4 @@ bool modelBundleSoundBytes(const ModelAssemblyContext &context, const ModelPlaye
 						   QJsonObject *receipt, QString *note, QString *error = nullptr, const ModelWorkControl &control = {});
 bool captureModelBundleDependencies(const ModelMesh &materials, const ModelAssemblyContext &context, ModelPlayerBundle *bundle,
 									QString *error = nullptr, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

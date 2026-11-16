@@ -11,7 +11,7 @@
 // Scene_BrushFindReplaceShader* and Scene_PatchFindReplaceShader*. The scope
 // model, visibility, lock and group rules, picked-face scope and preview are
 // original studio implementations; see docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct Text { Q_DECLARE_TR_FUNCTIONS(LevelMaterialFind) };
 
@@ -255,4 +255,4 @@ bool replaceLevelMapMaterial(LevelMapDocument* document, const LevelMaterialRepl
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

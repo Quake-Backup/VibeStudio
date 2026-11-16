@@ -12,7 +12,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 const QHash<QString, QString>& languageExtensions()
@@ -82,7 +82,7 @@ bool isExcludedCodeDirectory(const QString& path)
 {
 	static const QSet<QString> excluded {
 		QStringLiteral(".git"), QStringLiteral(".hg"), QStringLiteral(".svn"), QStringLiteral(".agents"),
-		QStringLiteral(".vibestudio"), QStringLiteral("node_modules"), QStringLiteral("__pycache__"),
+		QStringLiteral(".slopstudio"), QStringLiteral("node_modules"), QStringLiteral("__pycache__"),
 		QStringLiteral("build"), QStringLiteral("dist"), QStringLiteral("external")
 	};
 	const QString name = QFileInfo(path).fileName().toLower();
@@ -106,7 +106,7 @@ CodeFilesResult listCodeFiles(const CodeFilesRequest& request)
 	if (request.rootPath.trimmed().isEmpty() || !root.isDir() || !root.isReadable() || root.isSymLink() || root.isJunction() || canonical.isEmpty()) {
 		result.complete = false;
 		result.state = OperationState::Failed;
-		result.error = QCoreApplication::translate("VibeStudioCodeFiles", "The project root must be a readable directory, not a link.");
+		result.error = QCoreApplication::translate("SlopStudioCodeFiles", "The project root must be a readable directory, not a link.");
 		return result;
 	}
 	const int maxFiles = std::clamp(request.maxFiles, 1, 20000);
@@ -131,13 +131,13 @@ CodeFilesResult listCodeFiles(const CodeFilesRequest& request)
 		const QFileInfo info(directory);
 		if (info.isSymLink() || info.isJunction()) { ++result.linksExcluded; continue; }
 		if (!info.isDir() || !info.isReadable() || !inside(info.canonicalFilePath())) {
-			warn(QCoreApplication::translate("VibeStudioCodeFiles", "Some folders were unavailable while listing project files. Refresh to try again."));
+			warn(QCoreApplication::translate("SlopStudioCodeFiles", "Some folders were unavailable while listing project files. Refresh to try again."));
 			continue;
 		}
 		QDirIterator iterator(directory, QDir::AllEntries | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot);
 		while (iterator.hasNext() && !cancel()) {
 			if (result.entriesVisited >= maxEntries) {
-				warn(QCoreApplication::translate("VibeStudioCodeFiles", "The project file list reached its %1 directory-entry limit.").arg(maxEntries));
+				warn(QCoreApplication::translate("SlopStudioCodeFiles", "The project file list reached its %1 directory-entry limit.").arg(maxEntries));
 				stopped = true; break;
 			}
 			iterator.next();
@@ -149,9 +149,9 @@ CodeFilesResult listCodeFiles(const CodeFilesRequest& request)
 				else { pending << entry.filePath(); }
 			} else if (entry.isFile() && (request.includeAssets ? !projectFileKindId(entry.fileName()).isEmpty() : isCodeFileCandidate(entry.fileName()))) {
 				if (!inside(entry.canonicalFilePath())) {
-					warn(QCoreApplication::translate("VibeStudioCodeFiles", "A project file changed location during the scan and was skipped."));
+					warn(QCoreApplication::translate("SlopStudioCodeFiles", "A project file changed location during the scan and was skipped."));
 				} else if (result.files.size() >= maxFiles) {
-					warn(QCoreApplication::translate("VibeStudioCodeFiles", "The project file list reached its %1 file limit. More files may exist.").arg(maxFiles));
+					warn(QCoreApplication::translate("SlopStudioCodeFiles", "The project file list reached its %1 file limit. More files may exist.").arg(maxFiles));
 					stopped = true; break;
 				} else {
 					const QString path = entry.absoluteFilePath();
@@ -167,4 +167,4 @@ CodeFilesResult listCodeFiles(const CodeFilesRequest& request)
 	return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -8,13 +8,13 @@
 #include <cmath>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelTargets)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelTargets)
 };
 
 bool fail(QString *error, const QString &message)
@@ -713,15 +713,15 @@ QString modelTargetFixKindName(ModelTargetFixKind kind)
 	switch (kind)
 	{
 	case ModelTargetFixKind::Split:
-		return QCoreApplication::translate("VibeStudioModelTargets", "Split surfaces");
+		return QCoreApplication::translate("SlopStudioModelTargets", "Split surfaces");
 	case ModelTargetFixKind::Join:
-		return QCoreApplication::translate("VibeStudioModelTargets", "Join surfaces");
+		return QCoreApplication::translate("SlopStudioModelTargets", "Join surfaces");
 	case ModelTargetFixKind::Decimate:
-		return QCoreApplication::translate("VibeStudioModelTargets", "Decimate");
+		return QCoreApplication::translate("SlopStudioModelTargets", "Decimate");
 	case ModelTargetFixKind::Fit:
-		return QCoreApplication::translate("VibeStudioModelTargets", "Fit MD3's range");
+		return QCoreApplication::translate("SlopStudioModelTargets", "Fit MD3's range");
 	case ModelTargetFixKind::Influences:
-		return QCoreApplication::translate("VibeStudioModelTargets", "Reduce joint influences");
+		return QCoreApplication::translate("SlopStudioModelTargets", "Reduce joint influences");
 	}
 	return {};
 }
@@ -743,7 +743,7 @@ bool skipModelTargetFixes(const QString &skip, ModelTargetPrepareOptions *option
 		else if (id == QStringLiteral("influences"))
 			result.influences = false;
 		else
-			return fail(error, QCoreApplication::translate("VibeStudioModelTargets", "There is no fix called \"%1\". Choose from split, join, decimate, fit and influences.")
+			return fail(error, QCoreApplication::translate("SlopStudioModelTargets", "There is no fix called \"%1\". Choose from split, join, decimate, fit and influences.")
 								   .arg(part.trimmed()));
 	}
 	if (options)
@@ -756,18 +756,18 @@ QStringList modelTargetPreparationLines(const ModelTargetPreparation &preparatio
 	QStringList lines;
 	const auto &profile = preparation.profile;
 	const int fixes = int(preparation.fixes.size());
-	lines << (fixes == 0 ? QCoreApplication::translate("VibeStudioModelTargets", "Nothing to change for %1 %2.").arg(profile.format.toUpper(), profile.label)
-						 : QCoreApplication::translate("VibeStudioModelTargets", "Changes for %1 %2 (%n):", nullptr, fixes).arg(profile.format.toUpper(), profile.label));
+	lines << (fixes == 0 ? QCoreApplication::translate("SlopStudioModelTargets", "Nothing to change for %1 %2.").arg(profile.format.toUpper(), profile.label)
+						 : QCoreApplication::translate("SlopStudioModelTargets", "Changes for %1 %2 (%n):", nullptr, fixes).arg(profile.format.toUpper(), profile.label));
 	for (const auto &fix : preparation.fixes)
 		lines << QStringLiteral("  - ") + fix.summary;
 	for (const auto &note : preparation.notes)
 		lines << QStringLiteral("  ! ") + note;
 	const int left = int(preparation.after.issues.size());
 	if (left == 0)
-		lines << QCoreApplication::translate("VibeStudioModelTargets", "The prepared model is ready for %1.").arg(profile.label);
+		lines << QCoreApplication::translate("SlopStudioModelTargets", "The prepared model is ready for %1.").arg(profile.label);
 	else
 	{
-		lines << QCoreApplication::translate("VibeStudioModelTargets", "Still blocking %1 after the changes (%n):", nullptr, left).arg(profile.label);
+		lines << QCoreApplication::translate("SlopStudioModelTargets", "Still blocking %1 after the changes (%n):", nullptr, left).arg(profile.label);
 		for (const auto &line : modelTargetIssueLines(preparation.after))
 			lines << QStringLiteral("  - ") + line;
 	}
@@ -798,4 +798,4 @@ QJsonObject modelTargetPreparationJson(const ModelTargetPreparation &preparation
 			{QStringLiteral("after"), modelTargetReportJson(preparation.after)},
 			{QStringLiteral("ready"), preparation.after.ready()}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

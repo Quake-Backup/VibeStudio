@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -409,4 +409,4 @@ bool applyModelSkinEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, 
 	}
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

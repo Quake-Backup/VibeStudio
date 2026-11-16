@@ -11,7 +11,7 @@
 #include <QRect>
 #include <QRegion>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackageStagingModel;
 
@@ -148,4 +148,4 @@ bool loadTextureFile(const QString& path, const IdTechPalette& palette, TextureD
 bool applyTextureOperations(TextureDocument* document, const QJsonArray& operations, const IdTechPalette& palette, QString* error = nullptr, const TextureProgress& progress = {});
 bool stageTexturePng(const QByteArray& png, const QString& virtualPath, PackageStagingModel* staging, bool replaceExisting, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

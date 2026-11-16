@@ -98,11 +98,11 @@ skin keys are not applied, and the recipe shows the bind pose rather than the
 declaration's animations.
 
 ```sh
-vibestudio --cli model assembly ./marine.assembly.json --operation add \
+slopstudio --cli model assembly ./marine.assembly.json --operation add \
   --part rifle --model ./models/rifle.mesh.json --parent body --tag joint:Rhand \
   --output ./marine.assembly.json --json
-vibestudio --cli model assembly --operation doom3-entities --package ./base --json
-vibestudio --cli model assembly --new --from-def char_marine --package ./base \
+slopstudio --cli model assembly --operation doom3-entities --package ./base --json
+slopstudio --cli model assembly --new --from-def char_marine --package ./base \
   --output ./marine.assembly.json --json
 ```
 
@@ -141,7 +141,7 @@ against an independent statement of the formula on 1,000 random tag pairs, not
 against a running game.
 
 ```sh
-vibestudio --cli model assembly ./player.assembly.json --operation update \
+slopstudio --cli model assembly ./player.assembly.json --operation update \
   --tag-interpolation quake3 --output ./player.assembly.json --json
 ```
 
@@ -208,13 +208,13 @@ identity and complete assignments. All ordinary dry-run and overwrite rules
 apply; invalid or missing linked skins fail before a CLI output is written.
 
 ```sh
-vibestudio --cli model assembly ./player.assembly.json --operation update \
+slopstudio --cli model assembly ./player.assembly.json --operation update \
   --part lower --skin ./lower_blue.skin --output ./player-blue.assembly.json --json
-vibestudio --cli model assembly ./player-blue.assembly.json --operation update \
+slopstudio --cli model assembly ./player-blue.assembly.json --operation update \
   --part upper --skin models/players/custom/upper_blue.skin --skin-kind package \
-  --package ./assets.vibepackage --output ./player-blue.assembly.json --json
-vibestudio --cli model assembly ./player-blue.assembly.json --operation update \
-  --part lower --clear-skin --package ./assets.vibepackage \
+  --package ./assets.sloppackage --output ./player-blue.assembly.json --json
+slopstudio --cli model assembly ./player-blue.assembly.json --operation update \
+  --part lower --clear-skin --package ./assets.sloppackage \
   --output ./player-original-lower.assembly.json --json
 ```
 
@@ -290,13 +290,13 @@ backward-walk runtime slots, source-port dialects, Quake/Quake II game-code
 configuration and original-engine gameplay acceptance remain separate work.
 
 ```sh
-vibestudio --cli model assembly ./player.assembly.json --operation animation-set \
+slopstudio --cli model assembly ./player.assembly.json --operation animation-set \
   --config ./animation.cfg --lower-part lower --upper-part upper \
   --lower-animation LEGS_RUN --upper-animation TORSO_ATTACK \
   --output ./player-native.assembly.json --json
-vibestudio --cli model assembly ./player-native.assembly.json \
+slopstudio --cli model assembly ./player-native.assembly.json \
   --operation animation-export --output ./out/animation.cfg --json
-vibestudio --cli model assembly ./player-native.assembly.json \
+slopstudio --cli model assembly ./player-native.assembly.json \
   --operation animation-clear --output ./player-ordinary.assembly.json --json
 ```
 
@@ -357,7 +357,7 @@ opening name what was left out:
 
 Opening reads entry metadata and `animation.cfg` only. No package file is changed,
 the assembly can only be saved outside the package or folder, and Player Package
-refuses to publish over it. Reviewing a player that VibeStudio published reproduces
+refuses to publish over it. Reviewing a player that SlopStudio published reproduces
 the same models, skins, icons, `animation.cfg`, sounds and dependencies byte for
 byte. Only the receipt differs, because it records the new sources. Skins are
 listed `default` first, then by name.
@@ -369,10 +369,10 @@ It does not read Team Arena's `models/players/characters/` and
 `icon_<skin>.skin`.
 
 ```sh
-vibestudio --cli model assembly --operation players --package ./mymod.pk3 --json
-vibestudio --cli model assembly --new --from-player myplayer --skin-name blue \
+slopstudio --cli model assembly --operation players --package ./mymod.pk3 --json
+slopstudio --cli model assembly --new --from-player myplayer --skin-name blue \
   --package ./mymod.pk3 --output ./myplayer.assembly.json --json
-vibestudio --cli model assembly ./myplayer.assembly.json --operation animation-set \
+slopstudio --cli model assembly ./myplayer.assembly.json --operation animation-set \
   --package ./mymod.pk3 --config-entry models/players/other/animation.cfg \
   --output ./myplayer-other.assembly.json --json
 ```
@@ -388,7 +388,7 @@ assembly edit, it writes the source only when the parts resolve. JSON reports
 the `player-review` options that publish the player again, for example:
 
 ```sh
-vibestudio --cli model assembly ./myplayer.assembly.json --operation player-review \
+slopstudio --cli model assembly ./myplayer.assembly.json --operation player-review \
   --package ./mymod.pk3 --player-name myplayer --skin-name blue --head-part head \
   --icon models/players/myplayer/icon_blue.tga --icon-kind package \
   --skin-variants default --variant-skin default:lower=package:models/players/myplayer/lower_default.skin \
@@ -440,12 +440,12 @@ The package contains:
 - Referenced shader scripts and material images/videos, collected from every
   retained material slot through shared dependency validation. The captured bytes
   are checked again for a complete dependency closure before publication.
-- `vibestudio/player-bundle.json`, a deterministic receipt of source identities,
+- `slopstudio/player-bundle.json`, a deterministic receipt of source identities,
   native roles, export reports and generated file hashes. It contains no machine
   paths or timestamps; its file list excludes the receipt itself.
 
 Open the project asset package/folder before review. CLI `--package` also accepts
-a portable `.vibepackage` draft so staged material edits use the same workflow.
+a portable `.sloppackage` draft so staged material edits use the same workflow.
 Icons can be loose files or exact package entries; duplicate paths require an
 explicit matching entry number. Icons must decode as one image of at most
 1024 × 1024 pixels. They are converted to bottom-left, true-color TGA pixels.
@@ -534,17 +534,17 @@ levels with their triangle counts and the sounds with their source hashes. A
 single-skin package without detail levels or sounds keeps the schema 1 receipt.
 
 ```sh
-vibestudio --cli model assembly ./player.assembly.json --operation player-review \
+slopstudio --cli model assembly ./player.assembly.json --operation player-review \
   --player-name myplayer --skin-name default --head-part head \
   --icon ./icon.png --package ./assets --json
-vibestudio --cli model assembly ./player.assembly.json --operation player-review \
+slopstudio --cli model assembly ./player.assembly.json --operation player-review \
   --player-name myplayer --head-part head --icon ./icon.png --package ./assets \
   --team-variants --variant-skin blue:head=./head_blue.skin \
   --variant-icon blue=package:textures/players/myplayer/icon_blue.tga \
   --lod-levels 2 --lod-ratio 0.5 --sound death1=./sounds/death1.ogg --json
-vibestudio --cli model assembly ./player.assembly.json --operation player-export \
+slopstudio --cli model assembly ./player.assembly.json --operation player-export \
   --player-name myplayer --head-part head --icon textures/player/icon.tga \
-  --icon-kind package --icon-entry-index 7 --package ./assets.vibepackage \
+  --icon-kind package --icon-entry-index 7 --package ./assets.sloppackage \
   --output ./myplayer.pk3 --dry-run --json
 ```
 
@@ -590,7 +590,7 @@ frames. A missing `tag_flash` (the muzzle flash and effects would start at the
 weapon's origin), a barrel without `tag_barrel`, a hand without `tag_weapon`, a
 multi-pose flash, a part on the wrong tag or a part in two roles is refused.
 Weapon IDs follow the player ID rules and every path fits 63 characters. The
-receipt `vibestudio/weapon-<w>.json` records source identities and file hashes.
+receipt `slopstudio/weapon-<w>.json` records source identities and file hashes.
 **Export PK3…** uses the same atomic, deterministic package writer as players;
 inputs are never replaced. Register the weapon in the game code that loads its
 path; effects are not part of the package.
@@ -620,10 +620,10 @@ to MD3. **Show muzzle flash**, under the preview, hides parts attached to a
 each shot; it lasts for the session and does not change bakes or packages.
 
 ```sh
-vibestudio --cli model assembly ./rail.assembly.json --operation weapon-review \
+slopstudio --cli model assembly ./rail.assembly.json --operation weapon-review \
   --weapon-name rail --weapon-part gun --hand-part hand --barrel-part barrel \
   --flash-part flash --package ./assets --json
-vibestudio --cli model assembly ./rail.assembly.json --operation weapon-export \
+slopstudio --cli model assembly ./rail.assembly.json --operation weapon-export \
   --weapon-name rail --weapon-part gun --package ./assets --output ./rail.pk3 --json
 ```
 
@@ -655,7 +655,7 @@ package that holds it. No palette is bundled. A body without 198 frames is refus
 with the standard ranges listed; a weapon or view weapon with another frame count,
 a model with more than one surface, skins of different sizes and unknown sound
 names are refused. MD2 limits apply as for any MD2 export. The receipt
-`vibestudio/q2-player-<player>.json` records source identities and file hashes.
+`slopstudio/q2-player-<player>.json` records source identities and file hashes.
 **Export Package…** writes a `.pak`, or a `.pk2` or `.zip` for ports that read zip
 packages, through the same atomic, deterministic writer as Quake III packages;
 inputs are never replaced. Select the player as `<player>/<skin>`. The skins'
@@ -668,12 +668,12 @@ and name exactly one entry, as for linked skins; entries are read, never
 changed, and the same bytes give the same package as local files.
 
 ```sh
-vibestudio --cli model assembly --operation q2-player-review --player-name vamp \
+slopstudio --cli model assembly --operation q2-player-review --player-name vamp \
   --body ./vamp/body.mesh.json --weapon ./vamp/gun.mesh.json \
   --q2-skin red=./vamp/red.png --q2-skin blue=./vamp/blue.png,./vamp/blue_icon.png \
   --sound death1=./vamp/death1.wav --view-weapon shotgun=./vamp/shotgun.mesh.json \
   --package ./baseq2/pak0.pak --json
-vibestudio --cli model assembly --operation q2-player-export --player-name vamp \
+slopstudio --cli model assembly --operation q2-player-export --player-name vamp \
   --body ./vamp/body.mesh.json --weapon ./vamp/gun.mesh.json --q2-skin red=./vamp/red.png \
   --package ./baseq2/pak0.pak --output ./vamp.pak --json
 ```
@@ -765,24 +765,24 @@ CLI uses `--collision include|omit` (default `omit`) on `bake` and
 `bake-animation`, and JSON reports `collisionVolumes`.
 
 ```sh
-vibestudio --cli model assembly ./turret.assembly.json --operation bake --collision include --output ./out/turret.mesh.json --json
+slopstudio --cli model assembly ./turret.assembly.json --operation bake --collision include --output ./out/turret.mesh.json --json
 ```
 
 ## CLI
 
 ```sh
-vibestudio --cli model assembly --new --name Player --part root \
+slopstudio --cli model assembly --new --name Player --part root \
   --model ./models/lower.md3 --fps 10 --output ./models/player.assembly.json
-vibestudio --cli model assembly ./models/player.assembly.json --operation add \
+slopstudio --cli model assembly ./models/player.assembly.json --operation add \
   --part upper --model ./models/upper.md3 --parent root --tag tag_torso \
   --first-frame 0 --last-frame 20 --fps 12 --output ./models/player.assembly.json
-vibestudio --cli model assembly ./models/player.assembly.json --time 0.5 --json
-vibestudio --cli model assembly ./models/player.assembly.json --operation update \
+slopstudio --cli model assembly ./models/player.assembly.json --time 0.5 --json
+slopstudio --cli model assembly ./models/player.assembly.json --operation update \
   --part upper --translation 0,0,2 --rotation 0,0,15 --scale 1 \
   --phase 0.25 --loop on --interpolate on --output ./models/player.assembly.json
-vibestudio --cli model assembly ./models/player.assembly.json --operation bake \
+slopstudio --cli model assembly ./models/player.assembly.json --operation bake \
   --time 0.5 --output ./out/player.obj --dry-run --json
-vibestudio --cli model assembly ./models/player.assembly.json --operation bake-animation \
+slopstudio --cli model assembly ./models/player.assembly.json --operation bake-animation \
   --time 0 --frames 30 --sample-fps 30 --clip-name walk \
   --output ./out/player.mesh.json --dry-run --json
 ```
@@ -802,7 +802,7 @@ reported; other formats omit unmeasured error fields. Input frame samples
 describe the start time. Dry runs sample and validate the entire sequence.
 
 Use `--kind package --model models/upper.md3 --package ./assets.pk3` for package
-references. `--package` also accepts a folder or `.vibepackage` draft and must be
+references. `--package` also accepts a folder or `.sloppackage` draft and must be
 supplied whenever a recipe has package parts. `--palette` selects a package
 palette. File `--model` values resolve relative to the process working directory;
 file references already in a recipe resolve relative to that recipe.
@@ -844,10 +844,10 @@ Restoration preserves the reviewed recovery copy, including when recovering from
 the current editor's copy. A new dirty session receives a new recovery identity.
 
 ```sh
-vibestudio --cli model assembly --operation recoveries --json
-vibestudio --cli model assembly --operation recover --recovery UUID \
+slopstudio --cli model assembly --operation recoveries --json
+slopstudio --cli model assembly --operation recover --recovery UUID \
   --sha256 REVIEWED_SHA256 --output ./out/recovered.assembly.json --dry-run --json
-vibestudio --cli model assembly --operation discard --recovery UUID \
+slopstudio --cli model assembly --operation discard --recovery UUID \
   --sha256 REVIEWED_SHA256 --dry-run --json
 ```
 
@@ -875,7 +875,7 @@ assembly and its referenced assets normally for durable project storage.
 
 ## Bounds And Release Work
 
-All source versions use `format: "vibestudio-model-assembly"`, a name and a part
+All source versions use `format: "slopstudio-model-assembly"`, a name and a part
 array. Ordinary recipes use schema 1, native animation uses schema 2, linked
 skins use schema 3 with optional native animation, and the Quake III
 [attachment blend](#attachment-blend) uses schema 4 with any of those.

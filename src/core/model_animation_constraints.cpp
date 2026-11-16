@@ -12,7 +12,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -816,4 +816,4 @@ bool readModelClipStackJson(const QJsonObject &entry, int jointCount, bool packe
 	clip->base = base;
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

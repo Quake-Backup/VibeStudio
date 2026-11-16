@@ -12,7 +12,7 @@
 #include <QTemporaryDir>
 #include <QtEndian>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool pass, const char* label, const QString& error = {}) {
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
 	expect(!inspectLevelBuildArtifacts(workspace).verified, "unbuilt outputs cannot publish");
 	BuildPipelineRequest request;
 	request.pipelineId = "quake3-full";
-	request.executableOverrides = {{"vibemap3", app.applicationFilePath()}};
+	request.executableOverrides = {{"slopmap3", app.applicationFilePath()}};
 	request.registerOutputs = true;
 	auto run = runLevelBuildWorkspace(workspace, request);
 	if (!expect(run.succeeded(), "compiler fixture succeeds", run.errors.join('\n'))) {

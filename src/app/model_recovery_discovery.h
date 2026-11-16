@@ -14,7 +14,7 @@
 
 class QThread;
 
-namespace vibestudio
+namespace slopstudio
 {
 
 struct ModelRecoveryInventory
@@ -50,4 +50,4 @@ class ModelRecoveryDiscovery final : public QObject
 	std::shared_ptr<std::atomic_bool> m_cancel;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

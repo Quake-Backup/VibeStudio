@@ -39,42 +39,42 @@ int main()
 		return fail("Expected Quake package fixture.");
 	}
 
-	vibestudio::GameInstallationProfile profile;
+	slopstudio::GameInstallationProfile profile;
 	profile.rootPath = tempDir.path();
 	profile.gameKey = QStringLiteral("quake");
 	profile.displayName = QStringLiteral("Manual Quake");
 	profile.basePackagePaths = {QStringLiteral("id1/pak0.pak")};
-	profile = vibestudio::normalizedGameInstallationProfile(profile);
+	profile = slopstudio::normalizedGameInstallationProfile(profile);
 
 	if (profile.id.isEmpty() || profile.gameKey != QStringLiteral("quake")) {
 		return fail("Expected stable Quake installation id and key.");
 	}
-	if (profile.engineFamily != vibestudio::GameEngineFamily::IdTech2) {
+	if (profile.engineFamily != slopstudio::GameEngineFamily::IdTech2) {
 		return fail("Expected Quake to normalize to idTech2.");
 	}
 	if (profile.basePackagePaths.size() != 1 || !QFile::exists(profile.basePackagePaths.front())) {
 		return fail("Expected relative base package path to normalize under root.");
 	}
-	if (profile.paletteId != QStringLiteral("quake") || profile.compilerProfileId != QStringLiteral("vibemap2")) {
+	if (profile.paletteId != QStringLiteral("quake") || profile.compilerProfileId != QStringLiteral("slopmap2")) {
 		return fail("Expected Quake defaults.");
 	}
 
-	const vibestudio::GameInstallationValidation validation = vibestudio::validateGameInstallationProfile(profile);
+	const slopstudio::GameInstallationValidation validation = slopstudio::validateGameInstallationProfile(profile);
 	if (!validation.isUsable() || !validation.errors.isEmpty()) {
 		return fail("Expected valid manual profile.");
 	}
 
-	vibestudio::GameInstallationProfile missingRoot;
+	slopstudio::GameInstallationProfile missingRoot;
 	missingRoot.rootPath = root.filePath(QStringLiteral("missing"));
-	const vibestudio::GameInstallationValidation missingValidation = vibestudio::validateGameInstallationProfile(missingRoot);
+	const slopstudio::GameInstallationValidation missingValidation = slopstudio::validateGameInstallationProfile(missingRoot);
 	if (missingValidation.isUsable() || missingValidation.errors.isEmpty()) {
 		return fail("Expected missing root to block validation.");
 	}
 
-	if (vibestudio::gameEngineFamilyFromId(QStringLiteral("QUAKE3")) != vibestudio::GameEngineFamily::IdTech3) {
+	if (slopstudio::gameEngineFamilyFromId(QStringLiteral("QUAKE3")) != slopstudio::GameEngineFamily::IdTech3) {
 		return fail("Expected engine family aliases to normalize.");
 	}
-	if (!vibestudio::knownGameKeys().contains(QStringLiteral("doom")) || !vibestudio::knownGameKeys().contains(QStringLiteral("quake3"))) {
+	if (!slopstudio::knownGameKeys().contains(QStringLiteral("doom")) || !slopstudio::knownGameKeys().contains(QStringLiteral("quake3"))) {
 		return fail("Expected known idTech game keys.");
 	}
 
@@ -92,12 +92,12 @@ int main()
 	if (!steamRoot.mkpath(QStringLiteral("steamapps/common/Quake/bin/x64")) || !writeFile(steamQuakeExecutable)) {
 		return fail("Expected nested Steam Quake executable fixture.");
 	}
-	const QVector<vibestudio::GameInstallationDetectionCandidate> steamCandidates = vibestudio::detectSteamGameInstallations({steamDir.path()});
+	const QVector<slopstudio::GameInstallationDetectionCandidate> steamCandidates = slopstudio::detectSteamGameInstallations({steamDir.path()});
 	if (steamCandidates.isEmpty()) {
 		return fail("Expected Steam detection candidate.");
 	}
 	bool foundSteamQuake = false;
-	for (const vibestudio::GameInstallationDetectionCandidate& candidate : steamCandidates) {
+	for (const slopstudio::GameInstallationDetectionCandidate& candidate : steamCandidates) {
 		if (candidate.sourceId == QStringLiteral("steam") && candidate.profile.gameKey == QStringLiteral("quake") && QFileInfo(candidate.profile.rootPath) == QFileInfo(steamQuakeRoot)) {
 			foundSteamQuake = true;
 			if (candidate.profile.manual || candidate.confidencePercent < 80) {
@@ -127,12 +127,12 @@ int main()
 	if (!gogRoot.mkpath(QStringLiteral("Quake III Arena/tools/build/x64")) || !writeFile(gogRoot.filePath(QStringLiteral("Quake III Arena/tools/build/x64/quake3.exe")))) {
 		return fail("Expected deeply nested GOG Quake III executable fixture.");
 	}
-	const QVector<vibestudio::GameInstallationDetectionCandidate> gogCandidates = vibestudio::detectGogGameInstallations({gogDir.path()});
+	const QVector<slopstudio::GameInstallationDetectionCandidate> gogCandidates = slopstudio::detectGogGameInstallations({gogDir.path()});
 	if (gogCandidates.isEmpty()) {
 		return fail("Expected GOG detection candidate.");
 	}
 	bool foundGogQuake3 = false;
-	for (const vibestudio::GameInstallationDetectionCandidate& candidate : gogCandidates) {
+	for (const slopstudio::GameInstallationDetectionCandidate& candidate : gogCandidates) {
 		if (candidate.sourceId == QStringLiteral("gog") && candidate.profile.gameKey == QStringLiteral("quake3") && QFileInfo(candidate.profile.rootPath) == QFileInfo(gogQuake3Root)) {
 			foundGogQuake3 = true;
 			if (!candidate.profile.executablePath.isEmpty()) {

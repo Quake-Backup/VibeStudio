@@ -11,7 +11,7 @@
 // placed pivot; Escape; the manipulator in the camera with Alt lifting a move;
 // the camera's shear handles with a top face slid within its plane and Alt
 // sliding a side face up; one tool at a time; and refusal of locked
-// selections. NetRadiant Custom, TrenchBroom and VibeStudio profiles at 100%,
+// selections. NetRadiant Custom, TrenchBroom and SlopStudio profiles at 100%,
 // and at 200% with high contrast, expanded translations and right-to-left
 // layout.
 #include "app/application_shell.h"
@@ -48,7 +48,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -137,18 +137,18 @@ int main(int argc, char** argv)
 	if (!file.open(QIODevice::WriteOnly) || file.write(serializeLevelMap(created).bytes) <= 0) { return 1; }
 	file.close();
 
-	// The NetRadiant Custom, TrenchBroom and VibeStudio profiles at 100% and
+	// The NetRadiant Custom, TrenchBroom and SlopStudio profiles at 100% and
 	// 200%; GtkRadiant, QuArK and Hammer at 100%, as the gestures do not
 	// depend on the profile beyond its keys.
-	for (const auto* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default", "gtkradiant-1-6", "quark", "hammer"}) {
+	for (const auto* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default", "gtkradiant-1-6", "quark", "hammer"}) {
 		const bool radiant = QLatin1String(profile) == QLatin1String("netradiant-custom");
 		const bool trenchBroom = QLatin1String(profile) == QLatin1String("trenchbroom");
-		const bool both = radiant || trenchBroom || QLatin1String(profile) == QLatin1String("vibestudio-default");
+		const bool both = radiant || trenchBroom || QLatin1String(profile) == QLatin1String("slopstudio-default");
 		for (int scale : {100, 200}) {
 			if (scale == 200 && !both) { continue; }
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);
-			// VIBESTUDIO_TEST_ONLY="trenchbroom 200%" runs one combination.
-			if (qEnvironmentVariableIsSet("VIBESTUDIO_TEST_ONLY") && phase != qEnvironmentVariable("VIBESTUDIO_TEST_ONLY")) { continue; }
+			// SLOPSTUDIO_TEST_ONLY="trenchbroom 200%" runs one combination.
+			if (qEnvironmentVariableIsSet("SLOPSTUDIO_TEST_ONLY") && phase != qEnvironmentVariable("SLOPSTUDIO_TEST_ONLY")) { continue; }
 			std::cout << "Transform tool UI " << phase.toUtf8().constData() << std::endl;
 			// Fresh settings for each combination, so no window layout saved by
 			// the one before decides the views' sizes.

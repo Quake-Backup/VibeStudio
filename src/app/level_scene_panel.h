@@ -11,7 +11,7 @@ class QLineEdit;
 class QPushButton;
 class QTreeWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 class LevelScenePanel final : public QWidget {
 	Q_OBJECT
   public:
@@ -61,4 +61,4 @@ class LevelScenePanel final : public QWidget {
 	QPushButton* m_closeGroup = nullptr;
 	QLabel* m_context = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

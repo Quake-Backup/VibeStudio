@@ -12,7 +12,7 @@
 #include <QJsonDocument>
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -308,4 +308,4 @@ ModelToolsCliResult runModelConstraints(const QStringList &arguments)
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

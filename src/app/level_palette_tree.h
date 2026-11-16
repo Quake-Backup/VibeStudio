@@ -5,7 +5,7 @@
 #include <QMimeData>
 #include <QTreeWidget>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // A Levels browser list whose rows drag out as what they place: entity
 // classes, Doom thing types, models and sounds, each row carrying its payload
@@ -42,4 +42,4 @@ protected:
 	}
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

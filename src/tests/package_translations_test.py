@@ -17,7 +17,7 @@ SPEC.loader.exec_module(packaging)
 
 class CompiledCatalogPackaging(unittest.TestCase):
     def setUp(self):
-        temporary_root = Path(os.environ.get("VIBESTUDIO_TEST_TMP_ROOT", ROOT / ".agents/tmp/package-translations")).resolve()
+        temporary_root = Path(os.environ.get("SLOPSTUDIO_TEST_TMP_ROOT", ROOT / ".agents/tmp/package-translations")).resolve()
         temporary_root.mkdir(parents=True, exist_ok=True)
         self.temporary = tempfile.TemporaryDirectory(prefix="catalogs-", dir=temporary_root)
         self.addCleanup(self.temporary.cleanup)
@@ -28,10 +28,10 @@ class CompiledCatalogPackaging(unittest.TestCase):
         (self.source / "README.md").write_text("Packaging fixture\n")
         (self.source / "VERSION").write_text("fixture\n")
         for locale in ["en", "ar"]:
-            (self.source / "i18n" / f"vibestudio_{locale}.ts").write_text(f'<TS language="{locale}"/>')
+            (self.source / "i18n" / f"slopstudio_{locale}.ts").write_text(f'<TS language="{locale}"/>')
         # A source-tree artifact must not masquerade as the selected build's runtime catalog.
-        (self.source / "i18n/vibestudio_en.qm").write_bytes(b"stale source-tree bytes")
-        self.binary = self.root / "build/src/vibestudio"
+        (self.source / "i18n/slopstudio_en.qm").write_bytes(b"stale source-tree bytes")
+        self.binary = self.root / "build/src/slopstudio"
         self.binary.parent.mkdir(parents=True)
         self.binary.write_bytes(b"opaque executable fixture")
         self.compiled = self.root / "build/i18n"
@@ -48,24 +48,24 @@ class CompiledCatalogPackaging(unittest.TestCase):
 
     def test_automatic_complete_and_partial_inventory(self):
         for locale in ["en", "ar"]:
-            (self.compiled / f"vibestudio_{locale}.qm").write_bytes(f"compiled {locale}".encode())
+            (self.compiled / f"slopstudio_{locale}.qm").write_bytes(f"compiled {locale}".encode())
         (self.compiled / "unrelated.qm").write_bytes(b"unrelated")
         package, manifest = self.stage()
         self.assertEqual(manifest["compiledLocalization"]["status"], "complete")
-        self.assertEqual((package / "i18n/vibestudio_en.qm").read_bytes(), b"compiled en")
+        self.assertEqual((package / "i18n/slopstudio_en.qm").read_bytes(), b"compiled en")
         self.assertFalse((package / "i18n/unrelated.qm").exists())
-        self.assertIn("i18n/vibestudio_ar.qm", (package / "CHECKSUMS.sha256").read_text())
-        (self.compiled / "vibestudio_ar.qm").unlink()
+        self.assertIn("i18n/slopstudio_ar.qm", (package / "CHECKSUMS.sha256").read_text())
+        (self.compiled / "slopstudio_ar.qm").unlink()
         package, manifest = self.stage(output="partial")
         self.assertEqual(manifest["compiledLocalization"]["status"], "partial")
-        self.assertEqual(manifest["compiledLocalization"]["missingCatalogs"], ["i18n/vibestudio_ar.qm"])
+        self.assertEqual(manifest["compiledLocalization"]["missingCatalogs"], ["i18n/slopstudio_ar.qm"])
 
     def test_missing_runtime_keeps_source_language_fallback_explicit(self):
         package, manifest = self.stage()
         self.assertEqual(manifest["compiledLocalization"]["status"], "unavailable")
         self.assertEqual(manifest["compiledLocalization"]["catalogs"], [])
-        self.assertTrue((package / "i18n/vibestudio_en.ts").exists())
-        self.assertFalse((package / "i18n/vibestudio_en.qm").exists())
+        self.assertTrue((package / "i18n/slopstudio_en.ts").exists())
+        self.assertFalse((package / "i18n/slopstudio_en.qm").exists())
 
     def test_required_catalogs_fail_before_replacing_existing_package(self):
         package, _ = self.stage()
@@ -77,23 +77,23 @@ class CompiledCatalogPackaging(unittest.TestCase):
         override = self.root / "override"
         override.mkdir()
         for locale in ["en", "ar"]:
-            (override / f"vibestudio_{locale}.qm").write_bytes(f"override {locale}".encode())
+            (override / f"slopstudio_{locale}.qm").write_bytes(f"override {locale}".encode())
         package, manifest = self.stage(override)
         self.assertTrue(manifest["compiledLocalization"]["required"])
-        self.assertEqual((package / "i18n/vibestudio_en.qm").read_bytes(), b"override en")
+        self.assertEqual((package / "i18n/slopstudio_en.qm").read_bytes(), b"override en")
 
     def test_repackaging_cannot_delete_its_binary_or_catalog_inputs(self):
         for locale in ["en", "ar"]:
-            (self.compiled / f"vibestudio_{locale}.qm").write_bytes(f"compiled {locale}".encode())
+            (self.compiled / f"slopstudio_{locale}.qm").write_bytes(f"compiled {locale}".encode())
         package, _ = self.stage()
-        self.binary = package / "bin/vibestudio"
+        self.binary = package / "bin/slopstudio"
         with self.assertRaisesRegex(ValueError, "required input"):
             self.stage()
         self.assertEqual(self.binary.read_bytes(), b"opaque executable fixture")
-        self.binary = self.root / "build/src/vibestudio"
+        self.binary = self.root / "build/src/slopstudio"
         with self.assertRaisesRegex(ValueError, "required input"):
             self.stage(package / "i18n")
-        self.assertEqual((package / "i18n/vibestudio_en.qm").read_bytes(), b"compiled en")
+        self.assertEqual((package / "i18n/slopstudio_en.qm").read_bytes(), b"compiled en")
 
     def link(self, path, target):
         try:
@@ -109,7 +109,7 @@ class CompiledCatalogPackaging(unittest.TestCase):
         target.mkdir(parents=True)
         sentinel = target / "sentinel"
         sentinel.write_bytes(b"untouched")
-        self.link(output / "vibestudio-fixture-linux-x86_64", target)
+        self.link(output / "slopstudio-fixture-linux-x86_64", target)
         with self.assertRaisesRegex(ValueError, "link or reparse point"):
             self.stage()
         self.assertEqual(sentinel.read_bytes(), b"untouched")
@@ -121,13 +121,13 @@ class CompiledCatalogPackaging(unittest.TestCase):
         target.mkdir(parents=True)
         sentinel = target / "sentinel"
         sentinel.write_bytes(b"untouched")
-        link = output / "vibestudio-fixture-linux-x86_64"
+        link = output / "slopstudio-fixture-linux-x86_64"
         env = os.environ.copy()
-        env["VIBESTUDIO_TEST_LINK_PATH"] = str(link)
-        env["VIBESTUDIO_TEST_LINK_TARGET"] = str(target)
+        env["SLOPSTUDIO_TEST_LINK_PATH"] = str(link)
+        env["SLOPSTUDIO_TEST_LINK_TARGET"] = str(target)
         subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
                         "$ErrorActionPreference = 'Stop'; New-Item -ItemType Junction "
-                        "-Path $env:VIBESTUDIO_TEST_LINK_PATH -Target $env:VIBESTUDIO_TEST_LINK_TARGET | Out-Null"],
+                        "-Path $env:SLOPSTUDIO_TEST_LINK_PATH -Target $env:SLOPSTUDIO_TEST_LINK_TARGET | Out-Null"],
                        env=env, check=True, capture_output=True, text=True)
         # rmdir removes the junction itself without traversing the target.
         self.addCleanup(link.rmdir)
@@ -137,7 +137,7 @@ class CompiledCatalogPackaging(unittest.TestCase):
 
     def test_nested_output_link_preserves_existing_package(self):
         package, _ = self.stage()
-        original = (package / "bin/vibestudio").read_bytes()
+        original = (package / "bin/slopstudio").read_bytes()
         target = self.root / "keep"
         target.write_bytes(b"untouched")
         link = package / "linked-file"
@@ -145,7 +145,7 @@ class CompiledCatalogPackaging(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "link or reparse point"):
             self.stage()
         self.assertEqual(target.read_bytes(), b"untouched")
-        self.assertEqual((package / "bin/vibestudio").read_bytes(), original)
+        self.assertEqual((package / "bin/slopstudio").read_bytes(), original)
 
     def test_linked_archive_preserves_target_and_package(self):
         package, _ = self.stage()
@@ -190,7 +190,7 @@ class SampleStaging(unittest.TestCase):
             handle.write("{}\n")
         # TemporaryDirectory's cleanup cannot reach the file by its plain path either.
         self.addCleanup(os.remove, raw)
-        self.assertGreater(len(str(self.root / "output/vibestudio-fixture-linux-x86_64/samples" / self.LONG_RELATIVE)),
+        self.assertGreater(len(str(self.root / "output/slopstudio-fixture-linux-x86_64/samples" / self.LONG_RELATIVE)),
                            packaging.MAX_PACKAGE_PATH)
         return path
 

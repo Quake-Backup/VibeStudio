@@ -11,7 +11,7 @@
 #include <QJsonDocument>
 #include <QMap>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 struct ModelAppearanceFixture
 {
@@ -71,4 +71,4 @@ struct ModelAppearanceFixture
 		return true;
 	}
 };
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

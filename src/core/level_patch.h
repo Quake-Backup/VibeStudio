@@ -5,10 +5,10 @@
 #include <QSize>
 #include <QStringList>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Authorable quadratic grids have odd dimensions, matching q3map2's 31-point
-// axis limit (external/compilers/vibemap3/tools/quake3/q3map2/q3map2.h).
+// axis limit (external/compilers/slopmap3/tools/quake3/q3map2/q3map2.h).
 inline constexpr int kLevelPatchMaxDimension = 31;
 
 // How a new patch's texture coordinates are laid out. Radiant is NetRadiant
@@ -110,4 +110,4 @@ bool replaceLevelMapPatch(LevelMapDocument* document, int patchId, const LevelMa
 // command. Keys bind the destination; supplied ownership/source metadata is ignored.
 bool replaceLevelMapPatches(LevelMapDocument* document, const QMap<int, LevelMapPatch>& patches, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

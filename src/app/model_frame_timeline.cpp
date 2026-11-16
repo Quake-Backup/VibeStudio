@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -47,8 +47,8 @@ ModelFrameTimeline::ModelFrameTimeline(QWidget *parent) : QAbstractSlider(parent
 	setSingleStep(1);
 	setPageStep(10);
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-	setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Frame timeline"));
-	setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
+	setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Frame timeline"));
+	setToolTip(QCoreApplication::translate("SlopStudioModelEditor",
 										   "Click or drag to choose a frame. Shift-click or Shift-drag selects the frame range the range "
 										   "tools use. Arrow keys step, Page Up and Page Down jump ten frames, Home and End go to the "
 										   "ends; hold Shift to extend the range."));
@@ -180,7 +180,7 @@ QSize ModelFrameTimeline::minimumSizeHint() const
 QString ModelFrameTimeline::frameDescription(int frame) const
 {
 	const QLocale locale;
-	QString text = QCoreApplication::translate("VibeStudioModelEditor", "Frame %1 of %2: %3.")
+	QString text = QCoreApplication::translate("SlopStudioModelEditor", "Frame %1 of %2: %3.")
 					   .arg(locale.toString(frame))
 					   .arg(locale.toString(maximum() + 1))
 					   .arg(m_names.value(frame));
@@ -189,10 +189,10 @@ QString ModelFrameTimeline::frameDescription(int frame) const
 		if (frame >= clip.firstFrame && frame < clip.firstFrame + clip.frameCount)
 			clips.append(clip.name);
 	if (!clips.isEmpty())
-		text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelEditor", "In clips: %1.").arg(clips.join(QStringLiteral(", ")));
+		text += QLatin1Char(' ') + QCoreApplication::translate("SlopStudioModelEditor", "In clips: %1.").arg(clips.join(QStringLiteral(", ")));
 	if (const auto here = eventsAt(frame); !here.isEmpty())
-		text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelEditor", "Events: %1.").arg(here.join(QStringLiteral("; ")));
-	text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelEditor", "Range %1 to %2.")
+		text += QLatin1Char(' ') + QCoreApplication::translate("SlopStudioModelEditor", "Events: %1.").arg(here.join(QStringLiteral("; ")));
+	text += QLatin1Char(' ') + QCoreApplication::translate("SlopStudioModelEditor", "Range %1 to %2.")
 								   .arg(locale.toString(m_rangeFirst))
 								   .arg(locale.toString(m_rangeLast));
 	return text;
@@ -217,7 +217,7 @@ bool ModelFrameTimeline::event(QEvent *event)
 		if (const auto here = eventsAt(frame); !here.isEmpty())
 		{
 			QToolTip::showText(help->globalPos(),
-							   QCoreApplication::translate("VibeStudioModelEditor", "Events at frame %1: %2")
+							   QCoreApplication::translate("SlopStudioModelEditor", "Events at frame %1: %2")
 								   .arg(QLocale().toString(frame), here.join(QStringLiteral("; "))),
 							   this);
 			return true;
@@ -323,7 +323,7 @@ void ModelFrameTimeline::paintEvent(QPaintEvent *)
 	if (hidden > 0)
 	{
 		painter.setPen(text);
-		const auto more = QCoreApplication::translate("VibeStudioModelEditor", "+%1").arg(locale.toString(hidden));
+		const auto more = QCoreApplication::translate("SlopStudioModelEditor", "+%1").arg(locale.toString(hidden));
 		painter.drawText(QRectF(0, laneTop + (maximumLanes - 1) * laneHeight, width() - 2, laneHeight), Qt::AlignRight | Qt::AlignVCenter, more);
 	}
 	// Animation events: outlined diamonds on the tick band, so they read by
@@ -463,4 +463,4 @@ void ModelFrameTimeline::mouseReleaseEvent(QMouseEvent *event)
 	m_extending = false;
 	event->accept();
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -27,7 +27,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message, const QString &detail = {})
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 #endif
 	QApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("level-camera-placement-ui-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("level-camera-placement-ui-smoke"); skip >= 0) {
 		return skip;
 	}
 #ifdef Q_OS_WIN
@@ -306,7 +306,7 @@ int main(int argc, char **argv)
 					 largeLabel->height() >= largeLabel->heightForWidth(largeLabel->width()) &&
 					 largePlace->height() >= largePlace->heightForWidth(largePlace->width()),
 				 "translated placement shelf fits the tab viewport and wraps without clipping");
-	const auto output = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const auto output = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (!output.isEmpty())
 	{
 		QDir().mkpath(output);

@@ -25,7 +25,7 @@
 
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::registerLevelSceneLayerCommands()
 {
@@ -183,4 +183,4 @@ void ApplicationShell::moveLevelSelectionToLayerFromUi(const QString& layerId)
 	statusBar()->showMessage(message, 7000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

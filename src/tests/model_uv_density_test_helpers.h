@@ -2,7 +2,7 @@
 #include "tests/model_rig_test_helpers.h"
 #include "tests/model_uv_islands_test_helpers.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh densityFixture()
 {
@@ -62,4 +62,4 @@ inline ModelMesh densitySkinnedFixture()
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

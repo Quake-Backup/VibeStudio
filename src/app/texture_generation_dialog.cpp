@@ -34,7 +34,7 @@
 
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct TextureGenerationDialog::Work {
 	std::atomic_bool discard = false;
@@ -161,12 +161,12 @@ TextureGenerationDialog::TextureGenerationDialog(QWidget* parent, TextureGenerat
 	options->addRow(tr("&Name:"), m_name);
 	m_directory = new QLineEdit;
 	m_directory->setAccessibleName(tr("Texture folder"));
-	m_directory->setPlaceholderText(QStringLiteral("vibestudio"));
+	m_directory->setPlaceholderText(QStringLiteral("slopstudio"));
 	m_directory->setToolTip(tr("Quake II and III textures live in a folder under textures/; maps name them folder/name."));
 	options->addRow(tr("&Folder:"), m_directory);
 	m_wad = new QLineEdit;
 	m_wad->setAccessibleName(tr("WAD for the texture"));
-	m_wad->setPlaceholderText(tr("wads/vibestudio_generated.wad in the project"));
+	m_wad->setPlaceholderText(tr("wads/slopstudio_generated.wad in the project"));
 	m_wad->setToolTip(tr("Quake textures go into a WAD2 and Doom flats and patches into a PWAD; it is created when missing."));
 	options->addRow(tr("&WAD:"), m_wad);
 	m_variants = new QSpinBox;
@@ -812,4 +812,4 @@ void TextureGenerationDialog::showRequestPreview()
 	dialog.exec();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

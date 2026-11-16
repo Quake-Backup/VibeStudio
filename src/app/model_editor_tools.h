@@ -52,7 +52,7 @@ class QToolBar;
 class QToolButton;
 class QWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelBakeDialog;
 class ModelBvh;
@@ -582,4 +582,4 @@ class ModelEditorTools final : public QObject
 	[[nodiscard]] ModelSelection withoutHidden(const ModelSelection &selection) const;
 	[[nodiscard]] int gizmoAxisAt(const QPointF &point, bool *positive);
 };
-} // namespace vibestudio
+} // namespace slopstudio

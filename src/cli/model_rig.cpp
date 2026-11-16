@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -266,4 +266,4 @@ ModelToolsCliResult runModelRig(const QStringList &arguments)
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

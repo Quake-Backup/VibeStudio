@@ -16,7 +16,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -104,7 +104,7 @@ bool closeTo(ModelVec3 a, ModelVec3 b, double tolerance)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("weapon-bundle-XXXXXX"));
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 	const QString base = QStringLiteral("models/weapons2/rail/rail");
 	ok &= expect(fileAt(bundle, base + ".md3") && fileAt(bundle, base + "_hand.md3") && fileAt(bundle, base + "_barrel.md3") &&
 					 fileAt(bundle, base + "_flash.md3") && fileAt(bundle, "textures/weapon/gun.tga") &&
-					 fileAt(bundle, "vibestudio/weapon-rail.json") && bundle.package.files.size() == 6,
+					 fileAt(bundle, "slopstudio/weapon-rail.json") && bundle.package.files.size() == 6,
 				 "the package holds the four role models, the texture and the receipt at the game's paths");
 	bool same = bundle.package.files.size() == again.package.files.size();
 	for (int i = 0; same && i < bundle.package.files.size(); ++i)

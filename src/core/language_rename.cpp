@@ -6,7 +6,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool integer(const QJsonValue& value, int* result)
 {
@@ -65,4 +65,4 @@ QByteArray languageRenamePlanHash(const AssetTextSearchReport& report)
 	return report.semanticRename ? languageWorkspaceEditPlanHash(report) : QByteArray();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

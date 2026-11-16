@@ -7,7 +7,7 @@
 #include <QVector>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct CompilerArtifactValidationFinding {
 	QString level;
@@ -28,4 +28,4 @@ struct CompilerArtifactValidationReport {
 CompilerArtifactValidationReport validateCompilerArtifacts(const CompilerCommandManifest& manifest,
 	const std::function<bool()>& isCancelled = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

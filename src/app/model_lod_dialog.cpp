@@ -24,13 +24,13 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelLod)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelLod)
 };
 enum Mode
 {
@@ -425,11 +425,11 @@ bool ModelEditorDialog::reviewDetailLevels(QString *error)
 	if (m_working)
 	{
 		if (error)
-			*error = QCoreApplication::translate("VibeStudioModelLod", "Wait for the current model operation to finish.");
+			*error = QCoreApplication::translate("SlopStudioModelLod", "Wait for the current model operation to finish.");
 		return false;
 	}
 	ModelLodDialog dialog(this);
 	dialog.exec();
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

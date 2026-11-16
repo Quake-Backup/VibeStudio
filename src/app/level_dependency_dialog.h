@@ -9,7 +9,7 @@
 class QDialog;
 class QWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class GameAssetRegister;
 
@@ -43,4 +43,4 @@ inline QDialog* showPackageSubsetDialog(QWidget* parent, const PackageArchive& a
 	return showPackageSubsetDialog(parent, std::make_shared<PackageArchive>(archive), paths);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

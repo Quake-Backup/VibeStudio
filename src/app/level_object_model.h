@@ -5,7 +5,7 @@
 #include <QBitArray>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Immutable, implicitly shared source data. Formatting is independent of widgets
 // so a filter can inspect it on a worker without touching the live model.
@@ -37,4 +37,4 @@ private:
 	QHash<quint64, int> m_rowsById;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

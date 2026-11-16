@@ -81,7 +81,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 enum ModelVertexOriginFlag : quint8
@@ -305,4 +305,4 @@ bool reconcileModelSkinningFromOrigins(const ModelMesh &before, ModelMesh *after
 // total and the largest widest} in surface order.
 [[nodiscard]] QJsonObject modelSkinProvenanceJson(const ModelMesh &mesh, const QMap<int, ModelSkinProvenance> &report);
 
-} // namespace vibestudio
+} // namespace slopstudio

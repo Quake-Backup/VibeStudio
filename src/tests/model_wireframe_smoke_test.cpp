@@ -17,7 +17,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -64,12 +64,12 @@ bool benchmark(bool compare)
 			clock.start();
 			if (mode >= 4)
 			{
-				QVector<vibestudio::WireSegment> segments;
+				QVector<slopstudio::WireSegment> segments;
 				for (const auto &line : (mode == 4 ? lines : unique))
 				{
-					segments << vibestudio::WireSegment{line.p1(), line.p2(), false};
+					segments << slopstudio::WireSegment{line.p1(), line.p2(), false};
 				}
-				ok &= expect(vibestudio::renderWireLines(image.size(), segments, {.pixelRatio = double(ratio)}, &image),
+				ok &= expect(slopstudio::renderWireLines(image.size(), segments, {.pixelRatio = double(ratio)}, &image),
 							 "dense wireframe probe completes");
 			}
 			else

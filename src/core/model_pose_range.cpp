@@ -11,7 +11,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -160,4 +160,4 @@ bool applyModelPoseRangeEdit(ModelMesh *mesh, const ModelEdit &edit, QString *er
 	}
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

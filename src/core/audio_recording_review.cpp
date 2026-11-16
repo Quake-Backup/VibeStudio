@@ -7,7 +7,7 @@
 #include <QFileInfo>
 #include <QJsonDocument>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -122,4 +122,4 @@ AudioProjectSaveReport writeAudioRecordingReview(const AudioSession &session, co
 	return commitAudioOutput(output, QStringLiteral("json"), protectedFiles, AudioRecordingReviewByteLimit, control,
 	                         [&](const AudioOutputEmit &write, QString *) { return write(bytes); });
 }
-} // namespace vibestudio
+} // namespace slopstudio

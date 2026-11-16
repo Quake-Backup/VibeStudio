@@ -16,7 +16,7 @@
 
 #include <cmath>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(LevelCameraFarClipCli)
@@ -150,4 +150,4 @@ LevelCameraFarClipCliResult runLevelCameraFarClip(const QStringList& arguments)
 	return result;
 }
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

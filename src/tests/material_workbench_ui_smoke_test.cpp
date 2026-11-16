@@ -40,7 +40,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -316,8 +316,8 @@ int main(int argc, char** argv)
 	};
 	// Without OpenGL or Vulkan the preview finishes with the reason instead of
 	// a picture; everything else on the page works the same.
-	const int renderSkip = vibestudio::test_support::exitCodeWithoutRenderer("material-workbench-ui-smoke");
-	expect(renderSkip != 1, "VIBESTUDIO_RENDER_REQUIRE is set, but no 3D renderer starts");
+	const int renderSkip = slopstudio::test_support::exitCodeWithoutRenderer("material-workbench-ui-smoke");
+	expect(renderSkip != 1, "SLOPSTUDIO_RENDER_REQUIRE is set, but no 3D renderer starts");
 	const bool canRender = renderSkip < 0;
 	const auto rendered = [&]() {
 		// A playing preview always has a frame coming; a drawn one is enough.
@@ -543,7 +543,7 @@ int main(int argc, char** argv)
 		"a Doom 3 template starts a second text", error);
 	staged.clear();
 	expect(workbench.saveAll(&error), "Save All saves every changed text", error);
-	expect(staged.contains(QStringLiteral("scripts/test.shader")) && staged.contains(QStringLiteral("materials/vibestudio.mtr")) && !workbench.hasUnsavedChanges(),
+	expect(staged.contains(QStringLiteral("scripts/test.shader")) && staged.contains(QStringLiteral("materials/slopstudio.mtr")) && !workbench.hasUnsavedChanges(),
 		"both texts are staged and nothing is left unsaved", staged.join(QLatin1Char(',')));
 
 	// Problems of the whole package.
@@ -587,11 +587,11 @@ int main(int argc, char** argv)
 		"a base material's script is shown read only", workbench.currentDocumentTitle());
 	expect(!workbench.applyGraphEdit(frequency, &error), "a base material is not edited in place");
 	expect(workbench.overrideInPackage(&error), "Override in Package copies the base material", error);
-	expect(workbench.currentDocumentTitle().contains(QStringLiteral("zz_vibestudio_overrides")) && !workbench.editor()->isReadOnly()
+	expect(workbench.currentDocumentTitle().contains(QStringLiteral("zz_slopstudio_overrides")) && !workbench.editor()->isReadOnly()
 			&& workbench.currentText().contains(QStringLiteral("textures/test/glow")),
 		"the copy is in a script the game reads after the base scripts", workbench.currentDocumentTitle());
 	staged.clear();
-	expect(workbench.save(&error) && staged.contains(QStringLiteral("scripts/zz_vibestudio_overrides.shader")), "the override is staged into the mod", error);
+	expect(workbench.save(&error) && staged.contains(QStringLiteral("scripts/zz_slopstudio_overrides.shader")), "the override is staged into the mod", error);
 	workbench.selectMaterial(QStringLiteral("textures/mod/lamp"));
 	expect(idle() && !workbench.currentIsBase(), "the mod's own material is not base");
 	if (canRender) {
@@ -634,7 +634,7 @@ int main(int argc, char** argv)
 		}
 	}
 
-	const QString snapshots = qEnvironmentVariable("VIBESTUDIO_TEST_SNAPSHOTS");
+	const QString snapshots = qEnvironmentVariable("SLOPSTUDIO_TEST_SNAPSHOTS");
 	if (!snapshots.isEmpty()) {
 		workbench.setPackage(archive, q3, QStringLiteral("q3-3"));
 		idle();

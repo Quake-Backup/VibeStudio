@@ -13,7 +13,7 @@
 #include <QSet>
 #include <QStringDecoder>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace { struct Text { Q_DECLARE_TR_FUNCTIONS(LevelSurfaceClipboardCli) }; }
 LevelSurfaceClipboardCliResult runLevelSurfaceClipboard(const QStringList& arguments)
 {
@@ -181,4 +181,4 @@ LevelSurfaceClipboardCliResult runLevelSurfaceClipboard(const QStringList& argum
 	if (plan.edgeOnFaceCount() > 0) { result.lines << Text::tr("Radiant projection left %n face(s) edge-on to the copied mapping.", nullptr, plan.edgeOnFaceCount()); }
 	result.lines << report.warnings; return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

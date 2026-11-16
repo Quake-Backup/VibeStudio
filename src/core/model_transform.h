@@ -6,7 +6,7 @@
 
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelTransformTool
 {
@@ -101,6 +101,6 @@ struct ModelRotateDrag
 // rays or a ray through the pivot leave both drag state and output unchanged.
 bool beginModelRotateDrag(ModelVec3 pivot, int axis, ModelPickRay ray, double grid, ModelRotateDrag *result);
 bool modelRotateDragAngle(ModelRotateDrag *drag, ModelPickRay ray, double *degrees);
-} // namespace vibestudio
+} // namespace slopstudio
 
-Q_DECLARE_METATYPE(vibestudio::ModelTransform)
+Q_DECLARE_METATYPE(slopstudio::ModelTransform)

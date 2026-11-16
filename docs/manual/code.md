@@ -19,7 +19,7 @@ Choose **Code** on the rail, or press <kbd>Ctrl</kbd>+<kbd>7</kbd>
 
 - The **Files** tab lists the project's source and text files. The list fills
   in the background; **Refresh Tree** scans again after you add files outside
-  VibeStudio.
+  SlopStudio.
 - The **Outline** tab lists the functions, shaders or entity classes in the
   open file; select one to jump to it.
 - **Go to File** (<kbd>Ctrl</kbd>+<kbd>P</kbd>) opens any project file from
@@ -114,7 +114,7 @@ Without a language server, definitions come from a project index of names, so
 they are textual; **Index Code** on the page header rebuilds it, and the
 **Index** tab shows its results. Find All References then uses a whole-word
 text search, and completion offers names from the file, the index and the
-language's keywords. The **Problems** tab lists what VibeStudio's checks find
+language's keywords. The **Problems** tab lists what SlopStudio's checks find
 in the open file; problem lines are underlined, and the problem count above the
 editor jumps to the next one.
 
@@ -124,7 +124,7 @@ editor jumps to the next one.
 mark, line endings and final newline, and **Save File As…**
 (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>) writes a copy.
 
-- If the file changed on disk since you opened it, VibeStudio asks before
+- If the file changed on disk since you opened it, SlopStudio asks before
   writing; **Cancel** is the default and keeps both versions.
 - When another program changes an open file, a tab without unsaved edits
   reloads by itself, and a tab with unsaved edits asks first.
@@ -142,7 +142,7 @@ a script.
 
 A language server, such as `clangd` for C and C++, adds live diagnostics,
 symbol information, parameter hints, smarter completion, formatting and
-renaming. VibeStudio does not include or install one.
+renaming. SlopStudio does not include or install one.
 
 1. Open the **Language Server** tab below the editor.
 2. Choose the server program by its full path, then enter the language
@@ -192,9 +192,9 @@ much more (see [Materials and shaders](materials.md)).
 ## Command-line equivalents
 
 ```sh
-vibestudio --cli code index ./mymod --find monster --json
-vibestudio --cli asset find ./mymod --find player --whole-word --include "*.qc;*.qh" --json
-vibestudio --cli shader inspect ./scripts/common.shader --package ./baseq3 --json
+slopstudio --cli code index ./mymod --find monster --json
+slopstudio --cli asset find ./mymod --find player --whole-word --include "*.qc;*.qh" --json
+slopstudio --cli shader inspect ./scripts/common.shader --package ./baseq3 --json
 ```
 
 <details>

@@ -2,7 +2,7 @@
 
 #include "core/model_assembly.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh assemblyModel()
 {
@@ -49,4 +49,4 @@ inline ModelAssembly assemblyRecipe(const QString &path)
 	recipe.parts = {root, child};
 	return recipe;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

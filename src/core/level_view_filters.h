@@ -56,7 +56,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class MaterialLibrary;
 class PackageArchiveReader;
@@ -169,4 +169,4 @@ struct LevelViewFilterMaterials {
 [[nodiscard]] QStringList levelViewFiltersFromSaved(const QByteArray& saved);
 [[nodiscard]] QByteArray levelViewFiltersSavedValue(const QStringList& hiddenFilterIds);
 
-} // namespace vibestudio
+} // namespace slopstudio

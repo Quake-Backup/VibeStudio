@@ -20,9 +20,9 @@
 #include <QTimer>
 #include <QTranslator>
 #include <iostream>
-using namespace vibestudio;
-namespace f = vibestudio::tests::udmf;
-namespace d = vibestudio::tests::doom;
+using namespace slopstudio;
+namespace f = slopstudio::tests::udmf;
+namespace d = slopstudio::tests::doom;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* message, const QString& detail = {}) {
@@ -45,7 +45,7 @@ bool until(const std::function<bool()>& ready) {
 void capture(QWidget& widget, const QString& name) {
 	QApplication::sendPostedEvents(nullptr, QEvent::LayoutRequest);
 	QApplication::processEvents();
-	const auto path = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const auto path = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (path.isEmpty()) {
 		return;
 	}

@@ -16,7 +16,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value,const char* label,const QString& detail = {}) {
@@ -158,7 +158,7 @@ int main(int argc,char** argv) {
 	// Adjacent boxes share four corners, four edges and one face.
 	for (auto& face : map.brushes[1].faces) { for (auto* p : {&face.p0,&face.p1,&face.p2}) { p->x -= 16; } }
 	map.brushes[1].mins.x -= 16; map.brushes[1].maxs.x -= 16;
-	policyChecks(); widgetChecks(app,map,qEnvironmentVariable("VIBESTUDIO_COMPONENT_UI_EVIDENCE"));
+	policyChecks(); widgetChecks(app,map,qEnvironmentVariable("SLOPSTUDIO_COMPONENT_UI_EVIDENCE"));
 	applyStudioTheme(app,studioThemeTokens(StudioTheme::Dark,UiDensity::Standard,100)); shellChecks(map,temp.filePath("terrain.map"));
 	return ok ? 0 : 1;
 }

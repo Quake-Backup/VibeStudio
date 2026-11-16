@@ -2,7 +2,7 @@
 
 #include "core/texture_paint.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class TextureAnchor { TopLeft, Top, TopRight, Left, Center, Right, BottomLeft, Bottom, BottomRight };
 QString textureAnchorId(TextureAnchor anchor);
@@ -17,4 +17,4 @@ QImage rotateTexturePixelsClockwise(const QImage& source, QString* error, const 
 QImage resizeTextureCanvas(const QImage& source, QSize size, QPoint offset, QString* error, const TextureProgress& progress = {});
 QImage replaceTexturePixels(const QImage& source, QRect clearArea, const QImage& replacement, QPoint position, QString* error, const TextureProgress& progress = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

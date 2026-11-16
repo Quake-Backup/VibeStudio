@@ -3,7 +3,7 @@
 #include "core/level_entity_connections.h"
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 LevelEntityConnectionRequest ApplicationShell::levelEntityConnectionRequest(bool kill) const
 {
 	LevelEntityConnectionRequest request;
@@ -34,4 +34,4 @@ void ApplicationShell::connectLevelMapEntitiesFromUi(bool kill)
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Connected through %1 to %2.").arg(report.property,report.targetName));
 }
-} // namespace vibestudio
+} // namespace slopstudio

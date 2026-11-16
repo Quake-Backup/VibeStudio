@@ -1,6 +1,6 @@
 """Check a synthetic player PK3 with original Quake III loader functions.
 
-Requires a user-supplied GPL-2.0-or-later Quake-III-Arena checkout, a VibeStudio
+Requires a user-supplied GPL-2.0-or-later Quake-III-Arena checkout, a SlopStudio
 CLI binary, the retained PlayerBundleFixture, Meson, Ninja and a C compiler.
 Extracted functions keep their original licence header and recorded hashes.
 Small file/renderer shims exercise player discovery, native skin tokenization,
@@ -32,7 +32,7 @@ def digest(path):
 
 
 def validate_md3(data, role):
-    """Independent byte-level fixture assertions; no VibeStudio parser calls."""
+    """Independent byte-level fixture assertions; no SlopStudio parser calls."""
     assert data[:4] == b'IDP3'
     version, = struct.unpack_from('<i', data, 4)
     flags, frames, tags, surfaces, skins, frame_at, tag_at, surface_at, end = struct.unpack_from('<9i', data, 72)
@@ -233,7 +233,7 @@ int main(int argc,char** argv) {
         game = output / skin; game.mkdir()
         with zipfile.ZipFile(package) as archive:
             assert len(archive.infolist()) == (20 if skin == 'team' else 12) and archive.testzip() is None
-            receipt = json.loads(archive.read('vibestudio/player-bundle.json'))
+            receipt = json.loads(archive.read('slopstudio/player-bundle.json'))
             assert receipt['model'] == 'synthetic' and receipt['skin'] == ('default' if skin == 'team' else skin)
             for item in receipt['files']:
                 data = archive.read(item['path'])

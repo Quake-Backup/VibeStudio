@@ -5,7 +5,7 @@
 #include <QCoreApplication>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 
 bool admitPackageSnapshot(const QString& source, const QVector<PackageEntry>& entries,
 	const QVector<PackageLoadWarning>& warnings, const PackageIndexLimits& limits,
@@ -19,12 +19,12 @@ bool admitPackageSnapshot(const QString& source, const QVector<PackageEntry>& en
 	if (!validPackageIndexLimits(limits, error)) { return false; }
 	const auto stopped = [&] {
 		if (!control.isCancelled || !control.isCancelled()) { return false; }
-		fail(QCoreApplication::translate("VibeStudioPackageArchive", "Package snapshot preparation cancelled.")); return true;
+		fail(QCoreApplication::translate("SlopStudioPackageArchive", "Package snapshot preparation cancelled.")); return true;
 	};
 	if (stopped()) { return false; }
 	PackageIndexUsage usage;
 	const auto exhausted = [&] {
-		return fail(QCoreApplication::translate("VibeStudioPackageArchive", "Package snapshot exceeds the limits of %1 records or %2 metadata bytes. Undo recent edits or use a smaller package.")
+		return fail(QCoreApplication::translate("SlopStudioPackageArchive", "Package snapshot exceeds the limits of %1 records or %2 metadata bytes. Undo recent edits or use a smaller package.")
 			.arg(limits.maximumEntries).arg(limits.maximumMetadataBytes));
 	};
 	const auto records = [&](qsizetype count) {
@@ -46,7 +46,7 @@ bool admitPackageSnapshot(const QString& source, const QVector<PackageEntry>& en
 	qsizetype prepared = 0;
 	const auto progress = [&] {
 		if (control.progress && (prepared % 256 == 0 || prepared == entries.size())) {
-			control.progress(QCoreApplication::translate("VibeStudioPackageArchive", "Preparing package snapshot"), prepared, entries.size());
+			control.progress(QCoreApplication::translate("SlopStudioPackageArchive", "Preparing package snapshot"), prepared, entries.size());
 		}
 	};
 	progress();
@@ -55,10 +55,10 @@ bool admitPackageSnapshot(const QString& source, const QVector<PackageEntry>& en
 		const auto normalized = normalizePackageVirtualPath(entry.virtualPath, false);
 		if ((entry.kind != PackageEntryKind::File && entry.kind != PackageEntryKind::Directory)
 			|| !normalized.isSafe() || normalized.normalizedPath != entry.virtualPath) {
-			return fail(QCoreApplication::translate("VibeStudioPackageArchive", "The package snapshot contains an invalid entry path or kind."));
+			return fail(QCoreApplication::translate("SlopStudioPackageArchive", "The package snapshot contains an invalid entry path or kind."));
 		}
 		if (entry.virtualPath.count(QLatin1Char('/')) + 1 > limits.maximumPathDepth) {
-			return fail(QCoreApplication::translate("VibeStudioPackageArchive", "Package entry paths exceed the maximum indexing depth of %1.").arg(limits.maximumPathDepth));
+			return fail(QCoreApplication::translate("SlopStudioPackageArchive", "Package entry paths exceed the maximum indexing depth of %1.").arg(limits.maximumPathDepth));
 		}
 		if (entry.kind == PackageEntryKind::Directory) { directories.insert(entry.virtualPath); }
 		++prepared; progress();
@@ -68,7 +68,7 @@ bool admitPackageSnapshot(const QString& source, const QVector<PackageEntry>& en
 	}
 	QVector<PackageEntry> implied; qsizetype folderCount = 0;
 	const auto folderProgress = [&] {
-		if (control.progress) { control.progress(QCoreApplication::translate("VibeStudioPackageArchive", "Preparing package snapshot folders"), folderCount, 0); }
+		if (control.progress) { control.progress(QCoreApplication::translate("SlopStudioPackageArchive", "Preparing package snapshot folders"), folderCount, 0); }
 	};
 	folderProgress();
 	for (const auto& entry : entries) {
@@ -93,4 +93,4 @@ bool admitPackageSnapshot(const QString& source, const QVector<PackageEntry>& en
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

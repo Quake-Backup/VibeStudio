@@ -20,7 +20,7 @@
 #include <cmath>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr int maximumFiles = 100000;
 constexpr quint64 hardByteLimit = 1024ULL * 1024 * 1024 * 1024;
@@ -190,7 +190,7 @@ QJsonObject levelBuildWorkspaceJson(const LevelBuildWorkspace& workspace) {
 			{"path", input.path}, {"bytes", static_cast<qint64>(input.bytes)}, {"sha256", QString::fromLatin1(input.sha256.toHex())}};
 	}
 	return {{"schemaVersion", workspace.target == QStringLiteral("quake3") ? 1 : 2},
-			{"kind", "vibestudio-level-build"},
+			{"kind", "slopstudio-level-build"},
 			{"target", workspace.target},
 			{"mapName", workspace.mapName},
 			{"sourceMap", workspace.sourceMapPath},
@@ -405,7 +405,7 @@ LevelBuildWorkspace prepareLevelBuildWorkspace(const LevelMapDocument& document,
 							? text(QT_TRANSLATE_NOOP("LevelBuildWorkspace", "Cannot create the workspace parent folder."))
 							: result.error);
 		}
-		temporary = std::make_unique<QTemporaryDir>(QDir(parent).filePath(QStringLiteral(".vibestudio-build-XXXXXX")));
+		temporary = std::make_unique<QTemporaryDir>(QDir(parent).filePath(QStringLiteral(".slopstudio-build-XXXXXX")));
 		if (!temporary->isValid()) {
 			return fail(temporary->errorString());
 		}
@@ -521,7 +521,7 @@ LevelBuildWorkspace readLevelBuildWorkspace(const QString& directory, const Pack
 	const auto object = json.object();
 	if (parseError.error != QJsonParseError::NoError ||
 		(object.value("schemaVersion").toInt() != 1 && object.value("schemaVersion").toInt() != 2) ||
-		object.value("kind").toString() != QStringLiteral("vibestudio-level-build") ||
+		object.value("kind").toString() != QStringLiteral("slopstudio-level-build") ||
 		!QStringList{"quake", "quake2", "quake3"}.contains(object.value("target").toString()) ||
 		(object.value("schemaVersion").toInt() == 1 && object.value("target").toString() != QStringLiteral("quake3")) ||
 		!validName(object.value("mapName").toString()) || !object.value("inputs").isArray()) {
@@ -797,4 +797,4 @@ QString levelBuildWorkspaceText(const LevelBuildWorkspace& workspace) {
 	lines.removeAll(QString());
 	return lines.join(QLatin1Char('\n'));
 }
-} // namespace vibestudio
+} // namespace slopstudio

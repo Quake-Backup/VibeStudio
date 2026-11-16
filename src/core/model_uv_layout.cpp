@@ -8,7 +8,7 @@
 #include <QPainterPath>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -176,4 +176,4 @@ QJsonObject modelUvLayoutJson(const ModelUvLayoutReport &report)
 			{"faces", report.faces},		  {"islands", report.islands},			  {"outsideFaces", report.outsideFaces},
 			{"wrappedFaces", report.wrappedFaces}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

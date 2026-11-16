@@ -12,8 +12,8 @@
 // read-back targets into a host buffer, and waits for its fence. Canonical
 // clip space (y down, depth 0..1) is Vulkan's own, so nothing is flipped.
 //
-// Set VIBESTUDIO_VULKAN_VALIDATION=1 to enable the Khronos validation layer
-// when it is installed, and VIBESTUDIO_VULKAN_DEVICE to an index or part of
+// Set SLOPSTUDIO_VULKAN_VALIDATION=1 to enable the Khronos validation layer
+// when it is installed, and SLOPSTUDIO_VULKAN_DEVICE to an index or part of
 // a device name to choose a device.
 
 #include "core/render_device_p.h"
@@ -32,7 +32,7 @@
 #include <map>
 #include <vector>
 
-namespace vibestudio::render_detail {
+namespace slopstudio::render_detail {
 
 namespace {
 
@@ -51,12 +51,12 @@ T vulkanStruct(VkStructureType type)
 	return value;
 }
 
-#define VIBE_VK_GLOBAL(X)                       \
+#define SLOP_VK_GLOBAL(X)                       \
 	X(vkCreateInstance)                         \
 	X(vkEnumerateInstanceExtensionProperties)   \
 	X(vkEnumerateInstanceLayerProperties)
 
-#define VIBE_VK_INSTANCE(X)                     \
+#define SLOP_VK_INSTANCE(X)                     \
 	X(vkDestroyInstance)                        \
 	X(vkEnumeratePhysicalDevices)               \
 	X(vkGetPhysicalDeviceProperties)            \
@@ -68,7 +68,7 @@ T vulkanStruct(VkStructureType type)
 	X(vkCreateDevice)                           \
 	X(vkGetDeviceProcAddr)
 
-#define VIBE_VK_DEVICE(X)            \
+#define SLOP_VK_DEVICE(X)            \
 	X(vkDestroyDevice)               \
 	X(vkGetDeviceQueue)              \
 	X(vkDeviceWaitIdle)              \
@@ -426,12 +426,12 @@ protected:
 	[[nodiscard]] bool formatSupportedOnDevice(GpuFormat format) const override;
 
 private:
-#define VIBE_VK_MEMBER(name) PFN_##name name = nullptr;
+#define SLOP_VK_MEMBER(name) PFN_##name name = nullptr;
 	PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = nullptr;
-	VIBE_VK_GLOBAL(VIBE_VK_MEMBER)
-	VIBE_VK_INSTANCE(VIBE_VK_MEMBER)
-	VIBE_VK_DEVICE(VIBE_VK_MEMBER)
-#undef VIBE_VK_MEMBER
+	SLOP_VK_GLOBAL(SLOP_VK_MEMBER)
+	SLOP_VK_INSTANCE(SLOP_VK_MEMBER)
+	SLOP_VK_DEVICE(SLOP_VK_MEMBER)
+#undef SLOP_VK_MEMBER
 	PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT = nullptr;
 	PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT = nullptr;
 
@@ -529,7 +529,7 @@ bool VulkanDevice::loadLibrary(RenderDeviceInfo* info)
 		}
 		failures << m_library.errorString();
 	}
-	info->error = QCoreApplication::translate("VibeStudioRendering", "No Vulkan driver is installed. Install your graphics driver's Vulkan support, or choose OpenGL.");
+	info->error = QCoreApplication::translate("SlopStudioRendering", "No Vulkan driver is installed. Install your graphics driver's Vulkan support, or choose OpenGL.");
 	info->errorDetail = failures.join(QStringLiteral("; "));
 	return false;
 }
@@ -685,7 +685,7 @@ bool VulkanDevice::selectDevice(RenderDeviceInfo* info)
 	if (count) {
 		vkEnumeratePhysicalDevices(m_instance, &count, devices.data());
 	}
-	const QString wanted = qEnvironmentVariable("VIBESTUDIO_VULKAN_DEVICE").trimmed();
+	const QString wanted = qEnvironmentVariable("SLOPSTUDIO_VULKAN_DEVICE").trimmed();
 	bool wantedIsIndex = false;
 	const int wantedIndex = wanted.toInt(&wantedIsIndex);
 	int bestScore = -1;
@@ -732,8 +732,8 @@ bool VulkanDevice::selectDevice(RenderDeviceInfo* info)
 	}
 	if (!m_physical) {
 		info->error = count == 0
-			? QCoreApplication::translate("VibeStudioRendering", "Vulkan is installed, but no graphics device offers it.")
-			: QCoreApplication::translate("VibeStudioRendering", "No Vulkan device here supports what VibeStudio's 3D views need.");
+			? QCoreApplication::translate("SlopStudioRendering", "Vulkan is installed, but no graphics device offers it.")
+			: QCoreApplication::translate("SlopStudioRendering", "No Vulkan device here supports what SlopStudio's 3D views need.");
 		info->errorDetail = rejected.isEmpty() ? QStringLiteral("no physical devices") : QStringLiteral("rejected: %1").arg(rejected.join(QStringLiteral(", ")));
 		return false;
 	}
@@ -766,7 +766,7 @@ bool VulkanDevice::selectDevice(RenderDeviceInfo* info)
 		|| lower.contains(QLatin1String("lavapipe")) || lower.contains(QLatin1String("swiftshader"));
 	info->maxTextureSize = int(m_properties.limits.maxImageDimension2D);
 	if (m_depthFormat == VK_FORMAT_UNDEFINED) {
-		info->error = QCoreApplication::translate("VibeStudioRendering", "This Vulkan device has no depth buffer format VibeStudio can use.");
+		info->error = QCoreApplication::translate("SlopStudioRendering", "This Vulkan device has no depth buffer format SlopStudio can use.");
 		info->errorDetail = info->deviceName;
 		return false;
 	}
@@ -784,11 +784,11 @@ bool VulkanDevice::startDevice(RenderDeviceInfo* info)
 		stopDevice();
 		return false;
 	};
-#define VIBE_VK_LOAD_GLOBAL(name) name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(VK_NULL_HANDLE, #name));
-	VIBE_VK_GLOBAL(VIBE_VK_LOAD_GLOBAL)
-#undef VIBE_VK_LOAD_GLOBAL
+#define SLOP_VK_LOAD_GLOBAL(name) name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(VK_NULL_HANDLE, #name));
+	SLOP_VK_GLOBAL(SLOP_VK_LOAD_GLOBAL)
+#undef SLOP_VK_LOAD_GLOBAL
 	if (!vkCreateInstance || !vkEnumerateInstanceExtensionProperties || !vkEnumerateInstanceLayerProperties) {
-		return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan loader on this computer is incomplete."),
+		return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan loader on this computer is incomplete."),
 			QStringLiteral("global entry points missing"));
 	}
 	quint32 extensionCount = 0;
@@ -812,7 +812,7 @@ bool VulkanDevice::startDevice(RenderDeviceInfo* info)
 			enabledExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 		}
 	}
-	const bool validation = qEnvironmentVariableIntValue("VIBESTUDIO_VULKAN_VALIDATION") != 0;
+	const bool validation = qEnvironmentVariableIntValue("SLOPSTUDIO_VULKAN_VALIDATION") != 0;
 	if (validation) {
 		quint32 layerCount = 0;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -828,8 +828,8 @@ bool VulkanDevice::startDevice(RenderDeviceInfo* info)
 		}
 	}
 	VkApplicationInfo application = vulkanStruct<VkApplicationInfo>(VK_STRUCTURE_TYPE_APPLICATION_INFO);
-	application.pApplicationName = "VibeStudio";
-	application.pEngineName = "VibeStudio";
+	application.pApplicationName = "SlopStudio";
+	application.pEngineName = "SlopStudio";
 	application.apiVersion = VK_API_VERSION_1_0;
 	VkInstanceCreateInfo create = vulkanStruct<VkInstanceCreateInfo>(VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO);
 	create.flags = flags;
@@ -841,15 +841,15 @@ bool VulkanDevice::startDevice(RenderDeviceInfo* info)
 	VkResult result = vkCreateInstance(&create, nullptr, &m_instance);
 	if (result != VK_SUCCESS) {
 		return fail(result == VK_ERROR_INCOMPATIBLE_DRIVER
-				? QCoreApplication::translate("VibeStudioRendering", "No Vulkan driver is installed. Install your graphics driver's Vulkan support, or choose OpenGL.")
-				: QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver could not start."),
+				? QCoreApplication::translate("SlopStudioRendering", "No Vulkan driver is installed. Install your graphics driver's Vulkan support, or choose OpenGL.")
+				: QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver could not start."),
 			QStringLiteral("vkCreateInstance: %1").arg(vulkanResult(result)));
 	}
-#define VIBE_VK_LOAD_INSTANCE(name) name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(m_instance, #name));
-	VIBE_VK_INSTANCE(VIBE_VK_LOAD_INSTANCE)
-#undef VIBE_VK_LOAD_INSTANCE
+#define SLOP_VK_LOAD_INSTANCE(name) name = reinterpret_cast<PFN_##name>(vkGetInstanceProcAddr(m_instance, #name));
+	SLOP_VK_INSTANCE(SLOP_VK_LOAD_INSTANCE)
+#undef SLOP_VK_LOAD_INSTANCE
 	if (!vkCreateDevice || !vkGetDeviceProcAddr || !vkEnumeratePhysicalDevices) {
-		return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan loader on this computer is incomplete."),
+		return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan loader on this computer is incomplete."),
 			QStringLiteral("instance entry points missing"));
 	}
 	if (validation && std::find_if(enabledExtensions.cbegin(), enabledExtensions.cend(), [](const char* name) {
@@ -900,18 +900,18 @@ bool VulkanDevice::startDevice(RenderDeviceInfo* info)
 	deviceCreate.pEnabledFeatures = &features;
 	result = vkCreateDevice(m_physical, &deviceCreate, nullptr, &m_device);
 	if (result != VK_SUCCESS) {
-		return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver could not open %1.").arg(info->deviceName),
+		return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver could not open %1.").arg(info->deviceName),
 			QStringLiteral("vkCreateDevice: %1").arg(vulkanResult(result)));
 	}
-#define VIBE_VK_LOAD_DEVICE(name) name = reinterpret_cast<PFN_##name>(vkGetDeviceProcAddr(m_device, #name));
-	VIBE_VK_DEVICE(VIBE_VK_LOAD_DEVICE)
-#undef VIBE_VK_LOAD_DEVICE
+#define SLOP_VK_LOAD_DEVICE(name) name = reinterpret_cast<PFN_##name>(vkGetDeviceProcAddr(m_device, #name));
+	SLOP_VK_DEVICE(SLOP_VK_LOAD_DEVICE)
+#undef SLOP_VK_LOAD_DEVICE
 	bool complete = true;
-#define VIBE_VK_CHECK(name) complete = complete && name != nullptr;
-	VIBE_VK_DEVICE(VIBE_VK_CHECK)
-#undef VIBE_VK_CHECK
+#define SLOP_VK_CHECK(name) complete = complete && name != nullptr;
+	SLOP_VK_DEVICE(SLOP_VK_CHECK)
+#undef SLOP_VK_CHECK
 	if (!complete) {
-		return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver on this computer is incomplete."),
+		return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver on this computer is incomplete."),
 			QStringLiteral("device entry points missing"));
 	}
 	vkGetDeviceQueue(m_device, m_queueFamily, 0, &m_queue);
@@ -931,7 +931,7 @@ bool VulkanDevice::startDevice(RenderDeviceInfo* info)
 		result = vkCreateFence(m_device, &fence, nullptr, &m_fence);
 	}
 	if (result != VK_SUCCESS) {
-		return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver could not prepare its command buffers."),
+		return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver could not prepare its command buffers."),
 			QStringLiteral("command setup: %1").arg(vulkanResult(result)));
 	}
 	// A 1x1 white texture for sampler slots a draw leaves empty.
@@ -952,7 +952,7 @@ bool VulkanDevice::startDevice(RenderDeviceInfo* info)
 		submitAndWait(&result);
 	}
 	if (result != VK_SUCCESS) {
-		return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver failed while VibeStudio set up its renderer."),
+		return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver failed while SlopStudio set up its renderer."),
 			QStringLiteral("setup upload: %1").arg(vulkanResult(result)));
 	}
 	m_programs.assign(size_t(gpuProgramCount()), ProgramObjects {});
@@ -1630,7 +1630,7 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 		}
 	}
 	if (!ensureArena(arenaSize, &status)) {
-		return fail(QCoreApplication::translate("VibeStudioRendering", "The graphics device ran out of memory drawing this view."),
+		return fail(QCoreApplication::translate("SlopStudioRendering", "The graphics device ran out of memory drawing this view."),
 			QStringLiteral("arena of %1 bytes: %2").arg(arenaSize).arg(vulkanResult(status)));
 	}
 	auto* arena = static_cast<char*>(m_arena.memory.mapped);
@@ -1667,7 +1667,7 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 		status = createBuffer(VkDeviceSize(data.bytes.size()),
 			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, false, &cached.buffer);
 		if (status != VK_SUCCESS) {
-			return fail(QCoreApplication::translate("VibeStudioRendering", "The graphics device ran out of memory drawing this view."),
+			return fail(QCoreApplication::translate("SlopStudioRendering", "The graphics device ran out of memory drawing this view."),
 				QStringLiteral("vertex buffer: %1").arg(vulkanResult(status)));
 		}
 		cached.bytes = data.bytes.size();
@@ -1685,7 +1685,7 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 		status = createImage(VK_FORMAT_R8G8B8A8_UNORM, data.levels.first().size(), int(data.levels.size()),
 			VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, &image);
 		if (status != VK_SUCCESS) {
-			return fail(QCoreApplication::translate("VibeStudioRendering", "The graphics device ran out of memory drawing this view."),
+			return fail(QCoreApplication::translate("SlopStudioRendering", "The graphics device ran out of memory drawing this view."),
 				QStringLiteral("texture: %1").arg(vulkanResult(status)));
 		}
 		if (data.cacheKey != 0) {
@@ -1715,19 +1715,19 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 	for (int index = 0; index < frame.targets.size(); ++index) {
 		targets[size_t(index)] = acquireTarget(frame.targets.at(index).format, targetSize(frame, index), &status);
 		if (!targets[size_t(index)]) {
-			return fail(QCoreApplication::translate("VibeStudioRendering", "The graphics device ran out of memory drawing this view."),
+			return fail(QCoreApplication::translate("SlopStudioRendering", "The graphics device ran out of memory drawing this view."),
 				QStringLiteral("target %1: %2").arg(index).arg(vulkanResult(status)));
 		}
 	}
 	if (!ensureDescriptorPool(drawCount, &status)) {
-		return fail(QCoreApplication::translate("VibeStudioRendering", "The graphics device ran out of memory drawing this view."),
+		return fail(QCoreApplication::translate("SlopStudioRendering", "The graphics device ran out of memory drawing this view."),
 			QStringLiteral("descriptor pool: %1").arg(vulkanResult(status)));
 	}
 	for (int index = 0; index < frame.passes.size(); ++index) {
 		for (const GpuDraw& draw : frame.passes.at(index).draws) {
 			QString error;
 			if (!ensureProgram(draw.program, &error)) {
-				return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver could not build one of VibeStudio's shaders."), error);
+				return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver could not build one of SlopStudio's shaders."), error);
 			}
 		}
 	}
@@ -1736,7 +1736,7 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 	begin.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 	status = vkBeginCommandBuffer(m_commands, &begin);
 	if (status != VK_SUCCESS) {
-		return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver could not record this view."),
+		return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver could not record this view."),
 			QStringLiteral("vkBeginCommandBuffer: %1").arg(vulkanResult(status)));
 	}
 	recording = true;
@@ -1838,7 +1838,7 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 		const VkRenderPass vkPass = renderPass(signature, &status);
 		const VkFramebuffer vkFramebuffer = vkPass ? framebuffer(vkPass, views, passSize, &status) : VK_NULL_HANDLE;
 		if (!vkFramebuffer) {
-			return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver cannot render this view's images."),
+			return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver cannot render this view's images."),
 				QStringLiteral("pass %1: %2").arg(passIndex).arg(vulkanResult(status)));
 		}
 		VkRenderPassBeginInfo beginPass = vulkanStruct<VkRenderPassBeginInfo>(VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO);
@@ -1860,7 +1860,7 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 			const VkPipeline vkPipeline = pipeline(draw.program, draw.state, signature, vkPass, &status);
 			if (!vkPipeline) {
 				vkCmdEndRenderPass(m_commands);
-				return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver could not build one of VibeStudio's shaders."),
+				return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver could not build one of SlopStudio's shaders."),
 					QStringLiteral("pipeline %1: %2").arg(QLatin1String(program->name), vulkanResult(status)));
 			}
 			vkCmdBindPipeline(m_commands, VK_PIPELINE_BIND_POINT_GRAPHICS, vkPipeline);
@@ -1875,7 +1875,7 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 			status = vkAllocateDescriptorSets(m_device, &allocation, &set);
 			if (status != VK_SUCCESS) {
 				vkCmdEndRenderPass(m_commands);
-				return fail(QCoreApplication::translate("VibeStudioRendering", "The graphics device ran out of memory drawing this view."),
+				return fail(QCoreApplication::translate("SlopStudioRendering", "The graphics device ran out of memory drawing this view."),
 					QStringLiteral("descriptor set: %1").arg(vulkanResult(status)));
 			}
 			std::vector<VkWriteDescriptorSet> writes;
@@ -1904,7 +1904,7 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 				const VkSampler vkSampler = sampler(ref.sampler, filterable, &status);
 				if (!vkSampler) {
 					vkCmdEndRenderPass(m_commands);
-					return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver could not record this view."),
+					return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver could not record this view."),
 						QStringLiteral("sampler: %1").arg(vulkanResult(status)));
 				}
 				imageInfo[size_t(slot)] = {vkSampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
@@ -1966,7 +1966,7 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 		readbackSize += VkDeviceSize(size.width()) * size.height() * (format == GpuFormat::Rgba16 ? 8 : 4);
 	}
 	if (!frame.readbacks.isEmpty() && !ensureReadback(readbackSize, &status)) {
-		return fail(QCoreApplication::translate("VibeStudioRendering", "The graphics device ran out of memory drawing this view."),
+		return fail(QCoreApplication::translate("SlopStudioRendering", "The graphics device ran out of memory drawing this view."),
 			QStringLiteral("readback: %1").arg(vulkanResult(status)));
 	}
 	for (int i = 0; i < frame.readbacks.size(); ++i) {
@@ -1974,7 +1974,7 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 		Image& image = targets[size_t(target)]->image;
 		const bool depth = frame.targets.at(target).format == GpuFormat::Depth32;
 		if (depth && image.format != VK_FORMAT_D32_SFLOAT) {
-			return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver could not return this view's image."),
+			return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver could not return this view's image."),
 				QStringLiteral("depth read-back needs D32_SFLOAT"));
 		}
 		transition(m_commands, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, aspectOf(image.format));
@@ -1993,12 +1993,12 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 	status = vkEndCommandBuffer(m_commands);
 	recording = false;
 	if (status != VK_SUCCESS) {
-		return fail(QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver could not record this view."),
+		return fail(QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver could not record this view."),
 			QStringLiteral("vkEndCommandBuffer: %1").arg(vulkanResult(status)));
 	}
 	if (!submitAndWait(&status)) {
-		return fail(status == VK_ERROR_DEVICE_LOST ? QCoreApplication::translate("VibeStudioRendering", "The graphics device stopped responding.")
-												   : QCoreApplication::translate("VibeStudioRendering", "The Vulkan driver failed while drawing this view."),
+		return fail(status == VK_ERROR_DEVICE_LOST ? QCoreApplication::translate("SlopStudioRendering", "The graphics device stopped responding.")
+												   : QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver failed while drawing this view."),
 			QStringLiteral("submit: %1").arg(vulkanResult(status)));
 	}
 	vkResetCommandBuffer(m_commands, 0);
@@ -2034,4 +2034,4 @@ std::shared_ptr<DeviceThread> createVulkanDevice()
 	return std::make_shared<VulkanDevice>();
 }
 
-} // namespace vibestudio::render_detail
+} // namespace slopstudio::render_detail

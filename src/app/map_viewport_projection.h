@@ -3,7 +3,7 @@
 #include "app/map_viewport_scene_index.h"
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class MapViewportProjection { TopXY, FrontXZ, SideZY };
 
@@ -16,4 +16,4 @@ bool mapViewportObjectPoint(const LevelMapDocument& document, const QVector<Doom
 	const QVector<MapBrushGeometry>& brushes, const MapViewportSceneIndex& index, MapViewportProjection projection,
 	LevelMapSelectionKind kind, int id, QPointF* out, const std::atomic_bool* cancelled = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

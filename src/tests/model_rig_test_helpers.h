@@ -5,7 +5,7 @@
 #include "core/model_skeleton.h"
 #include <QJsonDocument>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh rigFixture()
 {
@@ -38,4 +38,4 @@ inline QByteArray rigBytes(const ModelMesh &mesh)
 {
 	return QJsonDocument(editableModelJson(mesh)).toJson(QJsonDocument::Compact);
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

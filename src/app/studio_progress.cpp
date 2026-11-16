@@ -27,7 +27,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // ---- Start-up stages -------------------------------------------------------
 
@@ -863,4 +863,4 @@ void paintNow(QWidget* widget)
 	widget->repaint();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

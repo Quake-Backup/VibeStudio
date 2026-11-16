@@ -240,7 +240,7 @@ int main(int argc, char** argv)
 	QCoreApplication app(argc, argv);
 	QTemporaryDir temp;
 	if (!temp.isValid() || argc != 2) {
-		std::cerr << "usage: material_cli_smoke_test <vibestudio>\n";
+		std::cerr << "usage: material_cli_smoke_test <slopstudio>\n";
 		return 1;
 	}
 	const QString cli = QString::fromLocal8Bit(argv[1]);
@@ -331,7 +331,7 @@ int main(int argc, char** argv)
 		// writes nothing; the drawing checks need a renderer.
 		expect(!QFile::exists(sheet) && lastOutput.contains(QStringLiteral("could not be drawn")),
 			"material render without a 3D renderer says why and writes nothing", lastOutput);
-		expect(qEnvironmentVariableIntValue("VIBESTUDIO_RENDER_REQUIRE") == 0, "VIBESTUDIO_RENDER_REQUIRE is set, but material render has no 3D renderer",
+		expect(qEnvironmentVariableIntValue("SLOPSTUDIO_RENDER_REQUIRE") == 0, "SLOPSTUDIO_RENDER_REQUIRE is set, but material render has no 3D renderer",
 			lastOutput);
 		std::cout << "No 3D renderer starts for the CLI here: material render drawing checks skipped.\n";
 	} else {
@@ -487,15 +487,15 @@ int main(int argc, char** argv)
 	// game as the Levels camera does: a mod map's face named after the base
 	// game's shader finds it there.
 	{
-		vibestudio::LevelMapDocument map;
-		vibestudio::LevelMapCreateRequest create;
+		slopstudio::LevelMapDocument map;
+		slopstudio::LevelMapCreateRequest create;
 		create.starterRoom = false;
 		QString mapError;
 		const QString mapPath = mod + QStringLiteral("/maps/lamp.map");
 		QDir().mkpath(QFileInfo(mapPath).absolutePath());
-		const bool built = vibestudio::createLevelMap(create, &map, &mapError)
-			&& vibestudio::addLevelMapBoxBrush(&map, {0, 0, 0, true}, {64, 64, 64, true}, QStringLiteral("test/glow"))
-			&& vibestudio::saveLevelMapAs(map, mapPath).succeeded();
+		const bool built = slopstudio::createLevelMap(create, &map, &mapError)
+			&& slopstudio::addLevelMapBoxBrush(&map, {0, 0, 0, true}, {64, 64, 64, true}, QStringLiteral("test/glow"))
+			&& slopstudio::saveLevelMapAs(map, mapPath).succeeded();
 		expect(built, "the mod map is written", mapError);
 		const auto glow = [](const QJsonObject& object) {
 			for (const QJsonValue& value : object.value(QStringLiteral("materials")).toObject().value(QStringLiteral("materials")).toArray()) {

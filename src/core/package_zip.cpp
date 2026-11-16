@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 // Original implementation of PKWARE APPNOTE 6.3.10 (2022-11-01), sections
@@ -48,14 +48,14 @@ bool extras(QByteArrayView bytes, ExtraFields* fields, QString* error)
 {
 	for (qsizetype at = 0; at < bytes.size();) {
 		if (bytes.size() - at < 4 || u16(bytes, at + 2) > bytes.size() - at - 4) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP extra field is truncated."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP extra field is truncated."));
 		}
 		const auto id = u16(bytes, at);
 		const auto length = u16(bytes, at + 2);
 		if (id == 1 || id == 0x7075) {
 			bool& present = id == 1 ? fields->hasZip64 : fields->hasUnicode;
 			if (present) {
-				return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP contains duplicate ZIP64 or Unicode Path fields."));
+				return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP contains duplicate ZIP64 or Unicode Path fields."));
 			}
 			present = true;
 			(id == 1 ? fields->zip64 : fields->unicode) = bytes.sliced(at + 4, length);
@@ -71,7 +71,7 @@ bool utf8Name(QByteArrayView wire, QString* name, QString* error)
 	// Round-trip validation rejects malformed/incomplete UTF-8 and BOM removal;
 	// an actual, encoded U+FFFD remains a legitimate filename character.
 	if (name->toUtf8() != wire || name->startsWith(QChar(0xfeff))) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP filename is not valid UTF-8 without a byte-order mark."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP filename is not valid UTF-8 without a byte-order mark."));
 	}
 	return true;
 }
@@ -105,11 +105,11 @@ bool decodeName(QByteArrayView wire, quint16 flags, const ExtraFields& fields,
 	if (flags & 0x0800) { return utf8Name(wire, name, error); }
 	if (fields.hasUnicode) {
 		if (fields.unicode.isEmpty()) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP Unicode Path field is truncated."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP Unicode Path field is truncated."));
 		}
 		if (fields.unicode[0] == 1) {
 			if (fields.unicode.size() < 5) {
-				return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP Unicode Path field is truncated."));
+				return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP Unicode Path field is truncated."));
 			}
 			if (u32(fields.unicode, 1) == crc32View(wire)) { return utf8Name(fields.unicode.sliced(5), name, error); }
 		}
@@ -139,13 +139,13 @@ bool readZipDirectoryMetadata(QIODevice& file, qint64 maximumMetadataBytes,
 	QByteArray tail;
 	const qint64 scanSize = std::min<qint64>(fileSize, 65535 + 22);
 	if (fileSize < 22 || !read(file, fileSize - scanSize, scanSize, &tail)) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP end directory not found."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP end directory not found."));
 	}
 	qsizetype end = tail.size() - 22;
 	for (; end >= 0; --end) {
 		if (u32(tail, end) == 0x06054b50 && end + 22 + u16(tail, end + 20) == tail.size()) { break; }
 	}
-	if (end < 0) { return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP end directory not found.")); }
+	if (end < 0) { return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP end directory not found.")); }
 	const quint64 endOffset = fileSize - scanSize + end;
 	const quint16 disk = u16(tail, end + 4), centralDisk = u16(tail, end + 6);
 	const quint16 diskEntries = u16(tail, end + 8), entries = u16(tail, end + 10);
@@ -158,7 +158,7 @@ bool readZipDirectoryMetadata(QIODevice& file, qint64 maximumMetadataBytes,
 	const bool zip64 = endOffset >= 20 && read(file, endOffset - 20, 20, &locator) && u32(locator, 0) == 0x07064b50;
 	if (zip64) {
 		if (u32(locator, 4) != 0 || u32(locator, 16) != 1) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "Multi-disk ZIP archives are not supported."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "Multi-disk ZIP archives are not supported."));
 		}
 		const quint64 locatorOffset = endOffset - 20;
 		const quint64 recordOffset = u64(locator, 8);
@@ -166,10 +166,10 @@ bool readZipDirectoryMetadata(QIODevice& file, qint64 maximumMetadataBytes,
 		if (recordOffset > locatorOffset || locatorOffset - recordOffset < 56
 			|| !read(file, recordOffset, 56, &record) || u32(record, 0) != 0x06064b50
 			|| u64(record, 4) != locatorOffset - recordOffset - 12) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP64 end record has an invalid size or location."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP64 end record has an invalid size or location."));
 		}
 		if (u32(record, 16) != 0 || u32(record, 20) != 0) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "Multi-disk ZIP archives are not supported."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "Multi-disk ZIP archives are not supported."));
 		}
 		directory->entries = u64(record, 32);
 		directory->size = u64(record, 40);
@@ -180,11 +180,11 @@ bool readZipDirectoryMetadata(QIODevice& file, qint64 maximumMetadataBytes,
 			|| (entries != sentinel16 && entries != directory->entries)
 			|| (diskEntries != sentinel16 && diskEntries != directory->entries)
 			|| (size != sentinel32 && size != directory->size) || (offset != sentinel32 && offset != directory->offset)) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP and ZIP64 end directory fields disagree."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP and ZIP64 end directory fields disagree."));
 		}
 		const quint64 extensionBytes = locatorOffset - recordOffset - 56;
 		if (extensionBytes > quint64(maximumMetadataBytes)) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP64 end record exceeds the metadata indexing limit."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP64 end record exceeds the metadata indexing limit."));
 		}
 		directory->additionalMetadataBytes = qint64(extensionBytes);
 		// Version 1 extensible data uses a 16-bit ID and a 32-bit byte count.
@@ -192,30 +192,30 @@ bool readZipDirectoryMetadata(QIODevice& file, qint64 maximumMetadataBytes,
 		for (quint64 at = recordOffset + 56; at < locatorOffset;) {
 			QByteArray field;
 			if (locatorOffset - at < 6 || !read(file, at, 6, &field) || u32(field, 2) > locatorOffset - at - 6) {
-				return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP64 end record extension is truncated or unsupported."));
+				return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP64 end record extension is truncated or unsupported."));
 			}
 			at += 6 + quint64(u32(field, 2));
 		}
 	} else {
 		if (disk == sentinel16 || centralDisk == sentinel16 || diskEntries == sentinel16
 			|| entries == sentinel16 || size == sentinel32 || offset == sentinel32) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP archive uses ZIP64 values but has no ZIP64 end of central directory record."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP archive uses ZIP64 values but has no ZIP64 end of central directory record."));
 		}
 		if (disk != 0 || centralDisk != 0) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "Multi-disk ZIP archives are not supported."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "Multi-disk ZIP archives are not supported."));
 		}
 		if (diskEntries != entries) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP end directory entry counts disagree."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP end directory entry counts disagree."));
 		}
 	}
 	if (directory->offset > directory->endRecordsOffset || directory->size > directory->endRecordsOffset - directory->offset) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP central directory is out of range."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP central directory is out of range."));
 	}
 	const quint64 gap = directory->endRecordsOffset - directory->offset - directory->size;
 	// Some producers exclude the optional digital-signature record from the
 	// declared directory size. finishZipDirectory verifies either placement.
 	if (gap > 65535 + 6) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "Unexpected data follows the ZIP central directory."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "Unexpected data follows the ZIP central directory."));
 	}
 	directory->additionalMetadataBytes += qint64(gap);
 	return true;
@@ -230,7 +230,7 @@ bool finishZipDirectory(QIODevice& file, const ZipDirectoryMetadata& directory, 
 	if (remaining < 6 || !read(file, directory.offset + consumed, 6, &signature)
 		|| u32(signature, 0) != 0x05054b50 || remaining != quint64(6 + u16(signature, 4))
 		|| (consumed != directory.size && directory.offset + directory.size != directory.endRecordsOffset)) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP central directory size does not match its records."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP central directory size does not match its records."));
 	}
 	// Only its structure is recognized. Package integrity validation does not
 	// establish the authenticity of a digital signature.
@@ -242,7 +242,7 @@ bool readZipEntryMetadata(QByteArrayView record, ZipEntryMetadata* entry, QStrin
 	*entry = {};
 	if (record.size() < 46 || u32(record, 0) != 0x02014b50
 		|| record.size() != 46 + u16(record, 28) + u16(record, 30) + u16(record, 32)) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "Invalid ZIP central directory record."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "Invalid ZIP central directory record."));
 	}
 	entry->flags = u16(record, 8);
 	entry->method = u16(record, 10);
@@ -259,7 +259,7 @@ bool readZipEntryMetadata(QByteArrayView record, ZipEntryMetadata* entry, QStrin
 	entry->hasZip64 = fields.hasZip64;
 	const qsizetype required = (size64 ? 8 : 0) + (compressed64 ? 8 : 0) + (offset64 ? 8 : 0) + (disk64 ? 4 : 0);
 	if (required && (!fields.hasZip64 || fields.zip64.size() < required)) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP entry has an incomplete ZIP64 extended information field."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP entry has an incomplete ZIP64 extended information field."));
 	}
 	qsizetype at = 0;
 	if (size64) { entry->size = u64(fields.zip64, at); at += 8; }
@@ -276,7 +276,7 @@ bool readZipLocalMetadata(QIODevice& file, quint64 directoryOffset, const ZipEnt
 	QByteArray header;
 	if (entry.localOffset > directoryOffset || directoryOffset - entry.localOffset < 30
 		|| !read(file, entry.localOffset, 30, &header) || u32(header, 0) != 0x04034b50) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP local file header could not be located for this entry."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP local file header could not be located for this entry."));
 	}
 	const quint16 nameLength = u16(header, 26), extraLength = u16(header, 28);
 	const quint64 tailOffset = entry.localOffset + 30;
@@ -285,7 +285,7 @@ bool readZipLocalMetadata(QIODevice& file, quint64 directoryOffset, const ZipEnt
 		|| !read(file, tailOffset, qint64(nameLength) + extraLength, &tail)
 		|| QByteArrayView(tail).first(nameLength) != wireName
 		|| u16(header, 6) != entry.flags || u16(header, 8) != entry.method) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP local header does not match its central directory record."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP local header does not match its central directory record."));
 	}
 	ExtraFields fields;
 	if (!extras(QByteArrayView(tail).sliced(nameLength), &fields, error)) { return false; }
@@ -296,31 +296,31 @@ bool readZipLocalMetadata(QIODevice& file, quint64 directoryOffset, const ZipEnt
 		if (!decodeName(wireName, entry.flags, fields, &localName, error)) { return false; }
 		if (!(entry.flags & 0x0800) && !fields.unicode.isEmpty() && fields.unicode[0] == 1
 			&& fields.unicode.size() >= 5 && u32(fields.unicode, 1) == crc32View(wireName) && localName != entry.name) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP local and central Unicode filenames disagree."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP local and central Unicode filenames disagree."));
 		}
 	}
 	quint64 compressed = u32(header, 18), size = u32(header, 22);
 	const bool descriptor = (entry.flags & 8) != 0;
 	const bool localSentinel = compressed == sentinel32 || size == sentinel32;
 	if ((fields.hasZip64 && fields.zip64.size() < 16) || (localSentinel && !fields.hasZip64)) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP local ZIP64 field must contain both size values."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP local ZIP64 field must contain both size values."));
 	}
 	if (fields.hasZip64) {
 		const auto zipSize = u64(fields.zip64, 0), zipCompressed = u64(fields.zip64, 8);
 		if ((compressed != sentinel32 && compressed != zipCompressed && !(descriptor && compressed == 0))
 			|| (size != sentinel32 && size != zipSize && !(descriptor && size == 0))) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP local size fields disagree with their ZIP64 values."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP local size fields disagree with their ZIP64 values."));
 		}
 		compressed = zipCompressed;
 		size = zipSize;
 	}
 	const auto matches = [descriptor](quint64 local, quint64 central) { return local == central || (descriptor && local == 0); };
 	if (!matches(u32(header, 14), entry.crc) || !matches(compressed, entry.compressedSize) || !matches(size, entry.size)) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP local header does not match its central directory record."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP local header does not match its central directory record."));
 	}
 	const quint64 start = tailOffset + nameLength + extraLength;
 	if (entry.compressedSize > directoryOffset - start) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP payload overlaps the central directory."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP payload overlaps the central directory."));
 	}
 	if (descriptor) {
 		const quint64 descriptorOffset = start + entry.compressedSize;
@@ -338,11 +338,11 @@ bool readZipLocalMetadata(QIODevice& file, quint64 directoryOffset, const ZipEnt
 		if (!read(file, descriptorOffset, count, &bytes)
 			|| !(matchesDescriptor(bytes, 0)
 				|| (bytes.size() >= 4 && u32(bytes, 0) == 0x08074b50 && matchesDescriptor(bytes, 4)))) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageArchive", "ZIP data descriptor is missing or disagrees with its central directory record."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageArchive", "ZIP data descriptor is missing or disagrees with its central directory record."));
 		}
 	}
 	*dataOffset = qint64(start);
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

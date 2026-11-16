@@ -42,7 +42,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
 		const char* profile;
 		int scale;
 	};
-	const Run runs[] = {{"netradiant-custom", 100}, {"trenchbroom", 200}, {"vibestudio-default", 100}, {"netradiant-custom", 200}};
+	const Run runs[] = {{"netradiant-custom", 100}, {"trenchbroom", 200}, {"slopstudio-default", 100}, {"netradiant-custom", 200}};
 	bool first = true;
 	for (const Run& run : runs) {
 		const QString profileId = QString::fromLatin1(run.profile);

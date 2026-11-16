@@ -14,7 +14,7 @@ class QComboBox;
 class QLabel;
 class QTableWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 class ModelViewport;
 
 class PatchControlView final : public QWidget {
@@ -42,7 +42,7 @@ class PatchControlView final : public QWidget {
 	}
   Q_SIGNALS:
 	void selectionChanged(const QVector<int>& selected);
-	void moveRequested(const QVector<int>& selected, const vibestudio::LevelMapVec3& delta);
+	void moveRequested(const QVector<int>& selected, const slopstudio::LevelMapVec3& delta);
 
   protected:
 	void paintEvent(QPaintEvent*) override;
@@ -118,4 +118,4 @@ class PatchEditorDialog final : public QDialog {
 	bool m_firstShow = true;
 	bool m_replaceSelection = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

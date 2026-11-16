@@ -49,7 +49,7 @@
 #include <QVector>
 #include <QWidget>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ViewportHudLayout;
 
@@ -208,7 +208,7 @@ public:
 	[[nodiscard]] QPointF viewPointFor(double x, double y) const;
 
 	// How the mouse and arrow keys work here, per editor profile (see
-	// core/level_editor_controls.h). The defaults are the VibeStudio ones.
+	// core/level_editor_controls.h). The defaults are the SlopStudio ones.
 	void setControls(const PlanViewControls& controls);
 	// Installed actions own overlapping selection-cycle keys and chord prefixes.
 	void setReservedShortcuts(const QList<QKeySequence>& sequences);
@@ -505,7 +505,7 @@ Q_SIGNALS:
 	// snapping is on, and never the box it already has. The receiver is
 	// expected to make it one undo command, for example with
 	// resizeLevelMapSelection().
-	void resizeRequested(const vibestudio::LevelMapVec3& mins, const vibestudio::LevelMapVec3& maxs);
+	void resizeRequested(const slopstudio::LevelMapVec3& mins, const slopstudio::LevelMapVec3& maxs);
 	void clipModeChanged(bool enabled);
 	void clipStateChanged();
 	void quickClipRequested();
@@ -523,13 +523,13 @@ Q_SIGNALS:
 	void componentPicksChanged(int picked);
 	// Move the picked components by `delta`, in world units; expected to be
 	// one undo command, for example with moveLevelMapComponents().
-	void componentMoveRequested(const QVector<vibestudio::LevelMapComponentSet>& sets, const vibestudio::LevelMapVec3& delta);
+	void componentMoveRequested(const QVector<slopstudio::LevelMapComponentSet>& sets, const slopstudio::LevelMapVec3& delta);
 	void componentMoveActiveChanged(bool active);
-	void vertexSnapRequested(const vibestudio::LevelMapSelectionRef& object, int vertex);
-	void componentMovePreviewChanged(const vibestudio::LevelMapVec3& delta);
+	void vertexSnapRequested(const slopstudio::LevelMapSelectionRef& object, int vertex);
+	void componentMovePreviewChanged(const slopstudio::LevelMapVec3& delta);
 	// An arrow-key nudge in Face mode with no picked handles but faces picked
 	// by Select Textured; `delta` is one grid step (Shift: eight) in world units.
-	void texturedFacesMoveRequested(const vibestudio::LevelMapVec3& delta);
+	void texturedFacesMoveRequested(const slopstudio::LevelMapVec3& delta);
 	void regionDrawModeChanged(bool enabled);
 	// The box drawn, in this view's plane units (its drawn axes).
 	void regionDrawRequested(const QRectF& planeBox);
@@ -542,14 +542,14 @@ Q_SIGNALS:
 	// A shape closed in Draw Sector mode: its corners, in order, in map units.
 	void sectorDrawRequested(const QVector<QPointF>& corners);
 	// Enter in clip mode with a line drawn; `keep` is a LevelMapClipKeep.
-	void clipRequested(const vibestudio::LevelMapVec3& a, const vibestudio::LevelMapVec3& b, const vibestudio::LevelMapVec3& c, int keep);
+	void clipRequested(const slopstudio::LevelMapVec3& a, const slopstudio::LevelMapVec3& b, const slopstudio::LevelMapVec3& c, int keep);
 	void hoverChanged(const QString& summary);
 	void viewChanged();
 	// A box dragged out over empty space where the controls draw brushes:
 	// the new brush's bounds, snapped to the grid while snapping is on, the
 	// hidden axis spanning the last selection there. The receiver makes it
 	// one undo command, for example with addLevelMapBoxBrush().
-	void brushDrawRequested(const vibestudio::LevelMapVec3& mins, const vibestudio::LevelMapVec3& maxs);
+	void brushDrawRequested(const slopstudio::LevelMapVec3& mins, const slopstudio::LevelMapVec3& maxs);
 	// Radiant's middle button: turn the 3D camera toward a point of the
 	// view's plane, or move it there (the hidden axis is the camera's own).
 	void cameraAimRequested(const QPointF& planePoint);
@@ -1011,6 +1011,6 @@ QString mapViewportProjectionDisplayName(MapViewportProjection projection);
 
 // What the Levels palette drags out and the viewport takes: "entity:<class>"
 // or "thing:<DoomEd number>", as UTF-8.
-inline constexpr char kMapPaletteMimeType[] = "application/x-vibestudio-map-palette";
+inline constexpr char kMapPaletteMimeType[] = "application/x-slopstudio-map-palette";
 
-} // namespace vibestudio
+} // namespace slopstudio

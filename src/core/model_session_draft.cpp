@@ -17,12 +17,12 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 const QString suffix = QStringLiteral(".vsmeshsession");
-const QString format = QStringLiteral("vibestudio-model-session");
+const QString format = QStringLiteral("slopstudio-model-session");
 constexpr qint64 headerLimit = 65536;
 constexpr int listLimit = 256;
 
@@ -59,7 +59,7 @@ qint64 curveKeys(const ModelPoseCurves &curves)
 		keys += channel.size();
 	return keys;
 }
-QString invalidText() { return QCoreApplication::translate("VibeStudioModelRecovery", "The staged-session file is damaged or not one."); }
+QString invalidText() { return QCoreApplication::translate("SlopStudioModelRecovery", "The staged-session file is damaged or not one."); }
 // Fills the header fields of `draft` from `object`; false when it is not a
 // sidecar header this build reads.
 bool parseHeader(const QJsonObject &object, ModelSessionDraft *draft, QByteArray *payloadSha256, qint64 *payloadBytes)
@@ -123,12 +123,12 @@ bool writeModelSessionDraft(const QString &directory, const ModelSessionDraft &d
 		error->clear();
 	const auto path = modelSessionDraftPath(directory, draft.ownerId, draft.kind);
 	if (path.isEmpty() || draft.baseFingerprint.isEmpty())
-		return fail(error, QCoreApplication::translate("VibeStudioModelRecovery", "Invalid staged-session destination."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelRecovery", "Invalid staged-session destination."));
 	if (!QFileInfo::exists(directory))
 		QDir().mkpath(directory);
 	if (!safeFolder(directory))
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery folder is unavailable or is a link."));
+					QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery folder is unavailable or is a link."));
 	QJsonObject payload;
 	qint64 samples = 0, keys = 0;
 	if (draft.kind == ModelSessionDraftKind::WeightPaint)
@@ -147,7 +147,7 @@ bool writeModelSessionDraft(const QString &directory, const ModelSessionDraft &d
 	}
 	const auto bytes = QJsonDocument(payload).toJson(QJsonDocument::Compact);
 	if (bytes.size() > modelDocumentMaxSourceBytes)
-		return fail(error, QCoreApplication::translate("VibeStudioModelRecovery",
+		return fail(error, QCoreApplication::translate("SlopStudioModelRecovery",
 													   "The staged session would be %1, over the 64 MiB limit, so it was not kept.")
 							   .arg(modelMebibytesText(bytes.size())));
 	const QJsonObject header{
@@ -171,11 +171,11 @@ bool writeModelSessionDraft(const QString &directory, const ModelSessionDraft &d
 		{QStringLiteral("payloadBytes"), double(bytes.size())}};
 	const QFileInfo target(path);
 	if (target.isSymLink() || target.isJunction() || (target.exists() && !target.isFile()))
-		return fail(error, QCoreApplication::translate("VibeStudioModelRecovery", "Only regular staged-session files may be replaced."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelRecovery", "Only regular staged-session files may be replaced."));
 	QSaveFile file(path);
 	if (!file.open(QIODevice::WriteOnly) || file.write(QJsonDocument(header).toJson(QJsonDocument::Compact) + '\n') < 0 ||
 		file.write(bytes) != bytes.size() || !file.commit())
-		return fail(error, QCoreApplication::translate("VibeStudioModelRecovery", "The staged session could not be written: %1")
+		return fail(error, QCoreApplication::translate("SlopStudioModelRecovery", "The staged session could not be written: %1")
 							   .arg(file.errorString()));
 	return true;
 }
@@ -256,12 +256,12 @@ bool removeModelSessionDrafts(const QString &directory, const QString &ownerId, 
 	if (error)
 		error->clear();
 	if (directory.isEmpty() || !validOwner(ownerId))
-		return fail(error, QCoreApplication::translate("VibeStudioModelRecovery", "Invalid model recovery identifier."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelRecovery", "Invalid model recovery identifier."));
 	if (!QFileInfo::exists(directory))
 		return true;
 	if (!safeFolder(directory))
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery folder is unavailable or is a link."));
+					QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery folder is unavailable or is a link."));
 	for (const auto each : {ModelSessionDraftKind::WeightPaint, ModelSessionDraftKind::AnimationCurves})
 	{
 		if (kind && *kind != each)
@@ -271,7 +271,7 @@ bool removeModelSessionDrafts(const QString &directory, const QString &ownerId, 
 		if (!info.exists() && !info.isSymLink())
 			continue;
 		if (info.isSymLink() || info.isJunction() || !info.isFile() || !QFile::remove(path))
-			return fail(error, QCoreApplication::translate("VibeStudioModelRecovery", "A staged-session file could not be discarded."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelRecovery", "A staged-session file could not be discarded."));
 	}
 	return true;
 }
@@ -282,16 +282,16 @@ QString modelSessionDraftSummary(const ModelSessionDraft &draft)
 	{
 		const int strokes = int(draft.strokeCount ? draft.strokeCount : draft.strokes.size());
 		const int samples = int(std::min<qint64>(draft.sampleCount, std::numeric_limits<int>::max()));
-		return QCoreApplication::translate("VibeStudioModelRecovery", "%n staged weight-paint stroke(s)", nullptr, strokes) +
-			   QStringLiteral(" (") + QCoreApplication::translate("VibeStudioModelRecovery", "%n sample(s)", nullptr, samples) +
+		return QCoreApplication::translate("SlopStudioModelRecovery", "%n staged weight-paint stroke(s)", nullptr, strokes) +
+			   QStringLiteral(" (") + QCoreApplication::translate("SlopStudioModelRecovery", "%n sample(s)", nullptr, samples) +
 			   QLatin1Char(')');
 	}
 	const int keys = int(std::min<qint64>(draft.keyCount, std::numeric_limits<int>::max()));
 	const auto joint = draft.joint.isEmpty() ? draft.curves.joint : draft.joint;
-	const auto where = draft.bake ? QCoreApplication::translate("VibeStudioModelRecovery", "Staged removal of the curves of joint %1 in clip %2")
-							   : QCoreApplication::translate("VibeStudioModelRecovery", "Staged curves of joint %1 in clip %2");
+	const auto where = draft.bake ? QCoreApplication::translate("SlopStudioModelRecovery", "Staged removal of the curves of joint %1 in clip %2")
+							   : QCoreApplication::translate("SlopStudioModelRecovery", "Staged curves of joint %1 in clip %2");
 	return where.arg(joint).arg(draft.clip + 1) + QStringLiteral(" (") +
-		   QCoreApplication::translate("VibeStudioModelRecovery", "%n key(s)", nullptr, keys) + QLatin1Char(')');
+		   QCoreApplication::translate("SlopStudioModelRecovery", "%n key(s)", nullptr, keys) + QLatin1Char(')');
 }
 
 QJsonObject modelSessionDraftJson(const ModelSessionDraft &draft)
@@ -321,4 +321,4 @@ QJsonObject modelSessionDraftJson(const ModelSessionDraft &draft)
 	return object;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -26,7 +26,7 @@
 #include <atomic>
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelOutputsState
 {
@@ -57,22 +57,22 @@ void ModelEditorDialog::addOutputControls(QFormLayout *page)
 	auto &state = *m_outputs;
 	state.list = new QListWidget;
 	state.list->setObjectName(QStringLiteral("meshOutputs"));
-	state.list->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Delivered outputs"));
+	state.list->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Delivered outputs"));
 	state.list->setAccessibleDescription(QCoreApplication::translate(
-		"VibeStudioModelEditor", "The game files exported or staged from this source, each with whether it is current or stale."));
+		"SlopStudioModelEditor", "The game files exported or staged from this source, each with whether it is current or stale."));
 	state.list->setWordWrap(true);
 	state.list->setMinimumHeight(fontMetrics().lineSpacing() * 4);
 	state.list->setLayoutDirection(Qt::LeftToRight);
-	page->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Outputs"), state.list);
-	state.check = new QPushButton(QCoreApplication::translate("VibeStudioModelEditor", "Check Outputs"));
+	page->addRow(QCoreApplication::translate("SlopStudioModelEditor", "Outputs"), state.list);
+	state.check = new QPushButton(QCoreApplication::translate("SlopStudioModelEditor", "Check Outputs"));
 	state.check->setObjectName(QStringLiteral("meshCheckOutputs"));
 	state.check->setAccessibleDescription(
-		QCoreApplication::translate("VibeStudioModelEditor", "Compare every delivered output and its source with their receipts."));
+		QCoreApplication::translate("SlopStudioModelEditor", "Compare every delivered output and its source with their receipts."));
 	state.check->setToolTip(state.check->accessibleDescription());
-	state.refresh = new QPushButton(QCoreApplication::translate("VibeStudioModelEditor", "Refresh Stale"));
+	state.refresh = new QPushButton(QCoreApplication::translate("SlopStudioModelEditor", "Refresh Stale"));
 	state.refresh->setObjectName(QStringLiteral("meshRefreshOutputs"));
 	state.refresh->setAccessibleDescription(QCoreApplication::translate(
-		"VibeStudioModelEditor",
+		"SlopStudioModelEditor",
 		"Export the stale outputs again from the saved source with the settings they were made with. An output changed elsewhere is "
 		"never replaced."));
 	state.refresh->setToolTip(state.refresh->accessibleDescription());
@@ -97,14 +97,14 @@ void ModelEditorDialog::showOutputs()
 	auto &state = *m_outputs;
 	state.list->clear();
 	if (!state.problem.isEmpty())
-		state.list->addItem(QCoreApplication::translate("VibeStudioModelEditor", "The last receipt was not saved: %1").arg(state.problem));
+		state.list->addItem(QCoreApplication::translate("SlopStudioModelEditor", "The last receipt was not saved: %1").arg(state.problem));
 	if (state.projectRoot.isEmpty())
 	{
-		state.list->addItem(QCoreApplication::translate("VibeStudioModelEditor", "Open a project to keep receipts of exports and staged models."));
+		state.list->addItem(QCoreApplication::translate("SlopStudioModelEditor", "Open a project to keep receipts of exports and staged models."));
 	}
 	else if (state.records.isEmpty())
 	{
-		state.list->addItem(QCoreApplication::translate("VibeStudioModelEditor", "Nothing has been exported or staged from this source yet."));
+		state.list->addItem(QCoreApplication::translate("SlopStudioModelEditor", "Nothing has been exported or staged from this source yet."));
 	}
 	const auto staged = m_materialSource.archive;
 	for (int index = 0; index < state.records.size(); ++index)
@@ -112,14 +112,14 @@ void ModelEditorDialog::showOutputs()
 		const auto &record = state.records.at(index);
 		const auto status = state.states.value(index);
 		QString words = state.states.size() == state.records.size() ? modelOutputStateText(status.state)
-																	 : QCoreApplication::translate("VibeStudioModelEditor", "Checking…");
+																	 : QCoreApplication::translate("SlopStudioModelEditor", "Checking…");
 		// A staged entry is in the package plan before the package is saved.
 		if (status.state == ModelOutputState::Missing && staged && !record.outputs.isEmpty() && !record.outputs.first().package.isEmpty())
 		{
 			const auto entries = staged->entries();
 			const auto entry = record.outputs.first().entry;
 			if (std::any_of(entries.cbegin(), entries.cend(), [&](const PackageEntry &e) { return e.virtualPath.compare(entry, Qt::CaseInsensitive) == 0; }))
-				words = QCoreApplication::translate("VibeStudioModelEditor", "Staged; save the package");
+				words = QCoreApplication::translate("SlopStudioModelEditor", "Staged; save the package");
 		}
 		const auto *first = record.outputs.isEmpty() ? nullptr : &record.outputs.first();
 		auto *item = new QListWidgetItem(QStringLiteral("%1 · %2").arg(words, first ? first->display() : record.kind));
@@ -187,7 +187,7 @@ void ModelEditorDialog::refreshStaleOutputs()
 		return;
 	if (m_document.isModified())
 	{
-		m_status->setText(QCoreApplication::translate("VibeStudioModelEditor", "Save the source first: Refresh Stale builds outputs from the saved file."),
+		m_status->setText(QCoreApplication::translate("SlopStudioModelEditor", "Save the source first: Refresh Stale builds outputs from the saved file."),
 						  LiveStatus::Problem);
 		return;
 	}
@@ -232,8 +232,8 @@ void ModelEditorDialog::refreshStaleOutputs()
 				}
 				const QString message =
 					problems.isEmpty()
-						? QCoreApplication::translate("VibeStudioModelEditor", "Refreshed %n output(s) from the saved source.", nullptr, refreshed)
-						: QCoreApplication::translate("VibeStudioModelEditor", "Refreshed %n output(s); %1", nullptr, refreshed).arg(problems.join(QLatin1Char(' ')));
+						? QCoreApplication::translate("SlopStudioModelEditor", "Refreshed %n output(s) from the saved source.", nullptr, refreshed)
+						: QCoreApplication::translate("SlopStudioModelEditor", "Refreshed %n output(s); %1", nullptr, refreshed).arg(problems.join(QLatin1Char(' ')));
 				m_status->setText(message, problems.isEmpty() ? LiveStatus::Result : LiveStatus::Problem);
 				refreshOutputs();
 			});
@@ -268,4 +268,4 @@ void ModelEditorDialog::prefillPackagePath()
 		return;
 	m_virtualPath->setText(source);
 }
-} // namespace vibestudio
+} // namespace slopstudio

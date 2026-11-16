@@ -16,7 +16,7 @@
 #include <QTimer>
 #include <QTranslator>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* why) { if (!condition) { std::cerr << why << '\n'; } return condition; }
 bool wait(const std::function<bool()>& ready, int ms = 8000)
@@ -33,7 +33,7 @@ class Expanded final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		if (QByteArray(context) != "vibestudio::ApplicationShell") { return {}; }
+		if (QByteArray(context) != "slopstudio::ApplicationShell") { return {}; }
 		const auto text = QString::fromUtf8(source); return text + QStringLiteral(" ~").repeated(text.size() / 6);
 	}
 };
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 			applyStudioTheme(app, studioThemeTokens(scale == 200 ? StudioTheme::HighContrastDark : StudioTheme::Dark, UiDensity::Standard, scale));
 			document->trigger(); auto* dialog = progress(); if (!dialog) { ok = false; continue; }
 			dialog->setLayoutDirection(scale == 200 ? Qt::RightToLeft : Qt::LeftToRight); app.processEvents();
-			const QString evidence = qEnvironmentVariable("VIBESTUDIO_LANGUAGE_TEST_EVIDENCE");
+			const QString evidence = qEnvironmentVariable("SLOPSTUDIO_LANGUAGE_TEST_EVIDENCE");
 			if (!evidence.isEmpty()) { QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image); ok &= expect(image.save(QDir(evidence).filePath(QStringLiteral("language-formatting-%1.png").arg(scale))), "render formatting progress at both scales"); }
 			dialog->findChild<QPushButton*>()->click(); if (scale == 200) { app.removeTranslator(&translator); }
 		}

@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 QSet<int> selectLevelComponentHandles(const QSet<int>& current,const QSet<int>& hits,LevelComponentPick operation,bool groupToggle)
 {
 	if (operation == LevelComponentPick::Replace) { return hits; }
@@ -87,4 +87,4 @@ int LevelComponentCycleCursor::wheelSteps(int delta)
 	remainder = std::clamp(remainder-double(delta)/120.0,-256.0,256.0);
 	const int steps = int(remainder); remainder -= steps; return steps;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -6,7 +6,7 @@
 
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 // A deterministic rail pair for one geometric vertex. Copies share positions
 // in every pose but keep independent UVs, normals and skin influences.
@@ -28,4 +28,4 @@ struct ModelEdgeSlidePlan
 // give the same rail at adjoining selected edges, otherwise the edit refuses.
 bool planModelEdgeSlide(const ModelSurface &surface, const QSet<ModelEdge> &edges, int frame, double maxAngle, ModelEdgeSlidePlan *result,
 						QString *error = nullptr, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

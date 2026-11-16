@@ -6,7 +6,7 @@
 // TrenchBroom's compilation profiles (CompilationProfileManager,
 // CompilationProfileEditor and CompilationVariables at 4c756be1,
 // GPL-3.0-or-later) with ${...} variables. Original Qt implementation over
-// VibeStudio's compiler profiles; see docs/CREDITS.md.
+// SlopStudio's compiler profiles; see docs/CREDITS.md.
 #include "app/build_pipelines_dialog.h"
 
 #include "app/studio_icons.h"
@@ -30,7 +30,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -662,4 +662,4 @@ void BuildPipelinesDialog::refreshPreview()
 	m_preview->setPlainText(lines.join(QLatin1Char('\n')));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

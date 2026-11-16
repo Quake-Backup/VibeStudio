@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool fail(QString* error, const char* message)
 {
@@ -58,7 +58,7 @@ double snapLevelBrushExtrusionDistance(double distance, const LevelMapVec3& norm
 	return best;
 }
 
-// Original VibeStudio plane-operation implementation. Behaviour reference:
+// Original SlopStudio plane-operation implementation. Behaviour reference:
 // TrenchBroom 2026.2 manual, Extrusion (reviewed 2026-10-18); see CREDITS.md.
 bool prepareLevelBrushExtrusion(const LevelMapBrush& brush, int face, double distance, bool split, bool textureLock,
 	LevelBrushExtrusion* result, QString* error)
@@ -115,4 +115,4 @@ bool prepareLevelBrushExtrusion(const LevelMapBrush& brush, int face, double dis
 	*result = std::move(made);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

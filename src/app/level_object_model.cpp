@@ -3,7 +3,7 @@
 #include <QCoreApplication>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 quint64 referenceKey(LevelMapSelectionRef ref)
 {
@@ -36,51 +36,51 @@ QPair<QString, QString> LevelObjectRows::text(int row) const
 		// The world and brush entities have no origin of their own to show.
 		const int keys = static_cast<int>(entity.properties.size());
 		QString detail = entity.origin.valid
-			? QCoreApplication::translate("vibestudio::ApplicationShell", "Origin %1 / %n key(s)", nullptr, keys)
+			? QCoreApplication::translate("slopstudio::ApplicationShell", "Origin %1 / %n key(s)", nullptr, keys)
 				  .arg(QStringLiteral("%1,%2,%3").arg(entity.origin.x, 0, 'f', 0).arg(entity.origin.y, 0, 'f', 0).arg(entity.origin.z, 0, 'f', 0))
-			: QCoreApplication::translate("vibestudio::ApplicationShell", "%n key(s)", nullptr, keys);
+			: QCoreApplication::translate("slopstudio::ApplicationShell", "%n key(s)", nullptr, keys);
 		for (const auto& property : entity.properties) {
 			if (property.value.isEmpty()) { continue; }
 			if (property.key.compare(QStringLiteral("targetname"), Qt::CaseInsensitive) == 0) {
-				detail += QCoreApplication::translate("vibestudio::ApplicationShell", " · named %1").arg(property.value);
+				detail += QCoreApplication::translate("slopstudio::ApplicationShell", " · named %1").arg(property.value);
 			} else if (property.key.compare(QStringLiteral("target"), Qt::CaseInsensitive) == 0) {
-				detail += QCoreApplication::translate("vibestudio::ApplicationShell", " · fires %1").arg(property.value);
+				detail += QCoreApplication::translate("slopstudio::ApplicationShell", " · fires %1").arg(property.value);
 			}
 		}
-		return {QCoreApplication::translate("vibestudio::ApplicationShell", "Entity %1: %2").arg(id).arg(entity.className), detail};
+		return {QCoreApplication::translate("slopstudio::ApplicationShell", "Entity %1: %2").arg(id).arg(entity.className), detail};
 	}
 	case LevelMapSelectionKind::QuakeBrush: {
 		const auto& brush = document.brushes[at];
-		return {QCoreApplication::translate("vibestudio::ApplicationShell", "Brush %1").arg(id),
-			QCoreApplication::translate("vibestudio::ApplicationShell", "Entity %1 / %2 faces").arg(brush.entityId).arg(brush.faceCount)};
+		return {QCoreApplication::translate("slopstudio::ApplicationShell", "Brush %1").arg(id),
+			QCoreApplication::translate("slopstudio::ApplicationShell", "Entity %1 / %2 faces").arg(brush.entityId).arg(brush.faceCount)};
 	}
 	case LevelMapSelectionKind::QuakePatch: {
 		const auto& patch = document.patches[at];
-		return {QCoreApplication::translate("vibestudio::ApplicationShell", "Patch %1").arg(id),
-			QCoreApplication::translate("vibestudio::ApplicationShell", "Entity %1 / %2 by %3 / %4")
+		return {QCoreApplication::translate("slopstudio::ApplicationShell", "Patch %1").arg(id),
+			QCoreApplication::translate("slopstudio::ApplicationShell", "Entity %1 / %2 by %3 / %4")
 				.arg(patch.entityId).arg(patch.width).arg(patch.height).arg(patch.textureName)};
 	}
 	case LevelMapSelectionKind::DoomVertex: {
 		const auto& vertex = document.doomVertices[at];
-		return {QCoreApplication::translate("vibestudio::ApplicationShell", "Vertex %1").arg(id),
-			QCoreApplication::translate("vibestudio::ApplicationShell", "%1, %2").arg(vertex.x, 0, 'f', 0).arg(vertex.y, 0, 'f', 0)};
+		return {QCoreApplication::translate("slopstudio::ApplicationShell", "Vertex %1").arg(id),
+			QCoreApplication::translate("slopstudio::ApplicationShell", "%1, %2").arg(vertex.x, 0, 'f', 0).arg(vertex.y, 0, 'f', 0)};
 	}
 	case LevelMapSelectionKind::DoomLinedef: {
 		const auto& line = document.doomLinedefs[at];
-		return {QCoreApplication::translate("vibestudio::ApplicationShell", "Linedef %1").arg(id),
-			QCoreApplication::translate("vibestudio::ApplicationShell", "%1 > %2 / tag %3")
+		return {QCoreApplication::translate("slopstudio::ApplicationShell", "Linedef %1").arg(id),
+			QCoreApplication::translate("slopstudio::ApplicationShell", "%1 > %2 / tag %3")
 				.arg(line.startVertex).arg(line.endVertex).arg(line.tag)};
 	}
 	case LevelMapSelectionKind::DoomSector: {
 		const auto& sector = document.doomSectors[at];
-		return {QCoreApplication::translate("vibestudio::ApplicationShell", "Sector %1").arg(id),
-			QCoreApplication::translate("vibestudio::ApplicationShell", "Floor %1 / ceiling %2 / tag %3")
+		return {QCoreApplication::translate("slopstudio::ApplicationShell", "Sector %1").arg(id),
+			QCoreApplication::translate("slopstudio::ApplicationShell", "Floor %1 / ceiling %2 / tag %3")
 				.arg(sector.floorHeight).arg(sector.ceilingHeight).arg(sector.tag)};
 	}
 	case LevelMapSelectionKind::DoomThing: {
 		const auto& thing = document.doomThings[at];
-		return {QCoreApplication::translate("vibestudio::ApplicationShell", "Thing %1").arg(id),
-			QCoreApplication::translate("vibestudio::ApplicationShell", "Type %1 at %2, %3")
+		return {QCoreApplication::translate("slopstudio::ApplicationShell", "Thing %1").arg(id),
+			QCoreApplication::translate("slopstudio::ApplicationShell", "Type %1 at %2, %3")
 				.arg(thing.type).arg(thing.x, 0, 'f', 0).arg(thing.y, 0, 'f', 0)};
 	}
 	default: return {};
@@ -91,7 +91,7 @@ QString LevelObjectRows::description(int row) const
 {
 	const auto [label, detail] = text(row);
 	return row >= 0 && row < hidden.size() && hidden.testBit(row)
-		? QCoreApplication::translate("vibestudio::ApplicationShell", "%1\n%2 · hidden").arg(label, detail)
+		? QCoreApplication::translate("slopstudio::ApplicationShell", "%1\n%2 · hidden").arg(label, detail)
 		: QStringLiteral("%1\n%2").arg(label, detail);
 }
 
@@ -147,8 +147,8 @@ QVariant LevelObjectModel::data(const QModelIndex& item, int role) const
 	if (!objectCount()) {
 		if (role != Qt::DisplayRole && role != Qt::AccessibleTextRole && role != Qt::ToolTipRole) { return {}; }
 		return m_source.document.format == LevelMapFormat::Unknown
-			? QCoreApplication::translate("vibestudio::ApplicationShell", "No level map loaded.")
-			: QCoreApplication::translate("vibestudio::ApplicationShell", "No objects parsed from the loaded map.");
+			? QCoreApplication::translate("slopstudio::ApplicationShell", "No level map loaded.")
+			: QCoreApplication::translate("slopstudio::ApplicationShell", "No objects parsed from the loaded map.");
 	}
 	const int row = item.row();
 	if (role == Qt::UserRole) { return m_source.selector(row); }
@@ -161,7 +161,7 @@ QVariant LevelObjectModel::data(const QModelIndex& item, int role) const
 	// Two elided lines keep layout independent of the number and length of rows.
 	// Full author text remains in tooltips, accessibility and the query snapshot.
 	return m_source.hidden.testBit(row)
-		? QStringLiteral("%1\n%2").arg(singleLine(label), singleLine(QCoreApplication::translate("vibestudio::ApplicationShell", "%1 · hidden").arg(detail)))
+		? QStringLiteral("%1\n%2").arg(singleLine(label), singleLine(QCoreApplication::translate("slopstudio::ApplicationShell", "%1 · hidden").arg(detail)))
 		: QStringLiteral("%1\n%2").arg(singleLine(label), singleLine(detail));
 }
 
@@ -170,4 +170,4 @@ Qt::ItemFlags LevelObjectModel::flags(const QModelIndex& item) const
 	return item.isValid() && item.model() == this && item.row() >= 0 && item.row() < objectCount()
 		? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::NoItemFlags;
 }
-} // namespace vibestudio
+} // namespace slopstudio

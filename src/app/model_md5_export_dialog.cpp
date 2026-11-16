@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -206,4 +206,4 @@ void ModelMd5ExportDialog::refresh()
 	m_review->setAccessibleDescription(review);
 	m_accept->setEnabled(ready);
 }
-} // namespace vibestudio
+} // namespace slopstudio

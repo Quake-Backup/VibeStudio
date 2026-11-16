@@ -11,7 +11,7 @@
 #include <QRegularExpression>
 #include <QSet>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 AudioSessionCliResult runAudioRecording(const QStringList &arguments)
 {
@@ -203,4 +203,4 @@ AudioSessionCliResult runAudioRecording(const QStringList &arguments)
 	        {{"recording", audioRecordingInfoJson(info)}},
 	        lines};
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

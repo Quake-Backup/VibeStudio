@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool stopped(const std::atomic_bool* cancelled) { return cancelled && cancelled->load(std::memory_order_relaxed); }
 bool overlap(const QRectF& a, const QRectF& b)
@@ -164,4 +164,4 @@ bool renderMapPlanFrame(const MapPlanRenderRequest& request, bool selected, cons
 	if (stopped(cancelled)) { return false; }
 	*frame = std::move(next); return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

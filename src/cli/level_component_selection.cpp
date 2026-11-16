@@ -4,7 +4,7 @@
 #include <QJsonArray>
 #include <QRegularExpression>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 LevelComponentSelectionCliResult runLevelComponentSelection(const QStringList& arguments)
 {
 	const auto fail = [](int code, const char* message) { return LevelComponentSelectionCliResult{code,QCoreApplication::translate("LevelComponentSelectionCli",message),{}, {}}; };

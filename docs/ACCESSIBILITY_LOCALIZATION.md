@@ -6,7 +6,7 @@ labelled numeric fields plus two F9 switches support keyboard authoring.
 Compact status exposes full guidance and refusals through accessible text.
 Numeric fields keep left-to-right direction in RTL layouts and scroll within
 the viewport. Strings use `ModelRip`, `ModelMeshPoseBinding`,
-`VibeStudioModelTools`, `VibeStudioModelControls` and `ModelToolsCli`.
+`SlopStudioModelTools`, `SlopStudioModelControls` and `ModelToolsCli`.
 **Rip** previews a zero-distance split immediately and can be confirmed without
 pointer movement. Cancelling restores connectivity. A zero-width fill has an
 accessible refusal; disabling fill restores the open-split preview. Connectivity
@@ -20,7 +20,7 @@ profile. Typed degrees, axis keys and Page Up/Down provide semantic keyboard
 controls; the compact status exposes full instructions and refusals through
 tooltips and accessible descriptions. F9 has nine labelled numeric fields and
 two checkboxes in the existing scrolling panel. Numbers remain left-to-right
-under RTL layouts. Strings use `ModelSpin`, `VibeStudioModelTools` and
+under RTL layouts. Strings use `ModelSpin`, `SlopStudioModelTools` and
 `ModelToolsCli`. Owned Qt tests exercise enlarged text, both high-contrast
 themes and translation expansion; physical keyboard and screen-reader
 acceptance remains open. See [Spin](MODEL_SPIN.md).
@@ -36,7 +36,7 @@ status line and its accessible description. **Poly Build** can be driven from
 the keyboard: the arrow keys move its crosshair (mirrored in right-to-left
 layouts), **Insert** places a corner, **N** starts a new face and Backspace
 takes one back; its corners and edges are drawn dashed with square markers, not
-by colour alone. Strings use `VibeStudioModelTools`, `VibeStudioModelControls`,
+by colour alone. Strings use `SlopStudioModelTools`, `SlopStudioModelControls`,
 `ModelToolsCli` and the tools' own contexts. The owned UI test runs them at
 200% text in both high-contrast themes, with expanded translations and right
 to left; physical keyboard and screen-reader acceptance remains open.
@@ -55,7 +55,7 @@ viewport and scrolls long forms while keeping part of the view visible;
 rejected adjustments restore accepted values. The compact preview status keeps
 the model visible, with detailed controls in tooltips and accessible descriptions.
 Strings use `ModelEdgeSlide`,
-`VibeStudioModelTools` and existing CLI/control contexts. The workflow uses the
+`SlopStudioModelTools` and existing CLI/control contexts. The workflow uses the
 current text scale, theme and layout direction. Physical keyboard and
 screen-reader acceptance remains separate from owned Qt tests. See
 [edge sliding](MODEL_EDGE_SLIDE.md).
@@ -83,7 +83,7 @@ themes draw both in the text colour. **Onion skin** ghosts are dashed (earlier)
 or dotted (later), hidden during playback, and listed in the checkbox's
 description. The frame-range, resampling, range-sculpt, frame-import and
 tag-following controls use labelled form rows that wrap at 200% text, and
-announce results and refusals on the status line. `VibeStudioModelEditor`,
+announce results and refusals on the status line. `SlopStudioModelEditor`,
 `ModelFrameTools`, `ModelTagFollow` and `ModelFramesCli` strings are extracted
 for translation. See [vertex animation frames](MODEL_VERTEX_ANIMATION.md).
 
@@ -695,7 +695,7 @@ candidate without waiting for the worker. Progress bars omit embedded text to
 avoid clipping at large scales; labels wrap, numeric counts have LTR isolation,
 and reduced motion uses a static bar when a total is unavailable. Explicit
 offset previews expose geometry, asset, dependency and mesh phases too.
-`LevelPlacementTaskDialog` and `VibeStudioLevelPlacement` join extraction.
+`LevelPlacementTaskDialog` and `SlopStudioLevelPlacement` join extraction.
 Semantic Qt tests measure GUI heartbeat and immediate cancellation at 100% and
 200% text with RTL, expanded translations and high contrast. These checks do not
 establish native keyboard or screen-reader acceptance.
@@ -712,7 +712,7 @@ The Levels Scene tab uses a native focusable tree with check states, labelled
 forms and buttons, plain-text diagnostics, full-name/UUID tooltips and shared undo.
 Checkbox changes defer tree rebuilding until Qt finishes its item update, with a
 document-revision guard. `LevelScene`, `LevelSceneCli` and the namespaced
-`vibestudio::LevelScenePanel` supply translatable strings. Semantic Qt tests inspect
+`slopstudio::LevelScenePanel` supply translatable strings. Semantic Qt tests inspect
 accessible roles/focus and render 100%/200% text, expanded translations, RTL and
 high contrast. Native keyboard and screen-reader acceptance remain open.
 
@@ -725,7 +725,7 @@ Map opening uses a named native dialog, a middle-elided plain-text source path
 with its full value in tooltip/accessibility metadata, a wrapping phase label,
 a progress bar with its standard accessible role, and a focusable Cancel button.
 Closing or cancelling retains a visible acknowledgement state until the worker
-finishes. Messages use the `vibestudio::LevelMapLoadDialog`, `ApplicationShell` and existing
+finishes. Messages use the `slopstudio::LevelMapLoadDialog`, `ApplicationShell` and existing
 core translation contexts. Offscreen semantic tests inspect roles/focus and
 render 100%/200% text, high contrast, RTL and expanded labels. Native keyboard,
 screen-reader announcements and OS scaling still require platform acceptance.
@@ -826,8 +826,8 @@ progress fractions use locale formatting and directional isolates so RTL does
 not reverse completed and total values. Copy fixtures
 exercise direct Qt cancellation/close and render dark 100% and expanded
 high-contrast light/RTL 200%; native keyboard, drag and screen-reader acceptance
-remain part of the release audit. Strings use `VibeStudioPackageCopy`,
-`VibeStudioPackageDialog` and `ApplicationShell`.
+remain part of the release audit. Strings use `SlopStudioPackageCopy`,
+`SlopStudioPackageDialog` and `ApplicationShell`.
 
 Temporary Package Copies exposes named, keyboard-focusable native number fields,
 live text usage, the session directory and persistent Apply/Close controls.
@@ -877,8 +877,8 @@ cancelled and failed text/texture previews. A failed read retains its known
 size and no unverified sampled content. Ogg duration estimates, partial stream-position
 bounds and invalid/out-of-range page diagnostics are textual, localizable inspector
 details. Header timing explicitly describes its limits; it needs no color or motion.
-Preview messages use `ApplicationShell`, `VibeStudioPackagePreview` and
-`VibeStudioAssetTools`. Worker tests and direct Qt shell tests cover latest
+Preview messages use `ApplicationShell`, `SlopStudioPackagePreview` and
+`SlopStudioAssetTools`. Worker tests and direct Qt shell tests cover latest
 selection publication, cancellation, named controls and 100%/200% expanded RTL
 layouts. Native input/screen-reader acceptance remains separate.
 
@@ -893,8 +893,8 @@ focus. The recovery chooser states each copy's source status in words
 **No saved source**), never by colour alone. The Mesh Editor's external-change
 notice and its **Outputs** list follow the same rule: states are words, icons
 only repeat them, and every action button has an accessible name or
-description. Their strings use the `VibeStudioModelEditor`,
-`VibeStudioModelRecovery` and `VibeStudioModelOutputs` contexts.
+description. Their strings use the `SlopStudioModelEditor`,
+`SlopStudioModelRecovery` and `SlopStudioModelOutputs` contexts.
 
 Package recovery reports unavailable original-history counts in textual status,
 Activity and chooser details. The warning explains that repaired content is
@@ -934,7 +934,7 @@ update after verification; file progress is coalesced on the UI thread. Stacked
 actions wrap expanded translations, and a scrollable body keeps Close visible.
 Closing requests cancellation and joins the worker. Strings use
 `PackagePublicationDialog`, `PackagePublicationInventory` and
-`VibeStudioPackagePublication`. Native keyboard and screen-reader acceptance
+`SlopStudioPackagePublication`. Native keyboard and screen-reader acceptance
 remains part of the release audit.
 
 Saved Draft Storage opens from the same recovery chooser. Labeled limit controls
@@ -952,7 +952,7 @@ theme/text-scale settings. Package folder context menus expose rename/delete;
 F2 and Delete in the folder tree act on that folder. Empty new documents expose
 Save/Discard/Cancel. WAD disables folder creation, and collisions report textual
 status rather than moving only part of the subtree. These strings use the
-ApplicationShell and VibeStudioPackageDirectory translation contexts.
+ApplicationShell and SlopStudioPackageDirectory translation contexts.
 
 Merge Brushes uses a focusable surface list and source selector with textual
 Compatible/Choose source/Source chosen states, labelled before/after views and
@@ -1017,7 +1017,7 @@ still do not fit end in an ellipsis while the accessible name keeps them whole.
 in RTL layouts and says **Mixed** when the faces differ. The section's summary
 and the tab's status announce the target count and each result. **Show
 Surfaces** is a checkable command, so its state reads as on or off. Strings use
-`LevelSurfaceTools`, `ApplicationShell`, `VibeStudioLevelFaceFlags` and
+`LevelSurfaceTools`, `ApplicationShell`, `SlopStudioLevelFaceFlags` and
 `LevelFaceFlagsCli`; `level-face-flags-ui-smoke` covers 100%, 200%
 high-contrast RTL with expanded text, and NetRadiant Custom's <kbd>S</kbd>.
 Native screen-reader acceptance remains open.
@@ -1032,7 +1032,7 @@ selectable text whose accessible description follows each check, so refusals
 **Create Brush** button; the progress bar is still while reduced motion is on.
 **Copy Vertex Coordinates** reports its count in the status bar and Activity.
 Strings use `LevelBrushPointsDialog`, `ApplicationShell`, `LevelBrushPoints`
-and `VibeStudioSemantics`; the clipboard's `// brush:3` comment lines and
+and `SlopStudioSemantics`; the clipboard's `// brush:3` comment lines and
 coordinates are stable technical text and are not translated.
 `level-brush-points-ui-smoke` covers 100%, 200% high-contrast RTL with expanded
 text and all three profiles; native screen-reader acceptance remains open.
@@ -1049,7 +1049,7 @@ high contrast thickens both and hatches the extrusion outline. Enter,
 Backspace, Delete and Escape work in every view, and points can be typed
 instead through **Create Brush from Points…**. Strings use `ModelViewport`,
 `MapViewport`, `ApplicationShell`, `LevelBrushAssemble` and
-`VibeStudioSemantics`. `level-brush-assemble-ui-smoke` covers 100%, 200%
+`SlopStudioSemantics`. `level-brush-assemble-ui-smoke` covers 100%, 200%
 high-contrast RTL with expanded text and all three profiles; native
 screen-reader and pointer acceptance remain open.
 
@@ -1059,7 +1059,7 @@ accessible description and status text. Mode changes retain compatible picks;
 there is no pointer-only requirement for these commands. Errors and handle-limit
 refusals are text, and pending component edits are cancelled before picks change.
 New messages use the `LevelComponentSelection`, `LevelComponentSelectionCli`,
-`ApplicationShell`, `MapViewport` and `VibeStudioLevelTools` translation contexts.
+`ApplicationShell`, `MapViewport` and `SlopStudioLevelTools` translation contexts.
 
 The detailed Surface Alignment dialog uses labelled numeric
 controls, per-axis alignment selectors and explicit Apply/Cancel actions.
@@ -1082,7 +1082,7 @@ the anchor a ringed cross, and outlines are drawn dark under white, so state
 never rests on colour and stays visible over any image. Texture space and
 numbers stay left to right in RTL layouts; the controls column scrolls and
 widens to its translated content. Strings use the `LevelUvView`,
-`LevelUvEditorDialog`, `VibeStudioLevelUvEdit` and `LevelUvEditCli` contexts.
+`LevelUvEditorDialog`, `SlopStudioLevelUvEdit` and `LevelUvEditCli` contexts.
 `level-uv-editor-ui-smoke` checks names, roles, focus, fitted buttons and the
 keyboard routes at 100% and at 200% high contrast with expanded RTL text.
 Physical input and native screen-reader acceptance remain open.
@@ -1122,8 +1122,8 @@ progress with named, focusable Cancel/Retry controls. Pending and cancelled list
 clear entry actions and previews. Enter in the filter selects the complete result
 after preparation. Unreadable payloads have an explicit text label and accessible
 diagnostic; status does not depend on colour. Browser strings use
-`PackageEntryView` and `VibeStudioPackageBrowser`; folder model strings use
-`PackageFolderView` and `VibeStudioPackageFolders`. The native tree exposes full
+`PackageEntryView` and `SlopStudioPackageBrowser`; folder model strings use
+`PackageFolderView` and `SlopStudioPackageFolders`. The native tree exposes full
 folder paths and directory warning descriptions through accessible roles. It
 shares listing progress until metadata is ready and clears stale identities on
 revision changes. Rename/Delete resolve the selected folder even while its entry
@@ -1161,7 +1161,7 @@ Preparation/export have textual loading, cancellation and result states, and
 closing joins the worker before destruction. Scrollable review content keeps
 Close outside the scroll area at 200% scale. Headers elide with full tooltips;
 buttons wrap expanded translations, and the dialog inherits RTL layout. Strings
-use `PackageSubsetDialog` and `VibeStudioPackageSubset` catalog contexts. Direct Qt
+use `PackageSubsetDialog` and `SlopStudioPackageSubset` catalog contexts. Direct Qt
 checks exercise focusable controls and normal/high-contrast RTL renders; native
 keyboard and screen-reader acceptance remains part of the release audit.
 
@@ -1224,8 +1224,8 @@ point table, so each point has row/column identity and editable XYZ/UV values.
 Selection uses square versus round handles as well as color. The canvas exposes
 a graphical accessible role, focus, selection count and keyboard controls;
 numeric movement and snapping are also explicit buttons. Properties scroll and
-long form labels wrap. New contexts are `VibeStudioLevelPatch`,
-`PatchEditorDialog`, and `vibestudio::PatchControlView`. The UI test covers direct
+long form labels wrap. New contexts are `SlopStudioLevelPatch`,
+`PatchEditorDialog`, and `slopstudio::PatchControlView`. The UI test covers direct
 actions and widget rendering at 100% and 200% scale with RTL/expanded labels;
 physical keyboard, pointer and screen-reader acceptance remain manual work.
 
@@ -1235,19 +1235,19 @@ cancellation surface; recovery records include textual state and source paths.
 `level-document-ui-smoke` exercises direct controls at 100% and 200% scale,
 high-contrast dark, RTL and expanded translations using widget rendering.
 Real keyboard/screen-reader operation remains a manual acceptance item.
-New translation contexts include `NewLevelMapDialog`, `VibeStudioLevelDocument`
-and `VibeStudioLevelRecovery`. Ctrl+N and Ctrl+S are scoped to Levels.
+New translation contexts include `NewLevelMapDialog`, `SlopStudioLevelDocument`
+and `SlopStudioLevelRecovery`. Ctrl+N and Ctrl+S are scoped to Levels.
 
 The Code Search Results workbench uses named, focusable standard Qt controls,
 label buddies, text status, progress, cancellation, and before/after text
 previews. Filters are revealed on demand. New strings use Qt translation
-contexts `vibestudio::ProjectSearchPanel` and `VibeStudioProjectText`.
+contexts `slopstudio::ProjectSearchPanel` and `SlopStudioProjectText`.
 Result text identifies open-document snapshots; details name the encoding.
 Path, source-coordinate and code rows retain left-to-right reading order inside
 right-to-left panel layouts.
 Confirmation and terminal reports distinguish undoable, unsaved document edits
 from saved disk changes, without relying on color. Stale results explain why
-the search must be refreshed. Shell messages use `vibestudio::ApplicationShell`.
+the search must be refreshed. Shell messages use `slopstudio::ApplicationShell`.
 `project-search-ui-smoke` checks direct widget behavior at 100% and 200% scale,
 high-contrast dark, RTL, and expanded translations without OS input injection.
 Actual screen-reader and keyboard-only navigation remain manual acceptance
@@ -1293,21 +1293,21 @@ remain separate acceptance gates.
 Completion rows announce resolving/unavailable states through visible text and
 accessible descriptions. Highlighting resolves documentation/imports; tooltips
 escape provider markup. Early acceptance waits while Escape or context changes
-cancel. `LanguageCompletion` and `VibeStudioCodeEditor` cover parser and popup
+cancel. `LanguageCompletion` and `SlopStudioCodeEditor` cover parser and popup
 strings. Direct tests cover selection changes, cached results, Undo/Redo and
 100%/200% high-contrast/expanded RTL rendering; physical input and screen-reader
 acceptance remain separate gates.
 Document diagnostics expose textual waiting, failure and incomplete states in
 Problems. The provider panel names push versus pull mode and offers a focusable
 native **Refresh diagnostics** control for retries. `LanguageServer` and
-`vibestudio::CodeLanguagePanel` cover the translated protocol errors and controls.
+`slopstudio::CodeLanguagePanel` cover the translated protocol errors and controls.
 Direct tests check 100%/200%, high contrast and expanded RTL labels; physical
 keyboard and screen-reader acceptance remain separate gates.
 Completion snippets expose numbered field status, native previous/next/finish
 controls and a named choice selector. Selected text and solid/dashed underlines
 provide non-color cues; the editor description explains Tab/Shift+Tab and Escape.
 Field changes update this metadata and restore the original description on exit.
-`CompletionSnippet`, `VibeStudioCodeEditor` and the shell context cover translated
+`CompletionSnippet`, `SlopStudioCodeEditor` and the shell context cover translated
 parser errors, status and controls. Direct widget tests cover 100%/200%, high
 contrast, expanded RTL labels, choices, Undo and stale document guards; physical
 input and assistive-technology checks remain separate acceptance gates.
@@ -1318,7 +1318,7 @@ only cue. Code remains left-to-right within RTL layouts. Loading/failed/limited
 states are textual, and Escape works from the editor or panel children. Close
 returns focus to the editor. Documentation shares Quick Info's resource-isolated
 renderer. Parser strings use `LanguageSignature`; controls use
-`vibestudio::CodeSignaturePanel`, with shell and semantics contexts for actions.
+`slopstudio::CodeSignaturePanel`, with shell and semantics contexts for actions.
 Direct Qt tests cover 100%/200%, high contrast, expanded RTL labels, focus policies
 and scoped shortcuts. Physical keyboard and screen-reader acceptance remain
 separate gates.
@@ -1330,18 +1330,18 @@ cancellation and no-change results have text status. Direct tests render progres
 at 100% and 200%, high contrast and expanded RTL labels, and verify one-step
 Undo/Redo without OS input injection. Physical keyboard and screen-reader
 acceptance remain separate gates. Parser errors use the `LanguageFormatting`
-translation context; commands and progress use `vibestudio::ApplicationShell`.
+translation context; commands and progress use `slopstudio::ApplicationShell`.
 Quick Info provides a remappable Ctrl+I command and a named, selectable standard
 Qt documentation view, so pointer hints have a keyboard-accessible equivalent.
 Loading, cancellation, empty replies, errors and shortened/omitted content use
 text status. The pane follows text scaling, themes and RTL layout while code
 snippets keep their reading order and use studio monospace typography. New
-contexts are `LanguageHover`, `CodeQuickInfo` and `vibestudio::CodeQuickInfoPanel`.
+contexts are `LanguageHover`, `CodeQuickInfo` and `slopstudio::CodeQuickInfoPanel`.
 Direct tests cover 100%/200% scale, high contrast, expanded RTL labels, focus
 metadata and the shortcut registration; physical input and screen-reader
 verification remain manual gates.
-Strings use `VibeStudioCodeEditor`, `LanguageReferences`, `vibestudio::ProjectSearchPanel`,
-`LanguageCompletion`, `vibestudio::CodeLanguagePanel`, `LanguageServer` and shell translation
+Strings use `SlopStudioCodeEditor`, `LanguageReferences`, `slopstudio::ProjectSearchPanel`,
+`LanguageCompletion`, `slopstudio::CodeLanguagePanel`, `LanguageServer` and shell translation
 contexts. Direct widget renders cover 100%/200%, high contrast, RTL and expansion;
 physical keyboard and screen-reader acceptance remains a manual gate. See
 [Local Language Services](LANGUAGE_SERVICES.md).
@@ -1405,8 +1405,8 @@ dirty/busy/error status. The Recovery inspector uses named controls for its
 preference, interval, checkpoint list and restoration. The footer exposes
 background progress and errors in text. Save/Discard/Cancel continuations and
 recovery commands are tested through public widget APIs without injected input.
-Strings use `VibeStudioTexture`, `VibeStudioTextureOutput`, `VibeStudioTextureProject`, `VibeStudioTextureRecovery`, and
-`VibeStudioTextureEditor`. Offscreen tests call commands directly at normal and
+Strings use `SlopStudioTexture`, `SlopStudioTextureOutput`, `SlopStudioTextureProject`, `SlopStudioTextureRecovery`, and
+`SlopStudioTextureEditor`. Offscreen tests call commands directly at normal and
 200% high-contrast/RTL settings without controlling the user's input.
 
 Package opening, file staging, extraction, comparison, validation, and save dialogs use named standard Qt controls, selectable
@@ -1416,7 +1416,7 @@ action. Review filters,
 results, and report actions participate in keyboard focus. The
 `package-operation-ui-smoke` test exercises 100% and 200% scale, high-contrast
 light, RTL, and expanded translations using offscreen widget rendering. New
-strings use the `VibeStudioPackageDialog` translation context; there are no
+strings use the `SlopStudioPackageDialog` translation context; there are no
 mandatory animations or cloud dependencies in these workflows.
 Source fingerprinting shows the current path and byte progress, accepts
 cancellation within a file, and keeps the previous package/plan on cancellation.
@@ -1553,10 +1553,10 @@ Native screen-reader acceptance remains a release gate.
 No keyboard or mouse input is injected by these tests.
 
 Accessibility and localization are core product design requirements for
-VibeStudio. They should be built into the shell, setup flow, editor surfaces,
+SlopStudio. They should be built into the shell, setup flow, editor surfaces,
 CLI output, task feedback, AI workflows, and documentation from the beginning.
 
-The goal is simple: VibeStudio should be usable by as many creators as possible
+The goal is simple: SlopStudio should be usable by as many creators as possible
 without asking them to fight the interface before they can make something.
 
 ## Accessibility Philosophy
@@ -1574,7 +1574,7 @@ without asking them to fight the interface before they can make something.
 
 ## Platform Support
 
-VibeStudio should use Qt's accessibility and internationalization stack:
+SlopStudio should use Qt's accessibility and internationalization stack:
 
 - [Qt Accessibility](https://doc.qt.io/qt-6/accessible.html) for assistive
   technology metadata, scalable UI, keyboard navigation, contrast, sound/speech,
@@ -1852,7 +1852,7 @@ docs/UX_DESIGN.md "Visible Work") follow the setting too:
   changes (`applyPreferencesToUi()`), and widgets built later start from
   `studioReducedMotion()`.
 
-Screen readers hear the start-up screen once ("VibeStudio is starting") and
+Screen readers hear the start-up screen once ("SlopStudio is starting") and
 each busy overlay as it appears, with its title and detail; a ring's accessible
 description names the work, or the percentage complete. Everything else in the
 shell is static. The blinking text cursor has its own switch, **Stop the text
@@ -1860,7 +1860,7 @@ cursor blinking**, since some readers want the cursor still without losing the
 other motion cues.
 
 The window title names the current page and project ("Levels — Foundry —
-VibeStudio"), which task bars and window switchers show and a screen reader
+SlopStudio"), which task bars and window switchers show and a screen reader
 reads with the window, so the status bar no longer repeats the page name on
 every switch.
 
@@ -1930,7 +1930,7 @@ Required behavior:
   Levels **Controls** button names the profile in use and opens a searchable
   list of every gesture and key. Both Levels views say their part of the same
   list after their live description, so a screen reader still hears it after
-  the view has changed. The VibeStudio profile is the reset, and a user's own
+  the view has changed. The SlopStudio profile is the reset, and a user's own
   keys outrank any profile's.
 - [x] The Assistant panel names every part for assistive tools: its first
   line says who would answer or why nothing can be sent, each context row
@@ -2100,7 +2100,7 @@ Browser OBJ export reuses the modeller's delayed window-modal progress surface,
 accessible status/progress labels and keyboard-focusable Cancel button. The
 export action is disabled while its captured frame is being prepared/written;
 studio close requests cancellation and resumes after the worker stops. Source
-protection and output diagnostics use the `VibeStudioModelExport` translation
+protection and output diagnostics use the `SlopStudioModelExport` translation
 context. Omission notes remain available in activity details after completion.
 
 `package.compare`, `model.export`, and `entity.definitions` are registered in
@@ -2190,7 +2190,7 @@ The Audio browser uses the same lifecycle controller. Its named transport report
 loading, buffering and playback failure in text, and Stop cancels queued audition
 preparation. Preview loading/progress appears in the existing status pane; changing
 selection cancels superseded work, and clearing it restores an idle status.
-Worker diagnostics use `VibeStudioAudioBrowser`.
+Worker diagnostics use `SlopStudioAudioBrowser`.
 The labeled, left-to-right Position slider remains available for compressed media
 without a waveform and exposes milliseconds through its accessible description.
 Timeline tick spacing follows the font size, with left-to-right numbers and units
@@ -2239,7 +2239,7 @@ For multichannel loudness, a window-modal speaker review has a labeled preset,
 named role combo for each channel, a loudness checkbox and live textual
 validation. Unknown/repeated roles disable Analyze; opting out keeps true-peak
 analysis. Its controls scroll separately from Analyze/Cancel, inherit RTL, and
-use `AudioChannelMapDialog` plus `VibeStudioAudioAnalysis` translation contexts.
+use `AudioChannelMapDialog` plus `SlopStudioAudioAnalysis` translation contexts.
 True peak and LUFS have named report summaries, numeric units and explicit
 unavailable/below-gate/not-requested text. The true-peak table column retains
 numeric direction isolation. Roles are per-analysis choices, not setup defaults.
@@ -2259,7 +2259,7 @@ tests cover focus order, 100/200% high contrast, expanded text and RTL geometry;
 physical keyboard and screen-reader acceptance remains open.
 Loading, cancellation, errors, clipping,
 export, and staged-save state have textual status. Project/recovery errors use
-the `VibeStudioAudioProject` and `AudioRecovery` translation contexts. Strings use Qt translation
+the `SlopStudioAudioProject` and `AudioRecovery` translation contexts. Strings use Qt translation
 contexts. The audio UI smoke test covers 100%/200% text, high contrast, RTL,
 expanded strings, and the direct control APIs without injecting user input.
 The audio document area scrolls at smaller window sizes; operation status,
@@ -2313,7 +2313,7 @@ The UI functionality round makes the keyboard reach further:
   the Levels **Show** menu (checkable items whose names follow the map's
   game), **Zoom to Selection**, **Use Open Map**, **Show Output**, the
   compiler tool table
-  ("VibeMap2 bsp, Ready, path from Automatic"), **Locate…**, **Use
+  ("SlopMap2 bsp, Ready, path from Automatic"), **Locate…**, **Use
   Automatic**, **Rescan**, and the build problem rows ("Warning: message,
   stage and location"). Build problems and tool states pair a glyph with words,
   never colour alone.
@@ -2429,7 +2429,7 @@ The UI functionality round makes the keyboard reach further:
   names are bidi-isolated in right-to-left layouts. `level-sidebar-ui-smoke`
   checks the camera's description and drawing at 100% text and at 200% text
   in high contrast, right to left, and saves the frames under
-  `VIBESTUDIO_TEST_SNAPSHOTS`.
+  `SLOPSTUDIO_TEST_SNAPSHOTS`.
   The **Scene** tree's kind column reads "Linked" or "Linked, out of sync", and
   its tooltip names the frame in words ("Turned 30 degrees", "Mirrored",
   "Scaled or sheared"). Conflict and lock notices go to the status bar and
@@ -2644,7 +2644,7 @@ High Contrast** are commands too, so every option is reachable from the
 keyboard. Access keys are always underlined: the studio's Fusion-based style
 draws them without waiting for Alt.
 
-`vibestudio --cli accessibility report` prints every preference, the speech
+`slopstudio --cli accessibility report` prints every preference, the speech
 engine, and the languages the system asks for (`--json` for the same fields);
 `accessibility voices` lists the engine's voices with their ids, and
 `accessibility speak <text>` or `accessibility speak --test` speaks with the
@@ -2691,7 +2691,7 @@ downwards. Changing the renderer or finishing a check reports the result in
 the status bar, which reaches screen readers and speech like every status
 message. A 3D view or material preview that cannot draw says so in its own
 text and accessible description, naming this page. New strings use the
-`ApplicationShell`, `VibeStudioRendering`, `ModelViewport`,
+`ApplicationShell`, `SlopStudioRendering`, `ModelViewport`,
 `MaterialPreviewView` and `RenderCli` contexts.
 
 ## OS-Backed Text To Speech
@@ -2712,7 +2712,7 @@ The engine starts the first time speech is used or the Accessibility page is
 shown, so a session that never speaks never pays for it. When no engine is
 found, Settings says why and how to get one, `accessibility voices` exits with
 the unavailable code, and every message still has its visual or log
-equivalent. `VIBESTUDIO_SPEECH_ENGINE` picks an engine by name (`sapi`, `say`,
+equivalent. `SLOPSTUDIO_SPEECH_ENGINE` picks an engine by name (`sapi`, `say`,
 `spd-say`, `espeak-ng`, `espeak`), turns speech off (`none`), or selects the
 silent `log` engine the tests use, which records what would be said.
 
@@ -2751,7 +2751,7 @@ shell interaction checks.
 
 ## Localization Goals
 
-VibeStudio should be localizable from the beginning, even while translations are
+SlopStudio should be localizable from the beginning, even while translations are
 incomplete. Strings should be written so translators can succeed without code
 changes.
 
@@ -2863,11 +2863,11 @@ that the shell inherited `tr()` from `QMainWindow`, so its strings were
 extracted and looked up under the `QMainWindow` context and could never match a
 catalog entry written for the shell. Shell strings now resolve under their own
 class context. Core modules that are not `QObject`s use explicit
-`QCoreApplication::translate("VibeStudio…", …)` contexts instead —
-`VibeStudioEditorProfiles`, `VibeStudioRuntime`, and siblings — so every string
+`QCoreApplication::translate("SlopStudio…", …)` contexts instead —
+`SlopStudioEditorProfiles`, `SlopStudioRuntime`, and siblings — so every string
 has a stable, intentional context. The modules added this round follow the same
-rule: `VibeStudioEntityDefinitions`, `VibeStudioModelMesh`,
-`VibeStudioPackageCompare`, and `VibeStudioDocumentWatch`.
+rule: `SlopStudioEntityDefinitions`, `SlopStudioModelMesh`,
+`SlopStudioPackageCompare`, and `SlopStudioDocumentWatch`.
 
 `ModelViewport` is listed in `app_moc_headers` alongside `MapViewport`, so the
 strings it paints and reports — status lines, the accessible summary, and its
@@ -2878,7 +2878,7 @@ rather than a base class's.
 `tr()`, `QCoreApplication::translate()`, or a `QT_TRANSLATE_NOOP` marker. It does
 not follow a literal into a function. Most modules in `src/core` and ten in
 `src/app` used to translate through a local helper such as `mapText(const char*)`,
-which called `QCoreApplication::translate("VibeStudioLevelMap", source)`. The
+which called `QCoreApplication::translate("SlopStudioLevelMap", source)`. The
 helper translated at run time, but none of its roughly 4,000 literals reached a
 catalog, so no translation could ever apply to them. Those call sites now call
 `QCoreApplication::translate("<context>", "...")` directly, as
@@ -2887,7 +2887,7 @@ catalog, so no translation could ever apply to them. Those call sites now call
 Text kept in tables and translated later is marked with
 `QT_TRANSLATE_NOOP("<context>", "...")`, using the same context as the call that
 translates it. This covers known compiler issues (`knownIssue`), Quake map
-preflight messages (`addIssue`, context `VibeStudioQuakeMapPreflight`), the
+preflight messages (`addIssue`, context `SlopStudioQuakeMapPreflight`), the
 Levels command table, and generated palette
 names. lupdate's `-tr-function-alias` is deliberately not used: it would file
 these strings under the wrong context.
@@ -2927,23 +2927,23 @@ item above stays unticked until an audit finds none.
 
 `installStudioTranslations()` in `src/app/studio_runtime.*` is called from
 `main()` before the shell is constructed. It removes any previously installed
-VibeStudio translator, then searches these directories in order:
+SlopStudio translator, then searches these directories in order:
 
-1. `$VIBESTUDIO_I18N_DIR`, when set;
+1. `$SLOPSTUDIO_I18N_DIR`, when set;
 2. `<application dir>/i18n`;
 3. `<application dir>/../i18n` (the development build layout);
-4. `<application dir>/../share/vibestudio/i18n` (the installed layout);
+4. `<application dir>/../share/slopstudio/i18n` (the installed layout);
 5. `<application dir>/../../i18n` (the portable package layout);
 6. `<working directory>/i18n`.
 
 The requested language is first resolved to a target (`system` to the
 operating system's language, `zh-TW` to `zh-Hant`, `es-MX` to `es-419`, and so
 on; see [Supported Languages And Regions](#supported-languages-and-regions)).
-Within each directory it tries `vibestudio_<target>.qm`, then the base
+Within each directory it tries `slopstudio_<target>.qm`, then the base
 language, so `es_419` falls back to `es`. File names always use underscores
-(`vibestudio_pt_BR.qm`); until October 2026 the loader looked for the hyphenated
-id (`vibestudio_pt-BR.qm`), so no regional catalog could ever load. The source
-language (`en` or an empty locale) installs `vibestudio_en.qm`, which holds only
+(`slopstudio_pt_BR.qm`); until October 2026 the loader looked for the hyphenated
+id (`slopstudio_pt-BR.qm`), so no regional catalog could ever load. The source
+language (`en` or an empty locale) installs `slopstudio_en.qm`, which holds only
 English plural forms (see below), and skips Qt's own catalogs. For any other
 language, Qt's `qtbase_<locale>.qm` is installed alongside the studio catalog so
 standard dialogs and buttons are translated too. Failures are collected as
@@ -2952,7 +2952,7 @@ refusing to start.
 
 `i18n/meson.build` compiles every checked-in `.ts` file with `lrelease` into
 `<builddir>/i18n` and installs the results to
-`<datadir>/vibestudio/i18n`. `lrelease` is optional: when it is not found, Meson
+`<datadir>/slopstudio/i18n`. `lrelease` is optional: when it is not found, Meson
 prints a message and the application runs in the source language.
 
 Portable packaging discovers those compiled catalogs from the selected Meson
@@ -3012,7 +3012,7 @@ English menus can show Swiss dates. `--set-region` sets it from the CLI.
 plural form through a translator. Without an English catalog the studio showed
 "1 item(s)". `scripts/english_plurals.py --write` asks `lupdate -pluralonly` for
 every plural message and writes English singular and plural forms into
-`i18n/vibestudio_en.ts`, derived from the markup between `%n` and the next
+`i18n/slopstudio_en.ts`, derived from the markup between `%n` and the next
 `%1`..`%9` placeholder (`entr(y)(ies)`, `item(s)`, `match(es)`, and bare plurals
 such as "%n entries") plus a short list of sentences whose verb also changes.
 Without `--write` it checks that every plural message has finished forms, and
@@ -3058,7 +3058,7 @@ checks German numbers, playback rates and Polish plural forms.
 **The other shipped catalogs list every source string, untranslated.**
 `python scripts/extract_translations.py --write` runs lupdate over `src/` into
 every catalog, with relative source locations and `-no-obsolete`. As a result,
-each `i18n/vibestudio_*.ts` file holds every extracted message under its context,
+each `i18n/slopstudio_*.ts` file holds every extracted message under its context,
 marked `type="unfinished"`. `lrelease` compiles a message only when it has
 text: an empty unfinished message is skipped, but an unfinished message that
 carries a draft is compiled (the build does not pass `-nounfinished`), so
@@ -3093,7 +3093,7 @@ tree and catalogs, so extraction drift is visible before release.
 
 ## Supported Languages And Regions
 
-VibeStudio's interface targets 47 languages. A language is on the list when it
+SlopStudio's interface targets 47 languages. A language is on the list when it
 meets at least one of these tests:
 
 - **Reach:** about 50 million or more total speakers in the
@@ -3101,7 +3101,7 @@ meets at least one of these tests:
   standard written form used for desktop software.
 - **Game development market:** it is a language PC game stores localize for
   (the [Steam supported languages](https://partner.steamgames.com/doc/store/localization/languages)
-  list), since VibeStudio's users build and mod games.
+  list), since SlopStudio's users build and mod games.
 - **Written standard:** one language written two ways in software, where a
   reader of one cannot be expected to use the other: Simplified and
   Traditional Chinese, Brazilian and European Portuguese, and Spanish as
@@ -3188,8 +3188,8 @@ complete-loop expansion, displayed-pose triangulation, all-pose validation and
 retained UVs/normals. New faces become the table/viewport selection for finishing.
 Failures identify the boundary vertex, face or pose when available and leave
 the selection/history unchanged. Work uses the existing progress/Cancel surface.
-Strings use `VibeStudioModelBoundaryFill`, `VibeStudioModelDocument` and
-`VibeStudioModelEditor`. The dedicated semantic fixture covers expanded labels,
+Strings use `SlopStudioModelBoundaryFill`, `SlopStudioModelDocument` and
+`SlopStudioModelEditor`. The dedicated semantic fixture covers expanded labels,
 RTL, both high-contrast themes, 200% text, worker locking/cancellation and the
 handoff to UV projection; physical keyboard and screen-reader acceptance remain
 part of the release gate.
@@ -3200,7 +3200,7 @@ tooltip explains closest-pair alignment, wrapping offsets, unequal loops and
 all-pose validation. New faces remain selected for UV/normal finishing; failures
 retain selection/history and use the existing worker status and Cancel action.
 New bridge diagnostics use `ModelBoundaryBridge`; shared validation retains
-`VibeStudioModelBoundaryFill`. The dedicated semantic fixture covers expanded
+`SlopStudioModelBoundaryFill`. The dedicated semantic fixture covers expanded
 labels, RTL, both high-contrast themes, 200% text, worker locking, cancellation
 and the Unwrap handoff. Physical keyboard and screen-reader acceptance remain
 open release requirements.
@@ -3211,7 +3211,7 @@ choice; Apply is unavailable for invalid selections. Scrollable content, wrappin
 labels, mnemonics and a focusable checklist support large text and RTL. Applying
 closes the review before the normal document worker exposes progress and Cancel.
 New strings use `ModelSurfaceDialog`, `ModelSurfaces`, `ModelSurfacesCli` and
-`VibeStudioModelEditor`. Its offscreen fixture exercises semantic controls,
+`SlopStudioModelEditor`. Its offscreen fixture exercises semantic controls,
 expanded labels, both high-contrast themes, 200% text and actual 1x/2x pixels;
 physical keyboard and screen-reader acceptance still require human testing.
 Surfaces selection mode uses the existing named extended-selection table and
@@ -3235,7 +3235,7 @@ standard combo and does not create an undo entry. Technical indices and paths
 retain left-to-right order within RTL forms. Disabled external controls on MDL
 models identify the Animation skin controls. New strings use
 `ModelMaterialSlots`, `ModelMaterialSlotsDialog`, `ModelMaterialSlotsCli` and
-`VibeStudioModelEditor`. Dedicated offscreen fixtures exercise expanded text,
+`SlopStudioModelEditor`. Dedicated offscreen fixtures exercise expanded text,
 RTL, 200% text, high-contrast themes, semantic focus/accessibility metadata,
 worker locking/cancellation and preview pixels. These checks do not substitute
 for physical keyboard or screen-reader acceptance.
@@ -3248,7 +3248,7 @@ The read-only details area retains selectable input identity and textual image
 diagnostics. Loading disables appearance controls; cancellation re-enables them
 after retired work settles. The package picker retains its existing semantic
 table and exact-entry selection. New text uses `ApplicationShell`,
-`VibeStudioModelAppearance` and `ModelAppearanceCli`. Owned offscreen widget
+`SlopStudioModelAppearance` and `ModelAppearanceCli`. Owned offscreen widget
 tests exercise 200% text, both high-contrast themes, expanded strings, RTL,
 focus metadata and exact preview pixels; physical accessibility remains open.
 
@@ -3290,7 +3290,7 @@ axes have textual labels distinct from the transform gizmo. Overlapping tag
 names are placed separately, and the full identities remain in the table.
 The selected name, frame and basis appear as text. Rigid-tag scale controls are
 disabled. Tag selection survives undo/recovery, and playback disables pose fields.
-Strings use `VibeStudioModelEditor`, `VibeStudioModelTags`, and `ModelViewport`.
+Strings use `SlopStudioModelEditor`, `SlopStudioModelTags`, and `ModelViewport`.
 The attachment fixture covers 100% dark, both 200% high-contrast themes, RTL,
 expanded text, and widget-rendered evidence without controlling user input.
 
@@ -3300,7 +3300,7 @@ has matching geometry hatches. Manual time sampling remains available under
 reduced motion; automatic playback is disabled. Worker progress/cancellation and
 close handling reuse the mesh operation surface. Missing references produce a
 text diagnostic and disable bake/export while leaving the recipe editable.
-`ModelAssemblyDialog`, `VibeStudioModelAssembly`, `ModelAssemblyRecovery` and `ModelAssemblyCli` contain the
+`ModelAssemblyDialog`, `SlopStudioModelAssembly`, `ModelAssemblyRecovery` and `ModelAssemblyCli` contain the
 new localizable strings. Semantic widget tests cover source/edit/undo/save,
 cancelled preparation, context changes and expanded RTL/high-contrast layouts;
 physical keyboard and screen-reader acceptance remain on the modeller gate.
@@ -3320,7 +3320,7 @@ one kind of [UV health](MODEL_MESH.md#uv-health) problem with its own pattern:
 dots for stretch, cross-hatching for overlaps, horizontal lines for flipped
 faces and vertical lines with a dashed tile outline for faces outside the tile.
 The legend in the status chip and the view's accessible description name the
-pattern and count the faces (`ModelUvHealth`, `VibeStudioModelUvView`), so no
+pattern and count the faces (`ModelUvHealth`, `SlopStudioModelUvView`), so no
 problem is shown by colour alone. Select Shown Problems and Check UV Health are
 standard toolbar and UV-menu actions; their results go to the editor's live
 status line. The view's modal Scale and Rotate take the profile's keys, accept
@@ -3355,16 +3355,16 @@ components; incomplete charts fail visibly without edits. The operation uses the
 normal progress, cancellation and mutation locking. New shared diagnostics use
 `ModelUvTransform`. Escape or
 focus loss cancels a move. Chart analysis and drawing run on a worker, and picks
-wait for its current result. New strings use `VibeStudioModelUv` and
-`VibeStudioModelUvView` alongside the existing mesh editor contexts. The
+wait for its current result. New strings use `SlopStudioModelUv` and
+`SlopStudioModelUvView` alongside the existing mesh editor contexts. The
 viewport honors high contrast and reduced motion. The shared 3D renderer
 (OpenGL or Vulkan) draws on a cancellable worker, with a visible and accessible rendering state;
 selection waits for the displayed view to catch up. Depth-tested hatches and
 hover edges supplement color without showing hidden faces through the mesh.
 Recovery has a named preference, textual checkpoint status, a keyboard-focusable
 copy list, source details, progress, and cancellation. Invalid payloads retain
-their error in the chooser. New strings use `VibeStudioModelRecovery`,
-`VibeStudioModelEditor` and `VibeStudioModelDocument` contexts. The mesh UI smoke
+their error in the chooser. New strings use `SlopStudioModelRecovery`,
+`SlopStudioModelEditor` and `SlopStudioModelDocument` contexts. The mesh UI smoke
 test exercises edits and widget renders at 100% dark and 200% high-contrast light
 with RTL/expanded labels. This does not substitute for the manual keyboard and
 screen-reader release audit; see [the modeller gate](MODELLER_RELEASE.md).
@@ -3378,8 +3378,8 @@ document-worker progress surface. Package OBJ and native model preview expose a 
 named Cancel Preview control, textual loading/error/material states and detailed
 material diagnostics. Native geometry loading also prevents stale frame export
 and premature editor adoption; cancellation and metadata-only formats remain
-explicit states. Native decode/read diagnostics use `VibeStudioModelMesh`;
-OBJ diagnostics use `VibeStudioModelObj` and include the source line.
+explicit states. Native decode/read diagnostics use `SlopStudioModelMesh`;
+OBJ diagnostics use `SlopStudioModelObj` and include the source line.
 These strings are extracted into all translation catalogues.
 Filled and wireframe viewport preparation use the same background rendering
 state, exposed as text and in the accessible description. Camera/pose changes
@@ -3409,8 +3409,8 @@ actions have native focus, accessible names/descriptions and textual states.
 The package picker filters `.skin` entries, preserves exact occurrence numbers,
 and omits the indexed-texture operation selector. Reading and applying use the
 cancellable document worker. The read-only details view reports material changes,
-unused bindings and attachment markers. Strings use `VibeStudioModelEditor`,
-`VibeStudioModelSkinSource`, `VibeStudioModelSkinBindings` and `ModelSkinBindingsCli`.
+unused bindings and attachment markers. Strings use `SlopStudioModelEditor`,
+`SlopStudioModelSkinSource`, `SlopStudioModelSkinBindings` and `ModelSkinBindingsCli`.
 Automated widget checks cover both high-contrast themes, 200% text, expansion,
 RTL, cancellation, undo and material refresh. Physical keyboard/screen-reader
 acceptance remains open.
@@ -3422,7 +3422,7 @@ path filter, exact entry numbers, operation selector and selection status.
 Unavailable entries cannot be selected; Import Skin requires a selection.
 Package changes invalidate open selections. Payload reads, palette checks and
 decoding run on the cancellable model worker; success and failure are textual.
-The picker uses the `VibeStudioModelSkinSource` translation context.
+The picker uses the `SlopStudioModelSkinSource` translation context.
 Native preview adds named timing, seek-time and entity-phase controls,
 Preview Native Timing, Seek Time and Use Clip Timing. Its status names the active
 native frame, pose, skin member and paused/playing/reduced-motion state. Reduced
@@ -3431,7 +3431,7 @@ smoothing disable while native timing is active. All controls provide descriptio
 inspector. Unsigned flags and exact float header values use left-to-right numeric
 text so opening an imported model does not clamp its metadata. Work runs through
 the normal cancellable document worker; failures remain textual. Native strings
-use `VibeStudioModelMdl`, `VibeStudioModelEditor` and `ModelMdlCli` contexts.
+use `SlopStudioModelMdl`, `SlopStudioModelEditor` and `ModelMdlCli` contexts.
 Automated widget tests cover semantic edits, names/focus, both high-contrast
 themes, 200% text, RTL and expanded labels; manual keyboard and screen-reader
 acceptance remains part of the release gate.
@@ -3456,7 +3456,7 @@ is bounded by the smaller axis. Controls fit together in the scrolled inspector;
 tooltips and accessible descriptions explain selection, padding and texture
 effects. Unwrap/Pack are disabled without selected faces or in Tags mode. Their
 document-worker dialog exposes progress and Cancel; undo restores the old mapping.
-Atlas diagnostics use the `VibeStudioModelUvAtlas` translation context. Widget
+Atlas diagnostics use the `SlopStudioModelUvAtlas` translation context. Widget
 fixtures cover dark and both high-contrast themes, expanded labels, RTL, actual
 1x/2x rendering, rectangular package images and worker locking/cancellation;
 physical keyboard and native screen-reader acceptance remain release gates.
@@ -3476,7 +3476,7 @@ The report identifies exact source indices and normal fallback choices in text;
 selecting a pose-specific row updates the preview. Long summaries wrap, paths
 retain left-to-right direction in RTL layouts, and Cancel is the default action.
 Preparation and saving use the document worker's progress and cancellation.
-Strings use `VibeStudioModelImportRepair` and `ModelImportRepairCli`. Native
+Strings use `SlopStudioModelImportRepair` and `ModelImportRepairCli`. Native
 keyboard and assistive-technology acceptance remain part of the release gate.
 
 The mesh Health inspector uses standard focusable Inspect, category, Select
@@ -3485,7 +3485,7 @@ counts and component highlights; colour is not the only signal. Stale reports
 disable selection and repair, and Tags mode disables geometry health controls.
 Wrapped descriptions state the complete-surface scope and limitations. Inspection
 and repair share the existing cancellable document worker. Strings use the
-`VibeStudioModelEditor` and `VibeStudioModelDocument` contexts. Health fixtures
+`SlopStudioModelEditor` and `SlopStudioModelDocument` contexts. Health fixtures
 exercise public Qt controls and render dark/high-contrast, 100%/200%, RTL and
 expanded labels; native assistive-technology and physical-keyboard checks remain open.
 
@@ -3506,8 +3506,8 @@ Choosing a face pauses playback and synchronizes the exact pose, surface,
 component table and preview. Reports become stale after edits or changes to a
 single scanned pose, including playback; stale navigation is disabled. The
 finder formats bounded results on demand and shares the cancellable document
-worker. New UI and diagnostics use `VibeStudioModelEditor`,
-`VibeStudioModelIntersections` and `ModelIntersectionsCli` translation contexts.
+worker. New UI and diagnostics use `SlopStudioModelEditor`,
+`SlopStudioModelIntersections` and `ModelIntersectionsCli` translation contexts.
 Offscreen checks cover both device scales, 200% text, expanded labels, both
 high-contrast themes, RTL, focus and accessibility metadata. Physical assistive
 technology and keyboard acceptance remain separate release requirements.
@@ -3530,8 +3530,8 @@ handles. Incompatible surface poses and visible attachment previews have textual
 and accessible status. Hidden attachments skip interpolation diagnostics.
 Fraction-only updates do not emit whole-frame editor
 refresh signals. The smooth option and preview rate are session-only. Operations share
-the cancellable document worker. Strings use `VibeStudioModelAnimation`,
-`VibeStudioModelEditor` and `VibeStudioModelDocument`. The animation UI fixture
+the cancellable document worker. Strings use `SlopStudioModelAnimation`,
+`SlopStudioModelEditor` and `SlopStudioModelDocument`. The animation UI fixture
 checks public controls and renders dark/both high-contrast themes, 100%/200%,
 RTL and expanded labels; physical keyboard and native screen-reader acceptance
 remain release work.
@@ -3559,8 +3559,8 @@ and preview rendering is a named combo. UV reset is one undo step. The parts
 list and property controls provide a keyboard path to every modelling edit.
 Shared theme control minimums now include the scaled font height, so scrollable
 forms across modules cannot compress enlarged text into the unscaled minimum.
-All labels and messages use the `VibeStudioModelDesignDialog` or
-`VibeStudioModelDesign` translation context. `model-design-ui-smoke` checks
+All labels and messages use the `SlopStudioModelDesignDialog` or
+`SlopStudioModelDesign` translation context. `model-design-ui-smoke` checks
 100% dark and 200% high-contrast RTL layouts with expanded labels, control
 metadata, transform/UV edits, selection, saved-state tracking, undo/redo,
 validation, package/map handoff, and the real shell's dependency scan without
@@ -3600,8 +3600,8 @@ the scrolling body and joins cancellation before destruction. Screen-reader row
 text identifies the source occurrence or new entry and before/after names. New
 WADs use the same review without an intermediate save/reopen. Labels wrap and
 content scrolls at 200% with RTL/expanded text; table cells preserve full tooltips.
-Strings use PackageWadGroupsDialog, VibeStudioPackageWadGroups and the shared
-VibeStudioPackageSubset scan context. Native assistive-technology acceptance
+Strings use PackageWadGroupsDialog, SlopStudioPackageWadGroups and the shared
+SlopStudioPackageSubset scan context. Native assistive-technology acceptance
 remains part of the package release audit.
 
 Doom launch preparation uses a window-modal Qt worker dialog with named status,
@@ -3750,7 +3750,7 @@ Levels entity inspector and Camera Details control. Loading, omitted surfaces,
 unavailable appearances and the static-pose remedy are textual states; colors
 are not the only signal. Details remain selectable, wrapped, read-only text
 with map selectors and exact source paths/hashes. New diagnostics are extracted
-through the `VibeStudioLevelModelAppearance` and `VibeStudioLevelMaterials`
+through the `SlopStudioLevelModelAppearance` and `SlopStudioLevelMaterials`
 translation contexts. The dedicated Qt UI test exercises inspector edits,
 history, high contrast, RTL and expanded translations; owned renders are checked
 at actual 1x and 2x display scale. Native platform/screen-reader acceptance
@@ -3791,7 +3791,7 @@ fit, the views' share, the chrome's height and every shown label, button and
 check box for clipping at 1280x720, 1366x768 and 1600x1000, with every sidebar
 page opened in turn, at 100% dark, 200%
 high-contrast light right to left with longer strings, and 200% high-contrast
-dark in English, and saves renders under `VIBESTUDIO_MODELLER_EVIDENCE`. See
+dark in English, and saves renders under `SLOPSTUDIO_MODELLER_EVIDENCE`. See
 [Large text and small screens](MODELLER_PROFILES.md#large-text-and-small-screens).
 
 Modeller dialogs open within the screen they appear on: `fitDialogToScreen`
@@ -3805,8 +3805,8 @@ the screen has room. The same test opens nineteen modeller dialogs at 200% text
 on a 1280x720 screen, in English and with longer strings, and checks that each
 one and its buttons fit and that no shown label, button or check box is cut
 short. See [Dialogs on small screens](MODELLER_PROFILES.md#dialogs-on-small-screens).
-Profile, sidebar and format strings use the `VibeStudioModelControls`,
-`VibeStudioModelSidebar`, `VibeStudioModelSkeleton` and `VibeStudioModelMesh`
+Profile, sidebar and format strings use the `SlopStudioModelControls`,
+`SlopStudioModelSidebar`, `SlopStudioModelSkeleton` and `SlopStudioModelMesh`
 contexts. `model-profiles-ui-smoke` runs each profile at 100% dark and at 200%
 high-contrast light right to left. Real-device keyboard and screen-reader review
 remains part of the [modeller gate](MODELLER_RELEASE.md).
@@ -3855,7 +3855,7 @@ hides when the view has no room. `model-editor-keyboard-ui-smoke` covers the
 keyboard routes, and `model-navigation-gizmo-ui-smoke` checks the gizmo
 against the heads-up tags at 100% and 200% text in both directions, in 800x600
 and 500x400 views and a four-view pane, with renders under
-`VIBESTUDIO_MODELLER_EVIDENCE`.
+`SLOPSTUDIO_MODELLER_EVIDENCE`.
 
 ## Brush topology controls
 

@@ -5,7 +5,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LanguageHoverPart {
 	QString kind; // plaintext, markdown, or code; never executable content.
@@ -33,4 +33,4 @@ struct LanguageHover {
 // the exact source snapshot and may not split Unicode surrogate pairs.
 LanguageHover parseLanguageHover(const QJsonValue& response, const QString& source, int line, int character);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -20,7 +20,7 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -112,7 +112,7 @@ ModelUvView::ModelUvView(QWidget *parent) : QLabel(parent)
 	setAlignment(Qt::AlignCenter);
 	setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 	setMinimumSize(200, 180);
-	setAccessibleName(QCoreApplication::translate("VibeStudioModelUvView", "UV layout"));
+	setAccessibleName(QCoreApplication::translate("SlopStudioModelUvView", "UV layout"));
 	announce();
 }
 ModelUvView::~ModelUvView()
@@ -254,20 +254,20 @@ QString ModelUvView::healthLegend() const
 	if (m_overlay == ModelUvHealthOverlay::None)
 		return {};
 	if (!m_health)
-		return QCoreApplication::translate("VibeStudioModelUvView", "Measuring UV health…");
+		return QCoreApplication::translate("SlopStudioModelUvView", "Measuring UV health…");
 	const int count = int(m_health->faces(modelUvHealthOverlayMask(m_overlay)).size());
 	switch (m_overlay)
 	{
 	case ModelUvHealthOverlay::Stretch:
-		return QCoreApplication::translate("VibeStudioModelUvView", "Dotted faces stretch texels beyond a factor of %1: %Ln faces.", nullptr, count)
+		return QCoreApplication::translate("SlopStudioModelUvView", "Dotted faces stretch texels beyond a factor of %1: %Ln faces.", nullptr, count)
 			.arg(localeNumber(m_health->stretchLimit, 3));
 	case ModelUvHealthOverlay::Overlaps:
-		return QCoreApplication::translate("VibeStudioModelUvView", "Cross-hatched faces overlap other faces: %Ln faces.", nullptr, count);
+		return QCoreApplication::translate("SlopStudioModelUvView", "Cross-hatched faces overlap other faces: %Ln faces.", nullptr, count);
 	case ModelUvHealthOverlay::Flipped:
-		return QCoreApplication::translate("VibeStudioModelUvView", "Horizontally hatched faces are flipped against their island: %Ln faces.",
+		return QCoreApplication::translate("SlopStudioModelUvView", "Horizontally hatched faces are flipped against their island: %Ln faces.",
 										   nullptr, count);
 	case ModelUvHealthOverlay::OutsideTile:
-		return QCoreApplication::translate("VibeStudioModelUvView",
+		return QCoreApplication::translate("SlopStudioModelUvView",
 										   "Vertically hatched faces leave the dashed 0–1 tile that MDL and MD2 require: %Ln faces.", nullptr,
 										   count);
 	case ModelUvHealthOverlay::None:
@@ -377,7 +377,7 @@ void ModelUvView::startRender()
 			}
 			catch (const std::bad_alloc &)
 			{
-				work->error = QCoreApplication::translate("VibeStudioModelUvView", "Unable to allocate the UV preview. Reduce its size.");
+				work->error = QCoreApplication::translate("SlopStudioModelUvView", "Unable to allocate the UV preview. Reduce its size.");
 			}
 		});
 	thread->setParent(this);
@@ -405,7 +405,7 @@ void ModelUvView::startRender()
 					else
 					{
 						m_error = work->error.isEmpty()
-									  ? QCoreApplication::translate("VibeStudioModelUvView", "Unable to render this UV layout.")
+									  ? QCoreApplication::translate("SlopStudioModelUvView", "Unable to render this UV layout.")
 									  : work->error;
 						clear();
 					}
@@ -433,11 +433,11 @@ QString ModelUvView::summary() const
 	}
 	if (!m_hasSource)
 	{
-		return QCoreApplication::translate("VibeStudioModelUvView", "No UV layout is open.");
+		return QCoreApplication::translate("SlopStudioModelUvView", "No UV layout is open.");
 	}
 	QString text =
 		QCoreApplication::translate(
-			"VibeStudioModelUvView",
+			"SlopStudioModelUvView",
 			"UV layout for %1. Islands: %2; marked seams: %3. Dotted edges mark seams; hatching, dashed edges and square points show "
 			"selection. Middle-drag or the arrow keys pan (Shift+arrows in small steps), the wheel or + and - zoom, F frames the "
 			"selection, Home frames all UVs. Drag the centre square to move UVs; Escape cancels. Numeric UV controls are in Surface.")
@@ -450,7 +450,7 @@ QString ModelUvView::summary() const
 	}
 	if (isRendering())
 	{
-		text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelUvView", "Updating UV layout…");
+		text += QLatin1Char(' ') + QCoreApplication::translate("SlopStudioModelUvView", "Updating UV layout…");
 	}
 	if (m_modal != ModelUvModal::None)
 	{
@@ -458,7 +458,7 @@ QString ModelUvView::summary() const
 	}
 	else if (m_moving)
 	{
-		text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioModelUvView", "UV move preview: U %1, V %2.")
+		text += QLatin1Char(' ') + QCoreApplication::translate("SlopStudioModelUvView", "UV move preview: U %1, V %2.")
 									   .arg(localeNumber(m_delta.u, 7))
 									   .arg(localeNumber(m_delta.v, 7));
 	}
@@ -779,19 +779,19 @@ QString ModelUvView::modalSummary() const
 	if (m_modal == ModelUvModal::None)
 		return {};
 	if (m_modal == ModelUvModal::Rotate)
-		return QCoreApplication::translate("VibeStudioModelUvView",
+		return QCoreApplication::translate("SlopStudioModelUvView",
 										   "UV rotate preview: %1 degrees. Type a value or move the pointer; Enter applies, Escape cancels.")
 			.arg(localeNumber(m_modalValue, 6));
 	const auto value = localeNumber(m_modalValue, 6);
 	if (m_modalAxis == 0)
-		return QCoreApplication::translate("VibeStudioModelUvView", "UV scale preview: U × %1. Type a value or move the pointer; Y frees V; "
+		return QCoreApplication::translate("SlopStudioModelUvView", "UV scale preview: U × %1. Type a value or move the pointer; Y frees V; "
 																	"Enter applies, Escape cancels.")
 			.arg(value);
 	if (m_modalAxis == 1)
-		return QCoreApplication::translate("VibeStudioModelUvView", "UV scale preview: V × %1. Type a value or move the pointer; X frees U; "
+		return QCoreApplication::translate("SlopStudioModelUvView", "UV scale preview: V × %1. Type a value or move the pointer; X frees U; "
 																	"Enter applies, Escape cancels.")
 			.arg(value);
-	return QCoreApplication::translate("VibeStudioModelUvView", "UV scale preview: × %1. Type a value or move the pointer; X or Y limits it "
+	return QCoreApplication::translate("SlopStudioModelUvView", "UV scale preview: × %1. Type a value or move the pointer; X or Y limits it "
 																"to one axis; Enter applies, Escape cancels.")
 		.arg(value);
 }
@@ -849,8 +849,8 @@ void ModelUvView::paintEvent(QPaintEvent *event)
 		painter.drawLine(handle + QPointF(0, -3), handle + QPointF(0, 3));
 	}
 	const QString status = !m_error.isEmpty() ? m_error
-						   : isRendering()	  ? QCoreApplication::translate("VibeStudioModelUvView", "Updating UV layout…")
-						   : m_topology		  ? QCoreApplication::translate("VibeStudioModelUvView", "Islands: %1 · Seams: %2")
+						   : isRendering()	  ? QCoreApplication::translate("SlopStudioModelUvView", "Updating UV layout…")
+						   : m_topology		  ? QCoreApplication::translate("SlopStudioModelUvView", "Islands: %1 · Seams: %2")
 											  .arg(m_topology->islands.size())
 											  .arg(m_surface.uvSeams.size())
 										: QString();
@@ -1073,4 +1073,4 @@ bool ModelUvView::event(QEvent *event)
 	}
 	return QLabel::event(event);
 }
-} // namespace vibestudio
+} // namespace slopstudio

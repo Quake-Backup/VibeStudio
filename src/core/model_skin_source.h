@@ -3,7 +3,7 @@
 #include "core/model_mdl.h"
 #include "core/package_archive.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelSkinSourceReference
 {
@@ -31,4 +31,4 @@ bool resolveModelSkinSource(const PackageArchiveReader &archive, const ModelSkin
 bool readModelSkinSource(const PackageArchiveReader &archive, const ModelSkinSourceReference &reference,
 						 const IdTechPalette &fallbackPalette, const QString &paletteId, ModelMdlSkinInput *skin,
 						 ModelSkinSourceReceipt *receipt = nullptr, QString *error = nullptr, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

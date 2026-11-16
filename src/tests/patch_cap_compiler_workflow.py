@@ -1,4 +1,4 @@
-"""Optional VibeMap3 cap, persistence and PK3 workflow with generated assets.
+"""Optional SlopMap3 cap, persistence and PK3 workflow with generated assets.
 
 Requires --binary, --compiler and --output-root below this project's .agents/tmp.
 Uses no game data or game launch. Put the built application's Qt runtime on PATH.

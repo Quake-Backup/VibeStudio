@@ -9,7 +9,7 @@
 #include <QtEndian>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool ok, const char* text, const QString& detail = {}) { if (!ok) { std::cerr << text << ": " << detail.toStdString() << '\n'; } return ok; }
 void put32(QByteArray& bytes, int offset, quint32 n) { qToLittleEndian(n, bytes.data() + offset); }

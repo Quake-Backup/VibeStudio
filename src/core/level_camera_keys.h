@@ -4,7 +4,7 @@
 #include <QPointF>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 struct EditorProfileDescriptor;
 struct CameraKeyMotion {
 	double forward = 0.0;
@@ -68,4 +68,4 @@ inline constexpr int kLevelCameraMoveSpeedStep = 250;
 // or than `automaticSpeed`, the map-scaled speed in use, when `speed` is 0.
 // Returns `speed` unchanged when no listed speed lies that way.
 [[nodiscard]] int levelCameraSteppedMoveSpeed(int speed, int direction, double automaticSpeed);
-} // namespace vibestudio
+} // namespace slopstudio

@@ -5,7 +5,7 @@
 
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 class PackageStagingModel;
@@ -78,4 +78,4 @@ bool saveAudioWav(const AudioClip& clip, const QString& path, bool overwrite, co
 bool stageAudioWav(const QByteArray& wav, const QString& virtualPath, PackageStagingModel* staging, bool replace,
                    QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

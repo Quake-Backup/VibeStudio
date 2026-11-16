@@ -40,7 +40,7 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
@@ -53,7 +53,7 @@
 #include <utility>
 #include <vector>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -401,7 +401,7 @@ int main(int argc, char** argv)
 				expect(until([&] { return camera->isVisible() && camera->isEnabled(); }), "the camera comes back");
 				check("and draws with the clip turned on while hidden", QString());
 
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				if (nrc) {
 					// NetRadiant Custom's keys, pressed in the camera.
 					shell.activateWindow();

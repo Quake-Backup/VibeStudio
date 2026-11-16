@@ -9,7 +9,7 @@ class QTreeWidget;
 class QLabel;
 class QPushButton;
 
-namespace vibestudio
+namespace slopstudio
 {
 class AudioTempoDialog final : public QDialog {
 	Q_OBJECT
@@ -33,4 +33,4 @@ class AudioTempoDialog final : public QDialog {
 	QLabel *m_status = nullptr;
 	QPushButton *m_removeTempo = nullptr, *m_removeMeter = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -16,8 +16,8 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -89,7 +89,7 @@ int main(int argc, char **argv)
 	expect(applyModelEdit(&md2, size, nullptr, &error) && modelMd2SkinSizeMismatch(md2, {128, 64}).isEmpty(), "setting the MD2 size clears it",
 		   error);
 	// CLI: model mdl --operation export-skin.
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	QTemporaryDir temp(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("skin-handoff-XXXXXX"));
 	if (argc > 1 && temp.isValid())
 	{

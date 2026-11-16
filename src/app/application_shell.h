@@ -90,7 +90,7 @@ class QToolButton;
 class QTreeWidget;
 class QTreeWidgetItem;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelMapComponentSet;
 struct LevelSurfaceFacePicks;
@@ -454,7 +454,7 @@ private:
 	QWidget* buildSidePanel();
 	void setMode(StudioMode mode);
 	[[nodiscard]] StudioMode currentMode() const;
-	// "<page> — <project> — VibeStudio", for the task bar and window switchers.
+	// "<page> — <project> — SlopStudio", for the task bar and window switchers.
 	void refreshWindowTitle();
 	// Copies each page header's context line onto its Workspace tile.
 	void refreshWorkspaceTiles();
@@ -1950,7 +1950,7 @@ private:
 	// Runs the pipeline and, once it succeeds, launches the game with the map
 	// it built (F5).
 	void buildAndLaunch();
-	// Leak trails: the point file a leaking VibeMap2 or VibeMap3 run writes, drawn
+	// Leak trails: the point file a leaking SlopMap2 or SlopMap3 run writes, drawn
 	// over the open map. A build of the open map shows or clears its trail by
 	// itself; the Build menu loads one by hand.
 	bool showLeakTrail(const QString& pointFilePath);
@@ -3279,4 +3279,4 @@ private:
 	std::atomic_bool m_buildPipelineCancelRequested = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

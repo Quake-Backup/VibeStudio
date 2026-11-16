@@ -23,7 +23,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -709,4 +709,4 @@ void ModelConstraintsDialog::choose(ModelClipStackAction action)
 	m_edit = edit;
 	accept();
 }
-} // namespace vibestudio
+} // namespace slopstudio

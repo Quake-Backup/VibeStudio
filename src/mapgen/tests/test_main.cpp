@@ -167,7 +167,7 @@ void generation_matrix() {
     for (const std::string &prompt : prompts) {
         const qmg::PipelineResult result = qmg::GenerationPipeline{}.run(prompt);
         check(result.validation.ok(), "generated plan passes hard validation: " + prompt);
-        // VibeStudio: the scalar ranker replaces ggml; the report keeps its keys with these values.
+        // SlopStudio: the scalar ranker replaces ggml; the report keeps its keys with these values.
         check(result.ggml_backend == qmg::kLayoutRankerBackend, "generation records the ranker backend");
         check(result.ggml_version == qmg::kLayoutRankerNotLinked, "generation records that ggml is not linked");
         check(result.ggml_commit == qmg::kLayoutRankerNotLinked, "generation records that ggml is not linked");

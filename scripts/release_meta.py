@@ -17,8 +17,8 @@ VERSION_FILE = ROOT / "VERSION"
 CHANGELOG = ROOT / "CHANGELOG.md"
 CURATED_NOTES = ROOT / "docs" / "releases"
 
-PROJECT = "VibeStudio"
-REPOSITORY = "themuffinator/VibeStudio"
+PROJECT = "SlopStudio"
+REPOSITORY = "themuffinator/SlopStudio"
 TAG_PREFIX = "v"
 PRERELEASE_LABELS = ("alpha", "beta", "rc")
 

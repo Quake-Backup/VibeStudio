@@ -3,7 +3,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // A left/right symmetric rig across Y = 0: root, spine, and l_/r_ arms with
 // hands. Clip "walk" swings the left arm about Z by 20 degrees per sample.
@@ -67,4 +67,4 @@ inline QByteArray copyPoseBytes(const ModelMesh &mesh, int clip, int first, int 
 	ModelPoseClipboard clipboard;
 	return copyModelPose(mesh, options, &clipboard) ? modelPoseClipboardBytes(clipboard) : QByteArray();
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

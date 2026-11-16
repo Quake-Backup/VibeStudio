@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -283,18 +283,18 @@ bool readDynamicTables(BitReader* reader, HuffmanTable* literal, HuffmanTable* d
 	quint32 hdist = 0;
 	quint32 hclen = 0;
 	if (!reader->readBits(5, &hlit) || !reader->readBits(5, &hdist) || !reader->readBits(4, &hclen)) {
-		*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream ended inside a dynamic block header.");
+		*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream ended inside a dynamic block header.");
 		return false;
 	}
 	const int literalCount = static_cast<int>(hlit) + 257;
 	const int distanceCount = static_cast<int>(hdist) + 1;
 	const int codeLengthCount = static_cast<int>(hclen) + 4;
 	if (literalCount > kLiteralAlphabetMax) {
-		*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate dynamic block declares too many literal codes.");
+		*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate dynamic block declares too many literal codes.");
 		return false;
 	}
 	if (distanceCount > kDistanceAlphabetMax) {
-		*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate dynamic block declares too many distance codes.");
+		*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate dynamic block declares too many distance codes.");
 		return false;
 	}
 
@@ -302,7 +302,7 @@ bool readDynamicTables(BitReader* reader, HuffmanTable* literal, HuffmanTable* d
 	for (int i = 0; i < codeLengthCount; ++i) {
 		quint32 value = 0;
 		if (!reader->readBits(3, &value)) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream ended inside the code length alphabet.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream ended inside the code length alphabet.");
 			return false;
 		}
 		codeLengthLengths[kCodeLengthOrder[i]] = static_cast<quint8>(value);
@@ -310,7 +310,7 @@ bool readDynamicTables(BitReader* reader, HuffmanTable* literal, HuffmanTable* d
 
 	HuffmanTable codeLengthTable;
 	if (!buildHuffman(codeLengthLengths, kCodeLengthAlphabet, &codeLengthTable) || codeLengthTable.codeCount == 0) {
-		*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate code length alphabet is malformed.");
+		*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate code length alphabet is malformed.");
 		return false;
 	}
 
@@ -320,11 +320,11 @@ bool readDynamicTables(BitReader* reader, HuffmanTable* literal, HuffmanTable* d
 	while (index < totalLengths) {
 		const int symbol = decodeSymbol(reader, codeLengthTable);
 		if (symbol == kDecodeTruncated) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream ended inside the code length list.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream ended inside the code length list.");
 			return false;
 		}
 		if (symbol < 0 || symbol >= kCodeLengthAlphabet) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate code length list contains an invalid code.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate code length list contains an invalid code.");
 			return false;
 		}
 		if (symbol < 16) {
@@ -336,30 +336,30 @@ bool readDynamicTables(BitReader* reader, HuffmanTable* literal, HuffmanTable* d
 		quint32 extra = 0;
 		if (symbol == 16) {
 			if (index == 0) {
-				*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate code length repeat has no previous length.");
+				*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate code length repeat has no previous length.");
 				return false;
 			}
 			if (!reader->readBits(2, &extra)) {
-				*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream ended inside a code length repeat.");
+				*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream ended inside a code length repeat.");
 				return false;
 			}
 			repeat = 3 + static_cast<int>(extra);
 			value = lengths[static_cast<size_t>(index - 1)];
 		} else if (symbol == 17) {
 			if (!reader->readBits(3, &extra)) {
-				*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream ended inside a code length repeat.");
+				*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream ended inside a code length repeat.");
 				return false;
 			}
 			repeat = 3 + static_cast<int>(extra);
 		} else {
 			if (!reader->readBits(7, &extra)) {
-				*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream ended inside a code length repeat.");
+				*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream ended inside a code length repeat.");
 				return false;
 			}
 			repeat = 11 + static_cast<int>(extra);
 		}
 		if (repeat > totalLengths - index) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate code length repeat runs past the end of the alphabet.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate code length repeat runs past the end of the alphabet.");
 			return false;
 		}
 		for (int i = 0; i < repeat; ++i) {
@@ -368,21 +368,21 @@ bool readDynamicTables(BitReader* reader, HuffmanTable* literal, HuffmanTable* d
 	}
 
 	if (!buildHuffman(lengths.data(), literalCount, literal) || literal->incomplete) {
-		*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate literal/length code table is malformed.");
+		*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate literal/length code table is malformed.");
 		return false;
 	}
 	if (lengths[static_cast<size_t>(kEndOfBlockSymbol)] == 0) {
-		*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate literal/length code table has no end-of-block code.");
+		*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate literal/length code table has no end-of-block code.");
 		return false;
 	}
 	if (!buildHuffman(lengths.data() + literalCount, distanceCount, distance)) {
-		*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate distance code table is malformed.");
+		*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate distance code table is malformed.");
 		return false;
 	}
 	// A distance table with a single code is incomplete but legal in practice;
 	// anything else that is incomplete is rejected.
 	if (distance->incomplete && distance->codeCount > 1) {
-		*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate distance code table is incomplete.");
+		*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate distance code table is incomplete.");
 		return false;
 	}
 	return true;
@@ -401,7 +401,7 @@ public:
 	bool append(char byte)
 	{
 		if (size_ >= cap_) {
-			*error_ = QCoreApplication::translate("VibeStudioDeflate", "Deflate output is larger than expected.");
+			*error_ = QCoreApplication::translate("SlopStudioDeflate", "Deflate output is larger than expected.");
 			return false;
 		}
 		window_[static_cast<size_t>(size_ % kWindowSize)] = byte;
@@ -427,11 +427,11 @@ public:
 	bool flush()
 	{
 		if (isCancelled_ && isCancelled_()) {
-			*error_ = QCoreApplication::translate("VibeStudioDeflate", "Decompression cancelled.");
+			*error_ = QCoreApplication::translate("SlopStudioDeflate", "Decompression cancelled.");
 			return false;
 		}
 		if (!pending_.isEmpty() && !sink_(QByteArrayView(pending_))) {
-			*error_ = QCoreApplication::translate("VibeStudioDeflate", "Unable to deliver decompressed bytes.");
+			*error_ = QCoreApplication::translate("SlopStudioDeflate", "Unable to deliver decompressed bytes.");
 			return false;
 		}
 		pending_.clear();
@@ -458,11 +458,11 @@ bool inflateHuffmanBlock(BitReader* reader,
 	for (;;) {
 		const int symbol = decodeSymbol(reader, literal);
 		if (symbol == kDecodeTruncated) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream ended inside a compressed block.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream ended inside a compressed block.");
 			return false;
 		}
 		if (symbol < 0) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate block contains an invalid literal/length code.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate block contains an invalid literal/length code.");
 			return false;
 		}
 		if (symbol == kEndOfBlockSymbol) {
@@ -470,7 +470,7 @@ bool inflateHuffmanBlock(BitReader* reader,
 		}
 		if (symbol < kEndOfBlockSymbol) {
 			if (out->size() + 1 > cap) {
-				*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate output is larger than expected.");
+				*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate output is larger than expected.");
 				return false;
 			}
 			if (!out->append(static_cast<char>(static_cast<quint8>(symbol)))) { return false; }
@@ -478,41 +478,41 @@ bool inflateHuffmanBlock(BitReader* reader,
 		}
 		const int lengthIndex = symbol - 257;
 		if (lengthIndex >= 29) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate block uses a reserved length code.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate block uses a reserved length code.");
 			return false;
 		}
 		quint32 lengthExtra = 0;
 		if (!reader->readBits(kLengthExtra[lengthIndex], &lengthExtra)) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream ended inside a length code.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream ended inside a length code.");
 			return false;
 		}
 		const qsizetype length = static_cast<qsizetype>(kLengthBase[lengthIndex]) + static_cast<qsizetype>(lengthExtra);
 
 		const int distanceSymbol = decodeSymbol(reader, distance);
 		if (distanceSymbol == kDecodeTruncated) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream ended inside a distance code.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream ended inside a distance code.");
 			return false;
 		}
 		if (distanceSymbol < 0) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate block contains an invalid distance code.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate block contains an invalid distance code.");
 			return false;
 		}
 		if (distanceSymbol >= kDistanceAlphabetMax) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate block uses a reserved distance code.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate block uses a reserved distance code.");
 			return false;
 		}
 		quint32 distanceExtra = 0;
 		if (!reader->readBits(kDistanceExtra[distanceSymbol], &distanceExtra)) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream ended inside a distance code.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream ended inside a distance code.");
 			return false;
 		}
 		const qsizetype dist = static_cast<qsizetype>(kDistanceBase[distanceSymbol]) + static_cast<qsizetype>(distanceExtra);
 		if (dist > out->size()) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate back reference points before the start of the output.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate back reference points before the start of the output.");
 			return false;
 		}
 		if (out->size() + length > cap) {
-			*error = QCoreApplication::translate("VibeStudioDeflate", "Deflate output is larger than expected.");
+			*error = QCoreApplication::translate("SlopStudioDeflate", "Deflate output is larger than expected.");
 			return false;
 		}
 		if (!out->copy(dist, length)) { return false; }
@@ -524,7 +524,7 @@ InflateStreamResult decodeStream(BitReader& reader, qint64 size, qint64 expected
 {
 	InflateStreamResult result;
 	if (size <= 0) {
-		result.error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream is empty.");
+		result.error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream is empty.");
 		return result;
 	}
 	const qint64 cap = expectedSize >= 0
@@ -536,13 +536,13 @@ InflateStreamResult decodeStream(BitReader& reader, qint64 size, qint64 expected
 	// loop always terminates.
 	while (!finalBlock) {
 		if (isCancelled && isCancelled()) {
-			result.error = QCoreApplication::translate("VibeStudioDeflate", "Decompression cancelled.");
+			result.error = QCoreApplication::translate("SlopStudioDeflate", "Decompression cancelled.");
 			return result;
 		}
 		quint32 bfinal = 0;
 		quint32 btype = 0;
 		if (!reader.readBits(1, &bfinal) || !reader.readBits(2, &btype)) {
-			result.error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream ended inside a block header.");
+			result.error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream ended inside a block header.");
 			return result;
 		}
 		finalBlock = bfinal != 0;
@@ -551,22 +551,22 @@ InflateStreamResult decodeStream(BitReader& reader, qint64 size, qint64 expected
 			reader.alignToByte();
 			const uchar* header = nullptr;
 			if (!reader.takeBytes(4, &header)) {
-				result.error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stored block header is truncated.");
+				result.error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stored block header is truncated.");
 				return result;
 			}
 			const quint32 length = static_cast<quint32>(header[0]) | (static_cast<quint32>(header[1]) << 8);
 			const quint32 inverse = static_cast<quint32>(header[2]) | (static_cast<quint32>(header[3]) << 8);
 			if (((~length) & 0xffffu) != inverse) {
-				result.error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stored block length check failed.");
+				result.error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stored block length check failed.");
 				return result;
 			}
 			const uchar* payload = nullptr;
 			if (!reader.takeBytes(static_cast<qsizetype>(length), &payload)) {
-				result.error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stored block is truncated.");
+				result.error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stored block is truncated.");
 				return result;
 			}
 			if (out.size() + static_cast<qsizetype>(length) > cap) {
-				result.error = QCoreApplication::translate("VibeStudioDeflate", "Deflate output is larger than expected.");
+				result.error = QCoreApplication::translate("SlopStudioDeflate", "Deflate output is larger than expected.");
 				return result;
 			}
 			if (!out.append(payload, static_cast<qsizetype>(length))) { return result; }
@@ -585,7 +585,7 @@ InflateStreamResult decodeStream(BitReader& reader, qint64 size, qint64 expected
 				return result;
 			}
 		} else {
-			result.error = QCoreApplication::translate("VibeStudioDeflate", "Deflate stream uses a reserved block type.");
+			result.error = QCoreApplication::translate("SlopStudioDeflate", "Deflate stream uses a reserved block type.");
 			return result;
 		}
 	}
@@ -1435,14 +1435,14 @@ InflateStreamResult inflateRawToSink(QIODevice& input, qint64 inputBytes, qint64
 {
 	InflateStreamResult result;
 	if (inputBytes < 0 || expectedSize < 0 || !sink || !input.isReadable()) {
-		result.error = QCoreApplication::translate("VibeStudioDeflate", "Invalid streaming decompression request.");
+		result.error = QCoreApplication::translate("SlopStudioDeflate", "Invalid streaming decompression request.");
 		return result;
 	}
 	BitReader reader(input, inputBytes, isCancelled);
 	result = decodeStream(reader, inputBytes, expectedSize, sink, isCancelled);
 	if (!result.ok && isCancelled && isCancelled()) {
 		result.cancelled = true;
-		result.error = QCoreApplication::translate("VibeStudioDeflate", "Decompression cancelled.");
+		result.error = QCoreApplication::translate("SlopStudioDeflate", "Decompression cancelled.");
 	}
 	return result;
 }
@@ -1451,7 +1451,7 @@ InflateResult inflateZlib(const QByteArray& input, qint64 expectedSize, const st
 {
 	InflateResult result;
 	if (input.size() < 6) {
-		result.error = QCoreApplication::translate("VibeStudioDeflate", "Zlib stream is too short.");
+		result.error = QCoreApplication::translate("SlopStudioDeflate", "Zlib stream is too short.");
 		return result;
 	}
 	// RFC 1950 2.2: CMF/FLG header.
@@ -1459,19 +1459,19 @@ InflateResult inflateZlib(const QByteArray& input, qint64 expectedSize, const st
 	const quint32 cmf = data[0];
 	const quint32 flg = data[1];
 	if ((cmf & 0x0fu) != 8u) {
-		result.error = QCoreApplication::translate("VibeStudioDeflate", "Zlib stream does not use the deflate compression method.");
+		result.error = QCoreApplication::translate("SlopStudioDeflate", "Zlib stream does not use the deflate compression method.");
 		return result;
 	}
 	if (((cmf >> 4) & 0x0fu) > 7u) {
-		result.error = QCoreApplication::translate("VibeStudioDeflate", "Zlib stream declares an unsupported window size.");
+		result.error = QCoreApplication::translate("SlopStudioDeflate", "Zlib stream declares an unsupported window size.");
 		return result;
 	}
 	if (((cmf << 8) + flg) % 31u != 0u) {
-		result.error = QCoreApplication::translate("VibeStudioDeflate", "Zlib header check bits are invalid.");
+		result.error = QCoreApplication::translate("SlopStudioDeflate", "Zlib header check bits are invalid.");
 		return result;
 	}
 	if ((flg & 0x20u) != 0u) {
-		result.error = QCoreApplication::translate("VibeStudioDeflate", "Zlib streams with a preset dictionary are not supported.");
+		result.error = QCoreApplication::translate("SlopStudioDeflate", "Zlib streams with a preset dictionary are not supported.");
 		return result;
 	}
 
@@ -1482,7 +1482,7 @@ InflateResult inflateZlib(const QByteArray& input, qint64 expectedSize, const st
 	const qint64 payloadEnd = 2 + result.bytesConsumed;
 	if (payloadEnd + 4 > input.size()) {
 		InflateResult failure;
-		failure.error = QCoreApplication::translate("VibeStudioDeflate", "Zlib stream is missing its Adler-32 checksum.");
+		failure.error = QCoreApplication::translate("SlopStudioDeflate", "Zlib stream is missing its Adler-32 checksum.");
 		return failure;
 	}
 	const auto* tail = data + payloadEnd;
@@ -1492,7 +1492,7 @@ InflateResult inflateZlib(const QByteArray& input, qint64 expectedSize, const st
 		| static_cast<quint32>(tail[3]);
 	if (stored != adler32Bytes(result.data)) {
 		InflateResult failure;
-		failure.error = QCoreApplication::translate("VibeStudioDeflate", "Zlib Adler-32 checksum does not match the decompressed data.");
+		failure.error = QCoreApplication::translate("SlopStudioDeflate", "Zlib Adler-32 checksum does not match the decompressed data.");
 		return failure;
 	}
 	result.bytesConsumed = payloadEnd + 4;
@@ -1579,7 +1579,7 @@ struct DeflateStreamEncoder::State {
 		if (!status.error.isEmpty()) return true;
 		if (isCancelled && isCancelled()) {
 			status.cancelled = true;
-			fail(QCoreApplication::translate("VibeStudioDeflate", "Compression cancelled."));
+			fail(QCoreApplication::translate("SlopStudioDeflate", "Compression cancelled."));
 			return true;
 		}
 		return false;
@@ -1591,9 +1591,9 @@ struct DeflateStreamEncoder::State {
 		const QByteArray bytes = writer.takeBytes();
 		if (bytes.isEmpty()) return true;
 		if (bytes.size() > std::numeric_limits<qint64>::max() - status.bytesWritten)
-			return fail(QCoreApplication::translate("VibeStudioDeflate", "Compressed stream is too large."));
+			return fail(QCoreApplication::translate("SlopStudioDeflate", "Compressed stream is too large."));
 		if (!sink(bytes))
-			return fail(QCoreApplication::translate("VibeStudioDeflate", "The compressed data consumer stopped the stream."));
+			return fail(QCoreApplication::translate("SlopStudioDeflate", "The compressed data consumer stopped the stream."));
 		status.bytesWritten += bytes.size();
 		return !checkCancelled();
 	}
@@ -1653,7 +1653,7 @@ DeflateStreamEncoder::DeflateStreamEncoder(qint64 inputBytes, DeflateLevel level
 	m_state->sink = std::move(sink);
 	m_state->isCancelled = std::move(isCancelled);
 	if (inputBytes < 0 || !m_state->sink)
-		m_state->fail(QCoreApplication::translate("VibeStudioDeflate", "Invalid streaming compression request."));
+		m_state->fail(QCoreApplication::translate("SlopStudioDeflate", "Invalid streaming compression request."));
 }
 
 DeflateStreamEncoder::~DeflateStreamEncoder() = default;
@@ -1663,9 +1663,9 @@ bool DeflateStreamEncoder::append(QByteArrayView bytes)
 	auto& state = *m_state;
 	if (state.checkCancelled()) return false;
 	if (state.finished)
-		return state.fail(QCoreApplication::translate("VibeStudioDeflate", "The compressed stream is already finished."));
+		return state.fail(QCoreApplication::translate("SlopStudioDeflate", "The compressed stream is already finished."));
 	if (bytes.size() > state.expected - state.status.bytesConsumed)
-		return state.fail(QCoreApplication::translate("VibeStudioDeflate", "Compression input exceeds its declared size."));
+		return state.fail(QCoreApplication::translate("SlopStudioDeflate", "Compression input exceeds its declared size."));
 	while (!bytes.isEmpty()) {
 		if (state.checkCancelled()) return false;
 		const qsizetype size = qMin(bytes.size(), kMaxStoredBlock - state.pending.size());
@@ -1682,7 +1682,7 @@ DeflateStreamResult DeflateStreamEncoder::finish()
 	auto& state = *m_state;
 	if (state.finished || state.checkCancelled()) return state.status;
 	if (state.status.bytesConsumed != state.expected) {
-		state.fail(QCoreApplication::translate("VibeStudioDeflate", "Compression input ended before its declared size."));
+		state.fail(QCoreApplication::translate("SlopStudioDeflate", "Compression input ended before its declared size."));
 		return state.status;
 	}
 	if ((!state.pending.isEmpty() || !state.wroteBlock) && !state.writeBlock()) return state.status;
@@ -1773,4 +1773,4 @@ bool deflateLevelFromId(const QString& id, DeflateLevel* out)
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

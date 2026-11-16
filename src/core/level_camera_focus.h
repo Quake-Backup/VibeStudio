@@ -27,7 +27,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The closest Focus Camera on Selection places the camera to the box's
 // centre before any wheel offset, in map units.
@@ -152,4 +152,4 @@ bool levelCameraFloorDirectionFromId(const QString& id, LevelCameraFloorDirectio
 // "standing-height", "underside", "sector-eye-height" or "none".
 [[nodiscard]] QString levelCameraFloorSourceId(LevelCameraFloorSource source);
 
-} // namespace vibestudio
+} // namespace slopstudio

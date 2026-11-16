@@ -23,7 +23,7 @@
 #include <QTimer>
 #include <QTranslator>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* text) { if (!condition) { std::cerr << text << '\n'; } return condition; }
 bool wait(const std::function<bool()>& ready, int ms = 10000)
@@ -45,7 +45,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "vibestudio::ProjectSearchPanel") { return {}; }
+		if (QByteArray(context) != "slopstudio::ProjectSearchPanel") { return {}; }
 		const auto text = QString::fromUtf8(source); return text + QStringLiteral(" ~").repeated(text.size() / 6);
 	}
 };
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 		for (auto* control : QVector<QWidget*> {panel.resultsList(), panel.findField(), panel.findChild<QPushButton*>(QStringLiteral("projectSearchCancel"))}) {
 			ok &= expect(control && !control->accessibleName().isEmpty() && control->focusPolicy() != Qt::NoFocus, "reference controls expose names and keyboard focus");
 		}
-		const QString evidence = qEnvironmentVariable("VIBESTUDIO_LANGUAGE_TEST_EVIDENCE");
+		const QString evidence = qEnvironmentVariable("SLOPSTUDIO_LANGUAGE_TEST_EVIDENCE");
 		if (!evidence.isEmpty()) { QImage image(panel.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); panel.render(&image); ok &= expect(image.save(QDir(evidence).filePath(QStringLiteral("language-references-%1.png").arg(scale))), "render semantic reference results"); }
 		const auto retired = panel.beginReferences(temp.path(), QStringLiteral("target"), QStringLiteral("Delayed"), [&]() { cancelled = true; });
 		panel.cancel(); panel.finishReferences(retired, request);

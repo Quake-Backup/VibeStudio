@@ -5,7 +5,7 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -192,4 +192,4 @@ bool stepLevelSweepScale(const LevelSweepSource& source, LevelSweepRequest* r, d
 	}
 	return scaleLevelSweepTo(source, r, add(centre, mul(arm, 1 + distance / largest)), grid, error);
 }
-} // namespace vibestudio
+} // namespace slopstudio

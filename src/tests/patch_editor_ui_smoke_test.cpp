@@ -23,7 +23,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message, const QString& error = {})
 {
@@ -155,7 +155,7 @@ int main(int argc, char** argv)
 		auto* projection = dialog.findChild<QComboBox*>(QStringLiteral("patchViewPlane"));
 		projection->setCurrentIndex(projection->findData(QStringLiteral("xz")));
 		view->framePatch();
-		const QString captureRoot = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const QString captureRoot = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captureRoot.isEmpty()) {
 			QDir().mkpath(captureRoot);
 			auto* tabs = dialog.findChild<QTabWidget*>();

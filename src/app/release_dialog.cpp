@@ -44,7 +44,7 @@
 #include <atomic>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ReleaseDialog::Work {
 	std::atomic_bool cancel {false};
@@ -1141,7 +1141,7 @@ void ReleaseDialog::showStockNotice()
 	m_notice->showNotice(operationStateId(OperationState::Warning),
 		stale ? tr("The game's asset index is out of date") : !m_stock.available ? tr("Index the game's assets") : tr("Check the game's asset index"),
 		stale ? tr("%1 changed since it was indexed. Index it again for an exact check.").arg(m_installation.displayName)
-			  : !m_stock.available ? tr("VibeStudio needs to read %1's own packages once to tell its files from yours. Nothing in the installation is changed.").arg(m_installation.displayName)
+			  : !m_stock.available ? tr("SlopStudio needs to read %1's own packages once to tell its files from yours. Nothing in the installation is changed.").arg(m_installation.displayName)
 								   : m_stock.warnings.join(QLatin1Char(' ')));
 	if (m_hooks.indexInstallation) {
 		QPushButton* index = m_notice->addAction(stale ? tr("Index Again") : tr("Index Game Assets"), QStringLiteral("index"), true);
@@ -1201,7 +1201,7 @@ void ReleaseDialog::addChangelogEntry()
 	ProjectChangelog changelog;
 	QString error;
 	if (!loadProjectChangelog(path, release.title, &changelog, &error)
-		|| !vibestudio::addChangelogEntry(&changelog, m_changeCategory->currentData().toString(), text, &error)
+		|| !slopstudio::addChangelogEntry(&changelog, m_changeCategory->currentData().toString(), text, &error)
 		|| !saveProjectChangelog(changelog, &error)) {
 		m_status->setText(error);
 		return;
@@ -1515,4 +1515,4 @@ void ReleaseDialog::setOutputDirectory(const QString& path)
 	refreshPublishState();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

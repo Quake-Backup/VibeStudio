@@ -24,8 +24,8 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 
 namespace
 {
@@ -179,7 +179,7 @@ int runCli(const QString &program, const QStringList &arguments, QJsonObject *js
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (argc != 2 || root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("model-audit-XXXXXX"));
@@ -300,7 +300,7 @@ int main(int argc, char **argv)
 	// CLI: JSON, --strict, a refused report path and a missing source.
 	QJsonObject json;
 	expect(runCli(program, {"model", "audit", game, "--round-trip", "--json"}, &json) == 0 && json.value("entries").toArray().size() == 7 &&
-			   json.value("schema").toString() == "vibestudio.model-audit",
+			   json.value("schema").toString() == "slopstudio.model-audit",
 		   "model audit --json reports every entry");
 	expect(runCli(program, {"model", "audit", game, "--strict", "--json"}, &json) == 4 && json.value("formats").toArray().size() >= 2,
 		   "--strict exits 4 on damage and still prints the report");

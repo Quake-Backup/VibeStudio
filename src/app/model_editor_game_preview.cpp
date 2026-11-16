@@ -18,7 +18,7 @@
 #include <QThread>
 #include <QTimer>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 struct ModelEditorDialog::GameShaders
@@ -47,18 +47,18 @@ void ModelEditorDialog::addGamePreviewControls(QBoxLayout *row)
 {
 	m_gameRow = new QWidget;
 	m_gameRow->setObjectName(QStringLiteral("meshGamePreview"));
-	m_gameRow->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Game preview"));
+	m_gameRow->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Game preview"));
 	auto *layout = new QHBoxLayout(m_gameRow);
 	layout->setContentsMargins(0, 0, 0, 0);
 	m_gameRenderer = new QComboBox;
 	m_gameRenderer->setObjectName(QStringLiteral("meshGameRenderer"));
-	m_gameRenderer->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Quake renderer"));
-	m_gameRenderer->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
+	m_gameRenderer->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Quake renderer"));
+	m_gameRenderer->setToolTip(QCoreApplication::translate("SlopStudioModelEditor",
 		"How a Quake model's skin is drawn: GLQuake lights fullbright colours like the rest; modern ports keep them bright; "
 		"the software renderer also samples point-wise."));
-	m_gameRenderer->addItem(QCoreApplication::translate("VibeStudioModelEditor", "Modern port"), int(MaterialQuakeRenderer::ModernPort));
-	m_gameRenderer->addItem(QCoreApplication::translate("VibeStudioModelEditor", "GLQuake"), int(MaterialQuakeRenderer::GLQuake));
-	m_gameRenderer->addItem(QCoreApplication::translate("VibeStudioModelEditor", "Software"), int(MaterialQuakeRenderer::Software));
+	m_gameRenderer->addItem(QCoreApplication::translate("SlopStudioModelEditor", "Modern port"), int(MaterialQuakeRenderer::ModernPort));
+	m_gameRenderer->addItem(QCoreApplication::translate("SlopStudioModelEditor", "GLQuake"), int(MaterialQuakeRenderer::GLQuake));
+	m_gameRenderer->addItem(QCoreApplication::translate("SlopStudioModelEditor", "Software"), int(MaterialQuakeRenderer::Software));
 	layout->addWidget(m_gameRenderer);
 	const auto colour = [&](const QString &name, const QString &accessible, const QString &prefix) {
 		auto *spin = new QSpinBox;
@@ -66,28 +66,28 @@ void ModelEditorDialog::addGamePreviewControls(QBoxLayout *row)
 		spin->setRange(-1, 13);
 		spin->setValue(-1);
 		// -1 shows the skin's own colours.
-		spin->setSpecialValueText(QCoreApplication::translate("VibeStudioModelEditor", "Skin colours"));
+		spin->setSpecialValueText(QCoreApplication::translate("SlopStudioModelEditor", "Skin colours"));
 		spin->setPrefix(prefix);
 		spin->setAccessibleName(accessible);
-		spin->setToolTip(QCoreApplication::translate("VibeStudioModelEditor", "A Quake player colour row (0 to 13), as the color command sets it."));
+		spin->setToolTip(QCoreApplication::translate("SlopStudioModelEditor", "A Quake player colour row (0 to 13), as the color command sets it."));
 		layout->addWidget(spin);
 		return spin;
 	};
-	m_gameTop = colour(QStringLiteral("meshGameTopColour"), QCoreApplication::translate("VibeStudioModelEditor", "Player top colour"),
-		QCoreApplication::translate("VibeStudioModelEditor", "Top "));
-	m_gameBottom = colour(QStringLiteral("meshGameBottomColour"), QCoreApplication::translate("VibeStudioModelEditor", "Player bottom colour"),
-		QCoreApplication::translate("VibeStudioModelEditor", "Bottom "));
-	m_gameFloodFill = new QCheckBox(QCoreApplication::translate("VibeStudioModelEditor", "Flood fill"));
+	m_gameTop = colour(QStringLiteral("meshGameTopColour"), QCoreApplication::translate("SlopStudioModelEditor", "Player top colour"),
+		QCoreApplication::translate("SlopStudioModelEditor", "Top "));
+	m_gameBottom = colour(QStringLiteral("meshGameBottomColour"), QCoreApplication::translate("SlopStudioModelEditor", "Player bottom colour"),
+		QCoreApplication::translate("SlopStudioModelEditor", "Bottom "));
+	m_gameFloodFill = new QCheckBox(QCoreApplication::translate("SlopStudioModelEditor", "Flood fill"));
 	m_gameFloodFill->setObjectName(QStringLiteral("meshGameFloodFill"));
-	m_gameFloodFill->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "GLQuake flood fill"));
+	m_gameFloodFill->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "GLQuake flood fill"));
 	m_gameFloodFill->setChecked(true);
-	m_gameFloodFill->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
+	m_gameFloodFill->setToolTip(QCoreApplication::translate("SlopStudioModelEditor",
 		"GLQuake and the GL ports fill the skin's background colour region from its edges when they load it; the software renderer does not."));
 	layout->addWidget(m_gameFloodFill);
 	m_gameStatus = new QLabel;
 	m_gameStatus->setObjectName(QStringLiteral("meshGameStatus"));
 	m_gameStatus->setTextFormat(Qt::PlainText);
-	m_gameStatus->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Game preview status"));
+	m_gameStatus->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Game preview status"));
 	m_gameStatus->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	layout->addWidget(m_gameStatus, 1);
 	m_gameTimer = new QTimer(this);
@@ -216,7 +216,7 @@ void ModelEditorDialog::refreshGamePreview()
 	} else {
 		m_gameTimer->stop();
 	}
-	const QString summary = skins.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "Nothing to draw as the game would; Material images are shown.")
+	const QString summary = skins.isEmpty() ? QCoreApplication::translate("SlopStudioModelEditor", "Nothing to draw as the game would; Material images are shown.")
 											: notes.join(QLatin1Char(' '));
 	if (m_gameStatus->text() != summary) {
 		m_gameStatus->setText(summary);
@@ -225,4 +225,4 @@ void ModelEditorDialog::refreshGamePreview()
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

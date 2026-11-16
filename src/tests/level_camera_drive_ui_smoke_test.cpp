@@ -12,7 +12,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -110,7 +110,7 @@ int main(int argc, char** argv)
 		ok &= expect(!view.isPointerDriving(), "preview replacement ends steering");
 		view.setCameraView({-180, -220, 160}, 50, -30); ok &= view.beginPointerDrive({400, 300});
 		ok &= expect(view.accessibleDescription().contains("Position steering"), "steering exposes accessible active state");
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!captures.isEmpty()) {
 			ok &= expect(settlePreview(view), "camera preview worker completes before visual verification");
 			QDir().mkpath(captures);

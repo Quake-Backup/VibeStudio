@@ -45,7 +45,7 @@ same candidate transaction: bind positioning, creation/duplication/rename/delete
 tail resizing, timing, joint transforms, full joint-pose copying, parent-space
 interpolation and `--operation working-set`, which chooses the clips baked into
 editable frames. `copy-out`, `paste` and `mirror` move poses and keys through the
-pose clipboard (`application/x-vibestudio-pose+json`), across clips, models and,
+pose clipboard (`application/x-slopstudio-pose+json`), across clips, models and,
 with a joint map, rigs, optionally mirrored left to right. `import --source FILE` adds another file's clip, exactly or retargeted, with its events and curves unless `--no-events` or `--no-curves`. Inspection returns clip metadata, preview ranges, the
 `workingSet` report and model-space joint matrices. New displayed clips must
 fit the full editable frame budget; no authoring operation silently skips its
@@ -219,7 +219,7 @@ JSON reports defaults, effective values, available choices, field types and over
 `--dry-run` previews a preference change, and export replacement requires
 `--overwrite`. Unknown/duplicate options, invalid fields, conflicting gestures,
 wrong-profile imports and protected settings are refused. The GUI and CLI share
-the versioned VibeStudio file parser, settings transaction and validation.
+the versioned SlopStudio file parser, settings transaction and validation.
 `editing.nudgeAfterDuplicate=on|off` controls ordinary GUI duplicate placement;
 TB and NRC default to `off`. It uses the same per-profile persistence and portable
 format. `map duplicate` continues to use its explicit offsets.
@@ -256,11 +256,11 @@ GUI when that profile/preferences are next loaded. See
 
 ## Workspace and shared asset diagnostics
 
-`workspace create <file.vibeworkspace>` saves portable project and module
+`workspace create <file.slopworkspace>` saves portable project and module
 references. Options include `--project`, `--package`, `--map`, `--map-name`,
 repeated `--code`, `--current-code`, `--active-module`, and `--from-session`.
 Use `--dry-run` to validate the proposed workspace or `--overwrite` to replace
-an existing validated workspace. `workspace inspect <file.vibeworkspace>`
+an existing validated workspace. `workspace inspect <file.slopworkspace>`
 validates the document and reports missing references without opening assets.
 Both commands support text and `--json` output.
 
@@ -428,9 +428,9 @@ module and recognized format from the filename; the owning editor validates
 content when opened. Both inspection commands support `--json`.
 
 ```sh
-vibestudio --cli workspace inspect ./work.vibeworkspace --json
-vibestudio --cli asset formats --module textures --json
-vibestudio --cli asset route textures/wall.dds --json
+slopstudio --cli workspace inspect ./work.slopworkspace --json
+slopstudio --cli asset formats --module textures --json
+slopstudio --cli asset route textures/wall.dds --json
 ```
 
 `model collision` shares mesh validation/edit history and level placement with
@@ -675,7 +675,7 @@ so this route and repeated `--points` cover what it creates.
   metadata and logical storage totals in `inventory`, with configured `limits`;
   payloads are verified only during restore.
 - `package draft-recover <id> --expected-sha256 <manifest-hash> --output
-  <new.vibepackage>` verifies a selected checkpoint and restores its complete
+  <new.sloppackage>` verifies a selected checkpoint and restores its complete
   content/history to a new draft. `--dry-run` creates no files or locks.
 - `package recovery-discard <id> --expected-sha256 <manifest-hash>` previews
   removal; alternatively, `--expected-storage-sha256 <storage-hash>` also supports
@@ -685,9 +685,9 @@ so this route and repeated `--points` cover what it creates.
   Exit codes: 0 success, 2 usage, 4 verification/operation failure. Listing also
   returns 4 for a damaged or truncated inventory. See
   [Automatic Recovery](PACKAGE_MANAGER.md#automatic-recovery) for limits and JSON.
-- `package draft-storage <draft.vibepackage>` fully verifies history and payloads,
+- `package draft-storage <draft.sloppackage>` fully verifies history and payloads,
   then returns retained/unused storage, review checksums and configured limits.
-  `package draft-compact <draft.vibepackage> --expected-storage-sha256 <hash>`
+  `package draft-compact <draft.sloppackage> --expected-storage-sha256 <hash>`
   previews reclamation. `--write` excludes participating document/worker readers
   before removing only reviewed unused files. Default dry run creates no locks and
   reports `readerExclusion: false`. JSON retains partial removal counts on failure.
@@ -697,7 +697,7 @@ so this route and repeated `--points` cover what it creates.
   `packages/draftMaximumFiles` (200,000), including unused objects and peak metadata
   space; quota failures preserve the prior commit. See
   [Saved draft storage](PACKAGE_MANAGER.md#saved-draft-storage).
-- `package groups <source.wad|draft.vibepackage> --json` inspects Doom WAD map,
+- `package groups <source.wad|draft.sloppackage> --json` inspects Doom WAD map,
   GL, namespace and texture-table groups, returning snapshot group IDs and a review
   fingerprint without changing the package.
 - `package copy-limits` inspects the per-window temporary-copy policy. Optional
@@ -756,7 +756,7 @@ so this route and repeated `--points` cover what it creates.
   verified source references and need no writable temporary import storage.
   Staging file-operation JSON includes `contentStorage` (`owned-temporary` or
   `verified-file`) while preserving original source paths and logical timestamps.
-- `package create <output>` creates an archive or `.vibepackage` document without
+- `package create <output>` creates an archive or `.sloppackage` document without
   a source. Filename inference supports PAK/ZIP/PK3/WAD; draft `--format` defaults
   to PK3. `--wad-magic PWAD|IWAD|WAD2|WAD3` chooses a new WAD variant. Existing
   outputs require `--overwrite`; `--dry-run` writes nothing.
@@ -766,7 +766,7 @@ so this route and repeated `--points` cover what it creates.
   WAD remains flat; PAK export refuses explicit empty folders. See
   [Package Manager](PACKAGE_MANAGER.md#new-packages-and-folders) for ordering,
   collision rules, format limits and JSON results.
-- `package draft-save <source-or-draft> <output.vibepackage>` persists base
+- `package draft-save <source-or-draft> <output.sloppackage>` persists base
   payloads, staging and undo/redo history. Staging options form one edit group;
   replacing a draft requires `--overwrite`. `--dry-run` checks all reachable
   payloads, redo history, metadata and destination constraints without creating
@@ -777,7 +777,7 @@ so this route and repeated `--points` cover what it creates.
   Redo restores the repair. Manifest rows expose `contentAvailable: false`, null
   `sha256` and `unavailableReason`; recovery inventory adds `unavailableBaseCount`.
   Complete drafts still use version 2. See [Drafts and edit history](PACKAGE_MANAGER.md#drafts-and-edit-history).
-- `package draft-info <draft.vibepackage>` verifies and reports a draft without
+- `package draft-info <draft.sloppackage>` verifies and reports a draft without
   writing it. `package draft-undo` and `package draft-redo` explicitly change and
   atomically save its history position. They reject unknown/empty options and
   extra arguments. JSON exposes revision, undo/redo availability, operation/file
@@ -785,7 +785,7 @@ so this route and repeated `--points` cover what it creates.
   failure, and 4 unavailable undo/redo. A valid draft may contain staging
   conflicts; export readiness is reported separately from persistence success.
 - `package stage`, `package manifest` and `package save-as` accept a draft source
-  through the shared staging service. Move the whole `.vibepackage` directory,
+  through the shared staging service. Move the whole `.sloppackage` directory,
   including `document.json` and `objects/`. See [Package Manager](PACKAGE_MANAGER.md)
   for storage limits and lifecycle boundaries.
 - `package info`, `list`, `preview`, `extract` and `validate` accept saved drafts
@@ -941,8 +941,8 @@ Reports distinguish encoding validation from `written`, with hashes, changed-pix
 counts, mip dimensions, palette source and engine warnings. See the complete
 [texture profile contract](TEXTURE_EDITOR.md#export-profiles-and-previews).
 
-`texture stage <input> --target-package <archive|folder|draft.vibepackage>
---target-entry <path|lump> --output <draft.vibepackage>` runs the same encoders
+`texture stage <input> --target-package <archive|folder|draft.sloppackage>
+--target-entry <path|lump> --output <draft.sloppackage>` runs the same encoders
 and package staging service. WAD2 miptexture types and Doom flat/patch namespaces
 survive grouped undo and draft reopening. `--replace-texture` approves replacing
 an entry; `--overwrite` separately approves replacing the output draft.
@@ -970,7 +970,7 @@ validity and individual errors. `texture recover <checkpoint> --output
 write-free and `--overwrite` is refused. Both accept `--json`, share the GUI's
 recovery service, and never follow source paths stored inside checkpoints.
 
-The VibeStudio CLI is a first-class interface, not a debugging afterthought.
+The SlopStudio CLI is a first-class interface, not a debugging afterthought.
 Every workflow that can reasonably run headless should have a stable command
 surface using the same core services as the GUI.
 
@@ -1226,7 +1226,7 @@ and reopen a package to begin fresh history. See
   `outputCommitted` remains true when later backup/manifest bookkeeping warns.
   `recoveryPaths` identifies retained journals and verified recovery copies.
 - [x] `package subset <source> <output>` exports files from an archive, folder or
-  `.vibepackage` draft using repeatable `--entry-index <n>`, `--entry <path>`,
+  `.sloppackage` draft using repeatable `--entry-index <n>`, `--entry <path>`,
   `--prefix <folder>`, and/or `--where <query>`. Indexes are zero-based rows from
   `package list --json` for the same snapshot. Indexes, entries and prefixes form
   a union, then the query filters it; a query alone searches all files. Prefixes
@@ -1254,11 +1254,11 @@ and reopen a package to begin fresh history. See
 ### Level Dependency And Package Loop
 
 ```sh
-vibestudio --cli map dependencies ./maps/arena.map --engine idTech3 --package ./assets --json
-vibestudio --cli map materials ./maps/arena.map --engine idTech3 --package ./assets --json
-vibestudio --cli package subset ./assets ./arena-assets.pk3 --map-input ./maps/arena.map --engine idTech3 --dry-run --json
-vibestudio --cli package subset ./assets ./arena-assets.pk3 --map-input ./maps/arena.map --engine idTech3 --compression best
-vibestudio --cli package subset ./assets ./textures.pk3 --prefix textures/arena --where "ext=tga" --json
+slopstudio --cli map dependencies ./maps/arena.map --engine idTech3 --package ./assets --json
+slopstudio --cli map materials ./maps/arena.map --engine idTech3 --package ./assets --json
+slopstudio --cli package subset ./assets ./arena-assets.pk3 --map-input ./maps/arena.map --engine idTech3 --dry-run --json
+slopstudio --cli package subset ./assets ./arena-assets.pk3 --map-input ./maps/arena.map --engine idTech3 --compression best
+slopstudio --cli package subset ./assets ./textures.pk3 --prefix textures/arena --where "ext=tga" --json
 ```
 
 `map materials` uses the camera's bounded resolver to report decoded images,
@@ -1278,7 +1278,7 @@ completed without unresolved references; `4` means dependency problems or an
 incomplete scan. Usage errors return `2`; input-load failures return `1`.
 `--installation <id>` checks references against that installation's asset index: references the
 game provides get the status `stock` and the report a `stock` count, and they are not problems.
-Its `--package` input accepts an archive, folder or `.vibepackage` draft. Drafts
+Its `--package` input accepts an archive, folder or `.sloppackage` draft. Drafts
 are inspected through their planned contents, including staged additions,
 replacements, renames and deletions. Review does not publish or change the draft;
 an invalid draft fails to load instead of exposing its storage files as assets.
@@ -1319,13 +1319,13 @@ not a guarantee against concurrent filesystem replacement by another process.
 ### Project Releases
 
 ```sh
-vibestudio --cli install register build quake3-games-quake3
-vibestudio --cli release catalog ./mymod --json
-vibestudio --cli release plan ./mymod --map maps/arena1.map --json
-vibestudio --cli release notes ./mymod --map maps/arena1.map --readme
-vibestudio --cli release changelog ./mymod --add "New arena: The Pit" --category added
-vibestudio --cli release publish ./mymod --map maps/arena1.map --release-version 1.0.0 --dry-run --json
-vibestudio --cli release history ./mymod --json
+slopstudio --cli install register build quake3-games-quake3
+slopstudio --cli release catalog ./mymod --json
+slopstudio --cli release plan ./mymod --map maps/arena1.map --json
+slopstudio --cli release notes ./mymod --map maps/arena1.map --readme
+slopstudio --cli release changelog ./mymod --add "New arena: The Pit" --category added
+slopstudio --cli release publish ./mymod --map maps/arena1.map --release-version 1.0.0 --dry-run --json
+slopstudio --cli release history ./mymod --json
 ```
 
 - [x] `release plan [<project>]`: what a release ships and what the game provides. The project
@@ -1346,7 +1346,7 @@ vibestudio --cli release history ./mymod --json
   release). Exit 4 when the plan cannot publish.
 - [x] `release publish [<project>]`: writes the package, readme, `RELEASE_NOTES.md` and
   distribution archive into `--output` (default `<release.outputFolder>/<name>-<version>`), records
-  `.vibestudio/releases/<version>.json` and moves the changelog's Unreleased changes under the
+  `.slopstudio/releases/<version>.json` and moves the changelog's Unreleased changes under the
   version. `--notes-file` replaces the generated notes; `--no-readme`, `--no-notes`,
   `--no-archive`, `--no-record` and `--no-changelog` skip those outputs; `--compression` applies
   to ZIP and PK3; `--date` sets the release date. A released version is refused unless
@@ -1355,7 +1355,7 @@ vibestudio --cli release history ./mymod --json
   when writing fails afterwards.
 - [x] `release changelog [<project>]`: the unreleased changes and released versions; `--add <text>
   --category added|changed|deprecated|removed|fixed|security` records one (`--dry-run` previews).
-- [x] `release history [<project>]`: published releases from `.vibestudio/releases`, with their
+- [x] `release history [<project>]`: published releases from `.slopstudio/releases`, with their
   package, hash, size, file count and maps.
 - [x] `release catalog [<project>]`: the maps (with `built` and `stale`), models and texture
   folders a project can release.
@@ -1619,7 +1619,7 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   `--stroke` replays up to 4,096 ordered face/patch hits with one transaction,
   first-hit selection and an advancing seamless source. JSON includes the final
   portable source; source and clipboard files remain protected.
-- [x] `map place-sound <map> --package <archive|folder|.vibepackage>
+- [x] `map place-sound <map> --package <archive|folder|.sloppackage>
   --sound sound/name.wav --origin x,y,z --output <separate.map>` validates one
   exact-case mono 22050 Hz PCM16 sound and adds a Quake II/III `target_speaker`.
   `--game quake2|quake3` selects an explicit target when needed; mismatched targets
@@ -2284,7 +2284,7 @@ bounds, encoding behavior, batch cancellation, and concurrency limits.
   publish no partial catalog. Missing roots allow diagnostic results from the
   available folders, with `textures.sourceIndexComplete: false` in JSON. An
   incomplete source audit returns exit 4 even for a map with no texture references.
-  `--package` also accepts a saved `.vibepackage` draft and inspects its current
+  `--package` also accepts a saved `.sloppackage` draft and inspects its current
   planned contents. JSON includes `textures.complete` and `textures.cancelled`;
   failed shader reads/parsing, collection limits or requested image decoding
   make the audit incomplete and return exit 4. Known unreadable image rows are
@@ -2335,7 +2335,7 @@ source below before falling back:
 - Trailing positional paths: every token after the action for
   `entity definitions`, every token after the map path for `entity validate`.
 - Only if all of those are empty, `--project-root <path>` falls back to the
-  conventional per-project folders, in this order: `.vibestudio/definitions`,
+  conventional per-project folders, in this order: `.slopstudio/definitions`,
   `definitions`, `defs`, `scripts`, `base/scripts`, `entities`. They are
   probed, not required to exist.
 
@@ -2877,7 +2877,7 @@ Each resolved path may be a definition file or a folder of them.
   `--md5-clips all|none|N,N` md5anims), checks every entry, reviews the
   materials against the package (`--require-materials` refuses missing ones),
   stages the set as one operation group (`--replace-existing`) and writes a new
-  package or `.vibepackage` draft; the input package is never the output. With
+  package or `.sloppackage` draft; the input package is never the output. With
   `--map M --origin x,y,z --map-output FILE` it also places the model. Supports
   `--dry-run`, `--overwrite`, `--target`, `--strict` and `--progress`. `--dry-run` and `--overwrite` follow map save-as behavior. Model
   validation failures return `4`, missing arguments `2`, and load/edit failures
@@ -2906,7 +2906,7 @@ package, and level CLI example and the editable JSON schema.
   and `--entry <virtual/path>`, or the same two as positional tokens) or a
   single model file on disk (`--file <path>`, or a lone positional path with
   no entry after it). Package inputs include archives, folders and portable
-  `.vibepackage` drafts; the latter read the current planned bytes and names.
+  `.sloppackage` drafts; the latter read the current planned bytes and names.
 - [x] `--palette <id>` selects the palette used for the indexed skins MDL
   embeds.
 - [x] `model mdl <source.mesh.json>` reports native MDL settings, skin members,
@@ -2917,7 +2917,7 @@ package, and level CLI example and the editable JSON schema.
   palette provenance and a hash, without raw images. Read-only `--time` sampling
   accepts `--native-frame`, `--skin`, `--timing stored|glquake` and `--sync-phase`;
   it reports the same exact pose/member as native GUI preview without writing.
-  Skin edits also accept `--package <archive|folder|draft.vibepackage>` and one
+  Skin edits also accept `--package <archive|folder|draft.sloppackage>` and one
   unique `--entry` or exact `--entry-index`, instead of `--image`. Optional
   `--palette` selects package palette paths. The shared indexed reader preserves
   pixels, rejects palette/dimension mismatches and reports a source receipt;
@@ -2963,7 +2963,7 @@ package, and level CLI example and the editable JSON schema.
   transform, layout and key bindings, with saved changes unless `--defaults`.
   `--section navigation|selection|transform|layout|keys` narrows the output;
   `--check` exits 4 when two gestures or keys collide; `--export <file>` (with
-  `--overwrite` for an existing file) writes a `vibestudio.modeller-controls`
+  `--overwrite` for an existing file) writes a `slopstudio.modeller-controls`
   file; `--import <file>` saves its changes for the profile it names; `--select`
   makes the profile current; `--reset` drops saved changes; `--settings-file`
   works on a separate settings store. The keys section lists Ctrl+Tab and
@@ -3009,8 +3009,8 @@ package, and level CLI example and the editable JSON schema.
   shared pipeline. `--pipeline` supports `quake3-full` (default) and
   `quake3-bsp-only` for Quake III. Quake/Quake II use `quake-full` (their default),
   `quake-fast` or `quake-bsp-only`. Repeat `--tool <id>=<executable>` for distinct
-  compatible IDs: `vibemap3` for Quake III, or `vibemap2-bsp`, `vibemap2-vis`,
-  `vibemap2-light` for Quake/Quake II. The pre-VibeMap ids (`q3map2`,
+  compatible IDs: `slopmap3` for Quake III, or `slopmap2-bsp`, `slopmap2-vis`,
+  `slopmap2-light` for Quake/Quake II. The pre-SlopMap ids (`q3map2`,
   `ericw-qbsp`, `ericw-vis`, `ericw-light`) are refused. `--timeout-ms`, one
   `--stage-args <stage>=<arguments>` per stage, and repeated `--disable-stage`
   control execution. Workspace game/filesystem and output-path flags cannot be
@@ -3071,7 +3071,7 @@ package, and level CLI example and the editable JSON schema.
   `reviewSha256`, warnings and windowed launch command. It writes nothing and
   rejects publication flags.
 - [x] `build deploy-prepared <directory>` uses the same target options and writes
-  `pak<N>.pak` or `vibestudio_<map>.pk3` containing the captured assets and verified runtime
+  `pak<N>.pak` or `slopstudio_<map>.pk3` containing the captured assets and verified runtime
   outputs. `--allow-test-assets` grants one-operation permission for a read-only
   installation; it never changes the saved profile. `--overwrite` requires a
   verified backup of an existing package. `--include-source`, `--compression`
@@ -3145,7 +3145,7 @@ package, and level CLI example and the editable JSON schema.
   `--fullbrights` and `--seam-blend` shape it; `--companions` adds the maps
   source ports read beside it. `--source` restyles a picture through the
   model, and `--preview <png>` writes the variants tiled 2x2. A provenance
-  record goes to `.vibestudio/generated/textures/<name>.json`.
+  record goes to `.slopstudio/generated/textures/<name>.json`.
 - [x] `texture derive --input <picture> --game quake|quake2|quake3|generic`
   writes the normal, gloss, and glow companion maps for a texture, with no AI:
   `_norm`, `_gloss`, `_glow` for DarkPlaces, FTE and QuakeSpasm-family ports,
@@ -3252,7 +3252,7 @@ Every 3D view and material preview draws on the GPU through one renderer
 (`core/render_device`; design in `docs/ARCHITECTURE.md`) with an OpenGL and a
 Vulkan backend. The choice is the saved preference (**Settings** >
 **Appearance and Language** > **3D Rendering**), overridden for a run by
-`VIBESTUDIO_RENDER_BACKEND` and, ahead of that, by `--renderer`. Commands
+`SLOPSTUDIO_RENDER_BACKEND` and, ahead of that, by `--renderer`. Commands
 that draw get a windowless GUI application so OpenGL is available to them; on
 Linux without `DISPLAY` or `WAYLAND_DISPLAY`, and under the offscreen
 platform, only Vulkan can draw.
@@ -3354,7 +3354,7 @@ platform, only Vulkan can draw.
 - [ ] `compiler probe`
 - [x] `compiler run`
 - [x] `compiler rerun` (with `--last <map>`, the map's newest saved run under
-  `.vibestudio/compiler-runs`, as the GUI's Re-run Last Compile replays it). The
+  `.slopstudio/compiler-runs`, as the GUI's Re-run Last Compile replays it). The
   manifest's program must be a compiler of the user's own configuration for
   the manifest's game, or trusted before for the folder the runs belong to;
   otherwise it exits with code 4 showing the command line, and
@@ -3363,12 +3363,12 @@ platform, only Vulkan can draw.
 - [x] `compiler copy-command`
 - [ ] `compiler explain-log`
 
-Tool and profile ids name VibeStudio's own compilers: `vibemap2-bsp`,
-`vibemap2-vis`, `vibemap2-light`, `vibemap2-bspinfo`, `vibemap2-bsputil` (with
-the `vibemap2-bsputil-check`, `-extract-entities` and `-extract-textures`
-profiles) and `vibemap2-hub` for VibeMap2; `vibemap3` and the `vibemap3-probe`,
-`-bsp`, `-vis`, `-light`, `-convert` and `-pk3` profiles for VibeMap3. The ids
-used before the move to VibeMap2 and VibeMap3 (`ericw-qbsp`, `ericw-lightpreview`,
+Tool and profile ids name SlopStudio's own compilers: `slopmap2-bsp`,
+`slopmap2-vis`, `slopmap2-light`, `slopmap2-bspinfo`, `slopmap2-bsputil` (with
+the `slopmap2-bsputil-check`, `-extract-entities` and `-extract-textures`
+profiles) and `slopmap2-hub` for SlopMap2; `slopmap3` and the `slopmap3-probe`,
+`-bsp`, `-vis`, `-light`, `-convert` and `-pk3` profiles for SlopMap3. The ids
+used before the move to SlopMap2 and SlopMap3 (`ericw-qbsp`, `ericw-lightpreview`,
 `q3map2`, `q3map2-bsp` and the rest) are refused; the `compiler` commands and
 compiler plans name the new id in their error. See [Compiler Integration](COMPILER_INTEGRATION.md#renamed-ids).
 
@@ -3497,7 +3497,7 @@ format or engine support. See [Editor Profiles](EDITOR_PROFILES.md).
 - [ ] `ai apply-staged`
 
 ### Extensions
-- [x] `extension discover` for `vibestudio.extension.json` manifests across one
+- [x] `extension discover` for `slopstudio.extension.json` manifests across one
   or more roots.
 - [x] `extension inspect` for manifest, trust, sandbox, command, capability,
   and staged generated-file reporting.
@@ -3532,7 +3532,7 @@ format or engine support. See [Editor Profiles](EDITOR_PROFILES.md).
 - [x] `--task-state` adds automation-friendly task-state objects to JSON output where supported.
 - [x] `--renderer automatic|opengl|vulkan` picks the 3D renderer for one run of a
   command that draws (`material render`, `render backends`, `render test`),
-  ahead of `VIBESTUDIO_RENDER_BACKEND` and the saved preference.
+  ahead of `SLOPSTUDIO_RENDER_BACKEND` and the saved preference.
 - [x] Non-zero exit codes distinguish usage errors, not-found cases,
   validation failures, operation failures, and unavailable workflows.
 
@@ -3566,67 +3566,67 @@ gate on the result.
 PowerShell:
 
 ```powershell
-vibestudio --cli package validate "C:\Games\Quake\id1\pak0.pak" --json
-vibestudio --cli package save-as ".\mod-folder" ".\build\mod.pk3" --format pk3 --add-file ".\autoexec.cfg" --as "scripts/autoexec.cfg" --manifest ".\build\mod.manifest.json"
-vibestudio --cli map edit ".\maps\start.map" --entity 1 --set targetname=lift --output ".\maps\start-edited.map"
-vibestudio --cli map edit ".\maps\start.map" --where class=light --set light=300 --output ".\maps\start-bright.map"
-vibestudio --cli map add-entity ".\maps\start.map" --class light --origin 64,0,96 --set light=300 --output ".\maps\start-lit.map"
-vibestudio --cli map delete ".\maps\start-lit.map" --object entity:3 --object brush:12 --output ".\maps\start-trimmed.map"
-vibestudio --cli map duplicate ".\maps\start.map" --object brush:12 --delta 128,0,0 --copies 4 --output ".\maps\start-more.map"
-vibestudio --cli shader set-stage ".\scripts\common.shader" --shader "textures/base/wall" --stage 1 --directive blendFunc --value "GL_ONE GL_ONE" --output ".\scripts\common-edited.shader" --json
-vibestudio --cli sprite plan --engine doom --name TROO --frames 2 --rotations 8 --palette doom --json
-vibestudio --cli entity validate ".\maps\start.map" --definitions ".\defs\quake.def" --strict --json
-vibestudio --cli model export ".\id1\pak0.pak" progs/player.mdl --frame 0 --output ".\out\player.obj" --dry-run
-vibestudio --cli package compare ".\release-1.pk3" ".\release-2.pk3" --json
-vibestudio --cli compiler run vibemap2-bsp --input ".\maps\start.map" --watch --manifest ".\build\start.run.json"
-vibestudio --cli ui semantics --json
-vibestudio --cli localization report --locale ar --json
-vibestudio --cli diagnostics bundle --output ".\diagnostics"
-vibestudio --cli extension discover ".\extensions" --json
-vibestudio --cli ai explain-log --log ".\build\qbsp.log" --json
-vibestudio --cli ai review --kind shader --prompt "glowing gothic wall" --json
-vibestudio --cli --set-ai-free off --set-ai-local local-offline --set-ai-model local-offline=llama3.2
-vibestudio --cli ai ask --prompt "why does qbsp report a leak?" --context-file ".\build\qbsp.log" --dry-run
-vibestudio --cli map generate --prompt "gothic castle with lava pits, 8 rooms, seed 42" --game quake --output ".\maps\castle.map" --preview ".\maps\castle.png"
-vibestudio --cli map plan --prompt "quake 3 duel arena" --planner ai --dry-run
-vibestudio --cli map ai-edit ".\maps\start.map" --prompt "add a light above each player start" --save-proposal ".\edits.json"
-vibestudio --cli map ai-edit ".\maps\start.map" --proposal ".\edits.json" --only 1,2 --output ".\maps\start-lit.map"
-vibestudio --cli asset audio-generate --prompt "heavy metal door slam" --game quake --output ".\mymod" --preview ".\door.wav"
-vibestudio --cli asset audio-generate --prompt "distant reactor hum" --game quake2 --loop on --source ai --dry-run
-vibestudio --cli texture generate --prompt "rusted riveted metal plate" --game quake --palette-root ".\id1" --companions --dry-run
-vibestudio --cli texture derive --input ".\textures\metal1_1.png" --game quake --json
-vibestudio --cli ai image --prompt "slipgate chamber concept art" --output ".\concepts\" --dry-run
+slopstudio --cli package validate "C:\Games\Quake\id1\pak0.pak" --json
+slopstudio --cli package save-as ".\mod-folder" ".\build\mod.pk3" --format pk3 --add-file ".\autoexec.cfg" --as "scripts/autoexec.cfg" --manifest ".\build\mod.manifest.json"
+slopstudio --cli map edit ".\maps\start.map" --entity 1 --set targetname=lift --output ".\maps\start-edited.map"
+slopstudio --cli map edit ".\maps\start.map" --where class=light --set light=300 --output ".\maps\start-bright.map"
+slopstudio --cli map add-entity ".\maps\start.map" --class light --origin 64,0,96 --set light=300 --output ".\maps\start-lit.map"
+slopstudio --cli map delete ".\maps\start-lit.map" --object entity:3 --object brush:12 --output ".\maps\start-trimmed.map"
+slopstudio --cli map duplicate ".\maps\start.map" --object brush:12 --delta 128,0,0 --copies 4 --output ".\maps\start-more.map"
+slopstudio --cli shader set-stage ".\scripts\common.shader" --shader "textures/base/wall" --stage 1 --directive blendFunc --value "GL_ONE GL_ONE" --output ".\scripts\common-edited.shader" --json
+slopstudio --cli sprite plan --engine doom --name TROO --frames 2 --rotations 8 --palette doom --json
+slopstudio --cli entity validate ".\maps\start.map" --definitions ".\defs\quake.def" --strict --json
+slopstudio --cli model export ".\id1\pak0.pak" progs/player.mdl --frame 0 --output ".\out\player.obj" --dry-run
+slopstudio --cli package compare ".\release-1.pk3" ".\release-2.pk3" --json
+slopstudio --cli compiler run slopmap2-bsp --input ".\maps\start.map" --watch --manifest ".\build\start.run.json"
+slopstudio --cli ui semantics --json
+slopstudio --cli localization report --locale ar --json
+slopstudio --cli diagnostics bundle --output ".\diagnostics"
+slopstudio --cli extension discover ".\extensions" --json
+slopstudio --cli ai explain-log --log ".\build\qbsp.log" --json
+slopstudio --cli ai review --kind shader --prompt "glowing gothic wall" --json
+slopstudio --cli --set-ai-free off --set-ai-local local-offline --set-ai-model local-offline=llama3.2
+slopstudio --cli ai ask --prompt "why does qbsp report a leak?" --context-file ".\build\qbsp.log" --dry-run
+slopstudio --cli map generate --prompt "gothic castle with lava pits, 8 rooms, seed 42" --game quake --output ".\maps\castle.map" --preview ".\maps\castle.png"
+slopstudio --cli map plan --prompt "quake 3 duel arena" --planner ai --dry-run
+slopstudio --cli map ai-edit ".\maps\start.map" --prompt "add a light above each player start" --save-proposal ".\edits.json"
+slopstudio --cli map ai-edit ".\maps\start.map" --proposal ".\edits.json" --only 1,2 --output ".\maps\start-lit.map"
+slopstudio --cli asset audio-generate --prompt "heavy metal door slam" --game quake --output ".\mymod" --preview ".\door.wav"
+slopstudio --cli asset audio-generate --prompt "distant reactor hum" --game quake2 --loop on --source ai --dry-run
+slopstudio --cli texture generate --prompt "rusted riveted metal plate" --game quake --palette-root ".\id1" --companions --dry-run
+slopstudio --cli texture derive --input ".\textures\metal1_1.png" --game quake --json
+slopstudio --cli ai image --prompt "slipgate chamber concept art" --output ".\concepts\" --dry-run
 ```
 
 POSIX shells:
 
 ```sh
-vibestudio --cli package list './baseq3/pak0.pk3' --json
-vibestudio --cli package stage './mod-folder' --add-file './autoexec.cfg' --as 'scripts/autoexec.cfg' --json
-vibestudio --cli map inspect './maps/start.map' --select entity:0 --json
-vibestudio --cli entity definitions './defs' --json
-vibestudio --cli model inspect './id1/pak0.pak' progs/player.mdl --json
-vibestudio --cli shader inspect './scripts/common.shader' --package './baseq3' --json
-vibestudio --cli code index './mymod' --find monster --json
-vibestudio --cli compiler plan vibemap2-bsp --input './maps/start.map' --dry-run
-vibestudio --cli ui semantics
-vibestudio --cli localization targets
-vibestudio --cli accessibility report --json
-vibestudio --cli accessibility speak --test --rate 2
-vibestudio --cli diagnostics bundle --output './diagnostics'
-vibestudio --cli extension run './extensions/sample/vibestudio.extension.json' make-file --dry-run --json
-vibestudio --cli ai propose-command --prompt 'build quake map maps/start.map with qbsp'
-vibestudio --cli ai batch-recipe --prompt 'convert doom sprites to indexed png' --json
+slopstudio --cli package list './baseq3/pak0.pk3' --json
+slopstudio --cli package stage './mod-folder' --add-file './autoexec.cfg' --as 'scripts/autoexec.cfg' --json
+slopstudio --cli map inspect './maps/start.map' --select entity:0 --json
+slopstudio --cli entity definitions './defs' --json
+slopstudio --cli model inspect './id1/pak0.pak' progs/player.mdl --json
+slopstudio --cli shader inspect './scripts/common.shader' --package './baseq3' --json
+slopstudio --cli code index './mymod' --find monster --json
+slopstudio --cli compiler plan slopmap2-bsp --input './maps/start.map' --dry-run
+slopstudio --cli ui semantics
+slopstudio --cli localization targets
+slopstudio --cli accessibility report --json
+slopstudio --cli accessibility speak --test --rate 2
+slopstudio --cli diagnostics bundle --output './diagnostics'
+slopstudio --cli extension run './extensions/sample/slopstudio.extension.json' make-file --dry-run --json
+slopstudio --cli ai propose-command --prompt 'build quake map maps/start.map with qbsp'
+slopstudio --cli ai batch-recipe --prompt 'convert doom sprites to indexed png' --json
 ```
 
 ## Workspace and format commands
 
-- `workspace create <file.vibeworkspace>` writes portable references. Options:
+- `workspace create <file.slopworkspace>` writes portable references. Options:
   `--project`, `--package`, `--map`, `--map-name`, repeated `--code`,
   `--current-code`, repeated `--model` (editable model sources, stored under the
-  `vibestudio.modelSources` extension so older readers keep the file readable),
+  `slopstudio.modelSources` extension so older readers keep the file readable),
   `--active-module`, `--from-session`, `--overwrite`, `--dry-run`.
-- `workspace inspect <file.vibeworkspace>` validates without opening assets and
+- `workspace inspect <file.slopworkspace>` validates without opening assets and
   reports its revision and missing references.
 - `asset formats [--module <id>]` reports suffixes, owning modules, import/native
   export/conversion capabilities, limitations and runtime Qt codec availability.
@@ -3659,7 +3659,7 @@ PK3 writer. Both require `--player-name`, `--head-part`, `--icon` and `--package
 optional `--skin-name`, `--icon-kind file|package` and `--icon-entry-index` select
 native naming and exact package image identity. Export requires `--output` and
 supports `--dry-run` and `--overwrite`; review rejects write-only flags. Portable
-`.vibepackage` inputs include staged material edits. Export failure JSON retains
+`.sloppackage` inputs include staged material edits. Export failure JSON retains
 commit state, backup/recovery paths and blocked messages. More skins come from
 `--skin-variants a,b`, `--team-variants` (red and blue), repeated
 `--variant-skin NAME:ROLE=PATH` and `--variant-icon NAME=PATH`; detail levels
@@ -3758,13 +3758,13 @@ and linked groups keep their structure; layers are not recreated, so everything
 joins the creation layer, or the group `--context UUID` opens. Names the map
 already uses get the next free number (`door` -> `door1`) unless
 `--keep-target-names`. A `.bsp` is converted first through the
-`vibemap3-convert` profile with `-format map|map_220|map_bp` to match the map's
+`slopmap3-convert` profile with `-format map|map_220|map_bp` to match the map's
 brushes, `-o` to a temporary file, `-game` from the BSP header (IBSP 46 or 47,
 RBSP, FBSP) and the project's game or `--game KEY` where the header allows it,
 and `-fs_basepath`/`-fs_game` from the project's installation, as NetRadiant
 Custom's Map_ImportFile passes them; `--workspace-root` adds a project's
 compiler paths, game and installation. Quake and Quake II BSPs are refused
-before anything runs, and a VibeMap3 that exits without printing an error is
+before anything runs, and a SlopMap3 that exits without printing an error is
 reported with its exit code. JSON reports `preview` (counts, `renamedTargets`,
 `warnings`, `importable`, `problem`), `imported`, `written`, `backup` and
 `conversion` (`commandLine`, `exitCode`). Mismatched brush formats, patches in
@@ -3776,7 +3776,7 @@ Map does. Layers marked Omit From Export, by `editor scene omit-from-export
 --id <layer UUID> --omit true|false` or the Scene panel's **Omit from export**
 box, are left out with their groups and objects. Repeat `--omit-layer NAME|UUID`
 to leave out more layers, or pass `--include-omitted` to keep marked ones.
-`--scene-format vibestudio|trenchbroom` chooses how layers and groups are
+`--scene-format slopstudio|trenchbroom` chooses how layers and groups are
 written. JSON reports `omittedLayers`, `omittedObjects`, `written`, `backup`,
 `sha256` and `warnings`. The mark is the layer's `_tb_layer_omit_from_export`
 key, saved in the scene note and as TrenchBroom's own key; `editor scene list`

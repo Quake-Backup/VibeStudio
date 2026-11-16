@@ -14,7 +14,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr int filterRole = Qt::UserRole + 1;
 constexpr int choiceRole = Qt::UserRole + 2;
@@ -41,7 +41,7 @@ void StudioCodeEditor::ensureCompleter()
 	m_completer->setCaseSensitivity(Qt::CaseInsensitive); m_completer->setModelSorting(QCompleter::UnsortedModel);
 	m_completer->setCompletionRole(filterRole); m_completer->setWrapAround(false); m_completer->setMaxVisibleItems(12);
 	m_completer->popup()->setObjectName(QStringLiteral("codeCompletions"));
-	m_completer->popup()->setAccessibleName(QCoreApplication::translate("VibeStudioCodeEditor", "Completions"));
+	m_completer->popup()->setAccessibleName(QCoreApplication::translate("SlopStudioCodeEditor", "Completions"));
 	m_completer->popup()->installEventFilter(this);
 	connect(m_completer, qOverload<const QModelIndex&>(&QCompleter::activated), this, [this](const QModelIndex& index) {
 		if (!index.isValid() || !index.flags().testFlag(Qt::ItemIsSelectable) || isReadOnly()) { return; }
@@ -87,7 +87,7 @@ bool StudioCodeEditor::showLocalCompletions()
 	m_completionModel->clear();
 	for (const auto& name : names) { auto* row = new QStandardItem(name); row->setData(name, filterRole); row->setData(name, Qt::EditRole); m_completionModel->appendRow(row); }
 	m_completionDocument = document(); m_completer->setCompletionPrefix(prefix);
-	m_completer->popup()->setAccessibleDescription(QCoreApplication::translate("VibeStudioCodeEditor", "Names from this document, the project index and language keywords."));
+	m_completer->popup()->setAccessibleDescription(QCoreApplication::translate("SlopStudioCodeEditor", "Names from this document, the project index and language keywords."));
 	if (m_completer->completionCount() == 0) { return false; }
 	showCompletionPopup(); return true;
 }
@@ -117,7 +117,7 @@ bool StudioCodeEditor::finishLanguageCompletions(quint64 token, const LanguageCo
 			row->setData(item.filterable ? item.filterText : prefix, filterRole); m_completionModel->appendRow(row); updateCompletionRow(i);
 		}
 		m_completer->setCompletionPrefix(prefix);
-		m_completer->popup()->setAccessibleDescription(QCoreApplication::translate("VibeStudioCodeEditor", "Language server suggestions. Selection changes this unsaved document in one undo step. Deferred suggestions resolve before applying."));
+		m_completer->popup()->setAccessibleDescription(QCoreApplication::translate("SlopStudioCodeEditor", "Language server suggestions. Selection changes this unsaved document in one undo step. Deferred suggestions resolve before applying."));
 		if (m_completer->completionCount() == 0) { dismissCompletions(); return showLocalCompletions(); }
 		showCompletionPopup();
 	}
@@ -134,12 +134,12 @@ void StudioCodeEditor::updateCompletionRow(int choice)
 	const int highlighted = m_completer->popup()->isVisible() && selected.isValid() ? selected.data(choiceRole).toInt() : -1;
 	QString display = item.label;
 	if (!item.detail.trimmed().isEmpty()) { display += QStringLiteral("  ·  ") + QString(item.detail).replace(QLatin1Char('\n'), QLatin1Char(' ')); }
-	if (item.edits.size() > 1) { display += QCoreApplication::translate("VibeStudioCodeEditor", "  ·  includes related edits"); }
-	if (std::any_of(item.tabStops.begin(), item.tabStops.end(), [](const auto& stop) { return stop.number > 0; })) { display += QCoreApplication::translate("VibeStudioCodeEditor", "  ·  editable fields"); }
-	if (item.deprecated) { display += QCoreApplication::translate("VibeStudioCodeEditor", "  ·  deprecated"); }
-	if (!m_completionResolveErrors.value(choice).isEmpty()) { display += QCoreApplication::translate("VibeStudioCodeEditor", "  ·  unavailable"); }
-	else if (m_resolvingCompletion == choice) { display += QCoreApplication::translate("VibeStudioCodeEditor", "  ·  resolving…"); }
-	else if (item.needsResolve) { display += QCoreApplication::translate("VibeStudioCodeEditor", "  ·  details on selection"); }
+	if (item.edits.size() > 1) { display += QCoreApplication::translate("SlopStudioCodeEditor", "  ·  includes related edits"); }
+	if (std::any_of(item.tabStops.begin(), item.tabStops.end(), [](const auto& stop) { return stop.number > 0; })) { display += QCoreApplication::translate("SlopStudioCodeEditor", "  ·  editable fields"); }
+	if (item.deprecated) { display += QCoreApplication::translate("SlopStudioCodeEditor", "  ·  deprecated"); }
+	if (!m_completionResolveErrors.value(choice).isEmpty()) { display += QCoreApplication::translate("SlopStudioCodeEditor", "  ·  unavailable"); }
+	else if (m_resolvingCompletion == choice) { display += QCoreApplication::translate("SlopStudioCodeEditor", "  ·  resolving…"); }
+	else if (item.needsResolve) { display += QCoreApplication::translate("SlopStudioCodeEditor", "  ·  details on selection"); }
 	row->setText(display);
 	const QString details = item.label + QLatin1Char('\n') + item.detail + QLatin1Char('\n') + item.documentation + QLatin1Char('\n') + m_completionResolveErrors.value(choice);
 	row->setToolTip(QStringLiteral("<pre>") + details.toHtmlEscaped() + QStringLiteral("</pre>"));
@@ -238,4 +238,4 @@ bool StudioCodeEditor::eventFilter(QObject* watched, QEvent* event)
 	return QPlainTextEdit::eventFilter(watched, event);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

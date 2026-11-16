@@ -8,7 +8,7 @@
 
 class QPainter;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ViewportHudTag {
 	QRectF bounds;
@@ -41,4 +41,4 @@ void paintViewportHud(QPainter& painter, const QRectF& viewport, const QFont& fo
 	const ViewportHudLayout& layout, Qt::LayoutDirection direction,
 	const QColor& text, const QColor& background, bool highContrast);
 
-} // namespace vibestudio
+} // namespace slopstudio

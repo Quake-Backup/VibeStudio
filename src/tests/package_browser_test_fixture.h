@@ -3,7 +3,7 @@
 #include "core/package_archive.h"
 #include <memory>
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 
 class BrowserFixture final : public PackageArchiveReader {
 public:
@@ -36,4 +36,4 @@ inline std::shared_ptr<BrowserFixture> browserFixture(int files)
 	return source;
 }
 
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

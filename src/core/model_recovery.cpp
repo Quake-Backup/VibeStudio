@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -71,7 +71,7 @@ bool interrupted(const std::function<bool()> &cancelled, QString *error)
 	{
 		return false;
 	}
-	fail(error, QCoreApplication::translate("VibeStudioModelRecovery", "Model recovery cancelled."));
+	fail(error, QCoreApplication::translate("SlopStudioModelRecovery", "Model recovery cancelled."));
 	return true;
 }
 QJsonArray indices(const QSet<int> &selection)
@@ -204,7 +204,7 @@ bool readPayload(QFile &file, qint64 size, QByteArray *result, QString *error, c
 		if (part.isEmpty())
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery copy is incomplete or unreadable."));
+						QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery copy is incomplete or unreadable."));
 		}
 		bytes.append(part);
 	}
@@ -244,7 +244,7 @@ QString writeModelRecovery(const ModelRecoverySnapshot &snapshot, const QString 
 	};
 	if (!validId(id) || directory.isEmpty())
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "Invalid model recovery destination."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "Invalid model recovery destination."));
 	}
 	if (interrupted(cancelled, error))
 	{
@@ -258,7 +258,7 @@ QString writeModelRecovery(const ModelRecoverySnapshot &snapshot, const QString 
 	}
 	if (!validSelection(snapshot) || (!snapshot.sourceSha256.isEmpty() && snapshot.sourceSha256.size() != 32))
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery context is invalid."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery context is invalid."));
 	}
 	// The payload is the editable source (readable while it fits, packed
 	// otherwise) plus the selection. Every source within the limit stays
@@ -316,7 +316,7 @@ QString writeModelRecovery(const ModelRecoverySnapshot &snapshot, const QString 
 	}
 	if (payload.size() > modelDocumentMaxSourceBytes)
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery",
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery",
 												  "The model recovery copy would be %1, over the 64 MiB limit. Reduce the source to "
 												  "resume recovery copies.")
 						  .arg(modelMebibytesText(payload.size())));
@@ -338,12 +338,12 @@ QString writeModelRecovery(const ModelRecoverySnapshot &snapshot, const QString 
 	const auto header = QJsonDocument(metadata).toJson(QJsonDocument::Compact);
 	if (header.size() > headerLimit)
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery header exceeds its limit."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery header exceeds its limit."));
 	}
 	const QFileInfo before(directory);
 	if (before.isSymLink() || before.isJunction() || !QDir().mkpath(directory) || !safeDirectory(directory))
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery folder is unavailable or is a link."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery folder is unavailable or is a link."));
 	}
 	const auto root = QFileInfo(directory).canonicalFilePath();
 	const auto path = modelRecoveryPath(root, id);
@@ -355,14 +355,14 @@ QString writeModelRecovery(const ModelRecoverySnapshot &snapshot, const QString 
 	};
 	if (!safeTarget())
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery target is not a regular file."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery target is not a regular file."));
 	}
 	QSaveFile file(path);
 	const quint32 length = qToLittleEndian(quint32(header.size()));
 	if (!file.open(QIODevice::WriteOnly) || file.write(magic) != magic.size() ||
 		file.write(reinterpret_cast<const char *>(&length), sizeof(length)) != sizeof(length) || file.write(header) != header.size())
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery header could not be written."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery header could not be written."));
 	}
 	for (qsizetype offset = 0; offset < payload.size(); offset += chunkSize)
 	{
@@ -374,18 +374,18 @@ QString writeModelRecovery(const ModelRecoverySnapshot &snapshot, const QString 
 		const auto size = std::min<qsizetype>(chunkSize, payload.size() - offset);
 		if (file.write(payload.constData() + offset, size) != size)
 		{
-			return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery copy could not be written."));
+			return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery copy could not be written."));
 		}
 	}
 	if (interrupted(cancelled, error) || !safeTarget())
 	{
 		file.cancelWriting();
 		return reject(
-			QCoreApplication::translate("VibeStudioModelRecovery", "The recovery write was cancelled or its destination changed."));
+			QCoreApplication::translate("SlopStudioModelRecovery", "The recovery write was cancelled or its destination changed."));
 	}
 	if (!file.commit())
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery copy could not be committed."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery copy could not be committed."));
 	}
 	return path;
 }
@@ -407,21 +407,21 @@ ModelRecoveryRecord inspectModelRecovery(const QString &path, ModelRecoverySnaps
 	QFile file(path);
 	if (info.isSymLink() || info.isJunction() || !info.isFile() || !file.open(QIODevice::ReadOnly))
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery copy is not a readable regular file."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery copy is not a readable regular file."));
 	}
 	if (file.read(magic.size()) != magic)
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery signature is invalid."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery signature is invalid."));
 	}
 	const auto lengthBytes = file.read(sizeof(quint32));
 	if (lengthBytes.size() != sizeof(quint32))
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery header is incomplete."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery header is incomplete."));
 	}
 	const quint32 length = qFromLittleEndian<quint32>(lengthBytes.constData());
 	if (length == 0 || length > headerLimit)
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery header exceeds its limit."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery header exceeds its limit."));
 	}
 	const auto bytes = file.read(length);
 	QJsonParseError parse;
@@ -436,7 +436,7 @@ ModelRecoveryRecord inspectModelRecovery(const QString &path, ModelRecoverySnaps
 		!integer(header.value(QStringLiteral("ownerProcessId")), 1, 9007199254740991LL, &record.ownerProcessId) ||
 		file.size() != magic.size() + qint64(sizeof(quint32)) + length + record.payloadBytes)
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery header is damaged or unsupported."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery header is damaged or unsupported."));
 	}
 	record.frame = int(frame);
 	record.title = header.value(QStringLiteral("title")).toString().left(255);
@@ -450,7 +450,7 @@ ModelRecoveryRecord inspectModelRecovery(const QString &path, ModelRecoverySnaps
 		record.payloadSha256.toHex() != payloadHash || payloadHash.size() != 64 || !record.writtenUtc.isValid())
 	{
 		return reject(
-			QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery timestamp or checksum header is invalid."));
+			QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery timestamp or checksum header is invalid."));
 	}
 	if (!restored)
 	{
@@ -463,7 +463,7 @@ ModelRecoveryRecord inspectModelRecovery(const QString &path, ModelRecoverySnaps
 	}
 	if (hash(payload) != record.payloadSha256)
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery contents failed their checksum."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery contents failed their checksum."));
 	}
 	if (interrupted(cancelled, &record.error))
 	{
@@ -481,17 +481,17 @@ ModelRecoveryRecord inspectModelRecovery(const QString &path, ModelRecoverySnaps
 	qint64 surface = 0;
 	if (!integer(selection.value(QStringLiteral("surface")), 0, candidate.mesh.surfaces.size() - 1, &surface))
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The recovered component selection is invalid."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The recovered component selection is invalid."));
 	}
 	candidate.selection.surface = int(surface);
 	if (selection.contains(QStringLiteral("tag")) && !selection.value(QStringLiteral("tag")).isString())
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The recovered attachment selection is invalid."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The recovered attachment selection is invalid."));
 	}
 	candidate.selection.tag = selection.value(QStringLiteral("tag")).toString();
 	if (selection.contains(QStringLiteral("collision")) && !selection.value(QStringLiteral("collision")).isString())
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The recovered collision selection is invalid."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The recovered collision selection is invalid."));
 	}
 	candidate.selection.collision = selection.value(QStringLiteral("collision")).toString();
 	if (selection.contains(QStringLiteral("joint")) && !selection.value(QStringLiteral("joint")).isString())
@@ -507,7 +507,7 @@ ModelRecoveryRecord inspectModelRecovery(const QString &path, ModelRecoverySnaps
 		record.frame >= candidate.mesh.frames.size() || !validModelSurfaceSelection(candidate.mesh, candidate.selection) || !validModelTagSelection(candidate.mesh, candidate.selection) ||
 		!validModelCollisionSelection(candidate.mesh, candidate.selection) || !validModelJointSelection(candidate.mesh, candidate.selection))
 	{
-		return reject(QCoreApplication::translate("VibeStudioModelRecovery", "The recovered component selection is invalid."));
+		return reject(QCoreApplication::translate("SlopStudioModelRecovery", "The recovered component selection is invalid."));
 	}
 	candidate.frame = record.frame;
 	candidate.title = record.title;
@@ -530,7 +530,7 @@ ModelRecoveryScan listModelRecoveries(const QString &directory, const std::funct
 	}
 	if (!safeDirectory(directory))
 	{
-		result.error = QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery folder is unavailable or is a link.");
+		result.error = QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery folder is unavailable or is a link.");
 		return result;
 	}
 	// The newest copies first, so a full folder still lists the latest work.
@@ -569,7 +569,7 @@ bool removeModelRecovery(const QString &directory, const QString &id, QString *e
 	}
 	if (!validId(id) || directory.isEmpty())
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelRecovery", "Invalid model recovery identifier."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelRecovery", "Invalid model recovery identifier."));
 	}
 	if (!QFileInfo::exists(directory))
 	{
@@ -578,14 +578,14 @@ bool removeModelRecovery(const QString &directory, const QString &id, QString *e
 	if (!safeDirectory(directory))
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery folder is unavailable or is a link."));
+					QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery folder is unavailable or is a link."));
 	}
 	const auto root = QFileInfo(directory).canonicalFilePath();
 	const auto path = modelRecoveryPath(root, id);
 	const QFileInfo info(path);
 	if (info.isSymLink() || info.isJunction() || (info.exists() && !info.isFile()))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelRecovery", "Only regular model recovery files may be discarded."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelRecovery", "Only regular model recovery files may be discarded."));
 	}
 	// Staged-session sidecars go with their copy (core/model_session_draft.h).
 	if (!removeModelSessionDrafts(root, id, error))
@@ -598,9 +598,9 @@ bool removeModelRecovery(const QString &directory, const QString &id, QString *e
 	}
 	if (!safeDirectory(directory) || QFileInfo(directory).canonicalFilePath() != root || !QFile::remove(path))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelRecovery", "The model recovery copy could not be discarded."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelRecovery", "The model recovery copy could not be discarded."));
 	}
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

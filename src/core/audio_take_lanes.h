@@ -1,7 +1,7 @@
 #pragma once
 #include "core/audio_session.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioTakeLaneEdit {
 	QString operation; // capture, rename, remove, promote
@@ -22,4 +22,4 @@ struct AudioTakeLaneResult {
 // Alternatives and automation are unchanged; active clip group links are not
 // copied into a take lane or its independently promoted clips.
 AudioTakeLaneResult editAudioTakeLane(const AudioSession &session, const AudioTakeLaneEdit &edit);
-} // namespace vibestudio
+} // namespace slopstudio

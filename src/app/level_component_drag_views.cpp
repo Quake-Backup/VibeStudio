@@ -3,7 +3,7 @@
 #include <QTimer>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 bool MapViewport::canSnapPickedVertex() const
 {
 	if (!isEnabled() || m_componentMode != ComponentMode::Vertices || m_componentHandlesLimited || m_pickedHandles.isEmpty()) { return false; }
@@ -72,4 +72,4 @@ bool ModelViewport::updateComponentModifiers(int key,Qt::KeyboardModifiers modif
 	if (m_componentMoving && m_componentWorldDrag) { updateComponentMove(m_componentLastPoint,modifiers); return true; }
 	return m_componentNativeArmed;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -2,7 +2,7 @@
 
 #include "tests/model_uv_test_helpers.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // Original independent rectangular panels with two poses and authored UVs.
 inline ModelMesh atlasPanels(int count = 5)
@@ -38,4 +38,4 @@ inline QSet<int> atlasFaces(const ModelMesh &mesh)
 	for (int i = 0; i < mesh.surfaces[0].triangles.size(); ++i) faces.insert(i);
 	return faces;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

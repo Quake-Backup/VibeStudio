@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -631,4 +631,4 @@ bool bevelVertices(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selec
 	return work.check();
 }
 
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

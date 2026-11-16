@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(LevelPatchToolsCli)
@@ -415,4 +415,4 @@ LevelPatchToolCliResult runLevelPatchDeform(const QStringList& arguments)
 	result.lines << levelMapSaveReportText(saved);
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

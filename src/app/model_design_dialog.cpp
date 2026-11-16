@@ -32,18 +32,18 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 {
 	setObjectName(QStringLiteral("modelDesignDialog"));
-	setWindowTitle(QCoreApplication::translate("VibeStudioModelDesignDialog", "Model Design"));
-	setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Model design editor"));
+	setWindowTitle(QCoreApplication::translate("SlopStudioModelDesignDialog", "Model Design"));
+	setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Model design editor"));
 	setAttribute(Qt::WA_DeleteOnClose);
 	auto* layout = new QVBoxLayout(this);
-	auto* tools = new QToolBar(QCoreApplication::translate("VibeStudioModelDesignDialog", "Model design actions"));
-	tools->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Model design actions"));
+	auto* tools = new QToolBar(QCoreApplication::translate("SlopStudioModelDesignDialog", "Model design actions"));
+	tools->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Model design actions"));
 	tools->setToolButtonStyle(Qt::ToolButtonTextOnly);
 	const auto action = [&](const QString& text, const QString& name, auto callback) {
 		auto* result = tools->addAction(text);
@@ -51,15 +51,15 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 		connect(result, &QAction::triggered, this, callback);
 		return result;
 	};
-	action(QCoreApplication::translate("VibeStudioModelDesignDialog", "Open Design…"), QStringLiteral("openModelDesign"),
+	action(QCoreApplication::translate("SlopStudioModelDesignDialog", "Open Design…"), QStringLiteral("openModelDesign"),
 	       [this]() { openDesign(); });
-	action(QCoreApplication::translate("VibeStudioModelDesignDialog", "Save Design…"), QStringLiteral("saveModelDesign"),
+	action(QCoreApplication::translate("SlopStudioModelDesignDialog", "Save Design…"), QStringLiteral("saveModelDesign"),
 	       [this]() { saveDesign(); });
 	tools->addSeparator();
 	m_undoAction =
-	    action(QCoreApplication::translate("VibeStudioModelDesignDialog", "Undo"), QStringLiteral("undoModelDesign"), [this]() { undo(); });
+	    action(QCoreApplication::translate("SlopStudioModelDesignDialog", "Undo"), QStringLiteral("undoModelDesign"), [this]() { undo(); });
 	m_redoAction =
-	    action(QCoreApplication::translate("VibeStudioModelDesignDialog", "Redo"), QStringLiteral("redoModelDesign"), [this]() { redo(); });
+	    action(QCoreApplication::translate("SlopStudioModelDesignDialog", "Redo"), QStringLiteral("redoModelDesign"), [this]() { redo(); });
 	m_undoAction->setShortcut(QKeySequence::Undo);
 	m_redoAction->setShortcut(QKeySequence::Redo);
 	m_undoAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
@@ -67,28 +67,28 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 	addAction(m_undoAction);
 	addAction(m_redoAction);
 	tools->addSeparator();
-	m_exportMd3 = action(QCoreApplication::translate("VibeStudioModelDesignDialog", "Export MD3…"), QStringLiteral("exportDesignMd3"),
+	m_exportMd3 = action(QCoreApplication::translate("SlopStudioModelDesignDialog", "Export MD3…"), QStringLiteral("exportDesignMd3"),
 	                     [this]() { exportDesign(QStringLiteral("md3")); });
-	m_exportObj = action(QCoreApplication::translate("VibeStudioModelDesignDialog", "Export OBJ…"), QStringLiteral("exportDesignObj"),
+	m_exportObj = action(QCoreApplication::translate("SlopStudioModelDesignDialog", "Export OBJ…"), QStringLiteral("exportDesignObj"),
 	                     [this]() { exportDesign(QStringLiteral("obj")); });
-	m_stageAction = action(QCoreApplication::translate("VibeStudioModelDesignDialog", "Stage in Package"),
+	m_stageAction = action(QCoreApplication::translate("SlopStudioModelDesignDialog", "Stage in Package"),
 	                       QStringLiteral("stageModelDesign"), [this]() { stage(false); });
-	m_placeAction = action(QCoreApplication::translate("VibeStudioModelDesignDialog", "Stage and Place"),
+	m_placeAction = action(QCoreApplication::translate("SlopStudioModelDesignDialog", "Stage and Place"),
 	                       QStringLiteral("placeModelDesign"), [this]() { stage(true); });
-	m_stageAction->setToolTip(QCoreApplication::translate("VibeStudioModelDesignDialog",
+	m_stageAction->setToolTip(QCoreApplication::translate("SlopStudioModelDesignDialog",
 	                                                      "Add the generated MD3 to the package plan. Save the package separately."));
 	m_placeAction->setToolTip(QCoreApplication::translate(
-	    "VibeStudioModelDesignDialog",
+	    "SlopStudioModelDesignDialog",
 	    "Stage the MD3 and add one undoable misc_model entity to the current Quake III map. Save the map and package separately."));
 	layout->addWidget(tools);
-	auto* bake = tools->addAction(QCoreApplication::translate("VibeStudioModelDesignDialog", "Edit as Mesh"));
+	auto* bake = tools->addAction(QCoreApplication::translate("SlopStudioModelDesignDialog", "Edit as Mesh"));
 	bake->setObjectName(QStringLiteral("editDesignAsMesh"));
-	bake->setToolTip(QCoreApplication::translate("VibeStudioModelDesignDialog", "Open a baked copy in the mesh editor. Primitive parameters stay in this design source."));
+	bake->setToolTip(QCoreApplication::translate("SlopStudioModelDesignDialog", "Open a baked copy in the mesh editor. Primitive parameters stay in this design source."));
 	connect(bake, &QAction::triggered, this, [this]() { if (editMesh) { editMesh(buildModelDesignMesh(m_design)); } });
 	m_contextLabel = new QLabel;
 	m_contextLabel->setWordWrap(true);
 	m_contextLabel->setTextFormat(Qt::PlainText);
-	m_contextLabel->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Model design project context"));
+	m_contextLabel->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Model design project context"));
 	layout->addWidget(m_contextLabel);
 	auto* splitter = new QSplitter;
 	auto* partPanel = new QWidget;
@@ -96,53 +96,53 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 	partLayout->setContentsMargins(0, 0, 0, 0);
 	m_parts = new QListWidget;
 	m_parts->setObjectName(QStringLiteral("designParts"));
-	m_parts->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Model parts"));
+	m_parts->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Model parts"));
 	m_parts->setAccessibleDescription(QCoreApplication::translate(
-	    "VibeStudioModelDesignDialog", "Select a primitive to edit its dimensions, position, rotation, and material."));
+	    "SlopStudioModelDesignDialog", "Select a primitive to edit its dimensions, position, rotation, and material."));
 	partLayout->addWidget(m_parts, 1);
-	auto* partTools = new QToolBar(QCoreApplication::translate("VibeStudioModelDesignDialog", "Part actions"));
-	partTools->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Part actions"));
+	auto* partTools = new QToolBar(QCoreApplication::translate("SlopStudioModelDesignDialog", "Part actions"));
+	partTools->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Part actions"));
 	const QStringList primitiveIds{QStringLiteral("box"), QStringLiteral("cylinder"), QStringLiteral("plane")};
-	const QStringList primitiveNames{QCoreApplication::translate("VibeStudioModelDesignDialog", "Box"),
-	                                 QCoreApplication::translate("VibeStudioModelDesignDialog", "Cylinder"),
-	                                 QCoreApplication::translate("VibeStudioModelDesignDialog", "Plane")};
+	const QStringList primitiveNames{QCoreApplication::translate("SlopStudioModelDesignDialog", "Box"),
+	                                 QCoreApplication::translate("SlopStudioModelDesignDialog", "Cylinder"),
+	                                 QCoreApplication::translate("SlopStudioModelDesignDialog", "Plane")};
 	for (int i = 0; i < primitiveIds.size(); ++i) {
 		auto* add = partTools->addAction(primitiveNames[i]);
-		add->setToolTip(QCoreApplication::translate("VibeStudioModelDesignDialog", "Add a %1 part").arg(primitiveNames[i]));
+		add->setToolTip(QCoreApplication::translate("SlopStudioModelDesignDialog", "Add a %1 part").arg(primitiveNames[i]));
 		connect(add, &QAction::triggered, this, [this, id = primitiveIds[i]]() { addPart(id); });
 	}
 	partLayout->addWidget(partTools);
-	auto* editTools = new QToolBar(QCoreApplication::translate("VibeStudioModelDesignDialog", "Part management"));
-	editTools->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Part management"));
-	connect(editTools->addAction(QCoreApplication::translate("VibeStudioModelDesignDialog", "Duplicate")), &QAction::triggered, this,
+	auto* editTools = new QToolBar(QCoreApplication::translate("SlopStudioModelDesignDialog", "Part management"));
+	editTools->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Part management"));
+	connect(editTools->addAction(QCoreApplication::translate("SlopStudioModelDesignDialog", "Duplicate")), &QAction::triggered, this,
 	        [this]() { duplicatePart(); });
-	connect(editTools->addAction(QCoreApplication::translate("VibeStudioModelDesignDialog", "Remove")), &QAction::triggered, this,
+	connect(editTools->addAction(QCoreApplication::translate("SlopStudioModelDesignDialog", "Remove")), &QAction::triggered, this,
 	        [this]() { removePart(); });
 	partLayout->addWidget(editTools);
 	splitter->addWidget(partPanel);
 	auto* previewPanel = new QWidget;
 	auto* previewLayout = new QVBoxLayout(previewPanel);
 	previewLayout->setContentsMargins(0, 0, 0, 0);
-	auto* previewTools = new QToolBar(QCoreApplication::translate("VibeStudioModelDesignDialog", "Preview controls"));
+	auto* previewTools = new QToolBar(QCoreApplication::translate("SlopStudioModelDesignDialog", "Preview controls"));
 	previewTools->setAccessibleName(previewTools->windowTitle());
 	auto* renderMode = new QComboBox;
 	renderMode->setObjectName(QStringLiteral("designRenderMode"));
-	renderMode->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Preview rendering"));
-	renderMode->addItem(QCoreApplication::translate("VibeStudioModelDesignDialog", "Solid"));
-	renderMode->addItem(QCoreApplication::translate("VibeStudioModelDesignDialog", "Wireframe"));
-	renderMode->addItem(QCoreApplication::translate("VibeStudioModelDesignDialog", "UV checker"));
+	renderMode->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Preview rendering"));
+	renderMode->addItem(QCoreApplication::translate("SlopStudioModelDesignDialog", "Solid"));
+	renderMode->addItem(QCoreApplication::translate("SlopStudioModelDesignDialog", "Wireframe"));
+	renderMode->addItem(QCoreApplication::translate("SlopStudioModelDesignDialog", "UV checker"));
 	renderMode->setToolTip(QCoreApplication::translate(
-	    "VibeStudioModelDesignDialog", "Inspect texture tiling with a generated checker; project materials are not loaded here."));
+	    "SlopStudioModelDesignDialog", "Inspect texture tiling with a generated checker; project materials are not loaded here."));
 	previewTools->addWidget(renderMode);
-	auto* frame = previewTools->addAction(QCoreApplication::translate("VibeStudioModelDesignDialog", "Frame Design"));
-	frame->setToolTip(QCoreApplication::translate("VibeStudioModelDesignDialog", "Fit the model design in the preview"));
+	auto* frame = previewTools->addAction(QCoreApplication::translate("SlopStudioModelDesignDialog", "Frame Design"));
+	frame->setToolTip(QCoreApplication::translate("SlopStudioModelDesignDialog", "Fit the model design in the preview"));
 	previewLayout->addWidget(previewTools);
 	m_preview = new ModelViewport;
 	m_preview->setObjectName(QStringLiteral("designPreview"));
-	m_preview->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Model design preview"));
+	m_preview->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Model design preview"));
 	m_preview->setReducedMotion(true);
 	m_preview->setControlsHelp(QCoreApplication::translate(
-	    "VibeStudioModelDesignDialog", "Click a part to select it, or use the parts list. Drag to orbit and use the wheel to zoom."));
+	    "SlopStudioModelDesignDialog", "Click a part to select it, or use the parts list. Drag to orbit and use the wheel to zoom."));
 	m_preview->setMinimumSize(240, 250);
 	m_preview->setBackfaceCulling(false);
 	QImage checker(64, 64, QImage::Format_RGB32);
@@ -161,7 +161,7 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 	m_selectionStatus->setObjectName(QStringLiteral("designSelection"));
 	m_selectionStatus->setTextFormat(Qt::PlainText);
 	m_selectionStatus->setWordWrap(true);
-	m_selectionStatus->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Selected model part"));
+	m_selectionStatus->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Selected model part"));
 	previewLayout->addWidget(m_selectionStatus);
 	connect(frame, &QAction::triggered, m_preview, &ModelViewport::frameModel);
 	connect(renderMode, &QComboBox::currentIndexChanged, this, [this](int mode) {
@@ -177,7 +177,7 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 	splitter->addWidget(previewPanel);
 	auto* properties = new QTabWidget;
 	properties->setObjectName(QStringLiteral("designProperties"));
-	properties->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Model design properties"));
+	properties->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Model design properties"));
 	properties->setMinimumWidth(310);
 	const auto propertyTab = [&](const QString& title) {
 		auto* inspector = new QWidget;
@@ -191,7 +191,7 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 		properties->addTab(scroll, title);
 		return tabForm;
 	};
-	auto* form = propertyTab(QCoreApplication::translate("VibeStudioModelDesignDialog", "Part"));
+	auto* form = propertyTab(QCoreApplication::translate("SlopStudioModelDesignDialog", "Part"));
 	const auto field = [&](const QString& label, const QString& id) {
 		auto* edit = new QLineEdit;
 		edit->setObjectName(id);
@@ -199,14 +199,14 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 		form->addRow(label, edit);
 		return edit;
 	};
-	m_name = field(QCoreApplication::translate("VibeStudioModelDesignDialog", "Design name"), QStringLiteral("designName"));
-	m_partName = field(QCoreApplication::translate("VibeStudioModelDesignDialog", "Part name"), QStringLiteral("designPartName"));
+	m_name = field(QCoreApplication::translate("SlopStudioModelDesignDialog", "Design name"), QStringLiteral("designName"));
+	m_partName = field(QCoreApplication::translate("SlopStudioModelDesignDialog", "Part name"), QStringLiteral("designPartName"));
 	m_primitive = new QComboBox;
-	m_primitive->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Primitive type"));
+	m_primitive->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Primitive type"));
 	for (int i = 0; i < primitiveIds.size(); ++i) {
 		m_primitive->addItem(primitiveNames[i], primitiveIds[i]);
 	}
-	form->addRow(QCoreApplication::translate("VibeStudioModelDesignDialog", "Primitive"), m_primitive);
+	form->addRow(QCoreApplication::translate("SlopStudioModelDesignDialog", "Primitive"), m_primitive);
 	const auto vector = [&](const QString& label, const QString& id, QDoubleSpinBox** fields, double minimum, double maximum) {
 		auto* row = new QWidget;
 		auto* rowLayout = new QVBoxLayout(row);
@@ -227,8 +227,8 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 		}
 		form->addRow(label, row);
 	};
-	vector(QCoreApplication::translate("VibeStudioModelDesignDialog", "Dimensions"), QStringLiteral("designSize"), m_size, 1.0 / 64, 1000);
-	vector(QCoreApplication::translate("VibeStudioModelDesignDialog", "Part position"), QStringLiteral("designOrigin"), m_origin, -10000,
+	vector(QCoreApplication::translate("SlopStudioModelDesignDialog", "Dimensions"), QStringLiteral("designSize"), m_size, 1.0 / 64, 1000);
+	vector(QCoreApplication::translate("SlopStudioModelDesignDialog", "Part position"), QStringLiteral("designOrigin"), m_origin, -10000,
 	       10000);
 	const auto scalar = [&](const QString& label, const QString& id, double minimum, double maximum, double step) {
 		auto* spin = new QDoubleSpinBox;
@@ -241,39 +241,39 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 		form->addRow(label, spin);
 		return spin;
 	};
-	m_roll = scalar(QCoreApplication::translate("VibeStudioModelDesignDialog", "X rotation (roll)"), QStringLiteral("designRoll"), -36000,
+	m_roll = scalar(QCoreApplication::translate("SlopStudioModelDesignDialog", "X rotation (roll)"), QStringLiteral("designRoll"), -36000,
 	                36000, 15);
-	m_pitch = scalar(QCoreApplication::translate("VibeStudioModelDesignDialog", "Y rotation (pitch)"), QStringLiteral("designPitch"),
+	m_pitch = scalar(QCoreApplication::translate("SlopStudioModelDesignDialog", "Y rotation (pitch)"), QStringLiteral("designPitch"),
 	                 -36000, 36000, 15);
-	m_yaw = scalar(QCoreApplication::translate("VibeStudioModelDesignDialog", "Z rotation (yaw)"), QStringLiteral("designYaw"), -36000,
+	m_yaw = scalar(QCoreApplication::translate("SlopStudioModelDesignDialog", "Z rotation (yaw)"), QStringLiteral("designYaw"), -36000,
 	               36000, 15);
 	for (auto* angle : {m_roll, m_pitch, m_yaw}) {
-		angle->setSuffix(QCoreApplication::translate("VibeStudioModelDesignDialog", "°"));
+		angle->setSuffix(QCoreApplication::translate("SlopStudioModelDesignDialog", "°"));
 		angle->setToolTip(
-		    QCoreApplication::translate("VibeStudioModelDesignDialog", "Rotate around the part centre, in X, then Y, then Z order."));
+		    QCoreApplication::translate("SlopStudioModelDesignDialog", "Rotate around the part centre, in X, then Y, then Z order."));
 	}
 	m_segments = new QSpinBox;
 	m_segments->setRange(3, 64);
 	m_segments->setKeyboardTracking(false);
-	m_segments->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Cylinder segments"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelDesignDialog", "Segments"), m_segments);
-	form = propertyTab(QCoreApplication::translate("VibeStudioModelDesignDialog", "Surface"));
-	m_material = field(QCoreApplication::translate("VibeStudioModelDesignDialog", "Material path"), QStringLiteral("designMaterial"));
+	m_segments->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Cylinder segments"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelDesignDialog", "Segments"), m_segments);
+	form = propertyTab(QCoreApplication::translate("SlopStudioModelDesignDialog", "Surface"));
+	m_material = field(QCoreApplication::translate("SlopStudioModelDesignDialog", "Material path"), QStringLiteral("designMaterial"));
 	m_material->setToolTip(QCoreApplication::translate(
-	    "VibeStudioModelDesignDialog", "Package-relative image or Quake III shader name. Assets are checked by Levels → Dependencies."));
-	auto* show = new QPushButton(QCoreApplication::translate("VibeStudioModelDesignDialog", "Show Image"));
+	    "SlopStudioModelDesignDialog", "Package-relative image or Quake III shader name. Assets are checked by Levels → Dependencies."));
+	auto* show = new QPushButton(QCoreApplication::translate("SlopStudioModelDesignDialog", "Show Image"));
 	show->setObjectName(QStringLiteral("showDesignImage"));
-	show->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Show this model part material in Textures"));
+	show->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Show this model part material in Textures"));
 	form->addRow(show);
 	connect(show, &QPushButton::clicked, this, [this]() {
 		if (showMaterial) {
 			showMaterial(m_material->text());
 		}
 	});
-	m_showInMaterials = new QPushButton(QCoreApplication::translate("VibeStudioModelDesignDialog", "Show in Materials"));
+	m_showInMaterials = new QPushButton(QCoreApplication::translate("SlopStudioModelDesignDialog", "Show in Materials"));
 	m_showInMaterials->setObjectName(QStringLiteral("showDesignMaterialInMaterials"));
 	m_showInMaterials->setAccessibleName(
-	    QCoreApplication::translate("VibeStudioModelDesignDialog", "Show this model part's shader or material in Materials"));
+	    QCoreApplication::translate("SlopStudioModelDesignDialog", "Show this model part's shader or material in Materials"));
 	form->addRow(m_showInMaterials);
 	connect(m_showInMaterials, &QPushButton::clicked, this, [this]() {
 		if (showInMaterials) {
@@ -281,21 +281,21 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 		}
 	});
 	m_uvScale[0] =
-	    scalar(QCoreApplication::translate("VibeStudioModelDesignDialog", "U scale"), QStringLiteral("designUvScaleU"), -64, 64, 0.25);
+	    scalar(QCoreApplication::translate("SlopStudioModelDesignDialog", "U scale"), QStringLiteral("designUvScaleU"), -64, 64, 0.25);
 	m_uvScale[1] =
-	    scalar(QCoreApplication::translate("VibeStudioModelDesignDialog", "V scale"), QStringLiteral("designUvScaleV"), -64, 64, 0.25);
-	m_uvOffset[0] = scalar(QCoreApplication::translate("VibeStudioModelDesignDialog", "U offset"), QStringLiteral("designUvOffsetU"), -1024,
+	    scalar(QCoreApplication::translate("SlopStudioModelDesignDialog", "V scale"), QStringLiteral("designUvScaleV"), -64, 64, 0.25);
+	m_uvOffset[0] = scalar(QCoreApplication::translate("SlopStudioModelDesignDialog", "U offset"), QStringLiteral("designUvOffsetU"), -1024,
 	                       1024, 0.125);
-	m_uvOffset[1] = scalar(QCoreApplication::translate("VibeStudioModelDesignDialog", "V offset"), QStringLiteral("designUvOffsetV"), -1024,
+	m_uvOffset[1] = scalar(QCoreApplication::translate("SlopStudioModelDesignDialog", "V offset"), QStringLiteral("designUvOffsetV"), -1024,
 	                       1024, 0.125);
-	m_uvRotation = scalar(QCoreApplication::translate("VibeStudioModelDesignDialog", "UV rotation"), QStringLiteral("designUvRotation"),
+	m_uvRotation = scalar(QCoreApplication::translate("SlopStudioModelDesignDialog", "UV rotation"), QStringLiteral("designUvRotation"),
 	                      -36000, 36000, 15);
-	m_uvRotation->setSuffix(QCoreApplication::translate("VibeStudioModelDesignDialog", "°"));
+	m_uvRotation->setSuffix(QCoreApplication::translate("SlopStudioModelDesignDialog", "°"));
 	m_uvRotation->setToolTip(QCoreApplication::translate(
-	    "VibeStudioModelDesignDialog", "Scale UVs, rotate about UV zero, then add offsets. Negative scales mirror the texture."));
-	auto* resetUv = new QPushButton(QCoreApplication::translate("VibeStudioModelDesignDialog", "Reset UVs"));
+	    "SlopStudioModelDesignDialog", "Scale UVs, rotate about UV zero, then add offsets. Negative scales mirror the texture."));
+	auto* resetUv = new QPushButton(QCoreApplication::translate("SlopStudioModelDesignDialog", "Reset UVs"));
 	resetUv->setObjectName(QStringLiteral("resetDesignUv"));
-	resetUv->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Reset the selected part's UV transform"));
+	resetUv->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Reset the selected part's UV transform"));
 	form->addRow(resetUv);
 	connect(resetUv, &QPushButton::clicked, this, [this]() {
 		const int index = m_parts->currentRow();
@@ -307,15 +307,15 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 			commit(next, index);
 		}
 	});
-	form = propertyTab(QCoreApplication::translate("VibeStudioModelDesignDialog", "Handoff"));
+	form = propertyTab(QCoreApplication::translate("SlopStudioModelDesignDialog", "Handoff"));
 	m_virtualPath =
-	    field(QCoreApplication::translate("VibeStudioModelDesignDialog", "Package model path"), QStringLiteral("designPackagePath"));
+	    field(QCoreApplication::translate("SlopStudioModelDesignDialog", "Package model path"), QStringLiteral("designPackagePath"));
 	m_virtualPath->setText(QStringLiteral("models/props/prop.md3"));
-	m_replace = new QCheckBox(QCoreApplication::translate("VibeStudioModelDesignDialog", "Replace existing entry"));
+	m_replace = new QCheckBox(QCoreApplication::translate("SlopStudioModelDesignDialog", "Replace existing entry"));
 	m_replace->setAccessibleName(
-	    QCoreApplication::translate("VibeStudioModelDesignDialog", "Allow replacement of the model package entry"));
+	    QCoreApplication::translate("SlopStudioModelDesignDialog", "Allow replacement of the model package entry"));
 	form->addRow(m_replace);
-	vector(QCoreApplication::translate("VibeStudioModelDesignDialog", "Level placement"), QStringLiteral("designPlacement"), m_placement,
+	vector(QCoreApplication::translate("SlopStudioModelDesignDialog", "Level placement"), QStringLiteral("designPlacement"), m_placement,
 	       -65536, 65536);
 	properties->ensurePolished();
 	properties->setMinimumWidth(std::max(310, properties->tabBar()->sizeHint().width() + 24));
@@ -327,7 +327,7 @@ ModelDesignDialog::ModelDesignDialog(QWidget* parent) : QDialog(parent)
 	m_status->setObjectName(QStringLiteral("designStatus"));
 	m_status->setWordWrap(true);
 	m_status->setTextFormat(Qt::PlainText);
-	m_status->setAccessibleName(QCoreApplication::translate("VibeStudioModelDesignDialog", "Model design status"));
+	m_status->setAccessibleName(QCoreApplication::translate("SlopStudioModelDesignDialog", "Model design status"));
 	layout->addWidget(m_status);
 	connect(m_parts, &QListWidget::currentRowChanged, this, [this]() {
 		if (!m_refreshing) {
@@ -411,7 +411,7 @@ void ModelDesignDialog::commit(ModelDesign next, int selected, bool refreshField
 void ModelDesignDialog::addPart(const QString& primitive)
 {
 	if (m_design.parts.size() >= 32) {
-		m_status->setText(QCoreApplication::translate("VibeStudioModelDesignDialog", "A design can contain at most 32 parts."), LiveStatus::Problem);
+		m_status->setText(QCoreApplication::translate("SlopStudioModelDesignDialog", "A design can contain at most 32 parts."), LiveStatus::Problem);
 		return;
 	}
 	ModelDesign next = m_design;
@@ -443,7 +443,7 @@ void ModelDesignDialog::removePart()
 {
 	const int index = m_parts->currentRow();
 	if (index < 0 || m_design.parts.size() <= 1) {
-		m_status->setText(QCoreApplication::translate("VibeStudioModelDesignDialog", "Keep at least one part in the design."), LiveStatus::Problem);
+		m_status->setText(QCoreApplication::translate("SlopStudioModelDesignDialog", "Keep at least one part in the design."), LiveStatus::Problem);
 		return;
 	}
 	ModelDesign next = m_design;
@@ -589,14 +589,14 @@ void ModelDesignDialog::refreshPreview()
 	m_exportMd3->setEnabled(md3);
 	m_status->setText(mesh.error.isEmpty()
 	                      ? (md3 ? QCoreApplication::translate(
-	                                   "VibeStudioModelDesignDialog",
+	                                   "SlopStudioModelDesignDialog",
 	                                   "Parts: %1 · Vertices: %2 · Triangles: %3 · Static model, Z up; MD3 positions use 1/64-unit steps.")
 	                                   .arg(mesh.surfaceCount)
 	                                   .arg(mesh.vertexCount)
 	                                   .arg(mesh.triangleCount)
 	                             : md3Error)
 	                      : mesh.error);
-	setWindowTitle(QCoreApplication::translate("VibeStudioModelDesignDialog", "Model Design — %1[*]").arg(m_design.name));
+	setWindowTitle(QCoreApplication::translate("SlopStudioModelDesignDialog", "Model Design — %1[*]").arg(m_design.name));
 	refreshContext();
 }
 void ModelDesignDialog::refreshSelection()
@@ -617,7 +617,7 @@ void ModelDesignDialog::refreshSelection()
 	}
 	m_preview->setHighlightedTriangles(triangles);
 	m_selectionStatus->setText(
-	    selected >= 0 ? QCoreApplication::translate("VibeStudioModelDesignDialog", "Selected: %1").arg(m_design.parts[selected].name)
+	    selected >= 0 ? QCoreApplication::translate("SlopStudioModelDesignDialog", "Selected: %1").arg(m_design.parts[selected].name)
 	                  : QString());
 }
 void ModelDesignDialog::refreshContext()
@@ -628,9 +628,9 @@ void ModelDesignDialog::refreshContext()
 	const auto state = context ? context() : ModelDesignContext();
 	m_contextKey = state.packagePath + QLatin1Char('\n') + state.mapPath + QLatin1Char('\n') + QString::number(state.mapRevision);
 	m_contextLabel->setText(
-	    QCoreApplication::translate("VibeStudioModelDesignDialog", "Package: %1 · Level: %2")
-	        .arg(state.packagePath.isEmpty() ? QCoreApplication::translate("VibeStudioModelDesignDialog", "none") : state.packagePath,
-	             state.mapPath.isEmpty() ? QCoreApplication::translate("VibeStudioModelDesignDialog", "none") : state.mapPath));
+	    QCoreApplication::translate("SlopStudioModelDesignDialog", "Package: %1 · Level: %2")
+	        .arg(state.packagePath.isEmpty() ? QCoreApplication::translate("SlopStudioModelDesignDialog", "none") : state.packagePath,
+	             state.mapPath.isEmpty() ? QCoreApplication::translate("SlopStudioModelDesignDialog", "none") : state.mapPath));
 	m_stageAction->setEnabled(m_exportMd3->isEnabled() && state.canStage && bool(handoff));
 	m_placeAction->setEnabled(m_exportMd3->isEnabled() && state.canStage && state.canPlace && bool(handoff));
 	// Materials come from the open package; without one there is nothing to show.
@@ -639,8 +639,8 @@ void ModelDesignDialog::refreshContext()
 	}
 	m_showInMaterials->setEnabled(bool(showInMaterials) && !state.packagePath.isEmpty());
 	m_showInMaterials->setToolTip(state.packagePath.isEmpty()
-	                                  ? QCoreApplication::translate("VibeStudioModelDesignDialog", "Open the package that holds the material first.")
-	                                  : QCoreApplication::translate("VibeStudioModelDesignDialog",
+	                                  ? QCoreApplication::translate("SlopStudioModelDesignDialog", "Open the package that holds the material first.")
+	                                  : QCoreApplication::translate("SlopStudioModelDesignDialog",
 	                                                                "Open the shader or material in the Materials workbench to edit its stages and maps."));
 	m_showInMaterials->setAccessibleDescription(m_showInMaterials->toolTip());
 }
@@ -659,9 +659,9 @@ bool ModelDesignDialog::saveDesign()
 		return false;
 	}
 	const QString path =
-	    QFileDialog::getSaveFileName(this, QCoreApplication::translate("VibeStudioModelDesignDialog", "Save Model Design"),
+	    QFileDialog::getSaveFileName(this, QCoreApplication::translate("SlopStudioModelDesignDialog", "Save Model Design"),
 	                                 m_path.isEmpty() ? m_design.name + QStringLiteral(".model.json") : m_path,
-	                                 QCoreApplication::translate("VibeStudioModelDesignDialog", "Model designs (*.model.json *.json)"));
+	                                 QCoreApplication::translate("SlopStudioModelDesignDialog", "Model designs (*.model.json *.json)"));
 	if (path.isEmpty()) {
 		return false;
 	}
@@ -681,7 +681,7 @@ bool ModelDesignDialog::saveDesign()
 		sourcePathChanged(QFileInfo(path).absoluteFilePath());
 	}
 	refreshPreview();
-	m_status->setText(QCoreApplication::translate("VibeStudioModelDesignDialog", "Saved design: %1").arg(path), LiveStatus::Result);
+	m_status->setText(QCoreApplication::translate("SlopStudioModelDesignDialog", "Saved design: %1").arg(path), LiveStatus::Result);
 	return true;
 }
 bool ModelDesignDialog::confirmDiscard()
@@ -690,8 +690,8 @@ bool ModelDesignDialog::confirmDiscard()
 		return true;
 	}
 	const auto answer = QMessageBox::question(
-	    this, QCoreApplication::translate("VibeStudioModelDesignDialog", "Unsaved Model Design"),
-	    QCoreApplication::translate("VibeStudioModelDesignDialog", "Save the editable model design before closing or opening another?"),
+	    this, QCoreApplication::translate("SlopStudioModelDesignDialog", "Unsaved Model Design"),
+	    QCoreApplication::translate("SlopStudioModelDesignDialog", "Save the editable model design before closing or opening another?"),
 	    QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save);
 	return answer == QMessageBox::Discard || (answer == QMessageBox::Save && saveDesign());
 }
@@ -710,8 +710,8 @@ void ModelDesignDialog::openDesign()
 		return;
 	}
 	const QString path =
-	    QFileDialog::getOpenFileName(this, QCoreApplication::translate("VibeStudioModelDesignDialog", "Open Model Design"), QString(),
-	                                 QCoreApplication::translate("VibeStudioModelDesignDialog", "Model designs (*.model.json *.json)"));
+	    QFileDialog::getOpenFileName(this, QCoreApplication::translate("SlopStudioModelDesignDialog", "Open Model Design"), QString(),
+	                                 QCoreApplication::translate("SlopStudioModelDesignDialog", "Model designs (*.model.json *.json)"));
 	if (path.isEmpty()) {
 		return;
 	}
@@ -747,9 +747,9 @@ void ModelDesignDialog::exportDesign(const QString& format)
 		return;
 	}
 	const QString path = QFileDialog::getSaveFileName(
-	    this, QCoreApplication::translate("VibeStudioModelDesignDialog", "Export Model Design"), m_design.name + QLatin1Char('.') + format,
-	    format == QStringLiteral("md3") ? QCoreApplication::translate("VibeStudioModelDesignDialog", "Quake III models (*.md3)")
-	                                    : QCoreApplication::translate("VibeStudioModelDesignDialog", "Wavefront models (*.obj)"));
+	    this, QCoreApplication::translate("SlopStudioModelDesignDialog", "Export Model Design"), m_design.name + QLatin1Char('.') + format,
+	    format == QStringLiteral("md3") ? QCoreApplication::translate("SlopStudioModelDesignDialog", "Quake III models (*.md3)")
+	                                    : QCoreApplication::translate("SlopStudioModelDesignDialog", "Wavefront models (*.obj)"));
 	if (path.isEmpty()) {
 		return;
 	}
@@ -757,14 +757,14 @@ void ModelDesignDialog::exportDesign(const QString& format)
 		m_status->setText(error, LiveStatus::Problem);
 		return;
 	}
-	m_status->setText(QCoreApplication::translate("VibeStudioModelDesignDialog", "Exported model: %1").arg(path), LiveStatus::Result);
+	m_status->setText(QCoreApplication::translate("SlopStudioModelDesignDialog", "Exported model: %1").arg(path), LiveStatus::Result);
 }
 void ModelDesignDialog::stage(bool place)
 {
 	const QString previous = m_contextKey;
 	refreshContext();
 	if (previous != m_contextKey) {
-		m_status->setText(QCoreApplication::translate("VibeStudioModelDesignDialog",
+		m_status->setText(QCoreApplication::translate("SlopStudioModelDesignDialog",
 		                                              "The package or level changed. Review the current context before staging again."),
 		                  LiveStatus::Problem);
 		return;
@@ -779,12 +779,12 @@ void ModelDesignDialog::stage(bool place)
 		return;
 	}
 	m_status->setText(
-	    place ? QCoreApplication::translate("VibeStudioModelDesignDialog",
+	    place ? QCoreApplication::translate("SlopStudioModelDesignDialog",
 	                                        "Staged %1 and placed it in the level. Save the map and package to keep both changes.")
 	                .arg(m_virtualPath->text())
-	          : QCoreApplication::translate("VibeStudioModelDesignDialog", "Staged %1. Review and save the package plan in Packages.")
+	          : QCoreApplication::translate("SlopStudioModelDesignDialog", "Staged %1. Review and save the package plan in Packages.")
 	                .arg(m_virtualPath->text()),
 	    LiveStatus::Result);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

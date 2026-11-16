@@ -57,13 +57,13 @@
 #include <algorithm>
 #include <utility>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelEditor)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelEditor)
 };
 
 // The smallest a view pane gets, smaller than a lone viewport's own minimum.
@@ -717,7 +717,7 @@ void ModelEditorDialog::customiseControls()
 	if (dialog.exec() != QDialog::Accepted)
 		return;
 	const ModelEditorControls base = modelEditorControlsForProfile(m_controls.profileId);
-	const QJsonObject overrides = vibestudio::modelEditorControlOverrides(base, dialog.controls());
+	const QJsonObject overrides = slopstudio::modelEditorControlOverrides(base, dialog.controls());
 	StudioSettings settings;
 	QString error;
 	if (!settings.setModelEditorControlOverrides(m_controls.profileId, overrides, &error))
@@ -736,13 +736,13 @@ void ModelEditorDialog::customiseControls()
 void ModelEditorDialog::exportControls()
 {
 	const QString path = QFileDialog::getSaveFileName(this, Text::tr("Export Controls"), m_controls.profileId + QStringLiteral("-controls.json"),
-													  Text::tr("VibeStudio controls (*.json)"));
+													  Text::tr("SlopStudio controls (*.json)"));
 	if (path.isEmpty())
 		return;
 	const ModelEditorControls base = modelEditorControlsForProfile(m_controls.profileId);
 	QSaveFile file(path);
 	if (!file.open(QIODevice::WriteOnly) ||
-		file.write(modelEditorControlsFile(m_controls.profileId, vibestudio::modelEditorControlOverrides(base, m_controls))) < 0 || !file.commit())
+		file.write(modelEditorControlsFile(m_controls.profileId, slopstudio::modelEditorControlOverrides(base, m_controls))) < 0 || !file.commit())
 	{
 		m_status->setText(Text::tr("Could not write %1: %2").arg(path, file.errorString()), LiveStatus::Problem);
 		return;
@@ -754,7 +754,7 @@ void ModelEditorDialog::exportControls()
 
 void ModelEditorDialog::importControls()
 {
-	const QString path = QFileDialog::getOpenFileName(this, Text::tr("Import Controls"), {}, Text::tr("VibeStudio controls (*.json)"));
+	const QString path = QFileDialog::getOpenFileName(this, Text::tr("Import Controls"), {}, Text::tr("SlopStudio controls (*.json)"));
 	if (!path.isEmpty())
 		importControlsFile(path);
 }
@@ -1048,4 +1048,4 @@ bool ModelEditorDialog::eventFilter(QObject *watched, QEvent *event)
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

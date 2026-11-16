@@ -14,7 +14,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 QWidget* ApplicationShell::buildLevelMaterialTools()
 {
@@ -347,4 +347,4 @@ void ApplicationShell::finishLevelMaterialStroke(bool commit)
 	if (!applyLevelMaterialPaint(targets, m_levelStrokeMaterial, &error)) { showLevelMaterialPaintMessage(error); }
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

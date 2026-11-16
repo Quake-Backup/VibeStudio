@@ -13,7 +13,7 @@
 #include <limits>
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -118,4 +118,4 @@ std::optional<ModelAssemblySkin> ModelAssemblyDialog::skinFromInspector() const
 							 m_skinKind->currentIndex() == 1 ? ModelAssemblySource::File : ModelAssemblySource::Package,
 							 m_skinKind->currentIndex() == 1 ? -1 : m_skinIndex->value()};
 }
-} // namespace vibestudio
+} // namespace slopstudio

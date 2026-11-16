@@ -37,7 +37,7 @@ def verify_build(source: Path, build_dir: Path, evidence: Path, sdk: Path, profi
         raise ValueError('Release build evidence must include successful configure and compile commands.')
     if capture_sources(source) != build['sourceHashes']:
         raise ValueError('Application sources differ from the recorded build.')
-    binary = build_dir / 'src/vibestudio.exe'
+    binary = build_dir / 'src/slopstudio.exe'
     reject_links(binary)
     if sha256(binary) != build['binarySha256']:
         raise ValueError('Application binary differs from the recorded build.')
@@ -76,11 +76,11 @@ def runtime_smoke(package: Path, directory: Path) -> list[dict]:
     fixture_hash = sha256(fixture)
     bindir = package / 'bin'
     env = runtime_environment(bindir, directory)
-    binary = bindir / 'vibestudio.exe'
+    binary = bindir / 'slopstudio.exe'
     checks = [run_logged('runtime-version', [str(binary), '--settings-file', str(directory / 'settings.ini'),
                                               '--cli', '--version'], directory, package, env, timeout=30)]
     version = read_version(package)
-    if (directory / 'runtime-version.txt').read_text(encoding='utf-8').strip() != 'VibeStudio ' + version:
+    if (directory / 'runtime-version.txt').read_text(encoding='utf-8').strip() != 'SlopStudio ' + version:
         raise ValueError('Packaged application reports an unexpected version.')
     command = [str(binary), '--settings-file', str(directory / 'settings.ini'), '--cli', '--json',
                'asset', 'audio-analyze', str(fixture), '--no-loudness']
@@ -132,7 +132,7 @@ def package_release(source: Path, build_dir: Path, evidence: Path, sdk: Path, ou
         print('Collecting pinned runtime implementation/build sources.', file=sys.stderr, flush=True)
         collect_sources(profile_path, runtime_sources)
     print('Staging the application and verified Qt runtime.', file=sys.stderr, flush=True)
-    package, _ = create_package(build_dir / 'src/vibestudio.exe', output / 'binary', read_version(source),
+    package, _ = create_package(build_dir / 'src/slopstudio.exe', output / 'binary', read_version(source),
                                 include_samples=True, archive=False, target_platform='windows', target_architecture='x86_64',
                                 compiled_translations=build_dir / 'i18n', source_root=source, docs_site=docs_site)
     deploy(package, sdk, license_texts, archive=False, offscreen=True)

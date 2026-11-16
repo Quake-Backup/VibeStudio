@@ -14,7 +14,7 @@ class QPushButton;
 class QSpinBox;
 class QTableWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 // Skeleton > Import Animation: reads a clip from another file (md5anim, IQM,
@@ -63,4 +63,4 @@ class ModelClipImportDialog final : public QDialog
 	void showSamples();
 	[[nodiscard]] ModelClipImportOptions options() const;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label)
 {
@@ -41,11 +41,11 @@ int main(int argc, char** argv)
 		QJsonParseError error; const auto json = QJsonDocument::fromJson(output, &error);
 		ok &= expect(error.error == QJsonParseError::NoError && json.isObject(), "machine-readable storage result"); return json.object();
 	};
-	const QString missing = root.filePath(QStringLiteral("absent.vibepackage"));
+	const QString missing = root.filePath(QStringLiteral("absent.sloppackage"));
 	cli({"draft-storage", missing}, 4);
 	ok &= expect(!QFileInfo::exists(missing), "reviewing an absent draft creates no directory");
 	PackageStagingModel plan; plan.createEmpty(PackageArchiveFormat::Pk3); QString error;
-	const QString draft = root.filePath(QStringLiteral("saved.vibepackage"));
+	const QString draft = root.filePath(QStringLiteral("saved.sloppackage"));
 	ok &= plan.addBytes("retained", QStringLiteral("one.txt"), &error);
 	ok &= plan.addBytes("redo", QStringLiteral("two.txt"), &error); ok &= plan.undo();
 	ok &= expect(PackageDraft::save(draft, &plan, false, &error), "prepare saved draft");
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 	loaded.clear();
 	const QString foreign = QDir(draft).filePath(QStringLiteral("notes.txt")); ok &= write(foreign, "unrelated");
 	cli({"draft-storage", draft}, 4); ok &= QFile::remove(foreign);
-	const QString input = root.filePath(QStringLiteral("input.txt")), output = root.filePath(QStringLiteral("quota.vibepackage"));
+	const QString input = root.filePath(QStringLiteral("input.txt")), output = root.filePath(QStringLiteral("quota.sloppackage"));
 	ok &= write(input, "same payload"); StudioSettings().setPackageDraftMaximumFiles(1);
 	const QStringList create{"create", output, "--format", "pk3", "--add-file", input, "--as", "one.txt", "--add-file", input, "--as", "two.txt"};
 	cli(create + QStringList{"--dry-run"}, 1); cli(create, 1);

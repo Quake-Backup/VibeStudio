@@ -7,7 +7,7 @@
 
 class QLockFile;
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr qint64 modelAssemblyRecoveryByteLimit = 2 * 1024 * 1024;
 inline constexpr qint64 modelAssemblyRecoveryStorageLimit = 32 * 1024 * 1024;
@@ -74,4 +74,4 @@ class ModelAssemblyRecoverySession final
 	QByteArray m_writtenSha256;
 	std::unique_ptr<QLockFile> m_lease;
 };
-} // namespace vibestudio
+} // namespace slopstudio

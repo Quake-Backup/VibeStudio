@@ -10,7 +10,7 @@
 #include <QJsonArray>
 #include <QSet>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(BuildPipelinesCli)
@@ -169,7 +169,7 @@ BuildPipelinesCliResult runBuildPipelines(const QStringList& arguments)
 		QString stageId;
 		QString profileId;
 		if (!splitAssignment(value, &stageId, &profileId)) {
-			return fail(2, Text::tr("--stage takes ID=PROFILE, such as bsp=vibemap2-bsp: %1").arg(value));
+			return fail(2, Text::tr("--stage takes ID=PROFILE, such as bsp=slopmap2-bsp: %1").arg(value));
 		}
 		BuildPipelineStage stage;
 		stage.id = stageId;
@@ -242,4 +242,4 @@ BuildPipelinesCliResult runBuildPipelines(const QStringList& arguments)
 	return result;
 }
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

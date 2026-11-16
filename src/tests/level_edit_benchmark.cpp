@@ -23,7 +23,7 @@
 #include <ctime>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 #if defined(Q_OS_WIN)

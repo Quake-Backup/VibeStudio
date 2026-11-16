@@ -8,7 +8,7 @@
 // to the core service in one undo step; in every profile, the Build tool's
 // face drag, its Shift chain recorded for Repeat Last Commands, its click
 // that selects, Escape, refusal of locked selections and the return to
-// Select. NetRadiant Custom, TrenchBroom and VibeStudio profiles at 100%, and
+// Select. NetRadiant Custom, TrenchBroom and SlopStudio profiles at 100%, and
 // at 200% with high contrast, expanded translations and right-to-left layout.
 #include "app/application_shell.h"
 #include "app/level_plane_drag_controller.h"
@@ -46,7 +46,7 @@
 #include <iostream>
 #include <optional>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
 	if (!file.open(QIODevice::WriteOnly) || file.write(serializeLevelMap(created).bytes) <= 0) { return 1; }
 	file.close();
 
-	for (const auto* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const auto* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		const bool nrc = QLatin1String(profile) == QLatin1String("netradiant-custom");
 		for (int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);

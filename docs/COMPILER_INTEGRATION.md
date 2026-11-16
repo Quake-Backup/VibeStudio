@@ -1,6 +1,6 @@
 # Compiler Integration
 
-VibeStudio imports level compiler and node-builder sources as Git submodules.
+SlopStudio imports level compiler and node-builder sources as Git submodules.
 The first integration step is orchestration: build or locate compiler
 executables, run them through a structured wrapper, capture diagnostics, and
 feed outputs back into the project/package graph.
@@ -24,7 +24,7 @@ cancellation behavior without touching installed content.
 
 Quake and Quake II use `quake-full`, `quake-fast` or `quake-bsp-only`.
 The target is recorded in schema-2 input manifests (existing Quake III schema-1
-manifests remain supported). VibeMap2 stages receive `-nodefaultpaths`,
+manifests remain supported). SlopMap2 stages receive `-nodefaultpaths`,
 `-path <assets>` and a captured-map-specific `-logfile`. QBSP receives the maps
 folder as `-wadpath`; Quake II adds `-q2bsp`. Extra arguments are restricted to
 supported scalar options with checked argument counts; bare positional numbers
@@ -33,7 +33,7 @@ overrides and response files cannot bypass capture. The bounded shared texture s
 reads WAD2 from package bytes and builds a deterministic compiler WAD; the private
 Quake map references that WAD. WAL decoding and animation traversal reuse the
 image/dependency services. See the Level Editor limits and format boundaries.
-Artifact validation recognizes that VibeMap2 VIS/LIGHT preserve Quake II/Qbism
+Artifact validation recognizes that SlopMap2 VIS/LIGHT preserve Quake II/Qbism
 formats without QBSP target flags, while retaining Quake III mismatch warnings
 and rejecting unknown IBSP/QBSP versions. Planning warnings about not-yet-produced
 BSP/PRT inputs may still be retained after a successful pipeline; they remain
@@ -86,15 +86,15 @@ For the Quake/Quake II proof, add
 numbered installation PAK deployment and launch ordering with a recorder.
 
 ```sh
-python src/tests/level_build_engines_compiler_workflow.py --binary builddir/src/vibestudio --qbsp /path/to/vibemap2-bsp --vis /path/to/vibemap2-vis --light /path/to/vibemap2-light --output-root .agents/tmp/quake-build-proof
-python src/tests/level_build_workspace_compiler_workflow.py --binary builddir/src/vibestudio --compiler /path/to/vibemap3 --output-root .agents/tmp/prepared-build-proof
-python src/tests/level_build_artifacts_compiler_workflow.py --binary builddir/src/vibestudio --compiler /path/to/vibemap3 --output-root .agents/tmp/build-output-proof
-python src/tests/level_build_deployment_compiler_workflow.py --binary builddir/src/vibestudio --compiler /path/to/vibemap3 --recorder builddir/src/level_build_deployment_smoke_test --output-root .agents/tmp/build-deployment-proof
+python src/tests/level_build_engines_compiler_workflow.py --binary builddir/src/slopstudio --qbsp /path/to/slopmap2-bsp --vis /path/to/slopmap2-vis --light /path/to/slopmap2-light --output-root .agents/tmp/quake-build-proof
+python src/tests/level_build_workspace_compiler_workflow.py --binary builddir/src/slopstudio --compiler /path/to/slopmap3 --output-root .agents/tmp/prepared-build-proof
+python src/tests/level_build_artifacts_compiler_workflow.py --binary builddir/src/slopstudio --compiler /path/to/slopmap3 --output-root .agents/tmp/build-output-proof
+python src/tests/level_build_deployment_compiler_workflow.py --binary builddir/src/slopstudio --compiler /path/to/slopmap3 --recorder builddir/src/level_build_deployment_smoke_test --output-root .agents/tmp/build-deployment-proof
 ```
 
-The dated results below predate the move to VibeMap2 and VibeMap3: they ran
+The dated results below predate the move to SlopMap2 and SlopMap3: they ran
 stock ericw-tools and NetRadiant Custom q3map2. The first two commands above
-have since passed with VibeMap2 and VibeMap3 (see [Status](#status)); the
+have since passed with SlopMap2 and SlopMap3 (see [Status](#status)); the
 others have not been rerun yet.
 
 The artifacts proof reuses the generated model/draft fixture, adds lightmapped
@@ -128,8 +128,8 @@ verification before general compatibility claims.
 
 | Tool | Local path | Main role |
 |---|---|---|
-| VibeMap2 | `external/compilers/vibemap2` | VibeStudio's Quake/idTech2 compilers, derived from ericw-tools: `vibemap2-bsp`, `vibemap2-vis`, `vibemap2-light`, the `vibemap2-bspinfo`, `vibemap2-bsputil` and `vibemap2-maputil` utilities, and the `vibemap2-hub` GUI. |
-| VibeMap3 | `external/compilers/vibemap3` (compiler source in `tools/quake3/q3map2`) | VibeStudio's Quake III/idTech3 compiler, continuing q3map2 from NetRadiant Custom: BSP compile, VIS, light, conversion and packaging through `vibemap3`, plus the `vibemap3-workbench` GUI. |
+| SlopMap2 | `external/compilers/slopmap2` | SlopStudio's Quake/idTech2 compilers, derived from ericw-tools: `slopmap2-bsp`, `slopmap2-vis`, `slopmap2-light`, the `slopmap2-bspinfo`, `slopmap2-bsputil` and `slopmap2-maputil` utilities, and the `slopmap2-hub` GUI. |
+| SlopMap3 | `external/compilers/slopmap3` (compiler source in `tools/quake3/q3map2`) | SlopStudio's Quake III/idTech3 compiler, continuing q3map2 from NetRadiant Custom: BSP compile, VIS, light, conversion and packaging through `slopmap3`, plus the `slopmap3-workbench` GUI. |
 | ZDBSP | `external/compilers/zdbsp` | Doom-family node building, including GL and extended node formats. |
 | ZokumBSP | `external/compilers/zokumbsp` | Doom-family node, blockmap, and reject building with vanilla-focused output. |
 
@@ -138,53 +138,53 @@ Initialize imports:
 git submodule update --init --recursive
 ```
 
-## VibeStudio Compilers
+## SlopStudio Compilers
 
-VibeStudio's Quake, Quake II and Quake III compilers are VibeMap2 and
-VibeMap3, not stock ericw-tools and NetRadiant Custom q3map2. Both are forks developed as part of
-the VibeStudio project, so compiler fixes, diagnostics and features can land
+SlopStudio's Quake, Quake II and Quake III compilers are SlopMap2 and
+SlopMap3, not stock ericw-tools and NetRadiant Custom q3map2. Both are forks developed as part of
+the SlopStudio project, so compiler fixes, diagnostics and features can land
 where the studio needs them instead of only being worked around in the wrapper.
 They are the explicit, documented forks that `AGENTS.md` asks for when
-VibeStudio changes a compiler.
+SlopStudio changes a compiler.
 
 | Compiler | Fork | Branch | Pinned revision | Derived from | Licence |
 |---|---|---|---|---|---|
-| VibeMap2 | [themuffinator/VibeyMapTools](https://github.com/themuffinator/VibeyMapTools) | `main` | `4495049a9e4c1f6deadae3a76b8256614840af35` | [ericw-tools](https://github.com/ericwa/ericw-tools) | GPL-3.0 (`COPYING`) |
-| VibeMap3 | [themuffinator/q3mapx](https://github.com/themuffinator/q3mapx) | `main` | `897524439cb58d2b736bc96b16c231d22dc5ddce` | q3map2 from [NetRadiant Custom](https://github.com/Garux/netradiant-custom), revision `8216133` | GPL-3.0-or-later; imported q3map2 files keep their GPL-2.0-or-later notices |
+| SlopMap2 | [themuffinator/VibeyMapTools](https://github.com/themuffinator/VibeyMapTools) | `main` | `4495049a9e4c1f6deadae3a76b8256614840af35` | [ericw-tools](https://github.com/ericwa/ericw-tools) | GPL-3.0 (`COPYING`) |
+| SlopMap3 | [themuffinator/q3mapx](https://github.com/themuffinator/q3mapx) | `main` | `897524439cb58d2b736bc96b16c231d22dc5ddce` | q3map2 from [NetRadiant Custom](https://github.com/Garux/netradiant-custom), revision `8216133` | GPL-3.0-or-later; imported q3map2 files keep their GPL-2.0-or-later notices |
 
 The two repositories still carry their earlier names, VibeyMapTools and q3mapx.
-They will be renamed VibeMap2 and VibeMap3 on GitHub, which redirects the old
+They will be renamed SlopMap2 and SlopMap3 on GitHub, which redirects the old
 URLs. `.gitmodules` uses relative URLs (`../VibeyMapTools.git`, `../q3mapx.git`)
-that resolve beside the VibeStudio remote you cloned from.
+that resolve beside the SlopStudio remote you cloned from.
 
 The pinned revisions are the forks' published `main` commits from just before
 the rename, so a build of the pinned sources still produces the VibeyMapTools
 (`vmt-*`) and q3mapx executables. Discovery accepts both sets of names. The
-rename itself is committed on each fork's `vibemap2-rebrand` and
-`vibemap3-rebrand` branches; the pins move to those commits once they are
+rename itself is committed on each fork's `slopmap2-rebrand` and
+`slopmap3-rebrand` branches; the pins move to those commits once they are
 published, so a clone never points at a commit GitHub does not have.
 
 ### Executables And Build Layouts
 
 | Compiler | Executables | Build output | Version line |
 |---|---|---|---|
-| VibeMap2 | `vibemap2-bsp`, `vibemap2-vis`, `vibemap2-light`, `vibemap2-bspinfo`, `vibemap2-bsputil`, `vibemap2-maputil`, `vibemap2-hub` (the build and lighting preview hub that succeeds ericw-tools' lightpreview) | `build/src/<tool directory>/`, inside `Release/` for multi-configuration generators; sources are in `src/qbsp`, `src/vis`, `src/light`, `src/bspinfo`, `src/bsputil`, `src/common`, `src/include` and `src/hub`. An install copies every executable flat into the prefix, and the release archives (`vibemap2-windows-<version>.zip`, `vibemap2-linux-<version>.tar.gz`, `vibemap2-macos-<version>.tar.gz`) hold every tool flat at the archive root. | Each tool's first line is `---- vibemap2-<tool> / VibeMap2 <version> ----`, for example `---- vibemap2-bsp / VibeMap2 <version> ----`. `-help` exits 0; `--version` is not supported (it exits 1 after the banner), so the registry probe runs the tool with no arguments. |
-| VibeMap3 | `vibemap3` (command line), `vibemap3-workbench` (GUI) | `build/<preset>/bin` for the `release`, `cli`, `cpu-only` and `debug` CMake presets; an install writes `<prefix>/bin`. | `vibemap3 --version` prints `VibeMap3 <version> (NRC <revision>)`; `-help` prints the same line after the inherited q3map2 version line. |
+| SlopMap2 | `slopmap2-bsp`, `slopmap2-vis`, `slopmap2-light`, `slopmap2-bspinfo`, `slopmap2-bsputil`, `slopmap2-maputil`, `slopmap2-hub` (the build and lighting preview hub that succeeds ericw-tools' lightpreview) | `build/src/<tool directory>/`, inside `Release/` for multi-configuration generators; sources are in `src/qbsp`, `src/vis`, `src/light`, `src/bspinfo`, `src/bsputil`, `src/common`, `src/include` and `src/hub`. An install copies every executable flat into the prefix, and the release archives (`slopmap2-windows-<version>.zip`, `slopmap2-linux-<version>.tar.gz`, `slopmap2-macos-<version>.tar.gz`) hold every tool flat at the archive root. | Each tool's first line is `---- slopmap2-<tool> / SlopMap2 <version> ----`, for example `---- slopmap2-bsp / SlopMap2 <version> ----`. `-help` exits 0; `--version` is not supported (it exits 1 after the banner), so the registry probe runs the tool with no arguments. |
+| SlopMap3 | `slopmap3` (command line), `slopmap3-workbench` (GUI) | `build/<preset>/bin` for the `release`, `cli`, `cpu-only` and `debug` CMake presets; an install writes `<prefix>/bin`. | `slopmap3 --version` prints `SlopMap3 <version> (NRC <revision>)`; `-help` prints the same line after the inherited q3map2 version line. |
 
 ### Discovery
 
-The registry looks for VibeMap2 and VibeMap3 under their current names and
+The registry looks for SlopMap2 and SlopMap3 under their current names and
 their pre-rename names:
-- VibeMap2: `vibemap2-<tool>` or `vmt-<tool>` in
-  `external/compilers/vibemap2/build/src/<tool directory>/`, its `Release/`
-  subfolder and `external/compilers/vibemap2/install/`, and on PATH.
-- VibeMap3: `vibemap3` or `q3mapx` in `external/compilers/vibemap3/build/release/bin`,
+- SlopMap2: `slopmap2-<tool>` or `vmt-<tool>` in
+  `external/compilers/slopmap2/build/src/<tool directory>/`, its `Release/`
+  subfolder and `external/compilers/slopmap2/install/`, and on PATH.
+- SlopMap3: `slopmap3` or `q3mapx` in `external/compilers/slopmap3/build/release/bin`,
   `build/cli/bin`, `build/cpu-only/bin` and `install/bin`, and on PATH.
 
 Stock `qbsp`, `vis`, `light` and `q3map2` executables are no longer found
 automatically. To use one, choose **Locate…** on the Build page's
 **Toolchain** tab or run `compiler set-path`, for example
-`compiler set-path vibemap2-bsp --executable /opt/ericw-tools/bin/qbsp`. The
+`compiler set-path slopmap2-bsp --executable /opt/ericw-tools/bin/qbsp`. The
 version probe still recognises the ericw-tools, q3map2, VibeyMapTools and q3mapx
 banners for executables configured this way.
 
@@ -197,39 +197,39 @@ ids are refused with a message that names the new one; pipeline ids (`quake-full
 
 | Old id | New id |
 |---|---|
-| `ericw-qbsp`, `ericw-vis`, `ericw-light` | `vibemap2-bsp`, `vibemap2-vis`, `vibemap2-light` |
-| `ericw-bspinfo`, `ericw-bsputil` | `vibemap2-bspinfo`, `vibemap2-bsputil` |
-| `ericw-bsputil-check`, `ericw-bsputil-extract-entities`, `ericw-bsputil-extract-textures` | `vibemap2-bsputil-check`, `vibemap2-bsputil-extract-entities`, `vibemap2-bsputil-extract-textures` |
-| `ericw-lightpreview` | `vibemap2-hub` |
-| `q3map2` (tool) | `vibemap3` |
-| `q3map2-probe`, `q3map2-bsp`, `q3map2-vis`, `q3map2-light`, `q3map2-convert`, `q3map2-pk3` | `vibemap3-probe`, `vibemap3-bsp`, `vibemap3-vis`, `vibemap3-light`, `vibemap3-convert`, `vibemap3-pk3` |
-| `ericw-tools`, `q3map2-nrc` (integrations) | `vibemap2`, `vibemap3` |
+| `ericw-qbsp`, `ericw-vis`, `ericw-light` | `slopmap2-bsp`, `slopmap2-vis`, `slopmap2-light` |
+| `ericw-bspinfo`, `ericw-bsputil` | `slopmap2-bspinfo`, `slopmap2-bsputil` |
+| `ericw-bsputil-check`, `ericw-bsputil-extract-entities`, `ericw-bsputil-extract-textures` | `slopmap2-bsputil-check`, `slopmap2-bsputil-extract-entities`, `slopmap2-bsputil-extract-textures` |
+| `ericw-lightpreview` | `slopmap2-hub` |
+| `q3map2` (tool) | `slopmap3` |
+| `q3map2-probe`, `q3map2-bsp`, `q3map2-vis`, `q3map2-light`, `q3map2-convert`, `q3map2-pk3` | `slopmap3-probe`, `slopmap3-bsp`, `slopmap3-vis`, `slopmap3-light`, `slopmap3-convert`, `slopmap3-pk3` |
+| `ericw-tools`, `q3map2-nrc` (integrations) | `slopmap2`, `slopmap3` |
 
-Game installations default to the `vibemap2` compiler label for Quake and
-Quake II and `vibemap3` for Quake III; installations saved with the old
+Game installations default to the `slopmap2` compiler label for Quake and
+Quake II and `slopmap3` for Quake III; installations saved with the old
 `ericw-tools` and `q3map2` labels migrate automatically.
 
 ### Status
 
 **Partial.** Profiles, discovery, pipelines and prepared builds target
-VibeMap2 and VibeMap3. On 2026-10-08 two generated-assets proofs passed on
-Windows with builds of the rename commits (VibeMap2 `ec52db30`, VibeMap3
+SlopMap2 and SlopMap3. On 2026-10-08 two generated-assets proofs passed on
+Windows with builds of the rename commits (SlopMap2 `ec52db30`, SlopMap3
 `e2a00b3`): the Quake/Quake II prepared-build proof, 43 steps through
-`vibemap2-bsp`, `vibemap2-vis` and `vibemap2-light` including the deployment
-recorder, and the Quake III prepared-workspace proof, 9 steps through VibeMap3's
+`slopmap2-bsp`, `slopmap2-vis` and `slopmap2-light` including the deployment
+recorder, and the Quake III prepared-workspace proof, 9 steps through SlopMap3's
 BSP, VIS and LIGHT stages into a verified PK3. Their evidence is in
-`.agents/tmp/vibemap2-engines-proof/` and `.agents/tmp/vibemap3-workspace-proof/`.
+`.agents/tmp/slopmap2-engines-proof/` and `.agents/tmp/slopmap3-workspace-proof/`.
 The other dated compiler proofs in this document and in
 [Level Editor](LEVEL_EDITOR.md) ran stock ericw-tools 2.0.0-alpha8 and
 NetRadiant Custom q3map2, and the [MD3 instance appearance contract](#md3-instance-appearance-contract)
 was verified against NetRadiant Custom q3map2; those still need rerunning with
-VibeMap2 and VibeMap3, as do other platforms. On 2026-10-09 the known-issue
-catalogue and Quake map preflight were reconciled against the pinned VibeMap2
+SlopMap2 and SlopMap3, as do other platforms. On 2026-10-09 the known-issue
+catalogue and Quake map preflight were reconciled against the pinned SlopMap2
 3.1.0 audit and changelog: 15 resolved/inapplicable reports were retired,
 3 became informational guidance, and the other 107 were retained with reasons.
 The [reconciliation matrix](plans/ericw-tools-remaining-bugs-resolution.md)
 accounts for every original issue ID. This source review does not replace
-native compiler or visual acceptance; VibeStudio remains pre-alpha and largely
+native compiler or visual acceptance; SlopStudio remains pre-alpha and largely
 untested in real projects.
 
 ## Integration Model
@@ -241,16 +241,16 @@ untested in real projects.
 6. Register produced BSP/WAD/node/lightmap/assets with the package manager.
 
 Current implementation:
-- `src/core/compiler_registry.*` defines descriptors for VibeMap2
-  `vibemap2-bsp`, `vibemap2-vis`, `vibemap2-light`, `vibemap2-bspinfo`,
-  `vibemap2-bsputil` and `vibemap2-hub`, VibeMap3 `vibemap3`, ZDBSP, and
+- `src/core/compiler_registry.*` defines descriptors for SlopMap2
+  `slopmap2-bsp`, `slopmap2-vis`, `slopmap2-light`, `slopmap2-bspinfo`,
+  `slopmap2-bsputil` and `slopmap2-hub`, SlopMap3 `slopmap3`, ZDBSP, and
   ZokumBSP.
 - Discovery checks imported source directories, known build-output locations
   (see [Discovery](#discovery)), optional extra search paths, user-configured
   executable overrides, project-local executable overrides, and PATH. The
-  registry records static capability flags for VibeMap2, Doom node builders,
-  and VibeMap3, and can run short version/help probes when listing tools.
-  `vibemap2-hub` is discovered presence-only and is never probed, because it is
+  registry records static capability flags for SlopMap2, Doom node builders,
+  and SlopMap3, and can run short version/help probes when listing tools.
+  `slopmap2-hub` is discovered presence-only and is never probed, because it is
   a GUI.
 - GUI inspector details and CLI `--compiler-registry` expose source/executable
   availability without running external tools.
@@ -269,14 +269,14 @@ Current implementation:
   task-log entries. They can be saved and loaded through the shared core
   service.
 - `src/core/compiler_known_issues.*` defines the high-value known issue
-  catalog for the VibeMap2 profiles used by compiler plans. Its entries come
+  catalog for the SlopMap2 profiles used by compiler plans. Its entries come
   from the ericw-tools issue tracker and keep those upstream issue numbers.
-  Resolved/inapplicable reports are retired against the VibeMap2 3.1.0 audit
+  Resolved/inapplicable reports are retired against the SlopMap2 3.1.0 audit
   (see [Status](#status)); retained reports are not proof of a reproduced fork defect.
   Warnings are scoped by profile/tool, include the issue IDs and suggested
   local actions, and are also kept in the manifest `knownIssueWarnings` field.
 - `src/core/quake_map_preflight.*` performs conservative Quake `.map`
-  preflight checks for VibeMap2 profiles. It reports path privacy, long
+  preflight checks for SlopMap2 profiles. It reports path privacy, long
   values, escape sequences, external-map/prefab hazards, light-group conflicts,
   region risks, brush-entity origin keys, non-integer brush coordinates, Phong
   risks and `_sunlight2` sampling warnings. Fixed light-style, Half-Life
@@ -345,56 +345,56 @@ argument presets.
 
 | Profile id | Tool | Stage | Input | Output behavior |
 |---|---|---|---|---|
-| `vibemap2-bsp` | VibeMap2 `vibemap2-bsp` | `qbsp` | `.map` | Trailing positional destination; defaults to `<input base>.bsp` |
-| `vibemap2-vis` | VibeMap2 `vibemap2-vis` | `vis` | `.bsp` | Rewrites its input in place; requires a sibling `.prt` |
-| `vibemap2-light` | VibeMap2 `vibemap2-light` | `light` | `.bsp` | Rewrites its input in place; `-lit` adds a required `<base>.lit` |
-| `vibemap2-bspinfo` | VibeMap2 `vibemap2-bspinfo` | `inspect` | `.bsp` | Writes `<base>.bsp.json` beside the BSP |
-| `vibemap2-bsputil-check` | VibeMap2 `vibemap2-bsputil` | `inspect` | `.bsp` | `--check`; console output only, no artifact |
-| `vibemap2-bsputil-extract-entities` | VibeMap2 `vibemap2-bsputil` | `extract` | `.bsp` | `--extract-entities`; writes a sibling `.ent` |
-| `vibemap2-bsputil-extract-textures` | VibeMap2 `vibemap2-bsputil` | `extract` | `.bsp` | `--extract-textures`; writes a sibling `.wad` |
+| `slopmap2-bsp` | SlopMap2 `slopmap2-bsp` | `qbsp` | `.map` | Trailing positional destination; defaults to `<input base>.bsp` |
+| `slopmap2-vis` | SlopMap2 `slopmap2-vis` | `vis` | `.bsp` | Rewrites its input in place; requires a sibling `.prt` |
+| `slopmap2-light` | SlopMap2 `slopmap2-light` | `light` | `.bsp` | Rewrites its input in place; `-lit` adds a required `<base>.lit` |
+| `slopmap2-bspinfo` | SlopMap2 `slopmap2-bspinfo` | `inspect` | `.bsp` | Writes `<base>.bsp.json` beside the BSP |
+| `slopmap2-bsputil-check` | SlopMap2 `slopmap2-bsputil` | `inspect` | `.bsp` | `--check`; console output only, no artifact |
+| `slopmap2-bsputil-extract-entities` | SlopMap2 `slopmap2-bsputil` | `extract` | `.bsp` | `--extract-entities`; writes a sibling `.ent` |
+| `slopmap2-bsputil-extract-textures` | SlopMap2 `slopmap2-bsputil` | `extract` | `.bsp` | `--extract-textures`; writes a sibling `.wad` |
 | `zdbsp-nodes` | ZDBSP | `nodes` | `.wad` | `-o <path>` before the input; without it ZDBSP writes `tmp.wad` into the working directory |
 | `zokumbsp-nodes` | ZokumBSP | `nodes` | `.wad` | `-o <path>` after the input; without it the input is rewritten in place |
-| `vibemap3-probe` | VibeMap3 | `probe` | none | `-help`; console output only, no artifact |
-| `vibemap3-bsp` | VibeMap3 | `bsp` | `.map` | No stage token (BSP is the fall-through stage); default arguments are `-meta`; writes `<input base>.bsp` with `.prt`, `.srf`, and `.lin` as optional siblings |
-| `vibemap3-vis` | VibeMap3 | `vis` | `.bsp` | `-vis`, in place; requires a sibling `.prt` |
-| `vibemap3-light` | VibeMap3 | `light` | `.bsp` | `-light`, in place |
-| `vibemap3-convert` | VibeMap3 | `convert` | `.bsp` or `.map` | `-convert`; destination depends on `-format`, so it is treated as unknown |
-| `vibemap3-pk3` | VibeMap3 | `package` | `.bsp` | `-pk3`; writes into the engine path, so the destination is treated as unknown |
+| `slopmap3-probe` | SlopMap3 | `probe` | none | `-help`; console output only, no artifact |
+| `slopmap3-bsp` | SlopMap3 | `bsp` | `.map` | No stage token (BSP is the fall-through stage); default arguments are `-meta`; writes `<input base>.bsp` with `.prt`, `.srf`, and `.lin` as optional siblings |
+| `slopmap3-vis` | SlopMap3 | `vis` | `.bsp` | `-vis`, in place; requires a sibling `.prt` |
+| `slopmap3-light` | SlopMap3 | `light` | `.bsp` | `-light`, in place |
+| `slopmap3-convert` | SlopMap3 | `convert` | `.bsp` or `.map` | `-convert`; destination depends on `-format`, so it is treated as unknown |
+| `slopmap3-pk3` | SlopMap3 | `package` | `.bsp` | `-pk3`; writes into the engine path, so the destination is treated as unknown |
 
-### VibeMap3 Stage Dispatch
-VibeMap3 keeps q3map2's dispatch: it parses its general options first, then
+### SlopMap3 Stage Dispatch
+SlopMap3 keeps q3map2's dispatch: it parses its general options first, then
 dispatches on the *front* of what is left. `tools/quake3/q3map2/main.cpp` uses
 `args.takeFront("-vis")`, `takeFront("-light")`, `takeFront("-pk3")`,
 `takeFront("-convert")` and so on, and falls through to `BSPMain` when nothing
 matches. A stage token pushed behind user-supplied extras is therefore not a
-stage token at all - VibeMap3 silently runs a BSP compile instead.
+stage token at all - SlopMap3 silently runs a BSP compile instead.
 
 The planner handles this with `CompilerProfileDescriptor::leadingStageArgument`,
 which `buildCompilerCommandPlan()` always emits as argument 0, before the
-profile's default arguments and before any caller extras. `vibemap3-bsp` carries
+profile's default arguments and before any caller extras. `slopmap3-bsp` carries
 no leading token on purpose, because `BSPMain` is the fall-through case. The
 same mechanism carries `bsputil`'s `--check`, `--extract-entities`, and
 `--extract-textures` sub-commands.
 
 ### Output Paths
 `CompilerOutputArgumentStyle` records how a tool accepts a destination, and
-`CompilerDefaultOutputMode` records where it writes when VibeStudio does not
+`CompilerDefaultOutputMode` records where it writes when SlopStudio does not
 supply one:
-- `Positional` - the path is a trailing argument. `vibemap2-bsp` accepts
+- `Positional` - the path is a trailing argument. `slopmap2-bsp` accepts
   `sourcefile.map [destfile.bsp]`, as ericw-tools `qbsp` did.
 - `Flag` - the path follows a flag. Both Doom node builders take `-o`, but the
-  ordering differs: ZDBSP parses options before the input, so VibeStudio emits
+  ordering differs: ZDBSP parses options before the input, so SlopStudio emits
   `-o <output> <input>`, while ZokumBSP reads `-o` after the input file and its
-  level list, so VibeStudio emits `<input> -o <output>`. This is what
+  level list, so SlopStudio emits `<input> -o <output>`. This is what
   `outputArgumentAfterInput` selects.
 - `None` - the tool has no destination argument and rewrites its input
-  (`vibemap2-vis`/`vibemap2-light`, VibeMap3 `-vis`/`-light`). Requesting an output path
+  (`slopmap2-vis`/`slopmap2-light`, SlopMap3 `-vis`/`-light`). Requesting an output path
   for such a profile produces a plan warning rather than a silently ignored
   argument.
 - Defaults: `DerivedFromInput`, `InPlace`, `WorkingDirectoryFile` (ZDBSP's
-  `tmp.wad`, which also raises a plan warning), `Unknown` (VibeMap3 `-convert` and
+  `tmp.wad`, which also raises a plan warning), `Unknown` (SlopMap3 `-convert` and
   `-pk3`, which clears `expectedOutputKnown` so artifact validation skips the
-  file), and `NoArtifact` (`bsputil --check`, `vibemap3 -help`).
+  file), and `NoArtifact` (`bsputil --check`, `slopmap3 -help`).
 
 A derived output that collapses onto the input path is rejected and downgraded
 to "unknown", so validation can never pass by inspecting an untouched input.
@@ -404,11 +404,11 @@ to "unknown", so validation can never pass by inspecting an untouched input.
 translatable switches instead of free-form strings: an id, a display name, a
 description, the literal arguments, and - for switches that take a value - a
 `requiresValue` flag with a placeholder the caller fills in.
-- `vibemap2-bsp`: `bsp2`, `hlbsp`, `q2bsp`, `qbism`, `hexen2`, `notex`,
+- `slopmap2-bsp`: `bsp2`, `hlbsp`, `q2bsp`, `qbism`, `hexen2`, `notex`,
   `leaktest`, and `wadpath` (takes a directory).
-- `vibemap2-vis`: `level4`, `fast`.
-- `vibemap2-light`: `extra4`, `bounce`, `lit`, `soft`.
-- VibeMap3 (shared by the BSP, vis, light, convert, and pk3 profiles): `meta`,
+- `slopmap2-vis`: `level4`, `fast`.
+- `slopmap2-light`: `extra4`, `bounce`, `lit`, `soft`.
+- SlopMap3 (shared by the BSP, vis, light, convert, and pk3 profiles): `meta`,
   `fast`, `fs-basepath` and `fs-game` (take a directory and a mod name),
   `threads` (takes a count), and `verbose`.
 
@@ -432,13 +432,13 @@ loop and kill the process.
 ### Diagnostic Parsing
 `CompilerDiagnosticParser` consumes one line at a time and keeps per-channel
 state, which is what makes the two-line error form work:
-- **Fatal-error banners.** VibeMap2 (`src/common/log.cc`) and VibeMap3
+- **Fatal-error banners.** SlopMap2 (`src/common/log.cc`) and SlopMap3
   (`tools/quake3/common/inout.cpp`), like their upstreams, print a `*** ERROR ***`-style banner
   and put the actual message on the *next* line. A line matching the banner is
   held, and the following line is emitted as a single error diagnostic whose
   `rawLine` contains both. A banner with nothing after it is still flushed as an
   error when the run ends.
-- **VibeMap2 source locations.** VibeMap2, like ericw-tools, reports positions as
+- **SlopMap2 source locations.** SlopMap2, like ericw-tools, reports positions as
   `<source>[line N]` (from the `parser_source_location` formatter in
   `src/include/common/parser.hh`), not as `path:N`. That form is matched first, and
   the file name is only taken when it carries a known content extension.
@@ -458,9 +458,9 @@ folded into the manifest's `errors` or `warnings` list by level.
 A leaked Quake compile still exits 0, so the exit code cannot be trusted.
 `detectLeak()` runs for qbsp-stage profiles and reports a leak when either
 signal appears:
-- a `.pts` leak point file exists among the run's optional outputs (`vibemap2-bsp` writes
+- a `.pts` leak point file exists among the run's optional outputs (`slopmap2-bsp` writes
   `<bsp>.pts` and `<bsp>.leak.prt` from `src/qbsp/outside.cc`; both, plus
-  `<bsp>.prt`, are declared as related outputs of the `vibemap2-bsp` profile), or
+  `<bsp>.prt`, are declared as related outputs of the `slopmap2-bsp` profile), or
 - the captured output contains `Reached occupant "<classname>" at (<x y z>)`,
   which gives the entity and position that escaped into the void.
 
@@ -475,7 +475,7 @@ file over it as a trail (`MapViewport::setLeakTrail()`); `map render --leak`
 draws the same trail into the headless SVG.
 
 ### The `.prt` Requirement For Visibility
-Both `vibemap2-vis` and `vibemap3-vis` declare `.prt` in
+Both `slopmap2-vis` and `slopmap3-vis` declare `.prt` in
 `requiredCompanionInputExtensions`, because `vis.cc` and `vis.cpp` load
 `<bsp base>.prt` written by the preceding BSP stage. When that file is missing,
 the plan warns before anything is launched and names the classic cause: the
@@ -488,11 +488,11 @@ hashes, and manifests are identical to a single-profile run.
 
 | Pipeline id | Engine | Stages (default state) |
 |---|---|---|
-| `quake-full` | idTech2 | `vibemap2-bsp` -> `vibemap2-vis` -> `vibemap2-light` |
-| `quake-fast` | idTech2 | `vibemap2-bsp` -> `vibemap2-vis` (optional, off by default) -> `vibemap2-light` |
-| `quake-bsp-only` | idTech2 | `vibemap2-bsp` |
-| `quake3-full` | idTech3 | `vibemap3-bsp` -> `vibemap3-vis` -> `vibemap3-light` |
-| `quake3-bsp-only` | idTech3 | `vibemap3-bsp` |
+| `quake-full` | idTech2 | `slopmap2-bsp` -> `slopmap2-vis` -> `slopmap2-light` |
+| `quake-fast` | idTech2 | `slopmap2-bsp` -> `slopmap2-vis` (optional, off by default) -> `slopmap2-light` |
+| `quake-bsp-only` | idTech2 | `slopmap2-bsp` |
+| `quake3-full` | idTech3 | `slopmap3-bsp` -> `slopmap3-vis` -> `slopmap3-light` |
+| `quake3-bsp-only` | idTech3 | `slopmap3-bsp` |
 | `doom-zdbsp` | idTech1 | `zdbsp-nodes` |
 | `doom-zokumbsp` | idTech1 | `zokumbsp-nodes` |
 
@@ -530,9 +530,9 @@ switch and an input (`map` or `previous`):
 "buildPipelines": [{
   "id": "fast-light", "name": "Fast light", "variables": {"QUALITY": "-extra"},
   "stages": [
-    {"id": "qbsp", "name": "QBSP", "profile": "vibemap2-bsp", "arguments": "", "enabled": true, "input": "map"},
-    {"id": "vis", "name": "VIS", "profile": "vibemap2-vis", "arguments": "", "enabled": false, "input": "previous"},
-    {"id": "light", "name": "LIGHT", "profile": "vibemap2-light", "arguments": "${QUALITY} -threads ${CPU_COUNT}", "enabled": true, "input": "previous"}
+    {"id": "qbsp", "name": "QBSP", "profile": "slopmap2-bsp", "arguments": "", "enabled": true, "input": "map"},
+    {"id": "vis", "name": "VIS", "profile": "slopmap2-vis", "arguments": "", "enabled": false, "input": "previous"},
+    {"id": "light", "name": "LIGHT", "profile": "slopmap2-light", "arguments": "${QUALITY} -threads ${CPU_COUNT}", "enabled": true, "input": "previous"}
   ]
 }]
 ```
@@ -580,7 +580,7 @@ dropped, silently for `{mod}`. `extraArguments` come last; the Build page and
 (`StudioSettings::launchExtraArguments()`).
 
 Repeating builds: Levels' **Run Profile** and the Toolchain's **Run Profile**
-keep each run's command manifest in `.vibestudio/compiler-runs`
+keep each run's command manifest in `.slopstudio/compiler-runs`
 (`compilerRunManifestDirectory()`, `newCompilerRunManifestPath()`).
 `findNewestCompilerRunManifest()` finds the newest run of a map there, which
 **Re-run Last Compile** and `compiler rerun --last` replay through
@@ -592,49 +592,49 @@ Levels profile) against the open map.
 ## CLI Examples
 
 ```sh
-vibestudio --cli compiler set-path vibemap2-bsp --executable C:\tools\vibemap2\vibemap2-bsp.exe
-vibestudio --cli compiler plan vibemap2-bsp --input maps/start.map --workspace-root E:\Projects\QuakeMod
-vibestudio --cli compiler run vibemap2-bsp --input maps/start.map --workspace-root E:\Projects\QuakeMod --manifest build/qbsp-run.json --register-output --watch
-vibestudio --cli compiler rerun build/qbsp-run.json --manifest build/qbsp-rerun.json
-vibestudio --cli compiler rerun --last maps/start.map --workspace-root E:\Projects\QuakeMod
-vibestudio --cli compiler copy-command build/qbsp-run.json
-vibestudio --cli compiler plan vibemap3-light --input maps/q3dm1.bsp --workspace-root E:\Projects\Q3Mod
-vibestudio --cli build list --json
-vibestudio --cli build plan quake-full --input maps/start.map --json
-vibestudio --cli build run quake-full --input maps/start.map --manifest build/manifests --stage-args light=-extra4 --watch
-vibestudio --cli build run quake-fast --input maps/start.map --disable-stage light
-vibestudio --cli bsp inspect build/start.bsp --json
-vibestudio --cli launch plan --map start --json
-vibestudio --cli launch run --bsp maps/start.bsp --deploy --allow-test-maps
-vibestudio --cli launch profile-set user-dev --name "Developer" --arguments "+set fs_game {mod} +set developer 1 +devmap {map}"
-vibestudio --cli launch extra-args --arguments "+set developer 1"
+slopstudio --cli compiler set-path slopmap2-bsp --executable C:\tools\slopmap2\slopmap2-bsp.exe
+slopstudio --cli compiler plan slopmap2-bsp --input maps/start.map --workspace-root E:\Projects\QuakeMod
+slopstudio --cli compiler run slopmap2-bsp --input maps/start.map --workspace-root E:\Projects\QuakeMod --manifest build/qbsp-run.json --register-output --watch
+slopstudio --cli compiler rerun build/qbsp-run.json --manifest build/qbsp-rerun.json
+slopstudio --cli compiler rerun --last maps/start.map --workspace-root E:\Projects\QuakeMod
+slopstudio --cli compiler copy-command build/qbsp-run.json
+slopstudio --cli compiler plan slopmap3-light --input maps/q3dm1.bsp --workspace-root E:\Projects\Q3Mod
+slopstudio --cli build list --json
+slopstudio --cli build plan quake-full --input maps/start.map --json
+slopstudio --cli build run quake-full --input maps/start.map --manifest build/manifests --stage-args light=-extra4 --watch
+slopstudio --cli build run quake-fast --input maps/start.map --disable-stage light
+slopstudio --cli bsp inspect build/start.bsp --json
+slopstudio --cli launch plan --map start --json
+slopstudio --cli launch run --bsp maps/start.bsp --deploy --allow-test-maps
+slopstudio --cli launch profile-set user-dev --name "Developer" --arguments "+set fs_game {mod} +set developer 1 +devmap {map}"
+slopstudio --cli launch extra-args --arguments "+set developer 1"
 ```
 
 ## License Boundary
 External compilers are kept as submodules and treated as separate tools until a
-specific source-level merge is reviewed. This holds for VibeStudio's own
-VibeMap2 and VibeMap3 too: they are separate executables in their own
-repositories, never linked into VibeStudio. The imported tools use GPL-2.0-era
-licensing (ZDBSP, ZokumBSP, and the q3map2 files VibeMap3 keeps with their
-GPL-2.0-or-later notices), GPL-3.0 (VibeMap2, and VibeMap3's own code), mixed
+specific source-level merge is reviewed. This holds for SlopStudio's own
+SlopMap2 and SlopMap3 too: they are separate executables in their own
+repositories, never linked into SlopStudio. The imported tools use GPL-2.0-era
+licensing (ZDBSP, ZokumBSP, and the q3map2 files SlopMap3 keeps with their
+GPL-2.0-or-later notices), GPL-3.0 (SlopMap2, and SlopMap3's own code), mixed
 GPL/LGPL/BSD file licensing inherited from NetRadiant Custom, or
 dependency-specific terms.
 
 Rules:
 - Keep upstream license files in place, including the ericw-tools and
-  NetRadiant Custom notices inside VibeMap2 and VibeMap3.
-- Credit VibeMap2, VibeMap3 and their upstreams (ericw-tools, NetRadiant
+  NetRadiant Custom notices inside SlopMap2 and SlopMap3.
+- Credit SlopMap2, SlopMap3 and their upstreams (ericw-tools, NetRadiant
   Custom) in `README.md` and `docs/CREDITS.md`.
 - Prefer process execution over static linking for the first integration.
-- Document every VibeStudio fork's URL, branch, revision, and reason here, as
-  [VibeStudio Compilers](#vibestudio-compilers) does for VibeMap2 and VibeMap3.
+- Document every SlopStudio fork's URL, branch, revision, and reason here, as
+  [SlopStudio Compilers](#slopstudio-compilers) does for SlopMap2 and SlopMap3.
 - If compiler code is copied or modified in-tree, preserve headers and add nearby comments for derived code.
 - Release licence bundles carry the compiler licences under
-  `licenses/external/compilers/VibeMap2/COPYING` and
-  `licenses/external/compilers/VibeMap3/COPYING`.
+  `licenses/external/compilers/SlopMap2/COPYING` and
+  `licenses/external/compilers/SlopMap3/COPYING`.
 
 ## Planned Build Strategy
-- Keep VibeStudio's main build independent from compiler builds by default.
+- Keep SlopStudio's main build independent from compiler builds by default.
 - Add optional Meson features only after each tool's native build requirements are documented.
 - Prefer a `tools/compiler-build` helper that can produce platform-specific tool bundles in CI.
 - Store built tools in release artifacts with their corresponding source revision and license bundle.
@@ -644,11 +644,11 @@ Rules:
   ZDBSP and ZokumBSP node/blockmap/reject profiles. Both node builders take
   their destination behind `-o`, on opposite sides of the input path, and both
   have a single-stage pipeline (`doom-zdbsp`, `doom-zokumbsp`).
-- idTech2 Quake-family maps: `.map` to BSP through VibeMap2 `vibemap2-bsp`,
-  `vibemap2-vis`, and `vibemap2-light`, chained by the `quake-full`,
-  `quake-fast`, and `quake-bsp-only` pipelines, with `vibemap2-bspinfo` and
-  `vibemap2-bsputil` available as inspection and extraction profiles.
-- idTech3 Quake III-family maps: `.map` to BSP through VibeMap3, VibeStudio's
+- idTech2 Quake-family maps: `.map` to BSP through SlopMap2 `slopmap2-bsp`,
+  `slopmap2-vis`, and `slopmap2-light`, chained by the `quake-full`,
+  `quake-fast`, and `quake-bsp-only` pipelines, with `slopmap2-bspinfo` and
+  `slopmap2-bsputil` available as inspection and extraction profiles.
+- idTech3 Quake III-family maps: `.map` to BSP through SlopMap3, SlopStudio's
   continuation of q3map2 from NetRadiant Custom, including shader-aware light
   and packaging flows. The BSP, `-vis`, `-light`, `-convert`, and `-pk3` stages each
   have their own profile, and `quake3-full` / `quake3-bsp-only` chain them.
@@ -663,9 +663,9 @@ Compiler wrappers should emit:
 - Parsed warnings/errors with source locations where available.
 - Re-run recipe.
 
-## VibeMap2 Known-Issue Mitigation Model
+## SlopMap2 Known-Issue Mitigation Model
 The catalogue keeps ericw-tools issue numbers for traceability, but its current
-baseline is VibeMap2 3.1.0 at `4495049a9e4c1f6deadae3a76b8256614840af35`.
+baseline is SlopMap2 3.1.0 at `4495049a9e4c1f6deadae3a76b8256614840af35`.
 The [2026-10-09 reconciliation](plans/ericw-tools-remaining-bugs-resolution.md)
 records evidence and a disposition for all 125 original IDs. It retires fixed
 reports, including Hub workspace isolation (#463), embedded light settings
@@ -678,7 +678,7 @@ Platform constraints (#480/#482) and partially resolved lightgrid optimisation
 (#425) are informational help-only notes. The sampling guidance for #484 and
 the design decisions for #456/#464 remain explicit. Other retained reports
 have insufficient issue-specific fix evidence; they are conservative risks
-or authoring/integration guidance, not confirmed VibeMap2 defects. General
+or authoring/integration guidance, not confirmed SlopMap2 defects. General
 compiler hardening does not establish every historical map-specific case fixed.
 
 Coverage tests require each original ID to be retained or explicitly retired,
@@ -691,17 +691,17 @@ The catalogue is source-baseline-aware, not dynamically version-gated. A
 user-selected older/custom executable does not automatically restore historical
 warnings. Native compiler/version acceptance remains a separate task.
 
-Wrapper and preflight mitigations VibeStudio owns in the current implementation:
+Wrapper and preflight mitigations SlopStudio owns in the current implementation:
 - Run compiler processes with isolated temporary directories and register only
   expected outputs, mitigating temp-file and overwrite risks in the wrapper
-  layer. `vibemap2-hub` (the successor of ericw-tools' lightpreview) is
-  discoverable as an optional helper, but VibeStudio does not launch it; its
-  native launch and OpenGL/Qt behavior stay with VibeMap2 until VibeStudio adds
+  layer. `slopmap2-hub` (the successor of ericw-tools' lightpreview) is
+  discoverable as an optional helper, but SlopStudio does not launch it; its
+  native launch and OpenGL/Qt behavior stay with SlopMap2 until SlopStudio adds
   a smoke-tested preview workflow.
 - Generate command manifests with resolved executable path, command line,
-  inputs, outputs, hashes, warnings, and diagnostics. VibeMap2 3.1.0 also offers
+  inputs, outputs, hashes, warnings, and diagnostics. SlopMap2 3.1.0 also offers
   opt-in `-embedsettings` for a path-sanitised effective lighting manifest in
-  `LIGHTING_SETTINGS`; VibeStudio does not enable it automatically. Wrapper
+  `LIGHTING_SETTINGS`; SlopStudio does not enable it automatically. Wrapper
   manifests remain useful for the whole pipeline and non-BSP-writing modes.
   Registry version/help probes remain discovery data rather than manifest fields.
 - Sanitize or warn about absolute WAD paths, long entity values, escape
@@ -711,7 +711,7 @@ Wrapper and preflight mitigations VibeStudio owns in the current implementation:
 - Validate light entities for mismatched `START_OFF` flags, risky Phong/bmodel
   settings and unsupported sun/surface-light combinations, covering the
   product-facing side of #122, #310, #351, #377 and #405. Authored switchable
-  styles are preserved as `oldstyle` in VibeMap2; the generated runtime style
+  styles are preserved as `oldstyle` in SlopMap2; the generated runtime style
   is not guaranteed to equal the authored value.
 - Detect risky region and prefab compile setups, including multiple region
   brushes, rotating origin brushes in region builds, external-map
@@ -725,9 +725,9 @@ Wrapper and preflight mitigations VibeStudio owns in the current implementation:
   `bsputil --check`, `--extract-entities`, and `--extract-textures`. The
   sub-command is emitted as argument 0, ahead of any caller extras, because
   `bsputil` parses its options before the single positional BSP path; that keeps
-  VibeStudio's own command shape stable. The historical #435 argument-parsing
+  SlopStudio's own command shape stable. The historical #435 argument-parsing
   report remains unverified because the fork audit does not explicitly resolve
-  that operation; it is not presented as a reproduced VibeMap2 failure.
+  that operation; it is not presented as a reproduced SlopMap2 failure.
   Registry discovery itself is still presence and help/version output only, and
   operation-level `bspinfo`/`bsputil` probes remain without smoke-test coverage.
 
@@ -738,30 +738,30 @@ Planned or diagnostic-only mitigations that are not compiler fixes:
   It should continue to expand for deeper semantic checks. These checks may
   block promotion or packaging, but they do not repair compiler output.
 - Visual regression fixtures should track lighting, shadow, VIS, and debug
-  output changes by VibeMap2 version, but wrapper checks cannot guarantee
+  output changes by SlopMap2 version, but wrapper checks cannot guarantee
   visual parity.
 
 Compiler-side items the wrapper should not claim to resolve:
 - Compiler output correctness regressions such as lighting artifacts, BSPX
   lump generation bugs, VIS behavior changes, corrupt BSP output, and geometry
-  compile bugs. VibeStudio can flag known affected versions and maintain
-  regression fixtures, but fixes belong in VibeMap2.
+  compile bugs. SlopStudio can flag known affected versions and maintain
+  regression fixtures, but fixes belong in SlopMap2.
 - Remaining compiler feature requests such as `func_viscluster`,
   `func_detail_null`, embedded lightmaps, custom hull sizes,
   conditional entities, model shadow casting, translucent lighting, and new
-  image-format support. VibeStudio can expose options once VibeMap2 releases
+  image-format support. SlopStudio can expose options once SlopMap2 releases
   and documents them.
 - Native compiler build, packaging, logging, or launcher changes. These belong
-  in the VibeMap2 repository, recorded under
-  [VibeStudio Compilers](#vibestudio-compilers).
+  in the SlopMap2 repository, recorded under
+  [SlopStudio Compilers](#slopstudio-compilers).
 
 ## MD3 Instance Appearance Contract
 
 Levels and dependency review follow the pinned NRC q3map2 MD3 material contract
 through `core/level_model_appearance`: implicit importer default skins, derived
 entity skin filenames, omitted surfaces and ordered suffix remaps. The contract
-and the evidence below come from NetRadiant Custom q3map2, before VibeStudio
-moved to VibeMap3; they have not been rechecked with VibeMap3 yet. See
+and the evidence below come from NetRadiant Custom q3map2, before SlopStudio
+moved to SlopMap3; they have not been rechecked with SlopMap3 yet. See
 [Placed Model Appearances](LEVEL_MODEL_APPEARANCE.md) for supported input grammar
 and the studio's stricter failures instead of compiler fallback/truncation.
 

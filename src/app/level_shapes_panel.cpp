@@ -34,7 +34,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -704,4 +704,4 @@ void ApplicationShell::addLevelSectorShape(double minX, double minY, double maxX
 	applyLevelMapSectorDrawing(corners);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

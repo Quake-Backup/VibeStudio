@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Propose a VibeStudio workflow, editor, format, or CLI capability.
+about: Propose a SlopStudio workflow, editor, format, or CLI capability.
 title: "[Feature]: "
 labels: enhancement
 ---

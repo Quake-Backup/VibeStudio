@@ -10,7 +10,7 @@
 #include <QScrollArea>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 AudioPlacementDialog::AudioPlacementDialog(const LevelSoundTarget& target, const QString& mapName,
                                            const QString& packageName, const LevelSoundRequest& initial,
@@ -140,4 +140,4 @@ LevelSoundRequest AudioPlacementDialog::request() const
 	        m_mode->currentData().toString(),
 	        m_targetName->text().trimmed()};
 }
-} // namespace vibestudio
+} // namespace slopstudio

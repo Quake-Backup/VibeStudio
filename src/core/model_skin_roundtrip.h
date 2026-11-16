@@ -7,7 +7,7 @@
 #include <QImage>
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Edit Skin… round trip through the Textures workbench. The Mesh Editor
 // writes the skin as a texture project (.vtexture, core/texture_project.h)
@@ -54,4 +54,4 @@ bool modelSkinRoundTripMdlInput(const ModelMesh &mesh, int skin, int member, con
 								QString *error = nullptr, const ModelWorkControl &control = {});
 [[nodiscard]] QJsonObject modelSkinRoundTripLinkJson(const ModelSkinRoundTripLink &link);
 bool modelSkinRoundTripLinkFromJson(const QJsonObject &object, ModelSkinRoundTripLink *link);
-} // namespace vibestudio
+} // namespace slopstudio

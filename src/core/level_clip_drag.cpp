@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 std::array<double,3> xyz(LevelMapVec3 p) { return {p.x,p.y,p.z}; }
 std::array<double,3> xyz(ModelVec3 p) { return {p.x,p.y,p.z}; }
@@ -67,4 +67,4 @@ bool LevelClipPointDrag::update(ModelPickRay ray,bool vertical,bool axisOnly,Lev
 	if (!finite(result)) { return false; }
 	*point = {result[0],result[1],result[2],true}; return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

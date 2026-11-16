@@ -73,7 +73,7 @@ with `--settings-file`. Never in the game folder.
 
 ```json
 {
-  "format": "vibestudio-asset-register",
+  "format": "slopstudio-asset-register",
   "version": 1,
   "game": "quake3",
   "installation": { "id": "quake3-games-quake3", "name": "Quake III Arena", "root": "C:/Games/Quake3" },
@@ -122,7 +122,7 @@ merged register used by planning and by the dependency check.
 `projectContentRoots` turns the manifest into readers: the project folder,
 minus its output, temporary and release output folders and its package
 folders; then each package folder as a layer of its own. Folders whose names
-start with `.`, and `.vibepackage` drafts, are never content. The open package
+start with `.`, and `.sloppackage` drafts, are never content. The open package
 on the Packages page can be layered on top when the user asks.
 
 Every file is classified:
@@ -270,7 +270,7 @@ are kept, and only the sections an edit touches are rewritten.
 `## [<version>] - <date>` with a fresh, empty Unreleased section above it.
 Categories are Added, Changed, Deprecated, Removed, Fixed and Security.
 
-Every published release writes `.vibestudio/releases/<version>.json` with the
+Every published release writes `.slopstudio/releases/<version>.json` with the
 title, version, game, scope, format, package name, SHA-256 and size, the maps,
 the notes, the output folder (relative to the project when inside it) and an
 inventory of every file with its role, size and CRC-32. The next release

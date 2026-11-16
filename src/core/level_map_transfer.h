@@ -16,7 +16,7 @@
 #include <QMap>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct CompilerRunResult;
 
@@ -58,14 +58,14 @@ struct LevelMapImportReport {
 	QVector<LevelMapSelectionRef> inserted;
 };
 
-// True for a compiled .bsp, which VibeMap3 converts to a .map before import.
+// True for a compiled .bsp, which SlopMap3 converts to a .map before import.
 bool levelMapImportNeedsConversion(const QString& path);
-// VibeMap3's convert profile (vibemap3-convert): -convert -format map, map_220
+// SlopMap3's convert profile (slopmap3-convert): -convert -format map, map_220
 // or map_bp to match `dialect` (levelMapBrushDialect of the open map), writing
 // `outputPath`. The caller adds tool overrides and search paths.
 CompilerCommandRequest levelMapImportConversionRequest(const QString& bspPath, const QString& outputPath, const QString& dialect);
 
-// The game a .bsp conversion runs VibeMap3 for, as NetRadiant Custom's
+// The game a .bsp conversion runs SlopMap3 for, as NetRadiant Custom's
 // Map_ImportFile passes -game, -fs_basepath and -fs_game, and the compiler
 // context Build uses.
 struct LevelMapBspConversionContext {
@@ -73,25 +73,25 @@ struct LevelMapBspConversionContext {
 	// quakelive, rtcw, et, ef, jk2 or jka.
 	QString gameKey;
 	// The game installation's folder (-fs_basepath) and its base or mod
-	// folder (-fs_game); empty leaves VibeMap3's own defaults.
+	// folder (-fs_game); empty leaves SlopMap3's own defaults.
 	QString basePath;
 	QString gameDirectory;
 	QString workspaceRootPath;
 	QStringList extraSearchPaths;
 	QVector<CompilerToolPathOverride> executableOverrides;
 };
-// VibeMap3's -game profile for a compiled map: the project's game when the
+// SlopMap3's -game profile for a compiled map: the project's game when the
 // file's header (IBSP 46 or 47, RBSP, FBSP) is that game's format, otherwise
 // the usual game for the header. Empty, with `error`, for Quake and Quake II
-// BSPs, which VibeMap3 cannot read, and for files that are not BSPs.
+// BSPs, which SlopMap3 cannot read, and for files that are not BSPs.
 QString levelMapBspConversionGame(const QString& bspPath, const QString& gameKey, QString* error = nullptr);
 // levelMapImportConversionRequest() with -game, -fs_basepath and -fs_game and
-// the compiler paths of `context`; false, with `error`, when VibeMap3 cannot
+// the compiler paths of `context`; false, with `error`, when SlopMap3 cannot
 // convert the file.
 bool prepareLevelMapImportConversion(const QString& bspPath, const QString& outputPath, const QString& dialect,
 	const LevelMapBspConversionContext& context, CompilerCommandRequest* request, QString* error = nullptr);
 // Why a finished conversion gave no map, or empty when it did: the runner's
-// error, VibeMap3's error output, or its exit code when it printed nothing.
+// error, SlopMap3's error output, or its exit code when it printed nothing.
 QString levelMapImportConversionProblem(const CompilerRunResult& result, const QString& convertedPath);
 
 // Reads a Quake-family .map with the map loader (no clipboard limits; the
@@ -174,4 +174,4 @@ bool prepareLevelMapExport(const LevelMapDocument& document, const LevelMapExpor
 LevelMapExportReport exportLevelMapCopy(const LevelMapDocument& document, const LevelMapExportRequest& request);
 QJsonObject levelMapExportReportJson(const LevelMapExportReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

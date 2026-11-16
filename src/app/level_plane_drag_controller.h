@@ -10,7 +10,7 @@
 #include <QVector>
 
 class QPainter;
-namespace vibestudio {
+namespace slopstudio {
 
 // The interactive side of core/level_plane_drag.h, shared by the 2D views and
 // the camera: NetRadiant Custom's drag-tool gestures (the QE4 plane drag beside
@@ -66,8 +66,8 @@ public:
 
 Q_SIGNALS:
 	void activeChanged(bool active);
-	void commitRequested(const vibestudio::LevelPlaneDragRequest& request);
-	void chainRequested(const vibestudio::LevelMapVec3& step, int copies);
+	void commitRequested(const slopstudio::LevelPlaneDragRequest& request);
+	void chainRequested(const slopstudio::LevelMapVec3& step, int copies);
 	void changed();
 
 private:
@@ -91,4 +91,4 @@ private:
 	QString m_error;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -5,7 +5,7 @@
 #include <QScopedValueRollback>
 #include <QTimer>
 
-namespace vibestudio {
+namespace slopstudio {
 
 PropertyGrid::PropertyGrid(QWidget* parent) : QTreeWidget(parent)
 {
@@ -52,4 +52,4 @@ void PropertyGrid::updateHeaderMetrics()
 	m_fontHeight = fontHeight;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -4,7 +4,7 @@
 // with the text, and each positive bubble looking along its axis. Runs at
 // 100% and 200% text, left to right and right to left, in an 800x600 and a
 // 500x400 view and the active pane of four views. Adjust Last Operation sits
-// in the bottom leading corner. VIBESTUDIO_MODELLER_EVIDENCE receives a render
+// in the bottom leading corner. SLOPSTUDIO_MODELLER_EVIDENCE receives a render
 // of each view.
 #include "app/model_editor_dialog.h"
 #include "app/model_editor_tools.h"
@@ -31,7 +31,7 @@
 #include <iostream>
 #include <string>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int failures = 0;
@@ -98,7 +98,7 @@ ModelMesh gridMesh()
 
 void capture(ModelViewport *widget, const QString &name)
 {
-	const auto root = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return;
 	tests::settleModelViewport(*widget);
@@ -266,7 +266,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath("mesh-gizmo-ui-XXXXXX"));

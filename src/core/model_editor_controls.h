@@ -30,7 +30,7 @@
 #include <QVector>
 #include <Qt>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // How the modeller arranges its views.
 enum class ModelViewLayout {
@@ -171,7 +171,7 @@ struct ModelEditorProfile {
 	// The editor's own name, untranslated ("Blender", "3ds Max").
 	QString shortName;
 	QString description;
-	// Where VibeStudio differs from the reference editor, translated.
+	// Where SlopStudio differs from the reference editor, translated.
 	QStringList adaptations;
 	QString referenceUrl;
 	QStringList aliases;
@@ -277,7 +277,7 @@ bool applyModelEditorControlOverrides(const ModelEditorControls& base, const QJs
 // The overrides that turn `base` into `edited` (only what differs).
 [[nodiscard]] QJsonObject modelEditorControlOverrides(const ModelEditorControls& base, const ModelEditorControls& edited);
 
-// A shareable profile file: {"format": "vibestudio.modeller-controls",
+// A shareable profile file: {"format": "slopstudio.modeller-controls",
 // "version": 1, "profile": "<id>", "overrides": {...}}.
 [[nodiscard]] QByteArray modelEditorControlsFile(const QString& profileId, const QJsonObject& overrides);
 bool parseModelEditorControlsFile(const QByteArray& bytes, QString* profileId, QJsonObject* overrides, QString* error = nullptr);
@@ -288,4 +288,4 @@ bool parseModelGesture(const QString& text, Qt::MouseButton* button, Qt::Keyboar
 [[nodiscard]] QString modelModifierText(Qt::KeyboardModifiers modifiers);
 bool parseModelModifiers(const QString& text, Qt::KeyboardModifiers* modifiers);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -30,8 +30,8 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 PolygonChecks expect;
@@ -42,7 +42,7 @@ class Expansion final : public QTranslator
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
 		const auto name = QByteArray(context);
-		if (name != "VibeStudioModelTools" && name != "VibeStudioModelEditor")
+		if (name != "SlopStudioModelTools" && name != "SlopStudioModelEditor")
 			return {};
 		const auto s = QString::fromUtf8(text);
 		return QString("[%1 %2]").arg(s, QString("~~ ").repeated(s.size() / 6));
@@ -555,7 +555,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temp(QDir(root).filePath("polygon-ui-XXXXXX"));

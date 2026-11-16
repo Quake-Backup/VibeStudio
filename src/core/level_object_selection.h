@@ -3,7 +3,7 @@
 #include <QSet>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 // Layers runs expandLevelMapSelectionToLayers (core/level_scene_layers.h) for
 // any map with a scene, with excludedObjects and undoSelection.
 enum class LevelObjectSelectionMode { Siblings, SourceLines, ConnectedEntities, RadiantType, Layers };
@@ -47,4 +47,4 @@ bool parseLevelMapSourceLines(const QString& text, QVector<int>* lines, QString*
 // replacing picks; a false componentSelectionChanged means leave picks intact.
 bool selectLevelMapObjects(LevelMapDocument* document, const LevelObjectSelectionRequest& request,
 	LevelObjectSelectionReport* report = nullptr, QString* error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

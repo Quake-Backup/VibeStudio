@@ -29,7 +29,7 @@
 // lib/TbUiLib/src/MapViewBase.cpp at 4c756be1 (GPL-3.0-or-later). Original
 // implementation; see docs/CREDITS.md.
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class LevelCameraTextureDirection { Up, Down, Left, Right, Clockwise, Counterclockwise };
 // Grid moves one grid size of texels, Coarse twice that and Fine one texel,
@@ -106,4 +106,4 @@ struct LevelCameraTextureAxes {
 // against the direction the picture moves.
 [[nodiscard]] QPointF levelCameraTextureShift(const LevelCameraTextureAxes& axes, double rightTexels, double upTexels);
 
-} // namespace vibestudio
+} // namespace slopstudio

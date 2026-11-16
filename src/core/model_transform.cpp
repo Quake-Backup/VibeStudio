@@ -5,7 +5,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -173,7 +173,7 @@ bool snapModelRotation(ModelVec3 degrees, double step, ModelVec3 *result, QStrin
 	{
 		if (error)
 		{
-			*error = QCoreApplication::translate("VibeStudioModelDocument",
+			*error = QCoreApplication::translate("SlopStudioModelDocument",
 												 "Rotation snapping requires finite angles and zero or 0.000001–180 degrees.");
 		}
 		return false;
@@ -190,7 +190,7 @@ bool snapModelRotation(ModelVec3 degrees, double step, ModelVec3 *result, QStrin
 		if (error)
 		{
 			*error =
-				QCoreApplication::translate("VibeStudioModelDocument", "Snapped rotation angles must remain within ±1,000,000 degrees.");
+				QCoreApplication::translate("SlopStudioModelDocument", "Snapped rotation angles must remain within ±1,000,000 degrees.");
 		}
 		return false;
 	}
@@ -209,7 +209,7 @@ bool snapModelScale(ModelVec3 factors, double step, ModelVec3 *result, QString *
 		if (error)
 		{
 			*error = QCoreApplication::translate(
-				"VibeStudioModelDocument",
+				"SlopStudioModelDocument",
 				"Scale snapping requires a step of zero or 0.000001–10000. Resulting scale magnitudes must be between 0.000001 and 10000.");
 		}
 		return false;
@@ -244,7 +244,7 @@ bool snapModelTranslation(ModelVec3 translation, double grid, ModelVec3 *result,
 	{
 		if (error)
 		{
-			*error = QCoreApplication::translate("VibeStudioModelDocument",
+			*error = QCoreApplication::translate("SlopStudioModelDocument",
 												 "Use a finite translation and a snap step of zero or 0.000001–1,000,000 units.");
 		}
 		return false;
@@ -396,4 +396,4 @@ bool modelRotateDragAngle(ModelRotateDrag *drag, ModelPickRay ray, double *degre
 	*degrees = snapped.x;
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

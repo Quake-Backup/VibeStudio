@@ -3,7 +3,7 @@
 #include "core/package_storage.h"
 #include <QJsonObject>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct PackageDraftSaveLimits {
 	qint64 maximumBytes = 32LL * 1024 * 1024 * 1024;
@@ -39,4 +39,4 @@ struct PackageDraftCompaction {
 PackageDraftCompaction compactPackageDraftStorage(const QString& path, const QByteArray& expectedStorageSha256,
 	bool dryRun = true, const PackageReadControl& control = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

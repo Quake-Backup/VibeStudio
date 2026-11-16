@@ -6,7 +6,7 @@
 #include "core/level_textured_selection.h"
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 bool ApplicationShell::levelComponentsActive() const
 {
 	return m_levelMapViewport && m_levelMapViewport->componentMode() != MapViewport::ComponentMode::Off;
@@ -141,4 +141,4 @@ void ApplicationShell::transformLevelComponentsFromUi(int operation)
 	});
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

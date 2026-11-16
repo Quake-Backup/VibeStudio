@@ -32,7 +32,7 @@
 #include <cmath>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -1292,4 +1292,4 @@ void setButtonVariant(QWidget* button, const QString& variant)
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

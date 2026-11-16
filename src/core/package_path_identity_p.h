@@ -4,7 +4,7 @@
 #include <QString>
 #include <filesystem>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Transient filesystem identity, never persisted as portable draft provenance.
 // Empty keys use the standard-library equivalent() fallback. No payload reads.
@@ -19,4 +19,4 @@ struct PackagePathIdentity
 std::filesystem::path packageNativeFilesystemPath(const QString &path);
 QString packageQtFilesystemPath(const std::filesystem::path &path);
 PackagePathIdentity inspectPackagePathIdentity(const QString &path, bool portable = false);
-} // namespace vibestudio
+} // namespace slopstudio

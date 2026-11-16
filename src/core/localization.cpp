@@ -16,7 +16,7 @@
 #include <iterator>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -68,12 +68,12 @@ QString pseudoMap(QChar character)
 }
 
 // Catalog file names use the Qt convention: <app>_<locale>.ts / .qm with an
-// underscore-separated locale id (vibestudio_pt_BR.ts).
+// underscore-separated locale id (slopstudio_pt_BR.ts).
 QString catalogStem(const QString& localeName)
 {
 	QString id = localeName;
 	id.replace('-', '_');
-	return QStringLiteral("vibestudio_%1").arg(id);
+	return QStringLiteral("slopstudio_%1").arg(id);
 }
 
 QString catalogFileName(const QString& localeName)
@@ -104,7 +104,7 @@ QString quantityLabel(int count, const QString& singular, const QString& plural)
 
 const char* pluralSmokeSource()
 {
-	return QT_TRANSLATE_N_NOOP("VibeStudioLocalization", "%n package(s) ready");
+	return QT_TRANSLATE_N_NOOP("SlopStudioLocalization", "%n package(s) ready");
 }
 
 QString paddedLocaleNumber(const QLocale& locale, int value)
@@ -260,7 +260,7 @@ TranslationCatalogStatus inspectTranslationCatalog(const QDir& catalogRoot, cons
 {
 	TranslationCatalogStatus status;
 	status.fileName = fileName;
-	status.localeName = fileName.mid(QStringLiteral("vibestudio_").size());
+	status.localeName = fileName.mid(QStringLiteral("slopstudio_").size());
 	status.localeName.chop(QStringLiteral(".ts").size());
 	status.localeName.replace('_', '-');
 	status.path = catalogRoot.filePath(fileName);
@@ -268,7 +268,7 @@ TranslationCatalogStatus inspectTranslationCatalog(const QDir& catalogRoot, cons
 	status.present = info.exists() && info.isFile();
 	if (!status.present) {
 		status.status = QStringLiteral("missing");
-		status.issues.push_back(QCoreApplication::translate("VibeStudioLocalization", "catalog file is missing"));
+		status.issues.push_back(QCoreApplication::translate("SlopStudioLocalization", "catalog file is missing"));
 		return status;
 	}
 
@@ -276,7 +276,7 @@ TranslationCatalogStatus inspectTranslationCatalog(const QDir& catalogRoot, cons
 	if (!file.open(QIODevice::ReadOnly)) {
 		status.status = QStringLiteral("unreadable");
 		status.stale = true;
-		status.issues.push_back(QCoreApplication::translate("VibeStudioLocalization", "catalog file could not be read"));
+		status.issues.push_back(QCoreApplication::translate("SlopStudioLocalization", "catalog file could not be read"));
 		return status;
 	}
 
@@ -296,35 +296,35 @@ TranslationCatalogStatus inspectTranslationCatalog(const QDir& catalogRoot, cons
 	if (!parsed) {
 		status.status = QStringLiteral("invalid");
 		status.stale = true;
-		status.issues.push_back(QCoreApplication::translate("VibeStudioLocalization", "XML parse error: %1").arg(parseError));
+		status.issues.push_back(QCoreApplication::translate("SlopStudioLocalization", "XML parse error: %1").arg(parseError));
 		return status;
 	}
 
 	status.stale = status.unfinishedCount > 0 || status.obsoleteCount > 0 || status.vanishedCount > 0;
 	if (status.unfinishedCount > 0) {
-		status.issues.push_back(QCoreApplication::translate("VibeStudioLocalization", "%1 %2")
+		status.issues.push_back(QCoreApplication::translate("SlopStudioLocalization", "%1 %2")
 			.arg(status.unfinishedCount)
-			.arg(quantityLabel(status.unfinishedCount, QCoreApplication::translate("VibeStudioLocalization", "unfinished translation"), QCoreApplication::translate("VibeStudioLocalization", "unfinished translations"))));
+			.arg(quantityLabel(status.unfinishedCount, QCoreApplication::translate("SlopStudioLocalization", "unfinished translation"), QCoreApplication::translate("SlopStudioLocalization", "unfinished translations"))));
 	}
 	if (status.draftedCount > 0) {
-		status.issues.push_back(QCoreApplication::translate("VibeStudioLocalization", "%n drafted translation(s) awaiting review", nullptr, status.draftedCount));
+		status.issues.push_back(QCoreApplication::translate("SlopStudioLocalization", "%n drafted translation(s) awaiting review", nullptr, status.draftedCount));
 	}
 	if (status.obsoleteCount > 0) {
-		status.issues.push_back(QCoreApplication::translate("VibeStudioLocalization", "%1 %2")
+		status.issues.push_back(QCoreApplication::translate("SlopStudioLocalization", "%1 %2")
 			.arg(status.obsoleteCount)
-			.arg(quantityLabel(status.obsoleteCount, QCoreApplication::translate("VibeStudioLocalization", "obsolete translation"), QCoreApplication::translate("VibeStudioLocalization", "obsolete translations"))));
+			.arg(quantityLabel(status.obsoleteCount, QCoreApplication::translate("SlopStudioLocalization", "obsolete translation"), QCoreApplication::translate("SlopStudioLocalization", "obsolete translations"))));
 	}
 	if (status.vanishedCount > 0) {
-		status.issues.push_back(QCoreApplication::translate("VibeStudioLocalization", "%1 %2")
+		status.issues.push_back(QCoreApplication::translate("SlopStudioLocalization", "%1 %2")
 			.arg(status.vanishedCount)
-			.arg(quantityLabel(status.vanishedCount, QCoreApplication::translate("VibeStudioLocalization", "vanished translation"), QCoreApplication::translate("VibeStudioLocalization", "vanished translations"))));
+			.arg(quantityLabel(status.vanishedCount, QCoreApplication::translate("SlopStudioLocalization", "vanished translation"), QCoreApplication::translate("SlopStudioLocalization", "vanished translations"))));
 	}
 
 	if (status.stale) {
 		status.status = QStringLiteral("needs-translation");
 	} else if (status.messageCount == 0) {
 		status.status = QStringLiteral("empty");
-		status.issues.push_back(QCoreApplication::translate("VibeStudioLocalization", "catalog has no messages"));
+		status.issues.push_back(QCoreApplication::translate("SlopStudioLocalization", "catalog has no messages"));
 	} else {
 		status.status = QStringLiteral("complete");
 	}
@@ -345,7 +345,7 @@ PluralizationSmokeSample buildPluralizationSample(const QString& localeName, int
 	// translator is installed, so the fallback is the source text with the
 	// count inserted; anything else means a translator supplied a plural form.
 	const QString untranslatedFallback = QString(sample.sourceText).replace(QStringLiteral("%n"), QString::number(count));
-	sample.text = QCoreApplication::translate("VibeStudioLocalization", pluralSmokeSource(), nullptr, count);
+	sample.text = QCoreApplication::translate("SlopStudioLocalization", pluralSmokeSource(), nullptr, count);
 	sample.usedUntranslatedFallback = sample.text == untranslatedFallback;
 	sample.pluralFormsFromTranslator = !sample.usedUntranslatedFallback && !sample.text.trimmed().isEmpty();
 	sample.countVisible = sample.text.contains(QString::number(count)) || sample.text.contains(sample.localizedNumber);
@@ -386,53 +386,53 @@ struct TargetEntry {
 // See docs/ACCESSIBILITY_LOCALIZATION.md, "Supported Languages And Regions",
 // for why each language is here.
 constexpr TargetEntry kTargets[] = {
-	{"en", QT_TRANSLATE_NOOP("VibeStudioLocalization", "English"), "English", "Latn", false},
-	{"zh-Hans", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Chinese (Simplified)"), "简体中文", "Hans", false},
-	{"zh-Hant", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Chinese (Traditional)"), "繁體中文", "Hant", false},
-	{"hi", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Hindi"), "हिन्दी", "Deva", false},
-	{"es", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Spanish (Spain)"), "Español (España)", "Latn", false},
-	{"es-419", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Spanish (Latin America)"), "Español (Latinoamérica)", "Latn", false},
-	{"ar", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Arabic"), "العربية", "Arab", true},
-	{"fr", QT_TRANSLATE_NOOP("VibeStudioLocalization", "French"), "Français", "Latn", false},
-	{"bn", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Bengali"), "বাংলা", "Beng", false},
-	{"pt-BR", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Portuguese (Brazil)"), "Português (Brasil)", "Latn", false},
-	{"pt-PT", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Portuguese (Portugal)"), "Português (Portugal)", "Latn", false},
-	{"ru", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Russian"), "Русский", "Cyrl", false},
-	{"id", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Indonesian"), "Bahasa Indonesia", "Latn", false},
-	{"ur", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Urdu"), "اردو", "Arab", true},
-	{"de", QT_TRANSLATE_NOOP("VibeStudioLocalization", "German"), "Deutsch", "Latn", false},
-	{"ja", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Japanese"), "日本語", "Jpan", false},
-	{"pcm", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Nigerian Pidgin"), "Naijá", "Latn", false},
-	{"mr", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Marathi"), "मराठी", "Deva", false},
-	{"vi", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Vietnamese"), "Tiếng Việt", "Latn", false},
-	{"te", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Telugu"), "తెలుగు", "Telu", false},
-	{"ha", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Hausa"), "Hausa", "Latn", false},
-	{"tr", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Turkish"), "Türkçe", "Latn", false},
-	{"pa", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Punjabi"), "ਪੰਜਾਬੀ", "Guru", false},
-	{"sw", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Swahili"), "Kiswahili", "Latn", false},
-	{"fil", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Filipino"), "Filipino", "Latn", false},
-	{"ta", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Tamil"), "தமிழ்", "Taml", false},
-	{"fa", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Persian"), "فارسی", "Arab", true},
-	{"ko", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Korean"), "한국어", "Kore", false},
-	{"th", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Thai"), "ไทย", "Thai", false},
-	{"ms", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Malay"), "Bahasa Melayu", "Latn", false},
-	{"it", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Italian"), "Italiano", "Latn", false},
-	{"gu", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Gujarati"), "ગુજરાતી", "Gujr", false},
-	{"am", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Amharic"), "አማርኛ", "Ethi", false},
-	{"kn", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Kannada"), "ಕನ್ನಡ", "Knda", false},
-	{"pl", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Polish"), "Polski", "Latn", false},
-	{"uk", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Ukrainian"), "Українська", "Cyrl", false},
-	{"ro", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Romanian"), "Română", "Latn", false},
-	{"nl", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Dutch"), "Nederlands", "Latn", false},
-	{"el", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Greek"), "Ελληνικά", "Grek", false},
-	{"hu", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Hungarian"), "Magyar", "Latn", false},
-	{"cs", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Czech"), "Čeština", "Latn", false},
-	{"sv", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Swedish"), "Svenska", "Latn", false},
-	{"bg", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Bulgarian"), "Български", "Cyrl", false},
-	{"he", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Hebrew"), "עברית", "Hebr", true},
-	{"da", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Danish"), "Dansk", "Latn", false},
-	{"fi", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Finnish"), "Suomi", "Latn", false},
-	{"nb", QT_TRANSLATE_NOOP("VibeStudioLocalization", "Norwegian Bokmål"), "Norsk bokmål", "Latn", false},
+	{"en", QT_TRANSLATE_NOOP("SlopStudioLocalization", "English"), "English", "Latn", false},
+	{"zh-Hans", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Chinese (Simplified)"), "简体中文", "Hans", false},
+	{"zh-Hant", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Chinese (Traditional)"), "繁體中文", "Hant", false},
+	{"hi", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Hindi"), "हिन्दी", "Deva", false},
+	{"es", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Spanish (Spain)"), "Español (España)", "Latn", false},
+	{"es-419", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Spanish (Latin America)"), "Español (Latinoamérica)", "Latn", false},
+	{"ar", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Arabic"), "العربية", "Arab", true},
+	{"fr", QT_TRANSLATE_NOOP("SlopStudioLocalization", "French"), "Français", "Latn", false},
+	{"bn", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Bengali"), "বাংলা", "Beng", false},
+	{"pt-BR", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Portuguese (Brazil)"), "Português (Brasil)", "Latn", false},
+	{"pt-PT", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Portuguese (Portugal)"), "Português (Portugal)", "Latn", false},
+	{"ru", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Russian"), "Русский", "Cyrl", false},
+	{"id", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Indonesian"), "Bahasa Indonesia", "Latn", false},
+	{"ur", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Urdu"), "اردو", "Arab", true},
+	{"de", QT_TRANSLATE_NOOP("SlopStudioLocalization", "German"), "Deutsch", "Latn", false},
+	{"ja", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Japanese"), "日本語", "Jpan", false},
+	{"pcm", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Nigerian Pidgin"), "Naijá", "Latn", false},
+	{"mr", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Marathi"), "मराठी", "Deva", false},
+	{"vi", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Vietnamese"), "Tiếng Việt", "Latn", false},
+	{"te", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Telugu"), "తెలుగు", "Telu", false},
+	{"ha", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Hausa"), "Hausa", "Latn", false},
+	{"tr", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Turkish"), "Türkçe", "Latn", false},
+	{"pa", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Punjabi"), "ਪੰਜਾਬੀ", "Guru", false},
+	{"sw", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Swahili"), "Kiswahili", "Latn", false},
+	{"fil", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Filipino"), "Filipino", "Latn", false},
+	{"ta", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Tamil"), "தமிழ்", "Taml", false},
+	{"fa", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Persian"), "فارسی", "Arab", true},
+	{"ko", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Korean"), "한국어", "Kore", false},
+	{"th", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Thai"), "ไทย", "Thai", false},
+	{"ms", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Malay"), "Bahasa Melayu", "Latn", false},
+	{"it", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Italian"), "Italiano", "Latn", false},
+	{"gu", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Gujarati"), "ગુજરાતી", "Gujr", false},
+	{"am", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Amharic"), "አማርኛ", "Ethi", false},
+	{"kn", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Kannada"), "ಕನ್ನಡ", "Knda", false},
+	{"pl", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Polish"), "Polski", "Latn", false},
+	{"uk", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Ukrainian"), "Українська", "Cyrl", false},
+	{"ro", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Romanian"), "Română", "Latn", false},
+	{"nl", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Dutch"), "Nederlands", "Latn", false},
+	{"el", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Greek"), "Ελληνικά", "Grek", false},
+	{"hu", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Hungarian"), "Magyar", "Latn", false},
+	{"cs", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Czech"), "Čeština", "Latn", false},
+	{"sv", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Swedish"), "Svenska", "Latn", false},
+	{"bg", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Bulgarian"), "Български", "Cyrl", false},
+	{"he", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Hebrew"), "עברית", "Hebr", true},
+	{"da", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Danish"), "Dansk", "Latn", false},
+	{"fi", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Finnish"), "Suomi", "Latn", false},
+	{"nb", QT_TRANSLATE_NOOP("SlopStudioLocalization", "Norwegian Bokmål"), "Norsk bokmål", "Latn", false},
 };
 
 // The count docs/ACCESSIBILITY_LOCALIZATION.md documents; the report and the
@@ -498,7 +498,7 @@ LocalizationTarget targetFromEntry(const TargetEntry& entry)
 {
 	LocalizationTarget target;
 	target.localeName = QString::fromLatin1(entry.localeName);
-	target.englishName = QCoreApplication::translate("VibeStudioLocalization", entry.englishName);
+	target.englishName = QCoreApplication::translate("SlopStudioLocalization", entry.englishName);
 	target.nativeName = QString::fromUtf8(entry.nativeName);
 	target.script = QString::fromLatin1(entry.script);
 	target.rightToLeft = entry.rightToLeft;
@@ -631,9 +631,9 @@ QString preferredLocalizationTargetId(const QStringList& languageTags)
 
 QStringList systemLanguageTags()
 {
-	// VIBESTUDIO_SYSTEM_LANGUAGES stands in for the platform's language list
+	// SLOPSTUDIO_SYSTEM_LANGUAGES stands in for the platform's language list
 	// in tests, so "follow the system" can be checked on any machine.
-	const QString overridden = qEnvironmentVariable("VIBESTUDIO_SYSTEM_LANGUAGES").trimmed();
+	const QString overridden = qEnvironmentVariable("SLOPSTUDIO_SYSTEM_LANGUAGES").trimmed();
 	if (!overridden.isEmpty()) {
 		return overridden.split(QRegularExpression(QStringLiteral("[,;\\s]+")), Qt::SkipEmptyParts);
 	}
@@ -733,7 +733,7 @@ QStringList expectedTranslationCatalogFileNames()
 	for (const QString& localeName : localizationTargetIds()) {
 		names.push_back(catalogFileName(localeName));
 	}
-	names.push_back(QStringLiteral("vibestudio_pseudo.ts"));
+	names.push_back(QStringLiteral("slopstudio_pseudo.ts"));
 	names.removeDuplicates();
 	names.sort(Qt::CaseInsensitive);
 	return names;
@@ -741,7 +741,7 @@ QStringList expectedTranslationCatalogFileNames()
 
 QString translationCatalogRootEnvironmentVariable()
 {
-	return QStringLiteral("VIBESTUDIO_I18N_DIR");
+	return QStringLiteral("SLOPSTUDIO_I18N_DIR");
 }
 
 CatalogRootResolution resolveTranslationCatalogRoot(const QString& explicitCatalogRootPath)
@@ -757,19 +757,19 @@ CatalogRootResolution resolveTranslationCatalogRoot(const QString& explicitCatal
 		candidates.push_back({explicitPath, QStringLiteral("argument")});
 	}
 
-	const QString environmentPath = qEnvironmentVariable("VIBESTUDIO_I18N_DIR").trimmed();
+	const QString environmentPath = qEnvironmentVariable("SLOPSTUDIO_I18N_DIR").trimmed();
 	if (!environmentPath.isEmpty()) {
 		candidates.push_back({environmentPath, QStringLiteral("environment")});
 	}
 
 	const QString applicationDir = QCoreApplication::applicationDirPath();
 	if (!applicationDir.isEmpty()) {
-		// Installed layout: prefix/bin/vibestudio -> prefix/share/vibestudio/i18n.
-		// Development layout: builddir/src/vibestudio -> builddir/i18n.
+		// Installed layout: prefix/bin/slopstudio -> prefix/share/slopstudio/i18n.
+		// Development layout: builddir/src/slopstudio -> builddir/i18n.
 		candidates.push_back({applicationDir + QStringLiteral("/i18n"), QStringLiteral("application-dir")});
 		candidates.push_back({applicationDir + QStringLiteral("/../i18n"), QStringLiteral("application-parent")});
-		candidates.push_back({applicationDir + QStringLiteral("/../share/vibestudio/i18n"), QStringLiteral("installed-share")});
-		// macOS bundle: Contents/MacOS/vibestudio -> Contents/Resources/i18n.
+		candidates.push_back({applicationDir + QStringLiteral("/../share/slopstudio/i18n"), QStringLiteral("installed-share")});
+		// macOS bundle: Contents/MacOS/slopstudio -> Contents/Resources/i18n.
 		candidates.push_back({applicationDir + QStringLiteral("/../Resources/i18n"), QStringLiteral("bundle-resources")});
 		candidates.push_back({applicationDir + QStringLiteral("/../../i18n"), QStringLiteral("application-parent")});
 	}
@@ -905,7 +905,7 @@ LocaleFormattingSample localeFormattingSample(const QString& localeName)
 		.arg(paddedLocaleNumber(locale, 1))
 		.arg(paddedLocaleNumber(locale, 2))
 		.arg(paddedLocaleNumber(locale, 9));
-	sample.sortedLabels = {QCoreApplication::translate("VibeStudioLocalization", "Package"), QCoreApplication::translate("VibeStudioLocalization", "Compiler"), QCoreApplication::translate("VibeStudioLocalization", "Asset"), QCoreApplication::translate("VibeStudioLocalization", "Map")};
+	sample.sortedLabels = {QCoreApplication::translate("SlopStudioLocalization", "Package"), QCoreApplication::translate("SlopStudioLocalization", "Compiler"), QCoreApplication::translate("SlopStudioLocalization", "Asset"), QCoreApplication::translate("SlopStudioLocalization", "Map")};
 	QCollator collator(locale);
 	std::sort(sample.sortedLabels.begin(), sample.sortedLabels.end(), [&collator](const QString& left, const QString& right) {
 		return collator.compare(left, right) < 0;
@@ -988,7 +988,7 @@ QString regionFormatSample(const QLocale& locale)
 {
 	// A number with grouping and decimals, a short date, and a short time,
 	// apart with middle dots, since commas belong to some regions' numbers.
-	return QCoreApplication::translate("VibeStudioLocalization", "%1 · %2 · %3")
+	return QCoreApplication::translate("SlopStudioLocalization", "%1 · %2 · %3")
 		.arg(locale.toString(1234567.891, 'f', 2), locale.toString(QDate(2026, 12, 31), QLocale::ShortFormat), locale.toString(QTime(14, 5), QLocale::ShortFormat));
 }
 
@@ -1008,40 +1008,40 @@ QVector<TranslationExpansionLayoutCheck> translationExpansionLayoutChecks()
 	return {
 		buildLayoutCheck(
 			QStringLiteral("toolbar-button"),
-			QCoreApplication::translate("VibeStudioLocalization", "Toolbar Button"),
-			QCoreApplication::translate("VibeStudioLocalization", "Open Project"),
+			QCoreApplication::translate("SlopStudioLocalization", "Toolbar Button"),
+			QCoreApplication::translate("SlopStudioLocalization", "Open Project"),
 			64,
-			QCoreApplication::translate("VibeStudioLocalization", "Tool buttons should allow icon-plus-text labels to wrap or elide cleanly.")),
+			QCoreApplication::translate("SlopStudioLocalization", "Tool buttons should allow icon-plus-text labels to wrap or elide cleanly.")),
 		buildLayoutCheck(
 			QStringLiteral("mode-rail-label"),
-			QCoreApplication::translate("VibeStudioLocalization", "Mode Rail Label"),
-			QCoreApplication::translate("VibeStudioLocalization", "Package Manager"),
+			QCoreApplication::translate("SlopStudioLocalization", "Mode Rail Label"),
+			QCoreApplication::translate("SlopStudioLocalization", "Package Manager"),
 			72,
-			QCoreApplication::translate("VibeStudioLocalization", "Mode rail labels should keep icons visible and provide full text through tooltips.")),
+			QCoreApplication::translate("SlopStudioLocalization", "Mode rail labels should keep icons visible and provide full text through tooltips.")),
 		buildLayoutCheck(
 			QStringLiteral("status-chip"),
-			QCoreApplication::translate("VibeStudioLocalization", "Status Chip"),
-			QCoreApplication::translate("VibeStudioLocalization", "Validation warning"),
+			QCoreApplication::translate("SlopStudioLocalization", "Status Chip"),
+			QCoreApplication::translate("SlopStudioLocalization", "Validation warning"),
 			76,
-			QCoreApplication::translate("VibeStudioLocalization", "Status chips should keep their icon and non-color cue visible under translation expansion.")),
+			QCoreApplication::translate("SlopStudioLocalization", "Status chips should keep their icon and non-color cue visible under translation expansion.")),
 		buildLayoutCheck(
 			QStringLiteral("detail-drawer-title"),
-			QCoreApplication::translate("VibeStudioLocalization", "Detail Drawer Title"),
-			QCoreApplication::translate("VibeStudioLocalization", "Compiler output details"),
+			QCoreApplication::translate("SlopStudioLocalization", "Detail Drawer Title"),
+			QCoreApplication::translate("SlopStudioLocalization", "Compiler output details"),
 			96,
-			QCoreApplication::translate("VibeStudioLocalization", "Detail drawer headings should reserve space for expanded translated labels.")),
+			QCoreApplication::translate("SlopStudioLocalization", "Detail drawer headings should reserve space for expanded translated labels.")),
 		buildLayoutCheck(
 			QStringLiteral("setup-step-title"),
-			QCoreApplication::translate("VibeStudioLocalization", "Setup Step Title"),
-			QCoreApplication::translate("VibeStudioLocalization", "Choose language and accessibility"),
+			QCoreApplication::translate("SlopStudioLocalization", "Setup Step Title"),
+			QCoreApplication::translate("SlopStudioLocalization", "Choose language and accessibility"),
 			128,
-			QCoreApplication::translate("VibeStudioLocalization", "Setup step headings should tolerate longer translated text at large UI scales.")),
+			QCoreApplication::translate("SlopStudioLocalization", "Setup step headings should tolerate longer translated text at large UI scales.")),
 		buildLayoutCheck(
 			QStringLiteral("command-palette-row"),
-			QCoreApplication::translate("VibeStudioLocalization", "Command Palette Row"),
-			QCoreApplication::translate("VibeStudioLocalization", "Create diagnostic bundle"),
+			QCoreApplication::translate("SlopStudioLocalization", "Command Palette Row"),
+			QCoreApplication::translate("SlopStudioLocalization", "Create diagnostic bundle"),
 			104,
-			QCoreApplication::translate("VibeStudioLocalization", "Command palette rows should keep command names, shortcuts, and status cues readable.")),
+			QCoreApplication::translate("SlopStudioLocalization", "Command palette rows should keep command names, shortcuts, and status cues readable.")),
 	};
 }
 
@@ -1050,8 +1050,8 @@ LocalizationSmokeReport buildLocalizationSmokeReport(const QString& localeName, 
 	LocalizationSmokeReport report;
 	report.localeName = normalizedLocalizationTargetId(localeName);
 	report.targets = localizationTargets();
-	report.pseudoSample = pseudoLocalizeText(QCoreApplication::translate("VibeStudioLocalization", "Open package and run compiler"));
-	const QString expansionSource = QCoreApplication::translate("VibeStudioLocalization", "Compiler finished");
+	report.pseudoSample = pseudoLocalizeText(QCoreApplication::translate("SlopStudioLocalization", "Open package and run compiler"));
+	const QString expansionSource = QCoreApplication::translate("SlopStudioLocalization", "Compiler finished");
 	report.expansionSourceLength = expansionSource.size();
 	report.expansionSample = translationExpansionText(expansionSource);
 	report.expansionSampleLength = report.expansionSample.size();
@@ -1068,8 +1068,8 @@ LocalizationSmokeReport buildLocalizationSmokeReport(const QString& localeName, 
 		return sample.pluralFormsFromTranslator;
 	});
 	report.pluralizationNote = report.pluralFormsFromTranslator
-		? QCoreApplication::translate("VibeStudioLocalization", "Plural forms were supplied by an installed translator.")
-		: QCoreApplication::translate("VibeStudioLocalization", "No translator is installed for this context: the plural call site was verified and the untranslated fallback was returned.");
+		? QCoreApplication::translate("SlopStudioLocalization", "Plural forms were supplied by an installed translator.")
+		: QCoreApplication::translate("SlopStudioLocalization", "No translator is installed for this context: the plural call site was verified and the untranslated fallback was returned.");
 	report.layoutChecks = translationExpansionLayoutChecks();
 	report.expansionLayoutSmokeOk = std::all_of(report.layoutChecks.cbegin(), report.layoutChecks.cend(), [](const TranslationExpansionLayoutCheck& check) {
 		return check.passed;
@@ -1083,7 +1083,7 @@ LocalizationSmokeReport buildLocalizationSmokeReport(const QString& localeName, 
 
 	report.catalogRoot = resolveTranslationCatalogRoot(catalogRootPath);
 	if (!report.catalogRoot.exists) {
-		report.warnings.push_back(QCoreApplication::translate("VibeStudioLocalization", "No translation catalog directory was found; tried: %1")
+		report.warnings.push_back(QCoreApplication::translate("SlopStudioLocalization", "No translation catalog directory was found; tried: %1")
 			.arg(report.catalogRoot.candidatesTried.join(QStringLiteral(", "))));
 	}
 	report.catalogAvailability = translationCatalogAvailability(report.catalogRoot.rootPath);
@@ -1098,11 +1098,11 @@ LocalizationSmokeReport buildLocalizationSmokeReport(const QString& localeName, 
 		TranslationCatalogStatus status = inspectTranslationCatalog(catalogRoot, fileName);
 		if (!status.present) {
 			report.ok = false;
-			report.warnings.push_back(QCoreApplication::translate("VibeStudioLocalization", "Missing translation catalog: %1").arg(fileName));
+			report.warnings.push_back(QCoreApplication::translate("SlopStudioLocalization", "Missing translation catalog: %1").arg(fileName));
 		}
 		if (status.status == QLatin1String("invalid") || status.status == QLatin1String("unreadable")) {
 			report.ok = false;
-			report.warnings.push_back(QCoreApplication::translate("VibeStudioLocalization", "Invalid translation catalog: %1").arg(fileName));
+			report.warnings.push_back(QCoreApplication::translate("SlopStudioLocalization", "Invalid translation catalog: %1").arg(fileName));
 		}
 		if (status.stale) {
 			++report.staleCatalogCount;
@@ -1118,26 +1118,26 @@ LocalizationSmokeReport buildLocalizationSmokeReport(const QString& localeName, 
 
 	if (report.targets.size() < kDocumentedTargetCount) {
 		report.ok = false;
-		report.warnings.push_back(QCoreApplication::translate("VibeStudioLocalization", "Localization target set is smaller than the documented %1-language set.").arg(kDocumentedTargetCount));
+		report.warnings.push_back(QCoreApplication::translate("SlopStudioLocalization", "Localization target set is smaller than the documented %1-language set.").arg(kDocumentedTargetCount));
 	}
 	for (const QString& required : {QStringLiteral("ar"), QStringLiteral("ur"), QStringLiteral("fa"), QStringLiteral("he")}) {
 		if (!report.rightToLeftLocales.contains(required)) {
 			report.ok = false;
-			report.warnings.push_back(QCoreApplication::translate("VibeStudioLocalization", "Right-to-left smoke set must include Arabic, Urdu, Persian, and Hebrew."));
+			report.warnings.push_back(QCoreApplication::translate("SlopStudioLocalization", "Right-to-left smoke set must include Arabic, Urdu, Persian, and Hebrew."));
 			break;
 		}
 	}
 	if (!report.expansionSmokeOk) {
 		report.ok = false;
-		report.warnings.push_back(QCoreApplication::translate("VibeStudioLocalization", "Translation expansion smoke sample did not grow enough to stress layouts."));
+		report.warnings.push_back(QCoreApplication::translate("SlopStudioLocalization", "Translation expansion smoke sample did not grow enough to stress layouts."));
 	}
 	if (!report.pluralizationSmokeOk) {
 		report.ok = false;
-		report.warnings.push_back(QCoreApplication::translate("VibeStudioLocalization", "Pluralization smoke samples did not substitute the count into the plural call site."));
+		report.warnings.push_back(QCoreApplication::translate("SlopStudioLocalization", "Pluralization smoke samples did not substitute the count into the plural call site."));
 	}
 	if (!report.expansionLayoutSmokeOk) {
 		report.ok = false;
-		report.warnings.push_back(QCoreApplication::translate("VibeStudioLocalization", "Translation expansion layout smoke checks exceeded a recommended text budget."));
+		report.warnings.push_back(QCoreApplication::translate("SlopStudioLocalization", "Translation expansion layout smoke checks exceeded a recommended text budget."));
 	}
 	return report;
 }
@@ -1145,63 +1145,63 @@ LocalizationSmokeReport buildLocalizationSmokeReport(const QString& localeName, 
 QString localizationSmokeReportText(const LocalizationSmokeReport& report)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Localization smoke report");
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Locale: %1").arg(report.localeName);
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Targets: %1").arg(report.targets.size());
-	lines << QCoreApplication::translate("VibeStudioLocalization", "System languages: %1 (follows %2)")
-		.arg(report.systemLanguages.isEmpty() ? QCoreApplication::translate("VibeStudioLocalization", "none reported") : report.systemLanguages.join(QStringLiteral(", ")), report.systemTargetName);
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Right-to-left: %1").arg(report.rightToLeftLocales.join(QStringLiteral(", ")));
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Pseudo: %1").arg(report.pseudoSample);
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Expansion: %1").arg(report.expansionSample);
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Expansion ratio: %1").arg(QLocale::c().toString(report.expansionRatio, 'f', 2));
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Expansion layout checks: %1").arg(report.expansionLayoutSmokeOk ? QCoreApplication::translate("VibeStudioLocalization", "passed") : QCoreApplication::translate("VibeStudioLocalization", "failed"));
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Catalog root: %1 (%2)").arg(report.catalogRoot.rootPath, report.catalogRoot.exists ? report.catalogRoot.source : QCoreApplication::translate("VibeStudioLocalization", "not found"));
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Localization smoke report");
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Locale: %1").arg(report.localeName);
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Targets: %1").arg(report.targets.size());
+	lines << QCoreApplication::translate("SlopStudioLocalization", "System languages: %1 (follows %2)")
+		.arg(report.systemLanguages.isEmpty() ? QCoreApplication::translate("SlopStudioLocalization", "none reported") : report.systemLanguages.join(QStringLiteral(", ")), report.systemTargetName);
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Right-to-left: %1").arg(report.rightToLeftLocales.join(QStringLiteral(", ")));
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Pseudo: %1").arg(report.pseudoSample);
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Expansion: %1").arg(report.expansionSample);
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Expansion ratio: %1").arg(QLocale::c().toString(report.expansionRatio, 'f', 2));
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Expansion layout checks: %1").arg(report.expansionLayoutSmokeOk ? QCoreApplication::translate("SlopStudioLocalization", "passed") : QCoreApplication::translate("SlopStudioLocalization", "failed"));
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Catalog root: %1 (%2)").arg(report.catalogRoot.rootPath, report.catalogRoot.exists ? report.catalogRoot.source : QCoreApplication::translate("SlopStudioLocalization", "not found"));
 	if (!report.catalogRoot.exists && !report.catalogRoot.candidatesTried.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioLocalization", "Catalog root candidates: %1").arg(report.catalogRoot.candidatesTried.join(QStringLiteral(", ")));
+		lines << QCoreApplication::translate("SlopStudioLocalization", "Catalog root candidates: %1").arg(report.catalogRoot.candidatesTried.join(QStringLiteral(", ")));
 	}
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Plural call site: %1").arg(report.pluralizationSmokeOk ? QCoreApplication::translate("VibeStudioLocalization", "verified") : QCoreApplication::translate("VibeStudioLocalization", "not verified"));
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Plural forms: %1").arg(report.pluralizationNote);
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Number: %1").arg(report.formatting.decimalNumber);
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Date: %1").arg(report.formatting.date);
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Duration: %1").arg(report.formatting.duration);
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Plural call site: %1").arg(report.pluralizationSmokeOk ? QCoreApplication::translate("SlopStudioLocalization", "verified") : QCoreApplication::translate("SlopStudioLocalization", "not verified"));
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Plural forms: %1").arg(report.pluralizationNote);
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Number: %1").arg(report.formatting.decimalNumber);
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Date: %1").arg(report.formatting.date);
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Duration: %1").arg(report.formatting.duration);
 	for (const PluralizationSmokeSample& sample : report.pluralization) {
-		lines << QCoreApplication::translate("VibeStudioLocalization", "- plural %1: %2").arg(sample.count).arg(sample.text);
+		lines << QCoreApplication::translate("SlopStudioLocalization", "- plural %1: %2").arg(sample.count).arg(sample.text);
 	}
 	for (const TranslationExpansionLayoutCheck& check : report.layoutChecks) {
-		lines << QCoreApplication::translate("VibeStudioLocalization", "- layout %1: %2/%3 chars (%4)")
+		lines << QCoreApplication::translate("SlopStudioLocalization", "- layout %1: %2/%3 chars (%4)")
 			.arg(check.surfaceId)
 			.arg(check.expandedLength)
 			.arg(check.maxRecommendedCharacters)
-			.arg(check.passed ? QCoreApplication::translate("VibeStudioLocalization", "ok") : QCoreApplication::translate("VibeStudioLocalization", "over budget"));
+			.arg(check.passed ? QCoreApplication::translate("SlopStudioLocalization", "ok") : QCoreApplication::translate("SlopStudioLocalization", "over budget"));
 	}
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Catalogs: %1 total, %2 needing translation, %3 unfinished messages (%4 of them drafted, awaiting review), %5 obsolete/vanished messages")
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Catalogs: %1 total, %2 needing translation, %3 unfinished messages (%4 of them drafted, awaiting review), %5 obsolete/vanished messages")
 		.arg(report.catalogCount)
 		.arg(report.staleCatalogCount)
 		.arg(report.untranslatedMessageCount)
 		.arg(report.draftedMessageCount)
 		.arg(report.obsoleteMessageCount);
-	lines << QCoreApplication::translate("VibeStudioLocalization", "Compiled catalogs (.qm): %1 of %2 targets")
+	lines << QCoreApplication::translate("SlopStudioLocalization", "Compiled catalogs (.qm): %1 of %2 targets")
 		.arg(report.compiledCatalogCount)
 		.arg(report.catalogAvailability.size());
 	for (const TranslationCatalogStatus& catalog : report.catalogs) {
-		QString detail = QCoreApplication::translate("VibeStudioLocalization", "- %1: %2 (%3 messages, %4 translated, %5 unfinished)")
+		QString detail = QCoreApplication::translate("SlopStudioLocalization", "- %1: %2 (%3 messages, %4 translated, %5 unfinished)")
 			.arg(catalog.fileName)
 			.arg(catalog.status)
 			.arg(catalog.messageCount)
 			.arg(catalog.translatedCount)
 			.arg(catalog.unfinishedCount);
 		if (!catalog.issues.isEmpty()) {
-			detail += QCoreApplication::translate("VibeStudioLocalization", " - %1").arg(catalog.issues.join(QStringLiteral("; ")));
+			detail += QCoreApplication::translate("SlopStudioLocalization", " - %1").arg(catalog.issues.join(QStringLiteral("; ")));
 		}
 		lines << detail;
 	}
 	if (!report.warnings.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioLocalization", "Warnings:");
+		lines << QCoreApplication::translate("SlopStudioLocalization", "Warnings:");
 		for (const QString& warning : report.warnings) {
-			lines << QCoreApplication::translate("VibeStudioLocalization", "- %1").arg(warning);
+			lines << QCoreApplication::translate("SlopStudioLocalization", "- %1").arg(warning);
 		}
 	}
 	return lines.join('\n');
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

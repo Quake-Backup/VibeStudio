@@ -22,7 +22,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *text, const QString &error = {})
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
 		}
 		status->setPlainText(seamStatus);
 		QApplication::processEvents();
-		const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!capture.isEmpty()) {
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied);
 			image.fill(Qt::transparent);

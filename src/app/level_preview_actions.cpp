@@ -22,7 +22,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 QWidget *ApplicationShell::buildLevelPreviewStatus()
@@ -309,4 +309,4 @@ void ApplicationShell::refreshLevelMap3D()
 	if (!request.archive && m_packageArchive.isOpen()) { request.archive = std::make_shared<const PackageArchive>(m_packageArchive); }
 	m_levelPreviewWorker->request(std::move(request));
 }
-} // namespace vibestudio
+} // namespace slopstudio

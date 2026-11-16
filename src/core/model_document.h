@@ -35,7 +35,7 @@
 #include <QLocale>
 #include <QSet>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Authoring limits are independent of individual game formats. Validation and
@@ -652,4 +652,4 @@ QJsonObject modelSourceSaveJson(const ModelDocument &document);
 // for a readable source.
 QString modelSourceSaveNotice(const ModelDocument &document, const QLocale &locale = QLocale::c());
 
-} // namespace vibestudio
+} // namespace slopstudio

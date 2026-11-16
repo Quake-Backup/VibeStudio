@@ -5,7 +5,7 @@
 #include <span>
 #include <vector>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr int AudioDuplexArmLimit = 8;
 inline constexpr int AudioDuplexInputLimit = 32;
@@ -126,4 +126,4 @@ class AudioDuplexProcessor {
 	qint64 m_captureEnd = 0, m_processEnd = 0;
 	qint64 m_playbackEnd = 0;
 };
-} // namespace vibestudio
+} // namespace slopstudio

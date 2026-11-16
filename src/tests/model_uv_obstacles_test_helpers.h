@@ -1,7 +1,7 @@
 #pragma once
 #include "tests/model_uv_rect_test_helpers.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline void obstacleRect(ModelSurface &s, int first, float x, float y, float w, float h)
 {
@@ -80,4 +80,4 @@ inline ModelMesh maximumObstacleStrip()
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

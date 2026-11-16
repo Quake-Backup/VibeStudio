@@ -10,7 +10,7 @@
 class QThread;
 class QWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // One worker for all tabs. Newer queued snapshots replace older ones, and
 // retired documents cannot be recreated by a write already in flight.
@@ -39,4 +39,4 @@ private:
 
 QString chooseTextRecovery(QWidget* parent, const QString& directory);
 
-} // namespace vibestudio
+} // namespace slopstudio

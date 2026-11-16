@@ -6,7 +6,7 @@
 #include <QCoreApplication>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString ref(const char* kind, int id) { return QString::fromLatin1(kind) + QLatin1Char(':') + QString::number(id); }
 bool fail(QString* error, const QString& object) {
@@ -591,4 +591,4 @@ void recordLevelSceneEdit(const LevelMapDocument* document, const LevelMapUndoCo
 	Q_ASSERT(command.commandKind == QStringLiteral("scene") || levelLinkedGroupPropagationActive(document) ||
 			 (document->openSceneGroups.isEmpty() && std::none_of(originalScene.nodes.cbegin(), originalScene.nodes.cend(), [](const auto& node) { return node.locked; })));
 }
-} // namespace vibestudio
+} // namespace slopstudio

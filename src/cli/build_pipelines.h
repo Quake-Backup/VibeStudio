@@ -4,7 +4,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 
 struct BuildPipelinesCliResult {
 	int exitCode = 0;
@@ -27,4 +27,4 @@ struct BuildPipelinesCliResult {
 // 3 no project or pipeline, 4 a pipeline with problems.
 BuildPipelinesCliResult runBuildPipelines(const QStringList& arguments);
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

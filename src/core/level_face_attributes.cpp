@@ -21,11 +21,11 @@
 #include <cmath>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelFaceAttributes)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelFaceAttributes)
 };
 
 bool fail(QString* error, const QString& message)
@@ -395,4 +395,4 @@ bool setLevelMapFaceAttributes(LevelMapDocument* document, const QVector<LevelSu
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

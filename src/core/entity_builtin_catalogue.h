@@ -6,7 +6,7 @@
 // The class names, keys, spawnflag bits, sizes and editor colours are the
 // games' own interface (from the GPL id Software sources: the Quake QuakeC
 // progs, the Quake II game DLL and the Quake III game module); the
-// descriptions are VibeStudio's own words. Definitions the user loads always
+// descriptions are SlopStudio's own words. Definitions the user loads always
 // replace these.
 
 #include "core/entity_definitions.h"
@@ -14,7 +14,7 @@
 
 #include <QString>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class BuiltinEntityGame {
 	Quake,
@@ -35,4 +35,4 @@ enum class BuiltinEntityGame {
 // sourcePaths naming the built-in catalogue rather than a file.
 [[nodiscard]] EntityDefinitionCatalogue builtinEntityDefinitions(BuiltinEntityGame game);
 
-} // namespace vibestudio
+} // namespace slopstudio

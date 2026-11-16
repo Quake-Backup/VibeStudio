@@ -21,13 +21,13 @@
 // declaration of a name wins). GPL-3.0 with id's additional terms, reviewed
 // 2026-10-29; behaviour only, original implementation, no code copied.
 // https://github.com/id-Software/DOOM-3/blob/master/neo/game/Actor.cpp
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelDoom3Entity)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelDoom3Entity)
 };
 bool fail(QString *error, const QString &message)
 {
@@ -521,4 +521,4 @@ QStringList modelDoom3EntityImportText(const ModelDoom3EntityImport &result)
 										: QStringLiteral("%1: %2 on %3 %4").arg(part.id, part.source, part.parent, part.tag));
 	return lines + result.notes;
 }
-} // namespace vibestudio
+} // namespace slopstudio

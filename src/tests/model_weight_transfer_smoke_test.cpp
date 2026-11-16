@@ -13,8 +13,8 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -45,7 +45,7 @@ bool write(const QString &path, const QByteArray &bytes)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir tmp(QDir(root).filePath("weight-transfer-XXXXXX"));
@@ -462,7 +462,7 @@ int main(int argc, char **argv)
 		}
 	}
 	expect(write(map, R"({"arm.L":"arm.R","arm.R":"arm.L"})"), "write exact joint map");
-	const QStringList command{"vibestudio",
+	const QStringList command{"slopstudio",
 							  "--cli",
 							  "model",
 							  "weight-transfer",

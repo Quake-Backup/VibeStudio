@@ -16,7 +16,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -238,7 +238,7 @@ int main(int argc, char** argv)
 	ok &= expect(applyAudioEdit(clip, {QStringLiteral("delete"), 0, 4}, {[]() { return true; }}).cancelled &&
 	                 clip.markers.loop == AudioLoop{4, 16},
 	             "cancelled edits never mutate the caller's marker state");
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	QDir().mkpath(root);
 	QTemporaryDir temp(QDir(root).filePath(QStringLiteral("audio-markers-XXXXXX")));
 	if (!expect(temp.isValid(), "create bounded marker fixtures in the selected test area")) {

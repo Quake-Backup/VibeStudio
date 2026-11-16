@@ -22,7 +22,7 @@ class QTableWidget;
 class QThread;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 class LevelUvView;
 class ModelViewport;
 
@@ -107,4 +107,4 @@ class LevelUvEditorDialog final : public QDialog {
 	bool m_refreshing = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

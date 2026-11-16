@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <numbers>
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline bool sameSlideUvs(const QVector<ModelTexCoord> &a, const QVector<ModelTexCoord> &b)
 {
@@ -77,4 +77,4 @@ inline ModelMesh edgeSlideTube()
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

@@ -14,7 +14,7 @@
 #include <iostream>
 #include <optional>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* label, const QString& detail = {})
@@ -263,7 +263,7 @@ int main(int argc, char** argv)
 		             "explicit update enables legacy protection", error);
 	}
 	{
-		const QByteArray marker("\n// VibeStudioScene: ");
+		const QByteArray marker("\n// SlopStudioScene: ");
 		const auto bytes = serializeLevelMap(document).bytes;
 		const auto json =
 		    QJsonDocument::fromJson(QByteArray::fromBase64(bytes.mid(bytes.lastIndexOf(marker) + marker.size()).trimmed())).object();

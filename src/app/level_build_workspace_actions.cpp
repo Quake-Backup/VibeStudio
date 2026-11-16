@@ -9,7 +9,7 @@
 #include <QRegularExpression>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 bool ApplicationShell::preparedLevelBuildCanLaunch() const {
 	GameInstallationProfile installation;
 	return m_levelBuildWorkspace && selectedGameInstallation(&installation) && installation.active && !installation.hidden &&
@@ -108,7 +108,7 @@ void ApplicationShell::prepareLevelBuildWorkspaceFromUi() {
 	const auto destination =
 		parent.isEmpty()
 			? QString()
-			: QDir(parent).filePath(QStringLiteral(".vibestudio/builds/%1-%2")
+			: QDir(parent).filePath(QStringLiteral(".slopstudio/builds/%1-%2")
 										.arg(name, QDateTime::currentDateTimeUtc().toString(QStringLiteral("yyyyMMdd-HHmmss-zzz"))));
 	dialog.setDestination(destination, name);
 	dialog.setApplyHandler(
@@ -142,4 +142,4 @@ void ApplicationShell::prepareLevelBuildWorkspaceFromUi() {
 		});
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

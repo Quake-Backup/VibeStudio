@@ -35,8 +35,8 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 
 namespace
 {
@@ -255,7 +255,7 @@ void runCase(const Case &item)
 {
 	const auto fixture = item.fixture.surfaces.isEmpty() ? skinFixture() : item.fixture;
 	swept.insert(int(item.edit.kind));
-	if (qEnvironmentVariableIsSet("VIBESTUDIO_SWEEP_TRACE"))
+	if (qEnvironmentVariableIsSet("SLOPSTUDIO_SWEEP_TRACE"))
 		std::cout << "sweep: " << item.name.toStdString() << std::endl;
 	QString error;
 	ModelDocument document;
@@ -1115,7 +1115,7 @@ QJsonObject runCli(const QString &program, const QStringList &arguments, int *ex
 
 void checkCli(const QString &program)
 {
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	QTemporaryDir temporary(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("skin-sweep-XXXXXX"));
 	if (!expect(temporary.isValid(), QStringLiteral("temporary directory")))
 		return;

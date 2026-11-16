@@ -5,7 +5,7 @@
 #include <QLockFile>
 #include <QThread>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 AudioRecoveryDiscovery::AudioRecoveryDiscovery(QObject *parent)
@@ -207,4 +207,4 @@ void AudioRecoveryWriter::startNext()
 	m_thread->start();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

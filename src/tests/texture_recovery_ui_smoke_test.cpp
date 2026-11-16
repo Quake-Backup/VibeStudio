@@ -28,7 +28,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 bool put(const QString& path, const QByteArray& bytes) { QFile file(path); return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size(); }
@@ -171,7 +171,7 @@ int main(int argc, char** argv)
 		ok &= expect(fits, "inspector controls fit after changing to 200 percent high-contrast light");
 	}
 	properties->setCurrentIndex(6); app.processEvents();
-	const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+	const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 	if (!captures.isEmpty()) {
 		QImage image(editor->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); editor->render(&image);
 		ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("texture-recovery-200-light.png"))), "render recovery controls at 200 percent high-contrast light without OS capture");

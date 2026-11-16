@@ -9,7 +9,7 @@
 #include <iostream>
 #include <source_location>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {

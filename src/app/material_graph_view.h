@@ -14,7 +14,7 @@
 #include <QPointF>
 #include <QWidget>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class MaterialGraphView final : public QWidget {
 	Q_OBJECT
@@ -123,4 +123,4 @@ private:
 	mutable QHash<int, QAccessible::Id> m_accessibleChildren;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

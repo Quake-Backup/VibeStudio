@@ -1,19 +1,19 @@
 # Packaging
 
-VibeStudio packages start as portable release directories (this page), which
+SlopStudio packages start as portable release directories (this page), which
 the release workflow turns into native downloads. [Releasing](RELEASING.md)
 covers versions, the changelog and publishing; this page covers what goes
 inside a package.
 
 | Download | Built by | Contents |
 | --- | --- | --- |
-| `VibeStudio-<v>-windows-x64-setup.exe` | `scripts/package_windows_installer.py` (Inno Setup 6) | The verified Windows package below, installed per user by default, with Start menu entries for the studio and its documentation |
-| `VibeStudio-<v>-windows-x64-portable.zip` | `scripts/package_windows_release.py` | The verified Windows package: binary, Qt and audio runtime, notices |
-| `VibeStudio-<v>-windows-x64-runtime-source.zip` | `scripts/package_windows_release.py` | Source companion for the bundled runtime |
-| `VibeStudio-<v>-macos-arm64.dmg` | `scripts/package_macos_app.py` | `VibeStudio.app` (macdeployqt, ad-hoc signed) with the portable layout under `Contents/Resources` |
-| `VibeStudio-<v>-linux-x86_64.AppImage` | `scripts/package_appimage.py` (linuxdeploy) | `meson install` layout plus docs, samples and notices under `usr/share` |
-| `VibeStudio-<v>-docs.zip` | `scripts/build_docs_site.py` | The HTML user manual on its own |
-| `VibeStudio-<v>-source.tar.gz` | `scripts/package_source_tarball.py` | Every tracked file, compiler submodules included |
+| `SlopStudio-<v>-windows-x64-setup.exe` | `scripts/package_windows_installer.py` (Inno Setup 6) | The verified Windows package below, installed per user by default, with Start menu entries for the studio and its documentation |
+| `SlopStudio-<v>-windows-x64-portable.zip` | `scripts/package_windows_release.py` | The verified Windows package: binary, Qt and audio runtime, notices |
+| `SlopStudio-<v>-windows-x64-runtime-source.zip` | `scripts/package_windows_release.py` | Source companion for the bundled runtime |
+| `SlopStudio-<v>-macos-arm64.dmg` | `scripts/package_macos_app.py` | `SlopStudio.app` (macdeployqt, ad-hoc signed) with the portable layout under `Contents/Resources` |
+| `SlopStudio-<v>-linux-x86_64.AppImage` | `scripts/package_appimage.py` (linuxdeploy) | `meson install` layout plus docs, samples and notices under `usr/share` |
+| `SlopStudio-<v>-docs.zip` | `scripts/build_docs_site.py` | The HTML user manual on its own |
+| `SlopStudio-<v>-source.tar.gz` | `scripts/package_source_tarball.py` | Every tracked file, compiler submodules included |
 
 Every package contains the HTML manual at `docs/html/index.html` (pass
 `--docs-site` to the packaging scripts). Builds are not code-signed or
@@ -23,7 +23,7 @@ notarised yet, and clean-machine acceptance of the installers remains open.
 
 `scripts/package_portable.py` stages a versioned package directory containing:
 
-- the built `vibestudio` executable under `bin/`;
+- the built `slopstudio` executable under `bin/`;
 - `README.md`, `VERSION`, repository documentation, and the generated
   `docs/OFFLINE_USER_GUIDE.md`;
 - `i18n/` with seed Qt TS catalogs for the 20-language target set plus
@@ -38,10 +38,10 @@ notarised yet, and clean-machine acceptance of the installers remains open.
   `working-tree`). Every staged path is also checked against Windows' 259
   character limit before it is copied, and an over-long one stops packaging
   with the offending file and its destination named;
-- `licenses/THIRD_PARTY_LICENSES.md` plus VibeStudio license/credits files and
-  imported compiler source licenses for VibeMap2, VibeMap3, ZDBSP, and
-  ZokumBSP under `licenses/external/compilers/` (VibeMap2 and VibeMap3 as
-  `VibeMap2/COPYING` and `VibeMap3/COPYING`);
+- `licenses/THIRD_PARTY_LICENSES.md` plus SlopStudio license/credits files and
+  imported compiler source licenses for SlopMap2, SlopMap3, ZDBSP, and
+  ZokumBSP under `licenses/external/compilers/` (SlopMap2 and SlopMap3 as
+  `SlopMap2/COPYING` and `SlopMap3/COPYING`);
 - the pinned r8brain-free-src MIT and Ooura FFT licences, attribution, and
   source hash manifest under `licenses/external/audio/r8brain-free-src/`;
 - pinned libebur128 MIT, R128Scan MIT and BSD-3-Clause queue notices, integration
@@ -73,26 +73,26 @@ remain separate release requirements.
 Create the current-platform package:
 
 ```sh
-python scripts/package_portable.py --binary builddir/src/vibestudio --archive
+python scripts/package_portable.py --binary builddir/src/slopstudio --archive
 ```
 
 Create all target-shaped package directories from the available binary:
 
 ```sh
-python scripts/package_portable.py --binary builddir/src/vibestudio --archive --target-platform all
+python scripts/package_portable.py --binary builddir/src/slopstudio --archive --target-platform all
 ```
 
-On Windows, use `builddir/src/vibestudio.exe` for the binary path.
+On Windows, use `builddir/src/slopstudio.exe` for the binary path.
 
 ### Runtime Translation Catalogs
 
 Build with Qt Linguist's `lrelease` available before packaging. Meson writes
 the runtime catalogs to `builddir/i18n`; the packager automatically discovers
-that directory relative to `builddir/src/vibestudio`. For release validation,
+that directory relative to `builddir/src/slopstudio`. For release validation,
 require the entire compiled set explicitly:
 
 ```sh
-python scripts/package_portable.py --binary builddir/src/vibestudio --compiled-translations builddir/i18n --archive
+python scripts/package_portable.py --binary builddir/src/slopstudio --compiled-translations builddir/i18n --archive
 ```
 
 The explicit directory must contain a `.qm` for every application `.ts` catalog,
@@ -128,8 +128,8 @@ Run from the repository root, selecting project-local output directories:
 
 ```powershell
 python scripts/collect_qt_runtime_licenses.py --qt-version 6.10.1 --output .agents/tmp/release/qt-licenses
-python scripts/package_portable.py --binary builddir/src/vibestudio.exe --compiled-translations builddir/i18n --output .agents/tmp/release/packages --target-platform windows --target-architecture x86_64
-python scripts/deploy_windows_runtime.py --package .agents/tmp/release/packages/vibestudio-0.1.0-rc1-win64-x86_64 --qt-prefix C:/Qt/6.10.1/msvc2022_64 --license-texts .agents/tmp/release/qt-licenses --archive
+python scripts/package_portable.py --binary builddir/src/slopstudio.exe --compiled-translations builddir/i18n --output .agents/tmp/release/packages --target-platform windows --target-architecture x86_64
+python scripts/deploy_windows_runtime.py --package .agents/tmp/release/packages/slopstudio-0.1.0-rc1-win64-x86_64 --qt-prefix C:/Qt/6.10.1/msvc2022_64 --license-texts .agents/tmp/release/qt-licenses --archive
 ```
 
 Substitute the actual package version/directory and Qt prefix. Keep each licence
@@ -211,7 +211,7 @@ building an older revision.
 
 ```powershell
 python scripts/collect_qt_runtime_sources.py --output .agents/tmp/release/runtime-sources
-python scripts/package_source_companion.py --source-root .agents/tmp/release/source-capture --build-evidence .agents/tmp/release/build-evidence.json --binary-package .agents/tmp/release/packages/vibestudio-0.1.0-rc1-win64-x86_64 --runtime-sources .agents/tmp/release/runtime-sources --output .agents/tmp/release/vibestudio-source-companion --archive
+python scripts/package_source_companion.py --source-root .agents/tmp/release/source-capture --build-evidence .agents/tmp/release/build-evidence.json --binary-package .agents/tmp/release/packages/slopstudio-0.1.0-rc1-win64-x86_64 --runtime-sources .agents/tmp/release/runtime-sources --output .agents/tmp/release/slopstudio-source-companion --archive
 ```
 
 The packager checks complete source-directory coverage, package checksums,
@@ -302,7 +302,7 @@ python scripts/generate_offline_guide.py --check
 Smoke-test current-platform packaging:
 
 ```sh
-python scripts/validate_packaging.py --binary builddir/src/vibestudio
+python scripts/validate_packaging.py --binary builddir/src/slopstudio
 ```
 
 Pass `--compiled-translations builddir/i18n` to require all runtime catalogs.
@@ -315,13 +315,13 @@ Smoke-test the built CLI, including package staging, manifest export, and
 deterministic save-as validation for simple PAK and PK3 outputs:
 
 ```sh
-python scripts/validate_build.py --binary builddir/src/vibestudio --expected-version 0.1.0-rc1
+python scripts/validate_build.py --binary builddir/src/slopstudio --expected-version 0.1.0-rc1
 ```
 
 Run the MVP release asset gate:
 
 ```sh
-python scripts/validate_release_assets.py --binary builddir/src/vibestudio
+python scripts/validate_release_assets.py --binary builddir/src/slopstudio
 ```
 
 The release asset validator checks all three target package manifests, zip

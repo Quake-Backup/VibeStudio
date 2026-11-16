@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const char* message)
@@ -149,7 +149,7 @@ int main()
 		PackageWriteRequest collision;
 		collision.destinationPath = root.filePath(QStringLiteral("manifest-lock.pak"));
 		collision.writeManifest = true;
-		collision.manifestPath = collision.destinationPath + QStringLiteral(".vibestudio-save.lock");
+		collision.manifestPath = collision.destinationPath + QStringLiteral(".slopstudio-save.lock");
 		const auto rejected = staged.writeArchive(collision);
 		ok &= expect(!rejected.succeeded() && !rejected.outputCommitted && !QFile::exists(collision.destinationPath), "manifest cannot replace the save lock and then disappear when it unlocks");
 		PackageWriteRequest manifestFailure;

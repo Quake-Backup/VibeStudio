@@ -17,7 +17,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr qsizetype frameLimit = 16 * 1024 * 1024;
 
@@ -203,7 +203,7 @@ LanguageServerClient::LanguageServerClient(QObject* parent) : QObject(parent), m
 				{QStringLiteral("publishDiagnostics"), QJsonObject {{QStringLiteral("versionSupport"), true}, {QStringLiteral("dataSupport"), true}}}}}
 		};
 		request(QStringLiteral("initialize"), {{QStringLiteral("processId"), QCoreApplication::applicationPid()},
-			{QStringLiteral("clientInfo"), QJsonObject {{QStringLiteral("name"), QStringLiteral("VibeStudio")}}},
+			{QStringLiteral("clientInfo"), QJsonObject {{QStringLiteral("name"), QStringLiteral("SlopStudio")}}},
 			{QStringLiteral("rootUri"), languageServerUri(m_config.rootPath)}, {QStringLiteral("capabilities"), capabilities},
 			{QStringLiteral("workspaceFolders"), QJsonArray {QJsonObject {{QStringLiteral("uri"), languageServerUri(m_config.rootPath)}, {QStringLiteral("name"), QFileInfo(m_config.rootPath).fileName()}}}}});
 	});
@@ -723,4 +723,4 @@ int LanguageServerClient::references(const QString& path, int line, int characte
 		});
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

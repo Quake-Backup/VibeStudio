@@ -1,8 +1,8 @@
 #include "app/audio_session_playback.h"
-#include "vibestudio_config.h"
+#include "slopstudio_config.h"
 #include <QCoreApplication>
 #include <algorithm>
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 #include <QAudioDevice>
 #include <QAudioFormat>
 #include <QAudioSink>
@@ -10,12 +10,12 @@
 #include <QMediaDevices>
 #endif
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 QString problem(const char *text) { return QCoreApplication::translate("AudioStreamDevice", text); }
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 // Original adapter to Qt 6.4.2/6.10.1's public QAudioSink QIODevice API. No
 // callback API introduced after our minimum Qt version. See docs/CREDITS.md.
 class QtAudioStreamDevice final : public AudioStreamDevice {
@@ -167,10 +167,10 @@ class UnavailableAudioStreamDevice final : public AudioStreamDevice {
 } // namespace
 std::unique_ptr<AudioStreamDevice> createAudioStreamDevice()
 {
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 	return std::make_unique<QtAudioStreamDevice>();
 #else
 	return std::make_unique<UnavailableAudioStreamDevice>();
 #endif
 }
-} // namespace vibestudio
+} // namespace slopstudio

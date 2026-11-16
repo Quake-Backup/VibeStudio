@@ -1,7 +1,7 @@
 #include "core/audio_duplex_queue.h"
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool AudioDuplexCaptureQueue::prepare(qint64 first, std::span<const int> channels, int capacityFrames)
 {
@@ -82,4 +82,4 @@ bool AudioDuplexCaptureQueue::consume(int frames) noexcept
 	m_consumed.store(m_consumed.load(std::memory_order_relaxed) + frames, std::memory_order_release);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

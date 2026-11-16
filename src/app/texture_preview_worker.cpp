@@ -10,7 +10,7 @@
 #include <atomic>
 #include <new>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool matchingInstallation(const GameInstallationProfile& installation, const QString& paletteId)
 {
@@ -142,7 +142,7 @@ void TexturePreviewWorker::startNext()
 			}
 		} catch (const std::bad_alloc&) {
 			work->result.decoded = {};
-			work->result.decoded.error = QCoreApplication::translate("VibeStudioTexturePreview", "Not enough memory to decode this texture.");
+			work->result.decoded.error = QCoreApplication::translate("SlopStudioTexturePreview", "Not enough memory to decode this texture.");
 		}
 	});
 	m_thread->setParent(this);
@@ -159,4 +159,4 @@ void TexturePreviewWorker::startNext()
 	m_timer->start(); m_thread->start();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

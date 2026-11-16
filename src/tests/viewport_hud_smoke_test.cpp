@@ -7,7 +7,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -147,7 +147,7 @@ int main(int argc, char** argv)
 			}
 		}
 		ok &= expect(painted, "status is visibly rendered");
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!captures.isEmpty()) {
 			QDir().mkpath(captures);
 			ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("viewport-status-arabic-%1.png").arg(scale))), "status render saved");

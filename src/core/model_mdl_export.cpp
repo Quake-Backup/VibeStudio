@@ -15,7 +15,7 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -124,7 +124,7 @@ bool buildLayout(const ModelMesh &mesh, Layout *layout, ModelExportReport *repor
 		const auto uv = surface.texCoords[v];
 		if (uv.u < 0 || uv.u > 1 || uv.v < 0 || uv.v > 1)
 		{
-			failure(error, QCoreApplication::translate("VibeStudioModelMdl", "MDL UV vertex %1 lies outside the 0–1 skin tile.").arg(v));
+			failure(error, QCoreApplication::translate("SlopStudioModelMdl", "MDL UV vertex %1 lies outside the 0–1 skin tile.").arg(v));
 			return false;
 		}
 		const int s = std::clamp(int(std::lround(double(uv.u) * width - .5)), 0, width - 1);
@@ -237,7 +237,7 @@ bool modelMdlVertexCounts(const ModelMesh &mesh, int *stored, int *render, QStri
 {
 	if (!mesh.mdl.enabled || mesh.surfaces.size() != 1 || mesh.mdl.skinSize.width() < 1 || mesh.mdl.skinSize.height() < 1)
 	{
-		failure(error, QCoreApplication::translate("VibeStudioModelMdl", "The MDL layout needs MDL settings and one surface."));
+		failure(error, QCoreApplication::translate("SlopStudioModelMdl", "The MDL layout needs MDL settings and one surface."));
 		return false;
 	}
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, error);
@@ -278,11 +278,11 @@ QByteArray exportModelMdl(const ModelMesh &mesh, const ModelTargetLimits &limits
 	if (!mesh.mdl.enabled || mesh.embeddedSkins.isEmpty())
 	{
 		return failure(error,
-					   QCoreApplication::translate("VibeStudioModelMdl", "Add an indexed MDL skin and its palette before exporting MDL."));
+					   QCoreApplication::translate("SlopStudioModelMdl", "Add an indexed MDL skin and its palette before exporting MDL."));
 	}
 	if (mesh.surfaces.size() != 1 || !mesh.tags.isEmpty())
 	{
-		return failure(error, QCoreApplication::translate("VibeStudioModelMdl", "MDL export requires one surface and no attachment tags."));
+		return failure(error, QCoreApplication::translate("SlopStudioModelMdl", "MDL export requires one surface and no attachment tags."));
 	}
 	// The counts and skin sizes of the delivery target; assessModelTarget
 	// reports every one of them before export.
@@ -290,7 +290,7 @@ QByteArray exportModelMdl(const ModelMesh &mesh, const ModelTargetLimits &limits
 	if (over(mesh.frames.size(), limits.frames) || over(mesh.surfaces[0].triangles.size(), limits.triangles) ||
 		over(mesh.embeddedSkins.size(), limits.skins))
 	{
-		return failure(error, QCoreApplication::translate("VibeStudioModelMdl",
+		return failure(error, QCoreApplication::translate("SlopStudioModelMdl",
 														  "The delivery target allows at most %1 poses, %2 triangles and %3 skin slots; the "
 														  "model has %4, %5 and %6.")
 								  .arg(limits.frames)
@@ -304,7 +304,7 @@ QByteArray exportModelMdl(const ModelMesh &mesh, const ModelTargetLimits &limits
 	if ((limits.skinWidthMultiple > 1 && size.width() % limits.skinWidthMultiple != 0) || over(size.width(), limits.skinWidth) ||
 		over(size.height(), limits.skinHeight) || over(qint64(size.width()) * size.height(), limits.skinPixels))
 	{
-		return failure(error, QCoreApplication::translate("VibeStudioModelMdl",
+		return failure(error, QCoreApplication::translate("SlopStudioModelMdl",
 														  "The %1 by %2 skin does not fit the delivery target. Check the target for its skin limits.")
 								  .arg(size.width())
 								  .arg(size.height()));
@@ -315,7 +315,7 @@ QByteArray exportModelMdl(const ModelMesh &mesh, const ModelTargetLimits &limits
 			std::any_of(frame.name.cbegin(), frame.name.cend(), [](QChar c) { return c.unicode() < 32 || c.unicode() > 126; }))
 		{
 			return failure(error,
-						   QCoreApplication::translate("VibeStudioModelMdl", "MDL frame names must fit 15 printable ASCII characters."));
+						   QCoreApplication::translate("SlopStudioModelMdl", "MDL frame names must fit 15 printable ASCII characters."));
 		}
 	}
 	ModelWorkProgress work(control, ModelWorkPhase::Serializing, error);
@@ -329,7 +329,7 @@ QByteArray exportModelMdl(const ModelMesh &mesh, const ModelTargetLimits &limits
 		int(std::count_if(layout.vertices.cbegin(), layout.vertices.cend(), [](const StoredVertex &vertex) { return vertex.seam; }));
 	if (over(layout.vertices.size(), limits.vertices) || over(layout.vertices.size() + seamVertices, limits.renderVertices))
 	{
-		return failure(error, QCoreApplication::translate("VibeStudioModelMdl",
+		return failure(error, QCoreApplication::translate("SlopStudioModelMdl",
 														  "The MDL stores %1 vertices after sharing exact all-pose positions, normals and "
 														  "compatible UV seams, more than the delivery target holds. Reduce geometry or UV splits.")
 								  .arg(layout.vertices.size()));
@@ -360,7 +360,7 @@ QByteArray exportModelMdl(const ModelMesh &mesh, const ModelTargetLimits &limits
 		scale[axis] = maximum[axis] == minimum[axis] ? 1.f : float((double(maximum[axis]) - minimum[axis]) / 255);
 		if (!std::isfinite(scale[axis]) || scale[axis] <= 0)
 		{
-			return failure(error, QCoreApplication::translate("VibeStudioModelMdl",
+			return failure(error, QCoreApplication::translate("SlopStudioModelMdl",
 															  "The model extent cannot be represented by MDL's global byte scale."));
 		}
 	}
@@ -427,7 +427,7 @@ QByteArray exportModelMdl(const ModelMesh &mesh, const ModelTargetLimits &limits
 			{
 				return failure(
 					error, QCoreApplication::translate(
-							   "VibeStudioModelMdl",
+							   "SlopStudioModelMdl",
 							   "MDL byte quantization collapses or reverses triangle %1 in pose %2. Adjust the geometry or model extent.")
 							   .arg(index)
 							   .arg(f));
@@ -521,25 +521,25 @@ QByteArray exportModelMdl(const ModelMesh &mesh, const ModelTargetLimits &limits
 	}
 	if (output.size() > modelFileByteLimit)
 	{
-		return failure(error, QCoreApplication::translate("VibeStudioModelMdl", "The exported MDL exceeds the model file size limit."));
+		return failure(error, QCoreApplication::translate("SlopStudioModelMdl", "The exported MDL exceeds the model file size limit."));
 	}
 	if (!work.check())
 	{
 		return {};
 	}
 	result.storedVertices = layout.vertices.size();
-	result.notes << QCoreApplication::translate("VibeStudioModelMdl",
+	result.notes << QCoreApplication::translate("SlopStudioModelMdl",
 												"MDL retains indexed skins, native frame groups, group times and model flags. Its game "
 												"palette is external; the source preview palette is not embedded.");
 	if (mesh.mdl.paletteGenerated)
 	{
 		result.notes << QCoreApplication::translate(
-			"VibeStudioModelMdl",
+			"SlopStudioModelMdl",
 			"The source uses a generated preview palette. Verify the exported skin indices with the target game's palette.");
 	}
 	if (!mesh.animations.isEmpty() || !surface.skinPaths.isEmpty())
 	{
-		result.notes << QCoreApplication::translate("VibeStudioModelMdl",
+		result.notes << QCoreApplication::translate("SlopStudioModelMdl",
 													"Editor clip names/ranges/FPS and external material paths remain in the mesh source. MDL "
 													"uses its embedded skin slots and native frame numbers.");
 		// External material paths are left out here; exportEditableModel reports
@@ -552,7 +552,7 @@ QByteArray exportModelMdl(const ModelMesh &mesh, const ModelTargetLimits &limits
 	if (animatedSkins || groupedFrames)
 	{
 		result.notes << QCoreApplication::translate(
-			"VibeStudioModelMdl", "Original GLQuake uses a four-slot skin cycle and the first frame-group interval. Software Quake uses "
+			"SlopStudioModelMdl", "Original GLQuake uses a four-slot skin cycle and the first frame-group interval. Software Quake uses "
 								  "the stored cumulative times; test animated groups in the target engine.");
 	}
 	if (report)
@@ -566,4 +566,4 @@ QByteArray exportModelMdl(const ModelMesh &mesh, const ModelTargetLimits &limits
 	}
 	return output;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -7,13 +7,13 @@
 #include <QPushButton>
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelImportRepair)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelImportRepair)
 };
 } // namespace
 void ModelEditorDialog::chooseRepairImport()
@@ -66,4 +66,4 @@ bool ModelEditorDialog::repairSource(const QString &path, QString *error)
 	m_status->setText(Text::tr("Saved and opened repaired copy: %1").arg(m_document.path()));
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

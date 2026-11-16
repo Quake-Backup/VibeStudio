@@ -21,8 +21,8 @@
 #include <iostream>
 #include <tuple>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -434,7 +434,7 @@ int main(int argc, char **argv)
 	}
 
 	// CLI: the shared document edits.
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	QTemporaryDir temp(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("uv-ops-XXXXXX"));
 	auto detached = strip(2);
 	applyModelEdit(&detached, operation(ModelEditKind::DetachUv, {0, {}, {2, 3}}), nullptr, &error);

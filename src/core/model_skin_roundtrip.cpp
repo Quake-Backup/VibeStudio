@@ -9,7 +9,7 @@
 #include <QFileInfo>
 #include <QRegularExpression>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -241,4 +241,4 @@ bool modelSkinRoundTripMdlInput(const ModelMesh &mesh, int skin, int member, con
 		*input = std::move(mapped);
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

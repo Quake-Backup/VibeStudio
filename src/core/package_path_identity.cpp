@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 #endif
 
-namespace vibestudio
+namespace slopstudio
 {
 std::filesystem::path packageNativeFilesystemPath(const QString &path)
 {
@@ -86,4 +86,4 @@ PackagePathIdentity inspectPackagePathIdentity(const QString &path, bool portabl
 #endif
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

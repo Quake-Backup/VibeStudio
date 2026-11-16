@@ -7,7 +7,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Per-face content flags, surface flags and surface value: the three numbers a
 // Quake II or Quake III brush face writes after its texture placement.
@@ -90,4 +90,4 @@ struct LevelFaceFlagsReport {
 bool setLevelMapFaceFlags(LevelMapDocument* document, const QVector<LevelSurfaceFace>& faces, const LevelFaceFlagsEdit& edit,
 	LevelFaceFlagsReport* report = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

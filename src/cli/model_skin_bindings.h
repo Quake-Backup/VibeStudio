@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct ModelSkinBindingsCliResult
 {
@@ -12,4 +12,4 @@ struct ModelSkinBindingsCliResult
 	QStringList lines;
 };
 ModelSkinBindingsCliResult runModelSkinBindings(const QStringList &arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

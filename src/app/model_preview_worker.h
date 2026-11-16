@@ -4,7 +4,7 @@
 #include "core/model_appearance.h"
 #include "core/package_preview.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelPreviewResult
 {
@@ -46,4 +46,4 @@ class ModelPreviewWorker final : public QObject
 	QString m_key, m_path;
 	void startNext();
 };
-} // namespace vibestudio
+} // namespace slopstudio

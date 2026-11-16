@@ -10,7 +10,7 @@
 // inside the rings selects; refusal of locked selections. Also the Translate package's
 // follow-ups: Clip does not hand back the object tool, focus loss clears the
 // drag cursor, and pointer targets grow at 200%. NetRadiant Custom,
-// TrenchBroom and VibeStudio profiles at 100%, and at 200% with high
+// TrenchBroom and SlopStudio profiles at 100%, and at 200% with high
 // contrast, expanded translations and right-to-left layout.
 #include "app/application_shell.h"
 #include "app/level_component_gizmo.h"
@@ -48,7 +48,7 @@
 #include <iostream>
 #include <numbers>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -135,8 +135,8 @@ int main(int argc, char** argv)
 	if (!file.open(QIODevice::WriteOnly) || file.write(serializeLevelMap(created).bytes) <= 0) { return 1; }
 	file.close();
 
-	for (const auto* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
-		const bool keyed = QLatin1String(profile) != QLatin1String("vibestudio-default");
+	for (const auto* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
+		const bool keyed = QLatin1String(profile) != QLatin1String("slopstudio-default");
 		// TrenchBroom's rotate handle has no free turn inside its rings.
 		const bool freeTurn = QLatin1String(profile) != QLatin1String("trenchbroom");
 		for (int scale : {100, 200}) {

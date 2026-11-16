@@ -12,7 +12,7 @@
 // Workflow references: NRC deleteSelection / CSG_DeleteComponents at
 // 449778b3 (GPL-2.0-or-later), TB MapWindow::deleteSelection at 4c756be1
 // (GPL-3.0-or-later). Original Qt implementation; see docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 bool ApplicationShell::canDeleteLevelMapSelection(bool componentsOnly) const
 {
 	if (m_levelDeletionBusy || m_levelObjectSelectionBusy || levelSurfaceEditsPending() || !m_levelMapViewport
@@ -110,4 +110,4 @@ void ApplicationShell::runLevelDeletionFromUi(bool componentsOnly)
 		statusBar()->showMessage(tr("Deleted %1. Undo restores it. Use Save Map to update the file after a change check and backup.").arg(what));
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

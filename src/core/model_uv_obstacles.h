@@ -1,7 +1,7 @@
 #pragma once
 #include "core/model_uv_atlas.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelUvObstacleOptions
 {
@@ -26,4 +26,4 @@ struct ModelUvObstacleReport
 bool packModelUvAround(const ModelMesh &mesh, int surface, const QSet<int> &faces, const ModelUvObstacleOptions &options,
 					   ModelSurface *result, QString *error = nullptr, const ModelWorkControl &control = {},
 					   ModelUvObstacleReport *report = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

@@ -130,7 +130,7 @@ materials join the library marked **base**. A package's definition of a base
 name follows the dialect's script order. On the page the base packages are
 the selected game installation's, when it is of the package's engine family;
 base materials show read only, and **Override in Package** copies one into
-`scripts/zz_vibestudio_overrides.shader` (`00_` where the first definition wins:
+`scripts/zz_slopstudio_overrides.shader` (`00_` where the first definition wins:
 Quake III 1.32 and Doom 3) or, for a Quake II WAL, copies the file. The CLI
 takes `--base`, and lists or checks base materials only with
 `--include-base`.

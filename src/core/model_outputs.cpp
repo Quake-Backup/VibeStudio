@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -148,15 +148,15 @@ QString modelOutputStateText(ModelOutputState state)
 	switch (state)
 	{
 	case ModelOutputState::Current:
-		return QCoreApplication::translate("VibeStudioModelOutputs", "Current");
+		return QCoreApplication::translate("SlopStudioModelOutputs", "Current");
 	case ModelOutputState::SourceChanged:
-		return QCoreApplication::translate("VibeStudioModelOutputs", "Source changed");
+		return QCoreApplication::translate("SlopStudioModelOutputs", "Source changed");
 	case ModelOutputState::OutputChanged:
-		return QCoreApplication::translate("VibeStudioModelOutputs", "Changed elsewhere");
+		return QCoreApplication::translate("SlopStudioModelOutputs", "Changed elsewhere");
 	case ModelOutputState::Missing:
-		return QCoreApplication::translate("VibeStudioModelOutputs", "Missing");
+		return QCoreApplication::translate("SlopStudioModelOutputs", "Missing");
 	case ModelOutputState::Unknown:
-		return QCoreApplication::translate("VibeStudioModelOutputs", "Unknown");
+		return QCoreApplication::translate("SlopStudioModelOutputs", "Unknown");
 	}
 	return {};
 }
@@ -240,7 +240,7 @@ bool parseModelOutputRecord(const QJsonObject &object, const QString &projectRoo
 	const bool outputsValid = std::all_of(result.outputs.cbegin(), result.outputs.cend(), [](const ModelOutputFile &file)
 										  { return file.sha256.size() == 32 && (file.package.isEmpty() ? !file.path.isEmpty() : !file.entry.isEmpty()); });
 	if (result.kind.isEmpty() || result.outputs.isEmpty() || !outputsValid || (!result.sourceSha256.isEmpty() && result.sourceSha256.size() != 32))
-		return fail(error, QCoreApplication::translate("VibeStudioModelOutputs", "A model output receipt is incomplete or damaged."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelOutputs", "A model output receipt is incomplete or damaged."));
 	if (record)
 		*record = std::move(result);
 	return true;
@@ -255,7 +255,7 @@ QVector<ModelOutputRecord> projectModelOutputs(const ProjectManifest &manifest, 
 	if (!value.isArray())
 	{
 		if (warnings)
-			*warnings << QCoreApplication::translate("VibeStudioModelOutputs", "The project's model output receipts are not a list and were ignored.");
+			*warnings << QCoreApplication::translate("SlopStudioModelOutputs", "The project's model output receipts are not a list and were ignored.");
 		return records;
 	}
 	int damaged = 0;
@@ -268,7 +268,7 @@ QVector<ModelOutputRecord> projectModelOutputs(const ProjectManifest &manifest, 
 			++damaged;
 	}
 	if (damaged > 0 && warnings)
-		*warnings << QCoreApplication::translate("VibeStudioModelOutputs", "%n damaged model output receipt(s) were ignored.", nullptr, damaged);
+		*warnings << QCoreApplication::translate("SlopStudioModelOutputs", "%n damaged model output receipt(s) were ignored.", nullptr, damaged);
 	return records;
 }
 
@@ -304,7 +304,7 @@ void addProjectModelOutput(ProjectManifest *manifest, const ModelOutputRecord &r
 bool recordModelOutput(const QString &projectRoot, const ModelOutputRecord &record, QString *error, bool createManifest)
 {
 	if (projectRoot.isEmpty())
-		return fail(error, QCoreApplication::translate("VibeStudioModelOutputs", "Open a project to keep receipts of model outputs."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelOutputs", "Open a project to keep receipts of model outputs."));
 	ProjectManifest manifest;
 	QString loadError;
 	if (!loadProjectManifest(projectRoot, &manifest, &loadError))
@@ -364,7 +364,7 @@ ModelOutputStatus modelOutputStatus(const ModelOutputRecord &record, const Packa
 	for (const auto &output : record.outputs)
 	{
 		if (stopped(cancelled))
-			return {ModelOutputState::Unknown, QCoreApplication::translate("VibeStudioModelOutputs", "The check was cancelled.")};
+			return {ModelOutputState::Unknown, QCoreApplication::translate("SlopStudioModelOutputs", "The check was cancelled.")};
 		QByteArray current;
 		bool gone = false;
 		QString problem;
@@ -380,15 +380,15 @@ ModelOutputStatus modelOutputStatus(const ModelOutputRecord &record, const Packa
 		{
 			missing = true;
 			if (missingDetail.isEmpty())
-				missingDetail = QCoreApplication::translate("VibeStudioModelOutputs", "%1 is missing.").arg(output.display());
+				missingDetail = QCoreApplication::translate("SlopStudioModelOutputs", "%1 is missing.").arg(output.display());
 			continue;
 		}
 		if (current.isEmpty())
 			return {ModelOutputState::Unknown,
-					QCoreApplication::translate("VibeStudioModelOutputs", "%1 could not be read. %2").arg(output.display(), problem).trimmed()};
+					QCoreApplication::translate("SlopStudioModelOutputs", "%1 could not be read. %2").arg(output.display(), problem).trimmed()};
 		if (current != output.sha256)
 			return {ModelOutputState::OutputChanged,
-					QCoreApplication::translate("VibeStudioModelOutputs", "%1 was changed after it was delivered.").arg(output.display())};
+					QCoreApplication::translate("SlopStudioModelOutputs", "%1 was changed after it was delivered.").arg(output.display())};
 	}
 	// Then the inputs: the source, then every other input.
 	QVector<ModelOutputInput> inputs;
@@ -398,22 +398,22 @@ ModelOutputStatus modelOutputStatus(const ModelOutputRecord &record, const Packa
 	for (const auto &input : inputs)
 	{
 		if (input.sha256.isEmpty())
-			return {ModelOutputState::Unknown, QCoreApplication::translate("VibeStudioModelOutputs",
+			return {ModelOutputState::Unknown, QCoreApplication::translate("SlopStudioModelOutputs",
 																			"Delivered from unsaved edits of %1; save the source and refresh to track it.")
 												   .arg(name(input.path))};
 		if (!QFileInfo::exists(input.path))
-			return {ModelOutputState::Missing, QCoreApplication::translate("VibeStudioModelOutputs", "The input %1 is missing.").arg(name(input.path))};
+			return {ModelOutputState::Missing, QCoreApplication::translate("SlopStudioModelOutputs", "The input %1 is missing.").arg(name(input.path))};
 		const auto current = modelOutputFileSha256(input.path, cancelled);
 		if (current.isEmpty())
-			return {ModelOutputState::Unknown, QCoreApplication::translate("VibeStudioModelOutputs", "%1 could not be read.").arg(name(input.path))};
+			return {ModelOutputState::Unknown, QCoreApplication::translate("SlopStudioModelOutputs", "%1 could not be read.").arg(name(input.path))};
 		if (current != input.sha256)
 			return {ModelOutputState::SourceChanged,
-					QCoreApplication::translate("VibeStudioModelOutputs", "%1 changed after the output was delivered.").arg(name(input.path))};
+					QCoreApplication::translate("SlopStudioModelOutputs", "%1 changed after the output was delivered.").arg(name(input.path))};
 	}
 	if (missing)
 		return {ModelOutputState::Missing, missingDetail};
 	status.state = ModelOutputState::Current;
-	status.detail = QCoreApplication::translate("VibeStudioModelOutputs", "Every input and output matches the receipt.");
+	status.detail = QCoreApplication::translate("SlopStudioModelOutputs", "Every input and output matches the receipt.");
 	return status;
 }
 
@@ -492,11 +492,11 @@ ModelOutputRefresh refreshModelOutput(const ModelOutputRecord &record, bool dryR
 	};
 	const bool lodSet = record.kind == QStringLiteral("lod-set");
 	if (record.kind != QStringLiteral("export") && !lodSet)
-		return failed(QCoreApplication::translate("VibeStudioModelOutputs",
+		return failed(QCoreApplication::translate("SlopStudioModelOutputs",
 												  "%1 outputs are refreshed by the tool that made them; only exports and detail levels refresh here.")
 						  .arg(record.kind));
 	if (std::any_of(record.outputs.cbegin(), record.outputs.cend(), [](const ModelOutputFile &file) { return !file.package.isEmpty(); }))
-		return failed(QCoreApplication::translate("VibeStudioModelOutputs", "Staged package entries are refreshed by staging the source again."));
+		return failed(QCoreApplication::translate("SlopStudioModelOutputs", "Staged package entries are refreshed by staging the source again."));
 	// Every output must still be what was delivered, or be gone.
 	for (const auto &output : record.outputs)
 	{
@@ -506,7 +506,7 @@ ModelOutputRefresh refreshModelOutput(const ModelOutputRecord &record, bool dryR
 			return result;
 		}
 		if (QFileInfo::exists(output.path) && modelOutputFileSha256(output.path, control.cancelled) != output.sha256)
-			return failed(QCoreApplication::translate("VibeStudioModelOutputs", "%1 was changed after it was delivered, so it is not replaced. "
+			return failed(QCoreApplication::translate("SlopStudioModelOutputs", "%1 was changed after it was delivered, so it is not replaced. "
 																				 "Save the source to another output, or forget this receipt.")
 							  .arg(output.display()));
 	}
@@ -515,7 +515,7 @@ ModelOutputRefresh refreshModelOutput(const ModelOutputRecord &record, bool dryR
 	{
 		result.cancelled = !modelWorkCheckpoint(control, ModelWorkPhase::Reading, 0, 0, nullptr);
 		if (result.error.isEmpty())
-			result.error = QCoreApplication::translate("VibeStudioModelOutputs", "The receipt names no editable source.");
+			result.error = QCoreApplication::translate("SlopStudioModelOutputs", "The receipt names no editable source.");
 		return result;
 	}
 	const auto format = record.recipe.value(QStringLiteral("format")).toString(QStringLiteral("md3"));
@@ -548,7 +548,7 @@ ModelOutputRefresh refreshModelOutput(const ModelOutputRecord &record, bool dryR
 		{
 			result.cancelled = !modelWorkCheckpoint(control, ModelWorkPhase::Serializing, 0, 0, nullptr);
 			if (result.error.isEmpty())
-				result.error = QCoreApplication::translate("VibeStudioModelOutputs", "The detail-level receipt does not match its outputs.");
+				result.error = QCoreApplication::translate("SlopStudioModelOutputs", "The detail-level receipt does not match its outputs.");
 			return result;
 		}
 		for (const auto &file : std::as_const(set.files))
@@ -570,7 +570,7 @@ ModelOutputRefresh refreshModelOutput(const ModelOutputRecord &record, bool dryR
 		bytes.append(exported);
 	}
 	if (bytes.size() != record.outputs.size())
-		return failed(QCoreApplication::translate("VibeStudioModelOutputs", "The receipt's outputs do not match its recipe."));
+		return failed(QCoreApplication::translate("SlopStudioModelOutputs", "The receipt's outputs do not match its recipe."));
 	// Review every destination before writing any.
 	QVector<ModelWriteTarget> targets;
 	for (const auto &output : record.outputs)
@@ -617,12 +617,12 @@ bool readModelPackageReceipt(const QString &packagePath, ModelOutputRecord *reco
 	if (!archive.load(packagePath, error))
 		return false;
 	QByteArray bytes;
-	if (!archive.readEntryBytes(QStringLiteral("vibestudio/player-bundle.json"), &bytes, error, 4 * 1024 * 1024))
-		return fail(error, QCoreApplication::translate("VibeStudioModelOutputs", "%1 has no VibeStudio receipt (vibestudio/player-bundle.json).")
+	if (!archive.readEntryBytes(QStringLiteral("slopstudio/player-bundle.json"), &bytes, error, 4 * 1024 * 1024))
+		return fail(error, QCoreApplication::translate("SlopStudioModelOutputs", "%1 has no SlopStudio receipt (slopstudio/player-bundle.json).")
 							   .arg(QDir::toNativeSeparators(packagePath)));
 	const auto receipt = QJsonDocument::fromJson(bytes).object();
 	if (receipt.value(QStringLiteral("format")).toString() != QStringLiteral("quake3-player-bundle"))
-		return fail(error, QCoreApplication::translate("VibeStudioModelOutputs", "The package receipt is not a player package receipt."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelOutputs", "The package receipt is not a player package receipt."));
 	ModelOutputRecord result;
 	result.kind = QStringLiteral("player-package");
 	result.recipe = {{QStringLiteral("model"), receipt.value(QStringLiteral("model"))}, {QStringLiteral("skin"), receipt.value(QStringLiteral("skin"))}};
@@ -637,7 +637,7 @@ bool readModelPackageReceipt(const QString &packagePath, ModelOutputRecord *reco
 		result.outputs.append(file);
 	}
 	ModelOutputStatus checked{ModelOutputState::Current,
-							  QCoreApplication::translate("VibeStudioModelOutputs", "Every packaged file matches the receipt.")};
+							  QCoreApplication::translate("SlopStudioModelOutputs", "Every packaged file matches the receipt.")};
 	// The packaged files against the receipt.
 	for (const auto &file : std::as_const(result.outputs))
 	{
@@ -649,7 +649,7 @@ bool readModelPackageReceipt(const QString &packagePath, ModelOutputRecord *reco
 		if (gone || current != file.sha256)
 		{
 			checked = {gone ? ModelOutputState::Missing : ModelOutputState::OutputChanged,
-					   QCoreApplication::translate("VibeStudioModelOutputs", "%1 no longer matches the receipt.").arg(file.entry)};
+					   QCoreApplication::translate("SlopStudioModelOutputs", "%1 no longer matches the receipt.").arg(file.entry)};
 			break;
 		}
 	}
@@ -671,7 +671,7 @@ bool readModelPackageReceipt(const QString &packagePath, ModelOutputRecord *reco
 			{
 				if (checked.state == ModelOutputState::Current)
 					checked = {ModelOutputState::Unknown,
-							   QCoreApplication::translate("VibeStudioModelOutputs", "The part %1 is not a file in the assembly.").arg(partId)};
+							   QCoreApplication::translate("SlopStudioModelOutputs", "The part %1 is not a file in the assembly.").arg(partId)};
 			}
 			else
 			{
@@ -679,7 +679,7 @@ bool readModelPackageReceipt(const QString &packagePath, ModelOutputRecord *reco
 				const auto current = modelOutputFileSha256(input.path, control.cancelled);
 				if (checked.state == ModelOutputState::Current && current != input.sha256)
 					checked = {current.isEmpty() ? ModelOutputState::Missing : ModelOutputState::SourceChanged,
-							   QCoreApplication::translate("VibeStudioModelOutputs", "The %1 part's source changed after the package was made.")
+							   QCoreApplication::translate("SlopStudioModelOutputs", "The %1 part's source changed after the package was made.")
 								   .arg(input.role)};
 			}
 		}
@@ -708,9 +708,9 @@ QString modelOutputStatusLine(const ModelOutputRecord &record, const ModelOutput
 {
 	const QString first = record.outputs.isEmpty() ? QString() : record.outputs.first().display();
 	const int more = int(record.outputs.size()) - 1;
-	const QString outputs = more > 0 ? QCoreApplication::translate("VibeStudioModelOutputs", "%1 and %n more", nullptr, more).arg(first) : first;
-	return QCoreApplication::translate("VibeStudioModelOutputs", "%1 · %2 · %3: %4")
+	const QString outputs = more > 0 ? QCoreApplication::translate("SlopStudioModelOutputs", "%1 and %n more", nullptr, more).arg(first) : first;
+	return QCoreApplication::translate("SlopStudioModelOutputs", "%1 · %2 · %3: %4")
 		.arg(modelOutputStateText(status.state), record.kind, outputs, status.detail);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

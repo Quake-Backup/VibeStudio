@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -330,4 +330,4 @@ AudioDuplexMeters AudioDuplexProcessor::levels() const
 	result.output = m_outputMeter.reading();
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

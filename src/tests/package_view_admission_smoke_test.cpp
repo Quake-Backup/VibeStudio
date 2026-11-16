@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const char* message)
@@ -129,7 +129,7 @@ bool unstageAndRecovery(const QDir& root)
 	bool ok = true; QString error;
 	PackageStagingModel source; source.createEmpty(PackageArchiveFormat::Zip);
 	source.addBytes({}, "a/x"); source.addBytes({}, "b/x"); source.deleteEntry("b/x");
-	const auto draft = root.filePath("history.vibepackage");
+	const auto draft = root.filePath("history.sloppackage");
 	ok &= expect(PackageDraft::save(draft, &source, false, &error), "Persist history under the normal view policy.");
 	PackageIndexLimits limits; limits.maximumEntries = 2;
 	PackageStagingModel model({}, {}, {}, limits);

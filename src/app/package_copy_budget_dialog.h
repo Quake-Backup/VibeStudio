@@ -7,7 +7,7 @@
 class QLabel;
 class QSpinBox;
 
-namespace vibestudio {
+namespace slopstudio {
 class PackageCopyBudgetDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(PackageCopyBudgetDialog)
 public:
@@ -20,4 +20,4 @@ private:
 	QSpinBox *m_bytes = nullptr, *m_files = nullptr, *m_entries = nullptr, *m_batches = nullptr;
 	QLabel *m_usage = nullptr, *m_status = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

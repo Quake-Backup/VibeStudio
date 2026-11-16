@@ -3,7 +3,7 @@
   "revision": "67b33abe1558160ed76ada1322329b0e9e058b02",
   "version": "1.2.6",
   "reviewed": "2026-10-04",
-  "licenseReview": "MIT library and R128Scan notices; BSD-3-Clause internal queue. Permissive terms are compatible with VibeStudio GPLv3. Copyright and full permission/disclaimer notices preserved.",
+  "licenseReview": "MIT library and R128Scan notices; BSD-3-Clause internal queue. Permissive terms are compatible with SlopStudio GPLv3. Copyright and full permission/disclaimer notices preserved.",
   "files": {
     "COPYING": "d6b4754bb67bdd08b97d5d11b2d7434997a371585a78fe77007149df3af8d09c",
     "README.md": "dcb11dc65a197aa981cc0d0bb6f2e7c0982ae8a21649dc244b45fc64d66fdd0d",

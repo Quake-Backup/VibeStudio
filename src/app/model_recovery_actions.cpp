@@ -23,7 +23,7 @@
 
 #include <utility>
 
-namespace vibestudio
+namespace slopstudio
 {
 QWidget *ApplicationShell::buildModelRecoveryPreferences()
 {
@@ -171,4 +171,4 @@ void ApplicationShell::reviewModelRecoveries()
 	if (m_modelEditorDialog)
 		m_modelEditorDialog->reviewRecoveryCopies();
 }
-} // namespace vibestudio
+} // namespace slopstudio

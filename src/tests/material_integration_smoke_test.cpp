@@ -29,7 +29,7 @@
 #include <tuple>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -600,7 +600,7 @@ void checkHeatHaze(const QDir& root)
 	const MaterialImageSet images = resolveMaterialImages(haze, source);
 	const MaterialTexturePtr normalMap = images.find(QStringLiteral("textures/sfx/haze_n"));
 	expect(normalMap && normalMap->usable(), "the heat haze normal map is read");
-	if (vibestudio::test_support::exitCodeWithoutRenderer("material-integration-smoke") < 0) {
+	if (slopstudio::test_support::exitCodeWithoutRenderer("material-integration-smoke") < 0) {
 		MaterialRenderOptions options;
 		options.size = QSize(64, 64);
 		options.time = 0.5;
@@ -643,7 +643,7 @@ void checkHeatHaze(const QDir& root)
 	const MaterialImageSet glassImages = resolveMaterialImages(glass, glassSource);
 	const MaterialCubeTexturePtr environment = glassImages.findCube(QStringLiteral("env/shiny"));
 	expect(environment && environment->isValid(), "a fragment cube map is read as a cube");
-	if (vibestudio::test_support::exitCodeWithoutRenderer("material-integration-smoke") < 0) {
+	if (slopstudio::test_support::exitCodeWithoutRenderer("material-integration-smoke") < 0) {
 		MaterialRenderOptions options;
 		options.size = QSize(64, 64);
 		const MaterialRenderResult result = renderMaterial(glass, glassImages, glassLibrary.tables, options);

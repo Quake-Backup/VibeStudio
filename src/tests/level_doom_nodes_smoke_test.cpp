@@ -10,9 +10,9 @@
 #include <QUuid>
 #include <iostream>
 
-using namespace vibestudio;
-namespace d = vibestudio::tests::doom;
-namespace f = vibestudio::tests::doomNodes;
+using namespace slopstudio;
+namespace d = slopstudio::tests::doom;
+namespace f = slopstudio::tests::doomNodes;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* message, const QString& detail = {}) {

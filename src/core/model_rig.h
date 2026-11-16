@@ -2,7 +2,7 @@
 
 #include "core/model_mesh.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 enum class ModelEditKind;
@@ -20,4 +20,4 @@ bool isModelRigEdit(ModelEditKind kind);
 // Candidate-only operation; ModelDocument validates and commits atomically.
 // Weight edits preserve bind geometry and refuse independent frame edits.
 bool applyModelRigEdit(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

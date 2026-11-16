@@ -1,4 +1,4 @@
-# The Map Generator keeps Quake-MapGen's style (VIBESTUDIO.md).
+# The Map Generator keeps Quake-MapGen's style (SLOPSTUDIO.md).
 [*.{cpp,hpp}]
 indent_style = space
 indent_size = 4

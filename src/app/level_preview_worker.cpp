@@ -11,7 +11,7 @@
 #include <QTimer>
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -225,4 +225,4 @@ void LevelPreviewWorker::startPending()
 	m_timer->start();
 	m_thread->start();
 }
-} // namespace vibestudio
+} // namespace slopstudio

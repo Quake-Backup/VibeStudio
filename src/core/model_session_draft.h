@@ -25,7 +25,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 enum class ModelSessionDraftKind
@@ -83,4 +83,4 @@ bool removeModelSessionDrafts(const QString &directory, const QString &ownerId, 
 // The header for CLI JSON: kind, owner, base fingerprint, counts, path.
 [[nodiscard]] QJsonObject modelSessionDraftJson(const ModelSessionDraft &draft);
 
-} // namespace vibestudio
+} // namespace slopstudio

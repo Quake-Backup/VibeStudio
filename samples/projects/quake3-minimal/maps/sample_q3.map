@@ -1,6 +1,6 @@
-// VibeStudio sample map: a Quake III-family room.
+// SlopStudio sample map: a Quake III-family room.
 //
-// Hand-authored for VibeStudio. No geometry, shader, or entity data is taken
+// Hand-authored for SlopStudio. No geometry, shader, or entity data is taken
 // from a commercial game; the shader names are generic placeholders under
 // textures/sample/, so this is a parser and geometry fixture rather than a
 // compilable level for any particular game.
@@ -14,7 +14,7 @@
 // normals point out of each brush.
 {
 "classname" "worldspawn"
-"message" "VibeStudio Q3 Sample"
+"message" "SlopStudio Q3 Sample"
 "_q3map_lightmapscale" "1.0"
 // Floor, classic face syntax with Quake II/III contents, flags and value.
 {

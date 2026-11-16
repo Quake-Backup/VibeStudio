@@ -4,7 +4,7 @@
 #include <QSet>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 TextureThumbnailCache::TextureThumbnailCache(qint64 maximumBytes, int maximumEntries)
 	: m_limit(std::clamp<qint64>(maximumBytes, 1, MaximumBytes)), m_entryLimit(std::clamp(maximumEntries, 1, MaximumEntries)) {}
@@ -65,4 +65,4 @@ QStringList visibleTextureThumbnailPaths(QListWidget* list, int pathRole)
 	return paths;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

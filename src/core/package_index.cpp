@@ -4,7 +4,7 @@
 #include <QSet>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void accumulatePackageBytes(quint64 bytes, quint64* total, bool* overflow)
 {
@@ -16,7 +16,7 @@ void accumulatePackageBytes(quint64 bytes, quint64* total, bool* overflow)
 
 QString packageIndexDuplicateWarning()
 {
-	return QCoreApplication::translate("VibeStudioPackageArchive", "Duplicate package entry path; first match will be used for byte reads.");
+	return QCoreApplication::translate("SlopStudioPackageArchive", "Duplicate package entry path; first match will be used for byte reads.");
 }
 
 bool validPackageIndexLimits(const PackageIndexLimits& limits, QString* error)
@@ -25,7 +25,7 @@ bool validPackageIndexLimits(const PackageIndexLimits& limits, QString* error)
 		|| limits.maximumMetadataBytes < 0 || limits.maximumMetadataBytes > PackageIndexLimits::metadataCeiling
 		|| limits.maximumFingerprintBytes < 0 || limits.maximumFingerprintBytes > PackageIndexLimits::fingerprintCeiling
 		|| limits.maximumPathDepth < 1 || limits.maximumPathDepth > PackageIndexLimits::depthCeiling) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageArchive", "Package indexing limits are outside their supported range."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageArchive", "Package indexing limits are outside their supported range."); }
 		return false;
 	}
 	return true;
@@ -36,7 +36,7 @@ bool admitPackageIndex(PackageIndexUsage* usage, const PackageIndexLimits& limit
 {
 	if (entries < 0 || entries > limits.maximumEntries - usage->entries
 		|| metadataBytes < 0 || metadataBytes > limits.maximumMetadataBytes - usage->metadataBytes) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageArchive", "Package index exceeds the limits of %1 entries or %2 metadata bytes. Use a smaller package or folder.").arg(limits.maximumEntries).arg(limits.maximumMetadataBytes); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageArchive", "Package index exceeds the limits of %1 entries or %2 metadata bytes. Use a smaller package or folder.").arg(limits.maximumEntries).arg(limits.maximumMetadataBytes); }
 		return false;
 	}
 	usage->entries += entries; usage->metadataBytes += metadataBytes;
@@ -49,7 +49,7 @@ bool admitPackageIndexPath(PackageIndexUsage* usage, const PackageIndexLimits& l
 	const qsizetype components = 1 + path.count(QLatin1Char('/')) + path.count(QLatin1Char('\\'))
 		- (path.endsWith(QLatin1Char('/')) || path.endsWith(QLatin1Char('\\')));
 	if (components > limits.maximumPathDepth) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageArchive", "Package entry paths exceed the maximum indexing depth of %1.").arg(limits.maximumPathDepth); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageArchive", "Package entry paths exceed the maximum indexing depth of %1.").arg(limits.maximumPathDepth); }
 		return false;
 	}
 	return admitPackageIndex(usage, limits, 0, path.size() * qint64(sizeof(QChar)), error);
@@ -98,4 +98,4 @@ bool addPackageIndexDirectories(QVector<PackageEntry>* entries, const QString& s
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

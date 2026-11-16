@@ -7,7 +7,7 @@
 #include <QRegularExpression>
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 inline bool parseModelTransformAxesOptions(const QHash<QString, QString> &values, int frameCount, ModelEdit *edit, QString *error)
 {
@@ -55,4 +55,4 @@ inline bool parseModelTransformAxesOptions(const QHash<QString, QString> &values
 	}
 	return validModelTransformAxesOptions(*edit, error);
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

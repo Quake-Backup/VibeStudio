@@ -2,7 +2,7 @@
 #include "core/model_curve_key_tools.h"
 #include <QAbstractTableModel>
 #include <QItemSelection>
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelCurveKeyRows
 {
@@ -66,4 +66,4 @@ class ModelCurveKeyReportTable final : public QAbstractTableModel
   private:
 	ModelCurveKeyReport m_report;
 };
-} // namespace vibestudio
+} // namespace slopstudio

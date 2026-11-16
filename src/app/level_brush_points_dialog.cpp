@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelBrushPointsDialog::Work {
 	std::atomic_bool cancelled {false};
 	quint64 generation = 0;
@@ -329,4 +329,4 @@ void LevelBrushPointsDialog::reject()
 	}
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

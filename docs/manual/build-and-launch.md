@@ -1,41 +1,41 @@
 # Build and launch
 
-The Build page compiles your map with VibeStudio's own VibeMap2 and VibeMap3 compilers or the Doom
+The Build page compiles your map with SlopStudio's own SlopMap2 and SlopMap3 compilers or the Doom
 node builders, shows each problem where it happens, and starts the game with the result. This page
 covers setting up the compilers, running a build, fixing problems and leaks, and launching a test.
 
 > [!NOTE]
-> **Status: Partial.** Build pipelines for Quake, Quake III and Doom maps run VibeMap2, VibeMap3,
-> ZDBSP and ZokumBSP and report problems, leaks and outputs. VibeStudio does not include the
+> **Status: Partial.** Build pipelines for Quake, Quake III and Doom maps run SlopMap2, SlopMap3,
+> ZDBSP and ZokumBSP and report problems, leaks and outputs. SlopStudio does not include the
 > compiler programs yet, and only a few compiler and game combinations have been tested end to end.
-> On 2026-10-08 VibeMap2 and VibeMap3 passed VibeStudio's Quake, Quake II and Quake III prepared-build
+> On 2026-10-08 SlopMap2 and SlopMap3 passed SlopStudio's Quake, Quake II and Quake III prepared-build
 > tests on Windows; other platforms, games and the older stock-compiler tests are still to be repeated.
 
 ## Install the compilers
 
-VibeStudio runs four compilers. VibeMap2 and VibeMap3 are VibeStudio's own, developed as part of the
-project: VibeMap2 is derived from ericw-tools and VibeMap3 continues q3map2 from NetRadiant Custom.
-ZDBSP and ZokumBSP are external projects. The source code of all four is kept with the VibeStudio
-source, but VibeStudio builds do not include the compiler programs yet: build or download the ones
+SlopStudio runs four compilers. SlopMap2 and SlopMap3 are SlopStudio's own, developed as part of the
+project: SlopMap2 is derived from ericw-tools and SlopMap3 continues q3map2 from NetRadiant Custom.
+ZDBSP and ZokumBSP are external projects. The source code of all four is kept with the SlopStudio
+source, but SlopStudio builds do not include the compiler programs yet: build or download the ones
 you need from their own projects.
 
 | Compiler | Used for | Programs |
 | --- | --- | --- |
-| [VibeMap2](https://github.com/themuffinator/VibeyMapTools) | Quake and Quake II maps | `vibemap2-bsp`, `vibemap2-vis`, `vibemap2-light` |
-| [VibeMap3](https://github.com/themuffinator/q3mapx) | Quake III-family maps | `vibemap3` |
+| [SlopMap2](https://github.com/themuffinator/VibeyMapTools) | Quake and Quake II maps | `slopmap2-bsp`, `slopmap2-vis`, `slopmap2-light` |
+| [SlopMap3](https://github.com/themuffinator/q3mapx) | Quake III-family maps | `slopmap3` |
 | [ZDBSP](https://github.com/rheit/zdbsp) | Doom-family nodes | `zdbsp` |
 | [ZokumBSP](https://github.com/zokum-no/zokumbsp) | Doom-family nodes, blockmap and reject | `zokumbsp` |
 
-VibeMap2 releases come as `vibemap2-windows-<version>.zip`, `vibemap2-linux-<version>.tar.gz` and
-`vibemap2-macos-<version>.tar.gz`, with every program at the top of the archive. Add the extracted
-folder to your PATH or to the project's compiler search paths, and VibeStudio finds the programs.
+SlopMap2 releases come as `slopmap2-windows-<version>.zip`, `slopmap2-linux-<version>.tar.gz` and
+`slopmap2-macos-<version>.tar.gz`, with every program at the top of the archive. Add the extracted
+folder to your PATH or to the project's compiler search paths, and SlopStudio finds the programs.
 
-VibeStudio also finds VibeMap2 and VibeMap3 under their earlier names (`vmt-bsp` and the other
+SlopStudio also finds SlopMap2 and SlopMap3 under their earlier names (`vmt-bsp` and the other
 `vmt-` programs, and `q3mapx`), and in their build folders when you build them from the copies in
 `external/compilers`. Stock ericw-tools (`qbsp`, `vis`, `light`) and q3map2 are not found
 automatically; to use one, choose its program with **Locate…** as described below.
 
-## Point VibeStudio at your compilers
+## Point SlopStudio at your compilers
 
 Open the Build page (<kbd>Ctrl</kbd>+<kbd>9</kbd>) and choose the **Toolchain** tab. On macOS, press
 <kbd>Cmd</kbd> wherever this page says <kbd>Ctrl</kbd>. **Compiler tools** lists every tool with its
@@ -54,9 +54,9 @@ they win over your choice, and **Path from** shows **Project manifest**; see
 [Projects and game installations](projects.md#describe-the-project-with-a-manifest).
 
 **Compiler profiles**, below the tools, lists every single compiler step, such as
-**VibeMap2 bsp** or **VibeMap3 light**, and whether its tool is ready. **Run Profile**
+**SlopMap2 bsp** or **SlopMap3 light**, and whether its tool is ready. **Run Profile**
 (<kbd>Ctrl</kbd>+<kbd>R</kbd>) runs the selected step, **Copy CLI**
-(<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>) copies a matching `vibestudio --cli compiler run`
+(<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>) copies a matching `slopstudio --cli compiler run`
 command, and **Copy Manifest** copies the step's command manifest.
 
 ## Build a map
@@ -70,16 +70,16 @@ command, and **Copy Manifest** copies the step's command manifest.
    The stages run in order, each feeding the next. **Pipeline Stages** shows their progress, and the
    Activity Center keeps the full log.
 
-If the map has unsaved edits, VibeStudio asks first, because the compilers read the file on disk:
+If the map has unsaved edits, SlopStudio asks first, because the compilers read the file on disk:
 **Save** includes your edits, **Build Saved File** builds what is on disk, and **Cancel** stops.
 **Cancel** on the Build header stops a running build after the current stage.
 
 | Pipeline | Stages | Input |
 | --- | --- | --- |
-| **Quake full compile** | QBSP, then VIS and LIGHT (VibeMap2) | `.map` |
+| **Quake full compile** | QBSP, then VIS and LIGHT (SlopMap2) | `.map` |
 | **Quake fast iteration** | QBSP and LIGHT; VIS is skipped | `.map` |
 | **Quake BSP only** | QBSP | `.map` |
-| **Quake III full compile** | BSP, then VIS and LIGHT (VibeMap3) | `.map` |
+| **Quake III full compile** | BSP, then VIS and LIGHT (SlopMap3) | `.map` |
 | **Quake III BSP only** | BSP | `.map` |
 | **Doom nodes (ZDBSP)** | Nodes | `.wad` |
 | **Doom nodes (ZokumBSP)** | Nodes | `.wad` |
@@ -116,8 +116,8 @@ from the Toolchain settings.
 
 A project folder, or the saved runs beside a map, can come from someone else, and both can name a
 program: a project's own compiler paths, a pipeline's compiler, or the program a saved run replays.
-VibeStudio starts such a program without asking only when it is one of your configured compilers for
-that game: one set on the **Toolchain** tab or with `compiler set-path`, or one found in VibeStudio's
+SlopStudio starts such a program without asking only when it is one of your configured compilers for
+that game: one set on the **Toolchain** tab or with `compiler set-path`, or one found in SlopStudio's
 compiler folders or on your PATH. Otherwise **Run Pipeline**, **Run Profile** and
 **Re-run Last Compile** first show the program, its full command line and its folder.
 **Cancel**, the default, runs nothing. **Trust and Run** runs it and remembers the choice in your own
@@ -144,15 +144,15 @@ and **Copy All Problems**. Press <kbd>F4</kbd> and <kbd>Shift</kbd>+<kbd>F4</kbd
 through the last build's problems. **Explain** on the toolbar opens the Assistant with the problems
 ready to ask about; AI stays off unless you turn it on, as described in [AI assistant](ai.md).
 
-Known-issue explanations use the VibeMap2 3.1.0 audit and keep ericw-tools issue
+Known-issue explanations use the SlopMap2 3.1.0 audit and keep ericw-tools issue
 numbers for reference. Reports fixed in that fork no longer add plan or map
 preflight warnings. Platform requirements are guidance; retained historical
 reports still need case-specific verification. Actual compiler warnings and
 errors remain visible. See the [issue reconciliation](../plans/ericw-tools-remaining-bugs-resolution.md)
 for the evidence and remaining limits, including older/custom compiler builds.
 
-VibeMap2's `-embedsettings` option can store effective lighting settings in the
-BSP; it is opt-in. Keep VibeStudio's command manifests for the complete build.
+SlopMap2's `-embedsettings` option can store effective lighting settings in the
+BSP; it is opt-in. Keep SlopStudio's command manifests for the complete build.
 
 ### Find a leak
 
@@ -168,20 +168,20 @@ compiled BSP and any leak or portal file beside it.
 ## Launch the game
 
 Launching needs a game installation profile; add one on the Workspace page first, as described in
-[Projects and game installations](projects.md#add-your-game-installations). VibeStudio launches the
+[Projects and game installations](projects.md#add-your-game-installations). SlopStudio launches the
 installation marked **in use**, or the first one when none is. Then open the **Launch and Test** tab:
 
 1. **Launch profile**: keep **Automatic (matches the installation)**, choose a source port style, or choose one of
    your own launch profiles (see below).
 2. **Map**: the map to load. It defaults to the map the build produces.
 3. **Game folder**: the folder inside the installation the game loads, such as your mod's folder.
-   Leave it empty for the base game. VibeStudio remembers it for each installation.
+   Leave it empty for the base game. SlopStudio remembers it for each installation.
 4. **Extra arguments**: engine arguments added after the profile's, such as `+set developer 1`. Quotes keep spaces,
-   as in `+set name "Test Player"`. VibeStudio remembers them for each installation; text with an unclosed quote
+   as in `+set name "Test Player"`. SlopStudio remembers them for each installation; text with an unclosed quote
    is neither kept nor used until the quote is closed.
 5. Keep **Copy build to game** ticked to copy the built map into the game first.
 6. Choose **Launch Game** (<kbd>Ctrl</kbd>+<kbd>G</kbd>).
-   VibeStudio shows the exact command line, working folder and any file copies, and starts the game
+   SlopStudio shows the exact command line, working folder and any file copies, and starts the game
    only when you choose **Launch**. From the Levels page, **Launch Game** shows this review over the map without
    switching pages.
 
@@ -205,7 +205,7 @@ usual arguments. Give it a **Name**, an **Engine** (or **Any game**) and the **A
 
 **Preview** shows the arguments with the current values. Arguments are grouped from each switch (a word starting with
 `-` or `+`) to the next, and a group whose token has no value is left out: with no **Game folder**,
-`+set fs_game {mod}` is dropped and the base game loads. A token VibeStudio does not know, or an unclosed quote, is
+`+set fs_game {mod}` is dropped and the base game loads. A token SlopStudio does not know, or an unclosed quote, is
 named under the fields and keeps **OK** unavailable. Your profiles then appear at the end of **Launch profile**:
 those made for **Any game**, and those made for the engine of the installation in use.
 
@@ -216,7 +216,7 @@ those made for **Any game**, and those made for the engine of the installation i
   NetRadiant Custom profile it is <kbd>F5</kbd>, as in NetRadiant Custom, and **Build and Launch** has no key there.
 - **Build** > **Re-run Last Compile** replays the open map's newest saved compile, the same program, arguments and
   folder, as TrenchBroom's **Re-run Compilation** does. **Run Profile** saves each run under
-  `.vibestudio/compiler-runs` in the project, or beside the map with no project open, and the command is available
+  `.slopstudio/compiler-runs` in the project, or beside the map with no project open, and the command is available
   once the open map has a saved run there. If saving your edits writes a new file, that file is compiled with the same
   profile instead. A saved run whose program is not one of your configured compilers asks first, as described in
   [When a build asks before running a program](#when-a-build-asks-before-running-a-program).
@@ -240,14 +240,14 @@ compiler reported.
 ### Allow test maps
 
 Quake-family engines only load maps from a game folder's `maps` folder. With **Copy build to game**
-ticked, VibeStudio copies the built BSP, and any `.lit` or `.lux` lighting file beside it, into
+ticked, SlopStudio copies the built BSP, and any `.lit` or `.lux` lighting file beside it, into
 `<installation>/<game folder>/maps` before launching, using the base game's folder when
 **Game folder** is empty. Doom source ports read the built WAD where it is, so nothing is copied for
 Doom.
 
 Installation profiles are read-only to start with. The first time a launch needs to copy a map,
-VibeStudio asks whether to **Allow Test Maps** for that installation. If you allow it, the profile
-keeps the permission and VibeStudio does not ask again. Nothing else in the installation is written.
+SlopStudio asks whether to **Allow Test Maps** for that installation. If you allow it, the profile
+keeps the permission and SlopStudio does not ask again. Nothing else in the installation is written.
 To take the permission back, clear **Allow test maps** for the installation on the Workspace page.
 
 ## Build and launch in one step
@@ -280,29 +280,29 @@ details.
 
 | Task | Command |
 | --- | --- |
-| List pipelines, the project's own too | `vibestudio --cli build list --workspace-root <project>` |
-| Plan a build without running it | `vibestudio --cli build plan <pipeline> --input <map>` |
-| Run a build | `vibestudio --cli build run <pipeline> --input <map> --watch` |
-| Add, change or remove a project pipeline | `vibestudio --cli build pipeline-set <id> --workspace-root <project> --name <name> --from <pipeline>`, `build pipeline-remove <id> --workspace-root <project>` |
-| Show compiler discovery | `vibestudio --cli compiler list` |
-| Choose or forget a compiler | `vibestudio --cli compiler set-path <tool> --executable <path>`, `compiler clear-path <tool>` |
-| Run one compiler step | `vibestudio --cli compiler run <profile> --input <map>` |
-| Replay a map's newest saved compile | `vibestudio --cli compiler rerun --last <map> --workspace-root <project>` |
-| Inspect a compiled map | `vibestudio --cli bsp inspect <bsp>` |
-| Draw a leak trail to a picture | `vibestudio --cli map render <map> --leak <file.pts> --output <file.svg>` |
-| Plan or start a launch | `vibestudio --cli launch plan --map <name>`, `launch run --map <name>` |
-| List, add or remove launch profiles | `vibestudio --cli launch profiles`, `launch profile-set <id> --name <name> --arguments "<line>"`, `launch profile-remove <id>` |
-| Show or set an installation's extra arguments | `vibestudio --cli launch extra-args --arguments "+set developer 1"`, `launch extra-args --clear` |
-| Release the built map | `vibestudio --cli release publish <project> --map <map> --release-version <version>` |
+| List pipelines, the project's own too | `slopstudio --cli build list --workspace-root <project>` |
+| Plan a build without running it | `slopstudio --cli build plan <pipeline> --input <map>` |
+| Run a build | `slopstudio --cli build run <pipeline> --input <map> --watch` |
+| Add, change or remove a project pipeline | `slopstudio --cli build pipeline-set <id> --workspace-root <project> --name <name> --from <pipeline>`, `build pipeline-remove <id> --workspace-root <project>` |
+| Show compiler discovery | `slopstudio --cli compiler list` |
+| Choose or forget a compiler | `slopstudio --cli compiler set-path <tool> --executable <path>`, `compiler clear-path <tool>` |
+| Run one compiler step | `slopstudio --cli compiler run <profile> --input <map>` |
+| Replay a map's newest saved compile | `slopstudio --cli compiler rerun --last <map> --workspace-root <project>` |
+| Inspect a compiled map | `slopstudio --cli bsp inspect <bsp>` |
+| Draw a leak trail to a picture | `slopstudio --cli map render <map> --leak <file.pts> --output <file.svg>` |
+| Plan or start a launch | `slopstudio --cli launch plan --map <name>`, `launch run --map <name>` |
+| List, add or remove launch profiles | `slopstudio --cli launch profiles`, `launch profile-set <id> --name <name> --arguments "<line>"`, `launch profile-remove <id>` |
+| Show or set an installation's extra arguments | `slopstudio --cli launch extra-args --arguments "+set developer 1"`, `launch extra-args --clear` |
+| Release the built map | `slopstudio --cli release publish <project> --map <map> --release-version <version>` |
 
 For example:
 
 ```sh
-vibestudio --cli build plan quake-full --input ./maps/start.map
-vibestudio --cli build run quake-full --input ./maps/start.map --watch
-vibestudio --cli compiler set-path vibemap2-bsp --executable /opt/vibemap2/vibemap2-bsp
-vibestudio --cli launch plan --bsp ./maps/start.bsp --deploy
-vibestudio --cli launch run --bsp ./maps/start.bsp --deploy --allow-test-maps
+slopstudio --cli build plan quake-full --input ./maps/start.map
+slopstudio --cli build run quake-full --input ./maps/start.map --watch
+slopstudio --cli compiler set-path slopmap2-bsp --executable /opt/slopmap2/slopmap2-bsp
+slopstudio --cli launch plan --bsp ./maps/start.bsp --deploy
+slopstudio --cli launch run --bsp ./maps/start.bsp --deploy --allow-test-maps
 ```
 
 The pipeline names are `quake-full`, `quake-fast`, `quake-bsp-only`, `quake3-full`,

@@ -2,7 +2,7 @@
 #include "core/audio_duplex.h"
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioDuplexEndpoint {
 	QByteArray id; // Enumeration-scoped token, never a persistent device index.
@@ -56,4 +56,4 @@ class AudioDuplexDevice {
 };
 using AudioDuplexDeviceFactory = std::function<std::unique_ptr<AudioDuplexDevice>()>;
 std::unique_ptr<AudioDuplexDevice> createAudioDuplexDevice();
-} // namespace vibestudio
+} // namespace slopstudio

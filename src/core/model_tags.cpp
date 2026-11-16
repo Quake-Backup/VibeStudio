@@ -7,7 +7,7 @@
 #include <cmath>
 #include <iterator>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -117,32 +117,32 @@ bool applyModelTagEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSelecti
 		(identity && edit.frame != -1))
 	{
 		return fail(QCoreApplication::translate(
-			"VibeStudioModelTags",
+			"SlopStudioModelTags",
 			"Choose a valid tag operation and pose. Adding, duplicating, renaming, or deleting tags applies to every frame."));
 	}
 	if (edit.scale.x != 1 || edit.scale.y != 1 || edit.scale.z != 1 || edit.scaleGrid != 0)
 	{
-		return fail(QCoreApplication::translate("VibeStudioModelTags", "Attachment tags support rigid movement and rotation, not scale."));
+		return fail(QCoreApplication::translate("SlopStudioModelTags", "Attachment tags support rigid movement and rotation, not scale."));
 	}
 	const auto existing = findModelTag(*candidate, edit.selection.tag, 0);
 	if (kind != ModelEditKind::AddTag && !existing)
 	{
-		return fail(QCoreApplication::translate("VibeStudioModelTags", "Select an existing attachment tag."));
+		return fail(QCoreApplication::translate("SlopStudioModelTags", "Select an existing attachment tag."));
 	}
 	const bool named = kind == ModelEditKind::AddTag || kind == ModelEditKind::DuplicateTag || kind == ModelEditKind::RenameTag;
 	if (named && (!nativeName(edit.text) ||
 				  ((edit.text != edit.selection.tag || kind != ModelEditKind::RenameTag) && findModelTag(*candidate, edit.text, 0))))
 	{
-		return fail(QCoreApplication::translate("VibeStudioModelTags",
+		return fail(QCoreApplication::translate("SlopStudioModelTags",
 												"Use a unique tag name with 1–63 printable ASCII characters and no surrounding spaces."));
 	}
 	if ((kind == ModelEditKind::AddTag || kind == ModelEditKind::DuplicateTag) && modelTagNames(*candidate).size() >= 16)
 	{
-		return fail(QCoreApplication::translate("VibeStudioModelTags", "A model supports at most 16 attachment tags per frame."));
+		return fail(QCoreApplication::translate("SlopStudioModelTags", "A model supports at most 16 attachment tags per frame."));
 	}
 	if ((kind == ModelEditKind::AddTag || kind == ModelEditKind::SetTagOrigin) && !finite(edit.tagOrigin))
 	{
-		return fail(QCoreApplication::translate("VibeStudioModelTags", "Tag origins must be finite and within ±1,000,000 model units."));
+		return fail(QCoreApplication::translate("SlopStudioModelTags", "Tag origins must be finite and within ±1,000,000 model units."));
 	}
 	ModelTransform transform;
 	if (kind == ModelEditKind::TransformTag || kind == ModelEditKind::AddTag)
@@ -158,7 +158,7 @@ bool applyModelTagEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSelecti
 		const auto tag = findModelTag(*candidate, edit.selection.tag, reference);
 		if (!tag || !modelTransformPivot({tag->origin}, {0}, edit.pivotMode, edit.pivot, &transform.pivot))
 		{
-			return fail(QCoreApplication::translate("VibeStudioModelTags", "Choose a valid tag pivot and reference pose."));
+			return fail(QCoreApplication::translate("SlopStudioModelTags", "Choose a valid tag pivot and reference pose."));
 		}
 		if (!snapModelTranslation(edit.translation, edit.translationGrid, &transform.translation, error) ||
 			!resolveModelTransformAxes(*candidate, edit, &transform.basis, error, control))
@@ -172,7 +172,7 @@ bool applyModelTagEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSelecti
 		const auto source = findModelTag(*candidate, edit.selection.tag, edit.sourceFrame);
 		if (!source)
 		{
-			return fail(QCoreApplication::translate("VibeStudioModelTags", "Choose an existing source pose for the selected tag."));
+			return fail(QCoreApplication::translate("SlopStudioModelTags", "Choose an existing source pose for the selected tag."));
 		}
 		pose = *source;
 	}
@@ -259,4 +259,4 @@ bool applyModelTagEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSelecti
 												   : edit.selection.tag};
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

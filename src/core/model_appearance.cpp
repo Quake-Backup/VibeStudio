@@ -7,11 +7,11 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
-struct Text { Q_DECLARE_TR_FUNCTIONS(VibeStudioModelAppearance) };
+struct Text { Q_DECLARE_TR_FUNCTIONS(SlopStudioModelAppearance) };
 bool fail(QString *error, const QString &message)
 {
 	if (error) { *error = message; }
@@ -102,4 +102,4 @@ bool prepareModelAppearance(const ModelMesh &mesh, const ModelAppearance &appear
 	*output = std::move(candidate);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

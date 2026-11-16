@@ -15,11 +15,11 @@
 #include <limits>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 TextureExportPanel::TextureExportPanel(QWidget* parent) : QWidget(parent)
 {
 	setObjectName(QStringLiteral("textureExportPanel"));
-	setAccessibleName(QCoreApplication::translate("VibeStudioTextureExport", "Texture export settings and preview"));
+	setAccessibleName(QCoreApplication::translate("SlopStudioTextureExport", "Texture export settings and preview"));
 	m_form = new QFormLayout(this); m_form->setRowWrapPolicy(QFormLayout::WrapAllRows);
 	m_form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 	const auto edited = [this]() { if (!m_loading) { invalidatePreview(); updateFields(); if (changed) { changed(); } } };
@@ -45,72 +45,72 @@ TextureExportPanel::TextureExportPanel(QWidget* parent) : QWidget(parent)
 		field->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard); m_form->addRow(field); return field;
 	};
 	m_loading = true;
-	m_profile = combo(QCoreApplication::translate("VibeStudioTextureExport", "Output profile"), QStringLiteral("textureExportProfile"));
+	m_profile = combo(QCoreApplication::translate("SlopStudioTextureExport", "Output profile"), QStringLiteral("textureExportProfile"));
 	for (const auto& profile : textureExportProfiles()) { m_profile->addItem(profile.name, profile.id); }
-	m_description = label(QStringLiteral("textureExportDescription"), QCoreApplication::translate("VibeStudioTextureExport", "Profile requirements"));
-	m_alpha = combo(QCoreApplication::translate("VibeStudioTextureExport", "Alpha handling"), QStringLiteral("textureExportAlpha"));
-	m_alpha->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Preserve or reject"), QStringLiteral("strict"));
-	m_alpha->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Composite on matte"), QStringLiteral("matte"));
-	m_alpha->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Binary threshold"), QStringLiteral("threshold"));
-	m_matte = text(QCoreApplication::translate("VibeStudioTextureExport", "Opaque matte color"), QStringLiteral("textureExportMatte"), 16);
-	m_threshold = spin(QCoreApplication::translate("VibeStudioTextureExport", "Opaque from alpha"), QStringLiteral("textureExportThreshold"), 1, 255);
-	m_dither = check(QCoreApplication::translate("VibeStudioTextureExport", "Dither palette conversion"), QStringLiteral("textureExportDither"));
-	m_generated = check(QCoreApplication::translate("VibeStudioTextureExport", "Allow generated palette"), QStringLiteral("textureExportGenerated"));
-	m_generated->setToolTip(QCoreApplication::translate("VibeStudioTextureExport", "Generated colors are stand-ins. Review palette provenance in the Palette section before game export."));
-	m_filter = combo(QCoreApplication::translate("VibeStudioTextureExport", "Mipmap filter"), QStringLiteral("textureExportMipFilter"));
-	m_filter->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Area average"), QStringLiteral("box"));
-	m_filter->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Nearest pixel"), QStringLiteral("nearest"));
-	m_fullbright = combo(QCoreApplication::translate("VibeStudioTextureExport", "Quake fullbright colors"), QStringLiteral("textureExportFullbright"));
-	m_fullbright->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Preserve authored indices"), QStringLiteral("preserve"));
-	m_fullbright->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Exclude"), QStringLiteral("exclude"));
-	m_fullbright->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Allow during conversion"), QStringLiteral("allow"));
-	m_fullbright->setToolTip(QCoreApplication::translate("VibeStudioTextureExport", "Quake indices 224–255 glow without lighting. Preserve keeps matching indexed pixels; RGBA conversion excludes the band unless Allow is chosen."));
-	m_name = text(QCoreApplication::translate("VibeStudioTextureExport", "Native texture name"), QStringLiteral("textureExportName"), 128);
-	m_animation = text(QCoreApplication::translate("VibeStudioTextureExport", "Next WAL animation"), QStringLiteral("textureExportAnimation"), 128);
-	m_flags = text(QCoreApplication::translate("VibeStudioTextureExport", "WAL surface flags"), QStringLiteral("textureExportFlags"), 16);
-	m_contents = text(QCoreApplication::translate("VibeStudioTextureExport", "WAL content flags"), QStringLiteral("textureExportContents"), 16);
-	for (auto* field : {m_flags, m_contents}) { field->setToolTip(QCoreApplication::translate("VibeStudioTextureExport", "Unsigned 32-bit decimal value, or hexadecimal with a 0x prefix.")); }
-	m_value = spin(QCoreApplication::translate("VibeStudioTextureExport", "WAL surface value"), QStringLiteral("textureExportValue"), std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
-	m_spriteType = combo(QCoreApplication::translate("VibeStudioTextureExport", "Sprite orientation"), QStringLiteral("textureExportSpriteType"));
-	m_spriteType->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Faces the view, stays upright"), QStringLiteral("parallel-upright"));
-	m_spriteType->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Faces the viewer, stays upright"), QStringLiteral("facing-upright"));
-	m_spriteType->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Faces the view"), QStringLiteral("parallel"));
-	m_spriteType->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Oriented by the entity"), QStringLiteral("oriented"));
-	m_spriteType->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Faces the view, entity roll"), QStringLiteral("parallel-oriented"));
-	m_spriteTexture = combo(QCoreApplication::translate("VibeStudioTextureExport", "Half-Life sprite rendering"), QStringLiteral("textureExportSpriteTexture"));
-	m_spriteTexture->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Normal (opaque)"), QStringLiteral("normal"));
-	m_spriteTexture->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Additive"), QStringLiteral("additive"));
-	m_spriteTexture->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Index alpha (one color, alpha coverage)"), QStringLiteral("index-alpha"));
-	m_spriteTexture->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Alpha test (index 255 transparent)"), QStringLiteral("alpha-test"));
-	m_randomSync = check(QCoreApplication::translate("VibeStudioTextureExport", "Random start frame"), QStringLiteral("textureExportRandomSync"));
-	m_randomSync->setToolTip(QCoreApplication::translate("VibeStudioTextureExport", "Start each sprite in the level at a random frame instead of in step."));
-	m_storedPalette = combo(QCoreApplication::translate("VibeStudioTextureExport", "Stored palette"), QStringLiteral("textureExportStoredPalette"));
-	m_storedPalette->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Built from the image"), QStringLiteral("image"));
-	m_storedPalette->addItem(QCoreApplication::translate("VibeStudioTextureExport", "Selected game palette"), QStringLiteral("selected"));
-	m_storedPalette->setToolTip(QCoreApplication::translate("VibeStudioTextureExport", "WAD3, Half-Life sprites and SWL carry their own 256 colors. Built palettes keep the image's colors as closely as 256 entries allow."));
-	m_centered = check(QCoreApplication::translate("VibeStudioTextureExport", "Centre the origin"), QStringLiteral("textureExportCentered"));
-	m_centered->setToolTip(QCoreApplication::translate("VibeStudioTextureExport", "Place the origin at each frame's centre. Off: the offsets below give the origin from the frame's top-left corner."));
-	m_left = spin(QCoreApplication::translate("VibeStudioTextureExport", "Left offset"), QStringLiteral("textureExportLeft"), -32768, 32767);
-	m_top = spin(QCoreApplication::translate("VibeStudioTextureExport", "Top offset"), QStringLiteral("textureExportTop"), -32768, 32767);
-	for (auto* field : {m_left, m_top}) { field->setToolTip(QCoreApplication::translate("VibeStudioTextureExport", "Doom patch offsets, or the sprite origin measured from the frame's top-left corner.")); }
-	m_doomSprite = check(QCoreApplication::translate("VibeStudioTextureExport", "Stage as a sprite frame"), QStringLiteral("textureExportDoomSprite"));
-	m_doomSprite->setToolTip(QCoreApplication::translate("VibeStudioTextureExport", "Stage the patch between S_START and S_END instead of P_START and P_END, for sprite frames such as TROOA1."));
-	m_wall = text(QCoreApplication::translate("VibeStudioTextureExport", "Define wall texture"), QStringLiteral("textureExportWallTexture"), 8);
-	m_wall->setToolTip(QCoreApplication::translate("VibeStudioTextureExport", "When staging the patch, also define this TEXTURE1 wall texture as the patch at 0, 0, adding it to PNAMES. Leave empty to stage the patch only."));
-	m_extended = check(QCoreApplication::translate("VibeStudioTextureExport", "Use source-port limits"), QStringLiteral("textureExportExtended"));
-	m_extended->setToolTip(QCoreApplication::translate("VibeStudioTextureExport", "Permit tall Doom posts and larger miptextures. Verify the target engine and compiler; warnings still report known limits."));
+	m_description = label(QStringLiteral("textureExportDescription"), QCoreApplication::translate("SlopStudioTextureExport", "Profile requirements"));
+	m_alpha = combo(QCoreApplication::translate("SlopStudioTextureExport", "Alpha handling"), QStringLiteral("textureExportAlpha"));
+	m_alpha->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Preserve or reject"), QStringLiteral("strict"));
+	m_alpha->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Composite on matte"), QStringLiteral("matte"));
+	m_alpha->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Binary threshold"), QStringLiteral("threshold"));
+	m_matte = text(QCoreApplication::translate("SlopStudioTextureExport", "Opaque matte color"), QStringLiteral("textureExportMatte"), 16);
+	m_threshold = spin(QCoreApplication::translate("SlopStudioTextureExport", "Opaque from alpha"), QStringLiteral("textureExportThreshold"), 1, 255);
+	m_dither = check(QCoreApplication::translate("SlopStudioTextureExport", "Dither palette conversion"), QStringLiteral("textureExportDither"));
+	m_generated = check(QCoreApplication::translate("SlopStudioTextureExport", "Allow generated palette"), QStringLiteral("textureExportGenerated"));
+	m_generated->setToolTip(QCoreApplication::translate("SlopStudioTextureExport", "Generated colors are stand-ins. Review palette provenance in the Palette section before game export."));
+	m_filter = combo(QCoreApplication::translate("SlopStudioTextureExport", "Mipmap filter"), QStringLiteral("textureExportMipFilter"));
+	m_filter->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Area average"), QStringLiteral("box"));
+	m_filter->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Nearest pixel"), QStringLiteral("nearest"));
+	m_fullbright = combo(QCoreApplication::translate("SlopStudioTextureExport", "Quake fullbright colors"), QStringLiteral("textureExportFullbright"));
+	m_fullbright->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Preserve authored indices"), QStringLiteral("preserve"));
+	m_fullbright->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Exclude"), QStringLiteral("exclude"));
+	m_fullbright->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Allow during conversion"), QStringLiteral("allow"));
+	m_fullbright->setToolTip(QCoreApplication::translate("SlopStudioTextureExport", "Quake indices 224–255 glow without lighting. Preserve keeps matching indexed pixels; RGBA conversion excludes the band unless Allow is chosen."));
+	m_name = text(QCoreApplication::translate("SlopStudioTextureExport", "Native texture name"), QStringLiteral("textureExportName"), 128);
+	m_animation = text(QCoreApplication::translate("SlopStudioTextureExport", "Next WAL animation"), QStringLiteral("textureExportAnimation"), 128);
+	m_flags = text(QCoreApplication::translate("SlopStudioTextureExport", "WAL surface flags"), QStringLiteral("textureExportFlags"), 16);
+	m_contents = text(QCoreApplication::translate("SlopStudioTextureExport", "WAL content flags"), QStringLiteral("textureExportContents"), 16);
+	for (auto* field : {m_flags, m_contents}) { field->setToolTip(QCoreApplication::translate("SlopStudioTextureExport", "Unsigned 32-bit decimal value, or hexadecimal with a 0x prefix.")); }
+	m_value = spin(QCoreApplication::translate("SlopStudioTextureExport", "WAL surface value"), QStringLiteral("textureExportValue"), std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+	m_spriteType = combo(QCoreApplication::translate("SlopStudioTextureExport", "Sprite orientation"), QStringLiteral("textureExportSpriteType"));
+	m_spriteType->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Faces the view, stays upright"), QStringLiteral("parallel-upright"));
+	m_spriteType->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Faces the viewer, stays upright"), QStringLiteral("facing-upright"));
+	m_spriteType->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Faces the view"), QStringLiteral("parallel"));
+	m_spriteType->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Oriented by the entity"), QStringLiteral("oriented"));
+	m_spriteType->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Faces the view, entity roll"), QStringLiteral("parallel-oriented"));
+	m_spriteTexture = combo(QCoreApplication::translate("SlopStudioTextureExport", "Half-Life sprite rendering"), QStringLiteral("textureExportSpriteTexture"));
+	m_spriteTexture->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Normal (opaque)"), QStringLiteral("normal"));
+	m_spriteTexture->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Additive"), QStringLiteral("additive"));
+	m_spriteTexture->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Index alpha (one color, alpha coverage)"), QStringLiteral("index-alpha"));
+	m_spriteTexture->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Alpha test (index 255 transparent)"), QStringLiteral("alpha-test"));
+	m_randomSync = check(QCoreApplication::translate("SlopStudioTextureExport", "Random start frame"), QStringLiteral("textureExportRandomSync"));
+	m_randomSync->setToolTip(QCoreApplication::translate("SlopStudioTextureExport", "Start each sprite in the level at a random frame instead of in step."));
+	m_storedPalette = combo(QCoreApplication::translate("SlopStudioTextureExport", "Stored palette"), QStringLiteral("textureExportStoredPalette"));
+	m_storedPalette->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Built from the image"), QStringLiteral("image"));
+	m_storedPalette->addItem(QCoreApplication::translate("SlopStudioTextureExport", "Selected game palette"), QStringLiteral("selected"));
+	m_storedPalette->setToolTip(QCoreApplication::translate("SlopStudioTextureExport", "WAD3, Half-Life sprites and SWL carry their own 256 colors. Built palettes keep the image's colors as closely as 256 entries allow."));
+	m_centered = check(QCoreApplication::translate("SlopStudioTextureExport", "Centre the origin"), QStringLiteral("textureExportCentered"));
+	m_centered->setToolTip(QCoreApplication::translate("SlopStudioTextureExport", "Place the origin at each frame's centre. Off: the offsets below give the origin from the frame's top-left corner."));
+	m_left = spin(QCoreApplication::translate("SlopStudioTextureExport", "Left offset"), QStringLiteral("textureExportLeft"), -32768, 32767);
+	m_top = spin(QCoreApplication::translate("SlopStudioTextureExport", "Top offset"), QStringLiteral("textureExportTop"), -32768, 32767);
+	for (auto* field : {m_left, m_top}) { field->setToolTip(QCoreApplication::translate("SlopStudioTextureExport", "Doom patch offsets, or the sprite origin measured from the frame's top-left corner.")); }
+	m_doomSprite = check(QCoreApplication::translate("SlopStudioTextureExport", "Stage as a sprite frame"), QStringLiteral("textureExportDoomSprite"));
+	m_doomSprite->setToolTip(QCoreApplication::translate("SlopStudioTextureExport", "Stage the patch between S_START and S_END instead of P_START and P_END, for sprite frames such as TROOA1."));
+	m_wall = text(QCoreApplication::translate("SlopStudioTextureExport", "Define wall texture"), QStringLiteral("textureExportWallTexture"), 8);
+	m_wall->setToolTip(QCoreApplication::translate("SlopStudioTextureExport", "When staging the patch, also define this TEXTURE1 wall texture as the patch at 0, 0, adding it to PNAMES. Leave empty to stage the patch only."));
+	m_extended = check(QCoreApplication::translate("SlopStudioTextureExport", "Use source-port limits"), QStringLiteral("textureExportExtended"));
+	m_extended->setToolTip(QCoreApplication::translate("SlopStudioTextureExport", "Permit tall Doom posts and larger miptextures. Verify the target engine and compiler; warnings still report known limits."));
 	const auto button = [&](const QString& caption, const QString& name, auto callback) {
 		auto* field = new QPushButton(caption); field->setObjectName(name); field->setAccessibleName(caption); field->setAutoDefault(false);
 		m_form->addRow(field); connect(field, &QPushButton::clicked, this, callback);
 	};
-	button(QCoreApplication::translate("VibeStudioTextureExport", "Preview and Validate"), QStringLiteral("previewTextureExport"), [this]() { if (previewRequested) { previewRequested(); } });
-	button(QCoreApplication::translate("VibeStudioTextureExport", "Export File…"), QStringLiteral("saveTextureExport"), [this]() { if (exportRequested) { exportRequested(); } });
+	button(QCoreApplication::translate("SlopStudioTextureExport", "Preview and Validate"), QStringLiteral("previewTextureExport"), [this]() { if (previewRequested) { previewRequested(); } });
+	button(QCoreApplication::translate("SlopStudioTextureExport", "Export File…"), QStringLiteral("saveTextureExport"), [this]() { if (exportRequested) { exportRequested(); } });
 	m_mip = new QComboBox; m_mip->setObjectName(QStringLiteral("textureExportMipLevel"));
-	m_mip->setAccessibleName(QCoreApplication::translate("VibeStudioTextureExport", "Preview mip level")); m_form->addRow(m_mip->accessibleName(), m_mip);
+	m_mip->setAccessibleName(QCoreApplication::translate("SlopStudioTextureExport", "Preview mip level")); m_form->addRow(m_mip->accessibleName(), m_mip);
 	connect(m_mip, &QComboBox::currentIndexChanged, this, [this]() { updatePreview(); });
-	m_preview = label(QStringLiteral("textureExportPreview"), QCoreApplication::translate("VibeStudioTextureExport", "Encoded texture preview"));
+	m_preview = label(QStringLiteral("textureExportPreview"), QCoreApplication::translate("SlopStudioTextureExport", "Encoded texture preview"));
 	m_preview->setAlignment(Qt::AlignCenter); m_preview->setMinimumWidth(1); m_preview->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
-	m_report = label(QStringLiteral("textureExportReport"), QCoreApplication::translate("VibeStudioTextureExport", "Export validation and palette provenance"));
+	m_report = label(QStringLiteral("textureExportReport"), QCoreApplication::translate("SlopStudioTextureExport", "Export validation and palette provenance"));
 	setOptions({});
 }
 
@@ -168,14 +168,14 @@ void TextureExportPanel::updateFields()
 	visible(m_centered, profile.frames); visible(m_left, patch || (profile.frames && !m_centered->isChecked())); visible(m_top, patch || (profile.frames && !m_centered->isChecked()));
 	visible(m_doomSprite, patch); visible(m_wall, patch && !m_doomSprite->isChecked());
 	visible(m_extended, quake || wal || patch || quake2Sprite);
-	m_name->setToolTip(quake2Sprite ? QCoreApplication::translate("VibeStudioTextureExport", "Package path the PCX frames are named from: sprites/flame writes sprites/flame_0.pcx and onwards.") :
-		QCoreApplication::translate("VibeStudioTextureExport", "The name stored in the texture. WAD lumps must use the same name."));
+	m_name->setToolTip(quake2Sprite ? QCoreApplication::translate("SlopStudioTextureExport", "Package path the PCX frames are named from: sprites/flame writes sprites/flame_0.pcx and onwards.") :
+		QCoreApplication::translate("SlopStudioTextureExport", "The name stored in the texture. WAD lumps must use the same name."));
 }
 void TextureExportPanel::invalidatePreview()
 {
 	m_images.clear(); m_mip->clear(); m_mip->setEnabled(false); m_preview->clear();
-	m_preview->setAccessibleDescription(QCoreApplication::translate("VibeStudioTextureExport", "No current export preview."));
-	m_report->setText(QCoreApplication::translate("VibeStudioTextureExport", "Preview required for the current pixels, palette, and settings."));
+	m_preview->setAccessibleDescription(QCoreApplication::translate("SlopStudioTextureExport", "No current export preview."));
+	m_report->setText(QCoreApplication::translate("SlopStudioTextureExport", "Preview required for the current pixels, palette, and settings."));
 }
 void TextureExportPanel::showResult(const TextureExportResult& result, const IdTechPaletteResolution& palette)
 {
@@ -185,22 +185,22 @@ void TextureExportPanel::showResult(const TextureExportResult& result, const IdT
 	m_images = m_framesShown ? result.frames : (result.mipLevels.isEmpty() ? QVector<QImage>{result.preview} : result.mipLevels);
 	for (int level = 0; level < m_images.size(); ++level) {
 		const auto& image = m_images[level];
-		m_mip->addItem(m_framesShown ? QCoreApplication::translate("VibeStudioTextureExport", "Frame %1 · %2 × %3").arg(level + 1).arg(image.width()).arg(image.height()) :
-			QCoreApplication::translate("VibeStudioTextureExport", "Level %1 · %2 × %3").arg(level).arg(image.width()).arg(image.height()));
+		m_mip->addItem(m_framesShown ? QCoreApplication::translate("SlopStudioTextureExport", "Frame %1 · %2 × %3").arg(level + 1).arg(image.width()).arg(image.height()) :
+			QCoreApplication::translate("SlopStudioTextureExport", "Level %1 · %2 × %3").arg(level).arg(image.width()).arg(image.height()));
 	}
 	m_mip->setEnabled(m_images.size() > 1); updatePreview();
 	const QLocale locale;
-	QStringList lines{QCoreApplication::translate("VibeStudioTextureExport", "Size: %1 · RGB changes: %2 · Alpha changes: %3")
+	QStringList lines{QCoreApplication::translate("SlopStudioTextureExport", "Size: %1 · RGB changes: %2 · Alpha changes: %3")
 		.arg(locale.formattedDataSize(result.bytes.size()), locale.toString(result.colorChangedPixels), locale.toString(result.alphaChangedPixels))};
 	TextureExportOptions options; this->options(&options);
 	const bool ownPalette = !result.embeddedPalette.isEmpty() && options.imagePalette;
-	if (ownPalette) { lines << QCoreApplication::translate("VibeStudioTextureExport", "Palette: built from the image and stored with it."); }
+	if (ownPalette) { lines << QCoreApplication::translate("SlopStudioTextureExport", "Palette: built from the image and stored with it."); }
 	else if (options.format != TextureExportFormat::Png && options.format != TextureExportFormat::Targa && options.format != TextureExportFormat::Dds &&
 		options.format != TextureExportFormat::DdsMipmapped && options.format != TextureExportFormat::Ftx) {
 		lines << idTechPaletteSummaryLines(palette);
-		if (result.preservedIndices) { lines << QCoreApplication::translate("VibeStudioTextureExport", "Matching source indices preserved."); }
+		if (result.preservedIndices) { lines << QCoreApplication::translate("SlopStudioTextureExport", "Matching source indices preserved."); }
 	}
-	for (const auto& companion : result.companions) { lines << QCoreApplication::translate("VibeStudioTextureExport", "Also writes %1 (%2)").arg(companion.path, locale.formattedDataSize(companion.bytes.size())); }
+	for (const auto& companion : result.companions) { lines << QCoreApplication::translate("SlopStudioTextureExport", "Also writes %1 (%2)").arg(companion.path, locale.formattedDataSize(companion.bytes.size())); }
 	lines << result.warnings; m_report->setText(lines.join(QLatin1Char('\n')));
 }
 QImage TextureExportPanel::previewImage() const { return m_images.value(m_mip->currentIndex()); }
@@ -214,8 +214,8 @@ void TextureExportPanel::updatePreview()
 	const int cell = std::max(4, fontMetrics().height() / 2);
 	for (int y = 0; y < size.height(); y += cell) { for (int x = 0; x < size.width(); x += cell) { painter.fillRect(QRect(x, y, cell, cell), ((x / cell + y / cell) % 2) ? palette().color(QPalette::Base) : palette().color(QPalette::AlternateBase)); } }
 	painter.drawImage(QRect(QPoint(), size), image); painter.end(); m_preview->setPixmap(pixmap);
-	m_preview->setAccessibleDescription(m_framesShown ? QCoreApplication::translate("VibeStudioTextureExport", "Encoded frame %1, %2 by %3 pixels. Checkerboard shows transparency.").arg(m_mip->currentIndex() + 1).arg(image.width()).arg(image.height()) :
-		QCoreApplication::translate("VibeStudioTextureExport", "Encoded level %1, %2 by %3 pixels. Checkerboard shows transparency.").arg(m_mip->currentIndex()).arg(image.width()).arg(image.height()));
+	m_preview->setAccessibleDescription(m_framesShown ? QCoreApplication::translate("SlopStudioTextureExport", "Encoded frame %1, %2 by %3 pixels. Checkerboard shows transparency.").arg(m_mip->currentIndex() + 1).arg(image.width()).arg(image.height()) :
+		QCoreApplication::translate("SlopStudioTextureExport", "Encoded level %1, %2 by %3 pixels. Checkerboard shows transparency.").arg(m_mip->currentIndex()).arg(image.width()).arg(image.height()));
 }
 void TextureExportPanel::resizeEvent(QResizeEvent* event) { QWidget::resizeEvent(event); updatePreview(); }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -34,7 +34,7 @@
 #include <memory>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -212,7 +212,7 @@ bool checkNoticeEdge(QApplication& app)
 			insets[mirrored][0] = leadingInset(icon);
 			insets[mirrored][1] = trailingInset(close);
 			ok &= expect(insets[mirrored][0] > insets[mirrored][1], "the notice's wide margin clears the edge on its leading side");
-			const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			ok &= expect(root.isEmpty() || image.save(QDir(root).filePath(QStringLiteral("notice-%1-%2.png")
 				.arg(themeId(theme), mirrored ? QStringLiteral("rtl") : QStringLiteral("ltr")))), "write notice capture");
 		}
@@ -275,7 +275,7 @@ bool checkRailDivider(QApplication& app)
 					&& divider == (mirrored ? page->geometry().right() + 1 : page->geometry().left() - 1),
 				"the rail's divider sits on its trailing edge, beside the page");
 			fromLeadingEdge[mirrored] = mirrored ? image.width() - 1 - divider : divider;
-			const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			ok &= expect(root.isEmpty() || image.save(QDir(root).filePath(QStringLiteral("rail-%1-%2.png")
 				.arg(themeId(theme), mirrored ? QStringLiteral("rtl") : QStringLiteral("ltr")))), "write rail capture");
 		}
@@ -378,7 +378,7 @@ bool checkRailGlyphs(QApplication& app)
 				columns.push_back(glyphColumns(image, QRect(glyph->mapTo(&host, QPoint()), glyph->size()), rail->geometry(), mirrored,
 					tokens.colors.appBackground.rgb()));
 			}
-			const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			ok &= expect(root.isEmpty() || image.save(QDir(root).filePath(QStringLiteral("rail-glyphs-%1-%2-%3-%4-%5.png")
 				.arg(themeId(theme)).arg(scale).arg(label, pinned ? QStringLiteral("pinned") : QStringLiteral("unpinned"),
 					open ? QStringLiteral("open") : QStringLiteral("folded")))), "write rail glyph capture");
@@ -496,7 +496,7 @@ bool checkStyleSheetPadding(QApplication& app)
 				for (int pass = 0; pass < 3; ++pass) { app.processEvents(QEventLoop::ExcludeUserInputEvents); }
 				if (!focus && app.focusWidget()) { app.focusWidget()->clearFocus(); }
 				const QImage image = widget.grab().toImage();
-				const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+				const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 				ok &= expect(root.isEmpty() || image.save(QDir(root).filePath(QStringLiteral("padding-%1-%2-%3-%4.png")
 					.arg(themeId(theme)).arg(scale).arg(label, name))), "write style sheet padding capture");
 				return image;

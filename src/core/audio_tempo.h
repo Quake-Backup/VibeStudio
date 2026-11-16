@@ -6,7 +6,7 @@
 #include <QVector>
 #include <vector>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Quarter-note ticks are independent of the time signature. Audio and its
 // automation remain sample-anchored; editing this map never stretches media.
@@ -83,4 +83,4 @@ QJsonObject audioTempoMapToJson(const AudioTempoMap &map);
 bool audioTempoMapFromJson(const QJsonObject &json, AudioTempoMap *map);
 QString audioMusicalPositionText(const AudioMusicalPosition &position);
 bool parseAudioMusicalPosition(const QString &text, AudioMusicalPosition *position);
-} // namespace vibestudio
+} // namespace slopstudio

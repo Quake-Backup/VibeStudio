@@ -8,7 +8,7 @@ renderbump or other bakers on real models, or in the games.
 
 The baker is `src/core/model_bake.*` with its own bounding volume hierarchy
 (`src/core/model_bvh.*`); the dialog is `src/app/model_bake_dialog.*` and the
-command `src/cli/model_bake.*`. All of it is original VibeStudio code.
+command `src/cli/model_bake.*`. All of it is original SlopStudio code.
 
 ## Maps
 
@@ -79,8 +79,8 @@ convex model never shadows or occludes itself.
 ## Command line
 
 ```sh
-vibestudio --cli model bake ./models/crate.mesh.json --type ao --size 512x512 --samples 128 --output ./out/crate_ao.png --json
-vibestudio --cli model bake ./models/low.obj --type normal --high ./models/high.obj --cage 2 --output ./out/low_local.tga --json
+slopstudio --cli model bake ./models/crate.mesh.json --type ao --size 512x512 --samples 128 --output ./out/crate_ao.png --json
+slopstudio --cli model bake ./models/low.obj --type normal --high ./models/high.obj --cage 2 --output ./out/low_local.tga --json
 ```
 
 `--type` is `ao`, `normal` (tangent space), `object-normal` or `lighting`.

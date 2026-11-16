@@ -32,7 +32,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -1668,7 +1668,7 @@ ModelToolsCliResult runModelLod(const QStringList &arguments)
 		if (package)
 		{
 			const auto path = args.values.value(QStringLiteral("--package"));
-			if (path.endsWith(QStringLiteral(".vibepackage"), Qt::CaseInsensitive))
+			if (path.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive))
 			{
 				PackageStagingModel staging;
 				if (!PackageDraft::load(path, &staging, &error))
@@ -1926,4 +1926,4 @@ ModelToolsCliResult runModelLod(const QStringList &arguments)
 	result.payload.insert(QStringLiteral("findings"), modelLodValidationJson(set.validation));
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

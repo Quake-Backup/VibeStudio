@@ -11,7 +11,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace levelgen {
 
@@ -849,14 +849,14 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 	}
 	if (!levelGenerationThemeIds().contains(plan->theme)) {
 		if (!plan->theme.isEmpty()) {
-			note(QCoreApplication::translate("VibeStudioLevelGeneration", "Theme \"%1\" is unknown; used %2.").arg(plan->theme, spec.theme));
+			note(QCoreApplication::translate("SlopStudioLevelGeneration", "Theme \"%1\" is unknown; used %2.").arg(plan->theme, spec.theme));
 		}
 		plan->theme = spec.theme;
 	}
 
 	// Rooms: unique ids, known values, within bounds.
 	if (plan->rooms.size() > kMaxRooms) {
-		note(QCoreApplication::translate("VibeStudioLevelGeneration", "Kept the first %1 of %2 rooms.").arg(kMaxRooms).arg(plan->rooms.size()));
+		note(QCoreApplication::translate("SlopStudioLevelGeneration", "Kept the first %1 of %2 rooms.").arg(kMaxRooms).arg(plan->rooms.size()));
 		plan->rooms.resize(kMaxRooms);
 	}
 	QSet<QString> ids;
@@ -872,7 +872,7 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 				++suffix;
 			}
 			id = QStringLiteral("r%1").arg(suffix);
-			note(QCoreApplication::translate("VibeStudioLevelGeneration", "Room \"%1\" was renamed %2 to be unique.").arg(original, id));
+			note(QCoreApplication::translate("SlopStudioLevelGeneration", "Room \"%1\" was renamed %2 to be unique.").arg(original, id));
 		}
 		if (!original.isEmpty() && !renamed.contains(original)) {
 			renamed.insert(original, id);
@@ -881,7 +881,7 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 		ids.insert(id);
 		const auto fix = [&](QString& field, const QStringList& allowed, const QString& fallback, const QString& what) {
 			if (!allowed.contains(field)) {
-				note(QCoreApplication::translate("VibeStudioLevelGeneration", "Room %1's %2 \"%3\" is unknown; used %4.").arg(id, what, field, fallback));
+				note(QCoreApplication::translate("SlopStudioLevelGeneration", "Room %1's %2 \"%3\" is unknown; used %4.").arg(id, what, field, fallback));
 				field = fallback;
 			}
 		};
@@ -892,7 +892,7 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 		fix(room.liquid, kLiquids, QStringLiteral("none"), QStringLiteral("liquid"));
 		fix(room.lighting, kLighting, QStringLiteral("normal"), QStringLiteral("lighting"));
 		if (room.level < 0 || room.level > 3) {
-			note(QCoreApplication::translate("VibeStudioLevelGeneration", "Room %1's level %2 was clamped to 0-3.").arg(id).arg(room.level));
+			note(QCoreApplication::translate("SlopStudioLevelGeneration", "Room %1's level %2 was clamped to 0-3.").arg(id).arg(room.level));
 			room.level = std::clamp(room.level, 0, 3);
 		}
 		if (spec.verticality == QStringLiteral("flat") && room.level != 0) {
@@ -919,7 +919,7 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 		room.name = QStringLiteral("Hall");
 		ids.insert(room.id);
 		plan->rooms.push_back(room);
-		note(QCoreApplication::translate("VibeStudioLevelGeneration", "Added room %1: a level needs at least two.").arg(room.id));
+		note(QCoreApplication::translate("SlopStudioLevelGeneration", "Added room %1: a level needs at least two.").arg(room.id));
 	}
 	const auto roomIndex = [plan](const QString& id) {
 		for (int index = 0; index < plan->rooms.size(); ++index) {
@@ -938,7 +938,7 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 		connection.from = resolved(connection.from);
 		connection.to = resolved(connection.to);
 		if (!ids.contains(connection.from) || !ids.contains(connection.to) || connection.from == connection.to) {
-			note(QCoreApplication::translate("VibeStudioLevelGeneration", "Dropped the link %1 to %2: it does not join two rooms.").arg(connection.from, connection.to));
+			note(QCoreApplication::translate("SlopStudioLevelGeneration", "Dropped the link %1 to %2: it does not join two rooms.").arg(connection.from, connection.to));
 			continue;
 		}
 		const QString key = connection.from < connection.to ? connection.from + QLatin1Char('|') + connection.to : connection.to + QLatin1Char('|') + connection.from;
@@ -963,7 +963,7 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 	if (start < 0) {
 		start = 0;
 		if (singlePlayer) {
-			note(QCoreApplication::translate("VibeStudioLevelGeneration", "Room %1 became the start: no room had that role.").arg(plan->rooms[0].id));
+			note(QCoreApplication::translate("SlopStudioLevelGeneration", "Room %1 became the start: no room had that role.").arg(plan->rooms[0].id));
 			plan->rooms[0].role = QStringLiteral("start");
 		}
 	}
@@ -1003,7 +1003,7 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 				}
 			}
 			plan->connections.push_back({plan->rooms[best].id, plan->rooms[index].id, QStringLiteral("corridor")});
-			note(QCoreApplication::translate("VibeStudioLevelGeneration", "Linked %1 to %2 so the start reaches it.").arg(plan->rooms[best].id, plan->rooms[index].id));
+			note(QCoreApplication::translate("SlopStudioLevelGeneration", "Linked %1 to %2 so the start reaches it.").arg(plan->rooms[best].id, plan->rooms[index].id));
 			component = components();
 		}
 	}
@@ -1013,15 +1013,15 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 	for (LevelPlanPlacement placement : plan->placements) {
 		placement.room = resolved(placement.room);
 		if (!ids.contains(placement.room)) {
-			note(QCoreApplication::translate("VibeStudioLevelGeneration", "Dropped a %1 placed in unknown room \"%2\".").arg(placement.kind, placement.room));
+			note(QCoreApplication::translate("SlopStudioLevelGeneration", "Dropped a %1 placed in unknown room \"%2\".").arg(placement.kind, placement.room));
 			continue;
 		}
 		if (!kPlacementKinds.contains(placement.kind)) {
-			note(QCoreApplication::translate("VibeStudioLevelGeneration", "Dropped a placement of unknown kind \"%1\".").arg(placement.kind));
+			note(QCoreApplication::translate("SlopStudioLevelGeneration", "Dropped a placement of unknown kind \"%1\".").arg(placement.kind));
 			continue;
 		}
 		if (placement.kind == QStringLiteral("monster") && (spec.game == QStringLiteral("quake3") || !singlePlayer)) {
-			note(QCoreApplication::translate("VibeStudioLevelGeneration", "Dropped monsters from %1: this is not a single-player level.").arg(placement.room));
+			note(QCoreApplication::translate("SlopStudioLevelGeneration", "Dropped monsters from %1: this is not a single-player level.").arg(placement.room));
 			continue;
 		}
 		if (placement.kind == QStringLiteral("exit") && (!singlePlayer || spec.game == QStringLiteral("quake3"))) {
@@ -1032,7 +1032,7 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 		if (!items.isEmpty()) {
 			const QString item = normalizedItemId(placement.item);
 			if (!item.isEmpty() && !items.contains(item)) {
-				note(QCoreApplication::translate("VibeStudioLevelGeneration", "%1 has no %2 \"%3\"; the generator chooses one.").arg(spec.game, placement.kind, placement.item));
+				note(QCoreApplication::translate("SlopStudioLevelGeneration", "%1 has no %2 \"%3\"; the generator chooses one.").arg(spec.game, placement.kind, placement.item));
 				placement.item.clear();
 			} else {
 				placement.item = item;
@@ -1054,7 +1054,7 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 	if (singlePlayer || spec.game == QStringLiteral("quake")) {
 		if (count(QStringLiteral("player-start")) == 0) {
 			plan->placements.push_back({plan->rooms[start].id, QStringLiteral("player-start"), QString(), 1});
-			note(QCoreApplication::translate("VibeStudioLevelGeneration", "Added a player start in %1.").arg(plan->rooms[start].id));
+			note(QCoreApplication::translate("SlopStudioLevelGeneration", "Added a player start in %1.").arg(plan->rooms[start].id));
 		}
 	}
 	if (singlePlayer && spec.game != QStringLiteral("quake3") && count(QStringLiteral("exit")) == 0) {
@@ -1075,7 +1075,7 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 		}
 		const int furthest = int(std::max_element(distance.begin(), distance.end()) - distance.begin());
 		plan->placements.push_back({plan->rooms[furthest].id, QStringLiteral("exit"), QString(), 1});
-		note(QCoreApplication::translate("VibeStudioLevelGeneration", "Added the exit in %1, the room furthest from the start.").arg(plan->rooms[furthest].id));
+		note(QCoreApplication::translate("SlopStudioLevelGeneration", "Added the exit in %1, the room furthest from the start.").arg(plan->rooms[furthest].id));
 	}
 	if (!singlePlayer) {
 		const int wanted = std::max(spec.players, spec.mode == QStringLiteral("duel") ? 2 : 4);
@@ -1084,7 +1084,7 @@ QStringList repairLevelSemanticPlan(LevelSemanticPlan* plan, const LevelGenerati
 			plan->placements.push_back({plan->rooms[index % plan->rooms.size()].id, QStringLiteral("deathmatch-start"), QString(), 1});
 		}
 		if (had < wanted) {
-			note(QCoreApplication::translate("VibeStudioLevelGeneration", "Added %1 deathmatch start(s) for %2 players.").arg(wanted - had).arg(wanted));
+			note(QCoreApplication::translate("SlopStudioLevelGeneration", "Added %1 deathmatch start(s) for %2 players.").arg(wanted - had).arg(wanted));
 		}
 	}
 	plan->repairs += repairs;
@@ -1103,7 +1103,7 @@ QString levelPlanSystemPrompt(const LevelGenerationSpec& input)
 	}
 	// Kept in English: it instructs the model, and the user reviews it as sent.
 	return QStringLiteral(
-		"You are a veteran level designer for classic id Software games, planning a level for VibeStudio's level generator. "
+		"You are a veteran level designer for classic id Software games, planning a level for SlopStudio's level generator. "
 		"You write only the plan: rooms, how they connect, and what is placed in each. The generator lays the plan out on a grid, "
 		"builds sealed geometry with stairs between floor levels, lights it, and places the entities, so never give coordinates.\n\n"
 		"Design for flow and pacing: a readable main route with loops back so the player is not forced down dead ends; "
@@ -1157,7 +1157,7 @@ AiChatRequest levelPlanAiRequest(const LevelGenerationSpec& input, const QString
 QStringList levelSemanticPlanLines(const LevelSemanticPlan& plan)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioLevelGeneration", "%1, planned by %2").arg(plan.title, plan.planner);
+	lines << QCoreApplication::translate("SlopStudioLevelGeneration", "%1, planned by %2").arg(plan.title, plan.planner);
 	if (!plan.summary.isEmpty()) {
 		lines << plan.summary;
 	}
@@ -1171,13 +1171,13 @@ QStringList levelSemanticPlanLines(const LevelSemanticPlan& plan)
 			things << (placement.count > 1 ? QStringLiteral("%1 x%2").arg(what).arg(placement.count) : what);
 		}
 		const QString feature = room.liquid == QStringLiteral("none") ? room.shape : QStringLiteral("%1 of %2").arg(room.shape, room.liquid);
-		lines << QCoreApplication::translate("VibeStudioLevelGeneration", "%1 \"%2\": %3 %4 room, level %5, %6, %7 light. %8")
+		lines << QCoreApplication::translate("SlopStudioLevelGeneration", "%1 \"%2\": %3 %4 room, level %5, %6, %7 light. %8")
 					 .arg(room.id, room.name, room.size, room.role)
 					 .arg(room.level)
-					 .arg(feature, room.lighting, things.isEmpty() ? QCoreApplication::translate("VibeStudioLevelGeneration", "Empty.") : things.join(QStringLiteral(", ")));
+					 .arg(feature, room.lighting, things.isEmpty() ? QCoreApplication::translate("SlopStudioLevelGeneration", "Empty.") : things.join(QStringLiteral(", ")));
 	}
 	for (const LevelPlanConnection& connection : plan.connections) {
-		lines << QCoreApplication::translate("VibeStudioLevelGeneration", "%1 to %2 by %3").arg(connection.from, connection.to, connection.kind);
+		lines << QCoreApplication::translate("SlopStudioLevelGeneration", "%1 to %2 by %3").arg(connection.from, connection.to, connection.kind);
 	}
 	return lines;
 }
@@ -1196,7 +1196,7 @@ bool levelSemanticPlanFromAnswer(const QString& answer, const LevelGenerationSpe
 	LevelSemanticPlan parsed;
 	if (!levelSemanticPlanFromJson(object, &parsed, &found)) {
 		if (problems) {
-			*problems = found.isEmpty() ? QStringList {QCoreApplication::translate("VibeStudioLevelGeneration", "The plan has no rooms.")} : found;
+			*problems = found.isEmpty() ? QStringList {QCoreApplication::translate("SlopStudioLevelGeneration", "The plan has no rooms.")} : found;
 		}
 		return false;
 	}
@@ -1205,7 +1205,7 @@ bool levelSemanticPlanFromAnswer(const QString& answer, const LevelGenerationSpe
 	for (const LevelPlanPlacement& placement : parsed.placements) {
 		const QStringList items = levelGenerationItemIds(normalized.game, placement.kind);
 		if (!placement.item.isEmpty() && !items.isEmpty() && !items.contains(normalizedItemId(placement.item))) {
-			found << QCoreApplication::translate("VibeStudioLevelGeneration", "\"%1\" is not a %2 in %3.").arg(placement.item, placement.kind, normalized.game);
+			found << QCoreApplication::translate("SlopStudioLevelGeneration", "\"%1\" is not a %2 in %3.").arg(placement.item, placement.kind, normalized.game);
 		}
 	}
 	if (problems) {
@@ -1217,4 +1217,4 @@ bool levelSemanticPlanFromAnswer(const QString& answer, const LevelGenerationSpe
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

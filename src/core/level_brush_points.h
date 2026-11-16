@@ -4,7 +4,7 @@
 
 #include <QJsonObject>
 
-namespace vibestudio {
+namespace slopstudio {
 // Create Brush from Points and Copy Vertex Coordinates: TrenchBroom's debug
 // Create Brush… and Print Vertices as ordinary commands. A typed point list
 // becomes the convex brush that encloses it, through the shared envelope
@@ -85,4 +85,4 @@ bool levelMapVertexListings(const LevelMapDocument& document, const QVector<int>
 // line followed by its points as `(x y z) (x y z) …`, ending with a new line.
 QString levelVertexListingText(const QVector<LevelVertexListing>& listings);
 int levelVertexListingPointCount(const QVector<LevelVertexListing>& listings);
-} // namespace vibestudio
+} // namespace slopstudio

@@ -15,7 +15,7 @@
 
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The side panels open on by default: the trailing edge, so the right in a
 // left-to-right layout and the left in a right-to-left one.
@@ -41,4 +41,4 @@ namespace vibestudio {
 // right-to-left, unchanged otherwise, and unchanged when it cannot be read.
 [[nodiscard]] QByteArray windowStateForDirection(const QByteArray& state, Qt::LayoutDirection direction);
 
-} // namespace vibestudio
+} // namespace slopstudio

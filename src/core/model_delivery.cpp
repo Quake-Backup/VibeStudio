@@ -8,7 +8,7 @@
 #include <QFileInfo>
 #include <QJsonValue>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -38,26 +38,26 @@ QJsonObject modelDeliveryPreferencesJson(const ModelDeliveryPreferences &prefere
 bool parseModelDeliveryPreferences(const QJsonValue &value, ModelDeliveryPreferences *preferences, QString *error)
 {
 	if (!value.isObject())
-		return fail(error, QCoreApplication::translate("VibeStudioModelDelivery", "The saved delivery targets are not an object."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDelivery", "The saved delivery targets are not an object."));
 	const auto object = value.toObject();
 	ModelDeliveryPreferences result;
 	for (auto it = object.begin(); it != object.end(); ++it)
 	{
 		if (it.key() != QStringLiteral("targets") && it.key() != QStringLiteral("strict"))
-			return fail(error, QCoreApplication::translate("VibeStudioModelDelivery", "The saved delivery targets have an unknown field \"%1\".").arg(it.key()));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDelivery", "The saved delivery targets have an unknown field \"%1\".").arg(it.key()));
 	}
 	const auto targets = object.value(QStringLiteral("targets"));
 	if (!targets.isUndefined() && !targets.isObject())
-		return fail(error, QCoreApplication::translate("VibeStudioModelDelivery", "The saved delivery targets must map formats to target ids."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDelivery", "The saved delivery targets must map formats to target ids."));
 	const auto map = targets.toObject();
 	for (auto it = map.begin(); it != map.end(); ++it)
 	{
 		const auto format = it.key().toLower();
 		const auto id = it.value().toString().trimmed().toLower();
 		if (!it.value().isString() || modelTargetProfiles(format).isEmpty())
-			return fail(error, QCoreApplication::translate("VibeStudioModelDelivery", "%1 has no delivery targets.").arg(it.key()));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDelivery", "%1 has no delivery targets.").arg(it.key()));
 		if (!findModelTargetProfile(format, id, nullptr) || id.isEmpty())
-			return fail(error, QCoreApplication::translate("VibeStudioModelDelivery", "There is no %1 delivery target called \"%2\". Choose one of: %3.")
+			return fail(error, QCoreApplication::translate("SlopStudioModelDelivery", "There is no %1 delivery target called \"%2\". Choose one of: %3.")
 								   .arg(format, it.value().toString(), modelTargetChoices(format)));
 		result.targets.insert(format, id);
 	}
@@ -65,7 +65,7 @@ bool parseModelDeliveryPreferences(const QJsonValue &value, ModelDeliveryPrefere
 	if (!strict.isUndefined())
 	{
 		if (!strict.isBool())
-			return fail(error, QCoreApplication::translate("VibeStudioModelDelivery", "The saved strict-export setting must be true or false."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDelivery", "The saved strict-export setting must be true or false."));
 		result.strictSet = true;
 		result.strict = strict.toBool();
 	}
@@ -85,7 +85,7 @@ ModelDeliveryPreferences projectModelDeliveryPreferences(const ProjectManifest &
 		return result;
 	// Keep what still parses: a target this studio no longer has drops alone.
 	if (warnings)
-		*warnings << QCoreApplication::translate("VibeStudioModelDelivery", "The project's saved delivery targets were partly ignored: %1").arg(error);
+		*warnings << QCoreApplication::translate("SlopStudioModelDelivery", "The project's saved delivery targets were partly ignored: %1").arg(error);
 	result = {};
 	const auto object = value.toObject();
 	const auto targets = object.value(QStringLiteral("targets")).toObject();
@@ -213,13 +213,13 @@ QString modelDeliveryOriginName(ModelDeliveryOrigin origin)
 	switch (origin)
 	{
 	case ModelDeliveryOrigin::Explicit:
-		return QCoreApplication::translate("VibeStudioModelDelivery", "chosen for this export");
+		return QCoreApplication::translate("SlopStudioModelDelivery", "chosen for this export");
 	case ModelDeliveryOrigin::Project:
-		return QCoreApplication::translate("VibeStudioModelDelivery", "saved with the project");
+		return QCoreApplication::translate("SlopStudioModelDelivery", "saved with the project");
 	case ModelDeliveryOrigin::Installation:
-		return QCoreApplication::translate("VibeStudioModelDelivery", "suggested by the game installation");
+		return QCoreApplication::translate("SlopStudioModelDelivery", "suggested by the game installation");
 	case ModelDeliveryOrigin::Default:
-		return QCoreApplication::translate("VibeStudioModelDelivery", "the format's default");
+		return QCoreApplication::translate("SlopStudioModelDelivery", "the format's default");
 	}
 	return {};
 }
@@ -239,4 +239,4 @@ QString findModelProjectRoot(const QString &path)
 	}
 	return {};
 }
-} // namespace vibestudio
+} // namespace slopstudio

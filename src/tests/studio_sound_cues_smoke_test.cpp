@@ -13,7 +13,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -106,7 +106,7 @@ bool checkCue(SoundCue cue, int contour)
 
 int main(int argc, char** argv)
 {
-	qputenv("VIBESTUDIO_SOUND_CUES", "log");
+	qputenv("SLOPSTUDIO_SOUND_CUES", "log");
 	QCoreApplication app(argc, argv);
 	bool ok = true;
 	ok &= checkCue(SoundCue::Success, 1);

@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 AudioMeterDialog::AudioMeterDialog(QWidget *parent) : QDialog(parent)
 {
@@ -216,4 +216,4 @@ void AudioMeterDialog::refresh()
 			m_detail->setText(detail);
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

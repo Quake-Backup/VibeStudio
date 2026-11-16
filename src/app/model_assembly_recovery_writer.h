@@ -7,7 +7,7 @@
 
 class QThread;
 
-namespace vibestudio
+namespace slopstudio
 {
 // A dirty document owns one writer/lease. One active and one replaceable
 // snapshot; retirement waits for in-flight publication before removing it.
@@ -37,4 +37,4 @@ class ModelAssemblyRecoveryWriter final : public QObject
 	bool m_preserving = false;
 	void startNext();
 };
-} // namespace vibestudio
+} // namespace slopstudio

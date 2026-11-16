@@ -12,7 +12,7 @@
 #include <QVector>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class AssetPreviewKind {
 	Unknown,
@@ -237,4 +237,4 @@ AssetAudioExportReport exportPackageAudioToWavAt(const PackageArchive& archive, 
 QString assetAudioExportReportText(const AssetAudioExportReport& report);
 
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,7 +1,7 @@
 #pragma once
 #include "core/audio_range.h"
 #include "tests/audio_arrangement_fixture.h"
-namespace vibestudio::test
+namespace slopstudio::test
 {
 inline AudioSession rangeFixture(bool routed = false)
 {
@@ -42,4 +42,4 @@ inline AudioRangeEdit rangeEdit(const QString &operation, qint64 first = 60, qin
 	result.masterAutomation = operation != "clear";
 	return result;
 }
-} // namespace vibestudio::test
+} // namespace slopstudio::test

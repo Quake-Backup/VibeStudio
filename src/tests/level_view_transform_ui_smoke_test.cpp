@@ -5,7 +5,7 @@
 // axes, the Radiant camera keeping the last plan view's axes; the grid and
 // half-grid pivots; one undo step each; locked objects refused; the sweep
 // destination turned by the rotation step; Doom maps refusing roll and pitch.
-// TrenchBroom, NetRadiant Custom and VibeStudio profiles at 100%, and at 200%
+// TrenchBroom, NetRadiant Custom and SlopStudio profiles at 100%, and at 200%
 // with high contrast, expanded translations and right-to-left layout. Owned
 // offscreen widgets and synthetic Qt Test key events only.
 #include "app/application_shell.h"
@@ -38,7 +38,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -121,7 +121,7 @@ int main(int argc, char** argv)
 	QStringList ids;
 	for (const auto& transform : levelViewTransforms()) { ids << transform.commandId; }
 
-	for (const auto* profile : {"trenchbroom", "netradiant-custom", "vibestudio-default"}) {
+	for (const auto* profile : {"trenchbroom", "netradiant-custom", "slopstudio-default"}) {
 		const bool tb = QLatin1String(profile) == QLatin1String("trenchbroom");
 		const bool nrc = QLatin1String(profile) == QLatin1String("netradiant-custom");
 		const LevelEditorControls controls = levelEditorControlsForProfile(QString::fromLatin1(profile));

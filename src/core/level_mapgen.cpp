@@ -30,7 +30,7 @@
 #include <string>
 #include <vector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -357,7 +357,7 @@ public:
 		// A tool that picks its own model (Codex with none set) is named by its default, the same
 		// on every revision.
 		const QString modelId = m_model->connection.model.isEmpty() ? QStringLiteral("%1-default").arg(m_model->connection.connectorId) : m_model->connection.model;
-		result.identity.backend = toStd(QStringLiteral("vibestudio/%1").arg(m_model->connection.connectorId));
+		result.identity.backend = toStd(QStringLiteral("slopstudio/%1").arg(m_model->connection.connectorId));
 		result.identity.backend_version = toStd(modelId);
 		result.identity.model_id = toStd(modelId);
 		result.identity.provenance = qmg::ModelProvenance::named_service;
@@ -649,7 +649,7 @@ LevelSemanticPlan studioPlan(const qmg::PipelineResult& pipeline, const LevelGen
 	LevelSemanticPlan plan;
 	plan.title = result.spec.title;
 	plan.theme = fromStd(level.spec.theme);
-	plan.summary = QCoreApplication::translate("VibeStudioLevelMapgen", "%1 route, %2 symmetry, %3 lighting; verticality %4, intensity %5 (of 100).")
+	plan.summary = QCoreApplication::translate("SlopStudioLevelMapgen", "%1 route, %2 symmetry, %3 lighting; verticality %4, intensity %5 (of 100).")
 					   .arg(fromStd(qmg::to_string(pipeline.semantic_plan.route_style)), fromStd(qmg::to_string(pipeline.semantic_plan.symmetry)),
 						   fromStd(qmg::to_string(pipeline.semantic_plan.lighting_style)))
 					   .arg(pipeline.semantic_plan.verticality)
@@ -701,14 +701,14 @@ LevelSemanticPlan studioPlan(const qmg::PipelineResult& pipeline, const LevelGen
 
 QString severityWord(const QString& severity)
 {
-	return severity == QStringLiteral("error") ? QCoreApplication::translate("VibeStudioLevelMapgen", "error") : QCoreApplication::translate("VibeStudioLevelMapgen", "warning");
+	return severity == QStringLiteral("error") ? QCoreApplication::translate("SlopStudioLevelMapgen", "error") : QCoreApplication::translate("SlopStudioLevelMapgen", "warning");
 }
 
 // "3 errors, 2 warnings" over a findings array, with the codes that occur, most frequent first.
 QString findingsText(const QJsonArray& findings)
 {
 	if (findings.isEmpty()) {
-		return QCoreApplication::translate("VibeStudioLevelMapgen", "no findings");
+		return QCoreApplication::translate("SlopStudioLevelMapgen", "no findings");
 	}
 	int errors = 0;
 	int warnings = 0;
@@ -724,19 +724,19 @@ QString findingsText(const QJsonArray& findings)
 	for (const QString& name : names) {
 		parts << QStringLiteral("%1 x%2").arg(name).arg(codes.value(name));
 	}
-	return QCoreApplication::translate("VibeStudioLevelMapgen", "errors %1, warnings %2 (%3)").arg(errors).arg(warnings).arg(parts.join(QStringLiteral(", ")));
+	return QCoreApplication::translate("SlopStudioLevelMapgen", "errors %1, warnings %2 (%3)").arg(errors).arg(warnings).arg(parts.join(QStringLiteral(", ")));
 }
 
 QString agentName(const QString& agent)
 {
 	if (agent == QStringLiteral("player")) {
-		return QCoreApplication::translate("VibeStudioLevelMapgen", "player");
+		return QCoreApplication::translate("SlopStudioLevelMapgen", "player");
 	}
 	if (agent == QStringLiteral("monster_small")) {
-		return QCoreApplication::translate("VibeStudioLevelMapgen", "small monsters");
+		return QCoreApplication::translate("SlopStudioLevelMapgen", "small monsters");
 	}
 	if (agent == QStringLiteral("monster_large")) {
-		return QCoreApplication::translate("VibeStudioLevelMapgen", "large monsters");
+		return QCoreApplication::translate("SlopStudioLevelMapgen", "large monsters");
 	}
 	return agent;
 }
@@ -757,7 +757,7 @@ QStringList analysisLines(const QJsonObject& report)
 			+ score.value(QStringLiteral("navigation_errors")).toInt() + score.value(QStringLiteral("visibility_errors")).toInt()
 			+ score.value(QStringLiteral("lighting_errors")).toInt() + score.value(QStringLiteral("timing_errors")).toInt();
 		const int warnings = score.value(QStringLiteral("warnings")).toInt();
-		lines << QCoreApplication::translate("VibeStudioLevelMapgen",
+		lines << QCoreApplication::translate("SlopStudioLevelMapgen",
 			"Analysis (advisory): error findings %1 (navigation %2, visibility %3, lighting %4, timing %5), warnings %6.")
 					 .arg(errors)
 					 .arg(score.value(QStringLiteral("navigation_errors")).toInt())
@@ -774,39 +774,39 @@ QStringList analysisLines(const QJsonObject& report)
 			continue;
 		}
 		const QJsonArray findings = result.value(QStringLiteral("findings")).toArray();
-		lines << QCoreApplication::translate("VibeStudioLevelMapgen", "Navigation for %1: %2.").arg(agentName(agent), findingsText(findings));
+		lines << QCoreApplication::translate("SlopStudioLevelMapgen", "Navigation for %1: %2.").arg(agentName(agent), findingsText(findings));
 		detailed.append({agentName(agent), findings});
 	}
 	const QJsonObject visibility = analysis.value(QStringLiteral("visibility")).toObject();
 	if (visibility.value(QStringLiteral("available")).toBool()) {
 		const QJsonObject summary = visibility.value(QStringLiteral("summary")).toObject();
 		const QJsonArray findings = visibility.value(QStringLiteral("findings")).toArray();
-		lines << QCoreApplication::translate("VibeStudioLevelMapgen", "Visibility: %1 of %2 spawns safe, chokepoint links %3; %4.")
+		lines << QCoreApplication::translate("SlopStudioLevelMapgen", "Visibility: %1 of %2 spawns safe, chokepoint links %3; %4.")
 					 .arg(summary.value(QStringLiteral("safe_spawns")).toInt())
 					 .arg(summary.value(QStringLiteral("evaluated_spawns")).toInt())
 					 .arg(summary.value(QStringLiteral("chokepoint_connections")).toInt())
 					 .arg(findingsText(findings));
-		detailed.append({QCoreApplication::translate("VibeStudioLevelMapgen", "visibility"), findings});
+		detailed.append({QCoreApplication::translate("SlopStudioLevelMapgen", "visibility"), findings});
 	}
 	const QJsonObject lighting = analysis.value(QStringLiteral("lighting")).toObject();
 	if (lighting.value(QStringLiteral("available")).toBool()) {
 		const QJsonObject summary = lighting.value(QStringLiteral("summary")).toObject();
 		const QJsonArray findings = lighting.value(QStringLiteral("findings")).toArray();
-		lines << QCoreApplication::translate("VibeStudioLevelMapgen", "Lighting: lights %1, %2 of %3 sample points readable; %4.")
+		lines << QCoreApplication::translate("SlopStudioLevelMapgen", "Lighting: lights %1, %2 of %3 sample points readable; %4.")
 					 .arg(summary.value(QStringLiteral("lights")).toInt())
 					 .arg(summary.value(QStringLiteral("readable_samples")).toInt())
 					 .arg(summary.value(QStringLiteral("samples")).toInt())
 					 .arg(findingsText(findings));
-		detailed.append({QCoreApplication::translate("VibeStudioLevelMapgen", "lighting"), findings});
+		detailed.append({QCoreApplication::translate("SlopStudioLevelMapgen", "lighting"), findings});
 	}
 	if (quality.value(QStringLiteral("available")).toBool()) {
 		const QJsonObject summary = quality.value(QStringLiteral("summary")).toObject();
 		const QJsonArray findings = quality.value(QStringLiteral("findings")).toArray();
-		lines << QCoreApplication::translate("VibeStudioLevelMapgen", "Travel: %1 of %2 timed routes reachable; %3.")
+		lines << QCoreApplication::translate("SlopStudioLevelMapgen", "Travel: %1 of %2 timed routes reachable; %3.")
 					 .arg(summary.value(QStringLiteral("reachable_timing_pairs")).toInt())
 					 .arg(summary.value(QStringLiteral("timing_pairs")).toInt())
 					 .arg(findingsText(findings));
-		detailed.append({QCoreApplication::translate("VibeStudioLevelMapgen", "travel"), findings});
+		detailed.append({QCoreApplication::translate("SlopStudioLevelMapgen", "travel"), findings});
 	}
 	// The findings themselves, at most 40 so a long list stays readable; the report has them all.
 	int shown = 0;
@@ -819,14 +819,14 @@ QStringList analysisLines(const QJsonObject& report)
 				continue;
 			}
 			const QString message = finding.value(QStringLiteral("message")).toString();
-			lines << QCoreApplication::translate("VibeStudioLevelMapgen", "- %1 %2 (%3)%4")
+			lines << QCoreApplication::translate("SlopStudioLevelMapgen", "- %1 %2 (%3)%4")
 						 .arg(severityWord(finding.value(QStringLiteral("severity")).toString()), finding.value(QStringLiteral("code")).toString(), area,
 							 message.isEmpty() ? QString() : QStringLiteral(": %1").arg(message));
 			++shown;
 		}
 	}
 	if (hidden > 0) {
-		lines << QCoreApplication::translate("VibeStudioLevelMapgen", "%n more finding(s) are in the report.", nullptr, hidden);
+		lines << QCoreApplication::translate("SlopStudioLevelMapgen", "%n more finding(s) are in the report.", nullptr, hidden);
 	}
 	return lines;
 }
@@ -918,39 +918,39 @@ QString levelMapgenVersion()
 QString levelMapgenSpecProblem(const LevelGenerationSpec& spec)
 {
 	if (!spec.game.trimmed().isEmpty() && !qmgGame(spec.game)) {
-		return QCoreApplication::translate("VibeStudioLevelMapgen", "Quake-MapGen builds Quake, Quake II, and Quake III Arena levels, not %1; use the studio generator for it.")
+		return QCoreApplication::translate("SlopStudioLevelMapgen", "Quake-MapGen builds Quake, Quake II, and Quake III Arena levels, not %1; use the studio generator for it.")
 			.arg(spec.game);
 	}
 	if (!spec.mode.trimmed().isEmpty() && !qmgMode(spec.mode)) {
-		return QCoreApplication::translate("VibeStudioLevelMapgen", "Quake-MapGen's modes are %1, not %2.").arg(levelMapgenModeIds().join(QStringLiteral(", ")), spec.mode);
+		return QCoreApplication::translate("SlopStudioLevelMapgen", "Quake-MapGen's modes are %1, not %2.").arg(levelMapgenModeIds().join(QStringLiteral(", ")), spec.mode);
 	}
 	if (!spec.format.isEmpty()) {
 		if (!qmgDialect(spec.format)) {
-			return QCoreApplication::translate("VibeStudioLevelMapgen", "The map formats are %1, not %2.").arg(levelMapgenFormatIds().join(QStringLiteral(", ")), spec.format);
+			return QCoreApplication::translate("SlopStudioLevelMapgen", "The map formats are %1, not %2.").arg(levelMapgenFormatIds().join(QStringLiteral(", ")), spec.format);
 		}
 		if (qmgGame(spec.game) && !levelMapgenFormatIds(spec.game).contains(spec.format)) {
-			return QCoreApplication::translate("VibeStudioLevelMapgen", "%1 is not a %2 map format; it takes %3.")
+			return QCoreApplication::translate("SlopStudioLevelMapgen", "%1 is not a %2 map format; it takes %3.")
 				.arg(spec.format, normalizedGame(spec.game), levelMapgenFormatIds(spec.game).join(QStringLiteral(", ")));
 		}
 	}
 	if (!spec.intensity.isEmpty() && !intensityValue(spec.intensity)) {
-		return QCoreApplication::translate("VibeStudioLevelMapgen", "Intensity is one of %1, not %2.").arg(levelMapgenIntensityIds().join(QStringLiteral(", ")), spec.intensity);
+		return QCoreApplication::translate("SlopStudioLevelMapgen", "Intensity is one of %1, not %2.").arg(levelMapgenIntensityIds().join(QStringLiteral(", ")), spec.intensity);
 	}
 	if (!spec.ranker.isEmpty() && !levelMapgenRankerIds().contains(spec.ranker)) {
 		return spec.ranker == QStringLiteral("ggml")
-			? QCoreApplication::translate("VibeStudioLevelMapgen", "This build has no ggml to rank with; configure it with -Dggml=enabled, or use the scalar ranker, which gives the same scores.")
-			: QCoreApplication::translate("VibeStudioLevelMapgen", "The rankers are %1, not %2.").arg(levelMapgenRankerIds().join(QStringLiteral(", ")), spec.ranker);
+			? QCoreApplication::translate("SlopStudioLevelMapgen", "This build has no ggml to rank with; configure it with -Dggml=enabled, or use the scalar ranker, which gives the same scores.")
+			: QCoreApplication::translate("SlopStudioLevelMapgen", "The rankers are %1, not %2.").arg(levelMapgenRankerIds().join(QStringLiteral(", ")), spec.ranker);
 	}
 	if (spec.candidates < 1 || spec.candidates > 64) {
-		return QCoreApplication::translate("VibeStudioLevelMapgen", "Quake-MapGen ranks 1 to 64 candidate layouts.");
+		return QCoreApplication::translate("SlopStudioLevelMapgen", "Quake-MapGen ranks 1 to 64 candidate layouts.");
 	}
 	if (spec.repairIterations < 0 || spec.repairIterations > 64) {
-		return QCoreApplication::translate("VibeStudioLevelMapgen", "Quake-MapGen runs 0 to 64 repair passes.");
+		return QCoreApplication::translate("SlopStudioLevelMapgen", "Quake-MapGen runs 0 to 64 repair passes.");
 	}
 	try {
 		static_cast<void>(switchesFor(spec));
 	} catch (const std::exception& error) {
-		return QCoreApplication::translate("VibeStudioLevelMapgen", "Stage switches: %1. Known switches: %2.").arg(fromStd(error.what()), levelMapgenSwitchNames().join(QStringLiteral(", ")));
+		return QCoreApplication::translate("SlopStudioLevelMapgen", "Stage switches: %1. Known switches: %2.").arg(fromStd(error.what()), levelMapgenSwitchNames().join(QStringLiteral(", ")));
 	}
 	return QString();
 }
@@ -1016,8 +1016,8 @@ LevelGenerationResult generateMapgenLevel(const LevelGenerationSpec& input, Leve
 		pipeline = qmg::GenerationPipeline {}.run(toStd(promptFor(input)), overridesFor(input), options);
 	} catch (const qmg::TextModelUnavailable& error) {
 		const bool cancelled = model && model->failure == AiChatFailure::Cancelled;
-		result.error = cancelled ? QCoreApplication::translate("VibeStudioLevelMapgen", "Cancelled. Nothing was built.")
-								 : QCoreApplication::translate("VibeStudioLevelMapgen", "The text model did not plan the level: %1").arg(fromStd(error.what()));
+		result.error = cancelled ? QCoreApplication::translate("SlopStudioLevelMapgen", "Cancelled. Nothing was built.")
+								 : QCoreApplication::translate("SlopStudioLevelMapgen", "The text model did not plan the level: %1").arg(fromStd(error.what()));
 		return result;
 	} catch (const std::exception& error) {
 		result.error = fromStd(error.what());
@@ -1090,26 +1090,26 @@ LevelGenerationResult generateMapgenLevel(const LevelGenerationSpec& input, Leve
 	}
 	stats.extentUnits = QSize(result.layout.width * result.layout.cellSize, result.layout.height * result.layout.cellSize);
 
-	result.notes << QCoreApplication::translate("VibeStudioLevelMapgen", "Quake-MapGen %1 ranked %n candidate layout(s) and kept the best (score %2), written as %3.", nullptr,
+	result.notes << QCoreApplication::translate("SlopStudioLevelMapgen", "Quake-MapGen %1 ranked %n candidate layout(s) and kept the best (score %2), written as %3.", nullptr,
 		input.candidates)
 						.arg(levelMapgenVersion())
 						.arg(pipeline.layout.rank_score, 0, 'f', 2)
 						.arg(result.dialect);
 	if (!pipeline.planner_fallback.empty()) {
-		result.warnings << QCoreApplication::translate("VibeStudioLevelMapgen", "The text model's plan could not be used (%1); the rules planned the level instead.")
+		result.warnings << QCoreApplication::translate("SlopStudioLevelMapgen", "The text model's plan could not be used (%1); the rules planned the level instead.")
 							   .arg(fromStd(pipeline.planner_fallback));
 	} else if (pipeline.planner.attempts > 0) {
-		result.notes << QCoreApplication::translate("VibeStudioLevelMapgen", "The text model planned it in %n attempt(s).", nullptr, int(pipeline.planner.attempts));
+		result.notes << QCoreApplication::translate("SlopStudioLevelMapgen", "The text model planned it in %n attempt(s).", nullptr, int(pipeline.planner.attempts));
 	}
 	for (const qmg::RepairPass& pass : pipeline.repairs) {
-		result.notes << QCoreApplication::translate("VibeStudioLevelMapgen", "Repair pass %1 addressed %n issue(s).", nullptr, int(pass.before.size())).arg(pass.iteration);
+		result.notes << QCoreApplication::translate("SlopStudioLevelMapgen", "Repair pass %1 addressed %n issue(s).", nullptr, int(pass.before.size())).arg(pass.iteration);
 	}
 	for (const qmg::Issue& issue : pipeline.validation.issues) {
 		const QString line = QStringLiteral("%1: %2").arg(fromStd(issue.code), fromStd(issue.message));
 		(issue.severity == qmg::Severity::error ? result.warnings : result.notes) << line;
 	}
 	if (!pipeline.validation.ok() || !pipeline.map_build) {
-		result.error = QCoreApplication::translate("VibeStudioLevelMapgen", "The layout failed validation after %n repair pass(es), so no map was written; the report says why.", nullptr,
+		result.error = QCoreApplication::translate("SlopStudioLevelMapgen", "The layout failed validation after %n repair pass(es), so no map was written; the report says why.", nullptr,
 			int(pipeline.repairs.size()));
 		return result;
 	}
@@ -1130,4 +1130,4 @@ QJsonObject levelMapgenUsageJson(const LevelMapgenModel& model)
 	};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

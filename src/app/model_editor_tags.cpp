@@ -16,11 +16,11 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 void ModelEditorDialog::addTagControls(QFormLayout *animation)
 {
-	auto *group = new QGroupBox(QCoreApplication::translate("VibeStudioModelEditor", "Attachment tags"));
+	auto *group = new QGroupBox(QCoreApplication::translate("SlopStudioModelEditor", "Attachment tags"));
 	group->setObjectName(QStringLiteral("meshTagControls"));
 	group->setAccessibleName(group->title());
 	auto *form = new QFormLayout(group);
@@ -28,7 +28,7 @@ void ModelEditorDialog::addTagControls(QFormLayout *animation)
 	form->setRowWrapPolicy(QFormLayout::WrapAllRows);
 	m_tagSummary = new LiveStatusLabel;
 	m_tagSummary->setObjectName(QStringLiteral("meshTagSummary"));
-	m_tagSummary->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Selected attachment pose"));
+	m_tagSummary->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Selected attachment pose"));
 	m_tagSummary->setTextFormat(Qt::PlainText);
 	m_tagSummary->setWordWrap(true);
 	m_tagSummary->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
@@ -36,13 +36,13 @@ void ModelEditorDialog::addTagControls(QFormLayout *animation)
 	form->addRow(m_tagSummary);
 	m_tagName = new QLineEdit;
 	m_tagName->setObjectName(QStringLiteral("meshTagName"));
-	m_tagName->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Attachment tag name"));
+	m_tagName->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Attachment tag name"));
 	m_tagName->setLayoutDirection(Qt::LeftToRight);
 	m_tagName->setPlaceholderText(QStringLiteral("tag_weapon"));
 	m_tagName->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor",
+		"SlopStudioModelEditor",
 		"A unique name of 1–63 printable ASCII characters, without surrounding spaces. Tag identities span every animation frame."));
-	form->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Name"), m_tagName);
+	form->addRow(QCoreApplication::translate("SlopStudioModelEditor", "Name"), m_tagName);
 	const auto button = [&](const QString &label, const QString &name, ModelEditKind kind, bool selected)
 	{
 		auto *control = new WrappingActionButton(label, 2);
@@ -56,24 +56,24 @@ void ModelEditorDialog::addTagControls(QFormLayout *animation)
 		}
 		return control;
 	};
-	button(QCoreApplication::translate("VibeStudioModelEditor", "Add Tag"), QStringLiteral("addMeshTag"), ModelEditKind::AddTag, false);
-	button(QCoreApplication::translate("VibeStudioModelEditor", "Duplicate Tag"), QStringLiteral("duplicateMeshTag"),
+	button(QCoreApplication::translate("SlopStudioModelEditor", "Add Tag"), QStringLiteral("addMeshTag"), ModelEditKind::AddTag, false);
+	button(QCoreApplication::translate("SlopStudioModelEditor", "Duplicate Tag"), QStringLiteral("duplicateMeshTag"),
 		   ModelEditKind::DuplicateTag, true);
-	button(QCoreApplication::translate("VibeStudioModelEditor", "Rename Tag"), QStringLiteral("renameMeshTag"), ModelEditKind::RenameTag,
+	button(QCoreApplication::translate("SlopStudioModelEditor", "Rename Tag"), QStringLiteral("renameMeshTag"), ModelEditKind::RenameTag,
 		   true);
-	button(QCoreApplication::translate("VibeStudioModelEditor", "Delete Tag"), QStringLiteral("deleteMeshTag"), ModelEditKind::DeleteTag,
+	button(QCoreApplication::translate("SlopStudioModelEditor", "Delete Tag"), QStringLiteral("deleteMeshTag"), ModelEditKind::DeleteTag,
 		   true);
 	m_tagFrameScope = new QComboBox;
 	m_tagFrameScope->setObjectName(QStringLiteral("meshTagFrameScope"));
-	m_tagFrameScope->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Attachment pose edit scope"));
-	m_tagFrameScope->addItems({QCoreApplication::translate("VibeStudioModelEditor", "All frames"),
-							   QCoreApplication::translate("VibeStudioModelEditor", "Current frame")});
-	m_tagFrameScope->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
+	m_tagFrameScope->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Attachment pose edit scope"));
+	m_tagFrameScope->addItems({QCoreApplication::translate("SlopStudioModelEditor", "All frames"),
+							   QCoreApplication::translate("SlopStudioModelEditor", "Current frame")});
+	m_tagFrameScope->setToolTip(QCoreApplication::translate("SlopStudioModelEditor",
 															"Origin, orientation and pose copying use this scope. It is shared with "
 															"Geometry transforms; tag names always apply to every frame."));
 	connect(m_tagFrameScope, &QComboBox::currentIndexChanged, m_frameScope, &QComboBox::setCurrentIndex);
 	connect(m_frameScope, &QComboBox::currentIndexChanged, m_tagFrameScope, &QComboBox::setCurrentIndex);
-	form->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Pose scope"), m_tagFrameScope);
+	form->addRow(QCoreApplication::translate("SlopStudioModelEditor", "Pose scope"), m_tagFrameScope);
 	for (int axis = 0; axis < 3; ++axis)
 	{
 		auto *field = new QDoubleSpinBox;
@@ -83,16 +83,16 @@ void ModelEditorDialog::addTagControls(QFormLayout *animation)
 		field->setMinimumWidth(0);
 		field->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		field->setLayoutDirection(Qt::LeftToRight);
-		const auto label = QCoreApplication::translate("VibeStudioModelEditor", "Origin %1").arg(QChar('X' + axis));
+		const auto label = QCoreApplication::translate("SlopStudioModelEditor", "Origin %1").arg(QChar('X' + axis));
 		field->setAccessibleName(label);
 		m_tagOrigin[axis] = field;
 		form->addRow(label, field);
 	}
-	auto *centre = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Use Selection Centre"), 2);
+	auto *centre = new WrappingActionButton(QCoreApplication::translate("SlopStudioModelEditor", "Use Selection Centre"), 2);
 	centre->setObjectName(QStringLiteral("meshTagUseSelectionCentre"));
 	centre->setAccessibleName(centre->text());
 	centre->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor", "Fill the origin fields from selected mesh components in the displayed frame, then add a tag."));
+		"SlopStudioModelEditor", "Fill the origin fields from selected mesh components in the displayed frame, then add a tag."));
 	connect(centre, &QPushButton::clicked, this,
 			[this]
 			{
@@ -112,7 +112,7 @@ void ModelEditorDialog::addTagControls(QFormLayout *animation)
 				if (!modelTransformPivot(surface.frames[m_frame->currentIndex()].positions, vertices, ModelTransformPivot::SelectionCentre,
 										 {}, &origin))
 				{
-					m_status->setText(QCoreApplication::translate("VibeStudioModelEditor",
+					m_status->setText(QCoreApplication::translate("SlopStudioModelEditor",
 																  "Select mesh components to use their centre as the tag origin."));
 					return;
 				}
@@ -123,19 +123,19 @@ void ModelEditorDialog::addTagControls(QFormLayout *animation)
 				}
 			});
 	form->addRow(centre);
-	button(QCoreApplication::translate("VibeStudioModelEditor", "Set Origin"), QStringLiteral("setMeshTagOrigin"),
+	button(QCoreApplication::translate("SlopStudioModelEditor", "Set Origin"), QStringLiteral("setMeshTagOrigin"),
 		   ModelEditKind::SetTagOrigin, true);
-	auto *reset = button(QCoreApplication::translate("VibeStudioModelEditor", "Reset Orientation"),
+	auto *reset = button(QCoreApplication::translate("SlopStudioModelEditor", "Reset Orientation"),
 						 QStringLiteral("resetMeshTagOrientation"), ModelEditKind::ResetTagOrientation, true);
 	reset->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor", "Align the tag's local axes with model X, Y and Z in the chosen scope. Use Rotate or Geometry for "
+		"SlopStudioModelEditor", "Align the tag's local axes with model X, Y and Z in the chosen scope. Use Rotate or Geometry for "
 								 "rotation deltas; imported orientation is preserved until explicitly edited."));
 	m_tagCopyFrame = new QSpinBox;
 	m_tagCopyFrame->setObjectName(QStringLiteral("meshTagCopyFrame"));
-	m_tagCopyFrame->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Attachment source frame"));
+	m_tagCopyFrame->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Attachment source frame"));
 	m_tagCopyFrame->setLayoutDirection(Qt::LeftToRight);
-	form->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Copy from frame"), m_tagCopyFrame);
-	button(QCoreApplication::translate("VibeStudioModelEditor", "Copy Tag Pose"), QStringLiteral("copyMeshTagPose"),
+	form->addRow(QCoreApplication::translate("SlopStudioModelEditor", "Copy from frame"), m_tagCopyFrame);
+	button(QCoreApplication::translate("SlopStudioModelEditor", "Copy Tag Pose"), QStringLiteral("copyMeshTagPose"),
 		   ModelEditKind::CopyTagPose, true);
 	animation->addRow(group);
 	connect(m_preview, &ModelViewport::playbackChanged, group, [group](bool playing) { group->setEnabled(!playing); });
@@ -159,7 +159,7 @@ void ModelEditorDialog::refreshTags()
 	if (!tag)
 	{
 		m_displayedTag.clear();
-		m_tagSummary->setText(QCoreApplication::translate("VibeStudioModelEditor",
+		m_tagSummary->setText(QCoreApplication::translate("SlopStudioModelEditor",
 														  "%n attachment tag(s). Select a tag in the component table to edit its pose.",
 														  nullptr, mesh.tagCount));
 		return;
@@ -179,7 +179,7 @@ void ModelEditorDialog::refreshTags()
 	{
 		axes << QStringLiteral("%1: %2").arg(QChar('X' + row), localeNumberList({tag->axis[row * 3], tag->axis[row * 3 + 1], tag->axis[row * 3 + 2]}, 5));
 	}
-	m_tagSummary->setText(QCoreApplication::translate("VibeStudioModelEditor", "%1 · frame %L2\nLocal axes\n%3")
+	m_tagSummary->setText(QCoreApplication::translate("SlopStudioModelEditor", "%1 · frame %L2\nLocal axes\n%3")
 							  .arg(name)
 							  .arg(frame)
 							  .arg(axes.join(QLatin1Char('\n'))));
@@ -205,4 +205,4 @@ void ModelEditorDialog::executeTag(ModelEditKind kind)
 		m_status->setText(error);
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -4,7 +4,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool validText(const QString& text, int limit)
 {
@@ -69,4 +69,4 @@ LanguageCodeAction resolveLanguageCodeAction(const LanguageCodeAction& original,
 	return parsed.items.front();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

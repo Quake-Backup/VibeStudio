@@ -17,7 +17,7 @@
 
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelMesh;
 struct ModelEdit;
@@ -56,4 +56,4 @@ bool alignModelVertices(ModelMesh *candidate, const ModelEdit &edit, ModelSelect
 						const ModelWorkControl &control = {});
 // "x", "yz", "xyz": the axes of a mask, for messages and CLI JSON.
 QString modelAlignAxesText(int axes);
-} // namespace vibestudio
+} // namespace slopstudio

@@ -9,7 +9,7 @@
 
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // One worker and one replaceable pending snapshot. Retirement cancels a write
 // and is processed on the same worker before any newer document is checkpointed.
@@ -46,4 +46,4 @@ private:
 	QSet<QString> m_retired, m_cleanup;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

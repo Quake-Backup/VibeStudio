@@ -1,10 +1,10 @@
-/* VibeStudio documentation: theme, search, copy buttons, navigation and the
+/* SlopStudio documentation: theme, search, copy buttons, navigation and the
    "on this page" highlight. No dependencies; works from file:// as well as the web. */
 (function () {
   "use strict";
 
   var root = document.documentElement;
-  var STORAGE_KEY = "vibestudio-docs-theme";
+  var STORAGE_KEY = "slopstudio-docs-theme";
 
   /* ---------------------------------------------------------------- theme */
   var themeButton = document.querySelector(".theme-toggle");
@@ -102,7 +102,7 @@
   /* ---------------------------------------------------------------- search */
   var input = document.getElementById("search-input");
   var results = document.getElementById("search-results");
-  var index = window.VIBESTUDIO_SEARCH || [];
+  var index = window.SLOPSTUDIO_SEARCH || [];
   var siteRoot = (document.querySelector('link[rel="stylesheet"]').getAttribute("href") || "").replace(/assets\/style\.css$/, "");
   var selected = -1;
 

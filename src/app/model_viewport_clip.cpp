@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 ModelVec3 model(LevelMapVec3 p) { return {float(p.x),float(p.y),float(p.z)}; }
 bool finite(QPointF p) { return std::isfinite(p.x()) && std::isfinite(p.y()); }
@@ -227,4 +227,4 @@ void ModelViewport::paintClip(QPainter& painter)
 	}
 	painter.restore();
 }
-} // namespace vibestudio
+} // namespace slopstudio

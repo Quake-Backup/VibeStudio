@@ -4,7 +4,7 @@
 #include <QLabel>
 #include <QResizeEvent>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // QFormLayout gives a row label one line's height whatever its wrapped height,
 // so a wrapped row label is cut to its first line once large text or a long
@@ -43,4 +43,4 @@ inline void keepFormRowLabelLines(QLabel* label)
 	label->installEventFilter(filter);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

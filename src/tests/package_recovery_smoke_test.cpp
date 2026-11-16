@@ -15,7 +15,7 @@
 #include <filesystem>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const char* label, const QString& error = {})
@@ -85,7 +85,7 @@ int main(int argc, char** argv)
 	const auto withRedo = session->checkpoint(plan, QStringLiteral("With redo"));
 	ok &= expect(withRedo.succeeded(), "checkpoint includes redo payload", withRedo.error);
 	PackageStagingModel recovered;
-	const QString restore = root.filePath(QStringLiteral("restored.vibepackage"));
+	const QString restore = root.filePath(QStringLiteral("restored.sloppackage"));
 	ok &= expect(!restorePackageRecovery(store, firstId, written.manifestSha256, restore, &recovered, &error)
 		&& !QFileInfo::exists(restore), "stale selected digest cannot restore a changed copy");
 	ok &= expect(restorePackageRecovery(store, firstId, withRedo.manifestSha256, restore, &recovered, &error, {}, true)
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 	ok &= expect(recovered.redo() && payload(recovered, QStringLiteral("later.txt")) == "cancelled", "restored redo preserves bytes");
 	ok &= expect(!QJsonDocument::fromJson(read(QDir(restore).filePath(QStringLiteral("document.json")))).object().contains(QStringLiteral("recovery")), "normal save drops the recovery envelope");
 	ok &= expect(!restorePackageRecovery(store, firstId, withRedo.manifestSha256, restore, nullptr, &error), "restore never overwrites an existing draft");
-	ok &= expect(!restorePackageRecovery(store, firstId, withRedo.manifestSha256, QDir(store).filePath(QStringLiteral("nested.vibepackage")), nullptr, &error), "restore cannot target its recovery store");
+	ok &= expect(!restorePackageRecovery(store, firstId, withRedo.manifestSha256, QDir(store).filePath(QStringLiteral("nested.sloppackage")), nullptr, &error), "restore cannot target its recovery store");
 	// Drop the redo branch and the last accepted operation; its blobs must be
 	// reclaimed only after a new manifest commits. The prior restore is separate.
 	PackageStagingModel olderCheckpoint;
@@ -143,11 +143,11 @@ int main(int argc, char** argv)
 	auto diskWrite = diskSession->checkpoint(disk, QStringLiteral("Disk sources"));
 	ok &= expect(diskWrite.succeeded(), "checkpoint undone imports", diskWrite.error);
 	ok &= QFile::remove(sourceFile) && QFile::remove(imported);
-	ok &= expect(restorePackageRecovery(store, diskId, diskWrite.manifestSha256, root.filePath(QStringLiteral("independent.vibepackage")), &disk, &error)
+	ok &= expect(restorePackageRecovery(store, diskId, diskWrite.manifestSha256, root.filePath(QStringLiteral("independent.sloppackage")), &disk, &error)
 		&& payload(disk, QStringLiteral("base.txt")) == "source bytes" && disk.redo() && payload(disk, QStringLiteral("added.txt")) == "import bytes", "recovery never reopens recorded source paths", error);
 	// Restore verifies every history object, even if the effective view omits it.
 	ok &= write(objectPath(diskPath, "import bytes"), "corrupt");
-	const QString corruptOutput = root.filePath(QStringLiteral("corrupt.vibepackage"));
+	const QString corruptOutput = root.filePath(QStringLiteral("corrupt.sloppackage"));
 	ok &= expect(inspectPackageRecovery(diskPath).readable(), "inventory honestly reports metadata checks only");
 	ok &= expect(!restorePackageRecovery(store, diskId, diskWrite.manifestSha256, corruptOutput, nullptr, &error)
 		&& !QFileInfo::exists(corruptOutput), "corrupt redo object prevents restore before creating output");

@@ -13,8 +13,8 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -84,7 +84,7 @@ ModelClipLayer turnLayer(double degrees, double weight)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir tmp(QDir(root).filePath("constraints-XXXXXX"));
@@ -329,12 +329,12 @@ int main(int argc, char **argv)
 	const auto source = QDir(tmp.path()).filePath("rig.mesh.json"), out = QDir(tmp.path()).filePath("out.mesh.json");
 	ModelDocument cliSource;
 	expect(cliSource.setMesh(mesh, &error) && cliSource.save(source, false, &error), "save the CLI source");
-	auto result = cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind",
+	auto result = cli::runModelConstraints({"slopstudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind",
 											"copy-transform", "--joint", "r_hand", "--target", "l_hand", "--weight", "1", "--output", out, "--json"});
 	expect(result.exitCode == 0 && result.payload["clips"].toArray()[0].toObject()["constraints"].toArray().size() == 1, "CLI adds a constraint");
-	result = cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", out, "--json"});
+	result = cli::runModelConstraints({"slopstudio", "--cli", "model", "constraints", out, "--json"});
 	expect(result.exitCode == 0 && result.payload["clips"].toArray()[0].toObject()["stack"].toBool(), "CLI lists the stack");
-	expect(cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind", "aim",
+	expect(cli::runModelConstraints({"slopstudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind", "aim",
 									 "--joint", "l_arm", "--target", "l_hand", "--output", out, "--overwrite"})
 				   .exitCode == 4,
 		   "CLI refuses a cycle");
@@ -343,31 +343,31 @@ int main(int argc, char **argv)
 	expect(layerOut.open(QIODevice::WriteOnly) && layerOut.write(QJsonDocument(modelClipCurvesJson(turnLayer(30, 1).curves)).toJson()) > 0, "write a layer file");
 	layerOut.close();
 	const auto layered2 = QDir(tmp.path()).filePath("layered.mesh.json");
-	expect(cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", out, "--operation", "add-layer", "--clip", "0", "--layer", layerFile,
+	expect(cli::runModelConstraints({"slopstudio", "--cli", "model", "constraints", out, "--operation", "add-layer", "--clip", "0", "--layer", layerFile,
 									 "--mode", "additive", "--weight", "0.5", "--name", "turn", "--output", layered2})
 					   .exitCode == 0,
 		   "CLI adds a layer");
-	result = cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind",
+	result = cli::runModelConstraints({"slopstudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind",
 									   "copy-transform", "--joint", "r_hand", "--target", "l_hand", "--weight-keys", "0:1,1:0", "--output", out,
 									   "--overwrite", "--json"});
 	expect(result.exitCode == 0 &&
 			   result.payload["clips"].toArray()[0].toObject()["constraints"].toArray()[0].toObject()["weightKeys"].toString() == "0:1, 1:0",
 		   "CLI adds a constraint with weight keys");
-	expect(cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind",
+	expect(cli::runModelConstraints({"slopstudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind",
 									 "copy-transform", "--joint", "r_hand", "--target", "l_hand", "--weight-keys", "0:2", "--output", out, "--overwrite"})
 				   .exitCode == 2,
 		   "CLI refuses weight keys above 1");
-	expect(cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind",
+	expect(cli::runModelConstraints({"slopstudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind",
 									 "copy-transform", "--joint", "r_hand", "--target", "l_hand", "--limits", "yes", "--output", out, "--overwrite"})
 				   .exitCode == 4,
 		   "CLI refuses limits on a constraint without a chain");
-	result = cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind", "ik",
+	result = cli::runModelConstraints({"slopstudio", "--cli", "model", "constraints", source, "--operation", "add", "--clip", "0", "--kind", "ik",
 									   "--joint", "l_hand", "--point", "2,5,6", "--pole", "0,4,16", "--limits", "yes", "--output", out, "--overwrite",
 									   "--json"});
 	expect(result.exitCode == 0 && result.payload["clips"].toArray()[0].toObject()["constraints"].toArray()[0].toObject()["limits"].toBool(),
 		   "CLI adds an IK constraint that keeps joint limits");
 	const auto baked = QDir(tmp.path()).filePath("baked.mesh.json");
-	expect(cli::runModelConstraints({"vibestudio", "--cli", "model", "constraints", layered2, "--operation", "bake", "--clip", "0", "--output", baked}).exitCode == 0,
+	expect(cli::runModelConstraints({"slopstudio", "--cli", "model", "constraints", layered2, "--operation", "bake", "--clip", "0", "--output", baked}).exitCode == 0,
 		   "CLI bakes the stack");
 	if (argc > 1)
 	{

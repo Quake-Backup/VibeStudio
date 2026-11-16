@@ -24,7 +24,7 @@
 #include <cstring>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -589,12 +589,12 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, &mesh->error);
 	if (!work.check()) { return; }
 	if (!rangeOk(bytes, 0, kMdlHeaderBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL header is truncated.");
 		return;
 	}
 	mesh->version = readI32(bytes, 4);
 	if (mesh->version != 6) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported MDL version %1; only IDPO version 6 is decoded.").arg(mesh->version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported MDL version %1; only IDPO version 6 is decoded.").arg(mesh->version);
 		return;
 	}
 
@@ -616,39 +616,39 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 	const float declaredSize = readF32(bytes, 80);
 
 	if (!isFinite(scale) || !isFinite(translate)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL header has a non-finite scale or translation.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL header has a non-finite scale or translation.");
 		return;
 	}
 	if (skinCount < 0 || skinCount > kMaxSkins
 		|| vertexCount <= 0 || vertexCount > kMaxSurfaceVertices
 		|| triangleCount <= 0 || triangleCount > kMaxSurfaceTriangles
 		|| frameGroupCount <= 0 || frameGroupCount > kMaxFrames) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL header declares counts outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL header declares counts outside the supported range.");
 		return;
 	}
 	if (skinCount > 0 && (skinWidth <= 0 || skinHeight <= 0 || skinWidth > kMaxSkinDimension || skinHeight > kMaxSkinDimension)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL skin size is outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL skin size is outside the supported range.");
 		return;
 	}
 	const qint64 skinPixels = static_cast<qint64>(std::max(0, skinWidth)) * static_cast<qint64>(std::max(0, skinHeight));
 	if (skinCount > 0 && skinPixels > kMaxSkinPixels) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL skin size is outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL skin size is outside the supported range.");
 		return;
 	}
 	if (static_cast<qint64>(vertexCount) * static_cast<qint64>(frameGroupCount) > kMaxVertexSlots) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL declares more frame vertices than can be decoded.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL declares more frame vertices than can be decoded.");
 		return;
 	}
 
 	mesh->skinCount = skinCount;
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skin size: %1 x %2").arg(skinWidth).arg(skinHeight);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Scale: %1").arg(formatVector(scale));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Translation: %1").arg(formatVector(translate));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Eye position: %1").arg(formatVector(eyePosition));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Declared bounding radius: %1").arg(formatCoordinate(declaredRadius));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Declared size: %1").arg(formatCoordinate(declaredSize));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Sync type: %1").arg(syncType);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Flags: 0x%1").arg(QString::number(static_cast<uint>(flags), 16));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skin size: %1 x %2").arg(skinWidth).arg(skinHeight);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Scale: %1").arg(formatVector(scale));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Translation: %1").arg(formatVector(translate));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Eye position: %1").arg(formatVector(eyePosition));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Declared bounding radius: %1").arg(formatCoordinate(declaredRadius));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Declared size: %1").arg(formatCoordinate(declaredSize));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Sync type: %1").arg(syncType);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Flags: 0x%1").arg(QString::number(static_cast<uint>(flags), 16));
 	// Preserve native groups, exact indices and header semantics alongside the
 	// flattened geometry. Layout: id Software Quake/WinQuake/modelgen.h and
 	// model.c, master reviewed 2026-10-04, GPL-2.0-or-later; compatible with GPL-3.0.
@@ -669,30 +669,30 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 	for (int index = 0; index < skinCount; ++index) {
 		if (!work.step()) { return; }
 		if (!rangeOk(bytes, offset, 4)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL skin data is truncated.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL skin data is truncated.");
 			return;
 		}
 		const int group = readI32(bytes, offset);
 		offset += 4;
 		if (group != 0 && group != 1) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL skin type is neither a single image nor a group.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL skin type is neither a single image nor a group.");
 			return;
 		}
 		int groupFrames = 1;
 		ModelEmbeddedSkin skin;
 		if (group != 0) {
 			if (!rangeOk(bytes, offset, 4)) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL skin data is truncated.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL skin data is truncated.");
 				return;
 			}
 			groupFrames = readI32(bytes, offset);
 			offset += 4;
 			if (groupFrames <= 0 || groupFrames > kMaxSkinGroupFrames) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "An MDL skin group declares an unsupported frame count.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "An MDL skin group declares an unsupported frame count.");
 				return;
 			}
 			if (!rangeOk(bytes, offset, static_cast<qint64>(groupFrames) * 4)) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL skin data is truncated.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL skin data is truncated.");
 				return;
 			}
 			float previous = 0;
@@ -700,7 +700,7 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 				if (!work.step()) { return; }
 				const float interval = readF32(bytes, offset + member * 4);
 				if (!std::isfinite(interval) || interval <= previous) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDL skin group end times must be finite, positive and strictly increasing.");
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDL skin group end times must be finite, positive and strictly increasing.");
 					return;
 				}
 				skin.intervals.append(interval);
@@ -710,11 +710,11 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 		}
 		const qint64 block = skinPixels * static_cast<qint64>(groupFrames);
 		if (!rangeOk(bytes, offset, block)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL skin data is truncated.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL skin data is truncated.");
 			return;
 		}
 		if (block > kMaxSkinPixels - totalSkinPixels) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDL skin members exceed the 64-megapixel preview limit.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDL skin members exceed the 64-megapixel preview limit.");
 			return;
 		}
 		totalSkinPixels += block;
@@ -728,7 +728,7 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 		skin.image = decodeIndexedSkin(bytes, offset, skinWidth, skinHeight, palette, work);
 		if (!mesh->error.isEmpty()) { return; }
 		if (skin.image.isNull()) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Embedded skin %1 could not be decoded.").arg(index);
+			mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "Embedded skin %1 could not be decoded.").arg(index);
 		}
 		mesh->embeddedSkins.append(skin);
 		offset += block;
@@ -736,7 +736,7 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 
 	// Texture coordinates.
 	if (!rangeOk(bytes, offset, static_cast<qint64>(vertexCount) * kMdlStVertBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL texture coordinates are truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL texture coordinates are truncated.");
 		return;
 	}
 	QVector<int> seamFlags(vertexCount, 0);
@@ -755,7 +755,7 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 
 	// Triangles.
 	if (!rangeOk(bytes, offset, static_cast<qint64>(triangleCount) * kMdlTriangleBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL triangle list is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL triangle list is truncated.");
 		return;
 	}
 
@@ -819,13 +819,13 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 		surface.triangles.append(triangle);
 	}
 	if (skippedTriangles > 0) {
-		surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) referenced vertices outside the model and were dropped.").arg(skippedTriangles);
+		surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "%1 triangle(s) referenced vertices outside the model and were dropped.").arg(skippedTriangles);
 	}
 	offset += static_cast<qint64>(triangleCount) * kMdlTriangleBytes;
 
 	const int combinedCount = baseForCombined.size();
 	if (static_cast<qint64>(combinedCount) * static_cast<qint64>(frameGroupCount) > kMaxVertexSlots) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL declares more frame vertices than can be decoded.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL declares more frame vertices than can be decoded.");
 		return;
 	}
 	surface.vertexCount = combinedCount;
@@ -852,13 +852,13 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 	for (int group = 0; group < frameGroupCount; ++group) {
 		if (!work.step()) { return; }
 		if (!rangeOk(bytes, offset, 4)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL frame data is truncated.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL frame data is truncated.");
 			return;
 		}
 		const int type = readI32(bytes, offset);
 		offset += 4;
 		if (type != 0 && type != 1) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL frame type is neither a single pose nor a group.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL frame type is neither a single pose nor a group.");
 			return;
 		}
 		ModelMdlFrameGroup nativeGroup;
@@ -866,18 +866,18 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 		int memberCount = 1;
 		if (type != 0) {
 			if (!rangeOk(bytes, offset, 4)) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL frame data is truncated.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL frame data is truncated.");
 				return;
 			}
 			memberCount = readI32(bytes, offset);
 			offset += 4;
 			if (memberCount <= 0 || memberCount > kMaxFrames || poses.size() + memberCount > kMaxFrames) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "An MDL frame group declares an unsupported frame count.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "An MDL frame group declares an unsupported frame count.");
 				return;
 			}
 			// Group bounding box followed by one interval per member.
 			if (!rangeOk(bytes, offset, 8 + (static_cast<qint64>(memberCount) * 4))) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL frame data is truncated.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL frame data is truncated.");
 				return;
 			}
 			offset += 8;
@@ -886,7 +886,7 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 				if (!work.step()) { return; }
 				const float interval = readF32(bytes, offset + member * 4);
 				if (!std::isfinite(interval) || interval <= previous) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDL frame group end times must be finite, positive and strictly increasing.");
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDL frame group end times must be finite, positive and strictly increasing.");
 					return;
 				}
 				nativeGroup.intervals.append(interval);
@@ -899,7 +899,7 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 			if (!work.step()) { return; }
 			const qint64 poseBytes = 8 + kMdlFrameNameBytes + (static_cast<qint64>(vertexCount) * kMdlVertexBytes);
 			if (!rangeOk(bytes, offset, poseBytes)) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL frame data is truncated.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL frame data is truncated.");
 				return;
 			}
 			MdlPose pose;
@@ -914,14 +914,14 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 			poses.append(pose);
 			offset += poseBytes;
 			if (poses.size() > kMaxFrames) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL declares more frames than can be decoded.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL declares more frames than can be decoded.");
 				return;
 			}
 		}
 	}
 
 	if (qint64(combinedCount) * poses.size() > kMaxVertexSlots) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDL declares more frame vertices than can be decoded.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDL declares more frame vertices than can be decoded.");
 		return;
 	}
 
@@ -958,7 +958,7 @@ void decodeQuakeMdl(const QByteArray& bytes, const IdTechPalette& palette, Model
 	}
 
 	if (invalidNormals > 0) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The MDL contains invalid normal indices; preview uses fallback normals.");
+		mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "The MDL contains invalid normal indices; preview uses fallback normals.");
 	}
 	mesh->surfaces.append(surface);
 	mesh->animations = inferAnimations(mesh->frames, work);
@@ -982,12 +982,12 @@ void decodeQuake2Md2(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, &mesh->error);
 	if (!work.check()) { return; }
 	if (!rangeOk(bytes, 0, kMd2HeaderBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD2 header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD2 header is truncated.");
 		return;
 	}
 	mesh->version = readI32(bytes, 4);
 	if (mesh->version != 8) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported MD2 version %1; only IDP2 version 8 is decoded.").arg(mesh->version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported MD2 version %1; only IDP2 version 8 is decoded.").arg(mesh->version);
 		return;
 	}
 
@@ -1011,31 +1011,31 @@ void decodeQuake2Md2(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		|| stCount <= 0 || stCount > kMaxSurfaceVertices
 		|| triangleCount <= 0 || triangleCount > kMaxSurfaceTriangles
 		|| frameCount <= 0 || frameCount > kMaxFrames) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD2 header declares counts outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD2 header declares counts outside the supported range.");
 		return;
 	}
 	if (static_cast<qint64>(positionCount) * static_cast<qint64>(frameCount) > kMaxVertexSlots) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD2 declares more frame vertices than can be decoded.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD2 declares more frame vertices than can be decoded.");
 		return;
 	}
 	const qint64 minimumFrameBytes = kMd2FrameHeaderBytes + (static_cast<qint64>(positionCount) * kMd2VertexBytes);
 	if (frameSize < minimumFrameBytes || frameSize > (minimumFrameBytes + 4096)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD2 frame size does not match the declared vertex count.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD2 frame size does not match the declared vertex count.");
 		return;
 	}
 	if (!rangeOk(bytes, skinOffset, static_cast<qint64>(skinCount) * kMd2SkinNameBytes)
 		|| !rangeOk(bytes, stOffset, static_cast<qint64>(stCount) * kMd2StBytes)
 		|| !rangeOk(bytes, triangleOffset, static_cast<qint64>(triangleCount) * kMd2TriangleBytes)
 		|| !rangeOk(bytes, frameOffset, static_cast<qint64>(frameCount) * static_cast<qint64>(frameSize))) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "An MD2 data block lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "An MD2 data block lies outside the file.");
 		return;
 	}
 
 	mesh->skinCount = skinCount;
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skin size: %1 x %2").arg(skinWidth).arg(skinHeight);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Positions: %1").arg(positionCount);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Texture coordinates: %1").arg(stCount);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "GL commands: %1").arg(glCommandCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skin size: %1 x %2").arg(skinWidth).arg(skinHeight);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Positions: %1").arg(positionCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Texture coordinates: %1").arg(stCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "GL commands: %1").arg(glCommandCount);
 
 	for (int index = 0; index < skinCount; ++index) {
 		if (!work.step()) { return; }
@@ -1056,7 +1056,7 @@ void decodeQuake2Md2(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	const float skinWidthF = skinWidth > 0 ? static_cast<float>(skinWidth) : 1.0f;
 	const float skinHeightF = skinHeight > 0 ? static_cast<float>(skinHeight) : 1.0f;
 	if (skinWidth <= 0 || skinHeight <= 0) {
-		surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "The MD2 skin size is zero; texture coordinates are left unscaled.");
+		surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "The MD2 skin size is zero; texture coordinates are left unscaled.");
 	}
 
 	// MD2 indexes positions and texture coordinates separately, so a combined
@@ -1106,16 +1106,16 @@ void decodeQuake2Md2(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		surface.triangles.append(triangle);
 	}
 	if (skippedTriangles > 0) {
-		surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
+		surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
 	}
 
 	const int combinedCount = positionForCombined.size();
 	if (combinedCount <= 0) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD2 contains no usable triangles.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD2 contains no usable triangles.");
 		return;
 	}
 	if (static_cast<qint64>(combinedCount) * static_cast<qint64>(frameCount) > kMaxVertexSlots) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD2 declares more frame vertices than can be decoded.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD2 declares more frame vertices than can be decoded.");
 		return;
 	}
 	surface.vertexCount = combinedCount;
@@ -1130,7 +1130,7 @@ void decodeQuake2Md2(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		readVec3(bytes, base, &scale);
 		readVec3(bytes, base + 12, &translate);
 		if (!isFinite(scale) || !isFinite(translate)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "An MD2 frame has a non-finite scale or translation.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "An MD2 frame has a non-finite scale or translation.");
 			return;
 		}
 		const QString name = readFixedName(bytes, base + 24, kMd2FrameNameBytes);
@@ -1161,7 +1161,7 @@ void decodeQuake2Md2(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	}
 
 	if (invalidNormalIndices > 0) {
-		surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "The MD2 has %1 invalid normal indices; preview substitutes +Z. Editable import requires valid normals.").arg(invalidNormalIndices);
+		surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "The MD2 has %1 invalid normal indices; preview substitutes +Z. Editable import requires valid normals.").arg(invalidNormalIndices);
 	}
 	QString commandError;
 	if (!validateModelMd2Commands(bytes, &commandError, control)) { surface.warnings << commandError; }
@@ -1190,12 +1190,12 @@ void decodeQuake3Md3(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, &mesh->error);
 	if (!work.check()) { return; }
 	if (!rangeOk(bytes, 0, kMd3HeaderBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD3 header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD3 header is truncated.");
 		return;
 	}
 	mesh->version = readI32(bytes, 4);
 	if (mesh->version != 15) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported MD3 version %1; only IDP3 version 15 is decoded.").arg(mesh->version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported MD3 version %1; only IDP3 version 15 is decoded.").arg(mesh->version);
 		return;
 	}
 
@@ -1214,29 +1214,29 @@ void decodeQuake3Md3(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		|| tagCount < 0 || tagCount > kMaxTags
 		|| surfaceCount < 0 || surfaceCount > kMaxSurfaces
 		|| skinCount < 0 || skinCount > kMaxSkins) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD3 header declares counts outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD3 header declares counts outside the supported range.");
 		return;
 	}
 	if (static_cast<qint64>(tagCount) * static_cast<qint64>(frameCount) > static_cast<qint64>(kMaxTags) * 16LL) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD3 declares more tags than can be decoded.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD3 declares more tags than can be decoded.");
 		return;
 	}
 	if (!rangeOk(bytes, frameOffset, static_cast<qint64>(frameCount) * kMd3FrameBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD3 frame block lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD3 frame block lies outside the file.");
 		return;
 	}
 	if (tagCount > 0 && !rangeOk(bytes, tagOffset, static_cast<qint64>(tagCount) * static_cast<qint64>(frameCount) * kMd3TagBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD3 tag block lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD3 tag block lies outside the file.");
 		return;
 	}
 
 	if (!internalName.isEmpty()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Internal name: %1").arg(internalName);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Internal name: %1").arg(internalName);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Flags: 0x%1").arg(QString::number(static_cast<uint>(flags), 16));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Declared skins: %1").arg(skinCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Flags: 0x%1").arg(QString::number(static_cast<uint>(flags), 16));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Declared skins: %1").arg(skinCount);
 	if (endOffset > 0 && endOffset != bytes.size()) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md3-end-offset"), QCoreApplication::translate("VibeStudioModelMesh", "The MD3 end offset (%1) does not match the file size (%2).").arg(endOffset).arg(bytes.size()));
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md3-end-offset"), QCoreApplication::translate("SlopStudioModelMesh", "The MD3 end offset (%1) does not match the file size (%2).").arg(endOffset).arg(bytes.size()));
 	}
 
 	for (int index = 0; index < frameCount; ++index) {
@@ -1282,11 +1282,11 @@ void decodeQuake3Md3(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	for (; walked < surfaceCount; ++walked) {
 		if (!work.step()) { return; }
 		if (!rangeOk(bytes, offset, kMd3SurfaceHeaderBytes)) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Surface %1 lies outside the file; the surface chain stops here.").arg(walked);
+			mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "Surface %1 lies outside the file; the surface chain stops here.").arg(walked);
 			break;
 		}
 		if (bytes.mid(static_cast<qsizetype>(offset), 4) != QByteArrayLiteral("IDP3")) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Surface %1 has an unexpected identifier; the surface chain stops here.").arg(walked);
+			mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "Surface %1 has an unexpected identifier; the surface chain stops here.").arg(walked);
 			break;
 		}
 
@@ -1303,20 +1303,20 @@ void decodeQuake3Md3(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		const int surfaceEnd = readI32(bytes, offset + 104);
 
 		if (surfaceEnd < kMd3SurfaceHeaderBytes || !rangeOk(bytes, offset, surfaceEnd)) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Surface %1 declares an end offset outside the file; the surface chain stops here.").arg(walked);
+			mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "Surface %1 declares an end offset outside the file; the surface chain stops here.").arg(walked);
 			break;
 		}
 		if (surfaceFrameCount <= 0 || surfaceFrameCount > kMaxFrames
 			|| shaderCount < 0 || shaderCount > kMaxSkins
 			|| vertexCount <= 0 || vertexCount > kMaxSurfaceVertices
 			|| triangleCount < 0 || triangleCount > kMaxSurfaceTriangles) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Surface %1 declares counts outside the supported range and was skipped.").arg(walked);
+			mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "Surface %1 declares counts outside the supported range and was skipped.").arg(walked);
 			offset += surfaceEnd;
 			continue;
 		}
 		const int usableFrames = std::min(surfaceFrameCount, frameCount);
 		if (static_cast<qint64>(vertexCount) * static_cast<qint64>(usableFrames) > kMaxVertexSlots) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Surface %1 declares more frame vertices than can be decoded and was skipped.").arg(walked);
+			mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "Surface %1 declares more frame vertices than can be decoded and was skipped.").arg(walked);
 			offset += surfaceEnd;
 			continue;
 		}
@@ -1337,14 +1337,14 @@ void decodeQuake3Md3(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		};
 		if (!blockOk(shaderOffset, shaderBytes) || !blockOk(triangleOffset, triangleBytes)
 			|| !blockOk(stOffset, stBytes) || !blockOk(vertexOffset, vertexBytes)) {
-			mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Surface %1 has a data block outside the surface record and was skipped.").arg(walked);
+			mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "Surface %1 has a data block outside the surface record and was skipped.").arg(walked);
 			offset += surfaceEnd;
 			continue;
 		}
 
 		const qint64 surfaceVertexSlots = qint64(vertexCount) * frameCount;
 		if (surfaceVertexSlots > kMaxVertexSlots - totalVertexSlots) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD3 declares more total frame vertices than can be decoded.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD3 declares more total frame vertices than can be decoded.");
 			return;
 		}
 		totalVertexSlots += surfaceVertexSlots;
@@ -1354,10 +1354,10 @@ void decodeQuake3Md3(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		surface.name = name.isEmpty() ? QStringLiteral("surface%1").arg(surface.index) : name;
 		surface.vertexCount = vertexCount;
 		if (surfaceFlags != 0) {
-			noteModelSurfaceIssue(mesh, &surface, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md3-surface-flags"), QCoreApplication::translate("VibeStudioModelMesh", "Surface flags: 0x%1").arg(QString::number(static_cast<uint>(surfaceFlags), 16)));
+			noteModelSurfaceIssue(mesh, &surface, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md3-surface-flags"), QCoreApplication::translate("SlopStudioModelMesh", "Surface flags: 0x%1").arg(QString::number(static_cast<uint>(surfaceFlags), 16)));
 		}
 		if (surfaceFrameCount != frameCount) {
-			surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "The surface declares %1 frame(s) while the model declares %2.").arg(surfaceFrameCount).arg(frameCount);
+			surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "The surface declares %1 frame(s) while the model declares %2.").arg(surfaceFrameCount).arg(frameCount);
 		}
 
 		for (int index = 0; index < shaderCount; ++index) {
@@ -1402,7 +1402,7 @@ void decodeQuake3Md3(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 			surface.triangles.append(triangle);
 		}
 		if (skippedTriangles > 0) {
-			surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
+			surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
 		}
 
 		surface.frames.reserve(frameCount);
@@ -1433,14 +1433,14 @@ void decodeQuake3Md3(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		offset += surfaceEnd;
 	}
 	if (walked < surfaceCount) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Only %1 of %2 surface(s) could be read.").arg(walked).arg(surfaceCount);
+		mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "Only %1 of %2 surface(s) could be read.").arg(walked).arg(surfaceCount);
 	}
 
 	mesh->skinCount = std::max(skinCount, static_cast<int>(mesh->skinPaths.size()));
 	mesh->animations = inferAnimations(mesh->frames, work);
 	mesh->geometryAvailable = !mesh->surfaces.isEmpty();
 	if (!mesh->geometryAvailable) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "No MD3 surface could be decoded.");
+		mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "No MD3 surface could be decoded.");
 	}
 }
 
@@ -1522,7 +1522,7 @@ bool validateModelMd2Commands(const QByteArray &bytes, QString *error, const Mod
 		if (error)
 		{
 			*error = QCoreApplication::translate(
-				"VibeStudioModelMesh",
+				"SlopStudioModelMesh",
 				"MD2 GL commands are malformed, exceed the authoring audit limit, or differ from the indexed triangles/UVs. Editable "
 				"import would lose renderer-specific data; use the original file for preview.");
 		}
@@ -1833,7 +1833,7 @@ QString modelMeshFormatId(ModelMeshFormat format)
 QString modelMeshFormatDisplayName(ModelMeshFormat format)
 {
 	const FormatRow* row = formatRow(format);
-	return row ? QString::fromLatin1(row->name) : QCoreApplication::translate("VibeStudioModelMesh", "Unknown model");
+	return row ? QString::fromLatin1(row->name) : QCoreApplication::translate("SlopStudioModelMesh", "Unknown model");
 }
 
 bool modelMeshFormatIsSkeletal(ModelMeshFormat format)
@@ -1878,48 +1878,48 @@ struct CatalogEntry {
 // translated where read.
 constexpr CatalogEntry kCatalog[] = {
 	{ModelMeshFormat::QuakeMdl, "idtech2", "Quake|Quake mission packs|Quake source ports", "", "mdl",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Every pose, frame group and timing, indexed skins and skin groups, header fields; the palette stays external.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Every pose, frame group and timing, indexed skins and skin groups, header fields; the palette stays external.")},
 	{ModelMeshFormat::Hexen2Mdl, "idtech2", "Hexen II: Portal of Praevus", "", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Mission-pack alias models with per-corner texture coordinates; read only.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Mission-pack alias models with per-corner texture coordinates; read only.")},
 	{ModelMeshFormat::Quake2Md2, "idtech2|idtech1", "Quake II|GZDoom and Zandronum (MODELDEF)", "", "md2",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Every pose, ordered skin names and skin size; one surface.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Every pose, ordered skin names and skin size; one surface.")},
 	{ModelMeshFormat::HereticFm, "idtech2", "Heretic II", "", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Flexible models: frames, skins and mesh nodes as surfaces; read only.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Flexible models: frames, skins and mesh nodes as surfaces; read only.")},
 	{ModelMeshFormat::Quake3Md3, "idtech3|idtech2|idtech1",
 		"Quake III Arena|Team Arena|Return to Castle Wolfenstein|Wolfenstein: Enemy Territory|Star Trek: Elite Force|Jedi Outcast|Jedi Academy|Darkplaces|GZDoom (MODELDEF)",
-		"", "md3", QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Surfaces, shaders, every frame and tags; detail levels as name_1.md3 and name_2.md3.")},
+		"", "md3", QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Surfaces, shaders, every frame and tags; detail levels as name_1.md3 and name_2.md3.")},
 	{ModelMeshFormat::Mdc, "idtech3", "Return to Castle Wolfenstein|Wolfenstein: Enemy Territory", "", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Compressed MD3: base and compressed frames, tags and shaders; read only (export MD3, which both games load).")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Compressed MD3: base and compressed frames, tags and shaders; read only (export MD3, which both games load).")},
 	{ModelMeshFormat::Mds, "idtech3", "Return to Castle Wolfenstein", "", "mds",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Skeletal characters: bones, weights, frames and tags, baked to frames for viewing; written back from any skeleton whose bones keep their lengths.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Skeletal characters: bones, weights, frames and tags, baked to frames for viewing; written back from any skeleton whose bones keep their lengths.")},
 	{ModelMeshFormat::Mdm, "idtech3", "Wolfenstein: Enemy Territory", "mdx", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Skeletal meshes skinned against the MDX that holds their bones; read only.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Skeletal meshes skinned against the MDX that holds their bones; read only.")},
 	{ModelMeshFormat::Mdx, "idtech3", "Wolfenstein: Enemy Territory", "", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Bones and frames without geometry; read only.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Bones and frames without geometry; read only.")},
 	{ModelMeshFormat::Mdr, "idtech3", "Star Trek: Elite Force|ioquake3 games", "", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Skeletal models with per-frame bone matrices; the first detail level is read.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Skeletal models with per-frame bone matrices; the first detail level is read.")},
 	{ModelMeshFormat::Glm, "idtech3", "Jedi Outcast|Jedi Academy|Soldier of Fortune II", "gla", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Ghoul 2 meshes with the GLA skeleton they name; surface hierarchy and off surfaces are listed; read only.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Ghoul 2 meshes with the GLA skeleton they name; surface hierarchy and off surfaces are listed; read only.")},
 	{ModelMeshFormat::Gla, "idtech3", "Jedi Outcast|Jedi Academy|Soldier of Fortune II", "", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Ghoul 2 skeletons and their frames without geometry; read only.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Ghoul 2 skeletons and their frames without geometry; read only.")},
 	{ModelMeshFormat::Iqm, "idtech3|idtech2", "ioquake3|Spearmint|Darkplaces|FTEQW|Xonotic", "", "iqm",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Skeletal meshes with joints, weights and animations; static meshes too.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Skeletal meshes with joints, weights and animations; static meshes too.")},
 	{ModelMeshFormat::Md5Mesh, "idtech4", "Doom 3|Resurrection of Evil|Quake 4|Prey|Enemy Territory: Quake Wars|The Dark Mod", "md5anim|def",
-		"md5mesh", QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Joints, weights and every md5anim beside the mesh or named by a Doom 3 .def model declaration.")},
+		"md5mesh", QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Joints, weights and every md5anim beside the mesh or named by a Doom 3 .def model declaration.")},
 	{ModelMeshFormat::Md5Anim, "idtech4", "Doom 3|Resurrection of Evil|Quake 4|Prey|Enemy Territory: Quake Wars|The Dark Mod", "", "md5anim",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "One animation: the joint hierarchy, base frame, bounds and frames.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "One animation: the joint hierarchy, base frame, bounds and frames.")},
 	{ModelMeshFormat::LightWave, "idtech4|idtech3", "Doom 3|Quake 4|q3map2 misc_model", "", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Static objects: points, polygons, UV maps and surface names as materials; read only.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Static objects: points, polygons, UV maps and surface names as materials; read only.")},
 	{ModelMeshFormat::Ase, "idtech4|idtech3", "Doom 3|Quake 4|q3map2 misc_model", "", "ase",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Static scenes: objects, materials and mapping; the first mesh of each object.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Static scenes: objects, materials and mapping; the first mesh of each object.")},
 	{ModelMeshFormat::HalfLifeMdl, "goldsrc", "Half-Life|Counter-Strike|Team Fortress Classic|Day of Defeat|Sven Co-op", "T.mdl|01.mdl", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Bones, sequences, body parts, embedded textures and attachments, with texture and sequence group files; read only.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Bones, sequences, body parts, embedded textures and attachments, with texture and sequence group files; read only.")},
 	{ModelMeshFormat::Kvx, "idtech1", "GZDoom|ZDoom|Zandronum|Eternity (VOXELDEF)", "", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Voxel sprites meshed into faces, coloured from the palette in the file; read only.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Voxel sprites meshed into faces, coloured from the palette in the file; read only.")},
 	{ModelMeshFormat::WavefrontObj, "interchange", "Any modeller", "", "obj",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "One pose of polygon geometry with UVs, normals and material names; no MTL library.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "One pose of polygon geometry with UVs, normals and material names; no MTL library.")},
 	{ModelMeshFormat::Gltf, "interchange", "Blender|Any modeller", "bin", "",
-		QT_TRANSLATE_NOOP("VibeStudioModelMesh", "Meshes, node transforms, skins, animations and morph targets from .gltf (embedded or .bin buffers) or .glb; triangles only; read only.")},
+		QT_TRANSLATE_NOOP("SlopStudioModelMesh", "Meshes, node transforms, skins, animations and morph targets from .gltf (embedded or .bin buffers) or .glb; triangles only; read only.")},
 };
 
 } // namespace
@@ -1960,7 +1960,7 @@ QVector<ModelFormatCapability> modelFormatCapabilities()
 		capability.animationOnly = row->animationOnly;
 		capability.companions = QString::fromLatin1(entry.companions).split(QLatin1Char('|'), Qt::SkipEmptyParts);
 		capability.writes = *entry.exportId && exports.contains(QString::fromLatin1(entry.exportId));
-		capability.notes = QCoreApplication::translate("VibeStudioModelMesh", entry.notes);
+		capability.notes = QCoreApplication::translate("SlopStudioModelMesh", entry.notes);
 		capabilities.append(capability);
 	}
 	return capabilities;
@@ -2060,11 +2060,11 @@ ModelMesh decodeModelMesh(const QString& virtualPath, const QByteArray& bytes, c
 	mesh.formatName = modelMeshFormatDisplayName(mesh.format);
 	if (!modelWorkCheckpoint(control, ModelWorkPhase::Validating, 0, 0, &mesh.error)) { return mesh; }
 	if (mesh.format == ModelMeshFormat::Unknown) {
-		mesh.error = QCoreApplication::translate("VibeStudioModelMesh", "The file is not a recognised idTech model.");
+		mesh.error = QCoreApplication::translate("SlopStudioModelMesh", "The file is not a recognised idTech model.");
 		return mesh;
 	}
 	if (bytes.isEmpty()) {
-		mesh.error = QCoreApplication::translate("VibeStudioModelMesh", "The model file is empty.");
+		mesh.error = QCoreApplication::translate("SlopStudioModelMesh", "The model file is empty.");
 		return mesh;
 	}
 
@@ -2198,7 +2198,7 @@ ModelMesh decodeModelMeshFile(const QString& path, const IdTechPalette* palette,
 	if (!readModelFile(path, &bytes, &readError, control)) {
 		ModelMesh mesh;
 		mesh.sourcePath = path;
-		mesh.error = readError.isEmpty() ? QCoreApplication::translate("VibeStudioModelMesh", "The model file could not be read.") : readError;
+		mesh.error = readError.isEmpty() ? QCoreApplication::translate("SlopStudioModelMesh", "The model file could not be read.") : readError;
 		return mesh;
 	}
 	QString normalized = path;
@@ -2232,9 +2232,9 @@ ModelMesh decodeModelMeshFromArchive(const PackageArchiveReader& archive, const 
 			noteModelDecodeIssue(&mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdl-palette"), warning);
 		}
 		if (resolution.fromPackage && !resolution.sourceVirtualPath.isEmpty()) {
-			mesh.detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skin palette: %1").arg(resolution.sourceVirtualPath);
+			mesh.detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skin palette: %1").arg(resolution.sourceVirtualPath);
 		} else if (resolution.palette.generated) {
-			mesh.detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skin palette: generated stand-in (no package palette was found).");
+			mesh.detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skin palette: generated stand-in (no package palette was found).");
 		}
 	}
 	return mesh;
@@ -2294,65 +2294,65 @@ QStringList modelMeshSummaryLines(const ModelMesh& mesh)
 	QStringList lines;
 	const QString formatName = mesh.formatName.isEmpty() ? modelMeshFormatDisplayName(mesh.format) : mesh.formatName;
 	if (!mesh.error.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "%1: could not be decoded.").arg(formatName);
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "Error: %1").arg(mesh.error);
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "%1: could not be decoded.").arg(formatName);
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "Error: %1").arg(mesh.error);
 		return lines;
 	}
 	if (!mesh.geometryAvailable && !mesh.skeleton.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "%1: animation only, %2 joint(s), %3 frame(s).")
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "%1: animation only, %2 joint(s), %3 frame(s).")
 			.arg(formatName).arg(mesh.skeleton.joints.size()).arg(mesh.frameCount);
 	} else if (!mesh.geometryAvailable) {
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "%1: header only, %2 frame(s), %3 surface(s).").arg(formatName).arg(mesh.frameCount).arg(mesh.surfaceCount);
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "%1: header only, %2 frame(s), %3 surface(s).").arg(formatName).arg(mesh.frameCount).arg(mesh.surfaceCount);
 	} else {
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "%1: %2 surface(s), %3 frame(s), %4 vertices, %5 triangles.")
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "%1: %2 surface(s), %3 frame(s), %4 vertices, %5 triangles.")
 			.arg(formatName)
 			.arg(mesh.surfaceCount)
 			.arg(mesh.frameCount)
 			.arg(mesh.vertexCount)
 			.arg(mesh.triangleCount);
 	}
-	lines << QCoreApplication::translate("VibeStudioModelMesh", "Format: %1 (version %2)").arg(mesh.formatId, QString::number(mesh.version));
-	lines << QCoreApplication::translate("VibeStudioModelMesh", "Frames: %1").arg(mesh.frameCount);
-	lines << QCoreApplication::translate("VibeStudioModelMesh", "Surfaces: %1").arg(mesh.surfaceCount);
-	lines << QCoreApplication::translate("VibeStudioModelMesh", "Tags: %1").arg(mesh.tagCount);
-	lines << QCoreApplication::translate("VibeStudioModelMesh", "Skins: %1").arg(mesh.skinCount);
+	lines << QCoreApplication::translate("SlopStudioModelMesh", "Format: %1 (version %2)").arg(mesh.formatId, QString::number(mesh.version));
+	lines << QCoreApplication::translate("SlopStudioModelMesh", "Frames: %1").arg(mesh.frameCount);
+	lines << QCoreApplication::translate("SlopStudioModelMesh", "Surfaces: %1").arg(mesh.surfaceCount);
+	lines << QCoreApplication::translate("SlopStudioModelMesh", "Tags: %1").arg(mesh.tagCount);
+	lines << QCoreApplication::translate("SlopStudioModelMesh", "Skins: %1").arg(mesh.skinCount);
 	if (mesh.geometryAvailable) {
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "Bounds: %1 to %2").arg(formatVector(mesh.mins), formatVector(mesh.maxs));
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "Bounding radius: %1").arg(formatCoordinate(mesh.boundingRadius()));
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "Bounds: %1 to %2").arg(formatVector(mesh.mins), formatVector(mesh.maxs));
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "Bounding radius: %1").arg(formatCoordinate(mesh.boundingRadius()));
 	}
 	for (const ModelSurface& surface : mesh.surfaces) {
 		// One multi-argument arg(): a name holding "%3" must stay literal.
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "Surface %1 \"%2\": %3 vertices, %4 triangles")
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "Surface %1 \"%2\": %3 vertices, %4 triangles")
 			.arg(QString::number(surface.index), surface.name, QString::number(surface.vertexCount), QString::number(surface.triangles.size()));
 	}
 	for (const ModelAnimation& animation : mesh.animations) {
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "Animation \"%1\": frames %2-%3")
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "Animation \"%1\": frames %2-%3")
 			.arg(animation.name, QString::number(animation.firstFrame), QString::number(animation.firstFrame + animation.frameCount - 1));
 	}
 	for (const ModelEmbeddedSkin& skin : mesh.embeddedSkins) {
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "Embedded skin %1: %2 x %3%4")
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "Embedded skin %1: %2 x %3%4")
 			.arg(skin.index)
 			.arg(skin.image.width())
 			.arg(skin.image.height())
-			.arg(skin.groupFrameCount > 1 ? QCoreApplication::translate("VibeStudioModelMesh", " (group of %1)").arg(skin.groupFrameCount) : QString());
+			.arg(skin.groupFrameCount > 1 ? QCoreApplication::translate("SlopStudioModelMesh", " (group of %1)").arg(skin.groupFrameCount) : QString());
 	}
 	for (const QString& skin : mesh.skinPaths) {
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "Skin path: %1").arg(skin);
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "Skin path: %1").arg(skin);
 	}
 	if (!mesh.skeleton.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "Joints: %1").arg(mesh.skeleton.joints.size());
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "Joints: %1").arg(mesh.skeleton.joints.size());
 		for (const ModelSkeletalClip& clip : mesh.skeleton.clips) {
-			lines << QCoreApplication::translate("VibeStudioModelMesh", "Skeletal clip \"%1\": %2 frame(s) at %3 fps%4")
+			lines << QCoreApplication::translate("SlopStudioModelMesh", "Skeletal clip \"%1\": %2 frame(s) at %3 fps%4")
 				.arg(clip.name, QString::number(clip.frames.size()), formatCoordinate(clip.framesPerSecond),
-					clip.sourcePath.isEmpty() ? QString() : QCoreApplication::translate("VibeStudioModelMesh", " from %1").arg(clip.sourcePath));
+					clip.sourcePath.isEmpty() ? QString() : QCoreApplication::translate("SlopStudioModelMesh", " from %1").arg(clip.sourcePath));
 		}
 		for (const ModelSkeletalTag& tag : mesh.skeleton.tags) {
 			const QString joint = tag.joint >= 0 && tag.joint < mesh.skeleton.joints.size() ? mesh.skeleton.joints.at(tag.joint).name : QString();
-			lines << QCoreApplication::translate("VibeStudioModelMesh", "Joint tag \"%1\" on %2").arg(tag.name, joint);
+			lines << QCoreApplication::translate("SlopStudioModelMesh", "Joint tag \"%1\" on %2").arg(tag.name, joint);
 		}
 	}
 	for (const QString& companion : mesh.companionPaths) {
-		lines << QCoreApplication::translate("VibeStudioModelMesh", "Companion file: %1").arg(companion);
+		lines << QCoreApplication::translate("SlopStudioModelMesh", "Companion file: %1").arg(companion);
 	}
 	lines += mesh.detailLines;
 	// Warnings by severity (core/model_decode_issues.h): advisories, then
@@ -2399,7 +2399,7 @@ QString exportModelFrameObj(const ModelMesh& mesh, int frameIndex, const QString
 	}
 
 	QStringList lines;
-	lines << QStringLiteral("# Wavefront OBJ exported by VibeStudio");
+	lines << QStringLiteral("# Wavefront OBJ exported by SlopStudio");
 	if (!mesh.sourcePath.isEmpty()) {
 		// A loose file's absolute path names the user's folders; exported assets
 		// keep only its file name. Package entries keep their virtual path.
@@ -2435,7 +2435,7 @@ QString exportModelFrameObj(const ModelMesh& mesh, int frameIndex, const QString
 		if (!materialName.isEmpty()) {
 			lines << QStringLiteral("usemtl %1").arg(sanitizedName(materialName));
 		}
-		// Vertices no face uses are left out (OBJ importers, VibeStudio's
+		// Vertices no face uses are left out (OBJ importers, SlopStudio's
 		// among them, refuse loose vertices); the rest keep their order.
 		QVector<int> written(count, -1);
 		for (const ModelTriangle& triangle : surface.triangles) {
@@ -2491,4 +2491,4 @@ QString exportModelFrameObj(const ModelMesh& mesh, int frameIndex, const QString
 	return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

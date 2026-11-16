@@ -9,7 +9,7 @@
 
 // Shared deterministic duplex device and durable take-writer fault injection.
 // No native device enumeration or physical input/output is used.
-namespace vibestudio::test
+namespace slopstudio::test
 {
 inline thread_local bool recordingCountAllocations = false;
 inline thread_local size_t recordingAllocations = 0;
@@ -230,4 +230,4 @@ inline AudioCaptureStorageFactory recordingStorageFactory(std::shared_ptr<Record
 {
 	return [fixture, disk] { return std::make_unique<RecordingStorage>(fixture, disk); };
 }
-} // namespace vibestudio::test
+} // namespace slopstudio::test

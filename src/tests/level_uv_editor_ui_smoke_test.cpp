@@ -45,7 +45,7 @@
 #include <QTimer>
 #include <QToolButton>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
@@ -53,7 +53,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -302,7 +302,7 @@ int main(int argc, char** argv)
 				expect(status && !status->text().isEmpty() && points && points->rowCount() == layout.uv.size() && allow && allow->isVisible() && reset,
 					"status, point list and the Valve 220 choice for a classic face");
 				expect(until([&] { return dialog->preview()->hasMesh(); }), "the preview shows the brush");
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				dialog->activateWindow();
 				view->setFocus(Qt::OtherFocusReason);
 				// Drag point 1: the whole texture follows onto the 1-texel grid,
@@ -363,8 +363,8 @@ int main(int argc, char** argv)
 				// Apply a known edit: the shared service's own result, as one step.
 				reset->click();
 				view->nudge({16, -8});
-				// VIBESTUDIO_UV_EDITOR_GRAB=<folder> saves the dialog for a look.
-				if (const QString grab = qEnvironmentVariable("VIBESTUDIO_UV_EDITOR_GRAB"); !grab.isEmpty()) {
+				// SLOPSTUDIO_UV_EDITOR_GRAB=<folder> saves the dialog for a look.
+				if (const QString grab = qEnvironmentVariable("SLOPSTUDIO_UV_EDITOR_GRAB"); !grab.isEmpty()) {
 					view->setAnchor(1);
 					view->rotate(20);
 					settle(200);
@@ -395,7 +395,7 @@ int main(int argc, char** argv)
 					return false;
 				}
 				dialog->view()->nudge({4, 4});
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				dialog->activateWindow();
 				dialog->view()->setFocus(Qt::OtherFocusReason);
 				QTest::keyClick(dialog->view(), Qt::Key_Escape);
@@ -463,7 +463,7 @@ int main(int argc, char** argv)
 							&& view->layout().imageSize == QSize(64, 64) && allow && !allow->isVisible(),
 						"a patch without an image takes an explicit size the user can see");
 					const QPointF start = view->result().uv[4];
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 					dialog->activateWindow();
 					view->setFocus(Qt::OtherFocusReason);
 					const QPoint from = view->texelToScreen(start).toPoint();

@@ -1,6 +1,6 @@
 #pragma once
 #include "tests/model_ik_test_helpers.h"
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh curveFixture()
 {
@@ -29,4 +29,4 @@ inline ModelPoseCurveKey curveKey(int frame, double value, ModelCurveInterpolati
 	key.tangent = tangent;
 	return key;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

@@ -2,7 +2,7 @@
 #include "core/package_content.h"
 #include <QStringList>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelBuildPakSlot {
 	int requested = -1, number = -1;
 	QString packagePath, receiptPath, receiptSha256;
@@ -13,7 +13,7 @@ struct LevelBuildPakSlot {
 };
 // -1 selects an existing matching map receipt, otherwise the first loadable free
 // slot. Original Quake requires a consecutive prefix; Quake II checks slots 0–9.
-// VibeStudio bounds Quake's otherwise unbounded numbering to 0–999.
+// SlopStudio bounds Quake's otherwise unbounded numbering to 0–999.
 int levelBuildPakMaximumSlot(const QString& target);
 LevelBuildPakSlot planLevelBuildPakSlot(const QString& directory, const QString& target, const QString& mapName, int requested = -1,
 										const PackageReadControl& control = {});
@@ -21,4 +21,4 @@ LevelBuildPakSlot planLevelBuildPakSlot(const QString& directory, const QString&
 // Save only after package publication. Failure leaves the published PAK intact.
 bool saveLevelBuildPakReceipt(const LevelBuildPakSlot& reviewed, const QString& target, const QString& mapName,
 							  const QString& packageSha256, QString* error);
-} // namespace vibestudio
+} // namespace slopstudio

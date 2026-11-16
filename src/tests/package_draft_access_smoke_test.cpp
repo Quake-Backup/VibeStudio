@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label, const QString& error = {})
 {
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 		std::cout << "READY\n" << std::flush; for (;;) { QThread::msleep(50); }
 	}
 	QTemporaryDir temporary; if (!temporary.isValid()) { return 1; }
-	const QDir root(temporary.path()); const QString path = root.filePath(QStringLiteral("draft.vibepackage"));
+	const QDir root(temporary.path()); const QString path = root.filePath(QStringLiteral("draft.sloppackage"));
 	PackageStagingModel plan; plan.createEmpty(PackageArchiveFormat::Pk3); bool ok = true;
 	ok &= expect(plan.addBytes(QByteArray("first"), QStringLiteral("asset.bin"), &error), "stage source", error);
 	if (!expect(PackageDraft::save(path, &plan, false, &error), "create leased draft", error)) { return 1; }
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
 		if (!snapshot.isLoaded() || snapshot.plannedEntries().isEmpty()) { return 1; }
 		const auto identity = snapshot.plannedEntries().first().sourceIdentity;
 		const auto access = PackageDraftAccess::acquire(path, PackageDraftAccess::Mode::Read, &error);
-		const QString moved = root.filePath(QStringLiteral("moved.vibepackage"));
+		const QString moved = root.filePath(QStringLiteral("moved.sloppackage"));
 		ok &= expect(access && QDir().rename(path, moved) && QDir().mkpath(path), "replace a synthetic draft root while its native handle survives", error);
 		if (access) { ok &= expect(!access->matchesDirectory(), "native identity rejects a replacement directory at the same path"); }
 		ok &= expect(QFileInfo::exists(QDir(moved).filePath(QStringLiteral("document.json"))), "root replacement leaves the original fixture intact");

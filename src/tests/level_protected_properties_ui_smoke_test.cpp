@@ -26,7 +26,7 @@
 #include <QTreeWidgetItemIterator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* label, const QString& detail = {})
@@ -123,7 +123,7 @@ int main(int argc, char** argv)
 	}
 	file.write(serializeLevelMap(map).bytes);
 	file.close();
-	const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (!captures.isEmpty()) {
 		QDir().mkpath(captures);
 	}

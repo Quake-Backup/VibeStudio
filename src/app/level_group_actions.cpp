@@ -4,7 +4,7 @@
 #include "core/level_visibility.h"
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 bool ApplicationShell::setLevelMapUserSelection(const QVector<LevelMapSelectionRef>& selection, QString* error, bool reveal)
 {
 	const auto before = m_levelMapDocument.historyRevision;
@@ -45,4 +45,4 @@ void ApplicationShell::changeLevelGroupContext(const QString& id, bool closeAll)
 	statusBar()->showMessage(group ? tr("Editing group %1. New objects join it; close the group to edit outside it.").arg(group->name)
 		: tr("Group editing closed. Closed groups select and transform as units."),6000);
 }
-} // namespace vibestudio
+} // namespace slopstudio

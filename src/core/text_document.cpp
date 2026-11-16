@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 QByteArray hash(const QByteArray& bytes)
@@ -445,4 +445,4 @@ QString textFileFormatLabel(const TextFileDocument& document)
 	return QCoreApplication::translate("TextDocument", "%1 · %2").arg(encoding, newline);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -5,7 +5,7 @@
 #include <QWidget>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Input stays inside this focused widget. Automation calls the document API.
 class TextureCanvas final : public QWidget {
@@ -114,4 +114,4 @@ private:
 	QImage m_onion;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -60,7 +60,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio::model_formats {
+namespace slopstudio::model_formats {
 
 namespace {
 
@@ -151,7 +151,7 @@ bool readWolfBones(const QByteArray& bytes, const QString& format, qint64 offset
 	ModelWorkProgress& work)
 {
 	if (!rangeOk(bytes, offset, qint64(count) * kWolfBoneInfoBytes)) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The %1 bone block lies outside the file.").arg(format);
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The %1 bone block lies outside the file.").arg(format);
 		return false;
 	}
 	bones->clear();
@@ -166,12 +166,12 @@ bool readWolfBones(const QByteArray& bytes, const QString& format, qint64 offset
 		bone.parentDist = readF32(bytes, base + 72);
 		bone.flags = readU32(bytes, base + 76);
 		if (bone.parent < -1 || bone.parent >= index) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "Bone %1 (%2) of the %3 names a parent that does not come before it.")
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "Bone %1 (%2) of the %3 names a parent that does not come before it.")
 				.arg(index).arg(bone.name, format);
 			return false;
 		}
 		if (!std::isfinite(bone.parentDist)) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "Bone %1 (%2) of the %3 has a parent distance that is not a finite number.")
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "Bone %1 (%2) of the %3 has a parent distance that is not a finite number.")
 				.arg(index).arg(bone.name, format);
 			return false;
 		}
@@ -189,7 +189,7 @@ bool readWolfFrames(const QByteArray& bytes, const QString& format, qint64 offse
 	const int boneCount = bones.size();
 	const qint64 stride = kWolfFrameHeaderBytes + qint64(boneCount) * kWolfBoneFrameBytes;
 	if (!rangeOk(bytes, offset, qint64(frameCount) * stride)) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The %1 frame block lies outside the file.").arg(format);
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The %1 frame block lies outside the file.").arg(format);
 		return false;
 	}
 	clip->frames.reserve(frameCount);
@@ -250,7 +250,7 @@ bool readWolfSurfaces(const QByteArray& bytes, const QString& format, bool mdm, 
 	for (int index = 0; index < count; ++index) {
 		if (!work.step()) { return false; }
 		if (!rangeOk(bytes, offset, kWolfSurfaceBytes)) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "%1 surface %2 lies outside the file.").arg(format).arg(index);
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "%1 surface %2 lies outside the file.").arg(format).arg(index);
 			return false;
 		}
 		const QString name = readFixedName(bytes, offset + 4, kWolfNameBytes);
@@ -265,7 +265,7 @@ bool readWolfSurfaces(const QByteArray& bytes, const QString& format, bool mdm, 
 		const int endOffset = readI32(bytes, offset + 172);
 		if (vertexCount < 0 || vertexCount > kMaxSurfaceVertices || triangleCount < 0 || triangleCount > kMaxSurfaceTriangles
 			|| referenceCount < 0 || referenceCount > kMaxJoints) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "%1 surface %2 declares counts outside the supported range.")
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "%1 surface %2 declares counts outside the supported range.")
 				.arg(format).arg(index);
 			return false;
 		}
@@ -274,7 +274,7 @@ bool readWolfSurfaces(const QByteArray& bytes, const QString& format, bool mdm, 
 		};
 		if (!blockOk(triangleOffset, qint64(triangleCount) * kWolfTriangleBytes) || !blockOk(referenceOffset, qint64(referenceCount) * 4)
 			|| !blockOk(vertexOffset, qint64(vertexCount) * vertexBytes)) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "%1 surface %2 has a data block outside the file.").arg(format).arg(index);
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "%1 surface %2 has a data block outside the file.").arg(format).arg(index);
 			return false;
 		}
 
@@ -292,7 +292,7 @@ bool readWolfSurfaces(const QByteArray& bytes, const QString& format, bool mdm, 
 		for (int reference = 0; reference < referenceCount; ++reference) {
 			if (!work.step()) { return false; }
 			if (!boneOk(readI32(bytes, offset + referenceOffset + qint64(reference) * 4))) {
-				*error = QCoreApplication::translate("VibeStudioModelMesh", "%1 surface \"%2\" refers to a bone outside the skeleton.")
+				*error = QCoreApplication::translate("SlopStudioModelMesh", "%1 surface \"%2\" refers to a bone outside the skeleton.")
 					.arg(format, surface.name);
 				return false;
 			}
@@ -306,7 +306,7 @@ bool readWolfSurfaces(const QByteArray& bytes, const QString& format, bool mdm, 
 		for (int vertex = 0; vertex < vertexCount; ++vertex) {
 			if (!work.step()) { return false; }
 			if (!rangeOk(bytes, cursor, vertexBytes)) {
-				*error = QCoreApplication::translate("VibeStudioModelMesh", "The vertices of %1 surface \"%2\" run past the end of the file.")
+				*error = QCoreApplication::translate("SlopStudioModelMesh", "The vertices of %1 surface \"%2\" run past the end of the file.")
 					.arg(format, surface.name);
 				return false;
 			}
@@ -318,13 +318,13 @@ bool readWolfSurfaces(const QByteArray& bytes, const QString& format, bool mdm, 
 			surface.texCoords.append(coord);
 			const int weightCount = readI32(bytes, cursor + 20);
 			if (weightCount < 1 || weightCount > kMaxInfluencesPerVertex) {
-				*error = QCoreApplication::translate("VibeStudioModelMesh", "Vertex %1 of %2 surface \"%3\" declares %4 bone weights.")
+				*error = QCoreApplication::translate("SlopStudioModelMesh", "Vertex %1 of %2 surface \"%3\" declares %4 bone weights.")
 					.arg(QString::number(vertex), format, surface.name, QString::number(weightCount));
 				return false;
 			}
 			const qint64 weightBase = cursor + vertexBytes;
 			if (!rangeOk(bytes, weightBase, qint64(weightCount) * kWolfWeightBytes)) {
-				*error = QCoreApplication::translate("VibeStudioModelMesh", "The vertices of %1 surface \"%2\" run past the end of the file.")
+				*error = QCoreApplication::translate("SlopStudioModelMesh", "The vertices of %1 surface \"%2\" run past the end of the file.")
 					.arg(format, surface.name);
 				return false;
 			}
@@ -335,7 +335,7 @@ bool readWolfSurfaces(const QByteArray& bytes, const QString& format, bool mdm, 
 				ModelJointInfluence influence;
 				influence.joint = readI32(bytes, base);
 				if (!boneOk(influence.joint)) {
-					*error = QCoreApplication::translate("VibeStudioModelMesh", "Vertex %1 of %2 surface \"%3\" is weighted to a bone outside the skeleton.")
+					*error = QCoreApplication::translate("SlopStudioModelMesh", "Vertex %1 of %2 surface \"%3\" is weighted to a bone outside the skeleton.")
 						.arg(vertex).arg(format, surface.name);
 					return false;
 				}
@@ -366,14 +366,14 @@ bool readWolfSurfaces(const QByteArray& bytes, const QString& format, bool mdm, 
 			surface.triangles.append(ModelTriangle{a, c, b});
 		}
 		if (dropped > 0) {
-			surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.")
+			surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.")
 				.arg(dropped);
 		}
 		surfaces->append(parsed);
 
 		if (index + 1 < count) {
 			if (endOffset < kWolfSurfaceBytes) {
-				*error = QCoreApplication::translate("VibeStudioModelMesh", "%1 surface \"%2\" declares an end offset that does not reach the next surface.")
+				*error = QCoreApplication::translate("SlopStudioModelMesh", "%1 surface \"%2\" declares an end offset that does not reach the next surface.")
 					.arg(format, surface.name);
 				return false;
 			}
@@ -402,24 +402,24 @@ void fillWolfSkeleton(ModelMesh* mesh, const QString& sourceFormat, const WolfAn
 	}
 	skeleton.clips.append(animation.clip);
 	if (renamed) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mds-duplicate-bones"), QCoreApplication::translate("VibeStudioModelMesh", "Some bones share a name; the repeats were given a numbered suffix."));
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mds-duplicate-bones"), QCoreApplication::translate("SlopStudioModelMesh", "Some bones share a name; the repeats were given a numbered suffix."));
 	}
 }
 
 void addWolfAnimationDetails(ModelMesh* mesh, const WolfAnimation& animation)
 {
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skeleton: %1 bone(s), %2 frame(s)")
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skeleton: %1 bone(s), %2 frame(s)")
 		.arg(animation.bones.size()).arg(animation.clip.frames.size());
 	if (animation.bones.size() > kGameMaxBones) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mds-bone-limit"), QCoreApplication::translate("VibeStudioModelMesh",
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mds-bone-limit"), QCoreApplication::translate("SlopStudioModelMesh",
 			"The skeleton has %1 bones; the RTCW and Enemy Territory renderers hold at most %2.")
 			.arg(animation.bones.size()).arg(kGameMaxBones));
 	}
 	if (animation.torsoParent >= 0 && animation.torsoParent < animation.bones.size()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Torso parent: %1")
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Torso parent: %1")
 			.arg(mesh->skeleton.joints.at(animation.torsoParent).name);
 	} else if (animation.torsoParent != -1) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mds-torso-parent"), QCoreApplication::translate("VibeStudioModelMesh", "The torso parent bone %1 is outside the skeleton.").arg(animation.torsoParent));
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mds-torso-parent"), QCoreApplication::translate("SlopStudioModelMesh", "The torso parent bone %1 is outside the skeleton.").arg(animation.torsoParent));
 	}
 	int tagBones = 0;
 	for (const WolfBone& bone : animation.bones) {
@@ -428,14 +428,14 @@ void addWolfAnimationDetails(ModelMesh* mesh, const WolfAnimation& animation)
 		}
 	}
 	if (tagBones > 0) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Tag bones (BONEFLAG_TAG): %1").arg(tagBones);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Tag bones (BONEFLAG_TAG): %1").arg(tagBones);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh",
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh",
 		"Torso and legs are decoded from the same frame, where the game's torso blending leaves every bone unchanged.");
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh",
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh",
 		"Frame timing and clip names come from the game's animation scripts, so every frame is listed as one clip with no rate.");
 	if (animation.declaredFrames > animation.clip.frames.size()) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("mds-frames-capped"), QCoreApplication::translate("VibeStudioModelMesh", "The skeleton declares %1 frames; only the first %2 were kept to bound memory.")
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("mds-frames-capped"), QCoreApplication::translate("SlopStudioModelMesh", "The skeleton declares %1 frames; only the first %2 were kept to bound memory.")
 			.arg(animation.declaredFrames).arg(animation.clip.frames.size()));
 	}
 }
@@ -452,16 +452,16 @@ bool parseMdx(const QByteArray& bytes, WolfAnimation* animation, int* version, Q
 {
 	const QString format = QStringLiteral("MDX");
 	if (!rangeOk(bytes, 0, kMdxHeaderBytes)) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The MDX header is truncated.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The MDX header is truncated.");
 		return false;
 	}
 	if (bytes.left(4) != QByteArrayLiteral("MDXW")) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The file is not an MDX (MDXW) skeleton.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The file is not an MDX (MDXW) skeleton.");
 		return false;
 	}
 	*version = readI32(bytes, 4);
 	if (*version != 2) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported MDX version %1; only MDXW version 2 is decoded.").arg(*version);
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported MDX version %1; only MDXW version 2 is decoded.").arg(*version);
 		return false;
 	}
 	animation->internalName = readFixedName(bytes, 8, kWolfNameBytes);
@@ -471,7 +471,7 @@ bool parseMdx(const QByteArray& bytes, WolfAnimation* animation, int* version, Q
 	const int boneOffset = readI32(bytes, 84);
 	animation->torsoParent = readI32(bytes, 88);
 	if (frameCount <= 0 || boneCount <= 0 || boneCount > kMaxJoints) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The MDX header declares counts outside the supported range.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The MDX header declares counts outside the supported range.");
 		return false;
 	}
 	if (!readWolfBones(bytes, format, boneOffset, boneCount, &animation->bones, error, work)) {
@@ -479,7 +479,7 @@ bool parseMdx(const QByteArray& bytes, WolfAnimation* animation, int* version, Q
 	}
 	const qint64 stride = kWolfFrameHeaderBytes + qint64(boneCount) * kWolfBoneFrameBytes;
 	if (!rangeOk(bytes, frameOffset, qint64(frameCount) * stride)) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The %1 frame block lies outside the file.").arg(format);
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The %1 frame block lies outside the file.").arg(format);
 		return false;
 	}
 	animation->declaredFrames = frameCount;
@@ -523,12 +523,12 @@ void addWolfSurfaces(ModelMesh* mesh, const QString& format, QVector<WolfSurface
 	for (WolfSurface& parsed : surfaces) {
 		ModelSurface& surface = parsed.surface;
 		if (surface.vertexCount == 0) {
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "%1 surface \"%2\" has no vertices and was left out.")
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "%1 surface \"%2\" has no vertices and was left out.")
 				.arg(format, surface.name);
 			continue;
 		}
 		if (parsed.minLod > 0) {
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh",
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh",
 				"Surface \"%1\": %2 vertices, at least %3 at its lowest level of detail (the collapse map is not applied).")
 				.arg(surface.name, QString::number(surface.vertexCount), QString::number(parsed.minLod));
 		}
@@ -551,12 +551,12 @@ void decodeMds(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	if (!work.check()) { return; }
 	const QString format = QStringLiteral("MDS");
 	if (!rangeOk(bytes, 0, kMdsHeaderBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDS header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDS header is truncated.");
 		return;
 	}
 	mesh->version = readI32(bytes, 4);
 	if (mesh->version != 4) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported MDS version %1; only MDSW version 4 is decoded.").arg(mesh->version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported MDS version %1; only MDSW version 4 is decoded.").arg(mesh->version);
 		return;
 	}
 	WolfAnimation animation;
@@ -574,7 +574,7 @@ void decodeMds(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	const int tagOffset = readI32(bytes, 112);
 	if (frameCount <= 0 || boneCount <= 0 || boneCount > kMaxJoints || surfaceCount < 0 || surfaceCount > kMaxSurfaces || tagCount < 0
 		|| tagCount > kMaxTags) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDS header declares counts outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDS header declares counts outside the supported range.");
 		return;
 	}
 	if (!readWolfBones(bytes, format, boneOffset, boneCount, &animation.bones, &mesh->error, work)) {
@@ -582,7 +582,7 @@ void decodeMds(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	}
 	const qint64 stride = kWolfFrameHeaderBytes + qint64(boneCount) * kWolfBoneFrameBytes;
 	if (!rangeOk(bytes, frameOffset, qint64(frameCount) * stride)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The %1 frame block lies outside the file.").arg(format);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The %1 frame block lies outside the file.").arg(format);
 		return;
 	}
 
@@ -594,7 +594,7 @@ void decodeMds(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 
 	// mdsTag_t
 	if (tagCount > 0 && !rangeOk(bytes, tagOffset, qint64(tagCount) * kMdsTagBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDS tag block lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDS tag block lies outside the file.");
 		return;
 	}
 	QVector<WolfTag> tags;
@@ -606,7 +606,7 @@ void decodeMds(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		tag.torsoWeight = readF32(bytes, base + 64);
 		tag.bone = readI32(bytes, base + 68);
 		if (tag.bone < 0 || tag.bone >= boneCount) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDS tag \"%1\" follows a bone outside the skeleton.").arg(tag.name);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDS tag \"%1\" follows a bone outside the skeleton.").arg(tag.name);
 			return;
 		}
 		tags.append(tag);
@@ -639,9 +639,9 @@ void decodeMds(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 
 	fillWolfSkeleton(mesh, QStringLiteral("mds"), animation);
 	if (!animation.internalName.isEmpty()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Internal name: %1").arg(animation.internalName);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Internal name: %1").arg(animation.internalName);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Level of detail scale %1, bias %2").arg(lodScale).arg(lodBias);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Level of detail scale %1, bias %2").arg(lodScale).arg(lodBias);
 	addWolfAnimationDetails(mesh, animation);
 	addWolfSurfaces(mesh, format, surfaces);
 	for (const WolfTag& tag : tags) {
@@ -649,10 +649,10 @@ void decodeMds(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		skeletalTag.name = tag.name;
 		skeletalTag.joint = tag.bone;
 		mesh->skeleton.tags.append(skeletalTag);
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Tag \"%1\" follows bone \"%2\" (torso weight %3).")
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Tag \"%1\" follows bone \"%2\" (torso weight %3).")
 			.arg(tag.name, mesh->skeleton.joints.at(tag.bone).name, QString::number(tag.torsoWeight));
 		if (!columnAxes.at(tag.bone)) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mds-tag-axes"), QCoreApplication::translate("VibeStudioModelMesh",
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mds-tag-axes"), QCoreApplication::translate("SlopStudioModelMesh",
 				"Tag \"%1\" sits on bone \"%2\", which also moves vertices, so the tag takes the bone's vertex axes; RTCW reads that bone's axes transposed for tags.")
 				.arg(tag.name, mesh->skeleton.joints.at(tag.bone).name));
 		}
@@ -666,12 +666,12 @@ void decodeMdm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 	if (!work.check()) { return; }
 	const QString format = QStringLiteral("MDM");
 	if (!rangeOk(bytes, 0, kMdmHeaderBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDM header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDM header is truncated.");
 		return;
 	}
 	mesh->version = readI32(bytes, 4);
 	if (mesh->version != 3) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported MDM version %1; only MDMW version 3 is decoded.").arg(mesh->version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported MDM version %1; only MDMW version 3 is decoded.").arg(mesh->version);
 		return;
 	}
 	const QString internalName = readFixedName(bytes, 8, kWolfNameBytes);
@@ -682,7 +682,7 @@ void decodeMdm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 	const int tagCount = readI32(bytes, 88);
 	const int tagOffset = readI32(bytes, 92);
 	if (surfaceCount < 0 || surfaceCount > kMaxSurfaces || tagCount < 0 || tagCount > kMaxTags) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDM header declares counts outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDM header declares counts outside the supported range.");
 		return;
 	}
 
@@ -698,7 +698,7 @@ void decodeMdm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 	for (int index = 0; index < tagCount; ++index) {
 		if (!work.step()) { return; }
 		if (!rangeOk(bytes, tagCursor, kMdmTagBytes)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDM tag %1 lies outside the file.").arg(index);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDM tag %1 lies outside the file.").arg(index);
 			return;
 		}
 		WolfTag tag;
@@ -720,14 +720,14 @@ void decodeMdm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 			highestBone = std::max(highestBone, bone);
 		}
 		if (!bonesOk) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDM tag \"%1\" has bone data outside the file or the skeleton.").arg(tag.name);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDM tag \"%1\" has bone data outside the file or the skeleton.").arg(tag.name);
 			return;
 		}
 		highestBone = std::max(highestBone, tag.bone);
 		tags.append(tag);
 		if (index + 1 < tagCount) {
 			if (endOffset < kMdmTagBytes) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDM tag \"%1\" declares an end offset that does not reach the next tag.")
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDM tag \"%1\" declares an end offset that does not reach the next tag.")
 					.arg(tag.name);
 				return;
 			}
@@ -758,12 +758,12 @@ void decodeMdm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 		int version = 0;
 		if (!parseMdx(data, &parsed, &version, &problem, work)) {
 			if (mesh->error.isEmpty()) {
-				mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skipped MDX %1: %2").arg(candidate, problem);
+				mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skipped MDX %1: %2").arg(candidate, problem);
 			}
 			return false;
 		}
 		if (parsed.bones.size() < bonesNeeded) {
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skipped MDX %1: it has %2 bone(s) and the mesh uses %3.")
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skipped MDX %1: it has %2 bone(s) and the mesh uses %3.")
 				.arg(candidate, QString::number(parsed.bones.size()), QString::number(bonesNeeded));
 			return false;
 		}
@@ -792,7 +792,7 @@ void decodeMdm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 		return;
 	}
 	if (!found) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh",
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh",
 			"The MDM needs its MDX for bones and frames, and no MDX with %1 bone(s) was found beside it or at %2.")
 			.arg(bonesNeeded).arg(QString::fromLatin1(kEtDefaultMdx));
 		return;
@@ -801,10 +801,10 @@ void decodeMdm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 
 	fillWolfSkeleton(mesh, QStringLiteral("mdm"), animation);
 	if (!internalName.isEmpty()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Internal name: %1").arg(internalName);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Internal name: %1").arg(internalName);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Level of detail scale %1, bias %2").arg(lodScale).arg(lodBias);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Bones and frames: %1 (MDX version %2)").arg(mdxPath, QString::number(mdxVersion));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Level of detail scale %1, bias %2").arg(lodScale).arg(lodBias);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Bones and frames: %1 (MDX version %2)").arg(mdxPath, QString::number(mdxVersion));
 	addWolfAnimationDetails(mesh, animation);
 	addWolfSurfaces(mesh, format, surfaces);
 	for (const WolfTag& tag : tags) {
@@ -822,7 +822,7 @@ void decodeMdm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 		skeletalTag.offset.m[7] = tag.offset.y;
 		skeletalTag.offset.m[11] = tag.offset.z;
 		mesh->skeleton.tags.append(skeletalTag);
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Tag \"%1\" follows bone \"%2\".")
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Tag \"%1\" follows bone \"%2\".")
 			.arg(tag.name, mesh->skeleton.joints.at(tag.bone).name);
 	}
 	bakeWolfSkeleton(mesh, control);
@@ -842,10 +842,10 @@ void decodeMdx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	}
 	fillWolfSkeleton(mesh, QStringLiteral("mdm"), animation);
 	if (!animation.internalName.isEmpty()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Internal name: %1").arg(animation.internalName);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Internal name: %1").arg(animation.internalName);
 	}
 	addWolfAnimationDetails(mesh, animation);
 	bakeWolfSkeleton(mesh, control);
 }
 
-} // namespace vibestudio::model_formats
+} // namespace slopstudio::model_formats

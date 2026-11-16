@@ -3,7 +3,7 @@
 #include <QCoreApplication>
 #include <QtGlobal>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -71,21 +71,21 @@ QString normalizedPreferredConnector(const QString& connectorId, const QString& 
 QString preferredConnectorText(const QString& label, const QString& connectorId)
 {
 	if (connectorId.isEmpty()) {
-		return QCoreApplication::translate("VibeStudioAiConnectors", "%1: not selected").arg(label);
+		return QCoreApplication::translate("SlopStudioAiConnectors", "%1: not selected").arg(label);
 	}
 	AiConnectorDescriptor connector;
 	aiConnectorForId(connectorId, &connector);
-	return QCoreApplication::translate("VibeStudioAiConnectors", "%1: %2 [%3]").arg(label, connector.displayName, connector.id);
+	return QCoreApplication::translate("SlopStudioAiConnectors", "%1: %2 [%3]").arg(label, connector.displayName, connector.id);
 }
 
 QString preferredModelText(const QString& label, const QString& modelId)
 {
 	if (modelId.isEmpty()) {
-		return QCoreApplication::translate("VibeStudioAiConnectors", "%1: provider default").arg(label);
+		return QCoreApplication::translate("SlopStudioAiConnectors", "%1: provider default").arg(label);
 	}
 	AiModelDescriptor model;
 	aiModelForId(modelId, &model);
-	return QCoreApplication::translate("VibeStudioAiConnectors", "%1: %2 [%3]").arg(label, model.displayName, model.id);
+	return QCoreApplication::translate("SlopStudioAiConnectors", "%1: %2 [%3]").arg(label, model.displayName, model.id);
 }
 
 QString normalizedPreferredModel(const QString& modelId, const QString& capabilityId)
@@ -108,18 +108,18 @@ QString normalizedAiId(const QString& id)
 QVector<AiCapabilityDescriptor> aiCapabilityDescriptors()
 {
 	return {
-		capability(QStringLiteral("reasoning"), QCoreApplication::translate("VibeStudioAiConnectors", "Reasoning"), QCoreApplication::translate("VibeStudioAiConnectors", "General planning, explanation, project summarization, and review assistance.")),
-		capability(QStringLiteral("coding"), QCoreApplication::translate("VibeStudioAiConnectors", "Coding"), QCoreApplication::translate("VibeStudioAiConnectors", "Code, script, shader, config, and command assistance through reviewable proposals.")),
-		capability(QStringLiteral("vision"), QCoreApplication::translate("VibeStudioAiConnectors", "Vision"), QCoreApplication::translate("VibeStudioAiConnectors", "Image and screenshot understanding for assets, UI, maps, and visual QA.")),
-		capability(QStringLiteral("image"), QCoreApplication::translate("VibeStudioAiConnectors", "Image Generation"), QCoreApplication::translate("VibeStudioAiConnectors", "Optional generated concept art, sprites, textures, and placeholder imagery.")),
-		capability(QStringLiteral("audio"), QCoreApplication::translate("VibeStudioAiConnectors", "Audio Generation"), QCoreApplication::translate("VibeStudioAiConnectors", "Optional generated sound, music, and audio ideation workflows.")),
-		capability(QStringLiteral("voice"), QCoreApplication::translate("VibeStudioAiConnectors", "Voice"), QCoreApplication::translate("VibeStudioAiConnectors", "Optional narration, speech, and voice workflow experiments.")),
-		capability(QStringLiteral("three-d"), QCoreApplication::translate("VibeStudioAiConnectors", "3D Generation"), QCoreApplication::translate("VibeStudioAiConnectors", "Optional model, texture, and concept-to-asset generation experiments.")),
-		capability(QStringLiteral("embeddings"), QCoreApplication::translate("VibeStudioAiConnectors", "Embeddings"), QCoreApplication::translate("VibeStudioAiConnectors", "Semantic search, clustering, retrieval, and context ranking.")),
-		capability(QStringLiteral("tool-calls"), QCoreApplication::translate("VibeStudioAiConnectors", "Tool Calls"), QCoreApplication::translate("VibeStudioAiConnectors", "Reviewable use of VibeStudio project, package, compiler, and validation services.")),
-		capability(QStringLiteral("streaming"), QCoreApplication::translate("VibeStudioAiConnectors", "Streaming"), QCoreApplication::translate("VibeStudioAiConnectors", "Incremental response, progress, and cancellation-friendly provider output.")),
-		capability(QStringLiteral("cost-usage"), QCoreApplication::translate("VibeStudioAiConnectors", "Cost/Usage"), QCoreApplication::translate("VibeStudioAiConnectors", "Provider cost, quota, token, credit, or usage reporting where available.")),
-		capability(QStringLiteral("local-offline"), QCoreApplication::translate("VibeStudioAiConnectors", "Local/Offline"), QCoreApplication::translate("VibeStudioAiConnectors", "User-configured local runtimes that do not require cloud services.")),
+		capability(QStringLiteral("reasoning"), QCoreApplication::translate("SlopStudioAiConnectors", "Reasoning"), QCoreApplication::translate("SlopStudioAiConnectors", "General planning, explanation, project summarization, and review assistance.")),
+		capability(QStringLiteral("coding"), QCoreApplication::translate("SlopStudioAiConnectors", "Coding"), QCoreApplication::translate("SlopStudioAiConnectors", "Code, script, shader, config, and command assistance through reviewable proposals.")),
+		capability(QStringLiteral("vision"), QCoreApplication::translate("SlopStudioAiConnectors", "Vision"), QCoreApplication::translate("SlopStudioAiConnectors", "Image and screenshot understanding for assets, UI, maps, and visual QA.")),
+		capability(QStringLiteral("image"), QCoreApplication::translate("SlopStudioAiConnectors", "Image Generation"), QCoreApplication::translate("SlopStudioAiConnectors", "Optional generated concept art, sprites, textures, and placeholder imagery.")),
+		capability(QStringLiteral("audio"), QCoreApplication::translate("SlopStudioAiConnectors", "Audio Generation"), QCoreApplication::translate("SlopStudioAiConnectors", "Optional generated sound, music, and audio ideation workflows.")),
+		capability(QStringLiteral("voice"), QCoreApplication::translate("SlopStudioAiConnectors", "Voice"), QCoreApplication::translate("SlopStudioAiConnectors", "Optional narration, speech, and voice workflow experiments.")),
+		capability(QStringLiteral("three-d"), QCoreApplication::translate("SlopStudioAiConnectors", "3D Generation"), QCoreApplication::translate("SlopStudioAiConnectors", "Optional model, texture, and concept-to-asset generation experiments.")),
+		capability(QStringLiteral("embeddings"), QCoreApplication::translate("SlopStudioAiConnectors", "Embeddings"), QCoreApplication::translate("SlopStudioAiConnectors", "Semantic search, clustering, retrieval, and context ranking.")),
+		capability(QStringLiteral("tool-calls"), QCoreApplication::translate("SlopStudioAiConnectors", "Tool Calls"), QCoreApplication::translate("SlopStudioAiConnectors", "Reviewable use of SlopStudio project, package, compiler, and validation services.")),
+		capability(QStringLiteral("streaming"), QCoreApplication::translate("SlopStudioAiConnectors", "Streaming"), QCoreApplication::translate("SlopStudioAiConnectors", "Incremental response, progress, and cancellation-friendly provider output.")),
+		capability(QStringLiteral("cost-usage"), QCoreApplication::translate("SlopStudioAiConnectors", "Cost/Usage"), QCoreApplication::translate("SlopStudioAiConnectors", "Provider cost, quota, token, credit, or usage reporting where available.")),
+		capability(QStringLiteral("local-offline"), QCoreApplication::translate("SlopStudioAiConnectors", "Local/Offline"), QCoreApplication::translate("SlopStudioAiConnectors", "User-configured local runtimes that do not require cloud services.")),
 	};
 }
 
@@ -151,11 +151,11 @@ QVector<AiConnectorDescriptor> aiConnectorDescriptors()
 	return {
 		connector(
 			QStringLiteral("openai"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "OpenAI"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "OpenAI"),
 			QStringLiteral("OpenAI"),
 			QStringLiteral("https"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "User-provided API key or organization policy."),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Cloud connector; project context is sent only after explicit user opt-in and review."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "User-provided API key or organization policy."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Cloud connector; project context is sent only after explicit user opt-in and review."),
 			{
 				QStringLiteral("reasoning"),
 				QStringLiteral("coding"),
@@ -169,19 +169,19 @@ QVector<AiConnectorDescriptor> aiConnectorDescriptors()
 				QStringLiteral("cost-usage"),
 			},
 			{
-				QCoreApplication::translate("VibeStudioAiConnectors", "Answers text questions through the Chat Completions API once a model is named in Settings."),
-				QCoreApplication::translate("VibeStudioAiConnectors", "Makes and edits images through the Images API, gpt-image-1.5 unless another model is named in Settings."),
-				QCoreApplication::translate("VibeStudioAiConnectors", "Provider calls stay opt-in; VibeStudio records prompts, context summaries, tool calls, staged outputs, approval state, validation, and cost placeholders without logging secrets."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Answers text questions through the Chat Completions API once a model is named in Settings."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Makes and edits images through the Images API, gpt-image-1.5 unless another model is named in Settings."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Provider calls stay opt-in; SlopStudio records prompts, context summaries, tool calls, staged outputs, approval state, validation, and cost placeholders without logging secrets."),
 			},
 			true,
 			true),
 		connector(
 			QStringLiteral("claude"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Claude"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Claude"),
 			QStringLiteral("Anthropic"),
 			QStringLiteral("https"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "User-provided API key or organization policy."),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Cloud connector; long-context project data must be explicitly reviewed before sending."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "User-provided API key or organization policy."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Cloud connector; long-context project data must be explicitly reviewed before sending."),
 			{
 				QStringLiteral("reasoning"),
 				QStringLiteral("coding"),
@@ -191,17 +191,17 @@ QVector<AiConnectorDescriptor> aiConnectorDescriptors()
 				QStringLiteral("cost-usage"),
 			},
 			{
-				QCoreApplication::translate("VibeStudioAiConnectors", "Answers text questions through Anthropic's Messages API with the ANTHROPIC_API_KEY credential."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Answers text questions through Anthropic's Messages API with the ANTHROPIC_API_KEY credential."),
 			},
 			true,
 			true),
 		connector(
 			QStringLiteral("gemini"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Gemini"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Gemini"),
 			QStringLiteral("Google"),
 			QStringLiteral("https"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "User-provided API key or organization policy."),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Cloud connector; multimodal project context requires explicit user review."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "User-provided API key or organization policy."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Cloud connector; multimodal project context requires explicit user review."),
 			{
 				QStringLiteral("reasoning"),
 				QStringLiteral("coding"),
@@ -213,18 +213,18 @@ QVector<AiConnectorDescriptor> aiConnectorDescriptors()
 				QStringLiteral("cost-usage"),
 			},
 			{
-				QCoreApplication::translate("VibeStudioAiConnectors", "Answers text questions through Gemini's generateContent API with the GEMINI_API_KEY credential."),
-				QCoreApplication::translate("VibeStudioAiConnectors", "Makes and edits images through generateContent with an image model named in Settings."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Answers text questions through Gemini's generateContent API with the GEMINI_API_KEY credential."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Makes and edits images through generateContent with an image model named in Settings."),
 			},
 			true,
 			true),
 		connector(
 			QStringLiteral("elevenlabs"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "ElevenLabs"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "ElevenLabs"),
 			QStringLiteral("ElevenLabs"),
 			QStringLiteral("https"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "User-provided API key."),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Cloud connector for generated audio and voice experiments; asset provenance must stay visible."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "User-provided API key."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Cloud connector for generated audio and voice experiments; asset provenance must stay visible."),
 			{
 				QStringLiteral("audio"),
 				QStringLiteral("voice"),
@@ -232,34 +232,34 @@ QVector<AiConnectorDescriptor> aiConnectorDescriptors()
 				QStringLiteral("cost-usage"),
 			},
 			{
-				QCoreApplication::translate("VibeStudioAiConnectors", "Makes sound effects through the Sound Effects API (eleven_text_to_sound_v2 by default) with the ELEVENLABS_API_KEY credential."),
-				QCoreApplication::translate("VibeStudioAiConnectors", "Narration, voice, and speech-to-text remain design stubs."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Makes sound effects through the Sound Effects API (eleven_text_to_sound_v2 by default) with the ELEVENLABS_API_KEY credential."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Narration, voice, and speech-to-text remain design stubs."),
 			},
 			true,
 			true),
 		connector(
 			QStringLiteral("meshy"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Meshy"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Meshy"),
 			QStringLiteral("Meshy"),
 			QStringLiteral("https"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "User-provided API key."),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Cloud connector for generated 3D and texture concepts; generated-asset provenance must stay visible."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "User-provided API key."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Cloud connector for generated 3D and texture concepts; generated-asset provenance must stay visible."),
 			{
 				QStringLiteral("three-d"),
 				QStringLiteral("image"),
 				QStringLiteral("cost-usage"),
 			},
 			{
-				QCoreApplication::translate("VibeStudioAiConnectors", "Design stub for prompt/image-to-3D, texture generation, and placeholder model concepts."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Design stub for prompt/image-to-3D, texture generation, and placeholder model concepts."),
 			},
 			true),
 		connector(
 			QStringLiteral("local-offline"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Local/Offline Runtime"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Local/Offline Runtime"),
 			QStringLiteral("Local"),
 			QStringLiteral("http-local"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "User-configured executable or local service; no cloud credential required."),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Local connector; users control runtime, model files, and data locality."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "User-configured executable or local service; no cloud credential required."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Local connector; users control runtime, model files, and data locality."),
 			{
 				QStringLiteral("reasoning"),
 				QStringLiteral("coding"),
@@ -270,88 +270,88 @@ QVector<AiConnectorDescriptor> aiConnectorDescriptors()
 				QStringLiteral("local-offline"),
 			},
 			{
-				QCoreApplication::translate("VibeStudioAiConnectors", "Answers text questions through an OpenAI-compatible server on this machine: Ollama by default (http://localhost:11434/v1), or LM Studio and llama.cpp's server at their own addresses."),
-				QCoreApplication::translate("VibeStudioAiConnectors", "Makes images through a Stable Diffusion web UI on this machine (AUTOMATIC1111 or Forge at http://127.0.0.1:7860 by default), or an OpenAI-compatible image server at an address ending in /v1."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Answers text questions through an OpenAI-compatible server on this machine: Ollama by default (http://localhost:11434/v1), or LM Studio and llama.cpp's server at their own addresses."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Makes images through a Stable Diffusion web UI on this machine (AUTOMATIC1111 or Forge at http://127.0.0.1:7860 by default), or an OpenAI-compatible image server at an address ending in /v1."),
 			},
 			false,
 			true),
 		connector(
 			QStringLiteral("local-gguf"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Local GGUF Model (ggml)"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Local GGUF Model (ggml)"),
 			QStringLiteral("Local"),
 			QStringLiteral("in-process"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "A .gguf model file on this machine; no account or key."),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Runs inside VibeStudio through llama.cpp and ggml; nothing leaves this machine."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "A .gguf model file on this machine; no account or key."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Runs inside SlopStudio through llama.cpp and ggml; nothing leaves this machine."),
 			{
 				QStringLiteral("reasoning"),
 				QStringLiteral("coding"),
 				QStringLiteral("local-offline"),
 			},
 			{
-				QCoreApplication::translate("VibeStudioAiConnectors", "Answers text questions with a GGUF language model run on the CPU: name the .gguf file as the model in Settings. Structured requests are held to their schema by a grammar."),
-				QCoreApplication::translate("VibeStudioAiConnectors", "Needs a build configured with -Dggml=enabled (scripts/build_ggml.py builds the pinned llama.cpp)."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Answers text questions with a GGUF language model run on the CPU: name the .gguf file as the model in Settings. Structured requests are held to their schema by a grammar."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Needs a build configured with -Dggml=enabled (scripts/build_ggml.py builds the pinned llama.cpp)."),
 			},
 			false,
 			true),
 		connector(
 			QStringLiteral("claude-code"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Claude Code"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Claude Code"),
 			QStringLiteral("Anthropic"),
 			QStringLiteral("harness"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "The Claude Code command-line tool, signed in with your Claude subscription (claude auth login); no API key."),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Cloud connector through your own login; requests go to Anthropic as Claude Code sends them, after the same review as any cloud request."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "The Claude Code command-line tool, signed in with your Claude subscription (claude auth login); no API key."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Cloud connector through your own login; requests go to Anthropic as Claude Code sends them, after the same review as any cloud request."),
 			{
 				QStringLiteral("reasoning"),
 				QStringLiteral("coding"),
 				QStringLiteral("cost-usage"),
 			},
 			{
-				QCoreApplication::translate("VibeStudioAiConnectors", "Runs claude -p in an empty folder with its tools, MCP servers, hooks and memory off, so it only answers; claude-opus-5-5 unless another model is named in Settings."),
-				QCoreApplication::translate("VibeStudioAiConnectors", "Finds claude on PATH or in its usual install folders; set its path as the endpoint to choose another. ANTHROPIC_API_KEY is not passed on, so your login answers."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Runs claude -p in an empty folder with its tools, MCP servers, hooks and memory off, so it only answers; claude-opus-5-5 unless another model is named in Settings."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Finds claude on PATH or in its usual install folders; set its path as the endpoint to choose another. ANTHROPIC_API_KEY is not passed on, so your login answers."),
 			},
 			true,
 			true),
 		connector(
 			QStringLiteral("codex"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Codex"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Codex"),
 			QStringLiteral("OpenAI"),
 			QStringLiteral("harness"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "The Codex command-line tool, signed in with your ChatGPT plan (codex login); no API key."),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Cloud connector through your own login; requests go to OpenAI as Codex sends them, after the same review as any cloud request."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "The Codex command-line tool, signed in with your ChatGPT plan (codex login); no API key."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Cloud connector through your own login; requests go to OpenAI as Codex sends them, after the same review as any cloud request."),
 			{
 				QStringLiteral("reasoning"),
 				QStringLiteral("coding"),
 				QStringLiteral("cost-usage"),
 			},
 			{
-				QCoreApplication::translate("VibeStudioAiConnectors", "Runs codex exec in an empty folder with a read-only sandbox and no saved session; Codex's own default model unless one is named in Settings."),
-				QCoreApplication::translate("VibeStudioAiConnectors", "Finds codex on PATH or in its usual install folders; set its path as the endpoint to choose another."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Runs codex exec in an empty folder with a read-only sandbox and no saved session; Codex's own default model unless one is named in Settings."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Finds codex on PATH or in its usual install folders; set its path as the endpoint to choose another."),
 			},
 			true,
 			true),
 		connector(
 			QStringLiteral("custom-command"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Custom Command"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Custom Command"),
 			QStringLiteral("Custom"),
 			QStringLiteral("harness"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Any program that answers a prompt, with whatever login it has."),
-			QCoreApplication::translate("VibeStudioAiConnectors", "User-defined command; treated as leaving this machine, so it needs cloud connectors allowed and shows the same review first."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Any program that answers a prompt, with whatever login it has."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "User-defined command; treated as leaving this machine, so it needs cloud connectors allowed and shows the same review first."),
 			{
 				QStringLiteral("reasoning"),
 				QStringLiteral("coding"),
 			},
 			{
-				QCoreApplication::translate("VibeStudioAiConnectors", "Set the command line as the endpoint, with {model}, {prompt_file}, {system_file}, {schema_file} and {answer_file} where they go; without {prompt_file} the prompt is sent on standard input, and without {answer_file} the answer is read from standard output."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Set the command line as the endpoint, with {model}, {prompt_file}, {system_file}, {schema_file} and {answer_file} where they go; without {prompt_file} the prompt is sent on standard input, and without {answer_file} the answer is read from standard output."),
 			},
 			true,
 			true),
 		connector(
 			QStringLiteral("custom-http"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Custom HTTP Connector"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Custom HTTP Connector"),
 			QStringLiteral("Custom"),
 			QStringLiteral("https"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "User-defined endpoint, headers, and authentication policy."),
-			QCoreApplication::translate("VibeStudioAiConnectors", "User-defined connector; VibeStudio must show endpoint, privacy, and capability declarations before use."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "User-defined endpoint, headers, and authentication policy."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "User-defined connector; SlopStudio must show endpoint, privacy, and capability declarations before use."),
 			{
 				QStringLiteral("reasoning"),
 				QStringLiteral("coding"),
@@ -366,8 +366,8 @@ QVector<AiConnectorDescriptor> aiConnectorDescriptors()
 				QStringLiteral("cost-usage"),
 			},
 			{
-				QCoreApplication::translate("VibeStudioAiConnectors", "Answers text questions through any OpenAI-compatible endpoint you set, such as a team proxy or a self-hosted server."),
-				QCoreApplication::translate("VibeStudioAiConnectors", "Makes sound effects through an endpoint that takes ElevenLabs' sound-generation request, when a sound endpoint is set."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Answers text questions through any OpenAI-compatible endpoint you set, such as a team proxy or a self-hosted server."),
+				QCoreApplication::translate("SlopStudioAiConnectors", "Makes sound effects through an endpoint that takes ElevenLabs' sound-generation request, when a sound endpoint is set."),
 			},
 			true,
 			true),
@@ -409,90 +409,90 @@ QVector<AiModelDescriptor> aiModelDescriptors()
 		model(
 			QStringLiteral("openai-text-default"),
 			QStringLiteral("openai"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "OpenAI configurable text model"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Resolved from user settings or provider environment for reasoning, coding, tool calls, and compiler-log explanation."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "OpenAI configurable text model"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Resolved from user settings or provider environment for reasoning, coding, tool calls, and compiler-log explanation."),
 			{QStringLiteral("reasoning"), QStringLiteral("coding"), QStringLiteral("vision"), QStringLiteral("tool-calls"), QStringLiteral("streaming"), QStringLiteral("cost-usage")},
 			true),
 		model(
 			QStringLiteral("openai-image-default"),
 			QStringLiteral("openai"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "OpenAI configurable image model"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Resolved from user settings for concept art, sprite, and texture generation requests staged before import."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "OpenAI configurable image model"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Resolved from user settings for concept art, sprite, and texture generation requests staged before import."),
 			{QStringLiteral("image"), QStringLiteral("vision"), QStringLiteral("cost-usage")}),
 		model(
 			QStringLiteral("openai-audio-default"),
 			QStringLiteral("openai"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "OpenAI configurable audio model"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Resolved from user settings for optional sound, transcription, and voice-adjacent experiments."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "OpenAI configurable audio model"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Resolved from user settings for optional sound, transcription, and voice-adjacent experiments."),
 			{QStringLiteral("audio"), QStringLiteral("voice"), QStringLiteral("cost-usage")}),
 		model(
 			QStringLiteral("claude-text-default"),
 			QStringLiteral("claude"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Claude configurable text model"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "The Claude model named in Settings, for long-context reasoning, code review, and compiler-log explanation."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Claude configurable text model"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "The Claude model named in Settings, for long-context reasoning, code review, and compiler-log explanation."),
 			{QStringLiteral("reasoning"), QStringLiteral("coding"), QStringLiteral("vision"), QStringLiteral("tool-calls"), QStringLiteral("streaming"), QStringLiteral("cost-usage")},
 			true),
 		model(
 			QStringLiteral("gemini-text-default"),
 			QStringLiteral("gemini"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Gemini configurable text model"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "The Gemini model named in Settings, for multimodal reasoning and large-context questions."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Gemini configurable text model"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "The Gemini model named in Settings, for multimodal reasoning and large-context questions."),
 			{QStringLiteral("reasoning"), QStringLiteral("coding"), QStringLiteral("vision"), QStringLiteral("image"), QStringLiteral("embeddings"), QStringLiteral("tool-calls"), QStringLiteral("streaming"), QStringLiteral("cost-usage")},
 			true),
 		model(
 			QStringLiteral("elevenlabs-voice-default"),
 			QStringLiteral("elevenlabs"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "ElevenLabs configurable voice model"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "The ElevenLabs sound model named in Settings for generated sound effects; voice requests remain a placeholder."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "ElevenLabs configurable voice model"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "The ElevenLabs sound model named in Settings for generated sound effects; voice requests remain a placeholder."),
 			{QStringLiteral("audio"), QStringLiteral("voice"), QStringLiteral("streaming"), QStringLiteral("cost-usage")},
 			true),
 		model(
 			QStringLiteral("meshy-asset-default"),
 			QStringLiteral("meshy"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Meshy configurable asset model"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Placeholder for staged model and texture concept requests when Meshy is configured."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Meshy configurable asset model"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Placeholder for staged model and texture concept requests when Meshy is configured."),
 			{QStringLiteral("three-d"), QStringLiteral("image"), QStringLiteral("cost-usage")},
 			true),
 		model(
 			QStringLiteral("local-offline-default"),
 			QStringLiteral("local-offline"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Local runtime default model"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "User-supplied local model or service for AI-free-friendly experimentation."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Local runtime default model"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "User-supplied local model or service for AI-free-friendly experimentation."),
 			{QStringLiteral("reasoning"), QStringLiteral("coding"), QStringLiteral("embeddings"), QStringLiteral("tool-calls"), QStringLiteral("streaming"), QStringLiteral("local-offline")},
 			true),
 		model(
 			QStringLiteral("local-gguf-default"),
 			QStringLiteral("local-gguf"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Local GGUF model file"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "The .gguf file named in Settings, run inside VibeStudio for reasoning and structured plans."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Local GGUF model file"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "The .gguf file named in Settings, run inside SlopStudio for reasoning and structured plans."),
 			{QStringLiteral("reasoning"), QStringLiteral("coding"), QStringLiteral("local-offline")},
 			true),
 		model(
 			QStringLiteral("claude-code-default"),
 			QStringLiteral("claude-code"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Claude Code model"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "claude-opus-5-5, or the Claude model or alias (opus, sonnet) named in Settings, answered through your Claude login."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Claude Code model"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "claude-opus-5-5, or the Claude model or alias (opus, sonnet) named in Settings, answered through your Claude login."),
 			{QStringLiteral("reasoning"), QStringLiteral("coding"), QStringLiteral("cost-usage")},
 			true),
 		model(
 			QStringLiteral("codex-default"),
 			QStringLiteral("codex"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Codex model"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Codex's default model, or the one named in Settings, answered through your ChatGPT login."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Codex model"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Codex's default model, or the one named in Settings, answered through your ChatGPT login."),
 			{QStringLiteral("reasoning"), QStringLiteral("coding"), QStringLiteral("cost-usage")},
 			true),
 		model(
 			QStringLiteral("custom-command-default"),
 			QStringLiteral("custom-command"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Custom command model"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Whatever the command runs; the model named in Settings fills {model}."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Custom command model"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Whatever the command runs; the model named in Settings fills {model}."),
 			{QStringLiteral("reasoning"), QStringLiteral("coding")},
 			true),
 		model(
 			QStringLiteral("custom-http-default"),
 			QStringLiteral("custom-http"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Custom HTTP default model"),
-			QCoreApplication::translate("VibeStudioAiConnectors", "Team-defined provider-compatible model declared by custom connector configuration."),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Custom HTTP default model"),
+			QCoreApplication::translate("SlopStudioAiConnectors", "Team-defined provider-compatible model declared by custom connector configuration."),
 			{QStringLiteral("reasoning"), QStringLiteral("coding"), QStringLiteral("vision"), QStringLiteral("image"), QStringLiteral("audio"), QStringLiteral("voice"), QStringLiteral("three-d"), QStringLiteral("embeddings"), QStringLiteral("tool-calls"), QStringLiteral("streaming"), QStringLiteral("cost-usage")},
 			true),
 	};
@@ -605,7 +605,7 @@ AiCredentialStatus aiCredentialStatusForConnector(const QString& connectorId, co
 	if (!aiConnectorForId(connectorId, &connector)) {
 		status.connectorId = normalizedAiId(connectorId);
 		status.source = QStringLiteral("unknown");
-		status.warnings.push_back(QCoreApplication::translate("VibeStudioAiConnectors", "Unknown AI connector."));
+		status.warnings.push_back(QCoreApplication::translate("SlopStudioAiConnectors", "Unknown AI connector."));
 		return status;
 	}
 
@@ -613,22 +613,22 @@ AiCredentialStatus aiCredentialStatusForConnector(const QString& connectorId, co
 	if (!connector.cloudBased) {
 		status.source = QStringLiteral("not-required");
 		status.configured = true;
-		status.redactedValue = QCoreApplication::translate("VibeStudioAiConnectors", "not required");
+		status.redactedValue = QCoreApplication::translate("SlopStudioAiConnectors", "not required");
 		return status;
 	}
 
 	if (connector.endpointKind == QStringLiteral("harness")) {
-		// The tool keeps its own login; VibeStudio never reads it (ai test-connection checks it).
+		// The tool keeps its own login; SlopStudio never reads it (ai test-connection checks it).
 		status.source = QStringLiteral("tool-login");
 		status.configured = true;
-		status.redactedValue = QCoreApplication::translate("VibeStudioAiConnectors", "the tool's own login");
+		status.redactedValue = QCoreApplication::translate("SlopStudioAiConnectors", "the tool's own login");
 		return status;
 	}
 
 	status.lookupKey = aiCredentialEnvironmentVariableForConnector(connector.id, preferences);
 	if (status.lookupKey.trimmed().isEmpty()) {
 		status.source = QStringLiteral("not-configured");
-		status.warnings.push_back(QCoreApplication::translate("VibeStudioAiConnectors", "No credential environment variable is configured."));
+		status.warnings.push_back(QCoreApplication::translate("SlopStudioAiConnectors", "No credential environment variable is configured."));
 		return status;
 	}
 
@@ -636,7 +636,7 @@ AiCredentialStatus aiCredentialStatusForConnector(const QString& connectorId, co
 	status.configured = qEnvironmentVariableIsSet(status.lookupKey.toUtf8().constData());
 	status.redactedValue = status.configured ? QStringLiteral("%1=***").arg(status.lookupKey) : QStringLiteral("%1=<missing>").arg(status.lookupKey);
 	if (!status.configured) {
-		status.warnings.push_back(QCoreApplication::translate("VibeStudioAiConnectors", "Credential was not found in the environment."));
+		status.warnings.push_back(QCoreApplication::translate("SlopStudioAiConnectors", "Credential was not found in the environment."));
 	}
 	return status;
 }
@@ -715,32 +715,32 @@ QString aiAutomationPreferencesText(const AiAutomationPreferences& preferences)
 {
 	const AiAutomationPreferences normalized = normalizedAiAutomationPreferences(preferences);
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "AI-free mode: %1").arg(normalized.aiFreeMode ? QCoreApplication::translate("VibeStudioAiConnectors", "enabled") : QCoreApplication::translate("VibeStudioAiConnectors", "disabled"));
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "AI-free mode: %1").arg(normalized.aiFreeMode ? QCoreApplication::translate("SlopStudioAiConnectors", "enabled") : QCoreApplication::translate("SlopStudioAiConnectors", "disabled"));
 	if (normalized.projectAiFree) {
-		lines << QCoreApplication::translate("VibeStudioAiConnectors", "The open project turns AI off in its manifest.");
+		lines << QCoreApplication::translate("SlopStudioAiConnectors", "The open project turns AI off in its manifest.");
 	}
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "Cloud connectors: %1").arg(normalized.cloudConnectorsEnabled ? QCoreApplication::translate("VibeStudioAiConnectors", "enabled") : QCoreApplication::translate("VibeStudioAiConnectors", "disabled"));
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "Agentic workflows: %1").arg(normalized.agenticWorkflowsEnabled ? QCoreApplication::translate("VibeStudioAiConnectors", "enabled") : QCoreApplication::translate("VibeStudioAiConnectors", "disabled"));
-	lines << preferredConnectorText(QCoreApplication::translate("VibeStudioAiConnectors", "Reasoning connector"), normalized.preferredReasoningConnectorId);
-	lines << preferredConnectorText(QCoreApplication::translate("VibeStudioAiConnectors", "Coding connector"), normalized.preferredCodingConnectorId);
-	lines << preferredConnectorText(QCoreApplication::translate("VibeStudioAiConnectors", "Vision connector"), normalized.preferredVisionConnectorId);
-	lines << preferredConnectorText(QCoreApplication::translate("VibeStudioAiConnectors", "Image connector"), normalized.preferredImageConnectorId);
-	lines << preferredConnectorText(QCoreApplication::translate("VibeStudioAiConnectors", "Audio connector"), normalized.preferredAudioConnectorId);
-	lines << preferredConnectorText(QCoreApplication::translate("VibeStudioAiConnectors", "Voice connector"), normalized.preferredVoiceConnectorId);
-	lines << preferredConnectorText(QCoreApplication::translate("VibeStudioAiConnectors", "3D connector"), normalized.preferredThreeDConnectorId);
-	lines << preferredConnectorText(QCoreApplication::translate("VibeStudioAiConnectors", "Embeddings connector"), normalized.preferredEmbeddingsConnectorId);
-	lines << preferredConnectorText(QCoreApplication::translate("VibeStudioAiConnectors", "Local connector"), normalized.preferredLocalConnectorId);
-	lines << preferredModelText(QCoreApplication::translate("VibeStudioAiConnectors", "Workflow text model"), normalized.preferredTextModelId);
-	lines << preferredModelText(QCoreApplication::translate("VibeStudioAiConnectors", "Coding model"), normalized.preferredCodingModelId);
-	lines << preferredModelText(QCoreApplication::translate("VibeStudioAiConnectors", "Vision model"), normalized.preferredVisionModelId);
-	lines << preferredModelText(QCoreApplication::translate("VibeStudioAiConnectors", "Image model"), normalized.preferredImageModelId);
-	lines << preferredModelText(QCoreApplication::translate("VibeStudioAiConnectors", "Audio model"), normalized.preferredAudioModelId);
-	lines << preferredModelText(QCoreApplication::translate("VibeStudioAiConnectors", "Voice model"), normalized.preferredVoiceModelId);
-	lines << preferredModelText(QCoreApplication::translate("VibeStudioAiConnectors", "3D model"), normalized.preferredThreeDModelId);
-	lines << preferredModelText(QCoreApplication::translate("VibeStudioAiConnectors", "Embeddings model"), normalized.preferredEmbeddingsModelId);
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "OpenAI credential source: environment variable %1").arg(normalized.openAiCredentialEnvironmentVariable);
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "ElevenLabs credential source: environment variable %1").arg(normalized.elevenLabsCredentialEnvironmentVariable);
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "Meshy credential source: environment variable %1").arg(normalized.meshyCredentialEnvironmentVariable);
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "Cloud connectors: %1").arg(normalized.cloudConnectorsEnabled ? QCoreApplication::translate("SlopStudioAiConnectors", "enabled") : QCoreApplication::translate("SlopStudioAiConnectors", "disabled"));
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "Agentic workflows: %1").arg(normalized.agenticWorkflowsEnabled ? QCoreApplication::translate("SlopStudioAiConnectors", "enabled") : QCoreApplication::translate("SlopStudioAiConnectors", "disabled"));
+	lines << preferredConnectorText(QCoreApplication::translate("SlopStudioAiConnectors", "Reasoning connector"), normalized.preferredReasoningConnectorId);
+	lines << preferredConnectorText(QCoreApplication::translate("SlopStudioAiConnectors", "Coding connector"), normalized.preferredCodingConnectorId);
+	lines << preferredConnectorText(QCoreApplication::translate("SlopStudioAiConnectors", "Vision connector"), normalized.preferredVisionConnectorId);
+	lines << preferredConnectorText(QCoreApplication::translate("SlopStudioAiConnectors", "Image connector"), normalized.preferredImageConnectorId);
+	lines << preferredConnectorText(QCoreApplication::translate("SlopStudioAiConnectors", "Audio connector"), normalized.preferredAudioConnectorId);
+	lines << preferredConnectorText(QCoreApplication::translate("SlopStudioAiConnectors", "Voice connector"), normalized.preferredVoiceConnectorId);
+	lines << preferredConnectorText(QCoreApplication::translate("SlopStudioAiConnectors", "3D connector"), normalized.preferredThreeDConnectorId);
+	lines << preferredConnectorText(QCoreApplication::translate("SlopStudioAiConnectors", "Embeddings connector"), normalized.preferredEmbeddingsConnectorId);
+	lines << preferredConnectorText(QCoreApplication::translate("SlopStudioAiConnectors", "Local connector"), normalized.preferredLocalConnectorId);
+	lines << preferredModelText(QCoreApplication::translate("SlopStudioAiConnectors", "Workflow text model"), normalized.preferredTextModelId);
+	lines << preferredModelText(QCoreApplication::translate("SlopStudioAiConnectors", "Coding model"), normalized.preferredCodingModelId);
+	lines << preferredModelText(QCoreApplication::translate("SlopStudioAiConnectors", "Vision model"), normalized.preferredVisionModelId);
+	lines << preferredModelText(QCoreApplication::translate("SlopStudioAiConnectors", "Image model"), normalized.preferredImageModelId);
+	lines << preferredModelText(QCoreApplication::translate("SlopStudioAiConnectors", "Audio model"), normalized.preferredAudioModelId);
+	lines << preferredModelText(QCoreApplication::translate("SlopStudioAiConnectors", "Voice model"), normalized.preferredVoiceModelId);
+	lines << preferredModelText(QCoreApplication::translate("SlopStudioAiConnectors", "3D model"), normalized.preferredThreeDModelId);
+	lines << preferredModelText(QCoreApplication::translate("SlopStudioAiConnectors", "Embeddings model"), normalized.preferredEmbeddingsModelId);
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "OpenAI credential source: environment variable %1").arg(normalized.openAiCredentialEnvironmentVariable);
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "ElevenLabs credential source: environment variable %1").arg(normalized.elevenLabsCredentialEnvironmentVariable);
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "Meshy credential source: environment variable %1").arg(normalized.meshyCredentialEnvironmentVariable);
 	return lines.join('\n');
 }
 
@@ -748,17 +748,17 @@ QString aiConnectorSummaryText(const AiConnectorDescriptor& connector)
 {
 	QStringList lines;
 	lines << QStringLiteral("%1 [%2]").arg(connector.displayName, connector.id);
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "Provider: %1").arg(connector.providerFamily);
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "Endpoint: %1").arg(connector.endpointKind);
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "Location: %1").arg(connector.cloudBased ? QCoreApplication::translate("VibeStudioAiConnectors", "cloud") : QCoreApplication::translate("VibeStudioAiConnectors", "local/offline"));
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "Status: %1").arg(connector.implemented ? QCoreApplication::translate("VibeStudioAiConnectors", "Available") : QCoreApplication::translate("VibeStudioAiConnectors", "Planned"));
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "Capabilities: %1").arg(connector.capabilities.join(QStringLiteral(", ")));
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "Authentication: %1").arg(connector.authRequirement);
-	lines << QCoreApplication::translate("VibeStudioAiConnectors", "Privacy: %1").arg(connector.privacyNote);
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "Provider: %1").arg(connector.providerFamily);
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "Endpoint: %1").arg(connector.endpointKind);
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "Location: %1").arg(connector.cloudBased ? QCoreApplication::translate("SlopStudioAiConnectors", "cloud") : QCoreApplication::translate("SlopStudioAiConnectors", "local/offline"));
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "Status: %1").arg(connector.implemented ? QCoreApplication::translate("SlopStudioAiConnectors", "Available") : QCoreApplication::translate("SlopStudioAiConnectors", "Planned"));
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "Capabilities: %1").arg(connector.capabilities.join(QStringLiteral(", ")));
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "Authentication: %1").arg(connector.authRequirement);
+	lines << QCoreApplication::translate("SlopStudioAiConnectors", "Privacy: %1").arg(connector.privacyNote);
 	for (const QString& note : connector.configurationNotes) {
 		lines << QStringLiteral("- %1").arg(note);
 	}
 	return lines.join('\n');
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

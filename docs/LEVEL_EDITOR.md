@@ -109,7 +109,7 @@ query's `surfaceTargets` connects the same selection to surface authoring.
 See [component surface targets](manual/levels.md#edit-surfaces-from-component-faces).
 
 Per-profile gesture overrides now share validated settings, GUI editing,
-portable VibeStudio import/export and `editor gestures` CLI diagnostics. The
+portable SlopStudio import/export and `editor gestures` CLI diagnostics. The
 60 supported settings, including fly/drive, pitch and hold/toggle navigation keys, route through the
 same plan/camera controls and update the
 Controls reference. Applying a draft preserves authoring state and the current
@@ -145,7 +145,7 @@ change.
 
 ## Coverage of other editors
 
-What the familiar editors offer and where VibeStudio stands, using the status
+What the familiar editors offer and where SlopStudio stands, using the status
 labels of `docs/BRANDING.md`. Available means implemented and covered by
 automated tests; none of it has been proven on production maps yet.
 
@@ -216,7 +216,7 @@ through `ModelPreviewWorker`; the Sounds tab decodes through
 sound selects the new entity, so its keys are on the Inspector at once, and
 the Models and Sounds tabs offer Give to Selection whenever an entity is
 selected. Their Place sections name the class each makes in the open map
-(`misc_model` and a speaker, baked by VibeMap3 in Quake III) and say so when the
+(`misc_model` and a speaker, baked by SlopMap3 in Quake III) and say so when the
 loaded definitions do not declare it, as Quake's own do not. The Surfaces tab
 is `LevelSurfaceTools`, which scrolls by itself and brings its own Target,
 Adjust and Copy and Paste sections; the page adopts them
@@ -383,7 +383,7 @@ faces, and **Make Room Options…** edits them. `map hollow --caulk`,
 the saved options; the dialog, the CLI and the settings reader all check names
 with `levelRoomPreferencesProblem` (a hand-edited bad name reads as the game's
 caulk). Tests: `level-make-room-smoke` (core, settings and CLI) and
-`level-make-room-ui-smoke`. VibeStudio keeps its filled outer corners, which
+`level-make-room-ui-smoke`. SlopStudio keeps its filled outer corners, which
 NetRadiant Custom's Make Room leaves open; as there, wall faces sharing an
 open face's plane keep its material.
 
@@ -606,7 +606,7 @@ readers and production maps remain unproven.
 classes), Quake II (147) and Quake III Arena (83): class names, keys and their
 defaults, spawnflags, editor sizes and colours, taken as facts from id
 Software's GPL game code and compiler sources, with the Quake compiler classes
-of ericw-tools. The descriptions are VibeStudio's own. They stand in only when
+of ericw-tools. The descriptions are SlopStudio's own. They stand in only when
 no project definitions load, for Quake-family maps; Doom maps keep their thing
 categories. The game is chosen from the map: a Quake III map is Quake III; a
 Quake II header or a class only Quake II has means Quake II; TrenchBroom's
@@ -867,7 +867,7 @@ renders. The shell suite checks empty-map creation, linked draft outlines,
 work-zone/material/numeric handoff, scene destinations/locks, exact undo/redo and
 save/reload. `level-camera-brush-latency-smoke` measures 64 draft proposals on
 complete 1,000/10,000-brush scenes and verifies no geometry render rebuilds;
-`VIBESTUDIO_LEVEL_BRUSH_MAX_CALL_MS` can enforce a local GUI-call budget.
+`SLOPSTUDIO_LEVEL_BRUSH_MAX_CALL_MS` can enforce a local GUI-call budget.
 Tests use semantic Qt calls and widget render targets, not physical input.
 
 Arbitrary slanted construction planes, native input and screen-reader
@@ -1189,7 +1189,7 @@ geometry, exercise every profile, and cover shared undo, pane refresh and save.
 `level-camera-resize-latency-smoke` queues 64 proposals over complete 1,000- and
 10,000-brush synthetic scenes (12,000 and 120,000 triangles). It records GUI-call
 and event-loop delays plus completed worker pictures; the optional
-`VIBESTUDIO_LEVEL_RESIZE_MAX_CALL_MS` environment setting enforces a local budget.
+`SLOPSTUDIO_LEVEL_RESIZE_MAX_CALL_MS` environment setting enforces a local budget.
 This measures preview responsiveness, not large-map transaction or native-input
 latency. Single-line readouts use font-based heights so changing dimensions
 cannot shift a splitter by a pixel and cancel its camera gesture.
@@ -1205,7 +1205,7 @@ only when all inputs succeed. The original map and draft remain unchanged.
 
 **Use in Build** pins the captured map as the Build input. It refuses a handoff
 if the live map or package changed during preparation. Later edits need a new
-workspace. Existing VibeMap2/VibeMap3 pipelines, logs, cancellation, diagnostics, artifact
+workspace. Existing SlopMap2/SlopMap3 pipelines, logs, cancellation, diagnostics, artifact
 validation and command manifests remain the execution path. Every run verifies
 the captured inputs before starting a compiler and checks them again afterwards.
 Missing, changed or unexpected asset files fail the build, including failures
@@ -1222,7 +1222,7 @@ cannot be published. A new build invalidates the previous review.
 Packages, using the normal pending-draft review, for general inspection/editing.
 **Build > Deploy Prepared Build** reviews a complete PAK or PK3 for a matching
 Quake, Quake II or Quake III installation. Choose one portable game folder inside
-its root. Quake III uses `<game-folder>/vibestudio_<map>.pk3`; classic targets use
+its root. Quake III uses `<game-folder>/slopstudio_<map>.pk3`; classic targets use
 a numbered `pak<N>.pak` selected by the **PAK slot** control. The review includes the existing package
 hash, file inventory and windowed launch command. Read-only installations need
 **Allow this asset deployment** for this operation; saved permissions do not
@@ -1256,7 +1256,7 @@ Other idTech3 games require their own compatible layout/profile work.
 
 For PAKs, **Automatic** first reuses a matching map/engine receipt in the chosen
 folder, otherwise it chooses the first available loadable slot. Quake requires
-every earlier numbered PAK to exist; VibeStudio supports slots 0–999. Quake II
+every earlier numbered PAK to exist; SlopStudio supports slots 0–999. Quake II
 checks slots 0–9 even when earlier slots are absent. An explicit slot can review
 replacement of an unregistered package, with the same permission and backup
 requirements. Registered base/mod PAKs are always protected. Nonportable slot
@@ -1264,10 +1264,10 @@ names, links, invalid receipts, ambiguous remembered slots and Quake numbering
 gaps are refused. A changed remembered PAK requires an explicit slot review.
 Other numbered PAKs can override the map/assets; this is reported as a warning.
 
-The bounded `.vibestudio-pak<N>.json` receipt records the engine, map, slot and
+The bounded `.slopstudio-pak<N>.json` receipt records the engine, map, slot and
 published PAK hash. It is a destination hint, never overwrite permission, and
 reserves the slot if the PAK is removed. A new workspace for the same map can
-reuse it. A game-folder lock serializes VibeStudio PAK deployments; other PAK
+reuse it. A game-folder lock serializes SlopStudio PAK deployments; other PAK
 names/sizes/modification times and the selected receipt are checked again before
 publication. The PAK itself uses the shared atomic publisher and verified backup.
 Receipt publication follows the PAK commit: a crash or receipt-write failure can
@@ -1288,8 +1288,8 @@ The target selector distinguishes Quake and Quake II's shared MAP grammar and
 honors a saved Quake II target marker. Quake uses `game/id1`, Quake II uses
 `game/baseq2`, and Quake III uses `game/baseq3` with an isolated home folder.
 Quake/Quake II use `quake-full`, `quake-fast` or `quake-bsp-only`, with separate
-VibeMap2 executables, explicit asset lookup and per-stage logs. Quake II adds
-`-q2bsp`; Quake III retains its VibeMap3 BSP/full pipelines and base/home flags.
+SlopMap2 executables, explicit asset lookup and per-stage logs. Quake II adds
+`-q2bsp`; Quake III retains its SlopMap3 BSP/full pipelines and base/home flags.
 
 Quake captures native loose `.mip` textures and WAD2 texture lumps into
 `maps/<name>.wad`, preserving animation frames and liquid names. Only the private
@@ -1308,7 +1308,7 @@ retrying up to six times over 310 ms. Every attempt rechecks cancellation,
 ancestor links and destination absence; a newly appeared destination is kept.
 
 Quake `.lit` and `.lux` files are runtime outputs and publish alongside the BSP.
-Portal/leak files, VibeMap2 texture/content metadata, visibility state and per-stage
+Portal/leak files, SlopMap2 texture/content metadata, visibility state and per-stage
 logs stay diagnostic. **Include build sources** includes the map and generated
 Quake WAD; these two inputs are otherwise omitted. PAK uses the existing portable
 name/size checks and stores files without compression. Package review keeps a
@@ -1401,8 +1401,8 @@ the remaining native runtime and accessibility acceptance work.
 
 The dated compiler runs in this document used stock ericw-tools (2.0.0-alpha8)
 and NetRadiant Custom q3map2 (`2.5.17n-git-e62c6f4b` where noted), before
-VibeStudio moved to its own VibeMap2 and VibeMap3 compilers. None has been
-repeated with VibeMap2 or VibeMap3 yet; see
+SlopStudio moved to its own SlopMap2 and SlopMap3 compilers. None has been
+repeated with SlopMap2 or SlopMap3 yet; see
 [Compiler Integration](COMPILER_INTEGRATION.md#status).
 
 ## Scene Organization
@@ -1975,9 +1975,9 @@ unused definitions and namespace groups to be preserved or rewritten. The
 complete package save workflow remains available.
 
 ```sh
-vibestudio --cli map materials room.wad --map-name MAP01 --package resources.wad --geometry --json
-vibestudio --cli map dependencies room.wad --map-name MAP01 --package resources.wad --json
-vibestudio --cli map paint-material room.wad --map-name MAP01 --target sector:0:floor --texture FLOOR2 --output painted.wad
+slopstudio --cli map materials room.wad --map-name MAP01 --package resources.wad --geometry --json
+slopstudio --cli map dependencies room.wad --map-name MAP01 --package resources.wad --json
+slopstudio --cli map paint-material room.wad --map-name MAP01 --target sector:0:floor --texture FLOOR2 --output painted.wad
 ```
 
 `--geometry` adds the camera's geometry counts, truncation state and warnings
@@ -2027,7 +2027,7 @@ paste button/modifier pairs for every profile. The CLI uses `camera.materialSamp
 `camera.materialPaintModifiers`; for example:
 
 ```sh
-vibestudio --cli editor gestures q3radiant --set camera.materialSampleModifiers=alt --set camera.materialPaintModifiers=ctrl+shift --dry-run --json
+slopstudio --cli editor gestures q3radiant --set camera.materialSampleModifiers=alt --set camera.materialPaintModifiers=ctrl+shift --dry-run --json
 ```
 
 Pairs match exactly; extra modifiers and multi-button presses cannot invoke an
@@ -2073,9 +2073,9 @@ package/staging material service after commit; pending highlighting identifies
 the surfaces rather than displaying a speculative material replacement.
 
 ```sh
-vibestudio --cli map paint-material arena.map --target face:0:1 --target patch:0 --texture studio/metal --output painted.map --dry-run --json
-vibestudio --cli map paint-material doom.wad --map-name MAP01 --target side:0:middle --target sector:0:floor --texture STONE --output painted.wad
-vibestudio --cli map sample-material arena.map --target face:0:1 --json
+slopstudio --cli map paint-material arena.map --target face:0:1 --target patch:0 --texture studio/metal --output painted.map --dry-run --json
+slopstudio --cli map paint-material doom.wad --map-name MAP01 --target side:0:middle --target sector:0:floor --texture STONE --output painted.wad
+slopstudio --cli map sample-material arena.map --target face:0:1 --json
 ```
 
 Paint requires `--texture` and `--output`, including dry runs. Existing output
@@ -2151,12 +2151,12 @@ Read-only settings permit navigation and export but refuse collection edits.
 There is no new dependency or online service.
 
 ```sh
-vibestudio --cli editor bookmarks list arena.map --json
-vibestudio --cli editor bookmarks export arena.map --output arena.vviews
-vibestudio --cli editor bookmarks import arena.map --input arena.vviews --replace
-vibestudio --cli editor bookmarks rename arena.map --id <uuid> --name "North gate"
-vibestudio --cli editor bookmarks remove arena.map --id <uuid>
-vibestudio --cli editor bookmarks list doom.wad --map-name MAP01 --json
+slopstudio --cli editor bookmarks list arena.map --json
+slopstudio --cli editor bookmarks export arena.map --output arena.vviews
+slopstudio --cli editor bookmarks import arena.map --input arena.vviews --replace
+slopstudio --cli editor bookmarks rename arena.map --id <uuid> --name "North gate"
+slopstudio --cli editor bookmarks remove arena.map --id <uuid>
+slopstudio --cli editor bookmarks list doom.wad --map-name MAP01 --json
 ```
 
 Import requires `--replace` when a stored list is nonempty. Export requires
@@ -2169,7 +2169,7 @@ arguments fail. Exit codes are 0 success, 1 read-only settings, 2 usage, 3 missi
 map/input/bookmark, and 4 invalid map/view data, write failure or revision conflict.
 JSON includes `operation`, `map`, `mapName`, `storage`, `revision` and `views`.
 
-The version-2 `VibeStudioLevelViews` envelope contains `format`, `version` and
+The version-2 `SlopStudioLevelViews` envelope contains `format`, `version` and
 `bookmarks`. Each entry has a canonical UUID `id`, a unique trimmed `name` of
 1–128 UTF-16 characters, and a `view` object. A collection holds at most 128
 entries and its file at most 1 MiB. Unknown fields and non-finite numbers are
@@ -2234,7 +2234,7 @@ returns the original visible panes and splitter proportions. **Equalize View
 Sizes** restores the workspace and divides available space equally, subject to
 pane minimum sizes. These commands are also in View, command search and keyboard
 settings. Hammer/Worldcraft and J.A.C.K. use Shift+Z; NetRadiant Custom uses F12;
-VibeStudio Default uses Ctrl+Space. Classic Hammer uses Ctrl+A to equalize.
+SlopStudio Default uses Ctrl+Space. Classic Hammer uses Ctrl+A to equalize.
 Shortcuts require viewport focus; menu invocation uses the last focused visible
 pane. Inspectors and other studio surfaces retain their normal shortcuts.
 
@@ -2284,9 +2284,9 @@ still apply. Navigation starts independent; the optional links below keep
 neighbouring plan panes together.
 
 ```sh
-vibestudio --cli editor layout four-views --json
-vibestudio --cli editor layout --json
-vibestudio --cli editor layout profile
+slopstudio --cli editor layout four-views --json
+slopstudio --cli editor layout --json
+slopstudio --cli editor layout profile
 ```
 
 Accepted preferences are `profile`, `single-2d`, `single-3d`, `camera-and-plan`
@@ -2316,9 +2316,9 @@ commands (palette ids `map-show-top-view`, `map-show-front-view`,
 `map-show-side-view`) that hide or reveal one plan pane in the three-plan
 layouts. They follow NetRadiant Custom's floating-window XY/XZ/YZ toggles
 (`ToggleView`, `ToggleFrontView`, `ToggleSideView`, preferences `XYVIS`,
-`XZVIS`, `YZVIS`) on VibeStudio's fixed splitter panes; TrenchBroom has no
+`XZVIS`, `YZVIS`) on SlopStudio's fixed splitter panes; TrenchBroom has no
 equivalent. Like NRC they have no default keys in any profile; Keyboard settings
-can bind them. VibeStudio shows every pane by default, where NRC's floating
+can bind them. SlopStudio shows every pane by default, where NRC's floating
 layout starts with Top only.
 
 `LevelPlanPanes` in `core/level_editor_controls.h` holds the choice and refuses
@@ -2416,8 +2416,8 @@ Changing one link while a bookmark is active persists that choice alone; the
 bookmark's other temporary overrides do not replace their saved defaults.
 
 ```sh
-vibestudio --cli editor view-links --json
-vibestudio --cli editor view-links --centers on --zoom on --follow-camera off
+slopstudio --cli editor view-links --json
+slopstudio --cli editor view-links --centers on --zoom on --follow-camera off
 ```
 
 The command reads preferences when no options are supplied. Each option accepts
@@ -2660,7 +2660,7 @@ Non-planar covers and propagation through neighboring patches remain separate
 authoring work. Save before compiling or packaging the result.
 
 ```sh
-vibestudio --cli map cap-patch curves.map --patch 0 --boundary first-row --boundary last-row --texture base/endcap --uv planar --units-per-tile 128 --output capped.map --dry-run --json
+slopstudio --cli map cap-patch curves.map --patch 0 --boundary first-row --boundary last-row --texture base/endcap --uv planar --units-per-tile 128 --output capped.map --dry-run --json
 ```
 
 `--patch` uses a zero-based ID. Repeat `--boundary` for up to four distinct
@@ -2798,7 +2798,7 @@ apply; a changed map, selection, package or palette invalidates the dialog.
 Save the map before dependency review, compilation or package export.
 
 ```sh
-vibestudio --cli map stitch-patches curves.map --first 0:last-column --second 1:first-column --max-gap 8 --match-tangents --uv first --output stitched.map --dry-run --json
+slopstudio --cli map stitch-patches curves.map --first 0:last-column --second 1:first-column --max-gap 8 --match-tangents --uv first --output stitched.map --dry-run --json
 ```
 
 IDs are zero-based; boundary tokens are `first-row`, `last-row`, `first-column`
@@ -2868,8 +2868,8 @@ redo restores the merge. A changed map, selection, package snapshot or palette
 invalidates the GUI draft. Save before compiling or packaging the changed map.
 
 ```sh
-vibestudio --cli map merge-brushes room.map --object brush:0 --object brush:1 --output room-merged.map --dry-run --json
-vibestudio --cli map merge-brushes room.map --object brush:0 --object brush:1 --face-source 2=1:2 --output room-merged.map
+slopstudio --cli map merge-brushes room.map --object brush:0 --object brush:1 --output room-merged.map --dry-run --json
+slopstudio --cli map merge-brushes room.map --object brush:0 --object brush:1 --face-source 2=1:2 --output room-merged.map
 ```
 
 `--object` also accepts `entity:id`. Repeated `--face-source
@@ -2911,7 +2911,7 @@ Flat, non-finite, out-of-world or numerically unstable results are refused.
 Every dimension is at least one map unit and every vertex is within ±32768.
 Radial shapes can use fractional coordinates. The existing qbsp advisory remains
 available for Quake-family qbsp targets; it no longer flags Quake III maps that
-use VibeMap3. Quake/Quake II compiler acceptance requires separate verification.
+use SlopMap3. Quake/Quake II compiler acceptance requires separate verification.
 
 Vertices fit the requested world-aligned bounds, including odd-sided polygons.
 A Z-axis wedge rises along +X and extrudes along Y. X/Y axis choices cyclically
@@ -2937,8 +2937,8 @@ remain intact. Saves validate the reconstructed solid; precision failures are
 reported before insertion.
 
 ```sh
-vibestudio --cli map add-brush arena.map --shape cylinder --axis z --sides 12 --mins -64,-64,0 --maxs 64,64,256 --texture base/metal --output arena-column.map
-vibestudio --cli map add-brush arena.map --shape sphere --sides 8 --bands 4 --mins 0,0,0 --maxs 128,128,128 --texture base/stone --output arena-sphere.map --json
+slopstudio --cli map add-brush arena.map --shape cylinder --axis z --sides 12 --mins -64,-64,0 --maxs 64,64,256 --texture base/metal --output arena-column.map
+slopstudio --cli map add-brush arena.map --shape sphere --sides 8 --bands 4 --mins 0,0,0 --maxs 128,128,128 --texture base/stone --output arena-sphere.map --json
 ```
 
 `--shape` defaults to `box`, `--axis` to `z`, `--sides` to 8 and `--bands` to 4.
@@ -3337,7 +3337,7 @@ refused, as NetRadiant Custom keeps it through every flag edit
 changed face's line, or appending them before a trailing comment where the
 line had none (`flagsWritten`). A changed word is always written as a signed
 32-bit number, as NetRadiant Custom and TrenchBroom write it, so bit 31 (Quake
-II's N64 scroll flip, Quake III's No drop) reads -2147483648: VibeMap2
+II's N64 scroll flip, Quake III's No drop) reads -2147483648: SlopMap2
 (derived from ericw-tools) parses the numbers with `std::stoi`, which throws
 on 2147483648,
 and q3map2's `atoi` saturates it to 0x7fffffff on Windows. An unchanged word
@@ -3612,7 +3612,7 @@ cancellation; the existing Surfaces controls provide keyboard alternatives.
   Failure, cancellation or stale context advances neither document nor clipboard.
   Undo restores the map; the session clipboard remains at its last successful copy.
 - **Allow map-wide Valve 220 conversion** explicitly permits converting all
-  classic faces when projected or wrapped mapping requires shear. VibeMap3, like q3map2, chooses syntax
+  classic faces when projected or wrapped mapping requires shear. SlopMap3, like q3map2, chooses syntax
   from the first face, so conversion keeps the entire map consistent. Unpasted
   materials, flags and UVs remain unchanged. Unselected locks still apply; any
   locked or invalid face rejects the whole batch. Verify compiler support for
@@ -3645,14 +3645,14 @@ retain their dedicated editors. Placed model materials remain authored in Models
 The CLI exposes a portable, bounded version 1 JSON definition:
 
 ```sh
-vibestudio --cli map copy-surface source.map --target face:0:1 --output wall.surface.json --json
-vibestudio --cli map paste-surface target.map --clipboard wall.surface.json --target brush:2 --target face:3:1 --output pasted.map --dry-run --json
-vibestudio --cli map paste-surface primitive.map --clipboard wall.surface.json --target face:0:1 --mode project --texture-size 128,64 --output projected.map
-vibestudio --cli map paste-surface corner.map --clipboard wall.surface.json --target face:0:3 --mode seamless --output wrapped.map
-vibestudio --cli map paste-surface corner.map --clipboard wall.surface.json --stroke --target face:0:3 --target face:0:5 --mode seamless --output wrapped-stroke.map
-vibestudio --cli map paste-surface target.map --clipboard wall.surface.json --target face:0:1 --object brush:2 --object patch:0 --mode radiant-values --output selected.map
-vibestudio --cli map paste-surface primitive.map --clipboard wall.surface.json --target face:0:1 --mode radiant-values --mapping-only --texture-size 128,64 --material-size studio/target=64,256 --output density.map
-vibestudio --cli map paste-surface room.map --clipboard wall.surface.json --target patch:0 --object brush:2 --mode radiant-project --mapping-only --texture-size 128,64 --material-size studio/patch=64,256 --material-size studio/wall=128,128 --output projected.map
+slopstudio --cli map copy-surface source.map --target face:0:1 --output wall.surface.json --json
+slopstudio --cli map paste-surface target.map --clipboard wall.surface.json --target brush:2 --target face:3:1 --output pasted.map --dry-run --json
+slopstudio --cli map paste-surface primitive.map --clipboard wall.surface.json --target face:0:1 --mode project --texture-size 128,64 --output projected.map
+slopstudio --cli map paste-surface corner.map --clipboard wall.surface.json --target face:0:3 --mode seamless --output wrapped.map
+slopstudio --cli map paste-surface corner.map --clipboard wall.surface.json --stroke --target face:0:3 --target face:0:5 --mode seamless --output wrapped-stroke.map
+slopstudio --cli map paste-surface target.map --clipboard wall.surface.json --target face:0:1 --object brush:2 --object patch:0 --mode radiant-values --output selected.map
+slopstudio --cli map paste-surface primitive.map --clipboard wall.surface.json --target face:0:1 --mode radiant-values --mapping-only --texture-size 128,64 --material-size studio/target=64,256 --output density.map
+slopstudio --cli map paste-surface room.map --clipboard wall.surface.json --target patch:0 --object brush:2 --mode radiant-project --mapping-only --texture-size 128,64 --material-size studio/patch=64,256 --material-size studio/wall=128,128 --output projected.map
 ```
 
 Copy takes one face; paste accepts repeatable face/brush/patch targets, at most
@@ -3811,9 +3811,9 @@ not texels. A collapsed matrix is refused. `map inspect --json` includes
 `brushPrimitive` and the six-element `matrix` array for each applicable face.
 
 ```sh
-vibestudio --cli map align-textures arena.map --engine idTech3 --object brush:0 --fit 1,1 --package ./assets --output arena-fitted.map
-vibestudio --cli map align-textures arena.map --face 0:1 --align center,minimum --texture-size 128,64 --output arena-aligned.map
-vibestudio --cli map edit primitive.map --select brush:0 --set "face1.matrix=0,0.015625,0,-0.015625,0,0" --output primitive-turned.map
+slopstudio --cli map align-textures arena.map --engine idTech3 --object brush:0 --fit 1,1 --package ./assets --output arena-fitted.map
+slopstudio --cli map align-textures arena.map --face 0:1 --align center,minimum --texture-size 128,64 --output arena-aligned.map
+slopstudio --cli map edit primitive.map --select brush:0 --set "face1.matrix=0,0.015625,0,-0.015625,0,0" --output primitive-turned.map
 ```
 
 `--object` and `--face brushId:faceNumber` are repeatable; face numbers are
@@ -3960,7 +3960,7 @@ ground grid is cut at the same plane
 N units".
 
 TrenchBroom's fog does not depend on its camera's fixed far plane, and NRC's
-cubic clip cuts faces off with no fade. VibeStudio keeps fog and far clip as
+cubic clip cuts faces off with no fade. SlopStudio keeps fog and far clip as
 separate choices and joins them where they meet: while both are on and the fog
 end lies beyond the clip, `levelCameraFogWithinFarClip` pulls the drawn fog end
 in to the clip distance (and the start with it, keeping the 16-unit gap), so
@@ -4006,7 +4006,7 @@ between bounded reads and geometry objects.
 The same resolver is available without the GUI:
 
 ```sh
-vibestudio --cli map materials ./maps/arena.map --package ./assets --engine idTech3 --json
+slopstudio --cli map materials ./maps/arena.map --package ./assets --engine idTech3 --json
 ```
 
 `--package` accepts a supported archive or folder; `--palette` overrides indexed
@@ -4060,8 +4060,8 @@ overload is available to core callers; older move overloads retain their origina
 delta-command/source-parameter behavior for compatibility.
 
 ```sh
-vibestudio --cli map move arena.map --object brush:6 --delta 16,0,0 --texture-lock on --output arena-moved.map --json
-vibestudio --cli map resize arena.map --object brush:6 --size 256,64,128 --texture-lock on --allow-valve220 --output arena-stretched.map --json
+slopstudio --cli map move arena.map --object brush:6 --delta 16,0,0 --texture-lock on --output arena-moved.map --json
+slopstudio --cli map resize arena.map --object brush:6 --size 256,64,128 --texture-lock on --allow-valve220 --output arena-stretched.map --json
 ```
 
 The reusable `src/tests/level_transform_compiler_workflow.py` generates its own
@@ -4115,7 +4115,7 @@ Texture lock preserves the texture coordinates of every point on a brush face.
 Valve 220 axes and brushDef/brushDef3 matrices retain their dialect. Classic
 shift/rotation/scale fields are solved exactly when possible. A rotation that
 requires shear fails unless **Allow Valve 220 conversion** is enabled. Because
-VibeMap3, like q3map2, selects one texture dialect for the whole map, this option converts *all*
+SlopMap3, like q3map2, selects one texture dialect for the whole map, this option converts *all*
 classic faces when needed, including unselected brushes, while preserving their
 appearance. All affected faces are reported in the preview and included in the
 same undo step. Conversion refuses maps containing brush-primitive matrices.
@@ -4163,7 +4163,7 @@ topology tools and broader 3D manipulation remain open. UDMF property authoring
 is available through the text-map document layer described below.
 
 ```sh
-vibestudio --cli map flip ./maps/start.wad --map MAP01 --object linedef:0 --object thing:0 --connected --axis x --output ./maps/start-mirrored.wad --dry-run --json
+slopstudio --cli map flip ./maps/start.wad --map MAP01 --object linedef:0 --object thing:0 --connected --axis x --output ./maps/start-mirrored.wad --dry-run --json
 ```
 
 `--connected` is opt-in and requires binary Doom/Hexen geometry. Without it,
@@ -4208,7 +4208,7 @@ odd footprints about every axis in both directions, placement, locks, the
 profile policy and the CLI; `level-axis-transform-ui-smoke` drives the six
 commands, Rotate 90° Right and Left in each projection, Flip Vertical of a Quake brush,
 Snap off, component mode, Repeat and undo under the NRC, TrenchBroom and
-VibeStudio profiles at 100% and 200%, with high contrast, expanded translations
+SlopStudio profiles at 100% and 200%, with high contrast, expanded translations
 and right-to-left layout.
 
 ### Directional and depth nudges
@@ -4256,7 +4256,7 @@ for keys no nudge command claims. `map nudge` resolves the same axes for a
 `--view` or `--camera-yaw`/`--camera-pitch` and sends the same placements.
 `level-nudge-smoke` covers the table, every plan and camera axis, Doom support,
 the profile keys, placements, locks and the CLI; `level-nudge-ui-smoke` drives
-the keys and commands in the TrenchBroom, NetRadiant Custom and VibeStudio
+the keys and commands in the TrenchBroom, NetRadiant Custom and SlopStudio
 profiles at 100% and 200%, with high contrast, expanded translations and
 right-to-left layout. Native physical input and macOS/Linux acceptance remain
 open.
@@ -4284,7 +4284,7 @@ reach the plan view's pan, and on Doom maps Ctrl+Page Up/Down reach Raise
 Ceiling and Lower Ceiling. `map nudge --duplicate` sends the same placement.
 `level-duplicate-move-smoke` covers the table, profile keys, the placement,
 Repeat, undo, Doom support and the CLI; `level-duplicate-move-ui-smoke` drives
-the commands and keys in the TrenchBroom, NetRadiant Custom and VibeStudio
+the commands and keys in the TrenchBroom, NetRadiant Custom and SlopStudio
 profiles at 100%, and at 200% with high contrast, expanded translations and
 right-to-left layout. Native physical input and macOS/Linux acceptance remain
 open. Move to Camera is described in [Clipboard placement](LEVEL_PASTE.md) and
@@ -4331,9 +4331,9 @@ frames for a `--view` or camera and sends the same placements, with
 `level-view-transform-smoke` covers the table, every plan and camera frame,
 pivots, Doom support, profiles, the pivoted Mirror placement, locks and the CLI;
 `level-view-transform-ui-smoke` drives the commands and TrenchBroom keys in the
-TrenchBroom, NetRadiant Custom and VibeStudio profiles at 100% and 200%, with
+TrenchBroom, NetRadiant Custom and SlopStudio profiles at 100% and 200%, with
 high contrast, expanded translations and right-to-left layout. TrenchBroom's
-Rotate-tool angle and centre have no counterpart yet (VibeStudio has no object
+Rotate-tool angle and centre have no counterpart yet (SlopStudio has no object
 rotate tool), and native physical input and macOS/Linux acceptance remain open.
 
 ### Doom node readiness
@@ -4383,8 +4383,8 @@ package validation and CLI launch plans without starting a game. Native
 screen-reader, keyboard and cross-platform acceptance remain manual checks.
 
 ```sh
-vibestudio --cli map rotate ./maps/arena.map --object brush:6 --axis z --degrees 31.75 --pivot 128,0,64 --texture-lock on --allow-valve220 --output ./maps/arena-rotated.map --json
-vibestudio --cli map rotate ./maps/start.wad --map MAP01 --object sector:0 --axis z --degrees 15 --output ./maps/start-rotated.wad --dry-run --json
+slopstudio --cli map rotate ./maps/arena.map --object brush:6 --axis z --degrees 31.75 --pivot 128,0,64 --texture-lock on --allow-valve220 --output ./maps/arena-rotated.map --json
+slopstudio --cli map rotate ./maps/start.wad --map MAP01 --object sector:0 --axis z --degrees 15 --output ./maps/start-rotated.wad --dry-run --json
 ```
 
 `--degrees` and `--turns` are mutually exclusive. `--texture-lock` accepts `on`
@@ -4426,7 +4426,7 @@ then saves that document in place. **Save As** chooses another destination and
 makes it the active document, preserving undo/redo. Saves run on a worker with
 visible progress and cancellation. Before replacing a file, the shared service
 checks its SHA-256 against the loaded baseline, backs up the exact prior bytes
-under `<destination folder>/.vibestudio/map-backups`, rechecks the destination,
+under `<destination folder>/.slopstudio/map-backups`, rechecks the destination,
 and commits with `QSaveFile`. Backups are retained until removed by the user.
 If the original changed or disappeared, use Save As to keep your edits, or
 reload after reviewing the outside change. This is conflict detection, not an
@@ -4464,10 +4464,10 @@ the last completed checkpoint; recovery is not a substitute for saving.
 The CLI uses these same services:
 
 ```sh
-vibestudio --cli map new --game quake3 --preset room --output ./maps/arena.map --dry-run --json
-vibestudio --cli map new --game doom --map MAP01 --texture WALL --floor-texture FLOOR --ceiling-texture CEILING --output ./maps/start.wad
-vibestudio --cli map recoveries ./profile/map-recovery --json
-vibestudio --cli map recover ./profile/map-recovery/<uuid>.vsrecovery --output ./maps/recovered.map --dry-run --json
+slopstudio --cli map new --game quake3 --preset room --output ./maps/arena.map --dry-run --json
+slopstudio --cli map new --game doom --map MAP01 --texture WALL --floor-texture FLOOR --ceiling-texture CEILING --output ./maps/start.wad
+slopstudio --cli map recoveries ./profile/map-recovery --json
+slopstudio --cli map recover ./profile/map-recovery/<uuid>.vsrecovery --output ./maps/recovered.map --dry-run --json
 ```
 
 `map new` accepts `--game quake|quake2|quake3|doom|hexen` (default `quake3`),
@@ -4581,7 +4581,7 @@ other edit outside the open group is still refused. The Mods list refreshes when
 the installation changes (`refreshGameInstallations()`), not only on map edits.
 
 Limits: the soft bounds are not drawn in the views and nothing outside them is
-reported on Health; VibeStudio keeps the enabled mods but does not load assets
+reported on Health; SlopStudio keeps the enabled mods but does not load assets
 from them; the layer summary is read-only, with layer edits left to the
 Outliner.
 
@@ -4712,11 +4712,11 @@ the document changes. Copying, duplication, material edits, recovery and CSG
 continue through the existing map services.
 
 ```sh
-vibestudio --cli map brush-components arena.map --brush 7 --json
-vibestudio --cli map move-components arena.map --brush 7 --kind vertex --component 2 --component 3 --delta 0,0,16 --output raised.map
-vibestudio --cli map move-components raised.map --brush 7 --kind face --component 0 --grid 8 --output snapped.map --dry-run --json
-vibestudio --cli map insert-vertices arena.map --brush 7 --position 32,32,80 --grid 8 --output peaked.map
-vibestudio --cli map remove-components arena.map --brush 7 --kind vertex --component 2 --output trimmed.map
+slopstudio --cli map brush-components arena.map --brush 7 --json
+slopstudio --cli map move-components arena.map --brush 7 --kind vertex --component 2 --component 3 --delta 0,0,16 --output raised.map
+slopstudio --cli map move-components raised.map --brush 7 --kind face --component 0 --grid 8 --output snapped.map --dry-run --json
+slopstudio --cli map insert-vertices arena.map --brush 7 --position 32,32,80 --grid 8 --output peaked.map
+slopstudio --cli map remove-components arena.map --brush 7 --kind vertex --component 2 --output trimmed.map
 ```
 
 `brush-components` reports zero-based vertices, edges and face vertex lists.
@@ -4834,7 +4834,7 @@ right-to-left layout and expanded labels. Physical gestures and screen-reader
 behavior remain manual acceptance gaps.
 
 On 2026-10-18, `level_topology_compiler_workflow.py` verified insertion and removal
-through VibeMap3 0.4.0 BSP/VIS/LIGHT and dependency packaging for classic, Valve
+through SlopMap3 0.4.0 BSP/VIS/LIGHT and dependency packaging for classic, Valve
 220 and brushDef maps: 27 steps passed. Each generated prop retained its eight
 authored corners, ten faces and six inherited materials in the compiled output;
 the map, BSP and texture bytes were verified in validated PK3s. Evidence is in
@@ -4916,7 +4916,7 @@ The Surface / UV Checker tab previews the tessellated result with a procedural
 checker, not the selected game's material. Shared level preview meshes now carry
 interpolated patch UVs. Existing `patchDef3` subdivision counts are retained and
 used on each preview axis; the creation presets write `patchDef2`. Compiler
-support depends on the map dialect: the bundled VibeMap3 source, like q3map2,
+support depends on the map dialect: the bundled SlopMap3 source, like q3map2,
 accepts `patchDef2` but not `patchDef3`, so preserving a loaded `patchDef3` does
 not establish Quake III compiler compatibility.
 
@@ -4928,16 +4928,16 @@ duplication, deletion, dependency inspection and package material references use
 the same map document. Saving remains necessary before a compiler can see edits.
 
 ```sh
-vibestudio --cli map add-patch arena.map --shape cylinder --origin 0,0,64 --size 128,128,128 --texture textures/studio/metal --output arena-curves.map
-vibestudio --cli map edit-patch arena-curves.map --patch 0 --point 1,2 --point 1,3 --delta 0,0,16 --output arena-raised.map
-vibestudio --cli map edit-patch arena-raised.map --patch 0 --point 1,2 --uv 0.25,0.5 --subdivide columns --output arena-refined.map --dry-run --json
+slopstudio --cli map add-patch arena.map --shape cylinder --origin 0,0,64 --size 128,128,128 --texture textures/studio/metal --output arena-curves.map
+slopstudio --cli map edit-patch arena-curves.map --patch 0 --point 1,2 --point 1,3 --delta 0,0,16 --output arena-raised.map
+slopstudio --cli map edit-patch arena-raised.map --patch 0 --point 1,2 --uv 0.25,0.5 --subdivide columns --output arena-refined.map --dry-run --json
 ```
 
 `add-patch` defaults to a 3×3 XY plane, size 128 on each axis, centered at zero.
 Use `--columns`, `--rows` and `--plane xy|xz|yz` for planes; curved presets always
 use nine columns. `--texture` is required. A leading
 `textures/` is removed once from material choices for `patchDef2`, because
-the compiler (VibeMap3, like q3map2) supplies that prefix; existing map tokens retain their spelling.
+the compiler (SlopMap3, like q3map2) supplies that prefix; existing map tokens retain their spelling.
 The Health texture check follows the planned package, including staged edits and
 Undo/Redo. It runs in the background with visible progress, Cancel and Retry;
 changes to either document supersede older requests. Missing references and
@@ -5036,11 +5036,11 @@ before building. Insertion produces ordinary independent objects, not live linke
 instances that update when the prefab changes.
 
 ```sh
-vibestudio --cli map export-prefab arena.map --engine idTech3 --object brush:6 --object entity:2 --name Door --anchor 0,0,0 --output door.vprefab --json
-vibestudio --cli map inspect-prefab door.vprefab --package assets.pk3 --json
-vibestudio --cli map insert-prefab arena.map --engine idTech3 --prefab door.vprefab --position 128,0,0 --rotation 0,0,90 --output arena-door.map --json
-vibestudio --cli map insert-prefab arena.map --engine idTech3 --prefab library.pk3 --entry prefabs/door.vprefab --position 128,0,0 --output arena-door.map --dry-run --json
-vibestudio --cli map inspect-prefab library.pk3 --entry prefabs/door.vprefab --json
+slopstudio --cli map export-prefab arena.map --engine idTech3 --object brush:6 --object entity:2 --name Door --anchor 0,0,0 --output door.vprefab --json
+slopstudio --cli map inspect-prefab door.vprefab --package assets.pk3 --json
+slopstudio --cli map insert-prefab arena.map --engine idTech3 --prefab door.vprefab --position 128,0,0 --rotation 0,0,90 --output arena-door.map --json
+slopstudio --cli map insert-prefab arena.map --engine idTech3 --prefab library.pk3 --entry prefabs/door.vprefab --position 128,0,0 --output arena-door.map --dry-run --json
+slopstudio --cli map inspect-prefab library.pk3 --entry prefabs/door.vprefab --json
 ```
 
 Export also accepts `--description` and an optional `--package` for dependency
@@ -5058,7 +5058,7 @@ counts, dialect, links, warnings, placement and optional dependency details, plu
 the normal save result. Exit codes are 0 success, 2 usage, 3 missing input, and
 4 invalid prefab/placement/publication; map load failures retain shared CLI codes.
 
-The version-1 JSON envelope contains `format: "VibeStudioPrefab"`, `version: 1`,
+The version-1 JSON envelope contains `format: "SlopStudioPrefab"`, `version: 1`,
 string `name`, `description`, `engineFamily`, `map`, and a three-number `anchor`.
 Files are capped at 8 MiB; map text at four million UTF-16 characters. Names are
 1–128 characters, descriptions at most 4096, coordinates within ±32768, and
@@ -5066,7 +5066,7 @@ rotations within ±360000 degrees. Bounded grammar preflight precedes the shared
 map parser. A definition needs one worldspawn, at most 4096 entities, 4096 brushes,
 256 patches, 128 faces per brush and 16384 faces total. Duplicate entity keys,
 compiled inline model references, invalid geometry, mixed face dialects and
-cross-engine insertion are refused. VibeStudio's existing family IDs group
+cross-engine insertion are refused. SlopStudio's existing family IDs group
 Quake/Quake II as `idTech2` and Quake III as `idTech3`; this does not establish
 game-code compatibility between games. Doom prefabs, cross-dialect conversion,
 linked-instance updates, prefab library browsing and large-assembly performance
@@ -5165,9 +5165,9 @@ openings before geometry parsing. CLI input additionally has an 8 MiB byte limit
 and requires valid UTF-8 (a BOM is accepted).
 
 ```sh
-vibestudio --cli map snap room.map --object entity:3 --object brush:12 --grid 16 --output aligned.map --json
-vibestudio --cli map duplicate aligned.map --object entity:3 --delta 128,0,0 --output copied.map --json
-vibestudio --cli map paste copied.map --from assembly.map --delta -128,0,0 --output placed.map --dry-run --json
+slopstudio --cli map snap room.map --object entity:3 --object brush:12 --grid 16 --output aligned.map --json
+slopstudio --cli map duplicate aligned.map --object entity:3 --delta 128,0,0 --output copied.map --json
+slopstudio --cli map paste copied.map --from assembly.map --delta -128,0,0 --output placed.map --dry-run --json
 ```
 
 `map paste` requires `--from` and `--output`; `--delta` defaults to zero.
@@ -5319,8 +5319,8 @@ described below.
 `--dry-run`, explicit save-as and `--overwrite`:
 
 ```sh
-vibestudio --cli map inspect-udmf ./maps/arena.wad --map-name MAP01 --json
-vibestudio --cli map edit-udmf ./maps/arena.wad --map-name MAP01 --object vertex:0 --set x=16.75 --output ./maps/edited.wad --json
+slopstudio --cli map inspect-udmf ./maps/arena.wad --map-name MAP01 --json
+slopstudio --cli map edit-udmf ./maps/arena.wad --map-name MAP01 --object vertex:0 --set x=16.75 --output ./maps/edited.wad --json
 ```
 
 Missing required fields, non-finite/out-of-range native numbers, invalid new
@@ -5410,10 +5410,10 @@ inside encoding, validation or history preparation discards the candidate.
 An unchanged transform reports that nothing changed and adds no undo entry.
 
 ```sh
-vibestudio --cli map move ./maps/arena.wad --map MAP01 --object sector:0 --delta .375,-.125,0 --output ./maps/moved.wad
-vibestudio --cli map rotate ./maps/moved.wad --map MAP01 --object sector:0 --axis z --degrees 22.5 --pivot 0,0,0 --output ./maps/rotated.wad
-vibestudio --cli map flip ./maps/rotated.wad --map MAP01 --object linedef:0 --connected --axis x --output ./maps/mirrored.wad
-vibestudio --cli map snap ./maps/mirrored.wad --map MAP01 --object sector:0 --grid .125 --output ./maps/snapped.wad
+slopstudio --cli map move ./maps/arena.wad --map MAP01 --object sector:0 --delta .375,-.125,0 --output ./maps/moved.wad
+slopstudio --cli map rotate ./maps/moved.wad --map MAP01 --object sector:0 --axis z --degrees 22.5 --pivot 0,0,0 --output ./maps/rotated.wad
+slopstudio --cli map flip ./maps/rotated.wad --map MAP01 --object linedef:0 --connected --axis x --output ./maps/mirrored.wad
+slopstudio --cli map snap ./maps/mirrored.wad --map MAP01 --object sector:0 --grid .125 --output ./maps/snapped.wad
 ```
 
 `level-udmf-transform-smoke` checks independent affine/area oracles, exact source
@@ -5451,7 +5451,7 @@ context. Scene administration and history remain explicit; builds and packages
 use the full map. Context changes invalidate prepared geometry and cancel drafts.
 Read [Scene organization](LEVEL_SCENE.md#edit-a-group) for ownership, shared Doom
 boundaries, linked propagation, CLI behaviour and remaining hierarchy gaps.
-VibeStudio remains pre-alpha; native profile and production-map acceptance are
+SlopStudio remains pre-alpha; native profile and production-map acceptance are
 still required.
 
 ## Component affine transforms

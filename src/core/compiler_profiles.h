@@ -10,29 +10,29 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // How a profile's tool accepts an explicit output path.
 enum class CompilerOutputArgumentStyle {
-	// The tool has no way to receive an output path (VibeMap2 vis/light rewrite their input).
+	// The tool has no way to receive an output path (SlopMap2 vis/light rewrite their input).
 	None,
-	// The output path is a trailing positional argument (VibeMap2 bsp: "sourcefile.map [destfile.bsp]").
+	// The output path is a trailing positional argument (SlopMap2 bsp: "sourcefile.map [destfile.bsp]").
 	Positional,
 	// The output path follows a flag, for example ZDBSP's "-o/--output=FILE" (see external/compilers/zdbsp/main.cpp).
 	Flag,
 };
 
-// Where a tool writes when VibeStudio does not request an explicit output path.
+// Where a tool writes when SlopStudio does not request an explicit output path.
 enum class CompilerDefaultOutputMode {
 	// "<input base>.<defaultOutputExtension>" beside the input.
 	DerivedFromInput,
-	// The tool rewrites its input file (VibeMap2 vis/light, VibeMap3 -vis/-light).
+	// The tool rewrites its input file (SlopMap2 vis/light, SlopMap3 -vis/-light).
 	InPlace,
 	// A fixed file name in the working directory (ZDBSP writes "tmp.wad" when -o is absent).
 	WorkingDirectoryFile,
-	// The destination cannot be predicted from the command line (VibeMap3 -pk3 writes into the engine path).
+	// The destination cannot be predicted from the command line (SlopMap3 -pk3 writes into the engine path).
 	Unknown,
-	// The tool reports to its console channels and writes no artifact (bsputil --check, VibeMap3 -help).
+	// The tool reports to its console channels and writes no artifact (bsputil --check, SlopMap3 -help).
 	NoArtifact,
 };
 
@@ -59,8 +59,8 @@ struct CompilerProfileDescriptor {
 	QStringList defaultArguments;
 	bool inputRequired = true;
 	bool outputPathArgumentSupported = false;
-	// Always emitted as argument 0, before default and user arguments. VibeMap3 dispatches on the first
-	// remaining token (external/compilers/vibemap3/tools/quake3/q3map2/main.cpp), so the stage token
+	// Always emitted as argument 0, before default and user arguments. SlopMap3 dispatches on the first
+	// remaining token (external/compilers/slopmap3/tools/quake3/q3map2/main.cpp), so the stage token
 	// must never be pushed behind user extras.
 	QString leadingStageArgument;
 	CompilerOutputArgumentStyle outputArgumentStyle = CompilerOutputArgumentStyle::None;
@@ -199,4 +199,4 @@ QString compilerCommandManifestText(const CompilerCommandManifest& manifest);
 bool saveCompilerCommandManifest(const CompilerCommandManifest& manifest, const QString& path, QString* error = nullptr);
 bool loadCompilerCommandManifest(const QString& path, CompilerCommandManifest* manifest, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

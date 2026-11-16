@@ -12,7 +12,7 @@
 //   while brushes a switched-off kind hides whole keep none;
 // - the command ids, palette entries and NetRadiant profile keys;
 // - `map filters` reporting the faces as face:brushId:faceNumber selectors.
-// With the vibestudio binary as the first argument the CLI is checked too.
+// With the slopstudio binary as the first argument the CLI is checked too.
 
 #include "core/editor_profiles.h"
 #include "core/level_document.h"
@@ -34,7 +34,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -76,7 +76,7 @@ QStringList offeredIds(const LevelMapDocument& document)
 	return ids;
 }
 
-// A Quake II map (VibeStudio's Quake II target header): worldspawn brushes
+// A Quake II map (SlopStudio's Quake II target header): worldspawn brushes
 // 0 with the area portal bit, 1 with CURRENT_180 (Quake III's cluster portal
 // bit), 2 with CURRENT_UP (Quake III's bot clip bit), 3 detail, 4 plain,
 // 5 hint with skip faces; a func_areaportal with brush 6.

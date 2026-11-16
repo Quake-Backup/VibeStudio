@@ -12,9 +12,9 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
-namespace f = vibestudio::tests::udmf;
-namespace d = vibestudio::tests::doom;
+using namespace slopstudio;
+namespace f = slopstudio::tests::udmf;
+namespace d = slopstudio::tests::doom;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* message, const QString& detail = {}) {

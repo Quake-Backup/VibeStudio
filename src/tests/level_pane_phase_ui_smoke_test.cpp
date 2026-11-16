@@ -12,7 +12,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 int difference(const QImage& a, const QImage& b)
 {
@@ -135,8 +135,8 @@ bool rasterPaths(QJsonArray* samples)
 				const int delta = difference(actual.copy(region),reference.copy(region)); ok &= delta <= (path == 2 ? 1 : 4);
 				samples->append(QJsonObject{{"projection",int(projection)},{"ratio",ratio},{"path",path},{"maxChannelDifference",delta}});
 				if ((delta > 4 || (projection == MapViewportProjection::FrontXZ && ratio == 1.5 && path != 1))
-					&& !qEnvironmentVariableIsEmpty("VIBESTUDIO_TEST_CAPTURE_DIR")) {
-					const QDir output(qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR"));
+					&& !qEnvironmentVariableIsEmpty("SLOPSTUDIO_TEST_CAPTURE_DIR")) {
+					const QDir output(qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR"));
 					actual.save(output.filePath(QStringLiteral("path-actual-%1-%2-%3.png").arg(path).arg(int(projection)).arg(ratio)));
 					reference.save(output.filePath(QStringLiteral("path-reference-%1-%2-%3.png").arg(path).arg(int(projection)).arg(ratio)));
 				}
@@ -174,7 +174,7 @@ int main(int argc, char** argv)
 		const int delta = overlayDifference(image,overlayReference(host,*view,ratio,document),host,*view,ratio);
 		ok &= queued && complete && delta <= 4;
 		samples.append(QJsonObject{{"ratio",ratio},{"overlayQueued",queued},{"complete",complete},{"firstPaintMs",paintMs},{"maxOverlayChannelDifference",delta}});
-		const auto output = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto output = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!output.isEmpty()) { QDir().mkpath(output); ok &= image.save(QDir(output).filePath(QStringLiteral("child-pane-%1.png").arg(ratio))); }
 	}
 	QJsonArray moves;
@@ -215,8 +215,8 @@ int main(int argc, char** argv)
 					int((view->width()-16)*ratio),int((view->height()-68)*ratio));
 				const int delta = difference(actual.copy(region),reference.copy(region)); ok &= delta <= 1;
 				geometrySamples.append(QJsonObject{{"brushes",count},{"projection",int(projection)},{"ratio",ratio},{"maxChannelDifference",delta}});
-				if (delta > 1 && !qEnvironmentVariableIsEmpty("VIBESTUDIO_TEST_CAPTURE_DIR")) {
-					const QDir output(qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR"));
+				if (delta > 1 && !qEnvironmentVariableIsEmpty("SLOPSTUDIO_TEST_CAPTURE_DIR")) {
+					const QDir output(qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR"));
 					actual.save(output.filePath(QStringLiteral("geometry-actual-%1-%2-%3.png").arg(count).arg(int(projection)).arg(ratio)));
 					reference.save(output.filePath(QStringLiteral("geometry-reference-%1-%2-%3.png").arg(count).arg(int(projection)).arg(ratio)));
 				}

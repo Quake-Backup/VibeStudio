@@ -30,7 +30,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* message, const QString& detail = {}) {
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 	QFile groupFile(QString::fromUtf8(groupPath));
 	if (!groupFile.open(QIODevice::WriteOnly) || groupFile.write(groupedBytes) != groupedBytes.size()) { return 1; } groupFile.close();
 	const QVector<LevelMapSelectionRef> chosen{{LevelMapSelectionKind::QuakeBrush,0}}, other{{LevelMapSelectionKind::QuakeBrush,1}};
-	for (const auto& profile : {QStringLiteral("trenchbroom"),QStringLiteral("netradiant-custom"),QStringLiteral("vibestudio-default")}) {
+	for (const auto& profile : {QStringLiteral("trenchbroom"),QStringLiteral("netradiant-custom"),QStringLiteral("slopstudio-default")}) {
 		for (int scale : {100,200}) {
 			std::cout << "Visibility UI " << profile.toStdString() << ' ' << scale << '%' << std::endl;
 			settings.setSelectedEditorProfileId(profile); settings.setTextScalePercent(scale);
@@ -112,7 +112,7 @@ int main(int argc, char** argv)
 			expect(camera && until([&] { return !camera->isRendering(); }),"isolated camera render completes");
 			for (auto* view : views) { expect(view->displayDocument().brushes.size() == 1 && view->selectionSet() == chosen,"isolation shared by every plan"); }
 			if (tb) {
-				const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+				const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 				if (!capture.isEmpty()) { QDir().mkpath(capture); QImage image(shell.size(),QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); shell.render(&image);
 					expect(image.save(QDir(capture).filePath(QStringLiteral("isolate-%1.png").arg(scale))),"render isolated shell"); }
 			}
@@ -193,7 +193,7 @@ int main(int argc, char** argv)
 				"duplicate applies profile policy to hidden descendants",shell.statusBar()->currentMessage())) { return 1; }
 			for (auto* view : views) { expect(view->displayDocument().brushes.size() == (fresh ? 4 : 3),"profile clone visibility reaches every plan"); }
 			expect(until([&] { return camera->hasMesh() && camera->mesh().triangleCount == (fresh ? 48 : 36); }),"profile clone visibility reaches camera");
-			const auto cloneCapture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+			const auto cloneCapture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 			if (!cloneCapture.isEmpty()) {
 				QImage image(shell.size(),QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); shell.render(&image);
 				expect(image.save(QDir(cloneCapture).filePath(QStringLiteral("clone-%1-%2.png").arg(profile).arg(scale))),"render profile clone visibility");
@@ -251,7 +251,7 @@ int main(int argc, char** argv)
 		expect(inspected && beats > 0 && gap < 1000 && result.cancelled && !result.visibilityReport.changed && dense.hiddenObjects.isEmpty()
 			&& dense.selection == chosen && dense.undoStack.isEmpty(),"dense cancellation stays responsive and atomic",result.error);
 		std::cout << scale << "% visibility: " << beats << " heartbeats, maximum gap " << gap << " ms" << std::endl;
-		const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!capture.isEmpty()) { QDir().mkpath(capture); QFile evidence(QDir(capture).filePath(QStringLiteral("dense-visibility-%1.json").arg(scale)));
 			const QJsonObject metrics{{"brushes",100000},{"scale",scale},{"heartbeats",beats},{"maximumGapMs",gap},{"progressInspected",inspected},{"cancelled",result.cancelled}};
 			expect(evidence.open(QIODevice::WriteOnly) && evidence.write(QJsonDocument(metrics).toJson()) > 0,"record responsiveness"); }

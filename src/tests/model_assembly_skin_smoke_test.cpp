@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -49,7 +49,7 @@ QByteArray serialized(const ModelMesh &mesh)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (argc != 2 || root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("assembly-skin-XXXXXX"));
@@ -281,15 +281,15 @@ int main(int argc, char **argv)
 	PackageStagingModel staging;
 	ok &= expect(archive.load(path("assets"), &error) && staging.loadBaseArchive(archive, &error) &&
 					 staging.addBytes(blue, "default.skin", &error, PackageStageConflictResolution::ReplaceExisting) &&
-					 PackageDraft::save(path("skins.vibepackage"), &staging, false, &error),
+					 PackageDraft::save(path("skins.sloppackage"), &staging, false, &error),
 				 "save independent package draft with material replacement");
 	ok &= expect(run({"cli.assembly.json", "--operation", "update", "--part", "root", "--skin", "default.skin", "--skin-kind", "package",
-					  "--skin-entry-index", "0", "--package", "skins.vibepackage", "--output", "package.assembly.json"}) &&
+					  "--skin-entry-index", "0", "--package", "skins.sloppackage", "--output", "package.assembly.json"}) &&
 					 output.value("inputs").toArray()[0].toObject().value("skin").toObject().value("sha256") ==
 						 QString::fromLatin1(hash(blue).toHex()),
 				 "CLI consumes verified staged skin occurrence instead of base bytes");
 	ok &= expect(
-		run({"package.assembly.json", "--package", "skins.vibepackage", "--operation", "bake", "--output", "assets/protected.md3"}, 2) &&
+		run({"package.assembly.json", "--package", "skins.sloppackage", "--operation", "bake", "--output", "assets/protected.md3"}, 2) &&
 			!QFileInfo::exists(path("assets/protected.md3")),
 		"package source remains protected through linked skin handoff");
 	ok &= expect(read(path("part.mesh.json")) == modelBytes && read(path("default.skin")) == skinBytes &&

@@ -26,7 +26,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 #include <limits>
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -488,4 +488,4 @@ void ModelCurveKeysDialog::reject()
 	}
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

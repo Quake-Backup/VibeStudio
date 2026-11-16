@@ -19,7 +19,7 @@
 #include <memory>
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct PackageDraftSaveLimits;
 struct PackageCopyLimits;
@@ -365,7 +365,7 @@ public:
 	void setCrashReports(bool enabled);
 	// The 3D renderer: "automatic" (the default), "opengl" or "vulkan", as
 	// core/render_device.h spells them; anything else reads back as
-	// "automatic". VIBESTUDIO_RENDER_BACKEND and the CLI's --renderer
+	// "automatic". SLOPSTUDIO_RENDER_BACKEND and the CLI's --renderer
 	// override it for one run without changing it.
 	QString renderBackendPreference() const;
 	void setRenderBackendPreference(const QString& id);
@@ -547,4 +547,4 @@ QString setupStepDescription(SetupStep step);
 SetupStep setupStepFromId(const QString& id);
 QVector<SetupStep> setupSteps();
 
-} // namespace vibestudio
+} // namespace slopstudio

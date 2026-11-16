@@ -3,7 +3,7 @@
 #include <QStringList>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 using AudioOutputEmit = std::function<bool(const QByteArray &)>;
 using AudioOutputProducer = std::function<bool(const AudioOutputEmit &, QString *)>;
@@ -12,4 +12,4 @@ using AudioOutputProducer = std::function<bool(const AudioOutputEmit &, QString 
 AudioProjectSaveReport commitAudioOutput(const AudioProjectSaveRequest &request, const QString &suffix,
                                          QStringList protectedPaths, qint64 expectedByteLimit,
                                          const AudioWorkControl &control, const AudioOutputProducer &produce);
-} // namespace vibestudio
+} // namespace slopstudio

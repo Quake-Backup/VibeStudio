@@ -24,11 +24,11 @@
 #include <numbers>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelUvEdit)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelUvEdit)
 };
 
 bool fail(QString* error, const QString& message)
@@ -601,4 +601,4 @@ bool prepareLevelUvEdit(const LevelMapDocument& document, const LevelUvLayout& l
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

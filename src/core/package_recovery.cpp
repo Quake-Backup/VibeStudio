@@ -20,11 +20,11 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 constexpr qint64 manifestLimit = 32 * 1024 * 1024;
-const QString suffix = QStringLiteral(".vibepackage");
+const QString suffix = QStringLiteral(".sloppackage");
 
 QString message(const char* text) { return QCoreApplication::translate("PackageRecovery", text); }
 bool fail(QString* error, const QString& text) { if (error) { *error = text; } return false; }
@@ -177,8 +177,8 @@ PackageRecoveryInfo inspectPackageRecovery(const QString& path, const PackageRea
 	info.manifestSha256 = QCryptographicHash::hash(bytes, QCryptographicHash::Sha256);
 	QJsonParseError parse; const auto document = QJsonDocument::fromJson(bytes, &parse); const auto root = document.object();
 	const auto recovery = root.value(QStringLiteral("recovery")).toObject();
-	if (parse.error != QJsonParseError::NoError || !document.isObject() || root.value(QStringLiteral("type")) != QStringLiteral("vibestudio-package-draft")
-		|| (root.value(QStringLiteral("version")).toInt() != 2 && root.value(QStringLiteral("version")).toInt() != 3 && root.value(QStringLiteral("version")).toInt() != 4) || recovery.value(QStringLiteral("type")) != QStringLiteral("vibestudio-package-recovery")
+	if (parse.error != QJsonParseError::NoError || !document.isObject() || root.value(QStringLiteral("type")) != QStringLiteral("slopstudio-package-draft")
+		|| (root.value(QStringLiteral("version")).toInt() != 2 && root.value(QStringLiteral("version")).toInt() != 3 && root.value(QStringLiteral("version")).toInt() != 4) || recovery.value(QStringLiteral("type")) != QStringLiteral("slopstudio-package-recovery")
 		|| recovery.value(QStringLiteral("version")).toInt() != 1 || recovery.value(QStringLiteral("id")) != info.id) {
 		return invalid(message(QT_TRANSLATE_NOOP("PackageRecovery", "The recovery copy has a damaged or unsupported manifest.")));
 	}
@@ -338,7 +338,7 @@ PackageRecoveryWriteResult PackageRecoverySession::checkpoint(const PackageStagi
 	if (inventory.storageBytes >= limits.maximumBytes) {
 		result.error = message(QT_TRANSLATE_NOOP("PackageRecovery", "The recovery storage limit has been reached. Review copies or increase the limit; existing copies are preserved.")); return result;
 	}
-	const QJsonObject metadata{{QStringLiteral("type"), QStringLiteral("vibestudio-package-recovery")}, {QStringLiteral("version"), 1},
+	const QJsonObject metadata{{QStringLiteral("type"), QStringLiteral("slopstudio-package-recovery")}, {QStringLiteral("version"), 1},
 		{QStringLiteral("id"), m_id}, {QStringLiteral("title"), title.left(255)}, {QStringLiteral("originalDraftPath"), staging.draftPath()},
 		{QStringLiteral("writtenUtc"), QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs)}};
 	PackageStagingModel copy = staging;
@@ -380,7 +380,7 @@ bool restorePackageRecovery(const QString& directory, const QString& id, const Q
 	if (info.manifestSha256 != expectedManifestSha256) { return fail(error, message(QT_TRANSLATE_NOOP("PackageRecovery", "The recovery copy changed. Refresh the list before continuing."))); }
 	if (destination.trimmed().isEmpty() || containsPath(directory, destination) || QFileInfo::exists(destination)
 		|| (!info.originalDraftPath.isEmpty() && containsPath(info.originalDraftPath, destination))) {
-		return fail(error, message(QT_TRANSLATE_NOOP("PackageRecovery", "Restore to a new .vibepackage directory outside the recovery store and original draft.")));
+		return fail(error, message(QT_TRANSLATE_NOOP("PackageRecovery", "Restore to a new .sloppackage directory outside the recovery store and original draft.")));
 	}
 	PackageStagingModel copy;
 	if (!PackageDraft::load(path, &copy, error, control)) { return false; }
@@ -422,4 +422,4 @@ bool discardPackageRecoveryStorage(const QString& directory, const QString& id, 
 	return discardReviewedCopy(directory, id, expectedStorageSha256, true, dryRun, error);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -8,7 +8,7 @@
 #include <QStatusBar>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 bool ApplicationShell::canCutLevelMapSelection() const
 {
 	// TrenchBroom v2026.2 MapWindow::canCutSelection also excludes modal tools.
@@ -62,4 +62,4 @@ bool ApplicationShell::copyLevelObjectsToClipboard(bool cut, QString* error)
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -21,7 +21,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value,const char* label,const QString& detail = {}) { if (!value) { ok = false; std::cerr << label << ": " << detail.toStdString() << '\n'; } return value; }
@@ -158,5 +158,5 @@ int main(int argc,char** argv) {
 	QApplication app(argc,argv); QTemporaryDir temp; if (!temp.isValid()) { return 1; }
 	StudioSettings::setOverrideFilePath(temp.filePath("settings.ini")); StudioSettings settings;
 	settings.setRestoreSession(false); settings.setReducedMotion(true); settings.setLevelComponentUvLock(false); settings.setLevelViewLayoutPreference("four-views"); settings.sync();
-	const auto evidence = qEnvironmentVariable("VIBESTUDIO_COMPONENT_UI_EVIDENCE"); traceChecks(app,evidence); shellChecks(app,temp.path(),evidence); return ok ? 0 : 1;
+	const auto evidence = qEnvironmentVariable("SLOPSTUDIO_COMPONENT_UI_EVIDENCE"); traceChecks(app,evidence); shellChecks(app,temp.path(),evidence); return ok ? 0 : 1;
 }

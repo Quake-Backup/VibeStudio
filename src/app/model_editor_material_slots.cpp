@@ -10,33 +10,33 @@
 #include <QSignalBlocker>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 void ModelEditorDialog::addMaterialSlotControls(QFormLayout *surface)
 {
 	m_materialSlot = new QComboBox;
 	m_materialSlot->setObjectName("meshMaterialSlot");
 	m_materialSlot->setLayoutDirection(Qt::LeftToRight);
-	m_materialSlot->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Material preview slot"));
+	m_materialSlot->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Material preview slot"));
 	m_materialSlot->setAccessibleDescription(
-		QCoreApplication::translate("VibeStudioModelEditor", "Choose which external slot this surface previews. This does not change the "
+		QCoreApplication::translate("SlopStudioModelEditor", "Choose which external slot this surface previews. This does not change the "
 															 "saved material order. Assign Material edits this slot."));
 	m_materialSlot->setToolTip(m_materialSlot->accessibleDescription());
 	m_materialSlot->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
 	m_materialSlot->setMinimumContentsLength(16);
-	surface->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Preview slot"), m_materialSlot);
-	m_manageMaterialSlots = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Manage Material Slots…"), 2);
+	surface->addRow(QCoreApplication::translate("SlopStudioModelEditor", "Preview slot"), m_materialSlot);
+	m_manageMaterialSlots = new WrappingActionButton(QCoreApplication::translate("SlopStudioModelEditor", "Manage Material Slots…"), 2);
 	m_manageMaterialSlots->setObjectName("manageMeshMaterialSlots");
 	m_manageMaterialSlots->setAccessibleName(m_manageMaterialSlots->text());
 	m_manageMaterialSlots->setAccessibleDescription(
-		QCoreApplication::translate("VibeStudioModelEditor", "Add, replace, remove or reorder this surface's external material bindings."));
+		QCoreApplication::translate("SlopStudioModelEditor", "Add, replace, remove or reorder this surface's external material bindings."));
 	m_manageMaterialSlots->setToolTip(m_manageMaterialSlots->accessibleDescription());
 	surface->addRow(m_manageMaterialSlots);
-	m_skinVariants = new QPushButton(QCoreApplication::translate("VibeStudioModelEditor", "Skin Variants…"));
+	m_skinVariants = new QPushButton(QCoreApplication::translate("SlopStudioModelEditor", "Skin Variants…"));
 	m_skinVariants->setObjectName("meshSkinVariants");
 	m_skinVariants->setAccessibleName(m_skinVariants->text());
 	m_skinVariants->setAccessibleDescription(QCoreApplication::translate(
-		"VibeStudioModelEditor", "Name skins such as red and blue that give some surfaces other materials, and write their skin files."));
+		"SlopStudioModelEditor", "Name skins such as red and blue that give some surfaces other materials, and write their skin files."));
 	m_skinVariants->setToolTip(m_skinVariants->accessibleDescription());
 	surface->addRow(m_skinVariants);
 	connect(m_skinVariants, &QPushButton::clicked, this, [this] { editSkinVariants(); });
@@ -60,7 +60,7 @@ void ModelEditorDialog::addMaterialSlotControls(QFormLayout *surface)
 		if (revision != m_document.revisionFingerprint())
 		{
 			m_status->setText(QCoreApplication::translate(
-				"VibeStudioModelEditor", "The model changed while reviewing material slots. Reopen Manage Material Slots."));
+				"SlopStudioModelEditor", "The model changed while reviewing material slots. Reopen Manage Material Slots."));
 			return;
 		}
 		QString error;
@@ -94,7 +94,7 @@ void ModelEditorDialog::refreshMaterialSlots()
 	const QSignalBlocker block(m_materialSlot);
 	m_materialSlot->clear();
 	if (!external)
-		m_materialSlot->addItem(QCoreApplication::translate("VibeStudioModelEditor", "Embedded skins (Animation)"));
+		m_materialSlot->addItem(QCoreApplication::translate("SlopStudioModelEditor", "Embedded skins (Animation)"));
 	else
 		for (int i = 0; i < surface.skinPaths.size(); ++i)
 		{
@@ -104,16 +104,16 @@ void ModelEditorDialog::refreshMaterialSlots()
 			m_materialSlot->setItemData(i, surface.skinPaths[i], Qt::ToolTipRole);
 		}
 	if (m_materialSlot->count() == 0)
-		m_materialSlot->addItem(QCoreApplication::translate("VibeStudioModelEditor", "Unassigned"));
+		m_materialSlot->addItem(QCoreApplication::translate("SlopStudioModelEditor", "Unassigned"));
 	const int slot = m_previewMaterialSlots.value(surface.name, 0);
 	m_materialSlot->setCurrentIndex(slot);
 	m_materialSlot->setEnabled(external && !surface.skinPaths.isEmpty());
 	m_manageMaterialSlots->setEnabled(external);
 	m_skinVariants->setEnabled(external);
 	m_manageMaterialSlots->setAccessibleDescription(
-		external ? QCoreApplication::translate("VibeStudioModelEditor",
+		external ? QCoreApplication::translate("SlopStudioModelEditor",
 											   "Add, replace, remove or reorder this surface's external material bindings.")
-				 : QCoreApplication::translate("VibeStudioModelEditor", "Embedded MDL skins use the Animation inspector's skin controls."));
+				 : QCoreApplication::translate("SlopStudioModelEditor", "Embedded MDL skins use the Animation inspector's skin controls."));
 	m_manageMaterialSlots->setToolTip(m_manageMaterialSlots->accessibleDescription());
 	// A path typed into the field stays while the user picks faces; another
 	// surface, slot or edit shows that slot's path again.
@@ -138,10 +138,10 @@ void ModelEditorDialog::refreshShowInMaterials()
 	const bool named = m_showMaterial->isEnabled();
 	m_showInMaterials->setEnabled(bool(showInMaterials) && package && named);
 	m_showInMaterials->setAccessibleDescription(
-		!package ? QCoreApplication::translate("VibeStudioModelEditor", "Open the package that holds the material first.")
-		: !named ? QCoreApplication::translate("VibeStudioModelEditor", "This surface has no material slot to show.")
-				 : QCoreApplication::translate("VibeStudioModelEditor",
+		!package ? QCoreApplication::translate("SlopStudioModelEditor", "Open the package that holds the material first.")
+		: !named ? QCoreApplication::translate("SlopStudioModelEditor", "This surface has no material slot to show.")
+				 : QCoreApplication::translate("SlopStudioModelEditor",
 											   "Open the surface's shader or material in the Materials workbench to edit its stages and maps."));
 	m_showInMaterials->setToolTip(m_showInMaterials->accessibleDescription());
 }
-} // namespace vibestudio
+} // namespace slopstudio

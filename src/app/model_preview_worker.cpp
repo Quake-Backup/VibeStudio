@@ -7,7 +7,7 @@
 #include <QTimer>
 #include <new>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelPreviewWorker::Work
 {
@@ -83,7 +83,7 @@ void ModelPreviewWorker::startNext()
 			{
 				if (!request.source.archive)
 				{
-					work->result.error = QCoreApplication::translate("VibeStudioModelMesh", "Open a package before previewing a model.");
+					work->result.error = QCoreApplication::translate("SlopStudioModelMesh", "Open a package before previewing a model.");
 					return;
 				}
 				ModelWorkControl control;
@@ -119,7 +119,7 @@ void ModelPreviewWorker::startNext()
 				work->result.appearance = {};
 				work->result.assets = {};
 				work->result.metadata = {};
-				work->result.error = QCoreApplication::translate("VibeStudioModelMesh", "Not enough memory to preview this model.");
+				work->result.error = QCoreApplication::translate("SlopStudioModelMesh", "Not enough memory to preview this model.");
 			}
 			work->result.cancelled = cancelled();
 		});
@@ -138,4 +138,4 @@ void ModelPreviewWorker::startNext()
 			});
 	m_thread->start();
 }
-} // namespace vibestudio
+} // namespace slopstudio

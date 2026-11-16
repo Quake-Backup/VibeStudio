@@ -22,7 +22,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 	QCoreApplication app(argc, argv);
 	QTemporaryDir temp;
 	if (!temp.isValid() || argc < 2 || argc > 3) {
-		std::cerr << "usage: ai_generation_cli_smoke_test <vibestudio executable> [<fake_ai_harness executable>]\n";
+		std::cerr << "usage: ai_generation_cli_smoke_test <slopstudio executable> [<fake_ai_harness executable>]\n";
 		return EXIT_FAILURE;
 	}
 	const QString cli = QString::fromLocal8Bit(argv[1]);
@@ -143,7 +143,7 @@ int main(int argc, char** argv)
 	const QString project = temp.filePath(QStringLiteral("mod"));
 	Run quakeSound = run({QStringLiteral("asset"), QStringLiteral("audio-generate"), QStringLiteral("--prompt"), QStringLiteral("heavy metal door slam"),
 		QStringLiteral("--game"), QStringLiteral("quake"), QStringLiteral("--output"), project});
-	expect(quakeSound.exitCode == 0 && QFileInfo::exists(QDir(project).filePath(QStringLiteral("sound/vibestudio/door_slam.wav")))
+	expect(quakeSound.exitCode == 0 && QFileInfo::exists(QDir(project).filePath(QStringLiteral("sound/slopstudio/door_slam.wav")))
 			&& quakeSound.json.value(QStringLiteral("sounds")).toArray().first().toObject().value(QStringLiteral("format")).toString() == QStringLiteral("wav-8"),
 		"asset audio-generate writes a Quake WAV", quakeSound.output);
 	Run doomSound = run({QStringLiteral("asset"), QStringLiteral("audio-generate"), QStringLiteral("--prompt"), QStringLiteral("rocket explosion"),
@@ -151,7 +151,7 @@ int main(int argc, char** argv)
 	PackageArchive archive;
 	QString error;
 	QStringList lumps;
-	if (archive.load(QDir(project).filePath(QStringLiteral("wads/vibestudio_sounds.wad")), &error)) {
+	if (archive.load(QDir(project).filePath(QStringLiteral("wads/slopstudio_sounds.wad")), &error)) {
 		for (const PackageEntry& entry : archive.entries()) {
 			lumps << entry.virtualPath;
 		}
@@ -204,7 +204,7 @@ int main(int argc, char** argv)
 		expect(planned.exitCode == 0 && QFileInfo::exists(temp.filePath(QStringLiteral("maps/claude.map")))
 				&& planned.json.value(QStringLiteral("ai")).toObject().value(QStringLiteral("connector")).toString() == QStringLiteral("claude-code")
 				&& planner.value(QStringLiteral("requested_backend")).toString() == QStringLiteral("connector")
-				&& planner.value(QStringLiteral("used_backend")).toString() == QStringLiteral("vibestudio/claude-code")
+				&& planner.value(QStringLiteral("used_backend")).toString() == QStringLiteral("slopstudio/claude-code")
 				&& planner.value(QStringLiteral("model")).toObject().value(QStringLiteral("model_id")).toString() == QStringLiteral("claude-opus-5-5"),
 			"map generate --planner ai --provider claude-code plans the level through the harness with claude-opus-5-5", planned.output);
 		qputenv("FAKE_HARNESS_ANSWER", "OK");

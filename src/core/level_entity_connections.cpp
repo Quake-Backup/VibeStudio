@@ -11,7 +11,7 @@
 // Original adaptation of NRC Entity_connectSelected/Entity_killconnectSelected
 // and Quake3EntityCreator::connectEntities, revision 449778b3840f8f2062daab15c87cb012f2ac945c,
 // GPL-2.0-or-later. See docs/CREDITS.md for the pinned sources and licence review.
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool fail(QString* error, const char* message)
 {
@@ -180,15 +180,15 @@ bool detail::prepareLevelEntityConnection(const LevelMapDocument& document, cons
 	for (int id : selection.entities) { update(document.entities[selection.indexes.value(id)],report->property); }
 	report->changedEntities = static_cast<int>(command->entityResults.size());
 	if (!report->changedEntities && legacy) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioLevelMap","Those entities already target %1.").arg(name); } return false;
+		if (error) { *error = QCoreApplication::translate("SlopStudioLevelMap","Those entities already target %1.").arg(name); } return false;
 	}
 	command->description = selection.entities.size() == 1
-		? QCoreApplication::translate("VibeStudioLevelMap","Connect entity:%1 to entity:%2 as %3").arg(selection.entities.first()).arg(target.id).arg(name)
-		: QCoreApplication::translate("VibeStudioLevelMap","Connect %1 entities to entity:%2 as %3").arg(selection.entities.size()).arg(target.id).arg(name);
+		? QCoreApplication::translate("SlopStudioLevelMap","Connect entity:%1 to entity:%2 as %3").arg(selection.entities.first()).arg(target.id).arg(name)
+		: QCoreApplication::translate("SlopStudioLevelMap","Connect %1 entities to entity:%2 as %3").arg(selection.entities.size()).arg(target.id).arg(name);
 	if (request.mode == LevelEntityConnectionMode::RadiantKillTarget) {
 		command->description = QCoreApplication::translate("LevelEntityConnections","KillConnect entity:%1 to entity:%2 as %3").arg(selection.entities.first()).arg(target.id).arg(name);
 	}
-	command->undoDescription = QCoreApplication::translate("VibeStudioLevelMap","Disconnect them from entity:%1 again").arg(target.id);
+	command->undoDescription = QCoreApplication::translate("SlopStudioLevelMap","Disconnect them from entity:%1 again").arg(target.id);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

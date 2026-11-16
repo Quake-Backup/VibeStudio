@@ -17,8 +17,8 @@
 #include <limits>
 #include <random>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -122,7 +122,7 @@ ModelMesh skinnedCube()
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temp(QDir(root).filePath("knife-XXXXXX"));
@@ -541,7 +541,7 @@ int main(int argc, char **argv)
 	expect(saved.setMesh(cube, &error) && saved.save(sourcePath, false, &error), "save knife CLI source");
 	auto expected = cube;
 	expect(applyModelEdit(&expected, cubeEdit, nullptr, &error), "prepare CLI expected output");
-	const QStringList args{"vibestudio", "--cli",  "model",		 "tool",	  sourcePath, "--tool",
+	const QStringList args{"slopstudio", "--cli",  "model",		 "tool",	  sourcePath, "--tool",
 						   "knife",		 "--path", "-80,3;80,3", "--through", "--output", output};
 	expect(cli::runModelTool(args + QStringList{"--dry-run"}).exitCode == 0 && !QFile::exists(output), "knife CLI dry-run writes nothing");
 	expect(cli::runModelTool(args).exitCode == 0 && saved.load(output, &error) && bevelBytes(saved.mesh()) == bevelBytes(expected),

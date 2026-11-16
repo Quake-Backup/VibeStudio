@@ -5,7 +5,7 @@
 #include <QHash>
 #include <QPair>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Scene-local offsets, never pointers into copy-on-write document arrays. Sibling
 // panes share the Qt hashes until a new document/filter generation is adopted.
@@ -32,4 +32,4 @@ private:
 	QHash<int, qsizetype> m_sectors;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

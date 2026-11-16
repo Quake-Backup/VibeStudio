@@ -20,7 +20,7 @@
 // - DDS: Microsoft "DDS_HEADER structure" and "DDS_PIXELFORMAT" documentation.
 // See docs/CREDITS.md, "Texture export formats".
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 void put16(QByteArray& bytes, qsizetype at, quint16 value) { qToLittleEndian(value, bytes.data() + at); }
 void put32(QByteArray& bytes, qsizetype at, quint32 value) { qToLittleEndian(value, bytes.data() + at); }
@@ -196,7 +196,7 @@ QByteArray encodeSwl(const QVector<QImage>& mips, const QVector<QRgb>& palette, 
 {
 	// sinmiptex_t: name[64], width, height, palette[256][4], palcrc + pad,
 	// offsets[4], animname[64], flags, contents, value, direct, then animation,
-	// lighting and physics floats to byte 1236. VibeStudio writes zero for the
+	// lighting and physics floats to byte 1236. SlopStudio writes zero for the
 	// palette checksum and for the properties it does not author.
 	QByteArray bytes(1236, '\0'); putName(bytes, 0, fields.name, 64);
 	put32(bytes, 64, quint32(mips.value(0).width())); put32(bytes, 68, quint32(mips.value(0).height()));
@@ -261,4 +261,4 @@ QByteArray encodeDdsMipmapped(const QVector<QImage>& mips, const TextureProgress
 	return bytes;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

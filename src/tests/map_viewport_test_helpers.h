@@ -7,7 +7,7 @@
 #include <QTimer>
 #include <algorithm>
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 
 // Render the real widget and wait through the GUI event loop for its current
 // background image. The supplied image retains its physical device scale. No
@@ -27,4 +27,4 @@ inline bool settleMapViewport(MapViewport& viewport, QImage* image, int timeoutM
 	}
 	return false;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

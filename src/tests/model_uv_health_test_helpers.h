@@ -2,7 +2,7 @@
 
 #include "tests/model_uv_test_helpers.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // A planar quad grid in the XY plane, `columns` 10-unit quads wide and one
 // high, with two poses (the second lifted in Z) and UVs u = x / width.
@@ -79,4 +79,4 @@ inline ModelMesh foldedStrip()
 	mesh.surfaces[0].texCoords[3].u = mesh.surfaces[0].texCoords[7].u = .5f;
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

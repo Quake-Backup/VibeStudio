@@ -21,7 +21,7 @@
 #include <QTimer>
 #include <QTranslator>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool pass, const char* label, const QString& error = {}) {
@@ -69,7 +69,7 @@ int main(int argc, char** argv) {
 	StudioSettings::setOverrideFilePath(temp.filePath("settings.ini"));
 	StudioSettings settings;
 	settings.setReducedMotion(true);
-	settings.upsertCompilerToolPathOverride({"vibemap3", QString::fromLocal8Bit(argv[1])});
+	settings.upsertCompilerToolPathOverride({"slopmap3", QString::fromLocal8Bit(argv[1])});
 	GameInstallationProfile installation;
 	installation.id = "deployment-ui-fixture";
 	installation.gameKey = "quake3";
@@ -137,7 +137,7 @@ int main(int argc, char** argv) {
 				   QAccessible::queryAccessibleInterface(consent)->role() == QAccessible::CheckBox,
 			   "accessible keyboard controls preserve path direction");
 		expect(dialog.findChild<QTableWidget*>("buildPackageFiles")->rowCount() >= 8, "file review exposes model and generated assets");
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_CAPTURE_DIR");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_CAPTURE_DIR");
 		if (!captures.isEmpty()) {
 			QDir().mkpath(captures);
 			QPixmap image(dialog.size());
@@ -255,7 +255,7 @@ int main(int argc, char** argv) {
 	expect(until([&] { return deployed; }), "shell full build and deployment chain");
 	drive.stop();
 	watchdog.stop();
-	expect(QFileInfo::exists(QDir(installation.rootPath).filePath("studio_shell/vibestudio_shell_build.pk3")) &&
+	expect(QFileInfo::exists(QDir(installation.rootPath).filePath("studio_shell/slopstudio_shell_build.pk3")) &&
 			   settings.gameInstallations().first().readOnly,
 		   "shell uses selected game folder and retains permission");
 	const auto record = QDir(installation.rootPath).filePath("launch-record.json");

@@ -26,7 +26,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -229,4 +229,4 @@ bool ApplicationShell::handleLevelPrismKey(QObject* watched, QEvent* event)
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

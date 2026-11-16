@@ -4,7 +4,7 @@
 #include <QJsonObject>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr qint64 levelPrefabByteLimit = 8 * 1024 * 1024;
 using LevelPrefabCancellation = std::function<bool()>;
@@ -72,4 +72,4 @@ bool replaceLevelMapSelectionWithPrefab(LevelMapDocument *document, const LevelP
 										LevelPrefabReport *report = nullptr, QString *error = nullptr, LevelPrefabCancellation cancelled = {});
 QJsonObject levelPrefabReportJson(const LevelPrefabReport &report);
 
-} // namespace vibestudio
+} // namespace slopstudio

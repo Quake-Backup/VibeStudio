@@ -8,7 +8,7 @@
 #include <QSet>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Undirected indexed edges. Canonical endpoint pairs survive position edits;
 // topology operations explicitly remap them. UV seams remain separate edges.
@@ -41,4 +41,4 @@ bool prepareModelSurfaceTopology(const ModelSurface &surface, ModelSurfaceTopolo
 // Input must already pass editable-model validation. Failure leaves it intact.
 bool weldModelSurface(ModelSurface *surface, const QSet<int> &vertices, double distance, bool preserveSeams, QVector<int> *vertexMap,
 					  QVector<int> *faceMap, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

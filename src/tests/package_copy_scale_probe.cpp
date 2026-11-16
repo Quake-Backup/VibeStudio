@@ -8,7 +8,7 @@
 #include <QJsonObject>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 // A bounded fixture probe for external time/memory measurement. The caller
 // supplies a synthetic single-file archive and an owned output parent.

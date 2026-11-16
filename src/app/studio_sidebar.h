@@ -31,7 +31,7 @@ class QStackedWidget;
 class QToolButton;
 class QVBoxLayout;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class SidebarPage;
 
@@ -275,4 +275,4 @@ private:
 	QVector<SidebarSection*> m_sections;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

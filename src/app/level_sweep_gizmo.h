@@ -3,7 +3,7 @@
 #include "core/level_component_drag.h"
 #include "core/level_sweep_controls.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // One destination draft shared by every editor view. Pointer events are owned
 // by the view binding; these semantic methods are also usable without input.
@@ -54,7 +54,7 @@ class LevelSweepGizmo final : public QObject
 	QString summary() const;
 	void paint(QPainter&, const LevelComponentGizmoFrame&, bool highContrast) const;
   Q_SIGNALS:
-	void requestChanged(const vibestudio::LevelSweepRequest& request);
+	void requestChanged(const slopstudio::LevelSweepRequest& request);
 	void changed();
 
   private:
@@ -72,4 +72,4 @@ class LevelSweepGizmo final : public QObject
 	QString m_status, m_error;
 	QVector<QPair<LevelMapVec3, LevelMapVec3>> m_edges;
 };
-} // namespace vibestudio
+} // namespace slopstudio

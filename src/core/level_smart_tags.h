@@ -5,7 +5,7 @@
 // 4c756be1 (GPL-3.0-or-later). Original implementation; see docs/CREDITS.md.
 #include "core/level_filter_tags.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackageArchiveReader;
 // Raw texture names, including WAD textures and image entries below textures/.
@@ -38,4 +38,4 @@ struct LevelSmartTagRequest {
 // Detail bits require whole brushes. Texture tags cannot be disabled.
 bool applyLevelSmartTag(LevelMapDocument* document, const LevelSmartTagRequest& request, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

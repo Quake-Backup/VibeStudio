@@ -1,4 +1,4 @@
-"""Generated draft -> prepared workspace -> VibeMap3 -> verified PK3 integration proof.
+"""Generated draft -> prepared workspace -> SlopMap3 -> verified PK3 integration proof.
 
 No game launch, native input or screen capture. Output stays in .agents/tmp.
 """
@@ -55,7 +55,7 @@ def main():
         'uvScale': [1, 1], 'uvOffset': [0, 0], 'uvRotation': 0}]}), encoding='utf-8')
     model = root / 'prop.md3'
     run('model-design', ['model', 'build', design, '--output', model, '--overwrite'])
-    draft = root / 'assets.vibepackage'
+    draft = root / 'assets.sloppackage'
     run('draft-stage-model', ['package', 'draft-save', assets, draft, '--add-file', model, '--as', 'models/workspace/prop.md3'])
     room = [((-272, -272, -16), (272, 272, 0)), ((-272, -272, 256), (272, 272, 272)),
             ((-272, -272, 0), (-256, 272, 256)), ((256, -272, 0), (272, 272, 256)),
@@ -79,7 +79,7 @@ def main():
     for record in prepared['inputs']:
         data = (workspace / record['path']).read_bytes()
         assert len(data) == record['bytes'] and hashlib.sha256(data).hexdigest() == record['sha256']
-    pipeline = ['build', 'run-prepared', workspace, '--tool', 'vibemap3=' + str(args.compiler.resolve()),
+    pipeline = ['build', 'run-prepared', workspace, '--tool', 'slopmap3=' + str(args.compiler.resolve()),
                 '--stage-args', 'bsp=-threads 2 -meta', '--stage-args', 'vis=-threads 2 -fast', '--stage-args', 'light=-threads 2 -fast']
     run('plan', pipeline + ['--dry-run'])
     result = run('compile', pipeline)['pipeline']

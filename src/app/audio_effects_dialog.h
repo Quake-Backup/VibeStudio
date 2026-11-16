@@ -13,7 +13,7 @@ class QLineEdit;
 class QProgressBar;
 class QPushButton;
 class QThread;
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioEffectPresetWork;
 class AudioEffectsDialog final : public QDialog {
@@ -68,4 +68,4 @@ class AudioEffectsDialog final : public QDialog {
 	QLabel *m_status = nullptr;
 	QDialogButtonBox *m_buttons = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

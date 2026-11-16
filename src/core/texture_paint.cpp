@@ -4,7 +4,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 int wrapped(int value, int size) { const int remainder = value % size; return remainder < 0 ? remainder + size : remainder; }
 
@@ -197,4 +197,4 @@ bool paintTextureShape(QImage* pixels, const QImage& source, TextureShape shape,
 	return report(progress, h, h);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

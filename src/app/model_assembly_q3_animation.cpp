@@ -6,7 +6,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool ModelAssemblyDialog::applyQ3Animation(const std::optional<ModelAssemblyQ3Animation> &animation, QString *error)
 {
@@ -55,4 +55,4 @@ void ModelAssemblyDialog::chooseQ3Animation()
 	if (!path.isEmpty() && !exportQ3Animation(path, QFileInfo::exists(path), &error))
 		report(error);
 }
-} // namespace vibestudio
+} // namespace slopstudio

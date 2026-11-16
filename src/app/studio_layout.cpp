@@ -52,7 +52,7 @@
 #include <climits>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -218,13 +218,13 @@ QString localizedRailBehaviourName(RailBehaviour behaviour)
 {
 	switch (behaviour) {
 	case RailBehaviour::Expanded:
-		return QCoreApplication::translate("VibeStudioLayout", "Always show labels");
+		return QCoreApplication::translate("SlopStudioLayout", "Always show labels");
 	case RailBehaviour::Compact:
-		return QCoreApplication::translate("VibeStudioLayout", "Icons only");
+		return QCoreApplication::translate("SlopStudioLayout", "Icons only");
 	case RailBehaviour::Automatic:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioLayout", "Collapse to icons automatically");
+	return QCoreApplication::translate("SlopStudioLayout", "Collapse to icons automatically");
 }
 
 namespace {
@@ -1012,7 +1012,7 @@ PageHeader::PageHeader(const QString& iconName, const QString& title, QWidget* p
 {
 	setObjectName(QStringLiteral("pageHeader"));
 	setAttribute(Qt::WA_StyledBackground, true);
-	setAccessibleName(QCoreApplication::translate("VibeStudioLayout", "Page header"));
+	setAccessibleName(QCoreApplication::translate("SlopStudioLayout", "Page header"));
 
 	// One row: the page's glyph and name, then what it is showing, then its
 	// state and actions. The rail already says where the user is, so the
@@ -1030,7 +1030,7 @@ PageHeader::PageHeader(const QString& iconName, const QString& title, QWidget* p
 
 	m_title = new QLabel(title);
 	m_title->setObjectName(QStringLiteral("pageTitle"));
-	m_title->setAccessibleName(QCoreApplication::translate("VibeStudioLayout", "Page title"));
+	m_title->setAccessibleName(QCoreApplication::translate("SlopStudioLayout", "Page title"));
 	root->addWidget(m_title, 0, Qt::AlignVCenter);
 	m_divider = new QFrame;
 	m_divider->setObjectName(QStringLiteral("pageHeaderDivider"));
@@ -1041,7 +1041,7 @@ PageHeader::PageHeader(const QString& iconName, const QString& title, QWidget* p
 	root->addWidget(m_divider, 0, Qt::AlignVCenter);
 	m_subtitle = new ElidedLabel;
 	m_subtitle->setObjectName(QStringLiteral("pageSubtitle"));
-	m_subtitle->setAccessibleName(QCoreApplication::translate("VibeStudioLayout", "Page context"));
+	m_subtitle->setAccessibleName(QCoreApplication::translate("SlopStudioLayout", "Page context"));
 	m_subtitle->setElideMode(Qt::ElideMiddle);
 	m_subtitle->setVisible(false);
 	root->addWidget(m_subtitle, 1, Qt::AlignVCenter);
@@ -1431,7 +1431,7 @@ NoticeBar::NoticeBar(QWidget* parent)
 {
 	setObjectName(QStringLiteral("noticeBar"));
 	setAttribute(Qt::WA_StyledBackground, true);
-	setAccessibleName(QCoreApplication::translate("VibeStudioLayout", "Notice"));
+	setAccessibleName(QCoreApplication::translate("SlopStudioLayout", "Notice"));
 	auto* layout = new QHBoxLayout(this);
 	layout->setSpacing(10);
 	refreshMargins();
@@ -1450,9 +1450,9 @@ NoticeBar::NoticeBar(QWidget* parent)
 	m_actions = new QHBoxLayout;
 	m_actions->setSpacing(6);
 	layout->addLayout(m_actions);
-	m_close = createToolButton(QStringLiteral("close"), QString(), QCoreApplication::translate("VibeStudioLayout", "Dismiss this notice (Esc)"), false);
+	m_close = createToolButton(QStringLiteral("close"), QString(), QCoreApplication::translate("SlopStudioLayout", "Dismiss this notice (Esc)"), false);
 	m_close->setObjectName(QStringLiteral("noticeClose"));
-	m_close->setAccessibleName(QCoreApplication::translate("VibeStudioLayout", "Dismiss notice"));
+	m_close->setAccessibleName(QCoreApplication::translate("SlopStudioLayout", "Dismiss notice"));
 	setBaseIconSize(m_close, QSize(14, 14));
 	layout->addWidget(m_close);
 	connect(m_close, &QToolButton::clicked, this, &NoticeBar::dismiss);
@@ -3004,10 +3004,10 @@ void applyStudioIconScale(QWidget* root)
 
 void clearOnEscape(QLineEdit* field)
 {
-	if (!field || field->property("vibestudioClearsOnEscape").toBool()) {
+	if (!field || field->property("slopstudioClearsOnEscape").toBool()) {
 		return;
 	}
-	field->setProperty("vibestudioClearsOnEscape", true);
+	field->setProperty("slopstudioClearsOnEscape", true);
 	field->installEventFilter(new EscapeClearsField(field));
 }
 
@@ -3025,4 +3025,4 @@ QWidget* createLabeledField(const QString& caption, QWidget* field)
 	return container;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -5,7 +5,7 @@
 
 class QIODevice;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Bounded wire-format helpers. Views borrow the caller's current central record;
 // no helper retains a device, record buffer, or payload.
@@ -38,4 +38,4 @@ bool readZipEntryMetadata(QByteArrayView record, ZipEntryMetadata* entry, QStrin
 bool readZipLocalMetadata(QIODevice& file, quint64 directoryOffset, const ZipEntryMetadata& entry,
 	QByteArrayView wireName, qint64* dataOffset, QString* error);
 
-} // namespace vibestudio
+} // namespace slopstudio

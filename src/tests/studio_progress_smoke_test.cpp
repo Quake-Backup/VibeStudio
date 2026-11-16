@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -76,7 +76,7 @@ bool differsFromCorner(const QImage& image)
 
 void save(const QImage& image, const QString& name)
 {
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 	if (!root.isEmpty()) {
 		QDir().mkpath(root);
 		image.save(QDir(root).filePath(name + QStringLiteral(".png")));

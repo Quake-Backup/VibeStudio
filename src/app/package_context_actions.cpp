@@ -6,7 +6,7 @@
 #include <QFileInfo>
 #include <QListWidget>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::refreshWorkspacePackageContext()
 {
@@ -99,4 +99,4 @@ void ApplicationShell::applyLevelTextureAudit()
 	if (audit.warnings.size() > 10) { add(tr("%n further texture warning(s) not listed.", nullptr, audit.warnings.size() - 10), OperationState::Warning); }
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

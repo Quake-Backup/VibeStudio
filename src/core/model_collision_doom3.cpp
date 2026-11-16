@@ -15,13 +15,13 @@
 #include <cmath>
 #include <cstdlib>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelCollision)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelCollision)
 };
 bool fail(QString *error, const QString &message)
 {
@@ -203,7 +203,7 @@ bool exportModelDoom3ClipModel(const ModelMesh &mesh, const QString &volume, con
 	model.geometryAvailable = true;
 	model.sourcePath = mesh.sourcePath;
 	model.formatId = QStringLiteral("mesh");
-	model.formatName = QStringLiteral("VibeStudio Mesh");
+	model.formatName = QStringLiteral("SlopStudio Mesh");
 	model.md2SkinSize = mesh.md2SkinSize;
 	model.frames = mesh.frames;
 	model.surfaces = {surface};
@@ -411,4 +411,4 @@ QString modelDoom3CollisionMaterialStateId(ModelDoom3CollisionMaterialState stat
 	}
 	return QStringLiteral("unchecked");
 }
-} // namespace vibestudio
+} // namespace slopstudio

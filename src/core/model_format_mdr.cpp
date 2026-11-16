@@ -22,7 +22,7 @@
 
 #include <algorithm>
 
-namespace vibestudio::model_formats {
+namespace slopstudio::model_formats {
 
 namespace {
 
@@ -74,12 +74,12 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, &mesh->error);
 	if (!work.check()) { return; }
 	if (!rangeOk(bytes, 0, kMdrHeaderBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDR header is truncated.");
 		return;
 	}
 	mesh->version = readI32(bytes, 4);
 	if (mesh->version != 2) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported MDR version %1; only RDM5 version 2 is decoded.").arg(mesh->version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported MDR version %1; only RDM5 version 2 is decoded.").arg(mesh->version);
 		return;
 	}
 
@@ -96,27 +96,27 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 
 	// R_LoadMDR refuses an end offset past the file ("wrong filesize declared").
 	if (endOffset < kMdrHeaderBytes || endOffset > bytes.size()) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR end offset (%1) does not match the file size (%2).")
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDR end offset (%1) does not match the file size (%2).")
 			.arg(endOffset).arg(bytes.size());
 		return;
 	}
 	if (endOffset < bytes.size()) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-trailing-bytes"), QCoreApplication::translate("VibeStudioModelMesh", "The MDR ends at byte %1 of %2; the bytes after it are ignored.")
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-trailing-bytes"), QCoreApplication::translate("SlopStudioModelMesh", "The MDR ends at byte %1 of %2; the bytes after it are ignored.")
 			.arg(endOffset).arg(bytes.size()));
 	}
 	const QByteArray data = endOffset < bytes.size() ? bytes.left(qsizetype(endOffset)) : bytes;
 
 	if (frameCount <= 0 || frameCount > kMaxFrames || boneCount <= 0 || boneCount > kMaxJoints || lodCount < 0 || lodCount > kMdrMaxLods
 		|| tagCount < 0 || tagCount > kMaxTags) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR header declares counts outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDR header declares counts outside the supported range.");
 		return;
 	}
 	if (lodCount == 0) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR holds no level of detail.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDR holds no level of detail.");
 		return;
 	}
 	if (qint64(frameCount) * qint64(boneCount) > kMdrMaxBoneSlots) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR declares more frame bones than can be decoded.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDR declares more frame bones than can be decoded.");
 		return;
 	}
 
@@ -126,23 +126,23 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	const qint64 frameBytes = compressed ? kMdrCompFrameHeaderBytes + (qint64(boneCount) * kMdrCompBoneBytes)
 		: kMdrFrameHeaderBytes + (qint64(boneCount) * kMdrBoneBytes);
 	if (framesStart < kMdrHeaderBytes || !rangeOk(data, framesStart, qint64(frameCount) * frameBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR frame block lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDR frame block lies outside the file.");
 		return;
 	}
 	if (tagCount > 0 && (tagOffset < kMdrHeaderBytes || !rangeOk(data, tagOffset, qint64(tagCount) * kMdrTagBytes))) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR tag block lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDR tag block lies outside the file.");
 		return;
 	}
 
 	if (!internalName.isEmpty()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Internal name: %1").arg(internalName);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Internal name: %1").arg(internalName);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Bones: %1").arg(boneCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Bones: %1").arg(boneCount);
 	if (compressed) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Frames are stored with compressed bone matrices.");
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Frames are stored with compressed bone matrices.");
 	}
 	if (boneCount > kMdrEngineMaxBones) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-bone-limit"), QCoreApplication::translate("VibeStudioModelMesh", "The MDR declares %1 bones; ioquake3 renders at most %2.")
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-bone-limit"), QCoreApplication::translate("SlopStudioModelMesh", "The MDR declares %1 bones; ioquake3 renders at most %2.")
 			.arg(boneCount).arg(kMdrEngineMaxBones));
 	}
 
@@ -200,7 +200,7 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		const qint64 base = tagOffset + (qint64(index) * kMdrTagBytes);
 		const qint32 bone = readI32(data, base);
 		if (bone < 0 || bone >= boneCount) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDR tag %1 follows bone %2, which does not exist.").arg(index).arg(bone);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDR tag %1 follows bone %2, which does not exist.").arg(index).arg(bone);
 			return;
 		}
 		ModelSkeletalTag tag;
@@ -221,10 +221,10 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		if (!work.step()) { return; }
 		if (lodBase < kMdrHeaderBytes || !rangeOk(data, lodBase, kMdrLodBytes)) {
 			if (lod == 0) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR level of detail block lies outside the file.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDR level of detail block lies outside the file.");
 				return;
 			}
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-lod"), QCoreApplication::translate("VibeStudioModelMesh", "MDR level of detail %1 lies outside the file; later levels are not listed.").arg(lod));
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-lod"), QCoreApplication::translate("SlopStudioModelMesh", "MDR level of detail %1 lies outside the file; later levels are not listed.").arg(lod));
 			break;
 		}
 		const int surfaceCount = readI32(data, lodBase);
@@ -232,20 +232,20 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		const qint64 lodEnd = readI32(data, lodBase + 8);
 		if (surfaceCount < 0 || surfaceCount > kMaxSurfaces) {
 			if (lod == 0) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR level of detail declares counts outside the supported range.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDR level of detail declares counts outside the supported range.");
 				return;
 			}
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-lod"), QCoreApplication::translate("VibeStudioModelMesh", "MDR level of detail %1 declares counts outside the supported range; later levels are not listed.").arg(lod));
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-lod"), QCoreApplication::translate("SlopStudioModelMesh", "MDR level of detail %1 declares counts outside the supported range; later levels are not listed.").arg(lod));
 			break;
 		}
 		if (lod > 0) {
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Level of detail %1: %2 surface(s), not decoded.").arg(lod).arg(surfaceCount);
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Level of detail %1: %2 surface(s), not decoded.").arg(lod).arg(surfaceCount);
 		} else {
 			qint64 surfaceBase = lodBase + surfacesOffset;
 			for (int walked = 0; walked < surfaceCount; ++walked) {
 				if (!work.step()) { return; }
 				if (surfaceBase < kMdrHeaderBytes || !rangeOk(data, surfaceBase, kMdrSurfaceBytes)) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDR surface %1 lies outside the file.").arg(walked);
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDR surface %1 lies outside the file.").arg(walked);
 					return;
 				}
 				// mdrSurface_t
@@ -257,16 +257,16 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 				const qint64 triangleOffset = readI32(data, surfaceBase + 152);
 				const qint64 surfaceEnd = readI32(data, surfaceBase + 164);
 				if (surfaceEnd < kMdrSurfaceBytes || !rangeOk(data, surfaceBase, surfaceEnd)) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDR surface %1 declares an end offset outside the file.").arg(walked);
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDR surface %1 declares an end offset outside the file.").arg(walked);
 					return;
 				}
 				if (vertexCount <= 0 || vertexCount > kMaxSurfaceVertices || triangleCount < 0 || triangleCount > kMaxSurfaceTriangles) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDR surface %1 declares counts outside the supported range.").arg(walked);
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDR surface %1 declares counts outside the supported range.").arg(walked);
 					return;
 				}
 				totalVertices += vertexCount;
 				if (totalVertices * qint64(frameCount) > kMaxVertexSlots) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR declares more frame vertices than can be decoded.");
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDR declares more frame vertices than can be decoded.");
 					return;
 				}
 				const auto inRecord = [&](qint64 blockOffset, qint64 blockLength) {
@@ -279,7 +279,7 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 					return rangeOk(data, surfaceBase + blockOffset, blockLength);
 				};
 				if (!inRecord(triangleOffset, qint64(triangleCount) * kMdrTriangleBytes) || !inRecord(vertexOffset, kMdrVertexBytes)) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDR surface %1 has a data block outside its record.").arg(walked);
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDR surface %1 has a data block outside its record.").arg(walked);
 					return;
 				}
 
@@ -306,7 +306,7 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 				for (int vertex = 0; vertex < vertexCount; ++vertex) {
 					if (!work.step()) { return; }
 					if (!inRecord(cursor, kMdrVertexBytes)) {
-						mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Vertex %1 of MDR surface %2 lies outside its record.").arg(vertex).arg(walked);
+						mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Vertex %1 of MDR surface %2 lies outside its record.").arg(vertex).arg(walked);
 						return;
 					}
 					ModelVec3 normal;
@@ -315,7 +315,7 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 					const qint32 weightCount = readI32(data, surfaceBase + cursor + 20);
 					if (weightCount < 0 || weightCount > kMaxInfluencesPerVertex
 						|| !inRecord(cursor + kMdrVertexBytes, qint64(weightCount) * kMdrWeightBytes)) {
-						mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Vertex %1 of MDR surface %2 declares weights outside its record.").arg(vertex).arg(walked);
+						mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Vertex %1 of MDR surface %2 declares weights outside its record.").arg(vertex).arg(walked);
 						return;
 					}
 					surface.texCoords.append(texCoord);
@@ -326,7 +326,7 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 						ModelJointInfluence influence;
 						influence.joint = readI32(data, weightBase);
 						if (influence.joint < 0 || influence.joint >= boneCount) {
-							mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Vertex %1 of MDR surface %2 follows bone %3, which does not exist.")
+							mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Vertex %1 of MDR surface %2 follows bone %3, which does not exist.")
 								.arg(vertex).arg(walked).arg(influence.joint);
 							return;
 						}
@@ -357,7 +357,7 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 					surface.triangles.append(ModelTriangle{a, c, b});
 				}
 				if (skippedTriangles > 0) {
-					surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
+					surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
 				}
 				mesh->surfaces.append(surface);
 				surfaceBase += surfaceEnd;
@@ -365,13 +365,13 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		}
 		if (lod + 1 < lodCount) {
 			if (lodEnd < kMdrLodBytes) {
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-lod"), QCoreApplication::translate("VibeStudioModelMesh", "MDR level of detail %1 declares an end offset outside the file; later levels are not listed.").arg(lod));
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdr-lod"), QCoreApplication::translate("SlopStudioModelMesh", "MDR level of detail %1 declares an end offset outside the file; later levels are not listed.").arg(lod));
 				break;
 			}
 			lodBase += lodEnd;
 		}
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Levels of detail: %1; the first is decoded.").arg(lodCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Levels of detail: %1; the first is decoded.").arg(lodCount);
 
 	// Frame names live only in uncompressed frames; the baked frames are named
 	// after the clip, so keep the stored names visible.
@@ -383,7 +383,7 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		}
 	}
 	if (namedFrames) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Stored frame names: %1").arg(frameNames.join(QStringLiteral(", ")).left(512));
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Stored frame names: %1").arg(frameNames.join(QStringLiteral(", ")).left(512));
 	}
 
 	skeleton.clips.append(clip);
@@ -393,15 +393,15 @@ void decodeMdr(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	if (!bakeModelSkeleton(mesh, options, &problem, control)) {
 		mesh->error = problem.isEmpty() ? mesh->error : problem;
 		if (mesh->error.isEmpty()) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDR skeleton could not be baked into frames.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDR skeleton could not be baked into frames.");
 		}
 		return;
 	}
 	mesh->skinCount = mesh->skinPaths.size();
 	mesh->geometryAvailable = !mesh->surfaces.isEmpty();
 	if (!mesh->geometryAvailable) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The MDR holds no surfaces in its first level of detail.");
+		mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "The MDR holds no surfaces in its first level of detail.");
 	}
 }
 
-} // namespace vibestudio::model_formats
+} // namespace slopstudio::model_formats

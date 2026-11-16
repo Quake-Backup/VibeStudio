@@ -17,7 +17,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -78,7 +78,7 @@ int main(int argc, char** argv)
 	const QString depthBoundary = root.filePath("depth-boundary.zip");
 	cli({"create", depthBoundary, "--add-file", input, "--as", deepPath.mid(2)});
 	cli({"info", depthBoundary});
-	const QString depthDraft = root.filePath("depth.vibepackage");
+	const QString depthDraft = root.filePath("depth.sloppackage");
 	cli({"create", depthDraft, "--add-file", input, "--as", deepPath.mid(2)});
 	const auto depthManifest = QDir(depthDraft).filePath("document.json");
 	const auto admittedDraft = read(depthManifest);
@@ -93,7 +93,7 @@ int main(int argc, char** argv)
 	ok &= expect(read(QDir(depthDraft).filePath("document.json")) == draftBefore, "Failed export retains the draft and its undo history.");
 	cli({"draft-undo", depthDraft});
 	cli({"save-as", depthDraft, root.filePath("draft-depth.zip")});
-	const QString draft = root.filePath(QStringLiteral("new.vibepackage"));
+	const QString draft = root.filePath(QStringLiteral("new.sloppackage"));
 	const QStringList create{"create", draft, "--format", "pk3", "--mkdir", "source/empty", "--add-file", input, "--as", "source/deep/input.txt", "--rename-folder", "source", "--folder-to", "moved"};
 	const auto checked = cli(create + QStringList{"--dry-run"});
 	ok &= expect(checked.value("dryRun").toBool() && !checked.value("written").toBool() && !QFileInfo::exists(draft), "draft dry run verifies without creating objects or locks");
@@ -109,7 +109,7 @@ int main(int argc, char** argv)
 	cli({"draft-undo", draft});
 	ok &= expect(PackageDraft::load(draft, &plan, &error) && plan.operations().isEmpty() && plan.canRedo() && plan.sourcePath().isEmpty(), "one CLI undo returns to the empty document");
 	cli({"draft-redo", draft});
-	const QString next = root.filePath(QStringLiteral("next.vibepackage"));
+	const QString next = root.filePath(QStringLiteral("next.sloppackage"));
 	const auto drySaved = cli({"draft-save", draft, next, "--delete-folder", "moved", "--dry-run"});
 	ok &= expect(drySaved.value("dryRun").toBool() && !drySaved.value("saved").toBool() && !QFileInfo::exists(next), "draft-save shares no-write preflight");
 	cli({"draft-save", draft, next, "--delete-folder", "moved"});
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
 	ok &= expect(!QFileInfo::exists(unchanged), "missing folder selector never becomes an unchanged copy");
 	// Diagnostic and dry-run staging must not need writable temporary storage.
 	// The corresponding real import proves the invalid temp path is effective.
-	const QString verifiedDraft = root.filePath(QStringLiteral("verified-only.vibepackage"));
+	const QString verifiedDraft = root.filePath(QStringLiteral("verified-only.sloppackage"));
 	cli({"create", verifiedDraft, "--add-file", input, "--as", "input.txt", "--dry-run"}, 0, true);
 	ok &= expect(!QFileInfo::exists(verifiedDraft), "dry-run import creates no working or output copy");
 	cli({"create", verifiedDraft, "--add-file", input, "--as", "input.txt"}, 2, true);
@@ -187,7 +187,7 @@ int main(int argc, char** argv)
 		"in-place CLI reports must retain before/after hashes from the original snapshot");
 	ok &= expect(QJsonDocument::fromJson(read(inPlace + QStringLiteral(".manifest.json"))).object() == written.value("staging").toObject(),
 		"published manifest and CLI report must describe the same pre-publication plan");
-	const QString deepDraft = root.filePath(QStringLiteral("snapshot-depth.vibepackage"));
+	const QString deepDraft = root.filePath(QStringLiteral("snapshot-depth.sloppackage"));
 	ok &= expect(tests::saveLegacyDeepPackageDraft(deepDraft, &error), "prepare legacy history whose inspection view exceeds the depth cap");
 	const auto deepManifest = read(QDir(deepDraft).filePath(QStringLiteral("document.json")));
 	for (const QString& command : {QStringLiteral("info"), QStringLiteral("list"), QStringLiteral("validate")}) {
@@ -238,8 +238,8 @@ int main(int argc, char** argv)
 
 	for (const QString& counter : {QStringLiteral("revisionSerial"), QStringLiteral("operationSerial")}) {
 		PackageStagingModel serialPlan;
-		const QString source = root.filePath(counter + QStringLiteral(".vibepackage"));
-		const QString target = root.filePath(counter + QStringLiteral("-copy.vibepackage"));
+		const QString source = root.filePath(counter + QStringLiteral(".sloppackage"));
+		const QString target = root.filePath(counter + QStringLiteral("-copy.sloppackage"));
 		ok &= serialPlan.createEmpty(PackageArchiveFormat::Zip) && serialPlan.addBytes("retained", QStringLiteral("one.txt"))
 			&& PackageDraft::save(source, &serialPlan, false, &error);
 		const QString manifestPath = QDir(source).filePath(QStringLiteral("document.json"));
@@ -262,7 +262,7 @@ int main(int argc, char** argv)
 	for (const bool localHeaderDamage : {false, true}) {
 		const QString prefix = localHeaderDamage ? QStringLiteral("bad-local-header-") : QStringLiteral("bad-payload-");
 		const auto damaged = root.filePath(prefix + QStringLiteral("damaged.zip"));
-		const auto repairedDraft = root.filePath(prefix + QStringLiteral("repaired.vibepackage"));
+		const auto repairedDraft = root.filePath(prefix + QStringLiteral("repaired.sloppackage"));
 		ok &= tests::summaryZip(damaged, {{"bad.bin", localHeaderDamage ? 1u : 2u}, {"keep.bin", 1}});
 		if (localHeaderDamage) {
 			QFile file(damaged);

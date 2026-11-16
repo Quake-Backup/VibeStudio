@@ -18,7 +18,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -119,7 +119,7 @@ public:
 		m_mesh->frameCount = 1;
 		ModelFrameInfo frame;
 		frame.index = 0;
-		frame.name = QCoreApplication::translate("VibeStudioMapPreview", "map");
+		frame.name = QCoreApplication::translate("SlopStudioMapPreview", "map");
 		frame.mins = m_mesh->mins;
 		frame.maxs = m_mesh->maxs;
 		m_mesh->frames = {frame};
@@ -134,7 +134,7 @@ private:
 
 	ModelSurface& surfaceFor(const QString& texture)
 	{
-		const QString name = texture.trimmed().isEmpty() ? QCoreApplication::translate("VibeStudioMapPreview", "(no texture)") : texture.trimmed();
+		const QString name = texture.trimmed().isEmpty() ? QCoreApplication::translate("SlopStudioMapPreview", "(no texture)") : texture.trimmed();
 		auto found = m_surfaces.constFind(name.toLower());
 		if (found == m_surfaces.cend()) {
 			ModelSurface surface;
@@ -207,7 +207,7 @@ LevelMapPreviewMesh buildLevelMapPreviewMesh(const LevelMapDocument& document, c
 	ModelMesh& mesh = preview.mesh;
 	mesh.sourcePath = document.sourcePath;
 	mesh.formatId = QStringLiteral("level-map-preview");
-	mesh.formatName = QCoreApplication::translate("VibeStudioMapPreview", "Level map preview");
+	mesh.formatName = QCoreApplication::translate("SlopStudioMapPreview", "Level map preview");
 	MeshBuilder builder(&mesh, std::max(0, options.triangleLimit));
 	if (options.brushGeometryCache) { options.brushGeometryCache->beginBuild(document); }
 	const auto cancelled = [&] {
@@ -322,4 +322,4 @@ LevelMapPreviewMesh buildLevelMapPreviewMesh(const LevelMapDocument& document, c
 	return preview;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

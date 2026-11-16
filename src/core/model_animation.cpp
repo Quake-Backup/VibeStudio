@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -19,7 +19,7 @@ bool fail(QString *error, const char *message)
 {
 	if (error)
 	{
-		*error = QCoreApplication::translate("VibeStudioModelAnimation", message);
+		*error = QCoreApplication::translate("SlopStudioModelAnimation", message);
 	}
 	return false;
 }
@@ -55,7 +55,7 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 	}
 	if (!candidate || !isModelAnimationEdit(edit.kind))
 	{
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelAnimation", "Choose a valid animation operation."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelAnimation", "Choose a valid animation operation."));
 	}
 	if (isModelFrameRangeEdit(edit.kind))
 	{
@@ -74,7 +74,7 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 	{
 		if (edit.frame < 0 || edit.frame >= candidate->frames.size())
 		{
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelAnimation", "Choose an existing destination frame."));
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelAnimation", "Choose an existing destination frame."));
 		}
 	}
 	else
@@ -82,7 +82,7 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 		if (edit.frame != -1 ||
 			(edit.kind != ModelEditKind::AddAnimation && (edit.animationIndex < 0 || edit.animationIndex >= candidate->animations.size())))
 		{
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelAnimation",
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelAnimation",
 												 "Select an existing animation clip. Clip metadata uses all-frame scope."));
 		}
 		if (edit.kind == ModelEditKind::AddAnimation || edit.kind == ModelEditKind::RenameAnimation)
@@ -90,7 +90,7 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 			if (!nameOk(edit.text))
 			{
 				return fail(error, QT_TRANSLATE_NOOP(
-									   "VibeStudioModelAnimation",
+									   "SlopStudioModelAnimation",
 									   "Use a unique clip name of 1–128 characters without surrounding spaces or control characters."));
 			}
 			for (int i = 0; i < candidate->animations.size(); ++i)
@@ -101,7 +101,7 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 				}
 				if (candidate->animations[i].name == edit.text && (edit.kind == ModelEditKind::AddAnimation || i != edit.animationIndex))
 				{
-					return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelAnimation", "That animation clip name is already used."));
+					return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelAnimation", "That animation clip name is already used."));
 				}
 			}
 		}
@@ -109,7 +109,7 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 		{
 			if (edit.rangeFirst < 0 || edit.rangeLast < edit.rangeFirst || edit.rangeLast >= candidate->frames.size())
 			{
-				return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelAnimation",
+				return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelAnimation",
 													 "Clip bounds must be existing frames, with the first frame no later than the last."));
 			}
 		}
@@ -117,14 +117,14 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 			(!std::isfinite(edit.animationRate) || edit.animationRate < 0 || edit.animationRate > 1000 ||
 			 (edit.animationRate > 0 && edit.animationRate < .001)))
 		{
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelAnimation", "Clip FPS must be zero (unspecified) or from 0.001 to 1000."));
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelAnimation", "Clip FPS must be zero (unspecified) or from 0.001 to 1000."));
 		}
 		switch (edit.kind)
 		{
 		case ModelEditKind::AddAnimation:
 			if (candidate->animations.size() >= modelDocumentMaxAnimations)
 			{
-				return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelAnimation", "A model supports at most 1024 animation clips."));
+				return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelAnimation", "A model supports at most 1024 animation clips."));
 			}
 			candidate->animations << ModelAnimation{edit.text, edit.rangeFirst, edit.rangeLast - edit.rangeFirst + 1, edit.animationRate};
 			break;
@@ -151,7 +151,7 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 	{
 		if (edit.sourceFrame < 0 || edit.sourceFrame >= source.frames.size() || edit.sourceFrame == edit.frame)
 		{
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelAnimation", "Copy a pose from a different existing source frame."));
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelAnimation", "Copy a pose from a different existing source frame."));
 		}
 		for (auto &surface : candidate->surfaces)
 		{
@@ -183,7 +183,7 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 				const auto original = findModelTag(source, tag.name, edit.sourceFrame);
 				if (!original)
 				{
-					return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelAnimation", "The source pose is missing an attachment tag."));
+					return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelAnimation", "The source pose is missing an attachment tag."));
 				}
 				tag.origin = original->origin;
 				std::copy(std::begin(original->axis), std::end(original->axis), std::begin(tag.axis));
@@ -218,13 +218,13 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 		source.frames.size() + count > modelDocumentMaxFrames || vertices * (source.frames.size() + count) > modelDocumentMaxFrameVertices)
 	{
 		return fail(error,
-					QT_TRANSLATE_NOOP("VibeStudioModelAnimation",
+					QT_TRANSLATE_NOOP("SlopStudioModelAnimation",
 									  "Insert in-between frames before the next pose, within 1024 frames and 1,048,576 frame vertices."));
 	}
 	if (!nameOk(prefix, 123))
 	{
 		return fail(error, QT_TRANSLATE_NOOP(
-							   "VibeStudioModelAnimation",
+							   "SlopStudioModelAnimation",
 							   "The generated frame-name prefix needs 1–123 characters without surrounding spaces or control characters."));
 	}
 	if (!changeModelMdlFrames(candidate, ModelMdlFrameChange::InsertInbetweens, edit.frame, count, error))
@@ -251,7 +251,7 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 					ModelCollisionBox generated;
 					if (!sampleModelCollisionBox(box, edit.frame, inserted, double(n) / (count + 1), &generated))
 						return fail(error,
-									QT_TRANSLATE_NOOP("VibeStudioModelAnimation", "Collision endpoint poses cannot be interpolated."));
+									QT_TRANSLATE_NOOP("SlopStudioModelAnimation", "Collision endpoint poses cannot be interpolated."));
 					// A shaped hull track keeps the nearer endpoint's shape.
 					poses << ModelCollisionPose{generated.centre, generated.size, generated.rotation,
 												box.framePoses[edit.frame].hull.isEmpty() && box.framePoses[inserted].hull.isEmpty()
@@ -278,7 +278,7 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 		if (!next || !interpolateModelTag(tag, *next, 0.5, &checked))
 		{
 			return fail(error, QT_TRANSLATE_NOOP(
-								   "VibeStudioModelAnimation",
+								   "SlopStudioModelAnimation",
 								   "Attachment tags must exist with the same handedness in both endpoint poses. No frames were inserted."));
 		}
 		endpoints << TagEndpoints{tag, *next};
@@ -317,7 +317,7 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 							return fail(
 								error,
 								QT_TRANSLATE_NOOP(
-									"VibeStudioModelAnimation",
+									"SlopStudioModelAnimation",
 									"Opposing endpoint normals cancel in a generated pose. Adjust the normals before inserting frames."));
 						}
 						generated.normals << normal;
@@ -398,4 +398,4 @@ bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 	}
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -3,7 +3,7 @@
 #include "core/build_pipeline.h"
 #include "core/level_dependencies.h"
 
-namespace vibestudio {
+namespace slopstudio {
 QString levelBuildTargetForDocument(const LevelMapDocument& document);
 
 struct LevelBuildWorkspaceRequest {
@@ -61,4 +61,4 @@ BuildPipelineResult runLevelBuildWorkspace(const LevelBuildWorkspace& workspace,
 QJsonObject levelBuildWorkspaceJson(const LevelBuildWorkspace& workspace);
 QString levelBuildWorkspaceText(const LevelBuildWorkspace& workspace);
 
-} // namespace vibestudio
+} // namespace slopstudio

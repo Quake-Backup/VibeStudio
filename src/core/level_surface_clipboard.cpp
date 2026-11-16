@@ -10,7 +10,7 @@
 #include <QSet>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct Text { Q_DECLARE_TR_FUNCTIONS(LevelSurfaceClipboard) };
 bool fail(QString* error, const QString& message) { if (error) { *error = message; } return false; }
@@ -190,7 +190,7 @@ QByteArray serializeLevelSurfaceClipboard(const LevelSurfaceClipboard& clipboard
 {
 	if (!clipboard.ready()) { return {}; }
 	auto object = settings(clipboard.face());
-	object.insert(QStringLiteral("schema"), QStringLiteral("vibestudio.surface-clipboard")); object.insert(QStringLiteral("version"), 1);
+	object.insert(QStringLiteral("schema"), QStringLiteral("slopstudio.surface-clipboard")); object.insert(QStringLiteral("version"), 1);
 	const auto p = plane(clipboard.face());
 	object.insert(QStringLiteral("plane"), QJsonArray{p.normalX, p.normalY, p.normalZ, -p.distance});
 	return QJsonDocument(object).toJson(QJsonDocument::Indented);
@@ -200,13 +200,13 @@ bool parseLevelSurfaceClipboard(const QByteArray& bytes, LevelSurfaceClipboard* 
 	if (error) { error->clear(); }
 	if (!clipboard) { return fail(error, Text::tr("Missing surface clipboard.")); }
 	*clipboard = {};
-	const auto bad = [&] { return fail(error, Text::tr("Invalid surface clipboard. Use a version 1 VibeStudio surface file with complete numeric fields.")); };
+	const auto bad = [&] { return fail(error, Text::tr("Invalid surface clipboard. Use a version 1 SlopStudio surface file with complete numeric fields.")); };
 	if (bytes.isEmpty() || bytes.size() > 16384) { return bad(); }
 	QJsonParseError parse; const auto json = QJsonDocument::fromJson(bytes, &parse);
 	if (parse.error != QJsonParseError::NoError || !json.isObject()) { return bad(); }
 	const auto object = json.object();
 	if (!keys(object, {"schema", "version", "material", "mapping", "plane", "flags"})
-		|| object.value("schema") != QStringLiteral("vibestudio.surface-clipboard") || object.value("version") != 1
+		|| object.value("schema") != QStringLiteral("slopstudio.surface-clipboard") || object.value("version") != 1
 		|| !object.value("material").isString() || !object.value("mapping").isObject()) { return bad(); }
 	LevelMapBrushFace face; face.textureName = object.value("material").toString();
 	QVector<double> values;
@@ -558,4 +558,4 @@ bool LevelSurfaceStroke::commit(LevelMapDocument* document, QString* error) cons
 {
 	return commitLevelSurfaceEdit(document, m_plan, error);
 }
-} // namespace vibestudio
+} // namespace slopstudio

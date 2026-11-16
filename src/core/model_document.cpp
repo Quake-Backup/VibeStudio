@@ -53,7 +53,7 @@
 #include <numbers>
 #include <utility>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -349,21 +349,21 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 	const QStringList blockingIssues = modelDecodeBlockingIssues(mesh);
 	if (!mesh.error.isEmpty() || !blockingIssues.isEmpty() || !mesh.geometryAvailable)
 	{
-		errors << QCoreApplication::translate("VibeStudioModelDocument",
+		errors << QCoreApplication::translate("SlopStudioModelDocument",
 											  "An editable model requires complete geometry without decode errors, damage "
 											  "or omissions that were not accepted.");
 		errors += blockingIssues;
 	}
 	if (mesh.frames.isEmpty() || mesh.frames.size() > modelDocumentMaxFrames || mesh.surfaces.isEmpty() || mesh.surfaces.size() > modelDocumentMaxSurfaces)
 	{
-		errors << QCoreApplication::translate("VibeStudioModelDocument", "A model needs 1–1024 frames and 1–32 surfaces.");
+		errors << QCoreApplication::translate("SlopStudioModelDocument", "A model needs 1–1024 frames and 1–32 surfaces.");
 		return errors;
 	}
 	qint64 vertices = 0, triangles = 0;
 	if (mesh.md2SkinSize.width() < 1 || mesh.md2SkinSize.width() > 8192 || mesh.md2SkinSize.height() < 1 ||
 		mesh.md2SkinSize.height() > 8192)
 	{
-		errors << QCoreApplication::translate("VibeStudioModelDocument", "MD2 skin dimensions must be between 1 and 8192 pixels.");
+		errors << QCoreApplication::translate("SlopStudioModelDocument", "MD2 skin dimensions must be between 1 and 8192 pixels.");
 	}
 	// The detail levels the source owns (core/model_lod.h).
 	QString recipeError;
@@ -384,7 +384,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 		triangles += surface.triangles.size();
 		if (!nameOk(surface.name) || surfaceNames.contains(surface.name))
 		{
-			errors << QCoreApplication::translate("VibeStudioModelDocument", "Surface names must be unique, nonempty, "
+			errors << QCoreApplication::translate("SlopStudioModelDocument", "Surface names must be unique, nonempty, "
 																			 "and at most 128 characters.");
 		}
 		surfaceNames.insert(surface.name);
@@ -393,7 +393,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 			surface.frames.size() != mesh.frames.size() || surface.texCoords.size() != surface.vertexCount ||
 			surface.uvSeams.size() > surface.triangles.size() * 3)
 		{
-			errors << QCoreApplication::translate("VibeStudioModelDocument", "Surface %1 has incomplete or unsupported topology, UVs, "
+			errors << QCoreApplication::translate("SlopStudioModelDocument", "Surface %1 has incomplete or unsupported topology, UVs, "
 																			 "or frames.")
 						  .arg(surface.name);
 			return errors;
@@ -401,7 +401,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 		if (vertices > modelDocumentMaxVertices || triangles > modelDocumentMaxTriangles ||
 			vertices * mesh.frames.size() > modelDocumentMaxFrameVertices)
 		{
-			errors << QCoreApplication::translate("VibeStudioModelDocument",
+			errors << QCoreApplication::translate("SlopStudioModelDocument",
 												  "The model exceeds 65,536 vertices, 131,072 triangles, or 1,048,576 "
 												  "frame vertices.");
 			return errors;
@@ -418,7 +418,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 			if (t.a < 0 || t.b < 0 || t.c < 0 || t.a >= surface.vertexCount || t.b >= surface.vertexCount || t.c >= surface.vertexCount ||
 				t.a == t.b || t.b == t.c || t.c == t.a)
 			{
-				errors << QCoreApplication::translate("VibeStudioModelDocument", "Surface %1 contains an invalid triangle index.")
+				errors << QCoreApplication::translate("SlopStudioModelDocument", "Surface %1 contains an invalid triangle index.")
 							  .arg(surface.name);
 				return errors;
 			}
@@ -438,7 +438,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 				}
 				if (seam.first >= seam.second || !std::binary_search(edges.cbegin(), edges.cend(), seam))
 				{
-					errors << QCoreApplication::translate("VibeStudioModelDocument",
+					errors << QCoreApplication::translate("SlopStudioModelDocument",
 														  "UV seam marks must refer to existing canonical edges.");
 					return errors;
 				}
@@ -465,7 +465,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 			}
 			if (frame.positions.size() != surface.vertexCount || frame.normals.size() != surface.vertexCount)
 			{
-				errors << QCoreApplication::translate("VibeStudioModelDocument",
+				errors << QCoreApplication::translate("SlopStudioModelDocument",
 													  "Every frame must contain all vertex positions and normals.");
 				return errors;
 			}
@@ -483,7 +483,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 				if (!finite(frame.positions[i]) || !finite(frame.normals[i]) || lengthSquared(frame.normals[i]) < 1e-12 ||
 					!finite(surface.texCoords[i].u) || !finite(surface.texCoords[i].v))
 				{
-					errors << QCoreApplication::translate("VibeStudioModelDocument",
+					errors << QCoreApplication::translate("SlopStudioModelDocument",
 														  "Coordinates must be finite and within ±1,000,000; normals must "
 														  "be nonzero.");
 					return errors;
@@ -497,7 +497,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 				}
 				if (model_geometry::collapsedTriangle(frame.positions[t.a], frame.positions[t.b], frame.positions[t.c]))
 				{
-					errors << QCoreApplication::translate("VibeStudioModelDocument", "Surface %1 contains a collapsed triangle in an "
+					errors << QCoreApplication::translate("SlopStudioModelDocument", "Surface %1 contains a collapsed triangle in an "
 																					 "animation frame.")
 								  .arg(surface.name);
 					return errors;
@@ -506,7 +506,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 		}
 		if (surface.skinPaths.size() > modelMaxMaterialSlots)
 		{
-			errors << QCoreApplication::translate("VibeStudioModelDocument", "A surface can reference at most 256 skins.");
+			errors << QCoreApplication::translate("SlopStudioModelDocument", "A surface can reference at most 256 skins.");
 		}
 		for (const auto &path : surface.skinPaths)
 		{
@@ -516,7 +516,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 			}
 			if (!isSafePackageVirtualPath(path) || path.size() > 255)
 			{
-				errors << QCoreApplication::translate("VibeStudioModelDocument",
+				errors << QCoreApplication::translate("SlopStudioModelDocument",
 													  "Material references must be safe package-relative paths.");
 			}
 		}
@@ -529,7 +529,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 		}
 		if (!nameOk(frame.name, true) || !finite(frame.origin))
 		{
-			errors << QCoreApplication::translate("VibeStudioModelDocument", "Frame names or origins are invalid.");
+			errors << QCoreApplication::translate("SlopStudioModelDocument", "Frame names or origins are invalid.");
 		}
 	}
 	QVector<QSet<QString>> tagsByFrame(mesh.frames.size());
@@ -541,14 +541,14 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 		}
 		if (tag.frameIndex < 0 || tag.frameIndex >= mesh.frames.size() || !nameOk(tag.name) || !finite(tag.origin))
 		{
-			errors << QCoreApplication::translate("VibeStudioModelDocument", "Attachment tags require valid names, "
+			errors << QCoreApplication::translate("SlopStudioModelDocument", "Attachment tags require valid names, "
 																			 "frame indices, and finite origins.");
 			return errors;
 		}
 		auto &names = tagsByFrame[tag.frameIndex];
 		if (names.contains(tag.name) || names.size() >= 16)
 		{
-			errors << QCoreApplication::translate("VibeStudioModelDocument", "A frame requires unique tag names and at most 16 tags.");
+			errors << QCoreApplication::translate("SlopStudioModelDocument", "A frame requires unique tag names and at most 16 tags.");
 			return errors;
 		}
 		names.insert(tag.name);
@@ -575,7 +575,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 				}
 				if (!std::isfinite(dot) || std::abs(dot - (row == other ? 1 : 0)) > 0.01)
 				{
-					errors << QCoreApplication::translate("VibeStudioModelDocument", "Tag axes must form an orthonormal orientation.");
+					errors << QCoreApplication::translate("SlopStudioModelDocument", "Tag axes must form an orthonormal orientation.");
 					return errors;
 				}
 			}
@@ -589,13 +589,13 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 		}
 		if (names != tagsByFrame.first())
 		{
-			errors << QCoreApplication::translate("VibeStudioModelDocument", "Each animation frame must contain the same attachment tags.");
+			errors << QCoreApplication::translate("SlopStudioModelDocument", "Each animation frame must contain the same attachment tags.");
 			break;
 		}
 	}
 	if (mesh.animations.size() > modelDocumentMaxAnimations)
 	{
-		errors << QCoreApplication::translate("VibeStudioModelDocument", "A model supports at most 1024 animation clips.");
+		errors << QCoreApplication::translate("SlopStudioModelDocument", "A model supports at most 1024 animation clips.");
 		return errors;
 	}
 	for (const auto &animation : mesh.animations)
@@ -607,18 +607,18 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 		if (!nameOk(animation.name) || animation.firstFrame < 0 || animation.frameCount < 1 ||
 			qint64(animation.firstFrame) + animation.frameCount > mesh.frames.size())
 		{
-			errors << QCoreApplication::translate("VibeStudioModelDocument", "Animation ranges must fit the model's frames.");
+			errors << QCoreApplication::translate("SlopStudioModelDocument", "Animation ranges must fit the model's frames.");
 		}
 		if (!std::isfinite(animation.framesPerSecond) || animation.framesPerSecond < 0 || animation.framesPerSecond > 1000 ||
 			(animation.framesPerSecond > 0 && animation.framesPerSecond < .001))
 		{
-			errors << QCoreApplication::translate("VibeStudioModelDocument", "Clip FPS must be zero (unspecified) or from 0.001 to 1000.");
+			errors << QCoreApplication::translate("SlopStudioModelDocument", "Clip FPS must be zero (unspecified) or from 0.001 to 1000.");
 		}
 	}
 	qint64 skinPixels = 0;
 	if (mesh.embeddedSkins.size() > 256)
 	{
-		errors << QCoreApplication::translate("VibeStudioModelDocument", "The model contains too many embedded skins.");
+		errors << QCoreApplication::translate("SlopStudioModelDocument", "The model contains too many embedded skins.");
 	}
 	for (const auto &skin : mesh.embeddedSkins)
 	{
@@ -629,7 +629,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 		skinPixels += qint64(skin.image.width()) * skin.image.height();
 		if (skin.image.isNull() || skinPixels > 16777216 || (!mesh.mdl.enabled && skin.groupFrameCount > 1) || !nameOk(skin.name))
 		{
-			errors << QCoreApplication::translate("VibeStudioModelDocument", "Embedded skins need valid images within 16 megapixels total; "
+			errors << QCoreApplication::translate("SlopStudioModelDocument", "Embedded skins need valid images within 16 megapixels total; "
 																			 "animated skin groups require retained MDL data.");
 			break;
 		}
@@ -726,7 +726,7 @@ bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, Mo
 	{
 		*report = {};
 	}
-	const QString notSkeletal = QCoreApplication::translate("VibeStudioModelDocument",
+	const QString notSkeletal = QCoreApplication::translate("SlopStudioModelDocument",
 															"Choosing a working set of clips applies only to importing a skeletal model. "
 															"An editable source changes its working set as a skeletal edit.");
 	if (!modelWorkCheckpoint(control, ModelWorkPhase::Reading, 0, 0, error))
@@ -735,7 +735,7 @@ bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, Mo
 	}
 	if (!mesh || bytes.size() > modelDocumentMaxSourceBytes)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Model import requires an output and at most 64 MiB "
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Model import requires an output and at most 64 MiB "
 																				  "of source data."));
 	}
 	const bool source = virtualPath.endsWith(QStringLiteral(".mesh.json"), Qt::CaseInsensitive);
@@ -777,7 +777,7 @@ bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, Mo
 	}
 	else if (!(options.obj == ModelObjImportOptions{}))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelObj", "OBJ import settings apply only to OBJ files."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelObj", "OBJ import settings apply only to OBJ files."));
 	}
 	else
 	{
@@ -807,12 +807,12 @@ bool finishEditableModelImport(ModelMesh result, ModelMesh *mesh, const ModelImp
 	{
 		*report = {};
 	}
-	const QString notSkeletal = QCoreApplication::translate("VibeStudioModelDocument",
+	const QString notSkeletal = QCoreApplication::translate("SlopStudioModelDocument",
 															"Choosing a working set of clips applies only to importing a skeletal model. "
 															"An editable source changes its working set as a skeletal edit.");
 	if (!mesh)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Model import requires an output and at most 64 MiB "
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Model import requires an output and at most 64 MiB "
 																				  "of source data."));
 	}
 	if (!result.error.isEmpty())
@@ -899,7 +899,7 @@ bool fitEditableModelBudget(ModelMesh *mesh, ModelImportReport *report, QString 
 	}
 	if (!mesh)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Fitting a model to the editable budget requires a model."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Fitting a model to the editable budget requires a model."));
 	}
 	qint64 vertices = 0;
 	for (const auto &surface : mesh->surfaces)
@@ -1137,7 +1137,7 @@ QJsonObject sourceJson(const ModelMesh &mesh, QString *error, const ModelWorkCon
 		}
 		if (!buffer.open(QIODevice::WriteOnly) || !skin.image.save(&buffer, "PNG"))
 		{
-			fail(error, QCoreApplication::translate("VibeStudioModelDocument", "An embedded skin could not be encoded as PNG."));
+			fail(error, QCoreApplication::translate("SlopStudioModelDocument", "An embedded skin could not be encoded as PNG."));
 			return {};
 		}
 		if (!work.check())
@@ -1150,7 +1150,7 @@ QJsonObject sourceJson(const ModelMesh &mesh, QString *error, const ModelWorkCon
 	{
 		return {};
 	}
-	QJsonObject result{{QStringLiteral("schema"), QStringLiteral("vibestudio.mesh")},
+	QJsonObject result{{QStringLiteral("schema"), QStringLiteral("slopstudio.mesh")},
 					   {QStringLiteral("version"), packed ? std::max(modelSourcePackedVersion, readableSourceVersion(mesh)) : readableSourceVersion(mesh)},
 					   {QStringLiteral("md2SkinSize"), QJsonArray{mesh.md2SkinSize.width(), mesh.md2SkinSize.height()}},
 					   {QStringLiteral("source"), mesh.sourcePath},
@@ -1218,7 +1218,7 @@ bool readableFits(const ModelMesh &mesh)
 }
 QString sourceLimitError(qint64 bytes)
 {
-	return QCoreApplication::translate("VibeStudioModelDocument",
+	return QCoreApplication::translate("SlopStudioModelDocument",
 									   "The source would be %1, over the 64 MiB limit for sources and recovery copies. Delete frames, "
 									   "clips, curve keys or embedded skins, or bake fewer clips into the skeletal working set.")
 		.arg(modelMebibytesText(bytes));
@@ -1249,7 +1249,7 @@ bool limitedSourceBytes(const ModelMesh &mesh, qint64 packed, qint64 *bytes, QSt
 
 QString modelMebibytesText(qint64 bytes, const QLocale &locale)
 {
-	return QCoreApplication::translate("VibeStudioModelDocument", "%1 MiB").arg(locale.toString(double(bytes) / (1024.0 * 1024.0), 'f', 1));
+	return QCoreApplication::translate("SlopStudioModelDocument", "%1 MiB").arg(locale.toString(double(bytes) / (1024.0 * 1024.0), 'f', 1));
 }
 
 QJsonObject modelSourceSaveJson(const ModelDocument &document)
@@ -1266,9 +1266,9 @@ QString modelSourceSaveNotice(const ModelDocument &document, const QLocale &loca
 	{
 		return {};
 	}
-	return QCoreApplication::translate("VibeStudioModelDocument",
+	return QCoreApplication::translate("SlopStudioModelDocument",
 									   "Packed the bulk arrays (source version 12): the readable source would pass the 64 MiB limit. "
-									   "The source is %1, and older VibeStudio builds cannot read it.")
+									   "The source is %1, and older SlopStudio builds cannot read it.")
 		.arg(modelMebibytesText(document.savedSourceBytes(), locale));
 }
 
@@ -1353,7 +1353,7 @@ bool decodeSourceWithMember(const QByteArray &bytes, ModelMesh *mesh, QString *e
 	}
 	const auto malformed = [&]()
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 													   "The mesh source has malformed, missing, or unsupported fields."));
 	};
 	if (!mesh || bytes.size() > modelDocumentMaxSourceBytes)
@@ -1372,7 +1372,7 @@ bool decodeSourceWithMember(const QByteArray &bytes, ModelMesh *mesh, QString *e
 		*memberValue = root.value(*member);
 	}
 	if (parseError.error != QJsonParseError::NoError || !json.isObject() ||
-		root.value(QStringLiteral("schema")) != QStringLiteral("vibestudio.mesh") ||
+		root.value(QStringLiteral("schema")) != QStringLiteral("slopstudio.mesh") ||
 		(root.value(QStringLiteral("version")) != QJsonValue(1) && root.value(QStringLiteral("version")) != QJsonValue(2) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(3) && root.value(QStringLiteral("version")) != QJsonValue(4) &&
 		 root.value(QStringLiteral("version")) != QJsonValue(5) && root.value(QStringLiteral("version")) != QJsonValue(6) &&
@@ -1399,7 +1399,7 @@ bool decodeSourceWithMember(const QByteArray &bytes, ModelMesh *mesh, QString *e
 	}
 	if (root.value(QStringLiteral("animations")).toArray().size() > modelDocumentMaxAnimations)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "A model supports at most 1024 animation clips."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "A model supports at most 1024 animation clips."));
 	}
 	ModelMesh result;
 	result.geometryAvailable = true;
@@ -1435,7 +1435,7 @@ bool decodeSourceWithMember(const QByteArray &bytes, ModelMesh *mesh, QString *e
 	{
 		return malformed();
 	}
-	result.formatName = QStringLiteral("VibeStudio Mesh");
+	result.formatName = QStringLiteral("SlopStudio Mesh");
 	result.sourcePath = root.value(QStringLiteral("source")).toString();
 	if (result.sourcePath.size() > 4096)
 	{
@@ -1792,7 +1792,7 @@ bool decodeSourceWithMember(const QByteArray &bytes, ModelMesh *mesh, QString *e
 		{
 			if (result.embeddedSkins.size() >= 256)
 			{
-				return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "The model contains too many embedded skins."));
+				return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "The model contains too many embedded skins."));
 			}
 			if (!parseModelMdlSkin(value, result.mdl, &skin, &pixels, error, control))
 			{
@@ -2044,7 +2044,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	}
 	if (!mesh)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "No editable model is open."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "No editable model is open."));
 	}
 	const bool trusted = std::exchange(trustedEditInput, false);
 	// Live symmetry: the tool, then Symmetrize on the edited part (core/model_symmetry.h).
@@ -2088,7 +2088,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	if (edit.kind != ModelEditKind::PaintSkinWeights && !edit.weightStrokes.isEmpty())
 		return fail(error, QCoreApplication::translate("ModelWeightPaint", "Weight strokes apply only to weight painting."));
 	if (edit.kind != ModelEditKind::UpdateCollisionBox && edit.collisionFields != 7)
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Collision field masks apply only to box updates."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Collision field masks apply only to box updates."));
 	if (!isModelFrameRangeEdit(edit.kind) && !(edit.frameRange == ModelFrameRangeOptions{}))
 		return fail(error, QCoreApplication::translate("ModelFrameTools", "Frame range settings apply only to frame range operations."));
 	if (edit.kind != ModelEditKind::ResampleAnimation && edit.kind != ModelEditKind::CloseAnimationLoop &&
@@ -2108,10 +2108,10 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		(edit.bridgeTwist != 0 || edit.bridgeSegments != 0 || edit.bridgeOpen || edit.bridgeTileSize != 0))
 		return fail(error, QCoreApplication::translate("ModelBoundaryBridge", "Bridge twist, segments, open chains and UV strips apply only to bridging."));
 	if (edit.kind != ModelEditKind::SetMaterialSlots && !edit.materialSlots.isEmpty())
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Material slot lists apply only to material slot edits."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Material slot lists apply only to material slot edits."));
 	if (!isModelSurfaceEdit(edit.kind) && (!edit.surfaces.isEmpty() || edit.targetSurface != -1 || edit.adoptTargetMaterials))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Surface targets and material adoption apply only to surface operations."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Surface targets and material adoption apply only to surface operations."));
 	}
 	const bool uvOperation = edit.kind == ModelEditKind::TransformUv || edit.kind == ModelEditKind::ProjectUv ||
 							 edit.kind == ModelEditKind::DetachUv || edit.kind == ModelEditKind::UnwrapUv ||
@@ -2120,13 +2120,13 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		return fail(error, QCoreApplication::translate("ModelUvObstacles", "Preserving atlas scale applies only to Pack Around Unselected."));
 	if (edit.uvTranslationGrid != 0 && edit.kind != ModelEditKind::TransformUv && edit.kind != ModelEditKind::ProjectUv)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 													   "UV grid snapping applies only to UV transforms and projection."));
 	}
 	if (edit.uvIslands && !uvOperation)
 	{
 		return fail(error, QCoreApplication::translate(
-							   "VibeStudioModelDocument",
+							   "SlopStudioModelDocument",
 							   "Island expansion applies only to UV transforms, projection, detaching, unwrapping, or packing."));
 	}
 	if (edit.uvPivotMode == ModelUvPivot::IndividualIslands && edit.kind != ModelEditKind::TransformUv && edit.kind != ModelEditKind::ProjectUv)
@@ -2137,12 +2137,12 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		edit.kind != ModelEditKind::WeightedTransform &&
 		(edit.translationGrid != 0 || edit.rotationGrid != 0 || edit.scaleGrid != 0))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Grid snapping applies only to position transforms."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Grid snapping applies only to position transforms."));
 	}
 	if (edit.selection.surface < 0 || edit.selection.surface >= mesh->surfaces.size() || edit.frame < -1 ||
 		edit.frame >= mesh->frames.size() || (frameOperation && edit.frame < 0))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Select a valid surface and animation frame."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Select a valid surface and animation frame."));
 	}
 	if (!validModelSurfaceSelection(*mesh, edit.selection))
 	{
@@ -2157,7 +2157,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	}
 	if (!validModelTagSelection(*mesh, edit.selection) || !validModelCollisionSelection(*mesh, edit.selection))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 													   "Select an existing attachment or collision box without mixing it with mesh components."));
 	}
 	if (!validModelJointSelection(*mesh, edit.selection))
@@ -2171,7 +2171,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		!isModelSkeletalEdit(edit.kind) && !(isModelRigEdit(edit.kind) && edit.kind != ModelEditKind::SetJointWeight) &&
 		edit.kind != ModelEditKind::SetMd2SkinSize && edit.kind != ModelEditKind::ApplySkinBindings && edit.kind != ModelEditKind::SetMaterialSlots && !isModelMdlEdit(edit.kind))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 					"Select mesh components before editing geometry or UVs. A collision box is selected."));
 	}
 	if (!edit.selection.tag.isEmpty() && !isModelTagEdit(edit.kind) && !isModelAnimationEdit(edit.kind) && !frameOperation &&
@@ -2179,7 +2179,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		edit.kind != ModelEditKind::SetMd2SkinSize && edit.kind != ModelEditKind::ApplySkinBindings && edit.kind != ModelEditKind::SetMaterialSlots && !isModelMdlEdit(edit.kind) && !isModelCollisionEdit(edit.kind))
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelDocument",
+					QCoreApplication::translate("SlopStudioModelDocument",
 												"Select mesh components before editing geometry or UVs. An attachment tag is selected."));
 	}
 	const auto &source = mesh->surfaces[edit.selection.surface];
@@ -2191,7 +2191,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		}
 		if (vertex < 0 || vertex >= source.vertexCount)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "A selected vertex no longer exists."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "A selected vertex no longer exists."));
 		}
 	}
 	for (int face : edit.selection.faces)
@@ -2202,7 +2202,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		}
 		if (face < 0 || face >= source.triangles.size())
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "A selected face no longer exists."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "A selected face no longer exists."));
 		}
 	}
 	if (!edit.selection.edges.isEmpty())
@@ -2221,7 +2221,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 			if (!std::binary_search(available.cbegin(), available.cend(), edge))
 			{
 				return fail(error,
-							QCoreApplication::translate("VibeStudioModelDocument",
+							QCoreApplication::translate("SlopStudioModelDocument",
 														"A selected edge no longer exists or its endpoints are not in ascending order."));
 			}
 		}
@@ -2231,7 +2231,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		std::abs(edit.uvRotation) > 36000 || !finite(edit.uvPivot.u) || !finite(edit.uvPivot.v) || int(edit.uvPivotMode) < 0 ||
 		int(edit.uvPivotMode) > int(ModelUvPivot::IndividualIslands))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Edit values must be finite and within the "
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Edit values must be finite and within the "
 																				  "supported coordinate range."));
 	}
 	auto candidate = *mesh;
@@ -2313,22 +2313,22 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	{
 		const auto total = originalVertices - source.vertexCount + surfaceVertices;
 		return (total <= modelDocumentMaxVertices && total * candidate.frames.size() <= modelDocumentMaxFrameVertices) ||
-			   fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+			   fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 													   "The edit's working geometry would exceed the vertex or animation storage limit."));
 	};
 	const auto triangleCapacity = [&](qint64 surfaceTriangles)
 	{
 		return otherTriangles + surfaceTriangles <= modelDocumentMaxTriangles ||
-			   fail(error, QCoreApplication::translate("VibeStudioModelDocument", "The edit would exceed the triangle limit."));
+			   fail(error, QCoreApplication::translate("SlopStudioModelDocument", "The edit would exceed the triangle limit."));
 	};
 	auto vertices = selectedVertices(surface, selection);
 	const auto faces = sorted(selection.faces);
 	const auto requireFaces = [&]()
-	{ return !faces.isEmpty() || fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Select at least one face.")); };
+	{ return !faces.isEmpty() || fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Select at least one face.")); };
 	const auto requireVertices = [&]()
 	{
 		return !vertices.isEmpty() ||
-			   fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Select at least one vertex, edge, or face."));
+			   fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Select at least one vertex, edge, or face."));
 	};
 	auto appendCopy = [&](int old)
 	{
@@ -2373,12 +2373,12 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 			!modelTransformPivot(surface.frames[reference].positions, vertices, edit.pivotMode, edit.pivot, &transform.pivot))
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelDocument", "Choose a valid transform pivot and reference frame."));
+						QCoreApplication::translate("SlopStudioModelDocument", "Choose a valid transform pivot and reference frame."));
 		}
 		const bool mirrored = double(transform.scale.x) * transform.scale.y * transform.scale.z < 0;
 		if (mirrored && (edit.frame >= 0 || vertices.size() != surface.vertexCount))
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Mirroring requires the whole surface and all "
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Mirroring requires the whole surface and all "
 																					  "frames so winding remains consistent."));
 		}
 		// Individual Origins: one transform per connected piece.
@@ -2443,7 +2443,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		const auto offset = modelBasisToWorld(edit.translation, axes);
 		if (edit.kind == ModelEditKind::Extrude && lengthSquared(edit.translation) < 1e-12)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Extrusion requires a nonzero offset."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Extrusion requires a nonzero offset."));
 		}
 		QMap<QPair<int, int>, QVector<QPair<int, int>>> edges;
 		for (int f : faces)
@@ -2472,7 +2472,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 				}
 				if (edge.size() > 2 || (edge.size() == 2 && edge[0] == edge[1]))
 				{
-					return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Extrusion requires consistently wound faces "
+					return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Extrusion requires consistently wound faces "
 																							  "with at most two faces per edge."));
 				}
 			}
@@ -2575,7 +2575,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		const bool splitEdges = edit.kind == ModelEditKind::SplitEdges;
 		if (splitEdges && selection.edges.isEmpty())
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Select at least one edge to split."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Select at least one edge to split."));
 		}
 		if (!splitEdges && !requireFaces())
 		{
@@ -2805,7 +2805,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	{
 		if (edit.frame != -1 || selection.edges.isEmpty() || !selection.vertices.isEmpty() || !selection.faces.isEmpty() || edit.uvIslands)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 				"Boundary filling and bridging require only edge selection and apply to every frame. Choose the reference pose before editing."));
 		}
 		ModelSurface filled;
@@ -2856,7 +2856,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	{
 		if (edit.frame != -1)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Topology repairs require every animation pose."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Topology repairs require every animation pose."));
 		}
 		const auto repair = edit.kind == ModelEditKind::RemoveDuplicateFaces	? ModelTopologyRepair::RemoveDuplicateFaces
 							: edit.kind == ModelEditKind::RemoveUnusedVertices	? ModelTopologyRepair::RemoveUnusedVertices
@@ -2928,7 +2928,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		}
 		if (faces.size() == surface.triangles.size())
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "A surface must retain at least one face."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "A surface must retain at least one face."));
 		}
 		QVector<ModelTriangle> triangles;
 		for (int f = 0; f < surface.triangles.size(); ++f)
@@ -2983,7 +2983,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	case ModelEditKind::ClearUvSeams:
 		if (selection.edges.isEmpty())
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Select edges to mark or clear UV seams."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Select edges to mark or clear UV seams."));
 		}
 		for (auto edge : selection.edges)
 		{
@@ -3022,7 +3022,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 			(edit.projection < 0 || edit.projection > 2 || std::abs(edit.uvScale.u) < 1e-6f || std::abs(edit.uvScale.v) < 1e-6f))
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelDocument", "Choose a valid UV projection and nonzero UV scales."));
+						QCoreApplication::translate("SlopStudioModelDocument", "Choose a valid UV projection and nonzero UV scales."));
 		}
 		// UV operations on faces split corners shared with unselected faces,
 		// preserving their existing texture mapping and every animation pose.
@@ -3164,7 +3164,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		if (!requireFaces() || (!selection.vertices.isEmpty() && !conformal) || !selection.edges.isEmpty())
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelDocument",
+						QCoreApplication::translate("SlopStudioModelDocument",
 													"Select faces for an atlas operation, or expand components to UV islands first."));
 		}
 		ModelUvAtlasOptions options;
@@ -3230,9 +3230,9 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	case ModelEditKind::SetMaterialSlots:
 	{
 		if (edit.frame != -1 || !edit.text.isEmpty() || !edit.skinBindings.isEmpty())
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Material slots span every pose; omit frame, text and skin binding arguments."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Material slots span every pose; omit frame, text and skin binding arguments."));
 		if (!supportsModelMaterialSlots(candidate))
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Embedded MDL skins use the Animation inspector's skin controls."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Embedded MDL skins use the Animation inspector's skin controls."));
 		ModelMaterialSlotEdit replacement;
 		replacement.materials = edit.materialSlots;
 		if (!editModelMaterialSlots(surface.skinPaths, replacement, &surface.skinPaths, error)) return false;
@@ -3241,7 +3241,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	case ModelEditKind::SetMaterial:
 		if (!isSafePackageVirtualPath(edit.text) || edit.text.size() > 255)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Choose a safe package-relative material path."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Choose a safe package-relative material path."));
 		}
 		if (surface.skinPaths.isEmpty())
 		{
@@ -3257,11 +3257,11 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		if (originalVertices * (candidate.frames.size() + 1) > modelDocumentMaxFrameVertices)
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelDocument", "The new frame would exceed the animation storage limit."));
+						QCoreApplication::translate("SlopStudioModelDocument", "The new frame would exceed the animation storage limit."));
 		}
 		if (candidate.frames.size() >= modelDocumentMaxFrames)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "The model already has 1024 frames."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "The model already has 1024 frames."));
 		}
 		if (!changeModelMdlFrames(&candidate, ModelMdlFrameChange::Duplicate, edit.frame, 1, error))
 		{
@@ -3329,7 +3329,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	case ModelEditKind::DeleteFrame:
 		if (candidate.frames.size() == 1)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "A model must retain at least one frame."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "A model must retain at least one frame."));
 		}
 		if (!changeModelMdlFrames(&candidate, ModelMdlFrameChange::Delete, edit.frame, 1, error))
 		{
@@ -3385,7 +3385,7 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 		candidate.frames[edit.frame].name = edit.text;
 		break;
 	default:
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Unknown model edit operation."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "Unknown model edit operation."));
 	}
 	// Seam marks of the input name its edges, so they still do while the
 	// triangles are the input's own array. Otherwise drop the marks whose edge
@@ -3533,7 +3533,7 @@ bool ModelDocument::load(const QString &path, QString *error, const ModelWorkCon
 	}
 	if (resolvedSource.isEmpty() || !modelPathsReferToSameFile(path, resolvedSource))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "The model source changed or failed while reading."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "The model source changed or failed while reading."));
 	}
 	loaded.m_path = QFileInfo(path).absoluteFilePath();
 	loaded.m_resolvedPath = resolvedSource;
@@ -3551,7 +3551,7 @@ bool ModelDocument::restoreDraft(const ModelMesh &mesh, const ModelSelection &se
 	candidate.setSelection(selection);
 	if (candidate.selection() != selection)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "The recovered component selection is invalid."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "The recovered component selection is invalid."));
 	}
 	candidate.m_savedDigest.clear();
 	*this = std::move(candidate);
@@ -3561,7 +3561,7 @@ bool ModelDocument::adoptSourceOnDisk(QString *error, const ModelWorkControl &co
 {
 	if (m_path.isEmpty())
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "This mesh has no source file to replace."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "This mesh has no source file to replace."));
 	}
 	const auto target = inspectModelWriteTarget(m_path, control);
 	if (!target.isValid())
@@ -3588,7 +3588,7 @@ bool ModelDocument::save(const QString &path, bool overwrite, QString *error, co
 	if (!path.endsWith(QStringLiteral(".mesh.json"), Qt::CaseInsensitive))
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelDocument", "Editable model sources must use the .mesh.json extension."));
+					QCoreApplication::translate("SlopStudioModelDocument", "Editable model sources must use the .mesh.json extension."));
 	}
 	const auto target = inspectModelWriteTarget(path, control);
 	if (!target.isValid())
@@ -3604,12 +3604,12 @@ bool ModelDocument::save(const QString &path, bool overwrite, QString *error, co
 	if (current &&
 		(!target.existed || target.sha256 != m_sourceFingerprint || target.resolvedPath.compare(m_resolvedPath, pathSensitivity) != 0))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 													   "The source changed on disk. Save to another path or reload before replacing it."));
 	}
 	if (target.existed && !current && !overwrite)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 													   "The model destination exists. Choose a new path or explicitly enable overwrite."));
 	}
 	if (!modelWorkCheckpoint(control, ModelWorkPhase::Validating, 0, 0, error))
@@ -3687,7 +3687,7 @@ bool ModelDocument::edit(const ModelEdit &operation, QString *error, const Model
 	// source that is already over, so the way back under stays open.
 	if (candidate.sourceBytes > modelDocumentMaxSourceBytes && candidate.sourceBytes > m_state.sourceBytes)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 													   "This edit would make the source %1, over the 64 MiB limit for sources and recovery "
 													   "copies, so nothing changed. Delete frames, clips, curve keys or embedded skins first, "
 													   "or bake fewer clips into the skeletal working set.")
@@ -3717,7 +3717,7 @@ bool ModelDocument::adopt(const ModelMesh &mesh, const ModelSelection &selection
 	}
 	if (baseRevision != m_state.digest)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 													   "The model changed after the review was prepared. Review it again before applying."));
 	}
 	const auto errors = validateEditableModel(mesh, control, &m_state.mesh);
@@ -3741,7 +3741,7 @@ bool ModelDocument::adopt(const ModelMesh &mesh, const ModelSelection &selection
 	// already over, but never grow one past it.
 	if (candidate.sourceBytes > modelDocumentMaxSourceBytes && candidate.sourceBytes > m_state.sourceBytes)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 													   "Applying this would make the source %1, over the 64 MiB limit for sources and recovery "
 													   "copies, so nothing changed.")
 							   .arg(modelMebibytesText(candidate.sourceBytes)));
@@ -3886,4 +3886,4 @@ void ModelDocument::trimHistory()
 		++m_discarded;
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

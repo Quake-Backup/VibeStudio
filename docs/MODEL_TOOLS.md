@@ -317,7 +317,7 @@ traps focus (WCAG 2.1 success criterion 2.1.2, No Keyboard Trap):
   switches between the **3D** and **UV** tabs; click a tab, or use the arrow
   keys on the focused tab bar.
 - A command whose keys include **Tab** or **Shift+Tab** (**Toggle Object/Edit
-  Mode** and **Toggle Snapping** in the VibeStudio and Blender profiles) is a
+  Mode** and **Toggle Snapping** in the SlopStudio and Blender profiles) is a
   widget shortcut on the active view: it runs only while the view itself has
   focus. On the editing header and in **Adjust Last Operation**, Tab and
   Shift+Tab move focus as usual. The 3ds Max and MilkShape 3D profiles give
@@ -542,7 +542,7 @@ pieces inward instead, for skyboxes and interiors. A one-sided piece, such as a
 Möbius strip, is refused with the two faces that disagree, and the edit is
 refused when every face already points the requested way. In the Blender
 profile Shift+N and Ctrl+Shift+N run these, and **Recalculate Normals** (vertex
-normals only) stays in the **Normals** menu; the VibeStudio profile keeps
+normals only) stays in the **Normals** menu; the SlopStudio profile keeps
 Shift+N on **Recalculate Normals**.
 
 ### Hard edges
@@ -612,7 +612,7 @@ that remain, select the new faces and are one undo step.
 
 ### Connect vertices and edges
 
-**Vertex > Connect Vertex Path** (**J** in the VibeStudio and Blender
+**Vertex > Connect Vertex Path** (**J** in the SlopStudio and Blender
 profiles) adds edges between vertices without cutting a whole loop:
 
 - Two selected vertices on opposite corners of a quad turn the quad's
@@ -807,16 +807,16 @@ files would leave data out is refused before anything is written.
 paste into `--faces`, `--vertices` or `--edges`.
 
 ```sh
-vibestudio --cli model select ./prop.mesh.json --select loop --mode edges --edge 4:5 --json
-vibestudio --cli model select ./prop.mesh.json --select ring --mode edges --edges 4:5,9:10 --json
-vibestudio --cli model tool ./prop.mesh.json --tool loop-cut --edges 4:5 --cuts 2 --output ./cut.mesh.json
-vibestudio --cli model tool ./prop.mesh.json --tool inset --faces 0,1 --thickness 2 --depth 1 --output ./inset.mesh.json --dry-run --json
-vibestudio --cli model tool ./prop.mesh.json --tool add --primitive cylinder --at 0,0,16 --size 16,16,32 --segments 12 --output ./added.mesh.json
-vibestudio --cli model tool ./prop.mesh.json --tool decimate --faces all --target-triangles 1999 --output ./md3-budget.mesh.json
-vibestudio --cli model lod ./prop.mesh.json --output ./out/prop.md3 --levels 2 --ratio 0.5 --json
-vibestudio --cli model tool ./player.mesh.json --tool symmetrize --faces all --axis x --joint-map detect --output ./mirrored.mesh.json --json
-vibestudio --cli model tool ./player.mesh.json --tool add --primitive cube --at 0,0,64 --size 12,12,12 --bind-joint head --output ./helmet.mesh.json --json
-vibestudio --cli model targets ./prop.mesh.json --format md3 --target ioquake3 --json
+slopstudio --cli model select ./prop.mesh.json --select loop --mode edges --edge 4:5 --json
+slopstudio --cli model select ./prop.mesh.json --select ring --mode edges --edges 4:5,9:10 --json
+slopstudio --cli model tool ./prop.mesh.json --tool loop-cut --edges 4:5 --cuts 2 --output ./cut.mesh.json
+slopstudio --cli model tool ./prop.mesh.json --tool inset --faces 0,1 --thickness 2 --depth 1 --output ./inset.mesh.json --dry-run --json
+slopstudio --cli model tool ./prop.mesh.json --tool add --primitive cylinder --at 0,0,16 --size 16,16,32 --segments 12 --output ./added.mesh.json
+slopstudio --cli model tool ./prop.mesh.json --tool decimate --faces all --target-triangles 1999 --output ./md3-budget.mesh.json
+slopstudio --cli model lod ./prop.mesh.json --output ./out/prop.md3 --levels 2 --ratio 0.5 --json
+slopstudio --cli model tool ./player.mesh.json --tool symmetrize --faces all --axis x --joint-map detect --output ./mirrored.mesh.json --json
+slopstudio --cli model tool ./player.mesh.json --tool add --primitive cube --at 0,0,64 --size 12,12,12 --bind-joint head --output ./helmet.mesh.json --json
+slopstudio --cli model targets ./prop.mesh.json --format md3 --target ioquake3 --json
 ```
 
 On skeletal models, `--json` output adds `skinProvenance`: per skinned surface,

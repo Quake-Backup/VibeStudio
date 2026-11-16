@@ -1,6 +1,6 @@
 # Match texture density
 
-**Available**, with the limits below. VibeStudio is pre-alpha and largely
+**Available**, with the limits below. SlopStudio is pre-alpha and largely
 untested in real projects. Texel density does not complete the
 [modeller production gate](MODELLER_RELEASE.md).
 
@@ -79,8 +79,8 @@ adds `surfaces` (each other surface's `before`), `combinedPixelsPerUnit` and,
 when adjusting, `otherSurfaces` with `after`.
 
 ```text
-vibestudio --cli model uv-density player.mesh.json --surfaces all --texture-size 256 --texture-size-for 2=512x512 --json
-vibestudio --cli model uv-density player.mesh.json --surfaces 0,1,2 --texture-size 256 --texture-size-for 2=512x512 --target 4 --mode group --output player-density.mesh.json
+slopstudio --cli model uv-density player.mesh.json --surfaces all --texture-size 256 --texture-size-for 2=512x512 --json
+slopstudio --cli model uv-density player.mesh.json --surfaces 0,1,2 --texture-size 256 --texture-size-for 2=512x512 --target 4 --mode group --output player-density.mesh.json
 ```
 
 In the **Texel Density…** dialog, the **Scope** **All islands on surfaces
@@ -95,9 +95,9 @@ its undo step cover them all.
 ## Automate density adjustment
 
 ```text
-vibestudio --cli model uv-density actor.mesh.json --texture-size 1024x512 --json
-vibestudio --cli model uv-density actor.mesh.json --texture-size 512 --faces 0,4 --target 8 --mode individual --output actor-density.mesh.json --dry-run
-vibestudio --cli model uv-density actor.mesh.json --texture-size 512 --reference-frame 3 --target 8 --mode group --output actor-density.mesh.json
+slopstudio --cli model uv-density actor.mesh.json --texture-size 1024x512 --json
+slopstudio --cli model uv-density actor.mesh.json --texture-size 512 --faces 0,4 --target 8 --mode individual --output actor-density.mesh.json --dry-run
+slopstudio --cli model uv-density actor.mesh.json --texture-size 512 --reference-frame 3 --target 8 --mode group --output actor-density.mesh.json
 ```
 
 The CLI uses the same inspection, adjustment, document validation and source

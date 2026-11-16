@@ -4,7 +4,7 @@
 #include <QThread>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 TextureRecoveryWriter::TextureRecoveryWriter(QString directory, QObject* parent)
 	: QObject(parent), m_directory(std::move(directory)) {}
@@ -79,4 +79,4 @@ void TextureRecoveryWriter::startNext()
 	m_thread->start();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

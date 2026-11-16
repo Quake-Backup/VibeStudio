@@ -13,7 +13,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 AudioRecoveryDialog::AudioRecoveryDialog(QString directory, QWidget *parent)
     : QDialog(parent), m_directory(std::move(directory)), m_cancel(std::make_shared<std::atomic_bool>(false))
@@ -237,4 +237,4 @@ void AudioRecoveryDialog::discardSelected()
 		      }
 	      });
 }
-} // namespace vibestudio
+} // namespace slopstudio

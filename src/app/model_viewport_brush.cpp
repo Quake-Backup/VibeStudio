@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 ModelVec3 modelPoint(BoxResizePoint point) { return {float(point[0]),float(point[1]),float(point[2])}; }
 BoxResizePoint coordinates(ModelVec3 point) { return {point.x,point.y,point.z}; }
@@ -121,7 +121,7 @@ bool ModelViewport::updateBrushDraw(const QPointF& point, Qt::KeyboardModifiers 
 
 bool ModelViewport::adjustBrushDrawDepth(int steps)
 {
-	if (!m_brushDrawing || !vibestudio::adjustBoxDrawDepth(&m_brushDraw,steps)) { return false; }
+	if (!m_brushDrawing || !slopstudio::adjustBoxDrawDepth(&m_brushDraw,steps)) { return false; }
 	updateBrushDraw(m_brushDrawPoint,m_brushDrawModifiers); return true;
 }
 
@@ -206,4 +206,4 @@ void ModelViewport::paintBrushDraw(QPainter& painter)
 	painter.restore();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

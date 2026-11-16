@@ -2,7 +2,7 @@
 // Derived from PakFu src/formats/dds_image.cpp, GPLv3,
 // working-tree snapshot 2026-10-05 based on 13111e4c07513548a29fd7eb74fc9d004c44aa59.
 // https://github.com/themuffinator/PakFu/blob/13111e4c07513548a29fd7eb74fc9d004c44aa59/src/formats/dds_image.cpp
-// VibeStudio adds bounded surfaces, cancellation, and rejects arrays/cubes/volumes.
+// SlopStudio adds bounded surfaces, cancellation, and rejects arrays/cubes/volumes.
 #include "core/extra_image.h"
 #include <QCoreApplication>
 
@@ -15,7 +15,7 @@
 #include <QtEndian>
 #include <QtGlobal>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr quint32 kDdsMagic = 0x20534444u;  // "DDS "
 constexpr int kDdsHeaderSize = 124;
@@ -224,7 +224,7 @@ struct DdsInfo {
 	}
 	if (bytes.size() < kDdsMinFileSize) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS header too small.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS header too small.");
 		}
 		return false;
 	}
@@ -235,7 +235,7 @@ struct DdsInfo {
 	const quint32 magic = read_u32le(data);
 	if (magic != kDdsMagic) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "Not a DDS file (missing DDS magic).");
+			*error = QCoreApplication::translate("SlopStudioDds", "Not a DDS file (missing DDS magic).");
 		}
 		return false;
 	}
@@ -243,13 +243,13 @@ struct DdsInfo {
 	const quint32 header_size = read_u32le(data + 4);
 	if (header_size != kDdsHeaderSize) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS header size is invalid.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS header size is invalid.");
 		}
 		return false;
 	}
 
 	if (read_u32le(data + 24) > 1 || read_u32le(data + 112) != 0) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioDds", "DDS cubes, volumes and arrays are not supported."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioDds", "DDS cubes, volumes and arrays are not supported."); }
 		return false;
 	}
 	const quint32 header_flags = read_u32le(data + 8);
@@ -258,7 +258,7 @@ struct DdsInfo {
 	const quint32 pitch_or_linear = read_u32le(data + 20);
 	if (width_u32 == 0 || height_u32 == 0) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS dimensions are invalid.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS dimensions are invalid.");
 		}
 		return false;
 	}
@@ -266,7 +266,7 @@ struct DdsInfo {
 	constexpr quint32 kMaxDim = 16384;
 	if (width_u32 > kMaxDim || height_u32 > kMaxDim) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS dimensions are unreasonably large.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS dimensions are unreasonably large.");
 		}
 		return false;
 	}
@@ -274,7 +274,7 @@ struct DdsInfo {
 	const quint32 pf_size = read_u32le(data + 4 + 72);
 	if (pf_size != kDdsPixelFormatSize) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS pixel format size is invalid.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS pixel format size is invalid.");
 		}
 		return false;
 	}
@@ -325,12 +325,12 @@ struct DdsInfo {
 		if (pf_fourcc == kFourCcDx10) {
 			if (size < offset + 20) {
 				if (error) {
-					*error = QCoreApplication::translate("VibeStudioDds", "DDS DX10 header is truncated.");
+					*error = QCoreApplication::translate("SlopStudioDds", "DDS DX10 header is truncated.");
 				}
 				return false;
 			}
 			if (read_u32le(data + offset + 4) != 3 || read_u32le(data + offset + 8) != 0 || read_u32le(data + offset + 12) != 1) {
-				if (error) { *error = QCoreApplication::translate("VibeStudioDds", "DDS cubes, volumes and arrays are not supported."); }
+				if (error) { *error = QCoreApplication::translate("SlopStudioDds", "DDS cubes, volumes and arrays are not supported."); }
 				return false;
 			}
 			const quint32 dxgi_format = read_u32le(data + offset + 0);
@@ -406,14 +406,14 @@ struct DdsInfo {
 
 	if (fmt == DdsFormat::Unknown) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "Unsupported DDS pixel format.");
+			*error = QCoreApplication::translate("SlopStudioDds", "Unsupported DDS pixel format.");
 		}
 		return false;
 	}
 
 	if (offset < 0 || offset > size) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS data offset is invalid.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS data offset is invalid.");
 		}
 		return false;
 	}
@@ -482,7 +482,7 @@ struct DdsInfo {
 	const int h = info.height;
 	if (w <= 0 || h <= 0) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS dimensions are invalid.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS dimensions are invalid.");
 		}
 		return false;
 	}
@@ -490,14 +490,14 @@ struct DdsInfo {
 	const quint32 bit_count = info.rgb_bit_count;
 	if (bit_count == 0 || bit_count > 32) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "Unsupported DDS bit depth.");
+			*error = QCoreApplication::translate("SlopStudioDds", "Unsupported DDS bit depth.");
 		}
 		return false;
 	}
 	const int bytes_per_pixel = static_cast<int>((bit_count + 7) / 8);
 	if (bytes_per_pixel <= 0 || bytes_per_pixel > 4) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "Unsupported DDS pixel size.");
+			*error = QCoreApplication::translate("SlopStudioDds", "Unsupported DDS pixel size.");
 		}
 		return false;
 	}
@@ -506,19 +506,19 @@ struct DdsInfo {
 	for (const auto mask : {info.r_mask, info.g_mask, info.b_mask, info.a_mask}) {
 		const quint32 shifted = mask ? mask >> std::countr_zero(mask) : 0;
 		if ((mask & usedMasks) || (info.rgb_bit_count < 32 && (mask >> info.rgb_bit_count)) || (shifted & (shifted + 1u))) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioDds", "DDS channel masks overlap, are noncontiguous, or exceed the pixel size."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioDds", "DDS channel masks overlap, are noncontiguous, or exceed the pixel size."); }
 			return false;
 		}
 		usedMasks |= mask;
 	}
 	if (!usedMasks) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioDds", "DDS has no supported channel masks."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioDds", "DDS has no supported channel masks."); }
 		return false;
 	}
 	const quint32 pitch = (info.pitch_bytes != 0) ? info.pitch_bytes : static_cast<quint32>(w * bytes_per_pixel);
 	if (pitch < static_cast<quint32>(w * bytes_per_pixel) || pitch > (1u << 30)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS pitch is invalid.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS pitch is invalid.");
 		}
 		return false;
 	}
@@ -530,7 +530,7 @@ struct DdsInfo {
 	const quint64 start = static_cast<quint64>(info.data_offset);
 	if (start + need_bytes > static_cast<quint64>(bytes.size())) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS pixel data exceeds file size.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS pixel data exceeds file size.");
 		}
 		return false;
 	}
@@ -538,7 +538,7 @@ struct DdsInfo {
 	QImage img(w, h, QImage::Format_RGBA8888);
 	if (img.isNull()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "Unable to allocate image.");
+			*error = QCoreApplication::translate("SlopStudioDds", "Unable to allocate image.");
 		}
 		return false;
 	}
@@ -551,7 +551,7 @@ struct DdsInfo {
 
 	for (int y = 0; y < h; ++y) {
 		if (info.isCancelled && info.isCancelled()) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioDds", "Image decoding cancelled."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioDds", "Image decoding cancelled."); }
 			return false;
 		}
 		uchar* row = dst_bits + y * dst_stride;
@@ -603,7 +603,7 @@ struct DdsInfo {
 	const quint64 start = static_cast<quint64>(info.data_offset);
 	if (start + need > static_cast<quint64>(bytes.size())) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS BC1 data exceeds file size.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS BC1 data exceeds file size.");
 		}
 		return false;
 	}
@@ -611,7 +611,7 @@ struct DdsInfo {
 	QImage img(w, h, QImage::Format_RGBA8888);
 	if (img.isNull()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "Unable to allocate image.");
+			*error = QCoreApplication::translate("SlopStudioDds", "Unable to allocate image.");
 		}
 		return false;
 	}
@@ -633,7 +633,7 @@ struct DdsInfo {
 
 	for (int by = 0; by < block_h; ++by) {
 		if (info.isCancelled && info.isCancelled()) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioDds", "Image decoding cancelled."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioDds", "Image decoding cancelled."); }
 			return false;
 		}
 		for (int bx = 0; bx < block_w; ++bx) {
@@ -679,7 +679,7 @@ struct DdsInfo {
 	const quint64 start = static_cast<quint64>(info.data_offset);
 	if (start + need > static_cast<quint64>(bytes.size())) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS BC2 data exceeds file size.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS BC2 data exceeds file size.");
 		}
 		return false;
 	}
@@ -687,7 +687,7 @@ struct DdsInfo {
 	QImage img(w, h, QImage::Format_RGBA8888);
 	if (img.isNull()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "Unable to allocate image.");
+			*error = QCoreApplication::translate("SlopStudioDds", "Unable to allocate image.");
 		}
 		return false;
 	}
@@ -709,7 +709,7 @@ struct DdsInfo {
 
 	for (int by = 0; by < block_h; ++by) {
 		if (info.isCancelled && info.isCancelled()) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioDds", "Image decoding cancelled."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioDds", "Image decoding cancelled."); }
 			return false;
 		}
 		for (int bx = 0; bx < block_w; ++bx) {
@@ -759,7 +759,7 @@ struct DdsInfo {
 	const quint64 start = static_cast<quint64>(info.data_offset);
 	if (start + need > static_cast<quint64>(bytes.size())) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS BC3 data exceeds file size.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS BC3 data exceeds file size.");
 		}
 		return false;
 	}
@@ -767,7 +767,7 @@ struct DdsInfo {
 	QImage img(w, h, QImage::Format_RGBA8888);
 	if (img.isNull()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "Unable to allocate image.");
+			*error = QCoreApplication::translate("SlopStudioDds", "Unable to allocate image.");
 		}
 		return false;
 	}
@@ -789,7 +789,7 @@ struct DdsInfo {
 
 	for (int by = 0; by < block_h; ++by) {
 		if (info.isCancelled && info.isCancelled()) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioDds", "Image decoding cancelled."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioDds", "Image decoding cancelled."); }
 			return false;
 		}
 		for (int bx = 0; bx < block_w; ++bx) {
@@ -887,7 +887,7 @@ void decode_bc4_generic_block(const uchar* b, bool snorm, uchar out[16], DecodeS
 	const quint64 start = static_cast<quint64>(info.data_offset);
 	if (start + need > static_cast<quint64>(bytes.size())) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS BC4 data exceeds file size.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS BC4 data exceeds file size.");
 		}
 		return false;
 	}
@@ -895,7 +895,7 @@ void decode_bc4_generic_block(const uchar* b, bool snorm, uchar out[16], DecodeS
 	QImage img(w, h, QImage::Format_RGBA8888);
 	if (img.isNull()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "Unable to allocate image.");
+			*error = QCoreApplication::translate("SlopStudioDds", "Unable to allocate image.");
 		}
 		return false;
 	}
@@ -925,7 +925,7 @@ void decode_bc4_generic_block(const uchar* b, bool snorm, uchar out[16], DecodeS
 
 	for (int by = 0; by < block_h; ++by) {
 		if (info.isCancelled && info.isCancelled()) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioDds", "Image decoding cancelled."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioDds", "Image decoding cancelled."); }
 			return false;
 		}
 		for (int bx = 0; bx < block_w; ++bx) {
@@ -966,7 +966,7 @@ void decode_bc4_generic_block(const uchar* b, bool snorm, uchar out[16], DecodeS
 	const quint64 start = static_cast<quint64>(info.data_offset);
 	if (start + need > static_cast<quint64>(bytes.size())) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "DDS BC5 data exceeds file size.");
+			*error = QCoreApplication::translate("SlopStudioDds", "DDS BC5 data exceeds file size.");
 		}
 		return false;
 	}
@@ -974,7 +974,7 @@ void decode_bc4_generic_block(const uchar* b, bool snorm, uchar out[16], DecodeS
 	QImage img(w, h, QImage::Format_RGBA8888);
 	if (img.isNull()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioDds", "Unable to allocate image.");
+			*error = QCoreApplication::translate("SlopStudioDds", "Unable to allocate image.");
 		}
 		return false;
 	}
@@ -1004,7 +1004,7 @@ void decode_bc4_generic_block(const uchar* b, bool snorm, uchar out[16], DecodeS
 
 	for (int by = 0; by < block_h; ++by) {
 		if (info.isCancelled && info.isCancelled()) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioDds", "Image decoding cancelled."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioDds", "Image decoding cancelled."); }
 			return false;
 		}
 		for (int bx = 0; bx < block_w; ++bx) {
@@ -1056,7 +1056,7 @@ bool decodeDdsSurface(const QByteArray& bytes, const DdsInfo& info, QImage* img,
 }
 }
 
-// VibeStudio addition (2026-10-28): lower mip levels follow the base surface
+// SlopStudio addition (2026-10-28): lower mip levels follow the base surface
 // in order, each half the size (at least 1) in the base format, per
 // Microsoft's DDS documentation. Levels after a malformed one are dropped.
 QVector<QImage> decodeDdsMipLevels(const QByteArray& bytes, const IdTechImageDecodeContext& context, int maximumLevels)
@@ -1092,21 +1092,21 @@ QImage decodeDdsImage(const QByteArray& bytes, const IdTechImageDecodeContext& c
 	}
 
 	if (bytes.size() > 64 * 1024 * 1024) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioDds", "DDS payload exceeds 64 MiB."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioDds", "DDS payload exceeds 64 MiB."); }
 		return {};
 	}
 	DdsInfo info;
 	QString err;
 	if (!parse_dds_header(bytes, &info, &err)) {
 		if (error) {
-			*error = err.isEmpty() ? QCoreApplication::translate("VibeStudioDds", "Unable to parse DDS header.") : err;
+			*error = err.isEmpty() ? QCoreApplication::translate("SlopStudioDds", "Unable to parse DDS header.") : err;
 		}
 		return {};
 	}
 
 	if (info.width > context.maximumDimension || info.height > context.maximumDimension ||
 		qint64(info.width) * info.height > std::min({qint64(16 * 1024 * 1024), context.maximumImagePixels, context.maximumTotalPixels})) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioDds", "DDS dimensions exceed the image decode limits."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioDds", "DDS dimensions exceed the image decode limits."); }
 		return {};
 	}
 	info.isCancelled = context.isCancelled;
@@ -1115,7 +1115,7 @@ QImage decodeDdsImage(const QByteArray& bytes, const IdTechImageDecodeContext& c
 
 	if (!ok || img.isNull()) {
 		if (error) {
-			*error = err.isEmpty() ? QCoreApplication::translate("VibeStudioDds", "Unable to decode DDS image.") : err;
+			*error = err.isEmpty() ? QCoreApplication::translate("SlopStudioDds", "Unable to decode DDS image.") : err;
 		}
 		return {};
 	}
@@ -1123,4 +1123,4 @@ QImage decodeDdsImage(const QByteArray& bytes, const IdTechImageDecodeContext& c
 	return img;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

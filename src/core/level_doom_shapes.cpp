@@ -5,14 +5,14 @@
 
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
 bool fail(QString* error, const char* message)
 {
 	if (error) {
-		*error = QCoreApplication::translate("VibeStudioLevelDoomShapes", message);
+		*error = QCoreApplication::translate("SlopStudioLevelDoomShapes", message);
 	}
 	return false;
 }
@@ -56,11 +56,11 @@ bool drawRectangles(LevelMapDocument* document, const QVector<QRectF>& cells, QV
 bool validFootprint(const LevelMapDocument* document, double minX, double minY, double maxX, double maxY, QString* error)
 {
 	if (!document || document->format != LevelMapFormat::DoomWad || document->doomFormat == LevelMapDoomFormat::Udmf) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelDoomShapes", "Sector shapes are for Doom and Hexen format maps."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelDoomShapes", "Sector shapes are for Doom and Hexen format maps."));
 	}
 	const auto inRange = [](double value) { return std::isfinite(value) && std::abs(value) <= 32767; };
 	if (!inRange(minX) || !inRange(minY) || !inRange(maxX) || !inRange(maxY) || maxX <= minX || maxY <= minY) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelDoomShapes", "The footprint must lie within -32767 to 32767 and have an area."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelDoomShapes", "The footprint must lie within -32767 to 32767 and have an area."));
 	}
 	return true;
 }
@@ -76,15 +76,15 @@ bool drawLevelMapDoomStairs(LevelMapDocument* document, const LevelDoomStairsReq
 		return false;
 	}
 	if (request.steps < 2 || request.steps > 64) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelDoomShapes", "Stairs need 2 to 64 steps."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelDoomShapes", "Stairs need 2 to 64 steps."));
 	}
 	if (request.stepHeight == 0 || std::abs(request.stepHeight) > 1024) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelDoomShapes", "Each step rises 1 to 1024 units, or falls as much."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelDoomShapes", "Each step rises 1 to 1024 units, or falls as much."));
 	}
 	const QString rise = request.rise.trimmed().toLower();
 	if (rise != QStringLiteral("auto") && rise != QStringLiteral("+x") && rise != QStringLiteral("-x") && rise != QStringLiteral("+y")
 		&& rise != QStringLiteral("-y")) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelDoomShapes", "Stairs climb towards auto, +x, -x, +y or -y."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelDoomShapes", "Stairs climb towards auto, +x, -x, +y or -y."));
 	}
 	const double x0 = std::round(request.minX);
 	const double y0 = std::round(request.minY);
@@ -95,7 +95,7 @@ bool drawLevelMapDoomStairs(LevelMapDocument* document, const LevelDoomStairsReq
 	const double run0 = alongX ? x0 : y0;
 	const double run1 = alongX ? x1 : y1;
 	if (run1 - run0 < 8.0 * request.steps) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelDoomShapes", "Each step needs at least 8 units of run; use fewer steps or a longer footprint."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelDoomShapes", "Each step needs at least 8 units of run; use fewer steps or a longer footprint."));
 	}
 	QVector<QRectF> cells;
 	for (int step = 0; step < request.steps; ++step) {
@@ -123,8 +123,8 @@ bool drawLevelMapDoomStairs(LevelMapDocument* document, const LevelDoomStairsReq
 	}
 	const int count = static_cast<int>(ids.size());
 	if (!collapseLevelMapUndoSteps(document, done,
-			QCoreApplication::translate("VibeStudioLevelDoomShapes", "Draw stairs of %n step(s)", nullptr, count),
-			QCoreApplication::translate("VibeStudioLevelDoomShapes", "Remove the stairs of %n step(s)", nullptr, count), error)) {
+			QCoreApplication::translate("SlopStudioLevelDoomShapes", "Draw stairs of %n step(s)", nullptr, count),
+			QCoreApplication::translate("SlopStudioLevelDoomShapes", "Remove the stairs of %n step(s)", nullptr, count), error)) {
 		undoSteps(document, done);
 		return false;
 	}
@@ -149,14 +149,14 @@ bool drawLevelMapDoomGrid(LevelMapDocument* document, double minX, double minY, 
 		return false;
 	}
 	if (columns < 1 || rows < 1 || columns * rows < 2 || columns > 32 || rows > 32) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelDoomShapes", "A grid has 1 to 32 columns and rows, and at least two cells."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelDoomShapes", "A grid has 1 to 32 columns and rows, and at least two cells."));
 	}
 	const double x0 = std::round(minX);
 	const double y0 = std::round(minY);
 	const double x1 = std::round(maxX);
 	const double y1 = std::round(maxY);
 	if ((x1 - x0) < 8.0 * columns || (y1 - y0) < 8.0 * rows) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelDoomShapes", "Each cell needs at least 8 units each way; use fewer cells or a bigger footprint."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelDoomShapes", "Each cell needs at least 8 units each way; use fewer cells or a bigger footprint."));
 	}
 	QVector<QRectF> cells;
 	for (int row = 0; row < rows; ++row) {
@@ -172,8 +172,8 @@ bool drawLevelMapDoomGrid(LevelMapDocument* document, double minX, double minY, 
 	}
 	const int count = static_cast<int>(ids.size());
 	if (!collapseLevelMapUndoSteps(document, done,
-			QCoreApplication::translate("VibeStudioLevelDoomShapes", "Draw a grid of %n sector(s)", nullptr, count),
-			QCoreApplication::translate("VibeStudioLevelDoomShapes", "Remove the grid of %n sector(s)", nullptr, count), error)) {
+			QCoreApplication::translate("SlopStudioLevelDoomShapes", "Draw a grid of %n sector(s)", nullptr, count),
+			QCoreApplication::translate("SlopStudioLevelDoomShapes", "Remove the grid of %n sector(s)", nullptr, count), error)) {
 		undoSteps(document, done);
 		return false;
 	}
@@ -188,4 +188,4 @@ bool drawLevelMapDoomGrid(LevelMapDocument* document, double minX, double minY, 
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

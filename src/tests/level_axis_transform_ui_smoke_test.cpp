@@ -1,7 +1,7 @@
 // World-axis Flip X/Y/Z and Rotate X/Y/Z in the shell, the profile's quick-turn
 // pivot for them and for Rotate 90° Right and Left in every projection, vertical flips
 // of Quake brushes, component mode, Repeat, undo, menus, Tools tiles and the
-// palette, across the NRC, TrenchBroom and VibeStudio profiles at 100% and at
+// palette, across the NRC, TrenchBroom and SlopStudio profiles at 100% and at
 // 200% with high contrast, expanded translations and right-to-left layout.
 #include "app/application_shell.h"
 #include "app/map_viewport.h"
@@ -29,7 +29,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -118,8 +118,8 @@ int main(int argc, char** argv)
 		CommandPaletteEntry entry;
 		expect(commandPaletteEntryForCommandId(id, &entry) && !entry.label.isEmpty() && !entry.summary.isEmpty(), "palette entry", id);
 	}
-	for (const auto* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
-		const bool rounds = QLatin1String(profile) != QLatin1String("vibestudio-default");
+	for (const auto* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
+		const bool rounds = QLatin1String(profile) != QLatin1String("slopstudio-default");
 		for (int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);
 			std::cout << "Axis transforms UI " << phase.toStdString() << std::endl;
@@ -278,7 +278,7 @@ int main(int argc, char** argv)
 					expect(bytes() == baseline, "component turn undo restores the source");
 				}
 				if (scale == 200) {
-					const auto capture = qEnvironmentVariable("VIBESTUDIO_AXIS_TRANSFORM_CAPTURE");
+					const auto capture = qEnvironmentVariable("SLOPSTUDIO_AXIS_TRANSFORM_CAPTURE");
 					if (!capture.isEmpty() && QLatin1String(profile) == QLatin1String("netradiant-custom")) {
 						QImage image(shell.size(), QImage::Format_ARGB32_Premultiplied);
 						shell.render(&image);

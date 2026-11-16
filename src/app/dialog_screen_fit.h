@@ -12,7 +12,7 @@
 class QVBoxLayout;
 class QWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The room kept between a fitted window and each edge of the screen's
 // available area, so its frame and title bar stay on the screen too.
@@ -47,4 +47,4 @@ void fitDialogToScreen(QWidget* dialog, const QSize& preferred);
 // and the buttons stay in view.
 QVBoxLayout* addScrollingDialogBody(QVBoxLayout* dialogLayout);
 
-} // namespace vibestudio
+} // namespace slopstudio

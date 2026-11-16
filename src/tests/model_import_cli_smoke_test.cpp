@@ -21,7 +21,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 	{
 		return EXIT_FAILURE;
 	}
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -219,9 +219,9 @@ int main(int argc, char **argv)
 	PackageArchive archive;
 	PackageStagingModel staging;
 	ok &= expect(archive.load(path("pak0.pak"), &error) && staging.loadBaseArchive(archive, &error) &&
-					 PackageDraft::save(path("draft.vibepackage"), &staging, false, &error),
+					 PackageDraft::save(path("draft.sloppackage"), &staging, false, &error),
 				 "save a portable draft over the PAK");
-	ok &= expect(run({"model", "import", path("draft.vibepackage"), "progs/fixture.mdl", "--output", path("from-draft.mesh.json")}),
+	ok &= expect(run({"model", "import", path("draft.sloppackage"), "progs/fixture.mdl", "--output", path("from-draft.mesh.json")}),
 				 "imports an entry from a portable draft");
 
 	// Dry run and usage errors write nothing.

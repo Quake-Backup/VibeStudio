@@ -8,7 +8,7 @@
 #include <QJsonDocument>
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -180,4 +180,4 @@ ModelToolsCliResult runModelWeightPaint(const QStringList &arguments)
 		result.lines << packed;
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

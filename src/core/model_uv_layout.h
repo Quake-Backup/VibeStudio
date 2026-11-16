@@ -7,7 +7,7 @@
 #include <QImage>
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 // UV layout (skin template) images to paint a skin over, in the studio's
 // texture editor or any other. Drawn with QPainter on a QImage, on the
@@ -49,4 +49,4 @@ bool renderModelUvLayout(const ModelMesh &mesh, const QVector<int> &surfaces, QS
 // The surfaces sharing a material slot with `surface`, itself first.
 [[nodiscard]] QVector<int> modelUvLayoutMaterialSurfaces(const ModelMesh &mesh, int surface);
 [[nodiscard]] QJsonObject modelUvLayoutJson(const ModelUvLayoutReport &report);
-} // namespace vibestudio
+} // namespace slopstudio

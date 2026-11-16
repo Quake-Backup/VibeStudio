@@ -12,7 +12,7 @@ class QTableWidget;
 class QTextEdit;
 class QThread;
 
-namespace vibestudio
+namespace slopstudio
 {
 class AudioRecoveryDialog final : public QDialog {
 	Q_OBJECT
@@ -38,4 +38,4 @@ class AudioRecoveryDialog final : public QDialog {
 	QThread *m_thread = nullptr;
 	std::shared_ptr<std::atomic_bool> m_cancel;
 };
-} // namespace vibestudio
+} // namespace slopstudio

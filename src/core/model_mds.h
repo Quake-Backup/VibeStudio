@@ -19,12 +19,12 @@
 // Layouts follow mdsHeader_t, mdsFrame_t, mdsBoneFrameCompressed_t,
 // mdsBoneInfo_t, mdsSurface_t, mdsVertex_t, mdsWeight_t and mdsTag_t in the
 // GPL Return to Castle Wolfenstein source (src/qcommon/qfiles.h), read
-// together with VibeStudio's own decoder (model_format_mds.cpp), whose file
-// comment describes the bone maths. Original VibeStudio code.
+// together with SlopStudio's own decoder (model_format_mds.cpp), whose file
+// comment describes the bone maths. Original SlopStudio code.
 
 #include "core/model_document.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ModelMdsExportOptions {
 	// The bone torso animation pivots about, or -1 for none.
@@ -39,4 +39,4 @@ struct ModelMdsExportOptions {
 QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& options, QString* error = nullptr,
 	const ModelWorkControl& control = {}, ModelExportReport* report = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -15,7 +15,7 @@
 #include <atomic>
 #include <exception>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString text(const char* value) { return QCoreApplication::translate("LevelUdmfDialog", value); }
 } // namespace
@@ -301,4 +301,4 @@ void LevelUdmfDialog::reject() {
 	}
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

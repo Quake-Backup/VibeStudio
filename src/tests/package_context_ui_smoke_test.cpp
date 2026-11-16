@@ -19,7 +19,7 @@
 #include <QTimer>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 	PackageStagingModel expected; expected.loadBaseArchive(archive, &error); expected.deleteEntry(texture, &error);
 	const int baseCount = archive.summary().entryCount, deletedCount = packagePlannedArchive(expected).summary().entryCount;
 	if (!expect(ok && baseCount != deletedCount, "fixture distinguishes original and planned entry counts")) { return 1; }
-	const QString blockedDraft = temporary.filePath(QStringLiteral("blocked.vibepackage"));
+	const QString blockedDraft = temporary.filePath(QStringLiteral("blocked.sloppackage"));
 	ok &= expect(tests::saveLegacyDeepPackageDraft(blockedDraft, &error), "prepare an admitted draft with a refused planned projection");
 	{
 		ApplicationShell shell; shell.resize(1440, 900); shell.show();
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
 		redo->click();
 		ok &= expect(until([&] { return healthText(health).contains("MISSING TEXTURES"); }) && countIs(deletedCount), "Redo refreshes both dependent views");
 
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			shell.findChild<QAction*>(QStringLiteral("shell.mode.levels"))->trigger();
 			for (auto* tabs : shell.findChildren<QTabWidget*>()) {

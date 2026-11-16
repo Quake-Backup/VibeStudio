@@ -27,7 +27,7 @@
 #include <array>
 #include <cmath>
 
-namespace vibestudio::model_formats {
+namespace slopstudio::model_formats {
 
 namespace {
 
@@ -112,12 +112,12 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, &mesh->error);
 	if (!work.check()) { return; }
 	if (!rangeOk(bytes, 0, kMdcHeaderBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDC header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDC header is truncated.");
 		return;
 	}
 	mesh->version = readI32(bytes, 4);
 	if (mesh->version != 2) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported MDC version %1; only IDPC version 2 is decoded.").arg(mesh->version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported MDC version %1; only IDPC version 2 is decoded.").arg(mesh->version);
 		return;
 	}
 
@@ -136,23 +136,23 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 
 	// R_LoadMDC copies ofsEnd bytes, so the end offset bounds everything.
 	if (endOffset < kMdcHeaderBytes || endOffset > bytes.size()) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDC end offset (%1) does not match the file size (%2).")
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDC end offset (%1) does not match the file size (%2).")
 			.arg(endOffset).arg(bytes.size());
 		return;
 	}
 	if (endOffset < bytes.size()) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdc-trailing-bytes"), QCoreApplication::translate("VibeStudioModelMesh", "The MDC ends at byte %1 of %2; the bytes after it are ignored.")
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdc-trailing-bytes"), QCoreApplication::translate("SlopStudioModelMesh", "The MDC ends at byte %1 of %2; the bytes after it are ignored.")
 			.arg(endOffset).arg(bytes.size()));
 	}
 	const QByteArray data = endOffset < bytes.size() ? bytes.left(qsizetype(endOffset)) : bytes;
 
 	if (frameCount <= 0 || frameCount > kMaxFrames || tagCount < 0 || tagCount > kMaxTags || surfaceCount < 0 || surfaceCount > kMaxSurfaces
 		|| skinCount < 0 || skinCount > kMaxSkins) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDC header declares counts outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDC header declares counts outside the supported range.");
 		return;
 	}
 	if (qint64(tagCount) * qint64(frameCount) > qint64(kMaxTags) * 16LL) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDC declares more tags than can be decoded.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDC declares more tags than can be decoded.");
 		return;
 	}
 	// A block is fine when it is empty or lies after the header inside the file.
@@ -160,23 +160,23 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		return length == 0 || (offset >= kMdcHeaderBytes && rangeOk(data, offset, length));
 	};
 	if (!blockOk(frameOffset, qint64(frameCount) * kMdcFrameBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDC frame block lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDC frame block lies outside the file.");
 		return;
 	}
 	if (!blockOk(tagNameOffset, qint64(tagCount) * kMdcTagNameBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDC tag name block lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDC tag name block lies outside the file.");
 		return;
 	}
 	if (!blockOk(tagOffset, qint64(tagCount) * qint64(frameCount) * kMdcTagBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDC tag block lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDC tag block lies outside the file.");
 		return;
 	}
 
 	if (!internalName.isEmpty()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Internal name: %1").arg(internalName);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Internal name: %1").arg(internalName);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Flags: 0x%1").arg(QString::number(quint32(flags), 16));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Declared skins: %1").arg(skinCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Flags: 0x%1").arg(QString::number(quint32(flags), 16));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Declared skins: %1").arg(skinCount);
 
 	// md3Frame_t
 	mesh->frames.reserve(frameCount);
@@ -238,7 +238,7 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	for (int walked = 0; walked < surfaceCount; ++walked) {
 		if (!work.step()) { return; }
 		if (offset < kMdcHeaderBytes || !rangeOk(data, offset, kMdcSurfaceHeaderBytes)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDC surface %1 lies outside the file.").arg(walked);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDC surface %1 lies outside the file.").arg(walked);
 			return;
 		}
 		// mdcSurface_t
@@ -259,18 +259,18 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		const qint64 surfaceEnd = readI32(data, offset + 120);
 
 		if (surfaceEnd < kMdcSurfaceHeaderBytes || !rangeOk(data, offset, surfaceEnd)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDC surface %1 declares an end offset outside the file.").arg(walked);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDC surface %1 declares an end offset outside the file.").arg(walked);
 			return;
 		}
 		if (baseFrameCount <= 0 || baseFrameCount > kMaxFrames || compFrameCount < 0 || compFrameCount > kMaxFrames || shaderCount < 0
 			|| shaderCount > kMaxSkins || vertexCount <= 0 || vertexCount > kMaxSurfaceVertices || triangleCount < 0
 			|| triangleCount > kMaxSurfaceTriangles) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDC surface %1 declares counts outside the supported range.").arg(walked);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDC surface %1 declares counts outside the supported range.").arg(walked);
 			return;
 		}
 		const qint64 surfaceVertexSlots = qint64(vertexCount) * qint64(frameCount);
 		if (surfaceVertexSlots > kMaxVertexSlots - totalVertexSlots) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MDC declares more frame vertices than can be decoded.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MDC declares more frame vertices than can be decoded.");
 			return;
 		}
 		totalVertexSlots += surfaceVertexSlots;
@@ -293,7 +293,7 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			|| !inRecord(xyzCompressedOffset, qint64(vertexCount) * qint64(compFrameCount) * kMdcXyzCompressedBytes)
 			|| !inRecord(baseFrameTableOffset, qint64(frameCount) * 2)
 			|| (compFrameCount > 0 && !inRecord(compFrameTableOffset, qint64(frameCount) * 2))) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "MDC surface %1 has a data block outside its record.").arg(walked);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "MDC surface %1 has a data block outside its record.").arg(walked);
 			return;
 		}
 
@@ -302,7 +302,7 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		surface.name = name.isEmpty() ? QStringLiteral("surface%1").arg(surface.index) : name;
 		surface.vertexCount = vertexCount;
 		if (surfaceFlags != 0) {
-			noteModelSurfaceIssue(mesh, &surface, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdc-surface-flags"), QCoreApplication::translate("VibeStudioModelMesh", "Surface flags: 0x%1").arg(QString::number(quint32(surfaceFlags), 16)));
+			noteModelSurfaceIssue(mesh, &surface, ModelDecodeIssueSeverity::Advisory, QStringLiteral("mdc-surface-flags"), QCoreApplication::translate("SlopStudioModelMesh", "Surface flags: 0x%1").arg(QString::number(quint32(surfaceFlags), 16)));
 		}
 
 		// md3Shader_t
@@ -345,7 +345,7 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			surface.triangles.append(ModelTriangle{a, c, b});
 		}
 		if (skippedTriangles > 0) {
-			surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
+			surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
 		}
 
 		surface.frames.reserve(frameCount);
@@ -354,12 +354,12 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			const int baseFrame = readI16(data, offset + baseFrameTableOffset + (qint64(frameIndex) * 2));
 			const int compFrame = compFrameCount > 0 ? int(readI16(data, offset + compFrameTableOffset + (qint64(frameIndex) * 2))) : -1;
 			if (baseFrame < 0 || baseFrame >= baseFrameCount) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Frame %1 of MDC surface %2 names base frame %3, which does not exist.")
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Frame %1 of MDC surface %2 names base frame %3, which does not exist.")
 					.arg(frameIndex).arg(walked).arg(baseFrame);
 				return;
 			}
 			if (compFrame < -1 || compFrame >= compFrameCount) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Frame %1 of MDC surface %2 names compressed frame %3, which does not exist.")
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Frame %1 of MDC surface %2 names compressed frame %3, which does not exist.")
 					.arg(frameIndex).arg(walked).arg(compFrame);
 				return;
 			}
@@ -405,7 +405,7 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			++compressedFrames;
 		}
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Compressed frames: %1 of %2 frame(s) add stored offsets to a base frame.")
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Compressed frames: %1 of %2 frame(s) add stored offsets to a base frame.")
 		.arg(compressedFrames).arg(frameCount);
 
 	mesh->skinCount = std::max(skinCount, int(mesh->skinPaths.size()));
@@ -425,8 +425,8 @@ void decodeMdc(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	}
 	mesh->geometryAvailable = !mesh->surfaces.isEmpty();
 	if (!mesh->geometryAvailable) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The MDC holds no surfaces.");
+		mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "The MDC holds no surfaces.");
 	}
 }
 
-} // namespace vibestudio::model_formats
+} // namespace slopstudio::model_formats

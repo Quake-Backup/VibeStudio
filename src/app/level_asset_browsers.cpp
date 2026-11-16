@@ -37,7 +37,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -892,9 +892,9 @@ QString ApplicationShell::levelModelPlaceHint() const
 		return tr("Open a Quake-family map to place models and sounds.");
 	}
 	const QString className = levelModelEntityClass();
-	// VibeMap3 bakes misc_model whatever the game's definitions say.
+	// SlopMap3 bakes misc_model whatever the game's definitions say.
 	if (m_levelMapDocument.format == LevelMapFormat::Quake3Map) {
-		return tr("Models are placed as %1 entities with their model key set; VibeMap3 bakes them into the map.").arg(className);
+		return tr("Models are placed as %1 entities with their model key set; SlopMap3 bakes them into the map.").arg(className);
 	}
 	EntityClassDefinition definition;
 	const QString placed = tr("Models are placed as %1 entities with their model key set.").arg(className);
@@ -1021,4 +1021,4 @@ bool ApplicationShell::assignLevelAsset(const QString& payload)
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

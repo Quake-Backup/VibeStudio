@@ -10,7 +10,7 @@
 #include <array>
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Immutable projection shared by the render worker and exact vertex picker.
 // Each finite vertex occupies one cell; screen-edge cells also retain vertices
@@ -29,4 +29,4 @@ bool indexModelVertices(ModelVertexProjection *projection, const std::atomic_boo
 int pickModelVertex(const ModelVertexProjection &projection, QPointF point, double tolerance, bool xray);
 bool renderModelVertexOverlay(const ModelVertexProjection &projection, QSize size, double pixelRatio, const QSet<int> &selected, bool xray,
 							  bool transforming, QColor accent, QImage *image, const std::atomic_bool *cancelled = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

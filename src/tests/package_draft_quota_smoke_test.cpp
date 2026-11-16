@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label, const QString& error = {})
 {
@@ -26,7 +26,7 @@ QByteArray read(const QString& path) { QFile file(path); return file.open(QIODev
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv); QTemporaryDir temporary; if (!temporary.isValid()) { return 1; }
-	const QDir root(temporary.path()); const QString destination = root.filePath(QStringLiteral("bounded.vibepackage"));
+	const QDir root(temporary.path()); const QString destination = root.filePath(QStringLiteral("bounded.sloppackage"));
 	PackageStagingModel plan; plan.createEmpty(PackageArchiveFormat::Pk3); QString error; bool ok = true;
 	ok &= plan.addBytes("identical", QStringLiteral("one.bin"), &error);
 	ok &= plan.addBytes("identical", QStringLiteral("two.bin"), &error);
@@ -61,9 +61,9 @@ int main(int argc, char** argv)
 		"recognized interrupted writes consume file quota without being silently evicted", error);
 	ok &= expect(QFile::remove(interrupted) && PackageDraft::save(destination, &plan, true, &error, limits(100000, 3)),
 		"removing a synthetic interrupted write restores manifest headroom", error);
-	const QString empty = root.filePath(QStringLiteral("empty.vibepackage")); PackageStagingModel blank; blank.createEmpty(PackageArchiveFormat::Pk3);
+	const QString empty = root.filePath(QStringLiteral("empty.sloppackage")); PackageStagingModel blank; blank.createEmpty(PackageArchiveFormat::Pk3);
 	ok &= expect(PackageDraft::save(empty, &blank, false, &error, limits(100000, 1)), "empty document fits one manifest slot", error);
-	const QString zero = root.filePath(QStringLiteral("zero.vibepackage")); PackageStagingModel zeroBytes; zeroBytes.createEmpty(PackageArchiveFormat::Pk3);
+	const QString zero = root.filePath(QStringLiteral("zero.sloppackage")); PackageStagingModel zeroBytes; zeroBytes.createEmpty(PackageArchiveFormat::Pk3);
 	ok &= zeroBytes.addBytes({}, QStringLiteral("empty.bin"), &error);
 	ok &= expect(!PackageDraft::save(zero, &zeroBytes, false, &error, limits(100000, 1)) && !QFileInfo::exists(zero), "zero-byte payloads still need a file slot", error);
 	ok &= expect(PackageDraft::save(zero, &zeroBytes, false, &error, limits(100000, 2)), "zero-byte payload and metadata fit two slots", error);

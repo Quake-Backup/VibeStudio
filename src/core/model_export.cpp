@@ -23,7 +23,7 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -87,7 +87,7 @@ QByteArray md2(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 	}
 	if (mesh.surfaces.size() != 1 || over(mesh.frames.size(), limits.frames) || !mesh.tags.isEmpty() || !mesh.embeddedSkins.isEmpty())
 	{
-		return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 														  "MD2 requires one surface, at most %1 frames for the delivery target, and no "
 														  "attachment tags or embedded skins. Keep these in the editable source or export MD3.")
 								  .arg(limits.frames));
@@ -96,7 +96,7 @@ QByteArray md2(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 	const int width = mesh.md2SkinSize.width(), height = mesh.md2SkinSize.height();
 	if (over(width, limits.skinWidth) || over(height, limits.skinHeight))
 	{
-		return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 														  "The delivery target loads MD2 skins of at most %1 by %2 pixels. Resize the skin "
 														  "and use matching PCX images.")
 								  .arg(limits.skinWidth)
@@ -104,7 +104,7 @@ QByteArray md2(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 	}
 	if (over(surface.triangles.size(), limits.triangles) || over(surface.skinPaths.size(), limits.skins) || surface.vertexCount > 32767)
 	{
-		return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 														  "The delivery target allows at most %1 triangles and %2 skin slots, and MD2 "
 														  "indexes at most 32767 UV vertices.")
 								  .arg(limits.triangles)
@@ -114,7 +114,7 @@ QByteArray md2(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 	{
 		if (!asciiName(path, 64) || !path.endsWith(QStringLiteral(".pcx")))
 		{
-			return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+			return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 															  "MD2 skin slots must reference package-relative PCX paths of at most 63 "
 															  "printable ASCII characters. Assign a PCX material before exporting."));
 		}
@@ -124,7 +124,7 @@ QByteArray md2(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 		if (!asciiName(frame.name, 16, true))
 		{
 			return failure(
-				error, QCoreApplication::translate("VibeStudioModelDocument", "MD2 frame names must fit 15 printable ASCII characters."));
+				error, QCoreApplication::translate("SlopStudioModelDocument", "MD2 frame names must fit 15 printable ASCII characters."));
 		}
 	}
 
@@ -138,7 +138,7 @@ QByteArray md2(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 	}
 	if (over(representative.size(), limits.vertices))
 	{
-		return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 														  "MD2 stores %1 position/normal vertices after sharing exact UV seams across all "
 														  "poses; the delivery target allows %2. Reduce geometry or hard-normal splits.")
 								  .arg(representative.size())
@@ -154,7 +154,7 @@ QByteArray md2(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 		const auto uv = surface.texCoords[v];
 		if (uv.u < 0 || uv.u > 1 || uv.v < 0 || uv.v > 1)
 		{
-			return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+			return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 															  "MD2 UV vertex %1 lies outside the 0–1 skin tile. Move or scale the UVs into "
 															  "the tile for Quake II software-renderer compatibility.")
 									  .arg(v));
@@ -177,7 +177,7 @@ QByteArray md2(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 		}
 		if (over(drawn.size(), limits.renderVertices))
 		{
-			return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+			return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 															  "The delivery target builds %1 drawn vertices for this MD2, one per distinct position "
 															  "and texel, and holds at most %2. Reduce geometry or UV splits.")
 									  .arg(drawn.size())
@@ -313,7 +313,7 @@ QByteArray md2(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 			const auto before = normal(pose.positions[t.a], pose.positions[t.b], pose.positions[t.c]), after = normal(a, b, c);
 			if (before[0] * after[0] + before[1] * after[1] + before[2] * after[2] <= 0)
 			{
-				return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+				return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 																  "MD2 byte precision collapses or reverses triangle %1 in frame %2. "
 																  "Increase the feature's size relative to the model or export MD3.")
 										  .arg(i)
@@ -322,7 +322,7 @@ QByteArray md2(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 		}
 	}
 	result.storedVertices = vertices;
-	result.notes << QCoreApplication::translate("VibeStudioModelDocument",
+	result.notes << QCoreApplication::translate("SlopStudioModelDocument",
 												"MD2 quantizes every pose to 8-bit positions, normals to 162 directions, and UVs to skin "
 												"texel centres. Maximum errors: %1 model units, %2 degrees, %3 UV units.")
 						.arg(result.maxPositionError, 0, 'g', 6)
@@ -331,7 +331,7 @@ QByteArray md2(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 	// Guidance for every MD2; the clips and frame origins it actually leaves
 	// out are reported with exportEditableModel's shared notes.
 	result.notes << QCoreApplication::translate(
-		"VibeStudioModelDocument", "Surface names, frame origins, custom animation ranges/FPS and seam marks remain in the editable source. "
+		"SlopStudioModelDocument", "Surface names, frame origins, custom animation ranges/FPS and seam marks remain in the editable source. "
 								   "MD2 animation groups are inferred from frame names. Supply matching PCX skins through the package.");
 	if (!work.check())
 	{
@@ -360,7 +360,7 @@ QByteArray md3(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 	}
 	if (!mesh.embeddedSkins.isEmpty())
 	{
-		return failure(error, QCoreApplication::translate("VibeStudioModelDocument", "MD3 cannot embed skin images. Export and assign "
+		return failure(error, QCoreApplication::translate("SlopStudioModelDocument", "MD3 cannot embed skin images. Export and assign "
 																					 "project textures before converting."));
 	}
 	for (const auto &frame : mesh.frames)
@@ -372,7 +372,7 @@ QByteArray md3(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 		if (!asciiName(frame.name, 16, true))
 		{
 			return failure(
-				error, QCoreApplication::translate("VibeStudioModelDocument", "MD3 frame names must fit 15 printable ASCII characters."));
+				error, QCoreApplication::translate("SlopStudioModelDocument", "MD3 frame names must fit 15 printable ASCII characters."));
 		}
 	}
 	QStringList tagNames;
@@ -385,7 +385,7 @@ QByteArray md3(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 		if (!asciiName(tag.name, 64))
 		{
 			return failure(error,
-						   QCoreApplication::translate("VibeStudioModelDocument", "MD3 tag names must fit 63 printable ASCII characters."));
+						   QCoreApplication::translate("SlopStudioModelDocument", "MD3 tag names must fit 63 printable ASCII characters."));
 		}
 		if (tag.frameIndex == 0)
 		{
@@ -415,18 +415,18 @@ QByteArray md3(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 			return failure(
 				error,
 				QCoreApplication::translate(
-					"VibeStudioModelDocument",
+					"SlopStudioModelDocument",
 					"MD3 surface names collide after Quake III's case and suffix normalization. Rename the surfaces before export."));
 		}
 		engineSurfaceNames.insert(engineName);
 		if (!asciiName(surface.name, 64))
 		{
-			return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+			return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 															  "MD3 surface names must fit 63 printable ASCII characters."));
 		}
 		if (over(surface.vertexCount, limits.vertices) || over(surface.triangles.size(), limits.triangles))
 		{
-			return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+			return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 															  "The delivery target draws MD3 surfaces of at most %1 vertices and %2 triangles; "
 															  "surface \"%3\" has %4 and %5. Split larger surfaces before export.")
 									  .arg(QString::number(limits.vertices), QString::number(limits.triangles), surface.name,
@@ -440,7 +440,7 @@ QByteArray md3(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 			}
 			if (!asciiName(material, 64))
 			{
-				return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+				return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 																  "MD3 material paths must fit 63 printable ASCII characters."));
 			}
 		}
@@ -461,7 +461,7 @@ QByteArray md3(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 				const auto q = quantize(p);
 				if (q.x < -32768 || q.x > 32767 || q.y < -32768 || q.y > 32767 || q.z < -32768 || q.z > 32767)
 				{
-					return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+					return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 																	  "Every MD3 frame must fit coordinates -512 through "
 																	  "511.984375. Resize or recenter the model."));
 				}
@@ -474,7 +474,7 @@ QByteArray md3(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 				}
 				if (collapsed(quantize(frame.positions[t.a]), quantize(frame.positions[t.b]), quantize(frame.positions[t.c])))
 				{
-					return failure(error, QCoreApplication::translate("VibeStudioModelDocument", "MD3 precision would collapse a triangle "
+					return failure(error, QCoreApplication::translate("SlopStudioModelDocument", "MD3 precision would collapse a triangle "
 																								 "in an animation frame."));
 				}
 			}
@@ -482,12 +482,12 @@ QByteArray md3(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 	}
 	if (total > modelDocumentMaxSourceBytes)
 	{
-		return failure(error, QCoreApplication::translate("VibeStudioModelDocument", "The MD3 output exceeds 64 MiB."));
+		return failure(error, QCoreApplication::translate("SlopStudioModelDocument", "The MD3 output exceeds 64 MiB."));
 	}
 	QByteArray bytes(static_cast<int>(total), '\0');
 	text(bytes, 0, QStringLiteral("IDP3"));
 	integer(bytes, 4, 15);
-	text(bytes, 8, QStringLiteral("vibestudio"));
+	text(bytes, 8, QStringLiteral("slopstudio"));
 	integer(bytes, 76, frames);
 	integer(bytes, 80, tagCount);
 	integer(bytes, 84, mesh.surfaces.size());
@@ -559,7 +559,7 @@ QByteArray md3(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 			const ModelTag *found = tagAt.value(qMakePair(f, tagNames[t]));
 			if (!found)
 			{
-				return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+				return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 																  "Every MD3 frame needs every tag; frame %1 has no tag \"%2\".")
 										  .arg(QString::number(f), tagNames[t]));
 			}
@@ -676,18 +676,18 @@ QString listed(const QStringList &names, int shown = 8)
 		return names.join(QStringLiteral(", "));
 	}
 	const int more = int(names.size()) - shown;
-	return QCoreApplication::translate("VibeStudioModelDocument", "%1 and %n more", nullptr, more).arg(names.mid(0, shown).join(QStringLiteral(", ")));
+	return QCoreApplication::translate("SlopStudioModelDocument", "%1 and %n more", nullptr, more).arg(names.mid(0, shown).join(QStringLiteral(", ")));
 }
 
 QString formatTitle(const QString &format)
 {
 	if (format == QStringLiteral("md5mesh"))
 	{
-		return QCoreApplication::translate("VibeStudioModelDocument", "MD5 mesh");
+		return QCoreApplication::translate("SlopStudioModelDocument", "MD5 mesh");
 	}
 	if (format == QStringLiteral("md5anim"))
 	{
-		return QCoreApplication::translate("VibeStudioModelDocument", "MD5 animation");
+		return QCoreApplication::translate("SlopStudioModelDocument", "MD5 animation");
 	}
 	return format.toUpper();
 }
@@ -763,7 +763,7 @@ void appendVertexFormatNotes(const ModelMesh &mesh, const QString &format, Model
 		const auto lost = clipsLostByFrameNames(mesh);
 		if (!lost.isEmpty())
 		{
-			omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+			omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 													 "%1 has no animation clip table: readers rebuild clips from the frame names, so the names, "
 													 "ranges or frame rates of these clips stay in the editable source (%n): %2. Name each clip's "
 													 "frames after it (stand1, stand2 and so on), and set playback rates in the target game's "
@@ -774,7 +774,7 @@ void appendVertexFormatNotes(const ModelMesh &mesh, const QString &format, Model
 		else if (md3 && !mesh.animations.isEmpty())
 		{
 			report->notes << QCoreApplication::translate(
-				"VibeStudioModelDocument", "MD3 keeps every frame pose, frame name and attachment tag. It has no clip table, so readers rebuild "
+				"SlopStudioModelDocument", "MD3 keeps every frame pose, frame name and attachment tag. It has no clip table, so readers rebuild "
 										   "the clips from the frame names; configure animation ranges and timing for the target game separately.");
 		}
 	}
@@ -783,7 +783,7 @@ void appendVertexFormatNotes(const ModelMesh &mesh, const QString &format, Model
 		const int origins = authoredFrameOrigins(mesh);
 		if (origins > 0)
 		{
-			omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+			omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 													 "%1 stores no frame origins, and readers place each one at the centre of the frame's bounds. "
 													 "Frames whose authored origin stays in the editable source: %n. Export MD3 to keep them.",
 													 nullptr, origins)
@@ -792,7 +792,7 @@ void appendVertexFormatNotes(const ModelMesh &mesh, const QString &format, Model
 	}
 	if (!mesh.skeleton.isEmpty())
 	{
-		omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+		omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 												 "%1 stores vertex positions only, so the skeleton stays in the editable source: its joints (%n), "
 												 "weights and skeletal clips. Export MD5 or IQM to keep the skeleton.",
 												 nullptr, int(mesh.skeleton.joints.size()))
@@ -809,7 +809,7 @@ void appendVertexFormatNotes(const ModelMesh &mesh, const QString &format, Model
 		}
 		if (!outside.isEmpty())
 		{
-			omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+			omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 													 "%1 writes only the frames of the skeletal working set, so these clips are not in the file: %2. "
 													 "Add them with Skeleton > Working Set or model pose --operation working-set, or export MD5 "
 													 "or IQM, which write every clip.")
@@ -843,16 +843,16 @@ bool appendSourceNotes(const ModelMesh &mesh, const QString &format, int clip, M
 		if (!tags.isEmpty())
 		{
 			const int count = int(tags.size());
-			omit(report, (md5mesh ? QCoreApplication::translate("VibeStudioModelDocument",
+			omit(report, (md5mesh ? QCoreApplication::translate("SlopStudioModelDocument",
 																"MD5 meshes have no attachment tags, so these stay in the editable source (%n): %1. "
 																"Doom 3 attaches entities to joints by name; add joints at the attachment points, "
 																"or export MD3 to keep the tags.",
 																nullptr, count)
-						   : iqm   ? QCoreApplication::translate("VibeStudioModelDocument",
+						   : iqm   ? QCoreApplication::translate("SlopStudioModelDocument",
 																 "IQM has no attachment tags, so these stay in the editable source (%n): %1. Attach "
 																 "to joints in the game code, or export MD3 to keep the tags.",
 																 nullptr, count)
-								   : QCoreApplication::translate("VibeStudioModelDocument",
+								   : QCoreApplication::translate("SlopStudioModelDocument",
 																 "ASE stores static geometry only, so its attachment tags stay in the editable "
 																 "source (%n): %1. Export MD3 to keep the tags.",
 																 nullptr, count))
@@ -865,13 +865,13 @@ bool appendSourceNotes(const ModelMesh &mesh, const QString &format, int clip, M
 		if (mesh.mdl.enabled)
 		{
 			omit(report, QCoreApplication::translate(
-							 "VibeStudioModelDocument",
+							 "SlopStudioModelDocument",
 							 "MDL native groups, timing, palette and header settings remain in the editable source; %1 does not store them.")
 							 .arg(title));
 		}
 		if (!mesh.embeddedSkins.isEmpty())
 		{
-			omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+			omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 													 "%1 names materials by path, so export the embedded skins as textures and assign their paths "
 													 "as materials. Embedded skin images that stay in the editable source: %n.",
 													 nullptr, int(mesh.embeddedSkins.size()))
@@ -886,7 +886,7 @@ bool appendSourceNotes(const ModelMesh &mesh, const QString &format, int clip, M
 		}
 		if (!alternates.isEmpty())
 		{
-			omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+			omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 													 "Surfaces with alternate material slots that %1 cannot hold, so only the first slot of each "
 													 "is written (%n): %2. Provide the alternates as skin files for the target game.",
 													 nullptr, int(alternates.size()))
@@ -895,12 +895,12 @@ bool appendSourceNotes(const ModelMesh &mesh, const QString &format, int clip, M
 	}
 	if (ase && mesh.frames.size() > 1)
 	{
-		omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+		omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 												 "ASE holds one static frame; Doom 3, Quake 4 and q3map2 misc_model read it as a static model."));
 	}
 	if (ase && !skeleton.isEmpty())
 	{
-		omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+		omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 												 "ASE stores no joints or weights, so the skeleton's %n joint(s) and its clips stay in the "
 												 "editable source. Export MD5 or IQM to keep them.",
 												 nullptr, int(skeleton.joints.size())));
@@ -915,7 +915,7 @@ bool appendSourceNotes(const ModelMesh &mesh, const QString &format, int clip, M
 		const int later = int(mesh.frames.size()) - 1;
 		if (md5mesh && later > 0)
 		{
-			omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+			omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 													 "An md5mesh holds one pose and this model animates by frames, so it writes the first frame "
 													 "and leaves out %n later frame(s). Export MD3 for vertex animation, or add joints and "
 													 "skeletal clips.",
@@ -924,7 +924,7 @@ bool appendSourceNotes(const ModelMesh &mesh, const QString &format, int clip, M
 		if (iqm && mesh.frames.size() > 1)
 		{
 			omit(report, QCoreApplication::translate(
-							 "VibeStudioModelDocument",
+							 "SlopStudioModelDocument",
 							 "IQM animates through joints; this model has none, so the first frame is written as a static mesh."));
 		}
 		return true;
@@ -950,7 +950,7 @@ bool appendSourceNotes(const ModelMesh &mesh, const QString &format, int clip, M
 	}
 	if (edited > 0)
 	{
-		omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+		omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 												 "Baked frames that differ from the poses the skeleton produces (%n, in %1): edits made apart "
 												 "from the skeleton, or a bind-pose edit the clips do not show yet. %2 writes the "
 												 "skeleton's poses, so these differences are not exported; export MD3 to keep the edited frames.",
@@ -964,7 +964,7 @@ bool appendSourceNotes(const ModelMesh &mesh, const QString &format, int clip, M
 	{
 		QStringList frames;
 		for (int frame : audit.unmappedFrames) { frames << mesh.frames.at(frame).name; }
-		omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+		omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 												 "Frames that are not samples of a skeletal clip, added or rearranged with frame edits (%n): %1. "
 												 "%2 writes the skeletal clips, so these frames are not exported; export MD3 to keep them.",
 												 nullptr, int(audit.unmappedFrames.size()))
@@ -979,7 +979,7 @@ bool appendSourceNotes(const ModelMesh &mesh, const QString &format, int clip, M
 		}
 		if (!sampled)
 		{
-			omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+			omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 													 "No baked frame is a sample of clip \"%1\" any more (frames were added or removed with frame "
 													 "edits), so edits to its frames cannot be checked. The md5anim writes the clip as the skeleton "
 													 "holds it.")
@@ -1001,7 +1001,7 @@ bool appendSourceNotes(const ModelMesh &mesh, const QString &format, int clip, M
 	}
 	if (!changed.isEmpty())
 	{
-		omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+		omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 												 "Frame animations that no longer match a skeletal clip's name, length or rate (%n): %1. %2 "
 												 "writes the skeletal clips' names and rates; change clips with Edit Skeletal Animation.",
 												 nullptr, int(changed.size()))
@@ -1054,7 +1054,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 		{
 			if (rebound > 0)
 			{
-				report->notes << QCoreApplication::translate("VibeStudioModelDocument",
+				report->notes << QCoreApplication::translate("SlopStudioModelDocument",
 															 "Bind-pose edits to %n vertex(es) were re-bound to their joints for this "
 															 "export, so every clip follows them.",
 															 nullptr, rebound);
@@ -1067,7 +1067,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 			result = exportModelMd5Mesh(prepared, {}, error, control, report);
 			if (!result.isEmpty() && prepared.skeleton.isEmpty())
 			{
-				report->notes << QCoreApplication::translate("VibeStudioModelDocument",
+				report->notes << QCoreApplication::translate("SlopStudioModelDocument",
 															 "The model has no joints, so the md5mesh binds every vertex to one origin joint.");
 			}
 			if (!result.isEmpty())
@@ -1080,7 +1080,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 			const auto &clips = prepared.skeleton.clips;
 			if (prepared.skeleton.isEmpty() || clips.isEmpty())
 			{
-				return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+				return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 																  "An md5anim needs a skeletal clip; this model animates by frames."));
 			}
 			clip = options.clip;
@@ -1089,7 +1089,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 				// The clip the frame is a sample of, as the editor shows it.
 				if (frame < 0 || frame >= mesh.frames.size())
 				{
-					return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+					return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 																	  "Select a valid frame or skeletal clip for MD5 animation export."));
 				}
 				clip = modelSkeletalClipForFrame(mesh, frame);
@@ -1099,7 +1099,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 				}
 				if (clip < 0)
 				{
-					return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+					return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 																	  "Frame %1 is not a sample of a skeletal clip, and the model has %n "
 																	  "clip(s). Choose the clip to write as an md5anim: %2.",
 																	  nullptr, int(clips.size()))
@@ -1108,7 +1108,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 			}
 			if (clip >= clips.size())
 			{
-				return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+				return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 																  "The model has %n skeletal clip(s), so there is no clip %1. Choose one of: %2.",
 																  nullptr, int(clips.size()))
 										  .arg(QString::number(clip), modelSkeletalClipSummaries(prepared.skeleton).join(QStringLiteral("; "))));
@@ -1146,7 +1146,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 	{
 		if (frame < 0 || frame >= mesh.frames.size())
 		{
-			return failure(error, QCoreApplication::translate("VibeStudioModelDocument", "Select a valid frame for ASE export."));
+			return failure(error, QCoreApplication::translate("SlopStudioModelDocument", "Select a valid frame for ASE export."));
 		}
 		auto result = exportModelAse(mesh, frame, error, control, report);
 		if (!result.isEmpty() && !appendSourceNotes(mesh, id, -1, report, error, control))
@@ -1162,7 +1162,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 		if (!result.isEmpty() && mesh.mdl.enabled)
 		{
 			omit(report, QCoreApplication::translate(
-				"VibeStudioModelDocument",
+				"SlopStudioModelDocument",
 				"MDL native groups, timing, palette and header settings remain in the editable source; MD3 does not store them."));
 		}
 		if (!result.isEmpty())
@@ -1178,7 +1178,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 		if (!result.isEmpty() && mesh.mdl.enabled)
 		{
 			omit(report, QCoreApplication::translate(
-				"VibeStudioModelDocument",
+				"SlopStudioModelDocument",
 				"MDL native groups, timing, palette and header settings remain in the editable source; MD2 does not store them."));
 		}
 		if (!result.isEmpty())
@@ -1191,7 +1191,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 	{
 		if (frame < 0 || frame >= mesh.frames.size())
 		{
-			return failure(error, QCoreApplication::translate("VibeStudioModelDocument", "Select a valid frame for OBJ export."));
+			return failure(error, QCoreApplication::translate("SlopStudioModelDocument", "Select a valid frame for OBJ export."));
 		}
 		// OBJ group/material names are tokens. Refuse ambiguous names instead
 		// of silently renaming groups or creating extra material assignments.
@@ -1205,7 +1205,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 			if (!token.match(surface.name).hasMatch() ||
 				(!surface.skinPaths.isEmpty() && !token.match(surface.skinPaths.first()).hasMatch()))
 			{
-				return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+				return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 																  "OBJ surface and material names must use ASCII letters, "
 																  "digits, underscores, dots, slashes, or hyphens."));
 			}
@@ -1259,7 +1259,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 		{
 			result.prepend(QStringLiteral(
 				"# Attachment tags are omitted: OBJ stores geometry only. Retain the mesh source or use MD3 for attachments.\n"));
-			omit(report, QCoreApplication::translate("VibeStudioModelDocument",
+			omit(report, QCoreApplication::translate("SlopStudioModelDocument",
 													 "OBJ exports geometry only; attachment tags are omitted. The editable source "
 													 "retains them. Use MD3 to export attachments."));
 		}
@@ -1268,7 +1268,7 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 		if (mesh.frames.size() > 1)
 		{
 			omit(report, QCoreApplication::translate(
-				"VibeStudioModelDocument",
+				"SlopStudioModelDocument",
 				"OBJ exports only the selected frame. Other poses and animation clips remain in the editable source."));
 		}
 		appendVertexFormatNotes(mesh, id, report);
@@ -1276,12 +1276,12 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 		{
 			result.prepend(QStringLiteral("# MDL indexed skins, native groups and header settings remain in the mesh source.\n"));
 			omit(report, QCoreApplication::translate(
-				"VibeStudioModelDocument",
+				"SlopStudioModelDocument",
 				"OBJ omits MDL indexed skins, native groups and header settings. Retain the editable source or export MDL."));
 		}
 		return result.toUtf8();
 	}
-	return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+	return failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 													  "Editable model export supports MDL, MD2, MD3, MD5 mesh or animation, IQM, ASE, MDS, or a "
 													  "single OBJ frame."));
 }
@@ -1315,10 +1315,10 @@ QByteArray exportEditableModel(const ModelMesh &mesh, const QString &format, con
 	{
 		const auto choices = modelTargetChoices(id);
 		return failure(error, choices.isEmpty()
-								  ? QCoreApplication::translate("VibeStudioModelDocument",
+								  ? QCoreApplication::translate("SlopStudioModelDocument",
 																"%1 export has no delivery targets; leave the target out.")
 										.arg(formatTitle(id))
-								  : QCoreApplication::translate("VibeStudioModelDocument",
+								  : QCoreApplication::translate("SlopStudioModelDocument",
 																"There is no %1 delivery target called \"%2\". Choose one of: %3.")
 										.arg(formatTitle(id), options.target.trimmed(), choices));
 	}
@@ -1343,7 +1343,7 @@ QByteArray exportEditableModel(const ModelMesh &mesh, const QString &format, con
 				items << QStringLiteral("- ") + line;
 			}
 			const int blockers = int(target.issues.size());
-			failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+			failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 													   "Nothing was written: the model exceeds %n limit(s) of the %1 delivery target %2.",
 													   nullptr, blockers)
 								   .arg(formatTitle(id), profile.label) +
@@ -1369,7 +1369,7 @@ QByteArray exportEditableModel(const ModelMesh &mesh, const QString &format, con
 		{
 			items << QStringLiteral("- ") + omission;
 		}
-		failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+		failure(error, QCoreApplication::translate("SlopStudioModelDocument",
 												   "Strict export refused: the output would leave out %n item(s) the editable source holds.",
 												   nullptr, int(result.omissions.size())) +
 						   QLatin1Char('\n') + items.join(QLatin1Char('\n')));
@@ -1385,4 +1385,4 @@ QByteArray exportEditableModel(const ModelMesh &mesh, const QString &format, con
 	}
 	return bytes;
 }
-} // namespace vibestudio
+} // namespace slopstudio

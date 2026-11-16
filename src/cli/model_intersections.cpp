@@ -7,7 +7,7 @@
 #include <QHash>
 #include <QJsonArray>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -113,4 +113,4 @@ ModelIntersectionsCliResult runModelIntersections(const QStringList &arguments)
 					  {"findings", findings}};
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

@@ -22,12 +22,12 @@
 #include <limits>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelFaceFlags)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelFaceFlags)
 };
 
 struct FlagEntry {
@@ -39,54 +39,54 @@ struct FlagEntry {
 
 // Quake III's surfaceflags.h, CONTENTS_*.
 constexpr FlagEntry kQuake3Contents[] = {
-	{0x1, "solid", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Solid"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Blocks movement.")},
-	{0x8, "lava", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Lava"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Burning liquid.")},
-	{0x10, "slime", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Slime"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Harmful liquid.")},
-	{0x20, "water", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Water"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Swimmable liquid.")},
-	{0x40, "fog", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Fog"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "A fog volume.")},
-	{0x80, "notteam1", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Not team 1"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Blocks the first team.")},
-	{0x100, "notteam2", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Not team 2"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Blocks the second team.")},
-	{0x200, "nobotclip", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "No bot clip"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Bots ignore its clipping.")},
-	{0x8000, "areaportal", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Area portal"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Splits areas where a door closes.")},
-	{0x10000, "playerclip", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Player clip"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Blocks players only.")},
-	{0x20000, "monsterclip", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Monster clip"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Blocks monsters only.")},
-	{0x40000, "teleporter", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Teleporter"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "A teleporter for bot routes.")},
-	{0x80000, "jumppad", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Jump pad"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "A jump pad for bot routes.")},
-	{0x100000, "clusterportal", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Cluster portal"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Splits bot route clusters.")},
-	{0x200000, "donotenter", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Do not enter"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Bots stay out.")},
-	{0x400000, "botclip", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Bot clip"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Blocks bots only.")},
-	{0x800000, "mover", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Mover"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Part of a moving brush.")},
-	{0x1000000, "origin", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Origin"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Marks a brush model's rotation origin.")},
-	{0x2000000, "body", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Body"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Used by the game for bodies, not brushes.")},
-	{0x4000000, "corpse", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Corpse"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Used by the game for corpses, not brushes.")},
-	{0x8000000, "detail", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Detail"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Left out of the visibility split.")},
-	{0x10000000, "structural", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Structural"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Used for the visibility split.")},
-	{0x20000000, "translucent", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Translucent"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Does not hide what is behind it.")},
-	{0x40000000, "trigger", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Trigger"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "A trigger volume.")},
-	{0x80000000, "nodrop", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "No drop"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Items and bodies are removed here.")},
+	{0x1, "solid", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Solid"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Blocks movement.")},
+	{0x8, "lava", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Lava"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Burning liquid.")},
+	{0x10, "slime", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Slime"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Harmful liquid.")},
+	{0x20, "water", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Water"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Swimmable liquid.")},
+	{0x40, "fog", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Fog"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "A fog volume.")},
+	{0x80, "notteam1", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Not team 1"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Blocks the first team.")},
+	{0x100, "notteam2", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Not team 2"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Blocks the second team.")},
+	{0x200, "nobotclip", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "No bot clip"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Bots ignore its clipping.")},
+	{0x8000, "areaportal", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Area portal"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Splits areas where a door closes.")},
+	{0x10000, "playerclip", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Player clip"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Blocks players only.")},
+	{0x20000, "monsterclip", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Monster clip"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Blocks monsters only.")},
+	{0x40000, "teleporter", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Teleporter"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "A teleporter for bot routes.")},
+	{0x80000, "jumppad", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Jump pad"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "A jump pad for bot routes.")},
+	{0x100000, "clusterportal", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Cluster portal"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Splits bot route clusters.")},
+	{0x200000, "donotenter", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Do not enter"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Bots stay out.")},
+	{0x400000, "botclip", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Bot clip"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Blocks bots only.")},
+	{0x800000, "mover", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Mover"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Part of a moving brush.")},
+	{0x1000000, "origin", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Origin"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Marks a brush model's rotation origin.")},
+	{0x2000000, "body", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Body"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Used by the game for bodies, not brushes.")},
+	{0x4000000, "corpse", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Corpse"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Used by the game for corpses, not brushes.")},
+	{0x8000000, "detail", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Detail"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Left out of the visibility split.")},
+	{0x10000000, "structural", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Structural"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Used for the visibility split.")},
+	{0x20000000, "translucent", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Translucent"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Does not hide what is behind it.")},
+	{0x40000000, "trigger", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Trigger"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "A trigger volume.")},
+	{0x80000000, "nodrop", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "No drop"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Items and bodies are removed here.")},
 };
 
 // Quake III's surfaceflags.h, SURF_*.
 constexpr FlagEntry kQuake3Surface[] = {
-	{0x1, "nodamage", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "No damage"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "No falling damage.")},
-	{0x2, "slick", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Slick"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Reduced friction for players.")},
-	{0x4, "sky", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Sky"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Lit from the environment as sky.")},
-	{0x8, "ladder", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Ladder"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Climbable.")},
-	{0x10, "noimpact", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "No impact"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Missiles do not explode against it.")},
-	{0x20, "nomarks", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "No marks"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Missiles leave no marks.")},
-	{0x40, "flesh", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Flesh"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Flesh sounds and effects.")},
-	{0x80, "nodraw", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "No draw"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Never drawn.")},
-	{0x100, "hint", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Hint"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Compiler hint for the visibility split.")},
-	{0x200, "skip", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Skip"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Ignored by the compiler.")},
-	{0x400, "nolightmap", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "No lightmap"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Drawn without a lightmap.")},
-	{0x800, "pointlight", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Point light"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Lit at its vertices.")},
-	{0x1000, "metalsteps", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Metal steps"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Clanking footsteps.")},
-	{0x2000, "nosteps", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "No steps"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Silent footsteps.")},
-	{0x4000, "nonsolid", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Non-solid"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Nothing collides with it.")},
-	{0x8000, "lightfilter", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Light filter"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Filters light passing through when lighting.")},
-	{0x10000, "alphashadow", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Alpha shadow"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Casts shadows by its alpha channel.")},
-	{0x20000, "nodlight", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "No dynamic light"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Dynamic lights do not reach it.")},
-	{0x40000, "dust", QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Dust"), QT_TRANSLATE_NOOP("VibeStudioLevelFaceFlags", "Leaves a dust trail when walked on.")},
+	{0x1, "nodamage", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "No damage"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "No falling damage.")},
+	{0x2, "slick", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Slick"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Reduced friction for players.")},
+	{0x4, "sky", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Sky"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Lit from the environment as sky.")},
+	{0x8, "ladder", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Ladder"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Climbable.")},
+	{0x10, "noimpact", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "No impact"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Missiles do not explode against it.")},
+	{0x20, "nomarks", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "No marks"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Missiles leave no marks.")},
+	{0x40, "flesh", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Flesh"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Flesh sounds and effects.")},
+	{0x80, "nodraw", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "No draw"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Never drawn.")},
+	{0x100, "hint", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Hint"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Compiler hint for the visibility split.")},
+	{0x200, "skip", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Skip"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Ignored by the compiler.")},
+	{0x400, "nolightmap", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "No lightmap"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Drawn without a lightmap.")},
+	{0x800, "pointlight", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Point light"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Lit at its vertices.")},
+	{0x1000, "metalsteps", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Metal steps"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Clanking footsteps.")},
+	{0x2000, "nosteps", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "No steps"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Silent footsteps.")},
+	{0x4000, "nonsolid", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Non-solid"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Nothing collides with it.")},
+	{0x8000, "lightfilter", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Light filter"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Filters light passing through when lighting.")},
+	{0x10000, "alphashadow", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Alpha shadow"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Casts shadows by its alpha channel.")},
+	{0x20000, "nodlight", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "No dynamic light"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Dynamic lights do not reach it.")},
+	{0x40000, "dust", QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Dust"), QT_TRANSLATE_NOOP("SlopStudioLevelFaceFlags", "Leaves a dust trail when walked on.")},
 };
 
 template <std::size_t N>
@@ -95,8 +95,8 @@ QVector<MaterialFlagDescriptor> descriptors(const FlagEntry (&entries)[N])
 	QVector<MaterialFlagDescriptor> result;
 	result.reserve(static_cast<qsizetype>(N));
 	for (const FlagEntry& entry : entries) {
-		result.push_back({entry.bit, QString::fromLatin1(entry.id), QCoreApplication::translate("VibeStudioLevelFaceFlags", entry.label),
-			QCoreApplication::translate("VibeStudioLevelFaceFlags", entry.description)});
+		result.push_back({entry.bit, QString::fromLatin1(entry.id), QCoreApplication::translate("SlopStudioLevelFaceFlags", entry.label),
+			QCoreApplication::translate("SlopStudioLevelFaceFlags", entry.description)});
 	}
 	return result;
 }
@@ -117,7 +117,7 @@ quint32 word(qint64 stored)
 
 // A changed word, written as a signed 32-bit number, as NRC's brush writer
 // and TrenchBroom write face flags. Bit 31 therefore reads back negative
-// (-2147483648), which every compiler parses: VibeMap2 (from ericw-tools)
+// (-2147483648), which every compiler parses: SlopMap2 (from ericw-tools)
 // reads the numbers with std::stoi, which throws on 2147483648, and q3map2 reads
 // contents with atoi, which on Windows saturates 2147483648 to 0x7fffffff and
 // so adds detail and every other bit. An unchanged word keeps its stored text.
@@ -396,4 +396,4 @@ bool setLevelMapFaceFlags(LevelMapDocument* document, const QVector<LevelSurface
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

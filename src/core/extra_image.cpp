@@ -10,11 +10,11 @@
 #include <algorithm>
 #include <cstring>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 quint32 u32(const QByteArray& bytes, qsizetype at) { return qFromLittleEndian<quint32>(bytes.constData() + at); }
 void put32(QByteArray& bytes, qsizetype at, quint32 n) { qToLittleEndian(n, bytes.data() + at); }
-QString message(const char* text) { return QCoreApplication::translate("VibeStudioExtraImage", text); }
+QString message(const char* text) { return QCoreApplication::translate("SlopStudioExtraImage", text); }
 bool cancelled(const IdTechImageDecodeContext& context) { return context.isCancelled && context.isCancelled(); }
 bool dimensions(quint32 w, quint32 h, qint64 retained, const IdTechImageDecodeContext& context)
 {
@@ -31,7 +31,7 @@ IdTechImageDecodeResult decodeExtraImage(IdTechImageFormat format, const QByteAr
 	const auto fail = [&](const char* reason) {
 		result.decoded = false; result.image = {}; result.mipLevels.clear(); result.error = message(reason); return result;
 	};
-	if (bytes.size() > 64 * 1024 * 1024 || cancelled(context)) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Image import exceeds its byte limit or was cancelled.")); }
+	if (bytes.size() > 64 * 1024 * 1024 || cancelled(context)) { return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "Image import exceeds its byte limit or was cancelled.")); }
 	if (format == IdTechImageFormat::Dds) {
 		result.image = decodeDdsImage(bytes, context, &result.error);
 		if (!result.image.isNull() && bytes.size() >= 128 && u32(bytes, 28) > 1) {
@@ -39,26 +39,26 @@ IdTechImageDecodeResult decodeExtraImage(IdTechImageFormat format, const QByteAr
 			result.mipLevels = decodeDdsMipLevels(bytes, context);
 			if (result.mipLevels.size() < 2) {
 				result.mipLevels.clear();
-				result.warnings << message(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "DDS import uses the base mip only; lower mip levels are not retained."));
+				result.warnings << message(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "DDS import uses the base mip only; lower mip levels are not retained."));
 			}
 		}
 	} else if (format == IdTechImageFormat::Ftx) {
-		if (bytes.size() < 12) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "The FTX header is truncated.")); }
+		if (bytes.size() < 12) { return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "The FTX header is truncated.")); }
 		const auto w = u32(bytes, 0), h = u32(bytes, 4), alpha = u32(bytes, 8);
 		if (!dimensions(w, h, 0, context) || alpha > 1 || 12 + quint64(w) * h * 4 != quint64(bytes.size())) {
-			return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Invalid FTX dimensions, alpha flag, or pixel payload."));
+			return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "Invalid FTX dimensions, alpha flag, or pixel payload."));
 		}
 		QImage image(int(w), int(h), QImage::Format_RGBA8888);
-		if (image.isNull()) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Unable to allocate image pixels.")); }
+		if (image.isNull()) { return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "Unable to allocate image pixels.")); }
 		for (int y = 0; y < int(h); ++y) {
-			if (cancelled(context)) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Image decoding cancelled.")); }
+			if (cancelled(context)) { return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "Image decoding cancelled.")); }
 			auto* row = image.scanLine(y);
 			std::memcpy(row, bytes.constData() + 12 + qint64(y) * w * 4, size_t(w) * 4);
 			if (!alpha) { for (int x = 0; x < int(w); ++x) { row[x * 4 + 3] = 255; } }
 		}
 		result.image = image;
 	} else if (format == IdTechImageFormat::SinSwl) {
-		if (bytes.size() < 1236) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "The SWL header is truncated.")); }
+		if (bytes.size() < 1236) { return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "The SWL header is truncated.")); }
 		const auto width = u32(bytes, 64), height = u32(bytes, 68);
 		quint64 previousEnd = 1236;
 		qint64 retained = 0;
@@ -70,13 +70,13 @@ IdTechImageDecodeResult decodeExtraImage(IdTechImageFormat format, const QByteAr
 		for (int mip = 0; mip < 4; ++mip) {
 			const auto w = std::max(1u, width >> mip), h = std::max(1u, height >> mip), offset = u32(bytes, 1100 + mip * 4);
 			if (!width || !height || !dimensions(w, h, retained, context) || offset < previousEnd || quint64(offset) + quint64(w) * h > quint64(bytes.size())) {
-				return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Invalid, overlapping, truncated, or oversized SWL mip levels."));
+				return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "Invalid, overlapping, truncated, or oversized SWL mip levels."));
 			}
 			previousEnd = quint64(offset) + quint64(w) * h; retained += qint64(w) * h;
 			QImage image(int(w), int(h), QImage::Format_Indexed8); image.setColorTable(colors);
-			if (image.isNull()) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Unable to allocate image pixels.")); }
+			if (image.isNull()) { return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "Unable to allocate image pixels.")); }
 			for (int y = 0; y < int(h); ++y) {
-				if (cancelled(context)) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Image decoding cancelled.")); }
+				if (cancelled(context)) { return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "Image decoding cancelled.")); }
 				std::memcpy(image.scanLine(y), bytes.constData() + offset + qint64(y) * w, w);
 			}
 			result.mipLevels << image;
@@ -87,7 +87,7 @@ IdTechImageDecodeResult decodeExtraImage(IdTechImageFormat format, const QByteAr
 	}
 	result.decoded = !result.image.isNull(); result.width = result.image.width(); result.height = result.image.height();
 	for (int y = 0; result.image.hasAlphaChannel() && !result.hasTransparency && y < result.height; ++y) {
-		if (cancelled(context)) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Image decoding cancelled.")); }
+		if (cancelled(context)) { return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "Image decoding cancelled.")); }
 		for (int x = 0; x < result.width; ++x) { if (qAlpha(result.image.pixel(x, y)) < 255) { result.hasTransparency = true; break; } }
 	}
 	return result;
@@ -98,11 +98,11 @@ QByteArray encodeExtraImage(const QImage& source, bool dds, QString* error, cons
 	if (error) { error->clear(); }
 	const auto fail = [&](const char* reason) { if (error) { *error = message(reason); } return QByteArray(); };
 	if (source.isNull() || qint64(source.width()) * source.height() > 4 * 1024 * 1024) {
-		return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Invalid or oversized image for texture export."));
+		return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "Invalid or oversized image for texture export."));
 	}
-	if (isCancelled && isCancelled()) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Texture export cancelled.")); }
+	if (isCancelled && isCancelled()) { return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "Texture export cancelled.")); }
 	const auto image = source.convertToFormat(QImage::Format_ARGB32);
-	if (image.isNull()) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Unable to allocate image pixels.")); }
+	if (image.isNull()) { return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "Unable to allocate image pixels.")); }
 	QByteArray bytes(dds ? 128 : 12, '\0');
 	if (dds) {
 		bytes.replace(0, 4, "DDS "); put32(bytes, 4, 124); put32(bytes, 8, 0x100f);
@@ -112,7 +112,7 @@ QByteArray encodeExtraImage(const QImage& source, bool dds, QString* error, cons
 	} else { put32(bytes, 0, image.width()); put32(bytes, 4, image.height()); put32(bytes, 8, 1); }
 	bytes.reserve(bytes.size() + qsizetype(image.width()) * image.height() * 4);
 	for (int y = 0; y < image.height(); ++y) {
-		if (isCancelled && isCancelled()) { return fail(QT_TRANSLATE_NOOP("VibeStudioExtraImage", "Texture export cancelled.")); }
+		if (isCancelled && isCancelled()) { return fail(QT_TRANSLATE_NOOP("SlopStudioExtraImage", "Texture export cancelled.")); }
 		for (int x = 0; x < image.width(); ++x) {
 			const auto color = image.pixel(x, y);
 			bytes += char(dds ? qBlue(color) : qRed(color)); bytes += char(qGreen(color));
@@ -121,4 +121,4 @@ QByteArray encodeExtraImage(const QImage& source, bool dds, QString* error, cons
 	}
 	return bytes;
 }
-} // namespace vibestudio
+} // namespace slopstudio

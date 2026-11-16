@@ -5,7 +5,7 @@
 #include <QCoreApplication>
 #include <exception>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace detail {
 namespace {
 thread_local const LevelPlacementControl* activeControl = nullptr;
@@ -29,39 +29,39 @@ void placementCheckpoint(LevelPlacementPhase phase, qint64 completed, qint64 tot
 QString levelPlacementPhaseName(LevelPlacementPhase phase) {
 	switch (phase) {
 	case LevelPlacementPhase::Deleting:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Preparing deletion…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Preparing deletion…");
 	case LevelPlacementPhase::Connecting:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Connecting entities…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Connecting entities…");
 	case LevelPlacementPhase::Visibility:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Updating object visibility…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Updating object visibility…");
 	case LevelPlacementPhase::SelectingObjects:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Finding selectable objects…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Finding selectable objects…");
 	case LevelPlacementPhase::Selecting:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Testing selection volumes…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Testing selection volumes…");
 	case LevelPlacementPhase::Copying:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Preparing copied objects…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Preparing copied objects…");
 	case LevelPlacementPhase::Cutting:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Preparing cut objects…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Preparing cut objects…");
 	case LevelPlacementPhase::Preparing:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Preparing map edit…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Preparing map edit…");
 	case LevelPlacementPhase::Extracting:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Splitting linked groups…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Splitting linked groups…");
 	case LevelPlacementPhase::Repeating:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Repeating commands…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Repeating commands…");
 	case LevelPlacementPhase::Building:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Building brush geometry…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Building brush geometry…");
 	case LevelPlacementPhase::Arraying:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Preparing array copies…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Preparing array copies…");
 	case LevelPlacementPhase::Parsing:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Reading pasted geometry…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Reading pasted geometry…");
 	case LevelPlacementPhase::Transforming:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Transforming objects…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Transforming objects…");
 	case LevelPlacementPhase::Inserting:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Preparing inserted objects…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Preparing inserted objects…");
 	case LevelPlacementPhase::Finalizing:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Preparing history and scene…");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Preparing history and scene…");
 	case LevelPlacementPhase::Complete:
-		return QCoreApplication::translate("VibeStudioLevelPlacement", "Placement ready.");
+		return QCoreApplication::translate("SlopStudioLevelPlacement", "Placement ready.");
 	}
 	return {};
 }
@@ -80,7 +80,7 @@ LevelPlacementResult prepareLevelPlacement(const LevelMapDocument& source, const
 		case LevelPlacementOperation::ImportMap:
 			detail::placementCheckpoint(LevelPlacementPhase::Inserting);
 			if (!request.importSource) {
-				result.error = QCoreApplication::translate("VibeStudioLevelPlacement", "Choose a map to import.");
+				result.error = QCoreApplication::translate("SlopStudioLevelPlacement", "Choose a map to import.");
 				break;
 			}
 			applied = importLevelMap(&candidate, *request.importSource, request.importOptions, &result.importReport, &result.error);
@@ -204,11 +204,11 @@ LevelPlacementResult prepareLevelPlacement(const LevelMapDocument& source, const
 		}
 	} catch (const detail::PlacementCancelled&) {
 		result.cancelled = true;
-		result.error = QCoreApplication::translate("VibeStudioLevelPlacement", "Placement cancelled. The map was not changed.");
+		result.error = QCoreApplication::translate("SlopStudioLevelPlacement", "Placement cancelled. The map was not changed.");
 	} catch (const std::exception&) {
-		result.error = QCoreApplication::translate("VibeStudioLevelPlacement", "Placement could not be prepared. The map was not changed.");
+		result.error = QCoreApplication::translate("SlopStudioLevelPlacement", "Placement could not be prepared. The map was not changed.");
 	}
 	if (!result.succeeded) { result.importReport = {}; result.clipboardText.clear(); result.regionReport = {}; result.objectSelectionReport = {}; result.texturedSelectionReport = {}; result.visibilityReport = {}; result.connectionReport = {}; result.componentReport = {}; result.gridRoundReport = {}; result.surfaceFaceReport = {}; result.entityCreateReport = {}; }
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -160,9 +160,9 @@ if ($SkipValidation) {
   exit 0
 }
 
-$BinaryPath = Join-Path $BuildDir "src/vibestudio"
+$BinaryPath = Join-Path $BuildDir "src/slopstudio"
 if ($IsWindows -or $env:OS -eq "Windows_NT") {
-  $BinaryPath = Join-Path $BuildDir "src/vibestudio.exe"
+  $BinaryPath = Join-Path $BuildDir "src/slopstudio.exe"
 }
 
 python scripts/validate_build.py --binary "$BinaryPath" --expected-version "$((Get-Content VERSION -Raw).Trim())"

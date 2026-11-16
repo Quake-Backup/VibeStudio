@@ -2,7 +2,7 @@
 #include "core/model_mesh.h"
 #include <QHash>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr int modelMaxMaterialSlots = 256;
 
@@ -30,4 +30,4 @@ bool editModelMaterialSlots(const QStringList &source, const ModelMaterialSlotEd
 // This snapshot is not an editable model. Overrides select an existing slot
 // per surface; unspecified surfaces retain their primary or embedded preview.
 bool modelMaterialPreviewSnapshot(const ModelMesh &mesh, const QHash<int, int> &selectedSlots, ModelMesh *result, QString *error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

@@ -10,7 +10,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -43,15 +43,15 @@ QString modelRecoverySourceStateText(ModelRecoverySourceState state)
 	switch (state)
 	{
 	case ModelRecoverySourceState::Unsaved:
-		return QCoreApplication::translate("VibeStudioModelRecovery", "No saved source");
+		return QCoreApplication::translate("SlopStudioModelRecovery", "No saved source");
 	case ModelRecoverySourceState::Unchanged:
-		return QCoreApplication::translate("VibeStudioModelRecovery", "Source unchanged");
+		return QCoreApplication::translate("SlopStudioModelRecovery", "Source unchanged");
 	case ModelRecoverySourceState::Changed:
-		return QCoreApplication::translate("VibeStudioModelRecovery", "Source changed since the copy");
+		return QCoreApplication::translate("SlopStudioModelRecovery", "Source changed since the copy");
 	case ModelRecoverySourceState::Missing:
-		return QCoreApplication::translate("VibeStudioModelRecovery", "Source missing");
+		return QCoreApplication::translate("SlopStudioModelRecovery", "Source missing");
 	case ModelRecoverySourceState::Unreadable:
-		return QCoreApplication::translate("VibeStudioModelRecovery", "Source unreadable");
+		return QCoreApplication::translate("SlopStudioModelRecovery", "Source unreadable");
 	}
 	return {};
 }
@@ -101,7 +101,7 @@ ModelRecoveryPruneReport pruneModelRecoveries(const QString &directory, const Mo
 	ModelRecoveryPruneReport report;
 	if (directory.isEmpty() || !QFileInfo(directory).isDir())
 		return report;
-	const auto cancelledText = QCoreApplication::translate("VibeStudioModelRecovery", "Recovery clean-up was cancelled.");
+	const auto cancelledText = QCoreApplication::translate("SlopStudioModelRecovery", "Recovery clean-up was cancelled.");
 	QVector<QFileInfo> files;
 	QDirIterator entries(directory, {QStringLiteral("*.vsmeshrecovery")}, QDir::Files | QDir::NoDotAndDotDot);
 	while (entries.hasNext())
@@ -170,4 +170,4 @@ ModelRecoveryPruneReport pruneModelRecoveries(const QString &directory, const Mo
 	return report;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -10,7 +10,7 @@
 #include <QSize>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Images for editing, not a simulation of an engine's shader stages or lighting.
@@ -93,4 +93,4 @@ QHash<int, QImage> levelPreviewSurfaceImages(const ModelMesh &mesh, const LevelP
 QJsonObject levelPreviewAssetsJson(const LevelPreviewAssets &assets);
 QString levelPreviewAssetsText(const LevelPreviewAssets &assets);
 
-} // namespace vibestudio
+} // namespace slopstudio

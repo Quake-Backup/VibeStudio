@@ -6,7 +6,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // A compiler's visibility portal file: the windows between the map's leaves
 // (or clusters) that vis tests sight lines through. Quake's qbsp and
@@ -30,4 +30,4 @@ struct PortalFile {
 [[nodiscard]] PortalFile parsePortalFile(const QByteArray& bytes);
 [[nodiscard]] PortalFile loadPortalFile(const QString& path);
 
-} // namespace vibestudio
+} // namespace slopstudio

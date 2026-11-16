@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool fail(QString* error, const QString& message)
 {
@@ -254,7 +254,7 @@ QJsonObject levelBookmarksJson(const LevelViewBookmarks& bookmarks)
 	for (const auto& bookmark : bookmarks) {
 		views.append(QJsonObject{{"id", bookmark.id}, {"name", bookmark.name}, {"view", viewJson(bookmark.view)}});
 	}
-	return {{"format", "VibeStudioLevelViews"}, {"version", 2}, {"bookmarks", views}};
+	return {{"format", "SlopStudioLevelViews"}, {"version", 2}, {"bookmarks", views}};
 }
 bool parseLevelBookmarks(const QByteArray& bytes, LevelViewBookmarks* bookmarks, QString* error)
 {
@@ -263,9 +263,9 @@ bool parseLevelBookmarks(const QByteArray& bytes, LevelViewBookmarks* bookmarks,
 	const auto document = QJsonDocument::fromJson(bytes, &parseError);
 	const auto root = document.object();
 	if (parseError.error != QJsonParseError::NoError || !document.isObject() ||
-		!exactKeys(root, {"format", "version", "bookmarks"}) || root.value("format").toString() != QStringLiteral("VibeStudioLevelViews") ||
+		!exactKeys(root, {"format", "version", "bookmarks"}) || root.value("format").toString() != QStringLiteral("SlopStudioLevelViews") ||
 		!root.value("version").isDouble() || (root.value("version").toDouble() != 1 && root.value("version").toDouble() != 2) || !root.value("bookmarks").isArray()) {
-		return fail(error, QCoreApplication::translate("LevelNavigation", "Expected a version-1 or version-2 VibeStudio level views JSON file."));
+		return fail(error, QCoreApplication::translate("LevelNavigation", "Expected a version-1 or version-2 SlopStudio level views JSON file."));
 	}
 	const auto values = root.value("bookmarks").toArray();
 	if (values.size() > LevelBookmarkLimit) { return fail(error, QCoreApplication::translate("LevelNavigation", "A map can have at most 128 saved views.")); }
@@ -339,4 +339,4 @@ bool writeLevelBookmarks(const QString& path, const LevelViewBookmarks& bookmark
 	if (newRevision) { *newRevision = QCryptographicHash::hash(bytes, QCryptographicHash::Sha256); }
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

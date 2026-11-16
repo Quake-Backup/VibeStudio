@@ -12,8 +12,8 @@
 #include <iostream>
 #include <limits>
 #include <random>
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -35,7 +35,7 @@ bool near(double a, double b, double tolerance = 1e-6)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir tmp(QDir(root).filePath("curve-transfer-XXXXXX"));
@@ -296,7 +296,7 @@ int main(int argc, char **argv)
 	document.setMesh(mesh, &error);
 	expect(document.save(path, false, &error), "save CLI source");
 	const QStringList base{
-		"vibestudio", "--cli",	   "model",	  "curve-transfer", path,	   "--source-clip",	 "0",		  "--target-clip",
+		"slopstudio", "--cli",	   "model",	  "curve-transfer", path,	   "--source-clip",	 "0",		  "--target-clip",
 		"1",		  "--first",   "2",		  "--last",			"6",	   "--target-first", "4",		  "--factor",
 		"2",		  "--reverse", "--joint", "upper",			"--joint", "lower",			 "--channel", "ty",
 		"--output",	  out};

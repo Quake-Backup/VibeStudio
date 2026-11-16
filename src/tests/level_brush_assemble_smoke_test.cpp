@@ -6,7 +6,7 @@
 // extrusion distance along a normal by grid steps, sweeping points by an
 // offset and appending without duplicates; the TrenchBroom workflow end to
 // end (a face rectangle, its extrusion and Create Brush as one exact undo
-// step); and, with the vibestudio binary as the first argument,
+// step); and, with the slopstudio binary as the first argument,
 // `map add-brush --points --extrude`. Synthetic maps and owned temporary files
 // only.
 #include "core/level_brush_assemble.h"
@@ -24,7 +24,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

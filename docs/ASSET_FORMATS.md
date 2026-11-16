@@ -9,9 +9,9 @@ directory occurrences. Longest suffix matching distinguishes `.mesh.json`,
 `.model.json` and `.assembly.json` from ordinary code JSON.
 
 ```sh
-vibestudio --cli asset formats --json
-vibestudio --cli asset formats --module textures --json
-vibestudio --cli asset route textures/wall.dds --json
+slopstudio --cli asset formats --json
+slopstudio --cli asset formats --module textures --json
+slopstudio --cli asset route textures/wall.dds --json
 ```
 
 Each descriptor reports its owning module, suffixes, preview family, read
@@ -53,9 +53,9 @@ SWL imports can export PNG, TGA, DDS, FTX or the existing validated indexed game
 profiles; native SWL metadata is not round-tripped.
 
 ```sh
-vibestudio --cli texture export ./wall.vtexture --profile dds --output ./wall.dds
-vibestudio --cli texture export ./wall.swl --profile ftx --output ./wall.ftx
-vibestudio --cli texture validate ./wall.dds --profile quake2-wal --palette-file ./palette.lmp
+slopstudio --cli texture export ./wall.vtexture --profile dds --output ./wall.dds
+slopstudio --cli texture export ./wall.swl --profile ftx --output ./wall.ftx
+slopstudio --cli texture validate ./wall.dds --profile quake2-wal --palette-file ./palette.lmp
 ```
 
 Existing native image codecs include Doom patches/flats/palettes/colormaps,
@@ -89,7 +89,7 @@ owner without claiming every native document has a generic preview.
 Reviewed against the local [PakFu support matrix](https://github.com/themuffinator/PakFu/blob/13111e4c07513548a29fd7eb74fc9d004c44aa59/docs/SUPPORT_MATRIX.md)
 on 2026-10-05. This is a capability comparison, not a claim of complete parity.
 
-| Area | VibeStudio today | Remaining PakFu breadth |
+| Area | SlopStudio today | Remaining PakFu breadth |
 |---|---|---|
 | Packages | Folder, PAK, ZIP/PK3/PK4/PKZ, WAD2/WAD3 and Doom WAD readers; supported writers/drafts | SiN SPAK, BFG `.resources`, Quake Live encrypted PK3 and broader nested-container workflows. |
 | Images | Existing idTech codecs plus DDS/FTX/SWL import and DDS/FTX export | SWL native writing and wider conversion combinations; fidelity and target-engine fixtures before claiming parity. |

@@ -13,7 +13,7 @@ text = data.decode("utf-8").replace("\r\n", "\n")
 original = "\tvoid createColocals()\n\t{\n\t\tif (m_epsilon <= FLT_EPSILON)"
 replacement = """\tvoid createColocals()
 \t{
-\t\t// VibeStudio, 2026-10-04: retain indexed boundaries, including user seams.
+\t\t// SlopStudio, 2026-10-04: retain indexed boundaries, including user seams.
 \t\t// Automatic positional welding reconnects intentional coincident splits.
 \t\tm_nextColocalVertex.resize(m_positions.size());
 \t\tm_firstColocalVertex.resize(m_positions.size());
@@ -32,7 +32,7 @@ if text.count(rounding) != 1:
 # Lightmap texel rounding stretches axes independently. Texture authoring must
 # preserve chart shape and relative scale when block alignment is disabled.
 text = text.replace(rounding, "if (options.blockAlign && extents.x > 0.0f && extents.y > 0.0f) {")
-# VibeStudio, 2026-10-06: keep the upstream raster-mask packer, with independent
+# SlopStudio, 2026-10-06: keep the upstream raster-mask packer, with independent
 # atlas axis bounds. Chart scaling is uniform; this does not stretch a square
 # layout after packing. The original reviewed files and licence notices stay intact.
 header_data = header.read_bytes()
@@ -42,7 +42,7 @@ header_text = header_data.decode("utf-8").replace("\r\n", "\n")
 field = "\tuint32_t resolution = 0;"
 if header_text.count(field) != 1:
     raise SystemExit("xatlas rectangular header adaptation no longer applies")
-header_text = header_text.replace(field, field + "\n\n\t// VibeStudio: fixed/estimated atlas height; 0 uses resolution (square).\n\tuint32_t resolutionHeight = 0;")
+header_text = header_text.replace(field, field + "\n\n\t// SlopStudio: fixed/estimated atlas height; 0 uses resolution (square).\n\tuint32_t resolutionHeight = 0;")
 
 def replace(old, new, count=1):
     global text
@@ -59,7 +59,7 @@ replace("sqrtf((resolution * resolution) / texelCount)",
 replace("\t\tArray<float> chartOrderArray;", "\t\tif (resolutionHeight == 0)\n\t\t\tresolutionHeight = resolution;\n\t\tArray<float> chartOrderArray;")
 start = text.index("\t\t\tuint32_t maxChartSize = options.maxChartSize;")
 end = text.index("\t\t\t// Align to texel centers and add padding offset.", start)
-text = text[:start] + """\t\t\t// VibeStudio: fit both axis limits with one scale, retaining chart shape.
+text = text[:start] + """\t\t\t// SlopStudio: fit both axis limits with one scale, retaining chart shape.
 \t\t\tuint32_t maxWidth = options.maxChartSize, maxHeight = options.maxChartSize;
 \t\t\tif (maxResolution > 0) {
 \t\t\t\tconst uint32_t widthLimit = maxResolution - options.padding * 2;

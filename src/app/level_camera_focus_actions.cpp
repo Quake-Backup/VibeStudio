@@ -34,7 +34,7 @@
 #include <functional>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -512,4 +512,4 @@ void ApplicationShell::endLevelCameraFreeFocus()
 	m_levelCameraFocus.wheel = 0.0;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

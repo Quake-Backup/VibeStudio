@@ -69,7 +69,7 @@ class SigningProvenance(unittest.TestCase):
 
 class RuntimeInventory(unittest.TestCase):
     def setUp(self):
-        parent = Path(os.environ.get('VIBESTUDIO_TEST_TMP_ROOT', ROOT / '.agents/tmp/qt-runtime-tests')).resolve()
+        parent = Path(os.environ.get('SLOPSTUDIO_TEST_TMP_ROOT', ROOT / '.agents/tmp/qt-runtime-tests')).resolve()
         parent.mkdir(parents=True, exist_ok=True)
         self.temporary = tempfile.TemporaryDirectory(prefix='runtime-', dir=parent)
         self.root = Path(self.temporary.name)

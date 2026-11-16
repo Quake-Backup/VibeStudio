@@ -10,8 +10,8 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
-namespace d = vibestudio::tests::doom;
+using namespace slopstudio;
+namespace d = slopstudio::tests::doom;
 bool expect(bool condition, const char* label, const QString& error = {}) { if (!condition) { std::cerr << label << ": " << error.toStdString() << '\n'; } return condition; }
 bool near(double a, double b) { return std::abs(a-b) < 1e-5; }
 double area(const DoomPreviewGeometry& geometry)

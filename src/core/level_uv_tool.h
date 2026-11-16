@@ -9,7 +9,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The camera UV tool's service: NetRadiant Custom's UV tool (G), an
 // on-surface manipulator for one brush face or one patch. It lays the
@@ -171,4 +171,4 @@ bool prepareLevelUvToolEdit(const LevelMapDocument& document, const LevelUvLayou
 bool applyLevelUvToolEdit(LevelMapDocument* document, const LevelUvLayout& layout, const LevelUvToolEdit& edit, LevelUvToolResult* result = nullptr,
 	QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -11,7 +11,7 @@
 #include <iostream>
 #include <limits>
 
-namespace vibestudio::tests::uvRender
+namespace slopstudio::tests::uvRender
 {
 inline int checks = 0;
 inline bool expect(bool value, const char *message)
@@ -181,7 +181,7 @@ inline ModelUvRenderRequest crossing()
 }
 inline bool save(const QImage &image, const QString &name)
 {
-	const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	return evidence.isEmpty() || image.save(QDir(evidence).filePath(name + QStringLiteral(".png")));
 }
 inline bool renderChecks()
@@ -384,4 +384,4 @@ inline bool tileChecks()
 	}
 	return ok;
 }
-} // namespace vibestudio::tests::uvRender
+} // namespace slopstudio::tests::uvRender

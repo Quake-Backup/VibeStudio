@@ -25,7 +25,7 @@ class QTabWidget;
 class QToolButton;
 class QTreeWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelAiEditDialogHooks {
 	// The map open in Levels, or null when none is.
@@ -46,7 +46,7 @@ struct LevelAiEditDialogHooks {
 };
 
 class LevelAiEditDialog final : public QDialog {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelAiEditDialog)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelAiEditDialog)
 
 public:
 	LevelAiEditDialog(QWidget* parent, LevelAiEditDialogHooks hooks);
@@ -112,4 +112,4 @@ private:
 	QPlainTextEdit* m_resultText = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -3,7 +3,7 @@
 #include <QCoreApplication>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString text(const char* value) { return QCoreApplication::translate("LevelDoomSelection", value); }
 } // namespace
@@ -142,4 +142,4 @@ bool prepareLevelMapDoomMirrorLines(const LevelMapDocument& document, const QSet
 	*after = std::move(result);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

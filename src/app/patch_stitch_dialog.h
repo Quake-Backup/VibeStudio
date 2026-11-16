@@ -14,7 +14,7 @@ class QPushButton;
 class QScrollArea;
 class QThread;
 class QTimer;
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class PatchStitchDialog final : public QDialog
@@ -62,4 +62,4 @@ class PatchStitchDialog final : public QDialog
 	quint64 m_generation = 0;
 	bool m_ready = false, m_valid = false, m_setting = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

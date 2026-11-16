@@ -36,16 +36,16 @@ REQUIRED_CREDIT_TOKENS = [
     "NetRadiant Custom",
     "TrenchBroom",
     "QuArK",
-    "VibeMap2",
-    "VibeMap3",
+    "SlopMap2",
+    "SlopMap3",
     "ericw-tools",
     "ZDBSP",
     "ZokumBSP",
 ]
 
 EXPECTED_SUBMODULES = [
-    "external/compilers/vibemap2",
-    "external/compilers/vibemap3",
+    "external/compilers/slopmap2",
+    "external/compilers/slopmap3",
     "external/compilers/zdbsp",
     "external/compilers/zokumbsp",
 ]
@@ -116,13 +116,13 @@ def localization_registry_errors(root: Path) -> list[str]:
         return ["src/core/localization.cpp: the kTargets language table was not found."]
     registered = re.findall(r'\{"([A-Za-z0-9-]+)", QT_TRANSLATE_NOOP', table[1].split("};", 1)[0])
     expected = {name.replace("-", "_") for name in registered} | {"pseudo"}
-    catalogs = {path.stem.removeprefix("vibestudio_") for path in (root / "i18n").glob("vibestudio_*.ts")}
+    catalogs = {path.stem.removeprefix("slopstudio_") for path in (root / "i18n").glob("slopstudio_*.ts")}
     build = set(re.findall(r"^  '([A-Za-z0-9_]+)',$", (root / "i18n" / "meson.build").read_text(encoding="utf-8"), re.M))
     errors = []
     for missing in sorted(expected - catalogs):
-        errors.append(f"i18n/vibestudio_{missing}.ts is missing for a registered language.")
+        errors.append(f"i18n/slopstudio_{missing}.ts is missing for a registered language.")
     for extra in sorted(catalogs - expected):
-        errors.append(f"i18n/vibestudio_{extra}.ts has no language in src/core/localization.cpp.")
+        errors.append(f"i18n/slopstudio_{extra}.ts has no language in src/core/localization.cpp.")
     if build != expected:
         errors.append("i18n/meson.build translation_locales must list exactly the registered languages plus pseudo: "
                       + ", ".join(sorted(expected ^ build)))
@@ -218,7 +218,7 @@ def main() -> int:
             if not link.exists():
                 errors.append(f"Broken local Markdown link in {markdown.relative_to(root)}: {link.relative_to(root)}")
 
-    i18n_files = sorted((root / "i18n").glob("vibestudio_*.ts"))
+    i18n_files = sorted((root / "i18n").glob("slopstudio_*.ts"))
     if len(i18n_files) < 48:
         errors.append("The translation catalogs must cover the 47 interface languages plus pseudo-localization.")
     errors.extend(localization_registry_errors(root))

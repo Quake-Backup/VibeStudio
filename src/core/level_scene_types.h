@@ -8,14 +8,14 @@
 
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 enum class LevelSceneNodeKind { Layer, Group };
 
 // How a Quake-family map keeps its layers, groups and linked groups:
-// VibeStudio's own scene note at the end of the file, or TrenchBroom's
+// SlopStudio's own scene note at the end of the file, or TrenchBroom's
 // func_group entities as well, so TrenchBroom opens it with the same groups
 // (core/level_scene_trenchbroom.h).
-enum class LevelSceneStorage { VibeStudio, TrenchBroom };
+enum class LevelSceneStorage { SlopStudio, TrenchBroom };
 
 struct LevelSceneNode {
 	QString id;
@@ -56,7 +56,7 @@ struct LevelSceneNode {
 	QByteArray linkShape;
 	QByteArray linkSurface;
 	// Keys of the TrenchBroom layer or group entity this node was read from
-	// that VibeStudio does not edit, such as "_tb_id", "_tb_layer_color" and
+	// that SlopStudio does not edit, such as "_tb_id", "_tb_layer_color" and
 	// "_tb_layer_omit_from_export", written back when the map is saved with
 	// TrenchBroom groups (core/level_scene_trenchbroom.h). Saved.
 	QMap<QString, QString> trenchBroomProperties;
@@ -81,4 +81,4 @@ struct LevelSceneEditingContext {
 	QString activeNode, previousCreationNode;
 	bool operator==(const LevelSceneEditingContext&) const = default;
 };
-} // namespace vibestudio
+} // namespace slopstudio

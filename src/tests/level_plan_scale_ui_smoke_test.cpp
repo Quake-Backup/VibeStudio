@@ -6,7 +6,7 @@
 #include <QPainter>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 int main(int argc, char** argv)
 {
 	// Original geometry, direct semantic calls and widget render targets only.
@@ -43,8 +43,8 @@ int main(int argc, char** argv)
 				if (actual.copy(geometry) != expected.copy(geometry)) {
 					std::cerr << "Physical geometry shifted: brushes=" << count << " projection=" << int(projection) << " ratio=" << ratio << '\n';
 					ok = false;
-					const QDir output(qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR"));
-					if (!qEnvironmentVariableIsEmpty("VIBESTUDIO_TEST_CAPTURE_DIR")) {
+					const QDir output(qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR"));
+					if (!qEnvironmentVariableIsEmpty("SLOPSTUDIO_TEST_CAPTURE_DIR")) {
 						QDir().mkpath(output.path()); actual.save(output.filePath("fractional-actual.png")); expected.save(output.filePath("fractional-reference.png"));
 					}
 				}

@@ -17,7 +17,7 @@
 #include <limits>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -1414,7 +1414,7 @@ bool reconcileModelSkinningFromOrigins(const ModelMesh &before, ModelMesh *after
 	{
 		if (!work.check())
 			return false;
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "The edit would leave the skeleton inconsistent: %1").arg(problem));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "The edit would leave the skeleton inconsistent: %1").arg(problem));
 	}
 	return work.check();
 }
@@ -1475,4 +1475,4 @@ QJsonObject modelSkinProvenanceJson(const ModelMesh &mesh, const QMap<int, Model
 			{QStringLiteral("widest"), total.widest}};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

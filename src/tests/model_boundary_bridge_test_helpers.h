@@ -4,7 +4,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // Original disconnected end disks. Joining their perimeters creates a closed
 // prism/frustum; no upstream geometry or game assets are used.
@@ -60,4 +60,4 @@ inline ModelMesh collapsingBridge()
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

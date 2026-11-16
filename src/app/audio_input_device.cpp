@@ -1,11 +1,11 @@
 #include "app/audio_capture.h"
-#include "vibestudio_config.h"
+#include "slopstudio_config.h"
 #include <QCoreApplication>
 #include <algorithm>
 #ifdef Q_OS_MACOS
 #include <CoreFoundation/CoreFoundation.h>
 #endif
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 #include <QAudioDevice>
 #include <QAudioFormat>
 #include <QAudioSource>
@@ -15,19 +15,19 @@
 #if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 #if QT_CONFIG(permissions)
 #include <QPermissions>
-#define VIBESTUDIO_CAPTURE_PERMISSIONS 1
+#define SLOPSTUDIO_CAPTURE_PERMISSIONS 1
 #endif
 #endif
-#ifndef VIBESTUDIO_CAPTURE_PERMISSIONS
-#define VIBESTUDIO_CAPTURE_PERMISSIONS 0
+#ifndef SLOPSTUDIO_CAPTURE_PERMISSIONS
+#define SLOPSTUDIO_CAPTURE_PERMISSIONS 0
 #endif
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 QString problem(const char *text) { return QCoreApplication::translate("AudioInputDevice", text); }
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 // Original adapter to the public Qt QAudioSource byte-stream API. PCM uses
 // native byte order. No resampling or input fallback occurs here. See CREDITS.
 class QtAudioCaptureDevice final : public AudioCaptureDevice {
@@ -45,7 +45,7 @@ class QtAudioCaptureDevice final : public AudioCaptureDevice {
 	~QtAudioCaptureDevice() override { close(); }
 	bool available() const override
 	{
-#if defined(Q_OS_MACOS) && !VIBESTUDIO_CAPTURE_PERMISSIONS
+#if defined(Q_OS_MACOS) && !SLOPSTUDIO_CAPTURE_PERMISSIONS
 		return false;
 #else
 		return true;
@@ -157,7 +157,7 @@ class UnavailableCaptureDevice final : public AudioCaptureDevice {
 } // namespace
 std::unique_ptr<AudioCaptureDevice> createAudioCaptureDevice()
 {
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 	return std::make_unique<QtAudioCaptureDevice>();
 #else
 	return std::make_unique<UnavailableCaptureDevice>();
@@ -180,11 +180,11 @@ void requestAudioCapturePermission(QObject *context, std::function<void(QString)
 		return;
 	}
 #endif
-#if defined(Q_OS_MACOS) && !VIBESTUDIO_CAPTURE_PERMISSIONS
+#if defined(Q_OS_MACOS) && !SLOPSTUDIO_CAPTURE_PERMISSIONS
 	Q_UNUSED(context);
 	complete(problem(QT_TRANSLATE_NOOP(
 	    "AudioInputDevice", "Recording on macOS requires Qt 6.5 or newer with microphone permission support.")));
-#elif VIBESTUDIO_CAPTURE_PERMISSIONS
+#elif SLOPSTUDIO_CAPTURE_PERMISSIONS
 	const QMicrophonePermission permission;
 	const auto report = [complete](Qt::PermissionStatus status) {
 		complete(status == Qt::PermissionStatus::Granted
@@ -203,4 +203,4 @@ void requestAudioCapturePermission(QObject *context, std::function<void(QString)
 	complete({}); // Older Windows/Linux backends enforce OS access on open.
 #endif
 }
-} // namespace vibestudio
+} // namespace slopstudio

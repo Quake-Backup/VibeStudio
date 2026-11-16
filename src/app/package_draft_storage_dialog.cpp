@@ -17,7 +17,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 PackageDraftStorageDialog::PackageDraftStorageDialog(QString path, QWidget* parent)
 	: QDialog(parent), m_path(std::move(path)), m_cancel(std::make_shared<std::atomic_bool>(false))
@@ -44,7 +44,7 @@ PackageDraftStorageDialog::PackageDraftStorageDialog(QString path, QWidget* pare
 	connect(files, &QSpinBox::valueChanged, this, [this](int value) { StudioSettings().setPackageDraftMaximumFiles(value); updateUsage(); });
 	m_usage = new QLabel; m_usage->setObjectName(QStringLiteral("packageDraftStorageUsage")); m_usage->setWordWrap(true); m_usage->setTextFormat(Qt::PlainText);
 	m_usage->setAccessibleName(tr("Draft storage usage and reclaimable space")); layout->addWidget(m_usage);
-	m_status = new QLabel(tr("Choose a saved .vibepackage directory to review its storage.")); m_status->setObjectName(QStringLiteral("packageDraftStorageStatus"));
+	m_status = new QLabel(tr("Choose a saved .sloppackage directory to review its storage.")); m_status->setObjectName(QStringLiteral("packageDraftStorageStatus"));
 	m_status->setWordWrap(true); m_status->setTextFormat(Qt::PlainText); m_status->setAccessibleName(tr("Draft storage operation status")); layout->addWidget(m_status);
 	m_progress = new QProgressBar; m_progress->setRange(0, 0); m_progress->setAccessibleName(tr("Draft storage review progress")); m_progress->hide(); layout->addWidget(m_progress);
 	m_details = new QPlainTextEdit; m_details->setObjectName(QStringLiteral("packageDraftStorageDetails")); m_details->setReadOnly(true);
@@ -133,4 +133,4 @@ void PackageDraftStorageDialog::compact()
 	});
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -42,7 +42,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -1050,4 +1050,4 @@ void ApplicationShell::placeLevelPaletteInView()
 	placeFromLevelMapPalette(payload, QPointF(-1.0, -1.0));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

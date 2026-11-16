@@ -26,7 +26,7 @@
 #include <memory>
 #include <utility>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Paint Skin Weights: strokes recovered after a crash, staged again in order on
@@ -138,7 +138,7 @@ void ModelEditorDialog::beginSessionDraft()
 		{
 			if (!error.isEmpty())
 				m_recoveryStatus->setText(
-					QCoreApplication::translate("VibeStudioModelEditor", "Staged work is not being kept: %1").arg(error));
+					QCoreApplication::translate("SlopStudioModelEditor", "Staged work is not being kept: %1").arg(error));
 		};
 	}
 	m_sessionDraftActive = true;
@@ -162,7 +162,7 @@ void ModelEditorDialog::checkpointSessionDraft(ModelSessionDraft draft)
 	draft.ownerId = m_sessionDraftOwner;
 	draft.baseFingerprint = m_sessionDraftBase;
 	const auto source = m_document.path().isEmpty() ? m_recoverySourcePath : m_document.path();
-	draft.title = source.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "Unsaved mesh") : QFileInfo(source).fileName();
+	draft.title = source.isEmpty() ? QCoreApplication::translate("SlopStudioModelEditor", "Unsaved mesh") : QFileInfo(source).fileName();
 	m_sessionDrafts->write(std::move(draft));
 }
 
@@ -233,7 +233,7 @@ void ModelEditorDialog::reviewRecoveredSessions(const QString &recoveryId)
 		QString error = header.error;
 		if (!error.isEmpty() || !readModelSessionDraft(header.path, &draft, &error))
 		{
-			m_status->setText(QCoreApplication::translate("VibeStudioModelEditor", "Staged work kept with this copy could not be read: %1")
+			m_status->setText(QCoreApplication::translate("SlopStudioModelEditor", "Staged work kept with this copy could not be read: %1")
 								  .arg(error),
 							  LiveStatus::Problem);
 			continue;
@@ -244,7 +244,7 @@ void ModelEditorDialog::reviewRecoveredSessions(const QString &recoveryId)
 		if (draft.baseFingerprint != m_document.revisionFingerprint() &&
 			draft.baseFingerprint != modelStateLegacyFingerprint(m_document.mesh()))
 		{
-			m_status->setText(QCoreApplication::translate("VibeStudioModelEditor",
+			m_status->setText(QCoreApplication::translate("SlopStudioModelEditor",
 														  "Not restored: %1. It was staged on another version of this model.")
 								  .arg(summary),
 							  LiveStatus::Problem);
@@ -255,14 +255,14 @@ void ModelEditorDialog::reviewRecoveredSessions(const QString &recoveryId)
 			choice = sessionDraftPrompt(summary);
 		else
 		{
-			QMessageBox box(QMessageBox::Question, QCoreApplication::translate("VibeStudioModelEditor", "Recovered Staged Work"),
-							QCoreApplication::translate("VibeStudioModelEditor",
+			QMessageBox box(QMessageBox::Question, QCoreApplication::translate("SlopStudioModelEditor", "Recovered Staged Work"),
+							QCoreApplication::translate("SlopStudioModelEditor",
 														"This copy also kept work that was staged but not applied: %1. Review it again now?")
 								.arg(summary),
 							QMessageBox::NoButton, this);
 			box.setObjectName(QStringLiteral("meshRecoveredSessionPrompt"));
-			auto *review = box.addButton(QCoreApplication::translate("VibeStudioModelEditor", "Review Staged Work"), QMessageBox::AcceptRole);
-			box.addButton(QCoreApplication::translate("VibeStudioModelEditor", "Discard Staged Work"), QMessageBox::DestructiveRole);
+			auto *review = box.addButton(QCoreApplication::translate("SlopStudioModelEditor", "Review Staged Work"), QMessageBox::AcceptRole);
+			box.addButton(QCoreApplication::translate("SlopStudioModelEditor", "Discard Staged Work"), QMessageBox::DestructiveRole);
 			box.setDefaultButton(review);
 			box.exec();
 			choice = box.clickedButton() == review ? 1 : 0;
@@ -272,7 +272,7 @@ void ModelEditorDialog::reviewRecoveredSessions(const QString &recoveryId)
 		removeModelSessionDrafts(m_recoveryDirectory, recoveryId, nullptr, &kind);
 		if (choice != 1)
 		{
-			m_status->setText(QCoreApplication::translate("VibeStudioModelEditor", "Discarded: %1.").arg(summary));
+			m_status->setText(QCoreApplication::translate("SlopStudioModelEditor", "Discarded: %1.").arg(summary));
 			continue;
 		}
 		if (kind == ModelSessionDraftKind::WeightPaint)
@@ -303,7 +303,7 @@ bool ModelEditorDialog::reviewRecoveredWeights(const ModelSessionDraft &draft)
 		return false;
 	if (revision != m_document.revisionFingerprint())
 	{
-		m_status->setText(QCoreApplication::translate("VibeStudioModelEditor",
+		m_status->setText(QCoreApplication::translate("SlopStudioModelEditor",
 													  "The model changed while painting weights. Reopen Paint Skin Weights."));
 		return false;
 	}
@@ -343,7 +343,7 @@ bool ModelEditorDialog::reviewRecoveredCurves(const ModelSessionDraft &draft)
 		return false;
 	if (revision != m_document.revisionFingerprint())
 	{
-		m_status->setText(QCoreApplication::translate("VibeStudioModelEditor",
+		m_status->setText(QCoreApplication::translate("SlopStudioModelEditor",
 													  "The model changed while reviewing animation curves. Reopen Animation Curves."));
 		return false;
 	}
@@ -357,4 +357,4 @@ bool ModelEditorDialog::reviewRecoveredCurves(const ModelSessionDraft &draft)
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

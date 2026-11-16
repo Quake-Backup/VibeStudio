@@ -22,7 +22,7 @@
 #include <QToolBar>
 #include <initializer_list>
 
-namespace vibestudio
+namespace slopstudio
 {
 QWidget* ApplicationShell::buildLevelAuthoringBar()
 {
@@ -973,4 +973,4 @@ void ApplicationShell::applyLevelViewLayout(LevelViewLayout layout)
 	refreshLevelCameraMarker();
 	synchronizeLevelViewNavigation(m_levelMapViewport);
 }
-} // namespace vibestudio
+} // namespace slopstudio

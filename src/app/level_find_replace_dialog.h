@@ -7,7 +7,7 @@ class QComboBox;
 class QLabel;
 class QPushButton;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Find and Replace Textures: a modeless window, so picks in the Textures tab
 // or on the Textures surface can fill its fields while it stays open, as in
@@ -61,4 +61,4 @@ private:
 	bool m_replaceActive = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

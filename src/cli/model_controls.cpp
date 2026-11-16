@@ -14,7 +14,7 @@
 #include <QSaveFile>
 #include <QSet>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -321,4 +321,4 @@ ModelToolsCliResult runModelFormats(const QStringList &arguments)
 	result.payload.insert(QStringLiteral("exportFormats"), exports);
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

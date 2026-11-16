@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -131,7 +131,7 @@ QString levelLinkedGroupLabel(const LevelLinkedGroupBox& box)
 {
 	// Isolated, so a name in another script keeps its place in the sentence.
 	return box.outOfSync
-		? QCoreApplication::translate("VibeStudioLevelLinkedGroups", "%1, out of sync").arg(QChar(0x2068) + box.name + QChar(0x2069))
+		? QCoreApplication::translate("SlopStudioLevelLinkedGroups", "%1, out of sync").arg(QChar(0x2068) + box.name + QChar(0x2069))
 		: box.name;
 }
 
@@ -149,15 +149,15 @@ QString levelLinkedGroupsDescription(const QVector<LevelLinkedGroupBox>& boxes, 
 			}
 		}
 		const int others = linked - static_cast<int>(inUse.size());
-		sentences << QCoreApplication::translate("VibeStudioLevelLinkedGroups",
+		sentences << QCoreApplication::translate("SlopStudioLevelLinkedGroups",
 			"Arrows run from the selected linked group to the %n other group(s) it is linked with.", nullptr, others);
 		if (outOfSync > 0) {
-			sentences << QCoreApplication::translate("VibeStudioLevelLinkedGroups", "Out of sync: %n of them.", nullptr, outOfSync);
+			sentences << QCoreApplication::translate("SlopStudioLevelLinkedGroups", "Out of sync: %n of them.", nullptr, outOfSync);
 		}
 	}
 	if (showAll && !boxes.isEmpty()) {
 		const int count = static_cast<int>(boxes.size());
-		sentences << QCoreApplication::translate("VibeStudioLevelLinkedGroups", "Every linked group is boxed: %n in all.", nullptr, count);
+		sentences << QCoreApplication::translate("SlopStudioLevelLinkedGroups", "Every linked group is boxed: %n in all.", nullptr, count);
 	}
 	return sentences.join(QLatin1Char(' '));
 }
@@ -190,4 +190,4 @@ LevelLinkedGroupDisplay levelLinkedGroupDisplay(const QVector<LevelLinkedGroupBo
 	return display;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

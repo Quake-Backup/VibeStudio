@@ -25,7 +25,7 @@
 #include <QUuid>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -65,7 +65,7 @@ bool write(const QString& path, const QByteArray& bytes)
 }
 bool capture(QWidget* widget, const QString& name)
 {
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 	if (root.isEmpty()) {
 		return true;
 	}
@@ -131,7 +131,7 @@ int main(int argc, char** argv)
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
 	app.setQuitOnLastWindowClosed(false);
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-startup-ui-XXXXXX")));
 	if (!temporary.isValid()) {
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
 	StudioSettings::setOverrideFilePath(temporary.filePath(QStringLiteral("settings.ini")));
 	StudioSettings().setAudioRecoveryEnabled(false);
 	const QString directory = temporary.filePath(QStringLiteral("recovery"));
-	qputenv("VIBESTUDIO_AUDIO_RECOVERY_ROOT", directory.toUtf8());
+	qputenv("SLOPSTUDIO_AUDIO_RECOVERY_ROOT", directory.toUtf8());
 	QString error;
 	AudioProject project{{1, 22050, {0.25f, -0.5f}},
 	                     0,

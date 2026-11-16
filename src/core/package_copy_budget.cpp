@@ -4,7 +4,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString text(const char* value) { return QCoreApplication::translate("PackageCopyBudget", value); }
 }
@@ -84,4 +84,4 @@ void PackageCopyReservation::retain(bool cleanupFailed)
 	m_pending = false;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

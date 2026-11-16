@@ -4,7 +4,7 @@
 #include <QTemporaryDir>
 #include <random>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* why) { if (!value) { std::cerr << why << '\n'; } return value; }
 QJsonObject position(int line, int character) { return {{QStringLiteral("line"), line}, {QStringLiteral("character"), character}}; }

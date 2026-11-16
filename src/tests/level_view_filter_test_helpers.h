@@ -15,7 +15,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 
 // A box brush in Quake III's classic face syntax; textures are bottom, top,
 // -Y, +Y, -X and +X, the first repeated for any not given. Its planes face
@@ -326,4 +326,4 @@ inline QByteArray viewFilterQuakeLiquidFixture()
 	return text.replace(QStringLiteral(" 0 0 0\n"), QStringLiteral("\n")).toUtf8();
 }
 
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

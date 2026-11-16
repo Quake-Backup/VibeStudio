@@ -16,7 +16,7 @@ class QScrollArea;
 class QThread;
 class QTimer;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 enum class LevelPrefabDialogMode { Export, Stage, Insert };
@@ -82,4 +82,4 @@ class LevelPrefabDialog final : public QDialog
 	std::function<bool(const LevelMapDocument &, const LevelPrefabReport &, QString *)> m_insert;
 	std::function<bool(const QByteArray &, const QString &, bool, QString *)> m_stage;
 };
-} // namespace vibestudio
+} // namespace slopstudio

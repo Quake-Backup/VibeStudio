@@ -17,7 +17,7 @@
 
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class MaterialTaskLane;
 
@@ -120,4 +120,4 @@ private:
 	bool m_draggingLight = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -25,96 +25,96 @@
 #include <QThread>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 ModelBakeDialog::ModelBakeDialog(const ModelMesh &mesh, int surface, int frame, QWidget *parent)
 	: QDialog(parent), m_mesh(mesh), m_surface(surface), m_frame(frame)
 {
 	setObjectName(QStringLiteral("modelBakeDialog"));
-	setWindowTitle(QCoreApplication::translate("VibeStudioModelBake", "Bake Maps"));
+	setWindowTitle(QCoreApplication::translate("SlopStudioModelBake", "Bake Maps"));
 	setAccessibleName(windowTitle());
 	auto *layout = new QVBoxLayout(this);
 	auto *form = new QFormLayout;
 	m_type = new QComboBox;
 	m_type->setObjectName(QStringLiteral("modelBakeType"));
-	m_type->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Map to bake"));
+	m_type->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "Map to bake"));
 	for (const auto type : {ModelBakeType::AmbientOcclusion, ModelBakeType::TangentNormal, ModelBakeType::ObjectNormal, ModelBakeType::Lighting})
 		m_type->addItem(modelBakeTypeDisplayName(type), int(type));
-	form->addRow(QCoreApplication::translate("VibeStudioModelBake", "&Map"), m_type);
+	form->addRow(QCoreApplication::translate("SlopStudioModelBake", "&Map"), m_type);
 	m_scope = new QComboBox;
 	m_scope->setObjectName(QStringLiteral("modelBakeScope"));
-	m_scope->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Surfaces to bake"));
-	m_scope->addItem(QCoreApplication::translate("VibeStudioModelBake", "Active surface"));
-	m_scope->addItem(QCoreApplication::translate("VibeStudioModelBake", "Every surface"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelBake", "S&urfaces"), m_scope);
+	m_scope->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "Surfaces to bake"));
+	m_scope->addItem(QCoreApplication::translate("SlopStudioModelBake", "Active surface"));
+	m_scope->addItem(QCoreApplication::translate("SlopStudioModelBake", "Every surface"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelBake", "S&urfaces"), m_scope);
 	m_size = new QComboBox;
 	m_size->setObjectName(QStringLiteral("modelBakeSize"));
-	m_size->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Map size in texels"));
+	m_size->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "Map size in texels"));
 	for (const int side : {64, 128, 256, 512, 1024, 2048})
 		m_size->addItem(QStringLiteral("%1 × %1").arg(QLocale().toString(side)), side);
 	m_size->setCurrentIndex(2);
-	form->addRow(QCoreApplication::translate("VibeStudioModelBake", "Si&ze"), m_size);
+	form->addRow(QCoreApplication::translate("SlopStudioModelBake", "Si&ze"), m_size);
 	m_samples = new QSpinBox;
 	m_samples->setObjectName(QStringLiteral("modelBakeSamples"));
 	m_samples->setRange(1, 1024);
 	m_samples->setValue(64);
-	m_samples->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Occlusion rays per texel"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelBake", "&Rays"), m_samples);
+	m_samples->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "Occlusion rays per texel"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelBake", "&Rays"), m_samples);
 	m_distance = new QDoubleSpinBox;
 	m_distance->setObjectName(QStringLiteral("modelBakeDistance"));
 	m_distance->setRange(0, 100000);
 	m_distance->setDecimals(2);
-	m_distance->setSpecialValueText(QCoreApplication::translate("VibeStudioModelBake", "Automatic"));
-	m_distance->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Occlusion distance"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelBake", "&Distance"), m_distance);
+	m_distance->setSpecialValueText(QCoreApplication::translate("SlopStudioModelBake", "Automatic"));
+	m_distance->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "Occlusion distance"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelBake", "&Distance"), m_distance);
 	m_high = new QLineEdit;
 	m_high->setObjectName(QStringLiteral("modelBakeHigh"));
-	m_high->setPlaceholderText(QCoreApplication::translate("VibeStudioModelBake", "None: bake from this model"));
-	m_high->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "High-poly model"));
-	m_browse = new QPushButton(QCoreApplication::translate("VibeStudioModelBake", "Browse…"));
+	m_high->setPlaceholderText(QCoreApplication::translate("SlopStudioModelBake", "None: bake from this model"));
+	m_high->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "High-poly model"));
+	m_browse = new QPushButton(QCoreApplication::translate("SlopStudioModelBake", "Browse…"));
 	m_browse->setObjectName(QStringLiteral("modelBakeBrowse"));
-	m_browse->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Choose a high-poly model"));
+	m_browse->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "Choose a high-poly model"));
 	auto *highRow = new QHBoxLayout;
 	highRow->addWidget(m_high, 1);
 	highRow->addWidget(m_browse);
-	form->addRow(QCoreApplication::translate("VibeStudioModelBake", "&High-poly"), highRow);
+	form->addRow(QCoreApplication::translate("SlopStudioModelBake", "&High-poly"), highRow);
 	m_cage = new QDoubleSpinBox;
 	m_cage->setObjectName(QStringLiteral("modelBakeCage"));
 	m_cage->setRange(0, 100000);
 	m_cage->setDecimals(2);
-	m_cage->setSpecialValueText(QCoreApplication::translate("VibeStudioModelBake", "Automatic"));
-	m_cage->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Cage distance"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelBake", "&Cage"), m_cage);
+	m_cage->setSpecialValueText(QCoreApplication::translate("SlopStudioModelBake", "Automatic"));
+	m_cage->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "Cage distance"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelBake", "&Cage"), m_cage);
 	m_padding = new QSpinBox;
 	m_padding->setObjectName(QStringLiteral("modelBakePadding"));
 	m_padding->setRange(0, 64);
 	m_padding->setValue(4);
-	m_padding->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Padding in texels"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelBake", "&Padding"), m_padding);
+	m_padding->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "Padding in texels"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelBake", "&Padding"), m_padding);
 	m_seed = new QSpinBox;
 	m_seed->setObjectName(QStringLiteral("modelBakeSeed"));
 	m_seed->setRange(0, 0x7fffffff);
 	m_seed->setValue(1);
-	m_seed->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Random seed"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelBake", "S&eed"), m_seed);
+	m_seed->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "Random seed"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelBake", "S&eed"), m_seed);
 	m_strength = new QDoubleSpinBox;
 	m_strength->setObjectName(QStringLiteral("modelBakeStrength"));
 	m_strength->setRange(0.0, 1.0);
 	m_strength->setSingleStep(0.1);
 	m_strength->setValue(1.0);
-	m_strength->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "How strongly Apply to Model shades the skin"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelBake", "Shade s&trength"), m_strength);
+	m_strength->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "How strongly Apply to Model shades the skin"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelBake", "Shade s&trength"), m_strength);
 	layout->addLayout(form);
 	auto *strip = new QHBoxLayout;
-	m_status = new QLabel(QCoreApplication::translate("VibeStudioModelBake", "Choose a map, then Bake."));
+	m_status = new QLabel(QCoreApplication::translate("SlopStudioModelBake", "Choose a map, then Bake."));
 	m_status->setObjectName(QStringLiteral("modelBakeStatus"));
 	m_status->setWordWrap(true);
 	m_status->setTextFormat(Qt::PlainText);
-	m_status->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Bake status"));
+	m_status->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "Bake status"));
 	m_progress = new QProgressBar;
 	m_progress->setObjectName(QStringLiteral("modelBakeProgress"));
-	m_progress->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Bake progress"));
+	m_progress->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "Bake progress"));
 	m_progress->setRange(0, 1);
 	m_progress->setValue(0);
 	strip->addWidget(m_status, 1);
@@ -122,39 +122,39 @@ ModelBakeDialog::ModelBakeDialog(const ModelMesh &mesh, int surface, int frame, 
 	layout->addLayout(strip);
 	m_preview = new QLabel;
 	m_preview->setObjectName(QStringLiteral("modelBakePreview"));
-	m_preview->setAccessibleName(QCoreApplication::translate("VibeStudioModelBake", "Baked map preview"));
+	m_preview->setAccessibleName(QCoreApplication::translate("SlopStudioModelBake", "Baked map preview"));
 	m_preview->setMinimumSize(192, 192);
 	m_preview->setAlignment(Qt::AlignCenter);
 	layout->addWidget(m_preview, 1);
 	auto *buttons = new QDialogButtonBox;
-	m_bake = buttons->addButton(QCoreApplication::translate("VibeStudioModelBake", "&Bake"), QDialogButtonBox::ActionRole);
+	m_bake = buttons->addButton(QCoreApplication::translate("SlopStudioModelBake", "&Bake"), QDialogButtonBox::ActionRole);
 	m_bake->setObjectName(QStringLiteral("modelBakeStart"));
 	m_bake->setDefault(true);
-	m_cancel = buttons->addButton(QCoreApplication::translate("VibeStudioModelBake", "Cancel &Bake"), QDialogButtonBox::ActionRole);
+	m_cancel = buttons->addButton(QCoreApplication::translate("SlopStudioModelBake", "Cancel &Bake"), QDialogButtonBox::ActionRole);
 	m_cancel->setObjectName(QStringLiteral("modelBakeCancel"));
-	m_save = buttons->addButton(QCoreApplication::translate("VibeStudioModelBake", "&Save Map…"), QDialogButtonBox::ActionRole);
+	m_save = buttons->addButton(QCoreApplication::translate("SlopStudioModelBake", "&Save Map…"), QDialogButtonBox::ActionRole);
 	m_save->setObjectName(QStringLiteral("modelBakeSave"));
-	m_apply = buttons->addButton(QCoreApplication::translate("VibeStudioModelBake", "&Apply to Model"), QDialogButtonBox::ActionRole);
+	m_apply = buttons->addButton(QCoreApplication::translate("SlopStudioModelBake", "&Apply to Model"), QDialogButtonBox::ActionRole);
 	m_apply->setObjectName(QStringLiteral("modelBakeApply"));
 	m_close = buttons->addButton(QDialogButtonBox::Close);
 	m_close->setObjectName(QStringLiteral("modelBakeClose"));
 	for (auto *button : {m_bake, m_cancel, m_save, m_apply, m_close})
 		button->setAccessibleName(button->text().remove(QLatin1Char('&')));
-	setApplyTarget(QCoreApplication::translate("VibeStudioModelBake", "This surface has no skin in the model or the open package to hand the map to; use Save Map…"), {});
+	setApplyTarget(QCoreApplication::translate("SlopStudioModelBake", "This surface has no skin in the model or the open package to hand the map to; use Save Map…"), {});
 	connect(m_apply, &QPushButton::clicked, this, [this] { applyToModel(); });
 	layout->addWidget(buttons);
 	connect(m_bake, &QPushButton::clicked, this, [this] { start(); });
 	connect(m_cancel, &QPushButton::clicked, this, [this] { cancel(); });
 	connect(m_close, &QPushButton::clicked, this, [this] { reject(); });
 	connect(m_browse, &QPushButton::clicked, this, [this] {
-		const auto path = QFileDialog::getOpenFileName(this, QCoreApplication::translate("VibeStudioModelBake", "Choose a High-Poly Model"), m_high->text(),
-			QCoreApplication::translate("VibeStudioModelBake", "Models (*.mesh.json *.obj *.lwo *.ase *.md3 *.md5mesh *.iqm *.gltf *.glb);;All files (*)"));
+		const auto path = QFileDialog::getOpenFileName(this, QCoreApplication::translate("SlopStudioModelBake", "Choose a High-Poly Model"), m_high->text(),
+			QCoreApplication::translate("SlopStudioModelBake", "Models (*.mesh.json *.obj *.lwo *.ase *.md3 *.md5mesh *.iqm *.gltf *.glb);;All files (*)"));
 		if (!path.isEmpty())
 			m_high->setText(QDir::toNativeSeparators(path));
 	});
 	connect(m_save, &QPushButton::clicked, this, [this] {
-		const auto path = QFileDialog::getSaveFileName(this, QCoreApplication::translate("VibeStudioModelBake", "Save Baked Map"), QString(),
-			QCoreApplication::translate("VibeStudioModelBake", "PNG images (*.png);;Targa images (*.tga)"));
+		const auto path = QFileDialog::getSaveFileName(this, QCoreApplication::translate("SlopStudioModelBake", "Save Baked Map"), QString(),
+			QCoreApplication::translate("SlopStudioModelBake", "PNG images (*.png);;Targa images (*.tga)"));
 		if (!path.isEmpty())
 			saveTo(path);
 	});
@@ -216,7 +216,7 @@ bool ModelBakeDialog::start()
 	const QString highPath = m_high->text().trimmed();
 	m_cancelled = std::make_shared<std::atomic_bool>(false);
 	m_progress->setRange(0, 0);
-	m_status->setText(QCoreApplication::translate("VibeStudioModelBake", "Baking %1…").arg(modelBakeTypeDisplayName(options.type)));
+	m_status->setText(QCoreApplication::translate("SlopStudioModelBake", "Baking %1…").arg(modelBakeTypeDisplayName(options.type)));
 	setRunning(true);
 	endTrackedWork();
 	m_workToken = studioWorkTracker().begin(m_status->text());
@@ -237,7 +237,7 @@ bool ModelBakeDialog::start()
 			if (!file.open(QIODevice::ReadOnly) || file.size() > modelDocumentMaxSourceBytes)
 			{
 				ok = false;
-				error = QCoreApplication::translate("VibeStudioModelBake", "The high-poly model cannot be read: %1").arg(highPath);
+				error = QCoreApplication::translate("SlopStudioModelBake", "The high-poly model cannot be read: %1").arg(highPath);
 			}
 			else
 			{
@@ -263,7 +263,7 @@ void ModelBakeDialog::cancel()
 	{
 		m_cancelled->store(true);
 		m_cancel->setEnabled(false);
-		m_status->setText(QCoreApplication::translate("VibeStudioModelBake", "Cancelling the bake…"));
+		m_status->setText(QCoreApplication::translate("SlopStudioModelBake", "Cancelling the bake…"));
 	}
 }
 
@@ -284,18 +284,18 @@ void ModelBakeDialog::finished(const ModelBakeResult &result, const QString &err
 		m_result = result;
 		m_resultType = m_lastOptions.type;
 		m_preview->setPixmap(QPixmap::fromImage(result.image.scaled(m_preview->size().boundedTo(QSize(512, 512)), Qt::KeepAspectRatio, Qt::SmoothTransformation)));
-		QString text = QCoreApplication::translate("VibeStudioModelBake", "Baked %n texel(s).", nullptr, result.texels);
+		QString text = QCoreApplication::translate("SlopStudioModelBake", "Baked %n texel(s).", nullptr, result.texels);
 		if (!result.notes.isEmpty())
 			text += QLatin1Char(' ') + result.notes.join(QLatin1Char(' '));
 		m_status->setText(text);
 	}
 	else if (cancelled)
 	{
-		m_status->setText(QCoreApplication::translate("VibeStudioModelBake", "The bake was cancelled; the previous map is kept."));
+		m_status->setText(QCoreApplication::translate("SlopStudioModelBake", "The bake was cancelled; the previous map is kept."));
 	}
 	else
 	{
-		m_status->setText(QCoreApplication::translate("VibeStudioModelBake", "The bake failed: %1").arg(error));
+		m_status->setText(QCoreApplication::translate("SlopStudioModelBake", "The bake failed: %1").arg(error));
 	}
 	m_status->setAccessibleDescription(m_status->text());
 	setRunning(false);
@@ -315,8 +315,8 @@ bool ModelBakeDialog::applyToModel()
 		return false;
 	QString error;
 	const bool applied = m_applyHandler(m_result.image, m_resultType, m_strength->value(), &error);
-	m_status->setText(applied ? QCoreApplication::translate("VibeStudioModelBake", "Applied the %1 map: %2").arg(modelBakeTypeDisplayName(m_resultType), m_apply->toolTip())
-							  : (error.isEmpty() ? QCoreApplication::translate("VibeStudioModelBake", "The map was not applied.") : error));
+	m_status->setText(applied ? QCoreApplication::translate("SlopStudioModelBake", "Applied the %1 map: %2").arg(modelBakeTypeDisplayName(m_resultType), m_apply->toolTip())
+							  : (error.isEmpty() ? QCoreApplication::translate("SlopStudioModelBake", "The map was not applied.") : error));
 	m_status->setAccessibleDescription(m_status->text());
 	return applied;
 }
@@ -340,8 +340,8 @@ bool ModelBakeDialog::saveTo(const QString &path)
 	}
 	QSaveFile file(path);
 	const bool written = file.open(QIODevice::WriteOnly) && (bytes.isEmpty() ? m_result.image.save(&file, "PNG") : file.write(bytes) == bytes.size()) && file.commit();
-	m_status->setText(written ? QCoreApplication::translate("VibeStudioModelBake", "Saved the map to %1.").arg(QDir::toNativeSeparators(path))
-							  : QCoreApplication::translate("VibeStudioModelBake", "The map could not be saved to %1.").arg(QDir::toNativeSeparators(path)));
+	m_status->setText(written ? QCoreApplication::translate("SlopStudioModelBake", "Saved the map to %1.").arg(QDir::toNativeSeparators(path))
+							  : QCoreApplication::translate("SlopStudioModelBake", "The map could not be saved to %1.").arg(QDir::toNativeSeparators(path)));
 	return written;
 }
 
@@ -351,4 +351,4 @@ void ModelBakeDialog::reject()
 	QDialog::reject();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -53,7 +53,7 @@
 #include <array>
 #include <cmath>
 
-namespace vibestudio::model_formats {
+namespace slopstudio::model_formats {
 
 namespace {
 
@@ -518,40 +518,40 @@ private:
 	bool readChunks()
 	{
 		if (!rangeOk(m_bytes, 0, 12) || readU32BE(m_bytes, 0) != kIdForm) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave FORM header is truncated."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave FORM header is truncated."));
 		}
 		const quint32 type = readU32BE(m_bytes, 8);
 		if (type == kIdLwlo) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "LightWave LWLO layered objects are not decoded; Doom 3 and q3map2 read only LWO2 and LWOB."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "LightWave LWLO layered objects are not decoded; Doom 3 and q3map2 read only LWO2 and LWOB."));
 		}
 		if (type != kIdLwo2 && type != kIdLwob) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The IFF form type %1 is not a LightWave object.").arg(chunkName(type)));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The IFF form type %1 is not a LightWave object.").arg(chunkName(type)));
 		}
 		m_object.lwob = type == kIdLwob;
 		m_mesh->version = m_object.lwob ? 1 : 2;
 		const qint64 formEnd = 8 + qint64(readU32BE(m_bytes, 4));
 		if (formEnd < 12) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave FORM declares a size too small for its type."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave FORM declares a size too small for its type."));
 		}
 		if (formEnd > m_bytes.size()) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave file is truncated: the FORM declares %1 bytes but the file holds %2.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave file is truncated: the FORM declares %1 bytes but the file holds %2.")
 				.arg(formEnd).arg(m_bytes.size()));
 		}
 		if (formEnd < m_bytes.size()) {
-			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "%1 byte(s) after the LightWave FORM were ignored.").arg(m_bytes.size() - formEnd);
+			m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "%1 byte(s) after the LightWave FORM were ignored.").arg(m_bytes.size() - formEnd);
 		}
 
 		qint64 offset = 12;
 		while (offset < formEnd) {
 			if (!m_work.step()) { return false; }
 			if (formEnd - offset < 8) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave chunk header at byte %1 is truncated.").arg(offset));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave chunk header at byte %1 is truncated.").arg(offset));
 			}
 			const quint32 id = readU32BE(m_bytes, offset);
 			const qint64 size = qint64(readU32BE(m_bytes, offset + 4));
 			const qint64 data = offset + 8;
 			if (size > formEnd - data) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave %1 chunk at byte %2 runs past the end of the file.")
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave %1 chunk at byte %2 runs past the end of the file.")
 					.arg(chunkName(id)).arg(offset));
 			}
 			LwCursor cursor{m_bytes, data, data + size};
@@ -611,11 +611,11 @@ private:
 	bool readPoints(LwCursor& cursor)
 	{
 		if (cursor.remaining() % 12 != 0) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave point list is not a whole number of points."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave point list is not a whole number of points."));
 		}
 		const qint64 count = cursor.remaining() / 12;
 		if (count > kMaxVertexSlots - qint64(m_object.points.size())) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object declares more points than can be decoded."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave object declares more points than can be decoded."));
 		}
 		m_object.pointOffset = int(m_object.points.size());
 		m_object.points.reserve(m_object.points.size() + qsizetype(count));
@@ -626,7 +626,7 @@ private:
 			point.y = cursor.f4();
 			point.z = cursor.f4();
 			if (!cursor.ok || !isFinite(point)) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "LightWave point %1 is not a finite position.").arg(m_object.points.size()));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "LightWave point %1 is not a finite position.").arg(m_object.points.size()));
 			}
 			m_object.points.append(point);
 		}
@@ -636,7 +636,7 @@ private:
 	bool appendPolygon(const LwPolygon& polygon)
 	{
 		if (m_object.polygons.size() >= kMaxSurfaceTriangles) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object declares more polygons than can be decoded."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave object declares more polygons than can be decoded."));
 		}
 		m_object.polygons.append(polygon);
 		return true;
@@ -645,11 +645,11 @@ private:
 	bool appendCorner(int point, int polygonIndex)
 	{
 		if (point < 0 || point >= m_object.points.size()) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "LightWave polygon %1 refers to point %2, beyond the %3 point(s) of its layer.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "LightWave polygon %1 refers to point %2, beyond the %3 point(s) of its layer.")
 				.arg(polygonIndex).arg(point).arg(m_object.points.size()));
 		}
 		if (m_object.corners.size() >= kMaxLwCorners) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object declares more polygon corners than can be decoded."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave object declares more polygon corners than can be decoded."));
 		}
 		m_object.corners.append(point);
 		return true;
@@ -660,7 +660,7 @@ private:
 	{
 		const quint32 type = cursor.u4();
 		if (!cursor.ok) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave polygon chunk is truncated."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave polygon chunk is truncated."));
 		}
 		m_object.polygonOffset = int(m_object.polygons.size());
 		while (!cursor.atEnd()) {
@@ -680,7 +680,7 @@ private:
 				}
 			}
 			if (!cursor.ok) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "LightWave polygon %1 is truncated.").arg(polygonIndex));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "LightWave polygon %1 is truncated.").arg(polygonIndex));
 			}
 			if (!appendPolygon(polygon)) {
 				return false;
@@ -714,10 +714,10 @@ private:
 				cursor.u2();
 			}
 			if (!cursor.ok) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "LightWave polygon %1 is truncated.").arg(polygonIndex));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "LightWave polygon %1 is truncated.").arg(polygonIndex));
 			}
 			if (surface == 0) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "LWOB polygon %1 names surface 0; surfaces count from 1.").arg(polygonIndex));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "LWOB polygon %1 names surface 0; surfaces count from 1.").arg(polygonIndex));
 			}
 			polygon.tag = surface - 1;
 			if (!appendPolygon(polygon)) {
@@ -735,7 +735,7 @@ private:
 		const int dimension = int(cursor.u2());
 		cursor.s0();
 		if (!cursor.ok) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave vertex map header is truncated."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave vertex map header is truncated."));
 		}
 		if (type != kIdTxuv) {
 			return true;
@@ -757,18 +757,18 @@ private:
 				cursor.f4();
 			}
 			if (!cursor.ok) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "A LightWave UV map record is truncated."));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "A LightWave UV map record is truncated."));
 			}
 			if (point < 0 || point >= m_object.points.size()) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "A LightWave UV map refers to point %1, beyond the %2 point(s) of its layer.")
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "A LightWave UV map refers to point %1, beyond the %2 point(s) of its layer.")
 					.arg(point).arg(m_object.points.size()));
 			}
 			if (perPolygon && (polygon < 0 || polygon >= m_object.polygons.size())) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "A LightWave per-polygon UV map refers to polygon %1, beyond the %2 polygon(s) of its layer.")
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "A LightWave per-polygon UV map refers to polygon %1, beyond the %2 polygon(s) of its layer.")
 					.arg(polygon).arg(m_object.polygons.size()));
 			}
 			if (!std::isfinite(value.u) || !std::isfinite(value.v)) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "A LightWave UV map holds a value that is not finite."));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "A LightWave UV map holds a value that is not finite."));
 			}
 			map.points.append(point);
 			if (perPolygon) {
@@ -787,7 +787,7 @@ private:
 	{
 		const quint32 type = cursor.u4();
 		if (!cursor.ok) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave polygon tag chunk is truncated."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave polygon tag chunk is truncated."));
 		}
 		if (type != kIdSurf && type != kIdSmgp) {
 			return true;
@@ -797,10 +797,10 @@ private:
 			const int polygon = cursor.vx() + m_object.polygonOffset;
 			const int tag = int(cursor.u2());
 			if (!cursor.ok) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "A LightWave polygon tag record is truncated."));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "A LightWave polygon tag record is truncated."));
 			}
 			if (polygon < 0 || polygon >= m_object.polygons.size()) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "A LightWave polygon tag refers to polygon %1, beyond the %2 polygon(s) of its layer.")
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "A LightWave polygon tag refers to polygon %1, beyond the %2 polygon(s) of its layer.")
 					.arg(polygon).arg(m_object.polygons.size()));
 			}
 			if (type == kIdSurf) {
@@ -819,10 +819,10 @@ private:
 			if (!m_work.step()) { return false; }
 			const QString tag = cursor.s0();
 			if (!cursor.ok) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave tag list at byte %1 holds an unterminated name.").arg(offset));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave tag list at byte %1 holds an unterminated name.").arg(offset));
 			}
 			if (m_object.tags.size() >= kMaxLwTags) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object declares more tags than can be decoded."));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave object declares more tags than can be decoded."));
 			}
 			m_object.tags.append(tag);
 		}
@@ -841,14 +841,14 @@ private:
 			cursor.s0();
 		}
 		if (!cursor.ok) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave surface at byte %1 has an unterminated name.").arg(offset));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave surface at byte %1 has an unterminated name.").arg(offset));
 		}
 		while (cursor.remaining() >= 6) {
 			if (!m_work.step()) { return false; }
 			const quint32 id = cursor.u4();
 			const qint64 size = qint64(cursor.u2());
 			if (size > cursor.remaining()) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "LightWave surface %1 has a %2 sub-chunk that runs past its chunk.")
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "LightWave surface %1 has a %2 sub-chunk that runs past its chunk.")
 					.arg(slot.name, chunkName(id)));
 			}
 			const qint64 subEnd = cursor.position + size;
@@ -868,7 +868,7 @@ private:
 			}
 		}
 		if (m_object.surfaceChunks.size() >= kMaxLwTags) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object declares more surfaces than can be decoded."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave object declares more surfaces than can be decoded."));
 		}
 		m_object.surfaceChunks.append(slot);
 		return true;
@@ -878,25 +878,25 @@ private:
 	{
 		LwObject& object = m_object;
 		if (object.points.isEmpty() || object.polygons.isEmpty()) {
-			fail(QCoreApplication::translate("VibeStudioModelMesh", "The first LightWave layer holds no polygons."));
+			fail(QCoreApplication::translate("SlopStudioModelMesh", "The first LightWave layer holds no polygons."));
 			return;
 		}
 		if (object.lwob) {
-			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "LightWave 5 object (LWOB)");
+			m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "LightWave 5 object (LWOB)");
 		} else {
-			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "LightWave object (LWO2)");
+			m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "LightWave object (LWO2)");
 		}
 		if (!object.firstLayerName.isEmpty()) {
-			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Layer: %1").arg(object.firstLayerName);
+			m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Layer: %1").arg(object.firstLayerName);
 		}
-		m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Points: %1").arg(object.points.size());
-		m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Polygons: %1").arg(object.polygons.size());
+		m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Points: %1").arg(object.points.size());
+		m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Polygons: %1").arg(object.polygons.size());
 		if (object.layers > 1) {
-			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("lwo-extra-layers"), QCoreApplication::translate("VibeStudioModelMesh", "Only the first of %1 LightWave layers is decoded; Doom 3 and q3map2 ignore the others.")
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("lwo-extra-layers"), QCoreApplication::translate("SlopStudioModelMesh", "Only the first of %1 LightWave layers is decoded; Doom 3 and q3map2 ignore the others.")
 				.arg(object.layers));
 		}
 		if (object.narrowUvMaps > 0) {
-			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-short-uv-map"), QCoreApplication::translate("VibeStudioModelMesh", "%1 LightWave UV map(s) have fewer than two values per entry and were ignored.")
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-short-uv-map"), QCoreApplication::translate("SlopStudioModelMesh", "%1 LightWave UV map(s) have fewer than two values per entry and were ignored.")
 				.arg(object.narrowUvMaps));
 		}
 
@@ -943,7 +943,7 @@ private:
 				name = QStringLiteral("_default");
 				untaggedDefault = true;
 			} else if (polygon.tag < 0 || polygon.tag >= object.tags.size()) {
-				fail(QCoreApplication::translate("VibeStudioModelMesh", "LightWave polygon %1 refers to surface tag %2, beyond the %3 tag(s).")
+				fail(QCoreApplication::translate("SlopStudioModelMesh", "LightWave polygon %1 refers to surface tag %2, beyond the %3 tag(s).")
 					.arg(index).arg(polygon.tag).arg(object.tags.size()));
 				return;
 			} else {
@@ -959,7 +959,7 @@ private:
 			polygon.slot = found.value();
 		}
 		if (untaggedDefault) {
-			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-no-surface-tags"), QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object has no surface tags; its polygons use the default material."));
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-no-surface-tags"), QCoreApplication::translate("SlopStudioModelMesh", "The LightWave object has no surface tags; its polygons use the default material."));
 		}
 
 		// Point -> polygon adjacency for smoothing (lwGetPointPolygons).
@@ -988,7 +988,7 @@ private:
 		}
 		const bool smoothingAllowed = smoothingWork <= kMaxSmoothingWork;
 		if (!smoothingAllowed) {
-			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-flat-normals"), QCoreApplication::translate("VibeStudioModelMesh", "The LightWave points are shared too widely to smooth; polygon normals are used instead."));
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-flat-normals"), QCoreApplication::translate("SlopStudioModelMesh", "The LightWave points are shared too widely to smooth; polygon normals are used instead."));
 		}
 
 		// Corner UVs as Doom 3 resolves them: the last point map value, then the
@@ -1032,7 +1032,7 @@ private:
 			}
 		}
 		if (unmatchedPolygonUvs > 0) {
-			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-stray-uv-records"), QCoreApplication::translate("VibeStudioModelMesh", "%1 per-polygon UV record(s) name a point their polygon does not use and were ignored.")
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-stray-uv-records"), QCoreApplication::translate("SlopStudioModelMesh", "%1 per-polygon UV record(s) name a point their polygon does not use and were ignored.")
 				.arg(unmatchedPolygonUvs));
 		}
 
@@ -1114,7 +1114,7 @@ private:
 
 			if (buildForSlot.at(polygon.slot) < 0) {
 				if (builds.size() >= kMaxSurfaces) {
-					fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object uses more surfaces than can be decoded."));
+					fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave object uses more surfaces than can be decoded."));
 					return;
 				}
 				buildForSlot[polygon.slot] = int(builds.size());
@@ -1185,7 +1185,7 @@ private:
 				const int b = vertexFor(triangle[2]);
 				const int c = vertexFor(triangle[1]);
 				if (a < 0 || b < 0 || c < 0 || surface.triangles.size() >= kMaxSurfaceTriangles) {
-					fail(QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object has more vertices or triangles than can be decoded."));
+					fail(QCoreApplication::translate("SlopStudioModelMesh", "The LightWave object has more vertices or triangles than can be decoded."));
 					return;
 				}
 				surface.triangles.append(ModelTriangle{a, b, c});
@@ -1218,36 +1218,36 @@ private:
 			m_mesh->surfaces.append(surface);
 		}
 		if (defaultSurfaces > 0) {
-			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "%1 surface(s) have no SURF chunk and use LightWave's defaults.").arg(defaultSurfaces);
+			m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "%1 surface(s) have no SURF chunk and use LightWave's defaults.").arg(defaultSurfaces);
 		}
 
 		if (triangulated > 0) {
-			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-triangulated"), QCoreApplication::translate("VibeStudioModelMesh",
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-triangulated"), QCoreApplication::translate("SlopStudioModelMesh",
 				"%1 polygon(s) with more than three corners were triangulated here; Doom 3 and q3map2 drop such polygons, so triangulate them in the modeller.")
 				.arg(triangulated));
 		}
 		if (refused > 0) {
-			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("lwo-skipped-polygons"), QCoreApplication::translate("VibeStudioModelMesh", "%1 degenerate or self-crossing polygon(s) were skipped.").arg(refused));
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("lwo-skipped-polygons"), QCoreApplication::translate("SlopStudioModelMesh", "%1 degenerate or self-crossing polygon(s) were skipped.").arg(refused));
 		}
 		if (shortPolygons > 0) {
-			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "%1 polygon(s) with fewer than three corners were skipped, as the game skips them.")
+			m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "%1 polygon(s) with fewer than three corners were skipped, as the game skips them.")
 				.arg(shortPolygons);
 		}
 		if (otherTypes > 0) {
-			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "%1 curve, bone or metaball polygon(s) were skipped.").arg(otherTypes);
+			m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "%1 curve, bone or metaball polygon(s) were skipped.").arg(otherTypes);
 		}
 		if (!haveUvMap) {
-			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-no-uv-map"), QCoreApplication::translate("VibeStudioModelMesh", "The LightWave object has no UV map; Doom 3 draws it with zero texture coordinates."));
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-no-uv-map"), QCoreApplication::translate("SlopStudioModelMesh", "The LightWave object has no UV map; Doom 3 draws it with zero texture coordinates."));
 		} else if (unmappedCorners > 0) {
-			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-missing-uvs"), QCoreApplication::translate("VibeStudioModelMesh", "%1 polygon corner(s) have no UV; Doom 3 gives them the first UV in the file.")
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("lwo-missing-uvs"), QCoreApplication::translate("SlopStudioModelMesh", "%1 polygon corner(s) have no UV; Doom 3 gives them the first UV in the file.")
 				.arg(unmappedCorners));
 		}
 		if (object.ignoredChunks > 0) {
-			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "%1 geometry chunk(s) of later layers were ignored.").arg(object.ignoredChunks);
+			m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "%1 geometry chunk(s) of later layers were ignored.").arg(object.ignoredChunks);
 		}
 
 		if (m_mesh->surfaces.isEmpty()) {
-			fail(QCoreApplication::translate("VibeStudioModelMesh", "No LightWave polygon could be turned into triangles."));
+			fail(QCoreApplication::translate("SlopStudioModelMesh", "No LightWave polygon could be turned into triangles."));
 			return;
 		}
 		fillStaticFrame(m_mesh);
@@ -1270,4 +1270,4 @@ void decodeLightWave(const QString& path, const QByteArray& bytes, ModelMesh* me
 	decoder.run();
 }
 
-} // namespace vibestudio::model_formats
+} // namespace slopstudio::model_formats

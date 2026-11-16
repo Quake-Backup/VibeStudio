@@ -28,7 +28,7 @@
 #include <QJsonArray>
 #include <QStringList>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr int modelSkinVariantMaxCount = 32;
 // 1 to 24 ASCII letters, digits, underscores or hyphens, starting with a
@@ -110,4 +110,4 @@ bool writeModelDoom3Skin(const ModelMesh &mesh, const ModelSkinVariant &variant,
 // "//" and "/* */" comments, and other declarations skipped. For checking
 // written skins; refuses malformed declarations.
 bool parseModelDoom3Skins(const QByteArray &bytes, QVector<ModelDoom3Skin> *skins, QString *error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

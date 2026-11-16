@@ -25,7 +25,7 @@
 // - Padding then bleeds covered texels into empty neighbours so filtering
 //   and mip-mapping do not pull in the background at seams.
 //
-// Original VibeStudio code; the BVH is core/model_bvh.h.
+// Original SlopStudio code; the BVH is core/model_bvh.h.
 
 #include "core/model_mesh.h"
 #include "core/model_work.h"
@@ -36,7 +36,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class ModelBakeType {
 	AmbientOcclusion,
@@ -107,4 +107,4 @@ bool multiplyModelBakeIntoSkin(const QImage& skin, const QImage& map, ModelBakeT
 // "<name>_objnormal.tga" and "<name>_light.tga" for the others.
 QString modelBakeCompanionPath(const QString& imagePath, ModelBakeType type);
 
-} // namespace vibestudio
+} // namespace slopstudio

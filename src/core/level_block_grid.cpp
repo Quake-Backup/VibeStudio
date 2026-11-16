@@ -11,7 +11,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -147,26 +147,26 @@ QString levelBlockSizeText(const LevelMapBlockSize& size)
 {
 	const auto part = [&size](int axis) {
 		return size.along(axis) > 0 ? QString::number(size.along(axis))
-									: QCoreApplication::translate("VibeStudioLevelBlockGrid", "off");
+									: QCoreApplication::translate("SlopStudioLevelBlockGrid", "off");
 	};
-	return QCoreApplication::translate("VibeStudioLevelBlockGrid", "%1 %4 %2 %4 %3")
+	return QCoreApplication::translate("SlopStudioLevelBlockGrid", "%1 %4 %2 %4 %3")
 		.arg(part(0), part(1), part(2), QString(QChar(0x00d7)));
 }
 
 QString levelBlockSizeSourceText(const LevelMapBlockSize& size)
 {
 	if (size.key.isEmpty()) {
-		return QCoreApplication::translate("VibeStudioLevelBlockGrid", "the default");
+		return QCoreApplication::translate("SlopStudioLevelBlockGrid", "the default");
 	}
 	if (size.numbers == 0) {
-		return QCoreApplication::translate("VibeStudioLevelBlockGrid", "the default, as worldspawn %1 \"%2\" holds no number the compiler reads")
+		return QCoreApplication::translate("SlopStudioLevelBlockGrid", "the default, as worldspawn %1 \"%2\" holds no number the compiler reads")
 			.arg(size.key, size.value);
 	}
 	if (size.numbers == 2) {
-		return QCoreApplication::translate("VibeStudioLevelBlockGrid", "worldspawn %1 \"%2\"; the compiler ignores a second number without a third")
+		return QCoreApplication::translate("SlopStudioLevelBlockGrid", "worldspawn %1 \"%2\"; the compiler ignores a second number without a third")
 			.arg(size.key, size.value);
 	}
-	return QCoreApplication::translate("VibeStudioLevelBlockGrid", "worldspawn %1 \"%2\"").arg(size.key, size.value);
+	return QCoreApplication::translate("SlopStudioLevelBlockGrid", "worldspawn %1 \"%2\"").arg(size.key, size.value);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

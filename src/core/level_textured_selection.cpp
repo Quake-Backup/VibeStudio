@@ -16,7 +16,7 @@
 // walkers at 449778b3840f8f2062daab15c87cb012f2ac945c (GPL-2.0-or-later).
 // No source copied. Studio visibility, locks, group boundaries, cancellation
 // and atomic publication are intentional adaptations; see docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct Text { Q_DECLARE_TR_FUNCTIONS(LevelTexturedSelection) };
 QString objectKey(LevelMapSelectionKind kind, int id) { return levelMapSelectionRefId({kind,id}); }
@@ -320,4 +320,4 @@ bool transformLevelMapSurfaceFaces(LevelMapDocument* document, const LevelSurfac
 	if (report) { *report = std::move(result); }
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

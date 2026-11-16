@@ -14,7 +14,7 @@ class QFormLayout;
 class QLabel;
 class QScrollArea;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class MaterialPropertyPanel final : public QWidget {
 	Q_OBJECT
@@ -61,4 +61,4 @@ private:
 	QHash<QString, QPointer<QLabel>> m_problems;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

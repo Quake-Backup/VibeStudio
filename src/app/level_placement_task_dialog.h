@@ -4,7 +4,7 @@
 #include <QDialog>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 class LevelPlacementTaskDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(LevelPlacementTaskDialog)
   public:
@@ -15,4 +15,4 @@ class LevelPlacementTaskDialog final : public QDialog {
 	explicit LevelPlacementTaskDialog(QWidget* parent);
 	std::function<void()> m_cancel;
 };
-} // namespace vibestudio
+} // namespace slopstudio

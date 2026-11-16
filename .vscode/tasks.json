@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "VibeStudio: configure",
+      "label": "SlopStudio: configure",
       "type": "shell",
       "command": "pwsh",
       "args": [
@@ -23,7 +23,7 @@
       "problemMatcher": []
     },
     {
-      "label": "VibeStudio: compile",
+      "label": "SlopStudio: compile",
       "type": "shell",
       "command": "pwsh",
       "args": [
@@ -50,7 +50,7 @@
       "detail": "Configure if needed, then compile the Meson build directory."
     },
     {
-      "label": "VibeStudio: build and validate",
+      "label": "SlopStudio: build and validate",
       "type": "shell",
       "command": "pwsh",
       "args": [
@@ -81,7 +81,7 @@
       "detail": "Configure, compile with warnings as errors, run Meson tests, and run repository validation scripts."
     },
     {
-      "label": "VibeStudio: strict warnings build",
+      "label": "SlopStudio: strict warnings build",
       "type": "shell",
       "command": "pwsh",
       "args": [
@@ -108,10 +108,10 @@
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Compile with Meson werror enabled at the project warning level so VibeStudio warnings fail the build."
+      "detail": "Compile with Meson werror enabled at the project warning level so SlopStudio warnings fail the build."
     },
     {
-      "label": "VibeStudio: test",
+      "label": "SlopStudio: test",
       "type": "shell",
       "command": "pwsh",
       "args": [
@@ -140,7 +140,7 @@
       "detail": "Compile, then run the Meson tests with Qt on PATH (skips repository validation)."
     },
     {
-      "label": "VibeStudio: build and launch app",
+      "label": "SlopStudio: build and launch app",
       "type": "shell",
       "command": "pwsh",
       "args": [
@@ -148,9 +148,9 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}/.vscode/launch-vibestudio.ps1"
+        "${workspaceFolder}/.vscode/launch-slopstudio.ps1"
       ],
-      "dependsOn": "VibeStudio: compile",
+      "dependsOn": "SlopStudio: compile",
       "dependsOrder": "sequence",
       "options": {
         "cwd": "${workspaceFolder}"
@@ -159,7 +159,7 @@
       "detail": "Compile, then launch the app with Qt on PATH."
     },
     {
-      "label": "VibeStudio: launch app (no build)",
+      "label": "SlopStudio: launch app (no build)",
       "type": "shell",
       "command": "pwsh",
       "args": [
@@ -167,7 +167,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}/.vscode/launch-vibestudio.ps1"
+        "${workspaceFolder}/.vscode/launch-slopstudio.ps1"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -176,7 +176,7 @@
       "detail": "Launch the already-built app. This task never configures, compiles, or tests."
     },
     {
-      "label": "VibeStudio: launch CLI help (no build)",
+      "label": "SlopStudio: launch CLI help (no build)",
       "type": "shell",
       "command": "pwsh",
       "args": [
@@ -184,7 +184,7 @@
         "-ExecutionPolicy",
         "Bypass",
         "-File",
-        "${workspaceFolder}/.vscode/launch-vibestudio.ps1",
+        "${workspaceFolder}/.vscode/launch-slopstudio.ps1",
         "-CliHelp"
       ],
       "options": {
@@ -194,7 +194,7 @@
       "detail": "Launch the already-built CLI help. This task never configures, compiles, or tests."
     },
     {
-      "label": "VibeStudio: build docs site",
+      "label": "SlopStudio: build docs site",
       "type": "shell",
       "command": "python",
       "args": [
@@ -209,7 +209,7 @@
       "detail": "Render docs/manual as the HTML documentation in build/docs-site (fails on broken links)."
     },
     {
-      "label": "VibeStudio: regenerate branding",
+      "label": "SlopStudio: regenerate branding",
       "type": "shell",
       "command": "python",
       "args": [
@@ -222,7 +222,7 @@
       "detail": "Rebuild every logo, icon and installer image under assets/branding (docs/BRANDING.md)."
     },
     {
-      "label": "VibeStudio: check changelog and version",
+      "label": "SlopStudio: check changelog and version",
       "type": "shell",
       "command": "python",
       "args": [

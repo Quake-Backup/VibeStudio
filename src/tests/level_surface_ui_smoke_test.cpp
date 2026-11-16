@@ -1,7 +1,7 @@
 #include "tests/level_object_test_helpers.h"
-using vibestudio::tests::objectIndex;
-using vibestudio::tests::setObjectCurrentRow;
-using vibestudio::tests::setObjectSelected;
+using slopstudio::tests::objectIndex;
+using slopstudio::tests::setObjectCurrentRow;
+using slopstudio::tests::setObjectSelected;
 #include "app/application_shell.h"
 #include "app/level_surface_dialog.h"
 #include "app/model_viewport.h"
@@ -27,7 +27,7 @@ using vibestudio::tests::setObjectSelected;
 #include <QTreeWidgetItemIterator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message, const QString &error = {})
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 		ok &= expect(serializeLevelMap(map).bytes == source, "preview leaves map unchanged");
 		ok &= expect(tests::settleModelViewport(*preview), "preview rendered");
 		ok &= expect(dialog.findChild<QScrollArea *>()->horizontalScrollBar()->maximum() == 0, "expanded labels and RTL controls fit");
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!captures.isEmpty()) {
 			QDir().mkpath(captures);
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied);

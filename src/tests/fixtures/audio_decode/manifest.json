@@ -1,5 +1,5 @@
 {
-  "source": "VibeStudio-generated synthetic tones and transient; no external media",
+  "source": "SlopStudio-generated synthetic tones and transient; no external media",
   "encoder": "ffmpeg version 7.1-essentials_build-www.gyan.dev Copyright (c) 2000-2024 the FFmpeg developers",
   "oracles": {
     "mp3/flac": "ffmpeg version 7.1-essentials_build-www.gyan.dev Copyright (c) 2000-2024 the FFmpeg developers",

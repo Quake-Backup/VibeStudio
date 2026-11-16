@@ -1,6 +1,6 @@
 // The Local GGUF connector with a real model: free text, schema-constrained answers, the
 // AiChatClient path with cancellation, and Quake-MapGen planning under its own grammar with GGUF
-// provenance. Needs a build with -Dggml=enabled and VIBESTUDIO_TEST_GGUF naming a small chat model
+// provenance. Needs a build with -Dggml=enabled and SLOPSTUDIO_TEST_GGUF naming a small chat model
 // (SmolLM2-135M-Instruct is enough); otherwise it reports itself skipped.
 
 #include "core/ai_gguf_runtime.h"
@@ -20,7 +20,7 @@
 #include <iostream>
 #include <optional>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -66,9 +66,9 @@ QJsonObject choiceSchema()
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
-	const QString model = qEnvironmentVariable("VIBESTUDIO_TEST_GGUF");
+	const QString model = qEnvironmentVariable("SLOPSTUDIO_TEST_GGUF");
 	if (!aiGgufRuntimeAvailable() || !aiGgufModelProblem(model).isEmpty()) {
-		std::cout << "Skipped: needs -Dggml=enabled and VIBESTUDIO_TEST_GGUF naming a .gguf chat model.\n";
+		std::cout << "Skipped: needs -Dggml=enabled and SLOPSTUDIO_TEST_GGUF naming a .gguf chat model.\n";
 		return 77;
 	}
 

@@ -6,7 +6,7 @@ class QListWidget;
 class QLabel;
 class QPushButton;
 
-namespace vibestudio {
+namespace slopstudio {
 class CodeActionsDialog final : public QDialog {
 public:
 	CodeActionsDialog(const LanguageCodeActions& actions, const QString& provider, QWidget* parent = nullptr);
@@ -18,4 +18,4 @@ private:
 	QLabel* m_details;
 	QPushButton* m_preview;
 };
-} // namespace vibestudio
+} // namespace slopstudio

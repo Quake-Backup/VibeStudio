@@ -2,7 +2,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 enum class LevelEntityConnectionMode { SourcesToLast, RadiantTarget, RadiantKillTarget };
 struct LevelEntityConnectionRequest {
 	LevelEntityConnectionMode mode = LevelEntityConnectionMode::RadiantTarget;
@@ -17,4 +17,4 @@ struct LevelEntityConnectionReport {
 	QVector<int> sourceEntities;
 	int changedEntities = 0;
 };
-} // namespace vibestudio
+} // namespace slopstudio

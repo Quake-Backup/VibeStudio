@@ -15,13 +15,13 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelCollision)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelCollision)
 };
 bool fail(QString *error, const QString &message)
 {
@@ -852,7 +852,7 @@ bool exportModelCollisionMap(const ModelMesh &mesh, const ModelCollisionExport &
 	// (Quake clip hulls); Quake-2 game/q_shared.h
 	// (CONTENTS_PLAYERCLIP); Quake-III-Arena q3map/map.c (shader contents).
 	// https://github.com/id-Software/Quake-III-Arena/blob/master/q3map/map.c
-	// Original VibeStudio serialization; upstream code is not copied.
+	// Original SlopStudio serialization; upstream code is not copied.
 	candidate.material = request.target == "quake3" ? request.material : QStringLiteral("clip");
 	static const QRegularExpression material(QStringLiteral("^[A-Za-z0-9_][A-Za-z0-9_./-]{0,53}$"));
 	if ((request.target != "quake3" && !request.material.isEmpty()) || !material.match(candidate.material).hasMatch() ||
@@ -892,7 +892,7 @@ bool exportModelCollisionMap(const ModelMesh &mesh, const ModelCollisionExport &
 		candidate.notes << Text::tr(
 			"Quake clip brushes contribute to expanded collision hulls. They do not add render surfaces or point-trace collision.");
 	}
-	QString text = QStringLiteral("// VibeStudio static collision brushes: %1\n{\n").arg(request.target);
+	QString text = QStringLiteral("// SlopStudio static collision brushes: %1\n{\n").arg(request.target);
 	if (groupProperties.isEmpty())
 		text += QStringLiteral("\"classname\" \"worldspawn\"\n");
 	else
@@ -984,4 +984,4 @@ LevelPlacementResult prepareModelCollisionPlacement(const ModelMesh &mesh, const
 													  }
 												  }});
 }
-} // namespace vibestudio
+} // namespace slopstudio

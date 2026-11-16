@@ -13,7 +13,7 @@
 #include <atomic>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 int main(int argc, char** argv)
 {
 	// A developer measurement, not a CI timing threshold. No input injection.

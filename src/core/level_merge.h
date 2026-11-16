@@ -4,7 +4,7 @@
 #include <QJsonObject>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct LevelBrushMergeSource {
 	int brushId = -1;
@@ -73,4 +73,4 @@ bool prepareLevelBrushMerge(const LevelMapDocument &document, const LevelBrushMe
 // Source-validated, atomic replacement with one undo step and selection restore.
 bool commitLevelBrushMerge(LevelMapDocument *document, const LevelBrushMergePlan &plan, QString *error = nullptr);
 QJsonObject levelBrushMergeReportJson(const LevelBrushMergePlan &plan);
-} // namespace vibestudio
+} // namespace slopstudio

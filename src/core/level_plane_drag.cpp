@@ -18,7 +18,7 @@
 // Workflow reference: NetRadiant Custom radiant/selection_mtor_drag.cpp
 // DragManipulator and radiant/brush.h BrushInstance::selectPlanes at 449778b3
 // (GPL-2.0-or-later). Original implementation; see docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(LevelPlaneDrag)
@@ -707,4 +707,4 @@ void recordLevelCloneChainRepeat(LevelMapDocument* document, const LevelMapVec3&
 	for (int copy = 1; copy < copies; ++copy) { document->repeat.actions << action; }
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

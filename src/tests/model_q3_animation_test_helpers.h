@@ -6,7 +6,7 @@
 #include <QFile>
 #include <QJsonDocument>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelQ3AnimationConfig q3Config()
 {
@@ -77,4 +77,4 @@ inline QByteArray q3Read(const QString &path)
 	QFile file(path);
 	return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

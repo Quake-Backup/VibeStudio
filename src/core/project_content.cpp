@@ -6,7 +6,7 @@
 #include <QFileInfo>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -50,13 +50,13 @@ bool readFileBytes(const QString& path, quint64 expectedSize, QByteArray* out, Q
 	QFile file(path);
 	if (!file.open(QIODevice::ReadOnly)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioProjectContent", "Unable to read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
+			*error = QCoreApplication::translate("SlopStudioProjectContent", "Unable to read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
 		}
 		return false;
 	}
 	if (quint64(file.size()) != expectedSize) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioProjectContent", "%1 changed while the project was being read.").arg(QDir::toNativeSeparators(path));
+			*error = QCoreApplication::translate("SlopStudioProjectContent", "%1 changed while the project was being read.").arg(QDir::toNativeSeparators(path));
 		}
 		return false;
 	}
@@ -64,7 +64,7 @@ bool readFileBytes(const QString& path, quint64 expectedSize, QByteArray* out, Q
 	const QByteArray bytes = file.read(limit);
 	if (bytes.size() != limit) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioProjectContent", "Unable to read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
+			*error = QCoreApplication::translate("SlopStudioProjectContent", "Unable to read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
 		}
 		return false;
 	}
@@ -82,7 +82,7 @@ bool isProjectNonContentFolderName(const QString& name)
 		QStringLiteral("__macosx"), QStringLiteral("node_modules"), QStringLiteral("$recycle.bin"), QStringLiteral("system volume information"),
 	};
 	return name.startsWith(QLatin1Char('.')) || names.contains(name.toLower())
-		|| name.endsWith(QStringLiteral(".vibepackage"), Qt::CaseInsensitive);
+		|| name.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive);
 }
 
 QVector<ProjectContentRoot> projectContentRoots(const ProjectManifest& manifest)
@@ -164,7 +164,7 @@ bool ProjectContentReader::load(const QVector<ProjectContentRoot>& roots, QStrin
 		}
 		const QFileInfo rootInfo(root.path);
 		if (root.path.isEmpty() || !rootInfo.isDir()) {
-			m_warnings << QCoreApplication::translate("VibeStudioProjectContent", "Content folder not found: %1").arg(QDir::toNativeSeparators(root.path));
+			m_warnings << QCoreApplication::translate("SlopStudioProjectContent", "Content folder not found: %1").arg(QDir::toNativeSeparators(root.path));
 			continue;
 		}
 		m_roots << root;
@@ -173,7 +173,7 @@ bool ProjectContentReader::load(const QVector<ProjectContentRoot>& roots, QStrin
 		QSet<QString> rootKeys;
 		while (!stack.isEmpty()) {
 			if (options.isCancelled && options.isCancelled()) {
-				return fail(QCoreApplication::translate("VibeStudioProjectContent", "Reading the project was cancelled."));
+				return fail(QCoreApplication::translate("SlopStudioProjectContent", "Reading the project was cancelled."));
 			}
 			const Pending current = stack.takeLast();
 			const QFileInfoList children = QDir(current.path).entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System,
@@ -183,7 +183,7 @@ bool ProjectContentReader::load(const QVector<ProjectContentRoot>& roots, QStrin
 				const QFileInfo& child = *it;
 				const QString path = QDir::cleanPath(child.absoluteFilePath());
 				if (child.isSymLink() || child.isJunction()) {
-					m_warnings << QCoreApplication::translate("VibeStudioProjectContent", "Skipped link %1; links are never packaged.").arg(QDir::toNativeSeparators(path));
+					m_warnings << QCoreApplication::translate("SlopStudioProjectContent", "Skipped link %1; links are never packaged.").arg(QDir::toNativeSeparators(path));
 					continue;
 				}
 				if (child.isDir()) {
@@ -198,7 +198,7 @@ bool ProjectContentReader::load(const QVector<ProjectContentRoot>& roots, QStrin
 						continue;
 					}
 					if (current.depth + 1 > options.maximumDepth) {
-						m_warnings << QCoreApplication::translate("VibeStudioProjectContent", "Skipped %1: folders are nested too deeply.").arg(QDir::toNativeSeparators(path));
+						m_warnings << QCoreApplication::translate("SlopStudioProjectContent", "Skipped %1: folders are nested too deeply.").arg(QDir::toNativeSeparators(path));
 						continue;
 					}
 					stack.push_back({path, current.depth + 1});
@@ -210,12 +210,12 @@ bool ProjectContentReader::load(const QVector<ProjectContentRoot>& roots, QStrin
 				const QString relative = QDir(root.path).relativeFilePath(path);
 				const PackageVirtualPath virtualPath = normalizePackageVirtualPath(relative, false);
 				if (!virtualPath.isSafe()) {
-					m_warnings << QCoreApplication::translate("VibeStudioProjectContent", "Skipped %1: %2").arg(QDir::toNativeSeparators(path), packagePathIssueDisplayName(virtualPath.issue));
+					m_warnings << QCoreApplication::translate("SlopStudioProjectContent", "Skipped %1: %2").arg(QDir::toNativeSeparators(path), packagePathIssueDisplayName(virtualPath.issue));
 					continue;
 				}
 				const QString key = foldedKey(virtualPath.normalizedPath);
 				if (rootKeys.contains(key)) {
-					m_warnings << QCoreApplication::translate("VibeStudioProjectContent", "Skipped %1: another file differs from it only by letter case.").arg(QDir::toNativeSeparators(path));
+					m_warnings << QCoreApplication::translate("SlopStudioProjectContent", "Skipped %1: another file differs from it only by letter case.").arg(QDir::toNativeSeparators(path));
 					continue;
 				}
 				rootKeys.insert(key);
@@ -231,7 +231,7 @@ bool ProjectContentReader::load(const QVector<ProjectContentRoot>& roots, QStrin
 				const auto existing = m_index.constFind(key);
 				if (existing != m_index.cend()) {
 					const qsizetype index = *existing;
-					m_warnings << QCoreApplication::translate("VibeStudioProjectContent", "%1 is in more than one content folder; the copy in %2 is used.")
+					m_warnings << QCoreApplication::translate("SlopStudioProjectContent", "%1 is in more than one content folder; the copy in %2 is used.")
 									  .arg(entry.virtualPath, QDir::toNativeSeparators(root.path));
 					entry.sourceOrdinal = index;
 					m_entries[index] = entry;
@@ -239,7 +239,7 @@ bool ProjectContentReader::load(const QVector<ProjectContentRoot>& roots, QStrin
 					continue;
 				}
 				if (m_entries.size() >= options.maximumFiles) {
-					return fail(QCoreApplication::translate("VibeStudioProjectContent", "The project holds more than %1 files. Narrow its content folders before packaging.").arg(options.maximumFiles));
+					return fail(QCoreApplication::translate("SlopStudioProjectContent", "The project holds more than %1 files. Narrow its content folders before packaging.").arg(options.maximumFiles));
 				}
 				entry.sourceOrdinal = m_entries.size();
 				m_index.insert(key, m_entries.size());
@@ -279,7 +279,7 @@ bool ProjectContentReader::readEntryBytes(const QString& virtualPath, QByteArray
 	const qsizetype index = indexOf(virtualPath);
 	if (index < 0) {
 		if (out) { out->clear(); }
-		if (error) { *error = QCoreApplication::translate("VibeStudioProjectContent", "No project file %1.").arg(virtualPath); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioProjectContent", "No project file %1.").arg(virtualPath); }
 		return false;
 	}
 	return readEntryAt(index, out, error, maxBytes);
@@ -289,7 +289,7 @@ bool ProjectContentReader::readEntryAt(qsizetype index, QByteArray* out, QString
 {
 	if (index < 0 || index >= m_entries.size()) {
 		if (out) { out->clear(); }
-		if (error) { *error = QCoreApplication::translate("VibeStudioProjectContent", "The project entry is out of range."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioProjectContent", "The project entry is out of range."); }
 		return false;
 	}
 	return readFileBytes(m_paths[index], m_entries[index].sizeBytes, out, error, maxBytes);
@@ -299,32 +299,32 @@ bool ProjectContentReader::streamEntryAt(qsizetype index, const std::function<bo
 	const std::function<bool()>& isCancelled) const
 {
 	if (index < 0 || index >= m_entries.size()) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioProjectContent", "The project entry is out of range."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioProjectContent", "The project entry is out of range."); }
 		return false;
 	}
 	QFile file(m_paths[index]);
 	if (!file.open(QIODevice::ReadOnly)) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioProjectContent", "Unable to read %1: %2").arg(QDir::toNativeSeparators(m_paths[index]), file.errorString()); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioProjectContent", "Unable to read %1: %2").arg(QDir::toNativeSeparators(m_paths[index]), file.errorString()); }
 		return false;
 	}
 	if (quint64(file.size()) != m_entries[index].sizeBytes) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioProjectContent", "%1 changed while the project was being read.").arg(QDir::toNativeSeparators(m_paths[index])); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioProjectContent", "%1 changed while the project was being read.").arg(QDir::toNativeSeparators(m_paths[index])); }
 		return false;
 	}
 	qint64 remaining = file.size();
 	while (remaining > 0) {
 		if (isCancelled && isCancelled()) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioProjectContent", "Reading was cancelled."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioProjectContent", "Reading was cancelled."); }
 			return false;
 		}
 		const QByteArray chunk = file.read(std::min(remaining, kChunkBytes));
 		if (chunk.isEmpty()) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioProjectContent", "Unable to read %1: %2").arg(QDir::toNativeSeparators(m_paths[index]), file.errorString()); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioProjectContent", "Unable to read %1: %2").arg(QDir::toNativeSeparators(m_paths[index]), file.errorString()); }
 			return false;
 		}
 		remaining -= chunk.size();
 		if (!sink(QByteArrayView(chunk))) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioProjectContent", "Reading was cancelled."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioProjectContent", "Reading was cancelled."); }
 			return false;
 		}
 	}
@@ -415,7 +415,7 @@ bool LayeredPackageReader::readEntryBytes(const QString& virtualPath, QByteArray
 	const qsizetype index = indexOf(virtualPath);
 	if (index < 0) {
 		if (out) { out->clear(); }
-		if (error) { *error = QCoreApplication::translate("VibeStudioProjectContent", "No entry %1.").arg(virtualPath); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioProjectContent", "No entry %1.").arg(virtualPath); }
 		return false;
 	}
 	return readEntryAt(index, out, error, maxBytes);
@@ -426,7 +426,7 @@ bool LayeredPackageReader::readEntryAt(qsizetype index, QByteArray* out, QString
 	const int layerIndex = layerOf(index);
 	if (layerIndex < 0) {
 		if (out) { out->clear(); }
-		if (error) { *error = QCoreApplication::translate("VibeStudioProjectContent", "The entry is out of range."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioProjectContent", "The entry is out of range."); }
 		return false;
 	}
 	return m_layers[layerIndex].reader->readEntryAt(layerIndexOf(index), out, error, maxBytes);
@@ -437,7 +437,7 @@ bool LayeredPackageReader::streamEntryAt(qsizetype index, const std::function<bo
 {
 	const int layerIndex = layerOf(index);
 	if (layerIndex < 0) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioProjectContent", "The entry is out of range."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioProjectContent", "The entry is out of range."); }
 		return false;
 	}
 	return m_layers[layerIndex].reader->streamEntryAt(layerIndexOf(index), sink, error, isCancelled);
@@ -453,4 +453,4 @@ bool LayeredPackageReader::visitProtectedInputPaths(const std::function<bool(con
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,7 +1,7 @@
 // Offscreen checks of the layer commands in the Levels page: Expand Selection
 // to Layers and Move to Layer, as a popup at the pointer and as a submenu of
 // the view context menu. Each runs under the NetRadiant Custom, TrenchBroom
-// and VibeStudio profiles at 100% and at 200% text with the high-visibility
+// and SlopStudio profiles at 100% and at 200% text with the high-visibility
 // theme, an expanding translator and right-to-left layout. Expansion selects
 // the whole layer with its closed groups and records a selection step only
 // where the profile keeps selection history; a move is one undo step back to
@@ -33,7 +33,7 @@
 #include <QTimer>
 #include <QToolButton>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
@@ -41,7 +41,7 @@
 #include <iostream>
 #include <memory>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
 	}
 	const QString expandId = QStringLiteral("map.expandSelectionToLayers");
 	const QString moveId = QStringLiteral("map.moveToLayer");
-	for (const char* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const char* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		for (const int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);
 			std::cout << "Layer commands UI " << phase.toStdString() << std::endl;
@@ -294,7 +294,7 @@ int main(int argc, char** argv)
 				undoBack("undo the group move");
 				pick({});
 
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				if (nrc && scale == 100) {
 					// The keys in a view, through the shortcut map.
 					shell.activateWindow();

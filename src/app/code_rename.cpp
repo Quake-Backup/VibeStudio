@@ -11,7 +11,7 @@
 #include <QTextCursor>
 #include <QTextDocument>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::renameCodeSymbol()
 {
@@ -68,4 +68,4 @@ void ApplicationShell::renameCodeSymbol()
 	} else { LanguageRenamePreparation preparation; preparation.placeholder = word; chooseName(preparation); }
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

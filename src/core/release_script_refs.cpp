@@ -7,7 +7,7 @@
 #include <numeric>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -717,7 +717,7 @@ private:
 
 	QString fullWarning() const
 	{
-		return QCoreApplication::translate("VibeStudioReleaseScripts", "Game code and scripts name more than %1 files; the rest were not checked.")
+		return QCoreApplication::translate("SlopStudioReleaseScripts", "Game code and scripts name more than %1 files; the rest were not checked.")
 			.arg(m_options.maximumReferences);
 	}
 
@@ -1745,20 +1745,20 @@ ScriptReferenceScan scanScriptReferences(const PackageArchiveReader& files, cons
 		}
 		if (int(done.size()) >= options.maximumScripts) {
 			scan.complete = false;
-			scan.warnings << QCoreApplication::translate("VibeStudioReleaseScripts", "The project has more than %1 scripts; the rest were not read.").arg(options.maximumScripts);
+			scan.warnings << QCoreApplication::translate("SlopStudioReleaseScripts", "The project has more than %1 scripts; the rest were not read.").arg(options.maximumScripts);
 			break;
 		}
 		done.insert(folded(job.label));
 		const PackageEntry& entry = job.wad >= 0 ? wadEntries[job.wad][job.lumpIndex] : entries[job.fileIndex];
 		if (qint64(entry.sizeBytes) > options.maximumScriptBytes) {
 			scan.complete = false;
-			scan.warnings << QCoreApplication::translate("VibeStudioReleaseScripts", "%1 is too large to read for file names (over %2 MiB).")
+			scan.warnings << QCoreApplication::translate("SlopStudioReleaseScripts", "%1 is too large to read for file names (over %2 MiB).")
 				.arg(job.label).arg(options.maximumScriptBytes / (1024 * 1024));
 			continue;
 		}
 		if (total + qint64(entry.sizeBytes) > options.maximumTotalBytes) {
 			scan.complete = false;
-			scan.warnings << QCoreApplication::translate("VibeStudioReleaseScripts", "The project's scripts are over %1 MiB in all; the rest were not read.")
+			scan.warnings << QCoreApplication::translate("SlopStudioReleaseScripts", "The project's scripts are over %1 MiB in all; the rest were not read.")
 				.arg(options.maximumTotalBytes / (1024 * 1024));
 			break;
 		}
@@ -1768,7 +1768,7 @@ ScriptReferenceScan scanScriptReferences(const PackageArchiveReader& files, cons
 										: files.readEntryAt(job.fileIndex, &bytes, &error, options.maximumScriptBytes + 1);
 		if (!read) {
 			scan.complete = false;
-			scan.warnings << QCoreApplication::translate("VibeStudioReleaseScripts", "%1 could not be read: %2").arg(job.label, error);
+			scan.warnings << QCoreApplication::translate("SlopStudioReleaseScripts", "%1 could not be read: %2").arg(job.label, error);
 			continue;
 		}
 		total += bytes.size();
@@ -1792,7 +1792,7 @@ ScriptReferenceScan scanScriptReferences(const PackageArchiveReader& files, cons
 		if (!isDoomLanguage(job.language) || job.depth >= options.maximumIncludeDepth) {
 			if (!includes.isEmpty() && isDoomLanguage(job.language)) {
 				scan.complete = false;
-				scan.warnings << QCoreApplication::translate("VibeStudioReleaseScripts", "%1 includes scripts more than %2 levels deep; the deeper ones were not read.")
+				scan.warnings << QCoreApplication::translate("SlopStudioReleaseScripts", "%1 includes scripts more than %2 levels deep; the deeper ones were not read.")
 					.arg(job.label).arg(options.maximumIncludeDepth);
 			}
 			continue;
@@ -2035,4 +2035,4 @@ QString doomStandardClassForEditorNumber(int number)
 	return classes.value(number);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

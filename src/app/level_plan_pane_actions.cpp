@@ -29,7 +29,7 @@
 #include <functional>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -241,4 +241,4 @@ void ApplicationShell::refreshLevelPlanPaneActions()
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

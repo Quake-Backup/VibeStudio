@@ -19,7 +19,7 @@
 #include <unistd.h>
 #endif
 
-namespace vibestudio {
+namespace slopstudio {
 
 #if defined(Q_OS_WIN)
 namespace {
@@ -135,4 +135,4 @@ std::shared_ptr<const PackageDraftAccess> PackageDraftAccess::acquire(const QStr
 	return access;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

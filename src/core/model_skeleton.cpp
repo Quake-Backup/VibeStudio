@@ -16,7 +16,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -432,42 +432,42 @@ bool validateModelSkeleton(const ModelMesh& mesh, QString* error, const ModelWor
 		if (!work.step()) return false;
 		const ModelJoint& joint = skeleton.joints.at(index);
 		if (joint.parent < -1 || joint.parent >= index) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Joint %1 (%2) names a parent that does not come before it.").arg(index).arg(joint.name));
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Joint %1 (%2) names a parent that does not come before it.").arg(index).arg(joint.name));
 		}
 		const QString key = joint.name.toLower();
 		if (names.contains(key)) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Two joints are both named \"%1\".").arg(joint.name));
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Two joints are both named \"%1\".").arg(joint.name));
 		}
 		names.insert(key);
 		if (!modelJointMatrixIsFinite(joint.bind)) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Joint %1 (%2) has a bind pose that is not a finite number.").arg(index).arg(joint.name));
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Joint %1 (%2) has a bind pose that is not a finite number.").arg(index).arg(joint.name));
 		}
 	}
 	for (const ModelSkeletalClip& clip : skeleton.clips) {
 		for (int frame = 0; frame < clip.frames.size(); ++frame) {
 			if (!work.step()) return false;
 			if (clip.frames.at(frame).size() != skeleton.joints.size()) {
-				return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Frame %1 of clip \"%2\" has %3 joint pose(s) for %4 joint(s).")
+				return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Frame %1 of clip \"%2\" has %3 joint pose(s) for %4 joint(s).")
 					.arg(frame).arg(clip.name).arg(clip.frames.at(frame).size()).arg(skeleton.joints.size()));
 			}
 			for (const ModelJointMatrix& matrix : clip.frames.at(frame)) {
 				if (!work.step()) return false;
 				if (!modelJointMatrixIsFinite(matrix)) {
-					return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Frame %1 of clip \"%2\" has a joint pose that is not a finite number.").arg(frame).arg(clip.name));
+					return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Frame %1 of clip \"%2\" has a joint pose that is not a finite number.").arg(frame).arg(clip.name));
 				}
 			}
 		}
 		if ((!clip.frameMins.isEmpty() && clip.frameMins.size() != clip.frames.size())
 			|| (!clip.frameMaxs.isEmpty() && clip.frameMaxs.size() != clip.frames.size())) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Clip \"%1\" has bounds for a different number of frames than it holds.").arg(clip.name));
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Clip \"%1\" has bounds for a different number of frames than it holds.").arg(clip.name));
 		}
 	}
 	for (const ModelSkeletalTag& tag : skeleton.tags) {
 		if (tag.joint < 0 || tag.joint >= skeleton.joints.size()) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Tag \"%1\" follows a joint that does not exist.").arg(tag.name));
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Tag \"%1\" follows a joint that does not exist.").arg(tag.name));
 		}
 		if (!modelJointMatrixIsFinite(tag.offset)) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Tag \"%1\" has an offset that is not a finite number.").arg(tag.name));
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Tag \"%1\" has an offset that is not a finite number.").arg(tag.name));
 		}
 	}
 	for (const ModelSurface& surface : mesh.surfaces) {
@@ -476,25 +476,25 @@ bool validateModelSkeleton(const ModelMesh& mesh, QString* error, const ModelWor
 			continue;
 		}
 		if (skeleton.joints.isEmpty()) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Surface \"%1\" has joint influences but the model has no joints.").arg(surface.name));
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Surface \"%1\" has joint influences but the model has no joints.").arg(surface.name));
 		}
 		if (skinning.first.size() != surface.vertexCount || skinning.count.size() != surface.vertexCount) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Surface \"%1\" has influence ranges for %2 vertices but holds %3.")
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Surface \"%1\" has influence ranges for %2 vertices but holds %3.")
 				.arg(surface.name).arg(skinning.first.size()).arg(surface.vertexCount));
 		}
 		for (int vertex = 0; vertex < surface.vertexCount; ++vertex) {
 			const int first = skinning.first.at(vertex);
 			const int count = skinning.count.at(vertex);
 			if (first < 0 || count < 0 || qint64(first) + count > skinning.influences.size()) {
-				return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Vertex %1 of surface \"%2\" has an influence range outside the list.").arg(vertex).arg(surface.name));
+				return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Vertex %1 of surface \"%2\" has an influence range outside the list.").arg(vertex).arg(surface.name));
 			}
 			for (int index = first; index < first + count; ++index) {
 				const ModelJointInfluence& influence = skinning.influences.at(index);
 				if (influence.joint < 0 || influence.joint >= skeleton.joints.size()) {
-					return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Vertex %1 of surface \"%2\" follows a joint that does not exist.").arg(vertex).arg(surface.name));
+					return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Vertex %1 of surface \"%2\" follows a joint that does not exist.").arg(vertex).arg(surface.name));
 				}
 				if (!finite(influence.weight) || !finite(influence.offset) || !finite(influence.normalOffset)) {
-					return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Vertex %1 of surface \"%2\" has an influence that is not a finite number.").arg(vertex).arg(surface.name));
+					return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Vertex %1 of surface \"%2\" has an influence that is not a finite number.").arg(vertex).arg(surface.name));
 				}
 			}
 		}
@@ -578,7 +578,7 @@ bool skinModelSurface(const ModelSurface& surface, const QVector<ModelJointMatri
 {
 	const ModelSurfaceSkinning& skinning = surface.skinning;
 	if (skinning.first.size() != surface.vertexCount || skinning.count.size() != surface.vertexCount) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioModelSkeleton", "Surface \"%1\" has no influence range for every vertex.").arg(surface.name); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioModelSkeleton", "Surface \"%1\" has no influence range for every vertex.").arg(surface.name); }
 		return false;
 	}
 	out->positions.resize(surface.vertexCount);
@@ -591,12 +591,12 @@ bool skinModelSurface(const ModelSurface& surface, const QVector<ModelJointMatri
 		const int count = skinning.count.at(vertex);
 		for (int index = first; index < first + count; ++index) {
 			if (index < 0 || index >= skinning.influences.size()) {
-				if (error) { *error = QCoreApplication::translate("VibeStudioModelSkeleton", "Vertex %1 of surface \"%2\" has an influence range outside the list.").arg(vertex).arg(surface.name); }
+				if (error) { *error = QCoreApplication::translate("SlopStudioModelSkeleton", "Vertex %1 of surface \"%2\" has an influence range outside the list.").arg(vertex).arg(surface.name); }
 				return false;
 			}
 			const ModelJointInfluence& influence = skinning.influences.at(index);
 			if (influence.joint < 0 || influence.joint >= pose.size()) {
-				if (error) { *error = QCoreApplication::translate("VibeStudioModelSkeleton", "Vertex %1 of surface \"%2\" follows a joint the pose does not have.").arg(vertex).arg(surface.name); }
+				if (error) { *error = QCoreApplication::translate("SlopStudioModelSkeleton", "Vertex %1 of surface \"%2\" follows a joint the pose does not have.").arg(vertex).arg(surface.name); }
 				return false;
 			}
 			const ModelJointMatrix& matrix = pose.at(influence.joint);
@@ -631,7 +631,7 @@ bool modelSkinningFromBindPose(const ModelSkeleton& skeleton, const QVector<Mode
 	};
 	if (perVertex <= 0 || joints.size() != positions.size() * perVertex || weights.size() != joints.size()
 		|| (!normals.isEmpty() && normals.size() != positions.size())) {
-		return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "The vertex weights do not match the vertex count."));
+		return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "The vertex weights do not match the vertex count."));
 	}
 	QVector<ModelJointMatrix> inverseBind;
 	inverseBind.reserve(skeleton.joints.size());
@@ -639,7 +639,7 @@ bool modelSkinningFromBindPose(const ModelSkeleton& skeleton, const QVector<Mode
 		bool ok = true;
 		inverseBind.append(modelJointInverse(joint.bind, &ok));
 		if (!ok) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Joint \"%1\" has a bind pose that cannot be inverted.").arg(joint.name));
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Joint \"%1\" has a bind pose that cannot be inverted.").arg(joint.name));
 		}
 	}
 	ModelSurfaceSkinning skinning;
@@ -654,7 +654,7 @@ bool modelSkinningFromBindPose(const ModelSkeleton& skeleton, const QVector<Mode
 				continue;
 			}
 			if (joint < 0 || joint >= skeleton.joints.size()) {
-				return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Vertex %1 follows joint %2, which does not exist.").arg(vertex).arg(joint));
+				return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Vertex %1 follows joint %2, which does not exist.").arg(vertex).arg(joint));
 			}
 			ModelJointInfluence influence;
 			influence.joint = joint;
@@ -694,7 +694,7 @@ bool bakeModelSkeleton(ModelMesh* mesh, const ModelSkeletonBakeOptions& options,
 		return false;
 	};
 	if (!mesh || mesh->skeleton.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "The model has no skeleton to bake."));
+		return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "The model has no skeleton to bake."));
 	}
 	QString problem;
 	if (!validateModelSkeleton(*mesh, &problem, control)) {
@@ -723,7 +723,7 @@ bool bakeModelSkeleton(ModelMesh* mesh, const ModelSkeletonBakeOptions& options,
 		return frames <= limit && (totalVertices == 0 || frames * totalVertices <= std::max<qint64>(1, options.maxVertexSlots));
 	};
 	if (!fits(plan.size())) {
-		return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "The model has too many vertices to hold even one baked frame."));
+		return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "The model has too many vertices to hold even one baked frame."));
 	}
 	QVector<ModelAnimation> animations;
 	QStringList skipped;
@@ -758,7 +758,7 @@ bool bakeModelSkeleton(ModelMesh* mesh, const ModelSkeletonBakeOptions& options,
 		ModelFrameGeometry still;
 		if (surface.skinning.isEmpty()) {
 			if (surface.frames.isEmpty()) {
-				return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Surface \"%1\" has neither joint influences nor geometry.").arg(surface.name));
+				return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Surface \"%1\" has neither joint influences nor geometry.").arg(surface.name));
 			}
 			still = surface.frames.first();
 		}
@@ -845,7 +845,7 @@ bool bakeModelSkeleton(ModelMesh* mesh, const ModelSkeletonBakeOptions& options,
 	if (!skipped.isEmpty()) {
 		// The skeleton keeps every clip, so this is a viewing limit, not lost
 		// data: a detail line, which editable import does not refuse.
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelSkeleton", "%1 clip(s) were left out to keep the baked frames within %2 frames and %3 vertex positions: %4")
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelSkeleton", "%1 clip(s) were left out to keep the baked frames within %2 frames and %3 vertex positions: %4")
 			.arg(skipped.size()).arg(limit).arg(options.maxVertexSlots).arg(skipped.join(QStringLiteral(", ")));
 	}
 	return true;
@@ -965,7 +965,7 @@ bool rebakeModelSkeleton(ModelMesh* mesh, QString* error, const ModelWorkControl
 	const QVector<int>* clips)
 {
 	if (!mesh || mesh->skeleton.isEmpty()) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioModelSkeleton", "The model has no skeleton to bake."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioModelSkeleton", "The model has no skeleton to bake."); }
 		return false;
 	}
 	const int bindFrame = modelBindPoseFrame(*mesh);
@@ -1140,7 +1140,7 @@ bool modelSkeletonFromJson(const QJsonObject& object, ModelMesh* mesh, QString* 
 		if (error) { *error = message; }
 		return false;
 	};
-	const QString malformed = QCoreApplication::translate("VibeStudioModelSkeleton", "The mesh source's skeleton is malformed.");
+	const QString malformed = QCoreApplication::translate("SlopStudioModelSkeleton", "The mesh source's skeleton is malformed.");
 	if (!mesh) {
 		return fail(malformed);
 	}
@@ -1303,4 +1303,4 @@ bool modelSkeletonFromJson(const QJsonObject& object, ModelMesh* mesh, QString* 
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

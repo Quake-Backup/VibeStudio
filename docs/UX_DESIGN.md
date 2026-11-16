@@ -1,12 +1,12 @@
 # UX Design Philosophy
 
-VibeStudio should feel modern and powerful without making users guess what is
+SlopStudio should feel modern and powerful without making users guess what is
 happening. The design principle is simple: think like the user. At every point,
 the user should understand what the app is doing, whether it is safe to act,
 where results will appear, and how to inspect more detail.
 
 ## Core Principles
-- The user should never wonder whether VibeStudio is frozen, busy, waiting, done, or blocked. Work is always visible: see [Visible Work](#visible-work).
+- The user should never wonder whether SlopStudio is frozen, busy, waiting, done, or blocked. Work is always visible: see [Visible Work](#visible-work).
 - Common workflows should stay clean and direct.
 - Efficient workflows are part of UX: reduce repeated setup, duplicate file picking, unnecessary modal stops, context switching, and manual command reconstruction.
 - Accessibility is part of UX: support high-visibility themes, scaling, keyboard access, screen-reader metadata, reduced motion, and OS-backed TTS as normal product features.
@@ -24,7 +24,7 @@ where results will appear, and how to inspect more detail.
 The user must always be able to see that the studio is working. A blank
 window, a window that has not appeared yet, a page that stops answering, or a
 control that does nothing for a second are all the same failure: the user is
-left to guess whether anything is happening. VibeStudio treats that as a
+left to guess whether anything is happening. SlopStudio treats that as a
 defect, not as polish. Every surface promises four things:
 
 1. **Something appears at once.** The start-up screen is up within the first
@@ -68,7 +68,7 @@ The rules that follow from this:
   a second, and the loading pane's marquee only when the state is busy.
 - Never show an indicator without context: every ring sits next to the name
   of the work, and the status bar's tooltip lists what is running.
-- The indicators are described in `vibestudio --cli --ui-primitives`
+- The indicators are described in `slopstudio --cli --ui-primitives`
   (`busy-indicator`, `busy-overlay`, `start-up-screen`, `loading-pane`), and
   the shared parts live in `app/studio_progress` and `app/studio_splash`.
 
@@ -270,7 +270,7 @@ pages, the studio bar, as modern editors' title bars do:
   the row with their labels (glyphs alone from 150% text scale).
 
 The window title names the page and the project ("Levels — Foundry —
-VibeStudio") for the task bar and window switchers, so the status bar no longer
+SlopStudio") for the task bar and window switchers, so the status bar no longer
 repeats the page name when the page changes.
 
 **A quiet status bar.** The status items sit flat on the bar: each names its
@@ -437,7 +437,7 @@ keys (and the command they were taken from gets its own back), and **Reset All**
 asks once and puts back every default. The few keys the studio relies on, such
 as Escape cancelling a task, cannot be changed. The keys live in settings,
 apart from the editor profile, so they survive a profile switch; the mode
-rail's tooltips follow them, and `vibestudio --cli editor keys` lists them
+rail's tooltips follow them, and `slopstudio --cli editor keys` lists them
 (`--reset` clears them) for when a rebinding went wrong.
 
 **Go to Symbol.** Ctrl+T in the code editor opens the same picker over the open
@@ -931,7 +931,7 @@ and `kind`. A size can take `k`, `m`, or `g`, counted in 1024s, so
 `ext=wav size>1mb` lists the large sounds and `folder:textures ext=tga` the
 texture images. Enter in the filter selects every entry it keeps and moves
 focus to the list, where Del, F2, and Extract act on all of them.
-`vibestudio --cli package list --where` runs the same query.
+`slopstudio --cli package list --where` runs the same query.
 The Textures filter adds `uses`, how often the open map uses the image, and,
 once decoding has made an image's thumbnail, its `w`, `h`, and `format`. A
 filter on those fills in as the thumbnails are made, so `w>=128 format=wal`
@@ -966,7 +966,7 @@ Shift+F10. The filter then holds the row's query, such as `kind=entity
 light=300` or, for a sector's light level, `kind=sector light=160` (so a
 sector's special never finds a linedef's action), with focus in the filter so
 Enter selects the objects it keeps. **Copy Value** copies the value.
-`vibestudio --cli map find` runs the same query.
+`slopstudio --cli map find` runs the same query.
 
 **Snap to Grid.** **Snap Selection to Grid** (Edit menu, palette, and the map's
 context menu) moves each selected object onto the viewport's grid by its own
@@ -1249,7 +1249,7 @@ them as one undo step, through `setLevelMapEntitiesProperty()` and
 next key goes to the same entities. When they share a class, **Defaults** lists
 what none of them sets, and a spawnflag set on only some of them shows partly
 checked; checking it sets that bit on all of them, each keeping its other flags.
-`vibestudio --cli map edit --where "<query>"` does the same from the command
+`slopstudio --cli map edit --where "<query>"` does the same from the command
 line, to every entity (or Doom thing) the query keeps: `--where class=light
 --set light=300`. Brushes, Doom things, sectors, and lines are still shown one
 at a time: with several selected, a note at the top of the inspector says it
@@ -1393,7 +1393,7 @@ every compiler tool with its status, the executable the studio runs, and where
 that path comes from: found automatically, chosen by the user, or set by the
 project manifest, which wins while its project is open. **Locate…** saves a
 chosen executable as a user override, the same setting
-`vibestudio --cli compiler set-path` writes; **Use Automatic** forgets it, and
+`slopstudio --cli compiler set-path` writes; **Use Automatic** forgets it, and
 **Rescan** looks again after a tool is installed. With nothing selected, the
 first missing tool is selected, so **Locate…** acts on the tool that needs it.
 Below the tools, each compiler profile shows its engine, stage, and readiness
@@ -1548,7 +1548,7 @@ the detail behind each of these.
 The first-run setup flow should configure the studio without becoming a tour:
 - [ ] Language, scale, high-visibility, motion, and TTS first.
 - [ ] Role and experience presets for mapper, artist, programmer, package maintainer, shader author, audio creator, release maintainer, all-in-one, or custom.
-- [x] Editor profile selection for VibeStudio default, GtkRadiant 1.6.0-style, NetRadiant Custom-style, TrenchBroom-style, and QuArK-style workflows.
+- [x] Editor profile selection for SlopStudio default, GtkRadiant 1.6.0-style, NetRadiant Custom-style, TrenchBroom-style, and QuArK-style workflows.
 - [x] Game installation detection with manual add, skip, and later paths.
 - [ ] Project/package setup with output/temp/backup paths.
 - [ ] Compiler/source-port probing with visible results.
@@ -1598,7 +1598,7 @@ Use the right feedback surface for the job:
 - [x] Cancellation controls when an operation can safely stop.
 
 ## Progressive Disclosure
-VibeStudio should present a clear summary first, then let users delve into
+SlopStudio should present a clear summary first, then let users delve into
 detail:
 - [x] Package summary before raw entry tables.
 - [x] Compiler status before raw stdout/stderr.

@@ -27,12 +27,12 @@
 
 #include <memory>
 
-// The brand icon resource lives in the app library (assets/branding/vibestudio.qrc).
+// The brand icon resource lives in the app library (assets/branding/slopstudio.qrc).
 // Q_INIT_RESOURCE must run from the global namespace, and calling it here makes
 // the linker keep the resource in the executable.
 static void initBrandingResources()
 {
-	Q_INIT_RESOURCE(vibestudio_branding);
+	Q_INIT_RESOURCE(slopstudio_branding);
 }
 
 namespace {
@@ -49,8 +49,8 @@ QStringList rawArguments(int argc, char** argv)
 void configureApplicationMetadata(QCoreApplication& app)
 {
 	app.setOrganizationName(QStringLiteral("DarkMatterProductions"));
-	app.setApplicationName(QStringLiteral("VibeStudio"));
-	app.setApplicationVersion(vibestudio::versionString());
+	app.setApplicationName(QStringLiteral("SlopStudio"));
+	app.setApplicationVersion(slopstudio::versionString());
 }
 
 // `--settings-file <path>` keeps automation, CI, and scripted runs away from
@@ -137,45 +137,45 @@ int main(int argc, char** argv)
 
 	const QString settingsOverride = settingsFileOverride(args);
 	if (!settingsOverride.isEmpty()) {
-		vibestudio::StudioSettings::setOverrideFilePath(settingsOverride);
+		slopstudio::StudioSettings::setOverrideFilePath(settingsOverride);
 	}
 
 	if (args.contains(QStringLiteral("--cli"))) {
 		// Commands that draw in 3D get a GUI application without a window, so
 		// they can use OpenGL as well as Vulkan; the rest stay console-only.
 		std::unique_ptr<QCoreApplication> app;
-		if (vibestudio::cli::commandUsesRenderer(args) && prepareGraphicsCommandLine()) {
+		if (slopstudio::cli::commandUsesRenderer(args) && prepareGraphicsCommandLine()) {
 			app = std::make_unique<QGuiApplication>(argc, argv);
-			vibestudio::prepareRenderBackends();
+			slopstudio::prepareRenderBackends();
 		} else {
 			app = std::make_unique<QCoreApplication>(argc, argv);
 		}
 		const auto imports = qScopeGuard([] {
 			QThreadPool::globalInstance()->waitForDone();
-			vibestudio::waitForPackageImportCleanup();
-			vibestudio::waitForPackageCopyCleanup();
+			slopstudio::waitForPackageImportCleanup();
+			slopstudio::waitForPackageCopyCleanup();
 		});
 		configureApplicationMetadata(*app);
-		return vibestudio::cli::run(app->arguments());
+		return slopstudio::cli::run(app->arguments());
 	}
 
-	vibestudio::configureHighDpiBehavior();
+	slopstudio::configureHighDpiBehavior();
 
 	QApplication app(argc, argv);
 	// Declared before the shell: first release document/worker ownership, then
 	// finish queued import deletion and unlock, while Qt is still available.
 	const auto imports = qScopeGuard([] {
 		QThreadPool::globalInstance()->waitForDone();
-		vibestudio::waitForPackageImportCleanup();
-		vibestudio::waitForPackageCopyCleanup();
+		slopstudio::waitForPackageImportCleanup();
+		slopstudio::waitForPackageCopyCleanup();
 	});
 	configureApplicationMetadata(app);
 	// Matches packaging/linux/*.desktop, so Wayland and freedesktop launchers
 	// pair the window with the installed icon.
-	QGuiApplication::setDesktopFileName(QStringLiteral("io.github.themuffinator.VibeStudio"));
+	QGuiApplication::setDesktopFileName(QStringLiteral("io.github.themuffinator.SlopStudio"));
 	initBrandingResources();
-	QApplication::setWindowIcon(vibestudio::studioApplicationIcon());
-	vibestudio::installSessionLogging();
+	QApplication::setWindowIcon(slopstudio::studioApplicationIcon());
+	slopstudio::installSessionLogging();
 
 	// The offscreen platform (CI self-test, documentation snapshots) has no
 	// system UI font, so pick a real one when it is installed.
@@ -209,56 +209,56 @@ int main(int argc, char** argv)
 	// stage of start-up as it comes (docs/UX_DESIGN.md, "Visible Work"). A
 	// scripted run or a headless platform has nobody to show it to, and
 	// `--no-splash` leaves it out on request.
-	QPointer<vibestudio::StudioSplash> splash;
-	const bool showSplash = interactive && !args.contains(QStringLiteral("--no-splash")) && vibestudio::StudioSplash::platformShowsSplash();
+	QPointer<slopstudio::StudioSplash> splash;
+	const bool showSplash = interactive && !args.contains(QStringLiteral("--no-splash")) && slopstudio::StudioSplash::platformShowsSplash();
 
 	{
-		vibestudio::StudioSettings settings;
-		const vibestudio::AccessibilityPreferences preferences = settings.accessibilityPreferences();
-		vibestudio::installStudioTranslations(app, preferences.localeName);
-		vibestudio::applyLayoutDirectionForLocale(preferences.localeName);
+		slopstudio::StudioSettings settings;
+		const slopstudio::AccessibilityPreferences preferences = settings.accessibilityPreferences();
+		slopstudio::installStudioTranslations(app, preferences.localeName);
+		slopstudio::applyLayoutDirectionForLocale(preferences.localeName);
 		// Numbers, dates, and sizes follow the region format preference, which
 		// is the operating system's regional settings unless the user chose.
-		QLocale::setDefault(vibestudio::regionFormatLocale(preferences.formatLocaleName, preferences.localeName));
+		QLocale::setDefault(slopstudio::regionFormatLocale(preferences.formatLocaleName, preferences.localeName));
 		// Theme before the first widget exists, so nothing is built with the
 		// platform style and then repolished.
-		vibestudio::applyStudioTheme(app, vibestudio::studioThemeTokens(preferences));
+		slopstudio::applyStudioTheme(app, slopstudio::studioThemeTokens(preferences));
 		if (showSplash) {
-			splash = new vibestudio::StudioSplash;
+			splash = new slopstudio::StudioSplash;
 			// The shell's stages, the renderer before it, the session after.
-			splash->setExpectedStages(vibestudio::ApplicationShell::startupStageCount() + 2);
+			splash->setExpectedStages(slopstudio::ApplicationShell::startupStageCount() + 2);
 			splash->setReducedMotion(preferences.reducedMotion);
 			splash->listenForStartupStages();
 			splash->present();
 		}
-		vibestudio::reportStartupStage(QCoreApplication::translate("VibeStudioMain", "Starting the 3D renderer"));
+		slopstudio::reportStartupStage(QCoreApplication::translate("SlopStudioMain", "Starting the 3D renderer"));
 		// The 3D renderer the user chose, starting on its own thread now so
 		// the first 3D view does not wait for it.
-		vibestudio::RenderBackendChoice renderer = vibestudio::RenderBackendChoice::Automatic;
-		vibestudio::renderBackendChoiceFromId(settings.renderBackendPreference(), &renderer);
-		vibestudio::setRenderBackendChoice(renderer);
-		vibestudio::prepareRenderBackends(true);
+		slopstudio::RenderBackendChoice renderer = slopstudio::RenderBackendChoice::Automatic;
+		slopstudio::renderBackendChoiceFromId(settings.renderBackendPreference(), &renderer);
+		slopstudio::setRenderBackendChoice(renderer);
+		slopstudio::prepareRenderBackends(true);
 		// Before the shell exists, so it can tell whether the last session
 		// crashed. Turned off in Preferences, nothing is written, though a
 		// crash from before is still offered once.
 		if (interactive) {
-			vibestudio::CrashHandlerOptions crashOptions;
+			slopstudio::CrashHandlerOptions crashOptions;
 			crashOptions.enabled = settings.crashReports();
 			// A run with its own settings file is a scripted or isolated one: its
 			// markers and reports stay beside that file, never the user's.
 			if (!settingsOverride.isEmpty()) {
 				crashOptions.directory = QFileInfo(settingsOverride).absoluteDir().filePath(QStringLiteral("crash-reports"));
 			}
-			vibestudio::installCrashHandling(crashOptions);
+			slopstudio::installCrashHandling(crashOptions);
 		}
 	}
 
-	vibestudio::ApplicationShell shell;
+	slopstudio::ApplicationShell shell;
 	shell.show();
 
 	const QStringList paths = pathsToOpen(args);
 	if (!paths.isEmpty()) {
-		vibestudio::reportStartupStage(QCoreApplication::translate("VibeStudioMain", "Opening the files from the command line"));
+		slopstudio::reportStartupStage(QCoreApplication::translate("SlopStudioMain", "Opening the files from the command line"));
 	}
 	for (const QString& path : paths) {
 		shell.openPathFromCommandLine(path);
@@ -271,7 +271,7 @@ int main(int argc, char** argv)
 		const bool reopenLast = paths.isEmpty();
 		QTimer::singleShot(0, &shell, [&shell, splash, reopenLast]() {
 			if (reopenLast) {
-				vibestudio::reportStartupStage(QCoreApplication::translate("VibeStudioMain", "Restoring your session"));
+				slopstudio::reportStartupStage(QCoreApplication::translate("SlopStudioMain", "Restoring your session"));
 			}
 			shell.beginSession(reopenLast);
 			if (splash) {
@@ -317,6 +317,6 @@ int main(int argc, char** argv)
 	const int exitCode = app.exec();
 	// A language change asked for a restart, and the shell has closed through
 	// its unsaved-work guards: the new studio starts in the new language.
-	vibestudio::startRequestedStudioRestart();
+	slopstudio::startRequestedStudioRestart();
 	return exitCode;
 }

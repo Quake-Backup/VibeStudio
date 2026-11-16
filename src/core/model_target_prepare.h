@@ -31,7 +31,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelTargetFixKind
 {
@@ -100,4 +100,4 @@ bool skipModelTargetFixes(const QString &skip, ModelTargetPrepareOptions *option
 // One line per fix, then the notes, then what still blocks the target.
 [[nodiscard]] QStringList modelTargetPreparationLines(const ModelTargetPreparation &preparation);
 [[nodiscard]] QJsonObject modelTargetPreparationJson(const ModelTargetPreparation &preparation);
-} // namespace vibestudio
+} // namespace slopstudio

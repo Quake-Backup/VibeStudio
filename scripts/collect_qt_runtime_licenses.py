@@ -24,7 +24,7 @@ MODULES = ['qtbase', 'qtmultimedia', 'qtimageformats', 'qtsvg', 'qttranslations'
 
 
 def fetch(url: str) -> bytes:
-    request = urllib.request.Request(url, headers={'User-Agent': 'VibeStudio-Runtime-Notices'})
+    request = urllib.request.Request(url, headers={'User-Agent': 'SlopStudio-Runtime-Notices'})
     with urllib.request.urlopen(request, timeout=45) as response:
         data = response.read(1024 * 1024 + 1)
     if len(data) > 1024 * 1024:

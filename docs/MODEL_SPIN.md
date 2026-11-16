@@ -3,7 +3,7 @@
 **Available** — **Spin** makes curved extrusions from face regions or open
 border edges. **Spin Duplicates** distributes selected faces around an axis.
 **Screw** is a spin that climbs along its axis. All three use the shared Mesh
-Editor document and CLI service. VibeStudio remains
+Editor document and CLI service. SlopStudio remains
 pre-alpha; [release acceptance](MODELLER_RELEASE.md) is still open.
 
 ## Make a curved extrusion
@@ -92,9 +92,9 @@ limits still apply. Keep `.mesh.json` as the editable source.
 ## Automate a spin
 
 ```sh
-vibestudio --cli model tool models/profile.mesh.json --tool spin --faces all --centre 0,0,0 --axis z --angle 360 --steps 16 --output models/ring.mesh.json --dry-run --json
-vibestudio --cli model tool models/part.mesh.json --tool spin --faces all --centre 0,0,16 --axis-vector 0,0,1 --angle 360 --steps 8 --duplicate --output models/radial.mesh.json --json
-vibestudio --cli model tool models/coil.mesh.json --tool spin --faces all --axis z --angle 360 --steps 24 --axial-offset 12 --output models/spring.mesh.json --json
+slopstudio --cli model tool models/profile.mesh.json --tool spin --faces all --centre 0,0,0 --axis z --angle 360 --steps 16 --output models/ring.mesh.json --dry-run --json
+slopstudio --cli model tool models/part.mesh.json --tool spin --faces all --centre 0,0,16 --axis-vector 0,0,1 --angle 360 --steps 8 --duplicate --output models/radial.mesh.json --json
+slopstudio --cli model tool models/coil.mesh.json --tool spin --faces all --axis z --angle 360 --steps 24 --axial-offset 12 --output models/spring.mesh.json --json
 ```
 
 Use `--faces` or `--edges` with the existing component syntax. Duplication

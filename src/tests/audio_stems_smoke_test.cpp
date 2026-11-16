@@ -16,7 +16,7 @@
 #include <limits>
 #include <numbers>
 #include <vector>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *text)
@@ -211,7 +211,7 @@ int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
 	bool ok = taps() && dither();
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir folder(QDir(root).filePath("audio-stems-XXXXXX"));

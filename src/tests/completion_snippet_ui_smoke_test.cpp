@@ -18,7 +18,7 @@
 #include <QToolButton>
 #include <QTranslator>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* why) { if (!value) { std::cerr << why << '\n'; } return value; }
 bool wait(const std::function<bool()>& ready, int ms = 10000) { QElapsedTimer clock; clock.start(); while (!ready() && clock.elapsed() < ms) { QCoreApplication::processEvents(QEventLoop::AllEvents, 10); QThread::msleep(2); } return ready(); }
@@ -35,7 +35,7 @@ class Expanded final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		if (QByteArray(context) != "VibeStudioCodeEditor" && QByteArray(context) != "vibestudio::ApplicationShell") { return {}; }
+		if (QByteArray(context) != "SlopStudioCodeEditor" && QByteArray(context) != "slopstudio::ApplicationShell") { return {}; }
 		const auto text = QString::fromUtf8(source); return text + QStringLiteral(" ~").repeated(text.size() / 6);
 	}
 };
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 		ok &= expect(insert(&editor, body), "restore fields for read-only guard"); editor.setReadOnly(true); const auto readonlyText = editor.toPlainText(); editor.replaceSnippetSelection(QStringLiteral("forbidden"));
 		ok &= expect(!editor.snippetActive() && editor.toPlainText() == readonlyText, "read-only changes retire the session and reject field replacement"); editor.setReadOnly(false);
 		ok &= expect(insert(&editor, body), "restore fields for rendering"); editor.navigateSnippet(1); app.processEvents();
-		const auto evidence = qEnvironmentVariable("VIBESTUDIO_LANGUAGE_TEST_EVIDENCE");
+		const auto evidence = qEnvironmentVariable("SLOPSTUDIO_LANGUAGE_TEST_EVIDENCE");
 		if (!evidence.isEmpty()) { QImage image(editor.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); editor.render(&image); ok &= expect(image.save(QDir(evidence).filePath(QStringLiteral("snippet-fields-%1.png").arg(scale))), "render snippet field emphasis without OS capture"); }
 		auto* replacement = new QTextDocument(&editor); replacement->setDocumentLayout(new QPlainTextDocumentLayout(replacement)); editor.setDocument(replacement);
 		ok &= expect(!editor.snippetActive() && !editor.navigateSnippet(1), "document changes cannot reuse old tab stop offsets");
@@ -127,11 +127,11 @@ int main(int argc, char** argv)
 		for (const int scale : {100, 200}) {
 			Expanded translator; if (scale == 200) { app.installTranslator(&translator); }
 			applyStudioTheme(app, studioThemeTokens(scale == 200 ? StudioTheme::HighContrastDark : StudioTheme::Dark, UiDensity::Standard, scale));
-			bar->findChild<QToolButton*>(QStringLiteral("codeSnippetPrevious"))->setText(QCoreApplication::translate("vibestudio::ApplicationShell", "Previous"));
-			bar->findChild<QToolButton*>(QStringLiteral("codeSnippetNext"))->setText(QCoreApplication::translate("vibestudio::ApplicationShell", "Next"));
-			bar->findChild<QPushButton*>(QStringLiteral("codeSnippetFinish"))->setText(QCoreApplication::translate("vibestudio::ApplicationShell", "Finish"));
+			bar->findChild<QToolButton*>(QStringLiteral("codeSnippetPrevious"))->setText(QCoreApplication::translate("slopstudio::ApplicationShell", "Previous"));
+			bar->findChild<QToolButton*>(QStringLiteral("codeSnippetNext"))->setText(QCoreApplication::translate("slopstudio::ApplicationShell", "Next"));
+			bar->findChild<QPushButton*>(QStringLiteral("codeSnippetFinish"))->setText(QCoreApplication::translate("slopstudio::ApplicationShell", "Finish"));
 			bar->setLayoutDirection(scale == 200 ? Qt::RightToLeft : Qt::LeftToRight); editor->navigateSnippet(-1); editor->navigateSnippet(1); app.processEvents();
-			const auto evidence = qEnvironmentVariable("VIBESTUDIO_LANGUAGE_TEST_EVIDENCE");
+			const auto evidence = qEnvironmentVariable("SLOPSTUDIO_LANGUAGE_TEST_EVIDENCE");
 			if (!evidence.isEmpty()) { QImage image(bar->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); bar->render(&image); ok &= expect(image.save(QDir(evidence).filePath(QStringLiteral("snippet-controls-%1.png").arg(scale))), "render native snippet controls at studio scale"); }
 			if (scale == 200) {
 				bar->setParent(nullptr); bar->resize(600, bar->sizeHint().height()); bar->show(); app.processEvents();

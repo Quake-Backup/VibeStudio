@@ -14,7 +14,7 @@
 
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::registerLevelUvEditorCommands()
 {
@@ -147,4 +147,4 @@ void ApplicationShell::openLevelUvEditorFromUi()
 	dialog.exec();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

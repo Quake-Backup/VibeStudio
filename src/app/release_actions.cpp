@@ -43,7 +43,7 @@
 #include <atomic>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -533,4 +533,4 @@ QListWidgetItem* ApplicationShell::disabledReleaseItem(const QString& text) cons
 	return item;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

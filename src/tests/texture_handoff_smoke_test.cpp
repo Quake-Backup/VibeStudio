@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message, const QString& error = {})
 {
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 	const auto report = inspectLevelDependencies(map, PackageStagingArchive(plan));
 	ok &= expect(report.canExport() && report.problemCount == 0 && report.resolvedPaths == QStringList{QStringLiteral("models/handoff/prop.md3"), QStringLiteral("scripts/handoff.shader"), path},
 		"dependency review traces the authored image through all consumers", levelDependencyReportText(report));
-	const auto draft = root.filePath(QStringLiteral("handoff.vibepackage")); PackageStagingModel reopenedPlan;
+	const auto draft = root.filePath(QStringLiteral("handoff.sloppackage")); PackageStagingModel reopenedPlan;
 	ok &= expect(PackageDraft::save(draft, &plan, false, &error), "save cross-editor handoff in a package draft", error);
 	ok &= expect(PackageDraft::load(draft, &reopenedPlan, &error), "reopen cross-editor handoff from a package draft", error);
 	PackageWriteRequest output; output.format = PackageArchiveFormat::Pk3; output.destinationPath = root.filePath(QStringLiteral("handoff.pk3"));

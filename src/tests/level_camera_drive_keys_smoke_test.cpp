@@ -26,7 +26,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 	const LevelEditorControls q3 = familiarLevelControls(QStringLiteral("q3radiant"));
 	expect(routedKeys(q3) == QStringList {QStringLiteral(","), QStringLiteral("."), QStringLiteral("D"), QStringLiteral("C"), QStringLiteral("A"), QStringLiteral("Z")},
 		"Q3Radiant's 2D views pass on its look keys too", routedKeys(q3).join(QLatin1Char(' ')));
-	expect(routedKeys(trenchBroomLevelControls()).isEmpty() && routedKeys(vibeStudioLevelControls()).isEmpty()
+	expect(routedKeys(trenchBroomLevelControls()).isEmpty() && routedKeys(slopStudioLevelControls()).isEmpty()
 			&& routedKeys(familiarLevelControls(QStringLiteral("quark"))).isEmpty() && routedKeys(familiarLevelControls(QStringLiteral("bsp"))).isEmpty(),
 		"profiles whose camera keys need the camera's focus pass nothing on");
 	CameraKeyMotion motion;
@@ -177,8 +177,8 @@ int main(int argc, char** argv)
 	expect(applyLevelGestureOverrides(familiarLevelControls(QStringLiteral("sledge")), {{"plan.cameraDriveKeys", "on"}}, &sledgeOn, nullptr, &error)
 			&& routedKeys(sledgeOn).isEmpty(),
 		"Sledge's arrow-only drive keys stay with the 2D view's arrows when turned on", error);
-	expect(!applyLevelGestureOverrides(vibeStudioLevelControls(), {{"plan.cameraDriveKeys", "on"}}, nullptr, nullptr, &error)
-			&& !applyLevelGestureOverrides(vibeStudioLevelControls(), {{"camera.moveSpeed", "500"}}, nullptr, nullptr, &error),
+	expect(!applyLevelGestureOverrides(slopStudioLevelControls(), {{"plan.cameraDriveKeys", "on"}}, nullptr, nullptr, &error)
+			&& !applyLevelGestureOverrides(slopStudioLevelControls(), {{"camera.moveSpeed", "500"}}, nullptr, nullptr, &error),
 		"the orbiting camera has no drive keys or speed to set");
 
 	// Across all 24 profiles: what a routed key overlaps, and that it never
@@ -286,7 +286,7 @@ int main(int argc, char** argv)
 		"the 2D view lists the drive keys it passes on", rowText(nrc, QStringLiteral("plan"), QStringLiteral("Camera drive keys")));
 	expect(rowText(nrc, QStringLiteral("camera"), QStringLiteral("Camera speed")).contains(QStringLiteral("500"))
 			&& rowText(trenchBroomLevelControls(), QStringLiteral("camera"), QStringLiteral("Camera speed")).contains(QStringLiteral("map"))
-			&& rowText(vibeStudioLevelControls(), QStringLiteral("camera"), QStringLiteral("Camera speed")).isEmpty(),
+			&& rowText(slopStudioLevelControls(), QStringLiteral("camera"), QStringLiteral("Camera speed")).isEmpty(),
 		"the camera lists its speed", rowText(nrc, QStringLiteral("camera"), QStringLiteral("Camera speed")));
 
 	// Overlap warnings: a key a command takes from a routed drive key.
@@ -347,7 +347,7 @@ int main(int argc, char** argv)
 		expect(result.value(QStringLiteral("values")).toObject().value(QStringLiteral("camera.moveSpeed")) == QStringLiteral("1000")
 				&& StudioSettings().editorGestureOverrides(QStringLiteral("trenchbroom")).isEmpty(),
 			"a dry run previews without saving");
-		cli({QStringLiteral("gestures"), QStringLiteral("vibestudio-default"), QStringLiteral("--set"), QStringLiteral("camera.moveSpeed=500")}, 4);
+		cli({QStringLiteral("gestures"), QStringLiteral("slopstudio-default"), QStringLiteral("--set"), QStringLiteral("camera.moveSpeed=500")}, 4);
 	}
 	if (ok) {
 		std::cout << "Level camera drive keys: speeds, routing across 24 profiles, gestures, rows, warnings and CLI passed." << std::endl;

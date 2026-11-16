@@ -18,11 +18,11 @@
 // - ZDoom warps: GZDoom's func_warp1.fp and func_warp2.fp.
 // Details and line references: docs/MATERIALS.md.
 
-namespace vibestudio::material_render {
+namespace slopstudio::material_render {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 int largestPowerOfTwo(int value)
@@ -305,4 +305,4 @@ MaterialRenderResult renderClassicMaterial(const MaterialDefinition& definition,
 	return renderQuakeFamily(definition, images, options, cancelled);
 }
 
-} // namespace vibestudio::material_render
+} // namespace slopstudio::material_render

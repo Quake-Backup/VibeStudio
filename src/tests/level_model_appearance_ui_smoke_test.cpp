@@ -24,8 +24,8 @@
 #include <atomic>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace {
 int checks = 0;
 bool expect(bool pass, const char* text, const QString& detail = {}) {
@@ -37,7 +37,7 @@ bool waitFor(const std::function<bool()>& ready) {
 	return ready();
 }
 bool capture(QWidget& widget, const QString& name) {
-	const auto directory = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto directory = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (directory.isEmpty()) { return true; }
 	QImage image(widget.size() * widget.devicePixelRatioF(), QImage::Format_ARGB32_Premultiplied);
 	image.setDevicePixelRatio(widget.devicePixelRatioF()); image.fill(Qt::transparent);
@@ -59,7 +59,7 @@ class Expansion final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		if (QByteArray(context) != "ApplicationShell" && QByteArray(context) != "vibestudio::ApplicationShell" && QByteArray(context) != "VibeStudioLevelMaterials") { return {}; }
+		if (QByteArray(context) != "ApplicationShell" && QByteArray(context) != "slopstudio::ApplicationShell" && QByteArray(context) != "SlopStudioLevelMaterials") { return {}; }
 		const auto text = QString::fromUtf8(source);
 		return QStringLiteral("[%1%2]").arg(text, QString(text.size() / 2, '~'));
 	}
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
 	qputenv("QT_QPA_FONTDIR", QDir(qEnvironmentVariable("SystemRoot")).filePath("Fonts").toLocal8Bit());
 #endif
 	QApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root)) { return 1; }
 	QTemporaryDir temporary(QDir(root).filePath("level-model-ui-XXXXXX"));
 	LevelModelAppearanceFixture fixture; QString error;

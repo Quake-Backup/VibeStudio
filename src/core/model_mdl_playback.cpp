@@ -6,7 +6,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -72,7 +72,7 @@ bool sampleModelMdl(const ModelMesh &mesh, const ModelMdlPlayback &playback, Mod
 	{
 		return fail(error,
 					QCoreApplication::translate(
-						"VibeStudioModelMdl",
+						"SlopStudioModelMdl",
 						"Choose an existing native MDL frame and skin, a nonnegative finite time and a sync phase from 0 to 1 second."));
 	}
 	const auto &group = mesh.mdl.frameGroups[playback.nativeFrame];
@@ -81,7 +81,7 @@ bool sampleModelMdl(const ModelMesh &mesh, const ModelMdlPlayback &playback, Mod
 	if (count < 1 || count > modelDocumentMaxFrames || group.firstFrame < 0 || group.firstFrame > mesh.frames.size() - count ||
 		members < 1 || members > modelMdlMaxSkinMembers || !validTimes(group.intervals, count) || !validTimes(skin.intervals, members))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelMdl",
+		return fail(error, QCoreApplication::translate("SlopStudioModelMdl",
 													   "Native playback requires valid cumulative pose and skin group times."));
 	}
 	ModelMdlPlaybackSample sample;
@@ -137,7 +137,7 @@ bool prepareModelMdlPlaybackSkins(const ModelMesh &mesh, int skin, QVector<QImag
 	const qint64 pixels = qint64(mesh.mdl.skinSize.width()) * mesh.mdl.skinSize.height();
 	if (mesh.mdl.skinSize.width() < 1 || mesh.mdl.skinSize.height() < 1 || pixels > modelMdlMaxSkinPixels / source.indexedFrames.size())
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelMdl", "Native playback skins must total at most 16 megapixels."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelMdl", "Native playback skins must total at most 16 megapixels."));
 	}
 	QVector<QImage> images;
 	for (const auto &indexed : source.indexedFrames)
@@ -155,7 +155,7 @@ bool prepareModelMdlPlaybackSkins(const ModelMesh &mesh, int skin, QVector<QImag
 		// allocation is needed and no transparent index is introduced.
 		if (image.isNull() || !image.reinterpretAsFormat(QImage::Format_ARGB32_Premultiplied))
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelMdl", "Unable to prepare an indexed MDL skin for playback."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelMdl", "Unable to prepare an indexed MDL skin for playback."));
 		}
 		images.append(std::move(image));
 	}
@@ -166,4 +166,4 @@ bool prepareModelMdlPlaybackSkins(const ModelMesh &mesh, int skin, QVector<QImag
 	*output = std::move(images);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

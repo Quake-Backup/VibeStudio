@@ -1,7 +1,7 @@
 #pragma once
 
 // Quake-MapGen in the studio: the generator in src/mapgen (imported from
-// https://github.com/themuffinator/Quake-MapGen, MIT; see src/mapgen/VIBESTUDIO.md and
+// https://github.com/themuffinator/Quake-MapGen, MIT; see src/mapgen/SLOPSTUDIO.md and
 // docs/CREDITS.md) as a second level generator beside core/level_generation's cell generator.
 //
 // A prompt and the spec's overrides become Quake-MapGen's request; its rules planner, or a text
@@ -23,7 +23,7 @@
 #include <atomic>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 [[nodiscard]] QString levelMapgenGeneratorId();
 // quake, quake2, and quake3.
@@ -78,4 +78,4 @@ bool levelMapgenPlanAiRequest(const LevelGenerationSpec& spec, const AiTextConne
 // The usage `model` recorded, for reports: connector, model, host, tokens, and time.
 [[nodiscard]] QJsonObject levelMapgenUsageJson(const LevelMapgenModel& model);
 
-} // namespace vibestudio
+} // namespace slopstudio

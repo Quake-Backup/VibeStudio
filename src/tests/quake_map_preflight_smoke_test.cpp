@@ -15,9 +15,9 @@ int fail(const char* message)
 	return EXIT_FAILURE;
 }
 
-bool hasCode(const vibestudio::QuakeMapPreflightResult& result, const QString& code)
+bool hasCode(const slopstudio::QuakeMapPreflightResult& result, const QString& code)
 {
-	for (const vibestudio::QuakeMapPreflightWarning& warning : result.warnings) {
+	for (const slopstudio::QuakeMapPreflightWarning& warning : result.warnings) {
 		if (warning.code == code) {
 			return true;
 		}
@@ -25,10 +25,10 @@ bool hasCode(const vibestudio::QuakeMapPreflightResult& result, const QString& c
 	return false;
 }
 
-bool hasIssueNumber(const vibestudio::QuakeMapPreflightResult& result, int issueNumber)
+bool hasIssueNumber(const slopstudio::QuakeMapPreflightResult& result, int issueNumber)
 {
 	const QString suffix = QStringLiteral("#%1").arg(issueNumber);
-	for (const vibestudio::QuakeMapPreflightWarning& warning : result.warnings) {
+	for (const slopstudio::QuakeMapPreflightWarning& warning : result.warnings) {
 		if (warning.upstreamIssue.endsWith(suffix)) {
 			return true;
 		}
@@ -133,10 +133,10 @@ int main(int argc, char** argv)
 }
 )MAP").arg(longValue);
 
-	vibestudio::QuakeMapPreflightOptions options;
+	slopstudio::QuakeMapPreflightOptions options;
 	options.mapPath = QStringLiteral("maps/start.v1.map");
 	options.regionCompile = true;
-	const vibestudio::QuakeMapPreflightResult result = vibestudio::validateQuakeMapPreflightText(mapText, options);
+	const slopstudio::QuakeMapPreflightResult result = slopstudio::validateQuakeMapPreflightText(mapText, options);
 	if (!result.parseComplete) {
 		return fail("Expected preflight parser to complete.");
 	}
@@ -273,15 +273,15 @@ int main(int argc, char** argv)
 "classname" "func_areaportal"
 }
 )MAP");
-	const auto fixedResult = vibestudio::validateQuakeMapPreflightText(fixedMap);
-	const auto fixedReport = vibestudio::inspectQuakeMapPreflightText(fixedMap);
+	const auto fixedResult = slopstudio::validateQuakeMapPreflightText(fixedMap);
+	const auto fixedReport = slopstudio::inspectQuakeMapPreflightText(fixedMap);
 	if (!fixedResult.parseComplete || !fixedResult.warnings.isEmpty()
 		|| fixedReport.hasIssues() || !fixedReport.warningMessages().isEmpty()) {
-		return fail("Expected both preflight APIs to accept lighting and region cases fixed in VibeMap2 3.1.0.");
+		return fail("Expected both preflight APIs to accept lighting and region cases fixed in SlopMap2 3.1.0.");
 	}
 	for (int retired : {173, 422, 437, 444, 470, 475, 485}) {
 		if (hasIssueNumber(result, retired)) {
-			return fail("Expected mixed-risk maps never to revive a fixed VibeMap2 issue.");
+			return fail("Expected mixed-risk maps never to revive a fixed SlopMap2 issue.");
 		}
 	}
 
@@ -299,12 +299,12 @@ int main(int argc, char** argv)
 	denseMap += QStringLiteral(R"MAP(
 }
 )MAP");
-	const vibestudio::QuakeMapPreflightResult denseResult = vibestudio::validateQuakeMapPreflightText(denseMap);
+	const slopstudio::QuakeMapPreflightResult denseResult = slopstudio::validateQuakeMapPreflightText(denseMap);
 	if (!hasCode(denseResult, QStringLiteral("high-brush-count-clipnode-risk")) || !hasIssueNumber(denseResult, 136)) {
 		return fail("Expected dense detail brush map to warn about clipnode and marksurface risk.");
 	}
 
-	const vibestudio::QuakeMapPreflightResult cleanResult = vibestudio::validateQuakeMapPreflightText(QStringLiteral(R"MAP(
+	const slopstudio::QuakeMapPreflightResult cleanResult = slopstudio::validateQuakeMapPreflightText(QStringLiteral(R"MAP(
 {
 "classname" "worldspawn"
 "wad" "base.wad"
@@ -324,7 +324,7 @@ int main(int argc, char** argv)
 		return fail("Expected conservative clean map to pass without warnings.");
 	}
 
-	if (vibestudio::quakeMapPreflightSeverityId(vibestudio::QuakeMapPreflightSeverity::Warning) != QStringLiteral("warning")) {
+	if (slopstudio::quakeMapPreflightSeverityId(slopstudio::QuakeMapPreflightSeverity::Warning) != QStringLiteral("warning")) {
 		return fail("Expected severity id helper.");
 	}
 

@@ -13,7 +13,7 @@
 #include <qt_windows.h>
 #include <thread>
 #endif
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool pass, const char* label, const QString& error = {}) {
@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
 						return;
 					}
 					const auto candidates =
-						QDir(retryRoot).entryList({".vibestudio-build-*"}, QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot);
+						QDir(retryRoot).entryList({".slopstudio-build-*"}, QDir::Dirs | QDir::Hidden | QDir::NoDotAndDotDot);
 					if (candidates.size() != 1) {
 						return;
 					}
@@ -177,9 +177,9 @@ int main(int argc, char** argv) {
 		}
 		BuildPipelineRequest build;
 		build.pipelineId = "quake-full";
-		build.executableOverrides = {{"vibemap2-bsp", app.applicationFilePath()},
-									 {"vibemap2-vis", app.applicationFilePath()},
-									 {"vibemap2-light", app.applicationFilePath()}};
+		build.executableOverrides = {{"slopmap2-bsp", app.applicationFilePath()},
+									 {"slopmap2-vis", app.applicationFilePath()},
+									 {"slopmap2-light", app.applicationFilePath()}};
 		if (target == "quake") {
 			build.stageExtraArguments["light"] = {"-lit"};
 		}
@@ -275,11 +275,11 @@ int main(int argc, char** argv) {
 		};
 		const auto cliRoot = QDir(root).filePath("cli workspace");
 		cli({"prepare", source, "--target", target, "--package", archive.sourcePath(), "--output", cliRoot}, 0);
-		cli({"run-prepared", cliRoot, "--tool", "vibemap2-bsp=" + app.applicationFilePath(), "--tool",
-			 "vibemap2-vis=" + app.applicationFilePath(), "--tool", "vibemap2-light=" + app.applicationFilePath()},
+		cli({"run-prepared", cliRoot, "--tool", "slopmap2-bsp=" + app.applicationFilePath(), "--tool",
+			 "slopmap2-vis=" + app.applicationFilePath(), "--tool", "slopmap2-light=" + app.applicationFilePath()},
 			0);
 		cli({"publish-prepared", cliRoot, "--output", QDir(root).filePath("cli.pak")}, 0);
-		cli({"run-prepared", cliRoot, "--tool", "vibemap2-bsp=one", "--tool", "vibemap2-bsp=two"}, 2);
+		cli({"run-prepared", cliRoot, "--tool", "slopmap2-bsp=one", "--tool", "slopmap2-bsp=two"}, 2);
 		cli({"run-prepared", cliRoot, "--pipeline", "quake3-full"}, 4);
 		if (target == "quake") {
 			const auto generated = QDir(workspace.directory).filePath(workspace.textureWadPath());

@@ -244,11 +244,11 @@ import/export are available in the dialog; Keyboard settings continue to manage
 command shortcuts. Possible camera/command overlaps have expandable details.
 Applying gesture preferences preserves the current workspace.
 
-The modeller has its own controls profiles (VibeStudio, Blender, 3ds Max and
+The modeller has its own controls profiles (SlopStudio, Blender, 3ds Max and
 MilkShape 3D). Until one is chosen on the Mesh Editor's **View** page or with
 `model controls --select`, it follows the editor profile picked here: the
 Blender level profile gives the Blender modeller profile and every other
-profile gives VibeStudio's own. See [Modeller Profiles](MODELLER_PROFILES.md).
+profile gives SlopStudio's own. See [Modeller Profiles](MODELLER_PROFILES.md).
 Q3Radiant is separate from GtkRadiant and NetRadiant. Its classic position
 steering, fixed camera steps and independent preferences need no additional
 setup. The same gesture dialog can remap or disable steering and fixed steps.
@@ -540,7 +540,7 @@ New Package creates an untitled PAK, ZIP, PK3 or WAD document without a source.
 It offers the same Save/Discard/Cancel decisions even when empty. Folder
 creation/rename/delete use existing package history; WAD disables folder actions.
 Package drafts work offline with no connector or additional setup. Save Package
-Draft chooses a `.vibepackage` directory containing independent payload copies
+Draft chooses a `.sloppackage` directory containing independent payload copies
 and undo/redo history; subsequent saves reuse it. Recent files and session restore
 reopen the draft directory. Save/Discard/Cancel protects modified drafts when
 closing or changing packages. Drafts use existing theme, scaling, localization,
@@ -746,7 +746,7 @@ server that advertises call signatures. Provider trigger characters open it
 while typing; the inline panel offers overload selection and expandable
 documentation. It never changes the document and remains optional.
 
-When a connected server advertises document diagnostics, VibeStudio requests them automatically
+When a connected server advertises document diagnostics, SlopStudio requests them automatically
 and offers **Refresh diagnostics**. Successful Save/Save As also notify an
 interested provider after synchronizing saved text. No extra startup permission
 or automatic connection is introduced.
@@ -790,7 +790,7 @@ is required.
 Map creation, saving and recovery require no game install or AI connector.
 Local map recovery is enabled by default; **File → Recover Maps** controls it.
 The recovery folder follows the selected settings profile, and backups sit
-beside the saved map under `.vibestudio/map-backups`. Choose your own texture
+beside the saved map under `.slopstudio/map-backups`. Choose your own texture
 names when creating a starter room and review Dependencies before compiling.
 See [Level Editor](LEVEL_EDITOR.md).
 
@@ -836,7 +836,7 @@ dimension/format searches scan metadata in the background without additional
 setup. Browser PNG export provides progress, cancellation before publication and
 guarded replacement without extra setup. See [Texture Editor](TEXTURE_EDITOR.md).
 Native project saves retain previous versions beside the destination under
-`.vibestudio/texture-backups`; no additional setup or cloud service is needed.
+`.slopstudio/texture-backups`; no additional setup or cloud service is needed.
 Cancel Operation is available while preparing a project save. Final publication
 runs separately, rechecks the destination and acknowledges the saved document
 only on success; cancelling preparation leaves the editor and its edits open.
@@ -854,7 +854,7 @@ GUI saves open their output with clean staging and update the recent-file
 context. Cancellation and retry use the same local package services in every
 setup profile. See [Package Manager](PACKAGE_MANAGER.md).
 
-VibeStudio should include a modern first-run setup flow that lets users tailor
+SlopStudio should include a modern first-run setup flow that lets users tailor
 the overall application ecosystem to their needs before serious work begins.
 The setup flow should be fast, skippable, resumable, accessible, and honest
 about what has been detected automatically.
@@ -891,7 +891,7 @@ Accessibility; the language, region, theme, scale, typeface, and spacing
 choices sit on Settings > Appearance and Language beside it.
 
 - [x] Choose language. The default, **System language**, follows the operating
-  system's language whenever VibeStudio has it (47 languages; see
+  system's language whenever SlopStudio has it (47 languages; see
   [Supported Languages And Regions](ACCESSIBILITY_LOCALIZATION.md#supported-languages-and-regions)),
   and a different choice offers **Restart Now**. After a restart into a
   right-to-left language the whole window mirrors, panels included: they open
@@ -927,7 +927,7 @@ choices sit on Settings > Appearance and Language beside it.
 - [x] Enable or skip OS-backed TTS, and choose its events, voice, rate, pitch,
   and volume.
 - [x] Test TTS output if enabled: **Say Test Phrase**, or
-  `vibestudio --cli accessibility speak --test`.
+  `slopstudio --cli accessibility speak --test`.
 - [ ] Show keyboard navigation help and allow keyboard-only completion.
   **Keyboard Shortcuts…** on the Accessibility page opens the key reference;
   the guided keyboard-only walkthrough is still planned.
@@ -942,7 +942,7 @@ choices sit on Settings > Appearance and Language beside it.
 
 ### 3. Editor Familiarity
 
-- [x] Choose among 24 level-editor profiles, including VibeStudio Default,
+- [x] Choose among 24 level-editor profiles, including SlopStudio Default,
   GtkRadiant 1.4/1.5/1.6, QeRadiant/Q3Radiant, NetRadiant Custom, TrenchBroom,
   QuArK and Hammer, or decide later. Profiles adapt layout, 3D camera, mouse
   gestures, grid and keys through shared studio services. See
@@ -957,7 +957,7 @@ choices sit on Settings > Appearance and Language beside it.
   words rather than colour; **Check Renderers** starts both again and draws a
   test image on each. The choice is `rendering/backend` in the settings store,
   shared with `render set` and overridden for a run by `--renderer` or
-  `VIBESTUDIO_RENDER_BACKEND`. Setup never blocks on it: a computer where
+  `SLOPSTUDIO_RENDER_BACKEND`. Setup never blocks on it: a computer where
   neither renderer starts finishes setup, and its 3D views say why they are
   empty.
 
@@ -984,18 +984,18 @@ choices sit on Settings > Appearance and Language beside it.
 ### 6. Toolchains and Build
 
 - [ ] Detect bundled and system compiler tools.
-- [ ] Configure VibeMap2, VibeMap3, ZDBSP, ZokumBSP, and source-port launchers.
+- [ ] Configure SlopMap2, SlopMap3, ZDBSP, ZokumBSP, and source-port launchers.
 - [ ] Choose default compiler profiles by engine family.
 - [ ] Run a harmless toolchain probe and show results.
 - [ ] Enable command manifests and output-path reporting.
 
 Until this step lands in the guided flow, compiler executables are located on
 the Build page's **Toolchain** tab, which saves the same user override as
-`vibestudio --cli compiler set-path` and stays editable afterwards. The compiler
-status chip opens that tab. VibeStudio's own VibeMap2 and VibeMap3 programs are
+`slopstudio --cli compiler set-path` and stays editable afterwards. The compiler
+status chip opens that tab. SlopStudio's own SlopMap2 and SlopMap3 programs are
 found automatically under their current and pre-rename names; stock ericw-tools
 and q3map2 programs need **Locate…**. Game installation profiles default to the
-`vibemap2` compiler label for Quake and Quake II and `vibemap3` for Quake III,
+`slopmap2` compiler label for Quake and Quake II and `slopmap3` for Quake III,
 and profiles saved with the old `ericw-tools` and `q3map2` labels migrate
 automatically.
 
@@ -1012,7 +1012,7 @@ opens the full snapshot for general inspection. **Deploy Prepared Build** review
 the matching Quake-family installation, game folder, full PAK/PK3 and optional windowed
 launch. Read-only profiles require permission for that deployment only; replacing
 a package keeps a verified backup. **Build and Launch** opens this review after
-compilation. Quake/Quake II use the target selector and VibeMap2, with PAK
+compilation. Quake/Quake II use the target selector and SlopMap2, with PAK
 publication. Direct WAD2 texture drafts are accepted for Quake. Classic deployment
 adds a PAK slot control: Automatic reuses this map's remembered slot or chooses
 a free loadable slot; explicit selection requires another review. Quake needs a
@@ -1432,7 +1432,7 @@ bounded directory metadata in a worker, leaves an earlier crash notice visible,
 and offers review without opening audio or taking focus. Disabling either option
 retains existing files. The setup panel shows their folder and **Review Copies**;
 **File → Recover Audio** and command-palette recovery are always available.
-The `VIBESTUDIO_AUDIO_RECOVERY_ROOT` override takes precedence over profile storage.
+The `SLOPSTUDIO_AUDIO_RECOVERY_ROOT` override takes precedence over profile storage.
 See [Audio Editor](AUDIO_EDITOR.md).
 
 **Settings → Getting Started → Model Recovery** has **Offer mesh and assembly
@@ -1509,7 +1509,7 @@ settings. See [node readiness](LEVEL_EDITOR.md#doom-node-readiness).
 
 ## Restoring a portable workspace
 
-After setup, File → Open Workspace restores `.vibeworkspace` references. Its
+After setup, File → Open Workspace restores `.slopworkspace` references. Its
 project selects the existing manifest and shared installation/compiler/palette
 context. It does not rerun setup, enable AI, change language/theme, install
 dependencies or execute a workspace-supplied command. Missing references are
@@ -1836,7 +1836,7 @@ pending placement. No separate setup control is required. See
 ### Duplicate placement preferences
 
 The selected level profile supplies duplicate placement immediately: TB and NRC
-start copies in place; VibeStudio Default retains its grid nudge. After setup,
+start copies in place; SlopStudio Default retains its grid nudge. After setup,
 **Customize Gestures…** > **Editing** changes the nudge per profile, with the
 existing reset and import/export controls. The setting is local and works in
 AI-free mode. It does not alter project assets, compiler inputs or saved maps
@@ -1880,7 +1880,7 @@ optimisation introduces no setup control or external service.
 
 ### Edge bevel defaults
 
-[Bevel Edges](MODEL_EDGE_BEVEL.md) needs no connector or extra setup. VibeStudio
+[Bevel Edges](MODEL_EDGE_BEVEL.md) needs no connector or extra setup. SlopStudio
 and Blender assign Ctrl+B; vertex bevel keeps Ctrl+Shift+B. All profiles expose
 the named command through the Edge menu and command search. Initial settings are
 one segment, full quadratic roundness, 64 units per texture repeat and a
@@ -1890,7 +1890,7 @@ Topology always covers all retained poses, using the displayed pose for distance
 
 ### Knife defaults
 
-[Knife](MODEL_KNIFE.md) needs no connector or extra setup. VibeStudio and Blender
+[Knife](MODEL_KNIFE.md) needs no connector or extra setup. SlopStudio and Blender
 assign **K**; all profiles expose **Mesh → Knife** and command search. It starts
 in visible-face mode on the active surface, without a selected-face restriction.
 Angle snapping starts disabled, with a 45° increment when enabled. The current

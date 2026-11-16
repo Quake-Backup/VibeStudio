@@ -6,7 +6,7 @@
 #include "core/model_obj.h"
 #include <QJsonDocument>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh spinProfile(bool poles = false)
 {
@@ -62,4 +62,4 @@ inline bool spinClosed(const ModelSurface &surface, int euler)
 			++vertices;
 	return vertices - topology.edgeFaces.size() + surface.triangles.size() == euler;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

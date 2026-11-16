@@ -22,7 +22,7 @@ class QPlainTextEdit;
 class QPushButton;
 class QTableWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelEditorDialog;
 
@@ -64,4 +64,4 @@ class ModelSkinVariantsDialog final : public QDialog
 	void showVariant();
 	void refreshControls();
 };
-} // namespace vibestudio
+} // namespace slopstudio

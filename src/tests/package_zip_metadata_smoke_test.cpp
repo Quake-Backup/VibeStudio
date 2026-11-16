@@ -15,7 +15,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -199,7 +199,7 @@ int main(int argc, char** argv)
 						expect(staging.deleteOccurrence(0, &error) && staging.writeArchive(request).succeeded(), label, "explicit removal can repair an unreadable local entry");
 						const auto after = packagePlannedArchive(staging, &error);
 						expect(after.isOpen() && after.entries().isEmpty(), label, "deleted unavailable rows do not reappear in the browser");
-						const auto draft = root.filePath(label + QStringLiteral("-repaired.vibepackage"));
+						const auto draft = root.filePath(label + QStringLiteral("-repaired.sloppackage"));
 						PackageStagingModel restored;
 						expect(PackageDraft::save(draft, &staging, false, &error) && PackageDraft::load(draft, &restored, &error),
 							label, "repaired draft retains unavailable original history");

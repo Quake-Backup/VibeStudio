@@ -55,7 +55,7 @@
 #include <array>
 #include <cmath>
 
-namespace vibestudio::model_formats {
+namespace slopstudio::model_formats {
 
 namespace {
 
@@ -128,13 +128,13 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	if (!work.check()) { return; }
 	const qint64 size = bytes.size();
 	if (size < 4 + kKvxHeaderBytes + kKvxPaletteBytes) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The KVX file is too small to hold a voxel header and its palette.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The KVX file is too small to hold a voxel header and its palette.");
 		return;
 	}
 	const qint64 available = size - kKvxPaletteBytes - 4;
 	const qint64 numBytes = readI32(bytes, 0);
 	if (numBytes < kKvxHeaderBytes || numBytes > available) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The first KVX mip level declares %1 bytes, outside the %2 bytes the file holds before its palette.")
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The first KVX mip level declares %1 bytes, outside the %2 bytes the file holds before its palette.")
 			.arg(numBytes).arg(available);
 		return;
 	}
@@ -146,14 +146,14 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	const double pivotY = double(readI32(bytes, base + 16)) / 256.0;
 	const double pivotZ = double(readI32(bytes, base + 20)) / 256.0;
 	if (xsiz < 0 || ysiz < 0 || zsiz < 0 || xsiz > kKvxMaxSize || ysiz > kKvxMaxSize || zsiz > kKvxMaxSize) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The KVX voxel dimensions %1 x %2 x %3 are outside the supported range.")
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The KVX voxel dimensions %1 x %2 x %3 are outside the supported range.")
 			.arg(xsiz).arg(ysiz).arg(zsiz);
 		return;
 	}
 	const qint64 offsetBytes = (qint64(xsiz) + 1) * 4 + qint64(xsiz) * (qint64(ysiz) + 1) * 2;
 	const qint64 voxelBytes = numBytes - kKvxHeaderBytes - offsetBytes;
 	if (voxelBytes < 0) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The KVX offset tables run past the end of the first mip level.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The KVX offset tables run past the end of the first mip level.");
 		return;
 	}
 	const qint64 xOffsetBase = base + kKvxHeaderBytes;
@@ -164,12 +164,12 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		if (!work.step()) { return; }
 		columnStart[x] = qint64(readI32(bytes, xOffsetBase + qint64(x) * 4)) - offsetBytes;
 		if (columnStart.at(x) < 0 || columnStart.at(x) > voxelBytes || (x > 0 && columnStart.at(x) < columnStart.at(x - 1))) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "KVX column offset %1 lies outside the voxel data.").arg(x);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "KVX column offset %1 lies outside the voxel data.").arg(x);
 			return;
 		}
 	}
 	if (columnStart.constFirst() != 0 || columnStart.constLast() != voxelBytes) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The KVX column offsets do not span the voxel data.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The KVX column offsets do not span the voxel data.");
 		return;
 	}
 
@@ -185,14 +185,14 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			const qint64 start = columnStart.at(x) + readU16(bytes, entry);
 			const qint64 end = columnStart.at(x) + readU16(bytes, entry + 2);
 			if (start > end || end > voxelBytes) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The KVX slab offsets of column %1, %2 lie outside the voxel data.").arg(x).arg(y);
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The KVX slab offsets of column %1, %2 lie outside the voxel data.").arg(x).arg(y);
 				return;
 			}
 			qint64 position = start;
 			while (position < end) {
 				if (!work.step()) { return; }
 				if (end - position < 3) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "A KVX slab in column %1, %2 is truncated.").arg(x).arg(y);
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "A KVX slab in column %1, %2 is truncated.").arg(x).arg(y);
 					return;
 				}
 				const qint64 at = slabBase + position;
@@ -200,7 +200,7 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 				const int length = readU8(bytes, at + 1);
 				const int visible = readU8(bytes, at + 2);
 				if (end - position - 3 < length) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "A KVX slab in column %1, %2 is truncated.").arg(x).arg(y);
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "A KVX slab in column %1, %2 is truncated.").arg(x).arg(y);
 					return;
 				}
 				for (int index = 0; index < length; ++index) {
@@ -210,7 +210,7 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 					highestZ = std::max(highestZ, z + 1);
 					++voxels;
 					if (faces.size() + 6 > kKvxMaxFaces) {
-						mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The KVX model has more than %1 visible voxel faces.").arg(kKvxMaxFaces);
+						mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The KVX model has more than %1 visible voxel faces.").arg(kKvxMaxFaces);
 						return;
 					}
 					// Row and column follow voxelCorner: x faces span (y, z), y faces
@@ -241,11 +241,11 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		++mips;
 	}
 	if (cursor != size - kKvxPaletteBytes) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("kvx-mip-end"), QCoreApplication::translate("VibeStudioModelMesh", "The KVX mip levels do not end where the palette begins; GZDoom refuses such files."));
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("kvx-mip-end"), QCoreApplication::translate("SlopStudioModelMesh", "The KVX mip levels do not end where the palette begins; GZDoom refuses such files."));
 	}
 
 	if (faces.isEmpty()) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The KVX model has no visible voxel faces.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The KVX model has no visible voxel faces.");
 		return;
 	}
 	std::sort(faces.begin(), faces.end());
@@ -347,12 +347,12 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		for (int corner = 0; corner < 4; ++corner) {
 			index[corner] = vertex(corners[corner], rect.direction, rect.colour);
 			if (index[corner] < 0) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The KVX model has more vertices than can be decoded.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The KVX model has more vertices than can be decoded.");
 				return;
 			}
 		}
 		if (surface.triangles.size() + 2 > kMaxSurfaceTriangles) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The KVX model has more triangles than can be decoded.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The KVX model has more triangles than can be decoded.");
 			return;
 		}
 		// Wind the quad so cross(b - a, c - a) points along the face's outward
@@ -376,7 +376,7 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	// The palette as GZDoom's FVoxelTexture builds it.
 	QImage palette(16, 16, QImage::Format_ARGB32);
 	if (palette.isNull()) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The KVX palette image could not be created.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The KVX palette image could not be created.");
 		return;
 	}
 	const qint64 paletteOffset = size - kKvxPaletteBytes;
@@ -393,7 +393,7 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		palette.setPixel(index & 15, index >> 4, qRgb(rgb[0], rgb[1], rgb[2]));
 	}
 	if (brightComponents > 0) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("kvx-palette-range"), QCoreApplication::translate("VibeStudioModelMesh", "The KVX palette has %1 component(s) above the 6-bit maximum of 63.").arg(brightComponents));
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("kvx-palette-range"), QCoreApplication::translate("SlopStudioModelMesh", "The KVX palette has %1 component(s) above the 6-bit maximum of 63.").arg(brightComponents));
 	}
 	ModelEmbeddedSkin skin;
 	skin.index = 0;
@@ -402,13 +402,13 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	mesh->embeddedSkins.append(skin);
 	mesh->skinCount = 1;
 
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Voxels: %1 x %2 x %3 (%4 solid)").arg(xsiz).arg(ysiz).arg(zsiz).arg(voxels);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Pivot: %1 %2 %3 voxels")
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Voxels: %1 x %2 x %3 (%4 solid)").arg(xsiz).arg(ysiz).arg(zsiz).arg(voxels);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Pivot: %1 %2 %3 voxels")
 		.arg(QString::number(pivotX, 'f', 2), QString::number(pivotY, 'f', 2), QString::number(pivotZ, 'f', 2));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Mip levels: %1").arg(mips);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Visible voxel faces: %1, merged into %2 rectangles").arg(faces.size()).arg(rects.size());
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Mip levels: %1").arg(mips);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Visible voxel faces: %1, merged into %2 rectangles").arg(faces.size()).arg(rects.size());
 	if (highestZ > zsiz) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Slabs reach depth %1, below the declared height of %2.").arg(highestZ).arg(zsiz);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Slabs reach depth %1, below the declared height of %2.").arg(highestZ).arg(zsiz);
 	}
 
 	ModelFrameInfo frame;
@@ -436,4 +436,4 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	mesh->geometryAvailable = true;
 }
 
-} // namespace vibestudio::model_formats
+} // namespace slopstudio::model_formats

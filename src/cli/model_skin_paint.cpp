@@ -13,7 +13,7 @@
 #include <QSaveFile>
 #include <QSet>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -227,4 +227,4 @@ ModelSkinPaintCliResult runModelSkinPaint(const QStringList &arguments)
 		result.lines << Text::tr("Wrote the model with the painted skin to %1.").arg(QDir::toNativeSeparators(modelOutput));
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

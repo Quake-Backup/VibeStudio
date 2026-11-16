@@ -2,7 +2,7 @@
 #include "core/level_map.h"
 #include <QJsonObject>
 
-namespace vibestudio {
+namespace slopstudio {
 enum class LevelDoomNodeState { NotApplicable, Missing, Invalid, Present, Unsupported, Stale, Cancelled };
 struct LevelDoomNodeReport {
 	LevelDoomNodeState state = LevelDoomNodeState::NotApplicable;
@@ -35,4 +35,4 @@ bool isLevelDoomMapMarkerAt(const QVector<LevelMapWadSourceLump>& lumps, int ind
 // Invalidates selected-map runtime records and removes its separately labelled
 // GL cache. Other maps/resources remain unchanged. Ambiguous GL labels refuse.
 bool invalidateLevelDoomNodeProducts(QVector<LevelMapWadSourceLump>* lumps, int mapMarker, QStringList* invalidated, QString* error);
-} // namespace vibestudio
+} // namespace slopstudio

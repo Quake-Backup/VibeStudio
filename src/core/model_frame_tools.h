@@ -25,7 +25,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 enum class ModelEditKind;
@@ -235,4 +235,4 @@ struct ModelNativeClipCheck
 // Translated one-line summary of the checks for the editor and CLI text:
 // how many clips survive and which do not. Empty for a model without clips.
 [[nodiscard]] QString modelNativeClipSummary(const QVector<ModelNativeClipCheck> &checks);
-} // namespace vibestudio
+} // namespace slopstudio

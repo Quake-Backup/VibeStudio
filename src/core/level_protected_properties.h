@@ -2,7 +2,7 @@
 
 #include "core/level_map.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 
 QStringList levelProtectedEntityProperties(const LevelMapDocument& document, int entityId);
@@ -22,4 +22,4 @@ bool clearLevelEntityPropertyProtection(LevelMapDocument* document, const QVecto
 bool setLevelProtectedEntityProperty(LevelMapDocument* document, const QVector<int>& entities, const QString& key,
                                      const QStringList& values, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

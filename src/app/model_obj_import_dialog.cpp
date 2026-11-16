@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -122,4 +122,4 @@ bool ModelObjImportDialog::ask(QWidget *parent, ModelObjImportOptions *options)
 		*options = remembered();
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

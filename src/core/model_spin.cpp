@@ -9,7 +9,7 @@
 // Spin's centre/axis/steps and duplication workflow follows Blender's documented
 // operator (manual 4.0, reviewed 2026-10-21); this implementation is original.
 // https://docs.blender.org/manual/en/4.0/modeling/meshes/tools/spin.html
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -632,4 +632,4 @@ bool spinGeometry(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *select
 	if (edit.tool.spinDuplicate && !materialiseModelVertexIdentities(&mesh->surfaces[selection->surface], error, work)) return false;
 	return SpinBuilder(*mesh, edit, *selection, error, work, report).run();
 }
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

@@ -21,7 +21,7 @@
 #include <functional>
 #include <limits>
 
-namespace vibestudio::material_render {
+namespace slopstudio::material_render {
 
 struct Vec3 {
 	double x = 0.0;
@@ -273,4 +273,4 @@ MaterialRenderResult renderClassicMaterial(const MaterialDefinition& definition,
 // The size of a material's main image, for repeat sizes and mip levels.
 QSize mainImageSize(const MaterialDefinition& definition, const MaterialImageSet& images);
 
-} // namespace vibestudio::material_render
+} // namespace slopstudio::material_render

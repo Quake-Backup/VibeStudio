@@ -12,7 +12,7 @@
 // Array tool. Behaviour follows their documentation (Blender manual 4.0,
 // modeling/modifiers/generate/array.html; Autodesk 3ds Max Array dialog,
 // reviewed 2026-10-28); no code is used.
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -215,4 +215,4 @@ bool arrayFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 		report->sourceFaces.insert(selection->surface, faceSources);
 	return work.check();
 }
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

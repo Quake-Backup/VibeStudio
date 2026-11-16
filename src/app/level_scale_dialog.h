@@ -2,7 +2,7 @@
 #include "app/level_transform_dialog.h"
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Scale Selection… (NetRadiant Custom's Arbitrary Scale): X, Y and Z factors
 // about the pivot, where a negative factor mirrors, as one undo step.
@@ -26,4 +26,4 @@ class LevelScaleDialog final : public LevelTransformDialog
 	std::array<QDoubleSpinBox*, 3> m_factors{};
 	std::function<bool(const LevelMapScaleRequest&, QString*)> m_applyHandler;
 };
-} // namespace vibestudio
+} // namespace slopstudio

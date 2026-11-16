@@ -10,7 +10,7 @@
 //   it needs, and how to install and play it. A Markdown file suits stores and
 //   repositories; the plain-text readme follows the field layout players know
 //   from the idgames archive and the Quake map archives.
-// - Release records (.vibestudio/releases/<version>.json) keep each published
+// - Release records (.slopstudio/releases/<version>.json) keep each published
 //   inventory, so the next release can say what changed since.
 
 #include "core/project_manifest.h"
@@ -24,7 +24,7 @@
 
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Keep a Changelog's categories, in its order.
 QStringList changelogCategories();
@@ -169,4 +169,4 @@ QString releaseReadmeText(const ReleaseNotesInput& input);
 // Numbered steps for installing and starting the release.
 QStringList releaseInstallSteps(const ReleaseNotesInput& input);
 
-} // namespace vibestudio
+} // namespace slopstudio

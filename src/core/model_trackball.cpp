@@ -4,7 +4,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -138,4 +138,4 @@ bool modelTrackballRotation(const ModelTrackballDrag &drag, double x, double y, 
 	*rotation = candidate;
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

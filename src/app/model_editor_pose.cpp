@@ -16,13 +16,13 @@
 #include <QGuiApplication>
 #include <QMimeData>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelTools)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelTools)
 };
 // The skeletal clip and its sample the viewport frame shows; clip -1 for the
 // bind pose frame (sample 0) and for frames outside every clip (sample -1).
@@ -170,4 +170,4 @@ void ModelEditorTools::buildPoseActions()
 	addAction(QStringLiteral("meshPastePoseMirrored"), Text::tr("Paste Pose Mirrored"), {}, [paste] { paste(true, false); });
 	addAction(QStringLiteral("meshMirrorPose"), Text::tr("Mirror Pose"), {}, [paste] { paste(true, true); });
 }
-} // namespace vibestudio
+} // namespace slopstudio

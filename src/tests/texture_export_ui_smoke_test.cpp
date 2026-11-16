@@ -25,7 +25,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* message) { if (!condition) { std::cerr << message << '\n'; } return condition; }
 bool settled(TextureEditorDialog* editor)
@@ -41,7 +41,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (!QByteArray(context).startsWith("VibeStudioTexture")) { return {}; }
+		if (!QByteArray(context).startsWith("SlopStudioTexture")) { return {}; }
 		return QStringLiteral("[%1 expanded text]").arg(QString::fromUtf8(source));
 	}
 };
@@ -136,11 +136,11 @@ int main(int argc, char** argv)
 				auto* accessible = QAccessible::queryAccessibleInterface(field);
 				ok &= expect(accessible && !accessible->text(QAccessible::Name).isEmpty() && accessible->state().focusable, "export controls expose accessible names and keyboard focus");
 			}
-			if (scroll && !qEnvironmentVariableIsEmpty("VIBESTUDIO_TEST_CAPTURE_ROOT")) {
+			if (scroll && !qEnvironmentVariableIsEmpty("SLOPSTUDIO_TEST_CAPTURE_ROOT")) {
 				for (bool bottom : {false, true}) {
 					scroll->verticalScrollBar()->setValue(bottom ? scroll->verticalScrollBar()->maximum() : 0); app.processEvents();
 					QImage capture(editor->size(), QImage::Format_ARGB32_Premultiplied); capture.fill(Qt::transparent); editor->render(&capture);
-					ok &= expect(capture.save(QDir(qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT")).filePath(QStringLiteral("texture-export-%1-%2-%3.png").arg(pass).arg(textureExportFormatId(selected), bottom ? QStringLiteral("bottom") : QStringLiteral("top")))), "render export controls directly from Qt widgets");
+					ok &= expect(capture.save(QDir(qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT")).filePath(QStringLiteral("texture-export-%1-%2-%3.png").arg(pass).arg(textureExportFormatId(selected), bottom ? QStringLiteral("bottom") : QStringLiteral("top")))), "render export controls directly from Qt widgets");
 				}
 			}
 		}

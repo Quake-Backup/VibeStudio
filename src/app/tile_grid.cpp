@@ -9,7 +9,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -144,4 +144,4 @@ void TileGrid::showEvent(QShowEvent* event)
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

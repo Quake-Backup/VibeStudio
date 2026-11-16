@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct ModelMdlCliResult
 {
@@ -12,4 +12,4 @@ struct ModelMdlCliResult
 	QStringList lines;
 };
 ModelMdlCliResult runModelMdl(const QStringList &arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

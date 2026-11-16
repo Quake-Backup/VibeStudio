@@ -7,7 +7,7 @@
 #include <QJsonArray>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -21,34 +21,34 @@ struct TabEntry {
 // The studio's own order and names. Titles and descriptions are translated
 // where they are read.
 constexpr TabEntry kTabs[] = {
-	{"outliner", "tree", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Outliner"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Every entity, brush, patch and Doom object, filtered by name or by key=value, with the map's layers and groups.")},
-	{"entities", "entity", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Entities"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Entity classes or Doom things to place: drag one onto a view, or place it at the view's centre or on the camera's surface.")},
-	{"shapes", "shapes", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Shapes"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Brush shapes to draw, add or turn the selected brushes into: boxes, wedges, cylinders, cones and spheres, and arches, rings, stairs and rooms of several brushes; Doom sectors on Doom maps.")},
-	{"textures", "image", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Textures"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "The map's textures and the package's, to put on the selection or paint in the camera.")},
-	{"models", "cube", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Models"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Package models to place as model entities or to give the selected entity.")},
-	{"sounds", "speaker", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Sounds"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Package sounds to listen to, place as speakers or give the selected entity.")},
-	{"prefabs", "prefab", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Prefabs"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Saved prefabs to insert, and the selection to save as one.")},
-	{"tools", "hammer", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Tools"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Every editing tool in one place, grouped: brushes, transforms, alignment, selection, entities, surfaces, patches, Doom sectors and regions.")},
-	{"inspector", "properties", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Inspector"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "The selection's keys, fields, position and definition, edited in place.")},
-	{"surfaces", "uv", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Surfaces"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Texture alignment and face flags for the targeted faces: shift, scale, rotate, fit, project, copy and paste.")},
-	{"map", "map", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Map"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Worldspawn keys, a pre-build checklist, the layers, soft bounds and mods, statistics and the entity definitions in use.")},
-	{"view", "eye", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "View"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "What the views draw, filters by kind, grid and snapping, the camera and the view layout.")},
-	{"health", "validate", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Health"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Validation, missing assets and leaks; each leads to the object concerned.")},
-	{"history", "history", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "History"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Every edit to the map, oldest first; choose one to undo or redo to it.")},
+	{"outliner", "tree", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Outliner"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Every entity, brush, patch and Doom object, filtered by name or by key=value, with the map's layers and groups.")},
+	{"entities", "entity", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Entities"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Entity classes or Doom things to place: drag one onto a view, or place it at the view's centre or on the camera's surface.")},
+	{"shapes", "shapes", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Shapes"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Brush shapes to draw, add or turn the selected brushes into: boxes, wedges, cylinders, cones and spheres, and arches, rings, stairs and rooms of several brushes; Doom sectors on Doom maps.")},
+	{"textures", "image", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Textures"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "The map's textures and the package's, to put on the selection or paint in the camera.")},
+	{"models", "cube", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Models"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Package models to place as model entities or to give the selected entity.")},
+	{"sounds", "speaker", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Sounds"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Package sounds to listen to, place as speakers or give the selected entity.")},
+	{"prefabs", "prefab", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Prefabs"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Saved prefabs to insert, and the selection to save as one.")},
+	{"tools", "hammer", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Tools"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Every editing tool in one place, grouped: brushes, transforms, alignment, selection, entities, surfaces, patches, Doom sectors and regions.")},
+	{"inspector", "properties", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Inspector"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "The selection's keys, fields, position and definition, edited in place.")},
+	{"surfaces", "uv", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Surfaces"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Texture alignment and face flags for the targeted faces: shift, scale, rotate, fit, project, copy and paste.")},
+	{"map", "map", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Map"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Worldspawn keys, a pre-build checklist, the layers, soft bounds and mods, statistics and the entity definitions in use.")},
+	{"view", "eye", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "View"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "What the views draw, filters by kind, grid and snapping, the camera and the view layout.")},
+	{"health", "validate", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Health"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Validation, missing assets and leaks; each leads to the object concerned.")},
+	{"history", "history", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "History"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Every edit to the map, oldest first; choose one to undo or redo to it.")},
 };
 
 struct FamilyEntry {
@@ -99,45 +99,45 @@ struct TitleEntry {
 
 // The names each family uses for the same tools.
 constexpr TitleEntry kTitles[] = {
-	{"radiant", "outliner", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Entity List")},
-	{"radiant", "inspector", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Entity")},
-	{"radiant", "surfaces", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Surface")},
-	{"radiant", "view", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Filters")},
-	{"radiant", "health", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Issues")},
-	{"radiant", "history", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Undo")},
-	{"radiant", "shapes", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Brush")},
-	{"trenchbroom", "inspector", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Entity")},
-	{"trenchbroom", "surfaces", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Face")},
-	{"trenchbroom", "health", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Issues")},
-	{"hammer", "outliner", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Objects")},
-	{"hammer", "inspector", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Properties")},
-	{"hammer", "surfaces", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Face Edit")},
-	{"hammer", "health", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Problems")},
-	{"hammer", "shapes", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Primitives")},
-	{"doom-builder", "inspector", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Properties")},
-	{"doom-builder", "entities", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Things")},
-	{"doom-builder", "health", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Analysis")},
-	{"doom-builder", "history", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Undo")},
-	{"doom-builder", "shapes", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Draw")},
-	{"quark", "outliner", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Map Tree")},
-	{"quark", "inspector", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Specifics")},
-	{"quark", "surfaces", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Faces")},
-	{"blender", "inspector", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Item")},
-	{"blender", "tools", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Tool")},
-	{"blender", "entities", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Add")},
-	{"blender", "textures", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Materials")},
-	{"unity", "outliner", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Hierarchy")},
-	{"unity", "textures", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Materials")},
-	{"unreal", "inspector", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Details")},
-	{"unreal", "entities", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Place")},
-	{"unreal", "textures", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Materials")},
-	{"godot", "outliner", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Scene")},
-	{"godot", "textures", QT_TRANSLATE_NOOP("VibeStudioLevelSidebar", "Materials")},
+	{"radiant", "outliner", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Entity List")},
+	{"radiant", "inspector", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Entity")},
+	{"radiant", "surfaces", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Surface")},
+	{"radiant", "view", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Filters")},
+	{"radiant", "health", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Issues")},
+	{"radiant", "history", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Undo")},
+	{"radiant", "shapes", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Brush")},
+	{"trenchbroom", "inspector", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Entity")},
+	{"trenchbroom", "surfaces", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Face")},
+	{"trenchbroom", "health", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Issues")},
+	{"hammer", "outliner", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Objects")},
+	{"hammer", "inspector", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Properties")},
+	{"hammer", "surfaces", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Face Edit")},
+	{"hammer", "health", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Problems")},
+	{"hammer", "shapes", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Primitives")},
+	{"doom-builder", "inspector", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Properties")},
+	{"doom-builder", "entities", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Things")},
+	{"doom-builder", "health", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Analysis")},
+	{"doom-builder", "history", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Undo")},
+	{"doom-builder", "shapes", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Draw")},
+	{"quark", "outliner", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Map Tree")},
+	{"quark", "inspector", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Specifics")},
+	{"quark", "surfaces", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Faces")},
+	{"blender", "inspector", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Item")},
+	{"blender", "tools", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Tool")},
+	{"blender", "entities", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Add")},
+	{"blender", "textures", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Materials")},
+	{"unity", "outliner", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Hierarchy")},
+	{"unity", "textures", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Materials")},
+	{"unreal", "inspector", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Details")},
+	{"unreal", "entities", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Place")},
+	{"unreal", "textures", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Materials")},
+	{"godot", "outliner", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Scene")},
+	{"godot", "textures", QT_TRANSLATE_NOOP("SlopStudioLevelSidebar", "Materials")},
 };
 
 QString translated(const char* text)
 {
-	return QCoreApplication::translate("VibeStudioLevelSidebar", text);
+	return QCoreApplication::translate("SlopStudioLevelSidebar", text);
 }
 
 QStringList words(const char* text)
@@ -252,7 +252,7 @@ QString levelSidebarTabTitle(const QString& tabId, const QString& profileId, boo
 	}
 	// Doom calls its entities things, whichever editor's names are in use.
 	if (doomMap && tabId == QLatin1String("entities")) {
-		return QCoreApplication::translate("VibeStudioLevelSidebar", "Things");
+		return QCoreApplication::translate("SlopStudioLevelSidebar", "Things");
 	}
 	LevelSidebarTab tab;
 	return levelSidebarTabForId(tabId, &tab) ? tab.title : tabId;
@@ -301,13 +301,13 @@ bool validateLevelSidebarArrangement(const LevelSidebarArrangement& arrangement,
 	for (const QString& id : arrangement.leading + arrangement.trailing) {
 		if (!known.contains(id)) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioLevelSidebar", "Unknown sidebar tab: %1").arg(id);
+				*error = QCoreApplication::translate("SlopStudioLevelSidebar", "Unknown sidebar tab: %1").arg(id);
 			}
 			return false;
 		}
 		if (seen.contains(id)) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioLevelSidebar", "The %1 tab is placed twice.").arg(id);
+				*error = QCoreApplication::translate("SlopStudioLevelSidebar", "The %1 tab is placed twice.").arg(id);
 			}
 			return false;
 		}
@@ -316,7 +316,7 @@ bool validateLevelSidebarArrangement(const LevelSidebarArrangement& arrangement,
 	for (const QString& id : known) {
 		if (!seen.contains(id)) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioLevelSidebar", "The %1 tab is on neither sidebar.").arg(id);
+				*error = QCoreApplication::translate("SlopStudioLevelSidebar", "The %1 tab is on neither sidebar.").arg(id);
 			}
 			return false;
 		}
@@ -324,7 +324,7 @@ bool validateLevelSidebarArrangement(const LevelSidebarArrangement& arrangement,
 	for (const QString& id : arrangement.groupStarts) {
 		if (!known.contains(id)) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioLevelSidebar", "Unknown sidebar tab: %1").arg(id);
+				*error = QCoreApplication::translate("SlopStudioLevelSidebar", "Unknown sidebar tab: %1").arg(id);
 			}
 			return false;
 		}
@@ -332,7 +332,7 @@ bool validateLevelSidebarArrangement(const LevelSidebarArrangement& arrangement,
 	if ((!arrangement.leadingCurrent.isEmpty() && !arrangement.leading.contains(arrangement.leadingCurrent))
 		|| (!arrangement.trailingCurrent.isEmpty() && !arrangement.trailing.contains(arrangement.trailingCurrent))) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioLevelSidebar", "A current tab is not on its sidebar.");
+			*error = QCoreApplication::translate("SlopStudioLevelSidebar", "A current tab is not on its sidebar.");
 		}
 		return false;
 	}
@@ -389,7 +389,7 @@ bool levelSidebarArrangementFromJson(const QJsonObject& object, LevelSidebarArra
 	};
 	if (!read(object.value(QStringLiteral("leading")), &arrangement.leading) || !read(object.value(QStringLiteral("trailing")), &arrangement.trailing)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioLevelSidebar", "A sidebar arrangement needs leading and trailing lists of tab ids.");
+			*error = QCoreApplication::translate("SlopStudioLevelSidebar", "A sidebar arrangement needs leading and trailing lists of tab ids.");
 		}
 		return false;
 	}
@@ -414,17 +414,17 @@ QStringList levelSidebarArrangementLines(const LevelSidebarArrangement& arrangem
 				title.prepend(QStringLiteral("| "));
 			}
 			if (id == current) {
-				title = QCoreApplication::translate("VibeStudioLevelSidebar", "%1 (open)").arg(title);
+				title = QCoreApplication::translate("SlopStudioLevelSidebar", "%1 (open)").arg(title);
 			}
 			titles << title;
 		}
-		return titles.isEmpty() ? QCoreApplication::translate("VibeStudioLevelSidebar", "(none)") : titles.join(QStringLiteral("  "));
+		return titles.isEmpty() ? QCoreApplication::translate("SlopStudioLevelSidebar", "(none)") : titles.join(QStringLiteral("  "));
 	};
 	return {
-		QCoreApplication::translate("VibeStudioLevelSidebar", "Profile: %1 (%2 family)").arg(normalizedEditorProfileId(profileId), levelSidebarFamilyForProfile(profileId)),
-		QCoreApplication::translate("VibeStudioLevelSidebar", "Leading sidebar: %1").arg(side(arrangement.leading, arrangement.leadingCurrent)),
-		QCoreApplication::translate("VibeStudioLevelSidebar", "Trailing sidebar: %1").arg(side(arrangement.trailing, arrangement.trailingCurrent)),
+		QCoreApplication::translate("SlopStudioLevelSidebar", "Profile: %1 (%2 family)").arg(normalizedEditorProfileId(profileId), levelSidebarFamilyForProfile(profileId)),
+		QCoreApplication::translate("SlopStudioLevelSidebar", "Leading sidebar: %1").arg(side(arrangement.leading, arrangement.leadingCurrent)),
+		QCoreApplication::translate("SlopStudioLevelSidebar", "Trailing sidebar: %1").arg(side(arrangement.trailing, arrangement.trailingCurrent)),
 	};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -9,7 +9,7 @@
 #include <QTimer>
 #include <algorithm>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 
 // Wait for actual worker completion through the GUI event loop. Rendering the
@@ -49,4 +49,4 @@ inline QScrollArea *pageScroll(QWidget *page)
 	return page ? page->findChild<QScrollArea *>(QStringLiteral("sidebarPageScroll")) : nullptr;
 }
 
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

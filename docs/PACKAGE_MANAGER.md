@@ -1,6 +1,6 @@
 # Package Manager
 
-VibeStudio browses folders, PAK, Doom/texture WAD, ZIP, and PK3 packages. Editing
+SlopStudio browses folders, PAK, Doom/texture WAD, ZIP, and PK3 packages. Editing
 builds a staging plan; source files remain unchanged until a requested save.
 Generated assets, imported files, compiled map output, and dependency exports use
 the same package services as the CLI.
@@ -631,8 +631,8 @@ or temporary storage. Supply `--max-mib`, `--max-files`, `--max-entries` and/or
 1–250,000 entries and 1–1,024 batches. Unspecified limits are preserved.
 
 ```text
-vibestudio --cli package copy-limits --max-mib 4096 --max-batches 128 --json
-vibestudio --cli package copy-limits --max-mib 4096 --max-batches 128 --write --json
+slopstudio --cli package copy-limits --max-mib 4096 --max-batches 128 --json
+slopstudio --cli package copy-limits --max-mib 4096 --max-batches 128 --write --json
 ```
 
 JSON schema 1 reports `scope: "studio-window"`, proposed `limits`, `storedLimits`,
@@ -669,9 +669,9 @@ files or preferences. Writes use the store's `limits.json`, without migrating
 preferences. Future-schema preferences prevent policy writes.
 
 ```text
-vibestudio --cli package copy-store-limits --json
-vibestudio --cli package copy-store-limits --max-mib 16384 --dry-run --json
-vibestudio --cli package copy-store-limits --max-mib 16384 --expected-policy-sha256 <hash> --write --json
+slopstudio --cli package copy-store-limits --json
+slopstudio --cli package copy-store-limits --max-mib 16384 --dry-run --json
+slopstudio --cli package copy-store-limits --max-mib 16384 --expected-policy-sha256 <hash> --write --json
 ```
 
 The optional `--expected-policy-sha256` binds a proposal or write to an earlier
@@ -696,11 +696,11 @@ studio processes and does not exclude arbitrary external filesystem writers.
 
 Choose **File > Temporary Package Copies > Review Retained Copies…** to inspect
 managed copies across studio windows using the same OS temporary directory.
-Each window owns a UUID session under `vibestudio-package-copies`; successful
+Each window owns a UUID session under `slopstudio-package-copies`; successful
 batches and their readers retain its native directory lease. Normal last-owner
 release queues bounded cleanup on a dedicated worker, drained before application
 exit. A crash releases native ownership; its files remain available for explicit
-review. Older unregistered `vibestudio-copies-*` directories are not adopted or
+review. Older unregistered `slopstudio-copies-*` directories are not adopted or
 removed by this workflow.
 
 The review shows each session's actual logical payload bytes, file/batch counts,
@@ -715,9 +715,9 @@ consumer edits you need before discarding. Refresh, Cancel and Close remain
 available as appropriate; closing an active operation waits for cancellation.
 
 ```text
-vibestudio --cli package copy-sessions --json
-vibestudio --cli package copy-discard <id> --expected-storage-sha256 <hash> --json
-vibestudio --cli package copy-discard <id> --expected-storage-sha256 <hash> --write --json
+slopstudio --cli package copy-sessions --json
+slopstudio --cli package copy-discard <id> --expected-storage-sha256 <hash> --json
+slopstudio --cli package copy-discard <id> --expected-storage-sha256 <hash> --write --json
 ```
 
 Both commands accept `--directory <store>`. Inspection and the default/explicit
@@ -750,7 +750,7 @@ directory serializes admission, policy changes and cleanup; process exit release
 that handle without a stale lock file. Policy commits and session records use
 atomic file replacement. Interrupted metadata fragments remain bounded and
 preserved for review; automated policy-fragment cleanup is not yet available.
-Native ownership protects participating VibeStudio readers. It does not exclude
+Native ownership protects participating SlopStudio readers. It does not exclude
 arbitrary external writers or establish payload integrity from metadata alone.
 
 ## New packages and folders
@@ -758,7 +758,7 @@ arbitrary external writers or establish payload integrity from metadata alone.
 **New Package** starts an untitled PAK, ZIP, PK3, Doom PWAD/IWAD, Quake WAD2,
 or Half-Life WAD3 document without a source archive or temporary source folder.
 Even an empty new document is unsaved: closing or replacing it offers Save,
-Discard, and Cancel. Save a `.vibepackage` draft to preserve history, or use
+Discard, and Cancel. Save a `.sloppackage` draft to preserve history, or use
 **Save As** to write a valid archive, including an empty one.
 
 **New Folder**, **Rename**, and **Delete** work on the planned directory tree.
@@ -777,11 +777,11 @@ subfolders invalidate the captured source tree. ZIP/PK3 preserve explicit empty 
 until they contain a file, are deleted, or the output format is changed to ZIP/PK3.
 
 ```sh
-vibestudio --cli package create ./new.pk3 --mkdir maps --add-file ./start.bsp --as maps/start.bsp --dry-run --json
-vibestudio --cli package create ./work.vibepackage --format pk3 --mkdir textures --json
-vibestudio --cli package create ./textures.wad --wad-magic WAD2 --json
-vibestudio --cli package draft-save ./work.vibepackage ./renamed.vibepackage --rename-folder textures --folder-to art/textures --json
-vibestudio --cli package stage ./renamed.vibepackage --delete-folder art --json
+slopstudio --cli package create ./new.pk3 --mkdir maps --add-file ./start.bsp --as maps/start.bsp --dry-run --json
+slopstudio --cli package create ./work.sloppackage --format pk3 --mkdir textures --json
+slopstudio --cli package create ./textures.wad --wad-magic WAD2 --json
+slopstudio --cli package draft-save ./work.sloppackage ./renamed.sloppackage --rename-folder textures --folder-to art/textures --json
+slopstudio --cli package stage ./renamed.sloppackage --delete-folder art --json
 ```
 
 `package create <output>` infers archive format from the filename. For a draft,
@@ -829,7 +829,7 @@ document or history manifest. Opened archive/folder base content retains
 source-change checks until it has been preserved in a draft or checkpoint.
 
 **Save Package Draft** (`Ctrl+S` on Packages) preserves the editing document in
-a `.vibepackage` directory. **Open Package Draft** resumes its base content,
+a `.sloppackage` directory. **Open Package Draft** resumes its base content,
 staged operations, and undo/redo position. Keep the entire directory when moving
 or sharing it. `document.json` describes the document; `objects/` contains
 independent payload copies addressed by SHA-256. No original installation or
@@ -906,7 +906,7 @@ draft limits and reviewed cleanup are described below.
 ## Saved draft storage
 
 **File > Recover Packages > Saved Draft Storage…** reviews a selected
-`.vibepackage` directory, shows its usage and unused files, and controls limits
+`.sloppackage` directory, shows its usage and unused files, and controls limits
 for future saves. Defaults are 32,768 MiB and 200,000 files per draft; supported
 settings ranges are 128–131,072 MiB and 1–250,000 files. GUI saves, CLI draft
 creation/saves/undo/redo, recovery restoration and actual texture-to-draft saves
@@ -946,9 +946,9 @@ failure reports how many unused files were removed; refresh before continuing.
 Current and redo content remain intact.
 
 ```sh
-vibestudio --cli package draft-storage ./work.vibepackage --json
-vibestudio --cli package draft-compact ./work.vibepackage --expected-storage-sha256 <storage-sha256> --dry-run --json
-vibestudio --cli package draft-compact ./work.vibepackage --expected-storage-sha256 <storage-sha256> --write --json
+slopstudio --cli package draft-storage ./work.sloppackage --json
+slopstudio --cli package draft-compact ./work.sloppackage --expected-storage-sha256 <storage-sha256> --dry-run --json
+slopstudio --cli package draft-compact ./work.sloppackage --expected-storage-sha256 <storage-sha256> --write --json
 ```
 
 `draft-storage` returns `storage` (completeness, errors, retained/reclaimable bytes,
@@ -965,7 +965,7 @@ selected settings profile.
 Storage review bounds are shared with recovery (250,000 files and 32 MiB
 metadata). Fingerprints cover membership, file statistics and metadata; cleanup
 also fully verifies referenced objects. Native locks coordinate participating
-VibeStudio readers, not arbitrary external writers or older clients. Final
+SlopStudio readers, not arbitrary external writers or older clients. Final
 check/delete races and same-statistic external changes remain filesystem
 boundaries. No draft schema or new runtime library is introduced.
 
@@ -980,7 +980,7 @@ automatic eviction. A document, undo/redo entry or background reader keeps its
 session lease until its last reference and queued cleanup finish. Saving a draft
 can release working copies once earlier readers finish.
 
-The store is `<resolved-temporary-directory>/vibestudio-package-imports/`.
+The store is `<resolved-temporary-directory>/slopstudio-package-imports/`.
 Each UUID session has checksummed `working.json` reservation counters, a `.lease`
 and independent `objects/<uuid>.blob` files. A shared store lock serializes
 reservations across cooperating processes. Reservations commit before payload
@@ -1015,11 +1015,11 @@ cleanup fails, the session retains its remaining queued files and reservations
 for review instead of repeating the store-lock timeout for every file.
 
 ```sh
-vibestudio --cli package working-imports --json
-vibestudio --cli package working-unlock .store.lock --expected-lock-sha256 <lock-sha256> --dry-run --json
-vibestudio --cli package working-unlock .store.lock --expected-lock-sha256 <lock-sha256> --write --json
-vibestudio --cli package working-discard <id> --expected-storage-sha256 <storage-sha256> --dry-run --json
-vibestudio --cli package working-discard <id> --expected-storage-sha256 <storage-sha256> --write --json
+slopstudio --cli package working-imports --json
+slopstudio --cli package working-unlock .store.lock --expected-lock-sha256 <lock-sha256> --dry-run --json
+slopstudio --cli package working-unlock .store.lock --expected-lock-sha256 <lock-sha256> --write --json
+slopstudio --cli package working-discard <id> --expected-storage-sha256 <storage-sha256> --dry-run --json
+slopstudio --cli package working-discard <id> --expected-storage-sha256 <storage-sha256> --write --json
 ```
 
 All three commands accept `--directory <store>`. Listing creates no files and returns
@@ -1084,7 +1084,7 @@ Inventory reads at most 128 recognized UUID directories, 500,000 storage files
 manifest). Damaged and incomplete records remain visible. **Metadata
 checked** does not assert payload validity. Restoring verifies every referenced
 object and every history delta on a cancellable worker before saving an independent
-new `.vibepackage` directory. Existing outputs, the recovery store, recorded source
+new `.sloppackage` directory. Existing outputs, the recovery store, recorded source
 inputs and the original draft are protected. The chosen manifest checksum rejects
 a stale selection. The original checkpoint remains until explicitly discarded.
 
@@ -1120,12 +1120,12 @@ Disk-full/power-loss acceptance remains open; ordinary saved-draft maintenance
 uses the separate reviewed workflow above.
 
 ```sh
-vibestudio --cli package recoveries --json
-vibestudio --cli package draft-recover <id> --expected-sha256 <manifest-sha256> --output ./recovered.vibepackage --dry-run --json
-vibestudio --cli package draft-recover <id> --expected-sha256 <manifest-sha256> --output ./recovered.vibepackage --json
-vibestudio --cli package recovery-discard <id> --expected-sha256 <manifest-sha256> --write --json
+slopstudio --cli package recoveries --json
+slopstudio --cli package draft-recover <id> --expected-sha256 <manifest-sha256> --output ./recovered.sloppackage --dry-run --json
+slopstudio --cli package draft-recover <id> --expected-sha256 <manifest-sha256> --output ./recovered.sloppackage --json
+slopstudio --cli package recovery-discard <id> --expected-sha256 <manifest-sha256> --write --json
 # The storage review token also supports incomplete copies. Preview first:
-vibestudio --cli package recovery-discard <id> --expected-storage-sha256 <storage-sha256> --json
+slopstudio --cli package recovery-discard <id> --expected-storage-sha256 <storage-sha256> --json
 ```
 
 All three commands accept `--directory <store>`. `recoveries` returns `inventory`
@@ -1167,11 +1167,11 @@ occurrences and staged bytes, with required WAD group members shown before savin
 Other preview types and drag copies still need the remaining worker/streaming pass.
 
 ```sh
-vibestudio --cli package draft-save ./mod.pk3 ./work.vibepackage --add-file ./note.txt --as docs/note.txt --json
-vibestudio --cli package draft-info ./work.vibepackage --json
-vibestudio --cli package draft-undo ./work.vibepackage --json
-vibestudio --cli package draft-redo ./work.vibepackage --json
-vibestudio --cli package save-as ./work.vibepackage ./release.pk3 --json
+slopstudio --cli package draft-save ./mod.pk3 ./work.sloppackage --add-file ./note.txt --as docs/note.txt --json
+slopstudio --cli package draft-info ./work.sloppackage --json
+slopstudio --cli package draft-undo ./work.sloppackage --json
+slopstudio --cli package draft-redo ./work.sloppackage --json
+slopstudio --cli package save-as ./work.sloppackage ./release.pk3 --json
 ```
 
 `draft-save` accepts the usual add/replace/rename/delete options as one group.
@@ -1259,9 +1259,9 @@ scripts, texture/patch references and other game-asset dependencies are not rewr
 review those dependencies before publishing a renamed or reduced package.
 
 ```sh
-vibestudio --cli package groups ./maps.wad --json
-vibestudio --cli package stage ./maps.wad --rename-group map:11 --group-to MAP03 --groups-fingerprint <fingerprint> --json
-vibestudio --cli package draft-save ./maps.wad ./work.vibepackage --delete-group map:11 --groups-fingerprint <fingerprint> --dry-run --json
+slopstudio --cli package groups ./maps.wad --json
+slopstudio --cli package stage ./maps.wad --rename-group map:11 --group-to MAP03 --groups-fingerprint <fingerprint> --json
+slopstudio --cli package draft-save ./maps.wad ./work.sloppackage --delete-group map:11 --groups-fingerprint <fingerprint> --dry-run --json
 ```
 
 `package groups` returns schema-1 `inventory`: a content/plan fingerprint and
@@ -1316,9 +1316,9 @@ the destination writer's path, name and size constraints. Reviewed group edits
 use the same membership rules described above.
 
 ```sh
-vibestudio --cli package list ./maps.wad --json
-vibestudio --cli package subset ./maps.wad ./map-assets.wad --entry-index 17 --dry-run --json
-vibestudio --cli package subset ./work.vibepackage ./assets.pk3 --prefix textures --where "ext=png" --json
+slopstudio --cli package list ./maps.wad --json
+slopstudio --cli package subset ./maps.wad ./map-assets.wad --entry-index 17 --dry-run --json
+slopstudio --cli package subset ./work.sloppackage ./assets.pk3 --prefix textures --where "ext=png" --json
 ```
 
 Indexes are zero-based rows from `package list --json` for the same current
@@ -1329,7 +1329,7 @@ schema version 1 with each member's `entryIndex`, `sourceOrdinal`, `virtualPath`
 `sizeBytes` (decimal string), `selected` flag and inclusion reason, plus
 `totalBytes` and warnings. Dry runs return the same review and write no output or
 preferences. Subset exports reject in-place and staging-edit options; save edits
-in a `.vibepackage` draft first. The command accepts normal format, compression,
+in a `.sloppackage` draft first. The command accepts normal format, compression,
 manifest and explicit overwrite options for a separate output.
 
 ## Review and save
@@ -1401,7 +1401,7 @@ writer. Replacements keep the existing package readable until commit and copy
 its verified original bytes before replacing it. The previous `.bak` stays in
 place until the new package is installed. Both overwrite modes preserve a backup.
 Destination and backup checks use full content hashes, including when size and
-modification time have not changed. Cooperating VibeStudio saves and recovery
+modification time have not changed. Cooperating SlopStudio saves and recovery
 operations lock the destination. External programs do not honor this lock;
 content checks cannot exclude a foreign write in the final check/commit window.
 
@@ -1412,7 +1412,7 @@ package was left unchanged. `backupPath` names the verified original copy and
 
 ## Interrupted saves
 
-Before publication, a save records a `.vibestudio-package-*.payload.json`
+Before publication, a save records a `.slopstudio-package-*.payload.json`
 journal beside the destination. The journal identifies the verified replacement,
 original recovery copy, requested backup and their SHA-256 hashes. Normal
 completion removes transaction files. An interrupted save retains them for review.
@@ -1443,9 +1443,9 @@ not hash payload files or acquire a save lock. Verification and finishing use th
 same service in the GUI and CLI.
 
 ```sh
-vibestudio --cli package interrupted-saves --directory ./build --json
-vibestudio --cli package recover ./build/.vibestudio-package-ABC123.payload.json --json
-vibestudio --cli package recover ./build/.vibestudio-package-ABC123.payload.json --expected-sha256 <journal-sha256> --finish --json
+slopstudio --cli package interrupted-saves --directory ./build --json
+slopstudio --cli package recover ./build/.slopstudio-package-ABC123.payload.json --json
+slopstudio --cli package recover ./build/.slopstudio-package-ABC123.payload.json --expected-sha256 <journal-sha256> --finish --json
 ```
 
 `interrupted-saves` defaults to the current directory; repeat `--directory` for
@@ -1515,11 +1515,11 @@ not create save-style `.bak` backups. Foreign filesystem changes in the final
 check/commit window cannot be excluded by portable Qt path checks.
 
 ```sh
-vibestudio --cli package extract ./mod.pk3 --output ./unpacked --entry scripts/mod.cfg --dry-run --json
-vibestudio --cli package extract ./mod.pk3 --output ./unpacked --entry scripts/mod.cfg --json
-vibestudio --cli package list ./maps.wad --json
+slopstudio --cli package extract ./mod.pk3 --output ./unpacked --entry scripts/mod.cfg --dry-run --json
+slopstudio --cli package extract ./mod.pk3 --output ./unpacked --entry scripts/mod.cfg --json
+slopstudio --cli package list ./maps.wad --json
 # Use the actual entryIndex values returned by list for each THINGS occurrence.
-vibestudio --cli package extract ./maps.wad --output ./unpacked --entry-index 2 --as map-one/THINGS --entry-index 3 --as map-two/THINGS --dry-run --json
+slopstudio --cli package extract ./maps.wad --output ./unpacked --entry-index 2 --as map-one/THINGS --entry-index 3 --as map-two/THINGS --dry-run --json
 ```
 
 With no selectors the CLI extracts all entries; an empty selector, unsupported
@@ -1541,9 +1541,9 @@ Blocked plans fail before output.
 ## CLI review
 
 ```sh
-vibestudio --cli package compare ./release-1.pk3 ./release-2.pk3 --json
-vibestudio --cli package compare ./mod.pk3 --staged --add-file ./autoexec.cfg --as scripts/autoexec.cfg --json
-vibestudio --cli package compare ./mod.pk3 --staged --rename textures/old.tga --to textures/new.tga --delete scripts/unused.cfg --json
+slopstudio --cli package compare ./release-1.pk3 ./release-2.pk3 --json
+slopstudio --cli package compare ./mod.pk3 --staged --add-file ./autoexec.cfg --as scripts/autoexec.cfg --json
+slopstudio --cli package compare ./mod.pk3 --staged --rename textures/old.tga --to textures/new.tga --delete scripts/unused.cfg --json
 ```
 
 Staged review accepts the same add, replace, rename, delete, and conflict-policy
@@ -1564,8 +1564,8 @@ the complete source files to capture their identities.
 Choose **Packages > Validate** or run:
 
 ```sh
-vibestudio --cli package validate ./release.pk3 --json
-vibestudio --cli package validate ./release.pk3 --max-entry-bytes 536870912 --json
+slopstudio --cli package validate ./release.pk3 --json
+slopstudio --cli package validate ./release.pk3 --max-entry-bytes 536870912 --json
 ```
 
 Validation reads every source file, including each occurrence of a repeated WAD
@@ -1678,7 +1678,7 @@ compression checks. Texture DDS/FTX exports stage through the normal package
 service; imported DDS/FTX/SWL pixels use the same preview decoder as the texture
 editor. `asset formats` distinguishes decoding, native export and conversion
 capabilities. [Portable workspaces](WORKSPACES.md) reference saved packages and
-`.vibepackage` draft directories alongside map/code/asset selections; unsaved
+`.sloppackage` draft directories alongside map/code/asset selections; unsaved
 staging still belongs to the package document and recovery workflow.
 
 The workspace package section and the Levels Health texture check use the same
@@ -1700,7 +1700,7 @@ of declared shader input, with the existing 16 MiB per-script and 4,096-script
 limits; at most 128 diagnostics plus a truncation notice are retained. Reaching
 these bounds is explicit and incomplete. Package sources are not modified.
 
-`vibestudio --cli map textures ./maps/start.map --package ./work.vibepackage
+`slopstudio --cli map textures ./maps/start.map --package ./work.sloppackage
 --no-decode --json` reads the saved planned draft through the shared CLI package
 loader. `textures.complete` and
 `textures.cancelled` accompany the existing `sourceIndexComplete` field; an

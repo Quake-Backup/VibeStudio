@@ -15,8 +15,8 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -65,7 +65,7 @@ ModelMesh skinnedCube()
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temp(QDir(root).filePath("edge-bevel-XXXXXX"));
@@ -397,7 +397,7 @@ int main(int argc, char **argv)
 	for (auto e : order)
 		selectors << QString("%1:%2").arg(e.first).arg(e.second);
 	const QStringList args{
-		"vibestudio", "--cli", "model",		 "tool", path,			"--tool", "bevel-edges", "--edges", selectors.join(','),
+		"slopstudio", "--cli", "model",		 "tool", path,			"--tool", "bevel-edges", "--edges", selectors.join(','),
 		"--width",	  "8",	   "--segments", "4",	 "--roundness", "1",	  "--output",	 output};
 	expect(cli::runModelTool(args + QStringList{"--dry-run"}).exitCode == 0 && !QFile::exists(output), "CLI dry-run writes nothing");
 	expect(cli::runModelTool(args).exitCode == 0 && saved.load(output, &error) && bevelBytes(saved.mesh()) == bytes,

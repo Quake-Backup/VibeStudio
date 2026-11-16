@@ -1,4 +1,4 @@
-# VibeStudio 0.1.0-rc1
+# SlopStudio 0.1.0-rc1
 
 This document records the foundation cut. Its included features and known gaps
 are a historical snapshot, not the current editor acceptance report. The active
@@ -100,7 +100,7 @@ surfaces that later editor work can build on.
 - License-clean Doom, Quake, and Quake III-family sample projects.
 - Portable package generation for Windows, macOS, and Linux targets with
   package manifest, checksums, generated offline guide, platform smoke notes,
-  samples, and VibeStudio/imported-compiler license bundle.
+  samples, and SlopStudio/imported-compiler license bundle.
 - Cross-platform PR CI hooks for build/test, an offscreen `--self-test` GUI
   smoke check that visits and repaints every work surface, CLI validation,
   sample validation, portable packaging validation, release asset validation,
@@ -196,10 +196,10 @@ asset gate for Windows, macOS, and Linux target package manifests.
 Use `scripts/package_portable.py` to stage a local portable package:
 
 ```sh
-python scripts/package_portable.py --binary builddir/src/vibestudio --archive
+python scripts/package_portable.py --binary builddir/src/slopstudio --archive
 ```
 
 Use `--target-platform all` to stage all target package shapes from the
-available binary, and use `builddir/src/vibestudio.exe` on Windows. Publishing,
+available binary, and use `builddir/src/slopstudio.exe` on Windows. Publishing,
 tags, signed release artifacts, and final deployment remain manual/future
 release-management steps.

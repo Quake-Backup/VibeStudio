@@ -37,7 +37,7 @@
 #include <limits>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -1964,7 +1964,7 @@ void ModelViewport::paintTriangles(QPainter &painter, const Palette &palette)
 				catch (const std::bad_alloc &)
 				{
 					work->success = false;
-					work->error = QCoreApplication::translate("VibeStudioRendering", "There was not enough memory to render this view.");
+					work->error = QCoreApplication::translate("SlopStudioRendering", "There was not enough memory to render this view.");
 					work->result.clear();
 					work->vertexOverlay = {};
 					work->vertices.reset();
@@ -3880,13 +3880,13 @@ QString modelViewportRenderModeDisplayName(ModelViewportRenderMode mode)
 {
 	switch (mode) {
 	case ModelViewportRenderMode::Wireframe:
-		return QCoreApplication::translate("VibeStudioModelViewport", "Wireframe");
+		return QCoreApplication::translate("SlopStudioModelViewport", "Wireframe");
 	case ModelViewportRenderMode::FlatShaded:
-		return QCoreApplication::translate("VibeStudioModelViewport", "Flat shaded");
+		return QCoreApplication::translate("SlopStudioModelViewport", "Flat shaded");
 	case ModelViewportRenderMode::Textured:
-		return QCoreApplication::translate("VibeStudioModelViewport", "Textured");
+		return QCoreApplication::translate("SlopStudioModelViewport", "Textured");
 	}
-	return QCoreApplication::translate("VibeStudioModelViewport", "Flat shaded");
+	return QCoreApplication::translate("SlopStudioModelViewport", "Flat shaded");
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

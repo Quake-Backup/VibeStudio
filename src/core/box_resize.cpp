@@ -6,7 +6,7 @@
 // Scale tool: ui/ScaleTool moveBBoxSide, moveBBoxEdge, moveBBoxCorner and
 // handleLineForHit, and ui/ScaleToolController modifierSettingsForInputState
 // at 4c756be1 (GPL-3.0-or-later). Original implementation; see docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool finite(BoxResizePoint point)
 {
@@ -241,4 +241,4 @@ BoxResizePoint resizeBoxPoint(const ResizeBox& from, const ResizeBox& to, BoxRes
 	return point;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

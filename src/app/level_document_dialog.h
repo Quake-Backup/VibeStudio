@@ -12,7 +12,7 @@ class QComboBox;
 class QLineEdit;
 class QThread;
 
-namespace vibestudio
+namespace slopstudio
 {
 
 class NewLevelMapDialog final : public QDialog
@@ -62,4 +62,4 @@ QString levelMapRecoveryDirectory();
 // Returns the selected valid checkpoint, or an empty path on cancellation.
 QString chooseLevelMapRecovery(QWidget* parent, const QString& directory);
 
-} // namespace vibestudio
+} // namespace slopstudio

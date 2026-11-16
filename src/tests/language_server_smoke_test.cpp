@@ -9,7 +9,7 @@
 #include <QEventLoop>
 #include <filesystem>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* text) { if (!condition) { std::cerr << text << '\n'; } return condition; }
 bool wait(const std::function<bool()>& ready, int ms = 6000)

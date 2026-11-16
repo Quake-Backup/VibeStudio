@@ -19,7 +19,7 @@
 
 #include <optional>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -279,4 +279,4 @@ void ModelAssemblyDialog::chooseQ2PlayerBundle()
 	fitDialogToScreen(&dialog, QSize(680, 760));
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

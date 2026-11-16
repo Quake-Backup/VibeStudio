@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -126,4 +126,4 @@ void ApplicationShell::normaliseLevelMapEntityColourFromUi()
 	statusBar()->showMessage(message, 7000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

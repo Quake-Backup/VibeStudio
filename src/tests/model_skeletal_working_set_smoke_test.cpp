@@ -23,8 +23,8 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -97,7 +97,7 @@ QJsonObject runCli(const QString &program, const QStringList &arguments, int *ex
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("working-set-XXXXXX"));
@@ -463,7 +463,7 @@ int main(int argc, char **argv)
 	expect(automatic.vertexRoom() == 786432 / 701 - 1000 && automatic.changes(), "plans report room and change");
 
 	// --- CLI parity --------------------------------------------------------
-	const auto run = [&](QStringList args) { return cli::runModelPose(QStringList{"vibestudio", "--cli", "model", "pose", sourcePath} + args); };
+	const auto run = [&](QStringList args) { return cli::runModelPose(QStringList{"slopstudio", "--cli", "model", "pose", sourcePath} + args); };
 	const auto listing = run({"--json"});
 	expect(listing.exitCode == 0 && listing.payload["workingSet"].toObject()["clipIndexes"].toArray() == QJsonArray{0} &&
 			   listing.payload["clips"].toArray()[1].toObject()["inWorkingSet"].toBool() == false,

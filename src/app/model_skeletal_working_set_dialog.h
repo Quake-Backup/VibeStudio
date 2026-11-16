@@ -10,7 +10,7 @@ class QProgressBar;
 class QPushButton;
 class QTreeWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 // Chooses the skeletal working set: the clips baked into editable frames
 // (core/model_skeletal_working_set.h). Each clip shows its frame count and
@@ -45,4 +45,4 @@ class ModelSkeletalWorkingSetDialog final : public QDialog
 // its text and tooltip: the tool still edits it, and its preview skins one
 // sample at a time.
 void addModelSkeletalClipItem(QComboBox *combo, const ModelMesh &mesh, int clip);
-} // namespace vibestudio
+} // namespace slopstudio

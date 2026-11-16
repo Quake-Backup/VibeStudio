@@ -22,7 +22,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	// Offscreen runs keep pauses to the log unless asked; this one asks.
-	qputenv("VIBESTUDIO_RECORD_UI_PAUSES", "1");
+	qputenv("SLOPSTUDIO_RECORD_UI_PAUSES", "1");
 #ifdef Q_OS_WIN
 	qputenv("QT_QPA_FONTDIR", QDir(qEnvironmentVariable("SystemRoot")).filePath(QStringLiteral("Fonts")).toLocal8Bit());
 #endif

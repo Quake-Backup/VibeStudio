@@ -30,7 +30,7 @@
 #include <crtdbg.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0, failures = 0;
@@ -775,12 +775,12 @@ int main(int argc, char **argv)
 	qputenv("QT_QPA_FONTDIR", QDir(qEnvironmentVariable("SystemRoot")).filePath("Fonts").toLocal8Bit());
 #endif
 	QApplication app(argc, argv);
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-topology-tools-ui-smoke"); skip >= 0)
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-topology-tools-ui-smoke"); skip >= 0)
 		return skip;
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath("topology-tools-ui-XXXXXX"));

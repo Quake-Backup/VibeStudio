@@ -14,7 +14,7 @@
 #include <QSyntaxHighlighter>
 #include <QTextCharFormat>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class MaterialScriptHighlighter final : public QSyntaxHighlighter {
 	Q_OBJECT
@@ -56,4 +56,4 @@ private:
 	QTextCharFormat m_brace;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

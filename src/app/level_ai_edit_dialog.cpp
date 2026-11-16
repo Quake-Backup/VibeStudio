@@ -26,7 +26,7 @@
 #include <QTreeWidget>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -95,7 +95,7 @@ LevelAiEditDialog::LevelAiEditDialog(QWidget* parent, LevelAiEditDialogHooks hoo
 	m_loadProposal = new QPushButton(tr("&Load Proposal…"));
 	m_loadProposal->setObjectName(QStringLiteral("levelAiEditLoad"));
 	m_loadProposal->setAccessibleName(tr("Load a saved proposal"));
-	m_loadProposal->setToolTip(tr("Review a proposal saved earlier, or one from vibestudio --cli map ai-edit --save-proposal. No model is asked."));
+	m_loadProposal->setToolTip(tr("Review a proposal saved earlier, or one from slopstudio --cli map ai-edit --save-proposal. No model is asked."));
 	m_aiSettings = new QPushButton(tr("AI Settings…"));
 	m_aiSettings->setObjectName(QStringLiteral("levelAiEditAiSettings"));
 	m_aiSettings->setAccessibleName(tr("Open AI settings"));
@@ -170,7 +170,7 @@ LevelAiEditDialog::LevelAiEditDialog(QWidget* parent, LevelAiEditDialogHooks hoo
 	m_saveProposal = new QPushButton(tr("&Save Proposal…"));
 	m_saveProposal->setObjectName(QStringLiteral("levelAiEditSave"));
 	m_saveProposal->setAccessibleName(tr("Save the proposal as JSON"));
-	m_saveProposal->setToolTip(tr("Keep the edits and your choices to review later or apply with vibestudio --cli map ai-edit --proposal."));
+	m_saveProposal->setToolTip(tr("Keep the edits and your choices to review later or apply with slopstudio --cli map ai-edit --proposal."));
 	m_details = new QToolButton;
 	m_details->setText(tr("&Details"));
 	m_details->setAccessibleName(tr("Show the map summary, the answer, and the results"));
@@ -647,4 +647,4 @@ void LevelAiEditDialog::changeEvent(QEvent* event)
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

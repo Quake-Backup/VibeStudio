@@ -5,7 +5,7 @@
 #include "app/model_stage_review_dialog.h"
 #include "core/model_stage.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 
 bool ModelEditorDialog::confirmStage(const ModelStageSet &set, bool place, bool *replace)
@@ -28,4 +28,4 @@ bool ModelEditorDialog::confirmStage(const ModelStageSet &set, bool place, bool 
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

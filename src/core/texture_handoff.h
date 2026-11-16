@@ -3,7 +3,7 @@
 #include "core/level_map.h"
 #include "core/texture_export.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 // A compiler-compatible map token for this package destination. Empty on error.
 // File paths must retain the portable, lower-case textures/ prefix and suffix.
@@ -17,4 +17,4 @@ bool stageAndApplyTextureExport(const TextureExportResult& result, const Texture
 	PackageStagingModel* staging, bool replaceExisting, LevelMapDocument* map,
 	QString* mapReference = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

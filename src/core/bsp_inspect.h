@@ -11,7 +11,7 @@
 //   documentation (https://ericwa.github.io/ericw-tools/).
 // - Quake II IBSP38: the released Quake II source `qfiles.h`.
 // - Quake III IBSP46: the released Quake III Arena source `qfiles.h` and the
-//   q3map2 sources VibeMap3 carries under external/compilers/vibemap3.
+//   q3map2 sources SlopMap3 carries under external/compilers/slopmap3.
 // - Portal (.prt) and point (.pts/.lin) files: ericw-tools and q3map2 output
 //   documentation.
 //
@@ -26,7 +26,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class BspFamily {
 	Unknown,
@@ -154,4 +154,4 @@ QJsonObject bspInspectionJson(const BspInspection& inspection);
 QJsonObject compiledMapArtifactsJson(const CompiledMapArtifacts& artifacts);
 QString compiledMapArtifactsText(const CompiledMapArtifacts& artifacts);
 
-} // namespace vibestudio
+} // namespace slopstudio

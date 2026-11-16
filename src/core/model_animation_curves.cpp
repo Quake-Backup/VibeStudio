@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <numbers>
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -363,4 +363,4 @@ bool applyModelAnimationCurves(ModelMesh *mesh, const ModelEdit &edit, QString *
 	}
 	return replaceModelSkeletalSamples(mesh, o.clip, 0, samples, error, control, &groups);
 }
-} // namespace vibestudio
+} // namespace slopstudio

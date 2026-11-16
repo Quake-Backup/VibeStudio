@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelViewFiltersCliResult {
 	int exitCode = 0;
 	QString error;
@@ -14,4 +14,4 @@ struct LevelViewFiltersCliResult {
 // with --saved, or --off) would hide, optionally after Invert Filters. A query:
 // no map or setting is written.
 LevelViewFiltersCliResult runLevelViewFilters(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

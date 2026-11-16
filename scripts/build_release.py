@@ -116,7 +116,7 @@ def build_release(source: Path, build: Path, evidence: Path, *, build_type: str,
         verify_files(source, auxiliary)
     if sdk is not None and qt_sdk_inputs(build, qt_prefix) != sdk:
         raise ValueError('Qt SDK import libraries changed during the build.')
-    binary = build / 'src' / ('vibestudio.exe' if sys.platform == 'win32' else 'vibestudio')
+    binary = build / 'src' / ('slopstudio.exe' if sys.platform == 'win32' else 'slopstudio')
     reject_links(binary)
     catalogs = {name: sha256(path) for name, path in walk_files(build / 'i18n').items() if name.endswith('.qm')}
     required = {Path(name).with_suffix('.qm').name for name in hashes if name.startswith('i18n/') and name.endswith('.ts')}

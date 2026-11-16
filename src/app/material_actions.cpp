@@ -30,7 +30,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 QWidget* ApplicationShell::buildMaterialWorkbench()
 {
@@ -468,4 +468,4 @@ void ApplicationShell::openMaterialScript(const QString& path)
 		QFileInfo(path).fileName());
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

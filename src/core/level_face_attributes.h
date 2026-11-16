@@ -8,7 +8,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The Face inspector's service: the texture values of brush faces as each
 // face's own format holds them (levelTextureValues() in core/level_surface.h),
@@ -90,4 +90,4 @@ struct LevelFaceAttributesReport {
 bool setLevelMapFaceAttributes(LevelMapDocument* document, const QVector<LevelSurfaceFace>& faces, const LevelFaceAttributesEdit& edit,
 	const QHash<QString, QSize>& textureSizes, LevelFaceAttributesReport* report = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

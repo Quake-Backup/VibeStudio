@@ -1,7 +1,7 @@
 #pragma once
 #include "core/audio_recording.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioRecordingSelection {
 	int arm = 0;
@@ -71,4 +71,4 @@ QJsonObject audioRecordingImportRequestJson(const AudioRecordingImportRequest &r
 bool parseAudioRecordingImportRequest(const QJsonObject &json, AudioRecordingImportRequest *request, QString *error);
 QJsonObject audioRecordingImportResultJson(const AudioRecordingImportResult &result);
 QStringList audioRecordingProtectedPaths(const QString &directory);
-} // namespace vibestudio
+} // namespace slopstudio

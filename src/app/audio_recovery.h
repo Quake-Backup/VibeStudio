@@ -14,7 +14,7 @@
 class QThread;
 class QLockFile;
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Startup reads only bounded directory metadata in a worker. Full validation
@@ -74,4 +74,4 @@ class AudioRecoveryWriter final : public QObject {
 	std::shared_ptr<Result> m_result;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,19 +1,19 @@
-# VibeMap2 known-issue reconciliation
+# SlopMap2 known-issue reconciliation
 
 ## Current audit: 2026-10-09
 
-**Partial.** The runtime catalogue and Quake map preflight now use VibeMap2
-3.1.0 as their source baseline. VibeStudio remains pre-alpha and largely
+**Partial.** The runtime catalogue and Quake map preflight now use SlopMap2
+3.1.0 as their source baseline. SlopStudio remains pre-alpha and largely
 untested in real projects. This is a source/documentation reconciliation,
 not a new native compiler or visual acceptance run.
 
 The reviewed standalone checkout and the studio submodule both resolve to
-`4495049a9e4c1f6deadae3a76b8256614840af35`. Evidence comes from VibeMap2's
+`4495049a9e4c1f6deadae3a76b8256614840af35`. Evidence comes from SlopMap2's
 [upstream audit](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/docs/upstream-audit.rst),
 [3.1.0 changelog](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/CHANGELOG.md),
 [detailed changelog](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/docs/changelog.rst), and
 [build guide](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/BUILDING.md). The documents still use the earlier
-VibeyMapTools/VMT name; the fixes predate the VibeMap2 executable rename.
+VibeyMapTools/VMT name; the fixes predate the SlopMap2 executable rename.
 Both licences are GPL-3.0; attribution is recorded in [Credits](../CREDITS.md).
 
 All **125** IDs from the original ericw-tools catalogue are accounted for:
@@ -27,25 +27,25 @@ and plan-warning regressions; unresolved cases retain positive coverage.
 
 These entries are removed from runtime lookup, keyword matching and plan
 warnings. The corresponding preflight predicates are removed where present.
-Issue numbers remain ericw-tools references, not VibeMap2 issue numbers.
+Issue numbers remain ericw-tools references, not SlopMap2 issue numbers.
 
 | Issue IDs | Decision and evidence |
 |---|---|
-| #167, #483 | Fixed in VibeMap2 3.1.0: opt-in `-embedsettings` writes a versioned, path-sanitised effective-settings manifest to `LIGHTING_SETTINGS`. #167 is the older light-provenance request covered by the same facility. This is not a promise to embed every pipeline command or private path. |
-| #173, #475 | Fixed in VibeMap2 3.1.0: authored switchable-light style is retained as `oldstyle`; the runtime switchable style can still be generated. #173's duplicate warning is retired on that evidence. Inconsistent START_OFF groups (#122) remain separate. |
-| #400, #416 | Fixed in VibeMap2 3.1.0: `-bouncedebug` and `-bouncelightsdebug` render indirect light and emitters. #400 describes the same all-black debug failure. |
-| #401 | Fixed in VibeMap2 3.1.0: saturation boosts preserve texture brightness. |
-| #422, #444 | Fixed in VibeMap2 3.1.0: region/antiregion brush culling and sealed Quake II region areaportals are repaired. This does not establish a fix for rotating-origin leaks (#417) or multiple-region union (#390). |
-| #437 | Fixed in VibeMap2 3.1.0 for the audited GoldSrc sun/spot case: native `light_environment` and `light_spot` support. Retire the overly broad catalogue warning; do not infer full GoldSrc compiler parity. |
-| #451 | Fixed in VibeMap2 3.1.0: safe prefix-free loose/PAK texture lookup follows the traditional `textures/` lookup, including Quake II metadata. |
-| #463 | Fixed in VibeMap2 3.1.0: Hub MAP previews use owned temporary workspaces and preserve map-specific RAD input without overwriting sibling build outputs. |
-| #470 | Fixed in VibeMap2 3.1.0: original Half-Life min/max light scale restored. Remove the generic `_minlight` preflight warning; this does not make all target formats' scales identical. |
-| #485 | Fixed in VibeMap2 3.1.0: `-force_world_units_per_luxel` overrides entity values when paired with `-world_units_per_luxel`. It is distinct from #483's embedded manifest. |
-| #335 | Inapplicable: discovery accepts prefixed `vibemap2-*` and `vmt-*` binaries, not generic `light`, `vis` or `qbsp`. |
+| #167, #483 | Fixed in SlopMap2 3.1.0: opt-in `-embedsettings` writes a versioned, path-sanitised effective-settings manifest to `LIGHTING_SETTINGS`. #167 is the older light-provenance request covered by the same facility. This is not a promise to embed every pipeline command or private path. |
+| #173, #475 | Fixed in SlopMap2 3.1.0: authored switchable-light style is retained as `oldstyle`; the runtime switchable style can still be generated. #173's duplicate warning is retired on that evidence. Inconsistent START_OFF groups (#122) remain separate. |
+| #400, #416 | Fixed in SlopMap2 3.1.0: `-bouncedebug` and `-bouncelightsdebug` render indirect light and emitters. #400 describes the same all-black debug failure. |
+| #401 | Fixed in SlopMap2 3.1.0: saturation boosts preserve texture brightness. |
+| #422, #444 | Fixed in SlopMap2 3.1.0: region/antiregion brush culling and sealed Quake II region areaportals are repaired. This does not establish a fix for rotating-origin leaks (#417) or multiple-region union (#390). |
+| #437 | Fixed in SlopMap2 3.1.0 for the audited GoldSrc sun/spot case: native `light_environment` and `light_spot` support. Retire the overly broad catalogue warning; do not infer full GoldSrc compiler parity. |
+| #451 | Fixed in SlopMap2 3.1.0: safe prefix-free loose/PAK texture lookup follows the traditional `textures/` lookup, including Quake II metadata. |
+| #463 | Fixed in SlopMap2 3.1.0: Hub MAP previews use owned temporary workspaces and preserve map-specific RAD input without overwriting sibling build outputs. |
+| #470 | Fixed in SlopMap2 3.1.0: original Half-Life min/max light scale restored. Remove the generic `_minlight` preflight warning; this does not make all target formats' scales identical. |
+| #485 | Fixed in SlopMap2 3.1.0: `-force_world_units_per_luxel` overrides entity values when paired with `-world_units_per_luxel`. It is distinct from #483's embedded manifest. |
+| #335 | Inapplicable: discovery accepts prefixed `slopmap2-*` and `vmt-*` binaries, not generic `light`, `vis` or `qbsp`. |
 
 The shared-fix decisions for #167, #173 and #400 follow the old catalogue's
 own descriptions and the documented replacement behaviour, rather than a
-claim that the upstream tracker closed those reports. VibeMap2's
+claim that the upstream tracker closed those reports. SlopMap2's
 [style regression](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/tests/test_ltface.cc) checks `oldstyle`, and its
 [lighting tests](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/tests/test_light.cc) check the embedded manifest.
 
@@ -53,7 +53,7 @@ claim that the upstream tracker closed those reports. VibeMap2's
 
 Each remaining ID occurs in exactly one row below. A retained historical
 report means there is insufficient issue-specific evidence to retire that
-behaviour; it does **not** assert a reproduced defect in VibeMap2 3.1.0.
+behaviour; it does **not** assert a reproduced defect in SlopMap2 3.1.0.
 General hardening or a similarly worded changelog entry is insufficient to
 claim a map-specific regression fixed. Existing severities and local actions
 remain unless the row explicitly says informational guidance.
@@ -94,16 +94,16 @@ On 2026-10-09, the six focused Meson tests passed on Windows with Qt 6.10.1:
 `compiler-known-issues-smoke`, `quake-map-preflight-smoke`,
 `compiler-registry-smoke`, `compiler-profiles-smoke`, `build-pipeline-smoke`
 and `compiler-artifact-validation-smoke`. The task-owned build was configured
-through `scripts/meson_build.ps1 -BuildDir .agents/tmp/vibemap2-audit/build -ConfigureOnly`.
+through `scripts/meson_build.ps1 -BuildDir .agents/tmp/slopmap2-audit/build -ConfigureOnly`.
 This validates the shared wrapper services and their regression fixtures;
-it does not rerun VibeMap2's own compiler or graphics tests.
+it does not rerun SlopMap2's own compiler or graphics tests.
 
 ### Integration boundaries
 
 - The catalogue targets the pinned 3.1.0 source baseline. Discovery can accept
   user-selected executables but does not version-gate individual issue entries
   or re-enable old warnings for older/custom builds. Validate those separately.
-- `-embedsettings` is opt-in; VibeStudio does not enable it automatically.
+- `-embedsettings` is opt-in; SlopStudio does not enable it automatically.
   Command manifests remain the full pipeline record, including invocations
   that cannot write a BSP. Forced luxel scale is also an explicit compiler option.
 - Hub presence-only discovery is not a native Qt/OpenGL launch test. The registry
@@ -117,7 +117,7 @@ it does not rerun VibeMap2's own compiler or graphics tests.
 ## Historical remaining-pass matrix: 2026-05-02
 
 The following 62-ID matrix records the original wrapper mitigation pass against
-stock ericw-tools. Its statuses describe that pass, not current VibeMap2 defects;
+stock ericw-tools. Its statuses describe that pass, not current SlopMap2 defects;
 the reconciliation above supersedes it for runtime warnings.
 
 Date: 2026-05-02
@@ -129,7 +129,7 @@ Source audit: `docs/plans/ericw-tools-open-issues-audit.md`
 This matrix records the Ralph remaining-bugs pass for the 62 ericw-tools issue
 IDs that were outside the first high-value acceptance set. It does not claim
 that ericw-tools compiler algorithms, BSP output, lighting output, VIS output,
-or helper-tool argument parsing are fixed upstream. VibeStudio's ownership is
+or helper-tool argument parsing are fixed upstream. SlopStudio's ownership is
 to warn, preflight, validate artifacts where local services can inspect them,
 and keep upstream limitations visible.
 
@@ -140,8 +140,8 @@ and keep upstream limitations visible.
 | Implemented catalog warning | `src/core/compiler_known_issues.*` has an issue descriptor with upstream URL, severity, tool/profile scope, match keywords, warning text, and local action text. |
 | Implemented map preflight warning | `src/core/quake_map_preflight.*` emits a map/entity/path warning before the compiler starts. These IDs also remain in the catalog for help text and matching. |
 | Implemented registry/helper readiness | Registry or setup diagnostics make source/executable/probe/helper readiness visible before users rely on the tool. This pass adds first-class `bspinfo`, `bsputil`, and `lightpreview` discovery plus readiness warnings; deeper helper-operation probes remain a separate future wrapper task. |
-| Implemented artifact validation | VibeStudio validates produced artifacts before promotion, packaging, or release. This pass adds lightweight expected-output, BSP-family, lump, face-reference, conversion-output, and BSPX metadata checks; catalog warnings remain the honest mitigation for output features the validator cannot inspect. |
-| Upstream-only tracked limitation | VibeStudio can document, warn, or create regression fixtures, but the functional fix belongs in ericw-tools or a documented fork/submodule update. |
+| Implemented artifact validation | SlopStudio validates produced artifacts before promotion, packaging, or release. This pass adds lightweight expected-output, BSP-family, lump, face-reference, conversion-output, and BSPX metadata checks; catalog warnings remain the honest mitigation for output features the validator cannot inspect. |
+| Upstream-only tracked limitation | SlopStudio can document, warn, or create regression fixtures, but the functional fix belongs in ericw-tools or a documented fork/submodule update. |
 
 ## Acceptance Matrix
 
@@ -150,10 +150,10 @@ Each issue ID appears in exactly one row in this table.
 | Status | Issue IDs | Count | Acceptance note |
 |---|---:|---:|---|
 | Implemented map preflight warning | #455, #443, #342, #327, #291, #268, #262, #256, #255, #254, #247, #241, #238, #233, #217, #209, #190, #172, #140, #136, #129, #121 | 22 | Preflight catches the source-map, entity, brush, bmodel, texture, prefab, and selected lighting-risk shapes before invoking ericw-tools. |
-| Implemented catalog warning | #437, #411, #401, #374, #351, #298, #297, #214, #203, #195, #186, #185, #145, #134, #109, #106, #105, #91, #81 | 19 | Catalog descriptors provide scoped warnings and local actions where VibeStudio cannot safely infer a specific source-map violation or cannot inspect the requested output feature directly. |
+| Implemented catalog warning | #437, #411, #401, #374, #351, #298, #297, #214, #203, #195, #186, #185, #145, #134, #109, #106, #105, #91, #81 | 19 | Catalog descriptors provide scoped warnings and local actions where SlopStudio cannot safely infer a specific source-map violation or cannot inspect the requested output feature directly. |
 | Implemented registry/helper readiness | #480, #449, #335, #225, #223, #215 | 6 | Registry descriptors and setup diagnostics make generic binary names, helper availability, captured output, packaging names, and optional `lightpreview` launch risk visible. Operation-level helper behavior remains upstream-owned unless a smoke-tested wrapper operation exists. |
-| Implemented artifact validation | #415, #309, #249, #213 | 4 | VibeStudio now preserves manifests, inspects generated BSP artifacts, and keeps conversion output paths plus BSPX/lightmap metadata expectations explicit. Compiler-side output generation remains upstream-owned, and catalog warnings cover decompile/export features the validator cannot inspect. |
-| Upstream-only tracked limitation | #436, #425, #413, #285, #281, #277, #246, #234, #222, #200, #189 | 11 | These are compiler features, lighting/material controls, performance changes, or internal cleanup requests. VibeStudio tracks them and may expose options only after upstream support exists or a documented fork is approved. |
+| Implemented artifact validation | #415, #309, #249, #213 | 4 | SlopStudio now preserves manifests, inspects generated BSP artifacts, and keeps conversion output paths plus BSPX/lightmap metadata expectations explicit. Compiler-side output generation remains upstream-owned, and catalog warnings cover decompile/export features the validator cannot inspect. |
+| Upstream-only tracked limitation | #436, #425, #413, #285, #281, #277, #246, #234, #222, #200, #189 | 11 | These are compiler features, lighting/material controls, performance changes, or internal cleanup requests. SlopStudio tracks them and may expose options only after upstream support exists or a documented fork is approved. |
 
 Total: 62 distinct issue IDs.
 
@@ -169,5 +169,5 @@ Total: 62 distinct issue IDs.
 - Artifact validation can reject, quarantine, or warn about outputs before
   packaging. It does not repair a bad BSP or replace ericw-tools algorithmic
   fixes.
-- New compiler features should be exposed in VibeStudio only after upstream
-  support exists or after a documented VibeStudio fork is approved.
+- New compiler features should be exposed in SlopStudio only after upstream
+  support exists or after a documented SlopStudio fork is approved.

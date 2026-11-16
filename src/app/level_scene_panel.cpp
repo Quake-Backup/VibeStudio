@@ -18,7 +18,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 LevelScenePanel::LevelScenePanel(LevelMapDocument* document, QWidget* parent) : QWidget(parent), m_document(document) {
 	setObjectName(QStringLiteral("levelScenePanel"));
 	setAccessibleName(tr("Level scene organization"));
@@ -412,4 +412,4 @@ void LevelScenePanel::refresh() {
 	m_refreshing = false;
 	updateControls();
 }
-} // namespace vibestudio
+} // namespace slopstudio

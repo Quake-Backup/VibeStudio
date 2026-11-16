@@ -21,7 +21,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ProjectManifest;
 
@@ -319,4 +319,4 @@ bool deployGameMap(const GameMapDeployPlan& plan, QStringList* written = nullptr
 QString gameMapDeployPlanText(const GameMapDeployPlan& plan);
 QJsonObject gameMapDeployPlanJson(const GameMapDeployPlan& plan);
 
-} // namespace vibestudio
+} // namespace slopstudio

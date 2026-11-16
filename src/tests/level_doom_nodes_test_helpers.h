@@ -2,7 +2,7 @@
 #include "core/deflate.h"
 #include "tests/level_doom_mirror_test_helpers.h"
 
-namespace vibestudio::tests::doomNodes {
+namespace slopstudio::tests::doomNodes {
 inline QByteArray segs() {
 	QByteArray result;
 	const int edges[][4] = {{0, 1, 0, 0}, {1, 2, 1, 0}, {2, 3, 2, 0}, {3, 0, 3, 0}, {3, 2, 2, 1}, {2, 4, 4, 0},
@@ -104,4 +104,4 @@ inline QByteArray fixture(bool hexen = false) {
 	}
 	return doom::wad(lumps);
 }
-} // namespace vibestudio::tests::doomNodes
+} // namespace slopstudio::tests::doomNodes

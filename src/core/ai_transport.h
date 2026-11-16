@@ -47,7 +47,7 @@
 
 class QNetworkAccessManager;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // One turn of a conversation.
 struct AiChatMessage {
@@ -316,4 +316,4 @@ private:
 	std::unique_ptr<State> m_state;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

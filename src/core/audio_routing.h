@@ -3,7 +3,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr int AudioSessionBusLimit = 32;
 inline constexpr int AudioSessionSendLimit = 8;
@@ -41,4 +41,4 @@ struct AudioRoutingPlan {
 QString prepareAudioRouting(const AudioSession &session, AudioRoutingPlan *plan = nullptr);
 QJsonObject audioRoutingToJson(const AudioTrackRouting &routing);
 bool audioRoutingFromJson(const QJsonObject &object, AudioTrackRouting *routing);
-} // namespace vibestudio
+} // namespace slopstudio

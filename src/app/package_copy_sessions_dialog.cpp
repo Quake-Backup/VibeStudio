@@ -19,7 +19,7 @@
 #include <QVBoxLayout>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString isolated(const QString& value) { return QChar(0x2068) + value + QChar(0x2069); }
 }
@@ -149,7 +149,7 @@ void PackageCopySessionsDialog::reload(const QString& notice)
 		if (m_inventory.cancelled) { status << tr("Copy review cancelled. No files were removed."); }
 		else if (!m_inventory.error.isEmpty()) { status << m_inventory.error; }
 		else { status << (m_inventory.sessions.isEmpty() ? tr("No retained temporary copy sessions.") : tr("Live studio sessions protect their copies. Refresh after closing the owning window.")); }
-		if (StudioSettings(StudioSettings::AccessMode::ReadOnly).storedSchemaIsNewer()) { status << tr("Discard is unavailable because the settings were written by a newer version of VibeStudio."); }
+		if (StudioSettings(StudioSettings::AccessMode::ReadOnly).storedSchemaIsNewer()) { status << tr("Discard is unavailable because the settings were written by a newer version of SlopStudio."); }
 		m_status->setText(status.join(QLatin1Char('\n')));
 		if (m_table->rowCount()) { m_table->setCurrentCell(0, 0); }
 	});
@@ -234,4 +234,4 @@ void PackageCopySessionsDialog::discardSelected()
 		*removed = discardPackageCopies(directory, info.id, info.fingerprint, false, error.get(), control);
 	}, [this, error, removed] { reload(*removed ? tr("Temporary copy session discarded.") : *error); });
 }
-} // namespace vibestudio
+} // namespace slopstudio

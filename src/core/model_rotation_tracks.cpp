@@ -11,7 +11,7 @@
 // Squad: K. Shoemake, "Animating rotation with quaternion curves", SIGGRAPH
 // 1985. Implemented from the published description; original code.
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -383,4 +383,4 @@ bool modelQuatKeysFromJson(const QJsonValue &value, int frameCount, QVector<Mode
 	*keys = std::move(result);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

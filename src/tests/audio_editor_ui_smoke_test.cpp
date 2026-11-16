@@ -6,7 +6,7 @@
 #include "app/audio_recovery_dialog.h"
 #include "app/audio_waveform_view.h"
 #include "app/studio_theme.h"
-#include "vibestudio_config.h"
+#include "slopstudio_config.h"
 #include "tests/fake_audio_playback.h"
 
 #include <QAccessible>
@@ -42,7 +42,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 QByteArray readFile(const QString& path)
@@ -195,19 +195,19 @@ class ExpandedTranslator : public QTranslator {
   public:
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "vibestudio::AudioEditorDialog" &&
+		if (QByteArray(context) != "slopstudio::AudioEditorDialog" &&
 		    QByteArray(context) != "AudioEditorDialog" &&
-		    QByteArray(context) != "vibestudio::AudioWaveformView" &&
+		    QByteArray(context) != "slopstudio::AudioWaveformView" &&
 		    QByteArray(context) != "AudioWaveformView" &&
-		    QByteArray(context) != "vibestudio::AudioAnalysisDialog" &&
+		    QByteArray(context) != "slopstudio::AudioAnalysisDialog" &&
 		    QByteArray(context) != "AudioAnalysisDialog" &&
-		    QByteArray(context) != "vibestudio::AudioChannelMapDialog" &&
+		    QByteArray(context) != "slopstudio::AudioChannelMapDialog" &&
 		    QByteArray(context) != "AudioChannelMapDialog" &&
-		    QByteArray(context) != "VibeStudioAudioAnalysis" &&
-		    QByteArray(context) != "vibestudio::AudioRecoveryDialog" &&
+		    QByteArray(context) != "SlopStudioAudioAnalysis" &&
+		    QByteArray(context) != "slopstudio::AudioRecoveryDialog" &&
 		    QByteArray(context) != "AudioRecoveryDialog" &&
-		    QByteArray(context) != "vibestudio::AudioMarkersDialog" &&
-		    QByteArray(context) != "AudioMarkersDialog" && QByteArray(context) != "VibeStudioAudio") {
+		    QByteArray(context) != "slopstudio::AudioMarkersDialog" &&
+		    QByteArray(context) != "AudioMarkersDialog" && QByteArray(context) != "SlopStudioAudio") {
 			return {};
 		}
 		const QString text = QString::fromUtf8(source);
@@ -259,14 +259,14 @@ int main(int argc, char** argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-ui-XXXXXX")));
 	if (!temporary.isValid()) {
 		return EXIT_FAILURE;
 	}
 	StudioSettings::setOverrideFilePath(QDir(temporary.path()).filePath(QStringLiteral("settings.ini")));
-	qputenv("VIBESTUDIO_AUDIO_RECOVERY_ROOT",
+	qputenv("SLOPSTUDIO_AUDIO_RECOVERY_ROOT",
 	        QDir(temporary.path()).filePath(QStringLiteral("recovery")).toUtf8());
 	AudioClip clip{2, 22050, {}};
 	clip.samples.resize(22050 * 2);
@@ -418,7 +418,7 @@ int main(int argc, char** argv)
 			                 markerDialog->layoutDirection() == editor->layoutDirection(),
 			             "cue table exposes named keyboard editing and inherits RTL "
 			             "direction");
-			const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!captures.isEmpty()) {
 				QImage image(markerDialog->size(), QImage::Format_ARGB32_Premultiplied);
 				image.fill(Qt::transparent);
@@ -486,7 +486,7 @@ int main(int argc, char** argv)
 			ok &= verifyOptionsLayout(dialog);
 			ok &= expect(rate->value() == 44100 && buttons->button(QDialogButtonBox::Ok)->isEnabled(),
 			             "sample rate presets update the conversion input");
-			const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!captures.isEmpty()) {
 				dialog->layout()->activate();
 				QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied);
@@ -563,7 +563,7 @@ int main(int argc, char** argv)
 				ok &= expect(label->height() >= label->heightForWidth(label->width()),
 				             "expanded analysis report labels have enough height to wrap");
 			}
-			const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!captures.isEmpty()) {
 				QImage image(analysisDialog->size(), QImage::Format_ARGB32_Premultiplied);
 				image.fill(Qt::transparent);
@@ -627,7 +627,7 @@ int main(int argc, char** argv)
 			                 mapping->layoutDirection() == editor->layoutDirection() && !role->accessibleName().isEmpty() &&
 			                 role->focusPolicy() != Qt::NoFocus && verifyNamedLabels(mapping),
 			             "speaker review remains accessible and fits scaled, expanded and RTL layouts");
-			const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!captures.isEmpty()) {
 				QImage image(mapping->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); mapping->render(&image);
 				ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("audio-channel-map-%1.png").arg(scale))),
@@ -717,7 +717,7 @@ int main(int argc, char** argv)
 			ok &=
 			    expect(!dither->isEnabled() && !dither->isChecked() && !precision->accessibleName().isEmpty(),
 			           "float export visibly disables incompatible dither");
-			const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!captures.isEmpty()) {
 				dialog->layout()->activate();
 				QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied);
@@ -783,7 +783,7 @@ int main(int argc, char** argv)
 		ok &=
 		    expect(first->height() >= first->fontMetrics().height() + 8 && !first->accessibleName().isEmpty(),
 		           "scaled frame controls expose readable text and names");
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 		// Capture prepared bytes through the backend boundary; no audio device is
 		// opened. Decoder fixtures independently establish float WAV correctness.
 		editor->findChild<QSlider*>(QStringLiteral("audioPlaybackVolume"))->setValue(0);
@@ -875,7 +875,7 @@ int main(int argc, char** argv)
 			             "confirmed discard cannot delete a live editor's copy and "
 			             "shows the reason");
 			ok &= verifyNamedLabels(manager);
-			const QString capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const QString capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (scale == 200) {
 				manager->resize(1450, 1100);
 			}
@@ -944,7 +944,7 @@ int main(int argc, char** argv)
 		ok &= expect(editor->saveProjectTo(separate), "save conflicted work to a separate project");
 		ok &= finish(editor);
 		ok &= verifyNamedLabels(editor);
-		const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			app.processEvents();
 			QImage image(editor->size(), QImage::Format_ARGB32_Premultiplied);
@@ -992,7 +992,7 @@ int main(int argc, char** argv)
 		app.removeTranslator(&expanded);
 	}
 	applyStudioTheme(app, studioThemeTokens(StudioTheme::Dark, UiDensity::Standard, 100));
-	if (qEnvironmentVariableIsSet("VIBESTUDIO_AUDIO_BENCHMARK")) {
+	if (qEnvironmentVariableIsSet("SLOPSTUDIO_AUDIO_BENCHMARK")) {
 		// Optional near-limit workload: measure actual worker responsiveness and
 		// full/detail painting without touching a real audio asset or user input.
 		AudioClip longClip{2, 44100, {}};
@@ -1035,7 +1035,7 @@ int main(int argc, char** argv)
 		std::cout << "Audio waveform workload: samples=" << longClip.samples.size() << " loadMs=" << loadMs
 		          << " guiHeartbeats=" << pulses << " fullRenderUs=" << fullUs
 		          << " detailRenderUs=" << detailUs << '\n';
-		const QString captureRoot = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const QString captureRoot = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captureRoot.isEmpty()) {
 			ok &= expect(view.save(QDir(captureRoot).filePath(QStringLiteral("audio-near-limit-detail.png"))),
 			             "retain near-limit sample detail evidence");

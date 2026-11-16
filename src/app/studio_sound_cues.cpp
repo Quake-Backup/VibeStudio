@@ -10,7 +10,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -132,7 +132,7 @@ QByteArray soundCueWave(SoundCue cue)
 
 StudioSoundCues::StudioSoundCues(QObject* parent)
 	: QObject(parent)
-	, m_logOnly(qEnvironmentVariable("VIBESTUDIO_SOUND_CUES") == QStringLiteral("log"))
+	, m_logOnly(qEnvironmentVariable("SLOPSTUDIO_SOUND_CUES") == QStringLiteral("log"))
 {
 	if (!m_logOnly) {
 		m_playback = new AudioPlayback(this);
@@ -176,4 +176,4 @@ void clearLoggedSoundCuesForTesting()
 	soundCueLog().clear();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

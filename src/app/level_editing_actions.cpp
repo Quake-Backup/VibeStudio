@@ -48,7 +48,7 @@
 #include <numbers>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -1636,4 +1636,4 @@ void ApplicationShell::placeLevelBrushEntity(const QString& className, const QPo
 	statusBar()->showMessage(tr("Placed a %1 brush; drag its handles to size it, and its keys are in the Inspector.").arg(className), 6000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

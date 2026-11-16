@@ -14,7 +14,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 ModelMdlCliResult runModelMdl(const QStringList &arguments)
 {
@@ -350,7 +350,7 @@ ModelMdlCliResult runModelMdl(const QStringList &arguments)
 			}
 			PackageArchive archive;
 			const auto package = values.value("--package");
-			if (package.endsWith(".vibepackage", Qt::CaseInsensitive))
+			if (package.endsWith(".sloppackage", Qt::CaseInsensitive))
 			{
 				PackageStagingModel staging;
 				if (!PackageDraft::load(package, &staging, &error))
@@ -551,4 +551,4 @@ ModelMdlCliResult runModelMdl(const QStringList &arguments)
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

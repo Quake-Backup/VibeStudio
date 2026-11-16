@@ -8,7 +8,7 @@ import sys
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[2]
 vendor = ROOT / 'external/audio/portaudio'
-spec = importlib.util.spec_from_file_location('vibe_pa_patch', vendor / 'patches/apply.py')
+spec = importlib.util.spec_from_file_location('slop_pa_patch', vendor / 'patches/apply.py')
 patcher = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(patcher)
 pin = json.loads((vendor / 'UPSTREAM.json').read_text(encoding='utf-8'))
@@ -31,8 +31,8 @@ assert 'i_processed = 0;\n                // get host input buffer' in windows
 assert 'i_processed == 0 || CheckForStop(stream)' in windows
 assert 'PaUtil_SetNoInput(&stream->bufferProcessor)' in windows
 assert 'fullDuplex ? paFramesPerBufferUnspecified : framesPerBuffer' in windows
-assert windows.count('stream->vibeStoppedFlags |= VIBE_PA_HOST_ERROR;') == 5
-assert 'VibePaWasapi_GetStoppedFlags' in windows
+assert windows.count('stream->slopStoppedFlags |= SLOP_PA_HOST_ERROR;') == 5
+assert 'SlopPaWasapi_GetStoppedFlags' in windows
 assert 'if (isExplicitFormat)\n                return paInvalidChannelCount;' in windows
 mac = generated['src/hostapi/coreaudio/pa_mac_core.c']
 assert mac.count('atomic_exchange_explicit(&stream->xrunFlags, 0, memory_order_relaxed)') == 4

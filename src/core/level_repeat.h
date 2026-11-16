@@ -3,7 +3,7 @@
 #include "core/level_map.h"
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool canRepeatLevelMapCommands(const LevelMapDocument& document);
 // Clear is session-only: it changes neither map bytes nor undo history.
@@ -49,4 +49,4 @@ bool repeatLevelMapTransforms(LevelMapDocument* document, const LevelMapTextureL
 // centre when invalid). Only the transform fields of `request` change.
 bool levelRepeatTransformsComponentRequest(const LevelRepeatTransforms& transforms, LevelComponentTransformRequest* request,
 	QString* error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

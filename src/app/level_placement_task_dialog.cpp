@@ -14,7 +14,7 @@
 #include <atomic>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct PlacementTask {
 	std::atomic_bool cancel{false};
@@ -218,4 +218,4 @@ LevelPlacementResult LevelPlacementTaskDialog::prepare(QWidget* parent, const Le
 	}
 	return std::move(state->result);
 }
-} // namespace vibestudio
+} // namespace slopstudio

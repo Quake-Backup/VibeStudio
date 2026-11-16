@@ -5,7 +5,7 @@
 #include <QSet>
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 bool parseLevelSweepArguments(const QStringList& arguments, LevelSweepCliRequest* output, QString* error)
 {
@@ -165,4 +165,4 @@ bool parseLevelSweepArguments(const QStringList& arguments, LevelSweepCliRequest
 	*output = std::move(result);
 	return true;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

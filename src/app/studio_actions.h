@@ -37,7 +37,7 @@ class QPushButton;
 class QTimer;
 class QWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class StudioCommandGroup {
 	File,
@@ -362,4 +362,4 @@ private:
 	int m_shadowMargin = 0;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

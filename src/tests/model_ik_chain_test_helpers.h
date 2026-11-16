@@ -1,7 +1,7 @@
 #pragma once
 #include "tests/model_rig_test_helpers.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // A straight chain of `joints` joints along +X, two units apart (j0 at the
 // origin), plus a separate root-level "prop" joint that slides along Y over
@@ -62,4 +62,4 @@ inline ModelEdit chainIkEdit(int joints, ModelVec3 target, ModelVec3 pole, int l
 	edit.ik.iterations = 200;
 	return edit;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

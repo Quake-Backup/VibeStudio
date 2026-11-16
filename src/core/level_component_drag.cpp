@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 using V = LevelMapVec3;
 V add(V a,V b) { return {a.x+b.x,a.y+b.y,a.z+b.z,true}; }
@@ -116,4 +116,4 @@ Qt::KeyboardModifiers levelComponentModifierState(int key,Qt::KeyboardModifiers 
 	const auto flag = key == Qt::Key_Shift ? Qt::ShiftModifier : key == Qt::Key_Control ? Qt::ControlModifier : key == Qt::Key_Alt ? Qt::AltModifier : key == Qt::Key_Meta ? Qt::MetaModifier : Qt::NoModifier;
 	if (flag != Qt::NoModifier) { modifiers.setFlag(flag,pressed); } return keys(modifiers);
 }
-} // namespace vibestudio
+} // namespace slopstudio

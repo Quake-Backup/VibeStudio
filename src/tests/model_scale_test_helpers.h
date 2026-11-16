@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh maximumEditableGrid()
 {
@@ -98,4 +98,4 @@ inline ModelMesh realisticMaximumEditableGrid()
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

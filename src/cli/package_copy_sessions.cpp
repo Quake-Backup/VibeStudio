@@ -7,7 +7,7 @@
 #include <QSet>
 #include <QUuid>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 PackageCopySessionsCliResult runPackageCopySessions(const QStringList& arguments)
 {
 	const auto failure = [](int code, const QString& error) { return PackageCopySessionsCliResult{code, error, {}, {}}; };
@@ -78,4 +78,4 @@ PackageCopySessionsCliResult runPackageCopySessions(const QStringList& arguments
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

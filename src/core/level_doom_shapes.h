@@ -5,7 +5,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Doom Builder's stair builder and grid drawing, made through Draw Sector's
 // service so new lines join and split the existing ones as a drawn sector's
@@ -30,4 +30,4 @@ bool drawLevelMapDoomStairs(LevelMapDocument* document, const LevelDoomStairsReq
 bool drawLevelMapDoomGrid(LevelMapDocument* document, double minX, double minY, double maxX, double maxY, int columns, int rows,
 	QVector<int>* sectorIds = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

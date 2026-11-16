@@ -3,7 +3,7 @@
 #include <QJsonObject>
 #include <QString>
 
-namespace vibestudio {
+namespace slopstudio {
 // Empty cutTexture inherits the brush's majority material and flags. An explicit
 // material preserves brush contents but starts with zero surface flags/value.
 // Original faces and their texture coordinates are never rewritten by clipping.
@@ -34,4 +34,4 @@ bool validLevelClipTexture(const QString& texture);
 QJsonObject levelClipperPreferencesJson(const LevelClipperPreferences& preferences);
 // Applies a strictly typed partial update atomically. Unknown fields fail.
 bool updateLevelClipperPreferences(const QJsonObject& values, LevelClipperPreferences* preferences, QString* error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

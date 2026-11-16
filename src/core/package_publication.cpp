@@ -17,7 +17,7 @@
 #include <array>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 using Cancel = std::function<bool()>;
 #ifdef Q_OS_WIN
@@ -43,7 +43,7 @@ QString absolutePath(const QString& path)
 bool cancelled(const Cancel& cancel, QString* error)
 {
 	if (!cancel || !cancel()) { return false; }
-	*error = QCoreApplication::translate("VibeStudioPackagePublication", "Package save cancelled before publication; the destination was left untouched.");
+	*error = QCoreApplication::translate("SlopStudioPackagePublication", "Package save cancelled before publication; the destination was left untouched.");
 	return true;
 }
 
@@ -58,11 +58,11 @@ bool transfer(QIODevice& input, QIODevice* output, Identity* identity, const Can
 	for (;;) {
 		if (cancelled(cancel, error)) { return false; }
 		const qint64 count = input.read(buffer.data(), buffer.size());
-		if (count < 0) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to read package transaction bytes: %1").arg(input.errorString()); return false; }
+		if (count < 0) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to read package transaction bytes: %1").arg(input.errorString()); return false; }
 		if (count == 0) { break; }
 		hash.addData(QByteArrayView(buffer.data(), count));
 		if (output && output->write(buffer.data(), count) != count) {
-			*error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to write package transaction bytes: %1").arg(output->errorString()); return false;
+			*error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to write package transaction bytes: %1").arg(output->errorString()); return false;
 		}
 		total += count;
 		if (progress) { progress(total, input.size()); }
@@ -75,18 +75,18 @@ bool identify(const QString& path, Identity* identity, const Cancel& cancel, QSt
 {
 	const QFileInfo before(path);
 	if (before.isSymLink() || (before.exists() && !before.isFile())) {
-		*error = QCoreApplication::translate("VibeStudioPackagePublication", "Package transaction paths must be regular files, without symbolic links: %1").arg(path); return false;
+		*error = QCoreApplication::translate("SlopStudioPackagePublication", "Package transaction paths must be regular files, without symbolic links: %1").arg(path); return false;
 	}
 	if (!before.exists()) { *identity = {}; return !cancelled(cancel, error); }
 	QFile file(path);
-	if (!file.open(QIODevice::ReadOnly)) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to read %1: %2").arg(path, file.errorString()); return false; }
+	if (!file.open(QIODevice::ReadOnly)) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to read %1: %2").arg(path, file.errorString()); return false; }
 	if (!transfer(file, nullptr, identity, cancel, error, [control, path](qint64 done, qint64 total) {
 		if (control && control->progress) { control->progress(path, done, total); }
 	})) { return false; }
 	const QFileInfo after(path);
 	if (!after.isFile() || after.isSymLink() || before.size() != after.size()
 		|| before.lastModified() != after.lastModified() || identity->size != before.size()) {
-		*error = QCoreApplication::translate("VibeStudioPackagePublication", "A file changed while its contents were being verified: %1").arg(path); return false;
+		*error = QCoreApplication::translate("SlopStudioPackagePublication", "A file changed while its contents were being verified: %1").arg(path); return false;
 	}
 	return true;
 }
@@ -96,7 +96,7 @@ bool matches(const QString& path, const Identity& expected, const Cancel& cancel
 	Identity current;
 	if (!identify(path, &current, cancel, error, control)) { return false; }
 	if (current == expected) { return true; }
-	*error = QCoreApplication::translate("VibeStudioPackagePublication", "The file changed during the save; nothing was replaced at %1.").arg(path);
+	*error = QCoreApplication::translate("SlopStudioPackagePublication", "The file changed during the save; nothing was replaced at %1.").arg(path);
 	return false;
 }
 
@@ -104,19 +104,19 @@ bool copyVerified(const QString& source, QIODevice& output, const Identity& expe
 {
 	QFile input(source);
 	if (QFileInfo(source).isSymLink() || !input.open(QIODevice::ReadOnly)) {
-		*error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to read the package transaction source: %1").arg(source); return false;
+		*error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to read the package transaction source: %1").arg(source); return false;
 	}
 	Identity copied;
 	if (!transfer(input, &output, &copied, cancel, error, [control, source](qint64 done, qint64 total) {
 		if (control && control->progress) { control->progress(source, done, total); }
 	})) { return false; }
-	if (copied != expected) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Package transaction bytes no longer match their recorded SHA-256: %1").arg(source); return false; }
+	if (copied != expected) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Package transaction bytes no longer match their recorded SHA-256: %1").arg(source); return false; }
 	return true;
 }
 
 QString temporaryTemplate(const QString& destination)
 {
-	return QDir(QFileInfo(destination).absolutePath()).filePath(QStringLiteral(".vibestudio-package-XXXXXX.payload"));
+	return QDir(QFileInfo(destination).absolutePath()).filePath(QStringLiteral(".slopstudio-package-XXXXXX.payload"));
 }
 
 // QTemporaryFile::rename is atomic-only and refuses an existing target. QFile's
@@ -127,20 +127,20 @@ bool atomicCopy(const QString& source, const QString& destination, const Identit
 {
 	if (!destinationBefore.exists) {
 		QTemporaryFile output(temporaryTemplate(destination));
-		if (!output.open()) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to reserve a file beside %1: %2").arg(destination, output.errorString()); return false; }
+		if (!output.open()) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to reserve a file beside %1: %2").arg(destination, output.errorString()); return false; }
 		if (!copyVerified(source, output, bytes, cancel, error, control) || !output.flush()) {
 			if (error->isEmpty()) { *error = output.errorString(); } return false;
 		}
 		if (!matches(destination, destinationBefore, cancel, error, control)) { return false; }
-		if (!output.rename(destination)) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to publish %1 without overwriting another file: %2").arg(destination, output.errorString()); return false; }
+		if (!output.rename(destination)) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to publish %1 without overwriting another file: %2").arg(destination, output.errorString()); return false; }
 		output.setAutoRemove(false);
 		return true;
 	}
 	QSaveFile output(destination);
 	output.setDirectWriteFallback(false);
-	if (!output.open(QIODevice::WriteOnly)) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to prepare atomic replacement of %1: %2").arg(destination, output.errorString()); return false; }
+	if (!output.open(QIODevice::WriteOnly)) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to prepare atomic replacement of %1: %2").arg(destination, output.errorString()); return false; }
 	if (!copyVerified(source, output, bytes, cancel, error, control) || !matches(destination, destinationBefore, cancel, error, control)) { return false; }
-	if (!output.commit()) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to atomically replace %1: %2").arg(destination, output.errorString()); return false; }
+	if (!output.commit()) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to atomically replace %1: %2").arg(destination, output.errorString()); return false; }
 	return true;
 }
 
@@ -175,7 +175,7 @@ struct Journal {
 
 QJsonObject journalJson(const Journal& journal)
 {
-	return {{QStringLiteral("schemaVersion"), 1}, {QStringLiteral("kind"), QStringLiteral("vibestudio-package-publication")},
+	return {{QStringLiteral("schemaVersion"), 1}, {QStringLiteral("kind"), QStringLiteral("slopstudio-package-publication")},
 		{QStringLiteral("destination"), journal.destination}, {QStringLiteral("replacement"), journal.replacement},
 		{QStringLiteral("original"), journal.original}, {QStringLiteral("backup"), journal.backup},
 		{QStringLiteral("before"), identityJson(journal.before)}, {QStringLiteral("after"), identityJson(journal.after)},
@@ -186,9 +186,9 @@ bool writeJournal(Journal* journal, QString* error)
 {
 	const QByteArray bytes = QJsonDocument(journalJson(*journal)).toJson();
 	QFile file(journal->path);
-	if (!file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to reserve package recovery journal: %1").arg(file.errorString()); return false; }
+	if (!file.open(QIODevice::WriteOnly | QIODevice::NewOnly)) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to reserve package recovery journal: %1").arg(file.errorString()); return false; }
 	if (file.write(bytes) != bytes.size() || !file.flush()) {
-		*error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to write package recovery journal: %1").arg(file.errorString()); file.remove(); return false;
+		*error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to write package recovery journal: %1").arg(file.errorString()); file.remove(); return false;
 	}
 	journal->journalIdentity = {true, bytes.size(), QString::fromLatin1(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex())};
 	return true;
@@ -198,11 +198,11 @@ bool readJournal(const QString& path, Journal* journal, QString* error)
 {
 	QFile input(path);
 	if (!safePackageStoragePath(path) || !QFileInfo(path).isFile() || !input.open(QIODevice::ReadOnly) || input.size() > 65536) {
-		*error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to read a regular package recovery journal (maximum 64 KiB)."); return false;
+		*error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to read a regular package recovery journal (maximum 64 KiB)."); return false;
 	}
 	const QByteArray bytes = input.read(65537);
 	if (bytes.size() > 65536 || input.error() != QFileDevice::NoError) {
-		*error = QCoreApplication::translate("VibeStudioPackagePublication", "The recovery journal exceeded its read limit or could not be read completely."); return false;
+		*error = QCoreApplication::translate("SlopStudioPackagePublication", "The recovery journal exceeded its read limit or could not be read completely."); return false;
 	}
 	QJsonParseError parseError;
 	const auto object = QJsonDocument::fromJson(bytes, &parseError).object();
@@ -213,7 +213,7 @@ bool readJournal(const QString& path, Journal* journal, QString* error)
 	journal->backup = object.value(QStringLiteral("backup")).toString();
 	journal->journalIdentity = {true, bytes.size(), QString::fromLatin1(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex())};
 	bool valid = parseError.error == QJsonParseError::NoError && object.value(QStringLiteral("schemaVersion")).toInt() == 1
-		&& object.value(QStringLiteral("kind")).toString() == QStringLiteral("vibestudio-package-publication")
+		&& object.value(QStringLiteral("kind")).toString() == QStringLiteral("slopstudio-package-publication")
 		&& parseIdentity(object.value(QStringLiteral("before")), &journal->before)
 		&& parseIdentity(object.value(QStringLiteral("after")), &journal->after)
 		&& parseIdentity(object.value(QStringLiteral("backupBefore")), &journal->backupBefore) && journal->after.exists;
@@ -221,7 +221,7 @@ bool readJournal(const QString& path, Journal* journal, QString* error)
 		valid = valid && !file.isEmpty() && QDir::isAbsolutePath(file) && file == absolutePath(file);
 	}
 	const QString replacementName = QFileInfo(journal->replacement).fileName();
-	static const QRegularExpression name(QStringLiteral("^\\.vibestudio-package-[A-Za-z0-9]{6,}\\.payload$"));
+	static const QRegularExpression name(QStringLiteral("^\\.slopstudio-package-[A-Za-z0-9]{6,}\\.payload$"));
 	valid = valid && name.match(replacementName).hasMatch() && journal->path == journal->replacement + QStringLiteral(".json")
 		&& QFileInfo(journal->replacement).absolutePath() == QFileInfo(journal->destination).absolutePath()
 		&& journal->destination != journal->replacement && journal->destination != journal->path;
@@ -232,7 +232,7 @@ bool readJournal(const QString& path, Journal* journal, QString* error)
 	} else { valid = valid && journal->original.isEmpty() && journal->backup.isEmpty() && !journal->backupBefore.exists; }
 	// No transaction path may alias the output or its cooperative lock. This
 	// check is also required for hand-edited/untrusted recovery journals.
-	QStringList paths {journal->destination, journal->replacement, journal->path, journal->destination + QStringLiteral(".vibestudio-save.lock")};
+	QStringList paths {journal->destination, journal->replacement, journal->path, journal->destination + QStringLiteral(".slopstudio-save.lock")};
 	if (!journal->original.isEmpty()) { paths << journal->original; }
 	if (!journal->backup.isEmpty()) { paths << journal->backup; }
 	for (const auto& file : paths) { valid = valid && safePackageStoragePath(file); }
@@ -241,7 +241,7 @@ bool readJournal(const QString& path, Journal* journal, QString* error)
 			valid = valid && paths[left].compare(paths[right], Qt::CaseInsensitive) != 0;
 		}
 	}
-	if (!valid) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Invalid package recovery journal or unsafe transaction paths."); }
+	if (!valid) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Invalid package recovery journal or unsafe transaction paths."); }
 	return valid;
 }
 
@@ -250,9 +250,9 @@ bool removeVerified(const QString& path, const Identity& expected, QString* erro
 	Identity current;
 	if (!identify(path, &current, control ? control->isCancelled : Cancel{}, error, control)) { return false; }
 	if (!current.exists) { return true; }
-	if (current != expected) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Recovery file changed; retained for inspection: %1").arg(path); return false; }
+	if (current != expected) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Recovery file changed; retained for inspection: %1").arg(path); return false; }
 	if (control && cancelled(control->isCancelled, error)) { return false; }
-	if (!safePackageStoragePath(path, error) || !QFile::remove(path)) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to remove a completed recovery file: %1").arg(path); return false; }
+	if (!safePackageStoragePath(path, error) || !QFile::remove(path)) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to remove a completed recovery file: %1").arg(path); return false; }
 	return true;
 }
 
@@ -263,7 +263,7 @@ bool finishBackup(const Journal& journal, QString* error, const PackageReadContr
 	if (!identify(journal.backup, &current, control ? control->isCancelled : Cancel{}, error, control)) { return false; }
 	// A crash after backup publication but before cleanup is safely repeatable.
 	if (current == journal.before) { return true; }
-	if (current != journal.backupBefore) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "The backup changed since this save. The verified original is retained at %1.").arg(journal.original); return false; }
+	if (current != journal.backupBefore) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "The backup changed since this save. The verified original is retained at %1.").arg(journal.original); return false; }
 	return atomicCopy(journal.original, journal.backup, journal.before, journal.backupBefore, control ? control->isCancelled : Cancel{}, error, control);
 }
 
@@ -310,30 +310,30 @@ bool PackagePublication::begin(QString* error)
 	if (!error) { error = &localError; }
 	error->clear();
 	auto& state = *m_state;
-	if (state.output || state.options.destinationPath.trimmed().isEmpty()) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "A package publication needs one non-empty destination."); return false; }
+	if (state.output || state.options.destinationPath.trimmed().isEmpty()) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "A package publication needs one non-empty destination."); return false; }
 	state.journal.destination = absolutePath(state.options.destinationPath);
-	state.lock = std::make_unique<QLockFile>(state.journal.destination + QStringLiteral(".vibestudio-save.lock"));
+	state.lock = std::make_unique<QLockFile>(state.journal.destination + QStringLiteral(".slopstudio-save.lock"));
 	state.lock->setStaleLockTime(0);
-	if (!state.lock->tryLock(0)) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Another package save or recovery owns this destination: %1").arg(state.journal.destination); return false; }
+	if (!state.lock->tryLock(0)) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Another package save or recovery owns this destination: %1").arg(state.journal.destination); return false; }
 	if (!identify(state.journal.destination, &state.journal.before, state.options.isCancelled, error)) { return false; }
 	if (state.options.expectedDestinationSha256) {
 		const QString expected = *state.options.expectedDestinationSha256;
 		const bool valid = expected.isEmpty() || QRegularExpression(QStringLiteral("^[0-9a-f]{64}$")).match(expected).hasMatch();
 		if (!valid || (expected.isEmpty() ? state.journal.before.exists : !state.journal.before.exists || state.journal.before.hash != expected)) {
-			*error = QCoreApplication::translate("VibeStudioPackagePublication", "The destination changed since review. Review it again before publishing.");
+			*error = QCoreApplication::translate("SlopStudioPackagePublication", "The destination changed since review. Review it again before publishing.");
 			return false;
 		}
 	}
 	if (state.journal.before.exists) {
-		if (!state.options.allowOverwrite) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "The destination already exists; overwrite must be explicitly enabled."); return false; }
+		if (!state.options.allowOverwrite) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "The destination already exists; overwrite must be explicitly enabled."); return false; }
 		state.journal.backup = state.options.backupPath.isEmpty() ? state.journal.destination + QStringLiteral(".bak") : absolutePath(state.options.backupPath);
 		if (state.journal.backup.compare(state.journal.destination, Qt::CaseInsensitive) == 0
-			|| state.journal.backup.compare(state.journal.destination + QStringLiteral(".vibestudio-save.lock"), Qt::CaseInsensitive) == 0) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "The backup must be separate from the destination and save lock."); return false; }
-		if (!QFileInfo(QFileInfo(state.journal.backup).absolutePath()).isDir()) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "The backup directory does not exist: %1").arg(state.journal.backup); return false; }
+			|| state.journal.backup.compare(state.journal.destination + QStringLiteral(".slopstudio-save.lock"), Qt::CaseInsensitive) == 0) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "The backup must be separate from the destination and save lock."); return false; }
+		if (!QFileInfo(QFileInfo(state.journal.backup).absolutePath()).isDir()) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "The backup directory does not exist: %1").arg(state.journal.backup); return false; }
 		if (!identify(state.journal.backup, &state.journal.backupBefore, state.options.isCancelled, error)) { return false; }
 	}
 	state.output = std::make_unique<QTemporaryFile>(temporaryTemplate(state.journal.destination));
-	if (!state.output->open()) { *error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to reserve package output: %1").arg(state.output->errorString()); return false; }
+	if (!state.output->open()) { *error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to reserve package output: %1").arg(state.output->errorString()); return false; }
 	state.journal.replacement = state.output->fileName();
 	state.journal.path = state.journal.replacement + QStringLiteral(".json");
 	state.ready = true;
@@ -345,11 +345,11 @@ PackagePublicationResult PackagePublication::commit(quint64 expectedBytes, const
 	PackagePublicationResult result;
 	auto& state = *m_state;
 	auto& journal = state.journal;
-	if (!state.ready || state.completed) { result.error = QCoreApplication::translate("VibeStudioPackagePublication", "Package publication is not ready or has already finished."); return result; }
+	if (!state.ready || state.completed) { result.error = QCoreApplication::translate("SlopStudioPackagePublication", "Package publication is not ready or has already finished."); return result; }
 	state.completed = true;
 	QString error;
 	const auto fail = [&]() {
-		result.error = error.isEmpty() ? QCoreApplication::translate("VibeStudioPackagePublication", "Package publication failed before commit.") : error;
+		result.error = error.isEmpty() ? QCoreApplication::translate("SlopStudioPackagePublication", "Package publication failed before commit.") : error;
 		result.cancelled = state.options.isCancelled && state.options.isCancelled();
 		if (state.output && !state.output->autoRemove()) { result.recoveryPaths = recoveryPaths(journal); }
 		return result;
@@ -358,14 +358,14 @@ PackagePublicationResult PackagePublication::commit(quint64 expectedBytes, const
 	if (!state.output->flush()) { error = state.output->errorString(); return fail(); }
 	if (!identify(journal.replacement, &journal.after, state.options.isCancelled, &error)) { return fail(); }
 	if (journal.after.size < 0 || static_cast<quint64>(journal.after.size) != expectedBytes || journal.after.hash != expectedSha256) {
-		error = QCoreApplication::translate("VibeStudioPackagePublication", "The completed package failed size or SHA-256 verification; the destination was left untouched."); return fail();
+		error = QCoreApplication::translate("SlopStudioPackagePublication", "The completed package failed size or SHA-256 verification; the destination was left untouched."); return fail();
 	}
 	std::unique_ptr<QFile> original;
 	if (journal.before.exists) {
 		if (!state.step(PackagePublicationStep::CopyOriginal, &error)) { return fail(); }
 		journal.original = journal.replacement + QStringLiteral(".original");
 		original = std::make_unique<QFile>(journal.original);
-		if (!original->open(QIODevice::WriteOnly | QIODevice::NewOnly)) { error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to reserve the original package recovery copy: %1").arg(original->errorString()); return fail(); }
+		if (!original->open(QIODevice::WriteOnly | QIODevice::NewOnly)) { error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to reserve the original package recovery copy: %1").arg(original->errorString()); return fail(); }
 		if (!copyVerified(journal.destination, *original, journal.before, state.options.isCancelled, &error) || !original->flush()) {
 			if (error.isEmpty()) { error = original->errorString(); }
 			original->remove(); journal.original.clear(); return fail();
@@ -385,7 +385,7 @@ PackagePublicationResult PackagePublication::commit(quint64 expectedBytes, const
 	if (journal.before.exists) {
 		if (!atomicCopy(journal.replacement, journal.destination, journal.after, journal.before, state.options.isCancelled, &error)) { return fail(); }
 	} else {
-		if (!state.output->rename(journal.destination)) { error = QCoreApplication::translate("VibeStudioPackagePublication", "Unable to publish the new package without overwriting another file: %1").arg(state.output->errorString()); return fail(); }
+		if (!state.output->rename(journal.destination)) { error = QCoreApplication::translate("SlopStudioPackagePublication", "Unable to publish the new package without overwriting another file: %1").arg(state.output->errorString()); return fail(); }
 	}
 	result.committed = true;
 	state.output.reset();
@@ -394,13 +394,13 @@ PackagePublicationResult PackagePublication::commit(quint64 expectedBytes, const
 	if (!state.step(PackagePublicationStep::OutputCommitted, &error)
 		|| !state.step(PackagePublicationStep::CommitBackup, &error) || !finishBackup(journal, &error)) {
 		result.backupPath = journal.original;
-		result.warnings << (error.isEmpty() ? QCoreApplication::translate("VibeStudioPackagePublication", "The package was saved; recovery bookkeeping remains unfinished.") : error);
+		result.warnings << (error.isEmpty() ? QCoreApplication::translate("SlopStudioPackagePublication", "The package was saved; recovery bookkeeping remains unfinished.") : error);
 		result.recoveryPaths = recoveryPaths(journal);
 		return result;
 	}
 	result.backupPath = journal.backup;
 	if (!state.step(PackagePublicationStep::Cleanup, &error) || !cleanup(journal, &error)) {
-		result.warnings << (error.isEmpty() ? QCoreApplication::translate("VibeStudioPackagePublication", "The package was saved; transaction cleanup remains unfinished.") : error);
+		result.warnings << (error.isEmpty() ? QCoreApplication::translate("SlopStudioPackagePublication", "The package was saved; transaction cleanup remains unfinished.") : error);
 		result.recoveryPaths = recoveryPaths(journal);
 	}
 	return result;
@@ -423,7 +423,7 @@ PackageRecoveryReport recoverPackagePublication(const QString& journalPath, bool
 		report.canFinish = false;
 		report.cancelled = control.isCancelled && control.isCancelled();
 		if (report.cancelled) {
-			report.error = QCoreApplication::translate("VibeStudioPackagePublication", "Recovery cancelled. The saved output was not changed; transaction files may remain for review.");
+			report.error = QCoreApplication::translate("SlopStudioPackagePublication", "Recovery cancelled. The saved output was not changed; transaction files may remain for review.");
 		}
 		return report;
 	};
@@ -434,16 +434,16 @@ PackageRecoveryReport recoverPackagePublication(const QString& journalPath, bool
 	report.destinationPath = journal.destination; report.replacementPath = journal.replacement;
 	report.originalPath = journal.original; report.backupPath = journal.backup;
 	if (!expectedJournalSha256.isEmpty() && (expectedJournalSha256.size() != 32 || report.journalSha256 != expectedJournalSha256)) {
-		report.error = QCoreApplication::translate("VibeStudioPackagePublication", "The recovery journal changed. Refresh and review it before continuing."); return fail();
+		report.error = QCoreApplication::translate("SlopStudioPackagePublication", "The recovery journal changed. Refresh and review it before continuing."); return fail();
 	}
 	if (!confirmedBackupPath.isEmpty() && absolutePath(confirmedBackupPath).compare(journal.backup, pathCaseSensitivity) != 0) {
-		report.error = QCoreApplication::translate("VibeStudioPackagePublication", "The selected backup path does not match the recovery journal."); return fail();
+		report.error = QCoreApplication::translate("SlopStudioPackagePublication", "The selected backup path does not match the recovery journal."); return fail();
 	}
 	std::unique_ptr<QLockFile> lock;
 	if (finish) {
-		lock = std::make_unique<QLockFile>(journal.destination + QStringLiteral(".vibestudio-save.lock"));
+		lock = std::make_unique<QLockFile>(journal.destination + QStringLiteral(".slopstudio-save.lock"));
 		lock->setStaleLockTime(0);
-		if (!lock->tryLock(0)) { report.error = QCoreApplication::translate("VibeStudioPackagePublication", "Another package save or recovery owns this destination."); return fail(); }
+		if (!lock->tryLock(0)) { report.error = QCoreApplication::translate("SlopStudioPackagePublication", "Another package save or recovery owns this destination."); return fail(); }
 	}
 	Identity current;
 	if (!identify(journal.destination, &current, control.isCancelled, &report.error, &control)) { return fail(); }
@@ -460,7 +460,7 @@ PackageRecoveryReport recoverPackagePublication(const QString& journalPath, bool
 		Identity retained;
 		if (!identify(item.first, &retained, control.isCancelled, &report.error, &control)) { return fail(); }
 		if (retained.exists && retained != item.second) {
-			report.error = QCoreApplication::translate("VibeStudioPackagePublication", "Recovery file changed; retained for inspection: %1").arg(item.first); return fail();
+			report.error = QCoreApplication::translate("SlopStudioPackagePublication", "Recovery file changed; retained for inspection: %1").arg(item.first); return fail();
 		}
 	}
 	const QString outputDirectory = QFileInfo(journal.destination).absolutePath() + QLatin1Char('/');
@@ -472,10 +472,10 @@ PackageRecoveryReport recoverPackagePublication(const QString& journalPath, bool
 	if (!matches(journal.path, journal.journalIdentity, control.isCancelled, &report.error, &control)) { return fail(); }
 	if (!finish) { return report; }
 	if (report.requiresBackupConfirmation) {
-		report.error = QCoreApplication::translate("VibeStudioPackagePublication", "The backup is outside the output directory. Review the journal and explicitly select its backup path before finishing recovery."); return fail();
+		report.error = QCoreApplication::translate("SlopStudioPackagePublication", "The backup is outside the output directory. Review the journal and explicitly select its backup path before finishing recovery."); return fail();
 	}
 	if (!report.canFinish) {
-		report.error = QCoreApplication::translate("VibeStudioPackagePublication", "Recovery cannot finish automatically. Inspect the retained files; the destination or backup does not match the recorded save."); return fail();
+		report.error = QCoreApplication::translate("SlopStudioPackagePublication", "Recovery cannot finish automatically. Inspect the retained files; the destination or backup does not match the recorded save."); return fail();
 	}
 	if (!matches(journal.destination, journal.after, control.isCancelled, &report.error, &control)
 		|| !finishBackup(journal, &report.error, &control)) { return fail(); }
@@ -501,17 +501,17 @@ QJsonObject packageRecoveryJson(const PackageRecoveryReport& report)
 
 QString packageRecoveryText(const PackageRecoveryReport& report)
 {
-	QStringList lines {QCoreApplication::translate("VibeStudioPackagePublication", "Package recovery: %1").arg(report.state), QCoreApplication::translate("VibeStudioPackagePublication", "Destination: %1").arg(report.destinationPath), QCoreApplication::translate("VibeStudioPackagePublication", "Journal: %1").arg(report.journalPath)};
-	if (!report.originalPath.isEmpty()) { lines << QCoreApplication::translate("VibeStudioPackagePublication", "Original copy: %1").arg(report.originalPath); }
-	if (!report.replacementPath.isEmpty()) { lines << QCoreApplication::translate("VibeStudioPackagePublication", "Replacement copy: %1").arg(report.replacementPath); }
-	if (!report.backupPath.isEmpty()) { lines << QCoreApplication::translate("VibeStudioPackagePublication", "Backup: %1").arg(report.backupPath); }
-	if (!report.journalSha256.isEmpty()) { lines << QCoreApplication::translate("VibeStudioPackagePublication", "Journal SHA-256: %1").arg(QString::fromLatin1(report.journalSha256.toHex())); }
-	if (report.finished) { lines << QCoreApplication::translate("VibeStudioPackagePublication", "Recovery completed; verified transaction files removed."); }
-	else if (report.canFinish) { lines << QCoreApplication::translate("VibeStudioPackagePublication", "The saved replacement is verified. Use --finish to complete backup publication and cleanup."); }
-	else if (report.requiresBackupConfirmation) { lines << QCoreApplication::translate("VibeStudioPackagePublication", "Review the external backup path, then repeat --finish with --backup <path> to confirm that destination."); }
-	else if (report.error.isEmpty()) { lines << QCoreApplication::translate("VibeStudioPackagePublication", "Retained files require review; recovery has not changed them."); }
+	QStringList lines {QCoreApplication::translate("SlopStudioPackagePublication", "Package recovery: %1").arg(report.state), QCoreApplication::translate("SlopStudioPackagePublication", "Destination: %1").arg(report.destinationPath), QCoreApplication::translate("SlopStudioPackagePublication", "Journal: %1").arg(report.journalPath)};
+	if (!report.originalPath.isEmpty()) { lines << QCoreApplication::translate("SlopStudioPackagePublication", "Original copy: %1").arg(report.originalPath); }
+	if (!report.replacementPath.isEmpty()) { lines << QCoreApplication::translate("SlopStudioPackagePublication", "Replacement copy: %1").arg(report.replacementPath); }
+	if (!report.backupPath.isEmpty()) { lines << QCoreApplication::translate("SlopStudioPackagePublication", "Backup: %1").arg(report.backupPath); }
+	if (!report.journalSha256.isEmpty()) { lines << QCoreApplication::translate("SlopStudioPackagePublication", "Journal SHA-256: %1").arg(QString::fromLatin1(report.journalSha256.toHex())); }
+	if (report.finished) { lines << QCoreApplication::translate("SlopStudioPackagePublication", "Recovery completed; verified transaction files removed."); }
+	else if (report.canFinish) { lines << QCoreApplication::translate("SlopStudioPackagePublication", "The saved replacement is verified. Use --finish to complete backup publication and cleanup."); }
+	else if (report.requiresBackupConfirmation) { lines << QCoreApplication::translate("SlopStudioPackagePublication", "Review the external backup path, then repeat --finish with --backup <path> to confirm that destination."); }
+	else if (report.error.isEmpty()) { lines << QCoreApplication::translate("SlopStudioPackagePublication", "Retained files require review; recovery has not changed them."); }
 	if (!report.error.isEmpty()) { lines << report.error; }
 	return lines.join(QLatin1Char('\n'));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

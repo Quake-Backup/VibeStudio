@@ -8,7 +8,7 @@
 // (neo/framework/FileSystem.cpp) and idDeclManagerLocal::MakeNameCanonical
 // (neo/framework/DeclManager.cpp). q3map2 differences come from picomodel
 // (libs/picomodel/pm_ase.c) and q3map2's model.cpp in NetRadiant Custom
-// (external/compilers/vibemap3). This is an independent implementation; no
+// (external/compilers/slopmap3). This is an independent implementation; no
 // upstream code is copied.
 //
 // Conventions:
@@ -54,7 +54,7 @@
 #include <array>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace model_formats {
 
@@ -249,12 +249,12 @@ public:
 			const AseToken token = m_lexer.next();
 			if (token.kind == AseKind::End) {
 				if (m_lexer.unterminatedLine() > 0) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE text has an unterminated quoted string on line %1.").arg(m_lexer.unterminatedLine()));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE text has an unterminated quoted string on line %1.").arg(m_lexer.unterminatedLine()));
 				}
 				return true;
 			}
 			if (token.kind == AseKind::Close) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE text closes a block that was never opened on line %1.").arg(token.line));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE text closes a block that was never opened on line %1.").arg(token.line));
 			}
 			if (token.kind == AseKind::Open) {
 				if (!skipBlockBody(token.line)) { return false; }
@@ -304,7 +304,7 @@ private:
 		bool ok = false;
 		const double parsed = m_lexer.text(token).toDouble(&ok);
 		if (!ok || !std::isfinite(parsed) || (token.kind != AseKind::Word && token.kind != AseKind::String)) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE value \"%1\" on line %2 is not a number.").arg(tokenString(token)).arg(token.line));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE value \"%1\" on line %2 is not a number.").arg(tokenString(token)).arg(token.line));
 		}
 		*value = parsed;
 		return true;
@@ -319,7 +319,7 @@ private:
 		}
 		const qint64 parsed = text.toLongLong(&ok);
 		if (!ok || (token.kind != AseKind::Word && token.kind != AseKind::String)) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE value \"%1\" on line %2 is not a whole number.").arg(tokenString(token)).arg(token.line));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE value \"%1\" on line %2 is not a whole number.").arg(tokenString(token)).arg(token.line));
 		}
 		*value = parsed;
 		return true;
@@ -328,7 +328,7 @@ private:
 	bool argCount(const QVector<AseToken>& args, int needed, const AseToken& keyword)
 	{
 		if (args.size() < needed) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE %1 on line %2 is missing values.").arg(tokenString(keyword)).arg(keyword.line));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE %1 on line %2 is missing values.").arg(tokenString(keyword)).arg(keyword.line));
 		}
 		return true;
 	}
@@ -353,7 +353,7 @@ private:
 		lineArgs(keyword.line);
 		const AseToken token = m_lexer.next();
 		if (token.kind != AseKind::Open) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE %1 on line %2 has no block.").arg(tokenString(keyword)).arg(keyword.line));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE %1 on line %2 has no block.").arg(tokenString(keyword)).arg(keyword.line));
 		}
 		return true;
 	}
@@ -380,9 +380,9 @@ private:
 	bool unbalanced(int openLine)
 	{
 		if (m_lexer.unterminatedLine() > 0) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE text has an unterminated quoted string on line %1.").arg(m_lexer.unterminatedLine()));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE text has an unterminated quoted string on line %1.").arg(m_lexer.unterminatedLine()));
 		}
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE text ends inside the block opened on line %1; its braces are unbalanced.").arg(openLine));
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE text ends inside the block opened on line %1; its braces are unbalanced.").arg(openLine));
 	}
 
 	// A keyword this decoder does not use: its line, and its block when one follows.
@@ -402,7 +402,7 @@ private:
 	bool parseBody(int depth, int openLine, Handler handler)
 	{
 		if (depth > kMaxAseDepth) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE blocks are nested more than %1 deep.").arg(kMaxAseDepth));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE blocks are nested more than %1 deep.").arg(kMaxAseDepth));
 		}
 		while (true) {
 			if (!m_work.step()) { return false; }
@@ -445,7 +445,7 @@ private:
 				return skipStatement(token);
 			}
 			if (materials.size() >= kMaxSurfaces) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE material list holds more materials than can be decoded."));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE material list holds more materials than can be decoded."));
 			}
 			if (!openBlock(token)) { return false; }
 			AseMaterial material;
@@ -479,7 +479,7 @@ private:
 				if (!openBlock(token)) { return false; }
 				if (!parseSubMaterial(&sub, material, depth + 1, token.line)) { return false; }
 				if (material->subs.size() >= kMaxSkins) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "An ASE material holds more sub-materials than can be decoded."));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "An ASE material holds more sub-materials than can be decoded."));
 				}
 				material->subs.append(sub);
 				return true;
@@ -555,7 +555,7 @@ private:
 	bool parseGeomObject(int depth, int openLine)
 	{
 		if (objects.size() >= kMaxSurfaces) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE file holds more objects than can be decoded."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE file holds more objects than can be decoded."));
 		}
 		AseObject object;
 		object.line = openLine;
@@ -627,7 +627,7 @@ private:
 			return false;
 		}
 		if (*value < 0 || *value > limit) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE %1 on line %2 declares %3, outside the supported range.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE %1 on line %2 declares %3, outside the supported range.")
 				.arg(tokenString(token)).arg(token.line).arg(*value));
 		}
 		return true;
@@ -649,7 +649,7 @@ private:
 				if (!count(token, kMaxSurfaceTriangles, &data->numTVFaces)) { return false; }
 				if (data->numTVFaces != data->numFaces) {
 					// ASE_KeyMESH: "MESH_NUMTVFACES != MESH_NUMFACES" is an error in Doom 3.
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE mesh on line %1 declares %2 texture faces for %3 faces.")
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE mesh on line %1 declares %2 texture faces for %3 faces.")
 						.arg(token.line).arg(data->numTVFaces).arg(data->numFaces));
 				}
 				return true;
@@ -662,7 +662,7 @@ private:
 					const QVector<AseToken> args = lineArgs(entry.line);
 					if (!argCount(args, 4, entry)) { return false; }
 					if (data->vertices.size() >= data->numVertices) {
-						return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE vertex list on line %1 holds more vertices than MESH_NUMVERTEX declares.").arg(entry.line));
+						return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE vertex list on line %1 holds more vertices than MESH_NUMVERTEX declares.").arg(entry.line));
 					}
 					double xyz[3] = {0.0, 0.0, 0.0};
 					for (int axis = 0; axis < 3; ++axis) {
@@ -689,7 +689,7 @@ private:
 					const QVector<AseToken> args = lineArgs(entry.line);
 					if (!argCount(args, 3, entry)) { return false; }
 					if (data->tverts.size() >= data->numTVertices) {
-						return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE texture vertex list on line %1 holds more entries than MESH_NUMTVERTEX declares.").arg(entry.line));
+						return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE texture vertex list on line %1 holds more entries than MESH_NUMTVERTEX declares.").arg(entry.line));
 					}
 					AseTVert tvert;
 					if (!number(args.at(1), &tvert.u) || !number(args.at(2), &tvert.v)) { return false; }
@@ -705,7 +705,7 @@ private:
 					const QVector<AseToken> args = lineArgs(entry.line);
 					if (!argCount(args, 4, entry)) { return false; }
 					if (data->tfaces.size() >= data->numTVFaces) {
-						return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE texture face list on line %1 holds more entries than MESH_NUMTVFACES declares.").arg(entry.line));
+						return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE texture face list on line %1 holds more entries than MESH_NUMTVFACES declares.").arg(entry.line));
 					}
 					std::array<int, 3> corners{};
 					for (int corner = 0; corner < 3; ++corner) {
@@ -735,16 +735,16 @@ private:
 					}
 					if (faceNormal) {
 						if (index < 0 || index >= kMaxSurfaceTriangles) {
-							return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE face normal on line %1 names face %2, outside the supported range.").arg(entry.line).arg(index));
+							return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE face normal on line %1 names face %2, outside the supported range.").arg(entry.line).arg(index));
 						}
 						currentFace = int(index);
 						return true;
 					}
 					if (currentFace < 0) {
-						return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE vertex normal on line %1 comes before any face normal.").arg(entry.line));
+						return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE vertex normal on line %1 comes before any face normal.").arg(entry.line));
 					}
 					if (data->vertexNormals.size() >= 3LL * kMaxSurfaceTriangles) {
-						return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE mesh holds more vertex normals than can be decoded."));
+						return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE mesh holds more vertex normals than can be decoded."));
 					}
 					AseVertexNormal record;
 					record.face = currentFace;
@@ -764,7 +764,7 @@ private:
 	{
 		const QVector<AseToken> args = lineArgs(entry.line);
 		if (data->faces.size() >= data->numFaces) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE face list on line %1 holds more faces than MESH_NUMFACES declares.").arg(entry.line));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE face list on line %1 holds more faces than MESH_NUMFACES declares.").arg(entry.line));
 		}
 		AseFace face;
 		int found = 0;
@@ -799,7 +799,7 @@ private:
 			}
 		}
 		if (found != 7) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The ASE face on line %1 does not name its A, B and C corners.").arg(entry.line));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The ASE face on line %1 does not name its A, B and C corners.").arg(entry.line));
 		}
 		data->faces.append(face);
 		return true;
@@ -995,26 +995,26 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 	const AseMeshData& data = object.mesh;
 	const QString objectName = object.name.isEmpty() ? QStringLiteral("object%1").arg(objectIndex) : object.name;
 	if (data.vertices.size() != data.numVertices) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "ASE object %1 lists %2 of its %3 vertices.").arg(objectName).arg(data.vertices.size()).arg(data.numVertices);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "ASE object %1 lists %2 of its %3 vertices.").arg(objectName).arg(data.vertices.size()).arg(data.numVertices);
 		return false;
 	}
 	if (data.faces.size() != data.numFaces) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "ASE object %1 lists %2 of its %3 faces.").arg(objectName).arg(data.faces.size()).arg(data.numFaces);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "ASE object %1 lists %2 of its %3 faces.").arg(objectName).arg(data.faces.size()).arg(data.numFaces);
 		return false;
 	}
 	if (data.sawTVertList && data.tverts.size() != data.numTVertices) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "ASE object %1 lists %2 of its %3 texture vertices.").arg(objectName).arg(data.tverts.size()).arg(data.numTVertices);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "ASE object %1 lists %2 of its %3 texture vertices.").arg(objectName).arg(data.tverts.size()).arg(data.numTVertices);
 		return false;
 	}
 	// ConvertASEToModelSurfaces: texture coordinates are used only when every
 	// face has a texture face and there are texture vertices.
 	const bool useUvs = data.numFaces > 0 && data.numTVFaces == data.numFaces && data.numTVertices != 0;
 	if (useUvs && data.tfaces.size() != data.numTVFaces) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "ASE object %1 lists %2 of its %3 texture faces.").arg(objectName).arg(data.tfaces.size()).arg(data.numTVFaces);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "ASE object %1 lists %2 of its %3 texture faces.").arg(objectName).arg(data.tfaces.size()).arg(data.numTVFaces);
 		return false;
 	}
 	if (useUvs && data.tverts.size() != data.numTVertices) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "ASE object %1 lists %2 of its %3 texture vertices.").arg(objectName).arg(data.tverts.size()).arg(data.numTVertices);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "ASE object %1 lists %2 of its %3 texture vertices.").arg(objectName).arg(data.tverts.size()).arg(data.numTVertices);
 		return false;
 	}
 	for (int face = 0; face < data.faces.size(); ++face) {
@@ -1022,14 +1022,14 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 		for (int corner = 0; corner < 3; ++corner) {
 			const int vertex = data.faces.at(face).v.at(corner);
 			if (vertex < 0 || vertex >= data.vertices.size()) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Face %1 of ASE object %2 refers to vertex %3, beyond its %4 vertices.")
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Face %1 of ASE object %2 refers to vertex %3, beyond its %4 vertices.")
 					.arg(face).arg(objectName).arg(vertex).arg(data.vertices.size());
 				return false;
 			}
 			if (useUvs) {
 				const int tvertex = data.tfaces.at(face).at(corner);
 				if (tvertex < 0 || tvertex >= data.tverts.size()) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Face %1 of ASE object %2 refers to texture vertex %3, beyond its %4 texture vertices.")
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Face %1 of ASE object %2 refers to texture vertex %3, beyond its %4 texture vertices.")
 						.arg(face).arg(objectName).arg(tvertex).arg(data.tverts.size());
 					return false;
 				}
@@ -1046,7 +1046,7 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 		for (const AseVertexNormal& record : data.vertexNormals) {
 			if (!work.step()) { return false; }
 			if (record.face >= data.faces.size()) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The ASE normal on line %1 names face %2, beyond the %3 faces of object %4.")
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The ASE normal on line %1 names face %2, beyond the %3 faces of object %4.")
 					.arg(record.line).arg(record.face).arg(data.faces.size()).arg(objectName);
 				return false;
 			}
@@ -1056,7 +1056,7 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 				++corner;
 			}
 			if (corner == 3) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The ASE normal on line %1 is for vertex %2, which face %3 of object %4 does not use.")
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The ASE normal on line %1 is for vertex %2, which face %3 of object %4 does not use.")
 					.arg(record.line).arg(record.vertex).arg(record.face).arg(objectName);
 				return false;
 			}
@@ -1079,7 +1079,7 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 	const AseMaterial* material = nullptr;
 	if (!parser.materials.isEmpty()) {
 		if (object.materialRef < 0 || object.materialRef >= parser.materials.size()) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "ASE object %1 refers to material %2, beyond the %3 material(s).")
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "ASE object %1 refers to material %2, beyond the %3 material(s).")
 				.arg(objectName).arg(object.materialRef).arg(parser.materials.size());
 			return false;
 		}
@@ -1126,7 +1126,7 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 		auto found = buildForSub.constFind(sub);
 		if (found == buildForSub.constEnd()) {
 			if (mesh->surfaces.size() + builds.size() >= kMaxSurfaces) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The ASE file has more surfaces than can be decoded.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The ASE file has more surfaces than can be decoded.");
 				return false;
 			}
 			AseSurfaceBuild build;
@@ -1162,7 +1162,7 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 			}
 			if (chosen < 0) {
 				if (surface.vertexCount >= kMaxSurfaceVertices || *totalVertices >= kMaxVertexSlots) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The ASE file has more vertices than can be decoded.");
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The ASE file has more vertices than can be decoded.");
 					return false;
 				}
 				chosen = surface.vertexCount++;
@@ -1195,37 +1195,37 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 			corners[corner] = chosen;
 		}
 		if (surface.triangles.size() >= kMaxSurfaceTriangles) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The ASE file has more triangles than can be decoded.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The ASE file has more triangles than can be decoded.");
 			return false;
 		}
 		// 3ds Max's A B C is already counter-clockwise from the front.
 		surface.triangles.append(ModelTriangle{corners[0], corners[1], corners[2]});
 	}
 	if (degenerate > 0) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-degenerate-faces"), QCoreApplication::translate("VibeStudioModelMesh", "%1 degenerate face(s) of ASE object %2 were skipped.").arg(degenerate).arg(objectName));
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-degenerate-faces"), QCoreApplication::translate("SlopStudioModelMesh", "%1 degenerate face(s) of ASE object %2 were skipped.").arg(degenerate).arg(objectName));
 	}
 	if (object.extraMeshes > 0) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "ASE object %1 carries %2 animation mesh sample(s); only its first mesh is decoded, as Doom 3 draws it.")
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "ASE object %1 carries %2 animation mesh sample(s); only its first mesh is decoded, as Doom 3 draws it.")
 			.arg(objectName).arg(object.extraMeshes);
 	}
 	if (material && !material->subs.isEmpty()) {
 		const Doom3BitmapName whole = doom3MaterialFromBitmap(material->doom3Bitmap);
 		if (material->doom3HasBitmap && !whole.material.isEmpty()) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-multi-material"), QCoreApplication::translate("VibeStudioModelMesh",
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-multi-material"), QCoreApplication::translate("SlopStudioModelMesh",
 				"ASE object %1 uses the multi-material %2: Doom 3 draws the whole object with %3, the last diffuse bitmap in that material, while q3map2 splits it by sub-material as shown here.")
 				.arg(objectName, material->name, whole.material));
 		} else {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-multi-material"), QCoreApplication::translate("VibeStudioModelMesh",
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-multi-material"), QCoreApplication::translate("SlopStudioModelMesh",
 				"ASE object %1 uses the multi-material %2: Doom 3 draws the whole object with its default material, while q3map2 splits it by sub-material as shown here.")
 				.arg(objectName, material->name));
 		}
 		if (material->nestedSubs > 0) {
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Material %1 nests %2 sub-material(s) below its first level; they are not split out.")
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Material %1 nests %2 sub-material(s) below its first level; they are not split out.")
 				.arg(material->name).arg(material->nestedSubs);
 		}
 	}
 	if (material && !uvw.isIdentity()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Material %1 offsets, tiles or turns its UVs; Doom 3 applies this as shown, q3map2 does not.")
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Material %1 offsets, tiles or turns its UVs; Doom 3 applies this as shown, q3map2 does not.")
 			.arg(material->name);
 	}
 
@@ -1267,17 +1267,17 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 			const Doom3BitmapName doom3 = doom3MaterialFromBitmap(bitmap);
 			skin = doom3.material;
 			if (doom3.cutAtSpace) {
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-bitmap-space"), QCoreApplication::translate("VibeStudioModelMesh", "The bitmap path %1 contains a space; Doom 3 reads it only up to the space, as %2.")
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-bitmap-space"), QCoreApplication::translate("SlopStudioModelMesh", "The bitmap path %1 contains a space; Doom 3 reads it only up to the space, as %2.")
 					.arg(bitmap, skin));
 			}
 			if (!doom3.resolved) {
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-bitmap-no-base"), QCoreApplication::translate("VibeStudioModelMesh",
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-bitmap-no-base"), QCoreApplication::translate("SlopStudioModelMesh",
 					"The bitmap path %1 has no base folder, so Doom 3 cannot name a material from it and draws surface %2 with its default material.")
 					.arg(bitmap, surface.name));
 			}
 		} else if (material) {
 			skin = canonicalMaterialName(materialName);
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-no-diffuse"), QCoreApplication::translate("VibeStudioModelMesh", "Material %1 has no diffuse bitmap; Doom 3 draws surface %2 with its default material.")
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-no-diffuse"), QCoreApplication::translate("SlopStudioModelMesh", "Material %1 has no diffuse bitmap; Doom 3 draws surface %2 with its default material.")
 				.arg(materialName, surface.name));
 		}
 		if (!skin.isEmpty()) {
@@ -1287,7 +1287,7 @@ bool buildObject(const AseParser& parser, const AseObject& object, int objectInd
 			}
 			const QString q3map2 = q3map2ShaderName(materialName, (hasBitmap && bitmap.compare(QStringLiteral("none"), Qt::CaseInsensitive) != 0) ? bitmap : QString(), modelDirectory);
 			if (q3map2 != skin) {
-				mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "q3map2 reads surface %1 as shader %2.").arg(surface.name, q3map2);
+				mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "q3map2 reads surface %1 as shader %2.").arg(surface.name, q3map2);
 			}
 		}
 		mesh->surfaces.append(surface);
@@ -1302,21 +1302,21 @@ void decodeAse(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, &mesh->error);
 	if (!work.check()) { return; }
 	if (bytes.size() > kMaxTextBytes) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The ASE file is larger than the %1 MiB text limit.").arg(kMaxTextBytes / (1024 * 1024));
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The ASE file is larger than the %1 MiB text limit.").arg(kMaxTextBytes / (1024 * 1024));
 		return;
 	}
 	AseParser parser(bytes, mesh, work);
 	if (!parser.parse()) {
 		if (mesh->error.isEmpty()) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The ASE file could not be read.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The ASE file could not be read.");
 		}
 		return;
 	}
 	mesh->version = parser.version;
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "ASE objects: %1").arg(parser.objects.size());
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "ASE materials: %1").arg(parser.materials.size());
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "ASE objects: %1").arg(parser.objects.size());
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "ASE materials: %1").arg(parser.materials.size());
 	if (parser.materials.isEmpty()) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-no-materials"), QCoreApplication::translate("VibeStudioModelMesh", "The ASE file has no materials; Doom 3 draws it with its default material."));
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ase-no-materials"), QCoreApplication::translate("SlopStudioModelMesh", "The ASE file has no materials; Doom 3 draws it with its default material."));
 	}
 	const QString modelDirectory = pathDirectory(path);
 	QSet<QString> usedNames;
@@ -1334,10 +1334,10 @@ void decodeAse(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 		}
 	}
 	if (emptyObjects > 0) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "%1 ASE object(s) have no faces.").arg(emptyObjects);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "%1 ASE object(s) have no faces.").arg(emptyObjects);
 	}
 	if (mesh->surfaces.isEmpty()) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The ASE file holds no faces that can be drawn.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The ASE file holds no faces that can be drawn.");
 		return;
 	}
 	fillStaticFrame(mesh);
@@ -1406,7 +1406,7 @@ QByteArray exportModelAse(const ModelMesh& mesh, int frameIndex, QString* error,
 		}
 	}
 	if (frameIndex < 0 || frameIndex >= frameCount) {
-		return failWith(QCoreApplication::translate("VibeStudioModelMesh", "The model has no frame %1 to export.").arg(frameIndex));
+		return failWith(QCoreApplication::translate("SlopStudioModelMesh", "The model has no frame %1 to export.").arg(frameIndex));
 	}
 	QVector<const ModelSurface*> surfaces;
 	QStringList skipped;
@@ -1419,10 +1419,10 @@ QByteArray exportModelAse(const ModelMesh& mesh, int frameIndex, QString* error,
 		surfaces.append(&surface);
 	}
 	if (surfaces.isEmpty()) {
-		return failWith(QCoreApplication::translate("VibeStudioModelMesh", "Frame %1 has no geometry to export as ASE.").arg(frameIndex));
+		return failWith(QCoreApplication::translate("SlopStudioModelMesh", "Frame %1 has no geometry to export as ASE.").arg(frameIndex));
 	}
 	if (surfaces.size() > model_formats::kMaxSurfaces) {
-		return failWith(QCoreApplication::translate("VibeStudioModelMesh", "The model has more surfaces than an ASE export supports."));
+		return failWith(QCoreApplication::translate("SlopStudioModelMesh", "The model has more surfaces than an ASE export supports."));
 	}
 
 	QStringList nodeNames;
@@ -1457,7 +1457,7 @@ QByteArray exportModelAse(const ModelMesh& mesh, int frameIndex, QString* error,
 	out.reserve(4096);
 	const QLatin1Char newline('\n');
 	out += QStringLiteral("*3DSMAX_ASCIIEXPORT\t200") + newline;
-	out += QStringLiteral("*COMMENT \"VibeStudio ASCII scene export\"") + newline;
+	out += QStringLiteral("*COMMENT \"SlopStudio ASCII scene export\"") + newline;
 	out += QStringLiteral("*SCENE {") + newline;
 	out += QStringLiteral("\t*SCENE_FIRSTFRAME 0") + newline;
 	out += QStringLiteral("\t*SCENE_LASTFRAME 0") + newline;
@@ -1532,7 +1532,7 @@ QByteArray exportModelAse(const ModelMesh& mesh, int frameIndex, QString* error,
 			if (!work.step()) { return {}; }
 			const ModelVec3& p = geometry.positions.at(vertex);
 			if (!finiteVec(p)) {
-				return failWith(QCoreApplication::translate("VibeStudioModelMesh", "Surface %1 has a position that is not finite.").arg(surface.name));
+				return failWith(QCoreApplication::translate("SlopStudioModelMesh", "Surface %1 has a position that is not finite.").arg(surface.name));
 			}
 			out += QStringLiteral("\t\t\t*MESH_VERTEX %1\t%2\t%3\t%4").arg(vertex).arg(floatText(p.x), floatText(p.y), floatText(p.z)) + newline;
 		}
@@ -1542,7 +1542,7 @@ QByteArray exportModelAse(const ModelMesh& mesh, int frameIndex, QString* error,
 			if (!work.step()) { return {}; }
 			const ModelTriangle& t = surface.triangles.at(face);
 			if (t.a < 0 || t.b < 0 || t.c < 0 || t.a >= surface.vertexCount || t.b >= surface.vertexCount || t.c >= surface.vertexCount) {
-				return failWith(QCoreApplication::translate("VibeStudioModelMesh", "Surface %1 has a triangle index outside its vertices.").arg(surface.name));
+				return failWith(QCoreApplication::translate("SlopStudioModelMesh", "Surface %1 has a triangle index outside its vertices.").arg(surface.name));
 			}
 			// The studio's counter-clockwise a b c is 3ds Max's A B C.
 			out += QStringLiteral("\t\t\t*MESH_FACE %1:\tA: %2\tB: %3\tC: %4\tAB: 1\tBC: 1\tCA: 1\t*MESH_SMOOTHING 1\t*MESH_MTLID 0")
@@ -1555,7 +1555,7 @@ QByteArray exportModelAse(const ModelMesh& mesh, int frameIndex, QString* error,
 			if (!work.step()) { return {}; }
 			const ModelTexCoord& uv = surface.texCoords.at(vertex);
 			if (!std::isfinite(uv.u) || !std::isfinite(uv.v)) {
-				return failWith(QCoreApplication::translate("VibeStudioModelMesh", "Surface %1 has a texture coordinate that is not finite.").arg(surface.name));
+				return failWith(QCoreApplication::translate("SlopStudioModelMesh", "Surface %1 has a texture coordinate that is not finite.").arg(surface.name));
 			}
 			out += QStringLiteral("\t\t\t*MESH_TVERT %1\t%2\t%3\t0").arg(vertex).arg(floatText(uv.u), tvertVText(uv.v)) + newline;
 		}
@@ -1599,7 +1599,7 @@ QByteArray exportModelAse(const ModelMesh& mesh, int frameIndex, QString* error,
 	if (report) {
 		ModelExportReport result;
 		if (!skipped.isEmpty()) {
-			const QString note = QCoreApplication::translate("VibeStudioModelMesh",
+			const QString note = QCoreApplication::translate("SlopStudioModelMesh",
 				"Surfaces not written because frame %1 holds no drawable faces or complete geometry for them (%n): %2.", nullptr,
 				int(skipped.size()))
 									 .arg(QString::number(frameIndex), skipped.join(QStringLiteral(", ")));
@@ -1607,7 +1607,7 @@ QByteArray exportModelAse(const ModelMesh& mesh, int frameIndex, QString* error,
 			result.omissions << note;
 		}
 		if (!unnamed.isEmpty()) {
-			result.notes << QCoreApplication::translate("VibeStudioModelMesh",
+			result.notes << QCoreApplication::translate("SlopStudioModelMesh",
 				"Surfaces without a material take their own name as the ASE material (%n): %1. Assign materials before shipping the model.",
 				nullptr, int(unnamed.size()))
 								.arg(unnamed.join(QStringLiteral(", ")));
@@ -1617,4 +1617,4 @@ QByteArray exportModelAse(const ModelMesh& mesh, int frameIndex, QString* error,
 	return out.toUtf8();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

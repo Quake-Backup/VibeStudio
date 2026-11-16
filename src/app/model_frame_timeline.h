@@ -6,7 +6,7 @@
 
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 // The Mesh Editor's frame timeline beside the transport's frame list: frame
 // ticks, clip range bars (overlapping clips stack in lanes), animation event
@@ -68,4 +68,4 @@ class ModelFrameTimeline final : public QAbstractSlider
 	bool m_dragging = false, m_extending = false, m_highContrast = false;
 	std::function<void(int, int)> m_rangeChanged;
 };
-} // namespace vibestudio
+} // namespace slopstudio

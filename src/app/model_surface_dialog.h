@@ -10,7 +10,7 @@ class QLineEdit;
 class QPushButton;
 class QTreeWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelSurfaceDialog final : public QDialog
 {
@@ -34,4 +34,4 @@ class ModelSurfaceDialog final : public QDialog
 	void refresh(bool operationChanged = false);
 	void sizeColumns();
 };
-} // namespace vibestudio
+} // namespace slopstudio

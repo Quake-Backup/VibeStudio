@@ -8,7 +8,7 @@
 #include <cmath>
 #include <cstring>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -82,7 +82,7 @@ bool decodeModelMdlSkin(const QString &path, const QByteArray &bytes, const IdTe
 	if (!skin || bytes.isEmpty() || bytes.size() > modelFileByteLimit || !fallbackPalette.isValid())
 	{
 		return fail(
-			error, QCoreApplication::translate("VibeStudioModelMdl", "Choose a complete indexed skin image and a valid fallback palette."));
+			error, QCoreApplication::translate("SlopStudioModelMdl", "Choose a complete indexed skin image and a valid fallback palette."));
 	}
 	if (!modelWorkCheckpoint(control, ModelWorkPhase::Reading, 0, 0, error))
 	{
@@ -94,7 +94,7 @@ bool decodeModelMdlSkin(const QString &path, const QByteArray &bytes, const IdTe
 		format != IdTechImageFormat::QuakeMipTexture && format != IdTechImageFormat::Quake2Wal && format != IdTechImageFormat::Quake2M8)
 	{
 		return fail(error, QCoreApplication::translate(
-							   "VibeStudioModelMdl",
+							   "SlopStudioModelMdl",
 							   "MDL skin import supports indexed PNG, single-plane PCX, Quake LMP/miptextures, WAL or M8 images."));
 	}
 	IdTechImageDecodeContext context;
@@ -119,7 +119,7 @@ bool decodeModelMdlSkin(const QString &path, const QByteArray &bytes, const IdTe
 	if (image.format() != QImage::Format_Indexed8 || image.colorCount() != 256)
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelMdl", "The skin needs 8-bit indexed pixels and all 256 palette entries. "
+					QCoreApplication::translate("SlopStudioModelMdl", "The skin needs 8-bit indexed pixels and all 256 palette entries. "
 																	  "Convert it explicitly in the texture workflow before import."));
 	}
 	ModelMdlSkinInput result;
@@ -134,7 +134,7 @@ bool decodeModelMdlSkin(const QString &path, const QByteArray &bytes, const IdTe
 		if (qAlpha(color) != 255)
 		{
 			return fail(error, QCoreApplication::translate(
-								   "VibeStudioModelMdl",
+								   "SlopStudioModelMdl",
 								   "Original Quake MDL skins are opaque. Remove palette transparency explicitly before import."));
 		}
 		result.palette[i * 3] = char(qRed(color));
@@ -183,27 +183,27 @@ bool applyModelMdlEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 {
 	if (!mesh || !isModelMdlEdit(edit.kind))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelMdl", "Choose a valid MDL editing operation."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelMdl", "Choose a valid MDL editing operation."));
 	}
 	const bool add = edit.kind == ModelEditKind::AddMdlSkin;
 	const bool imageEdit = add || edit.kind == ModelEditKind::ReplaceMdlSkinMember || edit.kind == ModelEditKind::AppendMdlSkinMember;
 	if (!mesh->mdl.enabled && !add)
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelMdl", "Add an indexed MDL skin before editing native model settings."));
+					QCoreApplication::translate("SlopStudioModelMdl", "Add an indexed MDL skin before editing native model settings."));
 	}
 	const bool timed = edit.kind == ModelEditKind::AppendMdlSkinMember || edit.kind == ModelEditKind::SetMdlSkinDuration ||
 					   edit.kind == ModelEditKind::GroupMdlFrames || edit.kind == ModelEditKind::SetMdlFrameDuration;
 	if (timed && !durationValid(edit.mdlDuration))
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelMdl", "Native member duration must be from 0.000001 to 3600 seconds."));
+					QCoreApplication::translate("SlopStudioModelMdl", "Native member duration must be from 0.000001 to 3600 seconds."));
 	}
 	if (imageEdit)
 	{
 		if (!inputValid(edit.mdlSkin))
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelMdl",
+			return fail(error, QCoreApplication::translate("SlopStudioModelMdl",
 														   "The indexed skin payload, dimensions or palette are incomplete."));
 		}
 		if (!mesh->mdl.enabled)
@@ -212,7 +212,7 @@ bool applyModelMdlEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 			{
 				return fail(
 					error, QCoreApplication::translate(
-							   "VibeStudioModelMdl", "Existing non-indexed embedded skins need explicit conversion before MDL authoring."));
+							   "SlopStudioModelMdl", "Existing non-indexed embedded skins need explicit conversion before MDL authoring."));
 			}
 			mesh->mdl = {};
 			mesh->mdl.enabled = true;
@@ -229,7 +229,7 @@ bool applyModelMdlEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 		}
 		if (mesh->mdl.skinSize != edit.mdlSkin.size || mesh->mdl.palette != edit.mdlSkin.palette)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelMdl",
+			return fail(error, QCoreApplication::translate("SlopStudioModelMdl",
 														   "Every MDL skin member must share the model dimensions and "
 														   "palette. Resize or convert the image explicitly before import."));
 		}
@@ -246,7 +246,7 @@ bool applyModelMdlEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 		if (pixels > modelMdlMaxSkinPixels || (add && mesh->embeddedSkins.size() >= 256))
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelMdl",
+						QCoreApplication::translate("SlopStudioModelMdl",
 													"MDL source skins are limited to 256 slots and 16 megapixels across all members."));
 		}
 	}
@@ -271,7 +271,7 @@ bool applyModelMdlEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 	{
 		if (edit.mdlSettings.palette.size() != 768)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelMdl",
+			return fail(error, QCoreApplication::translate("SlopStudioModelMdl",
 														   "A model palette needs exactly 768 RGB bytes. Skin indices are preserved."));
 		}
 		mesh->mdl.palette = edit.mdlSettings.palette;
@@ -290,7 +290,7 @@ bool applyModelMdlEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 		if (edit.rangeFirst < 0 || edit.rangeLast < edit.rangeFirst || edit.rangeLast >= mesh->frames.size())
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelMdl", "Choose a valid inclusive pose range for native MDL frames."));
+						QCoreApplication::translate("SlopStudioModelMdl", "Choose a valid inclusive pose range for native MDL frames."));
 		}
 		QVector<ModelMdlFrameGroup> groups;
 		const int end = edit.rangeLast + 1;
@@ -338,7 +338,7 @@ bool applyModelMdlEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 	{
 		if (edit.frame < 0 || edit.frame >= mesh->frames.size())
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelMdl", "Choose a valid pose for native group timing."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelMdl", "Choose a valid pose for native group timing."));
 		}
 		for (auto &group : mesh->mdl.frameGroups)
 		{
@@ -361,7 +361,7 @@ bool applyModelMdlEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 	{
 		if (edit.mdlSkinSlot < 0 || edit.mdlSkinSlot >= mesh->embeddedSkins.size())
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelMdl", "Choose an existing MDL skin slot."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelMdl", "Choose an existing MDL skin slot."));
 		}
 		auto &skin = mesh->embeddedSkins[edit.mdlSkinSlot];
 		if (edit.kind == ModelEditKind::RemoveMdlSkin)
@@ -372,7 +372,7 @@ bool applyModelMdlEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 		{
 			if (skin.indexedFrames.size() >= modelMdlMaxSkinMembers)
 			{
-				return fail(error, QCoreApplication::translate("VibeStudioModelMdl", "An MDL skin group supports at most 256 members."));
+				return fail(error, QCoreApplication::translate("SlopStudioModelMdl", "An MDL skin group supports at most 256 members."));
 			}
 			if (skin.intervals.isEmpty())
 			{
@@ -386,7 +386,7 @@ bool applyModelMdlEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 		{
 			if (edit.mdlSkinMember < 0 || edit.mdlSkinMember >= skin.indexedFrames.size())
 			{
-				return fail(error, QCoreApplication::translate("VibeStudioModelMdl", "Choose an existing MDL skin member."));
+				return fail(error, QCoreApplication::translate("SlopStudioModelMdl", "Choose an existing MDL skin member."));
 			}
 			if (edit.kind == ModelEditKind::ReplaceMdlSkinMember)
 			{
@@ -396,7 +396,7 @@ bool applyModelMdlEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 			{
 				if (skin.indexedFrames.size() == 1)
 				{
-					return fail(error, QCoreApplication::translate("VibeStudioModelMdl",
+					return fail(error, QCoreApplication::translate("SlopStudioModelMdl",
 																   "Use Remove Skin to delete the last member of a skin slot."));
 				}
 				setDuration(&skin.intervals, edit.mdlSkinMember, 0);
@@ -427,4 +427,4 @@ bool applyModelMdlEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 	}
 	return modelWorkCheckpoint(control, ModelWorkPhase::Editing, 1, 1, error);
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,6 +1,6 @@
-# VibeStudio Agent Rules
+# SlopStudio Agent Rules
 
-These rules guide automated and human contributors working on VibeStudio.
+These rules guide automated and human contributors working on SlopStudio.
 Keep them aligned with `README.md`, `docs/ARCHITECTURE.md`, and the current
 credits list.
 
@@ -11,7 +11,7 @@ credits list.
 - Treat `docs/STACK.md` as the stack decision record; update it whenever major dependencies, rendering strategy, AI integration strategy, or CLI architecture changes.
 - Preserve cross-platform support for Windows, macOS, and Linux.
 - Maintain a documented CLI for diagnostics, automation, compiler orchestration, and package operations.
-- Treat VibeStudio as an integrated development environment for idTech1, idTech2, and idTech3 games first.
+- Treat SlopStudio as an integrated development environment for idTech1, idTech2, and idTech3 games first.
 - Treat accessibility, localization, and first-run setup as product requirements, not optional polish.
 
 ## Product Direction
@@ -20,7 +20,7 @@ credits list.
 - Borrow workflow lessons from modern idStudio-style production tooling while staying appropriate for Quake, Doom, and Quake III-era assets.
 - Treat editor adaptability as a core feature: the level editor must support interaction/layout profiles inspired by GtkRadiant 1.6.0, NetRadiant Custom, TrenchBroom, and QuArK so users can work from familiar controls.
 - Treat efficiency as a core product feature: streamline setup, editing, compiling, packaging, validation, and launch/testing so common development loops are as quick and easy as possible.
-- Make VibeStudio accessible by design: high-visibility themes, scalable text/UI, keyboard navigation, screen-reader metadata, OS-backed TTS, reduced motion, and non-color-only status.
+- Make SlopStudio accessible by design: high-visibility themes, scalable text/UI, keyboard navigation, screen-reader metadata, OS-backed TTS, reduced motion, and non-color-only status.
 - Localize from the start. Keep UI strings translatable, support right-to-left layouts, preserve room for translated text, and target the initial language set in `docs/ACCESSIBILITY_LOCALIZATION.md`.
 - Provide a full modern first-run setup flow so users can tailor language, accessibility, theme, editor profile, game installs, projects, compilers, AI connectors, CLI, and automation preferences.
 - Embrace the AI era through optional, transparent, provider-neutral generative and agentic AI workflows. Plan for connectors such as OpenAI, Claude, Gemini, ElevenLabs, Meshy, local/offline models, and custom integrations, but never make cloud AI mandatory for core editing, building, packaging, validation, CLI use, or launching.
@@ -33,13 +33,13 @@ credits list.
 
 ## Architecture And Code Practices
 - Keep core parsing, package management, game detection, compiler orchestration, and UI code modular.
-- Prefer moving PakFu-derived reusable logic into clear VibeStudio modules instead of copy-pasting large opaque blocks.
+- Prefer moving PakFu-derived reusable logic into clear SlopStudio modules instead of copy-pasting large opaque blocks.
 - Keep heavy file, preview, compiler, and asset indexing work asynchronous so the UI stays responsive.
 - Keep editor interaction profiles data-driven where practical: keybinds, mouse gestures, camera movement, panel layout, grid behavior, selection behavior, and terminology should be configurable without forking editor logic.
 - All custom widgets must expose accessible names, roles, descriptions, focus behavior, and state changes where applicable.
 - New UI must be tested against scaling, high-visibility themes, keyboard-only navigation, and translation expansion expectations.
 - User-visible strings must be localizable; avoid hard-coded English in UI code except stable technical identifiers.
-- AI integrations must be opt-in, connector-neutral where practical, redact sensitive paths/secrets where possible, show proposed actions before applying changes, and route all file/package/compiler operations through normal VibeStudio services.
+- AI integrations must be opt-in, connector-neutral where practical, redact sensitive paths/secrets where possible, show proposed actions before applying changes, and route all file/package/compiler operations through normal SlopStudio services.
 - AI-free mode must remain complete and tested for core workflows.
 - Agentic workflows must expose plan, context, tool calls, staged changes, validation results, cancellation, and final summaries.
 - Avoid OS-specific APIs unless guarded, documented, and covered by a portable fallback.
@@ -50,10 +50,10 @@ credits list.
 - Keep `.editorconfig` formatting: tabs for C/C++ files, spaces for Markdown/YAML/JSON/Meson.
 
 ## Documentation, Branding, And Releases
-- `README.md` is a short landing page: what VibeStudio is, its honest status, install, quick start, CLI quick reference, credits. Keep it short; detail belongs in the manual or the design records.
+- `README.md` is a short landing page: what SlopStudio is, its honest status, install, quick start, CLI quick reference, credits. Keep it short; detail belongs in the manual or the design records.
 - The user manual in `docs/manual/` is the user-facing source of truth. Update it in the same change as user-visible behaviour, keep `docs/manual/manual.json` listing every page, then run `python scripts/generate_offline_guide.py` (never hand-edit `docs/OFFLINE_USER_GUIDE.md`). `python scripts/build_docs_site.py` must build without broken links.
-- State the project's status honestly everywhere: VibeStudio is pre-alpha and largely untested in real projects. Use the status labels Available, Partial and Planned as defined in `docs/BRANDING.md`; never imply production readiness.
-- Follow `docs/BRANDING.md` for the name (VibeStudio, one word), logo use, palette (Vibe Orange `#E8841A` with light greys and white; charcoal for text), Manrope for brand type, the square pixel accent, and the writing style (direct, calm, British spelling, task-first headings, UI labels in bold).
+- State the project's status honestly everywhere: SlopStudio is pre-alpha and largely untested in real projects. Use the status labels Available, Partial and Planned as defined in `docs/BRANDING.md`; never imply production readiness.
+- Follow `docs/BRANDING.md` for the name (SlopStudio, one word), logo use, palette (Slop Orange `#E8841A` with light greys and white; charcoal for text), Manrope for brand type, the square pixel accent, and the writing style (direct, calm, British spelling, task-first headings, UI labels in bold).
 - Brand assets in `assets/branding/` are generated by `scripts/generate_branding.py`; change the script and regenerate rather than editing the files. `--check` runs in CI.
 - `VERSION` holds one Semantic Versioning version; change it with `scripts/version.py`. Every user-visible change adds an entry under `## [Unreleased]` in `CHANGELOG.md` (`scripts/changelog.py add`). Releases follow `docs/RELEASING.md` and `.github/workflows/release.yml`; keep download names in `scripts/release_meta.py`.
 
@@ -62,15 +62,15 @@ credits list.
 - Every borrowed item must be neatly credited with a link to the upstream project, the relevant file or directory when practical, the license, and a revision/tag/date.
 - Preserve upstream license headers and copyright notices.
 - Add nearby source comments when a function or data layout is directly derived from another codebase or public specification.
-- Do not link GPL-incompatible code into VibeStudio. External compiler tools may remain separate executables/submodules until their integration model has a documented license review.
+- Do not link GPL-incompatible code into SlopStudio. External compiler tools may remain separate executables/submodules until their integration model has a documented license review.
 - When using PakFu code, credit [PakFu](https://github.com/themuffinator/PakFu) and name the source module or commit when practical.
 - When using idTech community references, prefer public source/specification links over vague attribution.
 
 ## External Compiler Toolchains
 - Imported compilers live under `external/compilers` as Git submodules unless there is a strong reason to vendor a specific fork.
-- VibeMap2 (derived from ericw-tools) and VibeMap3 (derived from q3map2 in NetRadiant Custom) are VibeStudio's own Quake/Quake II and Quake III compilers, developed in their own repositories and pinned here as submodules. Keep their upstream history and credits, and consider how compiler changes affect VibeStudio's profiles, discovery, diagnostics and tests in the same piece of work.
+- SlopMap2 (derived from ericw-tools) and SlopMap3 (derived from q3map2 in NetRadiant Custom) are SlopStudio's own Quake/Quake II and Quake III compilers, developed in their own repositories and pinned here as submodules. Keep their upstream history and credits, and consider how compiler changes affect SlopStudio's profiles, discovery, diagnostics and tests in the same piece of work.
 - Preserve upstream history for ZDBSP, ZokumBSP, and future compilers.
-- VibeStudio-owned changes to external compilers should be made in explicit forks or patch directories, with upstream links and rationale documented in `docs/COMPILER_INTEGRATION.md`.
+- SlopStudio-owned changes to external compilers should be made in explicit forks or patch directories, with upstream links and rationale documented in `docs/COMPILER_INTEGRATION.md`.
 - The studio should invoke external compilers through a wrapper/orchestration layer with structured logs, progress, inputs, outputs, and reproducible command manifests.
 
 ## Supported Formats And Game Installations

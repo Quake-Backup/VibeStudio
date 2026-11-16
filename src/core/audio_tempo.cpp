@@ -6,7 +6,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -307,4 +307,4 @@ bool parseAudioMusicalPosition(const QString &text, AudioMusicalPosition *positi
 	*position = next;
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

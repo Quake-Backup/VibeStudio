@@ -32,7 +32,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -247,7 +247,7 @@ int main(int argc, char **argv)
 				 "standard widgets expose names, hierarchy roles and keyboard focus");
 	QApplication::processEvents();
 	ok &= expect(tests::settleModelViewport(*viewport), "assembly viewport worker settles");
-	const auto capture = qEnvironmentVariable("VIBESTUDIO_MODELLER_CAPTURE_DIR");
+	const auto capture = qEnvironmentVariable("SLOPSTUDIO_MODELLER_CAPTURE_DIR");
 	if (!capture.isEmpty())
 	{
 		QDir().mkpath(capture);

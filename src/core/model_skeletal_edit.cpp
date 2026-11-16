@@ -13,7 +13,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -858,4 +858,4 @@ bool replaceModelSkeletalSamples(ModelMesh *mesh, int clip, int first, const QVe
 	for (int i=0; i<clips.size(); ++i) identity.append(i);
 	return rebuild(mesh, before, plan, clips, plan, identity, false, error, work);
 }
-} // namespace vibestudio
+} // namespace slopstudio

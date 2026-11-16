@@ -39,7 +39,7 @@
 #include <optional>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -183,43 +183,43 @@ QString objectLabelText(const LevelMapDocument& document, LevelMapSelectionKind 
 		const LevelMapEntity* entity = findById(document.entities, id);
 		const QString className = (entity != nullptr && !entity->className.isEmpty())
 			? entity->className
-			: QCoreApplication::translate("VibeStudioMapViewport", "unnamed");
-		return QCoreApplication::translate("VibeStudioMapViewport", "Entity %1 (%2)").arg(id).arg(className);
+			: QCoreApplication::translate("SlopStudioMapViewport", "unnamed");
+		return QCoreApplication::translate("SlopStudioMapViewport", "Entity %1 (%2)").arg(id).arg(className);
 	}
 	case LevelMapSelectionKind::DoomVertex:
-		return QCoreApplication::translate("VibeStudioMapViewport", "Vertex %1").arg(id);
+		return QCoreApplication::translate("SlopStudioMapViewport", "Vertex %1").arg(id);
 	case LevelMapSelectionKind::DoomLinedef: {
 		const LevelMapDoomLinedef* linedef = findById(document.doomLinedefs, id);
 		if (linedef == nullptr) {
-			return QCoreApplication::translate("VibeStudioMapViewport", "Linedef %1").arg(id);
+			return QCoreApplication::translate("SlopStudioMapViewport", "Linedef %1").arg(id);
 		}
-		return doomLinedefIsTwoSided(*linedef) ? QCoreApplication::translate("VibeStudioMapViewport", "Linedef %1 (two-sided)").arg(id)
-						      : QCoreApplication::translate("VibeStudioMapViewport", "Linedef %1 (one-sided)").arg(id);
+		return doomLinedefIsTwoSided(*linedef) ? QCoreApplication::translate("SlopStudioMapViewport", "Linedef %1 (two-sided)").arg(id)
+						      : QCoreApplication::translate("SlopStudioMapViewport", "Linedef %1 (one-sided)").arg(id);
 	}
 	case LevelMapSelectionKind::DoomThing: {
 		const LevelMapDoomThing* thing = findById(document.doomThings, id);
 		if (thing == nullptr) {
-			return QCoreApplication::translate("VibeStudioMapViewport", "Thing %1").arg(id);
+			return QCoreApplication::translate("SlopStudioMapViewport", "Thing %1").arg(id);
 		}
-		return QCoreApplication::translate("VibeStudioMapViewport", "Thing %1 (type %2, angle %3)").arg(id).arg(thing->type).arg(thing->angle);
+		return QCoreApplication::translate("SlopStudioMapViewport", "Thing %1 (type %2, angle %3)").arg(id).arg(thing->type).arg(thing->angle);
 	}
 	case LevelMapSelectionKind::DoomSector: {
 		const LevelMapDoomSector* sector = findById(document.doomSectors, id);
 		if (sector == nullptr) {
-			return QCoreApplication::translate("VibeStudioMapViewport", "Sector %1").arg(id);
+			return QCoreApplication::translate("SlopStudioMapViewport", "Sector %1").arg(id);
 		}
-		return QCoreApplication::translate("VibeStudioMapViewport", "Sector %1 (light %2, floor %3, ceiling %4)")
+		return QCoreApplication::translate("SlopStudioMapViewport", "Sector %1 (light %2, floor %3, ceiling %4)")
 			.arg(id)
 			.arg(sector->lightLevel)
 			.arg(sector->floorHeight)
 			.arg(sector->ceilingHeight);
 	}
 	case LevelMapSelectionKind::QuakeBrush:
-		return QCoreApplication::translate("VibeStudioMapViewport", "Brush %1").arg(id);
+		return QCoreApplication::translate("SlopStudioMapViewport", "Brush %1").arg(id);
 	case LevelMapSelectionKind::QuakePatch:
-		return QCoreApplication::translate("VibeStudioMapViewport", "Patch %1").arg(id);
+		return QCoreApplication::translate("SlopStudioMapViewport", "Patch %1").arg(id);
 	}
-	return QCoreApplication::translate("VibeStudioMapViewport", "Nothing selected");
+	return QCoreApplication::translate("SlopStudioMapViewport", "Nothing selected");
 }
 
 QVector<LevelMapSelectionKind> selectionTiers(const LevelMapDocument& document)
@@ -5198,13 +5198,13 @@ QString mapViewportProjectionDisplayName(MapViewportProjection projection)
 {
 	switch (projection) {
 	case MapViewportProjection::TopXY:
-		return QCoreApplication::translate("VibeStudioMapViewport", "Top (X/Y)");
+		return QCoreApplication::translate("SlopStudioMapViewport", "Top (X/Y)");
 	case MapViewportProjection::FrontXZ:
-		return QCoreApplication::translate("VibeStudioMapViewport", "Front (X/Z)");
+		return QCoreApplication::translate("SlopStudioMapViewport", "Front (X/Z)");
 	case MapViewportProjection::SideZY:
-		return QCoreApplication::translate("VibeStudioMapViewport", "Side (Y/Z)");
+		return QCoreApplication::translate("SlopStudioMapViewport", "Side (Y/Z)");
 	}
-	return QCoreApplication::translate("VibeStudioMapViewport", "Top (X/Y)");
+	return QCoreApplication::translate("SlopStudioMapViewport", "Top (X/Y)");
 }
 
 // ---------------------------------------------------------------------------
@@ -5794,4 +5794,4 @@ void MapViewport::paintCameraMarker(QPainter& painter, const Palette& palette) c
 	painter.drawText(view + QPointF(8.0, -8.0), tr("Camera"));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

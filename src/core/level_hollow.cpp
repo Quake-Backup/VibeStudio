@@ -16,7 +16,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Workflow reference: NetRadiant Custom GetCommonShader("caulk") and its
 // Quake caulk filter (textures/skip) at 449778b3 (GPL-2.0-or-later). Original
@@ -49,10 +49,10 @@ QString levelRoomPreferencesProblem(const LevelRoomPreferences& preferences)
 {
 	const QString texture = preferences.caulkTexture.trimmed();
 	if (texture.size() > 1024) {
-		return QCoreApplication::translate("VibeStudioLevelMap", "The caulk material name is longer than 1024 characters.");
+		return QCoreApplication::translate("SlopStudioLevelMap", "The caulk material name is longer than 1024 characters.");
 	}
 	if (!texture.isEmpty() && !validLevelClipTexture(texture)) {
-		return QCoreApplication::translate("VibeStudioLevelMap",
+		return QCoreApplication::translate("SlopStudioLevelMap",
 			"A material name cannot contain spaces, quotes, braces, brackets, parentheses, backslashes or comments.");
 	}
 	return {};
@@ -79,24 +79,24 @@ bool updateLevelRoomPreferences(const QJsonObject& values, LevelRoomPreferences*
 		return false;
 	};
 	if (!preferences) {
-		return fail(QCoreApplication::translate("VibeStudioLevelMap", "No Make Room options to change."));
+		return fail(QCoreApplication::translate("SlopStudioLevelMap", "No Make Room options to change."));
 	}
 	LevelRoomPreferences next = *preferences;
 	for (auto it = values.begin(); it != values.end(); ++it) {
 		const QString& field = it.key();
 		if (field == QLatin1String("caulk") || field == QLatin1String("openPickedFaces")) {
 			if (!it.value().isBool()) {
-				return fail(QCoreApplication::translate("VibeStudioLevelMap", "%1 takes on or off.").arg(field));
+				return fail(QCoreApplication::translate("SlopStudioLevelMap", "%1 takes on or off.").arg(field));
 			}
 			bool& option = field == QLatin1String("caulk") ? next.caulk : next.openPickedFaces;
 			option = it.value().toBool();
 		} else if (field == QLatin1String("caulkTexture")) {
 			if (!it.value().isString()) {
-				return fail(QCoreApplication::translate("VibeStudioLevelMap", "caulkTexture takes a material name, or nothing for the game's own."));
+				return fail(QCoreApplication::translate("SlopStudioLevelMap", "caulkTexture takes a material name, or nothing for the game's own."));
 			}
 			next.caulkTexture = it.value().toString().trimmed();
 		} else {
-			return fail(QCoreApplication::translate("VibeStudioLevelMap", "Unknown Make Room option %1: use caulk, caulkTexture or openPickedFaces.").arg(field));
+			return fail(QCoreApplication::translate("SlopStudioLevelMap", "Unknown Make Room option %1: use caulk, caulkTexture or openPickedFaces.").arg(field));
 		}
 	}
 	const QString problem = levelRoomPreferencesProblem(next);
@@ -283,14 +283,14 @@ bool offsetLevelMapSelectionFaces(LevelMapDocument* document, double offset, con
 		return false;
 	};
 	if (!document || (document->format != LevelMapFormat::QuakeMap && document->format != LevelMapFormat::Quake3Map)) {
-		return fail(QCoreApplication::translate("VibeStudioLevelMap", "Brushes can be shrunk or expanded in Quake-family .map files only."));
+		return fail(QCoreApplication::translate("SlopStudioLevelMap", "Brushes can be shrunk or expanded in Quake-family .map files only."));
 	}
 	if (!std::isfinite(offset) || offset == 0.0 || std::abs(offset) > kLevelCsgMaximumThickness) {
-		return fail(QCoreApplication::translate("VibeStudioLevelMap", "Shrink or expand by more than 0 and at most 4096 units."));
+		return fail(QCoreApplication::translate("SlopStudioLevelMap", "Shrink or expand by more than 0 and at most 4096 units."));
 	}
 	const QVector<int> reached = levelCsgReachedBrushIds(*document);
 	if (reached.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioLevelMap", "Select brushes, or brush entities, to shrink or expand."));
+		return fail(QCoreApplication::translate("SlopStudioLevelMap", "Select brushes, or brush entities, to shrink or expand."));
 	}
 	const QSet<int> wanted(reached.cbegin(), reached.cend());
 	QHash<int, QSet<int>> leftAlone;
@@ -307,12 +307,12 @@ bool offsetLevelMapSelectionFaces(LevelMapDocument* document, double offset, con
 			continue;
 		}
 		if (hidden.contains(levelMapSelectionRefId(brushRef(brush.id)))) {
-			skipped << QCoreApplication::translate("VibeStudioLevelMap", "Brush %1 is hidden, so it was left as it was.").arg(brush.id);
+			skipped << QCoreApplication::translate("SlopStudioLevelMap", "Brush %1 is hidden, so it was left as it was.").arg(brush.id);
 			continue;
 		}
 		const MapBrushGeometry before = solveBrushGeometry(brush.faces, brush.id, brush.entityId);
 		if (!before.solved) {
-			skipped << QCoreApplication::translate("VibeStudioLevelMap", "Brush %1 is not a closed brush, so it cannot be shrunk or expanded.").arg(brush.id);
+			skipped << QCoreApplication::translate("SlopStudioLevelMap", "Brush %1 is not a closed brush, so it cannot be shrunk or expanded.").arg(brush.id);
 			continue;
 		}
 		// Each face moves along its own outward normal, as NetRadiant Custom's
@@ -345,7 +345,7 @@ bool offsetLevelMapSelectionFaces(LevelMapDocument* document, double offset, con
 			++faces;
 		}
 		if (faces == 0) {
-			skipped << QCoreApplication::translate("VibeStudioLevelMap", "Brush %1 has every face left alone, so it was not changed.").arg(brush.id);
+			skipped << QCoreApplication::translate("SlopStudioLevelMap", "Brush %1 has every face left alone, so it was not changed.").arg(brush.id);
 			continue;
 		}
 		// Every face that bounded the brush must still bound it.
@@ -358,21 +358,21 @@ bool offsetLevelMapSelectionFaces(LevelMapDocument* document, double offset, con
 		QString problem;
 		if (!whole || !levelBrushTopology(moved, &topology, &problem)) {
 			skipped << (offset < 0.0
-					? QCoreApplication::translate("VibeStudioLevelMap", "Brush %1 is too thin to shrink by %2 units.").arg(brush.id).arg(amount)
-					: QCoreApplication::translate("VibeStudioLevelMap", "Brush %1 would lose a face if expanded by %2 units.").arg(brush.id).arg(amount));
+					? QCoreApplication::translate("SlopStudioLevelMap", "Brush %1 is too thin to shrink by %2 units.").arg(brush.id).arg(amount)
+					: QCoreApplication::translate("SlopStudioLevelMap", "Brush %1 would lose a face if expanded by %2 units.").arg(brush.id).arg(amount));
 			continue;
 		}
 		replacements.insert(brush.id, moved);
 		movedFaces += faces;
 	}
 	if (replacements.isEmpty()) {
-		return fail(skipped.isEmpty() ? QCoreApplication::translate("VibeStudioLevelMap", "Select brushes, or brush entities, to shrink or expand.")
+		return fail(skipped.isEmpty() ? QCoreApplication::translate("SlopStudioLevelMap", "Select brushes, or brush entities, to shrink or expand.")
 									  : skipped.first());
 	}
 	const int count = static_cast<int>(replacements.size());
 	const QString description = offset < 0.0
-		? QCoreApplication::translate("VibeStudioLevelMap", "Shrink %n brush(es) by %1 units", nullptr, count).arg(amount)
-		: QCoreApplication::translate("VibeStudioLevelMap", "Expand %n brush(es) by %1 units", nullptr, count).arg(amount);
+		? QCoreApplication::translate("SlopStudioLevelMap", "Shrink %n brush(es) by %1 units", nullptr, count).arg(amount)
+		: QCoreApplication::translate("SlopStudioLevelMap", "Expand %n brush(es) by %1 units", nullptr, count).arg(amount);
 	if (!replaceLevelMapComponentGeometry(document, replacements, {}, description, error)) {
 		return false;
 	}
@@ -388,9 +388,9 @@ QString levelCsgToolPreferencesProblem(const LevelCsgToolPreferences& preference
 {
 	if (!std::isfinite(preferences.thickness) || preferences.thickness < kLevelCsgMinimumThickness
 		|| preferences.thickness > kLevelCsgMaximumThickness) {
-		return QCoreApplication::translate("VibeStudioLevelMap", "The CSG Tool's thickness must be from 0.001 to 4096 units.");
+		return QCoreApplication::translate("SlopStudioLevelMap", "The CSG Tool's thickness must be from 0.001 to 4096 units.");
 	}
 	return {};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -2,7 +2,7 @@
 #include "core/level_map.h"
 #include <QJsonValue>
 
-namespace vibestudio {
+namespace slopstudio {
 enum class LevelUdmfValueKind { Number, String, Boolean, Keyword };
 struct LevelUdmfProperty {
 	QString name, literal;
@@ -50,4 +50,4 @@ QJsonObject levelUdmfDocumentJson(const LevelUdmfDocument& document);
 // Shared atomic authoring/history entry point, implemented with map commands.
 bool editLevelMapUdmfProperties(LevelMapDocument* document, const QVector<LevelUdmfPropertyEdit>& edits, QString* error = nullptr,
 								const std::function<bool()>& isCancelled = {});
-} // namespace vibestudio
+} // namespace slopstudio

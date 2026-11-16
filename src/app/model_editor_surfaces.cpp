@@ -7,15 +7,15 @@
 #include <QLabel>
 #include <QPushButton>
 
-namespace vibestudio
+namespace slopstudio
 {
 void ModelEditorDialog::addSurfaceControls(QFormLayout *surface)
 {
-	auto *manage = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Manage Surfaces…"), 2);
+	auto *manage = new WrappingActionButton(QCoreApplication::translate("SlopStudioModelEditor", "Manage Surfaces…"), 2);
 	manage->setObjectName("manageMeshSurfaces");
 	manage->setAccessibleName(manage->text());
 	manage->setAccessibleDescription(QCoreApplication::translate(
-		"VibeStudioModelEditor", "Rename, separate, move, duplicate, join or delete surfaces across every animation pose."));
+		"SlopStudioModelEditor", "Rename, separate, move, duplicate, join or delete surfaces across every animation pose."));
 	manage->setToolTip(manage->accessibleDescription());
 	surface->addRow(manage);
 	connect(manage, &QPushButton::clicked, this, [this] {
@@ -27,7 +27,7 @@ void ModelEditorDialog::addSurfaceControls(QFormLayout *surface)
 			return;
 		if (revision != m_document.revisionFingerprint())
 		{
-			m_status->setText(QCoreApplication::translate("VibeStudioModelEditor",
+			m_status->setText(QCoreApplication::translate("SlopStudioModelEditor",
 														  "The model changed while reviewing surfaces. Reopen Manage Surfaces."));
 			return;
 		}
@@ -36,4 +36,4 @@ void ModelEditorDialog::addSurfaceControls(QFormLayout *surface)
 			m_status->setText(error);
 	});
 }
-} // namespace vibestudio
+} // namespace slopstudio

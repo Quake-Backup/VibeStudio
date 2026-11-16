@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 // One world-space plane shared by plan and camera views. Two points extrude
 // along the originating view's axis; a third point defines an arbitrary plane.
 // Interaction behaviour follows the credited TrenchBroom / Radiant tools;
@@ -41,4 +41,4 @@ struct LevelClipPreview {
 	QString message;
 	bool wrapped = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

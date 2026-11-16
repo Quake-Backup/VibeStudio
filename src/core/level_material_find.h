@@ -8,7 +8,7 @@
 // references: TrenchBroom MapWindow::revealMaterial (v2026.2, 4c756be1,
 // GPL-3.0-or-later) and NetRadiant Custom FindReplaceTextures (449778b3,
 // GPL-2.0-or-later). Original implementation; see docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 
 // The one material every surface in scope uses, for Reveal Material.
 struct LevelSelectionMaterial {
@@ -78,4 +78,4 @@ bool previewLevelMaterialReplace(const LevelMapDocument& document, const LevelMa
 bool replaceLevelMapMaterial(LevelMapDocument* document, const LevelMaterialReplaceRequest& request,
 	LevelMaterialReplaceReport* report = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

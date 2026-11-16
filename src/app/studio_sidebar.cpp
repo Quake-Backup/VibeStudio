@@ -25,7 +25,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -1290,4 +1290,4 @@ void SidebarPage::refreshStretch()
 	m_contentLayout->setStretch(m_contentLayout->count() - 1, filled ? 0 : 1);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

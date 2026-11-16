@@ -9,7 +9,7 @@
 #include <QLockFile>
 #include <QRegularExpression>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString text(const char* source) { return QCoreApplication::translate("LevelBuildDeployment", source); }
 bool stopped(const PackageReadControl& control) { return control.isCancelled && control.isCancelled(); }
@@ -125,7 +125,7 @@ LevelBuildDeploymentPlan planLevelBuildDeployment(const LevelBuildWorkspace& wor
 	}
 	const auto directory = QDir(plan.installation.rootPath).filePath(plan.gameDirectory);
 	if (workspace.target == QStringLiteral("quake3")) {
-		plan.packagePath = QDir(directory).filePath(QStringLiteral("vibestudio_%1.pk3").arg(workspace.mapName));
+		plan.packagePath = QDir(directory).filePath(QStringLiteral("slopstudio_%1.pk3").arg(workspace.mapName));
 	} else {
 		plan.pakSlot = planLevelBuildPakSlot(directory, workspace.target, workspace.mapName, pakSlot, control);
 		if (!plan.pakSlot.ready()) {
@@ -134,7 +134,7 @@ LevelBuildDeploymentPlan planLevelBuildDeployment(const LevelBuildWorkspace& wor
 		plan.packagePath = plan.pakSlot.packagePath;
 		plan.warnings += plan.pakSlot.warnings;
 		if (!targetAllowed(workspace, plan.installation, plan.pakSlot.receiptPath, &plan.error) ||
-			!targetAllowed(workspace, plan.installation, QDir(directory).filePath(".vibestudio-deployment.lock"), &plan.error)) {
+			!targetAllowed(workspace, plan.installation, QDir(directory).filePath(".slopstudio-deployment.lock"), &plan.error)) {
 			return fail(plan.error);
 		}
 	}
@@ -233,7 +233,7 @@ LevelBuildDeploymentResult deployLevelBuild(const LevelBuildWorkspace& workspace
 	}
 	std::unique_ptr<QLockFile> deploymentLock;
 	if (!options.dryRun && current.pakSlot.ready()) {
-		const auto lockPath = QDir(directory).filePath(".vibestudio-deployment.lock");
+		const auto lockPath = QDir(directory).filePath(".slopstudio-deployment.lock");
 		QString error;
 		if (!targetAllowed(workspace, current.installation, lockPath, &error)) {
 			return fail(error);
@@ -369,4 +369,4 @@ QString levelBuildDeploymentPlanText(const LevelBuildDeploymentPlan& plan) {
 	lines << plan.launch.commandLine << plan.launch.errors << plan.warnings;
 	return lines.join(QLatin1Char('\n'));
 }
-} // namespace vibestudio
+} // namespace slopstudio

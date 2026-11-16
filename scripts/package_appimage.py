@@ -7,7 +7,7 @@
 Steps: ``meson install`` into an AppDir (binary, catalogs, licences, desktop
 entry, AppStream metadata and icons from packaging/), add the documentation,
 samples and licence bundle, then let linuxdeploy and its Qt plugin copy the Qt
-runtime and write VibeStudio-<version>-linux-<arch>.AppImage. The linuxdeploy
+runtime and write SlopStudio-<version>-linux-<arch>.AppImage. The linuxdeploy
 Qt plugin must sit next to linuxdeploy or on PATH.
 """
 from __future__ import annotations
@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from package_portable import create_package
 from release_meta import ROOT, Version, asset_names, read_version
 
-APP_ID = "io.github.themuffinator.VibeStudio"
+APP_ID = "io.github.themuffinator.SlopStudio"
 
 
 def run(command: list[str], **kwargs) -> None:
@@ -40,7 +40,7 @@ def build(build_dir: Path, appdir: Path, docs_site: Path | None, output: Path, v
         shutil.rmtree(appdir)
     run(["meson", "install", "-C", str(build_dir), "--destdir", str(appdir.resolve()), "--no-rebuild"])
     usr = appdir / "usr"
-    binary = usr / "bin" / "vibestudio"
+    binary = usr / "bin" / "slopstudio"
     if not binary.is_file():
         raise FileNotFoundError(f"meson install did not produce {binary}; configure with --prefix=/usr.")
     # Development files (headers, static libraries) have no place in an AppImage.
@@ -55,17 +55,17 @@ def build(build_dir: Path, appdir: Path, docs_site: Path | None, output: Path, v
 
     # Documentation, samples and the full licence bundle, staged the same way as
     # every other package so the AppImage carries the same notices.
-    with tempfile.TemporaryDirectory(prefix="vibestudio-appimage-") as temp:
+    with tempfile.TemporaryDirectory(prefix="slopstudio-appimage-") as temp:
         package_dir, _ = create_package(binary, Path(temp), str(version), include_samples=True, archive=False,
                                         target_platform="linux", target_architecture=architecture,
                                         compiled_translations=build_dir / "i18n", docs_site=docs_site)
-        share = usr / "share" / "vibestudio"
+        share = usr / "share" / "slopstudio"
         for item in ("samples", "licenses"):
             target = share / item
             if target.exists():
                 shutil.rmtree(target)
             shutil.copytree(package_dir / item, target)
-        doc = usr / "share" / "doc" / "vibestudio"
+        doc = usr / "share" / "doc" / "slopstudio"
         if doc.exists():
             shutil.rmtree(doc)
         shutil.copytree(package_dir / "docs", doc)

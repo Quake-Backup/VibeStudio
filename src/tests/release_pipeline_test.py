@@ -27,7 +27,7 @@ class ReleasePipeline(unittest.TestCase):
         self.root, self.source = self.fixture.root, self.fixture.source
         self.build, self.evidence, self.sdk = [self.root / name for name in ['build', 'evidence', 'sdk']]
         self.calls = []
-        self.put(self.source / 'i18n/vibestudio_en.ts', 'fixture source catalog')
+        self.put(self.source / 'i18n/slopstudio_en.ts', 'fixture source catalog')
         for _, name in pipeline.COMPILER_LICENSE_SOURCES:
             self.put(self.source / name, 'independent compiler notice ' + name)
         for name in ['Qt6Core.lib', 'Qt6Gui.lib']:
@@ -55,9 +55,9 @@ class ReleasePipeline(unittest.TestCase):
             self.write_json(self.build / 'meson-info/intro-compilers.json', self.fixture.build['compilers'])
             self.write_json(self.build / 'meson-info/intro-machines.json', {'host': {'system': 'windows', 'cpu_family': 'x86_64'}})
         elif name == 'compile':
-            for executable in ['vibestudio', 'vibestudio.exe']:
-                self.put(self.build / 'src' / executable, (self.fixture.package / 'bin/vibestudio.exe').read_bytes())
-            self.put(self.build / 'i18n/vibestudio_en.qm', (self.fixture.package / 'i18n/vibestudio_en.qm').read_bytes())
+            for executable in ['slopstudio', 'slopstudio.exe']:
+                self.put(self.build / 'src' / executable, (self.fixture.package / 'bin/slopstudio.exe').read_bytes())
+            self.put(self.build / 'i18n/slopstudio_en.qm', (self.fixture.package / 'i18n/slopstudio_en.qm').read_bytes())
         return {'name': name, 'command': command, 'exitCode': 0}
 
     def build_fixture(self, callback=None):
@@ -69,7 +69,7 @@ class ReleasePipeline(unittest.TestCase):
         result = self.build_fixture()
         self.assertEqual(self.calls, ['configure', 'compile'])
         self.assertEqual(result['sourceHashes'], builder.capture_sources(self.source))
-        self.assertEqual(result['binarySha256'], sha256(self.build / 'src/vibestudio.exe'))
+        self.assertEqual(result['binarySha256'], sha256(self.build / 'src/slopstudio.exe'))
         self.assertIn('-Dwerror=true', result['checks'][0]['command'])
         self.assertIn('-Daudio_duplex=enabled', result['checks'][0]['command'])
         self.assertEqual(result['audioDuplex'], 'enabled')
@@ -111,7 +111,7 @@ class ReleasePipeline(unittest.TestCase):
         def incomplete(*args):
             result = self.run_fixture(*args)
             if args[0] == 'compile':
-                (self.build / 'i18n/vibestudio_en.qm').unlink()
+                (self.build / 'i18n/slopstudio_en.qm').unlink()
             return result
         with self.assertRaisesRegex(ValueError, 'catalog'):
             self.build_fixture(incomplete)
@@ -151,8 +151,8 @@ class ReleasePipeline(unittest.TestCase):
 
     def test_post_build_tampering_rejected_before_packaging(self):
         self.build_fixture()
-        for path in [self.source / 'src/core/original.cpp', self.build / 'src/vibestudio.exe',
-                     self.build / 'i18n/vibestudio_en.qm', self.sdk / 'lib/Qt6Core.lib']:
+        for path in [self.source / 'src/core/original.cpp', self.build / 'src/slopstudio.exe',
+                     self.build / 'i18n/slopstudio_en.qm', self.sdk / 'lib/Qt6Core.lib']:
             with self.subTest(path=path.name):
                 original = path.read_bytes()
                 path.write_bytes(b'tampered after build')
@@ -224,7 +224,7 @@ class ReleasePipeline(unittest.TestCase):
             self.assertEqual(env['QT_QPA_PLATFORM'], 'offscreen')
             observed.append(command)
             if '--version' in command:
-                stdout.write('VibeStudio fixture\n')
+                stdout.write('SlopStudio fixture\n')
             else:
                 path = Path(command[command.index('audio-analyze') + 1])
                 with wave.open(str(path), 'rb') as audio:

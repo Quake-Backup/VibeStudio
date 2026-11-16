@@ -20,7 +20,7 @@
 #include <unistd.h>
 #endif
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -522,4 +522,4 @@ AudioTakeReadResult readAudioTakeRange(const QString &path, const QByteArray &ex
 		result.audio = std::move(batch.audio.first());
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

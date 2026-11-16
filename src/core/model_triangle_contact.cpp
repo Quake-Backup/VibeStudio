@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -213,4 +213,4 @@ ModelTriangleContact modelTriangleContact(const std::array<ModelVec3, 3> &a, con
 				return ModelTriangleContact::Degenerate;
 	return contact({point(a[0]), point(a[1]), point(a[2])}, {point(b[0]), point(b[1]), point(b[2])});
 }
-} // namespace vibestudio
+} // namespace slopstudio

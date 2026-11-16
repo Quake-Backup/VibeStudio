@@ -9,7 +9,7 @@ class QLabel;
 class QLineEdit;
 class QListWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 class LevelBookmarksDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(LevelBookmarksDialog)
 public:
@@ -38,4 +38,4 @@ private:
 	QLabel* m_status = nullptr;
 	bool m_readOnly = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

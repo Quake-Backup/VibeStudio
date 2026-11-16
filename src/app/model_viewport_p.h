@@ -14,7 +14,7 @@
 #include <cmath>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace model_viewport_detail {
 
@@ -293,4 +293,4 @@ QColor modelSurfaceBaseColor(int surfaceIndex, bool highContrast);
 // Whether any pixel of an image is not fully opaque.
 bool modelSkinHasAlpha(const QImage& image);
 
-} // namespace vibestudio
+} // namespace slopstudio

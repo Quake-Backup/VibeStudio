@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelWrapDialog::Work {
 	std::atomic_bool cancelled{false};
 	quint64 generation = 0;
@@ -141,4 +141,4 @@ void LevelWrapDialog::accept()
 	QString error; if (m_applyHandler && !m_applyHandler(m_work->result.document,&error)) { m_status->setText(error); m_status->setAccessibleDescription(error); return; }
 	QDialog::accept();
 }
-} // namespace vibestudio
+} // namespace slopstudio

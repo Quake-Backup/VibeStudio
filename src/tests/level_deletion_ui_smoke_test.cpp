@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -68,7 +68,7 @@ int main(int argc, char** argv)
 		&& replaceLevelMapBrushGeometry(&fixture,peaked.id,peaked,&error),"valid face-removal source",error)) { return 1; }
 	const auto path = temp.filePath("delete.map"); const auto source = serializeLevelMap(fixture).bytes;
 	QFile file(path); if (!file.open(QIODevice::WriteOnly) || file.write(source) != source.size()) { return 1; } file.close();
-	for (const auto* profile : {"netradiant-custom","trenchbroom","vibestudio"}) {
+	for (const auto* profile : {"netradiant-custom","trenchbroom","slopstudio"}) {
 		for (int scale : {100,200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale); std::cout << phase.toStdString() << std::endl;
 			settings.setSelectedEditorProfileId(profile); settings.setTextScalePercent(scale);
@@ -150,7 +150,7 @@ int main(int argc, char** argv)
 					if (!expect(dialog != nullptr,"background preparation dialog")) { return; }
 					auto* cancel = dialog->findChild<QPushButton*>("levelPlacementTaskCancel"); auto* progress = dialog->findChild<QProgressBar*>("levelPlacementTaskProgress");
 					expect(cancel && progress && !cancel->accessibleDescription().isEmpty() && QAccessible::queryAccessibleInterface(progress)->role() == QAccessible::ProgressBar,"accessible cancellation and progress");
-					const auto capture = qEnvironmentVariable("VIBESTUDIO_DELETION_CAPTURE_DIR");
+					const auto capture = qEnvironmentVariable("SLOPSTUDIO_DELETION_CAPTURE_DIR");
 					if (!capture.isEmpty() && nrc) { dialog->open(); QImage image(dialog->size(),QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image); expect(image.save(QDir(capture).filePath(QStringLiteral("delete-%1.png").arg(scale))),"dialog capture"); }
 					cancelled = true; dialog->reject();
 				}); deletion->trigger();

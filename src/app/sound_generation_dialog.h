@@ -31,7 +31,7 @@ class QPushButton;
 class QRadioButton;
 class QSpinBox;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class AudioPlayback;
 
@@ -53,7 +53,7 @@ struct SoundGenerationDialogHooks {
 };
 
 class SoundGenerationDialog final : public QDialog {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioSoundGenerationDialog)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioSoundGenerationDialog)
 
 public:
 	SoundGenerationDialog(QWidget* parent, SoundGenerationDialogHooks hooks);
@@ -131,4 +131,4 @@ private:
 	QPushButton* m_openEditor = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

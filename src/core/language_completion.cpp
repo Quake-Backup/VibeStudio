@@ -11,7 +11,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr int itemLimit = 500;
 constexpr int editLimit = 32;
@@ -237,4 +237,4 @@ bool previewLanguageCompletion(const QString& source, const LanguageCompletionIt
 	if (text) { *text = result; } if (caret) { *caret = item.caret; } if (error) { error->clear(); } return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

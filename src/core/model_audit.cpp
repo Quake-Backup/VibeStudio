@@ -19,7 +19,7 @@
 #include <cmath>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -189,7 +189,7 @@ void auditEntry(const PackageArchive& archive, const ModelAuditOptions& options,
 	entry->joints = int(mesh.skeleton.joints.size());
 	entry->clips = int(mesh.skeleton.clips.size());
 	if (!mesh.geometryAvailable) {
-		entry->editableError = QCoreApplication::translate("VibeStudioModelAudit", "Animation only: it opens through its mesh.");
+		entry->editableError = QCoreApplication::translate("SlopStudioModelAudit", "Animation only: it opens through its mesh.");
 		return;
 	}
 	// The editable verdict importEditableModel would give, accepting the
@@ -287,7 +287,7 @@ bool auditModels(const QString& path, const ModelAuditOptions& options, ModelAud
 		return false;
 	};
 	if (!info.exists()) {
-		return fail(QCoreApplication::translate("VibeStudioModelAudit", "%1 does not exist.").arg(QDir::toNativeSeparators(path)));
+		return fail(QCoreApplication::translate("SlopStudioModelAudit", "%1 does not exist.").arg(QDir::toNativeSeparators(path)));
 	}
 	const auto cancelled = [&control]() { return control.cancelled && control.cancelled(); };
 	PackageReadControl readControl;
@@ -321,7 +321,7 @@ bool auditModels(const QString& path, const ModelAuditOptions& options, ModelAud
 		}
 		std::sort(packages.begin(), packages.end());
 		if (packages.size() > options.maxPackages) {
-			report->problems << QCoreApplication::translate("VibeStudioModelAudit", "%1 packages were found; only the first %2 were audited.")
+			report->problems << QCoreApplication::translate("SlopStudioModelAudit", "%1 packages were found; only the first %2 were audited.")
 				.arg(packages.size()).arg(options.maxPackages);
 			packages = packages.mid(0, options.maxPackages);
 		}
@@ -330,7 +330,7 @@ bool auditModels(const QString& path, const ModelAuditOptions& options, ModelAud
 		folder.archive = std::make_shared<PackageArchive>();
 		QString problem;
 		if (!folder.archive->load(info.absoluteFilePath(), &problem, readControl)) {
-			report->problems << QCoreApplication::translate("VibeStudioModelAudit", "%1: %2").arg(folder.label, problem);
+			report->problems << QCoreApplication::translate("SlopStudioModelAudit", "%1: %2").arg(folder.label, problem);
 		} else {
 			containers.append(folder);
 		}
@@ -347,13 +347,13 @@ bool auditModels(const QString& path, const ModelAuditOptions& options, ModelAud
 		container.archive = std::make_shared<PackageArchive>();
 		QString problem;
 		if (!container.archive->load(package, &problem, readControl)) {
-			report->problems << QCoreApplication::translate("VibeStudioModelAudit", "%1: %2").arg(container.label, problem);
+			report->problems << QCoreApplication::translate("SlopStudioModelAudit", "%1: %2").arg(container.label, problem);
 			continue;
 		}
 		containers.append(container);
 	}
 	if (containers.isEmpty()) {
-		return fail(report->problems.isEmpty() ? QCoreApplication::translate("VibeStudioModelAudit", "Nothing could be opened at %1.").arg(QDir::toNativeSeparators(path))
+		return fail(report->problems.isEmpty() ? QCoreApplication::translate("SlopStudioModelAudit", "Nothing could be opened at %1.").arg(QDir::toNativeSeparators(path))
 											   : report->problems.join(QLatin1Char('\n')));
 	}
 	int total = 0;
@@ -390,7 +390,7 @@ bool auditModels(const QString& path, const ModelAuditOptions& options, ModelAud
 			}
 			if (qint64(packageEntry.sizeBytes) > options.maxEntryBytes) {
 				entry.skipped = true;
-				entry.skipReason = QCoreApplication::translate("VibeStudioModelAudit", "Larger than %1 MiB; not read.").arg(options.maxEntryBytes / (1024 * 1024));
+				entry.skipReason = QCoreApplication::translate("SlopStudioModelAudit", "Larger than %1 MiB; not read.").arg(options.maxEntryBytes / (1024 * 1024));
 				entry.verdict = QStringLiteral("skipped");
 				report->entries.append(entry);
 				continue;
@@ -546,7 +546,7 @@ QJsonObject modelAuditJson(const ModelAuditReport& report, bool timings)
 		}
 		formatArray.append(object);
 	}
-	return QJsonObject{{QStringLiteral("schema"), QStringLiteral("vibestudio.model-audit")}, {QStringLiteral("version"), 1},
+	return QJsonObject{{QStringLiteral("schema"), QStringLiteral("slopstudio.model-audit")}, {QStringLiteral("version"), 1},
 		{QStringLiteral("source"), report.source}, {QStringLiteral("containers"), QJsonArray::fromStringList(report.containers)},
 		{QStringLiteral("cancelled"), report.cancelled}, {QStringLiteral("skippedEntries"), report.skippedEntries},
 		{QStringLiteral("problems"), QJsonArray::fromStringList(report.problems)}, {QStringLiteral("formats"), formatArray},
@@ -559,16 +559,16 @@ QStringList modelAuditLines(const ModelAuditReport& report)
 	int entries = 0;
 	for (const ModelAuditFormatSummary& summary : report.formats) {
 		entries += summary.entries;
-		lines << QCoreApplication::translate("VibeStudioModelAudit",
+		lines << QCoreApplication::translate("SlopStudioModelAudit",
 			"%1: %n model(s); %2 decoded, %3 failed; %4 clean, %5 with advisories, %6 need omissions accepted, %7 damaged; %8 editable.", nullptr, summary.entries)
 			.arg(summary.format).arg(summary.decoded).arg(summary.failed).arg(summary.clean).arg(summary.advisories)
 			.arg(summary.needsAcceptance).arg(summary.damaged).arg(summary.editable);
 		if (summary.roundTrips > 0) {
-			lines << QCoreApplication::translate("VibeStudioModelAudit", "  Round trips: %1 of %2 within tolerance; largest corner error %3.")
+			lines << QCoreApplication::translate("SlopStudioModelAudit", "  Round trips: %1 of %2 within tolerance; largest corner error %3.")
 				.arg(summary.roundTripsWithin).arg(summary.roundTrips).arg(summary.maxPositionError, 0, 'g', 4);
 		}
 		for (const ModelAuditTargetSummary& target : summary.targets) {
-			lines << QCoreApplication::translate("VibeStudioModelAudit", "  Target %1: %2 of %3 ready.").arg(target.id).arg(target.ready).arg(target.checked);
+			lines << QCoreApplication::translate("SlopStudioModelAudit", "  Target %1: %2 of %3 ready.").arg(target.id).arg(target.ready).arg(target.checked);
 		}
 	}
 	for (const ModelAuditEntry& entry : report.entries) {
@@ -584,22 +584,22 @@ QStringList modelAuditLines(const ModelAuditReport& report)
 		}
 		if (detail.isEmpty() && entry.roundTrip.attempted && !entry.roundTrip.withinTolerance()) {
 			detail = entry.roundTrip.error.isEmpty()
-				? QCoreApplication::translate("VibeStudioModelAudit", "The %1 round trip moved a corner by %2 (tolerance %3).")
+				? QCoreApplication::translate("SlopStudioModelAudit", "The %1 round trip moved a corner by %2 (tolerance %3).")
 					  .arg(entry.roundTrip.format).arg(entry.roundTrip.maxPositionError, 0, 'g', 4).arg(entry.roundTrip.tolerance, 0, 'g', 4)
 				: entry.roundTrip.error;
 		}
-		lines << QCoreApplication::translate("VibeStudioModelAudit", "%1 (%2): %3 — %4").arg(entry.path, entry.format, entry.verdict, detail);
+		lines << QCoreApplication::translate("SlopStudioModelAudit", "%1 (%2): %3 — %4").arg(entry.path, entry.format, entry.verdict, detail);
 	}
 	if (report.skippedEntries > 0) {
-		lines << QCoreApplication::translate("VibeStudioModelAudit", "%n more model(s) were not audited (the entry limit).", nullptr, report.skippedEntries);
+		lines << QCoreApplication::translate("SlopStudioModelAudit", "%n more model(s) were not audited (the entry limit).", nullptr, report.skippedEntries);
 	}
 	for (const QString& problem : report.problems) {
 		lines << problem;
 	}
 	if (report.cancelled) {
-		lines << QCoreApplication::translate("VibeStudioModelAudit", "The audit was cancelled after %n model(s).", nullptr, entries);
+		lines << QCoreApplication::translate("SlopStudioModelAudit", "The audit was cancelled after %n model(s).", nullptr, entries);
 	}
 	return lines;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

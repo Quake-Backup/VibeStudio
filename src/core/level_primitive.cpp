@@ -6,7 +6,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -263,4 +263,4 @@ bool createLevelBrushPrimitive(const LevelBrushPrimitiveRequest &request, LevelM
 	}
 	return createLevelBrushHull(points, name, brush, error);
 }
-} // namespace vibestudio
+} // namespace slopstudio

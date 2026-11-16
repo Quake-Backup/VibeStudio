@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct ModelMaterialSlotsCliResult
 {
@@ -12,4 +12,4 @@ struct ModelMaterialSlotsCliResult
 	QStringList lines;
 };
 ModelMaterialSlotsCliResult runModelMaterialSlots(const QStringList &arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

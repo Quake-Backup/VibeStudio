@@ -5,7 +5,7 @@
 #include <QDir>
 #include <QFile>
 
-namespace vibestudio::publication_test {
+namespace slopstudio::publication_test {
 inline bool write(const QString& path, const QByteArray& bytes)
 {
 	QFile file(path); return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
@@ -28,7 +28,7 @@ inline PackagePublicationJournalInfo interrupt(const QString& folder, const QByt
 		if (!publication.begin(&error) || publication.device()->write(after) != after.size()) { return {}; }
 		publication.commit(after.size(), QString::fromLatin1(QCryptographicHash::hash(after, QCryptographicHash::Sha256).toHex()));
 	}
-	const auto files = QDir(folder).entryList({QStringLiteral(".vibestudio-package-*.payload.json")}, QDir::Files | QDir::Hidden);
+	const auto files = QDir(folder).entryList({QStringLiteral(".slopstudio-package-*.payload.json")}, QDir::Files | QDir::Hidden);
 	return files.size() == 1 ? inspectPackagePublicationJournal(QDir(folder).filePath(files.first())) : PackagePublicationJournalInfo();
 }
-} // namespace vibestudio::publication_test
+} // namespace slopstudio::publication_test

@@ -21,7 +21,7 @@
 
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelMapDocument;
 
@@ -351,8 +351,8 @@ inline constexpr double kLevelEditorFinestGridUnits = 0.125;
 [[nodiscard]] QString levelEditorGridCommandId(double units);
 
 // The controls of each profile that has them. A profile without its own
-// controls uses the VibeStudio ones.
-[[nodiscard]] LevelEditorControls vibeStudioLevelControls();
+// controls uses the SlopStudio ones.
+[[nodiscard]] LevelEditorControls slopStudioLevelControls();
 [[nodiscard]] LevelEditorControls trenchBroomLevelControls();
 [[nodiscard]] LevelEditorControls netRadiantCustomLevelControls();
 [[nodiscard]] LevelEditorControls gtkRadiantLevelControls();
@@ -438,4 +438,4 @@ bool levelPlanPanesForId(const QString& id, LevelPlanPanes* panes);
 // bound twice, a fly key a command also takes. Empty when it holds together.
 [[nodiscard]] QStringList levelEditorControlProblems(const LevelEditorControls& controls);
 
-} // namespace vibestudio
+} // namespace slopstudio

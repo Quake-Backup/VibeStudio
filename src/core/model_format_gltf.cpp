@@ -49,7 +49,7 @@
 #include <limits>
 #include <numeric>
 
-namespace vibestudio::model_formats {
+namespace slopstudio::model_formats {
 
 namespace {
 
@@ -180,7 +180,7 @@ public:
 			return;
 		}
 		if (m_instances.isEmpty()) {
-			fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF scene draws no triangles."));
+			fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF scene draws no triangles."));
 			return;
 		}
 		readMaterials();
@@ -205,7 +205,7 @@ private:
 	bool charge(qint64 values)
 	{
 		if (values < 0 || values > kMaxDecodedValues - m_decodedValues) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF needs more than %1 MiB to decode, more than one model may use; the file may be damaged.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF needs more than %1 MiB to decode, more than one model may use; the file may be damaged.")
 				.arg(QString::number(kMaxDecodedValues * 4 / (1024 * 1024))));
 		}
 		m_decodedValues += values;
@@ -220,15 +220,15 @@ private:
 		if (m_bytes.startsWith("glTF")) {
 			// GLB: magic, version, length, then JSON and optional BIN chunks.
 			if (m_bytes.size() < 20) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "The GLB header is truncated."));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "The GLB header is truncated."));
 			}
 			const quint32 version = readU32(m_bytes, 4);
 			const quint32 length = readU32(m_bytes, 8);
 			if (version != 2) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "Unsupported GLB version %1; only glTF 2.0 is read.").arg(version));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "Unsupported GLB version %1; only glTF 2.0 is read.").arg(version));
 			}
 			if (qint64(length) > qint64(m_bytes.size()) || length < 20) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "The GLB declares a length past the end of the file."));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "The GLB declares a length past the end of the file."));
 			}
 			qint64 offset = 12;
 			int chunk = 0;
@@ -237,12 +237,12 @@ private:
 				const quint32 chunkLength = readU32(m_bytes, offset);
 				const quint32 type = readU32(m_bytes, offset + 4);
 				if (!rangeOk(m_bytes, offset + 8, chunkLength) || offset + 8 + qint64(chunkLength) > qint64(length)) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "A GLB chunk runs past the end of the file."));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "A GLB chunk runs past the end of the file."));
 				}
 				const QByteArray data = m_bytes.mid(qsizetype(offset + 8), qsizetype(chunkLength));
 				if (chunk == 0) {
 					if (type != 0x4E4F534Au) { // "JSON"
-						return fail(QCoreApplication::translate("VibeStudioModelMesh", "The GLB does not start with a JSON chunk."));
+						return fail(QCoreApplication::translate("SlopStudioModelMesh", "The GLB does not start with a JSON chunk."));
 					}
 					json = data;
 				} else if (chunk == 1 && type == 0x004E4942u) { // "BIN\0"
@@ -253,25 +253,25 @@ private:
 				offset += 8 + qint64(chunkLength);
 			}
 			if (chunk == 0) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "The GLB holds no JSON chunk."));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "The GLB holds no JSON chunk."));
 			}
 		} else {
 			json = m_bytes;
 		}
 		if (json.size() > kMaxTextBytes) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF JSON is larger than 64 MiB."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF JSON is larger than 64 MiB."));
 		}
 		QJsonParseError parseError;
 		const QJsonDocument document = QJsonDocument::fromJson(json, &parseError);
 		if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF JSON cannot be read: %1").arg(parseError.errorString()));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF JSON cannot be read: %1").arg(parseError.errorString()));
 		}
 		m_root = document.object();
 		const QJsonObject asset = m_root.value(QStringLiteral("asset")).toObject();
 		const QString version = asset.value(QStringLiteral("version")).toString();
 		const QString minVersion = asset.value(QStringLiteral("minVersion")).toString();
 		if (!version.startsWith(QStringLiteral("2.")) || (!minVersion.isEmpty() && minVersion != QStringLiteral("2.0"))) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "Unsupported glTF version \"%1\"; only glTF 2.0 is read.").arg(version));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "Unsupported glTF version \"%1\"; only glTF 2.0 is read.").arg(version));
 		}
 		m_mesh->version = 2;
 		// Required extensions change how the data must be read; refuse the
@@ -280,7 +280,7 @@ private:
 		for (const QJsonValue& extension : m_root.value(QStringLiteral("extensionsRequired")).toArray()) {
 			const QString name = extension.toString();
 			if (name != QStringLiteral("KHR_mesh_quantization") && name != QStringLiteral("KHR_materials_emissive_strength")) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF requires the extension %1, which is not supported; export it without that extension.").arg(name));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF requires the extension %1, which is not supported; export it without that extension.").arg(name));
 			}
 		}
 		QStringList used;
@@ -288,11 +288,11 @@ private:
 			used << extension.toString();
 		}
 		if (!used.isEmpty()) {
-			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Extensions used: %1").arg(used.join(QStringLiteral(", ")));
+			m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Extensions used: %1").arg(used.join(QStringLiteral(", ")));
 		}
 		const QString generator = asset.value(QStringLiteral("generator")).toString().left(200);
 		if (!generator.isEmpty()) {
-			m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Generator: %1").arg(generator);
+			m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Generator: %1").arg(generator);
 		}
 		return true;
 	}
@@ -301,30 +301,30 @@ private:
 	{
 		const QJsonArray buffers = m_root.value(QStringLiteral("buffers")).toArray();
 		if (buffers.size() > kMaxBuffers) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF declares more buffers than can be read."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF declares more buffers than can be read."));
 		}
 		for (int index = 0; index < buffers.size(); ++index) {
 			if (!m_work.step()) { return false; }
 			const QJsonObject buffer = buffers.at(index).toObject();
 			const qint64 length = qint64(buffer.value(QStringLiteral("byteLength")).toDouble(-1));
 			if (length < 0 || length > modelDocumentMaxSourceBytes * 4LL) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF buffer %1 declares an unsupported length.").arg(index));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF buffer %1 declares an unsupported length.").arg(index));
 			}
 			QByteArray data;
 			const QString uri = buffer.value(QStringLiteral("uri")).toString();
 			if (uri.isEmpty()) {
 				if (index != 0 || !m_hasBinChunk) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF buffer %1 has no data: no URI and no GLB binary chunk.").arg(index));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF buffer %1 has no data: no URI and no GLB binary chunk.").arg(index));
 				}
 				data = m_binChunk;
 			} else if (uri.startsWith(QStringLiteral("data:"), Qt::CaseInsensitive)) {
 				const int comma = uri.indexOf(QLatin1Char(','));
 				if (comma < 0 || !uri.left(comma).endsWith(QStringLiteral(";base64"), Qt::CaseInsensitive)) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF buffer %1 has a data URI that is not base64.").arg(index));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF buffer %1 has a data URI that is not base64.").arg(index));
 				}
 				const auto decoded = QByteArray::fromBase64Encoding(uri.mid(comma + 1).toLatin1(), QByteArray::AbortOnBase64DecodingErrors);
 				if (!decoded) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF buffer %1 has a data URI that is not valid base64.").arg(index));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF buffer %1 has a data URI that is not valid base64.").arg(index));
 				}
 				data = *decoded;
 			} else {
@@ -332,16 +332,16 @@ private:
 				// path outside the model's folder tree.
 				const QString relative = QUrl::fromPercentEncoding(uri.toUtf8());
 				if (relative.contains(QStringLiteral("..")) || relative.startsWith(QLatin1Char('/')) || relative.contains(QLatin1Char(':'))) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF buffer %1 names %2, outside the model's folder.").arg(index).arg(relative));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF buffer %1 names %2, outside the model's folder.").arg(index).arg(relative));
 				}
 				QString problem;
 				if (!m_companions.canRead() || !m_companions.read(joinPath(pathDirectory(m_path), relative), &data, &problem)) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF buffer %1 (%2) could not be read: %3")
-						.arg(index).arg(relative, problem.isEmpty() ? QCoreApplication::translate("VibeStudioModelMesh", "companion files cannot be read here") : problem));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF buffer %1 (%2) could not be read: %3")
+						.arg(index).arg(relative, problem.isEmpty() ? QCoreApplication::translate("SlopStudioModelMesh", "companion files cannot be read here") : problem));
 				}
 			}
 			if (qint64(data.size()) < length) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF buffer %1 holds %2 bytes but declares %3.").arg(index).arg(data.size()).arg(length));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF buffer %1 holds %2 bytes but declares %3.").arg(index).arg(data.size()).arg(length));
 			}
 			data.truncate(qsizetype(length));
 			m_buffers.append(data);
@@ -406,7 +406,7 @@ private:
 	{
 		const QJsonArray views = m_root.value(QStringLiteral("bufferViews")).toArray();
 		if (index < 0 || index >= views.size()) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "A glTF accessor names buffer view %1, which does not exist.").arg(index));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "A glTF accessor names buffer view %1, which does not exist.").arg(index));
 		}
 		const QJsonObject view = views.at(index).toObject();
 		const int buffer = view.value(QStringLiteral("buffer")).toInt(-1);
@@ -414,7 +414,7 @@ private:
 		const qint64 length = qint64(view.value(QStringLiteral("byteLength")).toDouble(-1));
 		*stride = view.value(QStringLiteral("byteStride")).toInt(0);
 		if (buffer < 0 || buffer >= m_buffers.size() || length < 0 || offset < 0 || !rangeOk(m_buffers.at(buffer), offset, length) || *stride < 0 || *stride > 252) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF buffer view %1 lies outside its buffer.").arg(index));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF buffer view %1 lies outside its buffer.").arg(index));
 		}
 		*data = m_buffers.at(buffer).mid(qsizetype(offset), qsizetype(length));
 		return true;
@@ -426,7 +426,7 @@ private:
 	{
 		const QJsonArray accessors = m_root.value(QStringLiteral("accessors")).toArray();
 		if (index < 0 || index >= accessors.size() || accessors.size() > kMaxAccessors) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF accessor %1 does not exist.").arg(index));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF accessor %1 does not exist.").arg(index));
 		}
 		const QJsonObject accessor = accessors.at(index).toObject();
 		const int componentType = accessor.value(QStringLiteral("componentType")).toInt();
@@ -437,10 +437,10 @@ private:
 		const qint64 accessorOffset = qint64(accessor.value(QStringLiteral("byteOffset")).toDouble(0));
 		if (size == 0 || components == 0 || count < 1 || count * components > kMaxAccessorValues || accessorOffset < 0
 			|| (normalized && (componentType == 5125 || componentType == 5126))) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF accessor %1 has an unsupported type, count or normalisation.").arg(index));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF accessor %1 has an unsupported type, count or normalisation.").arg(index));
 		}
 		if (expected.size() > 0 && std::find(expected.begin(), expected.end(), components) == expected.end()) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF accessor %1 has the wrong number of components for its use.").arg(index));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF accessor %1 has the wrong number of components for its use.").arg(index));
 		}
 		if (!charge(count * components)) {
 			return false;
@@ -457,7 +457,7 @@ private:
 			}
 			const qint64 step = stride > 0 ? stride : element;
 			if (step < element || !rangeOk(data, accessorOffset, (count - 1) * step + element)) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF accessor %1 runs past the end of its buffer view.").arg(index));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF accessor %1 runs past the end of its buffer view.").arg(index));
 			}
 			for (qint64 item = 0; item < count; ++item) {
 				if (!m_work.step()) { return false; }
@@ -479,18 +479,18 @@ private:
 			if (sparseCount < 1 || sparseCount > count || indexSize == 0
 				|| !viewBytes(indices.value(QStringLiteral("bufferView")).toInt(-1), &indexData, &unusedStride)
 				|| !viewBytes(values.value(QStringLiteral("bufferView")).toInt(-1), &valueData, &unusedStride)) {
-				return m_mesh->error.isEmpty() ? fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF accessor %1 has malformed sparse storage.").arg(index)) : false;
+				return m_mesh->error.isEmpty() ? fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF accessor %1 has malformed sparse storage.").arg(index)) : false;
 			}
 			const qint64 indexOffset = qint64(indices.value(QStringLiteral("byteOffset")).toDouble(0));
 			const qint64 valueOffset = qint64(values.value(QStringLiteral("byteOffset")).toDouble(0));
 			if (!rangeOk(indexData, indexOffset, sparseCount * indexSize) || !rangeOk(valueData, valueOffset, sparseCount * element)) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF accessor %1 has sparse storage past the end of its buffer views.").arg(index));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF accessor %1 has sparse storage past the end of its buffer views.").arg(index));
 			}
 			for (qint64 item = 0; item < sparseCount; ++item) {
 				if (!m_work.step()) { return false; }
 				const qint64 target = qint64(component(indexData, indexOffset + item * indexSize, indexType, false));
 				if (target < 0 || target >= count) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF accessor %1 has a sparse index outside the accessor.").arg(index));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF accessor %1 has a sparse index outside the accessor.").arg(index));
 				}
 				for (int c = 0; c < components; ++c) {
 					out->values[int(target * components + c)] = component(valueData, valueOffset + item * element + qint64(c) * size, componentType, normalized);
@@ -506,7 +506,7 @@ private:
 	{
 		const QJsonArray nodes = m_root.value(QStringLiteral("nodes")).toArray();
 		if (nodes.size() > kMaxNodes) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF holds more nodes than can be read."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF holds more nodes than can be read."));
 		}
 		const int meshCount = int(m_root.value(QStringLiteral("meshes")).toArray().size());
 		const int skinCount = int(m_root.value(QStringLiteral("skins")).toArray().size());
@@ -519,12 +519,12 @@ private:
 			node.mesh = object.contains(QStringLiteral("mesh")) ? object.value(QStringLiteral("mesh")).toInt(-2) : -1;
 			node.skin = object.contains(QStringLiteral("skin")) ? object.value(QStringLiteral("skin")).toInt(-2) : -1;
 			if (node.mesh < -1 || node.mesh >= meshCount || node.skin < -1 || node.skin >= skinCount) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF node %1 names a mesh or skin that does not exist.").arg(index));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF node %1 names a mesh or skin that does not exist.").arg(index));
 			}
 			if (object.contains(QStringLiteral("matrix"))) {
 				const QJsonArray values = object.value(QStringLiteral("matrix")).toArray();
 				if (values.size() != 16) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF node %1 has a matrix without 16 values.").arg(index));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF node %1 has a matrix without 16 values.").arg(index));
 				}
 				node.hasMatrix = true;
 				// Column-major 4x4 into a row-major 3x4.
@@ -553,7 +553,7 @@ private:
 			for (const QJsonValue& child : object.value(QStringLiteral("children")).toArray()) {
 				const int childIndex = child.toInt(-1);
 				if (childIndex < 0 || childIndex >= nodes.size() || childIndex == index) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF node %1 names a child that does not exist.").arg(index));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF node %1 names a child that does not exist.").arg(index));
 				}
 				node.children.append(childIndex);
 			}
@@ -561,7 +561,7 @@ private:
 		for (int index = 0; index < m_nodes.size(); ++index) {
 			for (const int child : std::as_const(m_nodes[index].children)) {
 				if (m_nodes[child].parent >= 0) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF node %1 has more than one parent.").arg(child));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF node %1 has more than one parent.").arg(child));
 				}
 				m_nodes[child].parent = index;
 			}
@@ -583,7 +583,7 @@ private:
 			}
 		}
 		if (m_order.size() != m_nodes.size()) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF node hierarchy has a cycle."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF node hierarchy has a cycle."));
 		}
 		// The scene to draw: `scene`, else the first, else every root.
 		const QJsonArray scenes = m_root.value(QStringLiteral("scenes")).toArray();
@@ -591,13 +591,13 @@ private:
 		m_drawn = QVector<bool>(m_nodes.size(), scenes.isEmpty());
 		if (!scenes.isEmpty()) {
 			if (sceneIndex < 0 || sceneIndex >= scenes.size()) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF names a default scene that does not exist."));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF names a default scene that does not exist."));
 			}
 			QVector<int> roots;
 			for (const QJsonValue& value : scenes.at(sceneIndex).toObject().value(QStringLiteral("nodes")).toArray()) {
 				const int root = value.toInt(-1);
 				if (root < 0 || root >= m_nodes.size()) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF scene names a node that does not exist."));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF scene names a node that does not exist."));
 				}
 				roots.append(root);
 			}
@@ -670,7 +670,7 @@ private:
 			for (int p = 0; p < primitives.size(); ++p) {
 				if (!m_work.step()) { return false; }
 				if (m_instances.size() >= kMaxPrimitiveSurfaces) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF draws more primitives than can be read."));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF draws more primitives than can be read."));
 				}
 				const QJsonObject primitive = primitives.at(p).toObject();
 				const int mode = primitive.value(QStringLiteral("mode")).toInt(4);
@@ -698,7 +698,7 @@ private:
 		}
 		if (omittedModes > 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("gltf-primitive-mode"),
-				QCoreApplication::translate("VibeStudioModelMesh", "%n point or line primitive(s) were left out; only triangles are read.", nullptr, omittedModes));
+				QCoreApplication::translate("SlopStudioModelMesh", "%n point or line primitive(s) were left out; only triangles are read.", nullptr, omittedModes));
 		}
 		return true;
 	}
@@ -707,18 +707,18 @@ private:
 	{
 		const QJsonObject attributes = primitive.value(QStringLiteral("attributes")).toObject();
 		if (!attributes.contains(QStringLiteral("POSITION"))) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has no positions.").arg(instance->surface.name));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF primitive %1 has no positions.").arg(instance->surface.name));
 		}
 		Accessor positions;
 		if (!readAccessor(attributes.value(QStringLiteral("POSITION")).toInt(-1), {3}, &positions)) {
 			return false;
 		}
 		if (positions.count > kMaxSurfaceVertices) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has more vertices than can be decoded.").arg(instance->surface.name));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF primitive %1 has more vertices than can be decoded.").arg(instance->surface.name));
 		}
 		const int count = positions.count;
 		if (qint64(count) > kMaxVertexSlots - m_instanceVertices) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF draws more vertices in all than can be decoded."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF draws more vertices in all than can be decoded."));
 		}
 		m_instanceVertices += count;
 		// Positions, normals and texture coordinates.
@@ -729,7 +729,7 @@ private:
 		for (int v = 0; v < count; ++v) {
 			instance->positions[v] = ModelVec3{positions.at(v, 0), positions.at(v, 1), positions.at(v, 2)};
 			if (!isFinite(instance->positions.at(v))) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has a position that is not a finite number.").arg(instance->surface.name));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF primitive %1 has a position that is not a finite number.").arg(instance->surface.name));
 			}
 		}
 		const auto vectorAttribute = [&](const QString& key, QVector<ModelVec3>* out) {
@@ -738,7 +738,7 @@ private:
 				return false;
 			}
 			if (accessor.count != count) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has attributes of different lengths.").arg(instance->surface.name));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF primitive %1 has attributes of different lengths.").arg(instance->surface.name));
 			}
 			out->resize(count);
 			for (int v = 0; v < count; ++v) {
@@ -757,7 +757,7 @@ private:
 				return false;
 			}
 			if (uv.count != count) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has attributes of different lengths.").arg(instance->surface.name));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF primitive %1 has attributes of different lengths.").arg(instance->surface.name));
 			}
 			for (int v = 0; v < count; ++v) {
 				const float u = uv.at(v, 0), t = uv.at(v, 1);
@@ -782,7 +782,7 @@ private:
 					return false;
 				}
 				if (joints.count != count || weights.count != count) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has attributes of different lengths.").arg(instance->surface.name));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF primitive %1 has attributes of different lengths.").arg(instance->surface.name));
 				}
 				for (int v = 0; v < count; ++v) {
 					for (int slot = 0; slot < 4; ++slot) {
@@ -796,13 +796,13 @@ private:
 			}
 		} else if (instance->skin >= 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("gltf-unskinned-primitive"),
-				QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 belongs to a skinned node but has no joints or weights; it stays in its rest pose.").arg(instance->surface.name));
+				QCoreApplication::translate("SlopStudioModelMesh", "glTF primitive %1 belongs to a skinned node but has no joints or weights; it stays in its rest pose.").arg(instance->surface.name));
 			instance->skin = -1;
 		}
 		// Morph targets: position and normal deltas, mixed by weight.
 		const QJsonArray targets = primitive.value(QStringLiteral("targets")).toArray();
 		if (targets.size() > kMaxMorphTargets) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has more than %2 morph targets.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF primitive %1 has more than %2 morph targets.")
 				.arg(instance->surface.name, QString::number(kMaxMorphTargets)));
 		}
 		for (int target = 0; target < targets.size(); ++target) {
@@ -818,7 +818,7 @@ private:
 					return false;
 				}
 				if (accessor.count != count) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has a morph target of a different length.").arg(instance->surface.name));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF primitive %1 has a morph target of a different length.").arg(instance->surface.name));
 				}
 				for (int v = 0; v < count; ++v) {
 					const ModelVec3 delta{accessor.at(v, 0), accessor.at(v, 1), accessor.at(v, 2)};
@@ -828,7 +828,7 @@ private:
 			if (object.contains(QStringLiteral("NORMAL"))) {
 				Accessor accessor;
 				if (!readAccessor(object.value(QStringLiteral("NORMAL")).toInt(-1), {3}, &accessor) || accessor.count != count) {
-					return m_mesh->error.isEmpty() ? fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has a morph target of a different length.").arg(instance->surface.name)) : false;
+					return m_mesh->error.isEmpty() ? fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF primitive %1 has a morph target of a different length.").arg(instance->surface.name)) : false;
 				}
 				deltaNormals.resize(count);
 				for (int v = 0; v < count; ++v) {
@@ -892,10 +892,10 @@ private:
 			}
 		}
 		if (instance->surface.triangles.size() > kMaxSurfaceTriangles) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has more triangles than can be decoded.").arg(instance->surface.name));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF primitive %1 has more triangles than can be decoded.").arg(instance->surface.name));
 		}
 		if (skipped > 0) {
-			instance->surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%n triangle(s) referenced out-of-range indices and were dropped.", nullptr, skipped);
+			instance->surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "%n triangle(s) referenced out-of-range indices and were dropped.", nullptr, skipped);
 		}
 		return true;
 	}
@@ -942,11 +942,11 @@ private:
 		m_mesh->skinCount = m_mesh->skinPaths.size();
 		if (embedded > 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("gltf-embedded-image"),
-				QCoreApplication::translate("VibeStudioModelMesh", "%n material(s) use images stored inside the glTF; their names are kept as materials, but the images are not extracted.", nullptr, embedded));
+				QCoreApplication::translate("SlopStudioModelMesh", "%n material(s) use images stored inside the glTF; their names are kept as materials, but the images are not extracted.", nullptr, embedded));
 		}
 		if (m_missingUvs) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("gltf-no-uvs"),
-				QCoreApplication::translate("VibeStudioModelMesh", "Some glTF primitives have no texture coordinates; they are set to zero."));
+				QCoreApplication::translate("SlopStudioModelMesh", "Some glTF primitives have no texture coordinates; they are set to zero."));
 		}
 	}
 
@@ -956,7 +956,7 @@ private:
 	{
 		const QJsonArray animations = m_root.value(QStringLiteral("animations")).toArray();
 		if (animations.size() > kMaxAnimations) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF holds more animations than can be read."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The glTF holds more animations than can be read."));
 		}
 		for (int index = 0; index < animations.size(); ++index) {
 			if (!m_work.step()) { return false; }
@@ -968,7 +968,7 @@ private:
 			}
 			const QJsonArray samplers = object.value(QStringLiteral("samplers")).toArray();
 			if (samplers.size() > kMaxSamplers) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF animation \"%1\" has more samplers than can be read.").arg(animation.name));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF animation \"%1\" has more samplers than can be read.").arg(animation.name));
 			}
 			bool first = true;
 			for (const QJsonValue& value : samplers) {
@@ -982,7 +982,7 @@ private:
 				parsed.times = input.values;
 				for (int key = 0; key < parsed.times.size(); ++key) {
 					if (!std::isfinite(parsed.times.at(key)) || parsed.times.at(key) < 0.0f || (key > 0 && parsed.times.at(key) < parsed.times.at(key - 1))) {
-						return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF animation \"%1\" has key times that are not increasing.").arg(animation.name));
+						return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF animation \"%1\" has key times that are not increasing.").arg(animation.name));
 					}
 				}
 				const QString interpolation = sampler.value(QStringLiteral("interpolation")).toString(QStringLiteral("LINEAR"));
@@ -1006,16 +1006,16 @@ private:
 					continue; // a pointer extension or an unknown path: nothing to drive here
 				}
 				if (parsed.sampler < 0 || parsed.sampler >= animation.samplers.size() || parsed.node >= m_nodes.size()) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF animation \"%1\" has a channel that names a missing sampler or node.").arg(animation.name));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF animation \"%1\" has a channel that names a missing sampler or node.").arg(animation.name));
 				}
 				const Sampler& sampler = animation.samplers.at(parsed.sampler);
 				const int width = parsed.path == 1 ? 4 : parsed.path == 3 ? 0 : 3;
 				const int keys = int(sampler.times.size()) * (sampler.interpolation == Interpolation::Cubic ? 3 : 1);
 				if (width > 0 && (sampler.output.components != width || sampler.output.count != keys)) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF animation \"%1\" has output values that do not match its key times.").arg(animation.name));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF animation \"%1\" has output values that do not match its key times.").arg(animation.name));
 				}
 				if (width == 0 && (sampler.output.components != 1 || keys == 0 || sampler.output.count % keys != 0)) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF animation \"%1\" has morph weights that do not match its key times.").arg(animation.name));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF animation \"%1\" has morph weights that do not match its key times.").arg(animation.name));
 				}
 				animation.channels.append(parsed);
 			}
@@ -1163,13 +1163,13 @@ private:
 			for (const QJsonValue& value : object.value(QStringLiteral("joints")).toArray()) {
 				const int node = value.toInt(-1);
 				if (node < 0 || node >= m_nodes.size()) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF skin %1 names a joint node that does not exist.").arg(skin));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF skin %1 names a joint node that does not exist.").arg(skin));
 				}
 				skinJoints[skin].append(node);
 				jointNodes.insert(node);
 			}
 			if (skinJoints.at(skin).isEmpty() || skinJoints.at(skin).size() > kMaxJoints) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF skin %1 has no joints or more than can be read.").arg(skin));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF skin %1 has no joints or more than can be read.").arg(skin));
 			}
 			Accessor matrices;
 			if (object.contains(QStringLiteral("inverseBindMatrices"))) {
@@ -1177,7 +1177,7 @@ private:
 					return false;
 				}
 				if (matrices.count < skinJoints.at(skin).size()) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF skin %1 has fewer inverse bind matrices than joints.").arg(skin));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF skin %1 has fewer inverse bind matrices than joints.").arg(skin));
 				}
 			}
 			for (int j = 0; j < skinJoints.at(skin).size(); ++j) {
@@ -1199,7 +1199,7 @@ private:
 		}
 		if (conflictingBinds) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("gltf-skin-binds"),
-				QCoreApplication::translate("VibeStudioModelMesh", "Skins that share a joint give it different bind poses; the first skin's bind pose is used."));
+				QCoreApplication::translate("SlopStudioModelMesh", "Skins that share a joint give it different bind poses; the first skin's bind pose is used."));
 		}
 		ModelSkeleton& skeleton = m_mesh->skeleton;
 		skeleton.sourceFormat = QStringLiteral("gltf");
@@ -1227,16 +1227,16 @@ private:
 			bool inverted = false;
 			joint.bind = toGame(modelJointInverse(inverseBind.value(node), &inverted));
 			if (!inverted || !modelJointMatrixIsFinite(joint.bind)) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF joint \"%1\" has an inverse bind matrix that cannot be inverted.").arg(name));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF joint \"%1\" has an inverse bind matrix that cannot be inverted.").arg(name));
 			}
 			jointOfNode.insert(node, int(skeleton.joints.size()));
 			skeleton.joints.append(joint);
 		}
 		if (renamed) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("gltf-duplicate-joints"),
-				QCoreApplication::translate("VibeStudioModelMesh", "Some glTF joints share a name; the repeats were given a numbered suffix."));
+				QCoreApplication::translate("SlopStudioModelMesh", "Some glTF joints share a name; the repeats were given a numbered suffix."));
 		}
-		m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Joints: %1").arg(skeleton.joints.size());
+		m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Joints: %1").arg(skeleton.joints.size());
 
 		const QVector<ModelJointMatrix> restWorld = worldMatrices(restLocals());
 		int morphOmitted = 0;
@@ -1270,7 +1270,7 @@ private:
 						const int at = v * instance.perVertex + slot;
 						const int joint = instance.joints.at(at);
 						if (weights.at(at) > 0.0f && (joint < 0 || joint >= local.size())) {
-							return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 names a joint its skin does not have.").arg(surface.name));
+							return fail(QCoreApplication::translate("SlopStudioModelMesh", "glTF primitive %1 names a joint its skin does not have.").arg(surface.name));
 						}
 						joints[at] = joint >= 0 && joint < local.size() ? jointOfNode.value(local.at(joint)) : 0;
 						total += weights.at(at);
@@ -1287,7 +1287,7 @@ private:
 				}
 				if (unweighted > 0) {
 					noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("gltf-unweighted-vertices"),
-						QCoreApplication::translate("VibeStudioModelMesh", "%n vertex(es) of glTF primitive %1 carry no weight; they follow its skin's first joint.", nullptr, unweighted)
+						QCoreApplication::translate("SlopStudioModelMesh", "%n vertex(es) of glTF primitive %1 carry no weight; they follow its skin's first joint.", nullptr, unweighted)
 							.arg(surface.name));
 				}
 				QString problem;
@@ -1340,7 +1340,7 @@ private:
 		}
 		if (morphOmitted > 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("gltf-skinned-morphs"),
-				QCoreApplication::translate("VibeStudioModelMesh", "%n skinned glTF primitive(s) have morph targets; their default weights shape the bind pose, and morph animation is left out.", nullptr, morphOmitted));
+				QCoreApplication::translate("SlopStudioModelMesh", "%n skinned glTF primitive(s) have morph targets; their default weights shape the bind pose, and morph animation is left out.", nullptr, morphOmitted));
 		}
 
 		// Clips: animations that move a joint.
@@ -1386,17 +1386,17 @@ private:
 		}
 		if (omitted > 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("gltf-animations-capped"),
-				QCoreApplication::translate("VibeStudioModelMesh", "%n glTF animation(s) were left out to keep the clips within %1 frames and %2 joint poses.", nullptr, omitted)
+				QCoreApplication::translate("SlopStudioModelMesh", "%n glTF animation(s) were left out to keep the clips within %1 frames and %2 joint poses.", nullptr, omitted)
 					.arg(kMaxFrames).arg(kMaxJointPoses));
 		}
 		if (untouched > 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("gltf-animations-unskinned"),
-				QCoreApplication::translate("VibeStudioModelMesh", "%n glTF animation(s) move no joint (only nodes or morph weights) and were left out of the skeletal model.", nullptr, untouched));
+				QCoreApplication::translate("SlopStudioModelMesh", "%n glTF animation(s) move no joint (only nodes or morph weights) and were left out of the skeletal model.", nullptr, untouched));
 		}
-		m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Animations read: %1").arg(skeleton.clips.size());
+		m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Animations read: %1").arg(skeleton.clips.size());
 		QString problem;
 		if (!bakeModelSkeleton(m_mesh, ModelSkeletonBakeOptions{}, &problem, m_control)) {
-			return fail(problem.isEmpty() ? QCoreApplication::translate("VibeStudioModelMesh", "The glTF skeleton could not be baked into frames.") : problem);
+			return fail(problem.isEmpty() ? QCoreApplication::translate("SlopStudioModelMesh", "The glTF skeleton could not be baked into frames.") : problem);
 		}
 		return true;
 	}
@@ -1543,9 +1543,9 @@ private:
 		}
 		if (omitted > 0) {
 			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("gltf-animations-capped"),
-				QCoreApplication::translate("VibeStudioModelMesh", "%n glTF animation(s) were left out to keep the model within %1 frames.", nullptr, omitted).arg(kMaxVertexFrames));
+				QCoreApplication::translate("SlopStudioModelMesh", "%n glTF animation(s) were left out to keep the model within %1 frames.", nullptr, omitted).arg(kMaxVertexFrames));
 		}
-		m_mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Animations read: %1").arg(m_mesh->animations.size());
+		m_mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Animations read: %1").arg(m_mesh->animations.size());
 		return true;
 	}
 
@@ -1579,4 +1579,4 @@ void decodeGltf(const QString& path, const QByteArray& bytes, ModelMesh* mesh, c
 	decoder.decode();
 }
 
-} // namespace vibestudio::model_formats
+} // namespace slopstudio::model_formats

@@ -23,7 +23,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The text a material's edits change.
 enum class MaterialTextKind {
@@ -196,4 +196,4 @@ QJsonObject materialGraphJson(const MaterialGraph& graph);
 // "property": "blend", "value": "add"}, ...].
 bool parseMaterialGraphEditsJson(const QByteArray& json, QVector<MaterialGraphEdit>* edits, QString* error);
 
-} // namespace vibestudio
+} // namespace slopstudio

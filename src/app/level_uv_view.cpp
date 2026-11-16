@@ -27,7 +27,7 @@
 #include <functional>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 constexpr double kMinZoom = 1e-4, kMaxZoom = 1e4;
@@ -1589,4 +1589,4 @@ bool LevelUvView::event(QEvent* event)
 	return QWidget::event(event);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

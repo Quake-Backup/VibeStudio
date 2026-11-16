@@ -32,7 +32,7 @@
 #include <QSet>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 struct ModelGeometricTopology;
@@ -140,4 +140,4 @@ bool modelWeightedTransformPieceMap(const ModelMesh &mesh, int surface, const QS
 bool modelPieceTransforms(const ModelSurface &surface, const ModelEdit &edit, const ModelTransform &transform, const QSet<int> &vertices,
 						  int pivotFrame, QVector<ModelTransform> *transforms, QHash<int, int> *pieceOf, QString *error = nullptr,
 						  const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

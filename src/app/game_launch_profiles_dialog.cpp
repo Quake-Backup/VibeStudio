@@ -20,7 +20,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 GameLaunchProfilesDialog::GameLaunchProfilesDialog(const QVector<GameLaunchProfile>& profiles, const QString& starterArguments, QWidget* parent)
 	: QDialog(parent)
@@ -276,4 +276,4 @@ void GameLaunchProfilesDialog::refreshState()
 	m_preview->setText(text);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

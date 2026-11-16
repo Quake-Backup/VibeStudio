@@ -12,7 +12,7 @@
 #include <array>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -198,4 +198,4 @@ bool resolveModelTransformAxes(const ModelMesh &mesh, const ModelEdit &edit, Mod
 	}
 	return fail(error, Text::tr("Selection axes need a nondegenerate selected or touching face. Select another face, or use world or custom axes."));
 }
-} // namespace vibestudio
+} // namespace slopstudio

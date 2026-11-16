@@ -31,7 +31,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::registerLevelViewFilterCommands()
 {
@@ -314,4 +314,4 @@ void ApplicationShell::refreshLevelViewFilterMaterialStatus()
 	label->setProperty("reading", !m_levelFilterMaterialsPendingKey.isEmpty());
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

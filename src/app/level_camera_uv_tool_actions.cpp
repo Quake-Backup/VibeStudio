@@ -31,7 +31,7 @@
 #include <cstring>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 bool quakeFamily(const LevelMapDocument& document)
@@ -506,4 +506,4 @@ bool ApplicationShell::handleLevelCameraUvToolEvent(QEvent* event)
 	return false;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

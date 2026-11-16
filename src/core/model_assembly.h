@@ -9,7 +9,7 @@
 #include <memory>
 #include <optional>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr int modelAssemblyMaxParts = 32;
 inline constexpr qint64 modelAssemblyMaxSourceBytes = 1024 * 1024;
@@ -210,4 +210,4 @@ class ModelAssemblyDocument
 	bool m_recovered = false;
 	void commit(State next);
 };
-} // namespace vibestudio
+} // namespace slopstudio

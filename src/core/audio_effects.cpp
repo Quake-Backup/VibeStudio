@@ -8,7 +8,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -636,4 +636,4 @@ bool AudioEffectsProcessor::process(std::span<double> stereo, qint64 firstFrame)
 	m_nextFrame = first + qint64(stereo.size() / 2);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

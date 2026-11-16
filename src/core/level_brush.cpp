@@ -10,7 +10,7 @@
 #include <cmath>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -918,4 +918,4 @@ bool snapLevelMapBrushVertices(LevelMapDocument *document, const QVector<int> &b
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

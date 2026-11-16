@@ -17,7 +17,7 @@
 
 // Independent face manipulation: faces picked by Select Textured move, rotate
 // and scale through the shared component transform without parent selection.
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& error = {})

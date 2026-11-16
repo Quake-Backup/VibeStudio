@@ -6,7 +6,7 @@
 // step back to the exact bytes; closed groups move whole, a brush takes its
 // brush entity along, locks, stale metadata and an open group refuse it, and a
 // hidden destination drops the moved objects from the selection. Doom maps
-// have layers too. With the vibestudio binary as its argument it drives
+// have layers too. With the slopstudio binary as its argument it drives
 // `editor scene select --expand-layers` and `editor scene move-to-layer`.
 
 #include "core/level_document.h"
@@ -29,7 +29,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

@@ -5,7 +5,7 @@
 #include "app/model_viewport.h"
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 void ApplicationShell::wrapLevelMapFromUi(bool withPoints)
 {
 	if (!m_levelMapViewport) { return; }
@@ -43,4 +43,4 @@ void ApplicationShell::wrapLevelMapFromUi(bool withPoints)
 		if (!result.succeeded || !apply(result.document,&error)) { statusBar()->showMessage(error,6000); }
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

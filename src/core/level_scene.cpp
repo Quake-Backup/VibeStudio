@@ -15,7 +15,7 @@
 #include <cmath>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString message(const char* text) { return QCoreApplication::translate("LevelScene", text); }
 bool fail(QString* error, const char* text) {
@@ -682,7 +682,7 @@ LevelSceneState decodeLevelScene(const LevelMapDocument& document, const QByteAr
 	if (root.value(QStringLiteral("sha256")).toString() != QString::fromLatin1(bodyHash.toHex())) {
 		return preserve(QT_TRANSLATE_NOOP(
 			"LevelScene",
-			"The map changed outside VibeStudio; scene metadata is preserved without applying potentially stale memberships."));
+			"The map changed outside SlopStudio; scene metadata is preserved without applying potentially stale memberships."));
 	}
 	const auto nodes = root.value(QStringLiteral("nodes")).toArray();
 	if (nodes.size() > kLevelSceneMaxNodes) {
@@ -814,7 +814,7 @@ LevelSceneStorage levelSceneMetadataStorage(const QByteArray& metadata) {
 	const auto decoded = QByteArray::fromBase64Encoding(metadata.left(kLevelSceneMaxMetadataBytes), QByteArray::AbortOnBase64DecodingErrors);
 	const auto root = decoded ? QJsonDocument::fromJson(decoded.decoded).object() : QJsonObject {};
 	return root.value(QStringLiteral("version")).toInt() == 7 && root.value(QStringLiteral("trenchBroom")).toBool()
-		? LevelSceneStorage::TrenchBroom : LevelSceneStorage::VibeStudio;
+		? LevelSceneStorage::TrenchBroom : LevelSceneStorage::SlopStudio;
 }
 
 QByteArray levelSceneDoomHash(const QMap<QString, QByteArray>& lumps) {
@@ -853,4 +853,4 @@ QJsonObject levelSceneJson(const LevelMapDocument& document) {
 			{QStringLiteral("preservedMetadataBytes"), document.scene.opaqueMetadata.size()},
 			{QStringLiteral("defaultObjects"), QJsonArray::fromStringList(levelSceneMembers(document, {}, false))}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

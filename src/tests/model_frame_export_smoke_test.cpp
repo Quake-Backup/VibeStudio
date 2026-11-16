@@ -18,7 +18,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -44,7 +44,7 @@ bool write(const QString &path, const QByteArray &bytes)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 	ok &= expect(cancelled && result.succeeded() && result.written && !result.cancelled,
 				 "late cancellation preserves the durable success result");
 	{
-		QLockFile lock(request.outputPath + ".vibestudio-model.lock");
+		QLockFile lock(request.outputPath + ".slopstudio-model.lock");
 		ok &= expect(lock.tryLock(), "reserve competing output writer");
 		ok &= expect(!exportModelFrame(mesh, request).written && read(request.outputPath) == stdoutResult.bytes,
 					 "competing writer cannot truncate output");
@@ -205,15 +205,15 @@ int main(int argc, char **argv)
 		ok &= expect(!exportModelFrame(mesh, request).succeeded(),
 					 "package source folder is protected, including renamed and new descendants");
 	}
-	ok &= expect(PackageDraft::save(path("models.vibepackage"), &plan, false, &error), "portable draft fixture");
+	ok &= expect(PackageDraft::save(path("models.sloppackage"), &plan, false, &error), "portable draft fixture");
 	request.sourceArchive = std::make_shared<PackageArchive>(packagePlannedArchive(plan));
-	const auto manifest = read(path("models.vibepackage/document.json"));
-	for (const auto &target : {path("models.vibepackage/document.json"), path("models.vibepackage/objects/new.obj")})
+	const auto manifest = read(path("models.sloppackage/document.json"));
+	for (const auto &target : {path("models.sloppackage/document.json"), path("models.sloppackage/objects/new.obj")})
 	{
 		request.outputPath = target;
 		ok &= expect(!exportModelFrame(mesh, request).succeeded(), "portable manifest and payload store are protected");
 	}
-	ok &= expect(read(path("models.vibepackage/document.json")) == manifest, "draft manifest remains byte-identical");
+	ok &= expect(read(path("models.sloppackage/document.json")) == manifest, "draft manifest remains byte-identical");
 	request.outputPath = path("outside.obj");
 	ok &= expect(exportModelFrame(mesh, request).written, "derivative outside source package is allowed");
 	PackageWriteRequest archiveWrite;
@@ -328,7 +328,7 @@ int main(int argc, char **argv)
 		ok &= expect(run(loose + QStringList{"--output", " "}, 2), "empty explicit output is not silently stdout");
 		ok &= expect(run({"model", "export", path("package"), "model.md3", "--output", path("package/inside.obj")}, 1),
 					 "CLI protects the input folder");
-		ok &= expect(run({"model", "export", path("models.vibepackage"), "renamed.md3", "--output", path("draft-result.obj")}, 0) &&
+		ok &= expect(run({"model", "export", path("models.sloppackage"), "renamed.md3", "--output", path("draft-result.obj")}, 0) &&
 						 QFileInfo::exists(path("draft-result.obj")),
 					 "CLI exports the portable staged snapshot");
 		ok &= expect(run({"model", "export", path("models.pak"), "renamed.md3", "--output", path("pak-result.obj")}, 0),
@@ -336,10 +336,10 @@ int main(int argc, char **argv)
 		ok &= expect(run({"model", "export", path("models.pak"), "renamed.md3", "--output", path("models.pak"), "--overwrite"}, 1) &&
 						 read(path("models.pak")) == originalArchive,
 					 "CLI cannot overwrite its binary package");
-		ok &= expect(run({"model", "export", path("models.vibepackage"), "renamed.md3", "--output",
-						  path("models.vibepackage/document.json"), "--overwrite"},
+		ok &= expect(run({"model", "export", path("models.sloppackage"), "renamed.md3", "--output",
+						  path("models.sloppackage/document.json"), "--overwrite"},
 						 1) &&
-						 read(path("models.vibepackage/document.json")) == manifest,
+						 read(path("models.sloppackage/document.json")) == manifest,
 					 "CLI protects the draft manifest");
 		QFile oversized(path("oversized.md3"));
 		ok &= expect(oversized.open(QIODevice::WriteOnly) && oversized.resize(modelFileByteLimit + 1), "oversized loose source fixture");

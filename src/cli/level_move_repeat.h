@@ -1,7 +1,7 @@
 #pragma once
 #include <QJsonObject>
 #include <QStringList>
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelMoveRepeatCliResult {
 	int exitCode = 0;
 	QString error;
@@ -35,4 +35,4 @@ LevelMoveRepeatCliResult runLevelRepeatTransforms(const QStringList& arguments);
 // drags and Ctrl+Alt extrusion as the Levels Select and Build tools make
 // them (core/level_plane_drag.h).
 LevelMoveRepeatCliResult runLevelPlaneDrag(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

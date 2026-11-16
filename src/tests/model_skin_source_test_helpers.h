@@ -9,7 +9,7 @@
 #include <QThread>
 #include <atomic>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline QByteArray skinLump(int value = 1, int width = 8, int height = 4)
 {
@@ -132,4 +132,4 @@ class SkinReader final : public PackageArchiveReader
 		return !lateFailure;
 	}
 };
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

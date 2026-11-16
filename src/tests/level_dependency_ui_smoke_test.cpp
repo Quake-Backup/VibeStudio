@@ -19,7 +19,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -104,7 +104,7 @@ int main(int argc, char** argv)
 		tree->setCurrentItem(tree->topLevelItem(0));
 		ok &= expect(dialog->findChild<QPlainTextEdit*>()->toPlainText().contains(QStringLiteral("entity:1")), "detail panel must expose map attribution");
 		filter->clear();
-		const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied);
 			image.fill(Qt::transparent);

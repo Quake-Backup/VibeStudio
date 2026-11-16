@@ -29,8 +29,8 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0;
@@ -51,7 +51,7 @@ class Expansion final : public QTranslator
 	QString translate(const char *context, const char *source, const char *, int) const override
 	{
 		const QByteArray name(context);
-		if (name != "ModelAssemblyPlayerImport" && name != "VibeStudioModelPlayerImport" && name != "ModelQ3AnimationDialog")
+		if (name != "ModelAssemblyPlayerImport" && name != "SlopStudioModelPlayerImport" && name != "ModelQ3AnimationDialog")
 			return {};
 		const auto text = QString::fromUtf8(source);
 		return QStringLiteral("[%1%2]").arg(text, QString(text.size() / 2, '~'));
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("player-import-ui-XXXXXX"));

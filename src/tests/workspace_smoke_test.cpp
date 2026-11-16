@@ -11,7 +11,7 @@
 #include <QSet>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool ok, const char* message, const QString& detail = {}) { if (!ok) { std::cerr << message << ": " << detail.toStdString() << '\n'; } return ok; }
 bool put(const QString& path, const QByteArray& bytes) { QFile file(path); return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size(); }
@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 	if (!temp.isValid()) { return 1; }
 	const auto original = temp.filePath(QStringLiteral("original")), moved = temp.filePath(QStringLiteral("moved"));
 	QDir().mkpath(original + QStringLiteral("/project")); QDir().mkpath(moved + QStringLiteral("/project"));
-	const auto path = original + QStringLiteral("/work.vibeworkspace");
+	const auto path = original + QStringLiteral("/work.slopworkspace");
 	WorkspaceDocument source; source.projectPath = original + QStringLiteral("/project"); source.packagePath = source.projectPath;
 	source.mapPath = source.projectPath + QStringLiteral("/missing.map"); source.mapName = QStringLiteral("MAP01");
 	source.codeFiles = {source.projectPath + QStringLiteral("/shader Ω.shader")}; source.currentCodeFile = source.codeFiles[0];
@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 	QFile file(path); if (!file.open(QIODevice::ReadOnly)) { return 1; } const auto bytes = file.readAll(); file.close();
 	ok &= expect(!bytes.contains(original.toUtf8()) && bytes.contains("project/missing.map"), "references stored relative to workspace");
 	WorkspaceDocument restored;
-	ok &= expect(parseWorkspaceDocument(bytes, moved + QStringLiteral("/work.vibeworkspace"), &restored, &error) && restored.projectPath == moved + QStringLiteral("/project") &&
+	ok &= expect(parseWorkspaceDocument(bytes, moved + QStringLiteral("/work.slopworkspace"), &restored, &error) && restored.projectPath == moved + QStringLiteral("/project") &&
 		restored.assetSelections == source.assetSelections && restored.extensions == source.extensions, "relocated workspace preserves context", error);
 	ok &= expect(workspaceMissingReferences(restored).size() == 2, "missing references reported without opening files");
 	ok &= expect(!writeWorkspaceDocument(path, source, {}, nullptr, &error), "existing workspace not overwritten by a new save");
@@ -55,28 +55,28 @@ int main(int argc, char** argv)
 	auto oversized = workspaceDocumentJson(source, path); oversized.insert("codeFiles", tooMany);
 	ok &= expect(!parseWorkspaceDocument(QJsonDocument(oversized).toJson(), path, &restored, &error), "tab count bound");
 	ok &= expect(!parseWorkspaceDocument(QByteArray(1024 * 1024 + 1, ' '), path, &restored, &error), "payload size bound");
-	const auto occupied = temp.filePath(QStringLiteral("occupied.vibeworkspace")); put(occupied, "user document");
+	const auto occupied = temp.filePath(QStringLiteral("occupied.slopworkspace")); put(occupied, "user document");
 	ok &= expect(!writeWorkspaceDocument(occupied, source, second, nullptr, &error), "non-workspace file protected");
-	const auto absent = temp.filePath(QStringLiteral("dry-run.vibeworkspace"));
-	auto cli = cli::runWorkspaceCommand({"vibestudio", "--cli", "workspace", "create", absent, "--project", moved, "--code", "test.cpp", "--dry-run", "--json"});
+	const auto absent = temp.filePath(QStringLiteral("dry-run.slopworkspace"));
+	auto cli = cli::runWorkspaceCommand({"slopstudio", "--cli", "workspace", "create", absent, "--project", moved, "--code", "test.cpp", "--dry-run", "--json"});
 	ok &= expect(cli.exitCode == 0 && !QFileInfo::exists(absent), "CLI dry run has no writes", cli.error);
 	// Editable model sources ride in extensions, so older readers keep the file readable.
-	cli = cli::runWorkspaceCommand({"vibestudio", "workspace", "create", absent, "--model", "prop.mesh.json", "--model", "prop.model.json", "--dry-run", "--json"});
+	cli = cli::runWorkspaceCommand({"slopstudio", "workspace", "create", absent, "--model", "prop.mesh.json", "--model", "prop.model.json", "--dry-run", "--json"});
 	const auto modelExtensions = cli.payload.value("workspace").toObject().value("extensions").toObject();
-	ok &= expect(cli.exitCode == 0 && modelExtensions.value("vibestudio.modelSources").toArray().size() == 2, "CLI keeps model sources", cli.error);
+	ok &= expect(cli.exitCode == 0 && modelExtensions.value("slopstudio.modelSources").toArray().size() == 2, "CLI keeps model sources", cli.error);
 	WorkspaceDocument models;
 	ok &= expect(parseWorkspaceDocument(QJsonDocument(cli.payload.value("workspace").toObject()).toJson(), absent, &models, &error) &&
 		models.modelSources.size() == 2 && models.extensions.isEmpty(), "model sources parse back out of extensions", error);
-	cli = cli::runWorkspaceCommand({"vibestudio", "workspace", "create", absent, "--model", "notes.txt", "--dry-run", "--json"});
+	cli = cli::runWorkspaceCommand({"slopstudio", "workspace", "create", absent, "--model", "notes.txt", "--dry-run", "--json"});
 	ok &= expect(cli.exitCode == 2, "only editable model sources are kept");
-	cli = cli::runWorkspaceCommand({"vibestudio", "workspace", "inspect", path, "--overwrite"});
+	cli = cli::runWorkspaceCommand({"slopstudio", "workspace", "inspect", path, "--overwrite"});
 	ok &= expect(cli.exitCode == 2, "inspection rejects mutation options");
-	cli = cli::runWorkspaceCommand({"vibestudio", "workspace", "inspect", path, "--json"});
+	cli = cli::runWorkspaceCommand({"slopstudio", "workspace", "inspect", path, "--json"});
 	ok &= expect(cli.exitCode == 0 && cli.payload.value("workspace").toObject().value("activeModule") == QStringLiteral("models"), "CLI sees same workspace", cli.error);
 	WorkspaceDocument large; large.extensions = {{"large", QString(1024 * 1024 - 4096, 'x')}};
-	const auto largePath = temp.filePath(QStringLiteral("large.vibeworkspace"));
+	const auto largePath = temp.filePath(QStringLiteral("large.slopworkspace"));
 	ok &= expect(writeWorkspaceDocument(largePath, large, {}, nullptr, &error), "bounded large extension fixture", error);
-	QStringList enlarged{"vibestudio", "workspace", "create", largePath, "--overwrite", "--dry-run"};
+	QStringList enlarged{"slopstudio", "workspace", "create", largePath, "--overwrite", "--dry-run"};
 	for (const auto ch : {'a', 'b', 'c'}) { enlarged << "--code" << temp.filePath(QString(2000, QLatin1Char(ch))); }
 	cli = cli::runWorkspaceCommand(enlarged);
 	ok &= expect(cli.exitCode == 2 && readWorkspaceDocument(largePath, &restored, nullptr, &error) && restored.extensions == large.extensions,
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
 	ok &= expect(assetPreviewKindForPath(QStringLiteral("image.TIFF")) == AssetPreviewKind::Image && assetPreviewKindForPath(QStringLiteral("image.DDS")) == AssetPreviewKind::Image, "shared image routing");
 	ok &= expect(assetPreviewKindForPath(QStringLiteral("script.qc")) == AssetPreviewKind::Text, "code fallback retained");
 	ok &= expect(assetPackageOpenFilter().contains(QStringLiteral("*.pk4")) && assetPackageOpenFilter().contains(QStringLiteral("*.pkz")), "shared package filter includes ZIP aliases");
-	cli = cli::runWorkspaceCommand({"vibestudio", "asset", "formats", "--module", "models"});
+	cli = cli::runWorkspaceCommand({"slopstudio", "asset", "formats", "--module", "models"});
 	ok &= expect(cli.exitCode == 0 && cli.payload.value("formats").toArray().size() >= 7, "module-filtered format catalog", cli.error);
 	ok &= expect(assetFormatForPath(QStringLiteral("test.iqm"))->readCapability == QStringLiteral("geometry") && assetFormatForPath(QStringLiteral("test.iqm"))->runtimeWrite,
 		"IQM is advertised as decoded geometry with export");

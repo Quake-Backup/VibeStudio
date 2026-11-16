@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 LevelCameraFaceMode levelCameraFaceMode(const LevelCameraRenderState& state)
 {
@@ -126,13 +126,13 @@ QString levelCameraDrawModeName(LevelCameraDrawMode mode)
 {
 	switch (mode) {
 	case LevelCameraDrawMode::Wireframe:
-		return QCoreApplication::translate("VibeStudioLevelCameraRender", "Wireframe");
+		return QCoreApplication::translate("SlopStudioLevelCameraRender", "Wireframe");
 	case LevelCameraDrawMode::Flat:
-		return QCoreApplication::translate("VibeStudioLevelCameraRender", "Flat Shaded");
+		return QCoreApplication::translate("SlopStudioLevelCameraRender", "Flat Shaded");
 	case LevelCameraDrawMode::Textured:
-		return QCoreApplication::translate("VibeStudioLevelCameraRender", "Textured");
+		return QCoreApplication::translate("SlopStudioLevelCameraRender", "Textured");
 	case LevelCameraDrawMode::TexturedEdges:
-		return QCoreApplication::translate("VibeStudioLevelCameraRender", "Textured with Edges");
+		return QCoreApplication::translate("SlopStudioLevelCameraRender", "Textured with Edges");
 	}
 	return {};
 }
@@ -141,20 +141,20 @@ QString levelCameraRenderSummary(const LevelCameraRenderState& state)
 {
 	switch (levelCameraFaceMode(state)) {
 	case LevelCameraFaceMode::Hidden:
-		return QCoreApplication::translate("VibeStudioLevelCameraRender", "Camera: wireframe, faces hidden.");
+		return QCoreApplication::translate("SlopStudioLevelCameraRender", "Camera: wireframe, faces hidden.");
 	case LevelCameraFaceMode::Flat:
-		return state.edges ? QCoreApplication::translate("VibeStudioLevelCameraRender", "Camera: flat-shaded faces with edges.")
-						   : QCoreApplication::translate("VibeStudioLevelCameraRender", "Camera: flat-shaded faces.");
+		return state.edges ? QCoreApplication::translate("SlopStudioLevelCameraRender", "Camera: flat-shaded faces with edges.")
+						   : QCoreApplication::translate("SlopStudioLevelCameraRender", "Camera: flat-shaded faces.");
 	case LevelCameraFaceMode::Textured:
 		break;
 	}
-	return state.edges ? QCoreApplication::translate("VibeStudioLevelCameraRender", "Camera: textured faces with edges.")
-					   : QCoreApplication::translate("VibeStudioLevelCameraRender", "Camera: textured faces.");
+	return state.edges ? QCoreApplication::translate("SlopStudioLevelCameraRender", "Camera: textured faces with edges.")
+					   : QCoreApplication::translate("SlopStudioLevelCameraRender", "Camera: textured faces.");
 }
 
 QString levelCameraDrawModeAnnouncement(LevelCameraDrawMode mode)
 {
-	return QCoreApplication::translate("VibeStudioLevelCameraRender", "Camera mode %1 of %2: %3.")
+	return QCoreApplication::translate("SlopStudioLevelCameraRender", "Camera mode %1 of %2: %3.")
 		.arg(levelCameraDrawModeNumber(mode))
 		.arg(kLevelCameraDrawModeCount)
 		.arg(levelCameraDrawModeName(mode));
@@ -233,16 +233,16 @@ bool levelCameraFogRangeFromText(const QByteArray& text, LevelCameraShadingState
 
 QString levelCameraShadingSummary(const LevelCameraShadingState& state)
 {
-	return state.shadeFaces ? QCoreApplication::translate("VibeStudioLevelCameraRender", "Camera: faces shaded by their direction.")
-							: QCoreApplication::translate("VibeStudioLevelCameraRender", "Camera: faces unshaded, at full brightness.");
+	return state.shadeFaces ? QCoreApplication::translate("SlopStudioLevelCameraRender", "Camera: faces shaded by their direction.")
+							: QCoreApplication::translate("SlopStudioLevelCameraRender", "Camera: faces unshaded, at full brightness.");
 }
 
 QString levelCameraFogSummary(const LevelCameraShadingState& state)
 {
 	if (!state.fog) {
-		return QCoreApplication::translate("VibeStudioLevelCameraRender", "Camera fog off.");
+		return QCoreApplication::translate("SlopStudioLevelCameraRender", "Camera fog off.");
 	}
-	return QCoreApplication::translate("VibeStudioLevelCameraRender", "Camera fog on: faces fade towards the background from %1 to %2 units away.")
+	return QCoreApplication::translate("SlopStudioLevelCameraRender", "Camera fog on: faces fade towards the background from %1 to %2 units away.")
 		.arg(state.fogStart)
 		.arg(state.fogEnd);
 }
@@ -250,12 +250,12 @@ QString levelCameraFogSummary(const LevelCameraShadingState& state)
 QString levelCameraFaceGridSummary(const LevelCameraShadingState& state, bool showGrid, double gridUnits)
 {
 	if (!state.faceGrid) {
-		return QCoreApplication::translate("VibeStudioLevelCameraRender", "Grid on camera faces off.");
+		return QCoreApplication::translate("SlopStudioLevelCameraRender", "Grid on camera faces off.");
 	}
 	if (!showGrid) {
-		return QCoreApplication::translate("VibeStudioLevelCameraRender", "Grid on camera faces on: it shows while Show Grid is on.");
+		return QCoreApplication::translate("SlopStudioLevelCameraRender", "Grid on camera faces on: it shows while Show Grid is on.");
 	}
-	return QCoreApplication::translate("VibeStudioLevelCameraRender", "Grid on camera faces on: lines every %1 units on brush faces.")
+	return QCoreApplication::translate("SlopStudioLevelCameraRender", "Grid on camera faces on: lines every %1 units on brush faces.")
 		.arg(levelEditorGridSizeText(gridUnits));
 }
 
@@ -356,20 +356,20 @@ QString levelCameraFarClipDistanceText(int step)
 	// beside the fields that edit them.
 	QLocale locale;
 	locale.setNumberOptions(locale.numberOptions() | QLocale::OmitGroupSeparator);
-	return QCoreApplication::translate("VibeStudioLevelCameraRender", "%1 units").arg(locale.toString(levelCameraFarClipDistance(step)));
+	return QCoreApplication::translate("SlopStudioLevelCameraRender", "%1 units").arg(locale.toString(levelCameraFarClipDistance(step)));
 }
 
 QString levelCameraFarClipSummary(const LevelCameraFarClipState& state, const LevelCameraShadingState& shading)
 {
 	if (!state.enabled) {
-		return QCoreApplication::translate("VibeStudioLevelCameraRender", "Camera far clip off: the camera draws everything in front of it.");
+		return QCoreApplication::translate("SlopStudioLevelCameraRender", "Camera far clip off: the camera draws everything in front of it.");
 	}
-	QString summary = QCoreApplication::translate("VibeStudioLevelCameraRender", "Camera far clip on: nothing beyond %1 is drawn (step %2 of %3).")
+	QString summary = QCoreApplication::translate("SlopStudioLevelCameraRender", "Camera far clip on: nothing beyond %1 is drawn (step %2 of %3).")
 						  .arg(levelCameraFarClipDistanceText(state.step))
 						  .arg(state.step)
 						  .arg(kLevelCameraFarClipMaximumStep);
 	if (levelCameraFogWithinFarClip(shading, state) != shading) {
-		summary += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioLevelCameraRender", "The fog ends there too.");
+		summary += QLatin1Char(' ') + QCoreApplication::translate("SlopStudioLevelCameraRender", "The fog ends there too.");
 	}
 	return summary;
 }
@@ -379,19 +379,19 @@ QString levelCameraFarClipStepAnnouncement(const LevelCameraFarClipState& before
 	const QString distance = levelCameraFarClipDistanceText(after.step);
 	if (after.step == before.step) {
 		return after.step <= kLevelCameraFarClipMinimumStep
-			? QCoreApplication::translate("VibeStudioLevelCameraRender", "The draw distance is already at its shortest, %1.").arg(distance)
-			: QCoreApplication::translate("VibeStudioLevelCameraRender", "The draw distance is already at its longest, %1.").arg(distance);
+			? QCoreApplication::translate("SlopStudioLevelCameraRender", "The draw distance is already at its shortest, %1.").arg(distance)
+			: QCoreApplication::translate("SlopStudioLevelCameraRender", "The draw distance is already at its longest, %1.").arg(distance);
 	}
 	if (!after.enabled) {
-		return QCoreApplication::translate("VibeStudioLevelCameraRender", "Draw distance %1 (step %2 of %3); it applies once Far Clip in Camera is on.")
+		return QCoreApplication::translate("SlopStudioLevelCameraRender", "Draw distance %1 (step %2 of %3); it applies once Far Clip in Camera is on.")
 			.arg(distance)
 			.arg(after.step)
 			.arg(kLevelCameraFarClipMaximumStep);
 	}
-	return QCoreApplication::translate("VibeStudioLevelCameraRender", "Draw distance %1 (step %2 of %3).")
+	return QCoreApplication::translate("SlopStudioLevelCameraRender", "Draw distance %1 (step %2 of %3).")
 		.arg(distance)
 		.arg(after.step)
 		.arg(kLevelCameraFarClipMaximumStep);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -2,7 +2,7 @@
 #include "core/level_patch_cap.h"
 #include "tests/patch_stitch_test_helpers.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline LevelMapPatch capSource(bool columns = false, bool open = false)
 {
@@ -49,4 +49,4 @@ inline bool createCapMap(LevelMapDocument *map, QString *error = nullptr)
 	create.starterRoom = false;
 	return createLevelMap(create, map, error) && addLevelMapPatch(map, capSource(), nullptr, error);
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

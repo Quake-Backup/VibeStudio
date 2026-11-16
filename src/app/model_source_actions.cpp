@@ -22,7 +22,7 @@
 #include <QPushButton>
 #include <QStatusBar>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -321,4 +321,4 @@ void ApplicationShell::openModelSourceItem(QListWidgetItem *item)
 	if (!path.isEmpty())
 		openModelSourcePath(path);
 }
-} // namespace vibestudio
+} // namespace slopstudio

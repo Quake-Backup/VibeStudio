@@ -8,7 +8,7 @@
 class QThread;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class CodeFilesWorker final : public QObject {
 public:
@@ -31,4 +31,4 @@ private:
 	quint64 m_serial = 0;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

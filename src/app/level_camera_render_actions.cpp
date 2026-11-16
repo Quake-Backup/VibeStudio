@@ -42,7 +42,7 @@
 #include <functional>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -431,4 +431,4 @@ QWidget* ApplicationShell::buildLevelCameraFogRange()
 	return row;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

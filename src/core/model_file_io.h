@@ -4,7 +4,7 @@
 
 #include <QByteArray>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr qint64 modelFileByteLimit = 64 * 1024 * 1024;
 
@@ -29,9 +29,9 @@ bool validateModelWriteTarget(const ModelWriteTarget &target, QString *error = n
 // an existing-file replacement after that final check.
 bool writeModelFile(const ModelWriteTarget &target, const QByteArray &bytes, QString *error = nullptr,
 					const ModelWorkControl &control = {});
-// Removes this writer's own staging files (.vibestudio-model-XXXXXX.tmp, six
+// Removes this writer's own staging files (.slopstudio-model-XXXXXX.tmp, six
 // letters or digits) older than `olderThanSeconds` in `directory`: what an
 // interrupted or killed write left behind. A live writer touches its file as
 // it writes, so it is never that old. Returns how many were removed.
 int removeStaleModelStagingFiles(const QString &directory, qint64 olderThanSeconds = 600);
-} // namespace vibestudio
+} // namespace slopstudio

@@ -35,7 +35,7 @@
 
 #include <cmath>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(LevelMoveRepeatCli)
@@ -1153,4 +1153,4 @@ LevelMoveRepeatCliResult runLevelPlaneDrag(const QStringList& arguments)
 	addSave(saved, &result);
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

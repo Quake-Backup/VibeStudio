@@ -25,7 +25,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& detail = {}) {
@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
 	QFile file(path); if (!file.open(QIODevice::WriteOnly) || file.write(original) != original.size()) { return 1; } file.close();
 	const QVector<LevelMapSelectionRef> pair{{LevelMapSelectionKind::QuakeBrush,0},{LevelMapSelectionKind::QuakeBrush,1}};
 	const QVector<LevelMapSelectionRef> outside{{LevelMapSelectionKind::QuakeBrush,2}};
-	for (const auto& profile : {QStringLiteral("trenchbroom"),QStringLiteral("netradiant-custom"),QStringLiteral("vibestudio-default")}) {
+	for (const auto& profile : {QStringLiteral("trenchbroom"),QStringLiteral("netradiant-custom"),QStringLiteral("slopstudio-default")}) {
 		if (QCoreApplication::arguments().contains(QStringLiteral("--dense-only"))) { break; }
 		for (int scale : {100,200}) {
 			std::cout << "Object selection UI " << profile.toStdString() << ' ' << scale << '%' << std::endl;
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
 				expect(buddy && dialog->accessibleName() == dialog->windowTitle() && accept->isDefault(),"keyboard mnemonic and default action");
 				dialog->adjustSize();
 				expect(dialog->rect().contains(field->geometry()) && field->width() > 80,"line input remains visible with scaling and expansion");
-				const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+				const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 				if (tb && !capture.isEmpty()) {
 					QDir().mkpath(capture); QImage image(dialog->size(),QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image);
 					expect(image.save(QDir(capture).filePath(QStringLiteral("source-lines-%1.png").arg(scale))),"render owned source line dialog");
@@ -172,7 +172,7 @@ int main(int argc, char** argv) {
 		expect(inspected && beats > 0 && gap < 1000 && result.cancelled && result.objectSelectionReport.selection.isEmpty()
 			&& dense.selection == outside && dense.undoStack.isEmpty(),"100,000-brush query stays responsive and cancels atomically",result.error);
 		std::cout << scale << "% dense selection: " << beats << " heartbeats, maximum gap " << gap << " ms" << std::endl;
-		const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!capture.isEmpty()) {
 			QDir().mkpath(capture); QFile evidence(QDir(capture).filePath(QStringLiteral("dense-selection-%1.json").arg(scale)));
 			const QJsonObject metrics{{"brushes",100000},{"scale",scale},{"heartbeats",beats},{"maximumGapMs",gap},

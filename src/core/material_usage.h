@@ -25,7 +25,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class MaterialMapKind {
 	MapSource, // .map text
@@ -79,4 +79,4 @@ void addMaterialUsageFromBytes(const QByteArray& bytes, const QString& mapPath, 
 QJsonObject materialMapUseJson(const MaterialMapUse& use);
 QJsonObject materialUsageJson(const MaterialUsageIndex& index, const QString& materialName = QString());
 
-} // namespace vibestudio
+} // namespace slopstudio

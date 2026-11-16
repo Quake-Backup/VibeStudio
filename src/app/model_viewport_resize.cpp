@@ -14,7 +14,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 ModelVec3 modelPoint(BoxResizePoint point) { return {float(point[0]),float(point[1]),float(point[2])}; }
 BoxResizePoint coordinates(ModelVec3 point) { return {point.x,point.y,point.z}; }
@@ -396,4 +396,4 @@ void ModelViewport::paintSelectionResize(QPainter& painter)
 	painter.restore();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -13,7 +13,7 @@
 #include <QStatusBar>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 bool ApplicationShell::canSelectLevelMapObjects(bool sourceLines, bool includeComponents, bool anyMapFormat) const
 {
 	const bool textMap = m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map;
@@ -143,4 +143,4 @@ void ApplicationShell::selectLevelMapObjectsFromUi(LevelObjectSelectionMode mode
 		? tr("Selected %n object(s) from the source text at last open.",nullptr,static_cast<int>(m_levelMapDocument.selection.size()))
 		: tr("Selected %n sibling object(s).",nullptr,static_cast<int>(m_levelMapDocument.selection.size())));
 }
-} // namespace vibestudio
+} // namespace slopstudio

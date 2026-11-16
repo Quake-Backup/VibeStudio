@@ -15,11 +15,11 @@
 #include <cmath>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 // ---------------------------------------------------------------------------
@@ -3375,74 +3375,74 @@ struct KeywordHelp {
 
 // Shown in completion and the graph inspector. Translated where shown.
 const KeywordHelp kKeywordHelp[] = {
-	{MaterialEngine::Quake3, true, "map", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The stage's image: a path, $lightmap or $whiteimage.")},
-	{MaterialEngine::Quake3, true, "clampmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Like map, but the image does not repeat.")},
-	{MaterialEngine::Quake3, true, "animmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Cycles up to 8 images at the given frames per second.")},
-	{MaterialEngine::Quake3, true, "videomap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Plays a RoQ video as the stage's image.")},
-	{MaterialEngine::Quake3, true, "blendfunc", QT_TRANSLATE_NOOP("VibeStudioMaterials", "How the stage mixes with what is drawn: add, filter, blend, or two GL factors.")},
-	{MaterialEngine::Quake3, true, "rgbgen", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Where the stage's colour comes from: identity, wave, const, vertex, entity, lightingDiffuse.")},
-	{MaterialEngine::Quake3, true, "alphagen", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Where the stage's alpha comes from: wave, const, vertex, entity, lightingSpecular, portal.")},
-	{MaterialEngine::Quake3, true, "tcgen", QT_TRANSLATE_NOOP("VibeStudioMaterials", "How texture coordinates are made: base, lightmap, environment, vector.")},
-	{MaterialEngine::Quake3, true, "tcmod", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Moves the texture coordinates: scroll, scale, rotate, stretch, turb, transform. Applied in order.")},
-	{MaterialEngine::Quake3, true, "alphafunc", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Discards pixels by alpha: GT0, LT128 or GE128.")},
-	{MaterialEngine::Quake3, true, "depthfunc", QT_TRANSLATE_NOOP("VibeStudioMaterials", "lequal (default) or equal, to draw only where an earlier stage drew.")},
-	{MaterialEngine::Quake3, true, "depthwrite", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Writes depth even when the stage blends.")},
-	{MaterialEngine::Quake3, true, "detail", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Marks a detail texture that r_detailtextures can turn off.")},
-	{MaterialEngine::Quake3, false, "surfaceparm", QT_TRANSLATE_NOOP("VibeStudioMaterials", "A compiler and game flag such as nonsolid, trans, water or sky.")},
-	{MaterialEngine::Quake3, false, "cull", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Which faces draw: front (default), back, or none for both.")},
-	{MaterialEngine::Quake3, false, "deformvertexes", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Moves vertices every frame: wave, normal, bulge, move, autosprite.")},
-	{MaterialEngine::Quake3, false, "skyparms", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Sky box images, cloud height and inner box.")},
-	{MaterialEngine::Quake3, false, "fogparms", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Fog volume colour and the distance at which it is opaque.")},
-	{MaterialEngine::Quake3, false, "sort", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Draw order: portal, sky, opaque, decal, banner, underwater, additive, nearest or a number.")},
-	{MaterialEngine::Quake3, false, "polygonoffset", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Pulls the surface towards the viewer so decals do not flicker.")},
-	{MaterialEngine::Quake3, false, "nopicmip", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Keeps full resolution whatever r_picmip says.")},
-	{MaterialEngine::Quake3, false, "nomipmaps", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Uses no mip levels at all.")},
-	{MaterialEngine::Quake3, false, "portal", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Marks a mirror or portal surface.")},
-	{MaterialEngine::Quake3, false, "qer_editorimage", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The image level editors show for this shader.")},
-	{MaterialEngine::Quake3, false, "tesssize", QT_TRANSLATE_NOOP("VibeStudioMaterials", "How finely q3map2 subdivides surfaces so vertex deforms look smooth.")},
-	{MaterialEngine::Quake3, true, "glow", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: the stage also lights the glow (bloom) pass.")},
-	{MaterialEngine::Quake3, true, "surfacesprites", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: scatters sprites such as grass over the surface instead of drawing the stage on it.")},
-	{MaterialEngine::Quake3, true, "oneshotanimmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: plays the images once and holds the last.")},
-	{MaterialEngine::Quake3, true, "clampanimmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: animMap with images that do not repeat.")},
-	{MaterialEngine::Quake3, true, "lightmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Enemy Territory: a clamped image drawn with lightmap coordinates.")},
-	{MaterialEngine::Quake3, true, "mapnocomp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the image used while texture compression is off.")},
-	{MaterialEngine::Quake3, true, "mapcomp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the image used while texture compression is on.")},
-	{MaterialEngine::Quake3, false, "implicitmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Enemy Territory: the engine's default stages for an image (- for the shader's own name).")},
-	{MaterialEngine::Quake3, false, "fogvars", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the map's global fog colour and distance.")},
-	{MaterialEngine::Quake3, false, "sunshader", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Wolfenstein: the shader drawn as the sun.")},
-	{MaterialEngine::Quake3, false, "material", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Jedi Knight: the surface material for footsteps, impacts and decals.")},
-	{MaterialEngine::Doom3, true, "blend", QT_TRANSLATE_NOOP("VibeStudioMaterials", "blend, add, filter, modulate, none, two GL factors, or diffusemap, bumpmap, specularmap for lighting.")},
-	{MaterialEngine::Doom3, true, "map", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The stage's image or image program, such as heightmap( image, 4 ).")},
-	{MaterialEngine::Doom3, true, "cubemap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "A cube map from six images with _px, _nx... suffixes.")},
-	{MaterialEngine::Doom3, true, "cameracubemap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "A cube map from six camera-style images (_forward, _back...).")},
-	{MaterialEngine::Doom3, true, "texgen", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Generated coordinates: normal, reflect, skybox, wobbleSky, screen.")},
-	{MaterialEngine::Doom3, true, "scroll", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Offsets the coordinates by two expressions, such as scroll time * 0.1, 0.")},
-	{MaterialEngine::Doom3, true, "translate", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The same as scroll.")},
-	{MaterialEngine::Doom3, true, "scale", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Scales the coordinates about the origin.")},
-	{MaterialEngine::Doom3, true, "centerscale", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Scales the coordinates about the image centre.")},
-	{MaterialEngine::Doom3, true, "shear", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Shears the coordinates about the image centre.")},
-	{MaterialEngine::Doom3, true, "rotate", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Rotates about the image centre; the expression counts whole turns.")},
-	{MaterialEngine::Doom3, true, "rgb", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Sets red, green and blue to one expression.")},
-	{MaterialEngine::Doom3, true, "rgba", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Sets every channel to one expression.")},
-	{MaterialEngine::Doom3, true, "color", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Four expressions: red, green, blue, alpha.")},
-	{MaterialEngine::Doom3, true, "colored", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Colour from the entity's parm0 to parm3.")},
-	{MaterialEngine::Doom3, true, "alphatest", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Discards pixels whose alpha is below the expression.")},
-	{MaterialEngine::Doom3, true, "if", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Draws the stage only while the expression is not zero.")},
-	{MaterialEngine::Doom3, true, "vertexcolor", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Multiplies by the vertex colour.")},
-	{MaterialEngine::Doom3, true, "clamp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The image does not repeat.")},
-	{MaterialEngine::Doom3, true, "zeroclamp", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Outside the image is black.")},
-	{MaterialEngine::Doom3, false, "diffusemap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Shorthand for a diffuse lighting stage.")},
-	{MaterialEngine::Doom3, false, "bumpmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Shorthand for a normal map stage.")},
-	{MaterialEngine::Doom3, false, "specularmap", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Shorthand for a specular lighting stage.")},
-	{MaterialEngine::Doom3, false, "translucent", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Blended, not lit, and drawn after opaque surfaces.")},
-	{MaterialEngine::Doom3, false, "twosided", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Draws both faces and casts no shadows.")},
-	{MaterialEngine::Doom3, false, "noshadows", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Casts no shadows.")},
-	{MaterialEngine::Doom3, false, "deform", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Changes geometry: sprite, tube, flare, expand, move, turbulent, eyeBall, particle.")},
-	{MaterialEngine::Doom3, false, "sort", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Draw order: subview, opaque, decal, far, medium, close, almostNearest, nearest, postProcess.")},
-	{MaterialEngine::Doom3, false, "lightfalloffimage", QT_TRANSLATE_NOOP("VibeStudioMaterials", "For a light: the image that fades it with distance.")},
-	{MaterialEngine::Doom3, false, "polygonoffset", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Pulls the surface towards the viewer.")},
-	{MaterialEngine::Doom3, false, "qer_editorimage", QT_TRANSLATE_NOOP("VibeStudioMaterials", "The image the editor shows.")},
-	{MaterialEngine::Doom3, false, "decal_macro", QT_TRANSLATE_NOOP("VibeStudioMaterials", "Polygon offset, discrete, decal sort and no shadows in one word.")},
+	{MaterialEngine::Quake3, true, "map", QT_TRANSLATE_NOOP("SlopStudioMaterials", "The stage's image: a path, $lightmap or $whiteimage.")},
+	{MaterialEngine::Quake3, true, "clampmap", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Like map, but the image does not repeat.")},
+	{MaterialEngine::Quake3, true, "animmap", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Cycles up to 8 images at the given frames per second.")},
+	{MaterialEngine::Quake3, true, "videomap", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Plays a RoQ video as the stage's image.")},
+	{MaterialEngine::Quake3, true, "blendfunc", QT_TRANSLATE_NOOP("SlopStudioMaterials", "How the stage mixes with what is drawn: add, filter, blend, or two GL factors.")},
+	{MaterialEngine::Quake3, true, "rgbgen", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Where the stage's colour comes from: identity, wave, const, vertex, entity, lightingDiffuse.")},
+	{MaterialEngine::Quake3, true, "alphagen", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Where the stage's alpha comes from: wave, const, vertex, entity, lightingSpecular, portal.")},
+	{MaterialEngine::Quake3, true, "tcgen", QT_TRANSLATE_NOOP("SlopStudioMaterials", "How texture coordinates are made: base, lightmap, environment, vector.")},
+	{MaterialEngine::Quake3, true, "tcmod", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Moves the texture coordinates: scroll, scale, rotate, stretch, turb, transform. Applied in order.")},
+	{MaterialEngine::Quake3, true, "alphafunc", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Discards pixels by alpha: GT0, LT128 or GE128.")},
+	{MaterialEngine::Quake3, true, "depthfunc", QT_TRANSLATE_NOOP("SlopStudioMaterials", "lequal (default) or equal, to draw only where an earlier stage drew.")},
+	{MaterialEngine::Quake3, true, "depthwrite", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Writes depth even when the stage blends.")},
+	{MaterialEngine::Quake3, true, "detail", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Marks a detail texture that r_detailtextures can turn off.")},
+	{MaterialEngine::Quake3, false, "surfaceparm", QT_TRANSLATE_NOOP("SlopStudioMaterials", "A compiler and game flag such as nonsolid, trans, water or sky.")},
+	{MaterialEngine::Quake3, false, "cull", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Which faces draw: front (default), back, or none for both.")},
+	{MaterialEngine::Quake3, false, "deformvertexes", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Moves vertices every frame: wave, normal, bulge, move, autosprite.")},
+	{MaterialEngine::Quake3, false, "skyparms", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Sky box images, cloud height and inner box.")},
+	{MaterialEngine::Quake3, false, "fogparms", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Fog volume colour and the distance at which it is opaque.")},
+	{MaterialEngine::Quake3, false, "sort", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Draw order: portal, sky, opaque, decal, banner, underwater, additive, nearest or a number.")},
+	{MaterialEngine::Quake3, false, "polygonoffset", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Pulls the surface towards the viewer so decals do not flicker.")},
+	{MaterialEngine::Quake3, false, "nopicmip", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Keeps full resolution whatever r_picmip says.")},
+	{MaterialEngine::Quake3, false, "nomipmaps", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Uses no mip levels at all.")},
+	{MaterialEngine::Quake3, false, "portal", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Marks a mirror or portal surface.")},
+	{MaterialEngine::Quake3, false, "qer_editorimage", QT_TRANSLATE_NOOP("SlopStudioMaterials", "The image level editors show for this shader.")},
+	{MaterialEngine::Quake3, false, "tesssize", QT_TRANSLATE_NOOP("SlopStudioMaterials", "How finely q3map2 subdivides surfaces so vertex deforms look smooth.")},
+	{MaterialEngine::Quake3, true, "glow", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Jedi Knight: the stage also lights the glow (bloom) pass.")},
+	{MaterialEngine::Quake3, true, "surfacesprites", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Jedi Knight: scatters sprites such as grass over the surface instead of drawing the stage on it.")},
+	{MaterialEngine::Quake3, true, "oneshotanimmap", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Jedi Knight: plays the images once and holds the last.")},
+	{MaterialEngine::Quake3, true, "clampanimmap", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Jedi Knight: animMap with images that do not repeat.")},
+	{MaterialEngine::Quake3, true, "lightmap", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Enemy Territory: a clamped image drawn with lightmap coordinates.")},
+	{MaterialEngine::Quake3, true, "mapnocomp", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Wolfenstein: the image used while texture compression is off.")},
+	{MaterialEngine::Quake3, true, "mapcomp", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Wolfenstein: the image used while texture compression is on.")},
+	{MaterialEngine::Quake3, false, "implicitmap", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Enemy Territory: the engine's default stages for an image (- for the shader's own name).")},
+	{MaterialEngine::Quake3, false, "fogvars", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Wolfenstein: the map's global fog colour and distance.")},
+	{MaterialEngine::Quake3, false, "sunshader", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Wolfenstein: the shader drawn as the sun.")},
+	{MaterialEngine::Quake3, false, "material", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Jedi Knight: the surface material for footsteps, impacts and decals.")},
+	{MaterialEngine::Doom3, true, "blend", QT_TRANSLATE_NOOP("SlopStudioMaterials", "blend, add, filter, modulate, none, two GL factors, or diffusemap, bumpmap, specularmap for lighting.")},
+	{MaterialEngine::Doom3, true, "map", QT_TRANSLATE_NOOP("SlopStudioMaterials", "The stage's image or image program, such as heightmap( image, 4 ).")},
+	{MaterialEngine::Doom3, true, "cubemap", QT_TRANSLATE_NOOP("SlopStudioMaterials", "A cube map from six images with _px, _nx... suffixes.")},
+	{MaterialEngine::Doom3, true, "cameracubemap", QT_TRANSLATE_NOOP("SlopStudioMaterials", "A cube map from six camera-style images (_forward, _back...).")},
+	{MaterialEngine::Doom3, true, "texgen", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Generated coordinates: normal, reflect, skybox, wobbleSky, screen.")},
+	{MaterialEngine::Doom3, true, "scroll", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Offsets the coordinates by two expressions, such as scroll time * 0.1, 0.")},
+	{MaterialEngine::Doom3, true, "translate", QT_TRANSLATE_NOOP("SlopStudioMaterials", "The same as scroll.")},
+	{MaterialEngine::Doom3, true, "scale", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Scales the coordinates about the origin.")},
+	{MaterialEngine::Doom3, true, "centerscale", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Scales the coordinates about the image centre.")},
+	{MaterialEngine::Doom3, true, "shear", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Shears the coordinates about the image centre.")},
+	{MaterialEngine::Doom3, true, "rotate", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Rotates about the image centre; the expression counts whole turns.")},
+	{MaterialEngine::Doom3, true, "rgb", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Sets red, green and blue to one expression.")},
+	{MaterialEngine::Doom3, true, "rgba", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Sets every channel to one expression.")},
+	{MaterialEngine::Doom3, true, "color", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Four expressions: red, green, blue, alpha.")},
+	{MaterialEngine::Doom3, true, "colored", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Colour from the entity's parm0 to parm3.")},
+	{MaterialEngine::Doom3, true, "alphatest", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Discards pixels whose alpha is below the expression.")},
+	{MaterialEngine::Doom3, true, "if", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Draws the stage only while the expression is not zero.")},
+	{MaterialEngine::Doom3, true, "vertexcolor", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Multiplies by the vertex colour.")},
+	{MaterialEngine::Doom3, true, "clamp", QT_TRANSLATE_NOOP("SlopStudioMaterials", "The image does not repeat.")},
+	{MaterialEngine::Doom3, true, "zeroclamp", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Outside the image is black.")},
+	{MaterialEngine::Doom3, false, "diffusemap", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Shorthand for a diffuse lighting stage.")},
+	{MaterialEngine::Doom3, false, "bumpmap", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Shorthand for a normal map stage.")},
+	{MaterialEngine::Doom3, false, "specularmap", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Shorthand for a specular lighting stage.")},
+	{MaterialEngine::Doom3, false, "translucent", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Blended, not lit, and drawn after opaque surfaces.")},
+	{MaterialEngine::Doom3, false, "twosided", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Draws both faces and casts no shadows.")},
+	{MaterialEngine::Doom3, false, "noshadows", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Casts no shadows.")},
+	{MaterialEngine::Doom3, false, "deform", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Changes geometry: sprite, tube, flare, expand, move, turbulent, eyeBall, particle.")},
+	{MaterialEngine::Doom3, false, "sort", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Draw order: subview, opaque, decal, far, medium, close, almostNearest, nearest, postProcess.")},
+	{MaterialEngine::Doom3, false, "lightfalloffimage", QT_TRANSLATE_NOOP("SlopStudioMaterials", "For a light: the image that fades it with distance.")},
+	{MaterialEngine::Doom3, false, "polygonoffset", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Pulls the surface towards the viewer.")},
+	{MaterialEngine::Doom3, false, "qer_editorimage", QT_TRANSLATE_NOOP("SlopStudioMaterials", "The image the editor shows.")},
+	{MaterialEngine::Doom3, false, "decal_macro", QT_TRANSLATE_NOOP("SlopStudioMaterials", "Polygon offset, discrete, decal sort and no shadows in one word.")},
 };
 
 } // namespace
@@ -3452,7 +3452,7 @@ QString materialKeywordHelp(MaterialEngine engine, const QString& keyword, bool 
 	const QString key = keyword.trimmed().toLower();
 	for (const KeywordHelp& entry : kKeywordHelp) {
 		if (entry.engine == engine && entry.stage == stage && key == QLatin1String(entry.keyword)) {
-			return QCoreApplication::translate("VibeStudioMaterials", entry.help);
+			return QCoreApplication::translate("SlopStudioMaterials", entry.help);
 		}
 	}
 	return QString();
@@ -4004,4 +4004,4 @@ QString instantiateMaterialTemplate(const MaterialTemplate& materialTemplate, co
 	return body;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

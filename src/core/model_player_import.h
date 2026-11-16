@@ -4,7 +4,7 @@
 
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 // One player file in a package snapshot. Paths match case-insensitively, as
 // the game's filesystem does; `count` above one means the path is repeated
@@ -105,4 +105,4 @@ QStringList modelQ3PlayerImportText(const ModelQ3PlayerImport &result);
 // The `model assembly --operation player-review` options that reproduce
 // `options`, in a stable order (CLI references use package:PATH).
 QStringList modelPlayerBundleArguments(const ModelPlayerBundleOptions &options);
-} // namespace vibestudio
+} // namespace slopstudio

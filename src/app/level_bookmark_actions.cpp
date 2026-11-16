@@ -14,7 +14,7 @@
 #include <QToolButton>
 #include <QUuid>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool failed(QString* error, const QString& message)
 {
@@ -231,4 +231,4 @@ void ApplicationShell::showLevelBookmarks()
 	if (!m_levelBookmarkError.isEmpty()) { dialog.setStatusMessage(m_levelBookmarkError); }
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

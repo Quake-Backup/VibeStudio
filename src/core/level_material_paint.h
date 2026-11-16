@@ -2,7 +2,7 @@
 
 #include "core/level_map.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class LevelMaterialKind { None, BrushFace, Patch, WallUpper, WallLower, WallMiddle, SectorFloor, SectorCeiling };
 
@@ -50,4 +50,4 @@ bool prepareLevelMaterialPaint(const LevelMapDocument& document, const QVector<L
 	const QString& material, LevelMaterialPaintPlan* plan, QString* error = nullptr);
 bool commitLevelMaterialPaint(LevelMapDocument* document, const LevelMaterialPaintPlan& plan, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

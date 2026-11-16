@@ -4,7 +4,7 @@
 // the wheel offset curve, refusals, hidden and missing objects left out of
 // the focused box, the free-focus key rules (Tab allowed only there), the
 // profile keys (End, Tab, Ctrl+Alt+Z) and `map camera-focus` over the same
-// service. With the vibestudio binary as the first argument the CLI is
+// service. With the slopstudio binary as the first argument the CLI is
 // checked too.
 
 #include "core/editor_profiles.h"
@@ -32,7 +32,7 @@
 #include <random>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -240,7 +240,7 @@ void keys()
 	EditorProfileDescriptor trenchBroom;
 	EditorProfileDescriptor studio;
 	if (!expect(editorProfileForId(QStringLiteral("netradiant-custom"), &nrc) && editorProfileForId(QStringLiteral("trenchbroom"), &trenchBroom)
-			&& editorProfileForId(QStringLiteral("vibestudio-default"), &studio), "profiles")) {
+			&& editorProfileForId(QStringLiteral("slopstudio-default"), &studio), "profiles")) {
 		return;
 	}
 	expect(cameraFocusKeyMatches(nrc.controls.camera, Qt::Key_Tab, Qt::NoModifier) && !cameraFocusKeyMatches(nrc.controls.camera, Qt::Key_Tab, Qt::ShiftModifier)
@@ -286,7 +286,7 @@ void keys()
 	for (const char* profile : {"netradiant-custom", "netradiant", "gtkradiant-1-6", "gtkradiant-1-5", "gtkradiant-1-4", "q3radiant", "doomedit"}) {
 		expect(keysOf(QString::fromLatin1(profile), QStringLiteral("map.levelCamera")) == QStringList {QStringLiteral("End")}, "End levels the camera", QString::fromLatin1(profile));
 	}
-	for (const char* profile : {"qeradiant", "darkradiant", "trenchbroom", "vibestudio-default", "hammer"}) {
+	for (const char* profile : {"qeradiant", "darkradiant", "trenchbroom", "slopstudio-default", "hammer"}) {
 		expect(keysOf(QString::fromLatin1(profile), QStringLiteral("map.levelCamera")).isEmpty(), "no unaudited Level Camera key", QString::fromLatin1(profile));
 	}
 	expect(keysOf(QStringLiteral("trenchbroom"), QStringLiteral("map.resetCameraZoom")) == QStringList {QStringLiteral("Ctrl+Alt+Z")}

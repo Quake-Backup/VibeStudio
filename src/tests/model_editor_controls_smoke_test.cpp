@@ -20,7 +20,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace
 {
@@ -194,7 +194,7 @@ void checkOverrides()
 	QJsonObject read;
 	expect(parseModelEditorControlsFile(file, &profile, &read, &error) && profile == QStringLiteral("blender") && read == diff, "controls files round-trip");
 	expect(!parseModelEditorControlsFile("{}", &profile, &read, &error) && !error.isEmpty(), "foreign JSON is refused");
-	expect(!parseModelEditorControlsFile("{\"format\":\"vibestudio.modeller-controls\",\"version\":1,\"profile\":\"maya\"}", &profile, &read, &error),
+	expect(!parseModelEditorControlsFile("{\"format\":\"slopstudio.modeller-controls\",\"version\":1,\"profile\":\"maya\"}", &profile, &read, &error),
 		   "files for unknown profiles are refused");
 	// A conflicting customisation is reported.
 	auto clash = base;

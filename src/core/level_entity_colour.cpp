@@ -17,7 +17,7 @@
 #include <cmath>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -131,13 +131,13 @@ bool entityColour(const LevelMapEntity& entity, const QString& key, LevelEntityC
 QString noTargetsText(const LevelEntityColourTargets& targets)
 {
 	if (targets.hidden > 0) {
-		return QCoreApplication::translate("VibeStudioLevelEntityColour", "The selected entities are hidden. Show them before changing their colour.");
+		return QCoreApplication::translate("SlopStudioLevelEntityColour", "The selected entities are hidden. Show them before changing their colour.");
 	}
 	if (targets.worldPrimitives > 0) {
-		return QCoreApplication::translate("VibeStudioLevelEntityColour",
+		return QCoreApplication::translate("SlopStudioLevelEntityColour",
 			"World brushes have no entity colour. Select lights or other entities, or the brushes of a brush entity.");
 	}
-	return QCoreApplication::translate("VibeStudioLevelEntityColour", "Select the entities to colour, or the brushes of a brush entity.");
+	return QCoreApplication::translate("SlopStudioLevelEntityColour", "Select the entities to colour, or the brushes of a brush entity.");
 }
 
 // Names the history step after the command rather than the key.
@@ -325,10 +325,10 @@ QString levelMapEntityColourBlockedReason(const LevelMapDocument& document, cons
 	for (const int id : targets.entities) {
 		const QString object = levelMapSelectionRefId({LevelMapSelectionKind::Entity, id});
 		if (locked.contains(object)) {
-			return QCoreApplication::translate("VibeStudioLevelEntityColour", "Entity %1 is in a locked layer or group. Unlock it before changing its colour.").arg(id);
+			return QCoreApplication::translate("SlopStudioLevelEntityColour", "Entity %1 is in a locked layer or group. Unlock it before changing its colour.").arg(id);
 		}
 		if (context && !context->openGroup.isEmpty() && !context->allowedObjects.contains(object)) {
-			return QCoreApplication::translate("VibeStudioLevelEntityColour", "Entity %1 is outside the open group. Close the group before changing its colour.").arg(id);
+			return QCoreApplication::translate("SlopStudioLevelEntityColour", "Entity %1 is outside the open group. Close the group before changing its colour.").arg(id);
 		}
 	}
 	return {};
@@ -359,14 +359,14 @@ bool setLevelMapSelectionEntityColour(LevelMapDocument* document, const LevelEnt
 		return false;
 	};
 	if (!document || !colourMapFormat(*document)) {
-		return fail(QCoreApplication::translate("VibeStudioLevelEntityColour", "Entity colours are keys of Quake-family .map entities."));
+		return fail(QCoreApplication::translate("SlopStudioLevelEntityColour", "Entity colours are keys of Quake-family .map entities."));
 	}
 	const QString key = request.key.trimmed();
 	if (key.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioLevelEntityColour", "Name the key that holds the colour, such as _color."));
+		return fail(QCoreApplication::translate("SlopStudioLevelEntityColour", "Name the key that holds the colour, such as _color."));
 	}
 	if (!std::all_of(request.unit.cbegin(), request.unit.cend(), [](double channel) { return std::isfinite(channel); })) {
-		return fail(QCoreApplication::translate("VibeStudioLevelEntityColour", "A colour channel is not a number."));
+		return fail(QCoreApplication::translate("SlopStudioLevelEntityColour", "A colour channel is not a number."));
 	}
 	const LevelEntityColourTargets targets = levelMapEntityColourTargets(*document);
 	staged.worldPrimitives = targets.worldPrimitives;
@@ -391,9 +391,9 @@ bool setLevelMapSelectionEntityColour(LevelMapDocument* document, const LevelEnt
 	if (!staged.changed.isEmpty()) {
 		const int changed = static_cast<int>(staged.changed.size());
 		nameColourStep(document,
-			QCoreApplication::translate("VibeStudioLevelEntityColour", "Set entity colour %1 on %n entit(y)(ies)", nullptr, changed)
+			QCoreApplication::translate("SlopStudioLevelEntityColour", "Set entity colour %1 on %n entit(y)(ies)", nullptr, changed)
 				.arg(formatLevelEntityColourLike(request.unit)),
-			QCoreApplication::translate("VibeStudioLevelEntityColour", "Restore entity colour on %n entit(y)(ies)", nullptr, changed));
+			QCoreApplication::translate("SlopStudioLevelEntityColour", "Restore entity colour on %n entit(y)(ies)", nullptr, changed));
 	}
 	if (report) {
 		*report = staged;
@@ -427,11 +427,11 @@ bool normaliseLevelMapSelectionEntityColour(LevelMapDocument* document, LevelEnt
 		return false;
 	};
 	if (!document || !colourMapFormat(*document)) {
-		return fail(QCoreApplication::translate("VibeStudioLevelEntityColour", "Entity colours are keys of Quake-family .map entities."));
+		return fail(QCoreApplication::translate("SlopStudioLevelEntityColour", "Entity colours are keys of Quake-family .map entities."));
 	}
 	const QString trimmedKey = key.trimmed();
 	if (trimmedKey.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioLevelEntityColour", "Name the key that holds the colour, such as _color."));
+		return fail(QCoreApplication::translate("SlopStudioLevelEntityColour", "Name the key that holds the colour, such as _color."));
 	}
 	const LevelEntityColourTargets targets = levelMapEntityColourTargets(*document);
 	staged.worldPrimitives = targets.worldPrimitives;
@@ -447,8 +447,8 @@ bool normaliseLevelMapSelectionEntityColour(LevelMapDocument* document, LevelEnt
 		const LevelMapEntity* primary = owners.entity(targets.primaryEntity);
 		if (!primary || !entityColour(*primary, trimmedKey, &source)) {
 			return fail(primary && propertyValue(*primary, trimmedKey)
-					? QCoreApplication::translate("VibeStudioLevelEntityColour", "The %1 of entity %2 is not a colour of three numbers.").arg(trimmedKey).arg(targets.primaryEntity)
-					: QCoreApplication::translate("VibeStudioLevelEntityColour", "Entity %1, the last one selected, has no %2 to normalise.").arg(targets.primaryEntity).arg(trimmedKey));
+					? QCoreApplication::translate("SlopStudioLevelEntityColour", "The %1 of entity %2 is not a colour of three numbers.").arg(trimmedKey).arg(targets.primaryEntity)
+					: QCoreApplication::translate("SlopStudioLevelEntityColour", "Entity %1, the last one selected, has no %2 to normalise.").arg(targets.primaryEntity).arg(trimmedKey));
 		}
 		const LevelEntityColour normalised = normalisedLevelEntityColour(source);
 		staged.sourceEntity = targets.primaryEntity;
@@ -472,7 +472,7 @@ bool normaliseLevelMapSelectionEntityColour(LevelMapDocument* document, LevelEnt
 			values << formatLevelEntityColour(normalisedLevelEntityColour(current));
 		}
 		if (ids.isEmpty()) {
-			return fail(QCoreApplication::translate("VibeStudioLevelEntityColour", "None of the selected entities has a %1 to normalise.").arg(trimmedKey));
+			return fail(QCoreApplication::translate("SlopStudioLevelEntityColour", "None of the selected entities has a %1 to normalise.").arg(trimmedKey));
 		}
 		staged.sourceEntity = ids.contains(targets.primaryEntity) ? targets.primaryEntity : ids.constLast();
 	}
@@ -483,8 +483,8 @@ bool normaliseLevelMapSelectionEntityColour(LevelMapDocument* document, LevelEnt
 	}
 	if (!staged.changed.isEmpty()) {
 		const int changed = static_cast<int>(staged.changed.size());
-		nameColourStep(document, QCoreApplication::translate("VibeStudioLevelEntityColour", "Normalise entity colour on %n entit(y)(ies)", nullptr, changed),
-			QCoreApplication::translate("VibeStudioLevelEntityColour", "Restore entity colour on %n entit(y)(ies)", nullptr, changed));
+		nameColourStep(document, QCoreApplication::translate("SlopStudioLevelEntityColour", "Normalise entity colour on %n entit(y)(ies)", nullptr, changed),
+			QCoreApplication::translate("SlopStudioLevelEntityColour", "Restore entity colour on %n entit(y)(ies)", nullptr, changed));
 	}
 	if (report) {
 		*report = staged;
@@ -517,4 +517,4 @@ bool levelMapSelectionEntityColourNormalisable(const LevelMapDocument& document,
 	return false;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

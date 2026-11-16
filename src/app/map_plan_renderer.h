@@ -3,7 +3,7 @@
 #include "app/map_plan_wires.h"
 
 class QPainter;
-namespace vibestudio {
+namespace slopstudio {
 
 // Immutable snapshots: no QWidget, painter, source pointer or authoring state
 // crosses into the render thread. Qt containers/images share read-only storage.
@@ -33,4 +33,4 @@ bool renderMapPlanFrame(const MapPlanRenderRequest& request, bool selected, cons
 bool paintMapPlanFallback(QPainter& painter, const MapPlanRenderRequest& request, bool selected,
 	const std::atomic_bool* cancelled = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

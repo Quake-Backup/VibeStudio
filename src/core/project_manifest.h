@@ -10,7 +10,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct GameInstallationProfile;
 
@@ -150,4 +150,4 @@ int registerProjectOutputPaths(ProjectManifest* manifest, const QStringList& out
 ProjectHealthSummary buildProjectHealthSummary(const ProjectManifest& manifest, const QString& fallbackInstallationId = QString());
 QString projectManifestToText(const ProjectManifest& manifest);
 
-} // namespace vibestudio
+} // namespace slopstudio

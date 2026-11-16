@@ -8,7 +8,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The brush shapes the Levels Shapes tab and `map add-shape` build, each
 // fitted to a box: the one-brush primitives (box, wedge, cylinder, cone,
@@ -144,4 +144,4 @@ struct LevelShapeRebuildReport {
 bool rebuildLevelMapBrushesAsShape(LevelMapDocument* document, const QVector<int>& brushIds, const LevelShapeRequest& request,
 	LevelShapeRebuildReport* report = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

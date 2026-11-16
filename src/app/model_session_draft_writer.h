@@ -9,7 +9,7 @@
 
 class QThread;
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Writes staged-session sidecars (core/model_session_draft.h) off the UI
@@ -40,4 +40,4 @@ class ModelSessionDraftWriter final : public QObject
 	void waitForActive();
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

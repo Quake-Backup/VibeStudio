@@ -31,7 +31,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -159,147 +159,147 @@ QGroupBox *ModelEditorAnimationPanel::addGroup(QFormLayout *animation, int *row,
 void ModelEditorAnimationPanel::buildFrameRange(QFormLayout *animation, int *row)
 {
 	QFormLayout *form = nullptr;
-	addGroup(animation, row, "meshFrameRange", QCoreApplication::translate("VibeStudioModelEditor", "Frame range"), &form);
+	addGroup(animation, row, "meshFrameRange", QCoreApplication::translate("SlopStudioModelEditor", "Frame range"), &form);
 	const auto changed = [this] { refresh(); };
-	m_first = spinBox(this, form, "meshFrameRangeFirst", QCoreApplication::translate("VibeStudioModelEditor", "Range first frame"),
-					  QCoreApplication::translate("VibeStudioModelEditor",
+	m_first = spinBox(this, form, "meshFrameRangeFirst", QCoreApplication::translate("SlopStudioModelEditor", "Range first frame"),
+					  QCoreApplication::translate("SlopStudioModelEditor",
 												  "First frame of the range, using the transport's zero-based frame index. Shift-drag on "
 												  "the timeline to set the range."),
 					  0, modelDocumentMaxFrames - 1, changed);
-	m_last = spinBox(this, form, "meshFrameRangeLast", QCoreApplication::translate("VibeStudioModelEditor", "Range last frame"),
-					 QCoreApplication::translate("VibeStudioModelEditor", "Last frame of the range, included."), 0, modelDocumentMaxFrames - 1,
+	m_last = spinBox(this, form, "meshFrameRangeLast", QCoreApplication::translate("SlopStudioModelEditor", "Range last frame"),
+					 QCoreApplication::translate("SlopStudioModelEditor", "Last frame of the range, included."), 0, modelDocumentMaxFrames - 1,
 					 changed);
-	m_destination = spinBox(this, form, "meshFrameRangeDestination", QCoreApplication::translate("VibeStudioModelEditor", "Move to frame"),
-							QCoreApplication::translate("VibeStudioModelEditor", "The index the first moved frame takes after the move."), 0,
+	m_destination = spinBox(this, form, "meshFrameRangeDestination", QCoreApplication::translate("SlopStudioModelEditor", "Move to frame"),
+							QCoreApplication::translate("SlopStudioModelEditor", "The index the first moved frame takes after the move."), 0,
 							modelDocumentMaxFrames - 1, changed);
-	m_move = addButton(form, "moveMeshFrames", QCoreApplication::translate("VibeStudioModelEditor", "Move Frames"),
-					   QCoreApplication::translate("VibeStudioModelEditor",
+	m_move = addButton(form, "moveMeshFrames", QCoreApplication::translate("SlopStudioModelEditor", "Move Frames"),
+					   QCoreApplication::translate("SlopStudioModelEditor",
 												   "Move the range so its first frame lands at Move to frame. Clip ranges, attachment tags, "
 												   "collision poses and MDL native groups follow the frames."));
 	connect(m_move, &QPushButton::clicked, this, [this] { run(ModelEditKind::MoveFrames); });
-	m_duplicate = addButton(form, "duplicateMeshFrameRange", QCoreApplication::translate("VibeStudioModelEditor", "Duplicate Range"),
-							QCoreApplication::translate("VibeStudioModelEditor",
+	m_duplicate = addButton(form, "duplicateMeshFrameRange", QCoreApplication::translate("SlopStudioModelEditor", "Duplicate Range"),
+							QCoreApplication::translate("SlopStudioModelEditor",
 														"Insert a copy of the range right after it. A clip holding the range's last frame grows."));
 	connect(m_duplicate, &QPushButton::clicked, this, [this] { run(ModelEditKind::DuplicateFrameRange); });
-	m_delete = addButton(form, "deleteMeshFrameRange", QCoreApplication::translate("VibeStudioModelEditor", "Delete Range"),
-						 QCoreApplication::translate("VibeStudioModelEditor",
+	m_delete = addButton(form, "deleteMeshFrameRange", QCoreApplication::translate("SlopStudioModelEditor", "Delete Range"),
+						 QCoreApplication::translate("SlopStudioModelEditor",
 													 "Remove every frame in the range. Clips shrink, and a clip left with no frames is removed."));
 	connect(m_delete, &QPushButton::clicked, this, [this] { run(ModelEditKind::DeleteFrameRange); });
-	m_reverse = addButton(form, "reverseMeshFrameRange", QCoreApplication::translate("VibeStudioModelEditor", "Reverse Range"),
-						  QCoreApplication::translate("VibeStudioModelEditor", "Reverse the order of the frames in the range, in place."));
+	m_reverse = addButton(form, "reverseMeshFrameRange", QCoreApplication::translate("SlopStudioModelEditor", "Reverse Range"),
+						  QCoreApplication::translate("SlopStudioModelEditor", "Reverse the order of the frames in the range, in place."));
 	connect(m_reverse, &QPushButton::clicked, this, [this] { run(ModelEditKind::ReverseFrameRange); });
-	m_pingPong = addButton(form, "pingPongMeshFrameRange", QCoreApplication::translate("VibeStudioModelEditor", "Add Ping-Pong Return"),
-						   QCoreApplication::translate("VibeStudioModelEditor",
+	m_pingPong = addButton(form, "pingPongMeshFrameRange", QCoreApplication::translate("SlopStudioModelEditor", "Add Ping-Pong Return"),
+						   QCoreApplication::translate("SlopStudioModelEditor",
 													   "Insert the frames between the range's ends in reverse after it (1 2 3 4 3 2), so a "
 													   "looping clip returns to its first pose."));
 	connect(m_pingPong, &QPushButton::clicked, this, [this] { run(ModelEditKind::ReverseFrameRange, true); });
 	m_clipCheck = new LiveStatusLabel;
 	m_clipCheck->setObjectName(QStringLiteral("meshNativeClipCheck"));
-	m_clipCheck->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Native clip check"));
+	m_clipCheck->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Native clip check"));
 	m_clipCheck->setTextFormat(Qt::PlainText);
 	m_clipCheck->setWordWrap(true);
 	m_clipCheck->setMinimumWidth(0);
 	m_clipCheck->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	form->addRow(m_clipCheck);
-	m_startNumber = spinBox(this, form, "meshFrameNameStart", QCoreApplication::translate("VibeStudioModelEditor", "First frame number"),
-							QCoreApplication::translate("VibeStudioModelEditor",
+	m_startNumber = spinBox(this, form, "meshFrameNameStart", QCoreApplication::translate("SlopStudioModelEditor", "First frame number"),
+							QCoreApplication::translate("SlopStudioModelEditor",
 														"The number each clip's first frame gets: 1 names them stand1, stand2 and so on."),
 							0, 1000, changed);
 	m_startNumber->setValue(1);
-	m_renameClips = checkBox(form, "meshFrameNameRenameClips", QCoreApplication::translate("VibeStudioModelEditor", "Rename clips to their frame stem"),
-							 QCoreApplication::translate("VibeStudioModelEditor",
+	m_renameClips = checkBox(form, "meshFrameNameRenameClips", QCoreApplication::translate("SlopStudioModelEditor", "Rename clips to their frame stem"),
+							 QCoreApplication::translate("SlopStudioModelEditor",
 														 "Clip names with spaces or other characters frame names cannot hold become the stem "
 														 "their frames use, so the clip name comes back from native files too."));
 	m_renameClips->setChecked(true);
-	m_name = addButton(form, "nameMeshFramesFromClips", QCoreApplication::translate("VibeStudioModelEditor", "Name Frames From Clips"),
-					   QCoreApplication::translate("VibeStudioModelEditor",
+	m_name = addButton(form, "nameMeshFramesFromClips", QCoreApplication::translate("SlopStudioModelEditor", "Name Frames From Clips"),
+					   QCoreApplication::translate("SlopStudioModelEditor",
 												   "Name the frames of the clip chosen above, or of every clip when All frames is chosen, "
 												   "stem1, stem2 and so on within 15 characters, so MDL, MD2 and MD3 files bring the clips back."));
 	connect(m_name, &QPushButton::clicked, this, [this] { run(ModelEditKind::RenameFramesFromClips); });
 	// Onion skin: ghosted neighbouring frames in the 3D view.
-	m_onion = checkBox(form, "meshOnionSkin", QCoreApplication::translate("VibeStudioModelEditor", "Onion skin"),
-					   QCoreApplication::translate("VibeStudioModelEditor",
+	m_onion = checkBox(form, "meshOnionSkin", QCoreApplication::translate("SlopStudioModelEditor", "Onion skin"),
+					   QCoreApplication::translate("SlopStudioModelEditor",
 												   "Draw neighbouring frames as ghosted wireframes in the 3D view: earlier frames dashed, later "
 												   "frames dotted, fainter with distance. Hidden while the animation plays."));
 	connect(m_onion, &QCheckBox::toggled, this, [this](bool) { refresh(); });
-	m_onionBefore = spinBox(this, form, "meshOnionBefore", QCoreApplication::translate("VibeStudioModelEditor", "Frames before"),
-							QCoreApplication::translate("VibeStudioModelEditor", "How many earlier frames the onion skin shows."), 0, 5, changed);
+	m_onionBefore = spinBox(this, form, "meshOnionBefore", QCoreApplication::translate("SlopStudioModelEditor", "Frames before"),
+							QCoreApplication::translate("SlopStudioModelEditor", "How many earlier frames the onion skin shows."), 0, 5, changed);
 	m_onionBefore->setValue(1);
-	m_onionAfter = spinBox(this, form, "meshOnionAfter", QCoreApplication::translate("VibeStudioModelEditor", "Frames after"),
-						   QCoreApplication::translate("VibeStudioModelEditor", "How many later frames the onion skin shows."), 0, 5, changed);
+	m_onionAfter = spinBox(this, form, "meshOnionAfter", QCoreApplication::translate("SlopStudioModelEditor", "Frames after"),
+						   QCoreApplication::translate("SlopStudioModelEditor", "How many later frames the onion skin shows."), 0, 5, changed);
 	m_onionAfter->setValue(1);
-	m_onionStep = spinBox(this, form, "meshOnionStep", QCoreApplication::translate("VibeStudioModelEditor", "Onion step"),
-						  QCoreApplication::translate("VibeStudioModelEditor", "Show every frame, or every second, third and so on."), 1, 10,
+	m_onionStep = spinBox(this, form, "meshOnionStep", QCoreApplication::translate("SlopStudioModelEditor", "Onion step"),
+						  QCoreApplication::translate("SlopStudioModelEditor", "Show every frame, or every second, third and so on."), 1, 10,
 						  changed);
 }
 
 void ModelEditorAnimationPanel::buildResample(QFormLayout *animation, int *row)
 {
 	QFormLayout *form = nullptr;
-	addGroup(animation, row, "meshResample", QCoreApplication::translate("VibeStudioModelEditor", "Resample and loop"), &form);
-	m_sourceFps = doubleBox(form, "meshResampleSourceFps", QCoreApplication::translate("VibeStudioModelEditor", "Current FPS"),
-							QCoreApplication::translate("VibeStudioModelEditor",
+	addGroup(animation, row, "meshResample", QCoreApplication::translate("SlopStudioModelEditor", "Resample and loop"), &form);
+	m_sourceFps = doubleBox(form, "meshResampleSourceFps", QCoreApplication::translate("SlopStudioModelEditor", "Current FPS"),
+							QCoreApplication::translate("SlopStudioModelEditor",
 														"The rate the clip was made at. Clip's FPS uses the saved rate of the clip chosen "
 														"under Animation clips."),
 							0, 1000, 3);
-	m_sourceFps->setSpecialValueText(QCoreApplication::translate("VibeStudioModelEditor", "Clip's FPS"));
-	m_targetFps = doubleBox(form, "meshResampleTargetFps", QCoreApplication::translate("VibeStudioModelEditor", "New FPS"),
-							QCoreApplication::translate("VibeStudioModelEditor",
+	m_sourceFps->setSpecialValueText(QCoreApplication::translate("SlopStudioModelEditor", "Clip's FPS"));
+	m_targetFps = doubleBox(form, "meshResampleTargetFps", QCoreApplication::translate("SlopStudioModelEditor", "New FPS"),
+							QCoreApplication::translate("SlopStudioModelEditor",
 														"The rate to resample to, such as 10 for Quake and Quake II frame steps. By count "
 														"resamples to New frame count instead."),
 							0, 1000, 3);
-	m_targetFps->setSpecialValueText(QCoreApplication::translate("VibeStudioModelEditor", "By count"));
+	m_targetFps->setSpecialValueText(QCoreApplication::translate("SlopStudioModelEditor", "By count"));
 	m_targetFps->setValue(10);
-	m_targetFrames = spinBox(this, form, "meshResampleTargetFrames", QCoreApplication::translate("VibeStudioModelEditor", "New frame count"),
-							 QCoreApplication::translate("VibeStudioModelEditor", "The number of frames the clip gets, when New FPS is By count."),
+	m_targetFrames = spinBox(this, form, "meshResampleTargetFrames", QCoreApplication::translate("SlopStudioModelEditor", "New frame count"),
+							 QCoreApplication::translate("SlopStudioModelEditor", "The number of frames the clip gets, when New FPS is By count."),
 							 0, modelDocumentMaxFrames, [this] { refresh(); });
-	m_targetFrames->setSpecialValueText(QCoreApplication::translate("VibeStudioModelEditor", "Use FPS"));
-	m_method = comboBox(form, "meshResampleMethod", QCoreApplication::translate("VibeStudioModelEditor", "Sampling"),
-						QCoreApplication::translate("VibeStudioModelEditor",
+	m_targetFrames->setSpecialValueText(QCoreApplication::translate("SlopStudioModelEditor", "Use FPS"));
+	m_method = comboBox(form, "meshResampleMethod", QCoreApplication::translate("SlopStudioModelEditor", "Sampling"),
+						QCoreApplication::translate("SlopStudioModelEditor",
 													"Blend between stored frames (positions, normals, tags along the shortest arc and collision "
 													"boxes), or copy the nearer stored frame exactly."),
-						{QCoreApplication::translate("VibeStudioModelEditor", "Blend"), QCoreApplication::translate("VibeStudioModelEditor", "Nearest frame")});
-	m_cyclic = checkBox(form, "meshResampleCyclic", QCoreApplication::translate("VibeStudioModelEditor", "Looping clip"),
-						QCoreApplication::translate("VibeStudioModelEditor",
+						{QCoreApplication::translate("SlopStudioModelEditor", "Blend"), QCoreApplication::translate("SlopStudioModelEditor", "Nearest frame")});
+	m_cyclic = checkBox(form, "meshResampleCyclic", QCoreApplication::translate("SlopStudioModelEditor", "Looping clip"),
+						QCoreApplication::translate("SlopStudioModelEditor",
 													"The clip loops: the step from its last frame back to its first is sampled too, and the "
 													"new frames divide the whole loop evenly."));
-	m_resample = addButton(form, "resampleMeshClip", QCoreApplication::translate("VibeStudioModelEditor", "Resample Clip"),
-						   QCoreApplication::translate("VibeStudioModelEditor",
+	m_resample = addButton(form, "resampleMeshClip", QCoreApplication::translate("SlopStudioModelEditor", "Resample Clip"),
+						   QCoreApplication::translate("SlopStudioModelEditor",
 													   "Replace the chosen clip's frames with frames sampled at the new rate or count, in one "
 													   "undo step. Frames are renamed after the clip; later clips, tags, collision poses and MDL "
 													   "groups follow."));
 	connect(m_resample, &QPushButton::clicked, this, [this] { run(ModelEditKind::ResampleAnimation); });
-	m_loopMode = comboBox(form, "meshLoopMode", QCoreApplication::translate("VibeStudioModelEditor", "Close loop by"),
-						  QCoreApplication::translate("VibeStudioModelEditor",
+	m_loopMode = comboBox(form, "meshLoopMode", QCoreApplication::translate("SlopStudioModelEditor", "Close loop by"),
+						  QCoreApplication::translate("SlopStudioModelEditor",
 													  "Replace the last frame with the first pose, add a copy of the first pose at the end, or "
 													  "blend the last frames toward the first pose."),
-						  {QCoreApplication::translate("VibeStudioModelEditor", "Replacing the last frame"),
-						   QCoreApplication::translate("VibeStudioModelEditor", "Appending the first pose"),
-						   QCoreApplication::translate("VibeStudioModelEditor", "Cross-fading")});
+						  {QCoreApplication::translate("SlopStudioModelEditor", "Replacing the last frame"),
+						   QCoreApplication::translate("SlopStudioModelEditor", "Appending the first pose"),
+						   QCoreApplication::translate("SlopStudioModelEditor", "Cross-fading")});
 	connect(m_loopMode, &QComboBox::currentIndexChanged, this, [this](int) { refresh(); });
-	m_blendFrames = spinBox(this, form, "meshLoopBlendFrames", QCoreApplication::translate("VibeStudioModelEditor", "Cross-fade frames"),
-							QCoreApplication::translate("VibeStudioModelEditor", "How many of the last frames blend toward the first pose."), 1,
+	m_blendFrames = spinBox(this, form, "meshLoopBlendFrames", QCoreApplication::translate("SlopStudioModelEditor", "Cross-fade frames"),
+							QCoreApplication::translate("SlopStudioModelEditor", "How many of the last frames blend toward the first pose."), 1,
 							modelDocumentMaxFrames - 1, [this] { refresh(); });
 	m_blendFrames->setValue(2);
-	m_closeLoop = addButton(form, "closeMeshClipLoop", QCoreApplication::translate("VibeStudioModelEditor", "Close Clip Loop"),
-							QCoreApplication::translate("VibeStudioModelEditor",
+	m_closeLoop = addButton(form, "closeMeshClipLoop", QCoreApplication::translate("SlopStudioModelEditor", "Close Clip Loop"),
+							QCoreApplication::translate("SlopStudioModelEditor",
 														"Make the chosen clip loop without a jump from its last pose to its first, in one undo step."));
 	connect(m_closeLoop, &QPushButton::clicked, this, [this] { run(ModelEditKind::CloseAnimationLoop); });
-	m_skeletalClip = comboBox(form, "meshResampleSkeletalClip", QCoreApplication::translate("VibeStudioModelEditor", "Skeletal clip"),
-							  QCoreApplication::translate("VibeStudioModelEditor",
+	m_skeletalClip = comboBox(form, "meshResampleSkeletalClip", QCoreApplication::translate("SlopStudioModelEditor", "Skeletal clip"),
+							  QCoreApplication::translate("SlopStudioModelEditor",
 														  "A skeletal clip to resample or close with the settings above. Joints interpolate in "
 														  "parent space; animation curves are rescaled."),
 							  {});
-	m_bakeCurves = checkBox(form, "meshResampleBakeCurves", QCoreApplication::translate("VibeStudioModelEditor", "Bake curves"),
-							QCoreApplication::translate("VibeStudioModelEditor",
+	m_bakeCurves = checkBox(form, "meshResampleBakeCurves", QCoreApplication::translate("SlopStudioModelEditor", "Bake curves"),
+							QCoreApplication::translate("SlopStudioModelEditor",
 														"Sample a clip's animation curves into poses and remove the curves, instead of requiring "
 														"every key to land on a whole frame of the result."));
-	m_resampleSkeletal = addButton(form, "resampleMeshSkeletalClip", QCoreApplication::translate("VibeStudioModelEditor", "Resample Skeletal Clip"),
-								   QCoreApplication::translate("VibeStudioModelEditor",
+	m_resampleSkeletal = addButton(form, "resampleMeshSkeletalClip", QCoreApplication::translate("SlopStudioModelEditor", "Resample Skeletal Clip"),
+								   QCoreApplication::translate("SlopStudioModelEditor",
 															   "Resample the chosen skeletal clip to the new rate or count and re-bake its frames."));
 	connect(m_resampleSkeletal, &QPushButton::clicked, this, [this] { run(ModelEditKind::ResampleSkeletalClip); });
-	m_closeSkeletal = addButton(form, "closeMeshSkeletalLoop", QCoreApplication::translate("VibeStudioModelEditor", "Close Skeletal Loop"),
-								QCoreApplication::translate("VibeStudioModelEditor",
+	m_closeSkeletal = addButton(form, "closeMeshSkeletalLoop", QCoreApplication::translate("SlopStudioModelEditor", "Close Skeletal Loop"),
+								QCoreApplication::translate("SlopStudioModelEditor",
 															"Close the chosen skeletal clip's loop, as Close loop by says, and re-bake its frames."));
 	connect(m_closeSkeletal, &QPushButton::clicked, this, [this] { run(ModelEditKind::CloseSkeletalLoop); });
 }
@@ -307,45 +307,45 @@ void ModelEditorAnimationPanel::buildResample(QFormLayout *animation, int *row)
 void ModelEditorAnimationPanel::buildSculpt(QFormLayout *animation, int *row)
 {
 	QFormLayout *form = nullptr;
-	addGroup(animation, row, "meshRangeSculpt", QCoreApplication::translate("VibeStudioModelEditor", "Range sculpt"), &form);
-	m_falloff = comboBox(form, "meshRangeFalloff", QCoreApplication::translate("VibeStudioModelEditor", "Falloff over the range"),
-						 QCoreApplication::translate("VibeStudioModelEditor",
+	addGroup(animation, row, "meshRangeSculpt", QCoreApplication::translate("SlopStudioModelEditor", "Range sculpt"), &form);
+	m_falloff = comboBox(form, "meshRangeFalloff", QCoreApplication::translate("SlopStudioModelEditor", "Falloff over the range"),
+						 QCoreApplication::translate("SlopStudioModelEditor",
 													 "How strongly each frame of the range is changed: fully, growing toward the last frame, "
 													 "fading after the first, or a smooth bump strongest in the middle."),
-						 {QCoreApplication::translate("VibeStudioModelEditor", "Constant"),
-						  QCoreApplication::translate("VibeStudioModelEditor", "Ramp in"),
-						  QCoreApplication::translate("VibeStudioModelEditor", "Ramp out"),
-						  QCoreApplication::translate("VibeStudioModelEditor", "Smooth")});
-	m_rangeTransform = addButton(form, "transformMeshFrameRange", QCoreApplication::translate("VibeStudioModelEditor", "Transform Selection Over Range"),
-								 QCoreApplication::translate("VibeStudioModelEditor",
+						 {QCoreApplication::translate("SlopStudioModelEditor", "Constant"),
+						  QCoreApplication::translate("SlopStudioModelEditor", "Ramp in"),
+						  QCoreApplication::translate("SlopStudioModelEditor", "Ramp out"),
+						  QCoreApplication::translate("SlopStudioModelEditor", "Smooth")});
+	m_rangeTransform = addButton(form, "transformMeshFrameRange", QCoreApplication::translate("SlopStudioModelEditor", "Transform Selection Over Range"),
+								 QCoreApplication::translate("SlopStudioModelEditor",
 															 "Move, rotate and scale the selected vertices by the Geometry page's values in every "
 															 "frame of the range, scaled by the falloff. The pivot is resolved once, in the "
 															 "displayed frame."));
 	connect(m_rangeTransform, &QPushButton::clicked, this, [this] { run(ModelEditKind::TransformFrameRange); });
 	const auto changed = [this] { refresh(); };
-	m_blendSource = spinBox(this, form, "meshBlendSourceFrame", QCoreApplication::translate("VibeStudioModelEditor", "Blend from frame"),
-							QCoreApplication::translate("VibeStudioModelEditor", "The frame whose pose the selection blends toward."), 0,
+	m_blendSource = spinBox(this, form, "meshBlendSourceFrame", QCoreApplication::translate("SlopStudioModelEditor", "Blend from frame"),
+							QCoreApplication::translate("SlopStudioModelEditor", "The frame whose pose the selection blends toward."), 0,
 							modelDocumentMaxFrames - 1, changed);
-	m_blendAmount = doubleBox(form, "meshBlendAmount", QCoreApplication::translate("VibeStudioModelEditor", "Blend amount"),
-							  QCoreApplication::translate("VibeStudioModelEditor", "0 keeps each pose; 1 takes the source pose fully."), 0, 1, 3);
+	m_blendAmount = doubleBox(form, "meshBlendAmount", QCoreApplication::translate("SlopStudioModelEditor", "Blend amount"),
+							  QCoreApplication::translate("SlopStudioModelEditor", "0 keeps each pose; 1 takes the source pose fully."), 0, 1, 3);
 	m_blendAmount->setSingleStep(0.1);
 	m_blendAmount->setValue(1);
-	m_blendPose = addButton(form, "blendMeshFramePose", QCoreApplication::translate("VibeStudioModelEditor", "Blend Selection From Frame"),
-							QCoreApplication::translate("VibeStudioModelEditor",
+	m_blendPose = addButton(form, "blendMeshFramePose", QCoreApplication::translate("SlopStudioModelEditor", "Blend Selection From Frame"),
+							QCoreApplication::translate("SlopStudioModelEditor",
 														"Move only the selected vertices toward Blend from frame's pose in every frame of the "
 														"range. Tags, collision and unselected vertices stay as they are."));
 	connect(m_blendPose, &QPushButton::clicked, this, [this] { run(ModelEditKind::BlendFramePose); });
-	m_poseA = spinBox(this, form, "meshRelativePoseA", QCoreApplication::translate("VibeStudioModelEditor", "Pose frame"),
-					  QCoreApplication::translate("VibeStudioModelEditor", "The pose of the difference: Pose frame minus Base frame."), 0,
+	m_poseA = spinBox(this, form, "meshRelativePoseA", QCoreApplication::translate("SlopStudioModelEditor", "Pose frame"),
+					  QCoreApplication::translate("SlopStudioModelEditor", "The pose of the difference: Pose frame minus Base frame."), 0,
 					  modelDocumentMaxFrames - 1, changed);
-	m_poseB = spinBox(this, form, "meshRelativePoseB", QCoreApplication::translate("VibeStudioModelEditor", "Base frame"),
-					  QCoreApplication::translate("VibeStudioModelEditor", "The base the pose differs from."), 0, modelDocumentMaxFrames - 1, changed);
-	m_poseWeight = doubleBox(form, "meshRelativePoseWeight", QCoreApplication::translate("VibeStudioModelEditor", "Difference weight"),
-							 QCoreApplication::translate("VibeStudioModelEditor", "How much of the difference to add, from -10 to 10."), -10, 10, 3);
+	m_poseB = spinBox(this, form, "meshRelativePoseB", QCoreApplication::translate("SlopStudioModelEditor", "Base frame"),
+					  QCoreApplication::translate("SlopStudioModelEditor", "The base the pose differs from."), 0, modelDocumentMaxFrames - 1, changed);
+	m_poseWeight = doubleBox(form, "meshRelativePoseWeight", QCoreApplication::translate("SlopStudioModelEditor", "Difference weight"),
+							 QCoreApplication::translate("SlopStudioModelEditor", "How much of the difference to add, from -10 to 10."), -10, 10, 3);
 	m_poseWeight->setSingleStep(0.1);
 	m_poseWeight->setValue(1);
-	m_relativePose = addButton(form, "applyMeshRelativePose", QCoreApplication::translate("VibeStudioModelEditor", "Add Pose Difference"),
-							   QCoreApplication::translate("VibeStudioModelEditor",
+	m_relativePose = addButton(form, "applyMeshRelativePose", QCoreApplication::translate("SlopStudioModelEditor", "Add Pose Difference"),
+							   QCoreApplication::translate("SlopStudioModelEditor",
 														   "Add the selected vertices' movement from Base frame to Pose frame to every frame of the "
 														   "range, like a shape key, scaled by the weight and falloff."));
 	connect(m_relativePose, &QPushButton::clicked, this, [this] { run(ModelEditKind::ApplyRelativePose); });
@@ -354,47 +354,47 @@ void ModelEditorAnimationPanel::buildSculpt(QFormLayout *animation, int *row)
 void ModelEditorAnimationPanel::buildImport(QFormLayout *animation, int *row)
 {
 	QFormLayout *form = nullptr;
-	addGroup(animation, row, "meshFrameImport", QCoreApplication::translate("VibeStudioModelEditor", "Frame files"), &form);
-	m_importMatch = comboBox(form, "meshFrameImportMatch", QCoreApplication::translate("VibeStudioModelEditor", "Match vertices by"),
-							 QCoreApplication::translate("VibeStudioModelEditor",
+	addGroup(animation, row, "meshFrameImport", QCoreApplication::translate("SlopStudioModelEditor", "Frame files"), &form);
+	m_importMatch = comboBox(form, "meshFrameImportMatch", QCoreApplication::translate("SlopStudioModelEditor", "Match vertices by"),
+							 QCoreApplication::translate("SlopStudioModelEditor",
 														 "Face corners: the same faces in the same order, however the exporter split "
 														 "vertices. Exact: identical vertex lists. Nearest: the same UV at the same place as the "
 														 "displayed frame."),
-							 {QCoreApplication::translate("VibeStudioModelEditor", "Face corners"),
-							  QCoreApplication::translate("VibeStudioModelEditor", "Exact vertex order"),
-							  QCoreApplication::translate("VibeStudioModelEditor", "Nearest position and UV")});
-	m_importAfter = spinBox(this, form, "meshFrameImportAfter", QCoreApplication::translate("VibeStudioModelEditor", "Insert after frame"),
-							QCoreApplication::translate("VibeStudioModelEditor",
+							 {QCoreApplication::translate("SlopStudioModelEditor", "Face corners"),
+							  QCoreApplication::translate("SlopStudioModelEditor", "Exact vertex order"),
+							  QCoreApplication::translate("SlopStudioModelEditor", "Nearest position and UV")});
+	m_importAfter = spinBox(this, form, "meshFrameImportAfter", QCoreApplication::translate("SlopStudioModelEditor", "Insert after frame"),
+							QCoreApplication::translate("SlopStudioModelEditor",
 														"The new frames follow this frame; End appends them. With Replace frames, the first "
 														"frame they replace."),
 							-1, modelDocumentMaxFrames - 1, [this] { refresh(); });
-	m_importAfter->setSpecialValueText(QCoreApplication::translate("VibeStudioModelEditor", "End"));
+	m_importAfter->setSpecialValueText(QCoreApplication::translate("SlopStudioModelEditor", "End"));
 	m_importAfter->setValue(-1);
-	m_importReplace = checkBox(form, "meshFrameImportReplace", QCoreApplication::translate("VibeStudioModelEditor", "Replace frames"),
-							   QCoreApplication::translate("VibeStudioModelEditor",
+	m_importReplace = checkBox(form, "meshFrameImportReplace", QCoreApplication::translate("SlopStudioModelEditor", "Replace frames"),
+							   QCoreApplication::translate("SlopStudioModelEditor",
 														   "Overwrite existing frames from Insert after frame instead of inserting new ones."));
 	m_importClip = new QLineEdit;
 	m_importClip->setObjectName(QStringLiteral("meshFrameImportClip"));
 	m_importClip->setMaxLength(128);
 	m_importClip->setMinimumWidth(0);
-	describe(m_importClip, QCoreApplication::translate("VibeStudioModelEditor", "New clip name"),
-			 QCoreApplication::translate("VibeStudioModelEditor",
+	describe(m_importClip, QCoreApplication::translate("SlopStudioModelEditor", "New clip name"),
+			 QCoreApplication::translate("SlopStudioModelEditor",
 										 "Optional: a clip over the imported frames. Its frames are then named after it (run1, run2 ...)."));
-	form->addRow(QCoreApplication::translate("VibeStudioModelEditor", "New clip name"), m_importClip);
-	m_importFps = doubleBox(form, "meshFrameImportFps", QCoreApplication::translate("VibeStudioModelEditor", "New clip FPS"),
-							QCoreApplication::translate("VibeStudioModelEditor", "The new clip's saved rate; zero leaves it unspecified."), 0, 1000, 3);
-	m_importFps->setSpecialValueText(QCoreApplication::translate("VibeStudioModelEditor", "Unspecified"));
-	m_objUp = comboBox(form, "meshObjUpAxis", QCoreApplication::translate("VibeStudioModelEditor", "OBJ up axis"),
-					   QCoreApplication::translate("VibeStudioModelEditor",
+	form->addRow(QCoreApplication::translate("SlopStudioModelEditor", "New clip name"), m_importClip);
+	m_importFps = doubleBox(form, "meshFrameImportFps", QCoreApplication::translate("SlopStudioModelEditor", "New clip FPS"),
+							QCoreApplication::translate("SlopStudioModelEditor", "The new clip's saved rate; zero leaves it unspecified."), 0, 1000, 3);
+	m_importFps->setSpecialValueText(QCoreApplication::translate("SlopStudioModelEditor", "Unspecified"));
+	m_objUp = comboBox(form, "meshObjUpAxis", QCoreApplication::translate("SlopStudioModelEditor", "OBJ up axis"),
+					   QCoreApplication::translate("SlopStudioModelEditor",
 												   "Blender and most modellers export OBJ with Y up and -Z forward; idTech models are Z up."),
-					   {QCoreApplication::translate("VibeStudioModelEditor", "Z up (as idTech)"),
-						QCoreApplication::translate("VibeStudioModelEditor", "Y up (Blender default)")});
-	m_objScale = doubleBox(form, "meshObjScale", QCoreApplication::translate("VibeStudioModelEditor", "OBJ scale"),
-						   QCoreApplication::translate("VibeStudioModelEditor", "Multiplies OBJ positions after the axis conversion."), 0.000001,
+					   {QCoreApplication::translate("SlopStudioModelEditor", "Z up (as idTech)"),
+						QCoreApplication::translate("SlopStudioModelEditor", "Y up (Blender default)")});
+	m_objScale = doubleBox(form, "meshObjScale", QCoreApplication::translate("SlopStudioModelEditor", "OBJ scale"),
+						   QCoreApplication::translate("SlopStudioModelEditor", "Multiplies OBJ positions after the axis conversion."), 0.000001,
 						   1000000, 6);
 	m_objScale->setValue(1);
-	m_importButton = addButton(form, "importMeshFrames", QCoreApplication::translate("VibeStudioModelEditor", "Import Frames…"),
-							   QCoreApplication::translate("VibeStudioModelEditor",
+	m_importButton = addButton(form, "importMeshFrames", QCoreApplication::translate("SlopStudioModelEditor", "Import Frames…"),
+							   QCoreApplication::translate("SlopStudioModelEditor",
 														   "Choose an OBJ sequence (one frame per file, in file-name order) or an MD2, MD3, MDL "
 														   "or editable source of the same mesh. Every frame is matched to this model's vertices "
 														   "and added in one undo step; a mismatch changes nothing."));
@@ -402,21 +402,21 @@ void ModelEditorAnimationPanel::buildImport(QFormLayout *animation, int *row)
 			[this]
 			{
 				const auto paths = QFileDialog::getOpenFileNames(
-					m_editor, QCoreApplication::translate("VibeStudioModelEditor", "Import Frames"), QFileInfo(m_editor->m_document.path()).absolutePath(),
-					QCoreApplication::translate("VibeStudioModelEditor", "Models (*.obj *.md2 *.md3 *.mdl *.mesh.json)"));
+					m_editor, QCoreApplication::translate("SlopStudioModelEditor", "Import Frames"), QFileInfo(m_editor->m_document.path()).absolutePath(),
+					QCoreApplication::translate("SlopStudioModelEditor", "Models (*.obj *.md2 *.md3 *.mdl *.mesh.json)"));
 				if (!paths.isEmpty())
 					importFrames(paths);
 			});
-	m_exportObj = addButton(form, "exportMeshFramesObj", QCoreApplication::translate("VibeStudioModelEditor", "Export Range as OBJ…"),
-							QCoreApplication::translate("VibeStudioModelEditor",
+	m_exportObj = addButton(form, "exportMeshFramesObj", QCoreApplication::translate("SlopStudioModelEditor", "Export Range as OBJ…"),
+							QCoreApplication::translate("SlopStudioModelEditor",
 														"Write each frame of the frame range as its own OBJ, numbered where the name has #, "
 														"such as walk_###.obj, for editing in another modeller."));
 	connect(m_exportObj, &QPushButton::clicked, this,
 			[this]
 			{
 				auto pattern = QFileDialog::getSaveFileName(
-					m_editor, QCoreApplication::translate("VibeStudioModelEditor", "Export Range as OBJ"),
-					QFileInfo(m_editor->m_document.path()).absolutePath(), QCoreApplication::translate("VibeStudioModelEditor", "OBJ (*.obj)"),
+					m_editor, QCoreApplication::translate("SlopStudioModelEditor", "Export Range as OBJ"),
+					QFileInfo(m_editor->m_document.path()).absolutePath(), QCoreApplication::translate("SlopStudioModelEditor", "OBJ (*.obj)"),
 					nullptr, QFileDialog::DontConfirmOverwrite);
 				if (pattern.isEmpty())
 					return;
@@ -434,39 +434,39 @@ void ModelEditorAnimationPanel::buildTagFollow()
 	auto *form = group ? qobject_cast<QFormLayout *>(group->layout()) : nullptr;
 	if (!form)
 		return;
-	m_followMode = comboBox(form, "meshTagFollowMode", QCoreApplication::translate("VibeStudioModelEditor", "Follow by"),
-							QCoreApplication::translate("VibeStudioModelEditor",
+	m_followMode = comboBox(form, "meshTagFollowMode", QCoreApplication::translate("SlopStudioModelEditor", "Follow by"),
+							QCoreApplication::translate("SlopStudioModelEditor",
 														"Rigid: the selection's best-fit rotation and movement. Centroid: its centre only, axes "
 														"kept. Surface: the selected faces' normal and first edge."),
-							{QCoreApplication::translate("VibeStudioModelEditor", "Rigid fit"),
-							 QCoreApplication::translate("VibeStudioModelEditor", "Centroid"),
-							 QCoreApplication::translate("VibeStudioModelEditor", "Surface")});
-	m_followReference = spinBox(this, form, "meshTagFollowReference", QCoreApplication::translate("VibeStudioModelEditor", "Reference frame"),
-								QCoreApplication::translate("VibeStudioModelEditor",
+							{QCoreApplication::translate("SlopStudioModelEditor", "Rigid fit"),
+							 QCoreApplication::translate("SlopStudioModelEditor", "Centroid"),
+							 QCoreApplication::translate("SlopStudioModelEditor", "Surface")});
+	m_followReference = spinBox(this, form, "meshTagFollowReference", QCoreApplication::translate("SlopStudioModelEditor", "Reference frame"),
+								QCoreApplication::translate("SlopStudioModelEditor",
 															"The frame whose tag pose sets the tag's offset from the selection."),
 								0, modelDocumentMaxFrames - 1, [this] { refresh(); });
-	m_followRange = checkBox(form, "meshTagFollowRange", QCoreApplication::translate("VibeStudioModelEditor", "Only the frame range"),
-							 QCoreApplication::translate("VibeStudioModelEditor",
+	m_followRange = checkBox(form, "meshTagFollowRange", QCoreApplication::translate("SlopStudioModelEditor", "Only the frame range"),
+							 QCoreApplication::translate("SlopStudioModelEditor",
 														 "Fit only the frames of Frame range; otherwise every frame."));
-	m_follow = addButton(form, "followMeshTagSelection", QCoreApplication::translate("VibeStudioModelEditor", "Follow Selection"),
-						 QCoreApplication::translate("VibeStudioModelEditor",
+	m_follow = addButton(form, "followMeshTagSelection", QCoreApplication::translate("SlopStudioModelEditor", "Follow Selection"),
+						 QCoreApplication::translate("SlopStudioModelEditor",
 													 "Select vertices, edges or faces, type the tag's name in Name, then fit the tag to them in "
 													 "every frame, keeping its offset from the reference frame. A new name adds the tag at the "
 													 "selection's centre. The result is ordinary per-frame tags, in one undo step."));
 	connect(m_follow, &QPushButton::clicked, this, [this] { run(ModelEditKind::FollowTagComponents); });
-	m_followAnchor = checkBox(form, "meshTagFollowAnchor", QCoreApplication::translate("VibeStudioModelEditor", "Remember the components"),
-							  QCoreApplication::translate("VibeStudioModelEditor",
+	m_followAnchor = checkBox(form, "meshTagFollowAnchor", QCoreApplication::translate("SlopStudioModelEditor", "Remember the components"),
+							  QCoreApplication::translate("SlopStudioModelEditor",
 														  "Keep an anchor in the editable source, so Refit Anchored Tags can fit the tag to the "
 														  "same components again after geometry edits."));
 	m_followAnchor->setChecked(true);
-	m_refitAnchors = addButton(form, "refitMeshAnchoredTags", QCoreApplication::translate("VibeStudioModelEditor", "Refit Anchored Tags"),
-							   QCoreApplication::translate("VibeStudioModelEditor",
+	m_refitAnchors = addButton(form, "refitMeshAnchoredTags", QCoreApplication::translate("SlopStudioModelEditor", "Refit Anchored Tags"),
+							   QCoreApplication::translate("SlopStudioModelEditor",
 														   "Fit every anchored tag to its remembered components again, in one undo step, after "
 														   "moving, sculpting or importing frames."));
 	connect(m_refitAnchors, &QPushButton::clicked, this, [this] { run(ModelEditKind::RefitAnchoredTags); });
 	m_anchorSummary = new QLabel;
 	m_anchorSummary->setObjectName(QStringLiteral("meshTagAnchorSummary"));
-	m_anchorSummary->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Anchored tags"));
+	m_anchorSummary->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Anchored tags"));
 	m_anchorSummary->setTextFormat(Qt::PlainText);
 	m_anchorSummary->setWordWrap(true);
 	m_anchorSummary->setMinimumWidth(0);
@@ -474,7 +474,7 @@ void ModelEditorAnimationPanel::buildTagFollow()
 	form->addRow(m_anchorSummary);
 	m_followResult = new LiveStatusLabel;
 	m_followResult->setObjectName(QStringLiteral("meshTagFollowResult"));
-	m_followResult->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Tag fit result"));
+	m_followResult->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Tag fit result"));
 	m_followResult->setTextFormat(Qt::PlainText);
 	m_followResult->setWordWrap(true);
 	m_followResult->setMinimumWidth(0);
@@ -494,10 +494,10 @@ void ModelEditorAnimationPanel::buildRangeScope()
 	int row = -1;
 	QFormLayout::ItemRole role;
 	form->getWidgetPosition(scope, &row, &role);
-	m_rangeScope = new WrappingCheckBox(QCoreApplication::translate("VibeStudioModelEditor", "Over the frame range"));
+	m_rangeScope = new WrappingCheckBox(QCoreApplication::translate("SlopStudioModelEditor", "Over the frame range"));
 	m_rangeScope->setObjectName(QStringLiteral("meshFrameRangeScope"));
 	describe(m_rangeScope, m_rangeScope->text(),
-			 QCoreApplication::translate("VibeStudioModelEditor",
+			 QCoreApplication::translate("SlopStudioModelEditor",
 										 "Move, rotate and scale the selected components in every frame of Animation > Frame range, "
 										 "scaled by Range sculpt's falloff, instead of the frames Apply to chooses. The viewport's "
 										 "live preview shows the displayed frame's share of the change. Proportional editing, mirror, "
@@ -522,7 +522,7 @@ bool ModelEditorAnimationPanel::rangeScoped(const ModelEdit &edit, ModelEdit *sc
 		return false;
 	};
 	if (edit.kind != ModelEditKind::Transform)
-		return refuse(QCoreApplication::translate("VibeStudioModelEditor",
+		return refuse(QCoreApplication::translate("SlopStudioModelEditor",
 												  "Over the frame range moves the selection without proportional editing or mirror. Turn those "
 												  "off, or clear Over the frame range."));
 	ModelEdit result;
@@ -582,11 +582,11 @@ void ModelEditorAnimationPanel::refreshAnchors()
 	{
 		const auto problem = modelTagAnchorProblem(mesh, anchor);
 		const int points = int(anchor.vertices.size());
-		lines << (problem.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "%1 follows %n vertices of %2.", nullptr, points)
+		lines << (problem.isEmpty() ? QCoreApplication::translate("SlopStudioModelEditor", "%1 follows %n vertices of %2.", nullptr, points)
 										  .arg(anchor.tag, anchor.surfaceName)
 									: problem);
 	}
-	m_anchorSummary->setText(lines.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "No tag is anchored to mesh components.")
+	m_anchorSummary->setText(lines.isEmpty() ? QCoreApplication::translate("SlopStudioModelEditor", "No tag is anchored to mesh components.")
 											 : lines.join(QLatin1Char('\n')));
 	m_anchorSummary->setAccessibleDescription(m_anchorSummary->text());
 }
@@ -656,7 +656,7 @@ void ModelEditorAnimationPanel::refreshOnion()
 	m_onion->setProperty("onionDescription", base);
 	m_onion->setAccessibleDescription(frames.isEmpty() ? base
 													   : base + QLatin1Char(' ') +
-															 QCoreApplication::translate("VibeStudioModelEditor", "Showing frames %1.")
+															 QCoreApplication::translate("SlopStudioModelEditor", "Showing frames %1.")
 																 .arg(shown.join(QStringLiteral(", "))));
 }
 
@@ -880,10 +880,10 @@ void ModelEditorAnimationPanel::refresh()
 	gate(m_reverse, rangeReason(ModelEditKind::ReverseFrameRange, false), editable);
 	gate(m_pingPong, rangeReason(ModelEditKind::ReverseFrameRange, true), editable);
 	gate(m_name,
-		 mesh.animations.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "Add a clip under Animation clips first.") : QString(),
+		 mesh.animations.isEmpty() ? QCoreApplication::translate("SlopStudioModelEditor", "Add a clip under Animation clips first.") : QString(),
 		 editable);
 	const int clip = m_editor->m_animationClip ? m_editor->m_animationClip->currentData().toInt() : -1;
-	const auto chooseClip = QCoreApplication::translate("VibeStudioModelEditor", "Choose a clip under Animation clips first.");
+	const auto chooseClip = QCoreApplication::translate("SlopStudioModelEditor", "Choose a clip under Animation clips first.");
 	gate(m_resample, clip < 0 ? chooseClip : rangeReason(ModelEditKind::ResampleAnimation, false), editable);
 	gate(m_closeLoop, clip < 0 ? chooseClip : rangeReason(ModelEditKind::CloseAnimationLoop, false), editable);
 	m_targetFrames->setEnabled(m_targetFps->value() == 0);
@@ -900,7 +900,7 @@ void ModelEditorAnimationPanel::refresh()
 			m_skeletalClip->setCurrentIndex(std::clamp(wanted, 0, int(mesh.skeleton.clips.size()) - 1));
 	}
 	const auto noSkeletal = mesh.skeleton.clips.isEmpty()
-								? QCoreApplication::translate("VibeStudioModelEditor", "This model has no skeletal clips.")
+								? QCoreApplication::translate("SlopStudioModelEditor", "This model has no skeletal clips.")
 								: QString();
 	m_skeletalClip->setEnabled(noSkeletal.isEmpty());
 	m_bakeCurves->setEnabled(noSkeletal.isEmpty());
@@ -909,29 +909,29 @@ void ModelEditorAnimationPanel::refresh()
 	const auto &selection = m_editor->m_document.selection();
 	const auto selectFirst = componentsSelected(selection)
 								 ? QString()
-								 : QCoreApplication::translate("VibeStudioModelEditor", "Select vertices, edges or faces first.");
+								 : QCoreApplication::translate("SlopStudioModelEditor", "Select vertices, edges or faces first.");
 	gate(m_rangeTransform, selectFirst, editable);
 	gate(m_blendPose, selectFirst, editable);
 	gate(m_relativePose,
 		 selectFirst.isEmpty() && m_poseA->value() == m_poseB->value()
-			 ? QCoreApplication::translate("VibeStudioModelEditor", "Choose different pose and base frames.")
+			 ? QCoreApplication::translate("SlopStudioModelEditor", "Choose different pose and base frames.")
 			 : selectFirst,
 		 editable);
 	gate(m_importButton, QString(), editable);
-	gate(m_exportObj, m_last->value() < m_first->value() ? QCoreApplication::translate("VibeStudioModelEditor", "Choose a frame range first.") : QString(),
+	gate(m_exportObj, m_last->value() < m_first->value() ? QCoreApplication::translate("SlopStudioModelEditor", "Choose a frame range first.") : QString(),
 		 editable);
 	if (m_follow)
 	{
 		QString reason = selectFirst;
 		if (reason.isEmpty() && m_editor->m_tagName && m_editor->m_tagName->text().trimmed().isEmpty())
-			reason = QCoreApplication::translate("VibeStudioModelEditor", "Type the tag's name in Name first.");
+			reason = QCoreApplication::translate("SlopStudioModelEditor", "Type the tag's name in Name first.");
 		gate(m_follow, reason, editable);
 		QString stale;
 		for (const auto &anchor : mesh.tagAnchors)
 			if (stale.isEmpty())
 				stale = modelTagAnchorProblem(mesh, anchor);
 		gate(m_refitAnchors,
-			 mesh.tagAnchors.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "No tag is anchored yet. Fit one with Follow Selection.")
+			 mesh.tagAnchors.isEmpty() ? QCoreApplication::translate("SlopStudioModelEditor", "No tag is anchored yet. Fit one with Follow Selection.")
 									   : stale,
 			 editable);
 		if (revision != m_anchorRevision)
@@ -958,7 +958,7 @@ void ModelEditorAnimationPanel::refresh()
 	{
 		m_checkedRevision = revision;
 		const auto summary = modelNativeClipSummary(modelNativeClipRoundTrip(mesh));
-		m_clipCheck->setText(summary.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor",
+		m_clipCheck->setText(summary.isEmpty() ? QCoreApplication::translate("SlopStudioModelEditor",
 																			 "No clips yet. MDL, MD2 and MD3 files rebuild clips from frame names.")
 											   : summary);
 	}
@@ -1003,27 +1003,27 @@ bool ModelEditorAnimationPanel::run(ModelEditKind kind, bool pingPong, QString *
 	{
 	case ModelEditKind::MoveFrames:
 		shown = range.destination;
-		message = QCoreApplication::translate("VibeStudioModelEditor", "Moved %n frames to start at frame %L1.", nullptr, length).arg(shown);
+		message = QCoreApplication::translate("SlopStudioModelEditor", "Moved %n frames to start at frame %L1.", nullptr, length).arg(shown);
 		break;
 	case ModelEditKind::DuplicateFrameRange:
 		shown = range.last + 1;
-		message = QCoreApplication::translate("VibeStudioModelEditor", "Copied %n frames after frame %L1.", nullptr, length).arg(range.last);
+		message = QCoreApplication::translate("SlopStudioModelEditor", "Copied %n frames after frame %L1.", nullptr, length).arg(range.last);
 		break;
 	case ModelEditKind::DeleteFrameRange:
 		shown = std::min(range.first, frames - 1);
-		message = QCoreApplication::translate("VibeStudioModelEditor", "Deleted %n frames.", nullptr, length);
+		message = QCoreApplication::translate("SlopStudioModelEditor", "Deleted %n frames.", nullptr, length);
 		break;
 	case ModelEditKind::ReverseFrameRange:
 		if (pingPong)
 		{
 			shown = range.last + 1;
 			const int added = length - 2;
-			message = QCoreApplication::translate("VibeStudioModelEditor", "Added %n return frames after frame %L1.", nullptr, added).arg(range.last);
+			message = QCoreApplication::translate("SlopStudioModelEditor", "Added %n return frames after frame %L1.", nullptr, added).arg(range.last);
 		}
 		else
 		{
 			shown = range.first;
-			message = QCoreApplication::translate("VibeStudioModelEditor", "Reversed %n frames.", nullptr, length);
+			message = QCoreApplication::translate("SlopStudioModelEditor", "Reversed %n frames.", nullptr, length);
 		}
 		break;
 	case ModelEditKind::ResampleAnimation:
@@ -1033,10 +1033,10 @@ bool ModelEditorAnimationPanel::run(ModelEditKind kind, bool pingPong, QString *
 		shown = clip.firstFrame;
 		const int count = clip.frameCount;
 		message = kind == ModelEditKind::ResampleAnimation
-					  ? QCoreApplication::translate("VibeStudioModelEditor", "Clip %1 now has %n frames (was %L2).", nullptr, count)
+					  ? QCoreApplication::translate("SlopStudioModelEditor", "Clip %1 now has %n frames (was %L2).", nullptr, count)
 							.arg(clip.name)
 							.arg(clipFrames)
-					  : QCoreApplication::translate("VibeStudioModelEditor", "Closed the loop of clip %1.").arg(clip.name);
+					  : QCoreApplication::translate("SlopStudioModelEditor", "Closed the loop of clip %1.").arg(clip.name);
 		break;
 	}
 	case ModelEditKind::ResampleSkeletalClip:
@@ -1044,7 +1044,7 @@ bool ModelEditorAnimationPanel::run(ModelEditKind kind, bool pingPong, QString *
 	{
 		const auto &clip = after.skeleton.clips.value(operation.resample.clip);
 		const int count = int(clip.frames.size());
-		message = QCoreApplication::translate("VibeStudioModelEditor", "Skeletal clip %1 now has %n frames.", nullptr, count).arg(clip.name);
+		message = QCoreApplication::translate("SlopStudioModelEditor", "Skeletal clip %1 now has %n frames.", nullptr, count).arg(clip.name);
 		break;
 	}
 	case ModelEditKind::TransformFrameRange:
@@ -1052,7 +1052,7 @@ bool ModelEditorAnimationPanel::run(ModelEditKind kind, bool pingPong, QString *
 	case ModelEditKind::ApplyRelativePose:
 	{
 		const int count = operation.poseRange.last - operation.poseRange.first + 1;
-		message = QCoreApplication::translate("VibeStudioModelEditor", "Edited the selection in %n frames.", nullptr, count);
+		message = QCoreApplication::translate("SlopStudioModelEditor", "Edited the selection in %n frames.", nullptr, count);
 		break;
 	}
 	case ModelEditKind::FollowTagComponents:
@@ -1062,7 +1062,7 @@ bool ModelEditorAnimationPanel::run(ModelEditKind kind, bool pingPong, QString *
 	case ModelEditKind::RefitAnchoredTags:
 	{
 		const int count = int(after.tagAnchors.size());
-		message = QCoreApplication::translate("VibeStudioModelEditor", "Refitted %n anchored tags.", nullptr, count);
+		message = QCoreApplication::translate("SlopStudioModelEditor", "Refitted %n anchored tags.", nullptr, count);
 		m_followResult->setText(message, LiveStatus::Result);
 		break;
 	}
@@ -1107,7 +1107,7 @@ bool ModelEditorAnimationPanel::importFrames(const QStringList &paths, QString *
 	const auto added = std::make_shared<int>(0);
 	QString failure;
 	const bool ok = m_editor->performWork(
-		QCoreApplication::translate("VibeStudioModelEditor", "Import Frames"),
+		QCoreApplication::translate("SlopStudioModelEditor", "Import Frames"),
 		[operation, obj, sorted, protectedPath, added](ModelDocument &candidate, QString *problem, const ModelWorkControl &control)
 		{
 			auto request = operation;
@@ -1128,7 +1128,7 @@ bool ModelEditorAnimationPanel::importFrames(const QStringList &paths, QString *
 	const int count = *added;
 	const int first = o.replaceFirst >= 0 ? o.replaceFirst : (o.insertAfter < 0 ? int(m_editor->m_document.mesh().frames.size()) - count : o.insertAfter + 1);
 	m_editor->m_frame->setCurrentIndex(std::clamp(first, 0, int(m_editor->m_document.mesh().frames.size()) - 1));
-	m_editor->m_status->setText(QCoreApplication::translate("VibeStudioModelEditor", "Imported %n frames.", nullptr, count), LiveStatus::Result);
+	m_editor->m_status->setText(QCoreApplication::translate("SlopStudioModelEditor", "Imported %n frames.", nullptr, count), LiveStatus::Result);
 	refresh();
 	return true;
 }
@@ -1149,7 +1149,7 @@ bool ModelEditorAnimationPanel::exportFramesObj(const QString &pattern, bool ove
 		return false;
 	}
 	const int count = int(written.size());
-	m_editor->m_status->setText(QCoreApplication::translate("VibeStudioModelEditor", "Wrote %n OBJ files.", nullptr, count), LiveStatus::Result);
+	m_editor->m_status->setText(QCoreApplication::translate("SlopStudioModelEditor", "Wrote %n OBJ files.", nullptr, count), LiveStatus::Result);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

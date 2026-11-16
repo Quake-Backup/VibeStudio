@@ -1,7 +1,7 @@
 #pragma once
 #include "core/audio_session.h"
 
-namespace vibestudio::test
+namespace slopstudio::test
 {
 inline AudioEffect loopLookahead(int frames)
 {
@@ -91,4 +91,4 @@ inline AudioSession expandPlaybackLoop(const AudioSession &original, qint64 firs
 		lane.points = expandLane(lane.points);
 	return session;
 }
-} // namespace vibestudio::test
+} // namespace slopstudio::test

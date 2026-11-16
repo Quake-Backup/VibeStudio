@@ -54,7 +54,7 @@
 #include <utility>
 #include <vector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -384,10 +384,10 @@ public:
 			return true;
 		}
 		if (token.isEnd()) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file ends on line %1 where \"%2\" belongs.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file ends on line %1 where \"%2\" belongs.")
 				.arg(QString::number(token.line), QString::fromLatin1(keyword)));
 		}
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file has \"%1\" on line %2 where \"%3\" belongs.")
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file has \"%1\" on line %2 where \"%3\" belongs.")
 			.arg(token.shown(), QString::number(token.line), QString::fromLatin1(keyword)));
 	}
 
@@ -411,10 +411,10 @@ public:
 			return true;
 		}
 		if (token.isEnd()) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file ends on line %1 where a whole number belongs.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file ends on line %1 where a whole number belongs.")
 				.arg(token.line));
 		}
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file has \"%1\" on line %2 where a whole number belongs.")
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file has \"%1\" on line %2 where a whole number belongs.")
 			.arg(token.shown(), QString::number(token.line)));
 	}
 
@@ -428,15 +428,15 @@ public:
 		case NumberResult::Ok:
 			return true;
 		case NumberResult::NotFinite:
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file has a number that is not finite (\"%1\") on line %2.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file has a number that is not finite (\"%1\") on line %2.")
 				.arg(token.shown(), QString::number(token.line)));
 		case NumberResult::NotNumber:
 			break;
 		}
 		if (token.isEnd()) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file ends on line %1 where a number belongs.").arg(token.line));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file ends on line %1 where a number belongs.").arg(token.line));
 		}
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file has \"%1\" on line %2 where a number belongs.")
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file has \"%1\" on line %2 where a number belongs.")
 			.arg(token.shown(), QString::number(token.line)));
 	}
 
@@ -452,9 +452,9 @@ public:
 			return true;
 		}
 		if (token.isEnd()) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file ends on line %1 where a name belongs.").arg(token.line));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file ends on line %1 where a name belongs.").arg(token.line));
 		}
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file has \"%1\" on line %2 where a name belongs.")
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file has \"%1\" on line %2 where a name belongs.")
 			.arg(token.shown(), QString::number(token.line)));
 	}
 
@@ -489,10 +489,10 @@ private:
 		case Md5Lexer::Problem::None:
 			return true;
 		case Md5Lexer::Problem::OpenString:
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file has a quoted string on line %1 that is not closed.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file has a quoted string on line %1 that is not closed.")
 				.arg(m_lexer.problemLine()));
 		case Md5Lexer::Problem::OpenComment:
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file has a comment opened on line %1 that is not closed.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file has a comment opened on line %1 that is not closed.")
 				.arg(m_lexer.problemLine()));
 		}
 		return false;
@@ -552,7 +552,7 @@ bool parseMd5MeshText(const QByteArray& bytes, Md5MeshFile* out, QString* error,
 		return false;
 	}
 	if (version != kMd5Version) {
-		return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Unsupported MD5 version %1; only MD5Version 10 is decoded.").arg(version));
+		return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Unsupported MD5 version %1; only MD5Version 10 is decoded.").arg(version));
 	}
 	if (!reader.expect("commandline") || !reader.readName(&out->commandLine)) {
 		return false;
@@ -562,7 +562,7 @@ bool parseMd5MeshText(const QByteArray& bytes, Md5MeshFile* out, QString* error,
 		return false;
 	}
 	if (jointCount < 1 || jointCount > kMaxJoints) {
-		return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 mesh declares %1 joint(s); between 1 and %2 are supported.")
+		return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 mesh declares %1 joint(s); between 1 and %2 are supported.")
 			.arg(jointCount).arg(kMaxJoints));
 	}
 	qint64 meshCount = 0;
@@ -570,7 +570,7 @@ bool parseMd5MeshText(const QByteArray& bytes, Md5MeshFile* out, QString* error,
 		return false;
 	}
 	if (meshCount < 0 || meshCount > kMaxSurfaces) {
-		return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 mesh declares %1 mesh(es); up to %2 are supported.")
+		return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 mesh declares %1 mesh(es); up to %2 are supported.")
 			.arg(meshCount).arg(kMaxSurfaces));
 	}
 
@@ -589,7 +589,7 @@ bool parseMd5MeshText(const QByteArray& bytes, Md5MeshFile* out, QString* error,
 		// Doom 3 computes each joint's parent-relative pose from its parent's,
 		// so parents must come first; any negative index is a root.
 		if (parent >= index) {
-			return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Joint %1 (%2) names parent %3, which does not come before it.")
+			return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Joint %1 (%2) names parent %3, which does not come before it.")
 				.arg(QString::number(index), joint.name, QString::number(parent)));
 		}
 		joint.parent = parent < 0 ? -1 : int(parent);
@@ -625,11 +625,11 @@ bool parseMd5MeshText(const QByteArray& bytes, Md5MeshFile* out, QString* error,
 			return false;
 		}
 		if (vertexCount < 0 || vertexCount > kMaxSurfaceVertices) {
-			return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Mesh %1 declares %2 vertices; up to %3 are supported.")
+			return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Mesh %1 declares %2 vertices; up to %3 are supported.")
 				.arg(meshIndex).arg(vertexCount).arg(kMaxSurfaceVertices));
 		}
 		if (vertexCount > kMaxVertexSlots - totalVertices) {
-			return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 mesh holds more vertices than can be decoded."));
+			return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 mesh holds more vertices than can be decoded."));
 		}
 		totalVertices += vertexCount;
 		for (int vertex = 0; vertex < int(vertexCount); ++vertex) {
@@ -646,16 +646,16 @@ bool parseMd5MeshText(const QByteArray& bytes, Md5MeshFile* out, QString* error,
 				return false;
 			}
 			if (count < 1 || count > kMaxInfluencesPerVertex) {
-				return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Vertex %1 of mesh %2 has %3 weight(s); between 1 and %4 are supported.")
+				return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Vertex %1 of mesh %2 has %3 weight(s); between 1 and %4 are supported.")
 					.arg(vertex).arg(meshIndex).arg(count).arg(kMaxInfluencesPerVertex));
 			}
 			if (first < 0 || first > qint64(std::numeric_limits<int>::max()) - count) {
-				return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Vertex %1 of mesh %2 starts at weight %3, which is out of range.")
+				return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Vertex %1 of mesh %2 starts at weight %3, which is out of range.")
 					.arg(vertex).arg(meshIndex).arg(first));
 			}
 			influenceTotal += count;
 			if (influenceTotal > kMaxVertexSlots) {
-				return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 mesh holds more joint influences than can be decoded."));
+				return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 mesh holds more joint influences than can be decoded."));
 			}
 			// MD5 STs are in image space with t = 0 on the top row, as MD3's are.
 			record.texCoords.append({st[0], st[1]});
@@ -668,7 +668,7 @@ bool parseMd5MeshText(const QByteArray& bytes, Md5MeshFile* out, QString* error,
 			return false;
 		}
 		if (triangleCount < 0 || triangleCount > kMaxSurfaceTriangles) {
-			return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Mesh %1 declares %2 triangles; up to %3 are supported.")
+			return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Mesh %1 declares %2 triangles; up to %3 are supported.")
 				.arg(meshIndex).arg(triangleCount).arg(kMaxSurfaceTriangles));
 		}
 		for (int triangle = 0; triangle < int(triangleCount); ++triangle) {
@@ -697,7 +697,7 @@ bool parseMd5MeshText(const QByteArray& bytes, Md5MeshFile* out, QString* error,
 			return false;
 		}
 		if (weightCount < 0 || weightCount > kMaxVertexSlots) {
-			return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Mesh %1 declares %2 weights; up to %3 are supported.")
+			return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Mesh %1 declares %2 weights; up to %3 are supported.")
 				.arg(meshIndex).arg(weightCount).arg(kMaxVertexSlots));
 		}
 		for (int weight = 0; weight < int(weightCount); ++weight) {
@@ -711,7 +711,7 @@ bool parseMd5MeshText(const QByteArray& bytes, Md5MeshFile* out, QString* error,
 				return false;
 			}
 			if (joint < 0 || joint >= jointCount) {
-				return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Weight %1 of mesh %2 follows joint %3, which does not exist.")
+				return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Weight %1 of mesh %2 follows joint %3, which does not exist.")
 					.arg(weight).arg(meshIndex).arg(joint));
 			}
 			parsed.joint = int(joint);
@@ -727,7 +727,7 @@ bool parseMd5MeshText(const QByteArray& bytes, Md5MeshFile* out, QString* error,
 			const qint64 first = record.firstWeight.at(vertex);
 			const qint64 count = record.weightCount.at(vertex);
 			if (first + count > weightCount) {
-				return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Vertex %1 of mesh %2 uses weights %3 to %4, but the mesh holds %5.")
+				return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Vertex %1 of mesh %2 uses weights %3 to %4, but the mesh holds %5.")
 					.arg(vertex).arg(meshIndex).arg(first).arg(first + count - 1).arg(weightCount));
 			}
 		}
@@ -769,7 +769,7 @@ bool parseMd5AnimText(const QByteArray& bytes, Md5AnimFile* out, QString* error,
 {
 	if (qint64(bytes.size()) > kMaxTextBytes) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file is larger than the %1 MiB a text model may hold.")
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file is larger than the %1 MiB a text model may hold.")
 				.arg(kMaxTextBytes / (1024 * 1024));
 		}
 		return false;
@@ -783,7 +783,7 @@ bool parseMd5AnimText(const QByteArray& bytes, Md5AnimFile* out, QString* error,
 		return false;
 	}
 	if (version != kMd5Version) {
-		return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Unsupported MD5 version %1; only MD5Version 10 is decoded.").arg(version));
+		return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Unsupported MD5 version %1; only MD5Version 10 is decoded.").arg(version));
 	}
 	if (!reader.expect("commandline") || !reader.readName(&out->commandLine)) {
 		return false;
@@ -793,7 +793,7 @@ bool parseMd5AnimText(const QByteArray& bytes, Md5AnimFile* out, QString* error,
 		return false;
 	}
 	if (frameCount < 1 || frameCount > kMaxFrames) {
-		return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 animation declares %1 frame(s); between 1 and %2 are supported.")
+		return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 animation declares %1 frame(s); between 1 and %2 are supported.")
 			.arg(frameCount).arg(kMaxFrames));
 	}
 	qint64 jointCount = 0;
@@ -801,7 +801,7 @@ bool parseMd5AnimText(const QByteArray& bytes, Md5AnimFile* out, QString* error,
 		return false;
 	}
 	if (jointCount < 1 || jointCount > kMaxJoints) {
-		return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 animation declares %1 joint(s); between 1 and %2 are supported.")
+		return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 animation declares %1 joint(s); between 1 and %2 are supported.")
 			.arg(jointCount).arg(kMaxJoints));
 	}
 	qint64 frameRate = 0;
@@ -809,7 +809,7 @@ bool parseMd5AnimText(const QByteArray& bytes, Md5AnimFile* out, QString* error,
 		return false;
 	}
 	if (frameRate < 0 || frameRate > kMaxFrameRate) {
-		return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 animation declares frame rate %1, which is outside the supported range.")
+		return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 animation declares frame rate %1, which is outside the supported range.")
 			.arg(frameRate));
 	}
 	qint64 componentCount = 0;
@@ -817,12 +817,12 @@ bool parseMd5AnimText(const QByteArray& bytes, Md5AnimFile* out, QString* error,
 		return false;
 	}
 	if (componentCount < 0 || componentCount > jointCount * 6) {
-		return reader.fail(QCoreApplication::translate("VibeStudioModelMesh",
+		return reader.fail(QCoreApplication::translate("SlopStudioModelMesh",
 			"The MD5 animation declares %1 animated component(s) for %2 joint(s); at most six per joint are allowed.")
 			.arg(componentCount).arg(jointCount));
 	}
 	if (frameCount * jointCount > kMaxAnimJointPoses) {
-		return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 animation holds more joint poses than can be decoded."));
+		return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 animation holds more joint poses than can be decoded."));
 	}
 	out->frameRate = int(frameRate);
 	out->animatedComponents = int(componentCount);
@@ -843,16 +843,16 @@ bool parseMd5AnimText(const QByteArray& bytes, Md5AnimFile* out, QString* error,
 			return false;
 		}
 		if (parent >= index) {
-			return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Joint %1 (%2) names parent %3, which does not come before it.")
+			return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Joint %1 (%2) names parent %3, which does not come before it.")
 				.arg(QString::number(index), joint.name, QString::number(parent)));
 		}
 		joint.parent = parent < 0 ? -1 : int(parent);
 		if (index > 0 && joint.parent < 0) {
-			out->warnings << QCoreApplication::translate("VibeStudioModelMesh", "Joint %1 (%2) is a second root; Doom 3 accepts only one root joint in an animation.")
+			out->warnings << QCoreApplication::translate("SlopStudioModelMesh", "Joint %1 (%2) is a second root; Doom 3 accepts only one root joint in an animation.")
 				.arg(QString::number(index), joint.name);
 		}
 		if (flags < 0 || (quint64(flags) & ~quint64(kAnimAllBits)) != 0) {
-			return reader.fail(QCoreApplication::translate("VibeStudioModelMesh",
+			return reader.fail(QCoreApplication::translate("SlopStudioModelMesh",
 				"Joint %1 (%2) sets animation flags %3; only the six component bits (0 to 63) are defined.")
 				.arg(QString::number(index), joint.name, QString::number(flags)));
 		}
@@ -861,7 +861,7 @@ bool parseMd5AnimText(const QByteArray& bytes, Md5AnimFile* out, QString* error,
 		// nothing; those never read it, so only animated joints are held to it.
 		const int bits = countBits(joint.flags);
 		if (bits > 0 && (first < 0 || first + bits > componentCount)) {
-			return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Joint %1 (%2) reads components %3 to %4, but each frame holds %5.")
+			return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Joint %1 (%2) reads components %3 to %4, but each frame holds %5.")
 				.arg(QString::number(index), joint.name, QString::number(first), QString::number(first + bits - 1), QString::number(componentCount)));
 		}
 		joint.firstComponent = bits > 0 ? int(first) : 0;
@@ -915,7 +915,7 @@ bool parseMd5AnimText(const QByteArray& bytes, Md5AnimFile* out, QString* error,
 	}
 	out->baseModelSpace = modelJointsToModelSpace(parents, baseLocal);
 	if (out->baseModelSpace.size() != int(jointCount)) {
-		return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "The MD5 animation's joint hierarchy is not in parent-first order."));
+		return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "The MD5 animation's joint hierarchy is not in parent-first order."));
 	}
 
 	QVector<float> components(int(componentCount), 0.0f);
@@ -928,7 +928,7 @@ bool parseMd5AnimText(const QByteArray& bytes, Md5AnimFile* out, QString* error,
 			return false;
 		}
 		if (number != frame) {
-			return reader.fail(QCoreApplication::translate("VibeStudioModelMesh", "Frame %1 of the MD5 animation is numbered %2.").arg(frame).arg(number));
+			return reader.fail(QCoreApplication::translate("SlopStudioModelMesh", "Frame %1 of the MD5 animation is numbered %2.").arg(frame).arg(number));
 		}
 		if (!reader.expect("{")) {
 			return false;
@@ -1070,7 +1070,7 @@ public:
 				stop(problem);
 			} else {
 				leftOut(path, declared, QStringLiteral("md5-anim-unreadable"),
-					QCoreApplication::translate("VibeStudioModelMesh", "The animation %1 could not be read: %2").arg(path, problem));
+					QCoreApplication::translate("SlopStudioModelMesh", "The animation %1 could not be read: %2").arg(path, problem));
 			}
 			return true;
 		}
@@ -1080,18 +1080,18 @@ public:
 				return false;
 			}
 			leftOut(path, declared, QStringLiteral("md5-anim-unreadable"),
-				QCoreApplication::translate("VibeStudioModelMesh", "The animation %1 could not be read: %2").arg(path, problem));
+				QCoreApplication::translate("SlopStudioModelMesh", "The animation %1 could not be read: %2").arg(path, problem));
 			return true;
 		}
 		ModelSkeleton& skeleton = m_mesh->skeleton;
 		if (!animMatchesSkeleton(anim, skeleton.joints)) {
 			leftOut(path, declared, QStringLiteral("md5-anim-joints"),
-				QCoreApplication::translate("VibeStudioModelMesh", "The animation %1 does not match the mesh's joints and was left out.").arg(path));
+				QCoreApplication::translate("SlopStudioModelMesh", "The animation %1 does not match the mesh's joints and was left out.").arg(path));
 			return true;
 		}
 		const qint64 poses = qint64(anim.frames.size()) * qint64(skeleton.joints.size());
 		if (poses > kMaxTotalJointPoses - m_poses) {
-			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("md5-anims-capped"), QCoreApplication::translate("VibeStudioModelMesh", "The animation %1 was left out to keep the clips within %2 joint poses.")
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("md5-anims-capped"), QCoreApplication::translate("SlopStudioModelMesh", "The animation %1 was left out to keep the clips within %2 joint poses.")
 				.arg(path).arg(kMaxTotalJointPoses));
 			return true;
 		}
@@ -1123,7 +1123,7 @@ public:
 		if (m_companions.exhausted()) {
 			stop(problem);
 		} else {
-			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md5-def-unreadable"), QCoreApplication::translate("VibeStudioModelMesh", "The declaration file %1 could not be read: %2").arg(path, problem));
+			noteModelDecodeIssue(m_mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md5-def-unreadable"), QCoreApplication::translate("SlopStudioModelMesh", "The declaration file %1 could not be read: %2").arg(path, problem));
 		}
 		return false;
 	}
@@ -1249,7 +1249,7 @@ void applyDeclEvents(ModelMesh* mesh, int clip, const QString& alias, const QVec
 	}
 	QString problem;
 	if (!validModelAnimationEvents(events, int(mesh->skeleton.clips.at(clip).frames.size()), &problem)) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "The frame commands of anim \"%1\" are not kept: %2").arg(alias, problem);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "The frame commands of anim \"%1\" are not kept: %2").arg(alias, problem);
 		return;
 	}
 	mesh->skeleton.clips[clip].events = events;
@@ -1327,7 +1327,7 @@ bool applyModelDeclarations(const QString& path, ModelMesh* mesh, const ModelWor
 		}
 		const LoadedDecl& loaded = decls.at(index);
 		const QString& file = readFiles.at(loaded.file);
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Named by model declaration \"%1\" in %2.").arg(loaded.decl.name, file);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Named by model declaration \"%1\" in %2.").arg(loaded.decl.name, file);
 		if (!warnedFiles.contains(loaded.file)) {
 			warnedFiles.insert(loaded.file);
 			for (const QString& warning : fileWarnings.at(loaded.file)) {
@@ -1573,7 +1573,7 @@ void decodeMd5Mesh(const QString& path, const QByteArray& bytes, ModelMesh* mesh
 		return;
 	}
 	if (qint64(bytes.size()) > kMaxTextBytes) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The MD5 file is larger than the %1 MiB a text model may hold.")
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The MD5 file is larger than the %1 MiB a text model may hold.")
 			.arg(kMaxTextBytes / (1024 * 1024));
 		return;
 	}
@@ -1601,7 +1601,7 @@ void decodeMd5Mesh(const QString& path, const QByteArray& bytes, ModelMesh* mesh
 		bool ok = true;
 		inverseBind.append(modelJointInverse(bindPose.at(index), &ok));
 		if (!ok) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Joint %1 (%2) has a bind pose that cannot be inverted.")
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Joint %1 (%2) has a bind pose that cannot be inverted.")
 				.arg(QString::number(index), skeleton.joints.at(index).name);
 			return;
 		}
@@ -1631,7 +1631,7 @@ void decodeMd5Mesh(const QString& path, const QByteArray& bytes, ModelMesh* mesh
 			surface.triangles.append({triangle.a, triangle.c, triangle.b});
 		}
 		if (record.droppedTriangles > 0) {
-			surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.")
+			surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.")
 				.arg(record.droppedTriangles);
 		}
 
@@ -1667,7 +1667,7 @@ void decodeMd5Mesh(const QString& path, const QByteArray& bytes, ModelMesh* mesh
 		}
 		for (const ModelVec3& position : std::as_const(bind.positions)) {
 			if (!isFinite(position)) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Mesh %1 places a vertex beyond the range of finite numbers.").arg(index);
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Mesh %1 places a vertex beyond the range of finite numbers.").arg(index);
 				return;
 			}
 		}
@@ -1687,10 +1687,10 @@ void decodeMd5Mesh(const QString& path, const QByteArray& bytes, ModelMesh* mesh
 	}
 
 	if (!file.commandLine.isEmpty()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Command line: %1").arg(file.commandLine);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Command line: %1").arg(file.commandLine);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Joints: %1").arg(skeleton.joints.size());
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Meshes: %1").arg(file.meshes.size());
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Joints: %1").arg(skeleton.joints.size());
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Meshes: %1").arg(file.meshes.size());
 
 	// Animations beside the mesh, then those its .def declarations name.
 	Md5ClipLoader loader(mesh, control, companions);
@@ -1714,13 +1714,13 @@ void decodeMd5Mesh(const QString& path, const QByteArray& bytes, ModelMesh* mesh
 	if (companions.canRead() && !applyModelDeclarations(path, mesh, control, companions, loader)) {
 		return;
 	}
-	mesh->detailLines.insert(detailInsert, QCoreApplication::translate("VibeStudioModelMesh", "Animations read: %1").arg(skeleton.clips.size()));
+	mesh->detailLines.insert(detailInsert, QCoreApplication::translate("SlopStudioModelMesh", "Animations read: %1").arg(skeleton.clips.size()));
 
 	ModelSkeletonBakeOptions options;
 	options.includeBindPose = true;
 	QString problem;
 	if (!bakeModelSkeleton(mesh, options, &problem, control)) {
-		mesh->error = problem.isEmpty() ? QCoreApplication::translate("VibeStudioModelMesh", "The MD5 skeleton could not be baked into frames.") : problem;
+		mesh->error = problem.isEmpty() ? QCoreApplication::translate("SlopStudioModelMesh", "The MD5 skeleton could not be baked into frames.") : problem;
 		return;
 	}
 	mesh->geometryAvailable = !mesh->surfaces.isEmpty();
@@ -1752,12 +1752,12 @@ void decodeMd5Anim(const QString& path, const QByteArray& bytes, ModelMesh* mesh
 		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("md5-anim-note"), warning);
 	}
 	if (!anim.commandLine.isEmpty()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Command line: %1").arg(anim.commandLine);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Command line: %1").arg(anim.commandLine);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Joints: %1").arg(anim.joints.size());
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Frames: %1").arg(anim.frames.size());
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Frame rate: %1").arg(anim.frameRate);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Animated components: %1").arg(anim.animatedComponents);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Joints: %1").arg(anim.joints.size());
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Frames: %1").arg(anim.frames.size());
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Frame rate: %1").arg(anim.frameRate);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Animated components: %1").arg(anim.animatedComponents);
 
 	ModelSkeletalClip clip;
 	clip.name = pathStem(path).trimmed();
@@ -1774,7 +1774,7 @@ void decodeMd5Anim(const QString& path, const QByteArray& bytes, ModelMesh* mesh
 	options.includeBindPose = false;
 	QString problem;
 	if (!bakeModelSkeleton(mesh, options, &problem, control)) {
-		mesh->error = problem.isEmpty() ? QCoreApplication::translate("VibeStudioModelMesh", "The MD5 skeleton could not be baked into frames.") : problem;
+		mesh->error = problem.isEmpty() ? QCoreApplication::translate("SlopStudioModelMesh", "The MD5 skeleton could not be baked into frames.") : problem;
 		return;
 	}
 	// Animation only: no surfaces, so geometryAvailable stays false.
@@ -1801,7 +1801,7 @@ QByteArray exportModelMd5Mesh(const ModelMesh& mesh, const ModelMd5ExportOptions
 		return fail(progressError);
 	}
 	if (!mesh.geometryAvailable || mesh.surfaces.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The model has no geometry to write as an MD5 mesh."));
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The model has no geometry to write as an MD5 mesh."));
 	}
 	const bool skeletal = !mesh.skeleton.isEmpty();
 	QVector<ModelJoint> joints;
@@ -1819,7 +1819,7 @@ QByteArray exportModelMd5Mesh(const ModelMesh& mesh, const ModelMd5ExportOptions
 		joints.append(origin);
 	}
 	if (joints.size() > kMaxJoints) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The model has %1 joints; MD5 files written here hold up to %2.")
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The model has %1 joints; MD5 files written here hold up to %2.")
 			.arg(joints.size()).arg(kMaxJoints));
 	}
 	// MD5 joints hold a rotation and a translation. A bind matrix with scale,
@@ -1840,7 +1840,7 @@ QByteArray exportModelMd5Mesh(const ModelMesh& mesh, const ModelMd5ExportOptions
 	const ModelJointMatrix rootInverse =
 		modelJointInverse(stretched.first() ? modelJointRigidPart(joints.first().bind) : joints.first().bind, &invertible);
 	if (!invertible) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "Joint %1 (%2) has a bind pose that cannot be inverted.")
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "Joint %1 (%2) has a bind pose that cannot be inverted.")
 			.arg(QStringLiteral("0"), joints.first().name));
 	}
 	const QVector<ModelJointMatrix> bindPose = skeletal ? modelSkeletonBindPose(mesh.skeleton) : QVector<ModelJointMatrix>{};
@@ -1872,12 +1872,12 @@ QByteArray exportModelMd5Mesh(const ModelMesh& mesh, const ModelMd5ExportOptions
 		const bool skinned = skeletal && !surface.skinning.isEmpty();
 		const ModelFrameGeometry* still = surface.frames.isEmpty() ? nullptr : &surface.frames.first();
 		if (!skinned && (!still || still->positions.size() < surface.vertexCount)) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "Surface \"%1\" has no geometry to write.").arg(surface.name));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "Surface \"%1\" has no geometry to write.").arg(surface.name));
 		}
 		for (const ModelTriangle& triangle : surface.triangles) {
 			if (triangle.a < 0 || triangle.b < 0 || triangle.c < 0 || triangle.a >= surface.vertexCount || triangle.b >= surface.vertexCount
 				|| triangle.c >= surface.vertexCount) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "Surface \"%1\" has a triangle that names a vertex it does not hold.")
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "Surface \"%1\" has a triangle that names a vertex it does not hold.")
 					.arg(surface.name));
 			}
 		}
@@ -1915,7 +1915,7 @@ QByteArray exportModelMd5Mesh(const ModelMesh& mesh, const ModelMd5ExportOptions
 			out.first.append(int(out.weights.size()));
 			const int count = skinned ? surface.skinning.count.at(vertex) : 0;
 			if (count > kMaxInfluencesPerVertex) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "Vertex %1 of surface \"%2\" has %3 joint influences; MD5 files written here hold up to %4.")
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "Vertex %1 of surface \"%2\" has %3 joint influences; MD5 files written here hold up to %4.")
 					.arg(QString::number(vertex), surface.name, QString::number(count), QString::number(kMaxInfluencesPerVertex)));
 			}
 			if (count > 0) {
@@ -1938,13 +1938,13 @@ QByteArray exportModelMd5Mesh(const ModelMesh& mesh, const ModelMd5ExportOptions
 			out.count.append(1);
 		}
 		if (out.weights.size() > kMaxVertexSlots) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "Surface \"%1\" has more joint influences than an MD5 mesh can hold.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "Surface \"%1\" has more joint influences than an MD5 mesh can hold.")
 				.arg(surface.name));
 		}
 		meshes.append(std::move(out));
 	}
 	if (meshes.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The model has no vertices to write as an MD5 mesh."));
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The model has no vertices to write as an MD5 mesh."));
 	}
 
 	// The layout idRenderModelMD5::LoadModel reads, in the spacing Doom 3's
@@ -2042,7 +2042,7 @@ QByteArray exportModelMd5Mesh(const ModelMesh& mesh, const ModelMd5ExportOptions
 		writer.text("}\n");
 	}
 	if (!writer.finite()) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The model holds a number that is not finite, so it cannot be written as MD5."));
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The model holds a number that is not finite, so it cannot be written as MD5."));
 	}
 	if (!work.check()) {
 		return fail(progressError);
@@ -2051,20 +2051,20 @@ QByteArray exportModelMd5Mesh(const ModelMesh& mesh, const ModelMd5ExportOptions
 		ModelExportReport result;
 		result.maxNormalAngleDegrees = normalAngle;
 		if (!stretchedNames.isEmpty()) {
-			result.notes << QCoreApplication::translate("VibeStudioModelMesh",
+			result.notes << QCoreApplication::translate("SlopStudioModelMesh",
 				"MD5 joints hold rotation and translation only, so the bind scale, shear or mirroring of these joints moved into the weight "
 				"offsets (%n): %1. The bind-pose mesh is unchanged; each md5anim must keep the same joint scale.",
 				nullptr, int(stretchedNames.size()))
 								.arg(stretchedNames.join(QStringLiteral(", ")));
 		}
 		if (!unnamedShaders.isEmpty()) {
-			result.notes << QCoreApplication::translate("VibeStudioModelMesh",
+			result.notes << QCoreApplication::translate("SlopStudioModelMesh",
 				"Surfaces without a material take their own name as the MD5 shader (%n): %1. Assign materials before shipping the model.",
 				nullptr, int(unnamedShaders.size()))
 								.arg(unnamedShaders.join(QStringLiteral(", ")));
 		}
 		if (normalAngle > 0.5) {
-			result.notes << QCoreApplication::translate("VibeStudioModelMesh",
+			result.notes << QCoreApplication::translate("SlopStudioModelMesh",
 				"MD5 stores no vertex normals: Doom 3 rebuilds smooth normals from the faces, joining vertices that share a position. The "
 				"model's normals differ from the rebuilt ones by up to %1 degrees (vertex %2 of surface \"%3\"); carry hard edges and "
 				"edited normals in a normal map.")
@@ -2092,10 +2092,10 @@ QByteArray exportModelMd5Anim(const ModelMesh& mesh, int clipIndex, const ModelM
 	}
 	const ModelSkeleton& skeleton = mesh.skeleton;
 	if (skeleton.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The model has no skeleton to write as an MD5 animation."));
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The model has no skeleton to write as an MD5 animation."));
 	}
 	if (clipIndex < 0 || clipIndex >= skeleton.clips.size()) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The model has no animation clip %1.").arg(clipIndex));
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The model has no animation clip %1.").arg(clipIndex));
 	}
 	QString problem;
 	if (!validateModelSkeleton(mesh, &problem)) {
@@ -2103,11 +2103,11 @@ QByteArray exportModelMd5Anim(const ModelMesh& mesh, int clipIndex, const ModelM
 	}
 	const ModelSkeletalClip& clip = skeleton.clips.at(clipIndex);
 	if (clip.frames.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "Clip \"%1\" has no frames to write.").arg(clip.name));
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "Clip \"%1\" has no frames to write.").arg(clip.name));
 	}
 	if (clip.frames.size() > kMaxFrames || skeleton.joints.size() > kMaxJoints
 		|| qint64(clip.frames.size()) * skeleton.joints.size() > kMaxAnimJointPoses) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "Clip \"%1\" holds more frames or joints than an MD5 animation written here can hold.")
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "Clip \"%1\" holds more frames or joints than an MD5 animation written here can hold.")
 			.arg(clip.name));
 	}
 	const QVector<int> parents = modelJointParents(skeleton);
@@ -2121,11 +2121,11 @@ QByteArray exportModelMd5Anim(const ModelMesh& mesh, int clipIndex, const ModelM
 	const bool unspecifiedRate = !(clip.framesPerSecond > 0.0) || !std::isfinite(clip.framesPerSecond);
 	if (options.frameRate > 0) {
 		if (options.frameRate > kMaxFrameRate) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "An md5anim frame rate must be a whole number from 1 to %1.").arg(kMaxFrameRate));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "An md5anim frame rate must be a whole number from 1 to %1.").arg(kMaxFrameRate));
 		}
 		frameRate = options.frameRate;
 		if (!unspecifiedRate && std::abs(clip.framesPerSecond - frameRate) > 1e-6) {
-			notes << QCoreApplication::translate("VibeStudioModelMesh",
+			notes << QCoreApplication::translate("SlopStudioModelMesh",
 				"Clip \"%1\" plays at %2 frames per second; the md5anim is written at the chosen %3, which changes its playback speed.")
 						 .arg(clip.name)
 						 .arg(clip.framesPerSecond, 0, 'g', 6)
@@ -2133,7 +2133,7 @@ QByteArray exportModelMd5Anim(const ModelMesh& mesh, int clipIndex, const ModelM
 		}
 	} else if (unspecifiedRate) {
 		frameRate = options.defaultFrameRate >= 1 && options.defaultFrameRate <= kMaxFrameRate ? options.defaultFrameRate : 24;
-		notes << QCoreApplication::translate("VibeStudioModelMesh",
+		notes << QCoreApplication::translate("SlopStudioModelMesh",
 			"Clip \"%1\" has no frame rate, so the md5anim is written at %2 frames per second. Set the clip's rate in Edit Skeletal Animation "
 			"to choose another.")
 					 .arg(clip.name)
@@ -2141,7 +2141,7 @@ QByteArray exportModelMd5Anim(const ModelMesh& mesh, int clipIndex, const ModelM
 	} else {
 		const double whole = std::round(clip.framesPerSecond);
 		if (std::abs(clip.framesPerSecond - whole) > 1e-6 || whole < 1.0 || whole > double(kMaxFrameRate)) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh",
+			return fail(QCoreApplication::translate("SlopStudioModelMesh",
 				"Clip \"%1\" plays at %2 frames per second, but an md5anim stores a whole number from 1 to %3. Give the clip a whole-number "
 				"rate in Edit Skeletal Animation, or choose an MD5 frame rate for the export.")
 							.arg(clip.name)
@@ -2201,7 +2201,7 @@ QByteArray exportModelMd5Anim(const ModelMesh& mesh, int clipIndex, const ModelM
 			if (influencing.at(joint)) {
 				const double distance = modelJointMatrixDistance(rigid ? modelJointIdentity() : modelJointStretch(pose), bindStretch.at(joint));
 				if (distance > kModelJointStretchTolerance) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh",
+					return fail(QCoreApplication::translate("SlopStudioModelMesh",
 						"MD5 joints hold rotation and translation only. Joint \"%1\" is scaled, sheared or mirrored differently from its bind pose "
 						"in frame %2 of clip \"%3\" (by up to %4), which Doom 3 cannot reproduce. Remove the clip's scale keys, move the scale "
 						"into the bind pose, or export IQM or MD3, which keep joint scale.")
@@ -2221,18 +2221,18 @@ QByteArray exportModelMd5Anim(const ModelMesh& mesh, int clipIndex, const ModelM
 		}
 		QVector<ModelJointMatrix> local = modelJointsToLocalSpace(parents, frame);
 		if (local.size() != jointCount) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "Clip \"%1\" does not fit the joint hierarchy.").arg(clip.name));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "Clip \"%1\" does not fit the joint hierarchy.").arg(clip.name));
 		}
 		locals.append(std::move(local));
 	}
 	if (rigidified) {
-		notes << QCoreApplication::translate("VibeStudioModelMesh",
+		notes << QCoreApplication::translate("SlopStudioModelMesh",
 			"MD5 joints hold rotation and translation only; the joint scale clip \"%1\" shares with the bind pose stays in the md5mesh "
 			"weight offsets. Export the md5mesh from the same model.")
 					 .arg(clip.name);
 	}
 	if (rootMoves) {
-		omissions << QCoreApplication::translate("VibeStudioModelMesh",
+		omissions << QCoreApplication::translate("SlopStudioModelMesh",
 			"Surfaces with vertices that have no joint influences (%n): %1. The md5mesh binds them to joint \"%2\", which moves in clip \"%3\", "
 			"so in the game they follow it while the editor keeps them still. Bind them with Skin Weights and Binding to choose their joints.",
 			nullptr, int(unskinned.size()))
@@ -2371,7 +2371,7 @@ QByteArray exportModelMd5Anim(const ModelMesh& mesh, int clipIndex, const ModelM
 		writer.text("}\n");
 	}
 	if (!writer.finite()) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The model holds a number that is not finite, so it cannot be written as MD5."));
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The model holds a number that is not finite, so it cannot be written as MD5."));
 	}
 	if (!work.check()) {
 		return fail(progressError);
@@ -2382,7 +2382,7 @@ QByteArray exportModelMd5Anim(const ModelMesh& mesh, int clipIndex, const ModelM
 		result.clipName = clip.name;
 		result.clipFrames = int(clip.frames.size());
 		result.frameRate = frameRate;
-		result.notes << QCoreApplication::translate("VibeStudioModelMesh", "Skeletal clip %1 \"%2\": %n frame(s) at %3 frames per second.", nullptr,
+		result.notes << QCoreApplication::translate("SlopStudioModelMesh", "Skeletal clip %1 \"%2\": %n frame(s) at %3 frames per second.", nullptr,
 			int(clip.frames.size()))
 							.arg(clipIndex)
 							.arg(clip.name)
@@ -2415,11 +2415,11 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 		case Md5Lexer::Problem::None:
 			break;
 		case Md5Lexer::Problem::OpenString:
-			warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: a quoted string is not closed before the end of the line.")
+			warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: a quoted string is not closed before the end of the line.")
 				.arg(lexer.problemLine()));
 			break;
 		case Md5Lexer::Problem::OpenComment:
-			warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: a comment is not closed.").arg(lexer.problemLine()));
+			warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: a comment is not closed.").arg(lexer.problemLine()));
 			break;
 		}
 		lexer.clearProblem();
@@ -2435,7 +2435,7 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 		for (;;) {
 			const Md5Token token = nextToken();
 			if (token.isEnd()) {
-				warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: the block opened here is not closed.").arg(openLine));
+				warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: the block opened here is not closed.").arg(openLine));
 				return false;
 			}
 			if (token.isPunct('{')) {
@@ -2454,7 +2454,7 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 				return true;
 			}
 			if (token.isEnd() || token.isPunct('{') || token.isPunct('}')) {
-				warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: the parenthesis opened here is not closed.").arg(openLine));
+				warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: the parenthesis opened here is not closed.").arg(openLine));
 				if (token.isEnd()) {
 					return false;
 				}
@@ -2470,7 +2470,7 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 		const auto readValue = [&](const Md5Token& key, QString* value) {
 			const Md5Token token = nextToken();
 			if (!token.isValue()) {
-				warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: \"%2\" in model \"%3\" has no value.")
+				warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: \"%2\" in model \"%3\" has no value.")
 					.arg(QString::number(key.line), key.utf8(), decl.name));
 				if (!token.isEnd()) {
 					lexer.unread(token);
@@ -2483,7 +2483,7 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 		for (;;) {
 			const Md5Token key = nextToken();
 			if (key.isEnd()) {
-				warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: the block opened here is not closed.").arg(openLine));
+				warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: the block opened here is not closed.").arg(openLine));
 				return false;
 			}
 			if (key.isPunct('}')) {
@@ -2535,7 +2535,7 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 				if (ok) {
 					decl.offset = {values[0], values[1], values[2]};
 				} else {
-					warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: the offset of model \"%2\" should be three numbers in parentheses.")
+					warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: the offset of model \"%2\" should be three numbers in parentheses.")
 						.arg(QString::number(key.line), decl.name));
 				}
 			} else if (keyIs(key, "anim")) {
@@ -2561,7 +2561,7 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 					for (;;) {
 						const Md5Token token = nextToken();
 						if (token.isEnd()) {
-							warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: the block opened here is not closed.").arg(open.line));
+							warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: the block opened here is not closed.").arg(open.line));
 							return false;
 						}
 						if (token.isPunct('}')) {
@@ -2589,7 +2589,7 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 						QString problem;
 						if (!parseIntegerToken(frame, &number) || number < 1 || number > 1048576 || words.isEmpty() ||
 							!parseModelAnimationEventCommandLine(words.join(QLatin1Char(' ')), int(number - 1), &event, &problem)) {
-							warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: the frame command in anim \"%2\" of model \"%3\" is not "
+							warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: the frame command in anim \"%2\" of model \"%3\" is not "
 																		   "kept: give a frame from 1 and a command.")
 									 .arg(QString::number(token.line), alias, decl.name));
 							continue;
@@ -2623,14 +2623,14 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 			break;
 		}
 		if (type.isPunct('{')) {
-			warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: a block has no declaration name.").arg(type.line));
+			warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: a block has no declaration name.").arg(type.line));
 			if (!skipBlock(type.line)) {
 				break;
 			}
 			continue;
 		}
 		if (type.isPunct('}')) {
-			warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: a closing brace has no opening brace.").arg(type.line));
+			warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: a closing brace has no opening brace.").arg(type.line));
 			continue;
 		}
 		if (!type.isValue()) {
@@ -2638,7 +2638,7 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 		}
 		const Md5Token name = nextToken();
 		if (name.isEnd()) {
-			warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: \"%2\" ends the file without a declaration body.")
+			warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: \"%2\" ends the file without a declaration body.")
 				.arg(QString::number(type.line), type.utf8()));
 			break;
 		}
@@ -2649,14 +2649,14 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 			continue;
 		}
 		if (!name.isValue()) {
-			warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: \"%2\" is not followed by a declaration name.")
+			warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: \"%2\" is not followed by a declaration name.")
 				.arg(QString::number(type.line), type.utf8()));
 			lexer.unread(name);
 			continue;
 		}
 		const Md5Token open = nextToken();
 		if (!open.isPunct('{')) {
-			warn(QCoreApplication::translate("VibeStudioModelMesh", "Line %1: the declaration \"%2\" has no body.")
+			warn(QCoreApplication::translate("SlopStudioModelMesh", "Line %1: the declaration \"%2\" has no body.")
 				.arg(QString::number(type.line), name.utf8()));
 			if (open.isEnd()) {
 				break;
@@ -2679,4 +2679,4 @@ QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* w
 	return decls;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,22 +1,22 @@
-# VibeStudio Offline User Guide (0.1.0-alpha.1)
+# SlopStudio Offline User Guide (0.1.0-alpha.1)
 
-The VibeStudio user manual in a single file, for reading offline. It is
+The SlopStudio user manual in a single file, for reading offline. It is
 generated from the pages in [docs/manual](manual/index.md) by
 `scripts/generate_offline_guide.py`; edit those pages, not this file.
 Release packages also include the manual as HTML: open
 `docs/html/index.html` in a browser.
 
 > [!WARNING]
-> VibeStudio is pre-alpha and highly untested. Work on copies of your files
+> SlopStudio is pre-alpha and highly untested. Work on copies of your files
 > and keep backups. [Project status](manual/status.md) explains what is and
 > is not tested.
 
 ## Contents
 
 - **Get started**
-  - [Welcome to VibeStudio](#welcome-to-vibestudio)
+  - [Welcome to SlopStudio](#welcome-to-slopstudio)
   - [Project status](#project-status)
-  - [Install VibeStudio](#install-vibestudio)
+  - [Install SlopStudio](#install-slopstudio)
   - [First-run setup](#first-run-setup)
   - [A tour of the studio](#a-tour-of-the-studio)
 - **Use the studio**
@@ -38,9 +38,9 @@ Release packages also include the manual as HTML: open
   - [Troubleshooting and FAQ](#troubleshooting-and-faq)
   - [Build from source](#build-from-source)
 
-## Welcome to VibeStudio
+## Welcome to SlopStudio
 
-VibeStudio is a free, open-source (GPLv3) studio for making content for idTech1
+SlopStudio is a free, open-source (GPLv3) studio for making content for idTech1
 (Doom family), idTech2 (Quake and Quake II) and idTech3 (Quake III family)
 games. It brings level editing, models, textures, audio, packages, code and
 shaders, compiling and game launching together in one window on Windows, macOS
@@ -48,11 +48,11 @@ and Linux, with an optional AI assistant and a command line that uses the same
 services as the studio.
 
 > [!WARNING]
-> **VibeStudio is pre-alpha and highly untested.** It is not ready for
+> **SlopStudio is pre-alpha and highly untested.** It is not ready for
 > production work. Most features have automated tests, but very few have been
 > used in real projects, and many planned parts of the studio do not exist yet.
 > Work on copies, and back up your maps, packages and projects before you open
-> them in VibeStudio. [Project status](manual/status.md) explains what is and is not
+> them in SlopStudio. [Project status](manual/status.md) explains what is and is not
 > tested.
 
 ### What you can do today
@@ -65,8 +65,8 @@ linked page lists the gaps. **Planned** means not built yet.
 | --- | --- | --- |
 | [Workspace and projects](manual/projects.md) | Open a project folder and write its manifest, check project health, find files by name, add or detect game installations, save and reopen workspaces | Available |
 | [Level editing: Doom family](manual/levels.md) | Open, edit and save Doom and Hexen maps in WADs, including UDMF; draw and shape sectors; build nodes with ZDBSP or ZokumBSP | Partial |
-| [Level editing: Quake family](manual/levels.md) | Edit Quake and Quake II `.map` brushes, entities and texture alignment in a four-view workspace; prefabs; compile with VibeMap2 | Partial |
-| [Level editing: Quake III](manual/levels.md) | Brushes, curved patches and shader images in the 3D view; compile with VibeMap3 and package the result as a PK3 | Partial |
+| [Level editing: Quake family](manual/levels.md) | Edit Quake and Quake II `.map` brushes, entities and texture alignment in a four-view workspace; prefabs; compile with SlopMap2 | Partial |
+| [Level editing: Quake III](manual/levels.md) | Brushes, curved patches and shader images in the 3D view; compile with SlopMap3 and package the result as a PK3 | Partial |
 | [Familiar editor controls](manual/editor-profiles.md) | 19 editor profiles bring the keys, mouse gestures, camera and layout of editors such as TrenchBroom, NetRadiant Custom, GtkRadiant, Hammer and Ultimate Doom Builder | Partial |
 | [Models](manual/models.md) | View and animate MDL, MD2 and MD3 models; edit meshes, including imported OBJ files, and export MDL, MD2 or MD3; design simple props; assemble tagged models; build Quake III player packages | Partial |
 | [Textures](manual/textures.md) | Browse images, sprites and palettes; paint in the layered Texture Editor; export PNG, TGA, PCX, Quake WAD2, Quake II WAL and Doom flats and patches | Partial |
@@ -75,7 +75,7 @@ linked page lists the gaps. **Planned** means not built yet.
 | [Package and release](manual/releases.md) | Package a project, map, model or textures with only your own files, leaving out what the game already has; keep a changelog; generate release notes and a readme; publish with a distribution archive and a record of each release | Partial |
 | [Code and scripts](manual/code.md) | Edit QuakeC, shader scripts, configs and other text with highlighting, project-wide search and replace, and optional local language servers | Partial |
 | [Materials and shaders](manual/materials.md) | Every texture, Quake III shader and Doom 3 material of idTech 1 to 4: a live, animated preview drawn by each engine's rules, editing as text or as nodes, checks the game would make, and saving into the package | Partial |
-| [Build and launch](manual/build-and-launch.md) | Run chained compile pipelines with VibeMap2, VibeMap3, ZDBSP or ZokumBSP, jump to problems and leaks, and launch the game with your map. You provide the compiler programs | Partial |
+| [Build and launch](manual/build-and-launch.md) | Run chained compile pipelines with SlopMap2, SlopMap3, ZDBSP or ZokumBSP, jump to problems and leaks, and launch the game with your map. You provide the compiler programs | Partial |
 | [AI assistant (optional)](manual/ai.md) | Off by default (AI-free mode). Opt in to ask a model about your map, code or build in the Assistant, and to use AI when generating levels, textures and sounds | Partial |
 | [Command line](manual/cli.md) | Scriptable commands for projects, packages, maps, assets, builds and settings, with JSON output and stable exit codes; `cli commands` lists them all | Available |
 | [Accessibility and languages](manual/accessibility.md) | High-contrast themes, text up to 200%, colour-vision options, every command reachable from the keyboard, screen reader announcements and spoken status. 47 interface languages are registered, but no translation is finished yet | Partial |
@@ -86,13 +86,13 @@ out multi-step work for you. The
 
 ### Start here
 
-1. [Install VibeStudio](manual/install.md): download, check and install a release, or
+1. [Install SlopStudio](manual/install.md): download, check and install a release, or
    run it from a folder.
 2. [First-run setup](manual/first-run.md): choose your language, accessibility
    options, editor profile, games and compilers.
 3. [A tour of the studio](manual/tour.md): find your way around the window, the pages
    and the panels.
-4. [Project status](manual/status.md): what is tested, what is not, and how VibeStudio
+4. [Project status](manual/status.md): what is tested, what is not, and how SlopStudio
    protects your files.
 
 ### Get help
@@ -100,22 +100,22 @@ out multi-step work for you. The
 - [Troubleshooting](manual/troubleshooting.md) covers common problems and where to
   look when something goes wrong.
 - Report bugs and request features on
-  [GitHub issues](https://github.com/themuffinator/VibeStudio/issues).
+  [GitHub issues](https://github.com/themuffinator/SlopStudio/issues).
   [Report a problem](manual/status.md#report-a-problem) explains what to include.
 
 ## Project status
 
-VibeStudio is pre-alpha. This page explains what that means, what has and has
-not been tested, how VibeStudio protects your files, and the known limitations
+SlopStudio is pre-alpha. This page explains what that means, what has and has
+not been tested, how SlopStudio protects your files, and the known limitations
 in each area.
 
 > [!WARNING]
-> Do not use VibeStudio for production work yet. Open copies of your projects,
+> Do not use SlopStudio for production work yet. Open copies of your projects,
 > maps and packages, and keep your own backups.
 
 ### What pre-alpha means here
 
-VibeStudio is still being built. New features arrive often, and existing ones
+SlopStudio is still being built. New features arrive often, and existing ones
 change. Several parts of the planned studio, such as a sprite animation
 editor and agentic AI workflows, do not exist yet. The parts that do exist have
 automated tests, but almost none of them have been used by real people on real
@@ -128,7 +128,7 @@ Every pull request and every change to the main branch is built and tested on
 Windows, macOS and Linux by the project's continuous integration (the **pr-ci**
 workflow on GitHub Actions). Each run:
 
-- builds VibeStudio and runs several hundred automated tests: format readers
+- builds SlopStudio and runs several hundred automated tests: format readers
   and writers, parser fuzzing and deliberately damaged files, saving and
   recovery, command-line commands, theme contrast checks, and GUI tests that
   drive the real studio window with simulated input on an off-screen display;
@@ -155,7 +155,7 @@ workflow on GitHub Actions). Each run:
   real screen readers and their users.
 - **Translations.** Apart from English, none of the 47 interface languages
   has a finished, reviewed translation.
-- **The games themselves.** Tests check the files VibeStudio writes, but few of
+- **The games themselves.** Tests check the files SlopStudio writes, but few of
   those files have been loaded in every game and source port they target.
 - **Hard failures.** Safe package saving has not been verified after a power
   loss or on network drives.
@@ -166,15 +166,15 @@ workflow on GitHub Actions). Each run:
 
 ### Keep your work safe
 
-VibeStudio is built to avoid destroying your files. These protections help,
+SlopStudio is built to avoid destroying your files. These protections help,
 but they do not replace your own backups. On macOS, press Cmd where this page
 says Ctrl.
 
 - **Maps.** **Save Map** (<kbd>Ctrl</kbd>+<kbd>S</kbd> while Levels has focus)
   writes back to the map's file only after checking that nothing else changed
   it since you opened it, and first copies the previous version into a
-  `.vibestudio/map-backups` folder beside the map. If the file changed outside
-  VibeStudio, use **Save Map As…** instead. A map opened from inside a package
+  `.slopstudio/map-backups` folder beside the map. If the file changed outside
+  SlopStudio, use **Save Map As…** instead. A map opened from inside a package
   always goes through Save As, and the package itself is not changed. While
   you edit, a recovery checkpoint is kept every minute; **File** >
   **Recover Maps…** restores one as unsaved work.
@@ -186,14 +186,14 @@ says Ctrl.
   by default, and **File** > **Recover Packages…** restores them.
 - **Game installations.** Detecting games only reads. Installation profiles
   are read-only by default, and removing a profile never touches game files.
-  VibeStudio writes into a game installation only when you allow it: to test a
+  SlopStudio writes into a game installation only when you allow it: to test a
   build it copies the compiled map into the game's `maps` folder after you
   choose **Allow Test Maps** for that installation (clear **Allow test maps**
   on the Workspace page to take that back), and **Deploy Prepared Build**
   writes a reviewed package into the game folder only after you confirm it,
   keeping a backup of any package it replaces.
 - **Releases.** Publishing writes only into the release's output folder and
-  the project's changelog and `.vibestudio/releases` record, never into the
+  the project's changelog and `.slopstudio/releases` record, never into the
   game. Publishing the same version again is refused unless you choose to
   replace it, and replaced files are kept with `.bak` added to their names.
   Indexing a game's assets only reads its packages.
@@ -223,7 +223,7 @@ exact limits.
 | Releases | A release finds what maps, models and shader scripts name, and what QuakeC, Quake III menus and configs, and DECORATE, ZScript, SNDINFO and MAPINFO name in full. Files that compiled game code loads, or whose names a script builds while the game runs, must be added with include patterns. Telling the game's files from yours needs the game indexed first. Not yet tried with real game installations. |
 | Code | Language-server support is an early client that some servers will not work with. |
 | Materials and shaders | The preview is an approximation on a single shape, without map lightmaps or Doom 3 fragment programs beyond the light interaction; videos show a placeholder. Return to Castle Wolfenstein, Enemy Territory and Jedi Knight shader keywords are read with a warning, but only Enemy Territory's implicit images are drawn. Not yet tried on real game packages. |
-| Build and launch | VibeStudio does not include the compiler programs; you point it at your own. Its own VibeMap2 and VibeMap3 compilers have not yet been tested end to end inside VibeStudio. |
+| Build and launch | SlopStudio does not include the compiler programs; you point it at your own. Its own SlopMap2 and SlopMap3 compilers have not yet been tested end to end inside SlopStudio. |
 | First-run setup | A checklist that opens the right settings; role presets, guided project creation and a toolchain check are not part of it yet. |
 | AI | Agentic workflows are not built. Cloud connectors need your own API keys. |
 | Languages and accessibility | No finished translations. Not yet tested with real screen readers. |
@@ -256,7 +256,7 @@ exact limits.
 
 - **Builds are not signed.** Windows SmartScreen may show **Windows protected
   your PC**, and macOS Gatekeeper blocks the first launch.
-  [Install VibeStudio](manual/install.md) shows how to open them safely.
+  [Install SlopStudio](manual/install.md) shows how to open them safely.
 - **macOS:** builds run on Macs with Apple silicon and macOS 13 or later. There
   is no Intel build.
 - **Linux:** AppImage builds do not include in-studio audio playback or
@@ -266,10 +266,10 @@ exact limits.
 ### Report a problem
 
 1. Check [Troubleshooting](manual/troubleshooting.md) for a known fix.
-2. Open a [GitHub issue](https://github.com/themuffinator/VibeStudio/issues)
+2. Open a [GitHub issue](https://github.com/themuffinator/SlopStudio/issues)
    with the **Bug report** template. Say what you did, what you expected and
-   what happened, and include your VibeStudio version (**Help** >
-   **About VibeStudio**) and operating system.
+   what happened, and include your SlopStudio version (**Help** >
+   **About SlopStudio**) and operating system.
 3. Attach diagnostics:
    - In the studio, **Tools** > **Copy Diagnostic Bundle**
      (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>D</kbd> on Windows and Linux) copies
@@ -278,17 +278,17 @@ exact limits.
      the latest lines of the session log. Paste it into the issue. It contains folder
      paths, so remove any you do not want to share.
    - From the command line, the command below writes
-     `vibestudio-diagnostics.json` into the folder you name. It leaves out
+     `slopstudio-diagnostics.json` into the folder you name. It leaves out
      secrets, API keys, environment values, home-folder contents and project
      files.
 
      ```sh
-     vibestudio --cli diagnostics bundle --output ./diagnostics
+     slopstudio --cli diagnostics bundle --output ./diagnostics
      ```
 
    - After a crash, **Help** > **Crash Reports…** shows the reports kept on
      your computer, and **Copy Report** copies one.
-     `vibestudio --cli diagnostics crashes` lists them with their paths.
+     `slopstudio --cli diagnostics crashes` lists them with their paths.
 
 ### Learn more
 
@@ -296,36 +296,36 @@ exact limits.
 - [Support matrix](SUPPORT_MATRIX.md): every format and workflow, with its
   exact limits.
 
-## Install VibeStudio
+## Install SlopStudio
 
-VibeStudio runs on Windows, macOS and Linux. This page shows you how to
+SlopStudio runs on Windows, macOS and Linux. This page shows you how to
 download a release, check it, install it, run its command line, and remove it
 again.
 
 > [!IMPORTANT]
-> Every build is pre-alpha, and builds are not signed yet. Download VibeStudio
+> Every build is pre-alpha, and builds are not signed yet. Download SlopStudio
 > only from the project's
-> [Releases page](https://github.com/themuffinator/VibeStudio/releases), and
+> [Releases page](https://github.com/themuffinator/SlopStudio/releases), and
 > check each file against `SHA256SUMS.txt` before you run it.
 
 ### Download a release
 
 Releases live on the
-[VibeStudio Releases page](https://github.com/themuffinator/VibeStudio/releases).
+[SlopStudio Releases page](https://github.com/themuffinator/SlopStudio/releases).
 Every release lists its files, a `SHA256SUMS.txt` checksum file and release
 notes. Pre-release versions are marked **Pre-release**. In the file names
 below, `<version>` is the release's version number.
 
 | System | Download | What it is |
 | --- | --- | --- |
-| Windows 10 or 11, x64 | `VibeStudio-<version>-windows-x64-setup.exe` | Installer |
-| Windows 10 or 11, x64 | `VibeStudio-<version>-windows-x64-portable.zip` | Portable copy that runs from any folder |
-| macOS 13 or later, Apple silicon | `VibeStudio-<version>-macos-arm64.dmg` | Disk image |
-| Linux x86_64 | `VibeStudio-<version>-linux-x86_64.AppImage` | Single runnable file |
-| Any | `VibeStudio-<version>-docs.zip` | Offline HTML documentation; every package also contains it |
-| Any | `VibeStudio-<version>-source.tar.gz` | Full source code, including the compiler submodules |
+| Windows 10 or 11, x64 | `SlopStudio-<version>-windows-x64-setup.exe` | Installer |
+| Windows 10 or 11, x64 | `SlopStudio-<version>-windows-x64-portable.zip` | Portable copy that runs from any folder |
+| macOS 13 or later, Apple silicon | `SlopStudio-<version>-macos-arm64.dmg` | Disk image |
+| Linux x86_64 | `SlopStudio-<version>-linux-x86_64.AppImage` | Single runnable file |
+| Any | `SlopStudio-<version>-docs.zip` | Offline HTML documentation; every package also contains it |
+| Any | `SlopStudio-<version>-source.tar.gz` | Full source code, including the compiler submodules |
 
-VibeStudio's 3D views (the Levels camera, models, the modeller and material
+SlopStudio's 3D views (the Levels camera, models, the modeller and material
 previews) need a graphics driver with OpenGL 3.3 or Vulkan 1.0, which almost
 every computer from the last decade has. Without one, everything else works and
 the 3D views say why they are empty; see
@@ -353,29 +353,29 @@ On Windows, in PowerShell, print the file's hash and compare it with that
 file's line in `SHA256SUMS.txt`. Letter case does not matter.
 
 ```powershell
-Get-FileHash .\VibeStudio-<version>-windows-x64-setup.exe -Algorithm SHA256
+Get-FileHash .\SlopStudio-<version>-windows-x64-setup.exe -Algorithm SHA256
 ```
 
 ### Install on Windows
 
 #### Use the installer
 
-1. Run `VibeStudio-<version>-windows-x64-setup.exe`.
+1. Run `SlopStudio-<version>-windows-x64-setup.exe`.
 2. If Windows SmartScreen says **Windows protected your PC**, select
    **More info**, then **Run anyway**. SmartScreen warns because the installer
    is not signed yet.
-3. Choose who to install for. By default VibeStudio installs for your account
+3. Choose who to install for. By default SlopStudio installs for your account
    only and needs no administrator rights; you can also install it for all
    users.
 4. Choose whether to add a desktop shortcut, then finish the installer.
-5. Start **VibeStudio** from the Start menu. The Start menu also has
-   **VibeStudio Documentation**, which opens this manual offline.
+5. Start **SlopStudio** from the Start menu. The Start menu also has
+   **SlopStudio Documentation**, which opens this manual offline.
 
 #### Use the portable zip
 
-1. Extract `VibeStudio-<version>-windows-x64-portable.zip` to any folder you
+1. Extract `SlopStudio-<version>-windows-x64-portable.zip` to any folder you
    can write to.
-2. Run `bin\vibestudio.exe` inside that folder.
+2. Run `bin\slopstudio.exe` inside that folder.
 3. If SmartScreen appears, select **More info**, then **Run anyway**.
 
 A portable copy keeps your preferences in the same place as an installed one.
@@ -386,22 +386,22 @@ To keep them beside the program instead, see
 
 You need a Mac with Apple silicon and macOS 13 or later.
 
-1. Open `VibeStudio-<version>-macos-arm64.dmg`.
-2. Drag **VibeStudio** into **Applications**.
-3. Open VibeStudio from **Applications**. Because the app is not signed or
+1. Open `SlopStudio-<version>-macos-arm64.dmg`.
+2. Drag **SlopStudio** into **Applications**.
+3. Open SlopStudio from **Applications**. Because the app is not signed or
    notarised yet, macOS blocks this first launch.
 4. Open **System Settings** > **Privacy & Security**, find the message about
-   VibeStudio, and choose **Open Anyway**. Confirm, and enter your password if
-   asked. From then on VibeStudio opens normally.
+   SlopStudio, and choose **Open Anyway**. Confirm, and enter your password if
+   asked. From then on SlopStudio opens normally.
 
-On macOS 13 and 14 you can instead Control-click VibeStudio in
+On macOS 13 and 14 you can instead Control-click SlopStudio in
 **Applications**, choose **Open**, then confirm with **Open**.
 
 If you prefer the Terminal, remove the quarantine flag instead. Only do this
 for a copy you downloaded from the Releases page and verified.
 
 ```sh
-xattr -dr com.apple.quarantine /Applications/VibeStudio.app
+xattr -dr com.apple.quarantine /Applications/SlopStudio.app
 ```
 
 ### Install on Linux
@@ -412,13 +412,13 @@ The AppImage runs on x86_64 Linux with glibc 2.35 or newer, such as Ubuntu
 1. Make the file executable:
 
    ```sh
-   chmod +x VibeStudio-<version>-linux-x86_64.AppImage
+   chmod +x SlopStudio-<version>-linux-x86_64.AppImage
    ```
 
 2. Run it:
 
    ```sh
-   ./VibeStudio-<version>-linux-x86_64.AppImage
+   ./SlopStudio-<version>-linux-x86_64.AppImage
    ```
 
 If it stops with a message about FUSE, install FUSE 2: the package is
@@ -426,7 +426,7 @@ If it stops with a message about FUSE, install FUSE 2: the package is
 also run the AppImage without FUSE:
 
 ```sh
-./VibeStudio-<version>-linux-x86_64.AppImage --appimage-extract-and-run
+./SlopStudio-<version>-linux-x86_64.AppImage --appimage-extract-and-run
 ```
 
 > [!NOTE]
@@ -440,19 +440,19 @@ instead of opening the window.
 
 | System | Command |
 | --- | --- |
-| Windows | `vibestudio.exe --cli --help`, run from the `bin` folder where you installed or extracted VibeStudio |
-| macOS | `/Applications/VibeStudio.app/Contents/MacOS/vibestudio --cli --help` |
-| Linux | `./VibeStudio-<version>-linux-x86_64.AppImage --cli --help` |
+| Windows | `slopstudio.exe --cli --help`, run from the `bin` folder where you installed or extracted SlopStudio |
+| macOS | `/Applications/SlopStudio.app/Contents/MacOS/slopstudio --cli --help` |
+| Linux | `./SlopStudio-<version>-linux-x86_64.AppImage --cli --help` |
 
 In PowerShell, start the command with `.\` when you run it from the `bin`
 folder:
 
 ```powershell
-.\vibestudio.exe --cli --help
+.\slopstudio.exe --cli --help
 ```
 
-This manual writes commands as `vibestudio --cli <family> <command>`; replace
-`vibestudio` with the command for your system. [Command line](manual/cli.md) explains
+This manual writes commands as `slopstudio --cli <family> <command>`; replace
+`slopstudio` with the command for your system. [Command line](manual/cli.md) explains
 the commands, JSON output and exit codes.
 
 ### Try a nightly build
@@ -461,43 +461,43 @@ Nightly builds come from the **release-nightly** workflow on GitHub Actions.
 They have the newest changes and even less testing than releases.
 
 1. Open the
-   [release-nightly workflow](https://github.com/themuffinator/VibeStudio/actions/workflows/release-nightly.yml)
+   [release-nightly workflow](https://github.com/themuffinator/SlopStudio/actions/workflows/release-nightly.yml)
    and select a successful run.
 2. Download the artifact for your system from the run's **Artifacts** list.
    You need to be signed in to a GitHub account to download artifacts.
 
-To build VibeStudio yourself, see [Building from source](manual/building-from-source.md).
+To build SlopStudio yourself, see [Building from source](manual/building-from-source.md).
 
-### Where VibeStudio keeps your settings
+### Where SlopStudio keeps your settings
 
-VibeStudio stores its preferences with Qt's settings system, under the
+SlopStudio stores its preferences with Qt's settings system, under the
 organisation name `DarkMatterProductions` and the application name
-`VibeStudio`. Session logs, crash reports and recovery copies live in your
+`SlopStudio`. Session logs, crash reports and recovery copies live in your
 per-user application data folders.
 
 | What | Windows | macOS | Linux |
 | --- | --- | --- | --- |
-| Preferences | Registry key `HKEY_CURRENT_USER\Software\DarkMatterProductions\VibeStudio` | A `.plist` file in `~/Library/Preferences` | `~/.config/DarkMatterProductions/VibeStudio.conf` |
-| Session logs and crash reports | `%APPDATA%\DarkMatterProductions\VibeStudio\logs` | `~/Library/Application Support/DarkMatterProductions/VibeStudio/logs` | `~/.local/share/DarkMatterProductions/VibeStudio/logs` |
-| Recovery copies of unsaved work | `%LOCALAPPDATA%\DarkMatterProductions\VibeStudio` | `~/Library/Application Support/DarkMatterProductions/VibeStudio` | `~/.local/share/DarkMatterProductions/VibeStudio` |
+| Preferences | Registry key `HKEY_CURRENT_USER\Software\DarkMatterProductions\SlopStudio` | A `.plist` file in `~/Library/Preferences` | `~/.config/DarkMatterProductions/SlopStudio.conf` |
+| Session logs and crash reports | `%APPDATA%\DarkMatterProductions\SlopStudio\logs` | `~/Library/Application Support/DarkMatterProductions/SlopStudio/logs` | `~/.local/share/DarkMatterProductions/SlopStudio/logs` |
+| Recovery copies of unsaved work | `%LOCALAPPDATA%\DarkMatterProductions\SlopStudio` | `~/Library/Application Support/DarkMatterProductions/SlopStudio` | `~/.local/share/DarkMatterProductions/SlopStudio` |
 
-Each day's session log is a separate `vibestudio-<date>.log` file. To print
+Each day's session log is a separate `slopstudio-<date>.log` file. To print
 exactly where your preferences are stored, run:
 
 ```sh
-vibestudio --cli --settings-report
+slopstudio --cli --settings-report
 ```
 
 #### Use a settings file of your own
 
-Start VibeStudio with `--settings-file <path>` to keep preferences in an INI
+Start SlopStudio with `--settings-file <path>` to keep preferences in an INI
 file instead, for example for a portable copy or a separate test profile.
 Recovery copies and crash reports then go in the same folder as that file;
 session logs still go to the logs folder above. Use a full path, and pass the
-same option every time you start VibeStudio.
+same option every time you start SlopStudio.
 
 ```powershell
-.\bin\vibestudio.exe --settings-file "D:\VibeStudio\settings.ini"
+.\bin\slopstudio.exe --settings-file "D:\SlopStudio\settings.ini"
 ```
 
 The option works for the command line too, so scripts can run without touching
@@ -506,20 +506,20 @@ your own preferences.
 ### Uninstall
 
 - **Windows installer:** open **Settings** > **Apps** > **Installed apps**,
-  find **VibeStudio**, and choose **Uninstall**. On Windows 10 the list is
+  find **SlopStudio**, and choose **Uninstall**. On Windows 10 the list is
   under **Settings** > **Apps** > **Apps & features**.
 - **Windows portable zip:** delete the folder you extracted.
-- **macOS:** quit VibeStudio and move it from **Applications** to the Bin.
+- **macOS:** quit SlopStudio and move it from **Applications** to the Bin.
 - **Linux:** delete the AppImage file.
 
 For a clean slate, also delete the preferences, logs and recovery folders
-listed in [Where VibeStudio keeps your settings](manual/install.md#where-vibestudio-keeps-your-settings).
+listed in [Where SlopStudio keeps your settings](manual/install.md#where-slopstudio-keeps-your-settings).
 Recovery copies can hold unsaved work, so check **File** > **Recover Maps…**
 and **File** > **Recover Packages…** first.
 
 ## First-run setup
 
-The first-run setup is an eight-step checklist that tailors VibeStudio to you:
+The first-run setup is an eight-step checklist that tailors SlopStudio to you:
 language and accessibility, your editor profile, projects, game installations,
 compilers, AI and the command line. Every step is optional, and you can change
 every choice later.
@@ -534,7 +534,7 @@ On macOS, press Cmd wherever this page says Ctrl.
 
 ### Open the checklist
 
-VibeStudio does not open the setup by itself: it starts on the **Workspace**
+SlopStudio does not open the setup by itself: it starts on the **Workspace**
 page with its defaults. To begin:
 
 1. Open **Settings**: select it at the foot of the left rail, or press
@@ -573,7 +573,7 @@ reminders such as "No game installation profile has been added yet."
 Language and appearance are on **Settings** > **Appearance and Language**:
 
 - **Language**: the default, **System language**, follows your operating
-  system whenever VibeStudio has that language. Choosing another offers
+  system whenever SlopStudio has that language. Choosing another offers
   **Restart Now**, and the new language appears after the restart. 47 languages
   are listed, but none is fully translated yet, so most of the interface stays
   in English.
@@ -608,7 +608,7 @@ know: the 24 profiles include TrenchBroom, NetRadiant Custom, GtkRadiant 1.4,
 1.5 and 1.6, QeRadiant, Q3Radiant, DoomEdit, BSP, QuArK, Hammer and Ultimate Doom Builder.
 The Levels **Controls** menu also offers **Browse Editor Profiles…**, with search
 and previews of each profile’s defaults and differences.
-**VibeStudio Default** is selected to
+**SlopStudio Default** is selected to
 start with. **Customize Gestures…** adjusts the chosen profile. See
 [Editor profiles](manual/editor-profiles.md) for the supported controls and remaining
 differences; choosing a profile does not add its original editor's file formats.
@@ -630,7 +630,7 @@ it after updating a graphics driver. See
 **Open Workspace** opens the **Workspace** page.
 
 - **Open Project** (<kbd>Ctrl</kbd>+<kbd>O</kbd>) chooses a project folder.
-  **Initialize Manifest** writes the project's `.vibestudio/project.json`. See
+  **Initialize Manifest** writes the project's `.slopstudio/project.json`. See
   [Projects and game installations](manual/projects.md).
 - **Detect Installs** looks for games in your Steam and GOG libraries. Found
   games appear under **Game Installations**; select one and choose
@@ -639,17 +639,17 @@ it after updating a graphics driver. See
   selected profile the default, and **Remove** forgets a profile without
   touching its files.
 
-Detection only reads, and every new profile is read-only: VibeStudio copies a
+Detection only reads, and every new profile is read-only: SlopStudio copies a
 test map into a game only after you allow it. See
 [Build and launch](manual/build-and-launch.md).
 
 ### Compilers
 
 **Open Build Toolchains** opens the **Build** page. Its **Toolchain** tab lists
-each compiler tool (VibeMap2 for Quake and Quake II, VibeMap3 for Quake III,
+each compiler tool (SlopMap2 for Quake and Quake II, SlopMap3 for Quake III,
 ZDBSP and ZokumBSP for Doom), whether it was found, and where its path comes
-from. VibeStudio also looks on your `PATH`. VibeMap2 and VibeMap3 are
-VibeStudio's own compilers; stock ericw-tools and q3map2 programs can still be
+from. SlopStudio also looks on your `PATH`. SlopMap2 and SlopMap3 are
+SlopStudio's own compilers; stock ericw-tools and q3map2 programs can still be
 used, but you choose them with **Locate…**.
 
 1. Select a tool whose status is **Not found**.
@@ -705,22 +705,22 @@ prepare several computers or a test profile. Setup progress and preferences
 use options rather than command families:
 
 ```sh
-vibestudio --cli --setup-report
-vibestudio --cli --setup-step game-installations
-vibestudio --cli --set-theme high-contrast-dark
-vibestudio --cli --set-text-scale 150
-vibestudio --cli editor select trenchbroom
-vibestudio --cli render set vulkan
-vibestudio --cli install detect --json
-vibestudio --cli project init ./mymod
-vibestudio --cli compiler set-path vibemap2-bsp --executable /opt/vibemap2/vibemap2-bsp
+slopstudio --cli --setup-report
+slopstudio --cli --setup-step game-installations
+slopstudio --cli --set-theme high-contrast-dark
+slopstudio --cli --set-text-scale 150
+slopstudio --cli editor select trenchbroom
+slopstudio --cli render set vulkan
+slopstudio --cli install detect --json
+slopstudio --cli project init ./mymod
+slopstudio --cli compiler set-path slopmap2-bsp --executable /opt/slopmap2/slopmap2-bsp
 ```
 
 Setup progress also accepts `--setup-start`, `--setup-next`, `--setup-skip`,
 `--setup-complete` and `--setup-reset`. The step IDs are `welcome-access`,
 `workspace-profile`, `projects-packages`, `game-installations`, `toolchains`,
 `ai-automation`, `cli-integration` and `review-finish`. Run
-`vibestudio --cli --help` for every `--set-` option, and add
+`slopstudio --cli --help` for every `--set-` option, and add
 `--settings-file <path>` to change a separate settings file instead of your
 own. See [Command line](manual/cli.md).
 
@@ -733,7 +733,7 @@ own. See [Command line](manual/cli.md).
 
 ## A tour of the studio
 
-This page shows you around the VibeStudio window: the bar along the top, the
+This page shows you around the SlopStudio window: the bar along the top, the
 pages on the left rail, the side panels, the status bar, and the keys that move
 you between them.
 
@@ -746,16 +746,16 @@ Alt.
 
 ### While the studio starts
 
-A start-up screen appears as soon as VibeStudio is launched, before the window
+A start-up screen appears as soon as SlopStudio is launched, before the window
 exists, so you are never left wondering whether it is coming. It shows the
-VibeStudio mark, the version and its pre-alpha status, and a line that names
+SlopStudio mark, the version and its pre-alpha status, and a line that names
 what the studio is doing right now (**Building the Levels page**, **Applying
 your preferences**, **Restoring your session**) with a progress track that
 fills as the stages go by. It uses your theme, text size and language, keeps
 still under **Reduce motion**, and fades away once the window has painted and
 your last session is back.
 
-Start VibeStudio with `--no-splash` to skip it, for example from a script.
+Start SlopStudio with `--no-splash` to skip it, for example from a script.
 
 ### The studio bar
 
@@ -782,7 +782,7 @@ shows where you are.
 Choose **Help** > **Documentation** to open the bundled HTML user manual in
 your browser. It works offline in release packages. If no bundled manual is
 available, as in development builds, the command opens the
-[online manual](https://github.com/themuffinator/VibeStudio/blob/main/docs/manual/index.md).
+[online manual](https://github.com/themuffinator/SlopStudio/blob/main/docs/manual/index.md).
 You can also find **Documentation** in the Command Palette.
 
 ### Find commands and files
@@ -921,7 +921,7 @@ opens **Packages**, the compilers item opens the **Build** page's
 | Build and Launch | <kbd>F5</kbd> (in the NetRadiant Custom and NetRadiant profiles, <kbd>F5</kbd> is Run Last Build) |
 | Next or previous build problem | <kbd>F4</kbd>, <kbd>Shift</kbd>+<kbd>F4</kbd> |
 | Read aloud, or stop reading | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> |
-| About VibeStudio | <kbd>Shift</kbd>+<kbd>F1</kbd> |
+| About SlopStudio | <kbd>Shift</kbd>+<kbd>F1</kbd> |
 
 Press <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move between
 controls. Two places use Tab themselves. In the code editor Tab indents; on
@@ -936,12 +936,12 @@ page they work on. **Change Keys…** gives a command keys of your own, and
 ### Pick up where you left off
 
 - **Reopen the last session at start** is on by default (**Settings** >
-  **Appearance and Language** > **Startup and Recovery**). VibeStudio reopens
+  **Appearance and Language** > **Startup and Recovery**). SlopStudio reopens
   the package, map and code files that were open, on the page you closed it on,
   and the status bar says what it reopened. The start-up screen stays over the
   window, saying **Restoring your session**, until that is done. Opening a file
   from the command line with `--open <path>` skips this.
-- If VibeStudio closed unexpectedly, the next start shows
+- If SlopStudio closed unexpectedly, the next start shows
   **The studio closed unexpectedly last time.** in a bar above the page. The
   files that were open are not reopened by themselves, in case one of them
   caused the crash: choose **Reopen Last Session** to open them, or
@@ -959,12 +959,12 @@ page they work on. **Change Keys…** gives a command keys of your own, and
 - [Visual showcase](showcase/index.html): twelve development screenshots
   spanning authoring, project tools, builds and accessibility.
 - [UX design](UX_DESIGN.md): the principles behind the window's layout.
-- [Portable workspaces](WORKSPACES.md): what a `.vibeworkspace` file keeps.
+- [Portable workspaces](WORKSPACES.md): what a `.slopworkspace` file keeps.
 
 ## Projects and game installations
 
 A project is a folder that holds your mod or map sources. This page shows how to open one, describe it
-with a project manifest, tell VibeStudio where your games are installed, search and replace text
+with a project manifest, tell SlopStudio where your games are installed, search and replace text
 across the project, and save your place as a workspace file.
 
 > [!NOTE]
@@ -982,7 +982,7 @@ The Workspace page is the studio's start page. Choose **Workspace** on the left 
 - A tile for each work page, from **Levels** to **Build**, says what that page holds now, such as the
   open map with its entity and brush counts. Select a tile to go to its page.
 - **Project Health** collects the open project's state in five tabs (see the table below).
-- **Recent Projects** and **Game Installations** list the folders and games VibeStudio remembers.
+- **Recent Projects** and **Game Installations** list the folders and games SlopStudio remembers.
 - **Releases** shows the project's unreleased changes and latest releases, with **Record Change…** and
   **Package and Release…**. See [Package and release](manual/releases.md).
 - **Workspace Details** shows the manifest and health details of the open or selected project.
@@ -1012,19 +1012,19 @@ all; neither touches your files. **File** > **Close Project** closes the current
 in the recent list.
 
 > [!TIP]
-> Portable builds of VibeStudio include a `samples` folder with small Doom, Quake and Quake III-family
+> Portable builds of SlopStudio include a `samples` folder with small Doom, Quake and Quake III-family
 > projects. They are a safe place to try the studio without risking your own work.
 
 ### Describe the project with a manifest
 
-The project manifest is the file `.vibestudio/project.json` inside the project folder. It records the
+The project manifest is the file `.slopstudio/project.json` inside the project folder. It records the
 project's game and folders, its game installation, compiler paths, release settings and per-project
 settings. The Workspace, Build and release pages and the command line read it.
 
 To create or refresh it, open the project and choose **Initialize Manifest** on the Workspace header,
 or **File** > **Initialize Project Manifest** (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd>). A new
 manifest treats the whole project folder as source, uses `build` as the output folder and keeps
-temporary files in `.vibestudio/tmp`. Refreshing an existing manifest keeps its folders and records
+temporary files in `.slopstudio/tmp`. Refreshing an existing manifest keeps its folders and records
 the game installation and editor profile you are using now, and the game when the manifest names
 none.
 
@@ -1040,7 +1040,7 @@ project:
   "sourceFolders": ["maps", "scripts"],
   "packageFolders": ["packages"],
   "outputFolder": "out",
-  "tempFolder": ".vibestudio/cache",
+  "tempFolder": ".slopstudio/cache",
   "selectedInstallationId": "",
   "createdUtc": "2026-04-30T00:00:00Z",
   "updatedUtc": "2026-04-30T00:00:00Z"
@@ -1068,7 +1068,7 @@ project:
 | `release` | How the project is packaged and described when released; see [Release settings](manual/releases.md#release-settings). |
 | `createdUtc`, `updatedUtc` | When the manifest was created and last saved. |
 
-Keys VibeStudio does not know, for example from a newer version, are kept when it saves the manifest.
+Keys SlopStudio does not know, for example from a newer version, are kept when it saves the manifest.
 
 </details>
 
@@ -1093,7 +1093,7 @@ feature comparisons, and passed 60 rerelease movement checks.
 The project's readme records its design, engine captures and verification limits;
 human multiplayer balance testing remains outstanding.
 
-Map versions are independent of VibeStudio's application version. The project
+Map versions are independent of SlopStudio's application version. The project
 uses `0.1.0-alpha.5` in release settings, **Alpha 5** in player-facing text, and
 `hingeworks_a5` as its engine map name. Development revisions stay on Alpha 5
 until its release is approved; subsequent versions keep earlier released
@@ -1120,26 +1120,26 @@ do not establish combat balance, and the available MMREX build rejected local
 split-screen clients sharing one Steam identity. Human single-player and
 independent multiplayer playtesting remain necessary.
 
-Campaign versions are independent of VibeStudio's version. The project keeps
+Campaign versions are independent of SlopStudio's version. The project keeps
 each released archive and checksum immutable; `next_alpha.py` starts the next
 revision and reopens its planning checkpoint. No commercial game assets or
 engine binaries are included.
 
 ### Check project health
 
-Choose **Project** > **Validate Project** to run the health checks. VibeStudio switches to the
+Choose **Project** > **Validate Project** to run the health checks. SlopStudio switches to the
 Workspace page and lists anything that needs attention under **Problems**: a missing manifest or
 source folder, a newer manifest version, no linked game installation, or a game whose assets are not
 indexed or whose index is out of date. Activate the asset index problem to index the game. Output
 and temporary folders that do not exist yet are not problems: they are created when first needed.
-Warnings alone do not block your work. `vibestudio --cli project validate` exits with code 4 only for blocking problems, and with code 3
+Warnings alone do not block your work. `slopstudio --cli project validate` exits with code 4 only for blocking problems, and with code 3
 when the folder has no manifest yet.
 
 ### Add your game installations
 
-A game installation profile tells VibeStudio where a game is installed, which game it is, and which
+A game installation profile tells SlopStudio where a game is installed, which game it is, and which
 packages it loads. Profiles tell the Build page which game to launch, and a Doom installation's base
-packages give your PWADs their palette. VibeStudio never writes into a game folder without your
+packages give your PWADs their palette. SlopStudio never writes into a game folder without your
 permission.
 
 #### Detect Steam and GOG games
@@ -1176,11 +1176,11 @@ also record an installation for the project, which the project health checks rep
 
 #### Index the game's assets
 
-Select a profile and choose **Index Assets**, or **Project** > **Index Game Assets**. VibeStudio reads
+Select a profile and choose **Index Assets**, or **Project** > **Index Game Assets**. SlopStudio reads
 the game's own packages once, in the background, and remembers every file they hold, the Quake III
 shaders they declare and the Doom-family names they define. Releases use this index to leave the
 game's own files out, and the Levels page's **Dependencies** uses it to mark references the game
-provides. The index is kept with VibeStudio's own data, never in the game folder.
+provides. The index is kept with SlopStudio's own data, never in the game folder.
 
 Each row says **assets indexed**, **assets not indexed** or **asset index out of date**; an index
 goes out of date when the game's packages change, for example after a patch. Indexing knows the
@@ -1218,7 +1218,7 @@ Open documents get the change as an unsaved edit you can undo; files that are no
 straight away, keeping their encoding and line endings. If a file changed since the preview, the whole
 batch is refused, and a failure part-way does not undo files already saved: the report lists them.
 
-Search skips untitled documents, package entries and folders such as `.git`, `.vibestudio`, `build`
+Search skips untitled documents, package entries and folders such as `.git`, `.slopstudio`, `build`
 and `external`. See [Code and scripts](manual/code.md) for the editor itself.
 
 ### Save and restore a workspace
@@ -1227,8 +1227,8 @@ A workspace file remembers what you were working on: the project, the open packa
 the map, the saved Code tabs, the editable model sources open in the Mesh Editor, **Design Prop** and
 **Assemble**, the selected texture, model and sound, and the page you were on.
 
-- Choose **File** > **Save Workspace As…** to write a `.vibeworkspace` file.
-- Choose **File** > **Open Workspace…**, drop the file on the window, or start VibeStudio with
+- Choose **File** > **Save Workspace As…** to write a `.slopworkspace` file.
+- Choose **File** > **Open Workspace…**, drop the file on the window, or start SlopStudio with
   `--open <file>` to restore it.
 
 A workspace stores references, not contents: save your maps, packages and other documents first.
@@ -1240,26 +1240,26 @@ you can move a folder that contains both.
 
 | Task | Command |
 | --- | --- |
-| Create or refresh a manifest | `vibestudio --cli project init <folder>` |
-| Show the manifest and health | `vibestudio --cli project info <folder>` |
-| Check health | `vibestudio --cli project validate <folder>` |
-| List project files | `vibestudio --cli project files <folder> --where "kind=image"` |
-| List, detect or add installations | `vibestudio --cli install list`, `install detect`, `install add <root>` |
-| Use, check or remove a profile | `vibestudio --cli install select <id>`, `install validate <id>`, `install remove <id>` |
-| Index a game's assets, or check its index | `vibestudio --cli install register build <id>`, `install register info <id>` |
-| Package and release the project | `vibestudio --cli release plan <folder>`, `release publish <folder>` |
-| Search project text | `vibestudio --cli asset find <folder> --find <text>` |
-| Replace project text | `vibestudio --cli asset replace <folder> --find <old> --replace <new>` |
-| Save or check a workspace | `vibestudio --cli workspace create <file>`, `workspace inspect <file>` |
+| Create or refresh a manifest | `slopstudio --cli project init <folder>` |
+| Show the manifest and health | `slopstudio --cli project info <folder>` |
+| Check health | `slopstudio --cli project validate <folder>` |
+| List project files | `slopstudio --cli project files <folder> --where "kind=image"` |
+| List, detect or add installations | `slopstudio --cli install list`, `install detect`, `install add <root>` |
+| Use, check or remove a profile | `slopstudio --cli install select <id>`, `install validate <id>`, `install remove <id>` |
+| Index a game's assets, or check its index | `slopstudio --cli install register build <id>`, `install register info <id>` |
+| Package and release the project | `slopstudio --cli release plan <folder>`, `release publish <folder>` |
+| Search project text | `slopstudio --cli asset find <folder> --find <text>` |
+| Replace project text | `slopstudio --cli asset replace <folder> --find <old> --replace <new>` |
+| Save or check a workspace | `slopstudio --cli workspace create <file>`, `workspace inspect <file>` |
 
 For example:
 
 ```sh
-vibestudio --cli install detect --root "D:/SteamLibrary"
-vibestudio --cli install add "C:/Games/Quake" --install-game quake --install-name "Quake" --dry-run
-vibestudio --cli asset find ./mymod --find player --whole-word --include "*.qc;*.qh" --json
-vibestudio --cli asset replace ./mymod --find old_shader --replace new_shader --include "scripts/*"
-vibestudio --cli workspace create ./work.vibeworkspace --project ./mymod --active-module levels
+slopstudio --cli install detect --root "D:/SteamLibrary"
+slopstudio --cli install add "C:/Games/Quake" --install-game quake --install-name "Quake" --dry-run
+slopstudio --cli asset find ./mymod --find player --whole-word --include "*.qc;*.qh" --json
+slopstudio --cli asset replace ./mymod --find old_shader --replace new_shader --include "scripts/*"
+slopstudio --cli workspace create ./work.slopworkspace --project ./mymod --active-module levels
 ```
 
 `asset replace` only previews unless you add `--write`. `install detect` never saves profiles. See
@@ -1271,7 +1271,7 @@ vibestudio --cli workspace create ./work.vibeworkspace --project ./mymod --activ
 - [Game installations](GAME_INSTALLATIONS.md): profile data, detection sources, the asset index and
   safety rules.
 - [Project search](PROJECT_SEARCH.md): matching rules, limits and partial-write reporting.
-- [Portable workspaces](WORKSPACES.md): the `.vibeworkspace` format.
+- [Portable workspaces](WORKSPACES.md): the `.slopworkspace` format.
 - [CLI strategy](CLI_STRATEGY.md): every `project`, `install` and `workspace` option.
 
 ## Level editing
@@ -1299,7 +1299,7 @@ production readiness.
 4. A WAD with several maps opens its first map. To open another, choose it in the map list beside the path on the
    document bar, or type a name such as `MAP07` or `E2M1` there.
 
-VibeStudio works out the game from the file. If it guesses wrong, change the engine list on the document bar from
+SlopStudio works out the game from the file. If it guesses wrong, change the engine list on the document bar from
 **Auto** to **idTech1**, **idTech2** or **idTech3** and choose **Reload**. The empty page lists **Recent maps**, and
 **File** > **Go to File…** (<kbd>Ctrl</kbd>+<kbd>P</kbd>) finds a map in your project or the open package. A map opened
 from a package is a temporary copy, so its first save asks where to keep it.
@@ -1392,7 +1392,7 @@ the tools the open map can use are shown, and the material strip below holds the
   selected they frame a 256-unit box round the camera; the status bar says which. In the three-plan layouts, those
   profiles' **Top View**, **Front View**, **Side View** and **Next 2D View** also centre every 2D view on the
   selection or the camera, keeping each view's zoom. Turn this on or off for any profile with **Frame Selection fits
-  the 2D views only…** on the **2D Plan** tab of **Customize Gestures…**, or with `vibestudio --cli editor gestures
+  the 2D views only…** on the **2D Plan** tab of **Customize Gestures…**, or with `slopstudio --cli editor gestures
   <profile> --set plan.radiantFraming=on|off`. **Zoom to Selection** and the map menu's framing item follow the same
   choice.
 - **Line the 2D views up once.** **Reset 2D Views** (in the **Layout** menu, the **View** menu and the **Tools** tab's
@@ -1420,7 +1420,7 @@ the tools the open map can use are shown, and the material strip below holds the
   NetRadiant profiles, choosing or stepping the grid also turns **Snap** on, as those editors do, and the status bar
   says so; turn this off with **Choosing or stepping the grid turns Snap on** on the **Editing** tab of
   **Customize Gestures…**. Your grid size is kept for the next session.
-- **3D view.** Choose **3D** to show the camera. The VibeStudio Default profile orbits an orthographic view of the map;
+- **3D view.** Choose **3D** to show the camera. The SlopStudio Default profile orbits an orthographic view of the map;
   most other profiles fly a first-person camera. Tick **Textures** above the views to draw package images: open the
   game's package or asset folder on the **Packages** page first. **View** > **3D Wireframe** (<kbd>W</kbd>) shows edges
   only.
@@ -1441,7 +1441,7 @@ the tools the open map can use are shown, and the material strip below holds the
   or flat colour at full brightness. **Fog in Camera** fades faces towards the camera's background as they get further
   away, as a depth cue for large maps. While it is on, **Fog start** and **Fog end** on the **View** tab set where the
   fading begins and where it is thickest (512 and 4096 units at first); beyond the end, faces keep a fifth of their
-  colour, so distant geometry never disappears. In the orthographic orbit camera of the VibeStudio Default profile, the
+  colour, so distant geometry never disappears. In the orthographic orbit camera of the SlopStudio Default profile, the
   distances count from the front of the map instead of from the camera. **Grid on Camera Faces** draws
   the current grid size on brush faces, lined up with the world axes the face is most nearly square to; lines fade out
   where they would crowd together. Patches and placed models are left plain. **Show Grid** (<kbd>0</kbd> in the
@@ -1461,7 +1461,7 @@ the tools the open map can use are shown, and the material strip below holds the
   never lands on a brush beyond it. In the orthographic orbit camera, the distance
   counts from the front of the map. With **Fog in Camera** on as well, the fog ends at the draw distance if its own end
   lies further out, so faces fade fully before they are cut off; your fog distances are kept for when the clip is
-  off. The choice and distance are kept for the next session, and `vibestudio --cli editor far-clip` reads or
+  off. The choice and distance are kept for the next session, and `slopstudio --cli editor far-clip` reads or
   changes them. The map is never changed.
 - **Aim the camera.** **View** > **Camera** moves only the 3D camera: the 2D views, the map and its undo history stay
   as they are. **Level Camera** keeps the camera where it stands, takes away its pitch and turns its heading to the
@@ -1471,7 +1471,7 @@ the tools the open map can use are shown, and the material strip below holds the
   Selection** it leaves the 2D views where they are. With nothing selected it focuses on the last selection you made
   in this map, and hidden objects never count. **Reset Camera Zoom** returns the field of view to your profile's
   after a <kbd>Shift</kbd>+wheel zoom or a saved view's own (<kbd>Ctrl+Alt+Z</kbd> in the TrenchBroom profile). In the
-  VibeStudio Default profile's orbiting view, **Level Camera** levels the orbit and **Focus Camera on Selection** turns
+  SlopStudio Default profile's orbiting view, **Level Camera** levels the orbit and **Focus Camera on Selection** turns
   it about the selection. All three are in the **Tools** tab's **Navigate** group and in command search.
 - **Step between floors.** **View** > **Camera** > **Camera Floor Up** and **Camera Floor Down** (<kbd>Page Up</kbd>
   and <kbd>Page Down</kbd> in the NetRadiant Custom, NetRadiant, GtkRadiant, Q3Radiant, QeRadiant and DoomEdit
@@ -1502,7 +1502,7 @@ the tools the open map can use are shown, and the material strip below holds the
   (<kbd>Shift</kbd>+<kbd>Keypad +</kbd> and <kbd>Shift</kbd>+<kbd>Keypad -</kbd> in the NetRadiant Custom profile)
   step the speed held camera keys fly and drive at through a fixed list: 50, then 250 to 9750 units per second in steps
   of 250, then 9999. NetRadiant Custom adds or takes 250 within the same limits, so from 50 it goes to 300 and from 9999
-  to 9749 where VibeStudio goes to 250 and 9750. **Speed** beside **Textures** above the views shows it, and the status bar
+  to 9749 where SlopStudio goes to 250 and 9750. **Speed** beside **Textures** above the views shows it, and the status bar
   says each new speed. Each profile keeps its own speed, NetRadiant Custom starting at 500 and the others scaling with
   the size of the map until you change it; **Camera speed for held keys** on the **3D Camera** tab of **Customize
   Gestures…** sets it directly or returns it to **Scale with the map**, and `editor gestures <profile> --set
@@ -1547,7 +1547,7 @@ the tools the open map can use are shown, and the material strip below holds the
   and 0 to leave an axis unsplit. Without the key the blocks are 1024 units. The older `blocksize` and `chopsize` keys
   are read too, and a value is read exactly as q3map2 reads it, so a lone second number is ignored and the status bar
   says so. The status tag shows the size, and inside a region the lines stay within it. q3map2-family compilers such
-  as VibeMap3 split on these lines; Quake and Quake II compilers such as VibeMap2 do not, so treat the lines as a guide
+  as SlopMap3 split on these lines; Quake and Quake II compilers such as SlopMap2 do not, so treat the lines as a guide
   for Quake III-family builds. **Export Image** and `map render --block-grid` draw the same lines.
 - **Toggle them from anywhere.** **View** > **Show Grid Coordinates** and **Show Block Grid** do the same as the
   **Show** menu, with check marks, and are in command search. Neither has a key, as in NetRadiant Custom; give them
@@ -1651,7 +1651,7 @@ the tools the open map can use are shown, and the material strip below holds the
   a 2D view, through the whole map's depth; **Set Region to Brush** uses the selected brushes' bounds and removes
   them, as Radiant does (**Undo** brings them back and keeps the region); and **Region Bounds…** takes the corners
   you type. The views shade or hide what lies outside the box, as Radiant's regions and Hammer's cordon do, and
-  **Select Everything in Region** selects what it keeps. VibeStudio remembers each map's region and brings it back
+  **Select Everything in Region** selects what it keeps. SlopStudio remembers each map's region and brings it back
   when you open the map again; **Clear Region** brings the whole map back and forgets it.
   **Compile Region** writes the region beside the map as `<name>-region.map`, unsaved edits included, and compiles
   it with the chosen profile, so `<name>-region` can be loaded in the game to test that area quickly. The region
@@ -1735,7 +1735,7 @@ Status: Partial. Saved scene visibility still takes precedence over temporary
 shown overrides. Direct empty-group hide/show controls, component-mode hiding,
 native gestures, full saved-layer/filter equivalence and real-project acceptance remain open.
 NRC's automatic hiding of a brush entity after its final child is hidden also
-needs parity work: VibeStudio currently derives the hidden label from its children.
+needs parity work: SlopStudio currently derives the hidden label from its children.
 
 ### Select and inspect objects
 
@@ -1795,7 +1795,7 @@ Most actions are in the **Edit** menu, the right-click menu of the views and the
 | Create an entity by class | Every point and brush class of your entity definitions has its own **Create** command, such as **Create light** or **Create func_door**, as in TrenchBroom: type the class in command search, or give it keys in **Help** > **Keyboard Shortcuts** (no profile gives them keys, as TrenchBroom does not). A point class goes in at the pointer in the view you used last, or in the middle of that view, its definition box standing on the brush surface or plane there and lined up with the grid, as **Paste at Cursor** places objects. A brush class makes the selected brushes and patches, with those of selected brush entities, into one, so it waits until brushes are selected; the **Brush Entity** menu uses the same commands and shows their keys. **Create Entity…** (**Edit** > **Brush Entities**, the **Create** menu above the views, or the **Tools** tab) lets you type a class instead. The commands follow the loaded definitions, and keys you give a class are kept while a map without it is open. Each is one undo step; a locked or hidden brush, one outside the open group, or a locked current layer refuses it with the reason. |
 | Move brushes between entities | Select the brushes and patches, then an item of the entity that should take them, and choose **Move Primitives to Entity** (<kbd>Ctrl</kbd>+<kbd>M</kbd> in the NetRadiant Custom profile): the entity of the item you picked last takes the others and keeps its keys, as NetRadiant Custom does. **Move Primitives to First Entity** uses the item you picked first. **Move Selected to World** gives only the selected brushes and patches back to the world, while their entities keep the rest and their keys. An entity left empty goes, hidden brushes of a selected entity stay where they are, and locked or linked objects refuse the move. Brushes keep their numbers, groups and visibility; one leaving an entity for the world joins its entity's group, or else the open group or current layer. |
 | Explode an entity | **Explode Entity** gives every brush and patch of the selected brush entities an entity of its own with the same keys, as bobToolz does. The entity keeps its first brush, and the new pieces are selected with it. **Explode Entity, Unique Names** gives each new piece its own `targetname`, so triggers still fire only the original. Worldspawn, locked and linked entities are refused. |
-| Place models and sounds | The **Models** and **Sounds** tabs list the open package's models and sounds, with a preview of the chosen model and a waveform you can play. Drag one onto a view, or choose **Place in View**, for a model entity (the same placement **Stage and Place** and `map place-model` use: MDL and MD2 in Quake maps, MD3, ASE and the other formats VibeMap3 bakes in Quake III maps) or a speaker entity; **Give to Selection** sets the selected entities' `model` or `noise` key instead. Right-click a placed model entity for **Show in Models** and **Edit Source** (its editable source, when one is known). The **Place** section names the class it makes in the open map, and says so when your definitions do not declare it: Quake itself has no model or speaker entity, so a Quake mod must provide them. |
+| Place models and sounds | The **Models** and **Sounds** tabs list the open package's models and sounds, with a preview of the chosen model and a waveform you can play. Drag one onto a view, or choose **Place in View**, for a model entity (the same placement **Stage and Place** and `map place-model` use: MDL and MD2 in Quake maps, MD3, ASE and the other formats SlopMap3 bakes in Quake III maps) or a speaker entity; **Give to Selection** sets the selected entities' `model` or `noise` key instead. Right-click a placed model entity for **Show in Models** and **Edit Source** (its editable source, when one is known). The **Place** section names the class it makes in the open map, and says so when your definitions do not declare it: Quake itself has no model or speaker entity, so a Quake mod must provide them. |
 | Duplicate or delete | **Duplicate Selection** copies objects using your profile's placement; **Duplicate with Offset…** previews an exact offset and a **Copies** count for a linear array. <kbd>Delete</kbd> removes the selection; an entity takes its brushes with it. |
 | Move | Drag the selection, nudge it one grid step with the keys your profile gives the **Nudge** commands (see [Nudge the selection](manual/levels.md#nudge-the-selection)), or use **Move Selection…**. |
 | Rotate or flip | **Rotate 90° Left**, **Rotate 90° Right**, **Flip Horizontal** and **Flip Vertical** work as the active view shows the map, the camera included, and **Roll** and **Pitch** turn about the view's other axes; see [Turn and flip from the view](manual/levels.md#turn-and-flip-from-the-view). **Flip X**, **Flip Y**, **Flip Z**, **Rotate X**, **Rotate Y** and **Rotate Z** (**Edit** > **Transform**, the **Transform** menu above the views, or the **Tools** tab) use the world axis whatever view is active, as NetRadiant Custom's commands do: Rotate X and Rotate Z turn -90° and Rotate Y +90°, each clockwise as the side, top or front view shows it. Doom maps flip along X or Y and turn about Z only. No profile gives them keys, as NetRadiant Custom does not; add your own in **Help** > **Keyboard Shortcuts**. In the NetRadiant Custom and TrenchBroom profiles, every quick turn pivots on the grid point nearest the selection's centre while **Snap** is on, so a brush whose sides differ by an odd number of grid steps stays on the grid; it may move by up to half a step. Other profiles turn about the exact centre; **Customize Editor Gestures** changes this for any profile, and a custom component pivot always wins. Flips mirror about the exact centre, except in the TrenchBroom profile, which rounds it to half the grid while **Snap** is on. **Rotate Selection…** turns by any X, Y and Z angles about the selection centre, the world origin or your own pivot; see [Rotate and scale by exact values](manual/levels.md#rotate-and-scale-by-exact-values). |
@@ -1806,7 +1806,7 @@ Most actions are in the **Edit** menu, the right-click menu of the views and the
 | Hollow | **Hollow…** turns each selected brush into walls of the thickness you choose, one per face, overlapping at the edges. **Hollow Touching…** makes walls that meet without overlapping, and **Make Room** builds walls one grid step thick around the outside of each brush and removes it, so the brush becomes the room, as NetRadiant Custom does. See [Make a room with caulk and openings](manual/levels.md#make-a-room-with-caulk-and-openings). |
 | Carve (CSG subtract) | **Carve** cuts the selected brushes out of every brush they overlap. The carving brushes stay selected, ready to delete; hidden brushes are left alone. |
 | Intersect (CSG) | **Intersect** replaces the selected brushes with the one brush where they all overlap, as TrenchBroom does; each face keeps the texture of the face it came from. |
-| Make detail | **Make Detail** stops brushes sealing the map or splitting its visibility: in Quake II and Quake III maps it sets each face's detail flag, and in Quake maps it moves the brushes into a `func_detail` for VibeMap2, as ericw-tools expects. **Make Structural** undoes it, taking only the selected brushes out of a `func_detail`. In the TrenchBroom profile (<kbd>Alt</kbd>+<kbd>S</kbd>) it also moves the selected brushes out of any brush entity to the world, into the open group or current layer, as TrenchBroom does; other flag-based tags stay as they are. |
+| Make detail | **Make Detail** stops brushes sealing the map or splitting its visibility: in Quake II and Quake III maps it sets each face's detail flag, and in Quake maps it moves the brushes into a `func_detail` for SlopMap2, as ericw-tools expects. **Make Structural** undoes it, taking only the selected brushes out of a `func_detail`. In the TrenchBroom profile (<kbd>Alt</kbd>+<kbd>S</kbd>) it also moves the selected brushes out of any brush entity to the world, into the open group or current layer, as TrenchBroom does; other flag-based tags stay as they are. |
 | Drop to the floor | **Drop to Floor** moves the selected point entities straight down onto the brush or patch below, keeping each class's height above it. |
 | Round to the grid | **Round Selection to Grid** rounds every brush vertex, patch control point and point-entity origin of the selection onto the grid on its own, as Radiant's Snap To Grid does, so off-grid shapes are cleaned up where they stand; brush entities round their brushes and keep their origin key. In **Edit Vertices**, **Edit Edges** or **Edit Faces** it rounds only the picked components. It is one undo step, follows **Lock Component UVs**, and leaves a brush the grid would collapse as it was, saying why. The NetRadiant Custom profile runs it with <kbd>Ctrl</kbd>+<kbd>G</kbd>; **Snap Selection to Grid** instead moves each object whole so its corner or origin lands on the grid. In Doom-format maps it snaps objects as **Snap Selection to Grid** does. |
 | Merge brushes | **Merge Brushes…** previews their convex union and lets you choose where conflicting materials, mappings and flags come from. |
@@ -1820,7 +1820,7 @@ Most actions are in the **Edit** menu, the right-click menu of the views and the
 | Colour lights and entities | Select lights or other entities, or brushes of a brush entity, and choose **Set Entity Colour…** (**Edit** > **Keys**, the right-click menu, or <kbd>K</kbd> in the NetRadiant Custom and NetRadiant profiles). The picker opens on the colour of the entity you picked last, or on the colour you chose last, and the choice is written to the `_color` key of every one of those entities as one undo step. A key already written as 0-255 stays 0-255; a new one is written as 0-1 fractions. **Normalise Entity Colour** scales the last-picked entity's colour so its brightest channel is 1 (black becomes white) and sets it on all of them, as NetRadiant Custom does. World brushes and hidden entities are left alone, and a locked entity refuses the change. |
 | Reuse a group of objects | **Export Selection as Prefab…** or **Save Selection…** on the **Prefabs** tab saves a `.vprefab` file, and the tab lists it at once with those in the project and the open package. **Insert Prefab…** places one with a preview, or drag one from the tab onto a 2D view to place it where you drop it. **Replace Selection with Prefab…** puts one where the selection stands, its anchor at the selection's bottom centre, and removes the selection, as one undo step. |
 
-TB and NRC duplicate at the original position by default. VibeStudio Default
+TB and NRC duplicate at the original position by default. SlopStudio Default
 moves copies one grid step right and down in the active plan. Change this per
 profile in **Customize Gestures…** > **Editing** > **Nudge duplicated objects one
 grid step right and down**. A command invoked from the camera uses the last active
@@ -1893,7 +1893,7 @@ support Valve 220.
 <details>
 <summary>Edits the editor refuses to protect your file</summary>
 
-VibeStudio rewrites only the lines you change, so the rest of the file stays byte for byte. It refuses an edit it
+SlopStudio rewrites only the lines you change, so the rest of the file stays byte for byte. It refuses an edit it
 cannot write back safely:
 
 - deleting or copying an object whose brace shares a line with other text;
@@ -2129,7 +2129,7 @@ The keys come from your editor profile:
   drive the camera: <kbd>Alt</kbd>+arrow keys, and the keypad's <kbd>+</kbd> and <kbd>-</kbd> along world Z. From
   the camera they use the plan view you used last, as NetRadiant Custom does, and they come before **Go Back**,
   **Go Forward** and view zoom while a view has focus.
-- **VibeStudio Default** and the other profiles: the arrow keys in the plan views. The default orbiting camera keeps
+- **SlopStudio Default** and the other profiles: the arrow keys in the plan views. The default orbiting camera keeps
   the arrows for turning and panning, and so does any camera that flies or drives with them.
 
 <kbd>Shift</kbd> with a nudge key moves eight grid steps, unless your profile gives that key another command, such
@@ -2282,7 +2282,7 @@ This workflow is **Partial**, pending wider real-project and native acceptance.
 #### Repeat the last transforms
 
 Use **Repeat Transforms** (**Edit** > **Repeat**, **Tools** > **Transform**, or <kbd>Ctrl</kbd>+<kbd>R</kbd> in the
-NetRadiant Custom profile) to build an array the way NetRadiant Custom does. VibeStudio remembers the last move,
+NetRadiant Custom profile) to build an array the way NetRadiant Custom does. SlopStudio remembers the last move,
 rotation, scale (a resize or mirror) and shear you made, each kept until you make another of its kind, whether on
 whole objects or on picked vertices, edges and faces. With objects selected, **Repeat Transforms** copies them where
 they stand, then scales, shears and turns the copies about their centre and moves them, as one undo step. The copies
@@ -2343,7 +2343,7 @@ nearest the camera view with Alt along its depth axis, and `surface` keeps
 surface-only dragging. Other profiles default to `surface`. This setting is
 independent of the two-point plane policy. Start a drag without modifiers;
 modified initial presses retain the profile's other selection/navigation roles.
-VibeStudio's plain first-point drag can still add a second point; modified
+SlopStudio's plain first-point drag can still add a second point; modified
 movement instead moves the current point. Wider scene-edge/vertex/patch snapping
 remains incomplete. **Clip Selection…** supplies numeric XYZ alternatives.
 Cancelling, changing the view/grid/profile, or replacing the shared plane
@@ -2417,15 +2417,15 @@ screen-reader acceptance remain unverified.
 The CLI uses the same atomic operation:
 
 ```sh
-vibestudio --cli map clip maps/start.map --object brush:12 --axis x --at 64 --keep back --output maps/clipped.map
-vibestudio --cli map clip maps/start.map --object entity:3 --points "0,0,0 64,64,0 0,0,64" --keep both --output maps/split.map
-vibestudio --cli map clip maps/start.map --object brush:12 --axis x --at 64 --cut-texture common/caulk --output maps/caulk-cut.map
-vibestudio --cli editor clipper --set material=custom --set customTexture=common/caulk --set resetSide=on --dry-run --json
-vibestudio --cli map clip maps/start.map --object brush:12 --points "128,0,64" --wrap-merge --wrap-texture stone/wall --output maps/wrapped.map --json
-vibestudio --cli editor clipper --set wrapMerge=on --dry-run --json
-vibestudio --cli editor gestures netradiant-custom --set camera.clipDragStyle=view --dry-run --json
-vibestudio --cli map clip maps/start.map --object brush:12 --points "0,-48,80 0,48,80" --camera-eye "-200,0,120" --camera-forward "1,0,0" --keep both --output maps/camera-split.map --json
-vibestudio --cli map clip maps/start.map --object brush:12 --points "0,-48,80 0,48,80" --view-axis z --view-sign 1 --keep both --output maps/replayed-split.map --json
+slopstudio --cli map clip maps/start.map --object brush:12 --axis x --at 64 --keep back --output maps/clipped.map
+slopstudio --cli map clip maps/start.map --object entity:3 --points "0,0,0 64,64,0 0,0,64" --keep both --output maps/split.map
+slopstudio --cli map clip maps/start.map --object brush:12 --axis x --at 64 --cut-texture common/caulk --output maps/caulk-cut.map
+slopstudio --cli editor clipper --set material=custom --set customTexture=common/caulk --set resetSide=on --dry-run --json
+slopstudio --cli map clip maps/start.map --object brush:12 --points "128,0,64" --wrap-merge --wrap-texture stone/wall --output maps/wrapped.map --json
+slopstudio --cli editor clipper --set wrapMerge=on --dry-run --json
+slopstudio --cli editor gestures netradiant-custom --set camera.clipDragStyle=view --dry-run --json
+slopstudio --cli map clip maps/start.map --object brush:12 --points "0,-48,80 0,48,80" --camera-eye "-200,0,120" --camera-forward "1,0,0" --keep both --output maps/camera-split.map --json
+slopstudio --cli map clip maps/start.map --object brush:12 --points "0,-48,80 0,48,80" --view-axis z --view-sign 1 --keep both --output maps/replayed-split.map --json
 ```
 
 Repeat **--object** for several selections. Choose one plane definition.
@@ -2454,7 +2454,7 @@ result without a camera. The synthetic third point still never joins wrap/merge.
 #### Make a room with caulk and openings
 
 **Status: Partial.** Draw a brush the size of the room you want, select it and choose **Make Room**
-(**Geometry** menu, or the **Brush** section of the **Tools** tab). VibeStudio
+(**Geometry** menu, or the **Brush** section of the **Tools** tab). SlopStudio
 builds a wall one grid step thick outside each face and removes the brush, so
 its volume becomes the room. The walls fill the outer corners, where NetRadiant
 Custom leaves them open. It is one undo step.
@@ -2485,7 +2485,7 @@ prints faces) for each opening. The same options also work with
 `--mode overlap` and `--mode touch`:
 
 ```text
-vibestudio --cli map hollow maps/start.map --object brush:12 --mode room --thickness 16 --caulk --open-face face:12:6 --output maps/start-room.map --json
+slopstudio --cli map hollow maps/start.map --object brush:12 --mode room --thickness 16 --caulk --open-face face:12:6 --output maps/start-room.map --json
 ```
 
 #### Hollow, shrink and expand with the CSG Tool
@@ -2538,8 +2538,8 @@ choose faces as **Faces** does with picked faces, and `--exclude-facing x`,
 `--thickness`:
 
 ```text
-vibestudio --cli map hollow maps/start.map --object brush:12 --mode diagonal --thickness 16 --exclude-facing z --caulk --output maps/start-shaft.map --json
-vibestudio --cli map expand-brushes maps/start.map --object brush:12 --thickness 8 --exclude-face face:12:6 --output maps/start-wide.map --json
+slopstudio --cli map hollow maps/start.map --object brush:12 --mode diagonal --thickness 16 --exclude-facing z --caulk --output maps/start-shaft.map --json
+slopstudio --cli map expand-brushes maps/start.map --object brush:12 --thickness 8 --exclude-face face:12:6 --output maps/start-wide.map --json
 ```
 
 #### Wrap brushes or picked components
@@ -2578,9 +2578,9 @@ Component wrapping accepts up to 256 component sets, 64 source objects and
 a convex brush: concavities and interior points do not become separate geometry.
 
 ```sh
-vibestudio --cli map wrap-merge maps/start.map --object brush:12 --object brush:13 --texture stone/wall --output maps/wrapped.map --json
-vibestudio --cli map wrap-merge maps/start.map --set brush:12/face/4 --point "128,0,192" --texture stone/wall --output maps/component-hull.map --json
-vibestudio --cli map wrap-merge maps/start.map --set patch:2/vertex/0,2,4,6,8 --texture stone/wall --output maps/patch-hull.map --dry-run --json
+slopstudio --cli map wrap-merge maps/start.map --object brush:12 --object brush:13 --texture stone/wall --output maps/wrapped.map --json
+slopstudio --cli map wrap-merge maps/start.map --set brush:12/face/4 --point "128,0,192" --texture stone/wall --output maps/component-hull.map --json
+slopstudio --cli map wrap-merge maps/start.map --set patch:2/vertex/0,2,4,6,8 --texture stone/wall --output maps/patch-hull.map --dry-run --json
 ```
 
 Repeat **--object** or **--set**, but do not mix them. Component selectors are
@@ -2647,7 +2647,7 @@ disables)** changes the chord independently for plans and camera. Plain wheel
 navigation stays available. Fractional wheel motion accumulates to a notch;
 moving to another hit area or changing the view resets it. A truncated handle
 context refuses cycling. Wheel/key cycling waits until an active edit ends;
-the named commands cancel a pending component edit first. These are VibeStudio
+the named commands cancel a pending component edit first. These are SlopStudio
 extensions; exact native TB/NRC input parity remains unverified.
 
 Switching between **Edit Vertices**, **Edit Edges** and **Edit Faces** converts
@@ -2682,9 +2682,9 @@ fewer selected objects.
 The read-only `map select-components` query uses the same rules:
 
 ```sh
-vibestudio --cli map select-components room.map --set brush:6/face/4 --operation convert --to vertex --json
-vibestudio --cli map select-components room.map --set brush:6/vertex/0 --operation convert --to face --coverage touching --json
-vibestudio --cli map select-components room.map --set patch:0/vertex/12 --operation grow --steps 2 --json
+slopstudio --cli map select-components room.map --set brush:6/face/4 --operation convert --to vertex --json
+slopstudio --cli map select-components room.map --set brush:6/vertex/0 --operation convert --to face --coverage touching --json
+slopstudio --cli map select-components room.map --set patch:0/vertex/12 --operation grow --steps 2 --json
 ```
 
 Repeat `--set` for multiple objects. One object must use one source kind;
@@ -2718,7 +2718,7 @@ Handle display is bounded to 128 objects and 16,384 handles; a limit message
 asks you to select fewer objects. The preview is a wire outline over the original
 surface. Numeric and direct rotation, scale and shear controls are described
 below. Arbitrary point insertion gestures and full native profile acceptance
-remain incomplete. VibeStudio is still pre-alpha.
+remain incomplete. SlopStudio is still pre-alpha.
 
 #### Transform picked components
 
@@ -2819,9 +2819,9 @@ control-point IDs are zero-based `row * width + column`. Repeat `--set` once per
 256 objects and 4,096 component IDs per object:
 
 ```sh
-vibestudio --cli map transform-components room.map --set brush:6/vertex/0,1,2,3,4,5,6,7 --operation rotate --axis z --angle 15 --pivot 0,0,0 --uv-lock on --allow-valve220 --output rotated.map
-vibestudio --cli map transform-components room.map --set brush:6/face/4 --set patch:0/vertex/0,1,2 --operation move --delta 0,0,8 --output reshaped.map
-vibestudio --cli map transform-components room.map --set brush:6/vertex/0 --operation snap --target brush:6/vertex/1 --output snapped.map
+slopstudio --cli map transform-components room.map --set brush:6/vertex/0,1,2,3,4,5,6,7 --operation rotate --axis z --angle 15 --pivot 0,0,0 --uv-lock on --allow-valve220 --output rotated.map
+slopstudio --cli map transform-components room.map --set brush:6/face/4 --set patch:0/vertex/0,1,2 --operation move --delta 0,0,8 --output reshaped.map
+slopstudio --cli map transform-components room.map --set brush:6/vertex/0 --operation snap --target brush:6/vertex/1 --output snapped.map
 ```
 
 `move` requires `--delta x,y,z`; `rotate` requires `--axis x|y|z` and `--angle`;
@@ -2874,8 +2874,8 @@ perpendicular.
 From the command line, pass the returned face targets with `--face`:
 
 ```sh
-vibestudio --cli map select-textured room.map --material stone --json
-vibestudio --cli map transform-components room.map --face face:6:5 --operation rotate --axis z --angle 15 --uv-lock on --allow-valve220 --output turned.map
+slopstudio --cli map select-textured room.map --material stone --json
+slopstudio --cli map transform-components room.map --face face:6:5 --operation rotate --axis z --angle 15 --uv-lock on --allow-valve220 --output turned.map
 ```
 
 See [Move, rotate and scale textured faces](manual/cli.md#move-rotate-and-scale-textured-faces)
@@ -2939,7 +2939,7 @@ For automation, repeat `--brush` in `map insert-vertices` to apply the same
 positions to several brushes atomically:
 
 ```sh
-vibestudio --cli map insert-vertices room.map --brush 0 --brush 1 --position -32,8,16 --output reshaped.map
+slopstudio --cli map insert-vertices room.map --brush 0 --brush 1 --position -32,8,16 --output reshaped.map
 ```
 
 Patches use **Patch Rows and Columns** instead. Deformation texture lock for
@@ -3007,7 +3007,7 @@ the edit. Other component moves and transforms use the separate
 For automation, inspect face IDs with `map brush-components`, then run:
 
 ```text
-vibestudio map extrude-faces room.map --face 0:5 --distance 16 --split --output room-extruded.map
+slopstudio map extrude-faces room.map --face 0:5 --distance 16 --split --output room-extruded.map
 ```
 
 Repeat `--face brush:face` for more brushes; the first option supplies the
@@ -3017,7 +3017,7 @@ and overwrite protections apply. JSON reports changed/created counts and active
 faces. An extruded brush keeps its place in the file, but a split adds a new
 brush at the end of its entity, so inspect IDs again after saving and reopening
 a split (see [Save your work](manual/levels.md#save-your-work)). These tools are available, but full TB/NRC
-gesture parity and real-project acceptance remain open; VibeStudio is pre-alpha.
+gesture parity and real-project acceptance remain open; SlopStudio is pre-alpha.
 
 #### Sweep selected faces
 
@@ -3095,7 +3095,7 @@ acceptance remain open.
 Inspect face IDs with `map brush-components`, then use the same service through:
 
 ```text
-vibestudio --cli map sweep maps/start.map --set brush:12/face/4 --delta "64,64,32" --axis "0,0,1" --angle 90 --path arc --segments 8 --texture stone/wall --output maps/swept.map --json
+slopstudio --cli map sweep maps/start.map --set brush:12/face/4 --delta "64,64,32" --axis "0,0,1" --angle 90 --path arc --segments 8 --texture stone/wall --output maps/swept.map --json
 ```
 
 Repeat **--set brush:ID/face/IDs** for additional profiles. **--scale x,y,z**,
@@ -3236,9 +3236,9 @@ On the command line, `map add-patch` maps new patches the same way, by `--textur
 patches the same way. For an **Exact** shape, add `--ring-start exact`, and `--square` to tick **Square**:
 
 ```sh
-vibestudio --cli map add-patch base.map --shape classic-cone --axis z --size 128,128,192 --texture textures/base/metal --texture-size 256,256 --output base-cone.map
-vibestudio --cli map add-shape base.map --shape patch-cylinder --object brush:3 --object patch:1 --texture base/pipe --texture-size 128,128 --output base-pipe.map
-vibestudio --cli map add-shape base.map --shape patch-sphere --sides 6 --bands 3 --ring-start exact --square --object brush:3 --texture base/orb --output base-orb.map
+slopstudio --cli map add-patch base.map --shape classic-cone --axis z --size 128,128,192 --texture textures/base/metal --texture-size 256,256 --output base-cone.map
+slopstudio --cli map add-shape base.map --shape patch-cylinder --object brush:3 --object patch:1 --texture base/pipe --texture-size 128,128 --output base-pipe.map
+slopstudio --cli map add-shape base.map --shape patch-sphere --sides 6 --bands 3 --ring-start exact --square --object brush:3 --texture base/orb --output base-orb.map
 ```
 
 #### Cap, convert and deform patches
@@ -3282,9 +3282,9 @@ To roughen patches, select them and choose **Deform Patch…**:
    patches are left alone. The dialog remembers the maximum and axis.
 
 ```sh
-vibestudio --cli map cap-patch base.map --patch 2 --patch 5 --style cylinder --texture base/pipe_cap --output base-capped.map
-vibestudio --cli map convert-patches base.map --object brush:4 --texture-size 256,256 --output base-patches.map
-vibestudio --cli map deform-patch base.map --patch 2 --max 16 --axis z --seed 7 --output base-rough.map
+slopstudio --cli map cap-patch base.map --patch 2 --patch 5 --style cylinder --texture base/pipe_cap --output base-capped.map
+slopstudio --cli map convert-patches base.map --object brush:4 --texture-size 256,256 --output base-patches.map
+slopstudio --cli map deform-patch base.map --patch 2 --max 16 --axis z --seed 7 --output base-rough.map
 ```
 
 #### Rebuild brushes as prisms, cones and spheres
@@ -3491,13 +3491,13 @@ shows where it fits beside its box, clear of the view's readouts and the selecti
 | **Add Protected Property…**, **Clear Protected Properties** | Keep entity keys local to one group, or share them again. |
 
 A group out of sync no longer matches the rest of its set. That happens when one edit changes two members of a set
-in different ways (VibeStudio keeps both edits, where TrenchBroom refuses the edit; values a member protects do
+in different ways (SlopStudio keeps both edits, where TrenchBroom refuses the edit; values a member protects do
 not count), or when an update passes a locked group by. The status bar and **Activity** say so; the **Scene** tree shows **Linked, out of sync**, the 2D
 views and the 3D camera draw the group dash-dotted in the warning colour, and saving lists it. Edit one member again, or select the one
 to keep and choose **Update Linked Groups**. The **Scene** section's **Linked duplicate**, **Separate**, **Update
 linked** and **Select linked** buttons act on the group chosen in its tree.
 
-Linked groups work on Quake-family maps. Links and frames are saved in the map's VibeStudio scene note, a comment at
+Linked groups work on Quake-family maps. Links and frames are saved in the map's SlopStudio scene note, a comment at
 the end of the file that other editors skip, so they see ordinary brushes and entities; maps saved by earlier
 versions, whose frames were quarter turns and a mirror, still open. To keep groups and linked groups in a map you
 also edit in TrenchBroom, see [Share layers and groups with TrenchBroom](manual/levels.md#share-layers-and-groups-with-trenchbroom).
@@ -3513,7 +3513,7 @@ correspondence before using extraction or protected properties.
 
 **Status: Partial.** TrenchBroom keeps its layers, groups and linked groups in the map itself, as `func_group`
 entities with keys of its own (`_tb_type`, `_tb_id`, `_tb_name`, `_tb_linked_group_id` and `_tb_transformation`), and
-an entity lists its protected keys in `_tb_protected_properties`. VibeStudio reads and writes the same keys, so a map
+an entity lists its protected keys in `_tb_protected_properties`. SlopStudio reads and writes the same keys, so a map
 can go back and forth between the two editors with its groups intact.
 
 - **Open** a map TrenchBroom saved: its layers, groups and linked groups appear in the **Scene** tree, each group in its
@@ -3523,16 +3523,16 @@ can go back and forth between the two editors with its groups intact.
   Linked groups that no longer match each other open out of sync, and the **Health** tab says which.
 - **Save** a map that opened that way and it keeps TrenchBroom's form, so TrenchBroom opens it with the same layers,
   groups and linked groups. To give any map that form, choose **Level map with TrenchBroom groups (*.map)** as the file
-  type in **Save As**; later saves keep it, and **Level map (*.map)** goes back to VibeStudio's note alone. A layer's
-  colour and **Omit from export**, which VibeStudio does not show, are kept and written back.
+  type in **Save As**; later saves keep it, and **Level map (*.map)** goes back to SlopStudio's note alone. A layer's
+  colour and **Omit from export**, which SlopStudio does not show, are kept and written back.
 - From the CLI, `editor scene save <map> --scene-format trenchbroom --output <file>` writes a map in TrenchBroom's
-  form, and `--scene-format vibestudio` takes it out again; any other `editor scene` change accepts the same option.
+  form, and `--scene-format slopstudio` takes it out again; any other `editor scene` change accepts the same option.
   See [Command line](manual/cli.md).
 
-A map saved with TrenchBroom groups still carries VibeStudio's scene note, after TrenchBroom's keys. While the note
-matches the map, VibeStudio reads the note, because it also holds what TrenchBroom does not keep: hidden and locked
+A map saved with TrenchBroom groups still carries SlopStudio's scene note, after TrenchBroom's keys. While the note
+matches the map, SlopStudio reads the note, because it also holds what TrenchBroom does not keep: hidden and locked
 groups, which linked groups are out of sync and which objects correspond. TrenchBroom drops the note when it saves,
-and VibeStudio then reads TrenchBroom's keys; a note that no longer matches the map is set aside, and the **Health**
+and SlopStudio then reads TrenchBroom's keys; a note that no longer matches the map is set aside, and the **Health**
 tab says so. A map whose TrenchBroom entities share lines with other text opens with them as ordinary `func_group` entities, as
 earlier versions opened it, and the **Health** tab says why.
 
@@ -3571,7 +3571,7 @@ unchanged. Preparation runs in the background with cancellable progress.
 The shared CLI operation is:
 
 ```sh
-vibestudio --cli editor scene extract-linked-groups assembly.map --context <group-UUID> --objects brush:6,entity:4 --output extracted.map --json
+slopstudio --cli editor scene extract-linked-groups assembly.map --context <group-UUID> --objects brush:6,entity:4 --output extracted.map --json
 ```
 
 Use `editor scene list` on the current file to inspect node UUIDs and native
@@ -3617,9 +3617,9 @@ compiler and package workflows receive the actual entity values and asset paths.
 The same services are available through the CLI:
 
 ```text
-vibestudio --cli editor scene set-protected-property arena.map --objects entity:2 --key targetname --value local_relay --output local.map
-vibestudio --cli editor scene protect-properties local.map --objects entity:2 --keys origin,angle --protected true --output protected.map
-vibestudio --cli editor scene clear-protected-properties protected.map --objects entity:2 --output shared.map
+slopstudio --cli editor scene set-protected-property arena.map --objects entity:2 --key targetname --value local_relay --output local.map
+slopstudio --cli editor scene protect-properties local.map --objects entity:2 --keys origin,angle --protected true --output protected.map
+slopstudio --cli editor scene clear-protected-properties protected.map --objects entity:2 --output shared.map
 ```
 
 Use `--protected false` to unprotect selected keys, `--value=` for an explicitly
@@ -3671,7 +3671,7 @@ and creating or copying geometry are not available for UDMF yet.
   selection keeps Redo. NRC and the default profile keep selection and group
   navigation outside history. Face/component picks, visibility and filters do
   not yet have complete TB selection-history behaviour.
-- VibeStudio saves a recovery checkpoint of a changed map every minute. **File** > **Recover Maps…** lists the
+- SlopStudio saves a recovery checkpoint of a changed map every minute. **File** > **Recover Maps…** lists the
   checkpoints; **Restore** opens one as unsaved work and never replaces your map file. The window's check box turns
   checkpoints on or off. Checkpoints stay on your computer.
 
@@ -3692,8 +3692,8 @@ editor profile gives them a key, as in NetRadiant Custom and TrenchBroom.
 
 | To | Do this |
 | --- | --- |
-| Bring another map into this one | Choose **File** > **Import Map…** and pick a `.map`. VibeStudio reads it in the background and shows what it adds: entities, brushes, patches, groups and layers. Names this map already uses, such as a `targetname` of `door`, get the next free number (`door1`), so the imported links keep pointing at each other; clear **Rename entity names the open map already uses** to keep them. **Import** adds everything at its own coordinates as one undo step and selects it. |
-| Import a compiled map | In a Quake III-family map, pick a `.bsp` in **Import Map…**. VibeMap3's convert profile turns it into a `.map` first, in the format of this map's brushes, for the game the file was compiled for (Quake III Arena, Return to Castle Wolfenstein, Enemy Territory, Jedi Knight and others; the project's game decides between games that share a format), with the project's game folder. The window shows the command it ran, and VibeMap3's exit code when it stops without saying why. VibeMap3 must be built or set up in **Compilers**; Quake and Quake II `.bsp` files cannot be converted. |
+| Bring another map into this one | Choose **File** > **Import Map…** and pick a `.map`. SlopStudio reads it in the background and shows what it adds: entities, brushes, patches, groups and layers. Names this map already uses, such as a `targetname` of `door`, get the next free number (`door1`), so the imported links keep pointing at each other; clear **Rename entity names the open map already uses** to keep them. **Import** adds everything at its own coordinates as one undo step and selects it. |
+| Import a compiled map | In a Quake III-family map, pick a `.bsp` in **Import Map…**. SlopMap3's convert profile turns it into a `.map` first, in the format of this map's brushes, for the game the file was compiled for (Quake III Arena, Return to Castle Wolfenstein, Enemy Territory, Jedi Knight and others; the project's game decides between games that share a format), with the project's game folder. The window shows the command it ran, and SlopMap3's exit code when it stops without saying why. SlopMap3 must be built or set up in **Compilers**; Quake and Quake II `.bsp` files cannot be converted. |
 | Save the selection as a map of its own | Choose **File** > **Export Selection as Map…**. The selected world brushes and patches go inside a worldspawn with this map's keys, followed by the selected entities. Choose **Level map without worldspawn keys** as the file type to leave the keys out. |
 | Write a copy without some layers | In the **Scene** section of the **Outliner** tab, choose a layer and tick **Omit from export**; the tree marks it **Omitted from export**. Then choose **File** > **Export Map…**. The copy leaves those layers out, with their groups and objects; the open map keeps its own file and stays as it was. |
 
@@ -3716,7 +3716,7 @@ and packaging still include omitted layers. Doom maps can be exported whole, wit
 
 | To | Do this |
 | --- | --- |
-| Take the whole map into Blender or another modeller | Choose **File** > **Export Map as OBJ…**, check the file name and choose **Export**. VibeStudio writes a Wavefront `.obj` with a `.mtl` material library beside it. Hidden objects and layers marked **Omit from export** are left out. |
+| Take the whole map into Blender or another modeller | Choose **File** > **Export Map as OBJ…**, check the file name and choose **Export**. SlopStudio writes a Wavefront `.obj` with a `.mtl` material library beside it. Hidden objects and layers marked **Omit from export** are left out. |
 | Export only part of the map | Select brushes, patches or brush entities and choose **File** > **Export Selection as OBJ…**. |
 | Keep tool materials out | Leave **Ignored materials** as it is: faces with caulk, clip, trigger, hint, skip, origin, nodraw and the other tool materials are not written. Add a name on its own line to leave out more; **Restore Tool Materials** brings back the list. |
 | Choose how the mesh is split | Set **Group faces** to **By brush and patch**, **By material** or **Into one mesh**. Clear **Write objects (o) instead of groups (g)** for importers that want groups. |
@@ -3732,29 +3732,29 @@ one OBJ unit as one metre, so a 64-unit room arrives 64 m wide. Set the scale wh
 (1/32) or 0.0254 (one unit as one inch). If the file name has spaces, the material library takes the name with
 underscores (`my room.obj` uses `my_room.mtl`), because the OBJ format separates library names with spaces. Materials whose image the open package does not hold are written with
 64 × 64-texel coordinates and a plain colour, and the export lists them. Placed models, point entities and Doom maps
-are not exported. The window remembers its choices until VibeStudio closes, and replacing files keeps the old ones in
-`.vibestudio/map-backups`.
+are not exported. The window remembers its choices until SlopStudio closes, and replacing files keeps the old ones in
+`.slopstudio/map-backups`.
 
 ### Save your work
 
 1. Choose **Save** in the header, or **File** > **Save Map** (<kbd>Ctrl</kbd>+<kbd>S</kbd> while the page has focus).
-   VibeStudio writes the map back to its own file, after copying the old file into `.vibestudio/map-backups` beside it.
+   SlopStudio writes the map back to its own file, after copying the old file into `.slopstudio/map-backups` beside it.
 2. A new map, or one opened from a package, asks for a location first.
 3. To write a separate file instead, choose **File** > **Save Map As…** (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd>).
-   VibeStudio suggests the name with `-edited` added and keeps editing the new file.
+   SlopStudio suggests the name with `-edited` added and keeps editing the new file.
 
 > [!IMPORTANT]
 > **Save** replaces the file you opened, keeping a backup of the old content. Use **Save Map As…** to leave the
 > original untouched, for example for a map inside a game installation.
 
 Saving runs in the background with a **Cancel** button; a cancelled or failed save leaves the destination unchanged.
-If the file changed outside VibeStudio after you opened it, **Save** refuses: use **Save Map As…**, or **Reload** to
+If the file changed outside SlopStudio after you opened it, **Save** refuses: use **Save Map As…**, or **Reload** to
 read the outside version. A map is always saved in the format it was opened in. A WAD is written whole, with its other
-maps and lumps kept. VibeStudio does not convert between Doom and Quake formats or between face formats, apart from the
+maps and lumps kept. SlopStudio does not convert between Doom and Quake formats or between face formats, apart from the
 optional Valve 220 conversion.
 
 A Quake-family map from an older editor can hold accented letters or symbols in an 8-bit code page rather than UTF-8,
-for example in a level name or a message. VibeStudio keeps those bytes as they are when you save. If you add a
+for example in a level name or a message. SlopStudio keeps those bytes as they are when you save. If you add a
 character that no 8-bit page holds, the map is saved as UTF-8 instead and the save report says so.
 
 In Quake-family maps, a brush you reshape keeps its place in the file. Component moves, the brush editor, split
@@ -3782,7 +3782,7 @@ added to worldspawn still shifts the numbers of brushes in later entities.
   NetRadiant Custom's rule. The table lists every class with its count and how many reach the game; choose a heading
   to sort by it, and press <kbd>Enter</kbd> on a class to list its entities in the **Outliner**. On a Doom map it
   counts thing types, in number order. A map saved in TrenchBroom's format keeps each layer and group as a
-  `func_group` entity: VibeStudio counts those as layers and groups, not entities, and lists them on a line of their
+  `func_group` entity: SlopStudio counts those as layers and groups, not entities, and lists them on a line of their
   own (**Layer and group entities**), so its entity and `func_group` totals are lower than NetRadiant Custom's by that
   number. Neither reaches the game.
 - **Layers.** The **Map** tab's **Layers** section lists each layer with its objects and groups, and says in words
@@ -3792,23 +3792,23 @@ added to worldspawn still shifts the numbers of brushes in later entities.
   bounds** (±4096 for Quake and Quake II maps, ±65536 for Quake III Arena maps) or **Custom bounds**, with each corner
   typed as three numbers or one number for all three. The section says how many objects lie outside. The choice is
   saved in worldspawn's `_tb_soft_map_bounds` key, so TrenchBroom reads the same bounds, and each change is one undo
-  step. VibeStudio does not yet draw the bounds in the views or list objects outside them on **Health**.
+  step. SlopStudio does not yet draw the bounds in the views or list objects outside them on **Health**.
 - **Mods.** **Partial.** Open **Mods**, choose one of the game installation's other folders or type a folder name,
   and choose **Enable**; the buttons under the list disable the chosen mod or move it up or down. The list is saved in
-  worldspawn's `_tb_mod` key, which TrenchBroom reads to load the mods' assets. VibeStudio keeps the list with the
+  worldspawn's `_tb_mod` key, which TrenchBroom reads to load the mods' assets. SlopStudio keeps the list with the
   map but does not load assets from it yet. The folders offered follow the installation in use.
 - **Map settings with a group open.** **Map Properties**, **Mods** and the **Worldspawn** keys belong to the whole
   map, so they change while a group is open, as in TrenchBroom, and the group stays open. Other edits outside the
   open group are still refused.
 - **Entity definitions.** On the **Map** tab, give a Radiant `.def`, Valve `.fgd` or Quake III `.ent` file, or a
-  folder of them, under **Entity Definitions** and choose **Load** (**Browse** picks a file). Left empty, VibeStudio
-  looks in the project's `.vibestudio/definitions`, `definitions`, `defs`, `scripts`, `base/scripts` and `entities`
+  folder of them, under **Entity Definitions** and choose **Load** (**Browse** picks a file). Left empty, SlopStudio
+  looks in the project's `.slopstudio/definitions`, `definitions`, `defs`, `scripts`, `base/scripts` and `entities`
   folders. **Project** > **Load Entity Definitions…** does the same. The map is then checked for unknown classes,
   undeclared keys, invalid values, missing required keys, unknown spawnflags, and targets that name nothing. An `.ent`
   file lists placed entities only, so it cannot check key types or spawnflag names.
 - **Built-in classes.** With no definitions found, a Quake-family map is checked against the classes of the stock
   game it looks like: Quake, Quake II or Quake III Arena, taken from id Software's GPL game code, with the
-  Quake compiler classes VibeMap2 inherits from ericw-tools, such as `func_detail`. A mod's own classes read as unknown until you load its
+  Quake compiler classes SlopMap2 inherits from ericw-tools, such as `func_detail`. A mod's own classes read as unknown until you load its
   definitions, and **Health** and the **Checklist** say which classes were used.
 - **Dependencies.** Choose **Dependencies** in the header. The scan reads the package or asset folder open on the
   **Packages** page or, with none open, the project's folders. It lists textures, shader images, models, model
@@ -3827,7 +3827,7 @@ added to worldspawn still shifts the numbers of brushes in later entities.
 ### Build and test the map
 
 - On the document bar, pick a compiler profile and choose **Run Profile** to review and run a compile of the open map.
-  The compiler reads the saved file, so VibeStudio asks you to save first. **Copy CLI** copies the matching command.
+  The compiler reads the saved file, so SlopStudio asks you to save first. **Copy CLI** copies the matching command.
   The profile you run is remembered for that game (Quake, Quake II, Quake III Arena or Doom), and the next map of the
   game opens with it chosen when it can compile that map.
 - **Build** > **Run Last Build** runs again the build you ran last for the project, on the open map: the build
@@ -3836,7 +3836,7 @@ added to worldspawn still shifts the numbers of brushes in later entities.
   replays the open map's newest saved compile exactly as it ran, as TrenchBroom's **Re-run Compilation** does; it is
   available once the map has one. Both run without leaving Levels, and the **Tools** tab's **Region and Build** group
   holds them with **Launch Game**. A saved run, like a project, can come from someone else: when its program is not
-  one of your configured compilers, VibeStudio shows the command line and runs it only if you choose **Trust and
+  one of your configured compilers, SlopStudio shows the command line and runs it only if you choose **Trust and
   Run** (see [Build and launch](manual/build-and-launch.md#when-a-build-asks-before-running-a-program)).
 - **Launch Game** from Levels shows the launch review, with the exact command line, over the map. The launch uses
   the **Launch and Test** settings on the **Build** page, including your own launch profiles and extra arguments;
@@ -3874,11 +3874,11 @@ off by default; see [AI assistant](manual/ai.md).
 
 Every command is also in the menus and in command search. Your [editor profile](manual/editor-profiles.md) can change these
 keys, and your own keys in **Help** > **Keyboard Shortcuts** take priority over both. Every Levels command is also
-listed, with a short description, in the shared command registry that `vibestudio --cli ui semantics --json` prints,
+listed, with a short description, in the shared command registry that `slopstudio --cli ui semantics --json` prints,
 so scripts and editor profiles name each one by the same id, such as `map.vertex-tool` for **Edit Vertices**.
 
 <details>
-<summary>All shortcuts on the Levels page (VibeStudio Default profile)</summary>
+<summary>All shortcuts on the Levels page (SlopStudio Default profile)</summary>
 
 | Action | Shortcut |
 | --- | --- |
@@ -3896,7 +3896,7 @@ so scripts and editor profiles name each one by the same id, such as `map.vertex
 | Frame the selection / the whole map (2D view) | <kbd>F</kbd> / <kbd>Home</kbd> |
 | Zoom in / out (2D view) | <kbd>+</kbd> / <kbd>-</kbd> |
 | Select the next object / add the next or previous (2D view) | <kbd>Tab</kbd> / <kbd>Ctrl</kbd>+<kbd>Tab</kbd>, <kbd>Shift</kbd>+<kbd>Tab</kbd> |
-| Nudge the selection | The profile's **Nudge** keys, one grid step (VibeStudio Default: arrow keys in a 2D view); <kbd>Shift</kbd> moves eight steps where that key is free; see [Nudge the selection](manual/levels.md#nudge-the-selection) |
+| Nudge the selection | The profile's **Nudge** keys, one grid step (SlopStudio Default: arrow keys in a 2D view); <kbd>Shift</kbd> moves eight steps where that key is free; see [Nudge the selection](manual/levels.md#nudge-the-selection) |
 | Pan (2D view) | Arrow keys with nothing selected, or <kbd>Ctrl</kbd>+arrow keys; <kbd>Space</kbd> turns a pan hand on or off |
 | Cancel a drag, clear the selection, then leave the view | <kbd>Esc</kbd> |
 | Map actions menu | <kbd>Menu</kbd> or <kbd>Shift</kbd>+<kbd>F10</kbd> |
@@ -3916,8 +3916,8 @@ The `map` commands use the same services as the page. Commands that change a map
 `linedef:12` and `sector:4`.
 
 ```sh
-vibestudio --cli map inspect ./maps/start.map --json
-vibestudio --cli map move ./maps/start.map --object brush:12 --delta 16,0,0 --output ./maps/start-moved.map --dry-run
+slopstudio --cli map inspect ./maps/start.map --json
+slopstudio --cli map move ./maps/start.map --object brush:12 --delta 16,0,0 --output ./maps/start-moved.map --dry-run
 ```
 
 <details>
@@ -3971,7 +3971,7 @@ vibestudio --cli map move ./maps/start.map --object brush:12 --delta 16,0,0 --ou
 | `editor scene select` | Resolve group selection without writing; use `--objects` and optional `--context <group UUID>`, `--selection` and `--mode replace\|add\|toggle` |
 | `editor scene translate` | Move closed groups or objects inside `--context` with `--objects`, `--offset x,y,z` and `--output`; supports `--dry-run` and `--overwrite` |
 
-`vibestudio --cli cli commands` lists every command; see [Command line](manual/cli.md).
+`slopstudio --cli cli commands` lists every command; see [Command line](manual/cli.md).
 
 </details>
 
@@ -4075,7 +4075,7 @@ Edits and saves preserve this reference. New or copied objects acquire source
 positions when you save and reopen the map. Use the same map revision as a
 compiler diagnostic, or save and reopen before looking up its new line numbers.
 Deleting an object removes it from these results; Undo restores its source
-identity. Closed groups expand a matching member to the whole group. VibeStudio
+identity. Closed groups expand a matching member to the whole group. SlopStudio
 scene metadata has no group-bracket line, and foreign TB group/layer metadata
 conversion is still incomplete.
 
@@ -4092,9 +4092,9 @@ or face/component selection.
 The CLI prints stable selectors for subsequent authoring commands:
 
 ```sh
-vibestudio --cli map select-siblings maps/start.map --object brush:12 --json
-vibestudio --cli map select-lines maps/start.map --line "42, 57" --line 80 --json
-vibestudio --cli map select-lines maps/start.map --line 42 --context GROUP-ID --exclude brush:4 --json
+slopstudio --cli map select-siblings maps/start.map --object brush:12 --json
+slopstudio --cli map select-lines maps/start.map --line "42, 57" --line 80 --json
+slopstudio --cli map select-lines maps/start.map --line 42 --context GROUP-ID --exclude brush:4 --json
 ```
 
 Repeat **--object**, **--line** or **--exclude** as needed. The two query modes
@@ -4184,8 +4184,8 @@ increments, and **--degrees N --anchor origin** turns about the texture origin
 (**--anchor centre** is the default):
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --scale-step 0,0.5 --output scaled.map --json
-vibestudio --cli map align-textures room.map --object brush:12 --degrees 45 --anchor origin --output turned.map
+slopstudio --cli map align-textures room.map --object brush:12 --scale-step 0,0.5 --output scaled.map --json
+slopstudio --cli map align-textures room.map --object brush:12 --degrees 45 --anchor origin --output turned.map
 ```
 
 ### Move and flip textures from the camera
@@ -4230,7 +4230,7 @@ On the command line, **map align-textures --camera-shift RIGHT,UP** and
 **--camera-yaw** and **--camera-pitch**:
 
 ```sh
-vibestudio --cli map align-textures room.map --face 12:3 --camera-shift 16,0 --camera-yaw 90 --output moved.map --json
+slopstudio --cli map align-textures room.map --face 12:3 --camera-shift 16,0 --camera-yaw 90 --output moved.map --json
 ```
 
 ### Rotate textures by fixed steps
@@ -4271,7 +4271,7 @@ On the command line, **map align-textures --clockwise N** turns N degrees
 clockwise, or counter-clockwise for a negative N:
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --clockwise 15 --output turned.map --json
+slopstudio --cli map align-textures room.map --object brush:12 --clockwise 15 --output turned.map --json
 ```
 
 ### Reset textures
@@ -4333,8 +4333,8 @@ and **--rename**, for the **--object** selection or the **--whole-map**,
 optionally **--only-texture NAME**:
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --radiant-reset 0.5,0.5 --output reset.map --json
-vibestudio --cli map align-textures room.map --whole-map --only-texture base_wall/concrete --rename base_wall/metal --set-rotation 0 --output retextured.map
+slopstudio --cli map align-textures room.map --object brush:12 --radiant-reset 0.5,0.5 --output reset.map --json
+slopstudio --cli map align-textures room.map --whole-map --only-texture base_wall/concrete --rename base_wall/metal --set-rotation 0 --output retextured.map
 ```
 
 ### Fit and project textures
@@ -4396,8 +4396,8 @@ On the command line, **map align-textures --fit U,V --keep-proportions**,
 the same:
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --fit 1,0 --keep-proportions --package ./assets --output fitted.map
-vibestudio --cli map align-textures room.map --object brush:12 --project z --output projected.map --json
+slopstudio --cli map align-textures room.map --object brush:12 --fit 1,0 --keep-proportions --package ./assets --output fitted.map
+slopstudio --cli map align-textures room.map --object brush:12 --project z --output projected.map --json
 ```
 
 ### Edit texture coordinates in the UV Editor
@@ -4470,9 +4470,9 @@ On the command line, `map edit-uv` lists a face's or patch's points in texels
 and moves or turns them through the same service:
 
 ```sh
-vibestudio --cli map edit-uv base.map --target face:3:1 --json
-vibestudio --cli map edit-uv base.map --target face:3:1 --rotate 15 --anchor 1 --output base-turned.map
-vibestudio --cli map edit-uv curves.map --target patch:0 --move-point 5 --to 32,16 --texture-size 128,128 --output curves-uv.map
+slopstudio --cli map edit-uv base.map --target face:3:1 --json
+slopstudio --cli map edit-uv base.map --target face:3:1 --rotate 15 --anchor 1 --output base-turned.map
+slopstudio --cli map edit-uv curves.map --target patch:0 --move-point 5 --to 32,16 --texture-size 128,128 --output curves-uv.map
 ```
 
 ### Use the Face inspector
@@ -4533,9 +4533,9 @@ On the command line, `map face-attributes` reads and sets the same values
 through the same service:
 
 ```sh
-vibestudio --cli map face-attributes base.map --face 3:1 --json
-vibestudio --cli map face-attributes base.map --object brush:3 --scale-u 0.5 --scale-v 0.5 --output base-fine.map
-vibestudio --cli map face-attributes base.map --face 3:2 --rotation 30 --pivot 0,64,128 --output base-turned.map
+slopstudio --cli map face-attributes base.map --face 3:1 --json
+slopstudio --cli map face-attributes base.map --object brush:3 --scale-u 0.5 --scale-v 0.5 --output base-fine.map
+slopstudio --cli map face-attributes base.map --face 3:2 --rotation 30 --pivot 0,64,128 --output base-turned.map
 ```
 
 ### Drag textures with the UV tool
@@ -4602,9 +4602,9 @@ On the command line, `map edit-uv` stretches and skews about a pivot, and
 moves a patch's rows and columns, through the same service:
 
 ```sh
-vibestudio --cli map edit-uv base.map --target face:3:1 --stretch 2,1 --pivot 0,0 --output base-stretched.map
-vibestudio --cli map edit-uv base.map --target face:3:1 --skew-u 0.5 --allow-valve220 --output base-skewed.map
-vibestudio --cli map edit-uv curves.map --target patch:0 --rows 2 --offset 8,0 --texture-size 128,64 --output curves-row.map
+slopstudio --cli map edit-uv base.map --target face:3:1 --stretch 2,1 --pivot 0,0 --output base-stretched.map
+slopstudio --cli map edit-uv base.map --target face:3:1 --skew-u 0.5 --allow-valve220 --output base-skewed.map
+slopstudio --cli map edit-uv curves.map --target patch:0 --rows 2 --offset 8,0 --texture-size 128,64 --output curves-row.map
 ```
 
 ### Set face flags
@@ -4650,8 +4650,8 @@ says so.
 On the command line, `map face-flags` reads and changes the same flags by name:
 
 ```sh
-vibestudio --cli map face-flags base.map --face 3:1 --json
-vibestudio --cli map face-flags base.map --object brush:3 --set-content playerclip --output base-clip.map
+slopstudio --cli map face-flags base.map --face 3:1 --json
+slopstudio --cli map face-flags base.map --object brush:3 --set-content playerclip --output base-clip.map
 ```
 
 ### Select textured surfaces
@@ -4675,8 +4675,8 @@ changes. Queries return the complete result or fail; they do not truncate
 results beyond 16,384 combined face and matching patch targets.
 
 ```console
-vibestudio --cli map select-textured maps/start.map --material stone --json
-vibestudio --cli map select-textured maps/start.map --material stone --object entity:4 --face face:12:1 --json
+slopstudio --cli map select-textured maps/start.map --material stone --json
+slopstudio --cli map select-textured maps/start.map --material stone --object entity:4 --face face:12:1 --json
 ```
 
 Use the returned `surfaceTargets` with the normal material or surface commands.
@@ -4757,8 +4757,8 @@ tooltip and status tip name two of them. Neither upstream editor gives these
 commands a key; add your own in **Help** > **Keyboard Shortcuts**.
 
 ```console
-vibestudio --cli map replace-texture maps/start.map --from base/wall --to base/metal --face face:3:1 --face face:3:4 --output maps/start-metal.map
-vibestudio --cli map select-textured maps/start.map --material base/wall --object entity:2 --within-selection --json
+slopstudio --cli map replace-texture maps/start.map --from base/wall --to base/metal --face face:3:1 --face face:3:4 --output maps/start-metal.map
+slopstudio --cli map select-textured maps/start.map --material base/wall --object entity:2 --within-selection --json
 ```
 
 **map replace-texture** takes `--object` objects or `--face` picks; its JSON
@@ -4812,9 +4812,9 @@ picks, components, material, filters or history policy discard pending results.
 Native map bytes, asset references and compiler/package inputs stay unchanged.
 
 ```sh
-vibestudio --cli map select-type maps/start.map --object brush:12 --object entity:4 --json
-vibestudio --cli map select-type maps/start.map --material stone --json
-vibestudio --cli map select-type maps/start.map --mode faces --object entity:2 --material stone --json
+slopstudio --cli map select-type maps/start.map --object brush:12 --object entity:4 --json
+slopstudio --cli map select-type maps/start.map --material stone --json
+slopstudio --cli map select-type maps/start.map --mode faces --object entity:2 --material stone --json
 ```
 
 The CLI accepts repeated **--object**, **--exclude** and an optional **--context**
@@ -4861,8 +4861,8 @@ nothing creates no undo step. Saved map contents and compiler/package inputs
 remain unchanged. Doom WAD/UDMF connected geometry uses its separate command.
 
 ```sh
-vibestudio --cli map select-connected maps/start.map --object patch:2 --json
-vibestudio --cli map select-connected maps/start.map --object entity:3 --context GROUP-ID --exclude brush:4 --json
+slopstudio --cli map select-connected maps/start.map --object patch:2 --json
+slopstudio --cli map select-connected maps/start.map --object entity:3 --context GROUP-ID --exclude brush:4 --json
 ```
 
 Repeat **--object** and **--exclude** as needed. The read-only JSON response
@@ -4881,7 +4881,7 @@ The profile determines both the test and what happens to the source selection:
 
 | Profile | Region test | Source objects |
 | --- | --- | --- |
-| VibeStudio default and other profiles | Combined selection bounds | Retained; replaces selection when matches exist |
+| SlopStudio default and other profiles | Combined selection bounds | Retained; replaces selection when matches exist |
 | TrenchBroom | Each selected convex brush independently | Removed by Inside, Touching and Tall; one undo step |
 | NetRadiant Custom | Each selected brush's axis-aligned bounds independently | Inside removes all selected objects; Touching retains them and adds matches |
 
@@ -4896,7 +4896,7 @@ quadratic surface and grid-edge intersection; NRC uses their control-grid bounds
 **Select Tall** in TB projects each brush onto the active 2D view. The default and
 NRC labels are **Select Complete Tall**. **Select Partial Tall** tests overlap of
 the footprint. Both ignore depth; Partial Tall and NRC tall commands are
-VibeStudio extensions. TB tall commands require a 2D view. TB shortcuts are
+SlopStudio extensions. TB tall commands require a 2D view. TB shortcuts are
 **Ctrl+E** (Inside), **Ctrl+T** (Touching) and **Ctrl+Shift+E** (Tall), subject to
 shortcut overrides.
 
@@ -4911,9 +4911,9 @@ Save the edited map before building or packaging it.
 The CLI uses the same service. A query never writes the source map:
 
 ```sh
-vibestudio --cli map select-region maps/start.map --object brush:0 --object brush:4 --policy trenchbroom --mode inside --json
-vibestudio --cli map select-region maps/start.map --object brush:0 --policy radiant --mode touching --json
-vibestudio --cli map select-region maps/start.map --object brush:0 --policy trenchbroom --mode complete-tall --axis z --output maps/selected.map --dry-run --json
+slopstudio --cli map select-region maps/start.map --object brush:0 --object brush:4 --policy trenchbroom --mode inside --json
+slopstudio --cli map select-region maps/start.map --object brush:0 --policy radiant --mode touching --json
+slopstudio --cli map select-region maps/start.map --object brush:0 --policy trenchbroom --mode complete-tall --axis z --output maps/selected.map --dry-run --json
 ```
 
 Remove **--dry-run** to write the result. Use **--overwrite** to replace an existing
@@ -4979,7 +4979,7 @@ profiles, then adjust its gestures and keys to suit you.
 - **2D views:** which buttons pan and zoom; how a click selects, adds or toggles; what a drag over empty space does
   (select an area, draw a brush or resize the selection); and, in the Radiant-style profiles, middle-click and arrow-key
   control of the 3D camera, and its other drive keys while no command uses the key.
-- **3D camera:** an orthographic view that orbits the map (VibeStudio Default) or a first-person camera with its own
+- **3D camera:** an orthographic view that orbits the map (SlopStudio Default) or a first-person camera with its own
   field of view; the look, orbit and pan drags; what the wheel does; and the keys that fly or drive the camera.
 - **Material clicks:** Q3Radiant, GtkRadiant and both NetRadiant profiles sample, paint and paste materials with the
   middle button in the 3D view.
@@ -5013,7 +5013,7 @@ profiles, then adjust its gestures and keys to suit you.
 ### Choose a profile
 
 1. On the **Levels** page, choose **Controls** on the view toolbar. The button shows the current profile, such as
-   **VibeStudio** or **TrenchBroom**.
+   **SlopStudio** or **TrenchBroom**.
 2. Choose **Browse Editor Profiles…** to search by name, aliases such as NRC or TB, or engine family.
 3. Review the default layout, gestures, command shortcuts and workflow differences, then choose **Use Profile**.
    Browsing does not change your settings. The **Controls like** menu still offers an immediate selection.
@@ -5023,7 +5023,7 @@ The same choice is **Editor profile** in **Settings** > **Appearance and Languag
 
 | Profile | ID | Starting views | Grid |
 | --- | --- | --- | --- |
-| VibeStudio Default | `vibestudio-default` | One view, 2D first | 64 units |
+| SlopStudio Default | `slopstudio-default` | One view, 2D first | 64 units |
 | TrenchBroom Style | `trenchbroom` | One view, 3D first | 16 units |
 | NetRadiant Custom Style | `netradiant-custom` | 3D camera beside a 2D view | 16 units |
 | NetRadiant Style | `netradiant` | 3D camera beside a 2D view | 8 units |
@@ -5090,14 +5090,14 @@ camera's drive keys on, as Radiant's camera keys do; it is on in the Radiant pro
 `camera.moveSpeed=750` (or `auto`) and `plan.cameraDriveKeys=off` set them; see
 [Look around the map](manual/levels.md#look-around-the-map).
 
-**Export…** saves your changes to a VibeStudio `.json` file, and **Import…** loads one into the window for you to
+**Export…** saves your changes to a SlopStudio `.json` file, and **Import…** loads one into the window for you to
 apply. A file only imports into the profile it was made for.
 
 The same duplicate preference is available to automation:
 
 ```sh
-vibestudio --cli editor gestures netradiant-custom --set editing.nudgeAfterDuplicate=on --json
-vibestudio --cli editor gestures netradiant-custom --set editing.nudgeAfterDuplicate=default --json
+slopstudio --cli editor gestures netradiant-custom --set editing.nudgeAfterDuplicate=on --json
+slopstudio --cli editor gestures netradiant-custom --set editing.nudgeAfterDuplicate=default --json
 ```
 
 The **Editing** tab also has **Choosing or stepping the grid turns Snap on**, which is on in the NetRadiant Custom
@@ -5208,11 +5208,11 @@ The `editor` commands read and change the same settings as the studio. Profile I
 next time the studio loads its settings; it does not control a studio that is already running.
 
 ```sh
-vibestudio --cli editor profiles
-vibestudio --cli editor controls trenchbroom
-vibestudio --cli editor select netradiant-custom
-vibestudio --cli editor gestures hammer --set camera.flyKeys.forward=I --dry-run --json
-vibestudio --cli editor gestures trenchbroom --set plan.componentCycleWheelModifiers=ctrl+alt --set camera.componentCycleWheelModifiers=none
+slopstudio --cli editor profiles
+slopstudio --cli editor controls trenchbroom
+slopstudio --cli editor select netradiant-custom
+slopstudio --cli editor gestures hammer --set camera.flyKeys.forward=I --dry-run --json
+slopstudio --cli editor gestures trenchbroom --set plan.componentCycleWheelModifiers=ctrl+alt --set camera.componentCycleWheelModifiers=none
 ```
 
 | Command | What it does |
@@ -5249,15 +5249,15 @@ dry-run, import/export and atomic preference application.
 
 ### Profile reference
 
-Each block lists the profile's mouse gestures and the keys that differ from the VibeStudio defaults, which are listed
+Each block lists the profile's mouse gestures and the keys that differ from the SlopStudio defaults, which are listed
 in [Level editing](manual/levels.md#work-from-the-keyboard). Rows that every profile shares are described under
 [Behaviour every profile shares](manual/editor-profiles.md#behaviour-every-profile-shares). On macOS, <kbd>Ctrl</kbd> means <kbd>Cmd</kbd>, for
 keys and clicks alike.
 
 <details>
-<summary>VibeStudio Default</summary>
+<summary>SlopStudio Default</summary>
 
-ID `vibestudio-default`. One view, 2D first, 64-unit grid. 3D camera: orthographic, orbiting the map.
+ID `slopstudio-default`. One view, 2D first, 64-unit grid. 3D camera: orthographic, orbiting the map.
 
 | Action | 2D view | 3D view |
 | --- | --- | --- |
@@ -5347,7 +5347,7 @@ toggles enclosed handles, while <kbd>Ctrl</kbd> adds them, in both plan and came
 The component lasso policy is configurable in **Customize Editor Gestures…**.
 All profiles share complete-boundary conversion when switching component modes,
 plus touching conversion, Grow, Shrink and Connected commands under
-**Component Selection**. These are VibeStudio's common topology-selection rules;
+**Component Selection**. These are SlopStudio's common topology-selection rules;
 they do not establish native shortcut parity with another editor.
 For automation, use `editor gestures trenchbroom --set plan.componentBandToggles=off --set camera.componentBandToggles=off`;
 `--reset` restores this profile's plain-toggle/Ctrl-add behaviour.
@@ -5603,7 +5603,7 @@ Q3-specific patch, hide/show, select-similar and texture-lock keys are unassigne
 <kbd>Ctrl</kbd>+<kbd>\\</kbd> for **Far Clip in Camera**, which the manual gives to Q3Radiant only. Page Up and
 Page Down step the camera between floors, and <kbd>Ctrl</kbd>+<kbd>]</kbd> and <kbd>Ctrl</kbd>+<kbd>[</kbd> shorten
 and lengthen the draw distance, as the manual lists them. Those
-VibeStudio commands remain available in menus and command search. Whole-entity selection mode,
+SlopStudio commands remain available in menus and command search. Whole-entity selection mode,
 animated entity previews, Alt+right texture dragging and Z-checker are not reproduced.
 Middle-button sampling and surface paste follow the shared studio clipboard rules; sampling
 does not automatically repaint the selected objects.
@@ -5985,7 +5985,7 @@ ID `unreal`, also `unreal-editor`, `ue4`, `ue5`. One view, 3D first, 16-unit gri
 | Frame Selection | <kbd>F</kbd> |
 | Show All Hidden | <kbd>Ctrl</kbd>+<kbd>H</kbd> |
 
-**3D Wireframe** and **Draw Sector** have no key. Moving and resizing use VibeStudio's handles and numeric tools. Gizmo modes, left-button camera driving, wheel flight-speed changes and Unreal assets are not reproduced.
+**3D Wireframe** and **Draw Sector** have no key. Moving and resizing use SlopStudio's handles and numeric tools. Gizmo modes, left-button camera driving, wheel flight-speed changes and Unreal assets are not reproduced.
 
 </details>
 
@@ -6076,7 +6076,7 @@ middle-drag mouse look, Shift+middle panning and right-click material sampling.
 WASD moves, R/F rises or sinks, and Q/E turns. Ctrl+Space duplicates, Ctrl+X or
 keypad minus deletes, backtick selects all, Z opens Surface Alignment and Alt+S
 snaps to the grid. Shift selects in plans; a bare drag draws or resizes. The
-adapted VibeStudio workspace starts with four views and a 16-unit grid. Native
+adapted SlopStudio workspace starts with four views and a 16-unit grid. Native
 selection cycling, texture drags, region tools and configuration import are not
 reproduced.
 
@@ -6163,7 +6163,7 @@ opened stays unchanged until you save, and saving writes a new file unless you c
 | Doom IWAD and PWAD (`.wad`) | Yes | Yes | Keeps the lump order, including repeated map names. Lump names are at most 8 characters. |
 | Quake WAD2, Half-Life WAD3 (`.wad`, `.wad2`, `.wad3`) | Yes | Yes | Compressed lumps are listed but not read; saved lumps are uncompressed. |
 | ZIP and PK3 (`.zip`, `.pk3`, also `.pk4`, `.pkz`) | Yes | Yes | Stored and DEFLATE entries. Encrypted entries and other compression methods are listed but not read; multi-disk archives are refused. |
-| Package draft (`.vibepackage`) | Yes | Yes | Your staged edits and their history, described below. |
+| Package draft (`.sloppackage`) | Yes | Yes | Your staged edits and their history, described below. |
 
 ### Open a package or folder
 
@@ -6223,7 +6223,7 @@ types such as `wad-flat`, `wad-sprite`, `wad-patch` and `wad-sound`, so `type:im
 
 Press <kbd>Enter</kbd> in the filter to select every match and move to the list, where extraction
 and staging act on the whole selection. Press <kbd>Down</kbd> in the filter to reuse an earlier
-query. The same syntax works in `vibestudio --cli package list <package> --where "<query>"`, and in
+query. The same syntax works in `slopstudio --cli package list <package> --where "<query>"`, and in
 other lists such as **Objects** on the Levels page.
 
 ### Extract files
@@ -6243,14 +6243,14 @@ discarded. You can also drag a few entries out of the list into another folder o
 
 ### Check package integrity
 
-Choose **Validate** on the Packages header. VibeStudio reads every entry, including each copy of a
+Choose **Validate** on the Packages header. SlopStudio reads every entry, including each copy of a
 repeated WAD lump, checks its size and checksum, and records a SHA-256 hash. A package passes only
 when every file verifies with no warnings. **Export JSON…** saves the report. Validation checks the
 container, not whether each asset works in the game.
 
 ### Compare two packages
 
-Choose **Compare** on the Packages header and pick another archive. VibeStudio pairs entries by path,
+Choose **Compare** on the Packages header and pick another archive. SlopStudio pairs entries by path,
 ignoring case, and reports added, removed, changed, case-only and unchecked entries; files of equal
 size are hashed to prove they match. Search the results, select a row for its paths and hashes, or
 choose **Export JSON…**. Comparison and validation both run in the background and can be cancelled.
@@ -6271,7 +6271,7 @@ written until you save.
 | Undo or redo | **Edit** > **Undo Package Edit** (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) and **Redo Package Edit** (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>). |
 
 The same commands sit as icon buttons in the toolbar's **Stage** group; hover over one to see what it
-does. The keys act only while the Packages page has focus. VibeStudio keeps its own copy of each file
+does. The keys act only while the Packages page has focus. SlopStudio keeps its own copy of each file
 you add, so changing the original afterwards does not change the staged entry. ZIP and PK3 keep empty
 folders. A PAK cannot store them, so saving a PAK with an empty folder is refused. WAD has no folders.
 
@@ -6305,7 +6305,7 @@ by other applications.
 
 #### Replace an existing package
 
-Saving over a file that already exists, including the open package, is opt-in. VibeStudio asks
+Saving over a file that already exists, including the open package, is opt-in. SlopStudio asks
 **Replace Existing Package?** first. If you agree, it writes the new archive beside the old one,
 verifies it, and only then moves the original to `<file>.bak`. If a save is interrupted, **File** >
 **Recover Packages…** > **Interrupted Saves…** checks the files left behind. When the new package is
@@ -6314,9 +6314,9 @@ already in place and verified, **Finish Reviewed Save…** completes the backup 
 ### Keep work in progress
 
 **File** > **Save Package Draft** (<kbd>Ctrl</kbd>+<kbd>S</kbd> on the Packages page, also an icon on
-the toolbar) stores the source content, your staged changes and their undo history in a `.vibepackage`
+the toolbar) stores the source content, your staged changes and their undo history in a `.sloppackage`
 folder. **File** > **Open Package Draft…** resumes it later, even without the original files; move or
-copy the whole folder. VibeStudio also keeps local recovery checkpoints every 30 seconds by default,
+copy the whole folder. SlopStudio also keeps local recovery checkpoints every 30 seconds by default,
 and **File** > **Recover Packages…** restores one as a new draft.
 
 ### Export part of a package
@@ -6333,24 +6333,24 @@ notes and a readme, use **Package and Release** instead; see [Package and releas
 
 | Task | Command |
 | --- | --- |
-| Summarise or list | `vibestudio --cli package info <package>`, `package list <package> --where "<query>"` |
-| Preview one entry | `vibestudio --cli package preview <package> <entry>` |
-| Extract | `vibestudio --cli package extract <package> --output <folder>` |
-| Validate | `vibestudio --cli package validate <package>` |
-| Compare | `vibestudio --cli package compare <left> <right>` |
-| Preview staged edits | `vibestudio --cli package stage <package> --add-file <file> --as <entry>` |
-| Save a new package | `vibestudio --cli package save-as <package> <output> --format pk3` |
-| Start an empty package | `vibestudio --cli package create <output> --format pk3` |
-| Save part of a package | `vibestudio --cli package subset <package> <output> --prefix <folder>` |
+| Summarise or list | `slopstudio --cli package info <package>`, `package list <package> --where "<query>"` |
+| Preview one entry | `slopstudio --cli package preview <package> <entry>` |
+| Extract | `slopstudio --cli package extract <package> --output <folder>` |
+| Validate | `slopstudio --cli package validate <package>` |
+| Compare | `slopstudio --cli package compare <left> <right>` |
+| Preview staged edits | `slopstudio --cli package stage <package> --add-file <file> --as <entry>` |
+| Save a new package | `slopstudio --cli package save-as <package> <output> --format pk3` |
+| Start an empty package | `slopstudio --cli package create <output> --format pk3` |
+| Save part of a package | `slopstudio --cli package subset <package> <output> --prefix <folder>` |
 
 For example:
 
 ```sh
-vibestudio --cli package list ./baseq3/pak0.pk3 --where "type:image size>256k"
-vibestudio --cli package validate ./release.pk3 --json
-vibestudio --cli package extract ./pak0.pak --output ./out --entry maps/start.bsp --dry-run
-vibestudio --cli package compare ./release-1.pk3 ./release-2.pk3 --json
-vibestudio --cli package save-as ./mod-folder ./build/mod.pk3 --format pk3 --add-file ./autoexec.cfg --as scripts/autoexec.cfg
+slopstudio --cli package list ./baseq3/pak0.pk3 --where "type:image size>256k"
+slopstudio --cli package validate ./release.pk3 --json
+slopstudio --cli package extract ./pak0.pak --output ./out --entry maps/start.bsp --dry-run
+slopstudio --cli package compare ./release-1.pk3 ./release-2.pk3 --json
+slopstudio --cli package save-as ./mod-folder ./build/mod.pk3 --format pk3 --add-file ./autoexec.cfg --as scripts/autoexec.cfg
 ```
 
 `package validate` and `package compare` exit with code 4 when they find a problem or a difference.
@@ -6367,7 +6367,7 @@ original at `--backup` (by default `<output>.bak`). Add `--dry-run` to see what 
 ## Package and release
 
 **Package and Release** turns your project, a map, a model or a set of textures into something players
-can install. VibeStudio works out which files are yours and which the game already has, gathers every
+can install. SlopStudio works out which files are yours and which the game already has, gathers every
 custom texture, shader, model, sound and script your work uses, and writes the package with a readme,
 release notes and a distribution archive. It keeps a changelog and a record of every release, so the
 next one can say what changed.
@@ -6388,10 +6388,10 @@ next one can say what changed.
 2. Link the game it plays in: select the installation under **Game Installations** and choose
    **Use**, or record it in the project manifest.
 3. Index the game's own files: choose **Index Assets** under **Game Installations**, or **Project** >
-   **Index Game Assets**. VibeStudio reads the game's own packages once and remembers what they hold.
+   **Index Game Assets**. SlopStudio reads the game's own packages once and remembers what they hold.
    Nothing in the installation is changed.
 
-The index is how a release leaves the game's own files out. Without it, VibeStudio cannot tell a
+The index is how a release leaves the game's own files out. Without it, SlopStudio cannot tell a
 stock texture from yours: anything the project lacks is assumed to come with the game, and the
 release says the game's files were not checked. The installation's row on the Workspace page shows
 **assets indexed**, **assets not indexed** or **asset index out of date**; an out-of-date index
@@ -6464,7 +6464,7 @@ The review beside the options updates as you change them:
 
 ### Files that game code and scripts load
 
-Maps and models are not the only things that name files. VibeStudio also reads the project's game
+Maps and models are not the only things that name files. SlopStudio also reads the project's game
 code and scripts as text, without running them, and follows the file names written out in them:
 
 | Source | What it follows |
@@ -6505,7 +6505,7 @@ script builds while the game runs. The project's release settings handle them:
 
 Some files never ship from a project: sources such as `.map`, `.psd` and `.blend` (unless you include
 sources), compiler leftovers such as `.prt`, `.lin`, `.log` and `.bak`, programs, the project's
-`.vibestudio` folder, its output and temporary folders, and Quake-family texture WADs, which the
+`.slopstudio` folder, its output and temporary folders, and Quake-family texture WADs, which the
 compiled BSP already contains.
 
 ### Describe the release
@@ -6536,14 +6536,14 @@ tab, the text file players read.
   **Fixed** or **Security**), describe it, and choose **Record Change**. The change goes into the
   Unreleased section of the project's `CHANGELOG.md` straight away. **Project** > **Record a
   Change…** and **Record Change…** on the Workspace **Releases** card do the same from anywhere.
-- With no changes recorded, VibeStudio suggests them from what changed since the last release, such
+- With no changes recorded, SlopStudio suggests them from what changed since the last release, such
   as maps or textures added and updated, or "First release." for the first one.
 - The notes and readme are generated from the plan and the changelog. Edit them freely before
   publishing; **Regenerate** discards your edits and builds them again.
 - `{{package-sha256}}` and `{{package-size}}` are filled in with the package's SHA-256 hash and size
   when it is written.
 
-The changelog follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and VibeStudio
+The changelog follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and SlopStudio
 rewrites only the parts it changes, so you can also edit it by hand. The readme follows the layout of
 the text files that accompany releases in the [/idgames archive](https://www.doomworld.com/idgames/).
 
@@ -6565,7 +6565,7 @@ The output folder receives:
 | `RELEASE_NOTES.md` | The release notes, for a website or forum post. |
 | `<name>-<version>.zip` | The distribution archive: the package, the readme and any files that ship beside the package, in the layout players extract into the game folder. |
 
-VibeStudio also records the release in the project's `.vibestudio/releases/<version>.json`, with the
+SlopStudio also records the release in the project's `.slopstudio/releases/<version>.json`, with the
 package's hash and a list of every file, and moves the changelog's unreleased changes under the new
 version. Nothing is written into the game installation, and an existing release is never overwritten
 unless you choose to replace it; replaced files are kept with `.bak` added to their names.
@@ -6634,25 +6634,25 @@ ones use the project's and game's defaults. Publishing from the window saves the
 
 | Task | Command |
 | --- | --- |
-| Index the game's own files | `vibestudio --cli install register build <installation>` |
+| Index the game's own files | `slopstudio --cli install register build <installation>` |
 | Check the index, or whether a file is the game's | `install register info <installation>`, `install register check <installation> <path>` |
 | Save the index for another machine | `install register export <installation> --output <file>` |
-| List what a project can release | `vibestudio --cli release catalog <project>` |
-| Review a release | `vibestudio --cli release plan <project> --map <map>` |
-| Print the notes or readme | `vibestudio --cli release notes <project> --map <map>`, add `--readme` for the readme |
-| Show or record changes | `vibestudio --cli release changelog <project>`, `--add "<change>" --category added` |
-| Publish | `vibestudio --cli release publish <project> --map <map> --release-version <version>` |
-| List published releases | `vibestudio --cli release history <project>` |
-| Check a map against the game | `vibestudio --cli map dependencies <map> --package <project> --installation <installation>` |
+| List what a project can release | `slopstudio --cli release catalog <project>` |
+| Review a release | `slopstudio --cli release plan <project> --map <map>` |
+| Print the notes or readme | `slopstudio --cli release notes <project> --map <map>`, add `--readme` for the readme |
+| Show or record changes | `slopstudio --cli release changelog <project>`, `--add "<change>" --category added` |
+| Publish | `slopstudio --cli release publish <project> --map <map> --release-version <version>` |
+| List published releases | `slopstudio --cli release history <project>` |
+| Check a map against the game | `slopstudio --cli map dependencies <map> --package <project> --installation <installation>` |
 
 For example:
 
 ```sh
-vibestudio --cli install register build quake3-games-quake3
-vibestudio --cli release plan ./mymod --map maps/arena1.map --json
-vibestudio --cli release changelog ./mymod --add "New arena: The Pit" --category added
-vibestudio --cli release publish ./mymod --map maps/arena1.map --release-version 1.0.0 --dry-run
-vibestudio --cli release publish ./mymod --release-version 1.1.0 --output ./out/1.1.0
+slopstudio --cli install register build quake3-games-quake3
+slopstudio --cli release plan ./mymod --map maps/arena1.map --json
+slopstudio --cli release changelog ./mymod --add "New arena: The Pit" --category added
+slopstudio --cli release publish ./mymod --map maps/arena1.map --release-version 1.0.0 --dry-run
+slopstudio --cli release publish ./mymod --release-version 1.1.0 --output ./out/1.1.0
 ```
 
 Use `--model` or `--texture` instead of `--map` for models and texture folders, and nothing for the
@@ -6746,11 +6746,11 @@ depends on the palette. The **Palette** list on the toolbar decides it:
   ships: `PLAYPAL` for Doom-family WADs, `gfx/palette.lmp` for Quake and
   `pics/colormap.pcx` for Quake II.
 - The other entries name a game family, such as **Quake II (generated)** or
-  **Doom (generated)**. VibeStudio still looks for that family's real palette,
+  **Doom (generated)**. SlopStudio still looks for that family's real palette,
   first in the open package and then in the selected game installation.
 
 The line under the preview always says where the palette came from. If no real
-palette is found, VibeStudio uses a generated stand-in palette and says so:
+palette is found, SlopStudio uses a generated stand-in palette and says so:
 indexed colours will not match the game. The stand-ins contain no game data.
 When neither the project nor package names a palette family, **Automatic** can
 infer it from the selected image, such as a Doom flat, before checking the
@@ -6966,9 +6966,9 @@ The `texture`, `asset` and `sprite` command families use the same services as
 the page. For example:
 
 ```sh
-vibestudio --cli texture palette ./mymod/pak0.pak --palette quake --json
-vibestudio --cli texture export ./wall.vtexture --profile tga --output ./wall.tga --dry-run --json
-vibestudio --cli asset convert ./pak0.pk3 --entry textures/base/wall.png --output ./converted --format png --resize 128x128 --dry-run
+slopstudio --cli texture palette ./mymod/pak0.pak --palette quake --json
+slopstudio --cli texture export ./wall.vtexture --profile tga --output ./wall.tga --dry-run --json
+slopstudio --cli asset convert ./pak0.pk3 --entry textures/base/wall.png --output ./converted --format png --resize 128x128 --dry-run
 ```
 
 <details>
@@ -7009,7 +7009,7 @@ textures, Quake II WAL textures, Quake III shaders and Doom 3 materials.
 > **Status: Partial.** Browsing, the live preview, checking, text and node
 > editing and saving work and have automated tests on generated files, but
 > they have not been proven on real game packages yet. The preview is drawn
-> by VibeStudio itself and approximates each engine: see
+> by SlopStudio itself and approximates each engine: see
 > [What the preview leaves out](manual/materials.md#what-the-preview-leaves-out).
 
 ### Open materials
@@ -7049,7 +7049,7 @@ from them too, a PWAD's textures merge with its IWAD's, and the game's own
 materials are listed, marked **(base)** and read only. To change one, choose
 **Override in Package** on its context menu or under **More**: the material
 is copied into a script the game reads after its own
-(`scripts/zz_vibestudio_overrides.shader`), where your copy wins. Save to stage
+(`scripts/zz_slopstudio_overrides.shader`), where your copy wins. Save to stage
 it into the package.
 
 #### Which Quake III game
@@ -7216,11 +7216,11 @@ file in **Code**, and shows a script on the **Packages** page.
 ### Command-line equivalents
 
 ```sh
-vibestudio --cli material list ./baseq3 --where "animated=yes" --json
-vibestudio --cli material validate ./mymod --base ./baseq3
-vibestudio --cli material render ./baseq3 --material textures/sfx/fire_ctfblue --frames 8 --fps 10 --output fire.png
-vibestudio --cli material usage ./mymod --unused
-vibestudio --cli material inspect ./scripts/jk.shader --dialect jediknight
+slopstudio --cli material list ./baseq3 --where "animated=yes" --json
+slopstudio --cli material validate ./mymod --base ./baseq3
+slopstudio --cli material render ./baseq3 --material textures/sfx/fire_ctfblue --frames 8 --fps 10 --output fire.png
+slopstudio --cli material usage ./mymod --unused
+slopstudio --cli material inspect ./scripts/jk.shader --dialect jediknight
 ```
 
 `material render` draws with the same renderer; add `--renderer opengl` or
@@ -7311,7 +7311,7 @@ files of skeletal models.
 | Doom 3, Quake 4, Prey, Quake Wars, The Dark Mod | MD5 mesh and animation, LightWave LWO, ASE | MD5 mesh, MD5 animation, ASE |
 | Any modeller | Wavefront OBJ, glTF 2.0 (`.gltf`, `.glb`) | OBJ (one frame); glTF is read only |
 
-Some models need other files to be complete. VibeStudio looks for them in the
+Some models need other files to be complete. SlopStudio looks for them in the
 same package, or in the folder of a loose file and the folders above it:
 
 - An MDM needs its MDX, and a GLM its GLA. Without them the model cannot be
@@ -7322,13 +7322,13 @@ same package, or in the folder of a loose file and the folders above it:
   for animation. Missing ones are named in a warning.
 
 Jedi Outcast player models on the Jedi Academy skeleton are refused:
-Jedi Academy remaps them with a table VibeStudio cannot include for licensing
+Jedi Academy remaps them with a table SlopStudio cannot include for licensing
 reasons, so open them with the Jedi Outcast `_humanoid.gla`.
 
 <details>
 <summary>Every format, with what it keeps</summary>
 
-Run `vibestudio --cli model formats` for the same list with its notes. The
+Run `slopstudio --cli model formats` for the same list with its notes. The
 [native formats record](MODEL_FORMATS.md) and the
 [support matrix](SUPPORT_MATRIX.md) have the detail.
 
@@ -7383,7 +7383,7 @@ material to be open.
 ### Skeletal models
 
 MD5, IQM, MDS, MDM, MDR, Ghoul 2 and Half-Life models animate through joints.
-VibeStudio poses every skeletal animation into ordinary frames, so you can
+SlopStudio poses every skeletal animation into ordinary frames, so you can
 preview, edit and export them like any other model, and the skeleton is kept
 alongside:
 
@@ -7569,7 +7569,7 @@ asks you to choose the rest; see [pose clipboard](MODEL_RIG.md#copy-paste-and-mi
 
 Export **glTF 2.0** from Blender (either **glTF Binary (.glb)** or
 **glTF Separate (.gltf + .bin)**) and open it with **Model > Open / Import…**,
-or run `vibestudio --cli model import model.glb --output model.mesh.json`.
+or run `slopstudio --cli model import model.glb --output model.mesh.json`.
 
 - Armatures come in as a skeleton with every action that moves a bone as a
   clip; shape key animation comes in as vertex frames.
@@ -7899,7 +7899,7 @@ and keys:
 
 | Profile | Navigation | Transforms | Layout |
 | --- | --- | --- | --- |
-| **VibeStudio (Blender-style)** | Middle-drag orbits, <kbd>Shift</kbd>+middle pans, <kbd>Ctrl</kbd>+middle zooms; <kbd>Alt</kbd>+left drag also orbits | <kbd>G</kbd>, <kbd>R</kbd>, <kbd>S</kbd> start at once | One view |
+| **SlopStudio (Blender-style)** | Middle-drag orbits, <kbd>Shift</kbd>+middle pans, <kbd>Ctrl</kbd>+middle zooms; <kbd>Alt</kbd>+left drag also orbits | <kbd>G</kbd>, <kbd>R</kbd>, <kbd>S</kbd> start at once | One view |
 | **Blender** | As above, without the <kbd>Alt</kbd> drag | As above | One view |
 | **3ds Max** | Middle-drag pans, <kbd>Alt</kbd>+middle orbits, <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+middle zooms | <kbd>Q</kbd>, <kbd>W</kbd>, <kbd>E</kbd>, <kbd>R</kbd> pick a tool, then drag | Four views: Top, Front, Left, Perspective |
 | **MilkShape 3D** | Left drag rotates the 3D view, <kbd>Ctrl</kbd>+left drag pans, <kbd>Shift</kbd>+left drag zooms | <kbd>F1</kbd> to <kbd>F4</kbd> pick a tool, then drag | Four views: Front, Top, Right, Perspective |
@@ -7971,7 +7971,7 @@ Every profile can be used without a mouse:
   stage and recovery), and the other menus open with their underlined
   letters. <kbd>F3</kbd> also finds every **Model** menu command by name,
   **Keep Local Recovery Copies** included.
-- With the VibeStudio and Blender controls, <kbd>Tab</kbd> switches between
+- With the SlopStudio and Blender controls, <kbd>Tab</kbd> switches between
   whole surfaces and their components, and <kbd>Shift</kbd>+<kbd>Tab</kbd>
   toggles snapping, but only while the view has focus. Everywhere else,
   <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> move between controls as
@@ -8147,7 +8147,7 @@ Current/all-frame scope, seam copies, undo and CLI use the same service. UVs
 stay attached to the moved vertices. See [edge sliding](MODEL_EDGE_SLIDE.md)
 for rail direction, selection requirements and limits.
 
-**Edge → Bevel Edges** (**Ctrl+B** in VibeStudio/Blender) creates chamfers or
+**Edge → Bevel Edges** (**Ctrl+B** in SlopStudio/Blender) creates chamfers or
 rounded edge bands. Type a width and change segments with the wheel or
 **Page Up/Down**, then confirm or cancel. **Adjust Last Operation** adds
 roundness, UV tile size and **Clamp width to fit**, which narrows a bevel that
@@ -8156,7 +8156,7 @@ follow the cut geometry across all retained poses. Original face UVs stay
 separate, while new bands/caps need atlas packing where appropriate. See
 [edge bevel](MODEL_EDGE_BEVEL.md) for width semantics and refusal conditions.
 
-**Mesh → Knife** (**K** in VibeStudio/Blender) cuts a path into the active
+**Mesh → Knife** (**K** in SlopStudio/Blender) cuts a path into the active
 surface. Click points, use **N** or right-click for another chain, then
 **Enter/Space** to apply or **Esc** to discard. **C** toggles cut-through,
 **S** restricts cuts to selected faces, **A** constrains screen angles,
@@ -8321,7 +8321,7 @@ MDL page take a skin member out and back, mapped to the model's palette.
    package path. **Dismiss** keeps the model's skin.
 
 Turn on **Apply Saved Skins Automatically** in the UV toolbar to apply every
-save at once. The project is kept in the project's `.vibestudio/model-skins`
+save at once. The project is kept in the project's `.slopstudio/model-skins`
 folder. If you export or stage from Textures yourself, hide the UV guide first.
 
 #### Keep a painted skin after changing UVs
@@ -8569,7 +8569,7 @@ The Levels page **Models** tab, the Mesh Editor's and **Design Prop**'s
 **Stage and Place**, and `map place-model` all place models the same way:
 
 - A Quake III map bakes MD3, ASE, MDC, MD2, OBJ, LWO and FM models into the map
-  as `misc_model` (VibeMap3 reads them as q3map2 does), unless the entity
+  as `misc_model` (SlopMap3 reads them as q3map2 does), unless the entity
   definitions loaded in the Levels workbench declare only `misc_gamemodel`.
 - A Quake or Quake II map places MDL and MD2 models as the class your loaded
   definitions use for models (`misc_model`, else `misc_gamemodel`). Other
@@ -8938,7 +8938,7 @@ limits and the `model frames` command.
   weight and skeletal pose tools are available.
   Game animation scripts (Jedi Academy `animation.cfg`,
   Wolfenstein scripts, GZDoom MODELDEF) are not read; Doom 3 `.def` frame
-  commands are, and VibeStudio writes Doom 3, QuakeC, Quake II and GZDoom
+  commands are, and SlopStudio writes Doom 3, QuakeC, Quake II and GZDoom
   declarations.
 - A skeletal clip too long for the editable frame budget on its own cannot
   join the working set: edit it through the skeletal tools, which preview one
@@ -8958,12 +8958,12 @@ limits and the `model frames` command.
 ### Command-line equivalents
 
 ```sh
-vibestudio --cli model inspect ./id1/pak0.pak progs/player.mdl --json
-vibestudio --cli model import ./prop.obj --output ./prop.mesh.json --dry-run --json
-vibestudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./player.mesh.json --dry-run --json
-vibestudio --cli model build ./prop.mesh.json --output ./build/prop.md5mesh --dry-run --json
-vibestudio --cli model build ./monster.mesh.json --all-clips --output-dir ./build/anims --strict --json
-vibestudio --cli model controls --profile 3ds-max --section keys
+slopstudio --cli model inspect ./id1/pak0.pak progs/player.mdl --json
+slopstudio --cli model import ./prop.obj --output ./prop.mesh.json --dry-run --json
+slopstudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./player.mesh.json --dry-run --json
+slopstudio --cli model build ./prop.mesh.json --output ./build/prop.md5mesh --dry-run --json
+slopstudio --cli model build ./monster.mesh.json --all-clips --output-dir ./build/anims --strict --json
+slopstudio --cli model controls --profile 3ds-max --section keys
 ```
 
 <details>
@@ -9060,7 +9060,7 @@ Playback uses Qt Multimedia. Windows and macOS release builds include it; Linux
 release builds do not yet, so the playback controls stay disabled there and the
 **Volume** tooltip says the build has no audio playback. Everything else on
 this page, including editing and export, works without it. If no output device
-is available, VibeStudio reports a retryable error: choose an output in your
+is available, SlopStudio reports a retryable error: choose an output in your
 system's sound settings and press Play again.
 
 ### Edit a sound
@@ -9185,10 +9185,10 @@ and delivered in the game's format; play them, then choose **Save to Project**,
 ### Command-line equivalents
 
 ```sh
-vibestudio --cli asset audio-wav ./pak0.pk3 sound/items/pickup.wav --output ./pickup.wav --dry-run
-vibestudio --cli asset audio-edit ./sound.wav --operation normalize --db -1 --output ./normalized.wav --dry-run --json
-vibestudio --cli asset audio-export ./sound.vsaudio --preset doom --output ./DSWIND.dmx --dry-run --json
-vibestudio --cli asset audio-analyze ./sound.vsaudio --json
+slopstudio --cli asset audio-wav ./pak0.pk3 sound/items/pickup.wav --output ./pickup.wav --dry-run
+slopstudio --cli asset audio-edit ./sound.wav --operation normalize --db -1 --output ./normalized.wav --dry-run --json
+slopstudio --cli asset audio-export ./sound.vsaudio --preset doom --output ./DSWIND.dmx --dry-run --json
+slopstudio --cli asset audio-analyze ./sound.vsaudio --json
 ```
 
 <details>
@@ -9241,7 +9241,7 @@ Choose **Code** on the rail, or press <kbd>Ctrl</kbd>+<kbd>7</kbd>
 
 - The **Files** tab lists the project's source and text files. The list fills
   in the background; **Refresh Tree** scans again after you add files outside
-  VibeStudio.
+  SlopStudio.
 - The **Outline** tab lists the functions, shaders or entity classes in the
   open file; select one to jump to it.
 - **Go to File** (<kbd>Ctrl</kbd>+<kbd>P</kbd>) opens any project file from
@@ -9336,7 +9336,7 @@ Without a language server, definitions come from a project index of names, so
 they are textual; **Index Code** on the page header rebuilds it, and the
 **Index** tab shows its results. Find All References then uses a whole-word
 text search, and completion offers names from the file, the index and the
-language's keywords. The **Problems** tab lists what VibeStudio's checks find
+language's keywords. The **Problems** tab lists what SlopStudio's checks find
 in the open file; problem lines are underlined, and the problem count above the
 editor jumps to the next one.
 
@@ -9346,7 +9346,7 @@ editor jumps to the next one.
 mark, line endings and final newline, and **Save File As…**
 (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>) writes a copy.
 
-- If the file changed on disk since you opened it, VibeStudio asks before
+- If the file changed on disk since you opened it, SlopStudio asks before
   writing; **Cancel** is the default and keeps both versions.
 - When another program changes an open file, a tab without unsaved edits
   reloads by itself, and a tab with unsaved edits asks first.
@@ -9364,7 +9364,7 @@ a script.
 
 A language server, such as `clangd` for C and C++, adds live diagnostics,
 symbol information, parameter hints, smarter completion, formatting and
-renaming. VibeStudio does not include or install one.
+renaming. SlopStudio does not include or install one.
 
 1. Open the **Language Server** tab below the editor.
 2. Choose the server program by its full path, then enter the language
@@ -9414,9 +9414,9 @@ much more (see [Materials and shaders](manual/materials.md)).
 ### Command-line equivalents
 
 ```sh
-vibestudio --cli code index ./mymod --find monster --json
-vibestudio --cli asset find ./mymod --find player --whole-word --include "*.qc;*.qh" --json
-vibestudio --cli shader inspect ./scripts/common.shader --package ./baseq3 --json
+slopstudio --cli code index ./mymod --find monster --json
+slopstudio --cli asset find ./mymod --find player --whole-word --include "*.qc;*.qh" --json
+slopstudio --cli shader inspect ./scripts/common.shader --package ./baseq3 --json
 ```
 
 <details>
@@ -9448,42 +9448,42 @@ The `code text-…` commands and `asset replace` only preview until you add
 
 ## Build and launch
 
-The Build page compiles your map with VibeStudio's own VibeMap2 and VibeMap3 compilers or the Doom
+The Build page compiles your map with SlopStudio's own SlopMap2 and SlopMap3 compilers or the Doom
 node builders, shows each problem where it happens, and starts the game with the result. This page
 covers setting up the compilers, running a build, fixing problems and leaks, and launching a test.
 
 > [!NOTE]
-> **Status: Partial.** Build pipelines for Quake, Quake III and Doom maps run VibeMap2, VibeMap3,
-> ZDBSP and ZokumBSP and report problems, leaks and outputs. VibeStudio does not include the
+> **Status: Partial.** Build pipelines for Quake, Quake III and Doom maps run SlopMap2, SlopMap3,
+> ZDBSP and ZokumBSP and report problems, leaks and outputs. SlopStudio does not include the
 > compiler programs yet, and only a few compiler and game combinations have been tested end to end.
-> On 2026-10-08 VibeMap2 and VibeMap3 passed VibeStudio's Quake, Quake II and Quake III prepared-build
+> On 2026-10-08 SlopMap2 and SlopMap3 passed SlopStudio's Quake, Quake II and Quake III prepared-build
 > tests on Windows; other platforms, games and the older stock-compiler tests are still to be repeated.
 
 ### Install the compilers
 
-VibeStudio runs four compilers. VibeMap2 and VibeMap3 are VibeStudio's own, developed as part of the
-project: VibeMap2 is derived from ericw-tools and VibeMap3 continues q3map2 from NetRadiant Custom.
-ZDBSP and ZokumBSP are external projects. The source code of all four is kept with the VibeStudio
-source, but VibeStudio builds do not include the compiler programs yet: build or download the ones
+SlopStudio runs four compilers. SlopMap2 and SlopMap3 are SlopStudio's own, developed as part of the
+project: SlopMap2 is derived from ericw-tools and SlopMap3 continues q3map2 from NetRadiant Custom.
+ZDBSP and ZokumBSP are external projects. The source code of all four is kept with the SlopStudio
+source, but SlopStudio builds do not include the compiler programs yet: build or download the ones
 you need from their own projects.
 
 | Compiler | Used for | Programs |
 | --- | --- | --- |
-| [VibeMap2](https://github.com/themuffinator/VibeyMapTools) | Quake and Quake II maps | `vibemap2-bsp`, `vibemap2-vis`, `vibemap2-light` |
-| [VibeMap3](https://github.com/themuffinator/q3mapx) | Quake III-family maps | `vibemap3` |
+| [SlopMap2](https://github.com/themuffinator/VibeyMapTools) | Quake and Quake II maps | `slopmap2-bsp`, `slopmap2-vis`, `slopmap2-light` |
+| [SlopMap3](https://github.com/themuffinator/q3mapx) | Quake III-family maps | `slopmap3` |
 | [ZDBSP](https://github.com/rheit/zdbsp) | Doom-family nodes | `zdbsp` |
 | [ZokumBSP](https://github.com/zokum-no/zokumbsp) | Doom-family nodes, blockmap and reject | `zokumbsp` |
 
-VibeMap2 releases come as `vibemap2-windows-<version>.zip`, `vibemap2-linux-<version>.tar.gz` and
-`vibemap2-macos-<version>.tar.gz`, with every program at the top of the archive. Add the extracted
-folder to your PATH or to the project's compiler search paths, and VibeStudio finds the programs.
+SlopMap2 releases come as `slopmap2-windows-<version>.zip`, `slopmap2-linux-<version>.tar.gz` and
+`slopmap2-macos-<version>.tar.gz`, with every program at the top of the archive. Add the extracted
+folder to your PATH or to the project's compiler search paths, and SlopStudio finds the programs.
 
-VibeStudio also finds VibeMap2 and VibeMap3 under their earlier names (`vmt-bsp` and the other
+SlopStudio also finds SlopMap2 and SlopMap3 under their earlier names (`vmt-bsp` and the other
 `vmt-` programs, and `q3mapx`), and in their build folders when you build them from the copies in
 `external/compilers`. Stock ericw-tools (`qbsp`, `vis`, `light`) and q3map2 are not found
 automatically; to use one, choose its program with **Locate…** as described below.
 
-### Point VibeStudio at your compilers
+### Point SlopStudio at your compilers
 
 Open the Build page (<kbd>Ctrl</kbd>+<kbd>9</kbd>) and choose the **Toolchain** tab. On macOS, press
 <kbd>Cmd</kbd> wherever this page says <kbd>Ctrl</kbd>. **Compiler tools** lists every tool with its
@@ -9502,9 +9502,9 @@ they win over your choice, and **Path from** shows **Project manifest**; see
 [Projects and game installations](manual/projects.md#describe-the-project-with-a-manifest).
 
 **Compiler profiles**, below the tools, lists every single compiler step, such as
-**VibeMap2 bsp** or **VibeMap3 light**, and whether its tool is ready. **Run Profile**
+**SlopMap2 bsp** or **SlopMap3 light**, and whether its tool is ready. **Run Profile**
 (<kbd>Ctrl</kbd>+<kbd>R</kbd>) runs the selected step, **Copy CLI**
-(<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>) copies a matching `vibestudio --cli compiler run`
+(<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>C</kbd>) copies a matching `slopstudio --cli compiler run`
 command, and **Copy Manifest** copies the step's command manifest.
 
 ### Build a map
@@ -9518,16 +9518,16 @@ command, and **Copy Manifest** copies the step's command manifest.
    The stages run in order, each feeding the next. **Pipeline Stages** shows their progress, and the
    Activity Center keeps the full log.
 
-If the map has unsaved edits, VibeStudio asks first, because the compilers read the file on disk:
+If the map has unsaved edits, SlopStudio asks first, because the compilers read the file on disk:
 **Save** includes your edits, **Build Saved File** builds what is on disk, and **Cancel** stops.
 **Cancel** on the Build header stops a running build after the current stage.
 
 | Pipeline | Stages | Input |
 | --- | --- | --- |
-| **Quake full compile** | QBSP, then VIS and LIGHT (VibeMap2) | `.map` |
+| **Quake full compile** | QBSP, then VIS and LIGHT (SlopMap2) | `.map` |
 | **Quake fast iteration** | QBSP and LIGHT; VIS is skipped | `.map` |
 | **Quake BSP only** | QBSP | `.map` |
-| **Quake III full compile** | BSP, then VIS and LIGHT (VibeMap3) | `.map` |
+| **Quake III full compile** | BSP, then VIS and LIGHT (SlopMap3) | `.map` |
 | **Quake III BSP only** | BSP | `.map` |
 | **Doom nodes (ZDBSP)** | Nodes | `.wad` |
 | **Doom nodes (ZokumBSP)** | Nodes | `.wad` |
@@ -9564,8 +9564,8 @@ from the Toolchain settings.
 
 A project folder, or the saved runs beside a map, can come from someone else, and both can name a
 program: a project's own compiler paths, a pipeline's compiler, or the program a saved run replays.
-VibeStudio starts such a program without asking only when it is one of your configured compilers for
-that game: one set on the **Toolchain** tab or with `compiler set-path`, or one found in VibeStudio's
+SlopStudio starts such a program without asking only when it is one of your configured compilers for
+that game: one set on the **Toolchain** tab or with `compiler set-path`, or one found in SlopStudio's
 compiler folders or on your PATH. Otherwise **Run Pipeline**, **Run Profile** and
 **Re-run Last Compile** first show the program, its full command line and its folder.
 **Cancel**, the default, runs nothing. **Trust and Run** runs it and remembers the choice in your own
@@ -9592,15 +9592,15 @@ and **Copy All Problems**. Press <kbd>F4</kbd> and <kbd>Shift</kbd>+<kbd>F4</kbd
 through the last build's problems. **Explain** on the toolbar opens the Assistant with the problems
 ready to ask about; AI stays off unless you turn it on, as described in [AI assistant](manual/ai.md).
 
-Known-issue explanations use the VibeMap2 3.1.0 audit and keep ericw-tools issue
+Known-issue explanations use the SlopMap2 3.1.0 audit and keep ericw-tools issue
 numbers for reference. Reports fixed in that fork no longer add plan or map
 preflight warnings. Platform requirements are guidance; retained historical
 reports still need case-specific verification. Actual compiler warnings and
 errors remain visible. See the [issue reconciliation](plans/ericw-tools-remaining-bugs-resolution.md)
 for the evidence and remaining limits, including older/custom compiler builds.
 
-VibeMap2's `-embedsettings` option can store effective lighting settings in the
-BSP; it is opt-in. Keep VibeStudio's command manifests for the complete build.
+SlopMap2's `-embedsettings` option can store effective lighting settings in the
+BSP; it is opt-in. Keep SlopStudio's command manifests for the complete build.
 
 #### Find a leak
 
@@ -9616,20 +9616,20 @@ compiled BSP and any leak or portal file beside it.
 ### Launch the game
 
 Launching needs a game installation profile; add one on the Workspace page first, as described in
-[Projects and game installations](manual/projects.md#add-your-game-installations). VibeStudio launches the
+[Projects and game installations](manual/projects.md#add-your-game-installations). SlopStudio launches the
 installation marked **in use**, or the first one when none is. Then open the **Launch and Test** tab:
 
 1. **Launch profile**: keep **Automatic (matches the installation)**, choose a source port style, or choose one of
    your own launch profiles (see below).
 2. **Map**: the map to load. It defaults to the map the build produces.
 3. **Game folder**: the folder inside the installation the game loads, such as your mod's folder.
-   Leave it empty for the base game. VibeStudio remembers it for each installation.
+   Leave it empty for the base game. SlopStudio remembers it for each installation.
 4. **Extra arguments**: engine arguments added after the profile's, such as `+set developer 1`. Quotes keep spaces,
-   as in `+set name "Test Player"`. VibeStudio remembers them for each installation; text with an unclosed quote
+   as in `+set name "Test Player"`. SlopStudio remembers them for each installation; text with an unclosed quote
    is neither kept nor used until the quote is closed.
 5. Keep **Copy build to game** ticked to copy the built map into the game first.
 6. Choose **Launch Game** (<kbd>Ctrl</kbd>+<kbd>G</kbd>).
-   VibeStudio shows the exact command line, working folder and any file copies, and starts the game
+   SlopStudio shows the exact command line, working folder and any file copies, and starts the game
    only when you choose **Launch**. From the Levels page, **Launch Game** shows this review over the map without
    switching pages.
 
@@ -9653,7 +9653,7 @@ usual arguments. Give it a **Name**, an **Engine** (or **Any game**) and the **A
 
 **Preview** shows the arguments with the current values. Arguments are grouped from each switch (a word starting with
 `-` or `+`) to the next, and a group whose token has no value is left out: with no **Game folder**,
-`+set fs_game {mod}` is dropped and the base game loads. A token VibeStudio does not know, or an unclosed quote, is
+`+set fs_game {mod}` is dropped and the base game loads. A token SlopStudio does not know, or an unclosed quote, is
 named under the fields and keeps **OK** unavailable. Your profiles then appear at the end of **Launch profile**:
 those made for **Any game**, and those made for the engine of the installation in use.
 
@@ -9664,7 +9664,7 @@ those made for **Any game**, and those made for the engine of the installation i
   NetRadiant Custom profile it is <kbd>F5</kbd>, as in NetRadiant Custom, and **Build and Launch** has no key there.
 - **Build** > **Re-run Last Compile** replays the open map's newest saved compile, the same program, arguments and
   folder, as TrenchBroom's **Re-run Compilation** does. **Run Profile** saves each run under
-  `.vibestudio/compiler-runs` in the project, or beside the map with no project open, and the command is available
+  `.slopstudio/compiler-runs` in the project, or beside the map with no project open, and the command is available
   once the open map has a saved run there. If saving your edits writes a new file, that file is compiled with the same
   profile instead. A saved run whose program is not one of your configured compilers asks first, as described in
   [When a build asks before running a program](manual/build-and-launch.md#when-a-build-asks-before-running-a-program).
@@ -9688,14 +9688,14 @@ compiler reported.
 #### Allow test maps
 
 Quake-family engines only load maps from a game folder's `maps` folder. With **Copy build to game**
-ticked, VibeStudio copies the built BSP, and any `.lit` or `.lux` lighting file beside it, into
+ticked, SlopStudio copies the built BSP, and any `.lit` or `.lux` lighting file beside it, into
 `<installation>/<game folder>/maps` before launching, using the base game's folder when
 **Game folder** is empty. Doom source ports read the built WAD where it is, so nothing is copied for
 Doom.
 
 Installation profiles are read-only to start with. The first time a launch needs to copy a map,
-VibeStudio asks whether to **Allow Test Maps** for that installation. If you allow it, the profile
-keeps the permission and VibeStudio does not ask again. Nothing else in the installation is written.
+SlopStudio asks whether to **Allow Test Maps** for that installation. If you allow it, the profile
+keeps the permission and SlopStudio does not ask again. Nothing else in the installation is written.
 To take the permission back, clear **Allow test maps** for the installation on the Workspace page.
 
 ### Build and launch in one step
@@ -9728,29 +9728,29 @@ details.
 
 | Task | Command |
 | --- | --- |
-| List pipelines, the project's own too | `vibestudio --cli build list --workspace-root <project>` |
-| Plan a build without running it | `vibestudio --cli build plan <pipeline> --input <map>` |
-| Run a build | `vibestudio --cli build run <pipeline> --input <map> --watch` |
-| Add, change or remove a project pipeline | `vibestudio --cli build pipeline-set <id> --workspace-root <project> --name <name> --from <pipeline>`, `build pipeline-remove <id> --workspace-root <project>` |
-| Show compiler discovery | `vibestudio --cli compiler list` |
-| Choose or forget a compiler | `vibestudio --cli compiler set-path <tool> --executable <path>`, `compiler clear-path <tool>` |
-| Run one compiler step | `vibestudio --cli compiler run <profile> --input <map>` |
-| Replay a map's newest saved compile | `vibestudio --cli compiler rerun --last <map> --workspace-root <project>` |
-| Inspect a compiled map | `vibestudio --cli bsp inspect <bsp>` |
-| Draw a leak trail to a picture | `vibestudio --cli map render <map> --leak <file.pts> --output <file.svg>` |
-| Plan or start a launch | `vibestudio --cli launch plan --map <name>`, `launch run --map <name>` |
-| List, add or remove launch profiles | `vibestudio --cli launch profiles`, `launch profile-set <id> --name <name> --arguments "<line>"`, `launch profile-remove <id>` |
-| Show or set an installation's extra arguments | `vibestudio --cli launch extra-args --arguments "+set developer 1"`, `launch extra-args --clear` |
-| Release the built map | `vibestudio --cli release publish <project> --map <map> --release-version <version>` |
+| List pipelines, the project's own too | `slopstudio --cli build list --workspace-root <project>` |
+| Plan a build without running it | `slopstudio --cli build plan <pipeline> --input <map>` |
+| Run a build | `slopstudio --cli build run <pipeline> --input <map> --watch` |
+| Add, change or remove a project pipeline | `slopstudio --cli build pipeline-set <id> --workspace-root <project> --name <name> --from <pipeline>`, `build pipeline-remove <id> --workspace-root <project>` |
+| Show compiler discovery | `slopstudio --cli compiler list` |
+| Choose or forget a compiler | `slopstudio --cli compiler set-path <tool> --executable <path>`, `compiler clear-path <tool>` |
+| Run one compiler step | `slopstudio --cli compiler run <profile> --input <map>` |
+| Replay a map's newest saved compile | `slopstudio --cli compiler rerun --last <map> --workspace-root <project>` |
+| Inspect a compiled map | `slopstudio --cli bsp inspect <bsp>` |
+| Draw a leak trail to a picture | `slopstudio --cli map render <map> --leak <file.pts> --output <file.svg>` |
+| Plan or start a launch | `slopstudio --cli launch plan --map <name>`, `launch run --map <name>` |
+| List, add or remove launch profiles | `slopstudio --cli launch profiles`, `launch profile-set <id> --name <name> --arguments "<line>"`, `launch profile-remove <id>` |
+| Show or set an installation's extra arguments | `slopstudio --cli launch extra-args --arguments "+set developer 1"`, `launch extra-args --clear` |
+| Release the built map | `slopstudio --cli release publish <project> --map <map> --release-version <version>` |
 
 For example:
 
 ```sh
-vibestudio --cli build plan quake-full --input ./maps/start.map
-vibestudio --cli build run quake-full --input ./maps/start.map --watch
-vibestudio --cli compiler set-path vibemap2-bsp --executable /opt/vibemap2/vibemap2-bsp
-vibestudio --cli launch plan --bsp ./maps/start.bsp --deploy
-vibestudio --cli launch run --bsp ./maps/start.bsp --deploy --allow-test-maps
+slopstudio --cli build plan quake-full --input ./maps/start.map
+slopstudio --cli build run quake-full --input ./maps/start.map --watch
+slopstudio --cli compiler set-path slopmap2-bsp --executable /opt/slopmap2/slopmap2-bsp
+slopstudio --cli launch plan --bsp ./maps/start.bsp --deploy
+slopstudio --cli launch run --bsp ./maps/start.bsp --deploy --allow-test-maps
 ```
 
 The pipeline names are `quake-full`, `quake-fast`, `quake-bsp-only`, `quake3-full`,
@@ -9774,7 +9774,7 @@ arguments unless you pass `--extra-args`, and `--launch-profile` takes your own 
 
 ## AI assistant (optional)
 
-VibeStudio can ask a text, image or sound model for help: questions about your
+SlopStudio can ask a text, image or sound model for help: questions about your
 map, code or build, generated levels, textures and sounds, and proposed map
 edits. All of it is optional, and nothing is sent anywhere until you turn it
 on.
@@ -9791,7 +9791,7 @@ on.
 
 ### AI-free mode
 
-AI-free mode is on when you install VibeStudio. While it is on, no request goes
+AI-free mode is on when you install SlopStudio. While it is on, no request goes
 to any model, local or cloud, and the status bar shows **AI-free**. Editing,
 building, packaging, validation, launching and the command line never need
 AI, and every generator has a local path that works without it.
@@ -9799,7 +9799,7 @@ AI, and every generator has a local path that works without it.
 A project can also switch AI off for itself, whatever the studio setting:
 
 ```sh
-vibestudio --cli project init ./mymod --project-ai-free on
+slopstudio --cli project init ./mymod --project-ai-free on
 ```
 
 A project can only make AI stricter; it never turns AI on. Run the same command
@@ -9876,7 +9876,7 @@ Stable Diffusion web UI, such as AUTOMATIC1111 or Forge, at
 
 ### Use your Claude or ChatGPT login
 
-If you have a Claude or ChatGPT plan, VibeStudio can ask its models through the
+If you have a Claude or ChatGPT plan, SlopStudio can ask its models through the
 tools you already sign in to, with no API key: **Claude Code** for Claude (for
 example Opus 5.5), and **Codex** for OpenAI's models. Every text feature works
 this way: the Assistant, both level generators, **Edit Map with AI**, and
@@ -9897,7 +9897,7 @@ this way: the Assistant, both level generators, **Edit Map with AI**, and
    says how, then asks it to reply OK. If the tool is signed in with an API
    key, it warns you that requests are billed to that key, not to your plan.
 
-VibeStudio runs the tool in a new, empty folder, so it can only answer:
+SlopStudio runs the tool in a new, empty folder, so it can only answer:
 
 - **Claude Code** runs in print mode with `--safe-mode`: no built-in tools,
   MCP servers, hooks, plugins, `CLAUDE.md` files, memory or saved session.
@@ -9915,14 +9915,14 @@ VibeStudio runs the tool in a new, empty folder, so it can only answer:
 - Cancelling a request, or its timing out, ends the tool and everything it
   started, then removes the run folder.
 
-VibeStudio never reads the tools' credentials. The first request from a
+SlopStudio never reads the tools' credentials. The first request from a
 project shows exactly what will run, command and all, in the usual
-**Send to …?** dialog. If a tool is too old for an option VibeStudio passes,
-the request fails with "… is older than VibeStudio needs" and the command
+**Send to …?** dialog. If a tool is too old for an option SlopStudio passes,
+the request fails with "… is older than SlopStudio needs" and the command
 that updates it.
 
 **Custom Command** runs any other program that answers a prompt, such as
-another vendor's command-line tool. VibeStudio cannot tell where the program
+another vendor's command-line tool. SlopStudio cannot tell where the program
 sends your prompt, so it counts as a cloud connector even when it runs on your
 computer: it needs **Allow cloud AI connectors**, and the first request from a
 project asks you first. Enter its command line as the **Program**, with
@@ -9941,7 +9941,7 @@ Gemini, a local runtime or a custom endpoint. For sounds, set **Audio** and its
 model under **Sound Model**: ElevenLabs or a custom endpoint. Each generator
 also has its own path with no AI.
 
-### Run a GGUF model inside VibeStudio
+### Run a GGUF model inside SlopStudio
 
 > [!NOTE]
 > **Status: Partial.** Only builds you make yourself with `-Dggml=enabled` can
@@ -9981,7 +9981,7 @@ its own grammar and records the model file's SHA-256 in its report.
 ### Use a cloud provider
 
 1. Put your provider's API key in an environment variable for your user
-   account (see the table below), then restart VibeStudio so it can read it.
+   account (see the table below), then restart SlopStudio so it can read it.
 2. Open **Settings** > **AI and Automation**, untick **AI-free mode** and tick
    **Allow cloud AI connectors**.
 3. Under **Text Model**, pick the provider in **Connector** and type the
@@ -10008,7 +10008,7 @@ The ID is what the command line takes, as in `--provider claude-code` or
 | **Local GGUF Model (ggml)** | `local-gguf` | Text questions from a `.gguf` file, only in builds made with `-Dggml=enabled`, not in the released packages | None | Partial |
 | **Meshy** | `meshy` | Listed for 3D and pictures; sends nothing yet | `MESHY_API_KEY` | Planned |
 
-VibeStudio reads keys only from these environment variables. It never asks you
+SlopStudio reads keys only from these environment variables. It never asks you
 to type a key into the studio and never stores one in its settings, projects or
 logs. Do not paste keys into a question, a map, a script or a context file.
 
@@ -10039,7 +10039,7 @@ panel opens and explains which setting to change.
 
 ### Choose what is sent
 
-Only your question and the items you tick are sent, along with VibeStudio's
+Only your question and the items you tick are sent, along with SlopStudio's
 own instructions to the model. The page you are on decides what starts ticked:
 
 | Item | What it contains | Ticked at first on |
@@ -10063,7 +10063,7 @@ readable by default, or the raw request body. For Claude Code, Codex and
 Custom Command it shows the command that would run, with the files and input
 it would get; for the GGUF connector, what the model would be given.
 
-The first time a project sends to an endpoint off your computer, VibeStudio
+The first time a project sends to an endpoint off your computer, SlopStudio
 shows the request in a **Send to …?** dialog, where **Cancel** is the default
 and **Send** sends it. The dialog says where the request goes: to the
 provider, with your API key used only to sign in; to Anthropic or OpenAI
@@ -10123,7 +10123,7 @@ buttons appear:
 
 Like the Assistant, each generator asks before its first request to an
 endpoint off your computer. Saved textures and sounds record what made them in
-the project's `.vibestudio/generated` folder.
+the project's `.slopstudio/generated` folder.
 
 ### When a request cannot be sent
 
@@ -10137,13 +10137,13 @@ missing:
 | … has no endpoint. | Enter the **Endpoint**; a custom connector has no default. |
 | … sends to …, off this machine, and cloud connectors are not allowed. | Tick **Allow cloud AI connectors**, or use a local runtime. Claude Code, Codex and Custom Command always need it. |
 | No model is set for … | Type the **Model** name. |
-| … needs an API key in the … environment variable, which is not set. | Set the variable, then restart VibeStudio. |
+| … needs an API key in the … environment variable, which is not set. | Set the variable, then restart SlopStudio. |
 | … was not found (looked in: …). | Install Claude Code or Codex, or choose **Browse** next to **Program** and pick the program. |
 | … is not signed in. | Run `claude auth login` or `codex login` in a terminal. |
-| … is older than VibeStudio needs … | Update the tool: `claude update` for Claude Code, `npm install -g @openai/codex@latest` for Codex. |
+| … is older than SlopStudio needs … | Update the tool: `claude update` for Claude Code, `npm install -g @openai/codex@latest` for Codex. |
 | No command is set for Custom Command. | Enter the command line as the **Program**. |
-| … is a batch file VibeStudio cannot run safely. | Point **Program** at the `.exe`, or at `node` and the tool's script. |
-| This build of VibeStudio has no ggml runtime. | Use a build made with `-Dggml=enabled`, or run llama.cpp's server and use **Local/Offline Runtime**. |
+| … is a batch file SlopStudio cannot run safely. | Point **Program** at the `.exe`, or at `node` and the tool's script. |
+| This build of SlopStudio has no ggml runtime. | Use a build made with `-Dggml=enabled`, or run llama.cpp's server and use **Local/Offline Runtime**. |
 | No GGUF model file is set. | Choose **Browse** next to **Model** and pick a `.gguf` file. The same goes for "… does not exist" and "… is not a .gguf model file". |
 | This project turns AI off in its manifest. | Run `project init` with `--project-ai-free off`, as shown under [AI-free mode](manual/ai.md#ai-free-mode). |
 
@@ -10164,9 +10164,9 @@ missing:
 ### Command-line equivalents
 
 ```sh
-vibestudio --cli ai status --json
-vibestudio --cli ai test-connection --json
-vibestudio --cli ai ask --prompt "why does qbsp report a leak?" --context-file build/qbsp.log --dry-run
+slopstudio --cli ai status --json
+slopstudio --cli ai test-connection --json
+slopstudio --cli ai ask --prompt "why does qbsp report a leak?" --context-file build/qbsp.log --dry-run
 ```
 
 `--dry-run` prints the request without your key and sends nothing. A command
@@ -10184,9 +10184,9 @@ commands do not. For `claude-code`, `codex` and `custom-command`,
 the `.gguf` file:
 
 ```sh
-vibestudio --cli ai test-connection --provider claude-code --json
-vibestudio --cli ai ask --provider claude-code --model sonnet --prompt "why does qbsp report a leak?" --context-file build/qbsp.log --yes
-vibestudio --cli map generate --generator quake-mapgen --prompt "Quake 2 deathmatch, 8 rooms" --planner ai --output maps/qmg.map --report maps/qmg.json --yes
+slopstudio --cli ai test-connection --provider claude-code --json
+slopstudio --cli ai ask --provider claude-code --model sonnet --prompt "why does qbsp report a leak?" --context-file build/qbsp.log --yes
+slopstudio --cli map generate --generator quake-mapgen --prompt "Quake 2 deathmatch, 8 rooms" --planner ai --output maps/qmg.map --report maps/qmg.json --yes
 ```
 
 <details>
@@ -10222,7 +10222,7 @@ send nothing. See [Command line](manual/cli.md).
 
 ## Accessibility and languages
 
-VibeStudio lets you change contrast, text size, colours, motion, focus
+SlopStudio lets you change contrast, text size, colours, motion, focus
 visibility and speech, and use the whole studio from the keyboard. This page
 also covers interface languages, right-to-left layouts and region formats.
 
@@ -10324,7 +10324,7 @@ Under **Alerts and Screen Readers**:
   results and refusals (see
   [Use a screen reader, high contrast or reduced motion](manual/models.md#use-a-screen-reader-high-contrast-or-reduced-motion)).
 - **Flash the taskbar when background work finishes** (on by default) flashes
-  VibeStudio's taskbar or dock button when a long task ends while another
+  SlopStudio's taskbar or dock button when a long task ends while another
   window is in front.
 - **Play sound cues for task results** (off by default) plays a rising tone
   when a task finishes, a level tone for a warning or cancellation, and a
@@ -10337,7 +10337,7 @@ can read them. Some custom controls do not report everything yet.
 
 ### Read aloud with text-to-speech
 
-VibeStudio speaks with your computer's own voices; nothing goes to a cloud
+SlopStudio speaks with your computer's own voices; nothing goes to a cloud
 voice service.
 
 1. Under **Text to Speech**, tick **Read status changes aloud**.
@@ -10369,7 +10369,7 @@ else.
 If no engine can be found, the **Text to Speech** section says why, and every
 spoken message still appears on screen. Only the Windows engine has been
 checked with real voices so far. To choose an engine, or to silence speech for
-one run, set the `VIBESTUDIO_SPEECH_ENGINE` environment variable to `sapi`,
+one run, set the `SLOPSTUDIO_SPEECH_ENGINE` environment variable to `sapi`,
 `say`, `spd-say`, `espeak-ng`, `espeak` or `none`.
 
 ### Work from the keyboard
@@ -10403,7 +10403,7 @@ been checked everywhere, and a guided keyboard-only setup is still planned.
 1. Open **Settings** > **Appearance and Language** and find
    **Language and Region**.
 2. Choose a **Language**. The default, **System language** followed by your
-   system's language name, follows your operating system whenever VibeStudio
+   system's language name, follows your operating system whenever SlopStudio
    has that language.
 3. Choose **Restart Now** in the notice that appears. The new language shows
    after the restart.
@@ -10448,9 +10448,9 @@ or a specific region. A sample shows the result as you choose.
 ### Command-line equivalents
 
 ```sh
-vibestudio --cli accessibility report
-vibestudio --cli accessibility speak --test
-vibestudio --cli localization report --locale ar --json
+slopstudio --cli accessibility report
+slopstudio --cli accessibility speak --test
+slopstudio --cli localization report --locale ar --json
 ```
 
 | Command | What it does |
@@ -10614,7 +10614,7 @@ also given (the editor's **Add as a new surface**). Without a binding on a skinn
 exit code 4. See [binding new geometry](MODEL_SKIN_PROVENANCE.md#bind-new-geometry).
 
 ```sh
-vibestudio --cli model tool ./models/player.mesh.json --tool add --primitive cube --at 0,0,64 --size 12,12,12 --bind-joint head --output ./models/helmet.mesh.json
+slopstudio --cli model tool ./models/player.mesh.json --tool add --primitive cube --at 0,0,64 --size 12,12,12 --bind-joint head --output ./models/helmet.mesh.json
 ```
 
 On skeletal models with a skinned surface, `model edit --operation
@@ -10673,7 +10673,7 @@ DIR` writes the md5mesh, every clip's md5anim and the `.def`. See
 [game declarations](MODEL_GAME_DECLARATIONS.md).
 
 ```sh
-vibestudio --cli model declarations ./models/imp.mesh.json --target doom3 --name monster_imp --set ./out/base --json
+slopstudio --cli model declarations ./models/imp.mesh.json --target doom3 --name monster_imp --set ./out/base --json
 ```
 
 `model ik` solves two-bone inverse kinematics over an inclusive clip sample
@@ -10686,7 +10686,7 @@ per sample. It shares the GUI pose service, source writer and dry-run validation
 See [inverse kinematics](MODEL_IK.md) for required options and examples.
 
 ```sh
-vibestudio --cli model ik ./models/monster.mesh.json --clip 0 --first 0 --last 20 --root-joint tail1 --end-joint tail6 --solver fabrik --target 0,-40,8 --pole 0,-20,30 --output ./out/tail.mesh.json --json
+slopstudio --cli model ik ./models/monster.mesh.json --clip 0 --first 0 --last 20 --root-joint tail1 --end-joint tail6 --solver fabrik --target 0,-40,8 --pole 0,-20,30 --output ./out/tail.mesh.json --json
 ```
 
 `model build` first checks the model against a delivery target, the game the
@@ -10814,21 +10814,21 @@ q2-player-review|q2-player-export --player-name N --body B --weapon W --q2-skin
 NAME=IMAGE` a Quake II player, whose inputs may also be `package:PATH` entries. See [weapon packages](MODEL_ASSEMBLY.md#weapon-packages)
 and [Quake II player packages](MODEL_ASSEMBLY.md#quake-ii-player-packages).
 
-VibeStudio includes a full command line that runs the same services as the studio. Use it to script
-package checks, builds and conversions, to run VibeStudio in CI, or to inspect files without opening
+SlopStudio includes a full command line that runs the same services as the studio. Use it to script
+package checks, builds and conversions, to run SlopStudio in CI, or to inspect files without opening
 the studio. This page shows how to run it, the options every command shares, and how to use its
 output in scripts.
 
 > [!NOTE]
 > **Status: Available.** The command line covers every studio area, from projects and packages to
 > maps, models, builds and diagnostics, and shares its services and tests with the studio. Like the
-> rest of VibeStudio, it has had little real-world use so far.
+> rest of SlopStudio, it has had little real-world use so far.
 
 ### Connect map entities
 
 ```sh
-vibestudio --cli map connect maps/start.map --profile netradiant-custom --object entity:2 --object brush:0 --output maps/linked.map --json
-vibestudio --cli map connect maps/start.map --object entity:2 --object entity:7 --kill-target --game quake --output maps/kill-linked.map --dry-run --json
+slopstudio --cli map connect maps/start.map --profile netradiant-custom --object entity:2 --object brush:0 --output maps/linked.map --json
+slopstudio --cli map connect maps/start.map --object entity:2 --object entity:7 --kill-target --game quake --output maps/kill-linked.map --dry-run --json
 ```
 
 `map connect` (alias `map connect-entities`) connects sources to the last selected
@@ -10853,10 +10853,10 @@ transaction, and preserve the input file.
 ### Move brushes between map entities
 
 ```sh
-vibestudio --cli map move-to-entity maps/start.map --object brush:12 --object brush:7 --output maps/moved.map --json
-vibestudio --cli map move-to-world maps/start.map --object brush:12 --selected-only --output maps/world.map --json
-vibestudio --cli map explode-entity maps/start.map --object entity:4 --rename-targetnames --output maps/pieces.map --json
-vibestudio --cli map detail maps/start.map --object brush:12 --structural --policy trenchbroom --output maps/structural.map --json
+slopstudio --cli map move-to-entity maps/start.map --object brush:12 --object brush:7 --output maps/moved.map --json
+slopstudio --cli map move-to-world maps/start.map --object brush:12 --selected-only --output maps/world.map --json
+slopstudio --cli map explode-entity maps/start.map --object entity:4 --rename-targetnames --output maps/pieces.map --json
+slopstudio --cli map detail maps/start.map --object brush:12 --structural --policy trenchbroom --output maps/structural.map --json
 ```
 
 `map move-to-entity` (alias `map move-primitives`) moves the `--object` brushes
@@ -10883,9 +10883,9 @@ or `--policy` is a usage error (2). JSON reports `target`, `targetClass`,
 ### Colour map entities
 
 ```sh
-vibestudio --cli map entity-colour maps/start.map --object entity:3 --object brush:12 --colour "1 0.5 0" --output maps/orange.map --json
-vibestudio --cli map entity-colour maps/start.map --object entity:5 --object entity:3 --normalise --output maps/normalised.map --json
-vibestudio --cli map entity-colour maps/start.map --where class=light --normalise --each --output maps/lights.map --json
+slopstudio --cli map entity-colour maps/start.map --object entity:3 --object brush:12 --colour "1 0.5 0" --output maps/orange.map --json
+slopstudio --cli map entity-colour maps/start.map --object entity:5 --object entity:3 --normalise --output maps/normalised.map --json
+slopstudio --cli map entity-colour maps/start.map --where class=light --normalise --each --output maps/lights.map --json
 ```
 
 `map entity-colour` (alias `map entity-color`) writes the `_color` key of the
@@ -10911,9 +10911,9 @@ still writes the `--output` copy, with `changed` empty.
 ### Create map entities by class
 
 ```sh
-vibestudio --cli map create-entity maps/start.map --class light --origin 64,0,96 --output maps/lit.map --json
-vibestudio --cli map create-entity maps/start.map --class info_player_start --definitions defs/game.fgd --ray-origin 32,32,500 --ray-direction 0,0,-1 --view-direction 0,0,-1 --grid 16 --output maps/start-spawn.map --json
-vibestudio --cli map create-entity maps/start.map --class func_door --object brush:12 --key speed=100 --output maps/door.map --json
+slopstudio --cli map create-entity maps/start.map --class light --origin 64,0,96 --output maps/lit.map --json
+slopstudio --cli map create-entity maps/start.map --class info_player_start --definitions defs/game.fgd --ray-origin 32,32,500 --ray-direction 0,0,-1 --view-direction 0,0,-1 --grid 16 --output maps/start-spawn.map --json
+slopstudio --cli map create-entity maps/start.map --class func_door --object brush:12 --key speed=100 --output maps/door.map --json
 ```
 
 `map create-entity` does what a **Create** command on the Levels page does,
@@ -10941,9 +10941,9 @@ or `brushes` and `patches` for a brush class.
 ### Expand and move map layers
 
 ```sh
-vibestudio --cli editor scene select maps/start.map --objects brush:12 --expand-layers --json
-vibestudio --cli editor scene move-to-layer maps/start.map --id LAYER-ID --objects brush:12,entity:3 --output maps/layered.map --json
-vibestudio --cli editor scene move-to-layer maps/start.map --id default --objects brush:12 --output maps/default.map --dry-run
+slopstudio --cli editor scene select maps/start.map --objects brush:12 --expand-layers --json
+slopstudio --cli editor scene move-to-layer maps/start.map --id LAYER-ID --objects brush:12,entity:3 --output maps/layered.map --json
+slopstudio --cli editor scene move-to-layer maps/start.map --id default --objects brush:12 --output maps/default.map --dry-run
 ```
 
 `editor scene select --expand-layers` does what **Expand Selection to Layers**
@@ -10968,9 +10968,9 @@ was. See [Work with layers](manual/levels.md#work-with-layers) for the editing w
 ### Keep groups for TrenchBroom
 
 ```sh
-vibestudio --cli editor scene list maps/tb.map --json
-vibestudio --cli editor scene save maps/start.map --scene-format trenchbroom --output maps/start-tb.map --json
-vibestudio --cli editor scene save maps/start-tb.map --scene-format vibestudio --output maps/start.map --overwrite
+slopstudio --cli editor scene list maps/tb.map --json
+slopstudio --cli editor scene save maps/start.map --scene-format trenchbroom --output maps/start-tb.map --json
+slopstudio --cli editor scene save maps/start-tb.map --scene-format slopstudio --output maps/start.map --overwrite
 ```
 
 A map that TrenchBroom saved opens with its layers, groups and linked groups in
@@ -10978,7 +10978,7 @@ the scene, read from its `_tb_` keys, and `editor scene list` reports the scene
 with `storage` `trenchbroom`. `editor scene save` writes the map again;
 `--scene-format trenchbroom` writes its layers and groups as TrenchBroom's
 `func_group` entities too, so TrenchBroom opens it with the same groups and
-linked groups, and `--scene-format vibestudio` keeps them in VibeStudio's scene
+linked groups, and `--scene-format slopstudio` keeps them in SlopStudio's scene
 note alone. Every other writing `editor scene` operation takes the same option;
 without it a map keeps the form it opened with. JSON reports the form written as
 `sceneStorage`. WADs refuse `trenchbroom` (exit code 2). See
@@ -10987,11 +10987,11 @@ without it a map keeps the form it opened with. JSON reports the form written as
 ### Import maps and export copies
 
 ```sh
-vibestudio --cli map import maps/start.map --from maps/room.map --output maps/start-room.map --json
-vibestudio --cli map import maps/start.map --from maps/old.bsp --output maps/start-old.map --dry-run --json
-vibestudio --cli editor scene omit-from-export maps/start.map --id LAYER-ID --omit true --output maps/start-marked.map
-vibestudio --cli map export maps/start-marked.map --output build/start-export.map --json
-vibestudio --cli map copy maps/start.map --object brush:12 --object entity:3 --standalone --worldspawn-keys --output maps/piece.map
+slopstudio --cli map import maps/start.map --from maps/room.map --output maps/start-room.map --json
+slopstudio --cli map import maps/start.map --from maps/old.bsp --output maps/start-old.map --dry-run --json
+slopstudio --cli editor scene omit-from-export maps/start.map --id LAYER-ID --omit true --output maps/start-marked.map
+slopstudio --cli map export maps/start-marked.map --output build/start-export.map --json
+slopstudio --cli map copy maps/start.map --object brush:12 --object entity:3 --standalone --worldspawn-keys --output maps/piece.map
 ```
 
 `map import` does what **Import Map…** does: it adds every brush, patch and
@@ -11002,7 +11002,7 @@ groups keep their structure, but layers are not recreated: everything joins the
 creation layer, or the group `--context UUID` opens. Names this map already uses
 (`targetname`, `target`, `killtarget` and the other target keys) get the next
 free number, `door` becoming `door1`; `--keep-target-names` keeps them. A `.bsp`
-is converted to a `.map` with the VibeMap3 convert profile first, for the game
+is converted to a `.map` with the SlopMap3 convert profile first, for the game
 its header names; add `--workspace-root` for a project's compiler paths, game
 and installation folder, or `--game KEY` (such as `et` or `jk2`) to choose
 between games that share a BSP format. JSON reports the `preview` counts and
@@ -11023,9 +11023,9 @@ more layers, or use `--include-omitted` to keep marked ones. JSON reports
 ### Read and set map properties
 
 ```sh
-vibestudio --cli map inspect maps/start.map --json
-vibestudio --cli map properties maps/start.map --game-root C:/Games/Quake --json
-vibestudio --cli map properties maps/start.map --soft-bounds "-2048 -2048 -512 2048 2048 1024" --enable-mod hipnotic --output maps/start-props.map
+slopstudio --cli map inspect maps/start.map --json
+slopstudio --cli map properties maps/start.map --game-root C:/Games/Quake --json
+slopstudio --cli map properties maps/start.map --soft-bounds "-2048 -2048 -512 2048 2048 1024" --enable-mod hipnotic --output maps/start-props.map
 ```
 
 `map inspect --json` reports Map Info in `statistics`: `groupEntityCount`,
@@ -11051,9 +11051,9 @@ See [Check maps and entities](manual/levels.md#check-maps-and-entities).
 ### Export geometry as OBJ
 
 ```sh
-vibestudio --cli map export-obj maps/start.map --package baseq3 --output build/start.obj --json
-vibestudio --cli map export-obj maps/start.map --object brush:12 --group material --output build/piece.obj --dry-run
-vibestudio --cli map export-obj maps/start.map --package baseq3 --material-paths export --ignore sky1 --output build/start.obj --overwrite
+slopstudio --cli map export-obj maps/start.map --package baseq3 --output build/start.obj --json
+slopstudio --cli map export-obj maps/start.map --object brush:12 --group material --output build/piece.obj --dry-run
+slopstudio --cli map export-obj maps/start.map --package baseq3 --material-paths export --ignore sky1 --output build/start.obj --overwrite
 ```
 
 `map export-obj` does what **Export Map as OBJ…** does, or, with repeatable
@@ -11084,20 +11084,20 @@ See [Export geometry to a modeller](manual/levels.md#export-geometry-to-a-modell
 ### Repeat a compile and set launch arguments
 
 ```sh
-vibestudio --cli compiler rerun --last maps/start.map --workspace-root . --json
-vibestudio --cli launch profiles --json
-vibestudio --cli launch profile-set user-dev --name "Developer" --arguments "+set fs_game {mod} +set developer 1 +devmap {map}" --engine idTech3
-vibestudio --cli launch extra-args --arguments "+set developer 1"
-vibestudio --cli launch plan --map start --launch-profile user-dev --json
+slopstudio --cli compiler rerun --last maps/start.map --workspace-root . --json
+slopstudio --cli launch profiles --json
+slopstudio --cli launch profile-set user-dev --name "Developer" --arguments "+set fs_game {mod} +set developer 1 +devmap {map}" --engine idTech3
+slopstudio --cli launch extra-args --arguments "+set developer 1"
+slopstudio --cli launch plan --map start --launch-profile user-dev --json
 ```
 
 `compiler rerun --last <map>` replays the map's newest saved compile, as
-**Re-run Last Compile** does: it looks in `.vibestudio/compiler-runs` under
+**Re-run Last Compile** does: it looks in `.slopstudio/compiler-runs` under
 `--workspace-root` and the map's folder, and saves the new run beside the one it
 repeats (or at `--manifest`). JSON adds `replayedManifestPath`; no saved run of
 the map exits with code 3. A saved run can come from someone else, so its
 program must be one of your configured compilers for its game (`compiler
-set-path`, `--compiler-search-paths`, VibeStudio's compiler folders or PATH) or
+set-path`, `--compiler-search-paths`, SlopStudio's compiler folders or PATH) or
 trusted before for that project; otherwise the command exits with code 4,
 prints the command line and JSON `programTrust`, and `--trust-programs` trusts
 it in your settings and replays it. `launch profiles` lists the built-in launch profiles
@@ -11119,7 +11119,7 @@ For a one-off unique copy or array, use the same operation as **Duplicate, Make
 Unique** in the editor:
 
 ```sh
-vibestudio --cli map duplicate maps/start.map --object brush:0 --object entity:2 --make-unique --delta 64,0,0 --copies 3 --output maps/copied.map --json
+slopstudio --cli map duplicate maps/start.map --object brush:0 --object entity:2 --make-unique --delta 64,0,0 --copies 3 --output maps/copied.map --json
 ```
 
 `--make-unique` clones partial brush/patch entity owners and remaps copied names
@@ -11132,7 +11132,7 @@ See [duplication](manual/levels.md#edit-quake-family-maps) for the editing workf
 **Copy Repeat Recipe** in Levels exports a recorded sequence for automation:
 
 ```sh
-vibestudio --cli map repeat maps/start.map --recipe repeat.json --object brush:0 --output maps/repeated.map --json
+slopstudio --cli map repeat maps/start.map --recipe repeat.json --object brush:0 --output maps/repeated.map --json
 ```
 
 The shared core validates the entire sequence before saving. Repeated `--object`
@@ -11193,10 +11193,10 @@ written inside that package. `--palette quake|quake2|doom|heretic|hexen|generic`
 chooses the palette family for MDL skins when the package has none.
 
 ```sh
-vibestudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./out/player.mesh.json --dry-run --json
-vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --json
-vibestudio --cli model pose ./out/monster.mesh.json --operation working-set --clips idle,run --output ./out/run.mesh.json
-vibestudio --cli model pose ./out/walk.mesh.json --operation mirror --clip 0 --first 0 --last 11 --output ./out/walk-mirrored.mesh.json
+slopstudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./out/player.mesh.json --dry-run --json
+slopstudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --json
+slopstudio --cli model pose ./out/monster.mesh.json --operation working-set --clips idle,run --output ./out/run.mesh.json
+slopstudio --cli model pose ./out/walk.mesh.json --operation mirror --clip 0 --first 0 --last 11 --output ./out/walk-mirrored.mesh.json
 ```
 
 `model inspect --json` gives every decode warning a severity in `issues`
@@ -11209,8 +11209,8 @@ advisories and accepted omissions. See
 [Decode issues](MODEL_FORMATS.md#decode-issues).
 
 ```sh
-vibestudio --cli model inspect ./models/crate.lwo --json
-vibestudio --cli model import ./models/crate.lwo --accept-omissions --output ./out/crate.mesh.json --json
+slopstudio --cli model inspect ./models/crate.lwo --json
+slopstudio --cli model import ./models/crate.lwo --accept-omissions --output ./out/crate.mesh.json --json
 ```
 
 `model audit PATH` checks every model in a package, a folder or a whole game
@@ -11226,8 +11226,8 @@ the source, and `--strict` exits 4 when anything fails, is damaged or drifts
 past its tolerance, so a run can guard against decoder regressions.
 
 ```sh
-vibestudio --cli model audit ./quake/id1 --formats mdl --round-trip --json
-vibestudio --cli model audit ./baseq3/pak0.pk3 --report ./out/pak0-audit.json --strict
+slopstudio --cli model audit ./quake/id1 --formats mdl --round-trip --json
+slopstudio --cli model audit ./baseq3/pak0.pk3 --report ./out/pak0-audit.json --strict
 ```
 
 `model game-skin MODEL --output FILE` writes what the engine puts on one
@@ -11250,9 +11250,9 @@ Both report a SHA-256 of the image in JSON. See [Bake maps](MODEL_BAKE.md)
 and [Paint skins in 3D](MODEL_SKIN_PAINT.md).
 
 ```sh
-vibestudio --cli model game-skin ./progs/player.mdl --top 4 --bottom 12 --output ./out/player.png --json
-vibestudio --cli model bake ./models/crate.mesh.json --type ao --size 512x512 --output ./out/crate_ao.png --json
-vibestudio --cli model paint-skin ./progs/ogre.mdl --strokes ./strokes.json --output ./out/ogre_skin.png --json
+slopstudio --cli model game-skin ./progs/player.mdl --top 4 --bottom 12 --output ./out/player.png --json
+slopstudio --cli model bake ./models/crate.mesh.json --type ao --size 512x512 --output ./out/crate_ao.png --json
+slopstudio --cli model paint-skin ./progs/ogre.mdl --strokes ./strokes.json --output ./out/ogre_skin.png --json
 ```
 
 `model outputs` lists the receipts a project keeps of the game files made from
@@ -11266,8 +11266,8 @@ receipt, and `--receipt PACKAGE` checks a player package's embedded receipt (wit
 [Model outputs and receipts](MODEL_OUTPUTS.md).
 
 ```sh
-vibestudio --cli model outputs ./models/crate.mesh.json --json
-vibestudio --cli model outputs --project ./mymod --refresh stale --dry-run --json
+slopstudio --cli model outputs ./models/crate.mesh.json --json
+slopstudio --cli model outputs --project ./mymod --refresh stale --dry-run --json
 ```
 
 `model stage` stages an editable source in a package as the files the game
@@ -11278,7 +11278,7 @@ MDL or MD2 in a Quake map and an MD3 or ASE in a Quake III map, with optional
 `--angles`, `--modelscale`, `--class` and `--definitions`.
 
 ```sh
-vibestudio --cli model stage ./models/crate.mesh.json --package ./mymod.pk3 --as models/props/crate.md3 --lod 2 --output ./out/mymod.pk3 --dry-run --json
+slopstudio --cli model stage ./models/crate.mesh.json --package ./mymod.pk3 --as models/props/crate.md3 --lod 2 --output ./out/mymod.pk3 --dry-run --json
 ```
 
 `model stage --skins` stages an MD3's Quake III skins beside it, as
@@ -11311,31 +11311,31 @@ Joint transforms also accept an exclusive `--matrix` with twelve row-major
 The command line is the studio program itself, started with `--cli`:
 
 ```text
-vibestudio --cli [--json] <family> <command> [arguments]
+slopstudio --cli [--json] <family> <command> [arguments]
 ```
 
-| How you got VibeStudio | Program to run |
+| How you got SlopStudio | Program to run |
 | --- | --- |
-| Windows installer or portable zip | `vibestudio.exe` in the `bin` folder where you installed or extracted VibeStudio |
-| macOS disk image | `/Applications/VibeStudio.app/Contents/MacOS/vibestudio` |
-| Linux AppImage | `./VibeStudio-<version>-linux-x86_64.AppImage` |
-| Nightly package on macOS or Linux | `bin/vibestudio` in the folder you extracted |
-| Built from source | `builddir/src/vibestudio`, or `builddir\src\vibestudio.exe` on Windows; see [Build from source](manual/building-from-source.md) |
+| Windows installer or portable zip | `slopstudio.exe` in the `bin` folder where you installed or extracted SlopStudio |
+| macOS disk image | `/Applications/SlopStudio.app/Contents/MacOS/slopstudio` |
+| Linux AppImage | `./SlopStudio-<version>-linux-x86_64.AppImage` |
+| Nightly package on macOS or Linux | `bin/slopstudio` in the folder you extracted |
+| Built from source | `builddir/src/slopstudio`, or `builddir\src\slopstudio.exe` on Windows; see [Build from source](manual/building-from-source.md) |
 
-The examples in this manual write `vibestudio`. Replace it with the program's path, or add its folder
+The examples in this manual write `slopstudio`. Replace it with the program's path, or add its folder
 to your PATH. For example:
 
 ```sh
-/Applications/VibeStudio.app/Contents/MacOS/vibestudio --cli --version
-./VibeStudio-<version>-linux-x86_64.AppImage --cli package info ./id1/pak0.pak
+/Applications/SlopStudio.app/Contents/MacOS/slopstudio --cli --version
+./SlopStudio-<version>-linux-x86_64.AppImage --cli package info ./id1/pak0.pak
 ```
 
-`vibestudio --cli` on its own, or with `--help`, prints the full help: the shared options, then every
+`slopstudio --cli` on its own, or with `--help`, prints the full help: the shared options, then every
 command with an example. Each command there lists the options it supports in brackets, such as
 `[--json --dry-run]`. Quote paths that contain spaces, as in PowerShell:
 
 ```powershell
-vibestudio --cli package validate "C:\Games\Quake\id1\pak0.pak" --json
+slopstudio --cli package validate "C:\Games\Quake\id1\pak0.pak" --json
 ```
 
 ### Options every command shares
@@ -11359,12 +11359,12 @@ Options can go anywhere after `--cli`.
 
 The command line uses the same settings as the studio, so commands such as `install add`,
 `compiler set-path` or `editor select` change what the studio sees. In scripts and CI, pass
-`--settings-file` with a file of your own to keep them apart. `vibestudio --cli --settings-report`
+`--settings-file` with a file of your own to keep them apart. `slopstudio --cli --settings-report`
 prints where the settings in use are stored.
 
 ### Command families
 
-Commands are grouped into families. `vibestudio --cli cli commands` prints the complete, current
+Commands are grouped into families. `slopstudio --cli cli commands` prints the complete, current
 list, and `--json` adds whether each command supports `--json`, `--dry-run` and `--watch`.
 
 | Family | Covers |
@@ -11373,7 +11373,7 @@ list, and `--json` adds whether each command supports `--json`, `--dry-run` and 
 | `ui` | Status chips, default keyboard shortcuts and command palette entries |
 | `project` | Project manifests, health checks and file lists |
 | `install` | Game installation profiles, Steam and GOG detection, and the index of each game's own assets |
-| `workspace` | `.vibeworkspace` files |
+| `workspace` | `.slopworkspace` files |
 | `package` | Inspecting, extracting, validating, comparing, staging and saving packages, drafts and recovery |
 | `release` | Packaging and releasing a project, map, model or textures: plans, release notes, the changelog, publishing and release history |
 | `asset` | Format capabilities, image conversion, audio editing, and project text search and replace |
@@ -11403,15 +11403,15 @@ list, and `--json` adds whether each command supports `--json`, `--dry-run` and 
 List every command:
 
 ```sh
-vibestudio --cli cli commands
+slopstudio --cli cli commands
 ```
 
 Inspect, filter and validate a package:
 
 ```sh
-vibestudio --cli package info ./id1/pak0.pak
-vibestudio --cli package list ./id1/pak0.pak --where "ext=wav"
-vibestudio --cli package validate ./release.pk3 --json
+slopstudio --cli package info ./id1/pak0.pak
+slopstudio --cli package list ./id1/pak0.pak --where "ext=wav"
+slopstudio --cli package validate ./release.pk3 --json
 ```
 
 Render a map to an SVG picture, optionally with a compiler leak trail. The projection is `top`,
@@ -11423,34 +11423,34 @@ none and say so in a warning. With `--json` the report's `blockGrid` gives the `
 `value` it came from, how many numbers the compiler reads from it (`numbersRead`) and the `drawnLines`.
 
 ```sh
-vibestudio --cli map render ./maps/start.map --output ./start.svg
-vibestudio --cli map render ./maps/start.map --projection front --leak ./maps/start.pts --output ./start-leak.svg --overwrite
-vibestudio --cli map render ./maps/arena.map --block-grid --projection front --output ./arena-blocks.svg
+slopstudio --cli map render ./maps/start.map --output ./start.svg
+slopstudio --cli map render ./maps/start.map --projection front --leak ./maps/start.pts --output ./start-leak.svg --overwrite
+slopstudio --cli map render ./maps/arena.map --block-grid --projection front --output ./arena-blocks.svg
 ```
 
 Index a game's own files once, then review and publish a map release with only your own files:
 
 ```sh
-vibestudio --cli install register build quake3-games-quake3
-vibestudio --cli release plan ./mymod --map maps/arena1.map
-vibestudio --cli release publish ./mymod --map maps/arena1.map --release-version 1.0.0
+slopstudio --cli install register build quake3-games-quake3
+slopstudio --cli release plan ./mymod --map maps/arena1.map
+slopstudio --cli release publish ./mymod --map maps/arena1.map --release-version 1.0.0
 ```
 
 Plan a build without running anything, then run it with live progress:
 
 ```sh
-vibestudio --cli build list
-vibestudio --cli build plan quake-full --input ./maps/start.map
-vibestudio --cli build run quake-full --input ./maps/start.map --watch
+slopstudio --cli build list
+slopstudio --cli build plan quake-full --input ./maps/start.map
+slopstudio --cli build run quake-full --input ./maps/start.map --watch
 ```
 
 Keep pipelines of your own in a project, as **Build Pipelines…** does, and run them:
 
 ```sh
-vibestudio --cli build pipeline-set fast-light --workspace-root ./mymod --name "Fast light" --from quake-full --disable-stage vis --stage-args 'light=-extra -threads ${CPU_COUNT}'
-vibestudio --cli build list --workspace-root ./mymod
-vibestudio --cli build run fast-light --workspace-root ./mymod --input ./mymod/maps/start.map --variable MOD=mymod
-vibestudio --cli build pipeline-remove fast-light --workspace-root ./mymod --dry-run
+slopstudio --cli build pipeline-set fast-light --workspace-root ./mymod --name "Fast light" --from quake-full --disable-stage vis --stage-args 'light=-extra -threads ${CPU_COUNT}'
+slopstudio --cli build list --workspace-root ./mymod
+slopstudio --cli build run fast-light --workspace-root ./mymod --input ./mymod/maps/start.map --variable MOD=mymod
+slopstudio --cli build pipeline-remove fast-light --workspace-root ./mymod --dry-run
 ```
 
 `build pipeline-set` starts a new pipeline from `--from` (a built-in or project
@@ -11467,9 +11467,9 @@ named by the project's own compiler paths, and shows its command line; add
 Ask a model through your Claude Code login, or build a level with Quake-MapGen:
 
 ```sh
-vibestudio --cli ai test-connection --provider claude-code --json
-vibestudio --cli ai ask --provider claude-code --model sonnet --prompt "why does qbsp report a leak?" --context-file build/qbsp.log --yes
-vibestudio --cli map generate --generator quake-mapgen --prompt "Quake 2 deathmatch, 8 rooms" --output maps/qmg.map --report maps/qmg.json
+slopstudio --cli ai test-connection --provider claude-code --json
+slopstudio --cli ai ask --provider claude-code --model sonnet --prompt "why does qbsp report a leak?" --context-file build/qbsp.log --yes
+slopstudio --cli map generate --generator quake-mapgen --prompt "Quake 2 deathmatch, 8 rooms" --output maps/qmg.map --report maps/qmg.json
 ```
 
 `--provider` takes a connector ID from the table in [Use a cloud provider](manual/ai.md#use-a-cloud-provider),
@@ -11480,24 +11480,24 @@ also take `claude-code`, `codex`, `custom-command` and `local-gguf`. For `claude
 ranks its layouts through ggml in builds made with `-Dggml=enabled`; the default, `scalar`, gives the
 same scores. AI is off until you allow it; see [AI assistant](manual/ai.md).
 
-Write a diagnostics bundle to `./diagnostics/vibestudio-diagnostics.json` for a bug report:
+Write a diagnostics bundle to `./diagnostics/slopstudio-diagnostics.json` for a bug report:
 
 ```sh
-vibestudio --cli diagnostics bundle --output ./diagnostics
+slopstudio --cli diagnostics bundle --output ./diagnostics
 ```
 
 List the target languages, then report on one of them:
 
 ```sh
-vibestudio --cli localization targets
-vibestudio --cli localization report --locale ar --json
+slopstudio --cli localization targets
+slopstudio --cli localization report --locale ar --json
 ```
 
 Print the status chips with their non-colour signals, the default shortcuts with any conflicts, and
 the command palette entries:
 
 ```sh
-vibestudio --cli ui semantics
+slopstudio --cli ui semantics
 ```
 
 More examples are on the pages for each area, such as [Packages](manual/packages.md),
@@ -11559,12 +11559,12 @@ command failed". For example, `package validate`, `package compare` and `entity 
 when they find problems or differences:
 
 ```sh
-vibestudio --cli package validate ./release.pk3 --json > validation.json
+slopstudio --cli package validate ./release.pk3 --json > validation.json
 if [ $? -eq 4 ]; then echo "release.pk3 has problems"; fi
 ```
 
 ```powershell
-vibestudio --cli package validate .\release.pk3 --json | Out-File validation.json
+slopstudio --cli package validate .\release.pk3 --json | Out-File validation.json
 if ($LASTEXITCODE -eq 4) { Write-Host "release.pk3 has problems" }
 ```
 
@@ -11679,8 +11679,8 @@ prints it) limits it to those faces instead, with **--context GROUP** to open a
 group first. The two cannot be combined.
 
 ```sh
-vibestudio --cli map select-textured room.map --material base/wall --json
-vibestudio --cli map replace-texture room.map --from base/wall --to base/metal --face face:6:5 --face face:9:5 --output room-metal.map
+slopstudio --cli map select-textured room.map --material base/wall --json
+slopstudio --cli map replace-texture room.map --from base/wall --to base/metal --face face:6:5 --face face:9:5 --output room-metal.map
 ```
 
 Hidden and locked objects, and anything outside **--context**, keep their
@@ -11698,8 +11698,8 @@ with repeated **--face face:brushId:faceNumber** to transform those faces
 without selecting their brushes:
 
 ```sh
-vibestudio --cli map select-textured room.map --material stone --json
-vibestudio --cli map transform-components room.map --face face:6:5 --face face:9:5 --operation move --delta 0,0,16 --uv-lock on --output raised.map
+slopstudio --cli map select-textured room.map --material stone --json
+slopstudio --cli map transform-components room.map --face face:6:5 --face face:9:5 --operation move --delta 0,0,16 --uv-lock on --output raised.map
 ```
 
 **--face** can be combined with **--set** in the same edit and accepts the same
@@ -11721,8 +11721,8 @@ its sign instead, and `0` leaves that axis alone. **--degrees N** turns about
 each face centre, or about the texture origin with **--anchor origin**:
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --scale-step -0.5,0 --output narrower.map --json
-vibestudio --cli map align-textures room.map --face 12:3 --degrees -45 --anchor origin --output turned.map
+slopstudio --cli map align-textures room.map --object brush:12 --scale-step -0.5,0 --output narrower.map --json
+slopstudio --cli map align-textures room.map --face 12:3 --degrees -45 --anchor origin --output turned.map
 ```
 
 Brush-primitive faces need **--package** or **--texture-size** for a scale step,
@@ -11746,8 +11746,8 @@ face's texture axes runs most nearly that way. **--camera-flip horizontal** or
 of each face:
 
 ```sh
-vibestudio --cli map align-textures room.map --face 12:3 --camera-shift 0,16 --camera-yaw 90 --camera-pitch -20 --output moved.map --json
-vibestudio --cli map align-textures room.map --object brush:12 --camera-flip horizontal --camera-yaw 45 --output flipped.map
+slopstudio --cli map align-textures room.map --face 12:3 --camera-shift 0,16 --camera-yaw 90 --camera-pitch -20 --output moved.map --json
+slopstudio --cli map align-textures room.map --object brush:12 --camera-flip horizontal --camera-yaw 45 --output flipped.map
 ```
 
 Brush-primitive faces and patches need **--package** or **--texture-size** for
@@ -11766,8 +11766,8 @@ brush-primitive faces and on patches, whether the texture reads the right way
 round or mirrored:
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --clockwise 15 --output turned.map --json
-vibestudio --cli map align-textures room.map --face 12:3 --clockwise -90 --output turned.map
+slopstudio --cli map align-textures room.map --object brush:12 --clockwise 15 --output turned.map --json
+slopstudio --cli map align-textures room.map --face 12:3 --clockwise -90 --output turned.map
 ```
 
 Patches need **--package** or **--texture-size**; faces need no image.
@@ -11786,8 +11786,8 @@ resets as **Radiant Texture Reset** does: Valve 220 and brush-primitive faces
 take their plane's own basis and patches are capped:
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --reset-alignment 1,1 --output reset.map --json
-vibestudio --cli map align-textures room.map --object entity:4 --radiant-reset 0.5,0.5 --package ./assets --output reset.map
+slopstudio --cli map align-textures room.map --object brush:12 --reset-alignment 1,1 --output reset.map --json
+slopstudio --cli map align-textures room.map --object entity:4 --radiant-reset 0.5,0.5 --package ./assets --output reset.map
 ```
 
 Instead of an operation, Reset Textures values set absolute numbers, as the
@@ -11800,7 +11800,7 @@ surfaces using one texture, ignoring case and a leading `textures/`. Patches
 take only the new name:
 
 ```sh
-vibestudio --cli map align-textures room.map --whole-map --only-texture base_wall/concrete --rename base_wall/metal --set-scale-u 0.5 --set-scale-v 0.5 --output retextured.map --json
+slopstudio --cli map align-textures room.map --whole-map --only-texture base_wall/concrete --rename base_wall/metal --set-scale-u 0.5 --set-scale-v 0.5 --output retextured.map --json
 ```
 
 Brush-primitive faces need **--package** or **--texture-size** for a reset or
@@ -11831,9 +11831,9 @@ camera at **--camera-yaw** and **--camera-pitch**, and
 **--project-direction X,Y,Z** along any direction:
 
 ```sh
-vibestudio --cli map align-textures room.map --face 12:3 --fit 2,0 --keep-proportions --package ./assets --output fitted.map
-vibestudio --cli map align-textures room.map --object brush:12 --project z --output projected.map --json
-vibestudio --cli map align-textures room.map --object brush:12 --project camera --camera-yaw 45 --camera-pitch -30 --output projected.map
+slopstudio --cli map align-textures room.map --face 12:3 --fit 2,0 --keep-proportions --package ./assets --output fitted.map
+slopstudio --cli map align-textures room.map --object brush:12 --project z --output projected.map --json
+slopstudio --cli map align-textures room.map --object brush:12 --project camera --camera-yaw 45 --camera-pitch -30 --output projected.map
 ```
 
 Faces the direction runs along, and patches it flattens to a line, keep their
@@ -11856,8 +11856,8 @@ Without a change, it reports each face's flags by name, and with no faces the
 names the map's game gives its flags:
 
 ```sh
-vibestudio --cli map face-flags base.map --face 3:1 --json
-vibestudio --cli map face-flags base.map --json
+slopstudio --cli map face-flags base.map --face 3:1 --json
+slopstudio --cli map face-flags base.map --json
 ```
 
 To change them, give **--set-content**, **--clear-content**, **--set-surface**
@@ -11868,8 +11868,8 @@ does. Bits you do not name stay as they are, so a change works on faces whose
 flags differ. A change needs **--output**:
 
 ```sh
-vibestudio --cli map face-flags base.map --object brush:3 --set-content playerclip --clear-surface light --output base-clip.map
-vibestudio --cli map face-flags base.map --face 3:2 --set-surface light --value 300 --output base-light.map --json
+slopstudio --cli map face-flags base.map --object brush:3 --set-content playerclip --clear-surface light --output base-clip.map
+slopstudio --cli map face-flags base.map --face 3:2 --set-surface light --value 300 --output base-light.map --json
 ```
 
 The detail flag belongs to whole brushes, so use `map detail` for it. Quake
@@ -11893,7 +11893,7 @@ what the **Face** section shows for them all, with values that differ as
 `null`:
 
 ```sh
-vibestudio --cli map face-attributes base.map --face 3:1 --json
+slopstudio --cli map face-attributes base.map --face 3:1 --json
 ```
 
 To change them, give one or more of **--offset-u**, **--offset-v** (texels),
@@ -11902,7 +11902,7 @@ To change them, give one or more of **--offset-u**, **--offset-v** (texels),
 format and keeps the others:
 
 ```sh
-vibestudio --cli map face-attributes base.map --object brush:3 --scale-u 0.5 --scale-v 0.5 --output base-fine.map
+slopstudio --cli map face-attributes base.map --object brush:3 --scale-u 0.5 --scale-v 0.5 --output base-fine.map
 ```
 
 **--pivot X,Y,Z** keeps that map point's place on the texture through a new
@@ -11910,7 +11910,7 @@ scale or rotation, as the section's turn and stretch handles do, and
 **--move U,V** then moves the texture by texels:
 
 ```sh
-vibestudio --cli map face-attributes base.map --face 3:2 --rotation 30 --pivot 0,64,128 --move 8,0 --output base-turned.map --json
+slopstudio --cli map face-attributes base.map --face 3:2 --rotation 30 --pivot 0,64,128 --move 8,0 --output base-turned.map --json
 ```
 
 Brush-primitive faces need their image size: **--package** (with **--palette**
@@ -11933,7 +11933,7 @@ Without a change, it lists each point's number, world position and texel
 coordinates (and repeats, when the image size is known):
 
 ```sh
-vibestudio --cli map edit-uv base.map --target face:3:1 --json
+slopstudio --cli map edit-uv base.map --target face:3:1 --json
 ```
 
 Give one change and **--output**:
@@ -11958,9 +11958,9 @@ of control points, alongside or instead of **--points**, for **--offset**,
 **--rotate**, **--stretch** and the skews.
 
 ```sh
-vibestudio --cli map edit-uv base.map --target face:3:1 --rotate 15 --anchor 1 --output base-turned.map
-vibestudio --cli map edit-uv curves.map --target patch:0 --move-point 5 --to 32,16 --texture-size 128,128 --output curves-uv.map --json
-vibestudio --cli map edit-uv base.map --target face:3:1 --stretch 2,1 --pivot 0,0 --output base-stretched.map
+slopstudio --cli map edit-uv base.map --target face:3:1 --rotate 15 --anchor 1 --output base-turned.map
+slopstudio --cli map edit-uv curves.map --target patch:0 --move-point 5 --to 32,16 --texture-size 128,128 --output curves-uv.map --json
+slopstudio --cli map edit-uv base.map --target face:3:1 --stretch 2,1 --pivot 0,0 --output base-stretched.map
 ```
 
 Brush-primitive faces and patches count repeats, so they need **--package**
@@ -11986,8 +11986,8 @@ entities round their brushes and patches and keep their origin key. Repeat
 **--set** to round only picked components instead:
 
 ```sh
-vibestudio --cli map round-to-grid room.map --object brush:12 --object entity:3 --grid 8 --output rounded.map --json
-vibestudio --cli map round-to-grid room.map --set brush:12/vertex/0,3 --grid 16 --uv-lock fit --output rounded.map
+slopstudio --cli map round-to-grid room.map --object brush:12 --object entity:3 --grid 8 --output rounded.map --json
+slopstudio --cli map round-to-grid room.map --set brush:12/vertex/0,3 --grid 16 --uv-lock fit --output rounded.map
 ```
 
 Hidden objects and brushes the grid would collapse are left as they were and
@@ -12015,8 +12015,8 @@ moves the **--object** objects, or the repeated **--set** components, by
 degrees, yaw 0 along +X and counter-clockwise, pitch up positive:
 
 ```sh
-vibestudio --cli map nudge room.map --object brush:12 --direction depth-up --view front --grid 8 --output nudged.map --json
-vibestudio --cli map nudge room.map --set brush:0/face/2 --direction forward --camera-yaw 60 --uv-lock on --output nudged.map
+slopstudio --cli map nudge room.map --object brush:12 --direction depth-up --view front --grid 8 --output nudged.map --json
+slopstudio --cli map nudge room.map --set brush:0/face/2 --direction forward --camera-yaw 60 --uv-lock on --output nudged.map
 ```
 
 In the front view `depth-up` is towards the viewer, -Y; in the camera it is up
@@ -12036,7 +12036,7 @@ instead, as the Levels **Duplicate and Move** commands do. JSON adds
 `duplicate` and the `copies`:
 
 ```sh
-vibestudio --cli map nudge room.map --object brush:12 --direction right --duplicate --grid 32 --output copied.map --json
+slopstudio --cli map nudge room.map --object brush:12 --direction right --duplicate --grid 32 --output copied.map --json
 ```
 
 See [Copy and move in one step](manual/levels.md#copy-and-move-in-one-step).
@@ -12054,7 +12054,7 @@ already at the camera fails and writes nothing. JSON reports `camera`, `delta`,
 `grid` and the save fields:
 
 ```sh
-vibestudio --cli map move room.map --object brush:3 --object entity:2 --camera 128,0,64 --grid 16 --output at-camera.map --json
+slopstudio --cli map move room.map --object brush:3 --object entity:2 --camera 128,0,64 --grid 16 --output at-camera.map --json
 ```
 
 ### Move a selection as the Translate tool does
@@ -12072,8 +12072,8 @@ Quake-family maps only. JSON reports `delta`, `pivotBefore`, `pivotAfter`,
 `mins`, `maxs`, `objects`, `selection`, `snap`, `grid` and the save fields:
 
 ```sh
-vibestudio --cli map move room.map --object brush:3 --object brush:4 --delta 5,0,0 --snap bounds --grid 16 --output translated.map --json
-vibestudio --cli map move room.map --object brush:3 --to 256,0,64 --pivot 0,0,0 --output at-point.map
+slopstudio --cli map move room.map --object brush:3 --object brush:4 --delta 5,0,0 --snap bounds --grid 16 --output translated.map --json
+slopstudio --cli map move room.map --object brush:3 --to 256,0,64 --pivot 0,0,0 --output at-point.map
 ```
 
 See [Move the selection with the Translate tool](manual/levels.md#move-the-selection-with-the-translate-tool).
@@ -12097,8 +12097,8 @@ the plain `map rotate` and cannot be combined with this form. JSON reports
 `pivot`, `mins`, `maxs`, `objects`, `selection`, `angleStep` and the save fields:
 
 ```sh
-vibestudio --cli map rotate room.map --object brush:3 --object patch:1 --around 0,0,1 --degrees 100 --angle-step 45 --output turned.map --json
-vibestudio --cli map rotate room.map --object brush:3 --around 1,1,0 --degrees 30 --pivot 0,0,0 --allow-valve220 --output tilted.map
+slopstudio --cli map rotate room.map --object brush:3 --object patch:1 --around 0,0,1 --degrees 100 --angle-step 45 --output turned.map --json
+slopstudio --cli map rotate room.map --object brush:3 --around 1,1,0 --degrees 30 --pivot 0,0,0 --allow-valve220 --output tilted.map
 ```
 
 See [Turn the selection with the Rotate tool](manual/levels.md#turn-the-selection-with-the-rotate-tool).
@@ -12123,8 +12123,8 @@ fails and writes nothing. Quake-family maps only. JSON reports `factors`,
 `drag`, `equal`, `grid` and `sizeGrid`:
 
 ```sh
-vibestudio --cli map resize room.map --object brush:3 --object brush:4 --axis x --drag 24 --grid 16 --equal --output bigger.map --json
-vibestudio --cli map resize room.map --object brush:3 --view top --drag 10 --size-grid 16 --pivot 0,0,0 --output wider.map
+slopstudio --cli map resize room.map --object brush:3 --object brush:4 --axis x --drag 24 --grid 16 --equal --output bigger.map --json
+slopstudio --cli map resize room.map --object brush:3 --view top --drag 10 --size-grid 16 --pivot 0,0,0 --output wider.map
 ```
 
 To resize a box by its sides, as the tool's box handles do with <kbd>Shift</kbd>
@@ -12155,8 +12155,8 @@ JSON reports `side`, `offset`, `anchor` (the coordinate that stays),
 `factors`, `matrix`, `mins`, `maxs`, `objects` and `selection`:
 
 ```sh
-vibestudio --cli map shear room.map --object brush:3 --axis x --along z --angle 30 --about 0 --output slanted.map
-vibestudio --cli map shear room.map --object brush:3 --object brush:4 --side z+ --offset 16,8,0 --output leaning.map --json
+slopstudio --cli map shear room.map --object brush:3 --axis x --along z --angle 30 --about 0 --output slanted.map
+slopstudio --cli map shear room.map --object brush:3 --object brush:4 --side z+ --offset 16,8,0 --output leaning.map --json
 ```
 
 See [Transform the selection with the Transform tool](manual/levels.md#transform-the-selection-with-the-transform-tool).
@@ -12195,8 +12195,8 @@ with exit code 4 and writes nothing. Quake-family maps only. JSON reports
 `translation` or `distance` and `normal`, and `selection`:
 
 ```sh
-vibestudio --cli map drag-planes room.map --object brush:0 --from 200,0,0 --view top --delta 32,0,0 --grid 16 --output wider.map
-vibestudio --cli map drag-planes room.map --object brush:0 --mode extrude --from 80,0,200 --direction 0,0,-1 --camera --distance 16 --output raised.map --json
+slopstudio --cli map drag-planes room.map --object brush:0 --from 200,0,0 --view top --delta 32,0,0 --grid 16 --output wider.map
+slopstudio --cli map drag-planes room.map --object brush:0 --mode extrude --from 80,0,200 --direction 0,0,-1 --camera --distance 16 --output raised.map --json
 ```
 
 The **Build** tool's chain of copies is `map duplicate` with **--delta** set
@@ -12215,8 +12215,8 @@ they are transformed in place instead, with **--uv-lock off|on|fit** and
 **--allow-collapse**:
 
 ```sh
-vibestudio --cli map repeat-transforms room.map --object brush:4 --rotate z,15 --translate 64,0,0 --output array.map --json
-vibestudio --cli map repeat-transforms room.map --set brush:0/face/2 --translate 0,0,8 --uv-lock on --output raised.map
+slopstudio --cli map repeat-transforms room.map --object brush:4 --rotate z,15 --translate 64,0,0 --output array.map --json
+slopstudio --cli map repeat-transforms room.map --set brush:0/face/2 --translate 0,0,8 --uv-lock on --output raised.map
 ```
 
 Objects take **--texture-lock on|off** (on by default). Quake-family maps only.
@@ -12240,8 +12240,8 @@ view-relative commands: **Roll Clockwise** and **Counter-clockwise**, **Rotate
 **--camera-yaw** with **--camera-pitch** names a camera, as for `map nudge`:
 
 ```sh
-vibestudio --cli map view-transform room.map --object brush:12 --transform roll-clockwise --view front --pivot-grid 16 --output rolled.map --json
-vibestudio --cli map view-transform room.map --object entity:3 --transform flip-horizontal --camera-yaw 60 --camera-pitch -20 --output flipped.map
+slopstudio --cli map view-transform room.map --object brush:12 --transform roll-clockwise --view front --pivot-grid 16 --output rolled.map --json
+slopstudio --cli map view-transform room.map --object entity:3 --transform flip-horizontal --camera-yaw 60 --camera-pitch -20 --output flipped.map
 ```
 
 From the front view, `roll-clockwise` turns +90° about Z; from a camera looking
@@ -12269,8 +12269,8 @@ NetRadiant Custom and TrenchBroom profiles, so a brush whose sides differ by an
 odd number of grid steps stays on the grid:
 
 ```sh
-vibestudio --cli map rotate room.map --object brush:12 --axis x --turns -1 --pivot-grid 16 --output turned.map --json
-vibestudio --cli map flip room.map --object brush:12 --axis z --output flipped.map
+slopstudio --cli map rotate room.map --object brush:12 --axis x --turns -1 --pivot-grid 16 --output turned.map --json
+slopstudio --cli map flip room.map --object brush:12 --axis z --output flipped.map
 ```
 
 **--pivot-grid** cannot be combined with **--pivot**. JSON adds the resolved
@@ -12296,8 +12296,8 @@ numbers leave z at 1, which Doom maps need. **--factors** replaces **--size**
 and **--mins**/**--maxs**, and **--pivot** goes only with it:
 
 ```sh
-vibestudio --cli map rotate room.map --object brush:12 --euler 15,0,45 --pivot 0,0,0 --output turned.map --json
-vibestudio --cli map resize room.map --object brush:12 --factors -1,2,1 --texture-lock on --output mirrored.map --json
+slopstudio --cli map rotate room.map --object brush:12 --euler 15,0,45 --pivot 0,0,0 --output turned.map --json
+slopstudio --cli map resize room.map --object brush:12 --factors -1,2,1 --texture-lock on --output mirrored.map --json
 ```
 
 JSON adds `eulerXyz` for a rotation and `factors`, `mirrored`, `pivot` (when
@@ -12326,7 +12326,7 @@ options match **Make Room Options…**, and also work with `--mode overlap` and
   opening stop flush with it, and the faces lining it keep its material.
 
 ```sh
-vibestudio --cli map hollow room.map --object brush:12 --mode room --thickness 16 --caulk --open-face face:12:6 --output room-made.map --json
+slopstudio --cli map hollow room.map --object brush:12 --mode room --thickness 16 --caulk --open-face face:12:6 --output room-made.map --json
 ```
 
 JSON adds `caulkTexture`, `caulkedFaces` (wall faces that now carry it),
@@ -12340,9 +12340,9 @@ Levels editor's **Make Room** uses, the ones **Make Room Options…** saves, use
 `editor make-room`:
 
 ```sh
-vibestudio --cli editor make-room --json
-vibestudio --cli editor make-room --set caulkTexture=common/nodraw --set openPickedFaces=off --dry-run --json
-vibestudio --cli editor make-room --reset
+slopstudio --cli editor make-room --json
+slopstudio --cli editor make-room --set caulkTexture=common/nodraw --set openPickedFaces=off --dry-run --json
+slopstudio --cli editor make-room --reset
 ```
 
 Repeat `--set` with `caulk=on|off`, `caulkTexture=NAME` (leave the name out,
@@ -12360,9 +12360,9 @@ The Levels camera's **Far Clip in Camera** and its draw distance are saved
 settings, so automation can read or set them with `editor far-clip`:
 
 ```sh
-vibestudio --cli editor far-clip --json
-vibestudio --cli editor far-clip --clip on --distance 2048
-vibestudio --cli editor far-clip --shorter --dry-run --json
+slopstudio --cli editor far-clip --json
+slopstudio --cli editor far-clip --clip on --distance 2048
+slopstudio --cli editor far-clip --shorter --dry-run --json
 ```
 
 `--clip on|off` turns the clip on or off. Choose the distance with one of
@@ -12412,10 +12412,10 @@ and `patch-classic-cone` take `--rows`, and they and `patch-sphere` take
 round shapes `ringStart` and `square`.
 
 ```sh
-vibestudio --cli map add-patch start.map --shape classic-cone --axis z --size 128,128,192 --texture textures/base/metal --texture-size 256,256 --output cone.map --json
-vibestudio --cli map add-shape start.map --shape patch-cylinder --sides 4 --object brush:3 --object patch:1 --texture base/pipe --texture-size 128,128 --output pipe.map --json
-vibestudio --cli map add-shape start.map --shape patch-plane --columns 5 --rows 7 --mins 0,0,0 --maxs 256,256,64 --texture base/floor --output floor.map
-vibestudio --cli map add-patch start.map --shape cylinder --segments 6 --rows 5 --ring-start exact --square --size 128,128,256 --texture textures/base/pipe --output pipe.map --json
+slopstudio --cli map add-patch start.map --shape classic-cone --axis z --size 128,128,192 --texture textures/base/metal --texture-size 256,256 --output cone.map --json
+slopstudio --cli map add-shape start.map --shape patch-cylinder --sides 4 --object brush:3 --object patch:1 --texture base/pipe --texture-size 128,128 --output pipe.map --json
+slopstudio --cli map add-shape start.map --shape patch-plane --columns 5 --rows 7 --mins 0,0,0 --maxs 256,256,64 --texture base/floor --output floor.map
+slopstudio --cli map add-patch start.map --shape cylinder --segments 6 --rows 5 --ring-start exact --square --size 128,128,256 --texture textures/base/pipe --output pipe.map --json
 ```
 
 A bad `--mapping`, `--texture-size` or `--ring-start`, either of the first two
@@ -12460,9 +12460,9 @@ a seed is drawn, and JSON reports it as `seed` with `max`, `axis`, `changed`
 and `skipped` (hidden patches).
 
 ```sh
-vibestudio --cli map cap-patch curves.map --patch 0 --patch 3 --style cylinder --texture base/pipe_cap --output capped.map --json
-vibestudio --cli map convert-patches arena.map --object brush:4 --face face:7:2 --columns 5 --rows 5 --package ./baseq3 --output arena-patches.map --json
-vibestudio --cli map deform-patch cave.map --patch 2 --max 16 --axis z --seed 7 --output cave-rough.map --json
+slopstudio --cli map cap-patch curves.map --patch 0 --patch 3 --style cylinder --texture base/pipe_cap --output capped.map --json
+slopstudio --cli map convert-patches arena.map --object brush:4 --face face:7:2 --columns 5 --rows 5 --package ./baseq3 --output arena-patches.map --json
+slopstudio --cli map deform-patch cave.map --patch 2 --max 16 --axis z --seed 7 --output cave-rough.map --json
 ```
 
 All three run as one undo step through the Levels editor's services and need
@@ -12486,8 +12486,8 @@ to the first axis; `--fit box` (the default) stretches it to the bounds.
 views give it.
 
 ```sh
-vibestudio --cli map add-shape start.map --shape cylinder --sides 6 --axis z --fit circle --in-place --object brush:4 --object brush:7 --texture base/pillar --output pillars.map --json
-vibestudio --cli map add-shape start.map --shape sphere --sides 8 --bands 8 --fit circle --in-place --object brush:9 --texture base/orb --output orb.map --json
+slopstudio --cli map add-shape start.map --shape cylinder --sides 6 --axis z --fit circle --in-place --object brush:4 --object brush:7 --texture base/pillar --output pillars.map --json
+slopstudio --cli map add-shape start.map --shape sphere --sides 8 --bands 8 --fit circle --in-place --object brush:9 --texture base/orb --output orb.map --json
 ```
 
 JSON reports `inPlace`, `fit`, the rebuilt `brushes` and `skipped`, the
@@ -12515,9 +12515,9 @@ brush is built, so a flat outline becomes a prism, as Shift-drag does in the
 **Assemble Brush Tool**.
 
 ```sh
-vibestudio --cli map add-brush start.map --points "0,0,0 128,0,0 0,128,0 0,0,64" --texture base/metal --output start-wedge.map --json
-vibestudio --cli map add-brush start.map --points "(256 0 0) (384 0 0) (256 128 0)" --points "(256 0 64) (384 0 64) (256 128 64)" --texture base/metal --output start-ramp.map
-vibestudio --cli map add-brush start.map --points "0,0,0 128,0,0 128,64,0 0,64,0" --extrude 0,0,96 --texture base/metal --output start-block.map
+slopstudio --cli map add-brush start.map --points "0,0,0 128,0,0 0,128,0 0,0,64" --texture base/metal --output start-wedge.map --json
+slopstudio --cli map add-brush start.map --points "(256 0 0) (384 0 0) (256 128 0)" --points "(256 0 64) (384 0 64) (256 128 64)" --texture base/metal --output start-ramp.map
+slopstudio --cli map add-brush start.map --points "0,0,0 128,0,0 128,64,0 0,64,0" --extrude 0,0,96 --texture base/metal --output start-block.map
 ```
 
 JSON reports `shape` as `points` and a `points` object with `brushId`,
@@ -12539,8 +12539,8 @@ first brush and adds `brushes` for all of them, each face with a `positions`
 array.
 
 ```sh
-vibestudio --cli map brush-components start.map --brush 0,3 --brush 7
-vibestudio --cli map brush-components start.map --brush 0 --brush 3 --json
+slopstudio --cli map brush-components start.map --brush 0,3 --brush 7
+slopstudio --cli map brush-components start.map --brush 0 --brush 3 --json
 ```
 
 The editing commands (`map move-components` and the others) still take one
@@ -12578,9 +12578,9 @@ no brush can change, the command fails (exit 1) and writes nothing. `--context`
 opens a group first.
 
 ```sh
-vibestudio --cli map hollow room.map --object brush:12 --mode diagonal --thickness 16 --exclude-facing z --keep-inner --caulk --output shaft.map --json
-vibestudio --cli map shrink-brushes room.map --object brush:12 --thickness 8 --exclude-face face:12:6 --output thinner.map --json
-vibestudio --cli map expand-brushes room.map --object entity:3 --thickness 4 --output wider.map --json
+slopstudio --cli map hollow room.map --object brush:12 --mode diagonal --thickness 16 --exclude-facing z --keep-inner --caulk --output shaft.map --json
+slopstudio --cli map shrink-brushes room.map --object brush:12 --thickness 8 --exclude-face face:12:6 --output thinner.map --json
+slopstudio --cli map expand-brushes room.map --object entity:3 --thickness 4 --output wider.map --json
 ```
 
 `map hollow` JSON adds `keepInner` and `innerKept`. The shrink and expand JSON
@@ -12617,7 +12617,7 @@ Use **--map MAP02** to choose a map in a Doom/Hexen WAD; **--engine** supplies
 the same optional engine hint as other map queries.
 
 **--profile ID** selects a registered editor profile, defaulting to
-**vibestudio-default**. TB defaults to inherited hiding; NRC and VibeStudio default
+**slopstudio-default**. TB defaults to inherited hiding; NRC and SlopStudio default
 to flat hiding. Explicit **--policy** overrides that hiding choice. Insertion
 behaviour still follows the profile: NRC copies start with fresh inherited
 states, while TB/default copies retain explicit descendants and reveal roots.
@@ -12648,7 +12648,7 @@ hide: `effectiveHidden` and `classFiltered` together. Class filters leave the
 session's hidden and shown states as they are.
 
 ```text
-vibestudio --cli map visibility start.map --mode inspect --class light --json
+slopstudio --cli map visibility start.map --mode inspect --class light --json
 ```
 
 See [Temporary visibility](manual/levels.md#temporary-visibility) for profile behaviour
@@ -12711,11 +12711,11 @@ one by one under several of them (caulk and skip sides, say); its faces then
 leave `filteredFaces`. A class whose name holds a comma has no filter.
 
 ```text
-vibestudio --cli map filters start.map --json
-vibestudio --cli map filters start.map --off world --invert --objects
-vibestudio --cli map filters q3dm1.map --package baseq3 --off translucent --objects
-vibestudio --cli map filters q3dm1.map --tags Quake3.cfg --package baseq3 --off tag:fog --json
-vibestudio --cli map filters start.map --class light,info_null --classes
+slopstudio --cli map filters start.map --json
+slopstudio --cli map filters start.map --off world --invert --objects
+slopstudio --cli map filters q3dm1.map --package baseq3 --off translucent --objects
+slopstudio --cli map filters q3dm1.map --tags Quake3.cfg --package baseq3 --off tag:fog --json
+slopstudio --cli map filters start.map --class light,info_null --classes
 ```
 
 The query writes nothing: the map, `mapWritten: false`, and the saved filters
@@ -12756,10 +12756,10 @@ take their size from **--definitions file** (a `.def`, `.fgd` or `.ent` file),
 else the game's built-in classes, else a 16-unit cube.
 
 ```text
-vibestudio --cli map camera-focus start.map --object brush:12 --camera-yaw 45 --camera-pitch -30 --fov 100 --aspect 16:9 --json
-vibestudio --cli map camera-focus start.map --level --camera-yaw 50 --camera-pitch 20 --camera-position 0,0,64
-vibestudio --cli map camera-focus start.map --floor up --camera-position 128,64,72 --json
-vibestudio --cli map camera-focus start.map --floor up --camera-position 100,100,448 --selected entity:2 --json
+slopstudio --cli map camera-focus start.map --object brush:12 --camera-yaw 45 --camera-pitch -30 --fov 100 --aspect 16:9 --json
+slopstudio --cli map camera-focus start.map --level --camera-yaw 50 --camera-pitch 20 --camera-position 0,0,64
+slopstudio --cli map camera-focus start.map --floor up --camera-position 128,64,72 --json
+slopstudio --cli map camera-focus start.map --floor up --camera-position 100,100,448 --selected entity:2 --json
 ```
 
 JSON reports `camera` (`position`, `yaw`, `pitch`, `fieldOfView`, `aspect`),
@@ -12791,9 +12791,9 @@ shader definitions for surfaceparm matching; **--definitions FILE** supplies
 brush classes.
 
 ```sh
-vibestudio --cli map smart-tag ./maps/start.map --tags ./tags.json --tag clip --choices --json
-vibestudio --cli map smart-tag ./maps/start.map --tags ./tags.json --tag clip --object brush:0 --choice common/clip --output ./maps/clipped.map
-vibestudio --cli map smart-tag ./maps/start.map --tags ./tags.json --tag detail --object brush:0 --disable --output ./maps/structural.map
+slopstudio --cli map smart-tag ./maps/start.map --tags ./tags.json --tag clip --choices --json
+slopstudio --cli map smart-tag ./maps/start.map --tags ./tags.json --tag clip --object brush:0 --choice common/clip --output ./maps/clipped.map
+slopstudio --cli map smart-tag ./maps/start.map --tags ./tags.json --tag detail --object brush:0 --disable --output ./maps/structural.map
 ```
 
 Use repeated **--object brush:ID|patch:ID|entity:ID**, or repeated
@@ -12806,23 +12806,23 @@ writing, and **--overwrite** permits the existing safe-save replacement path.
 
 ## Troubleshooting and FAQ
 
-This page helps when something goes wrong: VibeStudio will not start, a game or compiler is not found,
+This page helps when something goes wrong: SlopStudio will not start, a game or compiler is not found,
 a package will not open, or the studio crashed. It also shows where the logs are and what to include
-in a bug report. VibeStudio is pre-alpha software, so if nothing here helps, please report the problem.
+in a bug report. SlopStudio is pre-alpha software, so if nothing here helps, please report the problem.
 
-### VibeStudio will not start
+### SlopStudio will not start
 
-VibeStudio builds are not signed or notarised yet, so your system may warn you before the first start.
-Only continue if you got VibeStudio from the project's own
-[GitHub repository](https://github.com/themuffinator/VibeStudio) or its
-[releases page](https://github.com/themuffinator/VibeStudio/releases).
+SlopStudio builds are not signed or notarised yet, so your system may warn you before the first start.
+Only continue if you got SlopStudio from the project's own
+[GitHub repository](https://github.com/themuffinator/SlopStudio) or its
+[releases page](https://github.com/themuffinator/SlopStudio/releases).
 
 #### Windows
 
 - **Windows protected your PC** (SmartScreen): choose **More info**, then **Run anyway**.
 - A message that `VCRUNTIME140.dll` or `MSVCP140.dll` is missing: install the Microsoft Visual C++
   Redistributable for x64. The portable Windows packages do not include it.
-- A message that `Qt6Core.dll` or another Qt file is missing, or a `vibestudio.exe` you built yourself
+- A message that `Qt6Core.dll` or another Qt file is missing, or a `slopstudio.exe` you built yourself
   exits at once without a message: Windows cannot find Qt. Add Qt's `bin` folder to PATH, as shown in
   [Build from source](manual/building-from-source.md#run-from-the-build-folder). Windows release packages
   include their own Qt files, so this only affects builds you made yourself.
@@ -12832,25 +12832,25 @@ Only continue if you got VibeStudio from the project's own
 - If macOS says the app cannot be opened because Apple cannot check it for malicious software, or
   because the developer cannot be verified (Gatekeeper), open **System Settings** >
   **Privacy & Security** and choose **Open Anyway**. On macOS 13 and 14 you can also Control-click
-  the app and choose **Open**. [Install VibeStudio](manual/install.md) has the details.
+  the app and choose **Open**. [Install SlopStudio](manual/install.md) has the details.
 - A message about missing Qt libraries from a nightly package: nightly packages for macOS do not
   include the Qt frameworks yet. Use a release, or
-  [build VibeStudio from source](manual/building-from-source.md).
+  [build SlopStudio from source](manual/building-from-source.md).
 
 #### Linux
 
 - If the AppImage does not start, it usually lacks FUSE 2. Install your distribution's `libfuse2`
   package (`libfuse2t64` on Ubuntu 24.04 and later), or run the AppImage with
   `--appimage-extract-and-run`. Make sure the file is executable first:
-  `chmod +x VibeStudio-<version>-linux-x86_64.AppImage`.
+  `chmod +x SlopStudio-<version>-linux-x86_64.AppImage`.
 - A message that a `GLIBC` version was not found means your system's C library is older than the one
-  the build needs. [Install VibeStudio](manual/install.md) lists the systems the AppImage supports; on an
+  the build needs. [Install SlopStudio](manual/install.md) lists the systems the AppImage supports; on an
   older system, build from source.
 - "error while loading shared libraries: libQt6Widgets.so.6" from a nightly package: nightly packages
   for Linux do not include the Qt libraries yet and need Qt 6.10.1 or newer on the system. Use the
-  AppImage, or build VibeStudio from source.
+  AppImage, or build SlopStudio from source.
 
-The command line (`vibestudio --cli ...`) needs no display, so it also works over SSH and in CI.
+The command line (`slopstudio --cli ...`) needs no display, so it also works over SSH and in CI.
 Commands that draw in 3D (`material render`, `render backends`, `render test`) can use only Vulkan
 when there is no display; see [3D views stay empty](manual/troubleshooting.md#3d-views-stay-empty).
 
@@ -12872,41 +12872,41 @@ swatches stay blank.
 From the command line:
 
 ```sh
-vibestudio --cli render backends
-vibestudio --cli render test
-vibestudio --cli render set opengl
+slopstudio --cli render backends
+slopstudio --cli render test
+slopstudio --cli render set opengl
 ```
 
 `render backends` lists each renderer with its device and driver, or why it is unavailable.
 `render test` exits 4 when a renderer draws its test image wrongly and 5 when none can start. To try
 a renderer for one run without changing the setting, add `--renderer vulkan` to a command, or set
-the environment variable `VIBESTUDIO_RENDER_BACKEND` to `opengl` or `vulkan` before starting the
+the environment variable `SLOPSTUDIO_RENDER_BACKEND` to `opengl` or `vulkan` before starting the
 studio.
 
 On a computer with two graphics processors, Vulkan picks the discrete one. To use another, set
-`VIBESTUDIO_VULKAN_DEVICE` to part of its name, such as `Intel`, or to its place in the system's list
+`SLOPSTUDIO_VULKAN_DEVICE` to part of its name, such as `Intel`, or to its place in the system's list
 of Vulkan devices, counting from 0; `render backends` then names the one in use. OpenGL uses the
-graphics processor your operating system assigns to VibeStudio. `VIBESTUDIO_VULKAN_VALIDATION=1`
+graphics processor your operating system assigns to SlopStudio. `SLOPSTUDIO_VULKAN_VALIDATION=1`
 turns on the Khronos validation layer, where it is installed, for reports to the developers.
 
 ### Find the logs
 
-Each day's sessions write to a log file named `vibestudio-<date>.log`, with the date as `YYYYMMDD` in
-UTC, in a `logs` folder in VibeStudio's per-user data folder. The log records the studio's messages,
+Each day's sessions write to a log file named `slopstudio-<date>.log`, with the date as `YYYYMMDD` in
+UTC, in a `logs` folder in SlopStudio's per-user data folder. The log records the studio's messages,
 warnings and errors.
 
 | System | Log folder |
 | --- | --- |
-| Windows | `%APPDATA%\DarkMatterProductions\VibeStudio\logs` |
-| macOS | `~/Library/Application Support/DarkMatterProductions/VibeStudio/logs` |
-| Linux | `~/.local/share/DarkMatterProductions/VibeStudio/logs` |
+| Windows | `%APPDATA%\DarkMatterProductions\SlopStudio\logs` |
+| macOS | `~/Library/Application Support/DarkMatterProductions/SlopStudio/logs` |
+| Linux | `~/.local/share/DarkMatterProductions/SlopStudio/logs` |
 
-`vibestudio --cli diagnostics crashes` prints the folder on any system. Crash reports are kept in the
-same folder. [Install VibeStudio](manual/install.md) lists where settings and recovery copies are kept.
+`slopstudio --cli diagnostics crashes` prints the folder on any system. Crash reports are kept in the
+same folder. [Install SlopStudio](manual/install.md) lists where settings and recovery copies are kept.
 
 ### The studio stopped answering for a moment
 
-VibeStudio is meant to show you that it is working: a start-up screen while it starts, a loading pane
+SlopStudio is meant to show you that it is working: a start-up screen while it starts, a loading pane
 or a busy ring where a result will appear, and the status bar's **Activity** button turning while
 anything is busy. If the window itself stops answering, the studio notices once it is responding again:
 
@@ -12921,7 +12921,7 @@ A pause is a defect in the studio, not something you did: work that holds the wi
 the background. If it keeps happening, note what you were doing and include the diagnostic bundle in
 a [bug report](manual/troubleshooting.md#report-a-bug).
 
-If the start-up screen itself is in the way, for example when VibeStudio is started from a script,
+If the start-up screen itself is in the way, for example when SlopStudio is started from a script,
 start it with `--no-splash`.
 
 ### Create a diagnostics bundle
@@ -12934,10 +12934,10 @@ A diagnostics bundle describes your setup for a bug report.
   the 3D renderer and what OpenGL and Vulkan found, the open project and package, the log file's path,
   the number of crash reports, where each compiler was found, any keyboard shortcut conflicts and the
   last 60 lines of the session log.
-- From the command line, run `vibestudio --cli diagnostics bundle --output ./diagnostics`. It writes
-  `vibestudio-diagnostics.json` with the version, Qt and system details, the 3D renderer choice, and
+- From the command line, run `slopstudio --cli diagnostics bundle --output ./diagnostics`. It writes
+  `slopstudio-diagnostics.json` with the version, Qt and system details, the 3D renderer choice, and
   the studio's command, module, operation-state, interface and localization reports. Add the output of
-  `vibestudio --cli render backends` when 3D views are the problem. It leaves out secrets, API keys,
+  `slopstudio --cli render backends` when 3D views are the problem. It leaves out secrets, API keys,
   environment values, home-directory contents and project files.
 
 > [!IMPORTANT]
@@ -12946,13 +12946,13 @@ A diagnostics bundle describes your setup for a bug report.
 
 ### Recover after a crash
 
-If VibeStudio closed unexpectedly, the next start shows the notice **The studio closed unexpectedly
+If SlopStudio closed unexpectedly, the next start shows the notice **The studio closed unexpectedly
 last time.** It does not reopen the files that were open, in case one of them caused the crash.
 
 - **Reopen Last Session** opens them again when you are ready.
 - **View Report** shows the crash report, or **Details** when none could be written.
 - **Help** > **Crash Reports…** lists every kept report, newest first, with **Copy Report** and
-  **Show in Folder**. `vibestudio --cli diagnostics crashes` lists them too.
+  **Show in Folder**. `slopstudio --cli diagnostics crashes` lists them too.
 
 Crash reports stay on your computer and are never sent anywhere. To recover unsaved work, use
 **File** > **Recover Maps…**, **Recover Packages…**, **Recover Audio…** or **Recover Text Documents…**;
@@ -12962,30 +12962,30 @@ choices **Keep a crash report on this machine** and **Reopen the last session at
 
 ### Start with clean settings
 
-To rule out a settings problem without losing your own settings, start VibeStudio with a new
+To rule out a settings problem without losing your own settings, start SlopStudio with a new
 settings file:
 
 ```sh
-vibestudio --settings-file ./clean-settings.ini
+slopstudio --settings-file ./clean-settings.ini
 ```
 
 ```powershell
-.\vibestudio.exe --settings-file "$env:TEMP\vibestudio-clean.ini"
+.\slopstudio.exe --settings-file "$env:TEMP\slopstudio-clean.ini"
 ```
 
 The studio starts with default settings and saves its settings only to that file, and crash reports
 from that run go to a `crash-reports` folder beside it. Start without the option to return to your
 normal settings, which stay untouched. The option works with `--cli` too, and
-`vibestudio --cli --settings-report` prints where the settings in use are stored.
+`slopstudio --cli --settings-report` prints where the settings in use are stored.
 
 ### The interface is still in English
 
-VibeStudio is prepared for many languages, but the translations are not finished yet, so the
+SlopStudio is prepared for many languages, but the translations are not finished yet, so the
 interface stays in English whichever language you choose. A new language takes effect after a
 restart. If you choose a right-to-left language such as Arabic, Hebrew, Persian or Urdu, the layout
 mirrors even though the text is still English. To go back, choose English or the
 **System language** entry under **Settings** > **Appearance and Language** > **Language**, or run
-`vibestudio --cli --set-locale en`. `vibestudio --cli localization report --locale de` shows how far
+`slopstudio --cli --set-locale en`. `slopstudio --cli localization report --locale de` shows how far
 a language's translation has come.
 
 ### Text is too small or too large
@@ -12994,25 +12994,25 @@ a language's translation has come.
   100% and 200%.
 - **Settings** > **Appearance and Language** > **Text scale** offers 100%, 125%, 150%, 175% and 200%,
   and **Density** makes the layout **Comfortable**, **Standard** or **Compact**.
-- VibeStudio also follows your system's display scaling.
+- SlopStudio also follows your system's display scaling.
 
-From the command line, `vibestudio --cli --set-text-scale 150` sets the scale. See
+From the command line, `slopstudio --cli --set-text-scale 150` sets the scale. See
 [Accessibility](manual/accessibility.md) for the other display and reading options.
 
 ### Compilers are not found
 
-VibeStudio does not include the compiler programs yet; install VibeMap2, VibeMap3, ZDBSP or
+SlopStudio does not include the compiler programs yet; install SlopMap2, SlopMap3, ZDBSP or
 ZokumBSP yourself. Then open the **Toolchain** tab on the Build page: a tool that shows **Not found**
 needs **Locate…**, and **Rescan** looks again after you install one. On macOS and Linux, the program
-must be executable. VibeStudio finds VibeMap2 and VibeMap3 under their current names
-(`vibemap2-bsp`, `vibemap3`) and their earlier ones (`vmt-bsp`, `q3mapx`), but not stock ericw-tools
+must be executable. SlopStudio finds SlopMap2 and SlopMap3 under their current names
+(`slopmap2-bsp`, `slopmap3`) and their earlier ones (`vmt-bsp`, `q3mapx`), but not stock ericw-tools
 or q3map2: choose those with **Locate…**. Because stock ericw-tools uses the common program names
 `vis` and `light`, check that **Executable** points at the ericw-tools programs and not something
-else. Scripts must use the new tool ids, such as `vibemap2-bsp` and `vibemap3`: a `compiler`
+else. Scripts must use the new tool ids, such as `slopmap2-bsp` and `slopmap3`: a `compiler`
 command given an old id, such as `ericw-qbsp` or `q3map2`, stops with a message that names the new
 one. If **Path from** says **Project manifest (missing)**, fix `compilerToolOverrides` in the
 project's manifest.
-`vibestudio --cli compiler list` shows where each tool was found and its version. See
+`slopstudio --cli compiler list` shows where each tool was found and its version. See
 [Build and launch](manual/build-and-launch.md).
 
 ### A game is not detected
@@ -13022,7 +13022,7 @@ libraries, and common GOG folders. It recognises a game by its folder name, its 
 `doom2.wad`, `id1/pak0.pak`, `baseq2/pak0.pak` or `baseq3/pak0.pk3`. For a game installed elsewhere,
 from another store or as a source port, choose **Add** in **Game Installations** and pick its
 folder. To scan another Steam library or game folder, run
-`vibestudio --cli install detect --root "<folder>"`. Detected games are not saved until you choose
+`slopstudio --cli install detect --root "<folder>"`. Detected games are not saved until you choose
 **Import Detected**. See [Projects and game installations](manual/projects.md#add-your-game-installations).
 
 ### A release includes the game's own files
@@ -13059,31 +13059,31 @@ uses but nothing provides. See [Package and release](manual/releases.md#files-th
 - Encrypted ZIP entries, ZIP entries that are neither stored nor DEFLATE-compressed, and compressed
   WAD2 and WAD3 lumps are listed but cannot be read. Split, multi-disk ZIP archives are refused.
 - The Activity Center keeps the reason for every failed open. For a damaged archive, run
-  `vibestudio --cli package validate <package> --json` to see which entries fail.
+  `slopstudio --cli package validate <package> --json` to see which entries fail.
 
 ### Common questions
 
 #### Game folders stay unchanged
 
 Detection and indexing a game's assets only read, and installation profiles start read-only.
-VibeStudio writes into a game folder only for test-map copies you allow and prepared-build deployments
+SlopStudio writes into a game folder only for test-map copies you allow and prepared-build deployments
 you review, though the game itself may write its own configuration and logs when you launch it.
 Releases are written to your project's output folder, never into the game. Removing a profile never
 deletes game files.
 
 #### Nothing is sent without your consent
 
-AI features are off by default, and they are the only part of VibeStudio that connects to the
+AI features are off by default, and they are the only part of SlopStudio that connects to the
 network. Crash reports and diagnostics bundles stay on your computer unless you share them. See
 [AI assistant](manual/ai.md).
 
 ### Report a bug
 
-Search the [issue tracker](https://github.com/themuffinator/VibeStudio/issues) first, then open a new
+Search the [issue tracker](https://github.com/themuffinator/SlopStudio/issues) first, then open a new
 issue with:
 
-- the version, from **Help** > **About VibeStudio** or `vibestudio --cli --version`;
-- your operating system and how you installed VibeStudio, or that you built it from source;
+- the version, from **Help** > **About SlopStudio** or `slopstudio --cli --version`;
+- your operating system and how you installed SlopStudio, or that you built it from source;
 - what you did, what you expected, and what happened, step by step;
 - the diagnostics bundle, and the crash report from **Copy Report** if there was a crash;
 - the relevant lines from the session log;
@@ -13096,7 +13096,7 @@ from commercial games.
 
 ## Build from source
 
-Build VibeStudio yourself to try the latest changes, debug a problem or contribute. You need a C++20
+Build SlopStudio yourself to try the latest changes, debug a problem or contribute. You need a C++20
 compiler, Qt 6, Meson, Ninja and Python 3; this page lists them, then walks through configuring,
 building, testing, running and packaging.
 
@@ -13127,8 +13127,8 @@ page call `python`; use `python3` where that is its name on your system.
 ### Get the source
 
 ```sh
-git clone --recursive https://github.com/themuffinator/VibeStudio.git
-cd VibeStudio
+git clone --recursive https://github.com/themuffinator/SlopStudio.git
+cd SlopStudio
 ```
 
 If you cloned without `--recursive`, fetch the submodules afterwards:
@@ -13137,11 +13137,11 @@ If you cloned without `--recursive`, fetch the submodules afterwards:
 git submodule update --init --recursive
 ```
 
-The submodules hold the source of VibeMap2 and VibeMap3, VibeStudio's own compilers (derived from
+The submodules hold the source of SlopMap2 and SlopMap3, SlopStudio's own compilers (derived from
 ericw-tools and from q3map2 in NetRadiant Custom), and of ZDBSP and ZokumBSP, for building the
-compilers yourself and for licence review. The VibeStudio build does not compile them, but one of the
-tests checks that they are present. VibeMap2 and VibeMap3 build with CMake; when you build them in
-place, VibeStudio finds the programs in their build folders.
+compilers yourself and for licence review. The SlopStudio build does not compile them, but one of the
+tests checks that they are present. SlopMap2 and SlopMap3 build with CMake; when you build them in
+place, SlopStudio finds the programs in their build folders.
 
 ### Configure, build and test
 
@@ -13153,7 +13153,7 @@ meson test -C builddir --print-errorlogs
 
 Meson's default build type is `debug`, which runs noticeably slower. CI configures with
 `--buildtype=debugoptimized`, which you can add to `meson setup` too. Tests that draw in 3D skip their
-drawing checks when neither OpenGL nor Vulkan starts; set `VIBESTUDIO_RENDER_REQUIRE=1` to make that a
+drawing checks when neither OpenGL nor Vulkan starts; set `SLOPSTUDIO_RENDER_REQUIRE=1` to make that a
 failure instead, as CI does on Windows and Linux. Most tests use Qt's offscreen platform, where only Vulkan
 can draw on Windows and macOS. On Windows, Qt's `bin` folder
 must also be on PATH when the tests run, as in
@@ -13202,14 +13202,14 @@ change it later with `meson configure builddir -Daudio_playback=disabled`.
 | `audio_duplex` | `auto` | The synchronised recording backend: WASAPI, CoreAudio or ALSA. `disabled` builds without it. |
 | `compiler_tools` | `disabled` | Reserved for building the external compilers from their submodules; it has no effect yet. |
 | `update_channel` | `dev` | `stable`, `beta` or `dev`, recorded in the build and shown in its reports. |
-| `github_repo` | `themuffinator/VibeStudio` | The repository, as owner/name, recorded in the build and shown in its reports. |
+| `github_repo` | `themuffinator/SlopStudio` | The repository, as owner/name, recorded in the build and shown in its reports. |
 | `ggml` | `disabled` | Links llama.cpp and ggml for the **Local GGUF Model (ggml)** connector and Quake-MapGen's ggml ranker. Build them first (below). Release packages are built without it. |
 | `ggml_prefix` | empty | Where `scripts/build_ggml.py` installed llama.cpp; empty uses `external/ai/ggml`. |
 
 #### Build with ggml
 
 The `ggml` option needs the pinned llama.cpp, built with CMake for the same
-compiler and C runtime as VibeStudio. The script builds and installs it into
+compiler and C runtime as SlopStudio. The script builds and installs it into
 `external/ai/ggml`, which Git ignores:
 
 ```sh
@@ -13224,11 +13224,11 @@ to Meson as `-Dggml_prefix`; the script prints the `meson setup` line to use.
 Without `--source`, the script clones llama.cpp at the pinned revision; give
 `--source <folder>` to build an existing clean checkout of that revision.
 
-On Windows, build llama.cpp with the same compiler as VibeStudio: set `CC` and
+On Windows, build llama.cpp with the same compiler as SlopStudio: set `CC` and
 `CXX` to `clang-cl` if that is what `scripts/meson_build.ps1` picked, or run the
 script from the same Developer PowerShell for MSVC.
 
-To test the build with a small chat model, set `VIBESTUDIO_TEST_GGUF` to its
+To test the build with a small chat model, set `SLOPSTUDIO_TEST_GGUF` to its
 `.gguf` path and run `meson test -C builddir-ggml ai-gguf-smoke`; without it,
 that test is skipped. The released packages are built without ggml. Builds
 without it lose nothing else: **Local/Offline Runtime** can still reach
@@ -13239,8 +13239,8 @@ llama.cpp's own server.
 On Linux and macOS:
 
 ```sh
-./builddir/src/vibestudio
-./builddir/src/vibestudio --cli --help
+./builddir/src/slopstudio
+./builddir/src/slopstudio --cli --help
 ```
 
 On Windows, put Qt's `bin` folder on PATH first, or Windows cannot find the Qt libraries and the
@@ -13248,8 +13248,8 @@ program exits at once:
 
 ```powershell
 $env:PATH = "C:\Qt\6.10.1\msvc2022_64\bin;$env:PATH"
-.\builddir\src\vibestudio.exe
-.\builddir\src\vibestudio.exe --cli --help
+.\builddir\src\slopstudio.exe
+.\builddir\src\slopstudio.exe --cli --help
 ```
 
 Adjust the path to your Qt version and kit. To keep test runs away from your own settings, add
@@ -13265,18 +13265,18 @@ script through `pwsh`, so install PowerShell 7 on macOS and Linux too. Run them 
 
 | Task | What it does |
 | --- | --- |
-| **VibeStudio: build and validate** | The default build task: configures, compiles with warnings as errors, runs the tests and runs the validation scripts. |
-| **VibeStudio: compile** | Configures if needed, then compiles only. |
-| **VibeStudio: test** | The default test task: compiles, then runs the Meson tests without the validation scripts. |
-| **VibeStudio: build and launch app** | Compiles, then starts the studio with Qt on PATH. |
-| **VibeStudio: configure** | Configures only. |
-| **VibeStudio: strict warnings build** | Compiles with warnings as errors, without tests. |
-| **VibeStudio: launch app (no build)** | Starts the program you already built. **VibeStudio: launch CLI help (no build)** prints its command-line help. |
-| **VibeStudio: build docs site** | Renders this manual as HTML in `build/docs-site` and reports any broken link. |
-| **VibeStudio: regenerate branding** | Rebuilds the logo, icons and installer art in `assets/branding`. |
-| **VibeStudio: check changelog and version** | Validates `CHANGELOG.md`. |
+| **SlopStudio: build and validate** | The default build task: configures, compiles with warnings as errors, runs the tests and runs the validation scripts. |
+| **SlopStudio: compile** | Configures if needed, then compiles only. |
+| **SlopStudio: test** | The default test task: compiles, then runs the Meson tests without the validation scripts. |
+| **SlopStudio: build and launch app** | Compiles, then starts the studio with Qt on PATH. |
+| **SlopStudio: configure** | Configures only. |
+| **SlopStudio: strict warnings build** | Compiles with warnings as errors, without tests. |
+| **SlopStudio: launch app (no build)** | Starts the program you already built. **SlopStudio: launch CLI help (no build)** prints its command-line help. |
+| **SlopStudio: build docs site** | Renders this manual as HTML in `build/docs-site` and reports any broken link. |
+| **SlopStudio: regenerate branding** | Rebuilds the logo, icons and installer art in `assets/branding`. |
+| **SlopStudio: check changelog and version** | Validates `CHANGELOG.md`. |
 
-The **Run and Debug** view offers **VibeStudio: debug app** and **VibeStudio: debug CLI help**, each
+The **Run and Debug** view offers **SlopStudio: debug app** and **SlopStudio: debug CLI help**, each
 in four versions: Windows or Unix, and build first or no build. The Windows versions use the Visual
 Studio debugger and put `C:\Qt\6.10.1\msvc2022_64\bin` on PATH; edit `.vscode/launch.json` if your
 Qt is elsewhere. The Unix versions use GDB on Linux and LLDB on macOS. Debugging needs Microsoft's
@@ -13285,10 +13285,10 @@ C/C++ extension.
 ### Make a portable package
 
 ```sh
-python scripts/package_portable.py --binary builddir/src/vibestudio --archive
+python scripts/package_portable.py --binary builddir/src/slopstudio --archive
 ```
 
-On Windows, pass `builddir/src/vibestudio.exe`. The script stages a versioned folder in `dist`, or in
+On Windows, pass `builddir/src/slopstudio.exe`. The script stages a versioned folder in `dist`, or in
 the folder given with `--output`, with the program under `bin`, the documentation including the
 offline user guide, the translation catalogues, the sample projects (leave them out with
 `--no-samples`), the licences, platform notes, `package-manifest.json` and `CHECKSUMS.sha256`.

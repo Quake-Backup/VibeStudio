@@ -2,7 +2,7 @@
 
 #include "core/model_mesh.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 enum class ModelEditKind;
@@ -14,4 +14,4 @@ bool isModelAnimationEdit(ModelEditKind kind);
 // directions by normalized linear blending and tag rotations by shortest-arc
 // spherical interpolation. Reflected tags retain their common handedness.
 bool applyModelAnimationEdit(ModelMesh *candidate, const ModelEdit &edit, QString *error = nullptr, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 void ViewportRingCache::draw(QPainter& painter, const QVector<QPointF>& centers, QColor color, double width, double radius)
 {
 	if (!std::isfinite(width) || !std::isfinite(radius) || width <= 0 || radius <= 0 || centers.isEmpty()) { return; }
@@ -74,4 +74,4 @@ void ViewportRingCache::draw(QPainter& painter, const QVector<QPointF>& centers,
 		}
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

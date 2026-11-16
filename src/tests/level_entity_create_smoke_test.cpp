@@ -8,7 +8,7 @@
 // selected brush entity; each one undo step back to the exact bytes; locked,
 // hidden and out-of-group objects and a locked current layer refused with a
 // reason before anything changes; the CreateEntity placement operation,
-// including cancellation. With the vibestudio binary as its argument it
+// including cancellation. With the slopstudio binary as its argument it
 // drives `map create-entity` too.
 
 #include "core/entity_builtin_catalogue.h"
@@ -35,7 +35,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

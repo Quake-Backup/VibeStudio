@@ -3,7 +3,7 @@
 #include "core/model_document.h"
 #include "core/model_geometric_topology.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // A deterministic side of a connected vertex/edge rip. Planning uses one pose;
 // generated topology and skin bindings retain every pose. Faces are never
@@ -25,4 +25,4 @@ struct ModelRipPlan
 };
 bool planModelRip(const ModelSurface &surface, const ModelSelection &selection, const ModelMeshToolOptions &options, ModelRipPlan *result,
 				  QString *error = nullptr, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

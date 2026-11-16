@@ -4,7 +4,7 @@
 #include "core/level_material_paint.h"
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 // A portable value, independent of source document lifetime and object IDs.
 // It retains a source plane for projection, but no brush geometry, file paths,
 // package data or system clipboard access.
@@ -89,4 +89,4 @@ private:
 	int m_steps = 0;
 	bool m_clipboardFromDocument = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

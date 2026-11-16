@@ -4,7 +4,7 @@
 #include "core/level_document.h"
 #include "core/level_model_appearance.h"
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 struct LevelModelAppearanceFixture : ModelAppearanceFixture {
 	bool create(const QString& directory, QString* error) {
 		if (!ModelAppearanceFixture::create(directory, error)) { return false; }
@@ -33,4 +33,4 @@ struct LevelModelAppearanceFixture : ModelAppearanceFixture {
 	}
 };
 inline QStringList appearanceMaterials(const LevelModelAppearanceResult& result) { return result.mesh.skinPaths; }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

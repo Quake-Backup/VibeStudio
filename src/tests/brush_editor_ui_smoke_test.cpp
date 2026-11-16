@@ -26,7 +26,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message, const QString &error = {})
@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 		dialog.undo();
 		dialog.selectComponents(LevelBrushComponent::Vertex, {7});
 		dialog.moveSelected({16, 8, 12, true});
-		const auto captureRoot = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto captureRoot = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		std::cerr << "Brush UI controls verified" << std::endl;
 		if (!captureRoot.isEmpty()) {
 			QDir().mkpath(captureRoot);

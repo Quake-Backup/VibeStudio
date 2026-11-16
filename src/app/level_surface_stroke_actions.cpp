@@ -9,7 +9,7 @@
 #include <QTimer>
 #include <QToolButton>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelSurfaceStrokeState {
 	struct Hit { LevelMaterialTarget target; CameraMaterialGesture action; };
 	LevelSurfaceWork work;
@@ -204,4 +204,4 @@ void ApplicationShell::completeLevelSurfaceStroke(LevelSurfaceResult result)
 	if (result.edgeOnFaces > 0) { message += QLatin1Char(' ') + tr("Radiant projection left %n face(s) edge-on to the copied mapping.", nullptr, result.edgeOnFaces); }
 	m_levelSurfaceTools->setStatus(message, false); showLevelMaterialPaintMessage(message);
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -24,7 +24,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -42,7 +42,7 @@ class Expansion final : public QTranslator
 	bool isEmpty() const override { return false; }
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelEditor")
+		if (QByteArray(context) != "SlopStudioModelEditor")
 			return {};
 		const auto value = QString::fromUtf8(text);
 		return QStringLiteral("[%1%2]").arg(value, QString(value.size() / 2, '~'));
@@ -50,7 +50,7 @@ class Expansion final : public QTranslator
 };
 bool render(QWidget &widget, int scenario, const QString &phase)
 {
-	const auto directory = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto directory = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (directory.isEmpty())
 		return true;
 	QImage image(widget.size() * widget.devicePixelRatioF(), QImage::Format_ARGB32_Premultiplied);
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("boundary-bridge-ui-XXXXXX"));

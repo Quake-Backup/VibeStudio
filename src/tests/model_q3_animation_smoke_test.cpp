@@ -14,7 +14,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -29,7 +29,7 @@ bool expect(bool value, const char *message)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("q3-animation-core-XXXXXX"));
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
 					 "CLI native removal returns to ordinary assembly playback");
 	}
 	ok &= expect(tests::q3Read(path("part.mesh.json")) == modelBytes, "model input preserved byte for byte");
-	const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (!evidence.isEmpty())
 	{
 		auto oracle = tests::q3Config();

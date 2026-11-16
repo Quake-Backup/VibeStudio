@@ -6,7 +6,7 @@
 #include <QCoreApplication>
 #include <QCryptographicHash>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -23,7 +23,7 @@ bool readEntry(const PackageArchiveReader &archive, qsizetype index, QByteArray 
 	const auto entry = archive.entries()[index];
 	if (entry.sizeBytes == 0 || entry.sizeBytes > quint64(modelFileByteLimit) || entry.compressedSizeBytes > quint64(modelFileByteLimit))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelMdl",
+		return fail(error, QCoreApplication::translate("SlopStudioModelMdl",
 													   "The package texture or palette is empty or exceeds the model input byte limit."));
 	}
 	QByteArray bytes;
@@ -35,7 +35,7 @@ bool readEntry(const PackageArchiveReader &archive, qsizetype index, QByteArray 
 			if (chunk.size() > modelFileByteLimit - bytes.size() || quint64(bytes.size() + chunk.size()) > entry.sizeBytes)
 			{
 				return fail(&sinkError,
-							QCoreApplication::translate("VibeStudioModelMdl", "The package payload exceeds its recorded size."));
+							QCoreApplication::translate("SlopStudioModelMdl", "The package payload exceeds its recorded size."));
 			}
 			if (!modelWorkCheckpoint(control, ModelWorkPhase::Reading, bytes.size(), qint64(entry.sizeBytes), &sinkError))
 			{
@@ -57,11 +57,11 @@ bool readEntry(const PackageArchiveReader &archive, qsizetype index, QByteArray 
 	{
 		return error && !error->isEmpty()
 				   ? false
-				   : fail(error, QCoreApplication::translate("VibeStudioModelMdl", "Unable to verify the complete package payload."));
+				   : fail(error, QCoreApplication::translate("SlopStudioModelMdl", "Unable to verify the complete package payload."));
 	}
 	if (quint64(bytes.size()) != entry.sizeBytes)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelMdl", "The package payload does not match its recorded size."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelMdl", "The package payload does not match its recorded size."));
 	}
 	*output = std::move(bytes);
 	return true;
@@ -73,7 +73,7 @@ bool resolveModelSkinSource(const PackageArchiveReader &archive, const ModelSkin
 {
 	if (!entryIndex || !archive.isOpen() || reference.entryIndex < -1 || (reference.entryIndex < 0 && reference.path.isEmpty()))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelMdl", "Choose a texture from an open package snapshot."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelMdl", "Choose a texture from an open package snapshot."));
 	}
 	const auto entries = archive.entries();
 	qsizetype selected = reference.entryIndex;
@@ -86,7 +86,7 @@ bool resolveModelSkinSource(const PackageArchiveReader &archive, const ModelSkin
 				if (selected >= 0)
 				{
 					return fail(error,
-								QCoreApplication::translate("VibeStudioModelMdl",
+								QCoreApplication::translate("SlopStudioModelMdl",
 															"The package contains repeated texture names. Select an exact entry index."));
 				}
 				selected = i;
@@ -98,7 +98,7 @@ bool resolveModelSkinSource(const PackageArchiveReader &archive, const ModelSkin
 	{
 		return fail(error,
 					QCoreApplication::translate(
-						"VibeStudioModelMdl", "The selected package texture is missing, unreadable or no longer matches its entry index."));
+						"SlopStudioModelMdl", "The selected package texture is missing, unreadable or no longer matches its entry index."));
 	}
 	*entryIndex = selected;
 	if (error)
@@ -119,7 +119,7 @@ bool readModelSkinSource(const PackageArchiveReader &archive, const ModelSkinSou
 	const auto selectedPalette = paletteId.isEmpty() ? QStringLiteral("quake") : paletteId;
 	if (!skin || !idTechPaletteDescriptorForId(selectedPalette))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelMdl", "Choose a valid skin output and palette family."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelMdl", "Choose a valid skin output and palette family."));
 	}
 	qsizetype index = -1;
 	if (!modelWorkCheckpoint(control, ModelWorkPhase::Reading, 0, 0, error) || !resolveModelSkinSource(archive, reference, &index, error))
@@ -177,7 +177,7 @@ bool readModelSkinSource(const PackageArchiveReader &archive, const ModelSkinSou
 			QByteArray paletteBytes;
 			if (!resolveModelSkinSource(archive, {candidate, -1}, &paletteIndex, error))
 			{
-				return fail(error, QCoreApplication::translate("VibeStudioModelMdl",
+				return fail(error, QCoreApplication::translate("SlopStudioModelMdl",
 															   "Package palette %1 is ambiguous or unreadable. Resolve its entries in "
 															   "Packages, or use an image with an embedded palette.")
 									   .arg(candidate));
@@ -187,7 +187,7 @@ bool readModelSkinSource(const PackageArchiveReader &archive, const ModelSkinSou
 			{
 				return fail(
 					error,
-					QCoreApplication::translate("VibeStudioModelMdl", "Cannot read package palette %1: %2").arg(candidate, paletteError));
+					QCoreApplication::translate("SlopStudioModelMdl", "Cannot read package palette %1: %2").arg(candidate, paletteError));
 			}
 			const bool parsed = candidate.endsWith(QStringLiteral(".pcx"), Qt::CaseInsensitive)
 									? parsePcxPalette(paletteBytes, selectedPalette, &palette, &paletteError)
@@ -196,7 +196,7 @@ bool readModelSkinSource(const PackageArchiveReader &archive, const ModelSkinSou
 			{
 				return fail(
 					error,
-					QCoreApplication::translate("VibeStudioModelMdl", "Invalid package palette %1: %2").arg(candidate, paletteError));
+					QCoreApplication::translate("SlopStudioModelMdl", "Invalid package palette %1: %2").arg(candidate, paletteError));
 			}
 			imported.palette = modelMdlPaletteBytes(palette);
 			imported.paletteGenerated = palette.generated;
@@ -217,4 +217,4 @@ bool readModelSkinSource(const PackageArchiveReader &archive, const ModelSkinSou
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

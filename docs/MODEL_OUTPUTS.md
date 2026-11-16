@@ -5,12 +5,12 @@ and `model lod` leave receipts; status checks, refresh of exports and detail
 levels, and checking a player package's embedded receipt work on synthetic
 fixtures. Bakes, collision fragments, `animation.cfg` and player packages made by
 the studio do not record receipts yet, and nothing here has been tried on a real
-project. VibeStudio is pre-alpha.
+project. SlopStudio is pre-alpha.
 
 An editable source (`.mesh.json`, `.assembly.json`) reaches the game as derived
 files: an MD3 or MDL export, a staged package entry, a set of detail levels, a
 player package. When the source changes, those files go stale, and shipping a
-stale MD3 beside a newer source is easy to miss. VibeStudio keeps a receipt for
+stale MD3 beside a newer source is easy to miss. SlopStudio keeps a receipt for
 each committed output so it can tell which are current and refresh them with
 the settings they were made with.
 
@@ -52,7 +52,7 @@ A staged output names its package and entry instead of a path. A newer receipt
 for the same first output replaces the older one; at most 256 are kept and the
 oldest go first. Game folders and packages never get receipts written into them,
 except the receipt a Quake III player package already embeds
-(`vibestudio/player-bundle.json`). Without an open project no receipt is kept.
+(`slopstudio/player-bundle.json`). Without an open project no receipt is kept.
 
 `recordModelOutput(projectRoot, record)` is the shared hook: every guarded
 export calls it after its write commits, so a refused or cancelled export leaves
@@ -112,11 +112,11 @@ part's source still has the SHA-256 the package was built from
 ## Command line
 
 ```sh
-vibestudio --cli model outputs ./models/crate.mesh.json --json
-vibestudio --cli model outputs --project ./mymod --refresh stale --dry-run --json
-vibestudio --cli model outputs --project ./mymod --refresh ./build/models/crate.md3
-vibestudio --cli model outputs --project ./mymod --forget ./build/models/crate.md3
-vibestudio --cli model outputs --receipt ./build/crate.pk3 --assembly ./models/crate.assembly.json --json
+slopstudio --cli model outputs ./models/crate.mesh.json --json
+slopstudio --cli model outputs --project ./mymod --refresh stale --dry-run --json
+slopstudio --cli model outputs --project ./mymod --refresh ./build/models/crate.md3
+slopstudio --cli model outputs --project ./mymod --forget ./build/models/crate.md3
+slopstudio --cli model outputs --receipt ./build/crate.pk3 --assembly ./models/crate.assembly.json --json
 ```
 
 `model outputs` lists the receipts of the project (`--project`, or the project

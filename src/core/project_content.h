@@ -23,7 +23,7 @@
 #include <functional>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ProjectContentRoot {
 	// Absolute folder whose files map to virtual paths relative to it.
@@ -79,7 +79,7 @@ private:
 };
 
 // Folder names that are never content anywhere in a project: version control,
-// studio metadata, OS litter, and package drafts (*.vibepackage).
+// studio metadata, OS litter, and package drafts (*.sloppackage).
 bool isProjectNonContentFolderName(const QString& name);
 
 // A project's content roots: its folder (less the output, temp and metadata
@@ -120,4 +120,4 @@ private:
 	bool m_open = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

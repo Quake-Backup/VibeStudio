@@ -104,7 +104,7 @@ entry copies, and staged package operations. Save a draft inside the project to
 include it. Binary files, malformed Unicode, and unsupported legacy code pages
 are skipped. An unavailable or oversized eligible open snapshot makes the scan
 incomplete and never falls back to stale disk. Symlink files, linked directories, and Windows junctions
-are excluded. `.git`, `.hg`, `.svn`, `.agents`, `.vibestudio`, `node_modules`,
+are excluded. `.git`, `.hg`, `.svn`, `.agents`, `.slopstudio`, `node_modules`,
 `__pycache__`, `build`, `dist`, `external`, and directories beginning with `builddir` are pruned
 before descending. Additional generated/output trees need exclude filters.
 
@@ -129,9 +129,9 @@ The existing asset commands use the same matching, codec, and replacement
 service against saved files. Running editor snapshots stay local to the GUI:
 
 ```sh
-vibestudio --cli asset find ./mymod --find player --whole-word --case-sensitive --include "*.qc;*.qh" --exclude "generated/*" --json
-vibestudio --cli asset replace ./mymod --find old_shader --replace new_shader --include "scripts/*" --dry-run --json
-vibestudio --cli asset replace ./mymod --find obsolete_flag --delete-matches --include "*.cfg" --write --json
+slopstudio --cli asset find ./mymod --find player --whole-word --case-sensitive --include "*.qc;*.qh" --exclude "generated/*" --json
+slopstudio --cli asset replace ./mymod --find old_shader --replace new_shader --include "scripts/*" --dry-run --json
+slopstudio --cli asset replace ./mymod --find obsolete_flag --delete-matches --include "*.cfg" --write --json
 ```
 
 `--extensions` still limits candidate suffixes. CLI filter lists accept commas

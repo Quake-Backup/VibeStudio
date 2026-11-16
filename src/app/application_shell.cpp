@@ -115,7 +115,7 @@
 #include "core/release_notes.h"
 #include "core/release_plan.h"
 #include "core/studio_manifest.h"
-#include "vibestudio_config.h"
+#include "slopstudio_config.h"
 #include <QAbstractItemView>
 #include <QAccessible>
 #include <QItemSelectionModel>
@@ -229,7 +229,7 @@
 #include <functional>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -827,7 +827,7 @@ QString quoteCliPart(const QString& part)
 QString compilerCliEquivalent(const CompilerCommandRequest& request)
 {
 	QStringList parts = {
-		QStringLiteral("vibestudio"),
+		QStringLiteral("slopstudio"),
 		QStringLiteral("--cli"),
 		QStringLiteral("compiler"),
 		QStringLiteral("run"),
@@ -892,12 +892,12 @@ QListWidgetItem* disabledListItem(const QString& text)
 } // namespace
 
 namespace {
-// Opt-in diagnostics: QT_LOGGING_RULES="vibestudio.startup.info=true".
+// Opt-in diagnostics: QT_LOGGING_RULES="slopstudio.startup.info=true".
 // Phase names are stable technical identifiers; no project paths are logged.
-Q_LOGGING_CATEGORY(startupTimingLog, "vibestudio.startup", QtWarningMsg)
-// Opt-in diagnostics: QT_LOGGING_RULES="vibestudio.ui.refresh.info=true".
+Q_LOGGING_CATEGORY(startupTimingLog, "slopstudio.startup", QtWarningMsg)
+// Opt-in diagnostics: QT_LOGGING_RULES="slopstudio.ui.refresh.info=true".
 // Report refresh names and elapsed time only, without project or entry data.
-Q_LOGGING_CATEGORY(uiRefreshTimingLog, "vibestudio.ui.refresh", QtWarningMsg)
+Q_LOGGING_CATEGORY(uiRefreshTimingLog, "slopstudio.ui.refresh", QtWarningMsg)
 class UiRefreshTiming final {
 public:
 	explicit UiRefreshTiming(const char* scope) : m_scope(scope)
@@ -1721,7 +1721,7 @@ void ApplicationShell::buildUi()
 {
 	StartupTiming timing("ui");
 	m_buildingUi = true;
-	setWindowTitle(tr("VibeStudio"));
+	setWindowTitle(tr("SlopStudio"));
 	setAcceptDrops(true);
 	resize(1440, 900);
 	setDockOptions(QMainWindow::AnimatedDocks | QMainWindow::AllowTabbedDocks | QMainWindow::GroupedDragging);
@@ -2083,7 +2083,7 @@ QWidget* ApplicationShell::buildWorkspacePage()
 
 	auto* initManifest = createButton(tr("Initialize Manifest"), QStringLiteral("file"));
 	initManifest->setAccessibleName(tr("Initialize project manifest"));
-	initManifest->setToolTip(tr("Create or refresh the .vibestudio/project.json manifest for the current project folder."));
+	initManifest->setToolTip(tr("Create or refresh the .slopstudio/project.json manifest for the current project folder."));
 	connect(initManifest, &QPushButton::clicked, this, [this]() {
 		initializeCurrentProjectManifest();
 	});
@@ -2664,7 +2664,7 @@ QWidget* ApplicationShell::buildLevelsPage()
 	});
 	toolBar->addWidget(runProfile);
 
-	auto* copyCli = createToolButton(QStringLiteral("terminal"), tr("Copy CLI"), tr("Copy the vibestudio --cli command that reproduces this compile."), false);
+	auto* copyCli = createToolButton(QStringLiteral("terminal"), tr("Copy CLI"), tr("Copy the slopstudio --cli command that reproduces this compile."), false);
 	m_levelMapCopyCli = copyCli;
 	m_levelMapCopyCli->setAccessibleName(tr("Copy level map CLI command"));
 	connect(copyCli, &QToolButton::clicked, this, [this]() {
@@ -3620,7 +3620,7 @@ QWidget* ApplicationShell::buildPackagesPage()
 		tr("Redo the last undone package edit."), false, [this]() { undoPackageEdit(true); });
 	m_packageRedo->setObjectName(QStringLiteral("packageRedo"));
 	makePackageTool(&m_packageDraftSave, QStringLiteral("save"), tr("Save Draft"), tr("Save package draft"),
-		tr("Preserve package content and edit history in a .vibepackage directory."), false, [this]() { savePackageDraft(); });
+		tr("Preserve package content and edit history in a .sloppackage directory."), false, [this]() { savePackageDraft(); });
 	m_packageDraftSave->setObjectName(QStringLiteral("packageSaveDraft"));
 	toolBar->addSeparator();
 
@@ -4185,7 +4185,7 @@ QWidget* ApplicationShell::buildBuildPage()
 	m_compilerLocate = createButton(tr("Locate…"), QStringLiteral("folder-open"));
 	m_compilerLocate->setObjectName(QStringLiteral("compilerLocate"));
 	m_compilerLocate->setAccessibleName(tr("Locate the selected compiler tool"));
-	m_compilerLocate->setToolTip(tr("Choose the executable the selected tool runs. The path is kept for every project; vibestudio --cli compiler set-path saves the same setting."));
+	m_compilerLocate->setToolTip(tr("Choose the executable the selected tool runs. The path is kept for every project; slopstudio --cli compiler set-path saves the same setting."));
 	connect(m_compilerLocate, &QPushButton::clicked, this, [this]() {
 		locateSelectedCompilerTool();
 	});
@@ -4219,7 +4219,7 @@ QWidget* ApplicationShell::buildBuildPage()
 	compilerActions->addWidget(m_compilerRunSelected);
 	m_compilerCopyCli = createButton(tr("Copy CLI"), QStringLiteral("terminal"));
 	m_compilerCopyCli->setAccessibleName(tr("Copy compiler CLI equivalent"));
-	m_compilerCopyCli->setToolTip(tr("Copy a reproducible vibestudio --cli compiler run command for the selected profile."));
+	m_compilerCopyCli->setToolTip(tr("Copy a reproducible slopstudio --cli compiler run command for the selected profile."));
 	connect(m_compilerCopyCli, &QPushButton::clicked, this, [this]() {
 		copySelectedCompilerCliEquivalent();
 	});
@@ -4631,7 +4631,7 @@ QWidget* ApplicationShell::buildSettingsPage()
 	m_localeCombo = new QComboBox;
 	m_localeCombo->setObjectName(QStringLiteral("localeCombo"));
 	m_localeCombo->setAccessibleName(tr("Language"));
-	m_localeCombo->setToolTip(tr("The language of menus, labels, and messages. System language follows the operating system whenever VibeStudio has that language. A new language shows after a restart."));
+	m_localeCombo->setToolTip(tr("The language of menus, labels, and messages. System language follows the operating system whenever SlopStudio has that language. A new language shows after a restart."));
 	// The system choice first, then every language by its name in the
 	// interface language, so the list reads in the order its reader expects.
 	m_localeCombo->addItem(tr("System language: %1").arg(localeDisplayName(systemLocalizationTargetId())), systemLocalizationPreferenceId());
@@ -4814,7 +4814,7 @@ QWidget* ApplicationShell::buildSettingsPage()
 	m_aiEmbeddingsConnectorCombo = addAiConnectorCombo(tr("Embeddings (planned)"), capable(QStringLiteral("embeddings")), tr("Planned: semantic search and context ranking. Nothing uses this yet."));
 	m_aiLocalConnectorCombo = addAiConnectorCombo(tr("Local"),
 		[](const AiConnectorDescriptor& connector) { return connector.capabilities.contains(QStringLiteral("local-offline")) && aiConnectorHasChatTransport(connector.id); },
-		tr("The connector text features use instead while cloud connectors are off: a runtime on this machine, or a GGUF model run inside VibeStudio."));
+		tr("The connector text features use instead while cloud connectors are off: a runtime on this machine, or a GGUF model run inside SlopStudio."));
 	aiLayout->addWidget(connectorPanel);
 
 	// The model every text feature uses (the Assistant, both level
@@ -4949,8 +4949,8 @@ QWidget* ApplicationShell::buildSettingsPage()
 	extensionControls->setSpacing(8);
 	m_advancedExtensionRoot = new QLineEdit;
 	m_advancedExtensionRoot->setAccessibleName(tr("Extension discovery root"));
-	m_advancedExtensionRoot->setAccessibleDescription(tr("Folder searched for vibestudio.extension.json manifests."));
-	m_advancedExtensionRoot->setPlaceholderText(tr("Folder containing vibestudio.extension.json manifests"));
+	m_advancedExtensionRoot->setAccessibleDescription(tr("Folder searched for slopstudio.extension.json manifests."));
+	m_advancedExtensionRoot->setPlaceholderText(tr("Folder containing slopstudio.extension.json manifests"));
 	extensionControls->addWidget(m_advancedExtensionRoot, 1);
 	m_advancedExtensionDiscover = createButton(tr("Discover"), QStringLiteral("plugin"));
 	m_advancedExtensionDiscover->setAccessibleName(tr("Discover extensions"));
@@ -6568,7 +6568,7 @@ void ApplicationShell::refreshWorkspaceDashboard()
 	m_workspaceState->setReducedMotion(preferences.reducedMotion);
 	if (projectPath.isEmpty()) {
 		m_workspaceState->setTitle(tr("No Project Open"));
-		m_workspaceState->setDetail(tr("Open a project folder to create or inspect its VibeStudio manifest."));
+		m_workspaceState->setDetail(tr("Open a project folder to create or inspect its SlopStudio manifest."));
 		m_workspaceState->setState(OperationState::Idle, tr("Idle"));
 		m_workspaceState->setProgress({});
 		m_workspaceDrawer->setTitle(tr("Workspace Details"));
@@ -7282,7 +7282,7 @@ void ApplicationShell::refreshProjectProblemsPanel()
 	const bool loaded = loadProjectManifest(projectPath, &manifest, &error);
 	if (!loaded) {
 		manifest = defaultProjectManifest(projectPath);
-		addProblem(tr("Project manifest"), tr("Initialize .vibestudio/project.json: %1").arg(error), OperationState::Warning, projectManifestPath(projectPath));
+		addProblem(tr("Project manifest"), tr("Initialize .slopstudio/project.json: %1").arg(error), OperationState::Warning, projectManifestPath(projectPath));
 	}
 
 	const ProjectHealthSummary health = buildProjectHealthSummary(manifest, m_settings.selectedGameInstallationId());
@@ -7349,7 +7349,7 @@ void ApplicationShell::refreshWorkspaceSearch()
 		while (iterator.hasNext() && resultCount < kMaximumResults) {
 			const QString absolutePath = iterator.next();
 			const QString virtualPath = workspaceVirtualPath(projectPath, absolutePath);
-			if (virtualPath.isEmpty() || virtualPath.startsWith(QStringLiteral(".git/")) || virtualPath.startsWith(QStringLiteral(".vibestudio/tmp/"))) {
+			if (virtualPath.isEmpty() || virtualPath.startsWith(QStringLiteral(".git/")) || virtualPath.startsWith(QStringLiteral(".slopstudio/tmp/"))) {
 				continue;
 			}
 			if (!virtualPath.toCaseFolded().contains(query)) {
@@ -11548,7 +11548,7 @@ void ApplicationShell::copyLevelMapCliEquivalent()
 		return;
 	}
 	QStringList parts = {
-		QStringLiteral("vibestudio"),
+		QStringLiteral("slopstudio"),
 		QStringLiteral("--cli"),
 		QStringLiteral("map"),
 		QStringLiteral("compile-plan"),
@@ -12718,7 +12718,7 @@ void ApplicationShell::runSelectedCompilerProfile()
 	runRequest.command.extraSearchPaths = effectiveProjectCompilerSearchPaths(manifest);
 	runRequest.command.executableOverrides = effectiveProjectCompilerToolOverrides(manifest, m_settings.compilerToolPathOverrides());
 	runRequest.registerOutputs = true;
-	runRequest.manifestPath = QDir(manifest.rootPath).filePath(QStringLiteral(".vibestudio/compiler-runs/%1-%2.json").arg(profile.id, QDateTime::currentDateTimeUtc().toString(QStringLiteral("yyyyMMddTHHmmssZ"))));
+	runRequest.manifestPath = QDir(manifest.rootPath).filePath(QStringLiteral(".slopstudio/compiler-runs/%1-%2.json").arg(profile.id, QDateTime::currentDateTimeUtc().toString(QStringLiteral("yyyyMMddTHHmmssZ"))));
 
 	if (profile.inputRequired && runRequest.command.inputPath.isEmpty()) {
 		const QString taskId = m_activity.createTask(tr("Compiler Run"), profile.id, tr("compiler"), OperationState::Warning, false);
@@ -14044,9 +14044,9 @@ void ApplicationShell::noteUiStall(qint64 milliseconds)
 	qWarning("ui-responsiveness: the interface did not respond for %lld ms", static_cast<long long>(milliseconds));
 	// Headless runs (tests, snapshots) are held by their own harness and
 	// their load, not by anything the user saw; they keep the log line only,
-	// unless a test asks for the record (VIBESTUDIO_RECORD_UI_PAUSES=1).
+	// unless a test asks for the record (SLOPSTUDIO_RECORD_UI_PAUSES=1).
 	static const bool recordsPauses = QGuiApplication::platformName() != QLatin1String("offscreen")
-		|| qEnvironmentVariableIntValue("VIBESTUDIO_RECORD_UI_PAUSES") > 0;
+		|| qEnvironmentVariableIntValue("SLOPSTUDIO_RECORD_UI_PAUSES") > 0;
 	if (milliseconds < 2000 || !recordsPauses) {
 		return;
 	}
@@ -14363,7 +14363,7 @@ void ApplicationShell::refreshInspectorDrawerForSettings()
 	AiWorkflowManifest previewManifest = defaultAiWorkflowManifest(QStringLiteral("preview-only"), aiPreferences.preferredReasoningConnectorId.isEmpty() ? defaultAiReasoningConnectorId() : aiPreferences.preferredReasoningConnectorId, aiPreferences.preferredTextModelId, tr("Preview AI workflow"));
 	previewManifest.contextSummary = tr("Settings inspector preview; no provider request and no file writes.");
 	previewManifest.toolCalls.push_back({QStringLiteral("compiler-command-proposal"), tr("Example tool call remains staged until approved."), OperationState::Completed, {tr("prompt")}, {tr("reviewable command")}, {}, true, false});
-	previewManifest.stagedOutputs.push_back({QStringLiteral("example-output"), QStringLiteral("command"), tr("Reviewable command preview"), QString(), tr("No action is applied from the inspector."), {tr("vibestudio --cli compiler plan <profile> --input <path> --dry-run")}, false});
+	previewManifest.stagedOutputs.push_back({QStringLiteral("example-output"), QStringLiteral("command"), tr("Reviewable command preview"), QString(), tr("No action is applied from the inspector."), {tr("slopstudio --cli compiler plan <profile> --input <path> --dry-run")}, false});
 	aiLines << tr("Consent preview:");
 	aiLines << aiWorkflowManifestText(previewManifest);
 	aiLines << QString();
@@ -14820,7 +14820,7 @@ void ApplicationShell::updateInspector()
 	lines << tr("Compiler executables found: %1 of %2").arg(compilerRegistry.executableAvailableCount).arg(compilerRegistry.tools.size());
 	lines << QString();
 	lines << tr("Workspace diagnostics, package context, compiler readiness, and recent tasks are available in the dashboard panels.");
-	lines << tr("Run vibestudio --cli --compiler-report for the current imported toolchain manifest.");
+	lines << tr("Run slopstudio --cli --compiler-report for the current imported toolchain manifest.");
 	m_inspector->setPlainText(lines.join('\n'));
 	refreshInspectorDrawerForSettings();
 }
@@ -15104,7 +15104,7 @@ void ApplicationShell::buildCommands()
 		tr("Close the open project folder. It stays in Recent Projects."), QStringLiteral("close"), false, true, false,
 		[this]() { closeProject(); });
 	add(QStringLiteral("project.initializeManifest"), StudioCommandGroup::File, tr("&Initialize Project Manifest"),
-		tr("Create or refresh .vibestudio/project.json for the active project."), QStringLiteral("file"), false, true, false,
+		tr("Create or refresh .slopstudio/project.json for the active project."), QStringLiteral("file"), false, true, false,
 		[this]() { initializeCurrentProjectManifest(); }, true);
 	add(QStringLiteral("map.close"), StudioCommandGroup::File, tr("Close Ma&p"),
 		tr("Close the open map, asking about unsaved edits first."), QStringLiteral("close"), false, false, false,
@@ -15203,7 +15203,7 @@ void ApplicationShell::buildCommands()
 		tr("Close the open package and clear its browsers."), QStringLiteral("close"), false, false, false,
 		[this]() { closePackage(); }, true);
 	add(QStringLiteral("app.quit"), StudioCommandGroup::File, tr("&Quit"),
-		tr("Close VibeStudio."), QStringLiteral("close"), false, false, false,
+		tr("Close SlopStudio."), QStringLiteral("close"), false, false, false,
 		[this]() { close(); }, true);
 
 	add(QStringLiteral("package.unstageLast"), StudioCommandGroup::Edit, tr("Undo &Package Edit"),
@@ -16027,7 +16027,7 @@ void ApplicationShell::buildCommands()
 		});
 	registerLevelMaterialAnimationCommand();
 	add(QStringLiteral("extension.discover"), StudioCommandGroup::Tools, tr("Discover &Extensions"),
-		tr("Load vibestudio.extension.json manifests and report their trust metadata."), QStringLiteral("plugin"), false, false, false,
+		tr("Load slopstudio.extension.json manifests and report their trust metadata."), QStringLiteral("plugin"), false, false, false,
 		[this]() {
 			showSettingsCategory(QStringLiteral("extensions"));
 			discoverAdvancedExtensions();
@@ -16088,9 +16088,9 @@ void ApplicationShell::buildCommands()
 			const QStringList manualPaths {
 				QStringLiteral("../docs/html/index.html"),
 				QStringLiteral("../Resources/docs/html/index.html"),
-				QStringLiteral("../share/doc/vibestudio/html/index.html"),
+				QStringLiteral("../share/doc/slopstudio/html/index.html"),
 			};
-			QUrl url(QStringLiteral("https://github.com/themuffinator/VibeStudio/blob/main/docs/manual/index.md"));
+			QUrl url(QStringLiteral("https://github.com/themuffinator/SlopStudio/blob/main/docs/manual/index.md"));
 			for (const QString& relativePath : manualPaths) {
 				const QFileInfo manual(binaryDirectory.filePath(relativePath));
 				if (manual.isFile() && manual.isReadable()) {
@@ -16111,7 +16111,7 @@ void ApplicationShell::buildCommands()
 	add(QStringLiteral("diagnostics.crashReports"), StudioCommandGroup::Help, tr("&Crash Reports…"),
 		tr("The crash reports kept on this machine, newest first, with the full text of each."), QStringLiteral("report"), false, false, false,
 		[this]() { showCrashReports(); });
-	add(QStringLiteral("app.about"), StudioCommandGroup::Help, tr("&About VibeStudio"),
+	add(QStringLiteral("app.about"), StudioCommandGroup::Help, tr("&About SlopStudio"),
 		tr("Version, platform, imported compilers, and credits."), QStringLiteral("info"), false, false, false,
 		[this]() { showAboutDialog(); });
 
@@ -16701,7 +16701,7 @@ static QWidget* assistantRequestView(const AiHttpRequest& http, const QString& o
 	const QString raw = describeAiHttpRequest(http, AiRequestView::Raw) + extra;
 	view->setPlainText(readable);
 	layout->addWidget(view, 1);
-	auto* rawToggle = new QCheckBox(QCoreApplication::translate("VibeStudioAssistant", "Show the raw JSON"));
+	auto* rawToggle = new QCheckBox(QCoreApplication::translate("SlopStudioAssistant", "Show the raw JSON"));
 	rawToggle->setObjectName(objectName + QStringLiteral("Raw"));
 	QObject::connect(rawToggle, &QCheckBox::toggled, view, [view, readable, raw](bool on) {
 		view->setPlainText(on ? raw : readable);
@@ -17070,9 +17070,9 @@ void ApplicationShell::refreshAiTextModelFields()
 	}
 	QString credential;
 	if (transport == AiTextTransport::Gguf) {
-		credential = aiGgufRuntimeAvailable() ? tr("None needed: runs inside VibeStudio (%1).").arg(aiGgufRuntimeVersion()) : aiGgufRuntimeMissingText();
+		credential = aiGgufRuntimeAvailable() ? tr("None needed: runs inside SlopStudio (%1).").arg(aiGgufRuntimeVersion()) : aiGgufRuntimeMissingText();
 	} else if (transport == AiTextTransport::Harness) {
-		credential = aiHarnessKind(id) == AiHarnessKind::CustomCommand ? tr("Whatever login the command has; VibeStudio passes no key.")
+		credential = aiHarnessKind(id) == AiHarnessKind::CustomCommand ? tr("Whatever login the command has; SlopStudio passes no key.")
 																	   : tr("Your own login, kept by the tool; Test Connection checks it.");
 	} else if (!descriptor.cloudBased || aiEndpointIsLocal(endpoint)) {
 		credential = tr("None needed: the endpoint is on this machine.");
@@ -17448,11 +17448,11 @@ void ApplicationShell::refreshWindowTitle()
 	const QString page = m_modeRail && index >= 0 ? m_modeRail->label(index) : QString();
 	const QString projectPath = m_settings.currentProjectPath();
 	if (page.isEmpty()) {
-		setWindowTitle(tr("VibeStudio"));
+		setWindowTitle(tr("SlopStudio"));
 	} else if (projectPath.isEmpty()) {
-		setWindowTitle(tr("%1 — VibeStudio").arg(page));
+		setWindowTitle(tr("%1 — SlopStudio").arg(page));
 	} else {
-		setWindowTitle(tr("%1 — %2 — VibeStudio").arg(page, QFileInfo(projectPath).fileName()));
+		setWindowTitle(tr("%1 — %2 — SlopStudio").arg(page, QFileInfo(projectPath).fileName()));
 	}
 }
 
@@ -18567,7 +18567,7 @@ void ApplicationShell::applyRendererChoice()
 	refreshRendererStatus();
 	QString message;
 	if (renderBackendChoiceOverridden()) {
-		message = tr("3D renderer saved: %1. VIBESTUDIO_RENDER_BACKEND chooses for this session.").arg(renderBackendChoiceDisplayName(choice));
+		message = tr("3D renderer saved: %1. SLOPSTUDIO_RENDER_BACKEND chooses for this session.").arg(renderBackendChoiceDisplayName(choice));
 	} else if (choice == RenderBackendChoice::Automatic) {
 		message = tr("3D views now use the first renderer that works, Vulkan or OpenGL.");
 	} else {
@@ -18632,7 +18632,7 @@ void ApplicationShell::refreshRendererStatus()
 		lines << tr("No renderer the choice allows is working, so 3D views stay empty and say why. Choose another renderer, or update the graphics driver and select Check Renderers.");
 	}
 	if (renderBackendChoiceOverridden()) {
-		lines << tr("VIBESTUDIO_RENDER_BACKEND chooses %1 for this session; this setting applies when it is not set.").arg(renderBackendChoiceDisplayName(choice));
+		lines << tr("SLOPSTUDIO_RENDER_BACKEND chooses %1 for this session; this setting applies when it is not set.").arg(renderBackendChoiceDisplayName(choice));
 	}
 	m_rendererStatus->setText(lines.join(QLatin1Char('\n')));
 	if (!decided && !m_rendererResolveRunning) {
@@ -20338,7 +20338,7 @@ void ApplicationShell::openDroppedPath(const QString& path)
 		statusBar()->showMessage(tr("Dropped path does not exist: %1").arg(nativePath(path)));
 		return;
 	}
-	if (info.isFile() && info.suffix().compare(QStringLiteral("vibeworkspace"), Qt::CaseInsensitive) == 0) {
+	if (info.isFile() && info.suffix().compare(QStringLiteral("slopworkspace"), Qt::CaseInsensitive) == 0) {
 		QString error;
 		if (!openWorkspaceFrom(info.absoluteFilePath(), &error)) { statusBar()->showMessage(error); }
 		return;
@@ -21669,7 +21669,7 @@ void ApplicationShell::exportSelectedModel()
 {
 	if (m_modelExportRunning) { return; }
 	if (!m_modelMesh.geometryAvailable) {
-		statusBar()->showMessage(tr("Select a model whose geometry VibeStudio can decode before exporting."));
+		statusBar()->showMessage(tr("Select a model whose geometry SlopStudio can decode before exporting."));
 		return;
 	}
 	const QString target = QFileDialog::getSaveFileName(this, tr("Export Model Frame"), QString(), tr("Wavefront OBJ (*.obj)"));
@@ -23667,7 +23667,7 @@ void ApplicationShell::showCodeFolderMenu(QToolButton* crumb, const QString& fol
 		const QDir dir(path);
 		int shown = 0;
 		for (const QFileInfo& entry : dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name | QDir::IgnoreCase)) {
-			if (entry.fileName() == QStringLiteral(".git") || entry.fileName() == QStringLiteral(".vibestudio") || shown++ >= kMenuLimit) {
+			if (entry.fileName() == QStringLiteral(".git") || entry.fileName() == QStringLiteral(".slopstudio") || shown++ >= kMenuLimit) {
 				continue;
 			}
 			QMenu* submenu = menu->addMenu(studioIcon(QStringLiteral("folder")), entry.fileName());
@@ -23958,7 +23958,7 @@ void ApplicationShell::reloadEntityDefinitions()
 		paths = entityDefinitionSearchPaths(m_settings.currentProjectPath());
 	}
 
-	m_entityDefinitions = vibestudio::loadEntityDefinitions(paths);
+	m_entityDefinitions = slopstudio::loadEntityDefinitions(paths);
 	m_entityDefinitionsBuiltin = false;
 	m_entityDefinitionsBuiltinGame.clear();
 	if (m_entityDefinitionSummary) {
@@ -27093,7 +27093,7 @@ bool ApplicationShell::allowTestMaps(GameInstallationProfile* installation, cons
 	box.setIcon(QMessageBox::Question);
 	box.setWindowTitle(tr("Allow Test Maps"));
 	box.setText(tr("%1 is marked read-only.").arg(installation->displayName));
-	box.setInformativeText(tr("To test a build, VibeStudio copies the compiled map into %1 before launching. Nothing else in the installation is changed. Allow test maps for this installation?")
+	box.setInformativeText(tr("To test a build, SlopStudio copies the compiled map into %1 before launching. Nothing else in the installation is changed. Allow test maps for this installation?")
 		.arg(nativePath(plan.targetDirectory)));
 	QPushButton* allow = box.addButton(tr("Allow Test Maps"), QMessageBox::AcceptRole);
 	box.addButton(QMessageBox::Cancel);
@@ -27162,7 +27162,7 @@ void ApplicationShell::closePackage()
 void ApplicationShell::copyDiagnosticBundle()
 {
 	QStringList lines;
-	lines << tr("VibeStudio diagnostic bundle");
+	lines << tr("SlopStudio diagnostic bundle");
 	lines << tr("Version: %1").arg(versionString());
 	lines << tr("Qt runtime: %1").arg(QString::fromLatin1(qVersion()));
 	lines << tr("Platform: %1 (%2)").arg(QSysInfo::prettyProductName(), QSysInfo::currentCpuArchitecture());
@@ -27217,7 +27217,7 @@ void ApplicationShell::copyDiagnosticBundle()
 void ApplicationShell::showAboutDialog()
 {
 	QStringList lines;
-	lines << tr("VibeStudio %1").arg(versionString());
+	lines << tr("SlopStudio %1").arg(versionString());
 	lines << tr("An open-source development studio for idTech1, idTech2, and idTech3 game projects.");
 	lines << QString();
 	lines << tr("Qt runtime: %1").arg(QString::fromLatin1(qVersion()));
@@ -27233,7 +27233,7 @@ void ApplicationShell::showAboutDialog()
 	lines << tr("Full attribution lives in README.md and docs/CREDITS.md.");
 
 	QMessageBox box(this);
-	box.setWindowTitle(tr("About VibeStudio"));
+	box.setWindowTitle(tr("About SlopStudio"));
 	box.setIconPixmap(studioApplicationIcon().pixmap(64, 64));
 	box.setText(lines.join('\n'));
 	box.setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -27533,9 +27533,9 @@ QStringList ApplicationShell::captureUiSnapshots(const QString& directory)
 			written.push_back(filePath);
 		}
 	}
-	// With VIBESTUDIO_SNAPSHOT_LEVEL_TABS set, one frame per Levels sidebar
+	// With SLOPSTUDIO_SNAPSHOT_LEVEL_TABS set, one frame per Levels sidebar
 	// tab as well, for the manual's sidebar pages.
-	if (qEnvironmentVariableIsSet("VIBESTUDIO_SNAPSHOT_LEVEL_TABS") && m_levelLeadingSidebar && m_levelTrailingSidebar) {
+	if (qEnvironmentVariableIsSet("SLOPSTUDIO_SNAPSHOT_LEVEL_TABS") && m_levelLeadingSidebar && m_levelTrailingSidebar) {
 		setMode(StudioMode::Levels);
 		const QString leadingCurrent = m_levelLeadingSidebar->currentPageId();
 		const QString trailingCurrent = m_levelTrailingSidebar->currentPageId();
@@ -27637,9 +27637,9 @@ QStringList ApplicationShell::captureUiSnapshots(const QString& directory)
 			}
 		}
 	}
-	// With VIBESTUDIO_SNAPSHOT_MESH_EDITOR set, the Mesh Editor's tab as well, to
+	// With SLOPSTUDIO_SNAPSHOT_MESH_EDITOR set, the Mesh Editor's tab as well, to
 	// review its layout at the snapshot size and text scale.
-	if (qEnvironmentVariableIsSet("VIBESTUDIO_SNAPSHOT_MESH_EDITOR")) {
+	if (qEnvironmentVariableIsSet("SLOPSTUDIO_SNAPSHOT_MESH_EDITOR")) {
 		showModelEditor();
 		// A third pass lets the editor make room for its views once laid out.
 		for (int pass = 0; pass < 3; ++pass) {
@@ -27654,4 +27654,4 @@ QStringList ApplicationShell::captureUiSnapshots(const QString& directory)
 	return written;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -8,7 +8,7 @@
 #include <QProcess>
 #include <QSet>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 LevelBuildCliResult runLevelBuildWorkspaceCommand(const QStringList& arguments) {
 	const auto fail = [](int code, const QString& message) { return LevelBuildCliResult{code, message, {}, {}}; };
 	const QSet<QString> globals{"--settings-file", "--locale", "--catalog-root"};
@@ -90,7 +90,7 @@ LevelBuildCliResult runLevelBuildWorkspaceCommand(const QStringList& arguments) 
 		}
 		std::shared_ptr<const PackageArchiveReader> reader;
 		const auto package = value("--package");
-		if (QFileInfo(package).suffix().compare("vibepackage", Qt::CaseInsensitive) == 0) {
+		if (QFileInfo(package).suffix().compare("sloppackage", Qt::CaseInsensitive) == 0) {
 			PackageStagingModel staging;
 			if (!PackageDraft::load(package, &staging, &error)) {
 				return fail(3, error);
@@ -125,9 +125,9 @@ LevelBuildCliResult runLevelBuildWorkspaceCommand(const QStringList& arguments) 
 		const auto equal = tool.indexOf('=');
 		const auto id = tool.left(equal), executable = tool.mid(equal + 1);
 		const auto allowedTools =
-			workspace.target == QStringLiteral("quake3") ? QStringList{"vibemap3"} : QStringList{"vibemap2-bsp", "vibemap2-vis", "vibemap2-light"};
+			workspace.target == QStringLiteral("quake3") ? QStringList{"slopmap3"} : QStringList{"slopmap2-bsp", "slopmap2-vis", "slopmap2-light"};
 		if (equal >= 1 && allowedTools.contains(renamedCompilerId(id))) {
-			return fail(2, QCoreApplication::translate("LevelBuildCli", "--tool %1 was renamed %2 when VibeStudio moved to VibeMap2 and VibeMap3.").arg(id, renamedCompilerId(id)));
+			return fail(2, QCoreApplication::translate("LevelBuildCli", "--tool %1 was renamed %2 when SlopStudio moved to SlopMap2 and SlopMap3.").arg(id, renamedCompilerId(id)));
 		}
 		if (equal < 1 || !allowedTools.contains(id) || executable.trimmed().isEmpty() || seenTools.contains(id)) {
 			return fail(2,
@@ -169,4 +169,4 @@ LevelBuildCliResult runLevelBuildWorkspaceCommand(const QStringList& arguments) 
 			{{"workspaceDirectory", workspace.directory}, {"pipeline", buildPipelineResultJson(result)}},
 			{buildPipelineResultText(result)}};
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

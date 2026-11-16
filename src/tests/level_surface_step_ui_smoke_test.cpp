@@ -40,14 +40,14 @@
 #include <QTimer>
 #include <QToolButton>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -132,7 +132,7 @@ int main(int argc, char** argv)
 		rowFound |= row.action == QStringLiteral("Texture rotation step") && row.gesture.contains(QStringLiteral("45")) && row.gesture.contains(QStringLiteral("origin"));
 	}
 	expect(nrcControls.surfaceRotationStep == 45 && nrcControls.surfaceRotateAboutOrigin && rowFound, "NetRadiant Custom turns 45° about the texture origin");
-	const auto defaults = levelEditorControlsForProfile(QStringLiteral("vibestudio-default"));
+	const auto defaults = levelEditorControlsForProfile(QStringLiteral("slopstudio-default"));
 	expect(defaults.surfaceRotationStep == 15 && !defaults.surfaceRotateAboutOrigin, "the default profile turns 15° about each face centre");
 	const auto netradiant = levelEditorControlsForProfile(QStringLiteral("netradiant"));
 	bool netradiantKey = false;
@@ -281,7 +281,7 @@ int main(int argc, char** argv)
 				undoBack("undo the re-anchored turn");
 				anchor->setCurrentIndex(nrc ? 1 : 0);
 
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				if (nrc && scale == 100) {
 					// The keys in the 2D view, ahead of its Ctrl+arrow panning.
 					shell.activateWindow();

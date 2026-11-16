@@ -17,7 +17,7 @@
 #include <iostream>
 #include <numeric>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 #endif
 	QApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-viewport-latency-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-viewport-latency-smoke"); skip >= 0) {
 		return skip;
 	}
 #ifdef Q_OS_WIN
@@ -104,12 +104,12 @@ int main(int argc, char **argv)
 								 {"settledMs", settledMs},
 								 {"maxEventGapMs", maximumGap / 1e6},
 								 {"heartbeats", beats}};
-		const int maximumAllowed = qEnvironmentVariableIntValue("VIBESTUDIO_MODELLER_MAX_EVENT_GAP_MS");
+		const int maximumAllowed = qEnvironmentVariableIntValue("SLOPSTUDIO_MODELLER_MAX_EVENT_GAP_MS");
 		if (maximumAllowed > 0)
 		{
 			ok &= expect(maximumGap / 1e6 <= maximumAllowed, "configured event-loop latency budget");
 		}
-		const int wireframeLimit = qEnvironmentVariableIntValue("VIBESTUDIO_MODELLER_MAX_WIREFRAME_MS");
+		const int wireframeLimit = qEnvironmentVariableIntValue("SLOPSTUDIO_MODELLER_MAX_WIREFRAME_MS");
 		if (wireframeLimit > 0 && QByteArray(name).startsWith("wireframe"))
 		{
 			ok &= expect(settledMs <= wireframeLimit, "configured completed-wireframe latency budget, including all-face selection");
@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 				 "maximum scene retains the selected skin at its centre");
 	measure("wireframe", [&] { viewport.setRenderMode(ModelViewportRenderMode::Wireframe); });
 	measure("wireframe-orbit", [&] { viewport.setOrbit(0, 90); });
-	if (const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE"); !evidence.isEmpty())
+	if (const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE"); !evidence.isEmpty())
 	{
 		const auto ratio = viewport.devicePixelRatioF();
 		QImage wireCapture(viewport.size() * ratio, QImage::Format_ARGB32_Premultiplied);
@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 		}
 	}
 	ok &= expect(holes == 0, "dense shared triangles leave no background gaps in the model interior");
-	const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (!evidence.isEmpty())
 	{
 		viewport.render(&capture);

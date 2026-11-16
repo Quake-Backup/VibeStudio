@@ -4,7 +4,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class TextEncoding { Utf8, Utf16LittleEndian, Utf16BigEndian };
 enum class TextLineEnding { Lf, CrLf, Cr, ParagraphSeparator };
@@ -88,4 +88,4 @@ QString textEncodingName(TextEncoding encoding);
 QString textLineEndingName(TextLineEnding ending);
 QString textFileFormatLabel(const TextFileDocument& document);
 
-} // namespace vibestudio
+} // namespace slopstudio

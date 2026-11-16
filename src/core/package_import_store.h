@@ -5,7 +5,7 @@
 #include <QJsonObject>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 inline constexpr int PackageImportSessionLimit = 64;
 inline constexpr int PackageImportFileLimit = 100000;
@@ -88,4 +88,4 @@ private:
 std::unique_ptr<PackageImportReservation> reservePackageImport(const PackageFileIdentityPtr& source,
 	QString* error, const PackageReadControl& control = {}, const QString& directory = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

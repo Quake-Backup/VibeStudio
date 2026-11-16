@@ -1,6 +1,6 @@
 #pragma once
 #include "core/model_animation_curves.h"
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelCurveKeyAction
 {
@@ -50,4 +50,4 @@ QJsonArray modelCurveKeyReportJson(const ModelCurveKeyReport &report);
 bool describeModelCurveKeyChanges(const QVector<ModelPoseCurves> &before, const QVector<ModelPoseCurves> &after, int frameCount,
 								  const QVector<ModelCurveKeySelection> &selection, ModelCurveKeyReport *report, QString *error,
 								  const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

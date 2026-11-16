@@ -5,7 +5,7 @@
 #include <QHash>
 #include <QJsonValue>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LanguageRenamePreparation {
 	QString error, placeholder;
@@ -37,4 +37,4 @@ LanguageWorkspaceEditRequest languageRenameWorkspaceRequest(const LanguageRename
 // edit range and replacement to the project/name/provider shown in the preview.
 QByteArray languageRenamePlanHash(const AssetTextSearchReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

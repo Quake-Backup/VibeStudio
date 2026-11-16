@@ -32,7 +32,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // What a generated texture becomes in one game.
 struct TextureGameProfile {
@@ -78,7 +78,7 @@ struct TextureGenerationSpec {
 	bool fullbrights = false;
 	// The texture's name in the game; empty derives one from the prompt.
 	QString name;
-	// Quake II and III: the folder under textures/; empty is "vibestudio".
+	// Quake II and III: the folder under textures/; empty is "slopstudio".
 	QString directory;
 	// Derive companion maps (normal, gloss, glow) for source ports.
 	bool companions = false;
@@ -165,11 +165,11 @@ struct TextureGenerationOutput {
 	// The game or project folder the texture belongs to.
 	QString folder;
 	// Quake and Doom: the WAD the texture is added to, created when missing.
-	// Empty is <folder>/wads/vibestudio_generated.wad.
+	// Empty is <folder>/wads/slopstudio_generated.wad.
 	QString wadPath;
 	bool replaceExisting = false;
 	bool dryRun = false;
-	// Written to .vibestudio/generated/textures/<name>.json beside the
+	// Written to .slopstudio/generated/textures/<name>.json beside the
 	// outputs: what made the texture (provider, model, prompts, seed).
 	QJsonObject provenance;
 };
@@ -199,4 +199,4 @@ bool textureGenerationSpecFromJson(const QJsonObject& object, TextureGenerationS
 [[nodiscard]] QJsonObject generatedTextureJson(const GeneratedTexture& texture);
 [[nodiscard]] QJsonObject textureGenerationWriteReportJson(const TextureGenerationWriteReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

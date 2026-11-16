@@ -19,7 +19,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelSidebarTab {
 	QString id;
@@ -67,4 +67,4 @@ struct LevelSidebarArrangement {
 [[nodiscard]] bool levelSidebarArrangementFromJson(const QJsonObject& object, LevelSidebarArrangement* out, QString* error = nullptr);
 [[nodiscard]] QStringList levelSidebarArrangementLines(const LevelSidebarArrangement& arrangement, const QString& profileId);
 
-} // namespace vibestudio
+} // namespace slopstudio

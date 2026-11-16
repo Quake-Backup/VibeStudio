@@ -16,7 +16,7 @@
 #include <QVBoxLayout>
 #include <QtMath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 CodeSignaturePanel::CodeSignaturePanel(QWidget* parent) : QWidget(parent)
 {
@@ -125,4 +125,4 @@ void CodeSignaturePanel::clear(const QString& reason)
 	m_parameter->clear(); m_parameter->hide(); m_documentation->clear(); m_documentation->hide(); m_details->setEnabled(false);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -20,8 +20,8 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -213,14 +213,14 @@ int main(int argc, char **argv)
 	}
 
 	// CLI: the shared service, --fail-on exit codes and application dispatch.
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	QTemporaryDir temp(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("uv-health-XXXXXX"));
 	expect(temp.isValid(), "temporary directory");
 	auto folded = strip(3);
 	folded.surfaces[0].texCoords[3].u = folded.surfaces[0].texCoords[7].u = .5f;
 	const auto input = temp.filePath("folded.mesh.json");
 	expect(writeFile(input, serializeEditableModel(folded, &error)), "write CLI source", error);
-	const QStringList base{"vibestudio", "--cli", "model", "uv", input, "--health", "--texture-size", "30x10"};
+	const QStringList base{"slopstudio", "--cli", "model", "uv", input, "--health", "--texture-size", "30x10"};
 	auto inspected = cli::runModelUvHealth(base);
 	expect(inspected.exitCode == 0 && inspected.payload["overlappingFaces"].toArray().size() == 4 &&
 			   inspected.payload["flippedFaces"].toArray().size() == 2 && inspected.payload.contains("native"),
@@ -242,7 +242,7 @@ int main(int argc, char **argv)
 	{
 		auto args = base;
 		if (bad.first() == "--texture-size")
-			args = QStringList{"vibestudio", "--cli", "model", "uv", input, "--health"};
+			args = QStringList{"slopstudio", "--cli", "model", "uv", input, "--health"};
 		expect(cli::runModelUvHealth(args + bad).exitCode == 2, "CLI rejects malformed options");
 	}
 	if (argc > 1)

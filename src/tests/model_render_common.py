@@ -119,8 +119,8 @@ class RenderHarness:
             (case / folder).mkdir(mode=0o700)
         for file in ('default.cfg', 'fte.cfg', 'config.cfg', 'autoexec.cfg'):
             (base / file).write_text('', encoding='ascii')
-        (case / 'test.fmf').write_text('FTEManifestVer 1\ngame vibestudio-render-test\n'
-            'name "VibeStudio generated render fixture"\nbasegame id1\ndisablehomedir 1\n', encoding='ascii')
+        (case / 'test.fmf').write_text('FTEManifestVer 1\ngame slopstudio-render-test\n'
+            'name "SlopStudio generated render fixture"\nbasegame id1\ndisablehomedir 1\n', encoding='ascii')
         config = ('set developer 1\nset cfg_save_auto 0\nset sv_public -1\nset sv_port ""\n'
                   'set sv_listen_nq 0\nset sv_listen_dp 0\nset sv_listen_qw 0\nset sv_listen_q3 0\n'
                   'set vid_gamma 1\nset vid_conautoscale 0\nset vid_conwidth 640\nset vid_conheight 480\n'
@@ -131,7 +131,7 @@ class RenderHarness:
             mutation(base)
         hashes = {key: digest(path) for key, path in self.walk_files(case).items()}
         self.case_inputs.append((case, hashes))
-        settings = ['DISPLAY=', 'WAYLAND_DISPLAY=vibestudio-no-display',
+        settings = ['DISPLAY=', 'WAYLAND_DISPLAY=slopstudio-no-display',
                     'XDG_RUNTIME_DIR=' + self.linux(case / 'runtime'),
                     'XDG_CACHE_HOME=' + self.linux(case / 'cache'),
                     'XDG_CONFIG_HOME=' + self.linux(case / 'config'),

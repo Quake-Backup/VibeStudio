@@ -2,7 +2,7 @@
 // panes the three-plan layouts show. Covers the pane ids and their parser,
 // the last-pane refusal, the next shown pane, the per-combination splitter
 // keys, the settings round trip, the palette entries and, with the
-// vibestudio binary as the first argument, `editor layout --panes`.
+// slopstudio binary as the first argument, `editor layout --panes`.
 
 #include "core/level_editor_controls.h"
 #include "core/studio_semantics.h"
@@ -20,7 +20,7 @@
 #include <iostream>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

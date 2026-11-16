@@ -5,7 +5,7 @@
 
 #include <QLocale>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Skin edit round trip helpers: an embedded MDL skin member as an image with
 // its exact palette indices, any edited image mapped back to the model's
@@ -31,4 +31,4 @@ bool modelMdlSkinInputFromImage(const ModelMesh &mesh, const QImage &image, Text
 // skin size (the Quake II software renderer indexes skins by that size);
 // empty when they match.
 [[nodiscard]] QString modelMd2SkinSizeMismatch(const ModelMesh &mesh, QSize image, const QLocale &locale = QLocale::c());
-} // namespace vibestudio
+} // namespace slopstudio

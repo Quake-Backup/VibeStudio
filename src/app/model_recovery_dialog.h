@@ -6,7 +6,7 @@
 
 class QWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 struct RecoveredModelDraft
 {
@@ -17,4 +17,4 @@ struct RecoveredModelDraft
 // Header scan, payload verification, and draft preparation run off the UI thread.
 // Cancellation leaves both the current editor document and recovery file intact.
 std::optional<RecoveredModelDraft> chooseModelRecovery(QWidget *parent, const QString &directory);
-} // namespace vibestudio
+} // namespace slopstudio

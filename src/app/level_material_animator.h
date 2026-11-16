@@ -23,7 +23,7 @@
 
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class MaterialTaskLane;
 class ModelViewport;
@@ -80,4 +80,4 @@ private:
 	int m_frames = 0;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

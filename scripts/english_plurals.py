@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Generate or check the English plural forms in i18n/vibestudio_en.ts.
+"""Generate or check the English plural forms in i18n/slopstudio_en.ts.
 
-VibeStudio's source strings mark plurals the Qt way, for example
+SlopStudio's source strings mark plurals the Qt way, for example
 tr("%n item(s)", nullptr, count). Qt only resolves %n into a proper
 singular or plural through a translator, so without an English catalog the
 studio shows "1 item(s)". This script asks lupdate for every plural message
@@ -242,7 +242,7 @@ def english_forms(source: str) -> tuple[str, str]:
 
 def plural_messages(lupdate: Path, root: Path) -> list[tuple[str, str]]:
     """(context, source) for every plural message lupdate finds under src/."""
-    with tempfile.TemporaryDirectory(prefix="vibestudio-plurals-") as temp_dir:
+    with tempfile.TemporaryDirectory(prefix="slopstudio-plurals-") as temp_dir:
         target = Path(temp_dir) / "plurals.ts"
         command = [
             str(lupdate),
@@ -377,13 +377,13 @@ def write_catalog(catalog: Path, messages: list[tuple[str, str]], lconvert: Path
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate or check English plural forms in i18n/vibestudio_en.ts.")
+    parser = argparse.ArgumentParser(description="Generate or check English plural forms in i18n/slopstudio_en.ts.")
     parser.add_argument("--write", action="store_true", help="Rewrite the plural entries of the English catalog.")
     parser.add_argument("--require-tool", action="store_true", help="Fail when lupdate cannot be found.")
     args = parser.parse_args()
 
     root = repo_root()
-    catalog = root / "i18n" / "vibestudio_en.ts"
+    catalog = root / "i18n" / "slopstudio_en.ts"
     if not args.write:
         counts = count_literal_problems(root)
         if counts:

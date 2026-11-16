@@ -3,7 +3,7 @@
 #include <QFormLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 LevelRotationDialog::LevelRotationDialog(const LevelMapDocument& source, int axis, QWidget* parent) : LevelTransformDialog(source, parent)
 {
@@ -94,4 +94,4 @@ void LevelRotationDialog::sourceChanged()
 		m_angles[i]->setEnabled(!doom);
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

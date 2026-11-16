@@ -22,7 +22,7 @@
 
 #include <cmath>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(LevelCameraFocusCli)
@@ -321,4 +321,4 @@ LevelCameraFocusCliResult runLevelCameraFocus(const QStringList& arguments)
 		.arg(camera.x, 0, 'f', 2).arg(camera.y, 0, 'f', 2).arg(camera.z, 0, 'f', 2).arg(request.yawDegrees, 0, 'g', 8).arg(request.pitchDegrees, 0, 'g', 8));
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

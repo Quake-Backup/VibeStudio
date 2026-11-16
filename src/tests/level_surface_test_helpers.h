@@ -3,7 +3,7 @@
 #include "core/level_texture_mapping.h"
 #include "core/map_geometry.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // Original, synthetic source with comments and flags in each supported dialect.
 inline QByteArray surfaceFixture(const QString &dialect)
@@ -45,4 +45,4 @@ inline QByteArray surfaceFixture(const QString &dialect)
 	lines << QStringLiteral("}\n}\n// untouched point entity\n{\n\"classname\" \"light\"\n\"origin\" \"8 16 24\"\n}\n");
 	return lines.join('\n').replace(QStringLiteral("\n"), QStringLiteral("\r\n")).toUtf8();
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

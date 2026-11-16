@@ -17,7 +17,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool ModelAssemblyDialog::bakeAnimation(const ModelAssemblyAnimationOptions &options, ModelAssemblyAnimation *result, QString *error)
 {
@@ -200,4 +200,4 @@ void ModelAssemblyDialog::chooseAnimationBake(bool exporting)
 			   .arg(localeNumber(options().framesPerSecond)),
 		   LiveStatus::Result);
 }
-} // namespace vibestudio
+} // namespace slopstudio

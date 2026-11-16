@@ -1,6 +1,6 @@
 #include "app/audio_duplex_device.h"
 #include "app/audio_portaudio_api.h"
-#include "vibestudio_config.h"
+#include "slopstudio_config.h"
 #include <QCoreApplication>
 #include <QUuid>
 #include <algorithm>
@@ -9,14 +9,14 @@
 #include <limits>
 #include <mutex>
 #include <thread>
-#include <vibestudio_portaudio.h>
+#include <slopstudio_portaudio.h>
 #ifdef Q_OS_WIN
 #include <pa_win_wasapi.h>
 #elif defined(Q_OS_MACOS)
 #include <pa_mac_core.h>
 #endif
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -324,7 +324,7 @@ class PortAudioDevice final : public AudioDuplexDevice {
 		                       bool(flags & paPrimingOutput),  bool(flags & paInputOverflow),
 		                       bool(flags & paInputUnderflow), bool(flags & paOutputOverflow),
 		                       bool(flags & paOutputUnderflow)};
-		if (flags & (VIBE_PA_TIMESTAMP_ERROR | VIBE_PA_HOST_ERROR))
+		if (flags & (SLOP_PA_TIMESTAMP_ERROR | SLOP_PA_HOST_ERROR))
 			timing.inputAdc = std::numeric_limits<double>::quiet_NaN();
 		const std::span<const float> in(static_cast<const float *>(input),
 		                                input ? size_t(frames) * self.m_channels : 0);
@@ -352,7 +352,7 @@ class PortAudioDevice final : public AudioDuplexDevice {
 static_assert(std::atomic<bool>::is_always_lock_free && std::atomic<unsigned>::is_always_lock_free &&
               std::atomic<CallbackEnd>::is_always_lock_free && std::atomic<quint64>::is_always_lock_free);
 
-#if VIBESTUDIO_HAVE_AUDIO_DUPLEX
+#if SLOPSTUDIO_HAVE_AUDIO_DUPLEX
 std::shared_ptr<AudioPortAudioApi> nativeApi()
 {
 	// One native owner at a time keeps initialization/COM termination on the
@@ -386,7 +386,7 @@ std::shared_ptr<AudioPortAudioApi> nativeApi()
 	api->streamInfo = Pa_GetStreamInfo;
 	api->errorText = Pa_GetErrorText;
 #ifdef Q_OS_WIN
-	api->stoppedFlags = VibePaWasapi_GetStoppedFlags;
+	api->stoppedFlags = SlopPaWasapi_GetStoppedFlags;
 #else
 	api->stoppedFlags = [](PaStream *) { return 0UL; };
 #endif
@@ -396,7 +396,7 @@ std::shared_ptr<AudioPortAudioApi> nativeApi()
 } // namespace
 std::unique_ptr<AudioDuplexDevice> createAudioDuplexDevice()
 {
-#if VIBESTUDIO_HAVE_AUDIO_DUPLEX
+#if SLOPSTUDIO_HAVE_AUDIO_DUPLEX
 	return std::make_unique<PortAudioDevice>(nativeApi());
 #else
 	return std::make_unique<PortAudioDevice>(nullptr);
@@ -406,4 +406,4 @@ std::unique_ptr<AudioDuplexDevice> createAudioDuplexDeviceForTest(std::shared_pt
 {
 	return std::make_unique<PortAudioDevice>(std::move(api));
 }
-} // namespace vibestudio
+} // namespace slopstudio

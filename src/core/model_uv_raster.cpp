@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -58,4 +58,4 @@ bool rasterizeModelUvTriangle(QPointF a, QPointF b, QPointF c, int width, int he
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -6,7 +6,7 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool ok, const char* text) { if (!ok) { std::cerr << text << '\n'; } return ok; }
 bool write(const QString& path, const QByteArray& bytes) { QFile file(path); return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size(); }

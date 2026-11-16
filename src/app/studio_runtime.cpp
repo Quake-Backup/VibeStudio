@@ -48,7 +48,7 @@
 #include <unistd.h>
 #if __has_include(<execinfo.h>)
 #include <execinfo.h>
-#define VIBESTUDIO_HAVE_EXECINFO 1
+#define SLOPSTUDIO_HAVE_EXECINFO 1
 #endif
 #endif
 
@@ -62,7 +62,7 @@
 #include <exception>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -85,7 +85,7 @@ QTranslator*& englishFallbackTranslator()
 	return translator;
 }
 
-// A reviewer's aid, on when VIBESTUDIO_UNTRANSLATED_LOG names a file: every
+// A reviewer's aid, on when SLOPSTUDIO_UNTRANSLATED_LOG names a file: every
 // studio message the interface asks for that the active catalog cannot
 // translate is appended to it once, as `context<TAB>source<TAB>comment`, so
 // what a screen still shows in English can be found by using the screen.
@@ -116,7 +116,7 @@ public:
 		}
 		// Qt's own contexts belong to Qt's catalogs.
 		const QByteArray contextName(context);
-		if (!contextName.startsWith("VibeStudio") && !contextName.startsWith("vibestudio::")) {
+		if (!contextName.startsWith("SlopStudio") && !contextName.startsWith("slopstudio::")) {
 			return {};
 		}
 		const QTranslator* catalog = studioTranslator();
@@ -259,14 +259,14 @@ QStringList qmCandidateFileNames(const QString& localeName)
 {
 	QStringList names;
 	// Target ids use hyphens (pt-BR); catalog files use underscores
-	// (vibestudio_pt_BR.qm), the Qt convention. Looking for the hyphenated
+	// (slopstudio_pt_BR.qm), the Qt convention. Looking for the hyphenated
 	// name left every regional catalog unloaded before 2026-10.
 	auto addName = [&names](QString locale) {
 		locale = locale.trimmed().replace(QLatin1Char('-'), QLatin1Char('_'));
 		if (locale.isEmpty()) {
 			return;
 		}
-		const QString fileName = QStringLiteral("vibestudio_%1.qm").arg(locale);
+		const QString fileName = QStringLiteral("slopstudio_%1.qm").arg(locale);
 		if (!names.contains(fileName)) {
 			names.push_back(fileName);
 		}
@@ -382,7 +382,7 @@ QStringList translationSearchPaths()
 {
 	QStringList paths;
 
-	const QByteArray override = qgetenv("VIBESTUDIO_I18N_DIR");
+	const QByteArray override = qgetenv("SLOPSTUDIO_I18N_DIR");
 	if (!override.isEmpty()) {
 		appendUniqueExistingDirectory(&paths, QString::fromLocal8Bit(override));
 	}
@@ -390,11 +390,11 @@ QStringList translationSearchPaths()
 	const QString applicationDir = QCoreApplication::applicationDirPath();
 	if (!applicationDir.isEmpty()) {
 		appendUniqueExistingDirectory(&paths, applicationDir + QStringLiteral("/i18n"));
-		// Development layout: builddir/src/vibestudio -> builddir/i18n.
+		// Development layout: builddir/src/slopstudio -> builddir/i18n.
 		appendUniqueExistingDirectory(&paths, applicationDir + QStringLiteral("/../i18n"));
-		// Installed layout: prefix/bin/vibestudio -> prefix/share/vibestudio/i18n.
-		appendUniqueExistingDirectory(&paths, applicationDir + QStringLiteral("/../share/vibestudio/i18n"));
-		// macOS bundle: VibeStudio.app/Contents/MacOS/vibestudio -> Contents/Resources/i18n.
+		// Installed layout: prefix/bin/slopstudio -> prefix/share/slopstudio/i18n.
+		appendUniqueExistingDirectory(&paths, applicationDir + QStringLiteral("/../share/slopstudio/i18n"));
+		// macOS bundle: SlopStudio.app/Contents/MacOS/slopstudio -> Contents/Resources/i18n.
 		appendUniqueExistingDirectory(&paths, applicationDir + QStringLiteral("/../Resources/i18n"));
 		// Portable package layout.
 		appendUniqueExistingDirectory(&paths, applicationDir + QStringLiteral("/../../i18n"));
@@ -456,7 +456,7 @@ TranslationLoadResult installStudioTranslations(QCoreApplication& app, const QSt
 					return QDir::cleanPath(path);
 				}
 				result.warnings.push_back(
-					QCoreApplication::translate("VibeStudioRuntime", "Translation catalog could not be loaded: %1").arg(QDir::cleanPath(path)));
+					QCoreApplication::translate("SlopStudioRuntime", "Translation catalog could not be loaded: %1").arg(QDir::cleanPath(path)));
 			}
 		}
 		return QString();
@@ -490,7 +490,7 @@ TranslationLoadResult installStudioTranslations(QCoreApplication& app, const QSt
 			delete candidate;
 			if (!loaded && !sourceLanguage) {
 				result.warnings.push_back(
-					QCoreApplication::translate("VibeStudioRuntime", "No compiled translation catalog (.qm) was found for %1; using the source language.")
+					QCoreApplication::translate("SlopStudioRuntime", "No compiled translation catalog (.qm) was found for %1; using the source language.")
 						.arg(result.resolvedLocale));
 			}
 		}
@@ -516,7 +516,7 @@ TranslationLoadResult installStudioTranslations(QCoreApplication& app, const QSt
 		delete untranslated;
 		untranslated = nullptr;
 	}
-	const QString untranslatedLogPath = qEnvironmentVariable("VIBESTUDIO_UNTRANSLATED_LOG");
+	const QString untranslatedLogPath = qEnvironmentVariable("SLOPSTUDIO_UNTRANSLATED_LOG");
 	if (!sourceLanguage && !untranslatedLogPath.isEmpty()) {
 		untranslated = new UntranslatedMessageLog(untranslatedLogPath, &app);
 		app.installTranslator(untranslated);
@@ -586,7 +586,7 @@ QIcon studioApplicationIcon()
 		// that link without it get the painted fallback below.
 		QIcon built;
 		for (const int size : {16, 24, 32, 48, 64, 128, 256}) {
-			const QString path = QStringLiteral(":/branding/vibestudio-%1.png").arg(size);
+			const QString path = QStringLiteral(":/branding/slopstudio-%1.png").arg(size);
 			if (QFile::exists(path)) {
 				built.addFile(path, QSize(size, size));
 			}
@@ -646,7 +646,7 @@ QString installSessionLogging()
 			QDir directory(root);
 			if (directory.mkpath(QStringLiteral("logs"))) {
 				const QString stamp = QDateTime::currentDateTimeUtc().toString(QStringLiteral("yyyyMMdd"));
-				state.path = directory.filePath(QStringLiteral("logs/vibestudio-%1.log").arg(stamp));
+				state.path = directory.filePath(QStringLiteral("logs/slopstudio-%1.log").arg(stamp));
 			}
 		}
 		state.installed = true;
@@ -686,8 +686,8 @@ constexpr int kCrashBacktraceFrames = 62;
 constexpr qint64 kCrashReportReadLimit = 1LL * 1024LL * 1024LL;
 constexpr int kCrashReportLineLimit = 20000;
 
-const char* const kCrashReportBanner = "VibeStudio crash report";
-const char* const kSessionMarkerBanner = "VibeStudio session marker";
+const char* const kCrashReportBanner = "SlopStudio crash report";
+const char* const kSessionMarkerBanner = "SlopStudio session marker";
 constexpr int kCrashReportFormatVersion = 1;
 
 // Everything the handler needs is rendered here while the process is healthy.
@@ -936,7 +936,7 @@ void writeCrashBacktrace(CrashFile file) noexcept
 	if (count == 0) {
 		crashWriteText(file, "unavailable\n");
 	}
-#elif defined(VIBESTUDIO_HAVE_EXECINFO)
+#elif defined(SLOPSTUDIO_HAVE_EXECINFO)
 	// backtrace_symbols_fd writes straight to the descriptor and, unlike
 	// backtrace_symbols, never allocates.
 	void* frames[kCrashBacktraceFrames] = {};
@@ -1195,7 +1195,7 @@ bool installOsCrashHandlers() noexcept
 
 bool backtraceAvailableOnThisPlatform() noexcept
 {
-#if defined(Q_OS_WIN) || defined(VIBESTUDIO_HAVE_EXECINFO)
+#if defined(Q_OS_WIN) || defined(SLOPSTUDIO_HAVE_EXECINFO)
 	return true;
 #else
 	return false;
@@ -1204,7 +1204,7 @@ bool backtraceAvailableOnThisPlatform() noexcept
 
 void warmUpBacktrace() noexcept
 {
-#if defined(VIBESTUDIO_HAVE_EXECINFO)
+#if defined(SLOPSTUDIO_HAVE_EXECINFO)
 	// The first backtrace() call loads and initialises the unwinder, which
 	// allocates. Doing it now means the handler never has to.
 	void* frames[4] = {};
@@ -1558,7 +1558,7 @@ CrashHandlerStatus installCrashHandling(const CrashHandlerOptions& options)
 			state.previousReport = stale;
 			state.previousReport.path.clear();
 			state.previousReport.reasonId = QStringLiteral("unclean-exit");
-			state.previousReport.reasonDetail = QCoreApplication::translate("VibeStudioRuntime", "The previous session ended without writing a crash report.");
+			state.previousReport.reasonDetail = QCoreApplication::translate("SlopStudioRuntime", "The previous session ended without writing a crash report.");
 		}
 	}
 
@@ -1764,39 +1764,39 @@ QStringList crashReportSummaryLines(const CrashReportInfo& info)
 {
 	QStringList lines;
 	if (!info.valid) {
-		lines << QCoreApplication::translate("VibeStudioRuntime", "No crash report is available for the previous session.");
+		lines << QCoreApplication::translate("SlopStudioRuntime", "No crash report is available for the previous session.");
 		return lines;
 	}
 
-	lines << QCoreApplication::translate("VibeStudioRuntime", "VibeStudio %1 closed unexpectedly.").arg(info.version.isEmpty() ? QCoreApplication::translate("VibeStudioRuntime", "(unknown build)") : info.version);
+	lines << QCoreApplication::translate("SlopStudioRuntime", "SlopStudio %1 closed unexpectedly.").arg(info.version.isEmpty() ? QCoreApplication::translate("SlopStudioRuntime", "(unknown build)") : info.version);
 	if (info.crashedAt.isValid()) {
-		lines << QCoreApplication::translate("VibeStudioRuntime", "Time: %1").arg(info.crashedAt.toUTC().toString(Qt::ISODate));
+		lines << QCoreApplication::translate("SlopStudioRuntime", "Time: %1").arg(info.crashedAt.toUTC().toString(Qt::ISODate));
 	}
 	if (!info.reasonDetail.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioRuntime", "Reason: %1").arg(info.reasonDetail);
+		lines << QCoreApplication::translate("SlopStudioRuntime", "Reason: %1").arg(info.reasonDetail);
 	} else if (!info.reasonId.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioRuntime", "Reason: %1").arg(info.reasonId);
+		lines << QCoreApplication::translate("SlopStudioRuntime", "Reason: %1").arg(info.reasonId);
 	}
 	if (!info.platform.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioRuntime", "Platform: %1").arg(info.platform);
+		lines << QCoreApplication::translate("SlopStudioRuntime", "Platform: %1").arg(info.platform);
 	}
 	if (!info.qtVersion.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioRuntime", "Qt: %1").arg(info.qtVersion);
+		lines << QCoreApplication::translate("SlopStudioRuntime", "Qt: %1").arg(info.qtVersion);
 	}
 	if (!info.updateChannel.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioRuntime", "Update channel: %1").arg(info.updateChannel);
+		lines << QCoreApplication::translate("SlopStudioRuntime", "Update channel: %1").arg(info.updateChannel);
 	}
 	if (!info.path.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioRuntime", "Report: %1").arg(info.path);
+		lines << QCoreApplication::translate("SlopStudioRuntime", "Report: %1").arg(info.path);
 	}
 	if (!info.sessionLogPath.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioRuntime", "Session log: %1").arg(info.sessionLogPath);
+		lines << QCoreApplication::translate("SlopStudioRuntime", "Session log: %1").arg(info.sessionLogPath);
 	}
 	if (!info.backtrace.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioRuntime", "Captured %1 stack frame(s).").arg(QString::number(info.backtrace.size()));
+		lines << QCoreApplication::translate("SlopStudioRuntime", "Captured %1 stack frame(s).").arg(QString::number(info.backtrace.size()));
 	}
 	if (!info.logLines.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioRuntime", "Captured %1 log line(s) from the crashed session.").arg(QString::number(info.logLines.size()));
+		lines << QCoreApplication::translate("SlopStudioRuntime", "Captured %1 log line(s) from the crashed session.").arg(QString::number(info.logLines.size()));
 	}
 	return lines;
 }
@@ -1846,4 +1846,4 @@ QJsonObject crashReportJson(const CrashReportInfo& info)
 	return object;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

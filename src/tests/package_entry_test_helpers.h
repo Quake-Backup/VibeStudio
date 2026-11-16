@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 
 // Existing workflow fixtures assert row semantics, not the concrete Qt item
 // container. Await the asynchronous listing, then address real model indexes.
@@ -92,4 +92,4 @@ template<class View> int rowWithData(const PackageModelRows<View>& list, int rol
 }
 inline void activateRow(PackageRows list, int row) { list->setCurrentRow(row); list->itemActivated(list->item(row)); }
 
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

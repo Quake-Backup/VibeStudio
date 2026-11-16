@@ -16,13 +16,13 @@
 // GPL-2.0-or-later, reviewed 2026-10-05. Original implementation, no copied code.
 // https://github.com/id-Software/Quake-III-Arena/tree/master/code/renderer
 // See docs/CREDITS.md, Model Skin Bindings.
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelSkinBindings)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelSkinBindings)
 };
 bool fail(QString *error, const QString &message)
 {
@@ -487,4 +487,4 @@ QStringList modelSkinBindingPlanText(const ModelSkinBindingPlan &plan)
 	}
 	return lines;
 }
-} // namespace vibestudio
+} // namespace slopstudio

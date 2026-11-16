@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -544,4 +544,4 @@ bool ripGeometry(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selecti
 	compactModelVertexIdentities(&mesh->surfaces[selection->surface]);
 	return RipBuilder(*mesh, edit, *selection, error, work, report).run();
 }
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

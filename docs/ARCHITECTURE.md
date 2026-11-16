@@ -1,4 +1,4 @@
-# VibeStudio Architecture
+# SlopStudio Architecture
 
 Visible work (docs/UX_DESIGN.md, "Visible Work") is a shell-wide concern with
 one home. `app/studio_progress` holds the start-up stage reporter
@@ -154,7 +154,7 @@ Tab titles follow document titles and modification state. Focus reserves local
 document shortcuts against identical shell keys; shell menus remain available.
 Shell navigation and authoring/recovery handoffs select the existing host tab.
 This changes no core service, dependency, document format or CLI behaviour.
-Restoring open authoring tabs from `.vibeworkspace` remains an integration gap;
+Restoring open authoring tabs from `.slopworkspace` remains an integration gap;
 workspaces continue to restore references and asset browser selections.
 
 `core/audio_meter` owns fixed-capacity sample-clock meter processors and the
@@ -233,7 +233,7 @@ metadata remain authoritative. `core/extra_image` and the bounded PakFu-derived
 DDS decoder feed the existing image/texture services; DDS/FTX export reuses
 texture validation and staging. ZIP-family aliases share the ZIP reader.
 
-`core/workspace_document` owns bounded, versioned `.vibeworkspace` JSON and
+`core/workspace_document` owns bounded, versioned `.slopworkspace` JSON and
 revision-checked atomic persistence. `app/workspace_actions` captures/restores
 shared project, package, map, code and asset selection context. `cli/workspace`
 uses the same codec and reports missing references. Native authoring, package
@@ -261,7 +261,7 @@ copies and `build-inputs.json`; publication is one directory rename. A bounded
 reader validates the inventory and verification hashes inputs before and after
 compiler execution. `core/level_quake_assets` resolves bounded WAD2/miptex
 bytes from the package and assembles a deterministic compiler WAD. Quake/Quake II
-use explicit VibeMap2 search/log paths, with target-aware WAL dependency validation
+use explicit SlopMap2 search/log paths, with target-aware WAL dependency validation
 and runtime lighting classification. Quake III base/home flags are injected by the shared service
 for every stage; caller path overrides are refused. `app/level_build_workspace_dialog`
 prepares on a worker with cooperative cancellation and phase/count progress.
@@ -524,7 +524,7 @@ snapshots and renders through Models. The GUI and `map stitch-patches` use the
 same document operation. Saved dialect, entity ownership and unrelated source
 text remain document-owned. See [Patch Stitching](LEVEL_EDITOR.md#patch-stitching).
 
-Package editing documents use `core/package_draft`: a `.vibepackage` directory
+Package editing documents use `core/package_draft`: a `.sloppackage` directory
 contains atomically committed metadata and independently copied SHA-256 payload
 objects. Source provenance remains separate from payload backing.
 `PackageStagingModel` records bounded insertion/removal deltas, grouped edits,
@@ -798,7 +798,7 @@ The dialog resumes deferred Save/New/Open/Close actions, including shell close,
 only after a successful project save. Native game output and remaining integration gaps are documented in
 [Texture Editor](TEXTURE_EDITOR.md).
 
-VibeStudio is organized as a studio shell with shared project state underneath
+SlopStudio is organized as a studio shell with shared project state underneath
 specialized work surfaces. The goal is one environment where editing, package
 management, game detection, asset preview, compilation, and diagnostics all
 understand the same project graph.
@@ -836,7 +836,7 @@ documented in
   an ignore for each substantive change.
 
 ### Project Core
-- Project manifest and settings with `.vibestudio/project.json` metadata,
+- Project manifest and settings with `.slopstudio/project.json` metadata,
   current-project persistence, and dashboard health checks.
 - Game installation profiles with manual settings persistence, stable IDs,
   engine-family defaults, and read-only validation.
@@ -847,9 +847,9 @@ documented in
 - Compiler registry descriptors and executable discovery for imported external
   tools, user-configured executable paths, project-local overrides, version
   probes, and capability flags.
-- Compiler wrapper profiles and command planning for VibeMap2 `vibemap2-bsp`,
-  `vibemap2-vis`, and `vibemap2-light`, Doom-family node-builder stages, and
-  VibeMap3 probe/BSP stages.
+- Compiler wrapper profiles and command planning for SlopMap2 `slopmap2-bsp`,
+  `slopmap2-vis`, and `slopmap2-light`, Doom-family node-builder stages, and
+  SlopMap3 probe/BSP stages.
 - Compiler runner services for `QProcess` execution, cancellation, stdout/stderr
   capture, diagnostic parsing, output registration, and re-running manifests.
 - Schema-versioned compiler command manifests with structured task-log entries,
@@ -884,7 +884,7 @@ documented in
   targets, passes of draws with their state, uploads cached per owner, and the
   targets to read back) executed offscreen by an OpenGL or a Vulkan device,
   each on its own thread, and read back. Automatic, OpenGL or Vulkan comes
-  from the saved preference, `VIBESTUDIO_RENDER_BACKEND` or the CLI's
+  from the saved preference, `SLOPSTUDIO_RENDER_BACKEND` or the CLI's
   `--renderer`. OpenGL needs a `QGuiApplication` (`prepareRenderBackends()`
   makes its offscreen surface on the GUI thread); Vulkan loads its loader at
   run time and works headless. GLSL in `src/core/shaders` is compiled offline
@@ -987,7 +987,7 @@ retained leases across package changes. The GUI exposes live usage and settings;
 and proposal behavior. It does not read another process's live usage.
 Consumer edits and filesystem overhead are outside this logical accounting.
 `core/package_copy_store` now gives each window a UUID `.copies` session under
-`vibestudio-package-copies` in the resolved OS temporary root. It reuses
+`slopstudio-package-copies` in the resolved OS temporary root. It reuses
 `PackageDraftAccess` native directory leases for live ownership, creation
 serialization and reviewed maintenance. Batch storage deleters retain the shared
 session even when callers retain only the `QTemporaryDir` lease. Last release
@@ -1507,7 +1507,7 @@ and full texture/patch/game-code dependency closure remain integration requireme
   remaining native-behavior acceptance gaps.
 - AI text transport (`core/ai_transport`): provider-neutral chat requests built and answers read as plain functions for three wire formats (OpenAI-compatible Chat Completions, Anthropic Messages, Gemini generateContent), secret and path redaction, the connection resolver that applies AI-free mode, cloud opt-in, model, endpoint, and credential rules, and `AiChatClient`, which sends one request at a time over Qt Network with a total timeout and cancellation. The shell's Assistant dock and the CLI's `ai ask` and `ai test-connection` share it. It also asks for structured JSON output in each provider's form and checks answers against the schema (`aiJsonSchemaProblems`). See `docs/AI_AUTOMATION.md`.
 - AI image transport (`core/ai_image_transport`): the same plain-function design for pictures over OpenAI's Images API (generations, and edits as multipart forms), Gemini's generateContent with image output, and the Stable Diffusion web UI API (txt2img/img2img with tiling), with its own connection resolver (`resolveAiImageConnection`) under the same AI-free, cloud opt-in and credential rules, and `AiImageClient`, which repeats one-picture-per-call providers and fetches linked pictures without the key.
-- Map Generator (`src/mapgen`, `core/level_mapgen`): Quake-MapGen's prompt-to-blockout pipeline for Quake, Quake II and Quake III, imported from its MIT source and developed in VibeStudio. The `vibestudio_mapgen` library is plain C++20 with no Qt; its game profiles compile into a header at build time (`generate_profile_tables.py`), and its own unit tests run as the `mapgen` Meson suite. `core/level_mapgen` runs it for the Generate Level dialog and `map generate --generator quake-mapgen`: a studio text connector can stand in for its planner model, and the result becomes an ordinary `LevelGenerationResult` (map text, preview layout, plan, analysis lines, and the schema v4 report). See `src/mapgen/VIBESTUDIO.md` for what VibeStudio changed.
+- Map Generator (`src/mapgen`, `core/level_mapgen`): Quake-MapGen's prompt-to-blockout pipeline for Quake, Quake II and Quake III, imported from its MIT source and developed in SlopStudio. The `slopstudio_mapgen` library is plain C++20 with no Qt; its game profiles compile into a header at build time (`generate_profile_tables.py`), and its own unit tests run as the `mapgen` Meson suite. `core/level_mapgen` runs it for the Generate Level dialog and `map generate --generator quake-mapgen`: a studio text connector can stand in for its planner model, and the result becomes an ordinary `LevelGenerationResult` (map text, preview layout, plan, analysis lines, and the schema v4 report). See `src/mapgen/SLOPSTUDIO.md` for what SlopStudio changed.
 - Level generation (`core/level_generation`, `core/level_generation_build`): prompt specs, coordinate-free semantic plans (rules planner, or a text model's schema-checked JSON) with deterministic repair, integer-grid layout with stairs and A*-routed loops, sealed 2.5D cell geometry written as Quake, Quake II and Quake III `.map` text or a Doom PWAD, reachability checks, read-back through the level parser, and a layout preview. The Levels page's Level Generator and `map generate`/`map plan` share it.
 - Texture generation (`core/texture_generation`): per-game texture profiles and prompts, seam measurement and blending, wrap-around resampling, palette conversion through `core/texture_export`, derived companion maps for source ports, and writers for WAD2, WAL, TGA plus shader, Doom PWAD lumps and PNG with a provenance record. The Textures page's Texture Generator and `texture generate`/`texture derive` share it.
 - AI map edits (`core/level_ai_edit`): the map summary a text model sees (selectors, classes, origins, keys, brush bounds, textures, selection, with paths shortened), a strict JSON Schema of seven actions (add entity, set or remove a key, add a box brush, retexture, move, delete), validation of each action against the map, and application through the level editor's own undoable operations with deletes last. Edit with AI on the Levels page and `map ai-edit` share it; a saved proposal applies with no model.
@@ -1647,7 +1647,7 @@ and full texture/patch/game-code dependency closure remain integration requireme
   compiler profile listing, compiler command proposals, staged text edits,
   shader scaffolds, entity snippets, package validation plans, batch conversion
   recipes, and staged asset-generation requests.
-- Prompt-to-plan, prompt-to-asset, prompt-to-command, and prompt-to-action workflows that call explicit VibeStudio tools.
+- Prompt-to-plan, prompt-to-asset, prompt-to-command, and prompt-to-action workflows that call explicit SlopStudio tools.
 - Supervised agentic loops for gather context, plan, review, stage, validate, and summarize.
 - Reviewable proposals before file/package/compiler changes are applied.
 - Local project context redaction and consent controls.
@@ -1667,13 +1667,13 @@ The current scaffold contains:
   model, known idTech game keys, engine-family defaults, read-only validation,
   and confirmable Steam/GOG candidate detection.
 - `src/core/compiler_registry.*`: compiler tool descriptors and discovery
-  results for VibeStudio's own VibeMap2 and VibeMap3 and the imported ZDBSP and
+  results for SlopStudio's own SlopMap2 and SlopMap3 and the imported ZDBSP and
   ZokumBSP executables.
 - `src/core/compiler_profiles.*`: wrapper profile descriptors and command-plan
-  generation for VibeMap2, Doom-family node builders, and VibeMap3, plus
+  generation for SlopMap2, Doom-family node builders, and SlopMap3, plus
   schema-versioned compiler command manifests.
 - `src/core/quake_map_preflight.*`: conservative Quake `.map` preflight checks
-  for VibeMap2 profiles.
+  for SlopMap2 profiles.
 - `src/core/compiler_runner.*`: compiler execution, re-run, stdout/stderr
   capture, diagnostic parsing, cancellation callbacks, manifest saving, and
   output registration data.
@@ -2302,7 +2302,7 @@ The current scaffold contains:
   indexed MDL skin inputs, with bounded reads, strict palette lookup and source
   receipts. GUI/CLI use the same service; the metadata-only skin picker consumes
   the shell's staged package snapshot, and one successful import is one document
-  undo step. Saved `.vibepackage` plans provide the equivalent CLI source.
+  undo step. Saved `.sloppackage` plans provide the equivalent CLI source.
 - `src/core/document_watch.*`: role-tagged path registration, SHA-1 content
   fingerprints that fall back to size and modification time above a size limit,
   coalesced change events, and `poll()`/`pollAt()` entry points.
@@ -2336,7 +2336,7 @@ The current scaffold contains:
   output envelopes, and stable exit-code contract.
 - `src/app`: Qt Widgets studio shell, including the QPainter map views and the
   GPU-rendered model viewports. The build's moc step covers app headers only. The app
-  sources build as the `vibestudio_app` static library; the `vibestudio`
+  sources build as the `slopstudio_app` static library; the `slopstudio`
   executable is `src/main.cpp` and `src/cli/cli.cpp` linked against it, which
   lets a GUI test construct and drive the real `ApplicationShell`.
 - `src/app/level_object_model.*` and `level_object_list.*`: immutable map-row
@@ -2496,7 +2496,7 @@ The current scaffold contains:
   row activations, and dialog answers; it runs itself as a stand-in compiler to
   exercise a real build.
 - `scripts/english_plurals.py`: generates and checks the English plural forms
-  in `i18n/vibestudio_en.ts`, so `%n item(s)` reads as "1 item" and "5 items".
+  in `i18n/slopstudio_en.ts`, so `%n item(s)` reads as "1 item" and "5 items".
 - `scripts/package_portable.py`, `scripts/generate_offline_guide.py`,
   `scripts/validate_packaging.py`, and `scripts/validate_release_assets.py`:
   portable package staging, generated offline docs, license/checksum bundling,
@@ -2516,7 +2516,7 @@ The current scaffold contains:
   step and its state machines can be tested without an event loop.
 - Keep editor surfaces specialized, but not isolated.
 - Keep layout/control profiles adaptable without fragmenting the underlying editor model.
-- Think from the user's current uncertainty: show what VibeStudio is doing, why it is waiting, and what the next safe action is.
+- Think from the user's current uncertainty: show what SlopStudio is doing, why it is waiting, and what the next safe action is.
 - Keep modern UX clean at the surface while preserving detailed inspection paths for expert users.
 - Treat efficiency as a product feature: reduce setup time, repeated work, context switching, uncertainty, and waiting.
 - Treat accessibility as a product feature: the studio must support high visibility, scaling, keyboard use, screen readers, TTS, and non-color-only state.
@@ -2594,7 +2594,7 @@ for a whole project, what a map's entity classes and MAPINFO entry reach for a
 map), and checks each candidate against the merged game asset index from
 `prepareReleaseStock`.
 `core/release_notes` owns Keep a Changelog parsing that prints unchanged text
-back byte for byte, release records under `.vibestudio/releases`, inventory
+back byte for byte, release records under `.slopstudio/releases`, inventory
 diffs and the generated notes and readme. `core/release_publish` writes the
 package through a private `PackageStagingModel` (or merges Doom-family lumps
 into one PWAD), then the readme, notes, distribution archive, record and
@@ -2623,7 +2623,7 @@ or build-system change is introduced. See [the contract](LEVEL_MODEL_APPEARANCE.
 `core/model_editor_controls` defines the modeller's controls profiles as data:
 navigation for 3D and orthographic views, selection gestures, transform style,
 layout and a command key table, with override diffs, conflict checks and the
-`vibestudio.modeller-controls` file format. `core/model_sidebar` arranges and
+`slopstudio.modeller-controls` file format. `core/model_sidebar` arranges and
 names the Mesh Editor's sidebar pages per profile family. `StudioSettings`
 stores the profile, overrides and sidebar state (`studio_settings_modeller.cpp`).
 The Mesh Editor applies them in `app/model_editor_layout.cpp`,

@@ -1,6 +1,6 @@
 # AI Automation And Connectors
 
-VibeStudio should fully embrace the AI era through optional, transparent,
+SlopStudio should fully embrace the AI era through optional, transparent,
 provider-agnostic, prompt-based, generative, and agentic workflows. The goal is
 to help creators move faster while keeping project ownership, review,
 attribution, privacy, and reproducibility intact.
@@ -24,19 +24,19 @@ Primary provider references:
 - Generative AI should help create drafts, assets, explanations, commands,
   scripts, shaders, documentation, and ideas quickly.
 - Agentic AI should be able to coordinate multi-step workflows through explicit
-  VibeStudio tools while remaining observable, cancelable, and reviewable.
+  SlopStudio tools while remaining observable, cancelable, and reviewable.
 - AI-free mode is a first-class mode. Manual and deterministic workflows must
   remain complete, documented, and efficient.
-- Provider choice belongs to the user. VibeStudio should support a connector
+- Provider choice belongs to the user. SlopStudio should support a connector
   model rather than assuming one vendor, one model, or one capability shape.
 - Prompted actions should produce plans, diffs, command manifests, or staged changes before applying them.
-- AI should call explicit VibeStudio tools rather than editing hidden state directly.
+- AI should call explicit SlopStudio tools rather than editing hidden state directly.
 - Local paths, secrets, private project metadata, and proprietary game data need consent-aware handling.
 - Outputs must be auditable and reproducible where practical.
 
 ## Connector Model
 
-VibeStudio should expose a provider-neutral connector layer with capability
+SlopStudio should expose a provider-neutral connector layer with capability
 flags instead of one-off integrations. Connectors may be built in, bundled,
 community-provided, or project-local where licensing and security allow.
 
@@ -85,7 +85,7 @@ Initial connector targets:
 | Custom HTTP/MCP-style connectors | Text questions to any OpenAI-compatible endpoint you set, such as a team proxy, pictures from an OpenAI Images-compatible or Stable Diffusion web UI endpoint, and sound effects from an endpoint that takes ElevenLabs' sound-generation request; MCP-style tools are a future extension path. |
 | [Claude Code](https://code.claude.com/docs/en/cli-reference) (`claude-code`) | Text questions through the user's own Claude login, run as `claude -p` with its tools off (see [Connectors without API keys](#connectors-without-api-keys)); `claude-opus-5-5` unless another model is named. A cloud connector. |
 | [Codex](https://github.com/openai/codex) (`codex`) | Text questions through the user's own ChatGPT login, run as `codex exec` with its tools off and the user's config not loaded; Codex's own default model unless one is named. A cloud connector. |
-| Custom Command (`custom-command`) | Text questions from any program the user names as a command-line template. VibeStudio cannot tell where it sends the prompt, so it is a cloud connector. |
+| Custom Command (`custom-command`) | Text questions from any program the user names as a command-line template. SlopStudio cannot tell where it sends the prompt, so it is a cloud connector. |
 | Local GGUF Model (`local-gguf`) | Text questions from a `.gguf` file run inside the studio on the CPU, only in builds with `-Dggml=enabled`; release packages are built without it. No key and no cloud opt-in needed. |
 
 Connector capabilities should be declared explicitly:
@@ -141,8 +141,8 @@ with all three unchanged: the Assistant, both level generators' planners,
   - Cancelling or timing out ends the tool and everything it started
     (`core/process_tree`: a job object on Windows, a process group on Unix),
     so no tool process keeps running; the run folder is then removed.
-  - A tool that rejects an option VibeStudio passes is reported as older than
-    VibeStudio needs, with its update command (`claude update`,
+  - A tool that rejects an option SlopStudio passes is reported as older than
+    SlopStudio needs, with its update command (`claude update`,
     `npm install -g @openai/codex@latest`).
   - Harnesses count as cloud connectors: they need cloud connectors allowed,
     and the first request from a project shows the exact command, files and
@@ -207,13 +207,13 @@ the text model a question about the open work:
   model again, so the conversation's turns always alternate.
 
 AI-free mode, the default, keeps the Assistant closed: it opens, says why it
-cannot send, and names the setting. `vibestudio --cli ai ask` and
+cannot send, and names the setting. `slopstudio --cli ai ask` and
 `ai test-connection` follow the same rules (see docs/CLI_STRATEGY.md).
 
 ## Generating Levels
 
 **Generate Level** (the Levels header, the command palette, or
-`vibestudio --cli map generate`) has two generators. The studio generator
+`slopstudio --cli map generate`) has two generators. The studio generator
 (**Generator: Studio blockout**) turns a description into a sealed, playable
 level for Quake, Quake II, Quake III, or Doom. It follows the pipeline of
 [Quake-MapGen](https://github.com/themuffinator/Quake-MapGen) (credited in
@@ -265,9 +265,9 @@ the open package and map) or are named outright.
 
 **Generator: Quake-MapGen** in the same dialog (or `map generate --generator
 quake-mapgen`) builds the level with Quake-MapGen itself. Its source now lives
-in VibeStudio as the Map Generator module (`src/mapgen`, imported from
+in SlopStudio as the Map Generator module (`src/mapgen`, imported from
 [Quake-MapGen](https://github.com/themuffinator/Quake-MapGen), MIT; see
-`src/mapgen/VIBESTUDIO.md`), and it is developed there from now on. Status:
+`src/mapgen/SLOPSTUDIO.md`), and it is developed there from now on. Status:
 **Partial**. No generated map has had a human playtest.
 
 - **Games and modes.** Quake, Quake II and Quake III Arena; single player,
@@ -305,7 +305,7 @@ in VibeStudio as the Map Generator module (`src/mapgen`, imported from
 - **Stage switches.** `--switch <name>=on|off` turns a generator change on or
   off for one run. Each switch is recorded in the report.
 
-The ranker that orders the candidates used a ggml graph upstream. VibeStudio
+The ranker that orders the candidates used a ggml graph upstream. SlopStudio
 computes the same scores in plain C++, bit for bit, so builds need neither
 ggml nor llama.cpp. Builds with `-Dggml=enabled` can rank through the upstream
 graph instead (`--ranker ggml`, command line only; the default is `scalar`),
@@ -318,7 +318,7 @@ and the generator's own error messages are in English only.
 
 Quake-MapGen's research tooling came with it: the map recipes and portfolio
 programs, and the Python map study, benchmark, profile and atlas tools, run from
-`src/mapgen` (`src/mapgen/VIBESTUDIO.md` says how), with up to 48 tests in
+`src/mapgen` (`src/mapgen/SLOPSTUDIO.md` says how), with up to 48 tests in
 the `mapgen-research` Meson suite (11 without Python 3.10 or newer; the Quake
 Live atlas test runs only when Shapely is installed). Most of them need maps, game data or compilers
 you supply. Their outputs stay under `src/mapgen/out`, which Git ignores.
@@ -326,7 +326,7 @@ you supply. Their outputs stay under `src/mapgen/out`, which Git ignores.
 ## Editing Maps with AI
 
 **Edit with AI** (the Levels header, the command palette, or
-`vibestudio --cli map ai-edit`) changes the open Quake, Quake II, or Quake
+`slopstudio --cli map ai-edit`) changes the open Quake, Quake II, or Quake
 III map from an instruction ("add a light above each player start",
 "retexture the selected brushes with a metal texture"). The text model
 never writes map text. It is sent a summary of the map (each entity by its
@@ -354,7 +354,7 @@ sectors and things have their own tools.
 ## Generating Textures
 
 **Generate Texture** (the Textures header, the command palette, or
-`vibestudio --cli texture generate`) makes game-ready textures. The image
+`slopstudio --cli texture generate`) makes game-ready textures. The image
 model draws variants from the description (the prompt adds the surface, the
 game's look, and the rules a usable texture needs: straight on, evenly lit,
 edge to edge, tileable, no text), or a picture of your own is used with no AI.
@@ -370,10 +370,10 @@ from one texture follows [TexAI](https://github.com/themuffinator/TexAI)
 (credited in docs/CREDITS.md). Variants are compared tiled 2x2, so a seam
 shows as a cross. **Save to Project** writes the chosen one where its game
 reads it: a lump in a WAD2 (Quake), a `.wal` (Quake II), a `.tga` and, for
-glows and liquids, a shader in `scripts/vibestudio_generated.shader` (Quake
+glows and liquids, a shader in `scripts/slopstudio_generated.shader` (Quake
 III), a flat or patch in a PWAD (Doom, Heretic, Hexen), or a PNG. A record of
 the spec, provider, model, prompts and digest goes to
-`.vibestudio/generated/textures/<name>.json`. **Save and Apply to Map
+`.slopstudio/generated/textures/<name>.json`. **Save and Apply to Map
 Selection** also puts it on the selected faces, and **Open in Texture Editor**
 continues by hand. `texture derive` makes the companion maps for any picture.
 
@@ -391,7 +391,7 @@ Level's model choice names the ready connection ("The text model: Claude Code
 ## Generating Sounds
 
 **Generate Sound** (the Audio header, the command palette, or
-`vibestudio --cli asset audio-generate`) makes sound effects for Doom, Quake,
+`slopstudio --cli asset audio-generate`) makes sound effects for Doom, Quake,
 Quake II, or Quake III from a description. The built-in synthesizer makes them
 on this machine with no AI: fifteen kinds of sound (gunshot, energy weapon,
 explosion, pickup, power-up, jump, pain, death, door or lift, switch,
@@ -409,9 +409,9 @@ to -1 dBFS in the game's own format, and, for ambience and alarms or when
 asked, joined end to start into a seamless loop that Quake-family games are
 told to repeat. Variants are listed with their waveforms and played before
 one is kept. **Save to Project** writes it where the game reads it: a DMX
-lump in `wads/vibestudio_sounds.wad` for Doom, an 11 kHz 8-bit WAV under
+lump in `wads/slopstudio_sounds.wad` for Doom, an 11 kHz 8-bit WAV under
 `sound/` for Quake, a 22 kHz 16-bit WAV for Quake II and III, with a record
-of what made it in `.vibestudio/generated/sounds/<name>.json`. **Save and
+of what made it in `.slopstudio/generated/sounds/<name>.json`. **Save and
 Place in Map** also adds a `target_speaker` to an open Quake II or III map,
 looping or named for a trigger, and **Open in Audio Editor** continues by
 hand. Sound requests follow the same preview, consent, Activity and
@@ -425,7 +425,7 @@ Agentic workflows should be built around supervised loops:
 2. Produce a plan with expected files, commands, assets, and risks.
 3. Ask for approval before writes, external requests with sensitive context, or
    compiler/package mutations.
-4. Apply changes only through staged VibeStudio services.
+4. Apply changes only through staged SlopStudio services.
 5. Run validation or compiler tasks through the shared task runner.
 6. Summarize what changed, what was generated, what failed, and what remains.
 
@@ -435,7 +435,7 @@ completed, failed, or cancelled.
 
 ## Initial Experiments
 - [x] Explain compiler errors and suggest likely fixes.
-- [x] Generate VibeMap3, VibeMap2, ZDBSP, or ZokumBSP command presets from natural language.
+- [x] Generate SlopMap3, SlopMap2, ZDBSP, or ZokumBSP command presets from natural language.
 - [x] Draft project manifests from an existing folder.
 - [x] Suggest missing asset dependencies from package/project scans.
 - [x] Generate batch conversion recipes.
@@ -488,7 +488,7 @@ completed, failed, or cancelled.
 - [x] Add per-capability provider routing: reasoning, code, vision, image,
   audio, voice, 3D, embeddings, and local/offline execution.
 - [x] Add provider health, quota/cost, authentication, and rate-limit status where available.
-- [x] Expose safe VibeStudio tools for project scanning, package metadata, compiler runs, text edits, and staged writes.
+- [x] Expose safe SlopStudio tools for project scanning, package metadata, compiler runs, text edits, and staged writes.
 - [x] Capture AI request/response metadata in task logs without storing secrets.
 - [x] Support CLI access for AI status, connector/model/tool inspection, and first experiments.
 - [x] Send text questions through a provider-neutral transport (OpenAI-compatible, Anthropic Messages, Gemini generateContent) that the GUI and the CLI share, testable without a network.

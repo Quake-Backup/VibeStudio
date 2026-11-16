@@ -10,7 +10,7 @@ snapshot, then **Publish Prepared Build** reviews the model/material assets and
 verified compiler outputs as one PK3. The generated-model integration proof
 checks this handoff through a real Quake III compiler, including external
 lightmaps and generated shaders; its recorded runs used stock q3map2 and have not
-been repeated with VibeMap3. **Deploy Prepared Build** carries the same model/material snapshot and
+been repeated with SlopMap3. **Deploy Prepared Build** carries the same model/material snapshot and
 runtime outputs into a reviewed game folder; Build and Launch uses that review
 after compilation. Recorder tests verify that the full package is present before
 the executable starts. See [Prepared Builds](LEVEL_EDITOR.md#prepared-builds-with-current-assets).
@@ -18,7 +18,7 @@ the executable starts. See [Prepared Builds](LEVEL_EDITOR.md#prepared-builds-wit
 Prepared Quake II builds also capture MD2 props and their resolved PCX skins
 with WAL textures and sounds, then publish the verified BSP/assets as one PAK.
 The generated Quake-family compiler proof, recorded with stock ericw-tools
-before the move to VibeMap2, checks each payload independently; it does not
+before the move to SlopMap2, checks each payload independently; it does not
 establish runtime behavior of game-specific entity classes. Quake/Quake II
 prepared installation deployment remains separate acceptance work.
 
@@ -85,7 +85,7 @@ embed the model or automatically publish assets into compiler search paths.
 ## Editable Source And Export Boundaries
 
 New saves use schema version 2. Version 1 designs still load with zero roll and
-pitch and identity UV mapping. Older VibeStudio versions reject version 2 instead
+pitch and identity UV mapping. Older SlopStudio versions reject version 2 instead
 of silently losing transforms. See [the version 1 pillar](../samples/models/pillar.model.json)
 and [the version 2 angled panel](../samples/models/angled-panel.model.json) for
 complete examples. Their material paths must be supplied by the project; no
@@ -125,11 +125,11 @@ commercial assets are included.
 ## CLI Workflow
 
 ```sh
-vibestudio --cli model build ./samples/models/pillar.model.json --output ./out/pillar.md3 --dry-run --json
-vibestudio --cli model build ./samples/models/pillar.model.json --output ./out/pillar.md3
-vibestudio --cli package save-as ./assets ./out/props.pk3 --add-file ./out/pillar.md3 --as models/props/pillar.md3
-vibestudio --cli map place-model ./maps/arena.map --engine idTech3 --package ./out/props.pk3 --entry models/props/pillar.md3 --origin 64,0,0 --output ./out/arena.map
-vibestudio --cli map dependencies ./out/arena.map --engine idTech3 --package ./out/props.pk3 --json
+slopstudio --cli model build ./samples/models/pillar.model.json --output ./out/pillar.md3 --dry-run --json
+slopstudio --cli model build ./samples/models/pillar.model.json --output ./out/pillar.md3
+slopstudio --cli package save-as ./assets ./out/props.pk3 --add-file ./out/pillar.md3 --as models/props/pillar.md3
+slopstudio --cli map place-model ./maps/arena.map --engine idTech3 --package ./out/props.pk3 --entry models/props/pillar.md3 --origin 64,0,0 --output ./out/arena.map
+slopstudio --cli map dependencies ./out/arena.map --engine idTech3 --package ./out/props.pk3 --json
 ```
 
 The build and placement commands share the GUI's services. `model build`

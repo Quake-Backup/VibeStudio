@@ -1,6 +1,6 @@
 # Accessibility and languages
 
-VibeStudio lets you change contrast, text size, colours, motion, focus
+SlopStudio lets you change contrast, text size, colours, motion, focus
 visibility and speech, and use the whole studio from the keyboard. This page
 also covers interface languages, right-to-left layouts and region formats.
 
@@ -102,7 +102,7 @@ Under **Alerts and Screen Readers**:
   results and refusals (see
   [Use a screen reader, high contrast or reduced motion](models.md#use-a-screen-reader-high-contrast-or-reduced-motion)).
 - **Flash the taskbar when background work finishes** (on by default) flashes
-  VibeStudio's taskbar or dock button when a long task ends while another
+  SlopStudio's taskbar or dock button when a long task ends while another
   window is in front.
 - **Play sound cues for task results** (off by default) plays a rising tone
   when a task finishes, a level tone for a warning or cancellation, and a
@@ -115,7 +115,7 @@ can read them. Some custom controls do not report everything yet.
 
 ## Read aloud with text-to-speech
 
-VibeStudio speaks with your computer's own voices; nothing goes to a cloud
+SlopStudio speaks with your computer's own voices; nothing goes to a cloud
 voice service.
 
 1. Under **Text to Speech**, tick **Read status changes aloud**.
@@ -147,7 +147,7 @@ else.
 If no engine can be found, the **Text to Speech** section says why, and every
 spoken message still appears on screen. Only the Windows engine has been
 checked with real voices so far. To choose an engine, or to silence speech for
-one run, set the `VIBESTUDIO_SPEECH_ENGINE` environment variable to `sapi`,
+one run, set the `SLOPSTUDIO_SPEECH_ENGINE` environment variable to `sapi`,
 `say`, `spd-say`, `espeak-ng`, `espeak` or `none`.
 
 ## Work from the keyboard
@@ -181,7 +181,7 @@ been checked everywhere, and a guided keyboard-only setup is still planned.
 1. Open **Settings** > **Appearance and Language** and find
    **Language and Region**.
 2. Choose a **Language**. The default, **System language** followed by your
-   system's language name, follows your operating system whenever VibeStudio
+   system's language name, follows your operating system whenever SlopStudio
    has that language.
 3. Choose **Restart Now** in the notice that appears. The new language shows
    after the restart.
@@ -226,9 +226,9 @@ or a specific region. A sample shows the result as you choose.
 ## Command-line equivalents
 
 ```sh
-vibestudio --cli accessibility report
-vibestudio --cli accessibility speak --test
-vibestudio --cli localization report --locale ar --json
+slopstudio --cli accessibility report
+slopstudio --cli accessibility speak --test
+slopstudio --cli localization report --locale ar --json
 ```
 
 | Command | What it does |

@@ -1,7 +1,7 @@
 #pragma once
 #include "core/audio_arrangement.h"
 
-namespace vibestudio::test
+namespace slopstudio::test
 {
 inline AudioSession arrangementFixture(bool grouped = true)
 {
@@ -39,4 +39,4 @@ inline AudioSession arrangementFixture(bool grouped = true)
 		session.groups.append({QStringLiteral("group-ab"), QStringLiteral("Linked A and B")});
 	return session;
 }
-} // namespace vibestudio::test
+} // namespace slopstudio::test

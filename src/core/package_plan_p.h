@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Private preparation control. Progress counts metadata work, not payload bytes.
 // Latch cancellation across nested folder/WAD helpers and callback boundaries.
@@ -20,7 +20,7 @@ public:
 	{
 		m_cancelled = m_cancelled || (m_control.isCancelled && m_control.isCancelled());
 		if (m_cancelled && m_error) {
-			*m_error = QCoreApplication::translate("VibeStudioPackageStaging", "Package plan preparation cancelled.");
+			*m_error = QCoreApplication::translate("SlopStudioPackageStaging", "Package plan preparation cancelled.");
 		}
 		return m_cancelled;
 	}
@@ -70,13 +70,13 @@ public:
 		if (m_limits.maximumRecords < 1 || m_limits.maximumRecords > PackageStagingPlanLimits::recordCeiling
 			|| m_limits.maximumIndexKeys < 1 || m_limits.maximumIndexKeys > PackageStagingPlanLimits::indexKeyCeiling
 			|| m_limits.maximumMetadataBytes < 1 || m_limits.maximumMetadataBytes > PackageStagingPlanLimits::metadataCeiling) {
-			return m_work.refuse(QCoreApplication::translate("VibeStudioPackageStaging", "Invalid package plan limits."));
+			return m_work.refuse(QCoreApplication::translate("SlopStudioPackageStaging", "Invalid package plan limits."));
 		}
 		return true;
 	}
 	bool checkRecords(qsizetype count)
 	{
-		return count <= m_limits.maximumRecords || m_work.refuse(QCoreApplication::translate("VibeStudioPackageStaging",
+		return count <= m_limits.maximumRecords || m_work.refuse(QCoreApplication::translate("SlopStudioPackageStaging",
 			"Package plan exceeds the %1-record limit. Undo or unstage edits, or work with a smaller package.").arg(m_limits.maximumRecords));
 	}
 	bool addRecord(qint64 bytes)
@@ -94,7 +94,7 @@ public:
 	bool addKey(const QString& key)
 	{
 		if (m_keys >= m_limits.maximumIndexKeys) {
-			return m_work.refuse(QCoreApplication::translate("VibeStudioPackageStaging",
+			return m_work.refuse(QCoreApplication::translate("SlopStudioPackageStaging",
 				"Package plan exceeds the %1-index-key limit. Use fewer entries or shallower folder paths.").arg(m_limits.maximumIndexKeys));
 		}
 		const qint64 bytes = textBytes(key);
@@ -106,7 +106,7 @@ public:
 	bool checkText(qint64 used, qint64 addition)
 	{
 		return (addition >= 0 && used <= m_limits.maximumMetadataBytes && addition <= m_limits.maximumMetadataBytes - used)
-			|| m_work.refuse(QCoreApplication::translate("VibeStudioPackageStaging",
+			|| m_work.refuse(QCoreApplication::translate("SlopStudioPackageStaging",
 				"Package plan exceeds the %1-byte text limit. Undo or unstage edits, or use shorter paths.").arg(m_limits.maximumMetadataBytes));
 	}
 	static qint64 textBytes(const QString& value) { return static_cast<qint64>(value.size()) * 2; }
@@ -165,4 +165,4 @@ bool sortPackagePlan(QVector<T>* values, Less less, PackagePlanWork& work)
 	return !work.cancelled();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

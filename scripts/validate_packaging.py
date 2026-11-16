@@ -13,7 +13,7 @@ from pathlib import Path
 
 REQUIRED_PACKAGE_FILES = [
     "licenses/external/audio/portaudio/LICENSE.txt",
-    "licenses/external/audio/portaudio/VIBESTUDIO.md",
+    "licenses/external/audio/portaudio/SLOPSTUDIO.md",
     "licenses/external/audio/portaudio/UPSTREAM.json",
     "README.md",
     "VERSION",
@@ -24,36 +24,36 @@ REQUIRED_PACKAGE_FILES = [
     "licenses/docs/CREDITS.md",
     "licenses/external/audio/r8brain-free-src/LICENSE",
     "licenses/external/audio/r8brain-free-src/LICENSE-OOURA.txt",
-    "licenses/external/audio/r8brain-free-src/VIBESTUDIO.md",
+    "licenses/external/audio/r8brain-free-src/SLOPSTUDIO.md",
     "licenses/external/audio/r8brain-free-src/UPSTREAM.json",
     "licenses/external/audio/libebur128/COPYING",
-    "licenses/external/audio/libebur128/VIBESTUDIO.md",
+    "licenses/external/audio/libebur128/SLOPSTUDIO.md",
     "licenses/external/audio/libebur128/UPSTREAM.json",
     "licenses/external/audio/libebur128/doc/license/R128Scan.txt",
     "licenses/external/audio/libebur128/doc/license/queue.txt",
     "licenses/external/audio/dr_libs/LICENSE",
-    "licenses/external/audio/dr_libs/VIBESTUDIO.md",
+    "licenses/external/audio/dr_libs/SLOPSTUDIO.md",
     "licenses/external/audio/dr_libs/UPSTREAM.json",
     "licenses/external/audio/libogg/COPYING",
-    "licenses/external/audio/libogg/VIBESTUDIO.md",
+    "licenses/external/audio/libogg/SLOPSTUDIO.md",
     "licenses/external/audio/libogg/UPSTREAM.json",
     "licenses/external/audio/libvorbis/COPYING",
-    "licenses/external/audio/libvorbis/VIBESTUDIO.md",
+    "licenses/external/audio/libvorbis/SLOPSTUDIO.md",
     "licenses/external/audio/libvorbis/UPSTREAM.json",
     "licenses/external/graphics/vulkan-headers/LICENSE.md",
     "licenses/external/graphics/vulkan-headers/LICENSES/Apache-2.0.txt",
-    "licenses/external/graphics/vulkan-headers/VIBESTUDIO.md",
+    "licenses/external/graphics/vulkan-headers/SLOPSTUDIO.md",
     "licenses/external/graphics/vulkan-headers/UPSTREAM.json",
-    "licenses/external/compilers/VibeMap2/COPYING",
-    "licenses/external/compilers/VibeMap3/COPYING",
-    "licenses/external/compilers/VibeMap3/LICENSE",
+    "licenses/external/compilers/SlopMap2/COPYING",
+    "licenses/external/compilers/SlopMap3/COPYING",
+    "licenses/external/compilers/SlopMap3/LICENSE",
     "licenses/external/compilers/ZDBSP/COPYING",
     "licenses/external/compilers/ZokumBSP/COPYING",
     "platform/README.txt",
     "CHECKSUMS.sha256",
     "i18n/README.md",
-    "i18n/vibestudio_en.ts",
-    "i18n/vibestudio_pseudo.ts",
+    "i18n/slopstudio_en.ts",
+    "i18n/slopstudio_pseudo.ts",
     "samples/README.md",
 ]
 
@@ -73,7 +73,7 @@ def host_target() -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Smoke-test a current-platform portable package.")
-    parser.add_argument("--binary", required=True, help="Built vibestudio executable to package.")
+    parser.add_argument("--binary", required=True, help="Built slopstudio executable to package.")
     parser.add_argument("--compiled-translations", type=Path, help="Require compiled application catalogs from this directory.")
     args = parser.parse_args()
 
@@ -82,7 +82,7 @@ def main() -> int:
     if not binary.exists():
         return fail(f"Binary not found: {binary}")
 
-    with tempfile.TemporaryDirectory(prefix="vibestudio-package-") as temp_dir:
+    with tempfile.TemporaryDirectory(prefix="slopstudio-package-") as temp_dir:
         command = [
             sys.executable,
             str(repo_root / "scripts" / "package_portable.py"),
@@ -137,12 +137,12 @@ def main() -> int:
         checksums = (package_dir / "CHECKSUMS.sha256").read_text(encoding="utf-8")
         if "package-manifest.json" not in checksums:
             return fail("Expected package manifest to be covered by CHECKSUMS.sha256")
-        if "i18n/vibestudio_en.ts" not in checksums:
+        if "i18n/slopstudio_en.ts" not in checksums:
             return fail("Expected localization catalogs to be covered by CHECKSUMS.sha256")
         compiled = manifest.get("compiledLocalization", {})
         directory = (args.compiled_translations if args.compiled_translations is not None else binary.parent.parent / "i18n").resolve()
         expected = {f"i18n/{source.stem}.qm": directory / f"{source.stem}.qm"
-                    for source in (repo_root / "i18n").glob("vibestudio_*.ts")
+                    for source in (repo_root / "i18n").glob("slopstudio_*.ts")
                     if (directory / f"{source.stem}.qm").is_file()}
         if set(compiled.get("catalogs", [])) != set(expected):
             return fail("Packaged compiled catalog inventory does not match the selected build")

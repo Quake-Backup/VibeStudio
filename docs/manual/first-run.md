@@ -1,6 +1,6 @@
 # First-run setup
 
-The first-run setup is an eight-step checklist that tailors VibeStudio to you:
+The first-run setup is an eight-step checklist that tailors SlopStudio to you:
 language and accessibility, your editor profile, projects, game installations,
 compilers, AI and the command line. Every step is optional, and you can change
 every choice later.
@@ -15,7 +15,7 @@ On macOS, press Cmd wherever this page says Ctrl.
 
 ## Open the checklist
 
-VibeStudio does not open the setup by itself: it starts on the **Workspace**
+SlopStudio does not open the setup by itself: it starts on the **Workspace**
 page with its defaults. To begin:
 
 1. Open **Settings**: select it at the foot of the left rail, or press
@@ -54,7 +54,7 @@ reminders such as "No game installation profile has been added yet."
 Language and appearance are on **Settings** > **Appearance and Language**:
 
 - **Language**: the default, **System language**, follows your operating
-  system whenever VibeStudio has that language. Choosing another offers
+  system whenever SlopStudio has that language. Choosing another offers
   **Restart Now**, and the new language appears after the restart. 47 languages
   are listed, but none is fully translated yet, so most of the interface stays
   in English.
@@ -89,7 +89,7 @@ know: the 24 profiles include TrenchBroom, NetRadiant Custom, GtkRadiant 1.4,
 1.5 and 1.6, QeRadiant, Q3Radiant, DoomEdit, BSP, QuArK, Hammer and Ultimate Doom Builder.
 The Levels **Controls** menu also offers **Browse Editor Profiles…**, with search
 and previews of each profile’s defaults and differences.
-**VibeStudio Default** is selected to
+**SlopStudio Default** is selected to
 start with. **Customize Gestures…** adjusts the chosen profile. See
 [Editor profiles](editor-profiles.md) for the supported controls and remaining
 differences; choosing a profile does not add its original editor's file formats.
@@ -111,7 +111,7 @@ it after updating a graphics driver. See
 **Open Workspace** opens the **Workspace** page.
 
 - **Open Project** (<kbd>Ctrl</kbd>+<kbd>O</kbd>) chooses a project folder.
-  **Initialize Manifest** writes the project's `.vibestudio/project.json`. See
+  **Initialize Manifest** writes the project's `.slopstudio/project.json`. See
   [Projects and game installations](projects.md).
 - **Detect Installs** looks for games in your Steam and GOG libraries. Found
   games appear under **Game Installations**; select one and choose
@@ -120,17 +120,17 @@ it after updating a graphics driver. See
   selected profile the default, and **Remove** forgets a profile without
   touching its files.
 
-Detection only reads, and every new profile is read-only: VibeStudio copies a
+Detection only reads, and every new profile is read-only: SlopStudio copies a
 test map into a game only after you allow it. See
 [Build and launch](build-and-launch.md).
 
 ## Compilers
 
 **Open Build Toolchains** opens the **Build** page. Its **Toolchain** tab lists
-each compiler tool (VibeMap2 for Quake and Quake II, VibeMap3 for Quake III,
+each compiler tool (SlopMap2 for Quake and Quake II, SlopMap3 for Quake III,
 ZDBSP and ZokumBSP for Doom), whether it was found, and where its path comes
-from. VibeStudio also looks on your `PATH`. VibeMap2 and VibeMap3 are
-VibeStudio's own compilers; stock ericw-tools and q3map2 programs can still be
+from. SlopStudio also looks on your `PATH`. SlopMap2 and SlopMap3 are
+SlopStudio's own compilers; stock ericw-tools and q3map2 programs can still be
 used, but you choose them with **Locate…**.
 
 1. Select a tool whose status is **Not found**.
@@ -186,22 +186,22 @@ prepare several computers or a test profile. Setup progress and preferences
 use options rather than command families:
 
 ```sh
-vibestudio --cli --setup-report
-vibestudio --cli --setup-step game-installations
-vibestudio --cli --set-theme high-contrast-dark
-vibestudio --cli --set-text-scale 150
-vibestudio --cli editor select trenchbroom
-vibestudio --cli render set vulkan
-vibestudio --cli install detect --json
-vibestudio --cli project init ./mymod
-vibestudio --cli compiler set-path vibemap2-bsp --executable /opt/vibemap2/vibemap2-bsp
+slopstudio --cli --setup-report
+slopstudio --cli --setup-step game-installations
+slopstudio --cli --set-theme high-contrast-dark
+slopstudio --cli --set-text-scale 150
+slopstudio --cli editor select trenchbroom
+slopstudio --cli render set vulkan
+slopstudio --cli install detect --json
+slopstudio --cli project init ./mymod
+slopstudio --cli compiler set-path slopmap2-bsp --executable /opt/slopmap2/slopmap2-bsp
 ```
 
 Setup progress also accepts `--setup-start`, `--setup-next`, `--setup-skip`,
 `--setup-complete` and `--setup-reset`. The step IDs are `welcome-access`,
 `workspace-profile`, `projects-packages`, `game-installations`, `toolchains`,
 `ai-automation`, `cli-integration` and `review-finish`. Run
-`vibestudio --cli --help` for every `--set-` option, and add
+`slopstudio --cli --help` for every `--set-` option, and add
 `--settings-file <path>` to change a separate settings file instead of your
 own. See [Command line](cli.md).
 

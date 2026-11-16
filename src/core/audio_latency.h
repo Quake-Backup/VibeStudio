@@ -5,7 +5,7 @@
 #include <span>
 #include <vector>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr int AudioProcessingLatencyLimit = 16 * 384000;
 struct AudioLatencyNode {
@@ -35,4 +35,4 @@ class AudioLatencyLine {
 	std::vector<double> m_audio;
 	size_t m_cursor = 0, m_valid = 0;
 };
-} // namespace vibestudio
+} // namespace slopstudio

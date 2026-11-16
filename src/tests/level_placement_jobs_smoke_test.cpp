@@ -8,7 +8,7 @@
 #include <future>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool valid, const char* message, const QString& error = {}) {

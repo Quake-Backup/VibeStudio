@@ -28,7 +28,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -48,8 +48,8 @@ class Expansion final : public QTranslator
 	}
 	QString translate(const char *context, const char *source, const char *, int) const override
 	{
-		if (QByteArray(context) != "ModelAssemblyDialog" && QByteArray(context) != "VibeStudioModelEditor" &&
-			QByteArray(context) != "VibeStudioModelAssemblyAnimation")
+		if (QByteArray(context) != "ModelAssemblyDialog" && QByteArray(context) != "SlopStudioModelEditor" &&
+			QByteArray(context) != "SlopStudioModelAssemblyAnimation")
 			return {};
 		const auto value = QString::fromUtf8(source);
 		return QStringLiteral("[%1%2]").arg(value, QString(value.size() / 2, '~'));
@@ -57,7 +57,7 @@ class Expansion final : public QTranslator
 };
 bool render(QWidget &widget, const QString &name)
 {
-	const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (evidence.isEmpty())
 		return true;
 	QImage image(widget.size() * widget.devicePixelRatioF(), QImage::Format_ARGB32_Premultiplied);
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("assembly-animation-ui-XXXXXX"));

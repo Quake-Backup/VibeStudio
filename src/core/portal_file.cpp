@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -17,7 +17,7 @@ constexpr int kMaximumPortals = 4'000'000;
 PortalFile failed(const char* message)
 {
 	PortalFile file;
-	file.error = QCoreApplication::translate("VibeStudioPortalFile", message);
+	file.error = QCoreApplication::translate("SlopStudioPortalFile", message);
 	return file;
 }
 
@@ -77,11 +77,11 @@ PortalFile parsePortalFile(const QByteArray& bytes)
 	}
 	lines.removeAll(QByteArray());
 	if (lines.isEmpty()) {
-		return failed(QT_TRANSLATE_NOOP("VibeStudioPortalFile", "The portal file is empty."));
+		return failed(QT_TRANSLATE_NOOP("SlopStudioPortalFile", "The portal file is empty."));
 	}
 	const QByteArray magic = lines.first();
 	if (magic != "PRT1" && magic != "PRT1-AM" && magic != "PRT2") {
-		return failed(QT_TRANSLATE_NOOP("VibeStudioPortalFile", "This is not a PRT1, PRT1-AM or PRT2 portal file."));
+		return failed(QT_TRANSLATE_NOOP("SlopStudioPortalFile", "This is not a PRT1, PRT1-AM or PRT2 portal file."));
 	}
 	// The counts follow the magic, one to a line, until the first portal.
 	QList<int> counts;
@@ -99,7 +99,7 @@ PortalFile parsePortalFile(const QByteArray& bytes)
 	if (magic == "PRT2") {
 		// Leaves, clusters, portals.
 		if (counts.size() < 3) {
-			return failed(QT_TRANSLATE_NOOP("VibeStudioPortalFile", "The PRT2 header needs leaf, cluster and portal counts."));
+			return failed(QT_TRANSLATE_NOOP("SlopStudioPortalFile", "The PRT2 header needs leaf, cluster and portal counts."));
 		}
 		file.leafCount = counts.at(0);
 		file.clusterCount = counts.at(1);
@@ -107,7 +107,7 @@ PortalFile parsePortalFile(const QByteArray& bytes)
 	} else if (magic == "PRT1-AM") {
 		// Clusters, portals, leaves.
 		if (counts.size() < 3) {
-			return failed(QT_TRANSLATE_NOOP("VibeStudioPortalFile", "The PRT1-AM header needs cluster, portal and leaf counts."));
+			return failed(QT_TRANSLATE_NOOP("SlopStudioPortalFile", "The PRT1-AM header needs cluster, portal and leaf counts."));
 		}
 		file.clusterCount = counts.at(0);
 		portalCount = counts.at(1);
@@ -116,13 +116,13 @@ PortalFile parsePortalFile(const QByteArray& bytes)
 		// Leaves (clusters in Quake II and III) and portals; q3map adds its
 		// solid face count, whose faces follow the portals.
 		if (counts.size() < 2) {
-			return failed(QT_TRANSLATE_NOOP("VibeStudioPortalFile", "The portal file header needs leaf and portal counts."));
+			return failed(QT_TRANSLATE_NOOP("SlopStudioPortalFile", "The portal file header needs leaf and portal counts."));
 		}
 		file.leafCount = counts.at(0);
 		portalCount = counts.at(1);
 	}
 	if (portalCount < 0 || portalCount > kMaximumPortals) {
-		return failed(QT_TRANSLATE_NOOP("VibeStudioPortalFile", "The portal count is out of range."));
+		return failed(QT_TRANSLATE_NOOP("SlopStudioPortalFile", "The portal count is out of range."));
 	}
 	file.portals.reserve(portalCount);
 	QVector<LevelMapVec3> polygon;
@@ -143,7 +143,7 @@ PortalFile parsePortalFile(const QByteArray& bytes)
 		file.portals.push_back(polygon);
 	}
 	if (file.portals.size() != portalCount) {
-		file.error = QCoreApplication::translate("VibeStudioPortalFile", "The header promises %n portal(s), but fewer could be read.", nullptr, portalCount);
+		file.error = QCoreApplication::translate("SlopStudioPortalFile", "The header promises %n portal(s), but fewer could be read.", nullptr, portalCount);
 		file.portals.clear();
 		return file;
 	}
@@ -156,13 +156,13 @@ PortalFile loadPortalFile(const QString& path)
 	QFile input(path);
 	if (!input.open(QIODevice::ReadOnly)) {
 		PortalFile file;
-		file.error = QCoreApplication::translate("VibeStudioPortalFile", "Could not read %1: %2").arg(path, input.errorString());
+		file.error = QCoreApplication::translate("SlopStudioPortalFile", "Could not read %1: %2").arg(path, input.errorString());
 		return file;
 	}
 	if (input.size() > kMaximumPortalFileBytes) {
-		return failed(QT_TRANSLATE_NOOP("VibeStudioPortalFile", "The portal file is larger than 256 MiB."));
+		return failed(QT_TRANSLATE_NOOP("SlopStudioPortalFile", "The portal file is larger than 256 MiB."));
 	}
 	return parsePortalFile(input.readAll());
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

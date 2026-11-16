@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -91,18 +91,18 @@ QString humanSize(quint64 bytes)
 
 QString roleNoun(const QString& role)
 {
-	if (role == QStringLiteral("map")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Maps"); }
-	if (role == QStringLiteral("map-companion")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Map extras"); }
-	if (role == QStringLiteral("texture")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Textures"); }
-	if (role == QStringLiteral("shader")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Shader scripts"); }
-	if (role == QStringLiteral("model")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Models"); }
-	if (role == QStringLiteral("skin")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Skins"); }
-	if (role == QStringLiteral("sound")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Sounds"); }
-	if (role == QStringLiteral("music")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Music"); }
-	if (role == QStringLiteral("script")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Scripts"); }
-	if (role == QStringLiteral("code")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Game code"); }
-	if (role == QStringLiteral("map-source")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Sources"); }
-	return QCoreApplication::translate("VibeStudioReleaseNotes", "Other files");
+	if (role == QStringLiteral("map")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Maps"); }
+	if (role == QStringLiteral("map-companion")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Map extras"); }
+	if (role == QStringLiteral("texture")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Textures"); }
+	if (role == QStringLiteral("shader")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Shader scripts"); }
+	if (role == QStringLiteral("model")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Models"); }
+	if (role == QStringLiteral("skin")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Skins"); }
+	if (role == QStringLiteral("sound")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Sounds"); }
+	if (role == QStringLiteral("music")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Music"); }
+	if (role == QStringLiteral("script")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Scripts"); }
+	if (role == QStringLiteral("code")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Game code"); }
+	if (role == QStringLiteral("map-source")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Sources"); }
+	return QCoreApplication::translate("SlopStudioReleaseNotes", "Other files");
 }
 
 QString mapLabel(const ReleaseRecordFile& file)
@@ -115,7 +115,7 @@ QString listPreview(const QStringList& names, int limit = 6)
 	if (names.size() <= limit) {
 		return names.join(QStringLiteral(", "));
 	}
-	return QCoreApplication::translate("VibeStudioReleaseNotes", "%1 and %2 more").arg(names.mid(0, limit).join(QStringLiteral(", "))).arg(names.size() - limit);
+	return QCoreApplication::translate("SlopStudioReleaseNotes", "%1 and %2 more").arg(names.mid(0, limit).join(QStringLiteral(", "))).arg(names.size() - limit);
 }
 
 bool doomFamily(const QString& gameKey)
@@ -208,12 +208,12 @@ QString normalizedChangelogCategory(const QString& category)
 QString changelogCategoryDisplayName(const QString& category)
 {
 	const QString id = normalizedChangelogCategory(category);
-	if (id == QStringLiteral("Added")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Added"); }
-	if (id == QStringLiteral("Changed")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Changed"); }
-	if (id == QStringLiteral("Deprecated")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Deprecated"); }
-	if (id == QStringLiteral("Removed")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Removed"); }
-	if (id == QStringLiteral("Fixed")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Fixed"); }
-	if (id == QStringLiteral("Security")) { return QCoreApplication::translate("VibeStudioReleaseNotes", "Security"); }
+	if (id == QStringLiteral("Added")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Added"); }
+	if (id == QStringLiteral("Changed")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Changed"); }
+	if (id == QStringLiteral("Deprecated")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Deprecated"); }
+	if (id == QStringLiteral("Removed")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Removed"); }
+	if (id == QStringLiteral("Fixed")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Fixed"); }
+	if (id == QStringLiteral("Security")) { return QCoreApplication::translate("SlopStudioReleaseNotes", "Security"); }
 	return category;
 }
 
@@ -292,9 +292,9 @@ QStringList ProjectChangelog::versions() const
 ProjectChangelog defaultProjectChangelog(const QString& title)
 {
 	ProjectChangelog changelog;
-	changelog.preamble << QCoreApplication::translate("VibeStudioReleaseNotes", "# Changelog") << QString()
-					   << QCoreApplication::translate("VibeStudioReleaseNotes", "All notable changes to %1 are recorded here.").arg(title.isEmpty() ? QCoreApplication::translate("VibeStudioReleaseNotes", "this project") : title)
-					   << QCoreApplication::translate("VibeStudioReleaseNotes", "The format follows Keep a Changelog (https://keepachangelog.com/en/1.1.0/).") << QString();
+	changelog.preamble << QCoreApplication::translate("SlopStudioReleaseNotes", "# Changelog") << QString()
+					   << QCoreApplication::translate("SlopStudioReleaseNotes", "All notable changes to %1 are recorded here.").arg(title.isEmpty() ? QCoreApplication::translate("SlopStudioReleaseNotes", "this project") : title)
+					   << QCoreApplication::translate("SlopStudioReleaseNotes", "The format follows Keep a Changelog (https://keepachangelog.com/en/1.1.0/).") << QString();
 	ChangelogSection unreleased;
 	unreleased.heading = QStringLiteral("## [Unreleased]");
 	unreleased.version = QStringLiteral("Unreleased");
@@ -307,7 +307,7 @@ bool parseProjectChangelog(const QString& text, ProjectChangelog* changelog, QSt
 {
 	if (text.size() > kMaximumChangelogBytes) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "The changelog is too large to read.");
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "The changelog is too large to read.");
 		}
 		return false;
 	}
@@ -370,13 +370,13 @@ bool loadProjectChangelog(const QString& path, const QString& title, ProjectChan
 	}
 	if (file.size() > kMaximumChangelogBytes) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "The changelog is too large to read.");
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "The changelog is too large to read.");
 		}
 		return false;
 	}
 	if (!file.open(QIODevice::ReadOnly)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "Unable to read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "Unable to read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
 		}
 		return false;
 	}
@@ -395,7 +395,7 @@ bool saveProjectChangelog(const ProjectChangelog& changelog, QString* error)
 {
 	if (changelog.path.trimmed().isEmpty()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "The changelog has no file path.");
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "The changelog has no file path.");
 		}
 		return false;
 	}
@@ -403,7 +403,7 @@ bool saveProjectChangelog(const ProjectChangelog& changelog, QString* error)
 	const QByteArray bytes = projectChangelogText(changelog).toUtf8();
 	if (!QDir().mkpath(QFileInfo(changelog.path).absolutePath()) || !file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "Unable to write %1: %2").arg(QDir::toNativeSeparators(changelog.path), file.errorString());
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "Unable to write %1: %2").arg(QDir::toNativeSeparators(changelog.path), file.errorString());
 		}
 		return false;
 	}
@@ -416,13 +416,13 @@ bool addChangelogEntry(ProjectChangelog* changelog, const QString& category, con
 	const QString line = singleLine(text);
 	if (id.isEmpty()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "Unknown changelog category %1. Use %2.").arg(category, changelogCategories().join(QStringLiteral(", ")));
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "Unknown changelog category %1. Use %2.").arg(category, changelogCategories().join(QStringLiteral(", ")));
 		}
 		return false;
 	}
 	if (line.isEmpty()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "The changelog entry is empty.");
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "The changelog entry is empty.");
 		}
 		return false;
 	}
@@ -485,13 +485,13 @@ bool releaseProjectChangelog(ProjectChangelog* changelog, const QString& version
 {
 	if (!isValidReleaseVersion(version)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "%1 is not a usable version. Use letters, digits, '.', '-', '+' or '_', such as 1.2.0.").arg(version);
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "%1 is not a usable version. Use letters, digits, '.', '-', '+' or '_', such as 1.2.0.").arg(version);
 		}
 		return false;
 	}
 	if (changelog->section(version)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "The changelog already has a section for %1.").arg(version);
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "The changelog already has a section for %1.").arg(version);
 		}
 		return false;
 	}
@@ -571,7 +571,7 @@ QString bumpReleaseVersion(const QString& version, const QString& part)
 
 QString releaseRecordDirectory(const QString& projectRoot)
 {
-	return projectRoot.trimmed().isEmpty() ? QString() : QDir(projectRoot).absoluteFilePath(QStringLiteral(".vibestudio/releases"));
+	return projectRoot.trimmed().isEmpty() ? QString() : QDir(projectRoot).absoluteFilePath(QStringLiteral(".slopstudio/releases"));
 }
 
 QString releaseRecordPath(const QString& projectRoot, const QString& version)
@@ -589,7 +589,7 @@ QJsonObject releaseRecordJson(const ReleaseRecord& record)
 		files.append(QJsonArray {file.path, file.role, double(file.sizeBytes), QStringLiteral("%1").arg(file.crc32, 8, 16, QLatin1Char('0'))});
 	}
 	return {
-		{QStringLiteral("format"), QStringLiteral("vibestudio-release-record")},
+		{QStringLiteral("format"), QStringLiteral("slopstudio-release-record")},
 		{QStringLiteral("version"), ReleaseRecord::kFormatVersion},
 		{QStringLiteral("release"), record.version},
 		{QStringLiteral("title"), record.title},
@@ -616,16 +616,16 @@ bool parseReleaseRecord(const QJsonObject& object, ReleaseRecord* record, QStrin
 		}
 		return false;
 	};
-	if (object.value(QStringLiteral("format")).toString() != QStringLiteral("vibestudio-release-record")) {
-		return fail(QCoreApplication::translate("VibeStudioReleaseNotes", "The file is not a VibeStudio release record."));
+	if (object.value(QStringLiteral("format")).toString() != QStringLiteral("slopstudio-release-record")) {
+		return fail(QCoreApplication::translate("SlopStudioReleaseNotes", "The file is not a SlopStudio release record."));
 	}
 	if (object.value(QStringLiteral("version")).toInt(-1) != ReleaseRecord::kFormatVersion) {
-		return fail(QCoreApplication::translate("VibeStudioReleaseNotes", "This release record version is not supported."));
+		return fail(QCoreApplication::translate("SlopStudioReleaseNotes", "This release record version is not supported."));
 	}
 	ReleaseRecord parsed;
 	parsed.version = object.value(QStringLiteral("release")).toString();
 	if (!isValidReleaseVersion(parsed.version)) {
-		return fail(QCoreApplication::translate("VibeStudioReleaseNotes", "The release record has no usable version."));
+		return fail(QCoreApplication::translate("SlopStudioReleaseNotes", "The release record has no usable version."));
 	}
 	parsed.title = object.value(QStringLiteral("title")).toString();
 	parsed.gameKey = object.value(QStringLiteral("game")).toString();
@@ -640,7 +640,7 @@ bool parseReleaseRecord(const QJsonObject& object, ReleaseRecord* record, QStrin
 	}
 	const QJsonArray files = object.value(QStringLiteral("files")).toArray();
 	if (files.size() > kMaximumRecordFiles) {
-		return fail(QCoreApplication::translate("VibeStudioReleaseNotes", "The release record lists too many files."));
+		return fail(QCoreApplication::translate("SlopStudioReleaseNotes", "The release record lists too many files."));
 	}
 	for (const QJsonValue& value : files) {
 		const QJsonArray row = value.toArray();
@@ -651,7 +651,7 @@ bool parseReleaseRecord(const QJsonObject& object, ReleaseRecord* record, QStrin
 		bool ok = false;
 		file.crc32 = row.at(3).toString().toUInt(&ok, 16);
 		if (file.path.isEmpty() || !ok) {
-			return fail(QCoreApplication::translate("VibeStudioReleaseNotes", "The release record has a malformed file row."));
+			return fail(QCoreApplication::translate("SlopStudioReleaseNotes", "The release record has a malformed file row."));
 		}
 		parsed.files << file;
 	}
@@ -669,19 +669,19 @@ bool saveReleaseRecord(const QString& projectRoot, const ReleaseRecord& record, 
 	const QString path = releaseRecordPath(projectRoot, record.version);
 	if (path.isEmpty()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "Release records need a project folder and a usable version.");
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "Release records need a project folder and a usable version.");
 		}
 		return false;
 	}
 	if (QFileInfo::exists(path) && !overwrite) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "Version %1 has already been released. Choose a new version, or allow replacing the release.").arg(record.version);
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "Version %1 has already been released. Choose a new version, or allow replacing the release.").arg(record.version);
 		}
 		return false;
 	}
 	if (!QDir().mkpath(QFileInfo(path).absolutePath())) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "Unable to create %1.").arg(QDir::toNativeSeparators(QFileInfo(path).absolutePath()));
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "Unable to create %1.").arg(QDir::toNativeSeparators(QFileInfo(path).absolutePath()));
 		}
 		return false;
 	}
@@ -689,7 +689,7 @@ bool saveReleaseRecord(const QString& projectRoot, const ReleaseRecord& record, 
 	const QByteArray bytes = QJsonDocument(releaseRecordJson(record)).toJson(QJsonDocument::Indented);
 	if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioReleaseNotes", "Unable to write %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
+			*error = QCoreApplication::translate("SlopStudioReleaseNotes", "Unable to write %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
 		}
 		return false;
 	}
@@ -709,7 +709,7 @@ QVector<ReleaseRecord> listReleaseRecords(const QString& projectRoot, QStringLis
 	for (const QFileInfo& info : QDir(directory).entryInfoList({QStringLiteral("*.json")}, QDir::Files, QDir::Name)) {
 		if (info.size() > kMaximumRecordBytes) {
 			if (warnings) {
-				*warnings << QCoreApplication::translate("VibeStudioReleaseNotes", "%1 is too large to read.").arg(info.fileName());
+				*warnings << QCoreApplication::translate("SlopStudioReleaseNotes", "%1 is too large to read.").arg(info.fileName());
 			}
 			continue;
 		}
@@ -722,7 +722,7 @@ QVector<ReleaseRecord> listReleaseRecords(const QString& projectRoot, QStringLis
 		QString error;
 		if (!document.isObject() || !parseReleaseRecord(document.object(), &record, &error)) {
 			if (warnings) {
-				*warnings << QCoreApplication::translate("VibeStudioReleaseNotes", "%1 is not a readable release record: %2").arg(info.fileName(), error);
+				*warnings << QCoreApplication::translate("SlopStudioReleaseNotes", "%1 is not a readable release record: %2").arg(info.fileName(), error);
 			}
 			continue;
 		}
@@ -795,11 +795,11 @@ QStringList releaseDiffSummaryLines(const ReleaseInventoryDiff& diff)
 			lines << text.arg(roleNoun(it.key()), it.key() == QStringLiteral("map") ? listPreview(it.value()) : QString::number(it.value().size()));
 		}
 	};
-	describe(diff.added, QCoreApplication::translate("VibeStudioReleaseNotes", "%1 added: %2"));
-	describe(diff.changed, QCoreApplication::translate("VibeStudioReleaseNotes", "%1 updated: %2"));
-	describe(diff.removed, QCoreApplication::translate("VibeStudioReleaseNotes", "%1 removed: %2"));
+	describe(diff.added, QCoreApplication::translate("SlopStudioReleaseNotes", "%1 added: %2"));
+	describe(diff.changed, QCoreApplication::translate("SlopStudioReleaseNotes", "%1 updated: %2"));
+	describe(diff.removed, QCoreApplication::translate("SlopStudioReleaseNotes", "%1 removed: %2"));
 	if (lines.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioReleaseNotes", "No file changed since %1.").arg(diff.previousVersion);
+		lines << QCoreApplication::translate("SlopStudioReleaseNotes", "No file changed since %1.").arg(diff.previousVersion);
 	}
 	return lines;
 }
@@ -808,7 +808,7 @@ QVector<ChangelogEntry> suggestedChangelogEntries(const ReleaseInventoryDiff& di
 {
 	QVector<ChangelogEntry> entries;
 	if (!diff.hasPrevious) {
-		entries.push_back({QStringLiteral("Added"), QCoreApplication::translate("VibeStudioReleaseNotes", "First release.")});
+		entries.push_back({QStringLiteral("Added"), QCoreApplication::translate("SlopStudioReleaseNotes", "First release.")});
 		return entries;
 	}
 	const auto add = [&entries](const QString& category, const QVector<ReleaseRecordFile>& files, const QString& mapText, const QString& otherText) {
@@ -828,9 +828,9 @@ QVector<ChangelogEntry> suggestedChangelogEntries(const ReleaseInventoryDiff& di
 			entries.push_back({category, otherText.arg(roleNoun(it.key()).toLower()).arg(it.value())});
 		}
 	};
-	add(QStringLiteral("Added"), diff.added, QCoreApplication::translate("VibeStudioReleaseNotes", "New maps: %1."), QCoreApplication::translate("VibeStudioReleaseNotes", "New %1: %2."));
-	add(QStringLiteral("Changed"), diff.changed, QCoreApplication::translate("VibeStudioReleaseNotes", "Updated maps: %1."), QCoreApplication::translate("VibeStudioReleaseNotes", "Updated %1: %2."));
-	add(QStringLiteral("Removed"), diff.removed, QCoreApplication::translate("VibeStudioReleaseNotes", "Removed maps: %1."), QCoreApplication::translate("VibeStudioReleaseNotes", "Removed %1: %2."));
+	add(QStringLiteral("Added"), diff.added, QCoreApplication::translate("SlopStudioReleaseNotes", "New maps: %1."), QCoreApplication::translate("SlopStudioReleaseNotes", "New %1: %2."));
+	add(QStringLiteral("Changed"), diff.changed, QCoreApplication::translate("SlopStudioReleaseNotes", "Updated maps: %1."), QCoreApplication::translate("SlopStudioReleaseNotes", "Updated %1: %2."));
+	add(QStringLiteral("Removed"), diff.removed, QCoreApplication::translate("SlopStudioReleaseNotes", "Removed maps: %1."), QCoreApplication::translate("SlopStudioReleaseNotes", "Removed %1: %2."));
 	return entries;
 }
 
@@ -841,7 +841,7 @@ bool releaseInventory(const ReleasePlan& plan, QVector<ReleaseRecordFile>* files
 	for (const ReleaseEntry& entry : plan.entries) {
 		if (isCancelled && isCancelled()) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioReleaseNotes", "Cancelled.");
+				*error = QCoreApplication::translate("SlopStudioReleaseNotes", "Cancelled.");
 			}
 			return false;
 		}
@@ -868,7 +868,7 @@ bool releaseInventory(const ReleasePlan& plan, QVector<ReleaseRecordFile>* files
 		}
 		if (!read) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioReleaseNotes", "Unable to read %1: %2").arg(entry.virtualPath, readError);
+				*error = QCoreApplication::translate("SlopStudioReleaseNotes", "Unable to read %1: %2").arg(entry.virtualPath, readError);
 			}
 			return false;
 		}
@@ -917,7 +917,7 @@ QStringList releaseInstallSteps(const ReleaseNotesInput& input)
 	const QString package = input.packageFileName;
 	if (doomFamily(game)) {
 		const QString iwad = defaultIwad(game, input);
-		steps << QCoreApplication::translate("VibeStudioReleaseNotes", "Put %1 where your source port can find it, for example next to %2.").arg(package, iwad);
+		steps << QCoreApplication::translate("SlopStudioReleaseNotes", "Put %1 where your source port can find it, for example next to %2.").arg(package, iwad);
 		QString command = QStringLiteral("gzdoom -iwad %1 -file %2").arg(iwad, package);
 		const QRegularExpressionMatch numbered = QRegularExpression(QStringLiteral("^MAP(\\d\\d)$"), QRegularExpression::CaseInsensitiveOption).match(firstMap);
 		const QRegularExpressionMatch episode = QRegularExpression(QStringLiteral("^E(\\d)M(\\d)$"), QRegularExpression::CaseInsensitiveOption).match(firstMap);
@@ -926,26 +926,26 @@ QStringList releaseInstallSteps(const ReleaseNotesInput& input)
 		} else if (episode.hasMatch()) {
 			command += QStringLiteral(" -warp %1 %2").arg(episode.captured(1), episode.captured(2));
 		}
-		steps << QCoreApplication::translate("VibeStudioReleaseNotes", "Start it from a command line, for example: %1").arg(command);
+		steps << QCoreApplication::translate("SlopStudioReleaseNotes", "Start it from a command line, for example: %1").arg(command);
 		return steps;
 	}
 	const QString gameName = definition.displayName;
 	if (input.formatId == QStringLiteral("zip")) {
-		steps << QCoreApplication::translate("VibeStudioReleaseNotes", "Extract the archive into your %1 installation's %2 folder, keeping its folders.").arg(gameName, folder);
+		steps << QCoreApplication::translate("SlopStudioReleaseNotes", "Extract the archive into your %1 installation's %2 folder, keeping its folders.").arg(gameName, folder);
 	} else if (modFolder) {
-		steps << QCoreApplication::translate("VibeStudioReleaseNotes", "Extract the archive into your %1 installation folder, so the %2 folder sits beside %3.").arg(gameName, folder, base);
+		steps << QCoreApplication::translate("SlopStudioReleaseNotes", "Extract the archive into your %1 installation folder, so the %2 folder sits beside %3.").arg(gameName, folder, base);
 	} else if (input.formatId == QStringLiteral("pak")) {
-		steps << QCoreApplication::translate("VibeStudioReleaseNotes", "Copy %1 into your %2 installation's %3 folder, renaming it to the next free number (for example pak2.pak) if that name is taken.").arg(package, gameName, folder);
+		steps << QCoreApplication::translate("SlopStudioReleaseNotes", "Copy %1 into your %2 installation's %3 folder, renaming it to the next free number (for example pak2.pak) if that name is taken.").arg(package, gameName, folder);
 	} else {
-		steps << QCoreApplication::translate("VibeStudioReleaseNotes", "Copy %1 into your %2 installation's %3 folder.").arg(package, gameName, folder);
+		steps << QCoreApplication::translate("SlopStudioReleaseNotes", "Copy %1 into your %2 installation's %3 folder.").arg(package, gameName, folder);
 	}
 	if (modFolder) {
 		const QString option = game == QStringLiteral("quake") ? QStringLiteral("-game %1").arg(folder)
 			: game == QStringLiteral("quake2") ? QStringLiteral("+set game %1").arg(folder) : QStringLiteral("+set fs_game %1").arg(folder);
-		steps << QCoreApplication::translate("VibeStudioReleaseNotes", "Start the game with %1.").arg(option);
+		steps << QCoreApplication::translate("SlopStudioReleaseNotes", "Start the game with %1.").arg(option);
 	}
 	if (!firstMap.isEmpty()) {
-		steps << QCoreApplication::translate("VibeStudioReleaseNotes", "Open the console and type: map %1").arg(firstMap);
+		steps << QCoreApplication::translate("SlopStudioReleaseNotes", "Open the console and type: map %1").arg(firstMap);
 	}
 	return steps;
 }
@@ -959,26 +959,26 @@ QString releaseNotesMarkdown(const ReleaseNotesInput& input)
 		lines << input.release.description << QString();
 	}
 	lines << QStringLiteral("| | |") << QStringLiteral("| --- | --- |");
-	lines << QCoreApplication::translate("VibeStudioReleaseNotes", "| Game | %1 |").arg(gameName);
-	lines << QCoreApplication::translate("VibeStudioReleaseNotes", "| Version | %1 |").arg(input.release.version);
-	lines << QCoreApplication::translate("VibeStudioReleaseNotes", "| Released | %1 |").arg(input.releaseDate);
+	lines << QCoreApplication::translate("SlopStudioReleaseNotes", "| Game | %1 |").arg(gameName);
+	lines << QCoreApplication::translate("SlopStudioReleaseNotes", "| Version | %1 |").arg(input.release.version);
+	lines << QCoreApplication::translate("SlopStudioReleaseNotes", "| Released | %1 |").arg(input.releaseDate);
 	if (!input.release.authors.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioReleaseNotes", "| Authors | %1 |").arg(input.release.authors.join(QStringLiteral(", ")));
+		lines << QCoreApplication::translate("SlopStudioReleaseNotes", "| Authors | %1 |").arg(input.release.authors.join(QStringLiteral(", ")));
 	}
 	// Before the package exists, tokens stand in for its size and hash;
 	// publishRelease fills them in once the package is written.
 	const QString size = input.packageBytes > 0 ? humanSize(input.packageBytes) : releasePackageSizeToken();
 	const QString hash = input.packageSha256.isEmpty() ? releasePackageHashToken() : input.packageSha256;
-	lines << QCoreApplication::translate("VibeStudioReleaseNotes", "| Package | %1 |").arg(QStringLiteral("`%1` (%2)").arg(input.packageFileName, size));
-	lines << QCoreApplication::translate("VibeStudioReleaseNotes", "| SHA-256 | `%1` |").arg(hash);
+	lines << QCoreApplication::translate("SlopStudioReleaseNotes", "| Package | %1 |").arg(QStringLiteral("`%1` (%2)").arg(input.packageFileName, size));
+	lines << QCoreApplication::translate("SlopStudioReleaseNotes", "| SHA-256 | `%1` |").arg(hash);
 	if (!input.release.website.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioReleaseNotes", "| Website | %1 |").arg(input.release.website);
+		lines << QCoreApplication::translate("SlopStudioReleaseNotes", "| Website | %1 |").arg(input.release.website);
 	}
 	lines << QString();
 
-	lines << QCoreApplication::translate("VibeStudioReleaseNotes", "## What's new") << QString();
+	lines << QCoreApplication::translate("SlopStudioReleaseNotes", "## What's new") << QString();
 	if (input.changes.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioReleaseNotes", "No changes were recorded for this release.") << QString();
+		lines << QCoreApplication::translate("SlopStudioReleaseNotes", "No changes were recorded for this release.") << QString();
 	} else {
 		for (const QString& category : changelogCategories()) {
 			QStringList bullets;
@@ -994,49 +994,49 @@ QString releaseNotesMarkdown(const ReleaseNotesInput& input)
 	}
 	const QStringList diffLines = releaseDiffSummaryLines(input.diff);
 	if (!diffLines.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioReleaseNotes", "Compared with %1:").arg(input.diff.previousVersion) << QString();
+		lines << QCoreApplication::translate("SlopStudioReleaseNotes", "Compared with %1:").arg(input.diff.previousVersion) << QString();
 		for (const QString& line : diffLines) {
 			lines << QStringLiteral("- ") + line;
 		}
 		lines << QString();
 	}
 
-	lines << QCoreApplication::translate("VibeStudioReleaseNotes", "## Contents") << QString();
+	lines << QCoreApplication::translate("SlopStudioReleaseNotes", "## Contents") << QString();
 	for (const ReleaseMapInfo& map : input.maps) {
 		const QString names = map.doomMaps.isEmpty() ? map.name : map.doomMaps.join(QStringLiteral(", "));
-		lines << (map.title.isEmpty() ? QCoreApplication::translate("VibeStudioReleaseNotes", "- Map: %1").arg(names)
-									  : QCoreApplication::translate("VibeStudioReleaseNotes", "- Map: %1, \"%2\"").arg(names, map.title));
+		lines << (map.title.isEmpty() ? QCoreApplication::translate("SlopStudioReleaseNotes", "- Map: %1").arg(names)
+									  : QCoreApplication::translate("SlopStudioReleaseNotes", "- Map: %1, \"%2\"").arg(names, map.title));
 	}
 	for (const ReleaseCompositionRow& row : input.composition) {
 		if (row.role == QStringLiteral("map")) {
 			continue;
 		}
 		const int files = row.count;
-		lines << QCoreApplication::translate("VibeStudioReleaseNotes", "- %1: %2, %3").arg(roleNoun(row.role),
-			QCoreApplication::translate("VibeStudioReleaseNotes", "%n file(s)", nullptr, files), humanSize(row.bytes));
+		lines << QCoreApplication::translate("SlopStudioReleaseNotes", "- %1: %2, %3").arg(roleNoun(row.role),
+			QCoreApplication::translate("SlopStudioReleaseNotes", "%n file(s)", nullptr, files), humanSize(row.bytes));
 	}
 	const int total = input.fileCount;
-	lines << QCoreApplication::translate("VibeStudioReleaseNotes", "- In total: %1, %2").arg(
-		QCoreApplication::translate("VibeStudioReleaseNotes", "%n file(s)", nullptr, total), humanSize(input.totalBytes)) << QString();
+	lines << QCoreApplication::translate("SlopStudioReleaseNotes", "- In total: %1, %2").arg(
+		QCoreApplication::translate("SlopStudioReleaseNotes", "%n file(s)", nullptr, total), humanSize(input.totalBytes)) << QString();
 
-	lines << QCoreApplication::translate("VibeStudioReleaseNotes", "## Requirements") << QString();
-	lines << QCoreApplication::translate("VibeStudioReleaseNotes", "- %1").arg(gameName);
+	lines << QCoreApplication::translate("SlopStudioReleaseNotes", "## Requirements") << QString();
+	lines << QCoreApplication::translate("SlopStudioReleaseNotes", "- %1").arg(gameName);
 	for (const ProjectReleaseRequirement& requirement : input.release.requirements) {
 		const QString name = requirement.name.isEmpty() ? requirement.path : requirement.name;
 		lines << (requirement.url.isEmpty() ? QStringLiteral("- ") + name : QStringLiteral("- [%1](%2)").arg(name, requirement.url));
 	}
 	lines << QString();
 
-	lines << QCoreApplication::translate("VibeStudioReleaseNotes", "## Installation") << QString();
+	lines << QCoreApplication::translate("SlopStudioReleaseNotes", "## Installation") << QString();
 	const QStringList steps = releaseInstallSteps(input);
 	for (int i = 0; i < steps.size(); ++i) {
 		lines << QStringLiteral("%1. %2").arg(i + 1).arg(steps[i]);
 	}
 	lines << QString();
 	if (!input.release.license.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioReleaseNotes", "## Licence and permissions") << QString() << input.release.license << QString();
+		lines << QCoreApplication::translate("SlopStudioReleaseNotes", "## Licence and permissions") << QString() << input.release.license << QString();
 	}
-	lines << QCoreApplication::translate("VibeStudioReleaseNotes", "Packaged with VibeStudio %1.").arg(input.studioVersion);
+	lines << QCoreApplication::translate("SlopStudioReleaseNotes", "Packaged with SlopStudio %1.").arg(input.studioVersion);
 	return lines.join(QLatin1Char('\n')) + QLatin1Char('\n');
 }
 
@@ -1072,17 +1072,17 @@ QString releaseReadmeText(const ReleaseNotesInput& input)
 		}
 	}
 	lines << rule;
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Title"), input.release.title);
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Version"), input.release.version);
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Filename"), input.packageFileName);
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Release date"), input.releaseDate);
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Author"), authors.join(QStringLiteral(", ")));
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Email Address"), emails.join(QStringLiteral(", ")));
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Website"), input.release.website);
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Description"), input.release.description);
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Title"), input.release.title);
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Version"), input.release.version);
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Filename"), input.packageFileName);
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Release date"), input.releaseDate);
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Author"), authors.join(QStringLiteral(", ")));
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Email Address"), emails.join(QStringLiteral(", ")));
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Website"), input.release.website);
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Description"), input.release.description);
 	lines << rule;
 
-	section(QCoreApplication::translate("VibeStudioReleaseNotes", "What is included"));
+	section(QCoreApplication::translate("SlopStudioReleaseNotes", "What is included"));
 	QStringList mapNames;
 	for (const ReleaseMapInfo& map : input.maps) {
 		const QString names = map.doomMaps.isEmpty() ? map.name : map.doomMaps.join(QStringLiteral(", "));
@@ -1096,37 +1096,37 @@ QString releaseReadmeText(const ReleaseNotesInput& input)
 		}
 		return false;
 	};
-	const QString yes = QCoreApplication::translate("VibeStudioReleaseNotes", "Yes");
-	const QString no = QCoreApplication::translate("VibeStudioReleaseNotes", "No");
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "New levels"), mapNames.isEmpty() ? no : mapNames.join(QStringLiteral("; ")));
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Sounds"), has(QStringLiteral("sound")) ? yes : no);
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Music"), has(QStringLiteral("music")) ? yes : no);
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Graphics"), has(QStringLiteral("texture")) || has(QStringLiteral("shader")) ? yes : no);
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Models"), has(QStringLiteral("model")) ? yes : no);
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Game code"), has(QStringLiteral("code")) ? yes : no);
+	const QString yes = QCoreApplication::translate("SlopStudioReleaseNotes", "Yes");
+	const QString no = QCoreApplication::translate("SlopStudioReleaseNotes", "No");
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "New levels"), mapNames.isEmpty() ? no : mapNames.join(QStringLiteral("; ")));
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Sounds"), has(QStringLiteral("sound")) ? yes : no);
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Music"), has(QStringLiteral("music")) ? yes : no);
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Graphics"), has(QStringLiteral("texture")) || has(QStringLiteral("shader")) ? yes : no);
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Models"), has(QStringLiteral("model")) ? yes : no);
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Game code"), has(QStringLiteral("code")) ? yes : no);
 	QStringList required;
 	for (const ProjectReleaseRequirement& requirement : input.release.requirements) {
 		required << (requirement.url.isEmpty() ? (requirement.name.isEmpty() ? requirement.path : requirement.name)
 											   : QStringLiteral("%1 (%2)").arg(requirement.name.isEmpty() ? requirement.path : requirement.name, requirement.url));
 	}
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Other files required"), required.isEmpty() ? QCoreApplication::translate("VibeStudioReleaseNotes", "None") : required.join(QStringLiteral("; ")));
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Other files required"), required.isEmpty() ? QCoreApplication::translate("SlopStudioReleaseNotes", "None") : required.join(QStringLiteral("; ")));
 
-	section(QCoreApplication::translate("VibeStudioReleaseNotes", "Play Information"));
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Game"), doomFamily(game) ? defaultIwad(game, input) : definition.displayName);
+	section(QCoreApplication::translate("SlopStudioReleaseNotes", "Play Information"));
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Game"), doomFamily(game) ? defaultIwad(game, input) : definition.displayName);
 	if (!mapNames.isEmpty()) {
 		QStringList mapSlots;
 		for (const ReleaseMapInfo& map : input.maps) {
 			mapSlots += map.doomMaps.isEmpty() ? QStringList {map.name} : map.doomMaps;
 		}
-		field(QCoreApplication::translate("VibeStudioReleaseNotes", "Map #"), mapSlots.join(QStringLiteral(", ")));
+		field(QCoreApplication::translate("SlopStudioReleaseNotes", "Map #"), mapSlots.join(QStringLiteral(", ")));
 	}
 	const QStringList steps = releaseInstallSteps(input);
 	for (int i = 0; i < steps.size(); ++i) {
-		field(i == 0 ? QCoreApplication::translate("VibeStudioReleaseNotes", "How to play") : QString(), QStringLiteral("%1. %2").arg(i + 1).arg(steps[i]));
+		field(i == 0 ? QCoreApplication::translate("SlopStudioReleaseNotes", "How to play") : QString(), QStringLiteral("%1. %2").arg(i + 1).arg(steps[i]));
 	}
 
 	if (!input.changes.isEmpty() || input.diff.hasPrevious) {
-		section(QCoreApplication::translate("VibeStudioReleaseNotes", "What is new"));
+		section(QCoreApplication::translate("SlopStudioReleaseNotes", "What is new"));
 		for (const ChangelogEntry& entry : input.changes) {
 			for (const QString& line : wrapped(QStringLiteral("- %1: %2").arg(changelogCategoryDisplayName(entry.category), entry.text), 73)) {
 				lines << line;
@@ -1137,22 +1137,22 @@ QString releaseReadmeText(const ReleaseNotesInput& input)
 		}
 	}
 
-	section(QCoreApplication::translate("VibeStudioReleaseNotes", "Construction"));
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Editor(s) used"), QStringLiteral("VibeStudio %1").arg(input.studioVersion));
-	field(QCoreApplication::translate("VibeStudioReleaseNotes", "Package"), QStringLiteral("%1, %2").arg(input.packageFileName,
+	section(QCoreApplication::translate("SlopStudioReleaseNotes", "Construction"));
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Editor(s) used"), QStringLiteral("SlopStudio %1").arg(input.studioVersion));
+	field(QCoreApplication::translate("SlopStudioReleaseNotes", "Package"), QStringLiteral("%1, %2").arg(input.packageFileName,
 		input.packageBytes > 0 ? humanSize(input.packageBytes) : releasePackageSizeToken()));
 	field(QStringLiteral("SHA-256"), input.packageSha256.isEmpty() ? releasePackageHashToken() : input.packageSha256);
 
-	section(QCoreApplication::translate("VibeStudioReleaseNotes", "Copyright / Permissions"));
+	section(QCoreApplication::translate("SlopStudioReleaseNotes", "Copyright / Permissions"));
 	for (const QString& line : wrapped(input.release.license.isEmpty()
-			? QCoreApplication::translate("VibeStudioReleaseNotes", "No permissions were stated. Ask the author before reusing this work.") : input.release.license, 75)) {
+			? QCoreApplication::translate("SlopStudioReleaseNotes", "No permissions were stated. Ask the author before reusing this work.") : input.release.license, 75)) {
 		lines << line;
 	}
 	if (!input.release.website.isEmpty()) {
-		section(QCoreApplication::translate("VibeStudioReleaseNotes", "Where to get the file that this text file describes"));
+		section(QCoreApplication::translate("SlopStudioReleaseNotes", "Where to get the file that this text file describes"));
 		lines << input.release.website;
 	}
 	return lines.join(QStringLiteral("\r\n")) + QStringLiteral("\r\n");
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

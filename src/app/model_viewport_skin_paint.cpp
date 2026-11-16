@@ -5,7 +5,7 @@
 
 #include "core/model_skin_paint.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ModelViewport::setSkinPaintHandler(std::function<bool(ModelViewportStrokePhase, const QPointF&)> handler)
 {
@@ -68,4 +68,4 @@ bool ModelViewport::skinPaintProjection(ModelSkinPaintProjection* projection)
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

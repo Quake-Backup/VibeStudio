@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelBookmarksCliResult {
 	int exitCode = 0;
 	QString error;
@@ -10,4 +10,4 @@ struct LevelBookmarksCliResult {
 	QStringList lines;
 };
 LevelBookmarksCliResult runLevelBookmarks(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

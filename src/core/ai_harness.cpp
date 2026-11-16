@@ -13,7 +13,7 @@
 #include <QRegularExpression>
 #include <QStandardPaths>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -94,7 +94,7 @@ QString aiHarnessToolName(const QString& connectorId)
 	case AiHarnessKind::None:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioAiHarness", "The command");
+	return QCoreApplication::translate("SlopStudioAiHarness", "The command");
 }
 
 QString aiHarnessProvider(const QString& connectorId)
@@ -154,15 +154,15 @@ bool launchThroughShim(const QString& program, QString* launcher, QStringList* p
 	}
 	QFile shim(program);
 	if (!shim.open(QIODevice::ReadOnly)) {
-		*error = QCoreApplication::translate("VibeStudioAiHarness", "Could not read %1.").arg(QDir::toNativeSeparators(program));
+		*error = QCoreApplication::translate("SlopStudioAiHarness", "Could not read %1.").arg(QDir::toNativeSeparators(program));
 		return false;
 	}
 	const QString text = QString::fromLocal8Bit(shim.readAll());
 	static const QRegularExpression script(QStringLiteral("\"%~?dp0%?\\\\([^\"]+\\.(?:js|cjs|mjs))\""), QRegularExpression::CaseInsensitiveOption);
 	const QRegularExpressionMatch match = script.match(text);
 	if (!match.hasMatch()) {
-		*error = QCoreApplication::translate("VibeStudioAiHarness",
-			"%1 is a batch file VibeStudio cannot run safely. Point the connector at the program itself (an .exe), or at node and its script.")
+		*error = QCoreApplication::translate("SlopStudioAiHarness",
+			"%1 is a batch file SlopStudio cannot run safely. Point the connector at the program itself (an .exe), or at node and its script.")
 					 .arg(QDir::toNativeSeparators(program));
 		return false;
 	}
@@ -170,7 +170,7 @@ bool launchThroughShim(const QString& program, QString* launcher, QStringList* p
 	const QString localNode = info.absoluteDir().filePath(QStringLiteral("node.exe"));
 	const QString node = QFileInfo(localNode).isFile() ? localNode : QStandardPaths::findExecutable(QStringLiteral("node"));
 	if (node.isEmpty() || !QFileInfo(scriptPath).isFile()) {
-		*error = QCoreApplication::translate("VibeStudioAiHarness", "%1 needs Node.js, which was not found.").arg(QDir::toNativeSeparators(program));
+		*error = QCoreApplication::translate("SlopStudioAiHarness", "%1 needs Node.js, which was not found.").arg(QDir::toNativeSeparators(program));
 		return false;
 	}
 	*launcher = node;
@@ -200,11 +200,11 @@ AiChatResponse failed(const QString& connectorId, const QString& message)
 {
 	AiChatResponse response;
 	const QString lower = message.toLower();
-	// An older tool refusing an option VibeStudio passes: an update fixes it.
+	// An older tool refusing an option SlopStudio passes: an update fixes it.
 	if (aiHarnessKind(connectorId) != AiHarnessKind::CustomCommand && (lower.contains(QStringLiteral("unexpected argument")) || lower.contains(QStringLiteral("unknown option"))
 		|| lower.contains(QStringLiteral("unrecognized option")) || lower.contains(QStringLiteral("unknown argument")))) {
 		response.failure = AiChatFailure::NotConfigured;
-		response.errorMessage = QCoreApplication::translate("VibeStudioAiHarness", "%1 is older than VibeStudio needs (%2). Update it and try again: %3")
+		response.errorMessage = QCoreApplication::translate("SlopStudioAiHarness", "%1 is older than SlopStudio needs (%2). Update it and try again: %3")
 									.arg(displayName(connectorId), message.trimmed(), aiHarnessUpdateHint(connectorId));
 		return response;
 	}
@@ -212,7 +212,7 @@ AiChatResponse failed(const QString& connectorId, const QString& message)
 		|| lower.contains(QStringLiteral("login")) || lower.contains(QStringLiteral("authenticat")) || lower.contains(QStringLiteral("invalid api key"))
 		|| lower.contains(QStringLiteral("unauthorized"))) {
 		response.failure = AiChatFailure::Credential;
-		response.errorMessage = QCoreApplication::translate("VibeStudioAiHarness", "%1 is not signed in (%2). %3")
+		response.errorMessage = QCoreApplication::translate("SlopStudioAiHarness", "%1 is not signed in (%2). %3")
 									.arg(displayName(connectorId), message.trimmed(), aiHarnessSetupHint(connectorId));
 		return response;
 	}
@@ -238,7 +238,7 @@ AiChatResponse parseClaudeCode(int exitCode, const QByteArray& standardOutput, c
 	const QJsonObject result = outputObject(standardOutput);
 	if (result.isEmpty()) {
 		const QString detail = lastLines(standardError.isEmpty() ? standardOutput : standardError, 6);
-		AiChatResponse response = failed(id, detail.isEmpty() ? QCoreApplication::translate("VibeStudioAiHarness", "Claude Code exited with code %1 and no answer.").arg(exitCode) : detail);
+		AiChatResponse response = failed(id, detail.isEmpty() ? QCoreApplication::translate("SlopStudioAiHarness", "Claude Code exited with code %1 and no answer.").arg(exitCode) : detail);
 		if (response.failure == AiChatFailure::Provider && exitCode == 0) {
 			response.failure = AiChatFailure::BadResponse;
 		}
@@ -270,7 +270,7 @@ AiChatResponse parseClaudeCode(int exitCode, const QByteArray& standardOutput, c
 		response.ok = !response.text.trimmed().isEmpty();
 		if (!response.ok) {
 			response.failure = AiChatFailure::BadResponse;
-			response.errorMessage = QCoreApplication::translate("VibeStudioAiHarness", "Claude Code finished without an answer.");
+			response.errorMessage = QCoreApplication::translate("SlopStudioAiHarness", "Claude Code finished without an answer.");
 		}
 	}
 	const QJsonObject usage = result.value(QStringLiteral("usage")).toObject();
@@ -325,7 +325,7 @@ AiChatResponse parseCodex(int exitCode, const QByteArray& standardOutput, const 
 	AiChatResponse response;
 	if ((!completed && !error.isEmpty()) || text.isEmpty()) {
 		const QString detail = !error.isEmpty() ? error : lastLines(standardError, 6);
-		response = failed(id, detail.isEmpty() ? QCoreApplication::translate("VibeStudioAiHarness", "Codex exited with code %1 and no answer.").arg(exitCode) : detail);
+		response = failed(id, detail.isEmpty() ? QCoreApplication::translate("SlopStudioAiHarness", "Codex exited with code %1 and no answer.").arg(exitCode) : detail);
 	} else {
 		response.ok = true;
 		response.text = text;
@@ -342,7 +342,7 @@ AiChatResponse parseCustom(int exitCode, const QByteArray& standardOutput, const
 	if (exitCode != 0 || text.isEmpty()) {
 		const QString detail = lastLines(standardError.isEmpty() ? standardOutput : standardError, 6);
 		return failed(QStringLiteral("custom-command"),
-			detail.isEmpty() ? QCoreApplication::translate("VibeStudioAiHarness", "The command exited with code %1 and no answer.").arg(exitCode) : detail);
+			detail.isEmpty() ? QCoreApplication::translate("SlopStudioAiHarness", "The command exited with code %1 and no answer.").arg(exitCode) : detail);
 	}
 	AiChatResponse response;
 	response.ok = true;
@@ -434,18 +434,18 @@ QString aiHarnessUpdateHint(const QString& connectorId)
 	case AiHarnessKind::None:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioAiHarness", "check the command's options");
+	return QCoreApplication::translate("SlopStudioAiHarness", "check the command's options");
 }
 
 QString aiHarnessSetupHint(const QString& connectorId)
 {
 	switch (aiHarnessKind(connectorId)) {
 	case AiHarnessKind::ClaudeCode:
-		return QCoreApplication::translate("VibeStudioAiHarness", "Install Claude Code (https://code.claude.com/docs/en/setup), then sign in with: claude auth login");
+		return QCoreApplication::translate("SlopStudioAiHarness", "Install Claude Code (https://code.claude.com/docs/en/setup), then sign in with: claude auth login");
 	case AiHarnessKind::Codex:
-		return QCoreApplication::translate("VibeStudioAiHarness", "Install Codex (npm install -g @openai/codex), then sign in with: codex login");
+		return QCoreApplication::translate("SlopStudioAiHarness", "Install Codex (npm install -g @openai/codex), then sign in with: codex login");
 	case AiHarnessKind::CustomCommand:
-		return QCoreApplication::translate("VibeStudioAiHarness", "Set the command line in Settings > AI and Automation, for example: gemini -m {model} (the prompt arrives on standard input)");
+		return QCoreApplication::translate("SlopStudioAiHarness", "Set the command line in Settings > AI and Automation, for example: gemini -m {model} (the prompt arrives on standard input)");
 	case AiHarnessKind::None:
 		break;
 	}
@@ -462,10 +462,10 @@ bool buildAiHarnessInvocation(const AiChatRequest& request, const QString& progr
 	};
 	const AiHarnessKind kind = aiHarnessKind(request.connectorId);
 	if (kind == AiHarnessKind::None || !out) {
-		return fail(QCoreApplication::translate("VibeStudioAiHarness", "%1 is not a command-line connector.").arg(request.connectorId));
+		return fail(QCoreApplication::translate("SlopStudioAiHarness", "%1 is not a command-line connector.").arg(request.connectorId));
 	}
 	if (request.messages.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioAiTransport", "There is nothing to ask."));
+		return fail(QCoreApplication::translate("SlopStudioAiTransport", "There is nothing to ask."));
 	}
 	AiHarnessInvocation invocation;
 	invocation.connectorId = normalizedAiId(request.connectorId);
@@ -514,11 +514,11 @@ bool buildAiHarnessInvocation(const AiChatRequest& request, const QString& progr
 	} else {
 		QStringList words = QProcess::splitCommand(program);
 		if (words.isEmpty()) {
-			return fail(QCoreApplication::translate("VibeStudioAiHarness", "No command is set for the custom command connector."));
+			return fail(QCoreApplication::translate("SlopStudioAiHarness", "No command is set for the custom command connector."));
 		}
 		launchProgram = configuredProgram(words.takeFirst());
 		if (launchProgram.isEmpty()) {
-			return fail(QCoreApplication::translate("VibeStudioAiHarness", "The custom command's program was not found."));
+			return fail(QCoreApplication::translate("SlopStudioAiHarness", "The custom command's program was not found."));
 		}
 		bool promptFile = false;
 		bool systemFile = false;
@@ -557,7 +557,7 @@ bool buildAiHarnessInvocation(const AiChatRequest& request, const QString& progr
 		}
 	}
 	if (launchProgram.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioAiHarness", "%1 was not found. %2").arg(displayName(request.connectorId), aiHarnessSetupHint(request.connectorId)));
+		return fail(QCoreApplication::translate("SlopStudioAiHarness", "%1 was not found. %2").arg(displayName(request.connectorId), aiHarnessSetupHint(request.connectorId)));
 	}
 	invocation.removedEnvironment = removedEnvironment(kind);
 	invocation.setEnvironment = setEnvironment(kind);
@@ -593,7 +593,7 @@ AiChatResponse parseAiHarnessOutput(const QString& connectorId, int exitCode, co
 	case AiHarnessKind::None:
 		break;
 	}
-	return failed(connectorId, QCoreApplication::translate("VibeStudioAiHarness", "%1 is not a command-line connector.").arg(connectorId));
+	return failed(connectorId, QCoreApplication::translate("SlopStudioAiHarness", "%1 is not a command-line connector.").arg(connectorId));
 }
 
 AiHarnessLoginStatus aiHarnessLoginStatus(const QString& connectorId, const QString& program, int timeoutMsecs)
@@ -629,7 +629,7 @@ AiHarnessLoginStatus aiHarnessLoginStatus(const QString& connectorId, const QStr
 	if (!process.waitForStarted(timeoutMsecs) || !process.waitForFinished(timeoutMsecs)) {
 		tree.kill();
 		process.waitForFinished(2000);
-		status.detail = QCoreApplication::translate("VibeStudioAiHarness", "%1 did not say whether it is signed in.").arg(displayName(connectorId));
+		status.detail = QCoreApplication::translate("SlopStudioAiHarness", "%1 did not say whether it is signed in.").arg(displayName(connectorId));
 		return status;
 	}
 	const QByteArray output = process.readAllStandardOutput() + process.readAllStandardError();
@@ -655,17 +655,17 @@ AiHarnessLoginStatus aiHarnessLoginStatus(const QString& connectorId, const QStr
 QString aiHarnessLoginStatusText(const QString& connectorId, const AiHarnessLoginStatus& status)
 {
 	if (!status.known) {
-		return status.detail.isEmpty() ? QCoreApplication::translate("VibeStudioAiHarness", "%1 did not say whether it is signed in.").arg(displayName(connectorId)) : status.detail;
+		return status.detail.isEmpty() ? QCoreApplication::translate("SlopStudioAiHarness", "%1 did not say whether it is signed in.").arg(displayName(connectorId)) : status.detail;
 	}
 	if (!status.signedIn) {
-		return QCoreApplication::translate("VibeStudioAiHarness", "%1 is not signed in. %2").arg(displayName(connectorId), aiHarnessSetupHint(connectorId));
+		return QCoreApplication::translate("SlopStudioAiHarness", "%1 is not signed in. %2").arg(displayName(connectorId), aiHarnessSetupHint(connectorId));
 	}
 	if (status.method == QStringLiteral("api_key") || status.method == QStringLiteral("api_key_helper")) {
-		return QCoreApplication::translate("VibeStudioAiHarness", "%1 is signed in with an API key (%2), so requests are billed to it, not to a subscription.")
+		return QCoreApplication::translate("SlopStudioAiHarness", "%1 is signed in with an API key (%2), so requests are billed to it, not to a subscription.")
 			.arg(displayName(connectorId), status.method);
 	}
-	return status.method.isEmpty() ? QCoreApplication::translate("VibeStudioAiHarness", "%1 is signed in.").arg(displayName(connectorId))
-								   : QCoreApplication::translate("VibeStudioAiHarness", "%1 is signed in (%2).").arg(displayName(connectorId), status.method);
+	return status.method.isEmpty() ? QCoreApplication::translate("SlopStudioAiHarness", "%1 is signed in.").arg(displayName(connectorId))
+								   : QCoreApplication::translate("SlopStudioAiHarness", "%1 is signed in (%2).").arg(displayName(connectorId), status.method);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

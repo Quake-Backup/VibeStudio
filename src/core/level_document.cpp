@@ -14,7 +14,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -63,7 +63,7 @@ bool cancelled(const std::function<bool()>& check, QString* error)
 	if (!check || !check()) {
 		return false;
 	}
-	fail(error, QCoreApplication::translate("VibeStudioLevelDocument", "The operation was cancelled; the destination was left unchanged."));
+	fail(error, QCoreApplication::translate("SlopStudioLevelDocument", "The operation was cancelled; the destination was left unchanged."));
 	return true;
 }
 
@@ -100,11 +100,11 @@ bool safeDirectory(const QString& path, QString* error)
 	// The managed directory itself cannot redirect. Its parent may use a
 	// normal platform alias (for example /var on macOS) or a user-chosen link.
 	if (info.isSymLink() || info.isJunction()) {
-		return fail(error, QCoreApplication::translate("VibeStudioLevelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioLevelDocument",
 													   "A managed backup or recovery directory cannot be a symbolic link."));
 	}
 	if (!QDir().mkpath(path)) {
-		return fail(error, QCoreApplication::translate("VibeStudioLevelDocument", "Unable to create the backup or recovery directory."));
+		return fail(error, QCoreApplication::translate("SlopStudioLevelDocument", "Unable to create the backup or recovery directory."));
 	}
 	return true;
 }
@@ -113,7 +113,7 @@ bool readRecoveryMetadata(QFile* file, LevelMapRecovery* record)
 {
 	const auto bad = [&]() {
 		return fail(&record->error,
-					QCoreApplication::translate("VibeStudioLevelDocument",
+					QCoreApplication::translate("SlopStudioLevelDocument",
 												"The recovery record is invalid, incomplete, or from an unsupported version."));
 	};
 	if (!file->open(QIODevice::ReadOnly) || file->size() > kLevelMapMaxDocumentBytes + 65544) {
@@ -167,13 +167,13 @@ bool createLevelMap(const LevelMapCreateRequest& request, LevelMapDocument* docu
 	const bool doom = game == QStringLiteral("doom") || game == QStringLiteral("hexen");
 	const bool q3 = game == QStringLiteral("quake3");
 	if (!document || (!doom && !q3 && game != QStringLiteral("quake") && game != QStringLiteral("quake2"))) {
-		return fail(error, QCoreApplication::translate("VibeStudioLevelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioLevelDocument",
 													   "Choose Quake, Quake II, Quake III, Doom, or Hexen for the new map."));
 	}
 	if (request.name.trimmed().isEmpty() || request.name.size() > 128 ||
 		request.name.contains(QRegularExpression(QStringLiteral("[\\x00-\\x1f/\\\\]")))) {
 		return fail(error,
-					QCoreApplication::translate("VibeStudioLevelDocument",
+					QCoreApplication::translate("SlopStudioLevelDocument",
 												"Choose a map name of 1 to 128 characters without path separators or control characters."));
 	}
 	LevelMapDocument result;
@@ -181,13 +181,13 @@ bool createLevelMap(const LevelMapCreateRequest& request, LevelMapDocument* docu
 		for (const auto& texture : {request.wallTexture, request.floorTexture, request.ceilingTexture}) {
 			if (!texture.isEmpty() && !QRegularExpression(QStringLiteral("^[!-~]{1,8}$")).match(texture).hasMatch()) {
 				return fail(error, QCoreApplication::translate(
-									   "VibeStudioLevelDocument",
+									   "SlopStudioLevelDocument",
 									   "Doom texture names must contain one to eight printable ASCII characters without spaces."));
 			}
 		}
 		if (!QRegularExpression(QStringLiteral("^(E[0-9]+M[0-9]+|MAP[0-9]+)$")).match(request.mapName).hasMatch() ||
 			request.mapName.size() > 8) {
-			return fail(error, QCoreApplication::translate("VibeStudioLevelDocument",
+			return fail(error, QCoreApplication::translate("SlopStudioLevelDocument",
 														   "Doom map markers must use MAP01 or E1M1 form and fit eight characters."));
 		}
 		result.format = LevelMapFormat::DoomWad;
@@ -289,10 +289,10 @@ LevelMapSaveReport publishLevelMapBytes(LevelMapSaveReport report, const QByteAr
 	const QFileInfo target(report.outputPath);
 	const bool existed = target.exists();
 	if (target.isSymLink() || target.isDir()) {
-		return stop(QCoreApplication::translate("VibeStudioLevelDocument", "A map output cannot be a directory or symbolic link."));
+		return stop(QCoreApplication::translate("SlopStudioLevelDocument", "A map output cannot be a directory or symbolic link."));
 	}
 	if (samePath(report.outputPath, protectedPath)) {
-		return stop(QCoreApplication::translate("VibeStudioLevelDocument",
+		return stop(QCoreApplication::translate("SlopStudioLevelDocument",
 												"An export cannot replace the open map. Choose a different file name to export to."));
 	}
 	if (cancelled(request.isCancelled, &error)) {
@@ -306,22 +306,22 @@ LevelMapSaveReport publishLevelMapBytes(LevelMapSaveReport report, const QByteAr
 	}
 	if (replacesSource && !sourceContentHash.isEmpty() && before != sourceContentHash) {
 		return stop(QCoreApplication::translate(
-			"VibeStudioLevelDocument",
+			"SlopStudioLevelDocument",
 			"The map changed or was removed outside the editor. Save As to preserve these edits, or reload the changed file."));
 	}
 	if (existed && !request.overwrite && !request.dryRun) {
-		return stop(QCoreApplication::translate("VibeStudioLevelDocument", "The output exists. Explicit overwrite is required."));
+		return stop(QCoreApplication::translate("SlopStudioLevelDocument", "The output exists. Explicit overwrite is required."));
 	}
 	if (cancelled(request.isCancelled, &error)) {
 		return stop(error);
 	}
 	if (request.dryRun) {
-		report.warnings << (target.exists() ? QCoreApplication::translate("VibeStudioLevelDocument", "Would replace the map output.")
-											: QCoreApplication::translate("VibeStudioLevelDocument", "Would write a new map output."));
+		report.warnings << (target.exists() ? QCoreApplication::translate("SlopStudioLevelDocument", "Would replace the map output.")
+											: QCoreApplication::translate("SlopStudioLevelDocument", "Would write a new map output."));
 		return report;
 	}
 	if (!QDir().mkpath(target.absolutePath())) {
-		return stop(QCoreApplication::translate("VibeStudioLevelDocument", "Unable to create the map output directory."));
+		return stop(QCoreApplication::translate("SlopStudioLevelDocument", "Unable to create the map output directory."));
 	}
 	QSaveFile output(report.outputPath);
 	output.setDirectWriteFallback(false);
@@ -330,7 +330,7 @@ LevelMapSaveReport publishLevelMapBytes(LevelMapSaveReport report, const QByteAr
 	}
 	if (existed && request.keepBackup) {
 		const QString directory = request.backupDirectory.isEmpty()
-									  ? QDir(target.absolutePath()).filePath(QStringLiteral(".vibestudio/map-backups"))
+									  ? QDir(target.absolutePath()).filePath(QStringLiteral(".slopstudio/map-backups"))
 									  : request.backupDirectory;
 		if (!safeDirectory(directory, &error)) {
 			return stop(error);
@@ -343,7 +343,7 @@ LevelMapSaveReport publishLevelMapBytes(LevelMapSaveReport report, const QByteAr
 		QSaveFile backup(backupPath);
 		backup.setDirectWriteFallback(false);
 		if (!input.open(QIODevice::ReadOnly) || !backup.open(QIODevice::WriteOnly)) {
-			return stop(QCoreApplication::translate("VibeStudioLevelDocument", "Unable to create a backup; the map was not replaced."));
+			return stop(QCoreApplication::translate("SlopStudioLevelDocument", "Unable to create a backup; the map was not replaced."));
 		}
 		QCryptographicHash copied(QCryptographicHash::Sha256);
 		while (!input.atEnd()) {
@@ -353,12 +353,12 @@ LevelMapSaveReport publishLevelMapBytes(LevelMapSaveReport report, const QByteAr
 			const auto chunk = input.read(1024 * 1024);
 			if (input.error() != QFileDevice::NoError || backup.write(chunk) != chunk.size()) {
 				return stop(
-					QCoreApplication::translate("VibeStudioLevelDocument", "Unable to finish the backup; the map was not replaced."));
+					QCoreApplication::translate("SlopStudioLevelDocument", "Unable to finish the backup; the map was not replaced."));
 			}
 			copied.addData(chunk);
 		}
 		if (copied.result() != before || !backup.commit()) {
-			return stop(QCoreApplication::translate("VibeStudioLevelDocument",
+			return stop(QCoreApplication::translate("SlopStudioLevelDocument",
 													"The destination changed during backup, or its backup could not be committed."));
 		}
 		report.backupPath = backupPath;
@@ -368,7 +368,7 @@ LevelMapSaveReport publishLevelMapBytes(LevelMapSaveReport report, const QByteAr
 	}
 	const bool existsNow = QFileInfo::exists(report.outputPath);
 	if (existsNow != existed || (existsNow && fileHash(report.outputPath, &error) != before)) {
-		return stop(QCoreApplication::translate("VibeStudioLevelDocument", "The destination changed while saving; it was left unchanged."));
+		return stop(QCoreApplication::translate("SlopStudioLevelDocument", "The destination changed while saving; it was left unchanged."));
 	}
 	if (!output.commit()) {
 		return stop(output.errorString());
@@ -395,11 +395,11 @@ LevelMapSaveReport writeLevelDocument(const LevelMapDocument& document, const Le
 		return report;
 	};
 	if (request.path.trimmed().isEmpty()) {
-		return stop(QCoreApplication::translate("VibeStudioLevelDocument", "Choose an output file for the map."));
+		return stop(QCoreApplication::translate("SlopStudioLevelDocument", "Choose an output file for the map."));
 	}
 	const QFileInfo target(report.outputPath);
 	if (target.isSymLink() || target.isDir()) {
-		return stop(QCoreApplication::translate("VibeStudioLevelDocument", "A map output cannot be a directory or symbolic link."));
+		return stop(QCoreApplication::translate("SlopStudioLevelDocument", "A map output cannot be a directory or symbolic link."));
 	}
 	if (cancelled(request.isCancelled, &error)) {
 		return stop(error);
@@ -423,11 +423,11 @@ LevelMapSaveReport writeLevelMapBytes(const QByteArray& bytes, const LevelDocume
 	report.outputPath = QFileInfo(request.path).absoluteFilePath();
 	report.dryRun = request.dryRun;
 	if (request.path.trimmed().isEmpty()) {
-		report.errors << QCoreApplication::translate("VibeStudioLevelDocument", "Choose an output file for the map.");
+		report.errors << QCoreApplication::translate("SlopStudioLevelDocument", "Choose an output file for the map.");
 		return report;
 	}
 	if (bytes.isEmpty() || bytes.size() > kLevelMapMaxDocumentBytes) {
-		report.errors << QCoreApplication::translate("VibeStudioLevelDocument", "The map to write is empty or larger than 512 MiB.");
+		report.errors << QCoreApplication::translate("SlopStudioLevelDocument", "The map to write is empty or larger than 512 MiB.");
 		return report;
 	}
 	return publishLevelMapBytes(std::move(report), bytes, request, QString(), QByteArray(), protectedPath);
@@ -455,12 +455,12 @@ QString writeLevelMapRecovery(const LevelMapDocument& document, const QString& d
 		error->clear();
 	}
 	if (directory.trimmed().isEmpty() || !recoveryIdValid(id)) {
-		fail(error, QCoreApplication::translate("VibeStudioLevelDocument", "A recovery directory and document UUID are required."));
+		fail(error, QCoreApplication::translate("SlopStudioLevelDocument", "A recovery directory and document UUID are required."));
 		return {};
 	}
 	if (!document.sourcePath.isEmpty() && document.sourceContentHash.size() != 32) {
 		fail(error,
-			 QCoreApplication::translate("VibeStudioLevelDocument",
+			 QCoreApplication::translate("SlopStudioLevelDocument",
 										 "Recovery requires the loaded source fingerprint. Save this document to a new file first."));
 		return {};
 	}
@@ -487,7 +487,7 @@ QString writeLevelMapRecovery(const LevelMapDocument& document, const QString& d
 	}
 	const QString path = recoveryPath(directory, id);
 	if (QFileInfo(path).isSymLink()) {
-		fail(error, QCoreApplication::translate("VibeStudioLevelDocument", "A recovery record cannot be a symbolic link."));
+		fail(error, QCoreApplication::translate("SlopStudioLevelDocument", "A recovery record cannot be a symbolic link."));
 		return {};
 	}
 	QByteArray header("VSR1\0\0\0\0", 8);
@@ -531,7 +531,7 @@ bool restoreLevelMapRecovery(const QString& path, LevelMapDocument* document, QS
 		error->clear();
 	}
 	if (!document) {
-		return fail(error, QCoreApplication::translate("VibeStudioLevelDocument", "No recovery document output was provided."));
+		return fail(error, QCoreApplication::translate("SlopStudioLevelDocument", "No recovery document output was provided."));
 	}
 	LevelMapRecovery record;
 	record.path = path;
@@ -541,7 +541,7 @@ bool restoreLevelMapRecovery(const QString& path, LevelMapDocument* document, QS
 	}
 	const auto bytes = file.read(kLevelMapMaxDocumentBytes + 1);
 	if (bytes.size() != record.payloadBytes || QCryptographicHash::hash(bytes, QCryptographicHash::Sha256) != record.contentHash) {
-		return fail(error, QCoreApplication::translate("VibeStudioLevelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioLevelDocument",
 													   "Recovery content failed its integrity check. The current map was not changed."));
 	}
 	const bool wad = record.format == QStringLiteral("doom-wad");
@@ -552,7 +552,7 @@ bool restoreLevelMapRecovery(const QString& path, LevelMapDocument* document, QS
 	}
 	if (levelMapFormatId(restored.format) != record.format) {
 		return fail(error,
-					QCoreApplication::translate("VibeStudioLevelDocument", "Recovery metadata does not match the stored map format."));
+					QCoreApplication::translate("SlopStudioLevelDocument", "Recovery metadata does not match the stored map format."));
 	}
 	restored.sourcePath = record.sourcePath;
 	restored.sourceContentHash = record.sourceContentHash;
@@ -572,16 +572,16 @@ bool removeLevelMapRecovery(const QString& directory, const QString& id, QString
 		error->clear();
 	}
 	if (directory.trimmed().isEmpty() || !recoveryIdValid(id)) {
-		return fail(error, QCoreApplication::translate("VibeStudioLevelDocument", "Invalid recovery directory or document UUID."));
+		return fail(error, QCoreApplication::translate("SlopStudioLevelDocument", "Invalid recovery directory or document UUID."));
 	}
 	const QString path = recoveryPath(directory, id);
 	if (!QFileInfo::exists(path)) {
 		return true;
 	}
 	if (QFileInfo(path).isSymLink() || !QFile::remove(path)) {
-		return fail(error, QCoreApplication::translate("VibeStudioLevelDocument", "Unable to remove the recovery record."));
+		return fail(error, QCoreApplication::translate("SlopStudioLevelDocument", "Unable to remove the recovery record."));
 	}
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

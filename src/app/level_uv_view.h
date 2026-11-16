@@ -12,7 +12,7 @@
 
 class QMenu;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The UV Editor's texture-space view: one brush face's winding or one
 // patch's control grid drawn over its material image, tiled as the map
@@ -204,4 +204,4 @@ class LevelUvView final : public QWidget {
 	quint64 m_sourceSerial = 0;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

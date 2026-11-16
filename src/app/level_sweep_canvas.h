@@ -4,7 +4,7 @@
 #include <QPointer>
 #include <QWidget>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Owned transparent child overlay and local input routing. The map itself is
 // never replaced by a preview. Camera navigation continues through the parent.
@@ -43,4 +43,4 @@ class LevelSweepCanvas final : public QWidget
 	QString m_originalDescription, m_lastDescription;
 	QMap<Command, QList<QKeySequence>> m_keys;
 };
-} // namespace vibestudio
+} // namespace slopstudio

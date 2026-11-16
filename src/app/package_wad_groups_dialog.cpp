@@ -15,7 +15,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 PackageWadGroupsDialog::PackageWadGroupsDialog(PackageStagingModel model, QWidget* parent)
 	: QDialog(parent), m_original(std::move(model)), m_cancelled(std::make_shared<std::atomic_bool>(false))
 {
@@ -157,4 +157,4 @@ void PackageWadGroupsDialog::showPage()
 	}
 	if (count) { m_changes->setCurrentCell(0, 0); m_changes->scrollToTop(); }
 }
-} // namespace vibestudio
+} // namespace slopstudio

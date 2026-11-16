@@ -5,7 +5,7 @@
 #include <QKeyEvent>
 #include <QTabWidget>
 
-namespace vibestudio {
+namespace slopstudio {
 
 StudioEditorPage::StudioEditorPage(QDialog* editor, QTabWidget* tabs)
 	: QScrollArea(tabs), m_editor(editor), m_tabs(tabs)
@@ -80,4 +80,4 @@ bool StudioEditorPage::eventFilter(QObject* watched, QEvent* event)
 	return QScrollArea::eventFilter(watched, event);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

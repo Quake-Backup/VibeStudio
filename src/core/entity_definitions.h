@@ -27,7 +27,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class EntityDefinitionFormat {
 	Unknown,
@@ -185,4 +185,4 @@ QString entityValidationText(const EntityValidationReport& report);
 QJsonObject entityDefinitionCatalogueJson(const EntityDefinitionCatalogue& catalogue);
 QJsonObject entityValidationReportJson(const EntityValidationReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

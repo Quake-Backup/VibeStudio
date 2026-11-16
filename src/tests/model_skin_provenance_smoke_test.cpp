@@ -28,8 +28,8 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 
 namespace
 {
@@ -1133,7 +1133,7 @@ void checkScale()
 	ModelEdit remove;
 	remove.kind = ModelEditKind::DeleteFaces;
 	remove.selection = {0, {}, {0, 1}};
-	const int budget = qEnvironmentVariableIntValue("VIBESTUDIO_MODELLER_MAX_SKIN_RECONCILE_MS");
+	const int budget = qEnvironmentVariableIntValue("SLOPSTUDIO_MODELLER_MAX_SKIN_RECONCILE_MS");
 	for (const auto &[name, edit] : {qMakePair("transform", move), qMakePair("delete faces", remove)})
 	{
 		auto edited = mesh;
@@ -1164,7 +1164,7 @@ QJsonObject runCli(const QString &program, const QStringList &arguments, int *ex
 
 void checkCli(const QString &program)
 {
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	QTemporaryDir temporary(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("skin-provenance-XXXXXX"));
 	if (!expect(temporary.isValid(), "temporary directory"))
 		return;

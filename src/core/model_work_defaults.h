@@ -11,9 +11,9 @@
 
 #include "core/model_work.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // Set once, before the work starts; not synchronised with running work.
 void setModelWorkDefaults(ModelWorkControl control);
 [[nodiscard]] const ModelWorkControl &modelWorkDefaults();
-} // namespace vibestudio
+} // namespace slopstudio

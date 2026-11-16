@@ -1,7 +1,7 @@
 #pragma once
 #include <QJsonObject>
 #include <QStringList>
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct ModelImportRepairCliResult
 {
@@ -11,4 +11,4 @@ struct ModelImportRepairCliResult
 	QStringList lines;
 };
 ModelImportRepairCliResult runModelImportRepair(const QStringList &arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

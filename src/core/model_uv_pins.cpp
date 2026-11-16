@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cstring>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -199,4 +199,4 @@ bool parseModelUvPins(const QJsonValue &value, int vertexCount, QSet<int> *pins)
 		*pins = std::move(result);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

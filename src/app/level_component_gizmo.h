@@ -9,7 +9,7 @@
 #include <functional>
 
 class QPainter;
-namespace vibestudio {
+namespace slopstudio {
 // The Levels manipulator's tools. Move, Rotate, Scale, Shear and Pivot act on
 // picked components. Translate is NetRadiant Custom's object Translate tool
 // (core/level_object_manipulator.h): X, Y and Z arrows (handles 0 to 2), a
@@ -129,7 +129,7 @@ Q_SIGNALS:
 	void activeChanged(bool active);
 	void previewRequested(quint64 serial);
 	void commitRequested(quint64 serial);
-	void pivotChanged(const vibestudio::LevelMapVec3& pivot);
+	void pivotChanged(const slopstudio::LevelMapVec3& pivot);
 	// A click on Translate's pivot point that did not drag: NetRadiant
 	// Custom switches between the placed pivot and the automatic one.
 	void pivotToggleRequested();
@@ -183,4 +183,4 @@ private:
 	QString m_error;
 	QVector<QPair<LevelMapVec3,LevelMapVec3>> m_edges;
 };
-} // namespace vibestudio
+} // namespace slopstudio

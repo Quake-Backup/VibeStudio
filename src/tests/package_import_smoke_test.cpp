@@ -19,7 +19,7 @@
 #include <filesystem>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label, const QString& error = {})
 {
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
 			"manifest explains retained import storage");
 		ok &= expect(PackageStagingArchive(plan).protectsInputPath(source) && PackageStagingArchive(plan).protectsInputPath(retainedPath), "both original and backing paths remain protected from output");
 		auto reader = std::make_unique<PackageStagingArchive>(plan);
-		const QString draft = root.filePath(QStringLiteral("retained.vibepackage"));
+		const QString draft = root.filePath(QStringLiteral("retained.sloppackage"));
 		ok &= expect(PackageDraft::save(draft, &plan, false, &error) && !plan.operations().first().sourceIdentity->storage
 			&& QFileInfo::exists(retainedPath), "draft adoption replaces its temporary backing without invalidating an older reader", error);
 		plan.clear(); QByteArray bytes;
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
 			ok &= expect(!retainPackageFileContent(originalIdentity, &error, {}, alias), "explicit linked snapshot directory remains refused");
 			for (const char* name : {"TEMP", "TMP", "TMPDIR"}) { qputenv(name, alias.toLocal8Bit()); }
 			auto identity = retainPackageFileContent(originalIdentity, &error);
-			ok &= expect(identity && identity->path.startsWith(QFileInfo(importDirectory).canonicalFilePath() + QStringLiteral("/vibestudio-package-imports/"))
+			ok &= expect(identity && identity->path.startsWith(QFileInfo(importDirectory).canonicalFilePath() + QStringLiteral("/slopstudio-package-imports/"))
 				&& verifyPackageFileIdentity(identity, &error), "default temporary alias resolves to independent canonical storage", error);
 			const QString path = identity ? identity->path : QString(); identity.reset();
 			ok &= expect(!path.isEmpty() && removed(path), "resolved default temporary storage releases normally");
@@ -207,7 +207,7 @@ int main(int argc, char** argv)
 		const auto saved = recovery->checkpoint(plan, QStringLiteral("Retained"));
 		ok &= expect(saved.succeeded(), "recovery can checkpoint an import after original deletion", saved.error);
 		plan.clear();
-		ok &= expect(restorePackageRecovery(store, id, saved.manifestSha256, root.filePath(QStringLiteral("recovered.vibepackage")), &plan, &error)
+		ok &= expect(restorePackageRecovery(store, id, saved.manifestSha256, root.filePath(QStringLiteral("recovered.sloppackage")), &plan, &error)
 			&& payload(plan, QStringLiteral("entry.txt")) == "replacement", "recovery remains independent of temporary snapshot lifetime", error);
 		ok &= recovery->retire(&error);
 	}

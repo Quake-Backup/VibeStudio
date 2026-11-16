@@ -18,7 +18,7 @@
 class QApplication;
 class QWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct StudioThemeColors {
 	QColor appBackground;   // Frame chrome: mode rail, toolbars, status bar.
@@ -138,4 +138,4 @@ void applyStudioTheme(QApplication& app, const StudioThemeTokens& tokens);
 // secondary look.
 void setButtonVariant(QWidget* button, const QString& variant);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -13,7 +13,7 @@ class QTableView;
 class QTableWidget;
 class QLineEdit;
 class QDialogButtonBox;
-namespace vibestudio
+namespace slopstudio
 {
 class ModelUvView;
 class ModelUvDensityTable;
@@ -66,4 +66,4 @@ class ModelUvDensityDialog final : public QDialog
 	void showPreview();
 	void status(const QString &text);
 };
-} // namespace vibestudio
+} // namespace slopstudio

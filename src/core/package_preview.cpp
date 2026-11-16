@@ -9,7 +9,7 @@
 #include <limits>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -31,7 +31,7 @@ QString hexDump(const QByteArray& bytes)
 			.arg(ascii);
 	}
 	if (bytes.size() > maxBytes) {
-		lines << QCoreApplication::translate("VibeStudioPackagePreview", "... truncated after %1 bytes").arg(maxBytes);
+		lines << QCoreApplication::translate("SlopStudioPackagePreview", "... truncated after %1 bytes").arg(maxBytes);
 	}
 	return lines.join('\n');
 }
@@ -39,15 +39,15 @@ QString hexDump(const QByteArray& bytes)
 QString sizeText(quint64 bytes)
 {
 	if (bytes > (quint64(1) << 53)) {
-		return QCoreApplication::translate("VibeStudioPackagePreview", "%1 B").arg(bytes);
+		return QCoreApplication::translate("SlopStudioPackagePreview", "%1 B").arg(bytes);
 	}
 	if (bytes >= 1024ll * 1024ll) {
-		return QCoreApplication::translate("VibeStudioPackagePreview", "%1 MiB").arg(static_cast<double>(bytes) / (1024.0 * 1024.0), 0, 'f', 2);
+		return QCoreApplication::translate("SlopStudioPackagePreview", "%1 MiB").arg(static_cast<double>(bytes) / (1024.0 * 1024.0), 0, 'f', 2);
 	}
 	if (bytes >= 1024ll) {
-		return QCoreApplication::translate("VibeStudioPackagePreview", "%1 KiB").arg(static_cast<double>(bytes) / 1024.0, 0, 'f', 2);
+		return QCoreApplication::translate("SlopStudioPackagePreview", "%1 KiB").arg(static_cast<double>(bytes) / 1024.0, 0, 'f', 2);
 	}
-	return QCoreApplication::translate("VibeStudioPackagePreview", "%1 B").arg(bytes);
+	return QCoreApplication::translate("SlopStudioPackagePreview", "%1 B").arg(bytes);
 }
 
 PackagePreview unavailablePreview(const QString& virtualPath, const QString& error, std::optional<quint64> totalBytes = std::nullopt)
@@ -55,14 +55,14 @@ PackagePreview unavailablePreview(const QString& virtualPath, const QString& err
 	PackagePreview preview;
 	preview.virtualPath = virtualPath;
 	preview.kind = PackagePreviewKind::Unavailable;
-	preview.title = QCoreApplication::translate("VibeStudioPackagePreview", "Preview unavailable");
+	preview.title = QCoreApplication::translate("SlopStudioPackagePreview", "Preview unavailable");
 	preview.summary = error;
 	preview.error = error;
 	preview.totalBytesKnown = totalBytes.has_value();
 	preview.totalBytes = totalBytes.value_or(0);
-	preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Preview state: unavailable");
-	preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Reason: %1").arg(error);
-	if (totalBytes) { preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Total size: %1").arg(sizeText(*totalBytes)); }
+	preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Preview state: unavailable");
+	preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Reason: %1").arg(error);
+	if (totalBytes) { preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Total size: %1").arg(sizeText(*totalBytes)); }
 	preview.rawLines = preview.detailLines;
 	return preview;
 }
@@ -146,7 +146,7 @@ void applyAssetAnalysis(PackagePreview* preview, const AssetAnalysis& analysis)
 
 PackagePreview cancelledPreview(const QString& path, std::optional<quint64> totalBytes = std::nullopt)
 {
-	auto preview = unavailablePreview(path, QCoreApplication::translate("VibeStudioPackagePreview", "Preview cancelled."), totalBytes);
+	auto preview = unavailablePreview(path, QCoreApplication::translate("SlopStudioPackagePreview", "Preview cancelled."), totalBytes);
 	preview.cancelled = true;
 	return preview;
 }
@@ -159,7 +159,7 @@ bool readPreviewSample(const PackageArchiveReader& archive, qsizetype index, con
 	const auto expected = entry.sizeBytes;
 	const quint64 wanted = limit < 0 ? expected : std::min(expected, static_cast<quint64>(limit));
 	if (wanted > static_cast<quint64>(std::numeric_limits<qsizetype>::max())) {
-		*error = QCoreApplication::translate("VibeStudioPackagePreview", "The preview sample is too large."); return false;
+		*error = QCoreApplication::translate("SlopStudioPackagePreview", "The preview sample is too large."); return false;
 	}
 	quint64 received = 0;
 	bool prefixComplete = false, invalidSize = false;
@@ -178,7 +178,7 @@ bool readPreviewSample(const PackageArchiveReader& archive, qsizetype index, con
 	}, error, cancelled);
 	if (cancelled()) { bytes->clear(); return false; }
 	if (invalidSize || static_cast<quint64>(bytes->size()) != wanted || (streamed && !prefixComplete && received != expected)) {
-		*error = QCoreApplication::translate("VibeStudioPackagePreview", "The preview bytes do not match the declared entry size.");
+		*error = QCoreApplication::translate("SlopStudioPackagePreview", "The preview bytes do not match the declared entry size.");
 		bytes->clear(); return false;
 	}
 	if (!streamed && !prefixComplete) { bytes->clear(); return false; }
@@ -215,21 +215,21 @@ QString packagePreviewKindDisplayName(PackagePreviewKind kind)
 {
 	switch (kind) {
 	case PackagePreviewKind::Unavailable:
-		return QCoreApplication::translate("VibeStudioPackagePreview", "Unavailable");
+		return QCoreApplication::translate("SlopStudioPackagePreview", "Unavailable");
 	case PackagePreviewKind::Directory:
-		return QCoreApplication::translate("VibeStudioPackagePreview", "Directory");
+		return QCoreApplication::translate("SlopStudioPackagePreview", "Directory");
 	case PackagePreviewKind::Text:
-		return QCoreApplication::translate("VibeStudioPackagePreview", "Text");
+		return QCoreApplication::translate("SlopStudioPackagePreview", "Text");
 	case PackagePreviewKind::Image:
-		return QCoreApplication::translate("VibeStudioPackagePreview", "Image");
+		return QCoreApplication::translate("SlopStudioPackagePreview", "Image");
 	case PackagePreviewKind::Model:
-		return QCoreApplication::translate("VibeStudioPackagePreview", "Model");
+		return QCoreApplication::translate("SlopStudioPackagePreview", "Model");
 	case PackagePreviewKind::Audio:
-		return QCoreApplication::translate("VibeStudioPackagePreview", "Audio");
+		return QCoreApplication::translate("SlopStudioPackagePreview", "Audio");
 	case PackagePreviewKind::Binary:
-		return QCoreApplication::translate("VibeStudioPackagePreview", "Binary");
+		return QCoreApplication::translate("SlopStudioPackagePreview", "Binary");
 	}
-	return QCoreApplication::translate("VibeStudioPackagePreview", "Unavailable");
+	return QCoreApplication::translate("SlopStudioPackagePreview", "Unavailable");
 }
 
 PackagePreview buildPackageEntryPreview(const PackageArchiveReader& archive, const QString& virtualPath, qint64 byteLimit, qint64 imageByteLimit, const PackageReadControl& control)
@@ -242,12 +242,12 @@ PackagePreview buildPackageEntryPreview(const PackageArchiveReader& archive, con
 		if (control.isCancelled && control.isCancelled()) { return cancelledPreview(virtualPath); }
 		if (entries.at(index).virtualPath.compare(normalized.normalizedPath, Qt::CaseInsensitive) != 0) { continue; }
 		if (match >= 0) {
-			return unavailablePreview(virtualPath, QCoreApplication::translate("VibeStudioPackagePreview", "This path occurs more than once. Select a specific entry row to preview it."));
+			return unavailablePreview(virtualPath, QCoreApplication::translate("SlopStudioPackagePreview", "This path occurs more than once. Select a specific entry row to preview it."));
 		}
 		match = index;
 	}
 	if (match < 0) {
-		return unavailablePreview(virtualPath, QCoreApplication::translate("VibeStudioPackagePreview", "Entry not found."));
+		return unavailablePreview(virtualPath, QCoreApplication::translate("SlopStudioPackagePreview", "Entry not found."));
 	}
 	return buildPackageEntryPreviewAt(archive, match, byteLimit, imageByteLimit, control);
 }
@@ -258,7 +258,7 @@ PackagePreview buildPackageEntryPreviewAt(const PackageArchiveReader& archive, q
 	if (cancelled()) { return cancelledPreview({}); }
 	const auto entries = archive.entries();
 	if (!archive.isOpen() || entryIndex < 0 || entryIndex >= entries.size()) {
-		return unavailablePreview({}, QCoreApplication::translate("VibeStudioPackagePreview", "Entry not found."));
+		return unavailablePreview({}, QCoreApplication::translate("SlopStudioPackagePreview", "Entry not found."));
 	}
 	const PackageEntry& entry = entries.at(entryIndex);
 
@@ -282,16 +282,16 @@ PackagePreview buildPackageEntryPreviewAt(const PackageArchiveReader& archive, q
 
 	if (entry.kind == PackageEntryKind::Directory) {
 		preview.kind = PackagePreviewKind::Directory;
-		preview.title = QCoreApplication::translate("VibeStudioPackagePreview", "Directory");
-		preview.summary = QCoreApplication::translate("VibeStudioPackagePreview", "Directory placeholder generated from package entry paths.");
-		preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Path: %1").arg(entry.virtualPath);
-		preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Kind: directory");
+		preview.title = QCoreApplication::translate("SlopStudioPackagePreview", "Directory");
+		preview.summary = QCoreApplication::translate("SlopStudioPackagePreview", "Directory placeholder generated from package entry paths.");
+		preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Path: %1").arg(entry.virtualPath);
+		preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Kind: directory");
 		preview.rawLines = preview.detailLines;
 		return preview;
 	}
 
 	if (!entry.readable) {
-		return unavailablePreview(entry.virtualPath, entry.note.isEmpty() ? QCoreApplication::translate("VibeStudioPackagePreview", "Entry bytes are not readable by the current package reader.") : entry.note, entry.sizeBytes);
+		return unavailablePreview(entry.virtualPath, entry.note.isEmpty() ? QCoreApplication::translate("SlopStudioPackagePreview", "Entry bytes are not readable by the current package reader.") : entry.note, entry.sizeBytes);
 	}
 
 	QByteArray bytes;
@@ -299,16 +299,16 @@ PackagePreview buildPackageEntryPreviewAt(const PackageArchiveReader& archive, q
 	const qint64 readLimit = effectiveLimit < 0 ? -1 : std::max<qint64>(1, effectiveLimit);
 	if (!readPreviewSample(archive, entryIndex, entry, readLimit, &bytes, &error, control)) {
 		if (cancelled()) { return cancelledPreview(entry.virtualPath, entry.sizeBytes); }
-		return unavailablePreview(entry.virtualPath, error.isEmpty() ? QCoreApplication::translate("VibeStudioPackagePreview", "Unable to read entry bytes.") : error, entry.sizeBytes);
+		return unavailablePreview(entry.virtualPath, error.isEmpty() ? QCoreApplication::translate("SlopStudioPackagePreview", "Unable to read entry bytes.") : error, entry.sizeBytes);
 	}
 
 	preview.bytesRead = bytes.size();
-	preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Path: %1").arg(entry.virtualPath);
-	preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Type hint: %1").arg(entry.typeHint);
-	preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Storage: %1").arg(entry.storageMethod.isEmpty() ? QCoreApplication::translate("VibeStudioPackagePreview", "unknown") : entry.storageMethod);
-	preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Bytes read: %1").arg(sizeText(preview.bytesRead));
-	preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Total size: %1").arg(sizeText(preview.totalBytes));
-	preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Truncated: %1").arg(preview.truncated ? QCoreApplication::translate("VibeStudioPackagePreview", "yes") : QCoreApplication::translate("VibeStudioPackagePreview", "no"));
+	preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Path: %1").arg(entry.virtualPath);
+	preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Type hint: %1").arg(entry.typeHint);
+	preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Storage: %1").arg(entry.storageMethod.isEmpty() ? QCoreApplication::translate("SlopStudioPackagePreview", "unknown") : entry.storageMethod);
+	preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Bytes read: %1").arg(sizeText(preview.bytesRead));
+	preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Total size: %1").arg(sizeText(preview.totalBytes));
+	preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Truncated: %1").arg(preview.truncated ? QCoreApplication::translate("SlopStudioPackagePreview", "yes") : QCoreApplication::translate("SlopStudioPackagePreview", "no"));
 
 	// Resolve a real game palette out of the package before decoding, so a
 	// paletted entry previews with the colours the project actually ships.
@@ -322,10 +322,10 @@ PackagePreview buildPackageEntryPreviewAt(const PackageArchiveReader& archive, q
 		preview.imagePaletteGenerated = paletteResolution->palette.generated || !paletteResolution->fromPackage;
 		preview.imagePaletteSourceVirtualPath = paletteResolution->sourceVirtualPath;
 		preview.imagePaletteResolutionLines = idTechPaletteSummaryLines(*paletteResolution);
-		preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Palette: %1").arg(preview.imagePaletteId.isEmpty() ? QCoreApplication::translate("VibeStudioPackagePreview", "unknown") : preview.imagePaletteId);
+		preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Palette: %1").arg(preview.imagePaletteId.isEmpty() ? QCoreApplication::translate("SlopStudioPackagePreview", "unknown") : preview.imagePaletteId);
 		preview.detailLines << (preview.imagePaletteFromPackage
-			? QCoreApplication::translate("VibeStudioPackagePreview", "Palette source: package entry %1").arg(paletteResolution->sourceVirtualPath.isEmpty() ? QCoreApplication::translate("VibeStudioPackagePreview", "(unnamed)") : paletteResolution->sourceVirtualPath)
-			: QCoreApplication::translate("VibeStudioPackagePreview", "Palette source: generated fallback; this package has no matching game palette."));
+			? QCoreApplication::translate("SlopStudioPackagePreview", "Palette source: package entry %1").arg(paletteResolution->sourceVirtualPath.isEmpty() ? QCoreApplication::translate("SlopStudioPackagePreview", "(unnamed)") : paletteResolution->sourceVirtualPath)
+			: QCoreApplication::translate("SlopStudioPackagePreview", "Palette source: generated fallback; this package has no matching game palette."));
 	}
 
 	if (cancelled()) { return cancelledPreview(entry.virtualPath, entry.sizeBytes); }
@@ -338,12 +338,12 @@ PackagePreview buildPackageEntryPreviewAt(const PackageArchiveReader& archive, q
 	}
 
 	preview.kind = PackagePreviewKind::Binary;
-	preview.title = QCoreApplication::translate("VibeStudioPackagePreview", "Binary metadata");
-	preview.summary = QCoreApplication::translate("VibeStudioPackagePreview", "Binary entry, %1 sampled.").arg(sizeText(preview.bytesRead));
+	preview.title = QCoreApplication::translate("SlopStudioPackagePreview", "Binary metadata");
+	preview.summary = QCoreApplication::translate("SlopStudioPackagePreview", "Binary entry, %1 sampled.").arg(sizeText(preview.bytesRead));
 	preview.body = hexDump(bytes);
-	preview.detailLines << QCoreApplication::translate("VibeStudioPackagePreview", "Binary sample bytes: %1").arg(sizeText(preview.bytesRead));
+	preview.detailLines << QCoreApplication::translate("SlopStudioPackagePreview", "Binary sample bytes: %1").arg(sizeText(preview.bytesRead));
 	preview.rawLines = preview.detailLines;
-	preview.rawLines << QCoreApplication::translate("VibeStudioPackagePreview", "Hex sample:");
+	preview.rawLines << QCoreApplication::translate("SlopStudioPackagePreview", "Hex sample:");
 	preview.rawLines << preview.body;
 	if (analysis.kind == AssetPreviewKind::Binary) {
 		preview.assetKindId = analysis.kindId;
@@ -353,4 +353,4 @@ PackagePreview buildPackageEntryPreviewAt(const PackageArchiveReader& archive, q
 	return preview;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

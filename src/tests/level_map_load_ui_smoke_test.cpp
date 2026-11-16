@@ -24,7 +24,7 @@
 #include <atomic>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message, const QString& error = {})
 {
@@ -45,7 +45,7 @@ class ExpandedLabels final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		if (QByteArray(context) != "vibestudio::LevelMapLoadDialog") { return {}; }
+		if (QByteArray(context) != "slopstudio::LevelMapLoadDialog") { return {}; }
 		const auto value = QString::fromUtf8(source);
 		return QStringLiteral("[%1 %2]").arg(value, QString(value.size() / 2, QLatin1Char('~')));
 	}

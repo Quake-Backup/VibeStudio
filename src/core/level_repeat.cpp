@@ -14,7 +14,7 @@
 
 // Independent implementation of the RepeatStack/Map repeat workflow reviewed
 // against TrenchBroom v2026.2, GPL-3.0-or-later. See docs/CREDITS.md.
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -633,4 +633,4 @@ bool levelRepeatTransformsComponentRequest(const LevelRepeatTransforms& transfor
 	request->delta = {transforms.translation[0], transforms.translation[1], transforms.translation[2], true};
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

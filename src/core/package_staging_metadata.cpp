@@ -3,7 +3,7 @@
 #include <QCoreApplication>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 void textCost(PackageStagingMetadataUsage* usage, const QString& value)
 {
@@ -45,11 +45,11 @@ PackageStagingMetadataUsage PackageStagingModel::historyMetadata(const QString& 
 bool PackageStagingModel::metadataFits(const PackageStagingMetadataUsage& usage, const PackageStagingMetadataUsage& addition, QString* error) const
 {
 	if (addition.records < 0 || usage.records < 0 || addition.records > m_metadataLimits.maximumRecords - usage.records) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Retained package metadata exceeds the %1-record document limit. Save a smaller package and reopen it to release edit history.").arg(m_metadataLimits.maximumRecords); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Retained package metadata exceeds the %1-record document limit. Save a smaller package and reopen it to release edit history.").arg(m_metadataLimits.maximumRecords); }
 		return false;
 	}
 	if (addition.metadataBytes < 0 || usage.metadataBytes < 0 || addition.metadataBytes > m_metadataLimits.maximumMetadataBytes - usage.metadataBytes) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Retained package metadata exceeds the %1-byte document limit. Use shorter paths or save a smaller package and reopen it.").arg(m_metadataLimits.maximumMetadataBytes); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Retained package metadata exceeds the %1-byte document limit. Use shorter paths or save a smaller package and reopen it.").arg(m_metadataLimits.maximumMetadataBytes); }
 		return false;
 	}
 	return true;
@@ -61,12 +61,12 @@ bool PackageStagingModel::metadataUsage(PackageStagingMetadataUsage* output, QSt
 	if (error) { error->clear(); }
 	if (m_metadataLimits.maximumRecords < 0 || m_metadataLimits.maximumRecords > PackageStagingMetadataLimits::recordCeiling
 		|| m_metadataLimits.maximumMetadataBytes < 0 || m_metadataLimits.maximumMetadataBytes > PackageStagingMetadataLimits::metadataCeiling) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Package metadata limits are outside their supported range."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Package metadata limits are outside their supported range."); }
 		return false;
 	}
 	const auto stopped = [&] {
 		if (!control.isCancelled || !control.isCancelled()) { return false; }
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Package metadata admission cancelled."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Package metadata admission cancelled."); }
 		return true;
 	};
 	if (stopped()) { return false; }
@@ -121,4 +121,4 @@ bool PackageStagingModel::metadataUsage(PackageStagingMetadataUsage* output, QSt
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -6,7 +6,7 @@
 
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr int modelQ3AnimationCount = 31;
 inline constexpr int modelQ3AnimationMaxBytes = 19998;
@@ -43,4 +43,4 @@ QJsonObject modelQ3AnimationJson(const ModelQ3AnimationConfig &config);
 // Steady clip phase measured from its first pose. Includes reversed ranges, a
 // once-only introduction and a loop tail; excludes game-state transition blends.
 bool sampleModelQ3Animation(const ModelQ3AnimationConfig &config, int slot, double seconds, bool interpolate, ModelAnimationSample *sample);
-} // namespace vibestudio
+} // namespace slopstudio

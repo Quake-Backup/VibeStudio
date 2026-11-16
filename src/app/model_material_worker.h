@@ -9,7 +9,7 @@
 class QThread;
 class QTimer;
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelMaterialSource
 {
@@ -59,4 +59,4 @@ class ModelMaterialWorker final : public QObject
 	void stop(bool forgetKey);
 	void startNext();
 };
-} // namespace vibestudio
+} // namespace slopstudio

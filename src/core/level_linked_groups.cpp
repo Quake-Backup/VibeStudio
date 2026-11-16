@@ -24,10 +24,10 @@
 // 4c756be1 for Map_Groups.cpp, LinkedGroupUtils.cpp and
 // UpdateLinkedGroupsHelper.cpp): groups that take on each other's edits while
 // keeping their own places and frames, nested sets updated in order, and two
-// changed members of one set refused. The design here is VibeStudio's own, on
+// changed members of one set refused. The design here is SlopStudio's own, on
 // its scene layers and groups; no TrenchBroom code or file format is used.
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -1936,4 +1936,4 @@ detail::LevelLinkedUpdateScope::LevelLinkedUpdateScope() { ++quietDepth; }
 detail::LevelLinkedUpdateScope::~LevelLinkedUpdateScope() { --quietDepth; }
 bool detail::levelLinkedUpdatesDeferred() { return quietDepth > 0; }
 
-} // namespace vibestudio
+} // namespace slopstudio

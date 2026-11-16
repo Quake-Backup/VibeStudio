@@ -13,7 +13,7 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool passed, const char *message)
@@ -362,7 +362,7 @@ bool native(const QString &directory)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir directory(QDir(root).filePath("range-core-XXXXXX"));

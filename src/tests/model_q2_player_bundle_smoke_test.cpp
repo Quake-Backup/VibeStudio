@@ -15,7 +15,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -131,7 +131,7 @@ const ModelPlayerBundleFile *fileAt(const ModelQ2PlayerBundle &bundle, const QSt
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("q2-player-XXXXXX"));
@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 	const QString folder = QStringLiteral("players/vamp/");
 	for (const auto *name : {"tris.md2", "weapon.md2", "w_shotgun.md2", "red.pcx", "red_i.pcx", "blue.pcx", "blue_i.pcx", "death1.wav"})
 		ok &= expect(fileAt(bundle, folder + QString::fromLatin1(name)), "every player file is at the client's path", QString::fromLatin1(name));
-	ok &= expect(fileAt(bundle, "vibestudio/q2-player-vamp.json") && bundle.package.files.size() == 9, "the receipt completes the package");
+	ok &= expect(fileAt(bundle, "slopstudio/q2-player-vamp.json") && bundle.package.files.size() == 9, "the receipt completes the package");
 	bool same = bundle.package.files.size() == again.package.files.size();
 	for (int i = 0; same && i < bundle.package.files.size(); ++i)
 		same = bundle.package.files[i].sha256 == again.package.files[i].sha256;

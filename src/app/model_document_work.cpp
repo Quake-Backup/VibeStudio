@@ -18,7 +18,7 @@
 #include <atomic>
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -35,17 +35,17 @@ QString phaseText(ModelWorkPhase phase)
 	switch (phase)
 	{
 	case ModelWorkPhase::Reading:
-		return QCoreApplication::translate("VibeStudioModelEditor", "Reading model…");
+		return QCoreApplication::translate("SlopStudioModelEditor", "Reading model…");
 	case ModelWorkPhase::Validating:
-		return QCoreApplication::translate("VibeStudioModelEditor", "Validating mesh…");
+		return QCoreApplication::translate("SlopStudioModelEditor", "Validating mesh…");
 	case ModelWorkPhase::Editing:
-		return QCoreApplication::translate("VibeStudioModelEditor", "Editing mesh…");
+		return QCoreApplication::translate("SlopStudioModelEditor", "Editing mesh…");
 	case ModelWorkPhase::Serializing:
-		return QCoreApplication::translate("VibeStudioModelEditor", "Preparing model data…");
+		return QCoreApplication::translate("SlopStudioModelEditor", "Preparing model data…");
 	case ModelWorkPhase::Writing:
-		return QCoreApplication::translate("VibeStudioModelEditor", "Writing model…");
+		return QCoreApplication::translate("SlopStudioModelEditor", "Writing model…");
 	case ModelWorkPhase::Committing:
-		return QCoreApplication::translate("VibeStudioModelEditor", "Committing output…");
+		return QCoreApplication::translate("SlopStudioModelEditor", "Committing output…");
 	}
 	return {};
 }
@@ -69,11 +69,11 @@ class ProgressDialog final : public QDialog
 		m_status->setObjectName(QStringLiteral("meshOperationStatus"));
 		m_status->setTextFormat(Qt::PlainText);
 		m_status->setWordWrap(true);
-		m_status->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Model operation status"));
+		m_status->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Model operation status"));
 		layout->addWidget(m_status);
 		m_progress = new QProgressBar;
 		m_progress->setObjectName(QStringLiteral("meshOperationProgress"));
-		m_progress->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Model operation progress"));
+		m_progress->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Model operation progress"));
 		layout->addWidget(m_progress);
 		auto *buttons = new QDialogButtonBox(QDialogButtonBox::Cancel);
 		m_cancel = buttons->button(QDialogButtonBox::Cancel);
@@ -85,7 +85,7 @@ class ProgressDialog final : public QDialog
 	void refresh()
 	{
 		const bool cancelled = m_work->cancelled.load(std::memory_order_relaxed);
-		const auto status = cancelled ? QCoreApplication::translate("VibeStudioModelEditor", "Cancelling model operation…")
+		const auto status = cancelled ? QCoreApplication::translate("SlopStudioModelEditor", "Cancelling model operation…")
 									  : phaseText(m_work->phase.load(std::memory_order_relaxed));
 		// The name stays "Model operation status"; the phase is its
 		// description, as on every other modeller status line.
@@ -195,7 +195,7 @@ bool runModelTask(QWidget *parent, const QString &title, ModelTask task, QString
 			catch (const std::bad_alloc &)
 			{
 				work->error = QCoreApplication::translate(
-					"VibeStudioModelEditor", "Not enough memory to complete the model operation. The current document is unchanged.");
+					"SlopStudioModelEditor", "Not enough memory to complete the model operation. The current document is unchanged.");
 			}
 		});
 	QObject::connect(thread, &QThread::finished, &loop, &QEventLoop::quit);
@@ -230,7 +230,7 @@ bool runModelTask(QWidget *parent, const QString &title, ModelTask task, QString
 	if (work->cancelled.load(std::memory_order_relaxed) && !(durableWrite && work->success))
 	{
 		work->success = false;
-		work->error = QCoreApplication::translate("VibeStudioModelDocument", "Model operation cancelled.");
+		work->error = QCoreApplication::translate("SlopStudioModelDocument", "Model operation cancelled.");
 	}
 	if (error)
 	{
@@ -267,4 +267,4 @@ void setModelWorkReporter(ModelWorkReporter reporter)
 {
 	workReporter() = std::move(reporter);
 }
-} // namespace vibestudio
+} // namespace slopstudio

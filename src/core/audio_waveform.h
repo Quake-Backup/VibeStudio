@@ -2,7 +2,7 @@
 
 #include "core/audio_clip.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 
 struct AudioExtrema {
@@ -28,4 +28,4 @@ private:
 	bool m_valid = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

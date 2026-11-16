@@ -6,7 +6,7 @@
 #include <QJsonObject>
 #include <QSize>
 
-namespace vibestudio
+namespace slopstudio
 {
 // UV health: what a skin layout gets wrong before an export or the game shows
 // it. Read-only; nothing here edits a model.
@@ -132,4 +132,4 @@ bool inspectModelUvHealth(const ModelMesh &mesh, int surface, const ModelUvHealt
 // "overlap", "flipped", "outside", "collapsed", "stretch" or "flood-fill":
 // whether the report has that problem (stretch: any face over the limit).
 [[nodiscard]] bool modelUvHealthHas(const ModelUvHealthReport &report, const QString &problem);
-} // namespace vibestudio
+} // namespace slopstudio

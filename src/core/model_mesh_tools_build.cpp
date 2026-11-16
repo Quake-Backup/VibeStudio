@@ -8,7 +8,7 @@
 #include <numbers>
 #include <tuple>
 
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -395,4 +395,4 @@ bool addPrimitive(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *select
 	selection->edges.clear();
 	return work.check();
 }
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

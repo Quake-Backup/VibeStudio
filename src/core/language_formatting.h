@@ -3,7 +3,7 @@
 #include "core/text_document.h"
 #include <QJsonValue>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LanguageFormattingOptions {
 	int tabSize = 4;
@@ -32,4 +32,4 @@ bool previewLanguageFormatting(const QString& source, const LanguageFormatting& 
 // Preserve the position relative to a changed span, clamping to its replacement.
 int languageFormattedOffset(const LanguageFormatting& report, const QString& formatted, int offset);
 
-} // namespace vibestudio
+} // namespace slopstudio

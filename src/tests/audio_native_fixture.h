@@ -1,7 +1,7 @@
 #pragma once
 #include <QJsonArray>
 #include <QJsonObject>
-namespace vibestudio::test
+namespace slopstudio::test
 {
 // Independently construct the pre-v7 point representation in legacy fixtures.
 inline QJsonValue withoutAutomationSegments(const QJsonValue &value)
@@ -22,4 +22,4 @@ inline QJsonValue withoutAutomationSegments(const QJsonValue &value)
 	}
 	return value;
 }
-} // namespace vibestudio::test
+} // namespace slopstudio::test

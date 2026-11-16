@@ -9,7 +9,7 @@
 // libs/uniquenames.h and plugins/entity/namekeys.h at 449778b3840f8f2062daab15c87cb012f2ac945c
 // (GPL-2.0-or-later). See docs/CREDITS.md. Decimal strings avoid upstream integer
 // overflow, and dynamic strings impose no fixed name-length limit.
-namespace vibestudio::detail {
+namespace slopstudio::detail {
 namespace {
 bool asciiDigit(QChar value)
 {
@@ -100,4 +100,4 @@ QString makeLevelMapNameUnique(const QVector<LevelMapEntity>& destination, const
 	makeLevelMapCopiesUnique(destination,&probe);
 	return probe.first().properties.first().value;
 }
-} // namespace vibestudio::detail
+} // namespace slopstudio::detail

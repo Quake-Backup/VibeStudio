@@ -4,9 +4,9 @@
 // key in the scene, and nothing of TrenchBroom's in the document; an edit to
 // one linked group reaches the other in its frame; saving with TrenchBroom
 // groups writes them back, and opening that again, with or without
-// VibeStudio's scene note, gives the same scene and the same bytes. Maps
+// SlopStudio's scene note, gives the same scene and the same bytes. Maps
 // without TrenchBroom's keys save as before; members that no longer match are
-// marked out of sync; a stale note gives way to the keys; a layout VibeStudio
+// marked out of sync; a stale note gives way to the keys; a layout SlopStudio
 // cannot take apart opens as it is; and the CLI lists and converts the same.
 
 #include "core/level_document.h"
@@ -26,7 +26,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -191,7 +191,7 @@ QByteArray read(const QString& path)
 
 QByteArray body(const QByteArray& bytes)
 {
-	const auto at = bytes.lastIndexOf("\n// VibeStudioScene: ");
+	const auto at = bytes.lastIndexOf("\n// SlopStudioScene: ");
 	return at < 0 ? bytes : bytes.left(at);
 }
 
@@ -216,7 +216,7 @@ int main(int argc, char** argv)
 	const QString source = temp.filePath(QStringLiteral("trenchbroom.map"));
 	ok &= expect(write(source, trenchBroomMap().toUtf8()), "fixture written");
 
-	LevelSceneStorage storage = LevelSceneStorage::VibeStudio;
+	LevelSceneStorage storage = LevelSceneStorage::SlopStudio;
 	ok &= expect(levelSceneStorageFromId(QStringLiteral("TrenchBroom"), &storage) && storage == LevelSceneStorage::TrenchBroom
 			&& levelSceneStorageId(storage) == QStringLiteral("trenchbroom") && !levelSceneStorageFromId(QStringLiteral("radiant"), &storage),
 		"storage ids");
@@ -241,7 +241,7 @@ int main(int argc, char** argv)
 			&& layer->trenchBroomProperties.value(QStringLiteral("_tb_layer_color")) == QStringLiteral("0.2 0.4 0.6")
 			&& layer->trenchBroomProperties.value(QStringLiteral("_tb_layer_omit_from_export")) == QStringLiteral("1")
 			&& second->trenchBroomProperties.value(QStringLiteral("_tb_name")) == QStringLiteral("pillar"),
-		"groups sit in the layer, which keeps the keys VibeStudio does not edit");
+		"groups sit in the layer, which keeps the keys SlopStudio does not edit");
 	ok &= expect(first->linkId == QStringLiteral("38b3b39d-a165-4999-985d-d40563ce51c1") && second->linkId == first->linkId
 			&& frameIs(first, {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0}) && frameIs(second, kTurned) && !first->linkOutOfSync && !second->linkOutOfSync,
 		"the link id is canonical and frames come from _tb_transformation", second->linkId);
@@ -291,9 +291,9 @@ int main(int argc, char** argv)
 			&& text.contains(QStringLiteral("\"_tb_layer_omit_from_export\" \"1\"")) && text.contains(QStringLiteral("\"_tb_protected_properties\" \"light\""))
 			&& text.count(QStringLiteral("\"_tb_group\" \"")) == 2 && text.count(QStringLiteral("\"_tb_layer\" \"1\"")) == 2,
 		"the layer, both linked groups and the protected key are written for TrenchBroom", text);
-	ok &= expect(bytes.contains("\n// VibeStudioScene: ") && report.warnings.isEmpty(), "the scene note follows", report.warnings.join('\n'));
+	ok &= expect(bytes.contains("\n// SlopStudioScene: ") && report.warnings.isEmpty(), "the scene note follows", report.warnings.join('\n'));
 
-	// Opening that again gives the same scene, whether VibeStudio's note is
+	// Opening that again gives the same scene, whether SlopStudio's note is
 	// there or TrenchBroom dropped it, and saving gives the same bytes.
 	LevelMapDocument noted;
 	ok &= expect(loadLevelMap({saved, {}, {}}, &noted, &error) && noted.sceneStorage == LevelSceneStorage::TrenchBroom && noted.scene.problem.isEmpty()
@@ -312,23 +312,23 @@ int main(int argc, char** argv)
 	turned = brushIn(keysOnly, levelSceneNode(keysOnly.scene, secondId));
 	ok &= expect(turned && near(turned->mins.y, turnedBefore.y + 8) && !levelSceneNode(keysOnly.scene, secondId)->linkOutOfSync, "the edit survives the round trip");
 
-	// Saving the VibeStudio way writes none of TrenchBroom's keys, and the
+	// Saving the SlopStudio way writes none of TrenchBroom's keys, and the
 	// scene, and the keys kept for TrenchBroom, come back from the note.
 	const QString plainPath = temp.filePath(QStringLiteral("plain.map"));
 	save.path = plainPath;
-	save.sceneStorage = LevelSceneStorage::VibeStudio;
+	save.sceneStorage = LevelSceneStorage::SlopStudio;
 	report = writeLevelDocument(noted, save);
 	const QByteArray plainBytes = read(plainPath);
 	LevelMapDocument plain;
 	ok &= expect(report.succeeded() && !body(plainBytes).contains("_tb_") && loadLevelMap({plainPath, {}, {}}, &plain, &error)
-			&& plain.sceneStorage == LevelSceneStorage::VibeStudio && plain.scene.problem.isEmpty() && plain.scene.nodes.size() == 3
+			&& plain.sceneStorage == LevelSceneStorage::SlopStudio && plain.scene.problem.isEmpty() && plain.scene.nodes.size() == 3
 			&& named(plain, QStringLiteral("Details"))->trenchBroomProperties.value(QStringLiteral("_tb_layer_color")) == QStringLiteral("0.2 0.4 0.6"),
-		"a VibeStudio save keeps the scene in its note alone", error);
+		"a SlopStudio save keeps the scene in its note alone", error);
 	adoptLevelDocumentSave(&noted, report);
-	ok &= expect(noted.sceneStorage == LevelSceneStorage::VibeStudio, "the save's choice stays with the document");
+	ok &= expect(noted.sceneStorage == LevelSceneStorage::SlopStudio, "the save's choice stays with the document");
 
 	// A map without TrenchBroom's keys saves as before; with TrenchBroom
-	// groups, linked groups made in VibeStudio open in TrenchBroom's form.
+	// groups, linked groups made in SlopStudio open in TrenchBroom's form.
 	LevelMapCreateRequest create;
 	create.game = QStringLiteral("quake");
 	create.starterRoom = false;
@@ -340,9 +340,9 @@ int main(int argc, char** argv)
 			&& createLevelSceneNode(&made, LevelSceneNodeKind::Group, QStringLiteral("Column"), {}, &group, &error)
 			&& assignLevelSceneObjects(&made, group, {QStringLiteral("brush:%1").arg(made.brushes.last().id)}, &error)
 			&& createLinkedLevelGroup(&made, group, {128, 0, 0, true}, &copy, &error),
-		"linked groups made in VibeStudio", error);
+		"linked groups made in SlopStudio", error);
 	const QByteArray native = serializeLevelMap(made).bytes;
-	ok &= expect(made.sceneStorage == LevelSceneStorage::VibeStudio && !native.contains("_tb_") && native.contains("\n// VibeStudioScene: "),
+	ok &= expect(made.sceneStorage == LevelSceneStorage::SlopStudio && !native.contains("_tb_") && native.contains("\n// SlopStudioScene: "),
 		"by default the scene is kept in the note alone");
 	const QString madePath = temp.filePath(QStringLiteral("made.map"));
 	ok &= expect(write(madePath, body(serializeLevelMap(made, LevelSceneStorage::TrenchBroom).bytes)), "made map written for TrenchBroom");
@@ -373,13 +373,13 @@ int main(int argc, char** argv)
 			&& property(entityIn(restored, levelSceneNode(restored.scene, secondId)), QStringLiteral("light")) == QStringLiteral("301"),
 		"a stale note is set aside and the keys are read", error);
 
-	// A layout VibeStudio cannot take apart opens as it is.
+	// A layout SlopStudio cannot take apart opens as it is.
 	QString tangled = trenchBroomMap();
 	tangled.replace(QStringLiteral("}\n// entity 3\n{\n"), QStringLiteral("} {\n"));
 	const QString tangledPath = temp.filePath(QStringLiteral("tangled.map"));
 	ok &= expect(write(tangledPath, tangled.toUtf8()), "tangled fixture written");
 	LevelMapDocument asIs;
-	ok &= expect(loadLevelMap({tangledPath, {}, {}}, &asIs, &error) && asIs.scene.nodes.isEmpty() && asIs.sceneStorage == LevelSceneStorage::VibeStudio
+	ok &= expect(loadLevelMap({tangledPath, {}, {}}, &asIs, &error) && asIs.scene.nodes.isEmpty() && asIs.sceneStorage == LevelSceneStorage::SlopStudio
 			&& hasTrenchBroomKey(asIs) && issues(asIs, QStringLiteral("trenchbroom-groups")) == 1 && serializeLevelMap(asIs).bytes == tangled.toUtf8(),
 		"the map opens with TrenchBroom's entities as they are, and saves unchanged", error);
 
@@ -407,12 +407,12 @@ int main(int argc, char** argv)
 				&& nodes.at(2).toObject().value(QStringLiteral("link")).toString() == QStringLiteral("38b3b39d-a165-4999-985d-d40563ce51c1"),
 			"editor scene list shows the TrenchBroom scene with the same ids");
 		const QString converted = temp.filePath(QStringLiteral("converted.map"));
-		const QJsonObject native = run({QStringLiteral("save"), source, QStringLiteral("--scene-format"), QStringLiteral("vibestudio"), QStringLiteral("--output"), converted});
+		const QJsonObject native = run({QStringLiteral("save"), source, QStringLiteral("--scene-format"), QStringLiteral("slopstudio"), QStringLiteral("--output"), converted});
 		const QString back = temp.filePath(QStringLiteral("back.map"));
 		const QJsonObject trenchBroom = run({QStringLiteral("save"), converted, QStringLiteral("--scene-format"), QStringLiteral("trenchbroom"), QStringLiteral("--output"), back});
 		const QJsonObject kept = run({QStringLiteral("rename"), back, QStringLiteral("--id"), firstId, QStringLiteral("--name"), QStringLiteral("column"),
 			QStringLiteral("--output"), temp.filePath(QStringLiteral("renamed.map"))});
-		ok &= expect(native.value(QStringLiteral("sceneStorage")).toString() == QStringLiteral("vibestudio") && !body(read(converted)).contains("_tb_")
+		ok &= expect(native.value(QStringLiteral("sceneStorage")).toString() == QStringLiteral("slopstudio") && !body(read(converted)).contains("_tb_")
 				&& trenchBroom.value(QStringLiteral("sceneStorage")).toString() == QStringLiteral("trenchbroom")
 				&& QString::fromUtf8(body(read(back))).count(QStringLiteral("\"_tb_type\" \"_tb_group\"")) == 2
 				&& kept.value(QStringLiteral("sceneStorage")).toString() == QStringLiteral("trenchbroom")

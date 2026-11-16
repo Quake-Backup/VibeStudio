@@ -18,7 +18,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message, const QString& detail = {})
 {
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
 #endif
 	QApplication app(argc, argv); QApplication::setFont(QFont("Segoe UI"));
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("level-surface-stroke-ui-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("level-surface-stroke-ui-smoke"); skip >= 0) {
 		return skip;
 	}
 	QTemporaryDir temp; if (!temp.isValid()) { return 1; }
@@ -168,7 +168,7 @@ int main(int argc, char** argv)
 			ok &= expect(until([&] { return status->accessibleDescription().contains("3 surface"); }), "all held hits reach preview before capture", status->accessibleDescription());
 			{ QEventLoop loop; QTimer::singleShot(100, &loop, &QEventLoop::quit); loop.exec(QEventLoop::ExcludeUserInputEvents); }
 			ok &= settle(*view);
-			const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+			const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 			if (!capture.isEmpty()) {
 				auto* controls = shell.findChild<QWidget*>("levelMaterialTools");
 				ok &= expect(status->isVisible() && cancel->isVisible() && controls->rect().contains(QRect(status->mapTo(controls, QPoint()), status->size()))

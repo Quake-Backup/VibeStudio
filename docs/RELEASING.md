@@ -1,4 +1,4 @@
-# Releasing VibeStudio
+# Releasing SlopStudio
 
 Two files drive every release: **`VERSION`** says what is being released, and
 **`CHANGELOG.md`** says what changed. The [release workflow](../.github/workflows/release.yml)
@@ -12,7 +12,7 @@ turns them into tested downloads for every platform and a GitHub release.
 
 ## Versions
 
-VibeStudio uses [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html).
+SlopStudio uses [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html).
 `VERSION` holds exactly one version; Meson reads it, the app reports it, and
 `scripts/release_meta.py` derives every name from it.
 
@@ -89,11 +89,11 @@ change what users get.
 | Job | Builds | Checks before upload |
 | --- | --- | --- |
 | Prepare | Resolves the version, tag and channel | Tag matches `VERSION`; the tag is new; `CHANGELOG.md` has the version; branding and README are current |
-| HTML documentation | The offline manual, `VibeStudio-<v>-docs.zip` | Every page link and anchor resolves |
+| HTML documentation | The offline manual, `SlopStudio-<v>-docs.zip` | Every page link and anchor resolves |
 | Windows (x64) | Verified build with source evidence, portable ZIP, runtime source ZIP, Inno Setup installer | Meson tests, CLI/packaging/release validators, packaged runtime smoke test, silent install and launch |
-| macOS (Apple silicon) | `VibeStudio.app` (macdeployqt, ad-hoc signed) in a branded DMG | Meson tests, validators, bundle launch, `hdiutil verify` |
+| macOS (Apple silicon) | `SlopStudio.app` (macdeployqt, ad-hoc signed) in a branded DMG | Meson tests, validators, bundle launch, `hdiutil verify` |
 | Linux (x86_64) | AppImage via linuxdeploy, built on Ubuntu 22.04 | Meson tests, validators, desktop entry and AppStream checks, AppImage launch |
-| Source archive | `VibeStudio-<v>-source.tar.gz` with compiler submodules | — |
+| Source archive | `SlopStudio-<v>-source.tar.gz` with compiler submodules | — |
 | Publish | Renames everything to the published names, writes `SHA256SUMS.txt`, `release-manifest.json` and the notes, creates the GitHub release | Runs only when publishing and every job passed |
 
 Without **publish**, the workflow is a full dry run: every download is kept as
@@ -108,7 +108,7 @@ as before; it never publishes a release.
 ## Known gaps
 
 - **No code signing yet.** Windows SmartScreen and macOS Gatekeeper warn on
-  first launch; [Install VibeStudio](manual/install.md) explains the steps.
+  first launch; [Install SlopStudio](manual/install.md) explains the steps.
   Signing and notarisation need certificates the project does not have yet.
 - **macOS builds are Apple silicon only**, and **Linux builds are x86_64
   only**, without in-studio audio playback or recording.
@@ -123,7 +123,7 @@ as before; it never publishes a release.
 | --- | --- |
 | Any | `python scripts/build_docs_site.py --output build/docs-site` |
 | Windows | `python scripts/package_windows_release.py ... --docs-site build/docs-site`, then `python scripts/package_windows_installer.py --package-dir <staged package>` (needs Inno Setup 6) |
-| macOS | `python scripts/package_macos_app.py --binary builddir/src/vibestudio --compiled-translations builddir/i18n --docs-site build/docs-site` |
+| macOS | `python scripts/package_macos_app.py --binary builddir/src/slopstudio --compiled-translations builddir/i18n --docs-site build/docs-site` |
 | Linux | `meson setup builddir --prefix=/usr`, build, then `python scripts/package_appimage.py --build-dir builddir --linuxdeploy <path>` |
 | Any | `python scripts/package_source_tarball.py` |
 

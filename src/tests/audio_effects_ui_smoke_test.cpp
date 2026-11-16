@@ -28,7 +28,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *text)
@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath("effects-ui-XXXXXX"));
@@ -230,7 +230,7 @@ int main(int argc, char **argv)
 	             "closing a busy preset reader cancels without applying a late result");
 	ok &= expect(audioSessionSummary(session.session()) == audioSessionSummary(prior),
 	             "preset file operations and draft cancellation leave parent session unchanged");
-	const auto renderRoot = qEnvironmentVariable("VIBESTUDIO_AUDIO_EFFECTS_RENDER_DIR");
+	const auto renderRoot = qEnvironmentVariable("SLOPSTUDIO_AUDIO_EFFECTS_RENDER_DIR");
 	if (!renderRoot.isEmpty())
 		ok &= QDir().mkpath(renderRoot);
 	struct Layout {

@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -37,7 +37,7 @@ QStringList modelAssemblyAnimationNotes(const ModelAssemblyResolved &resolved, c
 {
 	auto notes = resolved.notes;
 	notes << QCoreApplication::translate(
-				 "VibeStudioModelAssemblyAnimation",
+				 "SlopStudioModelAssemblyAnimation",
 				 "Samples %1 poses from %2 seconds at %3 FPS; the last sample is %4 seconds. Clip duration is %5 seconds. "
 				 "Keep the assembly and model sources to retain independent playback, attachment links and tags. The bake stores composed "
 				 "geometry only.")
@@ -50,23 +50,23 @@ QStringList modelAssemblyAnimationNotes(const ModelAssemblyResolved &resolved, c
 					[](const auto &input) { return !input.mesh.collisionBoxes.isEmpty(); }))
 	{
 		if (options.includeCollision)
-			notes << QCoreApplication::translate("VibeStudioModelAssemblyAnimation",
+			notes << QCoreApplication::translate("SlopStudioModelAssemblyAnimation",
 												 "Part collision volumes are carried into the bake as <part>_<volume>, with one pose per "
 												 "sample. Native model formats leave them out; editable sources keep them.");
 		else
 			notes << QCoreApplication::translate(
-				"VibeStudioModelAssemblyAnimation",
+				"SlopStudioModelAssemblyAnimation",
 				"Input collision boxes remain in their model sources. Author collision on the baked mesh separately.");
 	}
 	if (std::any_of(resolved.inputs.cbegin(), resolved.inputs.cend(),
 					[](const auto &input) { return !input.mesh.embeddedSkins.isEmpty() || input.mesh.mdl.enabled; }))
 	{
-		notes << QCoreApplication::translate("VibeStudioModelAssemblyAnimation",
+		notes << QCoreApplication::translate("SlopStudioModelAssemblyAnimation",
 											 "Embedded skin images, native MDL timing and skin animation remain in their model sources. "
 											 "The bake keeps external material paths only.");
 	}
 	notes << QCoreApplication::translate(
-		"VibeStudioModelAssemblyAnimation",
+		"SlopStudioModelAssemblyAnimation",
 		"Editable mesh sources retain the clip name and FPS. MD2/MD3 exports require separate game animation configuration at the sampled "
 		"rate. "
 		"MD2 requires one surface; use the Mesh Editor to explicitly join compatible surfaces before export. Looping the result can blend "
@@ -95,7 +95,7 @@ bool bakeModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAssemb
 					[](QChar c) { return c.isNull() || c.category() == QChar::Other_Control; }))
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelAssemblyAnimation",
+					QCoreApplication::translate("SlopStudioModelAssemblyAnimation",
 												"Choose 1–1024 frames, 0.001–1000 FPS, sample times within 0–1,000,000 seconds and a clip "
 												"name of 1–128 characters without surrounding spaces or control characters."));
 	}
@@ -103,7 +103,7 @@ bool bakeModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAssemb
 		resolved.recipeSha256 != modelAssemblyFingerprint(assembly))
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelAssemblyAnimation", "Reload the assembly inputs before baking animation."));
+					QCoreApplication::translate("SlopStudioModelAssemblyAnimation", "Reload the assembly inputs before baking animation."));
 	}
 	qint64 vertices = 0;
 	for (const auto &input : resolved.inputs)
@@ -115,7 +115,7 @@ bool bakeModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAssemb
 	}
 	if (vertices < 1 || vertices > modelDocumentMaxVertices || vertices * options.frameCount > modelDocumentMaxFrameVertices)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssemblyAnimation",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssemblyAnimation",
 													   "The animated bake exceeds 65,536 vertices or 1,048,576 stored frame vertices. "
 													   "Reduce the frame count or simplify the inputs."));
 	}
@@ -144,14 +144,14 @@ bool bakeModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAssemb
 			tracks.resize(volumes.size());
 		}
 		if (pose.mesh.collisionBoxes.size() != volumes.size())
-			return fail(error, QCoreApplication::translate("VibeStudioModelAssemblyAnimation", "The sampled assembly changes its collision."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelAssemblyAnimation", "The sampled assembly changes its collision."));
 		for (int v = 0; v < volumes.size(); ++v)
 		{
 			const auto &box = pose.mesh.collisionBoxes[v];
 			// A hull whose shape changes between samples (a mirrored attachment,
 			// or a part's own per-frame hull) keeps that sample's shape in its pose.
 			if (box.name != volumes[v].name || box.hull.isEmpty() != volumes[v].hull.isEmpty())
-				return fail(error, QCoreApplication::translate("VibeStudioModelAssemblyAnimation", "The sampled assembly changes its collision."));
+				return fail(error, QCoreApplication::translate("SlopStudioModelAssemblyAnimation", "The sampled assembly changes its collision."));
 			const bool reshaped = !std::equal(box.hull.cbegin(), box.hull.cend(), volumes[v].hull.cbegin(), volumes[v].hull.cend(),
 											 [](ModelVec3 a, ModelVec3 b) { return a.x == b.x && a.y == b.y && a.z == b.z; });
 			tracks[v] << ModelCollisionPose{box.centre, box.size, box.rotation, reshaped ? box.hull : QVector<ModelVec3>()};
@@ -170,7 +170,7 @@ bool bakeModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAssemb
 		if (pose.mesh.surfaces.size() != candidate.mesh.surfaces.size())
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelAssemblyAnimation", "The sampled assembly changes surface count."));
+						QCoreApplication::translate("SlopStudioModelAssemblyAnimation", "The sampled assembly changes surface count."));
 		}
 		for (int surface = 0; surface < candidate.mesh.surfaces.size(); ++surface)
 		{
@@ -178,7 +178,7 @@ bool bakeModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAssemb
 			const auto &sample = pose.mesh.surfaces[surface];
 			if (!sameLayout(target, sample))
 			{
-				return fail(error, QCoreApplication::translate("VibeStudioModelAssemblyAnimation",
+				return fail(error, QCoreApplication::translate("SlopStudioModelAssemblyAnimation",
 															   "Sample %1 changes topology, winding, UVs or materials. Repair reflected "
 															   "attachment changes or bake separate compatible intervals.")
 									   .arg(index));
@@ -229,7 +229,7 @@ bool exportModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAsse
 	if (!editable && suffix != QStringLiteral("md2") && suffix != QStringLiteral("md3"))
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelAssemblyAnimation", "Export animation as .mesh.json, .md2 or .md3."));
+					QCoreApplication::translate("SlopStudioModelAssemblyAnimation", "Export animation as .mesh.json, .md2 or .md3."));
 	}
 	const auto target = inspectModelWriteTarget(path, control);
 	if (!target.isValid())
@@ -247,7 +247,7 @@ bool exportModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAsse
 	}
 	if (protectedInput || (target.existed && !overwrite))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssemblyAnimation",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssemblyAnimation",
 													   "Choose a separate output; assembly, model and package inputs are protected, and "
 													   "replacing another output requires explicit overwrite."));
 	}
@@ -287,4 +287,4 @@ bool exportModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAsse
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

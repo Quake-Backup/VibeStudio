@@ -13,7 +13,7 @@
 #include <QSaveFile>
 #include <QUuid>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -68,52 +68,52 @@ CompilerArgumentPreset argumentPreset(
 	return preset;
 }
 
-// VibeMap2 bsp targets and map-development switches, from
-// external/compilers/vibemap2/src/qbsp/qbsp.cc (game_target_group / common_format_group / map_development_group).
-QVector<CompilerArgumentPreset> vibemap2BspPresets()
+// SlopMap2 bsp targets and map-development switches, from
+// external/compilers/slopmap2/src/qbsp/qbsp.cc (game_target_group / common_format_group / map_development_group).
+QVector<CompilerArgumentPreset> slopmap2BspPresets()
 {
 	return {
-		argumentPreset(QStringLiteral("bsp2"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Target BSP2"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Writes Quake's extended BSP2 format for large maps."), {QStringLiteral("-bsp2")}),
-		argumentPreset(QStringLiteral("hlbsp"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Target Half-Life BSP30"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Writes Half-Life's BSP version 30 format."), {QStringLiteral("-hlbsp")}),
-		argumentPreset(QStringLiteral("q2bsp"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Target Quake II BSP"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Writes Quake II's IBSP format."), {QStringLiteral("-q2bsp")}),
-		argumentPreset(QStringLiteral("qbism"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Target Qbism BSP"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Writes Qbism's extended Quake II BSP format."), {QStringLiteral("-qbism")}),
-		argumentPreset(QStringLiteral("hexen2"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Target Hexen II"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Writes Hexen II's BSP format."), {QStringLiteral("-hexen2")}),
-		argumentPreset(QStringLiteral("notex"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Omit textures"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Writes stub texture data for a faster development compile."), {QStringLiteral("-notex")}),
-		argumentPreset(QStringLiteral("leaktest"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Fail on leak"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Makes the compile fail instead of continuing when the map leaks."), {QStringLiteral("-leaktest")}),
-		argumentPreset(QStringLiteral("wadpath"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Add WAD search path"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Adds a directory that is searched for the map's WAD files."), {QStringLiteral("-wadpath")}, true, QCoreApplication::translate("VibeStudioCompilerProfiles", "directory")),
+		argumentPreset(QStringLiteral("bsp2"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Target BSP2"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Writes Quake's extended BSP2 format for large maps."), {QStringLiteral("-bsp2")}),
+		argumentPreset(QStringLiteral("hlbsp"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Target Half-Life BSP30"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Writes Half-Life's BSP version 30 format."), {QStringLiteral("-hlbsp")}),
+		argumentPreset(QStringLiteral("q2bsp"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Target Quake II BSP"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Writes Quake II's IBSP format."), {QStringLiteral("-q2bsp")}),
+		argumentPreset(QStringLiteral("qbism"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Target Qbism BSP"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Writes Qbism's extended Quake II BSP format."), {QStringLiteral("-qbism")}),
+		argumentPreset(QStringLiteral("hexen2"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Target Hexen II"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Writes Hexen II's BSP format."), {QStringLiteral("-hexen2")}),
+		argumentPreset(QStringLiteral("notex"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Omit textures"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Writes stub texture data for a faster development compile."), {QStringLiteral("-notex")}),
+		argumentPreset(QStringLiteral("leaktest"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Fail on leak"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Makes the compile fail instead of continuing when the map leaks."), {QStringLiteral("-leaktest")}),
+		argumentPreset(QStringLiteral("wadpath"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Add WAD search path"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Adds a directory that is searched for the map's WAD files."), {QStringLiteral("-wadpath")}, true, QCoreApplication::translate("SlopStudioCompilerProfiles", "directory")),
 	};
 }
 
-// VibeMap2 vis switches, from external/compilers/vibemap2/src/include/vis/vis.hh.
-QVector<CompilerArgumentPreset> vibemap2VisPresets()
+// SlopMap2 vis switches, from external/compilers/slopmap2/src/include/vis/vis.hh.
+QVector<CompilerArgumentPreset> slopmap2VisPresets()
 {
 	return {
-		argumentPreset(QStringLiteral("level4"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Full detail (level 4)"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Runs the highest visibility test iteration count."), {QStringLiteral("-level"), QStringLiteral("4")}),
-		argumentPreset(QStringLiteral("fast"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Fast vis"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Runs the simple, fast visibility pass for development builds."), {QStringLiteral("-fast")}),
+		argumentPreset(QStringLiteral("level4"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Full detail (level 4)"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Runs the highest visibility test iteration count."), {QStringLiteral("-level"), QStringLiteral("4")}),
+		argumentPreset(QStringLiteral("fast"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Fast vis"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Runs the simple, fast visibility pass for development builds."), {QStringLiteral("-fast")}),
 	};
 }
 
-// VibeMap2 light switches, from external/compilers/vibemap2/src/light/light.cc.
-QVector<CompilerArgumentPreset> vibemap2LightPresets()
+// SlopMap2 light switches, from external/compilers/slopmap2/src/light/light.cc.
+QVector<CompilerArgumentPreset> slopmap2LightPresets()
 {
 	return {
-		argumentPreset(QStringLiteral("extra4"), QCoreApplication::translate("VibeStudioCompilerProfiles", "4x4 supersampling"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Supersamples lighting at 4x4 for release-quality output."), {QStringLiteral("-extra4")}),
-		argumentPreset(QStringLiteral("bounce"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Bounce lighting"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Enables bounced (radiosity-style) lighting."), {QStringLiteral("-bounce")}),
-		argumentPreset(QStringLiteral("lit"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Write .lit colour file"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Writes a sibling .lit coloured lighting file next to the BSP."), {QStringLiteral("-lit")}),
-		argumentPreset(QStringLiteral("soft"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Soften lighting"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Applies the post-process softening filter."), {QStringLiteral("-soft")}),
+		argumentPreset(QStringLiteral("extra4"), QCoreApplication::translate("SlopStudioCompilerProfiles", "4x4 supersampling"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Supersamples lighting at 4x4 for release-quality output."), {QStringLiteral("-extra4")}),
+		argumentPreset(QStringLiteral("bounce"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Bounce lighting"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Enables bounced (radiosity-style) lighting."), {QStringLiteral("-bounce")}),
+		argumentPreset(QStringLiteral("lit"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Write .lit colour file"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Writes a sibling .lit coloured lighting file next to the BSP."), {QStringLiteral("-lit")}),
+		argumentPreset(QStringLiteral("soft"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Soften lighting"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Applies the post-process softening filter."), {QStringLiteral("-soft")}),
 	};
 }
 
-// VibeMap3 general options, from external/compilers/vibemap3/tools/quake3/q3map2/main.cpp and path_init.cpp.
-QVector<CompilerArgumentPreset> vibemap3Presets()
+// SlopMap3 general options, from external/compilers/slopmap3/tools/quake3/q3map2/main.cpp and path_init.cpp.
+QVector<CompilerArgumentPreset> slopmap3Presets()
 {
 	return {
-		argumentPreset(QStringLiteral("meta"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Meta surfaces"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Enables surface metadata optimisation for the BSP stage."), {QStringLiteral("-meta")}),
-		argumentPreset(QStringLiteral("fast"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Fast pass"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Runs the faster, lower quality variant of the stage."), {QStringLiteral("-fast")}),
-		argumentPreset(QStringLiteral("fs-basepath"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Set base path"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Points VibeMap3 at the game's base installation directory."), {QStringLiteral("-fs_basepath")}, true, QCoreApplication::translate("VibeStudioCompilerProfiles", "directory")),
-		argumentPreset(QStringLiteral("fs-game"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Set mod"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Selects the mod directory used for shaders and assets."), {QStringLiteral("-fs_game")}, true, QCoreApplication::translate("VibeStudioCompilerProfiles", "mod name")),
-		argumentPreset(QStringLiteral("threads"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Thread count"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Limits the number of worker threads."), {QStringLiteral("-threads")}, true, QCoreApplication::translate("VibeStudioCompilerProfiles", "count")),
-		argumentPreset(QStringLiteral("verbose"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Verbose output"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Prints verbose progress output."), {QStringLiteral("-v")}),
+		argumentPreset(QStringLiteral("meta"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Meta surfaces"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Enables surface metadata optimisation for the BSP stage."), {QStringLiteral("-meta")}),
+		argumentPreset(QStringLiteral("fast"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Fast pass"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Runs the faster, lower quality variant of the stage."), {QStringLiteral("-fast")}),
+		argumentPreset(QStringLiteral("fs-basepath"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Set base path"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Points SlopMap3 at the game's base installation directory."), {QStringLiteral("-fs_basepath")}, true, QCoreApplication::translate("SlopStudioCompilerProfiles", "directory")),
+		argumentPreset(QStringLiteral("fs-game"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Set mod"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Selects the mod directory used for shaders and assets."), {QStringLiteral("-fs_game")}, true, QCoreApplication::translate("SlopStudioCompilerProfiles", "mod name")),
+		argumentPreset(QStringLiteral("threads"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Thread count"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Limits the number of worker threads."), {QStringLiteral("-threads")}, true, QCoreApplication::translate("SlopStudioCompilerProfiles", "count")),
+		argumentPreset(QStringLiteral("verbose"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Verbose output"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Prints verbose progress output."), {QStringLiteral("-v")}),
 	};
 }
 
@@ -458,81 +458,81 @@ QVector<CompilerProfileDescriptor> compilerProfileDescriptors()
 	QVector<CompilerProfileDescriptor> profiles;
 
 	{
-		// qbsp accepts "sourcefile.map [destfile.bsp]" (external/compilers/vibemap2/src/qbsp/qbsp.cc).
+		// qbsp accepts "sourcefile.map [destfile.bsp]" (external/compilers/slopmap2/src/qbsp/qbsp.cc).
 		CompilerProfileDescriptor qbsp = compilerProfile(
-			QStringLiteral("vibemap2-bsp"),
-			QStringLiteral("vibemap2-bsp"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap2 bsp"),
+			QStringLiteral("slopmap2-bsp"),
+			QStringLiteral("slopmap2-bsp"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap2 bsp"),
 			QStringLiteral("idTech2"),
 			QStringLiteral("qbsp"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Quake .map source"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Quake .map source"),
 			{QStringLiteral("map")},
 			QStringLiteral("bsp"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Compiles a Quake-family .map file into an idTech2 BSP."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Compiles a Quake-family .map file into an idTech2 BSP."),
 			{},
 			true);
 		qbsp.outputArgumentStyle = CompilerOutputArgumentStyle::Positional;
 		qbsp.defaultOutputMode = CompilerDefaultOutputMode::DerivedFromInput;
 		// qbsp writes "<bsp>.prt" for vis and "<bsp>.pts" plus "<bsp>.leak.prt" when the map leaks
-		// (external/compilers/vibemap2/src/qbsp/outside.cc).
+		// (external/compilers/slopmap2/src/qbsp/outside.cc).
 		qbsp.relatedOutputExtensions = {QStringLiteral("prt"), QStringLiteral("pts"), QStringLiteral("leak.prt")};
-		qbsp.argumentPresets = vibemap2BspPresets();
+		qbsp.argumentPresets = slopmap2BspPresets();
 		profiles.push_back(qbsp);
 	}
 
 	{
 		CompilerProfileDescriptor vis = compilerProfile(
-			QStringLiteral("vibemap2-vis"),
-			QStringLiteral("vibemap2-vis"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap2 vis"),
+			QStringLiteral("slopmap2-vis"),
+			QStringLiteral("slopmap2-vis"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap2 vis"),
 			QStringLiteral("idTech2"),
 			QStringLiteral("vis"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Quake BSP"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Quake BSP"),
 			{QStringLiteral("bsp")},
 			QStringLiteral("bsp"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Runs visibility processing for a Quake-family BSP."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Runs visibility processing for a Quake-family BSP."),
 			{},
 			true);
 		vis.defaultOutputMode = CompilerDefaultOutputMode::InPlace;
-		// vis loads "<bsp base>.prt" (external/compilers/vibemap2/src/vis/vis.cc).
+		// vis loads "<bsp base>.prt" (external/compilers/slopmap2/src/vis/vis.cc).
 		vis.requiredCompanionInputExtensions = {QStringLiteral("prt")};
-		vis.argumentPresets = vibemap2VisPresets();
+		vis.argumentPresets = slopmap2VisPresets();
 		profiles.push_back(vis);
 	}
 
 	{
 		CompilerProfileDescriptor light = compilerProfile(
-			QStringLiteral("vibemap2-light"),
-			QStringLiteral("vibemap2-light"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap2 light"),
+			QStringLiteral("slopmap2-light"),
+			QStringLiteral("slopmap2-light"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap2 light"),
 			QStringLiteral("idTech2"),
 			QStringLiteral("light"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Quake BSP"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Quake BSP"),
 			{QStringLiteral("bsp")},
 			QStringLiteral("bsp"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Runs light compilation for a Quake-family BSP."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Runs light compilation for a Quake-family BSP."),
 			{},
 			true);
 		light.defaultOutputMode = CompilerDefaultOutputMode::InPlace;
-		// "-lit" writes a sibling coloured lighting file (external/compilers/vibemap2/src/light/light.cc).
+		// "-lit" writes a sibling coloured lighting file (external/compilers/slopmap2/src/light/light.cc).
 		light.argumentTriggeredOutputExtensions.insert(QStringLiteral("-lit"), QStringLiteral("lit"));
-		light.argumentPresets = vibemap2LightPresets();
+		light.argumentPresets = slopmap2LightPresets();
 		profiles.push_back(light);
 	}
 
 	{
 		// bspinfo takes bsp files only and serialises "<base>.bsp.json"
-		// (external/compilers/vibemap2/src/bspinfo/main.cc).
+		// (external/compilers/slopmap2/src/bspinfo/main.cc).
 		CompilerProfileDescriptor bspinfo = compilerProfile(
-			QStringLiteral("vibemap2-bspinfo"),
-			QStringLiteral("vibemap2-bspinfo"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap2 bspinfo"),
+			QStringLiteral("slopmap2-bspinfo"),
+			QStringLiteral("slopmap2-bspinfo"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap2 bspinfo"),
 			QStringLiteral("idTech2"),
 			QStringLiteral("inspect"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Quake BSP"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Quake BSP"),
 			{QStringLiteral("bsp")},
 			QStringLiteral("bsp.json"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Prints BSP lump sizes and texture usage, and writes a JSON dump beside the BSP."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Prints BSP lump sizes and texture usage, and writes a JSON dump beside the BSP."),
 			{},
 			true);
 		bspinfo.defaultOutputMode = CompilerDefaultOutputMode::DerivedFromInput;
@@ -541,17 +541,17 @@ QVector<CompilerProfileDescriptor> compilerProfileDescriptors()
 
 	{
 		// bsputil parses options before the single positional bsp path
-		// (external/compilers/vibemap2/src/bsputil/bsputil.cc and common/settings.cc).
+		// (external/compilers/slopmap2/src/bsputil/bsputil.cc and common/settings.cc).
 		CompilerProfileDescriptor check = compilerProfile(
-			QStringLiteral("vibemap2-bsputil-check"),
-			QStringLiteral("vibemap2-bsputil"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap2 bsputil --check"),
+			QStringLiteral("slopmap2-bsputil-check"),
+			QStringLiteral("slopmap2-bsputil"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap2 bsputil --check"),
 			QStringLiteral("idTech2"),
 			QStringLiteral("inspect"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Quake BSP"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Quake BSP"),
 			{QStringLiteral("bsp")},
 			QString(),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Verifies BSP data consistency and reports problems on the console."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Verifies BSP data consistency and reports problems on the console."),
 			{},
 			true);
 		check.leadingStageArgument = QStringLiteral("--check");
@@ -559,15 +559,15 @@ QVector<CompilerProfileDescriptor> compilerProfileDescriptors()
 		profiles.push_back(check);
 
 		CompilerProfileDescriptor entities = compilerProfile(
-			QStringLiteral("vibemap2-bsputil-extract-entities"),
-			QStringLiteral("vibemap2-bsputil"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap2 bsputil --extract-entities"),
+			QStringLiteral("slopmap2-bsputil-extract-entities"),
+			QStringLiteral("slopmap2-bsputil"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap2 bsputil --extract-entities"),
 			QStringLiteral("idTech2"),
 			QStringLiteral("extract"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Quake BSP"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Quake BSP"),
 			{QStringLiteral("bsp")},
 			QStringLiteral("ent"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Extracts the BSP entity lump to a sibling .ent file."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Extracts the BSP entity lump to a sibling .ent file."),
 			{},
 			true);
 		entities.leadingStageArgument = QStringLiteral("--extract-entities");
@@ -575,15 +575,15 @@ QVector<CompilerProfileDescriptor> compilerProfileDescriptors()
 		profiles.push_back(entities);
 
 		CompilerProfileDescriptor textures = compilerProfile(
-			QStringLiteral("vibemap2-bsputil-extract-textures"),
-			QStringLiteral("vibemap2-bsputil"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap2 bsputil --extract-textures"),
+			QStringLiteral("slopmap2-bsputil-extract-textures"),
+			QStringLiteral("slopmap2-bsputil"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap2 bsputil --extract-textures"),
 			QStringLiteral("idTech2"),
 			QStringLiteral("extract"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Quake BSP"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Quake BSP"),
 			{QStringLiteral("bsp")},
 			QStringLiteral("wad"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Extracts embedded BSP textures to a sibling WAD file."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Extracts embedded BSP textures to a sibling WAD file."),
 			{},
 			true);
 		textures.leadingStageArgument = QStringLiteral("--extract-textures");
@@ -597,13 +597,13 @@ QVector<CompilerProfileDescriptor> compilerProfileDescriptors()
 		CompilerProfileDescriptor zdbsp = compilerProfile(
 			QStringLiteral("zdbsp-nodes"),
 			QStringLiteral("zdbsp"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "ZDBSP nodes"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "ZDBSP nodes"),
 			QStringLiteral("idTech1"),
 			QStringLiteral("nodes"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Doom WAD"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Doom WAD"),
 			{QStringLiteral("wad")},
 			QStringLiteral("wad"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Builds Doom-family map nodes with ZDBSP."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Builds Doom-family map nodes with ZDBSP."),
 			{},
 			true);
 		zdbsp.outputArgumentStyle = CompilerOutputArgumentStyle::Flag;
@@ -619,13 +619,13 @@ QVector<CompilerProfileDescriptor> compilerProfileDescriptors()
 		CompilerProfileDescriptor zokum = compilerProfile(
 			QStringLiteral("zokumbsp-nodes"),
 			QStringLiteral("zokumbsp"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "ZokumBSP nodes"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "ZokumBSP nodes"),
 			QStringLiteral("idTech1"),
 			QStringLiteral("nodes"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Doom WAD"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Doom WAD"),
 			{QStringLiteral("wad")},
 			QStringLiteral("wad"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Builds Doom-family nodes, blockmap, and reject data with ZokumBSP."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Builds Doom-family nodes, blockmap, and reject data with ZokumBSP."),
 			{},
 			true);
 		zokum.outputArgumentStyle = CompilerOutputArgumentStyle::Flag;
@@ -637,15 +637,15 @@ QVector<CompilerProfileDescriptor> compilerProfileDescriptors()
 
 	{
 		CompilerProfileDescriptor probe = compilerProfile(
-			QStringLiteral("vibemap3-probe"),
-			QStringLiteral("vibemap3"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap3 help/probe"),
+			QStringLiteral("slopmap3-probe"),
+			QStringLiteral("slopmap3"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap3 help/probe"),
 			QStringLiteral("idTech3"),
 			QStringLiteral("probe"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "No input"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "No input"),
 			{},
 			QString(),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Runs VibeMap3 help/probe output to verify the executable and inspect supported options."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Runs SlopMap3 help/probe output to verify the executable and inspect supported options."),
 			{QStringLiteral("-help")},
 			false);
 		probe.defaultOutputMode = CompilerDefaultOutputMode::NoArtifact;
@@ -653,95 +653,95 @@ QVector<CompilerProfileDescriptor> compilerProfileDescriptors()
 	}
 
 	{
-		// VibeMap3 dispatches on the first remaining token like q3map2; BSPMain is the fall-through case, so the
+		// SlopMap3 dispatches on the first remaining token like q3map2; BSPMain is the fall-through case, so the
 		// BSP profile has no leading stage token (tools/quake3/q3map2/main.cpp).
 		CompilerProfileDescriptor bsp = compilerProfile(
-			QStringLiteral("vibemap3-bsp"),
-			QStringLiteral("vibemap3"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap3 BSP compile"),
+			QStringLiteral("slopmap3-bsp"),
+			QStringLiteral("slopmap3"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap3 BSP compile"),
 			QStringLiteral("idTech3"),
 			QStringLiteral("bsp"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Quake III .map source"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Quake III .map source"),
 			{QStringLiteral("map")},
 			QStringLiteral("bsp"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Builds a Quake III-family BSP from a .map source through VibeMap3."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Builds a Quake III-family BSP from a .map source through SlopMap3."),
 			{QStringLiteral("-meta")},
 			true);
 		bsp.defaultOutputMode = CompilerDefaultOutputMode::DerivedFromInput;
 		bsp.relatedOutputExtensions = {QStringLiteral("prt"), QStringLiteral("srf"), QStringLiteral("lin")};
-		bsp.argumentPresets = vibemap3Presets();
+		bsp.argumentPresets = slopmap3Presets();
 		profiles.push_back(bsp);
 
 		CompilerProfileDescriptor vis = compilerProfile(
-			QStringLiteral("vibemap3-vis"),
-			QStringLiteral("vibemap3"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap3 vis"),
+			QStringLiteral("slopmap3-vis"),
+			QStringLiteral("slopmap3"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap3 vis"),
 			QStringLiteral("idTech3"),
 			QStringLiteral("vis"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Quake III BSP"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Quake III BSP"),
 			{QStringLiteral("bsp")},
 			QStringLiteral("bsp"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Runs the VibeMap3 visibility stage over an existing Quake III-family BSP."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Runs the SlopMap3 visibility stage over an existing Quake III-family BSP."),
 			{},
 			true);
 		vis.leadingStageArgument = QStringLiteral("-vis");
 		vis.defaultOutputMode = CompilerDefaultOutputMode::InPlace;
 		// VisMain loads "<base>.prt" written by the BSP stage (tools/quake3/q3map2/vis.cpp).
 		vis.requiredCompanionInputExtensions = {QStringLiteral("prt")};
-		vis.argumentPresets = vibemap3Presets();
+		vis.argumentPresets = slopmap3Presets();
 		profiles.push_back(vis);
 
 		CompilerProfileDescriptor light = compilerProfile(
-			QStringLiteral("vibemap3-light"),
-			QStringLiteral("vibemap3"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap3 light"),
+			QStringLiteral("slopmap3-light"),
+			QStringLiteral("slopmap3"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap3 light"),
 			QStringLiteral("idTech3"),
 			QStringLiteral("light"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Quake III BSP"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Quake III BSP"),
 			{QStringLiteral("bsp")},
 			QStringLiteral("bsp"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Runs the VibeMap3 lighting stage over an existing Quake III-family BSP."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Runs the SlopMap3 lighting stage over an existing Quake III-family BSP."),
 			{},
 			true);
 		light.leadingStageArgument = QStringLiteral("-light");
 		light.defaultOutputMode = CompilerDefaultOutputMode::InPlace;
-		light.argumentPresets = vibemap3Presets();
+		light.argumentPresets = slopmap3Presets();
 		profiles.push_back(light);
 
 		CompilerProfileDescriptor convert = compilerProfile(
-			QStringLiteral("vibemap3-convert"),
-			QStringLiteral("vibemap3"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap3 convert"),
+			QStringLiteral("slopmap3-convert"),
+			QStringLiteral("slopmap3"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap3 convert"),
 			QStringLiteral("idTech3"),
 			QStringLiteral("convert"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Quake III BSP or .map source"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Quake III BSP or .map source"),
 			{QStringLiteral("bsp"), QStringLiteral("map")},
 			QString(),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Converts a BSP or .map through VibeMap3; the destination depends on the requested -format."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Converts a BSP or .map through SlopMap3; the destination depends on the requested -format."),
 			{},
 			true);
 		convert.leadingStageArgument = QStringLiteral("-convert");
 		// ConvertBSPMain names its output from the chosen -format (tools/quake3/q3map2/convert_bsp.cpp).
 		convert.defaultOutputMode = CompilerDefaultOutputMode::Unknown;
-		convert.argumentPresets = vibemap3Presets();
+		convert.argumentPresets = slopmap3Presets();
 		profiles.push_back(convert);
 
 		CompilerProfileDescriptor pk3 = compilerProfile(
-			QStringLiteral("vibemap3-pk3"),
-			QStringLiteral("vibemap3"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap3 auto-package"),
+			QStringLiteral("slopmap3-pk3"),
+			QStringLiteral("slopmap3"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap3 auto-package"),
 			QStringLiteral("idTech3"),
 			QStringLiteral("package"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Quake III BSP"),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Quake III BSP"),
 			{QStringLiteral("bsp")},
 			QStringLiteral("pk3"),
-			QCoreApplication::translate("VibeStudioCompilerProfiles", "Collects the assets a BSP references into an automatic pk3 package."),
+			QCoreApplication::translate("SlopStudioCompilerProfiles", "Collects the assets a BSP references into an automatic pk3 package."),
 			{},
 			true);
 		pk3.leadingStageArgument = QStringLiteral("-pk3");
 		// pk3BSPMain writes "<engine path>/<name>_autopacked.pk3" (tools/quake3/q3map2/autopk3.cpp).
 		pk3.defaultOutputMode = CompilerDefaultOutputMode::Unknown;
-		pk3.argumentPresets = vibemap3Presets();
+		pk3.argumentPresets = slopmap3Presets();
 		profiles.push_back(pk3);
 	}
 
@@ -805,8 +805,8 @@ CompilerCommandPlan buildCompilerCommandPlan(const CompilerCommandRequest& reque
 	if (!plan.profileFound) {
 		const QString renamed = renamedCompilerId(requestedProfileId);
 		plan.errors << (renamed.isEmpty()
-			? QCoreApplication::translate("VibeStudioCompilerProfiles", "Compiler profile is not known.")
-			: QCoreApplication::translate("VibeStudioCompilerProfiles", "Compiler profile %1 was renamed %2 when VibeStudio moved to VibeMap2 and VibeMap3.").arg(requestedProfileId, renamed));
+			? QCoreApplication::translate("SlopStudioCompilerProfiles", "Compiler profile is not known.")
+			: QCoreApplication::translate("SlopStudioCompilerProfiles", "Compiler profile %1 was renamed %2 when SlopStudio moved to SlopMap2 and SlopMap3.").arg(requestedProfileId, renamed));
 		plan.commandLine = compilerCommandLineText(plan.program, plan.arguments);
 		return plan;
 	}
@@ -823,28 +823,28 @@ CompilerCommandPlan buildCompilerCommandPlan(const CompilerCommandRequest& reque
 		plan.executableAvailable = tool->executableAvailable;
 		plan.program = tool->executableAvailable ? tool->executablePath : displayProgramForMissingExecutable(plan.profile, *tool);
 		if (!tool->executableAvailable) {
-			plan.warnings << QCoreApplication::translate("VibeStudioCompilerProfiles", "Compiler executable was not found; command can be reviewed but not run yet.");
+			plan.warnings << QCoreApplication::translate("SlopStudioCompilerProfiles", "Compiler executable was not found; command can be reviewed but not run yet.");
 		}
 		for (const QString& warning : tool->warnings) {
 			plan.warnings << warning;
 		}
 	} else {
-		plan.errors << QCoreApplication::translate("VibeStudioCompilerProfiles", "Compiler registry entry for this profile is missing.");
+		plan.errors << QCoreApplication::translate("SlopStudioCompilerProfiles", "Compiler registry entry for this profile is missing.");
 		plan.program = plan.profile.toolId;
 	}
 
 	plan.inputPath = absoluteCleanPath(request.inputPath);
 	if (plan.inputPath.isEmpty()) {
 		if (plan.profile.inputRequired) {
-			plan.errors << QCoreApplication::translate("VibeStudioCompilerProfiles", "Input path is required.");
+			plan.errors << QCoreApplication::translate("SlopStudioCompilerProfiles", "Input path is required.");
 		}
 	} else {
 		const QFileInfo inputInfo(plan.inputPath);
 		if (!inputInfo.isFile()) {
-			plan.errors << QCoreApplication::translate("VibeStudioCompilerProfiles", "Input file does not exist.");
+			plan.errors << QCoreApplication::translate("SlopStudioCompilerProfiles", "Input file does not exist.");
 		}
 		if (!extensionMatches(plan.inputPath, plan.profile.inputExtensions)) {
-			plan.warnings << QCoreApplication::translate("VibeStudioCompilerProfiles", "Input extension does not match the profile's expected file type.");
+			plan.warnings << QCoreApplication::translate("SlopStudioCompilerProfiles", "Input extension does not match the profile's expected file type.");
 		}
 	}
 
@@ -855,7 +855,7 @@ CompilerCommandPlan buildCompilerCommandPlan(const CompilerCommandRequest& reque
 	const QString passedOutputPath = outputArgumentSupported ? requestedOutputPath : QString();
 
 	if (!requestedOutputPath.isEmpty() && !outputArgumentSupported) {
-		plan.warnings << QCoreApplication::translate("VibeStudioCompilerProfiles", "This compiler profile updates its input in place; the requested output path cannot be passed to the tool and will not be registered as the expected artifact.");
+		plan.warnings << QCoreApplication::translate("SlopStudioCompilerProfiles", "This compiler profile updates its input in place; the requested output path cannot be passed to the tool and will not be registered as the expected artifact.");
 	}
 
 	if (!passedOutputPath.isEmpty()) {
@@ -870,12 +870,12 @@ CompilerCommandPlan buildCompilerCommandPlan(const CompilerCommandRequest& reque
 			break;
 		case CompilerDefaultOutputMode::WorkingDirectoryFile:
 			plan.expectedOutputPath = QDir::cleanPath(QDir(plan.workingDirectory).filePath(plan.profile.defaultOutputFileName));
-			plan.warnings << QCoreApplication::translate("VibeStudioCompilerProfiles", "No output path was requested, so this tool writes its default file (%1) into the working directory.").arg(plan.profile.defaultOutputFileName);
+			plan.warnings << QCoreApplication::translate("SlopStudioCompilerProfiles", "No output path was requested, so this tool writes its default file (%1) into the working directory.").arg(plan.profile.defaultOutputFileName);
 			break;
 		case CompilerDefaultOutputMode::Unknown:
 			plan.expectedOutputPath.clear();
 			plan.expectedOutputKnown = false;
-			plan.warnings << QCoreApplication::translate("VibeStudioCompilerProfiles", "This stage decides its own destination, so VibeStudio cannot predict or validate the output artifact.");
+			plan.warnings << QCoreApplication::translate("SlopStudioCompilerProfiles", "This stage decides its own destination, so SlopStudio cannot predict or validate the output artifact.");
 			break;
 		case CompilerDefaultOutputMode::NoArtifact:
 			plan.expectedOutputPath.clear();
@@ -891,7 +891,7 @@ CompilerCommandPlan buildCompilerCommandPlan(const CompilerCommandRequest& reque
 		&& plan.expectedOutputPath == plan.inputPath) {
 		plan.expectedOutputPath.clear();
 		plan.expectedOutputKnown = false;
-		plan.warnings << QCoreApplication::translate("VibeStudioCompilerProfiles", "The expected output path collapsed onto the input file, so the artifact destination is treated as unknown instead of validating an untouched input.");
+		plan.warnings << QCoreApplication::translate("SlopStudioCompilerProfiles", "The expected output path collapsed onto the input file, so the artifact destination is treated as unknown instead of validating an untouched input.");
 	}
 
 	plan.arguments.clear();
@@ -936,14 +936,14 @@ CompilerCommandPlan buildCompilerCommandPlan(const CompilerCommandRequest& reque
 			continue;
 		}
 		// Both BSP compilers skip or delete the portal file when the map leaks
-		// (external/compilers/vibemap2/src/qbsp/outside.cc and
-		// external/compilers/vibemap3/tools/quake3/q3map2/bsp.cpp), so this warning must not name
-		// one of them: it fires for the VibeMap3 chain exactly as it does for the VibeMap2 chain.
-		plan.warnings << QCoreApplication::translate("VibeStudioCompilerProfiles", "The %1 stage needs %2 beside its input, but that file is missing. This is usually the classic chain where the BSP stage found a leak, so no portal file was kept and the visibility stage cannot run.")
+		// (external/compilers/slopmap2/src/qbsp/outside.cc and
+		// external/compilers/slopmap3/tools/quake3/q3map2/bsp.cpp), so this warning must not name
+		// one of them: it fires for the SlopMap3 chain exactly as it does for the SlopMap2 chain.
+		plan.warnings << QCoreApplication::translate("SlopStudioCompilerProfiles", "The %1 stage needs %2 beside its input, but that file is missing. This is usually the classic chain where the BSP stage found a leak, so no portal file was kept and the visibility stage cannot run.")
 			.arg(plan.profile.stageId, QDir::toNativeSeparators(companion));
 	}
 
-	if (plan.profile.toolId.startsWith(QStringLiteral("vibemap2-"), Qt::CaseInsensitive)) {
+	if (plan.profile.toolId.startsWith(QStringLiteral("slopmap2-"), Qt::CaseInsensitive)) {
 		const QVector<CompilerKnownIssueDescriptor> profileIssues = compilerKnownIssuesForProfile(plan.profile.id);
 		int highValueCount = 0;
 		for (const CompilerKnownIssueDescriptor& issue : profileIssues) {
@@ -952,10 +952,10 @@ CompilerCommandPlan buildCompilerCommandPlan(const CompilerCommandRequest& reque
 			}
 		}
 		if (!profileIssues.isEmpty()) {
-			// Informational only: tracking upstream issues must not make every VibeMap2 run a warning.
-			plan.knownIssueNotes << QCoreApplication::translate("VibeStudioCompilerProfiles", "VibeMap2 known-issue checks active: %1 high-value issues inherited from ericw-tools are tracked for this profile.").arg(highValueCount);
+			// Informational only: tracking upstream issues must not make every SlopMap2 run a warning.
+			plan.knownIssueNotes << QCoreApplication::translate("SlopStudioCompilerProfiles", "SlopMap2 known-issue checks active: %1 high-value issues inherited from ericw-tools are tracked for this profile.").arg(highValueCount);
 		}
-		plan.knownIssueWarnings += vibemap2KnownIssuePlanWarnings(plan.profile.id, plan.inputPath, plan.arguments);
+		plan.knownIssueWarnings += slopmap2KnownIssuePlanWarnings(plan.profile.id, plan.inputPath, plan.arguments);
 		plan.warnings += plan.knownIssueWarnings;
 		if (QFileInfo(plan.inputPath).suffix().compare(QStringLiteral("map"), Qt::CaseInsensitive) == 0) {
 			QString preflightError;
@@ -987,59 +987,59 @@ QString compilerCommandLineText(const QString& program, const QStringList& argum
 QString compilerCommandPlanText(const CompilerCommandPlan& plan)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Compiler command plan");
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Profile: %1").arg(plan.profileFound ? plan.profile.id : QCoreApplication::translate("VibeStudioCompilerProfiles", "(unknown)"));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Compiler command plan");
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Profile: %1").arg(plan.profileFound ? plan.profile.id : QCoreApplication::translate("SlopStudioCompilerProfiles", "(unknown)"));
 	if (plan.profileFound) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Tool: %1").arg(plan.profile.toolId);
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Stage: %1").arg(plan.profile.stageId);
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Engine: %1").arg(plan.profile.engineFamily);
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Tool: %1").arg(plan.profile.toolId);
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Stage: %1").arg(plan.profile.stageId);
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Engine: %1").arg(plan.profile.engineFamily);
 	}
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "State: %1").arg(operationStateId(plan.state()));
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Runnable: %1").arg(plan.isRunnable() ? QCoreApplication::translate("VibeStudioCompilerProfiles", "yes") : QCoreApplication::translate("VibeStudioCompilerProfiles", "no"));
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Program: %1").arg(plan.program.isEmpty() ? QCoreApplication::translate("VibeStudioCompilerProfiles", "(not resolved)") : QDir::toNativeSeparators(plan.program));
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Working directory: %1").arg(QDir::toNativeSeparators(plan.workingDirectory));
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Input: %1").arg(QDir::toNativeSeparators(plan.inputPath));
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Expected output: %1").arg(plan.expectedOutputKnown ? QDir::toNativeSeparators(plan.expectedOutputPath) : QCoreApplication::translate("VibeStudioCompilerProfiles", "(unknown)"));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "State: %1").arg(operationStateId(plan.state()));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Runnable: %1").arg(plan.isRunnable() ? QCoreApplication::translate("SlopStudioCompilerProfiles", "yes") : QCoreApplication::translate("SlopStudioCompilerProfiles", "no"));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Program: %1").arg(plan.program.isEmpty() ? QCoreApplication::translate("SlopStudioCompilerProfiles", "(not resolved)") : QDir::toNativeSeparators(plan.program));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Working directory: %1").arg(QDir::toNativeSeparators(plan.workingDirectory));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Input: %1").arg(QDir::toNativeSeparators(plan.inputPath));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Expected output: %1").arg(plan.expectedOutputKnown ? QDir::toNativeSeparators(plan.expectedOutputPath) : QCoreApplication::translate("SlopStudioCompilerProfiles", "(unknown)"));
 	for (const QString& output : plan.additionalExpectedOutputPaths) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Expected output: %1").arg(QDir::toNativeSeparators(output));
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Expected output: %1").arg(QDir::toNativeSeparators(output));
 	}
 	for (const QString& output : plan.relatedOutputPaths) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Related output (optional): %1").arg(QDir::toNativeSeparators(output));
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Related output (optional): %1").arg(QDir::toNativeSeparators(output));
 	}
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Command line: %1").arg(plan.commandLine);
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Command line: %1").arg(plan.commandLine);
 	if (!plan.profile.argumentPresets.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Argument presets");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Argument presets");
 		for (const CompilerArgumentPreset& preset : plan.profile.argumentPresets) {
 			lines << QStringLiteral("- %1 [%2]: %3%4")
 				.arg(preset.displayName, preset.id, preset.arguments.join(' '), preset.requiresValue ? QStringLiteral(" <%1>").arg(preset.valuePlaceholder) : QString());
 		}
 	}
 	if (!plan.knownIssueNotes.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Known issue notes");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Known issue notes");
 		for (const QString& note : plan.knownIssueNotes) {
 			lines << QStringLiteral("- %1").arg(note);
 		}
 	}
 	if (!plan.knownIssueWarnings.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Known issue checks");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Known issue checks");
 		for (const QString& warning : plan.knownIssueWarnings) {
 			lines << QStringLiteral("- %1").arg(warning);
 		}
 	}
 	if (!plan.preflightWarnings.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Preflight warnings");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Preflight warnings");
 		for (const QString& warning : plan.preflightWarnings) {
 			lines << QStringLiteral("- %1").arg(warning);
 		}
 	}
 	if (!plan.warnings.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Warnings");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Warnings");
 		for (const QString& warning : plan.warnings) {
 			lines << QStringLiteral("- %1").arg(warning);
 		}
 	}
 	if (!plan.errors.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Errors");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Errors");
 		for (const QString& error : plan.errors) {
 			lines << QStringLiteral("- %1").arg(error);
 		}
@@ -1090,21 +1090,21 @@ CompilerCommandManifest compilerCommandManifestFromPlan(const CompilerCommandPla
 	manifest.warnings = plan.warnings;
 	manifest.errors = plan.errors;
 
-	manifest.taskLog.push_back(taskLogEntry(QStringLiteral("info"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Compiler command plan created.")));
+	manifest.taskLog.push_back(taskLogEntry(QStringLiteral("info"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Compiler command plan created.")));
 	for (const QString& note : manifest.knownIssueNotes) {
 		manifest.taskLog.push_back(taskLogEntry(QStringLiteral("info"), note));
 	}
 	if (!manifest.profileId.isEmpty()) {
-		manifest.taskLog.push_back(taskLogEntry(QStringLiteral("info"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Profile: %1").arg(manifest.profileId)));
+		manifest.taskLog.push_back(taskLogEntry(QStringLiteral("info"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Profile: %1").arg(manifest.profileId)));
 	}
 	if (!manifest.program.isEmpty()) {
-		manifest.taskLog.push_back(taskLogEntry(QStringLiteral("info"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Program: %1").arg(manifest.program)));
+		manifest.taskLog.push_back(taskLogEntry(QStringLiteral("info"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Program: %1").arg(manifest.program)));
 	}
 	for (const QString& input : manifest.inputPaths) {
-		manifest.taskLog.push_back(taskLogEntry(QStringLiteral("info"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Input: %1").arg(input)));
+		manifest.taskLog.push_back(taskLogEntry(QStringLiteral("info"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Input: %1").arg(input)));
 	}
 	for (const QString& output : manifest.expectedOutputPaths) {
-		manifest.taskLog.push_back(taskLogEntry(QStringLiteral("info"), QCoreApplication::translate("VibeStudioCompilerProfiles", "Expected output: %1").arg(output)));
+		manifest.taskLog.push_back(taskLogEntry(QStringLiteral("info"), QCoreApplication::translate("SlopStudioCompilerProfiles", "Expected output: %1").arg(output)));
 	}
 	for (const QString& warning : manifest.warnings) {
 		manifest.taskLog.push_back(taskLogEntry(QStringLiteral("warning"), warning));
@@ -1112,7 +1112,7 @@ CompilerCommandManifest compilerCommandManifestFromPlan(const CompilerCommandPla
 	for (const QString& error : manifest.errors) {
 		manifest.taskLog.push_back(taskLogEntry(QStringLiteral("error"), error));
 	}
-	manifest.taskLog.push_back(taskLogEntry(manifest.runnable ? QStringLiteral("info") : QStringLiteral("warning"), manifest.runnable ? QCoreApplication::translate("VibeStudioCompilerProfiles", "Plan is runnable.") : QCoreApplication::translate("VibeStudioCompilerProfiles", "Plan is not runnable yet.")));
+	manifest.taskLog.push_back(taskLogEntry(manifest.runnable ? QStringLiteral("info") : QStringLiteral("warning"), manifest.runnable ? QCoreApplication::translate("SlopStudioCompilerProfiles", "Plan is runnable.") : QCoreApplication::translate("SlopStudioCompilerProfiles", "Plan is not runnable yet.")));
 	return manifest;
 }
 
@@ -1163,20 +1163,20 @@ QJsonObject compilerCommandManifestJson(const CompilerCommandManifest& manifest)
 QString compilerCommandManifestText(const CompilerCommandManifest& manifest)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Compiler command manifest");
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Schema: %1").arg(manifest.schemaVersion);
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Manifest ID: %1").arg(manifest.manifestId);
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Created UTC: %1").arg(manifest.createdUtc.toUTC().toString(Qt::ISODate));
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Profile: %1").arg(manifest.profileId.isEmpty() ? QCoreApplication::translate("VibeStudioCompilerProfiles", "(unknown)") : manifest.profileId);
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Tool: %1").arg(manifest.toolId.isEmpty() ? QCoreApplication::translate("VibeStudioCompilerProfiles", "(unknown)") : manifest.toolId);
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "State: %1").arg(operationStateId(manifest.state));
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Runnable: %1").arg(manifest.runnable ? QCoreApplication::translate("VibeStudioCompilerProfiles", "yes") : QCoreApplication::translate("VibeStudioCompilerProfiles", "no"));
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Exit code: %1").arg(manifest.exitCode >= 0 ? QString::number(manifest.exitCode) : QCoreApplication::translate("VibeStudioCompilerProfiles", "not run"));
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Duration: %1 ms").arg(manifest.durationMs >= 0 ? QString::number(manifest.durationMs) : QCoreApplication::translate("VibeStudioCompilerProfiles", "not run"));
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Command line: %1").arg(manifest.commandLine);
-	lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Working directory: %1").arg(QDir::toNativeSeparators(manifest.workingDirectory));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Compiler command manifest");
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Schema: %1").arg(manifest.schemaVersion);
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Manifest ID: %1").arg(manifest.manifestId);
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Created UTC: %1").arg(manifest.createdUtc.toUTC().toString(Qt::ISODate));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Profile: %1").arg(manifest.profileId.isEmpty() ? QCoreApplication::translate("SlopStudioCompilerProfiles", "(unknown)") : manifest.profileId);
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Tool: %1").arg(manifest.toolId.isEmpty() ? QCoreApplication::translate("SlopStudioCompilerProfiles", "(unknown)") : manifest.toolId);
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "State: %1").arg(operationStateId(manifest.state));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Runnable: %1").arg(manifest.runnable ? QCoreApplication::translate("SlopStudioCompilerProfiles", "yes") : QCoreApplication::translate("SlopStudioCompilerProfiles", "no"));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Exit code: %1").arg(manifest.exitCode >= 0 ? QString::number(manifest.exitCode) : QCoreApplication::translate("SlopStudioCompilerProfiles", "not run"));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Duration: %1 ms").arg(manifest.durationMs >= 0 ? QString::number(manifest.durationMs) : QCoreApplication::translate("SlopStudioCompilerProfiles", "not run"));
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Command line: %1").arg(manifest.commandLine);
+	lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Working directory: %1").arg(QDir::toNativeSeparators(manifest.workingDirectory));
 	if (!manifest.environmentSubset.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Environment subset");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Environment subset");
 		for (auto it = manifest.environmentSubset.cbegin(); it != manifest.environmentSubset.cend(); ++it) {
 			QString value = it.value();
 			if (value.size() > 240) {
@@ -1186,44 +1186,44 @@ QString compilerCommandManifestText(const CompilerCommandManifest& manifest)
 		}
 	}
 	if (!manifest.inputPaths.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Inputs");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Inputs");
 		for (const QString& input : manifest.inputPaths) {
 			lines << QStringLiteral("- %1").arg(QDir::toNativeSeparators(input));
 		}
 	}
 	if (!manifest.expectedOutputPaths.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Expected outputs");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Expected outputs");
 		for (const QString& output : manifest.expectedOutputPaths) {
 			lines << QStringLiteral("- %1").arg(QDir::toNativeSeparators(output));
 		}
 	} else if (!manifest.expectedOutputKnown) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Expected outputs: (unknown for this stage)");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Expected outputs: (unknown for this stage)");
 	}
 	if (!manifest.optionalOutputPaths.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Related outputs (optional)");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Related outputs (optional)");
 		for (const QString& output : manifest.optionalOutputPaths) {
 			lines << QStringLiteral("- %1").arg(QDir::toNativeSeparators(output));
 		}
 	}
 	if (!manifest.registeredOutputPaths.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Registered outputs");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Registered outputs");
 		for (const QString& output : manifest.registeredOutputPaths) {
 			lines << QStringLiteral("- %1").arg(QDir::toNativeSeparators(output));
 		}
 	}
 	if (!manifest.inputHashes.isEmpty() || !manifest.outputHashes.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "File hashes");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "File hashes");
 		for (const CompilerFileHash& hash : manifest.inputHashes) {
 			lines << QStringLiteral("- %1 %2 %3")
-				.arg(hash.exists ? QCoreApplication::translate("VibeStudioCompilerProfiles", "present") : QCoreApplication::translate("VibeStudioCompilerProfiles", "missing"), hash.sha256.isEmpty() ? QCoreApplication::translate("VibeStudioCompilerProfiles", "(no hash)") : hash.sha256, QDir::toNativeSeparators(hash.path));
+				.arg(hash.exists ? QCoreApplication::translate("SlopStudioCompilerProfiles", "present") : QCoreApplication::translate("SlopStudioCompilerProfiles", "missing"), hash.sha256.isEmpty() ? QCoreApplication::translate("SlopStudioCompilerProfiles", "(no hash)") : hash.sha256, QDir::toNativeSeparators(hash.path));
 		}
 		for (const CompilerFileHash& hash : manifest.outputHashes) {
 			lines << QStringLiteral("- %1 %2 %3")
-				.arg(hash.exists ? QCoreApplication::translate("VibeStudioCompilerProfiles", "present") : QCoreApplication::translate("VibeStudioCompilerProfiles", "missing"), hash.sha256.isEmpty() ? QCoreApplication::translate("VibeStudioCompilerProfiles", "(no hash)") : hash.sha256, QDir::toNativeSeparators(hash.path));
+				.arg(hash.exists ? QCoreApplication::translate("SlopStudioCompilerProfiles", "present") : QCoreApplication::translate("SlopStudioCompilerProfiles", "missing"), hash.sha256.isEmpty() ? QCoreApplication::translate("SlopStudioCompilerProfiles", "(no hash)") : hash.sha256, QDir::toNativeSeparators(hash.path));
 		}
 	}
 	if (!manifest.diagnostics.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Diagnostics");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Diagnostics");
 		for (const CompilerDiagnostic& diagnostic : manifest.diagnostics) {
 			QString location;
 			if (!diagnostic.filePath.isEmpty()) {
@@ -1236,33 +1236,33 @@ QString compilerCommandManifestText(const CompilerCommandManifest& manifest)
 		}
 	}
 	if (!manifest.knownIssueNotes.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Known issue notes");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Known issue notes");
 		for (const QString& note : manifest.knownIssueNotes) {
 			lines << QStringLiteral("- %1").arg(note);
 		}
 	}
 	if (!manifest.knownIssueWarnings.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Known issue checks");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Known issue checks");
 		for (const QString& warning : manifest.knownIssueWarnings) {
 			lines << QStringLiteral("- %1").arg(warning);
 		}
 	}
 	if (!manifest.preflightWarnings.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Preflight warnings");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Preflight warnings");
 		for (const QString& warning : manifest.preflightWarnings) {
 			lines << QStringLiteral("- %1").arg(warning);
 		}
 	}
 	if (!manifest.stdoutText.trimmed().isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Stdout");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Stdout");
 		lines << manifest.stdoutText.trimmed();
 	}
 	if (!manifest.stderrText.trimmed().isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Stderr");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Stderr");
 		lines << manifest.stderrText.trimmed();
 	}
 	if (!manifest.taskLog.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioCompilerProfiles", "Task log");
+		lines << QCoreApplication::translate("SlopStudioCompilerProfiles", "Task log");
 		for (const CompilerTaskLogEntry& entry : manifest.taskLog) {
 			lines << QStringLiteral("- [%1] %2: %3").arg(entry.timestampUtc.toUTC().toString(Qt::ISODate), entry.level, entry.message);
 		}
@@ -1274,7 +1274,7 @@ bool saveCompilerCommandManifest(const CompilerCommandManifest& manifest, const 
 {
 	if (path.trimmed().isEmpty()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioCompilerProfiles", "Manifest path is required.");
+			*error = QCoreApplication::translate("SlopStudioCompilerProfiles", "Manifest path is required.");
 		}
 		return false;
 	}
@@ -1282,7 +1282,7 @@ bool saveCompilerCommandManifest(const CompilerCommandManifest& manifest, const 
 	const QString parentPath = info.absolutePath();
 	if (!QDir().mkpath(parentPath)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioCompilerProfiles", "Failed to create manifest directory: %1").arg(parentPath);
+			*error = QCoreApplication::translate("SlopStudioCompilerProfiles", "Failed to create manifest directory: %1").arg(parentPath);
 		}
 		return false;
 	}
@@ -1320,7 +1320,7 @@ bool loadCompilerCommandManifest(const QString& path, CompilerCommandManifest* m
 	}
 	if (path.trimmed().isEmpty()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioCompilerProfiles", "Manifest path is required.");
+			*error = QCoreApplication::translate("SlopStudioCompilerProfiles", "Manifest path is required.");
 		}
 		return false;
 	}
@@ -1337,7 +1337,7 @@ bool loadCompilerCommandManifest(const QString& path, CompilerCommandManifest* m
 	const QJsonDocument document = QJsonDocument::fromJson(file.readAll(), &parseError);
 	if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioCompilerProfiles", "Compiler manifest JSON is invalid: %1").arg(parseError.errorString());
+			*error = QCoreApplication::translate("SlopStudioCompilerProfiles", "Compiler manifest JSON is invalid: %1").arg(parseError.errorString());
 		}
 		return false;
 	}
@@ -1390,4 +1390,4 @@ bool loadCompilerCommandManifest(const QString& path, CompilerCommandManifest* m
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct LevelPrefabDialog::Work {
 	LevelMapDocument candidate;
@@ -130,7 +130,7 @@ LevelPrefabDialog::LevelPrefabDialog(const LevelMapDocument &source, LevelPrefab
 			connect(browse, &QPushButton::clicked, this, [this] {
 				const auto path = QFileDialog::getSaveFileName(
 					this, tr("Export Prefab"), m_output->text().isEmpty() ? QFileInfo(m_source.sourcePath).absolutePath() : m_output->text(),
-					tr("VibeStudio prefabs (*.vprefab)"));
+					tr("SlopStudio prefabs (*.vprefab)"));
 				if (!path.isEmpty()) {
 					m_output->setText(QFileInfo(path).suffix().isEmpty() ? path + QStringLiteral(".vprefab") : path);
 				}
@@ -515,4 +515,4 @@ void LevelPrefabDialog::reject()
 	m_debounce->stop();
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

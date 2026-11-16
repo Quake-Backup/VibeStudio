@@ -4,7 +4,7 @@
 
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 inline constexpr qint64 AudioProjectByteLimit = AudioSampleLimit * 4 + 256 * 1024 + 48;
@@ -41,7 +41,7 @@ struct AudioProjectSaveReport {
 	QString error;
 };
 
-// VibeStudio-owned .vsaudio format: 8-byte magic, LE version/JSON length,
+// SlopStudio-owned .vsaudio format: 8-byte magic, LE version/JSON length,
 // bounded JSON, interleaved IEEE float32 LE samples, SHA-256 of preceding bytes.
 // There is no quantization, automatic source write-back, or executable content.
 QByteArray encodeAudioProject(const AudioProject& project, QString* error = nullptr,
@@ -59,4 +59,4 @@ QString writeAudioRecovery(const AudioProject& project, const QString& directory
                            QString* error = nullptr);
 bool removeAudioRecovery(const QString& directory, const QString& id, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

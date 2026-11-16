@@ -6,7 +6,7 @@
 #include <optional>
 
 class QThread;
-namespace vibestudio {
+namespace slopstudio {
 
 struct MapPlanRenderResult {
 	quint64 sceneRevision = 0, selectionRevision = 0;
@@ -35,4 +35,4 @@ private:
 	void startNext();
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

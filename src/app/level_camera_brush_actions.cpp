@@ -15,7 +15,7 @@
 #include <QToolButton>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 QWidget* ApplicationShell::buildLevelBrushTools()
 {
@@ -166,4 +166,4 @@ void ApplicationShell::refreshLevelCameraBrush()
 		m_levelControls.plan.squareModifiers,m_levelControls.plan.cubeModifiers,m_levelMap3D->brushDrawDirection());
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

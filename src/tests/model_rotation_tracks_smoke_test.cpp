@@ -16,8 +16,8 @@
 #include <iostream>
 #include <numbers>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -81,7 +81,7 @@ QJsonObject runJson(const QStringList &args, int *code)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir tmp(QDir(root).filePath("rotation-tracks-XXXXXX"));
@@ -252,34 +252,34 @@ int main(int argc, char **argv)
 	ModelDocument keyed;
 	expect(keyed.setMesh(mesh, &error) && keyed.edit(capture, &error) && keyed.save(source, false, &error), "save a keyed source");
 	int code = 0;
-	auto result = runJson({"vibestudio", "--cli", "model", "curves", source, "--clip", "0", "--joint", "l_arm", "--operation", "convert-rotation", "--to",
+	auto result = runJson({"slopstudio", "--cli", "model", "curves", source, "--clip", "0", "--joint", "l_arm", "--operation", "convert-rotation", "--to",
 						   "quaternion", "--output", out, "--json"},
 						  &code);
 	expect(code == 0 && result["curves"].toArray()[0].toObject()["rotation"].toArray().size() == 4 && result["rotationChange"].toDouble() < 1e-3,
 		   "CLI converts a joint's rotation to quaternion keys");
-	result = runJson({"vibestudio", "--cli", "model", "curves", out, "--clip", "0", "--joint", "l_arm", "--operation", "set-rotation-key", "--frame", "2",
+	result = runJson({"slopstudio", "--cli", "model", "curves", out, "--clip", "0", "--joint", "l_arm", "--operation", "set-rotation-key", "--frame", "2",
 					  "--rotate", "0,0,45", "--interpolation", "cubic", "--output", out, "--overwrite", "--json"},
 					 &code);
 	const auto keys = result["curves"].toArray()[0].toObject()["rotation"].toArray();
 	expect(code == 0 && keys.size() == 4 && keys[2].toArray()[5].toString() == "cubic" &&
 			   std::abs(keys[2].toArray()[3].toDouble() - std::sin(45 * std::numbers::pi / 360)) < 1e-6,
 		   "CLI sets a quaternion key from degrees");
-	expect(runJson({"vibestudio", "--cli", "model", "curves", out, "--clip", "0", "--joint", "l_arm", "--operation", "set-rotation-key", "--frame", "2",
+	expect(runJson({"slopstudio", "--cli", "model", "curves", out, "--clip", "0", "--joint", "l_arm", "--operation", "set-rotation-key", "--frame", "2",
 					"--quat", "0,0,0,0", "--output", out, "--overwrite"},
 				   &code)
 				   .isEmpty() &&
 			   code == 2,
 		   "CLI refuses a zero quaternion");
-	result = runJson({"vibestudio", "--cli", "model", "curves", out, "--clip", "0", "--joint", "l_arm", "--operation", "remove-rotation-key", "--frame", "1",
+	result = runJson({"slopstudio", "--cli", "model", "curves", out, "--clip", "0", "--joint", "l_arm", "--operation", "remove-rotation-key", "--frame", "1",
 					  "--output", out, "--overwrite", "--json"},
 					 &code);
 	expect(code == 0 && result["curves"].toArray()[0].toObject()["rotation"].toArray().size() == 3, "CLI removes a quaternion key");
-	result = runJson({"vibestudio", "--cli", "model", "curves", out, "--clip", "0", "--joint", "l_arm", "--operation", "convert-rotation", "--to", "euler",
+	result = runJson({"slopstudio", "--cli", "model", "curves", out, "--clip", "0", "--joint", "l_arm", "--operation", "convert-rotation", "--to", "euler",
 					  "--every-sample", "--output", out, "--overwrite", "--json"},
 					 &code);
 	expect(code == 0 && !result["curves"].toArray()[0].toObject().contains("rotation") && result["rotationChange"].toDouble() < 1e-3,
 		   "CLI converts back to Euler channels with a key at every sample");
-	expect(runJson({"vibestudio", "--cli", "model", "curves", out, "--clip", "0", "--joint", "l_arm", "--operation", "convert-rotation", "--to", "sideways",
+	expect(runJson({"slopstudio", "--cli", "model", "curves", out, "--clip", "0", "--joint", "l_arm", "--operation", "convert-rotation", "--to", "sideways",
 					"--output", out, "--overwrite"},
 				   &code)
 				   .isEmpty() &&

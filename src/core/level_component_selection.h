@@ -4,7 +4,7 @@
 #include <QSet>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 enum class LevelComponentPick { Replace, Add, Subtract, Toggle };
 // Click toggles a coincident group together; a lasso toggles individual hits.
 QSet<int> selectLevelComponentHandles(const QSet<int>& current,const QSet<int>& hits,
@@ -70,4 +70,4 @@ bool queryLevelComponentSelection(const QVector<LevelComponentSelectionTopology>
 	QVector<LevelMapComponentSet>* output, QString* error = nullptr);
 bool selectLevelMapComponents(const LevelMapDocument& document, const QVector<LevelMapComponentSet>& input,
 	const LevelComponentSelectionRequest& request, QVector<LevelMapComponentSet>* output, QString* error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

@@ -12,8 +12,8 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -46,7 +46,7 @@ ModelEdit operation()
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temp(QDir(root).filePath("uv-density-XXXXXX"));
@@ -321,7 +321,7 @@ int main(int argc, char **argv)
 		   "late document cancellation retains history", error);
 	const auto input = temp.filePath("source.mesh.json"), output = temp.filePath("result.mesh.json");
 	expect(write(input, bytes), "write CLI source");
-	const QStringList base{"vibestudio", "--cli", "model", "uv-density", input, "--texture-size", "100"};
+	const QStringList base{"slopstudio", "--cli", "model", "uv-density", input, "--texture-size", "100"};
 	auto inspected = cli::runModelUvDensity(base);
 	expect(inspected.exitCode == 0 && near(inspected.payload["before"].toObject()["pixelsPerUnit"].toDouble(), std::sqrt(250.)),
 		   "CLI inspection parity", inspected.error);

@@ -2,7 +2,7 @@
 
 #include <QThread>
 
-namespace vibestudio {
+namespace slopstudio {
 
 MaterialTaskLane::MaterialTaskLane(QObject* parent)
 	: QObject(parent)
@@ -82,4 +82,4 @@ void MaterialTaskLane::startNext()
 	m_thread->start(QThread::LowPriority);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

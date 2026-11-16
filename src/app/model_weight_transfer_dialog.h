@@ -11,7 +11,7 @@ class QPushButton;
 class QTabWidget;
 class QTableView;
 class QTableWidget;
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class ModelTransferTable;
@@ -59,4 +59,4 @@ class ModelWeightTransferDialog final : public QDialog
 	void changed();
 	void showPreview();
 };
-} // namespace vibestudio
+} // namespace slopstudio

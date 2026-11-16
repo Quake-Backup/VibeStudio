@@ -22,7 +22,7 @@
 #include <limits>
 #include <memory>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -770,7 +770,7 @@ int main()
 	{
 		QDir compressSource(root.filePath(QStringLiteral("compress-source")));
 		ok &= expect(root.mkpath(QStringLiteral("compress-source")), "compression source directory should be created");
-		const QByteArray compressible = QByteArray(6000, 'A') + QByteArray("vibestudio");
+		const QByteArray compressible = QByteArray(6000, 'A') + QByteArray("slopstudio");
 		const QByteArray random = incompressibleBytes(4096);
 		ok &= expect(writeFile(compressSource.filePath(QStringLiteral("repeat.txt")), compressible), "compressible fixture should be written");
 		ok &= expect(writeFile(compressSource.filePath(QStringLiteral("noise.bin")), random), "incompressible fixture should be written");
@@ -1135,7 +1135,7 @@ int main()
 		PackageArchive recovered;
 		ok &= expect(recovered.load(inPlaceReport.backupPath, &error), "the backup should load as a package");
 		ok &= expect(recovered.readEntryBytes(QStringLiteral("b.txt"), &bytes, &error) && bytes == QByteArray("BBB"), "the backup should still read the original entries");
-		ok &= expect(root.entryList(QStringList {QStringLiteral("inplace.pak.vibestudio-*")}, QDir::Files).isEmpty(), "a successful overwrite must not leave a temporary file behind");
+		ok &= expect(root.entryList(QStringList {QStringLiteral("inplace.pak.slopstudio-*")}, QDir::Files).isEmpty(), "a successful overwrite must not leave a temporary file behind");
 	}
 
 	// A caller-named backup path, and an in-place overwrite of a package that

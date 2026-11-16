@@ -3,7 +3,7 @@
 #include "core/language_hover.h"
 #include <QJsonObject>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LanguageSignatureParameter {
 	QString label;
@@ -39,4 +39,4 @@ LanguageSignatureHelp parseLanguageSignatureHelp(const QJsonValue& response, con
 // refer to the retained arrays, including the user's selected overload.
 QJsonObject languageSignatureContext(const LanguageSignatureHelp& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

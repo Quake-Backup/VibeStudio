@@ -3,7 +3,7 @@
 // (lib/TbUiLib/src/MapWindow.cpp at 4c756be1, GPL-3.0-or-later): a typed list
 // of at least four points becomes the convex brush enclosing them in the
 // current material, and the selected faces' or brushes' corners are written
-// out at full precision. Original implementation over VibeStudio's shared
+// out at full precision. Original implementation over SlopStudio's shared
 // envelope builder and hull insertion; see docs/CREDITS.md.
 
 #include "core/level_brush_points.h"
@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 // The hull solver's own tolerance (core/level_brush.cpp): points closer than
 // this to a line or plane do not give it a volume.
@@ -452,4 +452,4 @@ int levelVertexListingPointCount(const QVector<LevelVertexListing>& listings)
 	}
 	return count;
 }
-} // namespace vibestudio
+} // namespace slopstudio

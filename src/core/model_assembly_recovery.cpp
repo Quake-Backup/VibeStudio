@@ -18,7 +18,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -266,7 +266,7 @@ ModelAssemblyRecoveryRecord inspectModelAssemblyRecovery(const QString &path, Mo
 	QByteArray expected;
 	if (parseError.error != QJsonParseError::NoError || !json.isObject() ||
 		!keys(object, {"format", "schema", "id", "writtenUtc", "payloadSha256", "payload"}) ||
-		object.value("format") != QJsonValue(QStringLiteral("vibestudio-assembly-recovery")) || object.value("schema") != QJsonValue(1) ||
+		object.value("format") != QJsonValue(QStringLiteral("slopstudio-assembly-recovery")) || object.value("schema") != QJsonValue(1) ||
 		object.value("id") != QJsonValue(record.id) || !textField(object, "writtenUtc", 64, true) ||
 		!textField(object, "payloadSha256", 64, true) || !digest(object.value("payloadSha256").toString(), &expected) ||
 		!object.value("payload").isObject())
@@ -428,7 +428,7 @@ bool ModelAssemblyRecoverySession::write(const ModelAssemblyRecoverySnapshot &sn
 	const auto payloadBytes = QJsonDocument(payload).toJson(QJsonDocument::Compact);
 	const auto bytes =
 		QJsonDocument(
-			QJsonObject{{"format", QStringLiteral("vibestudio-assembly-recovery")},
+			QJsonObject{{"format", QStringLiteral("slopstudio-assembly-recovery")},
 						{"schema", 1},
 						{"id", m_id},
 						{"writtenUtc", QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs)},
@@ -496,9 +496,9 @@ bool ModelAssemblyRecoverySession::retire(QString *error)
 		return true;
 	}
 	const auto folderPath = QDir(m_directory).filePath(QStringLiteral(".inventory.lock"));
-	QLockFile folderLock(folderPath), fileLock(output + QStringLiteral(".vibestudio-model.lock"));
+	QLockFile folderLock(folderPath), fileLock(output + QStringLiteral(".slopstudio-model.lock"));
 	return lock(folderLock, folderPath, error, {}, 1000) &&
-		   lock(fileLock, output + QStringLiteral(".vibestudio-model.lock"), error, {}, 1000) &&
+		   lock(fileLock, output + QStringLiteral(".slopstudio-model.lock"), error, {}, 1000) &&
 		   removeReviewed(m_directory, m_id, m_writtenSha256, false, error, {});
 }
 bool discardModelAssemblyRecovery(const QString &directory, const QString &id, const QByteArray &expectedSha256, bool dryRun,
@@ -523,9 +523,9 @@ bool discardModelAssemblyRecovery(const QString &directory, const QString &id, c
 		return false;
 	}
 	const auto folderPath = QDir(directory).filePath(QStringLiteral(".inventory.lock"));
-	QLockFile folderLock(folderPath), fileLock(path + QStringLiteral(".vibestudio-model.lock"));
+	QLockFile folderLock(folderPath), fileLock(path + QStringLiteral(".slopstudio-model.lock"));
 	return lock(folderLock, folderPath, error, control, 1000) &&
-		   lock(fileLock, path + QStringLiteral(".vibestudio-model.lock"), error, control, 1000) &&
+		   lock(fileLock, path + QStringLiteral(".slopstudio-model.lock"), error, control, 1000) &&
 		   removeReviewed(directory, id, expectedSha256, false, error, control);
 }
-} // namespace vibestudio
+} // namespace slopstudio

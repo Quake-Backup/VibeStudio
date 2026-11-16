@@ -5,7 +5,7 @@
 #include <QProcess>
 #include <QTemporaryDir>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* why) { if (!condition) { std::cerr << why << '\n'; } return condition; }
 QJsonObject pos(int line, int column) { return {{QStringLiteral("line"), line}, {QStringLiteral("character"), column}}; }

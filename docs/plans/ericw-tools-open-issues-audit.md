@@ -1,7 +1,7 @@
 # ericw-tools Open Issues Audit
 
 > [!NOTE]
-> VibeStudio now compiles Quake-family maps with VibeMap2, its own compiler
+> SlopStudio now compiles Quake-family maps with SlopMap2, its own compiler
 > derived from ericw-tools. This plan is kept as written; its issue numbers are
 > upstream ericw-tools issues.
 
@@ -9,15 +9,15 @@ Audit date: 2026-05-02
 
 Upstream source: <https://github.com/ericwa/ericw-tools/issues>
 
-Local submodule at audit time: ericw-tools at `f80b1e216a415581aea7475cb52b16b8c4859084`, since replaced by VibeMap2 in `external/compilers/vibemap2`
+Local submodule at audit time: ericw-tools at `f80b1e216a415581aea7475cb52b16b8c4859084`, since replaced by SlopMap2 in `external/compilers/slopmap2`
 
 Remaining-pass matrix:
 `docs/plans/ericw-tools-remaining-bugs-resolution.md`
 
 This audit covers the 125 open upstream GitHub issues in `ericwa/ericw-tools`,
-excluding pull requests. VibeStudio currently treats ericw-tools as an external
+excluding pull requests. SlopStudio currently treats ericw-tools as an external
 compiler submodule and invokes `qbsp`, `vis`, and `light` through wrapper
-profiles, so "benefit" here means benefit to VibeStudio through one or more of:
+profiles, so "benefit" here means benefit to SlopStudio through one or more of:
 
 - command-profile options and presets;
 - wrapper safety, path handling, manifest, or provenance behavior;
@@ -30,53 +30,53 @@ profiles, so "benefit" here means benefit to VibeStudio through one or more of:
 
 No duplicate issue numbers were found in the open upstream issue set. Several
 issues are closely related and should be tracked as implementation clusters in
-VibeStudio so one product task can reference multiple upstream issues.
+SlopStudio so one product task can reference multiple upstream issues.
 
-| Cluster | Canonical VibeStudio tracking theme | Upstream issues | Deduplication note |
+| Cluster | Canonical SlopStudio tracking theme | Upstream issues | Deduplication note |
 |---|---|---|---|
 | D01 | Compiler provenance and BSPX metadata | #167, #309, #399, #415, #483 | #483 is effectively a modernized form of #167. #309, #399, and #415 are related BSPX/lightmap metadata and documentation work, not duplicates. |
 | D02 | Light entity validation | #122, #173, #475 | #475 extends #173 by preserving overwritten style data. #122 is a sibling validation rule for grouped/toggled lights. |
 | D03 | Debug-lighting output regressions | #77, #400, #416 | #400 and #416 appear to describe the same `-bouncedebug` breakage. #77 is a separate debug-mode bug. |
 | D04 | Parser, path, and warning diagnostics | #87, #105, #135, #245, #287, #288, #293 | These overlap as diagnostic quality work; #87 and #288 are the closest pair. #293 is also privacy and path-cleanup work. |
 | D05 | External map and prefab import | #193, #194, #199, #207, #231, #327, #333 | Related prefab/external-map behavior, but each covers a separate failure mode or feature. |
-| D06 | Region and partial-compile behavior | #390, #417, #422, #444 | Related region workflows. They should be validated together in VibeStudio's region compile smoke tests. |
-| D07 | Lighting, shadows, Phong, bounce, and visual regressions | #91, #109, #134, #145, #172, #185, #190, #203, #214, #217, #221, #238, #247, #255, #256, #262, #268, #291, #349, #351, #364, #375, #377, #389, #401, #405, #439, #456, #484 | Large issue family, not duplicates. VibeStudio should track these as regression cases by compiler version and map feature. |
+| D06 | Region and partial-compile behavior | #390, #417, #422, #444 | Related region workflows. They should be validated together in SlopStudio's region compile smoke tests. |
+| D07 | Lighting, shadows, Phong, bounce, and visual regressions | #91, #109, #134, #145, #172, #185, #190, #203, #214, #217, #221, #238, #247, #255, #256, #262, #268, #291, #349, #351, #364, #375, #377, #389, #401, #405, #439, #456, #484 | Large issue family, not duplicates. SlopStudio should track these as regression cases by compiler version and map feature. |
 | D08 | Texture, palette, and asset path support | #192, #201, #346, #450, #451 | Related to nonstandard assets and custom-game workflows. Not duplicates. |
-| D09 | CLI, build, packaging, and tool discovery | #215, #223, #225, #289, #335, #435, #449, #480, #482 | Mostly wrapper/distribution concerns. #480 only matters if VibeStudio exposes `lightpreview`. |
+| D09 | CLI, build, packaging, and tool discovery | #215, #223, #225, #289, #335, #435, #449, #480, #482 | Mostly wrapper/distribution concerns. #480 only matters if SlopStudio exposes `lightpreview`. |
 | D10 | VIS behavior and optimization | #103, #131, #205, #464 | Related VIS concerns, but distinct features/bugs. |
 | D11 | Lightmap, lightgrid, and compile-cost controls | #249, #374, #425, #436, #485 | Related output/performance controls. Not duplicates. |
 | D12 | Game-format and total-conversion compatibility | #301, #343, #437, #470 | Related to broader compatibility profiles and per-game validation. |
 
 ## Issue Table
 
-| Issue | Nature | Underlying issue | Dedup audit | VibeStudio benefit |
+| Issue | Nature | Underlying issue | Dedup audit | SlopStudio benefit |
 |---|---|---|---|---|
 | [#485](https://github.com/ericwa/ericw-tools/issues/485) Add a force override `world_units_per_luxel` setting | Feature | Let a command-line option override per-entity `world_units_per_luxel` values. | D11 | High: useful as a quality preset and temporary override in compile profiles. |
 | [#484](https://github.com/ericwa/ericw-tools/issues/484) BSPX `LIGHTINGDIR` unexpected results with `_sunlight2` | Bug | Directional lighting data artifacts appear when `_sunlight2` is enabled for Q2 BSPX output. | D07 | High: important for modern Q2 lighting QA and preview accuracy. |
-| [#483](https://github.com/ericwa/ericw-tools/issues/483) Embed light compilation parameters | Metadata feature | Store light command parameters in BSP or BSPX so relighting/provenance is inspectable. | D01, overlaps #167 | High: aligns directly with VibeStudio command manifests and reproducible builds. |
+| [#483](https://github.com/ericwa/ericw-tools/issues/483) Embed light compilation parameters | Metadata feature | Store light command parameters in BSP or BSPX so relighting/provenance is inspectable. | D01, overlaps #167 | High: aligns directly with SlopStudio command manifests and reproducible builds. |
 | [#482](https://github.com/ericwa/ericw-tools/issues/482) Cannot build Embree on Linux Mint | Build/docs | Current branch requires newer Embree/TBB setup than the reporter's distro provides. | D09 | High: informs compiler build helper, probe messages, and dependency docs. |
-| [#480](https://github.com/ericwa/ericw-tools/issues/480) `lightpreview` will not launch on Arch with Nvidia Card | Runtime/platform | Qt/OpenGL context creation fails under Arch/KDE/Wayland/Nvidia; `xcb` workaround suggested upstream. | D09 | Medium: relevant if VibeStudio launches `lightpreview` or documents workarounds. |
+| [#480](https://github.com/ericwa/ericw-tools/issues/480) `lightpreview` will not launch on Arch with Nvidia Card | Runtime/platform | Qt/OpenGL context creation fails under Arch/KDE/Wayland/Nvidia; `xcb` workaround suggested upstream. | D09 | Medium: relevant if SlopStudio launches `lightpreview` or documents workarounds. |
 | [#475](https://github.com/ericwa/ericw-tools/issues/475) Preserve `style` set on toggled lights | Feature/diagnostic | Toggled lights overwrite user-set `style`; request to preserve old value and warn on conflicts. | D02, extends #173 | High: good map validation and light-entity inspector rule. |
 | [#470](https://github.com/ericwa/ericw-tools/issues/470) Autodetect float vs integer `_minlight` | Compatibility | `_minlight` scale differs across output formats, creating ambiguity for Q1/Q2/HL workflows. | D12 | High: profile-aware warning and conversion aid. |
 | [#464](https://github.com/ericwa/ericw-tools/issues/464) `func_viscluster` for VIS optimization | Feature | Add Source-style VIS clustering to reduce VIS complexity in open or messy maps. | D10 | Medium: valuable long-term, but mainly upstream compiler work. |
-| [#463](https://github.com/ericwa/ericw-tools/issues/463) `lightpreview` should use temporary directory | Safety bug | Preview builds happen beside the source map and may overwrite outputs. | None | High: VibeStudio should run preview/temporary compiles in isolated work dirs. |
+| [#463](https://github.com/ericwa/ericw-tools/issues/463) `lightpreview` should use temporary directory | Safety bug | Preview builds happen beside the source map and may overwrite outputs. | None | High: SlopStudio should run preview/temporary compiles in isolated work dirs. |
 | [#456](https://github.com/ericwa/ericw-tools/issues/456) Wrong shadows between structural meshes and `func_*` entities | Lighting bug | Shadow rendering differs for structural geometry, `func_detail`, `func_detail_illusionary`, and `func_illusionary_visblocker`. | D07 | High: important regression tracking for entity-based map authoring. |
 | [#455](https://github.com/ericwa/ericw-tools/issues/455) `func_detail_null` | Feature | Compiler-only brush entity for lighting/shadow work without runtime bmodel cost. | None | Medium: useful advanced authoring profile if upstream implements it. |
-| [#451](https://github.com/ericwa/ericw-tools/issues/451) Textures must be under folder named `textures` | Path/asset support | Loose texture lookup hardcodes a `textures` folder, limiting custom engines. | D08 | High: custom-project texture roots should be configurable in VibeStudio. |
+| [#451](https://github.com/ericwa/ericw-tools/issues/451) Textures must be under folder named `textures` | Path/asset support | Loose texture lookup hardcodes a `textures` folder, limiting custom engines. | D08 | High: custom-project texture roots should be configurable in SlopStudio. |
 | [#450](https://github.com/ericwa/ericw-tools/issues/450) Unable to find texture on non-WAD map compile | Bug | `-notex` and non-WAD workflows still report missing texture data. | D08 | High: important for custom engines and generated BSP post-processing. |
-| [#449](https://github.com/ericwa/ericw-tools/issues/449) Use standard C++ format for logging | Internal refactor | Replace third-party `fmt` logging with standard library formatting. | D09 | Low: little direct product benefit unless VibeStudio forks upstream. |
+| [#449](https://github.com/ericwa/ericw-tools/issues/449) Use standard C++ format for logging | Internal refactor | Replace third-party `fmt` logging with standard library formatting. | D09 | Low: little direct product benefit unless SlopStudio forks upstream. |
 | [#444](https://github.com/ericwa/ericw-tools/issues/444) Region or antiregion brushes prevent Q2 areaportals | Bug | Region compiles can leave areaportals ineffective in Quake 2 maps. | D06 | High: region test compiles need areaportal warnings. |
 | [#443](https://github.com/ericwa/ericw-tools/issues/443) Set entity order for map-hack custom models | Feature | Users need stable bmodel/entity ordering for Quake map hacks using `*n` models. | None | Medium: could become an export/order tool or warning. |
 | [#441](https://github.com/ericwa/ericw-tools/issues/441) `func_illusionary_visblocker` still does not work as expected | VIS/render bug | New behavior differs from 0.18.1 for visible faces inside visblocker brushes. | D07 | High: version-specific regression worth surfacing. |
 | [#439](https://github.com/ericwa/ericw-tools/issues/439) Light bleed on brush model edges | Lighting regression | 2.0 alpha builds show edge light bleed on brush models versus 0.18.2rc1. | D07 | High: warn on affected versions and maintain regression fixtures. |
-| [#437](https://github.com/ericwa/ericw-tools/issues/437) HLBSP parity with original GoldSrc compilers | Compatibility | Missing GoldSrc compiler features such as HL entities and behavior parity. | D12 | Medium: useful if VibeStudio expands GoldSrc/HLBSP support. |
+| [#437](https://github.com/ericwa/ericw-tools/issues/437) HLBSP parity with original GoldSrc compilers | Compatibility | Missing GoldSrc compiler features such as HL entities and behavior parity. | D12 | Medium: useful if SlopStudio expands GoldSrc/HLBSP support. |
 | [#436](https://github.com/ericwa/ericw-tools/issues/436) Disable lightmaps for a face or brush | Optimization feature | Allow fullbright/special faces to skip lightmap allocation. | D11 | Medium-high: useful for compile and runtime efficiency profiles. |
-| [#435](https://github.com/ericwa/ericw-tools/issues/435) New `bsputil` argument parsing broken | CLI bug | Some `bsputil` operations incorrectly require dummy arguments. | D09 | High: VibeStudio wrappers should smoke-test `bsputil` operations. |
+| [#435](https://github.com/ericwa/ericw-tools/issues/435) New `bsputil` argument parsing broken | CLI bug | Some `bsputil` operations incorrectly require dummy arguments. | D09 | High: SlopStudio wrappers should smoke-test `bsputil` operations. |
 | [#425](https://github.com/ericwa/ericw-tools/issues/425) Speed up lightgrid calculation | Performance feature | Lightgrid computes many unreachable points; request map-marked playable volumes. | D11 | Medium-high: relevant for large Q2/remaster compile UX. |
 | [#422](https://github.com/ericwa/ericw-tools/issues/422) Region brush does not cull brush entities | Bug | Region builds can keep brush entities outside the intended region and break entity logic. | D06 | High: partial-compile validation should catch this. |
 | [#417](https://github.com/ericwa/ericw-tools/issues/417) Origin brush in rotating door leaks with `region+` | Bug | Q2 region+ builds leak when a rotating door has an origin brush. | D06 | High: strong candidate for known-issue diagnostics. |
 | [#416](https://github.com/ericwa/ericw-tools/issues/416) `-bouncedebug` broken | Debug bug | `-bouncedebug` is reported broken. | D03, likely duplicate of #400 | Low-medium: only matters for debug visualization. |
-| [#415](https://github.com/ericwa/ericw-tools/issues/415) Describe light-specific BSPX lumps in docs | Docs | Light-related BSPX lumps need documentation. | D01 | Medium: useful for VibeStudio BSPX inspectors. |
+| [#415](https://github.com/ericwa/ericw-tools/issues/415) Describe light-specific BSPX lumps in docs | Docs | Light-related BSPX lumps need documentation. | D01 | Medium: useful for SlopStudio BSPX inspectors. |
 | [#413](https://github.com/ericwa/ericw-tools/issues/413) Translucency support | Feature | Add light transmission through thin/opaque materials with optional tinting. | None | Medium: advanced lighting/material workflow. |
 | [#411](https://github.com/ericwa/ericw-tools/issues/411) Special texture for decompiled output | Feature | Decompile output needs a special texture that does not generate nodes/clipnodes/faces. | None | Medium: useful for BSP decompile and map round-trip workflows. |
 | [#405](https://github.com/ericwa/ericw-tools/issues/405) Phong does not seem to be working right | Lighting bug | `_phong` can produce light bleed on cube edges and confusing `phong_angle` behavior. | D07 | High: map validation can warn about risky Phong settings. |
@@ -94,9 +94,9 @@ VibeStudio so one product task can reference multiple upstream issues.
 | [#349](https://github.com/ericwa/ericw-tools/issues/349) Dirt keys not working on bmodels | Bug | `_dirt` and `_dirtscale` work on worldspawn but not on bmodels. | D07, related #140 | Medium-high: bmodel lighting validation. |
 | [#346](https://github.com/ericwa/ericw-tools/issues/346) PCX and PNG support for external textures | Format support | Extend loose/replacement texture support beyond TGA/WAL/MIP, with PCX still open. | D08 | High: texture editor/package manager value. |
 | [#344](https://github.com/ericwa/ericw-tools/issues/344) Bad surface extents bug | Compile/runtime bug | A map crashes in-game, likely from invalid surface extents. | None | High: map compile validation and warnings. |
-| [#343](https://github.com/ericwa/ericw-tools/issues/343) Conditional compile of entities | Workflow feature | Maintain alternate entity sets in one map for different mods/builds. | D12 | High: maps cleanly to VibeStudio build profiles. |
+| [#343](https://github.com/ericwa/ericw-tools/issues/343) Conditional compile of entities | Workflow feature | Maintain alternate entity sets in one map for different mods/builds. | D12 | High: maps cleanly to SlopStudio build profiles. |
 | [#342](https://github.com/ericwa/ericw-tools/issues/342) Empty texture names break decompile/extract-textures | Round-trip bug | Unnamed textures decompile/extract with incorrect mapping and scale. | None | Medium: BSP decompile and texture extraction support. |
-| [#335](https://github.com/ericwa/ericw-tools/issues/335) Rename `light` and `vis` to less generic names | Packaging | Binary names conflict with other Linux packages. | D09 | Medium: VibeStudio should use descriptors, not bare names alone. |
+| [#335](https://github.com/ericwa/ericw-tools/issues/335) Rename `light` and `vis` to less generic names | Packaging | Binary names conflict with other Linux packages. | D09 | Medium: SlopStudio should use descriptors, not bare names alone. |
 | [#333](https://github.com/ericwa/ericw-tools/issues/333) Support entities in `_external_map` | Prefab feature | Import whole external maps, including entities, rather than only worldspawn brushes. | D05 | High: core prefab/kitbash workflow. |
 | [#327](https://github.com/ericwa/ericw-tools/issues/327) Merge multiple `misc_external_map` entities into one target entity | Prefab feature | Combine many external-map pieces into a single final brush entity. | D05 | Medium-high: advanced prefab composition. |
 | [#310](https://github.com/ericwa/ericw-tools/issues/310) Q2 `angle` interferes with `mangle` on light | Lighting bug | Nonzero `angle` stops `mangle` from working on Q2 light entities. | None | Medium: entity inspector warning. |
@@ -105,11 +105,11 @@ VibeStudio so one product task can reference multiple upstream issues.
 | [#301](https://github.com/ericwa/ericw-tools/issues/301) Customize hull sizes | Feature | Total conversions need hull sizes beyond stock Quake defaults. | D12 | High: important for custom engine/project profiles. |
 | [#298](https://github.com/ericwa/ericw-tools/issues/298) Strip `mapversion 220` | Cleanup | Remove editor metadata to avoid engine warning spam. | None | Medium: package/export cleanup option. |
 | [#297](https://github.com/ericwa/ericw-tools/issues/297) Document `_dirt_off_radius` and `_dirt_on_radius` | Docs | Existing dirt radius keys are missing from online docs. | None | Low-medium: expose in help/tooltips if supported. |
-| [#293](https://github.com/ericwa/ericw-tools/issues/293) Strip directories from absolute WAD paths | Privacy/path cleanup | Avoid embedding private absolute paths and reduce engine buffer risks. | D04 | High: VibeStudio should sanitize exported entity lumps. |
+| [#293](https://github.com/ericwa/ericw-tools/issues/293) Strip directories from absolute WAD paths | Privacy/path cleanup | Avoid embedding private absolute paths and reduce engine buffer risks. | D04 | High: SlopStudio should sanitize exported entity lumps. |
 | [#291](https://github.com/ericwa/ericw-tools/issues/291) Deviance/penumbra does not work on sky light entity | Lighting bug | Penumbra behaves incorrectly for sky-lighting stored on a light entity. | D07 | Medium: warning for non-worldspawn sun setups. |
-| [#289](https://github.com/ericwa/ericw-tools/issues/289) Port features from `bjptools bspinfo` | Diagnostics feature | Add richer validation, entity extraction, light stats, PRT generation, and summary tools. | D09 | High: maps to VibeStudio inspection and diagnostics panes. |
+| [#289](https://github.com/ericwa/ericw-tools/issues/289) Port features from `bjptools bspinfo` | Diagnostics feature | Add richer validation, entity extraction, light stats, PRT generation, and summary tools. | D09 | High: maps to SlopStudio inspection and diagnostics panes. |
 | [#288](https://github.com/ericwa/ericw-tools/issues/288) Clearer warning about escape sequences | Diagnostic | Backslashes in entity keys can be parsed unexpectedly; warnings should be clearer. | D04, related #87 | High: editor-visible warning and fix suggestion. |
-| [#287](https://github.com/ericwa/ericw-tools/issues/287) Better error messages for common issues | Diagnostic | Common errors should include more specific user-facing guidance. | D04 | High: VibeStudio can layer explanations over compiler logs. |
+| [#287](https://github.com/ericwa/ericw-tools/issues/287) Better error messages for common issues | Diagnostic | Common errors should include more specific user-facing guidance. | D04 | High: SlopStudio can layer explanations over compiler logs. |
 | [#285](https://github.com/ericwa/ericw-tools/issues/285) Constant color for translucency | Lighting feature | Let translucency use an explicit color. | None | Low-medium: specialized material workflow. |
 | [#281](https://github.com/ericwa/ericw-tools/issues/281) `-nosunlight` option | CLI feature | Disable all sun/sunlight sources from the command line. | None | Medium: useful quick compile override. |
 | [#278](https://github.com/ericwa/ericw-tools/issues/278) Corrupt BSP misidentified as Hexen2 | Serious bug | A Q1 map can compile/light into a corrupt BSP detected as Hexen2. | None | High: post-compile BSP validation should detect format anomalies. |
@@ -132,7 +132,7 @@ VibeStudio so one product task can reference multiple upstream issues.
 | [#233](https://github.com/ericwa/ericw-tools/issues/233) Entity has no valid brushes with `func_detail_illusionary` | Compile bug | Certain generated or model-style maps warn/fail with no valid brushes. | None | Medium: map validation can explain. |
 | [#231](https://github.com/ericwa/ericw-tools/issues/231) `misc_external_map` `_phong` ignored | Prefab/light bug | `_phong` and special lighting keys on the external-map entity are not forwarded. | D05 | High: important for prefab lighting fidelity. |
 | [#230](https://github.com/ericwa/ericw-tools/issues/230) Double extension not handled correctly | Path bug | `light` drops part of names such as `my-map.1.bsp`. | None | High: wrapper path tests should cover dotted filenames. |
-| [#225](https://github.com/ericwa/ericw-tools/issues/225) `bspinfo` write log file | CLI feature | Add log-file output to `bspinfo`. | D09 | Low: VibeStudio already captures process output. |
+| [#225](https://github.com/ericwa/ericw-tools/issues/225) `bspinfo` write log file | CLI feature | Add log-file output to `bspinfo`. | D09 | Low: SlopStudio already captures process output. |
 | [#223](https://github.com/ericwa/ericw-tools/issues/223) Rename `-Darwin` package suffix to `-macOS` | Packaging | Release artifact naming cleanup. | D09 | Low: upstream release packaging only. |
 | [#222](https://github.com/ericwa/ericw-tools/issues/222) Set Q2 rangescale in a cleaner way | Internal cleanup | Refactor how default Q2 rangescale is represented. | None | Low: little wrapper-level impact. |
 | [#221](https://github.com/ericwa/ericw-tools/issues/221) Sunlight artifacts shining through world | Lighting bug | Sunlight leaks through world/sky geometry in a test case. | D07 | High: map-health and lighting regression tracking. |
@@ -148,7 +148,7 @@ VibeStudio so one product task can reference multiple upstream issues.
 | [#200](https://github.com/ericwa/ericw-tools/issues/200) Random texture tiling | Feature | Add randomization for texture tiling. | None | Low: stylistic authoring feature. |
 | [#199](https://github.com/ericwa/ericw-tools/issues/199) Map-file-relative paths for external map prefabs | Path/prefab feature | `_external_map` paths should resolve relative to the source map file. | D05 | High: essential project portability behavior. |
 | [#195](https://github.com/ericwa/ericw-tools/issues/195) AD `start.bsp` odd looking face | Visual bug | Specific Arcane Dimensions face renders oddly. | None | Low-medium: compatibility fixture only. |
-| [#194](https://github.com/ericwa/ericw-tools/issues/194) Crash if `_external_map_classname` is not set | Crash bug | Missing classname on `misc_external_map` triggers assertion; default `func_detail` suggested. | D05 | High: VibeStudio can validate before compile. |
+| [#194](https://github.com/ericwa/ericw-tools/issues/194) Crash if `_external_map_classname` is not set | Crash bug | Missing classname on `misc_external_map` triggers assertion; default `func_detail` suggested. | D05 | High: SlopStudio can validate before compile. |
 | [#193](https://github.com/ericwa/ericw-tools/issues/193) `0 360 0` rotation on external map entities | Prefab transform bug | External-map rotations can produce weird shadows. | D05 | Medium-high: prefab transform validation. |
 | [#192](https://github.com/ericwa/ericw-tools/issues/192) Specify custom palette for Light | Mod support | Bounce lighting hardcodes or assumes Quake palette; request custom palette. | D08 | High: important for custom palettes and total conversions. |
 | [#190](https://github.com/ericwa/ericw-tools/issues/190) Messed up lighting | Lighting bug | Example map compiled with bounce/soft/extra4 shows incorrect lighting. | D07 | Medium: regression fixture if reproducible. |
@@ -177,12 +177,12 @@ VibeStudio so one product task can reference multiple upstream issues.
 | [#81](https://github.com/ericwa/ericw-tools/issues/81) Flip projected textures | Texture/light feature | Add a way to flip projected textures. | None | Low: specialized light projection workflow. |
 | [#77](https://github.com/ericwa/ericw-tools/issues/77) `-dirtdebug` draws AO despite `_dirt -1` | Debug bug | Dirt debug ignores an entity disabling dirt. | D03 | Low-medium: debug output correctness. |
 
-## VibeStudio Recommendations
+## SlopStudio Recommendations
 
 1. Maintain the implemented known-issues layer in compiler profiles, with
    first-class warnings for high-value and remaining-pass issues that can be
    explained locally. User-facing messages must include upstream issue IDs and
-   must not imply that VibeStudio has fixed ericw-tools compiler algorithms.
+   must not imply that SlopStudio has fixed ericw-tools compiler algorithms.
 2. Use `docs/plans/ericw-tools-remaining-bugs-resolution.md` as the acceptance
    matrix for the 62 remaining-pass IDs. Keep that matrix grouped by resolution
    status instead of adding duplicate issue rows to this audit table.
@@ -191,7 +191,7 @@ VibeStudio so one product task can reference multiple upstream issues.
    temporary directories, manifest warning propagation, known-issue catalog
    matching, helper readiness, and artifact validation.
 4. Keep upstream issues as references rather than duplicating them into
-   separate VibeStudio bugs unless VibeStudio can mitigate the behavior in its
+   separate SlopStudio bugs unless SlopStudio can mitigate the behavior in its
    wrapper, UI validation, command planning, helper probes, or artifact gates.
 5. Prefer wrapper-level mitigations first: isolated temporary directories,
    command manifests, path diagnostics, executable probes, preflight map checks,
@@ -199,14 +199,14 @@ VibeStudio so one product task can reference multiple upstream issues.
 
 ## High-Value Mitigation Plan
 
-VibeStudio should split high-value ericw-tools issues into product-owned
+SlopStudio should split high-value ericw-tools issues into product-owned
 mitigations and upstream-only fixes. Product-owned work is valuable when it can
 prevent a bad compile, explain a known failure, preserve reproducibility, or
 make a risky workflow explicit before invoking an external executable.
 Upstream-only work should remain linked from diagnostics and regression notes so
 users can see whether a newer ericw-tools revision is expected to help.
 
-| Area | Upstream issues | VibeStudio resolution | Remaining upstream-only behavior |
+| Area | Upstream issues | SlopStudio resolution | Remaining upstream-only behavior |
 |---|---|---|---|
 | Provenance and BSPX metadata | #167, #309, #399, #415, #483 | Implemented: command plans/manifests store executable provenance, arguments, input/output paths, hashes, parsed diagnostics, and separate `knownIssueWarnings`/`preflightWarnings`. Planned: post-compile checks for profile-required BSPX metadata. | Embedding command lines, versions, or lightmap dimensions directly into BSP/BSPX must be implemented by ericw-tools. |
 | Path privacy and portable project layout | #87, #199, #201, #230, #245, #288, #293, #450, #451 | Implemented: preflight warns on absolute WAD paths, long entity values, suspicious backslashes, external-map path portability, dotted light input names, `-notex`, and working-directory fragility. | Native compiler path resolution, warning wording, and new `-outputdir`/`-waddir` support remain upstream features. |
@@ -214,7 +214,7 @@ users can see whether a newer ericw-tools revision is expected to help.
 | Region and partial compiles | #390, #417, #422, #444 | Implemented: preflight warns on multiple region markers, areaportals with region markers, rotating brush entities with origin keys, and region workflows that may retain out-of-region brush entities. | Multiple-region support and compiler-side areaportal/entity culling fixes remain upstream work. |
 | External map and prefab workflows | #193, #194, #199, #207, #231, #327, #333 | Implemented: preflight warns on missing `_external_map_classname`, nonportable external-map paths, prefab rotations containing `360`, Phong keys on `misc_external_map`, and limited external-map entity import. Planned: deeper grouped-prefab composition checks. | Correct import of entities, grouped prefabs, merged target entities, Phong forwarding, and transform-shadow fixes remain upstream work. |
 | Compiler discovery, packaging, and helper tools | #335, #435, #463, #480, #482 | Implemented: descriptor-based tool discovery, known-issue diagnostics, manifest provenance, missing-working-directory refusal, and isolated `TMP`/`TEMP`/`TMPDIR` for compiler processes. Planned: `bspinfo`/`bsputil` operation smoke tests and optional `lightpreview` launch diagnostics. | Native packaging names, `bsputil` parser fixes, `lightpreview` launch behavior, and upstream build dependency changes remain upstream work. |
-| Visual and compile correctness regressions | #77, #91, #109, #134, #145, #172, #185, #190, #203, #214, #217, #221, #238, #247, #255, #256, #262, #268, #291, #349, #351, #364, #375, #377, #389, #400, #401, #405, #416, #439, #441, #456, #484 | Implemented: known-issue catalog and keyword/profile warnings for selected high-value lighting/debug risks. Planned: representative visual regression fixtures and broader version-specific checks. | Lighting, shadow, VIS, and debug image correctness must be fixed in ericw-tools. VibeStudio should not claim output parity from wrapper checks alone. |
+| Visual and compile correctness regressions | #77, #91, #109, #134, #145, #172, #185, #190, #203, #214, #217, #221, #238, #247, #255, #256, #262, #268, #291, #349, #351, #364, #375, #377, #389, #400, #401, #405, #416, #439, #441, #456, #484 | Implemented: known-issue catalog and keyword/profile warnings for selected high-value lighting/debug risks. Planned: representative visual regression fixtures and broader version-specific checks. | Lighting, shadow, VIS, and debug image correctness must be fixed in ericw-tools. SlopStudio should not claim output parity from wrapper checks alone. |
 
 ## Documentation And Test Plan Updates
 

@@ -6,7 +6,7 @@
 #include <limits>
 #include <numbers>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 using V = LevelMapVec3;

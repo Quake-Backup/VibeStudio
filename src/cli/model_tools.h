@@ -4,11 +4,11 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 }
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct ModelToolsCliResult
 {
@@ -75,4 +75,4 @@ ModelToolsCliResult runModelEvents(const QStringList &arguments);
 ModelToolsCliResult runModelDeclarations(const QStringList &arguments);
 // `model constraints`: a skeletal clip's persistent constraints and layers.
 ModelToolsCliResult runModelConstraints(const QStringList &arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

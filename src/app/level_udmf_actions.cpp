@@ -2,7 +2,7 @@
 #include "app/level_udmf_dialog.h"
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 void ApplicationShell::editLevelUdmfPropertiesFromUi() {
 	if (!m_levelMapDocument.doomUdmf) {
 		return;
@@ -21,4 +21,4 @@ void ApplicationShell::editLevelUdmfPropertiesFromUi() {
 	});
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Give a Windows machine without a GPU a software Vulkan driver.
 
-VibeStudio's 3D views draw with OpenGL or Vulkan, and most tests run on Qt's
+SlopStudio's 3D views draw with OpenGL or Vulkan, and most tests run on Qt's
 offscreen platform, where only Vulkan draws on Windows. Hosted Windows CI
 runners have no graphics driver, so without help their drawing tests skip.
 This script puts what they need into one folder:
 
 - the Vulkan loader (vulkan-1.dll, with vulkaninfo.exe) from LunarG's Vulkan
-  Runtime components; VibeStudio opens the loader at run time;
+  Runtime components; SlopStudio opens the loader at run time;
 - Mesa's lavapipe driver (vulkan_lvp.dll and its manifest) from the
   mesa-dist-win MSVC build.
 
@@ -21,7 +21,7 @@ the job's later steps; elsewhere it prints the two settings to use:
     python scripts/install_software_vulkan.py
     python scripts/install_software_vulkan.py --dest "$env:RUNNER_TEMP/software-vulkan"
 
-Nothing is installed system-wide and none of it ships with VibeStudio: the
+Nothing is installed system-wide and none of it ships with SlopStudio: the
 folder only serves tests. Unpacking Mesa's archive needs 7-Zip (7z on PATH,
 or SEVEN_ZIP naming 7z.exe). Linux CI takes lavapipe from its distribution
 (mesa-vulkan-drivers) instead.
@@ -97,7 +97,7 @@ def sha256_of(path: Path) -> str:
 def fetch(url: str, path: Path) -> str:
     """Write ``url`` to ``path`` and return the SHA-256 of what arrived."""
     digest = hashlib.sha256()
-    request = urllib.request.Request(url, headers={"User-Agent": "VibeStudio-CI"})
+    request = urllib.request.Request(url, headers={"User-Agent": "SlopStudio-CI"})
     with urllib.request.urlopen(request, timeout=120) as response, path.open("wb") as out:
         while chunk := response.read(1 << 20):
             digest.update(chunk)

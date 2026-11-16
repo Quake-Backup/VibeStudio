@@ -79,8 +79,8 @@ Picking, selection and the edit tools work as in the other modes.
 ## Command line
 
 ```sh
-vibestudio --cli model game-skin ./progs/player.mdl --top 4 --bottom 12 --quake-renderer software --output ./out/player.png --json
-vibestudio --cli model game-skin ./models/weapon.md3 --package ./baseq3/pak0.pk3 --time 0.5 --output ./out/weapon.png --glow-output ./out/weapon_glow.png
+slopstudio --cli model game-skin ./progs/player.mdl --top 4 --bottom 12 --quake-renderer software --output ./out/player.png --json
+slopstudio --cli model game-skin ./models/weapon.md3 --package ./baseq3/pak0.pk3 --time 0.5 --output ./out/weapon.png --glow-output ./out/weapon_glow.png
 ```
 
 `--output` is the lit layer and `--glow-output` the unlit layer. JSON reports

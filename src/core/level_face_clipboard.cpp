@@ -4,7 +4,7 @@
 #include <QRegularExpression>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct Text { Q_DECLARE_TR_FUNCTIONS(LevelFaceClipboard) };
 constexpr qsizetype textLimit = 4194304;
@@ -186,4 +186,4 @@ QString levelFaceSelectionText(const LevelMapDocument& document, const QVector<L
 	}
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

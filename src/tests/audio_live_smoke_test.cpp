@@ -7,7 +7,7 @@
 #include <limits>
 #include <vector>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 using Status = AudioSessionRenderer::BlockStatus;

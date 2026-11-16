@@ -12,8 +12,8 @@
 
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 PolygonChecks expect;
@@ -325,7 +325,7 @@ int main(int argc, char **argv)
 			   QStringLiteral("%1 weights, %2 expected, %3 ties").arg(weights.size()).arg(expected).arg(ties));
 	}
 	// CLI: model tool and model edit.
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (!root.isEmpty())
 		QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("pieces-XXXXXX"));

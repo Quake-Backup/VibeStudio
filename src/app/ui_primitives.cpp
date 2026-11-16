@@ -27,7 +27,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -120,31 +120,31 @@ QString localizedStateName(OperationState state)
 {
 	switch (state) {
 	case OperationState::Idle:
-		return QCoreApplication::translate("VibeStudioUiPrimitives", "Idle");
+		return QCoreApplication::translate("SlopStudioUiPrimitives", "Idle");
 	case OperationState::Queued:
-		return QCoreApplication::translate("VibeStudioUiPrimitives", "Queued");
+		return QCoreApplication::translate("SlopStudioUiPrimitives", "Queued");
 	case OperationState::Loading:
-		return QCoreApplication::translate("VibeStudioUiPrimitives", "Loading");
+		return QCoreApplication::translate("SlopStudioUiPrimitives", "Loading");
 	case OperationState::Running:
-		return QCoreApplication::translate("VibeStudioUiPrimitives", "Running");
+		return QCoreApplication::translate("SlopStudioUiPrimitives", "Running");
 	case OperationState::Warning:
-		return QCoreApplication::translate("VibeStudioUiPrimitives", "Warning");
+		return QCoreApplication::translate("SlopStudioUiPrimitives", "Warning");
 	case OperationState::Failed:
-		return QCoreApplication::translate("VibeStudioUiPrimitives", "Failed");
+		return QCoreApplication::translate("SlopStudioUiPrimitives", "Failed");
 	case OperationState::Cancelled:
-		return QCoreApplication::translate("VibeStudioUiPrimitives", "Cancelled");
+		return QCoreApplication::translate("SlopStudioUiPrimitives", "Cancelled");
 	case OperationState::Completed:
-		return QCoreApplication::translate("VibeStudioUiPrimitives", "Completed");
+		return QCoreApplication::translate("SlopStudioUiPrimitives", "Completed");
 	}
-	return QCoreApplication::translate("VibeStudioUiPrimitives", "Idle");
+	return QCoreApplication::translate("SlopStudioUiPrimitives", "Idle");
 }
 
 QStringList defaultPlaceholderRows()
 {
 	return {
-		QCoreApplication::translate("VibeStudioUiPrimitives", "Summary"),
-		QCoreApplication::translate("VibeStudioUiPrimitives", "Metadata"),
-		QCoreApplication::translate("VibeStudioUiPrimitives", "Diagnostics"),
+		QCoreApplication::translate("SlopStudioUiPrimitives", "Summary"),
+		QCoreApplication::translate("SlopStudioUiPrimitives", "Metadata"),
+		QCoreApplication::translate("SlopStudioUiPrimitives", "Diagnostics"),
 	};
 }
 
@@ -231,90 +231,90 @@ QVector<UiPrimitiveDescriptor> uiPrimitiveDescriptors()
 	return {
 		{
 			QStringLiteral("loading-pane"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Loading pane"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Reusable pane and preview loading surface with state text, progress, reduced-motion behavior, and context-specific skeleton rows."),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Loading pane"),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Reusable pane and preview loading surface with state text, progress, reduced-motion behavior, and context-specific skeleton rows."),
 			{
-				QCoreApplication::translate("VibeStudioUiPrimitives", "package loading"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "preview generation"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "compiler stages"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "AI requests"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "package loading"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "preview generation"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "compiler stages"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "AI requests"),
 			},
 		},
 		{
 			QStringLiteral("detail-drawer"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Detail drawer"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Reusable collapsible drawer for summary-first logs, metadata, manifests, raw diagnostics, and support-copy text."),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Detail drawer"),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Reusable collapsible drawer for summary-first logs, metadata, manifests, raw diagnostics, and support-copy text."),
 			{
-				QCoreApplication::translate("VibeStudioUiPrimitives", "task logs"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "package metadata"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "compiler manifests"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "raw diagnostics"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "task logs"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "package metadata"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "compiler manifests"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "raw diagnostics"),
 			},
 		},
 		{
 			QStringLiteral("status-chip"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Status chip"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Compact non-color-only status indicator for project, package, compiler, installation, AI, validation, setup, and localization state."),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Status chip"),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Compact non-color-only status indicator for project, package, compiler, installation, AI, validation, setup, and localization state."),
 			{
-				QCoreApplication::translate("VibeStudioUiPrimitives", "project health"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "package staging"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "compiler readiness"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "AI-free mode"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "project health"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "package staging"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "compiler readiness"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "AI-free mode"),
 			},
 		},
 		{
 			QStringLiteral("shortcut-registry"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Shortcut registry"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Shared keyboard shortcut metadata for command surfaces, conflict checks, accessible labels, and future user remapping."),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Shortcut registry"),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Shared keyboard shortcut metadata for command surfaces, conflict checks, accessible labels, and future user remapping."),
 			{
-				QCoreApplication::translate("VibeStudioUiPrimitives", "global commands"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "package commands"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "compiler commands"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "activity commands"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "global commands"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "package commands"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "compiler commands"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "activity commands"),
 			},
 		},
 		{
 			QStringLiteral("command-palette"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Command palette shell"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Searchable command metadata shell with categories, summaries, shortcut hints, and staged/destructive flags."),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Command palette shell"),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Searchable command metadata shell with categories, summaries, shortcut hints, and staged/destructive flags."),
 			{
-				QCoreApplication::translate("VibeStudioUiPrimitives", "workspace commands"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "support commands"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "QA commands"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "AI review commands"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "workspace commands"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "support commands"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "QA commands"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "AI review commands"),
 			},
 		},
 		{
 			QStringLiteral("busy-indicator"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Busy indicator"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "A ring that turns while work runs and fills as measurable work progresses; it stands still under reduced motion, and one sits beside the status bar's Activity button while anything in the window is busy."),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Busy indicator"),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "A ring that turns while work runs and fills as measurable work progresses; it stands still under reduced motion, and one sits beside the status bar's Activity button while anything in the window is busy."),
 			{
-				QCoreApplication::translate("VibeStudioUiPrimitives", "status bar activity"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "start-up stages"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "dialog work"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "preview generation"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "status bar activity"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "start-up stages"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "dialog work"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "preview generation"),
 			},
 		},
 		{
 			QStringLiteral("busy-overlay"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Busy overlay"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "A translucent cover for a surface whose content is being prepared, with a title, detail, progress and an optional Cancel; it appears after a short delay so brief work never flashes, and counts in the window's running work."),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Busy overlay"),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "A translucent cover for a surface whose content is being prepared, with a title, detail, progress and an optional Cancel; it appears after a short delay so brief work never flashes, and counts in the window's running work."),
 			{
-				QCoreApplication::translate("VibeStudioUiPrimitives", "session restore"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "large file opens"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "dialog preparation"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "work that holds the interface"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "session restore"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "large file opens"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "dialog preparation"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "work that holds the interface"),
 			},
 		},
 		{
 			QStringLiteral("start-up-screen"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "Start-up screen"),
-			QCoreApplication::translate("VibeStudioUiPrimitives", "The branded screen shown while the studio starts, naming each stage with a progress line, following the theme, text scale, layout direction and reduced-motion preference, and fading once the window has painted."),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "Start-up screen"),
+			QCoreApplication::translate("SlopStudioUiPrimitives", "The branded screen shown while the studio starts, naming each stage with a progress line, following the theme, text scale, layout direction and reduced-motion preference, and fading once the window has painted."),
 			{
-				QCoreApplication::translate("VibeStudioUiPrimitives", "application start"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "session restore"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "renderer start"),
-				QCoreApplication::translate("VibeStudioUiPrimitives", "slow first runs"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "application start"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "session restore"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "renderer start"),
+				QCoreApplication::translate("SlopStudioUiPrimitives", "slow first runs"),
 			},
 		},
 	};
@@ -324,8 +324,8 @@ LoadingPane::LoadingPane(QWidget* parent)
 	: QFrame(parent)
 {
 	setObjectName("loadingPane");
-	setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Loading pane"));
-	setAccessibleDescription(QCoreApplication::translate("VibeStudioUiPrimitives", "Shows operation state, progress, and placeholder rows while pane content is loading."));
+	setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Loading pane"));
+	setAccessibleDescription(QCoreApplication::translate("SlopStudioUiPrimitives", "Shows operation state, progress, and placeholder rows while pane content is loading."));
 
 	// One slim status line: the state in words (its edge carries its colour),
 	// the title, the detail beside it, and a progress bar that only appears
@@ -339,26 +339,26 @@ LoadingPane::LoadingPane(QWidget* parent)
 	header->setSpacing(10);
 	m_stateLabel = new QLabel;
 	m_stateLabel->setObjectName("statusChip");
-	m_stateLabel->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Loading pane state"));
+	m_stateLabel->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Loading pane state"));
 	m_stateLabel->setAlignment(Qt::AlignLeading | Qt::AlignVCenter);
 	header->addWidget(m_stateLabel, 0, Qt::AlignTop);
 
 	m_titleLabel = new QLabel;
 	m_titleLabel->setObjectName("loadingTitle");
-	m_titleLabel->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Loading pane title"));
+	m_titleLabel->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Loading pane title"));
 	m_titleLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	header->addWidget(m_titleLabel, 0, Qt::AlignTop);
 
 	m_detailLabel = new QLabel;
 	m_detailLabel->setObjectName("loadingDetail");
-	m_detailLabel->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Loading pane detail"));
+	m_detailLabel->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Loading pane detail"));
 	m_detailLabel->setWordWrap(true);
 	m_detailLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	header->addWidget(m_detailLabel, 1, Qt::AlignTop);
 
 	m_progress = new QProgressBar;
 	m_progress->setObjectName("loadingProgress");
-	m_progress->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Loading pane progress"));
+	m_progress->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Loading pane progress"));
 	m_progress->setTextVisible(true);
 	m_progress->setFixedWidth(190);
 	header->addWidget(m_progress, 0, Qt::AlignVCenter);
@@ -366,16 +366,16 @@ LoadingPane::LoadingPane(QWidget* parent)
 
 	m_placeholderHost = new QWidget;
 	m_placeholderHost->setObjectName("skeletonHost");
-	m_placeholderHost->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Loading placeholders"));
-	m_placeholderHost->setAccessibleDescription(QCoreApplication::translate("VibeStudioUiPrimitives", "Context-specific placeholder rows for loading or pending pane content."));
+	m_placeholderHost->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Loading placeholders"));
+	m_placeholderHost->setAccessibleDescription(QCoreApplication::translate("SlopStudioUiPrimitives", "Context-specific placeholder rows for loading or pending pane content."));
 	m_placeholderLayout = new QVBoxLayout(m_placeholderHost);
 	m_placeholderLayout->setContentsMargins(0, 0, 0, 0);
 	m_placeholderLayout->setSpacing(6);
 	m_placeholderLayout->addStretch(1);
 	root->addWidget(m_placeholderHost);
 
-	setTitle(QCoreApplication::translate("VibeStudioUiPrimitives", "Loading"));
-	setDetail(QCoreApplication::translate("VibeStudioUiPrimitives", "Preparing content."));
+	setTitle(QCoreApplication::translate("SlopStudioUiPrimitives", "Loading"));
+	setDetail(QCoreApplication::translate("SlopStudioUiPrimitives", "Preparing content."));
 	setPlaceholderRows(defaultPlaceholderRows());
 	refresh();
 }
@@ -480,7 +480,7 @@ void LoadingPane::refresh()
 	}
 
 	const QString stateName = m_statusText.isEmpty() ? localizedStateName(m_state) : m_statusText;
-	const QString titleText = m_title.isEmpty() ? QCoreApplication::translate("VibeStudioUiPrimitives", "Loading") : m_title;
+	const QString titleText = m_title.isEmpty() ? QCoreApplication::translate("SlopStudioUiPrimitives", "Loading") : m_title;
 	m_titleLabel->setText(titleText);
 	m_stateLabel->setText(QStringLiteral("%1 %2").arg(stateGlyph(m_state), stateName));
 	m_stateLabel->setToolTip(stateName);
@@ -495,14 +495,14 @@ void LoadingPane::refresh()
 		update();
 	}
 
-	m_detailLabel->setText(m_detail.isEmpty() ? QCoreApplication::translate("VibeStudioUiPrimitives", "Preparing content.") : m_detail);
+	m_detailLabel->setText(m_detail.isEmpty() ? QCoreApplication::translate("SlopStudioUiPrimitives", "Preparing content.") : m_detail);
 
 	const bool busy = isBusyState(m_state);
 	syncWorkTracker(busy, titleText);
 	if (m_progressValue.total > 0) {
 		m_progress->setRange(0, m_progressValue.total);
 		m_progress->setValue(m_progressValue.current);
-		m_progress->setFormat(QCoreApplication::translate("VibeStudioUiPrimitives", "%1%").arg(operationProgressPercent(m_progressValue)));
+		m_progress->setFormat(QCoreApplication::translate("SlopStudioUiPrimitives", "%1%").arg(operationProgressPercent(m_progressValue)));
 	} else if (busy) {
 		setBusyProgress(m_progress, m_reducedMotion, stateName);
 	} else {
@@ -557,8 +557,8 @@ void LoadingPane::rebuildPlaceholders()
 		const bool active = index < rows.size();
 		if (active) {
 			const QString& row = rows[index];
-			label->setText(QCoreApplication::translate("VibeStudioUiPrimitives", "%1 loading placeholder").arg(row));
-			label->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "%1 placeholder").arg(row));
+			label->setText(QCoreApplication::translate("SlopStudioUiPrimitives", "%1 loading placeholder").arg(row));
+			label->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "%1 placeholder").arg(row));
 		}
 		label->setVisible(active);
 	}
@@ -568,8 +568,8 @@ DetailDrawer::DetailDrawer(QWidget* parent)
 	: QFrame(parent)
 {
 	setObjectName("detailDrawer");
-	setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Detail drawer"));
-	setAccessibleDescription(QCoreApplication::translate("VibeStudioUiPrimitives", "Collapsible details for logs, metadata, manifests, and raw diagnostics."));
+	setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Detail drawer"));
+	setAccessibleDescription(QCoreApplication::translate("SlopStudioUiPrimitives", "Collapsible details for logs, metadata, manifests, and raw diagnostics."));
 
 	auto* root = new QVBoxLayout(this);
 	root->setContentsMargins(12, 10, 12, 10);
@@ -578,28 +578,28 @@ DetailDrawer::DetailDrawer(QWidget* parent)
 	auto* header = new DetailHeaderLayout;
 	m_titleLabel = new QLabel;
 	m_titleLabel->setObjectName("drawerTitle");
-	m_titleLabel->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Detail drawer title"));
+	m_titleLabel->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Detail drawer title"));
 	m_titleLabel->setWordWrap(true);
 	m_titleLabel->setTextFormat(Qt::PlainText);
 	m_subtitleLabel = new ElidedLabel;
 	m_subtitleLabel->setObjectName("drawerSubtitle");
-	m_subtitleLabel->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Detail drawer subtitle"));
+	m_subtitleLabel->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Detail drawer subtitle"));
 	m_subtitleLabel->setTextFormat(Qt::PlainText);
 	m_subtitleLabel->setElideMode(Qt::ElideMiddle);
 	header->addWidget(m_titleLabel);
 	header->addWidget(m_subtitleLabel);
 
-	m_copyButton = new WrappingActionButton(QCoreApplication::translate("VibeStudioUiPrimitives", "Copy"), 0);
-	m_copyButton->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Copy selected detail text"));
-	m_copyButton->setToolTip(QCoreApplication::translate("VibeStudioUiPrimitives", "Copy the selected section to the clipboard."));
+	m_copyButton = new WrappingActionButton(QCoreApplication::translate("SlopStudioUiPrimitives", "Copy"), 0);
+	m_copyButton->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Copy selected detail text"));
+	m_copyButton->setToolTip(QCoreApplication::translate("SlopStudioUiPrimitives", "Copy the selected section to the clipboard."));
 	m_copyButton->setProperty("variant", QStringLiteral("ghost"));
 	connect(m_copyButton, &QPushButton::clicked, this, [this]() {
 		copyCurrentSection();
 	});
 	header->addWidget(m_copyButton);
 
-	m_toggleButton = new WrappingActionButton(QCoreApplication::translate("VibeStudioUiPrimitives", "Hide Details"), 0);
-	m_toggleButton->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Show or hide detail drawer"));
+	m_toggleButton = new WrappingActionButton(QCoreApplication::translate("SlopStudioUiPrimitives", "Hide Details"), 0);
+	m_toggleButton->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Show or hide detail drawer"));
 	m_toggleButton->setProperty("variant", QStringLiteral("ghost"));
 	connect(m_toggleButton, &QPushButton::clicked, this, [this]() {
 		setExpanded(!m_expanded);
@@ -612,17 +612,17 @@ DetailDrawer::DetailDrawer(QWidget* parent)
 	bodyLayout->setContentsMargins(0, 0, 0, 0);
 	bodyLayout->setSpacing(8);
 
-	m_emptyLabel = new QLabel(QCoreApplication::translate("VibeStudioUiPrimitives", "No details yet."));
+	m_emptyLabel = new QLabel(QCoreApplication::translate("SlopStudioUiPrimitives", "No details yet."));
 	m_emptyLabel->setObjectName("drawerEmpty");
-	m_emptyLabel->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Detail drawer empty state"));
+	m_emptyLabel->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Detail drawer empty state"));
 	m_emptyLabel->setWordWrap(true);
 	m_emptyLabel->setAlignment(Qt::AlignLeft | Qt::AlignTop);
 	bodyLayout->addWidget(m_emptyLabel);
 
 	m_sectionsList = new QListWidget;
 	m_sectionsList->setObjectName("detailSections");
-	m_sectionsList->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Detail sections"));
-	m_sectionsList->setAccessibleDescription(QCoreApplication::translate("VibeStudioUiPrimitives", "Available summary, log, metadata, manifest, and raw diagnostic sections."));
+	m_sectionsList->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Detail sections"));
+	m_sectionsList->setAccessibleDescription(QCoreApplication::translate("SlopStudioUiPrimitives", "Available summary, log, metadata, manifest, and raw diagnostic sections."));
 	m_sectionsList->setMaximumHeight(132);
 	m_sectionsList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 	m_sectionsList->setTextElideMode(Qt::ElideRight);
@@ -633,8 +633,8 @@ DetailDrawer::DetailDrawer(QWidget* parent)
 
 	m_content = new DetailTextView;
 	m_content->setObjectName("detailContent");
-	m_content->setAccessibleName(QCoreApplication::translate("VibeStudioUiPrimitives", "Detail content"));
-	m_content->setAccessibleDescription(QCoreApplication::translate("VibeStudioUiPrimitives", "Selected detail content ready for copying into support notes or diagnostics."));
+	m_content->setAccessibleName(QCoreApplication::translate("SlopStudioUiPrimitives", "Detail content"));
+	m_content->setAccessibleDescription(QCoreApplication::translate("SlopStudioUiPrimitives", "Selected detail content ready for copying into support notes or diagnostics."));
 	m_content->setReadOnly(true);
 	m_content->setLineWrapMode(QTextEdit::WidgetWidth);
 	// Logs, manifests, and command lines line up in a fixed-pitch font, with
@@ -644,8 +644,8 @@ DetailDrawer::DetailDrawer(QWidget* parent)
 
 	root->addWidget(m_body, 1);
 
-	setTitle(QCoreApplication::translate("VibeStudioUiPrimitives", "Details"));
-	setSubtitle(QCoreApplication::translate("VibeStudioUiPrimitives", "Select a section for deeper context."));
+	setTitle(QCoreApplication::translate("SlopStudioUiPrimitives", "Details"));
+	setSubtitle(QCoreApplication::translate("SlopStudioUiPrimitives", "Select a section for deeper context."));
 	setSections({});
 }
 
@@ -730,7 +730,7 @@ void DetailDrawer::setExpanded(bool expanded)
 		m_body->setVisible(m_expanded);
 	}
 	if (m_toggleButton) {
-		m_toggleButton->setText(m_expanded ? QCoreApplication::translate("VibeStudioUiPrimitives", "Hide Details") : QCoreApplication::translate("VibeStudioUiPrimitives", "Show Details"));
+		m_toggleButton->setText(m_expanded ? QCoreApplication::translate("SlopStudioUiPrimitives", "Hide Details") : QCoreApplication::translate("SlopStudioUiPrimitives", "Show Details"));
 	}
 }
 
@@ -770,8 +770,8 @@ void DetailDrawer::refreshHeader()
 	if (!m_titleLabel) {
 		return;
 	}
-	m_titleLabel->setText(m_title.isEmpty() ? QCoreApplication::translate("VibeStudioUiPrimitives", "Details") : m_title);
-	m_subtitleLabel->setText(m_subtitle.isEmpty() ? QCoreApplication::translate("VibeStudioUiPrimitives", "Select a section for deeper context.") : m_subtitle);
+	m_titleLabel->setText(m_title.isEmpty() ? QCoreApplication::translate("SlopStudioUiPrimitives", "Details") : m_title);
+	m_subtitleLabel->setText(m_subtitle.isEmpty() ? QCoreApplication::translate("SlopStudioUiPrimitives", "Select a section for deeper context.") : m_subtitle);
 }
 
 void DetailDrawer::refreshSections()
@@ -836,7 +836,7 @@ void DetailDrawer::refreshCurrentSection()
 
 	const DetailSection* section = findSection(m_currentSectionId);
 	const QString text = !section || section->content.isEmpty()
-		? QCoreApplication::translate("VibeStudioUiPrimitives", "No details available.") : section->content;
+		? QCoreApplication::translate("SlopStudioUiPrimitives", "No details available.") : section->content;
 	// A repeated context refresh must not erase a reader's text selection or
 	// scroll position, or relayout a large unchanged log/manifest.
 	if (m_displayedSectionId == m_currentSectionId && m_displayedContent == text) { return; }
@@ -865,4 +865,4 @@ const DetailSection* DetailDrawer::findSection(const QString& sectionId) const
 	return match == m_sections.cend() ? nullptr : &(*match);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

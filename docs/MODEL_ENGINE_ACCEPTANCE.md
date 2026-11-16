@@ -12,7 +12,7 @@ loop tails and rates from 0.001 to 1,000 FPS. Build outputs preserve the upstrea
 header, source digests, native output and comparison record.
 
 Run `model-q3-animation-smoke` from the configured Meson build with
-`VIBESTUDIO_MODELLER_EVIDENCE` pointing to an existing project test output
+`SLOPSTUDIO_MODELLER_EVIDENCE` pointing to an existing project test output
 directory to generate `animation.cfg` and `animation-expected.json`. Then run:
 
 ```sh
@@ -40,7 +40,7 @@ compilers, and starts an FTE dedicated server against independent fixture copies
 ## Independent MD5, IQM And ASE Reader
 
 `model-skeletal-writer-oracle` checks the MD5, IQM and ASE writers without any
-VibeStudio decoder. `src/tests/model_skeletal_writer_oracle_test.cpp` defines
+SlopStudio decoder. `src/tests/model_skeletal_writer_oracle_test.cpp` defines
 two fixtures by numbers alone (joint translations, rotations about stated axes,
 scales, bind positions, weights, UVs and counter-clockwise faces): a rigid
 three-joint arm with two clips, and the same arm bent about an oblique axis with
@@ -81,7 +81,7 @@ swapped, an IQM with flipped winding, an IQM with two joints swapped, a reader
 that applies the IQM rotations conjugated, and an ASE with flipped faces.
 
 The test needs Python; without it the executable exits 77 and Meson reports
-the test as skipped. With `VIBESTUDIO_MODELLER_EVIDENCE` set, the fixtures,
+the test as skipped. With `SLOPSTUDIO_MODELLER_EVIDENCE` set, the fixtures,
 exported files and a `receipt.json` (each file's SHA-256, every check and every
 control) are kept in its `skeletal-writer-oracle` folder. To run the reader on
 kept files:
@@ -123,15 +123,15 @@ writer's native winding is correct.
 
 ## Reproduction
 
-Supply a built VibeStudio CLI, VibeMap2 `vibemap2-bsp` (or ericw-tools
-`qbsp`), VibeMap3 (or q3map2), FTE's server-only executable and FTEQCC.
+Supply a built SlopStudio CLI, SlopMap2 `slopmap2-bsp` (or ericw-tools
+`qbsp`), SlopMap3 (or q3map2), FTE's server-only executable and FTEQCC.
 No tool is downloaded or installed by the workflow.
 These optional GPL tools stay separate executables; no engine library is linked
-into VibeStudio. Use an unmodified reference source/build and retain its revision
+into SlopStudio. Use an unmodified reference source/build and retain its revision
 or source inventory beside the evidence.
 
 ```sh
-python src/tests/model_engine_workflow.py --binary <vibestudio> --qbsp <vibemap2-bsp> --q3map2 <vibemap3> --engine <fteqw-sv> --qcc <fteqcc> --output-root .agents/tmp/modeller-engine-proof
+python src/tests/model_engine_workflow.py --binary <slopstudio> --qbsp <slopmap2-bsp> --q3map2 <slopmap3> --engine <fteqw-sv> --qcc <fteqcc> --output-root .agents/tmp/modeller-engine-proof
 ```
 
 On Windows, supply local paths to Linux ELF server/compiler binaries and append
@@ -183,7 +183,7 @@ verifies the authored names in the exported MD3 records.
 The same snapshot's `Mod_GetTag` treats the stored MD3 basis as matrix rows,
 while `gettaginfo` returns matrix columns. A +90-degree Z tag reports its
 forward axis as -Y. Original Quake III preserves the stored basis vectors;
-VibeStudio's exported bytes contain the expected +Y first basis. The test keeps
+SlopStudio's exported bytes contain the expected +Y first basis. The test keeps
 the rotated-axis assertion: it is recorded as an **engine finding**, not a pass,
 and is not worked around by transposing the exported file. See the linked
 [source references](CREDITS.md#model-native-engine-acceptance).
@@ -211,7 +211,7 @@ client build uses the same inventoried reference source as the server, with
 `FTE_ENGINE_CLIENT_ONLY=OFF`. No renderer implementation is imported.
 
 ```sh
-python src/tests/model_render_workflow.py --binary <vibestudio> --engine <fteqw> --qcc <fteqcc> --output-root .agents/tmp/modeller-render-proof
+python src/tests/model_render_workflow.py --binary <slopstudio> --engine <fteqw> --qcc <fteqcc> --output-root .agents/tmp/modeller-render-proof
 ```
 
 Windows again requires `--wsl-distribution <name>` and local paths to the Linux
@@ -276,7 +276,7 @@ the same supplied FTE/FTEQCC/Pillow prerequisites and the shared isolation in
 `model_render_common.py`:
 
 ```sh
-python src/tests/model_assembly_render_workflow.py --binary <vibestudio> --engine <fteqw> --qcc <fteqcc> --output-root .agents/tmp/modeller-assembly-render-proof
+python src/tests/model_assembly_render_workflow.py --binary <slopstudio> --engine <fteqw> --qcc <fteqcc> --output-root .agents/tmp/modeller-assembly-render-proof
 ```
 
 On Windows, add `--wsl-distribution <name>`. All output, independent asset copies,
@@ -332,8 +332,8 @@ and platform release packages remain outside this evidence.
 ## Native Player Package Loader
 
 `src/tests/model_player_bundle_engine_oracle.py` accepts a user-supplied original
-Quake III source checkout, an optimized VibeStudio CLI and the original
-`PlayerBundleFixture` retained by the core suite when `VIBESTUDIO_MODELLER_EVIDENCE`
+Quake III source checkout, an optimized SlopStudio CLI and the original
+`PlayerBundleFixture` retained by the core suite when `SLOPSTUDIO_MODELLER_EVIDENCE`
 is set. It exports default, custom-skin and team-skin PK3s through the CLI, checks
 archive hashes and native MD3 byte layouts (including upper's `tag_head` and
 `tag_weapon`) independently, and compiles original player discovery, skin/token
@@ -348,7 +348,7 @@ against the original source: 20 cases passed.
 ```powershell
 python src/tests/model_player_bundle_engine_oracle.py `
   --source E:/_SOURCE/_CODE/Quake-III-Arena-master `
-  --binary .agents/tmp/modeller-rc/build-release/src/vibestudio.exe `
+  --binary .agents/tmp/modeller-rc/build-release/src/slopstudio.exe `
   --fixture .agents/tmp/modeller-rc/evidence/player-bundle/widgets-integrated-1x/native-fixture `
   --output .agents/tmp/modeller-rc/evidence/player-bundle/oracle-example
 ```

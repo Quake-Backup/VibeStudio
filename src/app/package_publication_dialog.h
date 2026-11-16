@@ -13,7 +13,7 @@ class QPushButton;
 class QTableWidget;
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackagePublicationDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(PackagePublicationDialog)
@@ -58,4 +58,4 @@ private:
 	QPushButton* m_refresh = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

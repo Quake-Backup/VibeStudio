@@ -1,7 +1,7 @@
 #pragma once
 #include "core/level_map.h"
 
-namespace vibestudio {
+namespace slopstudio {
 enum class LevelVisibilityOperation { HideSelected, ShowAll, Isolate };
 struct LevelVisibilityRequest {
 	LevelVisibilityOperation operation = LevelVisibilityOperation::HideSelected;
@@ -33,4 +33,4 @@ void recordLevelMapCopiedVisibility(const LevelMapDocument& source, const QHash<
 void reconcileLevelMapVisibility(LevelMapDocument* document, LevelMapUndoCommand* command);
 void replayLevelMapVisibilityRemap(LevelMapDocument* document, const LevelMapUndoCommand& command, bool forward);
 }
-} // namespace vibestudio
+} // namespace slopstudio

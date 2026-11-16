@@ -27,7 +27,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -239,7 +239,7 @@ int main(int argc, char** argv)
 	LevelMapDocument reopened;
 	ok &= expect(loadLevelMapBytes({QStringLiteral("linked.map"), {}, {}}, saved, &reopened, &error) && reopened.scene.problem.isEmpty(),
 		"reopen", error + reopened.scene.problem);
-	ok &= expect(saved.contains("VibeStudioScene") && levelLinkedGroupNodes(reopened.scene, group).size() == 2
+	ok &= expect(saved.contains("SlopStudioScene") && levelLinkedGroupNodes(reopened.scene, group).size() == 2
 			&& !node(reopened, group)->linkShape.isEmpty(),
 		"links are saved and compared again on opening");
 	const int reopenedLight = idOf(node(reopened, group)->objects, QStringLiteral("entity"));
@@ -252,7 +252,7 @@ int main(int argc, char** argv)
 		LevelMapDocument plain = document;
 		ok &= expect(unlinkLevelGroup(&plain, group, &error), "unlink", error);
 		const QByteArray bytes = serializeLevelMap(plain).bytes;
-		const QByteArray marker("\n// VibeStudioScene: ");
+		const QByteArray marker("\n// SlopStudioScene: ");
 		const auto at = bytes.lastIndexOf(marker);
 		const auto json = QJsonDocument::fromJson(QByteArray::fromBase64(bytes.mid(at + marker.size()).trimmed())).object();
 		ok &= expect(at >= 0 && json.value(QStringLiteral("version")).toInt() == 2, "unlinked scenes stay at version 2");

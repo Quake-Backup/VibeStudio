@@ -11,7 +11,7 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* message, const QString& detail = {})
 {
@@ -137,14 +137,14 @@ int main(int argc, char** argv)
 		ok &= expect(levelGestureValues(effective) == validValues, "rejected batch leaves result unchanged");
 	}
 	ok &= expect(!applyLevelGestureOverrides(base, {{"camera.slowModifiers", "shift"}}, nullptr, nullptr, &error), "flight speed ambiguity rejected");
-	ok &= expect(!applyLevelGestureOverrides(vibeStudioLevelControls(), {{"camera.lookButton", "right"}}, nullptr, nullptr, &error), "inactive perspective gesture rejected");
+	ok &= expect(!applyLevelGestureOverrides(slopStudioLevelControls(), {{"camera.lookButton", "right"}}, nullptr, nullptr, &error), "inactive perspective gesture rejected");
 	const QJsonObject cameraKeys {{"camera.flyKeys.forward", "i"}, {"camera.flyKeys.back", "K"},
 		{"camera.flyKeys.left", "J"}, {"camera.flyKeys.right", "L"}, {"camera.flyKeys.up", "U"}, {"camera.flyKeys.down", "O"},
 		{"camera.driveKeys.up", "PgUp"}, {"camera.lookToggleKey", "Ctrl+Space"}};
 	EditorProfileDescriptor hammer; editorProfileForId("hammer", &hammer);
 	LevelEditorControls keyed; QJsonObject normalizedKeys;
 	ok &= expect(levelGestureFields().size() == 110, "110 shared pointer, editing (incl. grid snap, quick-turn and flip pivot policies and the Rotate tool's free turn), clipper (incl. camera clip-point drag style), component insertion, movement, selection, Radiant framing, camera speed and drive keys, plane and extrude drag, and key preferences");
-	ok &= expect(netRadiantCustomLevelControls().plan.radiantFraming && !trenchBroomLevelControls().plan.radiantFraming && !vibeStudioLevelControls().plan.radiantFraming
+	ok &= expect(netRadiantCustomLevelControls().plan.radiantFraming && !trenchBroomLevelControls().plan.radiantFraming && !slopStudioLevelControls().plan.radiantFraming
 		&& levelGestureValues(netRadiantCustomLevelControls()).value(QStringLiteral("plan.radiantFraming")).toString() == QStringLiteral("on"),
 		"Radiant framing is a NetRadiant Custom default and a plan gesture field");
 	ok &= expect(trenchBroomLevelControls().plan.componentAxisDrag && trenchBroomLevelControls().camera.componentAxisDrag

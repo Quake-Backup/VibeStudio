@@ -20,7 +20,7 @@
 // (GPL-3.0-or-later) and NetRadiant Custom contrib/brushexport/interface.cpp
 // at 449778b3 (GPL-2.0-or-later). Original Qt implementation; see
 // docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 
 LevelMapObjExportDialog::LevelMapObjExportDialog(const QString& path, const LevelMapObjExportOptions& options, const QString& summary, QWidget* parent)
 	: QDialog(parent), m_options(options)
@@ -204,8 +204,8 @@ void LevelMapObjExportDialog::refresh()
 	}
 	m_replace->setVisible(!existing.isEmpty());
 	m_replace->setText(existing.isEmpty() ? QString()
-										  : tr("Replaces %1; the old files are kept in .vibestudio/map-backups beside them.").arg(existing.join(QStringLiteral(", "))));
+										  : tr("Replaces %1; the old files are kept in .slopstudio/map-backups beside them.").arg(existing.join(QStringLiteral(", "))));
 	m_replace->setAccessibleDescription(m_replace->text());
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

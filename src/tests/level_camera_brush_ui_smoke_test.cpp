@@ -18,7 +18,7 @@
 #include <limits>
 #include <numbers>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -92,7 +92,7 @@ QJsonObject latency(int count)
 	std::sort(calls.begin(),calls.end());
 	ok &= expect(mesh.triangles == count*12 && completed == 0 && view.isDrawingBrush() && source.undoStack.isEmpty(),
 		"construction proposals do not rebuild scene geometry or edit the source");
-	const int budget = qEnvironmentVariableIntValue("VIBESTUDIO_LEVEL_BRUSH_MAX_CALL_MS");
+	const int budget = qEnvironmentVariableIntValue("SLOPSTUDIO_LEVEL_BRUSH_MAX_CALL_MS");
 	if (budget > 0) { ok &= expect(calls.last() <= budget,"configured camera brush GUI-call latency budget"); }
 	view.finishBrushDraw(false);
 	return {{"ok",ok},{"brushes",count},{"triangles",mesh.triangles},{"proposals",calls.size()},
@@ -109,7 +109,7 @@ int main(int argc, char** argv)
 #endif
 	QApplication app(argc,argv); applyStudioTheme(app,studioThemeTokens(StudioTheme::Dark,UiDensity::Standard,100));
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("level-camera-brush-ui-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("level-camera-brush-ui-smoke"); skip >= 0) {
 		return skip;
 	}
 	if (argc > 1 && QByteArray(argv[1]) == "--latency") {
@@ -143,7 +143,7 @@ int main(int argc, char** argv)
 	const auto initial = capture(view);
 	ok &= draw(view,2); const auto draft = capture(view);
 	ok &= expect(initial != draft && view.accessibleDescription().contains("80 × 96 × 64"),"visible and accessible draft dimensions");
-	const auto output = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const auto output = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (!output.isEmpty()) { QDir().mkpath(output); ok &= draft.save(QDir(output).filePath("camera-brush-draft.png")); }
 	view.finishBrushDraw(false); ok &= expect(capture(view) == initial,"cancel restores the construction picture exactly");
 	ok &= draw(view,2); view.setMoveGrid(8); ok &= expect(!view.isDrawingBrush(),"grid changes cancel");

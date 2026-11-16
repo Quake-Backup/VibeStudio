@@ -6,7 +6,7 @@
 #include <memory>
 
 class QThread;
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioOutputDevice {
 	QByteArray id;
@@ -92,4 +92,4 @@ class AudioSessionPlayback final : public QObject {
 	AudioTransportRange m_range;
 	bool m_available = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

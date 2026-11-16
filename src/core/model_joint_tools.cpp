@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -291,4 +291,4 @@ bool previewModelJointTransform(const ModelMesh &mesh, int frame, const QString 
 	*result = std::move(candidate);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

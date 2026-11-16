@@ -3,7 +3,7 @@
 #include <QMap>
 #include <algorithm>
 
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -992,4 +992,4 @@ bool bevelEdges(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 							 .arg(found, 0, 'g', 6);
 	return true;
 }
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

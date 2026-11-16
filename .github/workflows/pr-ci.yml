@@ -137,7 +137,7 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
-          $report = ./builddir/src/vibestudio.exe --settings-file "${{ runner.temp }}/vibestudio-render.ini" --cli render backends --json | Out-String
+          $report = ./builddir/src/slopstudio.exe --settings-file "${{ runner.temp }}/slopstudio-render.ini" --cli render backends --json | Out-String
           $report
           if ($LASTEXITCODE -ne 0 -or ($report | ConvertFrom-Json).active -ne 'vulkan') {
             Write-Output "::error::render backends does not report Vulkan as the active renderer, so the drawing tests cannot draw."
@@ -146,7 +146,7 @@ jobs:
 
       - name: Test
         env:
-          VIBESTUDIO_RENDER_REQUIRE: ${{ matrix.os != 'macos-latest' && '1' || '' }}
+          SLOPSTUDIO_RENDER_REQUIRE: ${{ matrix.os != 'macos-latest' && '1' || '' }}
         run: meson test -C builddir --print-errorlogs
 
       - name: Validate CLI Binary (Windows)
@@ -154,7 +154,7 @@ jobs:
         shell: pwsh
         run: >
           python scripts/validate_build.py
-          --binary "builddir/src/vibestudio.exe"
+          --binary "builddir/src/slopstudio.exe"
           --expected-version "$((Get-Content VERSION -Raw).Trim())"
 
       - name: Validate CLI Binary (Unix)
@@ -162,7 +162,7 @@ jobs:
         shell: bash
         run: >
           python scripts/validate_build.py
-          --binary "builddir/src/vibestudio"
+          --binary "builddir/src/slopstudio"
           --expected-version "$(cat VERSION)"
 
       - name: GUI Self-Test (Windows)
@@ -171,9 +171,9 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: >
-          ./builddir/src/vibestudio.exe
+          ./builddir/src/slopstudio.exe
           --self-test
-          --settings-file "${{ runner.temp }}/vibestudio-ci.ini"
+          --settings-file "${{ runner.temp }}/slopstudio-ci.ini"
 
       - name: GUI Self-Test (Unix)
         if: matrix.os != 'windows-latest'
@@ -181,16 +181,16 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: >
-          ./builddir/src/vibestudio
+          ./builddir/src/slopstudio
           --self-test
-          --settings-file "${{ runner.temp }}/vibestudio-ci.ini"
+          --settings-file "${{ runner.temp }}/slopstudio-ci.ini"
 
       - name: Validate CLI Docs (Windows)
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: >
           python scripts/validate_cli_docs.py
-          --binary "builddir/src/vibestudio.exe"
+          --binary "builddir/src/slopstudio.exe"
 
       - name: Validate Credits (Windows)
         if: matrix.os == 'windows-latest'
@@ -202,7 +202,7 @@ jobs:
         shell: bash
         run: >
           python scripts/validate_cli_docs.py
-          --binary "builddir/src/vibestudio"
+          --binary "builddir/src/slopstudio"
 
       - name: Validate Credits (Unix)
         if: matrix.os != 'windows-latest'
@@ -214,21 +214,21 @@ jobs:
         shell: pwsh
         run: >
           python scripts/validate_samples.py
-          --binary "builddir/src/vibestudio.exe"
+          --binary "builddir/src/slopstudio.exe"
 
       - name: Validate Sample Projects (Unix)
         if: matrix.os != 'windows-latest'
         shell: bash
         run: >
           python scripts/validate_samples.py
-          --binary "builddir/src/vibestudio"
+          --binary "builddir/src/slopstudio"
 
       - name: Validate Portable Package Skeleton (Windows)
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: >
           python scripts/validate_packaging.py
-          --binary "builddir/src/vibestudio.exe"
+          --binary "builddir/src/slopstudio.exe"
           --compiled-translations "builddir/i18n"
 
       - name: Validate Portable Package Skeleton (Unix)
@@ -236,7 +236,7 @@ jobs:
         shell: bash
         run: >
           python scripts/validate_packaging.py
-          --binary "builddir/src/vibestudio"
+          --binary "builddir/src/slopstudio"
           --compiled-translations "builddir/i18n"
 
       - name: Validate Release Assets (Windows)
@@ -244,14 +244,14 @@ jobs:
         shell: pwsh
         run: >
           python scripts/validate_release_assets.py
-          --binary "builddir/src/vibestudio.exe"
+          --binary "builddir/src/slopstudio.exe"
 
       - name: Validate Release Assets (Unix)
         if: matrix.os != 'windows-latest'
         shell: bash
         run: >
           python scripts/validate_release_assets.py
-          --binary "builddir/src/vibestudio"
+          --binary "builddir/src/slopstudio"
 
       - name: Stage Verified Windows Binary And Source
         if: matrix.os == 'windows-latest'
@@ -268,7 +268,7 @@ jobs:
         shell: bash
         run: >
           python scripts/package_portable.py
-          --binary "builddir/src/vibestudio"
+          --binary "builddir/src/slopstudio"
           --compiled-translations "builddir/i18n"
           --output "artifacts"
           --archive
@@ -278,7 +278,7 @@ jobs:
         if: matrix.os != 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: vibestudio-${{ matrix.os }}-${{ github.sha }}
+          name: slopstudio-${{ matrix.os }}-${{ github.sha }}
           path: artifacts/**
           if-no-files-found: error
           retention-days: 14
@@ -287,7 +287,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: vibestudio-windows-latest-${{ github.sha }}
+          name: slopstudio-windows-latest-${{ github.sha }}
           path: artifacts/windows-release/publish/*
           if-no-files-found: error
           retention-days: 14
@@ -296,7 +296,7 @@ jobs:
         if: always() && matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: vibestudio-windows-diagnostics-${{ github.sha }}
+          name: slopstudio-windows-diagnostics-${{ github.sha }}
           path: |
             artifacts/build-evidence/*
             artifacts/windows-release/runtime-checks/*.txt

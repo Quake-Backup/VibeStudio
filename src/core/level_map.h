@@ -22,7 +22,7 @@
 #include <memory>
 #include <vector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelDoomNodeReport;
 struct LevelUdmfDocument;
@@ -586,8 +586,8 @@ struct LevelMapDocument {
 	LevelRepeatState repeat;
 	LevelSceneState scene;
 	// How saving writes the scene: TrenchBroom when the map opened with
-	// TrenchBroom groups or layers, or a save chose that; VibeStudio otherwise.
-	LevelSceneStorage sceneStorage = LevelSceneStorage::VibeStudio;
+	// TrenchBroom groups or layers, or a save chose that; SlopStudio otherwise.
+	LevelSceneStorage sceneStorage = LevelSceneStorage::SlopStudio;
 	// Transient creation destination. Missing/deleted nodes fall back to Default.
 	QString activeSceneNode;
 	// Session-only group editing path, outermost first. Opening a group directs
@@ -721,7 +721,7 @@ struct LevelMapSaveReport {
 	// Lumps that no longer match the edited geometry and need a node build.
 	QStringList staleLumps;
 	// How the scene was written; saving keeps it for the document.
-	LevelSceneStorage sceneStorage = LevelSceneStorage::VibeStudio;
+	LevelSceneStorage sceneStorage = LevelSceneStorage::SlopStudio;
 
 	[[nodiscard]] bool succeeded() const;
 };
@@ -1511,8 +1511,8 @@ LevelMapSaveReport saveLevelMapAs(const LevelMapDocument& document, const QStrin
 QString levelMapSaveReportText(const LevelMapSaveReport& report);
 CompilerCommandRequest compilerRequestForLevelMap(const LevelMapDocument& document, const QString& profileId, const QString& outputPath = QString());
 
-} // namespace vibestudio
+} // namespace slopstudio
 
 // Registered so that a selection set can cross a queued signal connection, not
 // only a direct one.
-Q_DECLARE_METATYPE(vibestudio::LevelMapSelectionRef)
+Q_DECLARE_METATYPE(slopstudio::LevelMapSelectionRef)

@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -514,4 +514,4 @@ void MaterialPreviewView::refreshAccessibleDescription()
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

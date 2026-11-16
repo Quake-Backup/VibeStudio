@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString fileKey(const QString& path)
 {
@@ -30,7 +30,7 @@ QVector<QuickOpenEntry> quickOpenRecentEntries(const QStringList& paths)
 		if (path.isEmpty() || !QDir::isAbsolutePath(path) || seen.contains(fileKey(path))) { continue; }
 		seen.insert(fileKey(path));
 		const QFileInfo info(path);
-		result.push_back({QDir::cleanPath(path), info.fileName(), QDir::toNativeSeparators(info.path()), QCoreApplication::translate("VibeStudioQuickOpen", "Recent")});
+		result.push_back({QDir::cleanPath(path), info.fileName(), QDir::toNativeSeparators(info.path()), QCoreApplication::translate("SlopStudioQuickOpen", "Recent")});
 	}
 	return result;
 }
@@ -108,7 +108,7 @@ void QuickOpenCatalog::startPending()
 		for (const auto& entry : request.packageEntries) {
 			if (work->cancel) { break; }
 			if (visited++ >= packageLimit) {
-				result.warnings << QCoreApplication::translate("VibeStudioQuickOpen", "The package list reached its %1 entry limit. Filtering searches only the gathered entries.").arg(packageLimit);
+				result.warnings << QCoreApplication::translate("SlopStudioQuickOpen", "The package list reached its %1 entry limit. Filtering searches only the gathered entries.").arg(packageLimit);
 				break;
 			}
 			if (entry.kind != PackageEntryKind::File) { continue; }
@@ -129,7 +129,7 @@ void QuickOpenCatalog::startPending()
 				if (seen.contains(fileKey(file.filePath))) { continue; }
 				seen.insert(fileKey(file.filePath));
 				const QFileInfo info(file.relativePath);
-				result.entries.push_back({file.filePath, info.fileName(), info.path() == QStringLiteral(".") ? QString() : info.path(), QCoreApplication::translate("VibeStudioQuickOpen", "Project")});
+				result.entries.push_back({file.filePath, info.fileName(), info.path() == QStringLiteral(".") ? QString() : info.path(), QCoreApplication::translate("SlopStudioQuickOpen", "Project")});
 			}
 		}
 		result.entries += packageRows;
@@ -153,4 +153,4 @@ void QuickOpenCatalog::startPending()
 	m_thread->start();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

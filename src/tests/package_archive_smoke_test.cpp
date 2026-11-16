@@ -20,7 +20,7 @@
 #include <unistd.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -1019,7 +1019,7 @@ int main()
 	// loudly on a CRC mismatch.
 	QByteArray payload;
 	for (int index = 0; index < 400; ++index) {
-		payload += QByteArray("// vibestudio deflate fixture line ") + QByteArray::number(index) + QByteArray("\n");
+		payload += QByteArray("// slopstudio deflate fixture line ") + QByteArray::number(index) + QByteArray("\n");
 	}
 	const QString deflatedPath = packageDir.filePath(QStringLiteral("deflated.pk3"));
 	ok &= expect(writeFile(deflatedPath, deflatedZipFixture(payload, false)), "deflated PK3 fixture should be written");

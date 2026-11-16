@@ -11,8 +11,8 @@
 
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace {
 int checks = 0;
 bool expect(bool pass, const char* text, const QString& detail = {}) {
@@ -41,7 +41,7 @@ public:
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || argc != 2 || !QDir().mkpath(root)) { return 1; }
 	QTemporaryDir temporary(QDir(root).filePath("level-model-appearance-XXXXXX"));
 	LevelModelAppearanceFixture fixture; QString error;
@@ -180,8 +180,8 @@ int main(int argc, char** argv)
 	ok &= expect(cli.value("geometry").toObject().value("triangles").toInt() == 48, "CLI authoring changes only the selected model instance");
 	PackageStagingModel draft; draft.loadBaseArchive(archive, &error);
 	draft.addBytes("models/old_body,models/new_head\n", "models/test_blue.skin", &error, PackageStageConflictResolution::ReplaceExisting);
-	ok &= expect(PackageDraft::save(fixture.path("assets.vibepackage"), &draft, false, &error), "save portable draft with replaced compiler skin", error);
-	cli = run({"map", "materials", save.path, "--package", fixture.path("assets.vibepackage"), "--engine", "idTech3", "--geometry"}, 0);
+	ok &= expect(PackageDraft::save(fixture.path("assets.sloppackage"), &draft, false, &error), "save portable draft with replaced compiler skin", error);
+	cli = run({"map", "materials", save.path, "--package", fixture.path("assets.sloppackage"), "--engine", "idTech3", "--geometry"}, 0);
 	ok &= expect(cli.value("geometry").toObject().value("triangles").toInt() == 48, "CLI material review resolves staged draft content");
 	ok &= expect(modelStateFingerprint(source) == fingerprint && fixture.unchanged(), "source models, animation, native skins and asset files unchanged");
 	std::cout << checks << " checks; " << (ok ? "passed" : "FAILED") << '\n';

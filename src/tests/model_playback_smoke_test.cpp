@@ -22,7 +22,7 @@
 #include <crtdbg.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool condition, const char *message)
@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 #endif
 	QApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-playback-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-playback-smoke"); skip >= 0) {
 		return skip;
 	}
 #ifdef Q_OS_WIN
@@ -244,7 +244,7 @@ int main(int argc, char **argv)
 						 "attachment markers stay with the completed mesh raster while a later pose renders");
 			viewport.seekAnimation(.05);
 			ok &= expect(tests::settleModelViewport(viewport), "explicit seek retires delayed pose work");
-			const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+			const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 			if (!evidence.isEmpty())
 			{
 				QDir().mkpath(evidence);

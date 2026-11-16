@@ -16,7 +16,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -60,7 +60,7 @@ bool identical(const AudioProject& a, const AudioProject& b)
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	QDir().mkpath(root);
 	QTemporaryDir temp(QDir(root).filePath(QStringLiteral("audio-project-XXXXXX")));
 	if (!temp.isValid()) {

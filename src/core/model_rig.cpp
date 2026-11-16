@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -368,4 +368,4 @@ bool applyModelRigEdit(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 	}
 	return reorder(mesh, order, error, work);
 }
-} // namespace vibestudio
+} // namespace slopstudio

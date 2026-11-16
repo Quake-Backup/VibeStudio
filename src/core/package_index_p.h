@@ -2,7 +2,7 @@
 
 #include "core/package_archive.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Shared disk-index admission. Writers charge the records/text a reopen will
 // retain, including missing parent directories and any later ZIP64 fields.
@@ -22,4 +22,4 @@ bool addPackageIndexDirectories(QVector<PackageEntry>* entries, const QString& s
 // SHA-256 fingerprint. Rounding the allowance down avoids admitting that chunk.
 qint64 packageIndexMaximumFileBytes(const PackageIndexLimits& limits);
 
-} // namespace vibestudio
+} // namespace slopstudio

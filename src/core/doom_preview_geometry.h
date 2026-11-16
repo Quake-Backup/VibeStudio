@@ -2,7 +2,7 @@
 
 #include "core/map_preview_mesh.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Separate wall and flat namespaces even when their eight-character names match.
 QString doomPreviewMaterialKey(const QString& name, bool flat);
@@ -27,4 +27,4 @@ struct DoomPreviewGeometry {
 // Invalid/open sectors produce diagnostics rather than a guessed filled polygon.
 DoomPreviewGeometry buildDoomPreviewGeometry(const LevelMapDocument& document, const LevelMapPreviewMeshOptions& options = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

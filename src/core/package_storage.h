@@ -4,7 +4,7 @@
 
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 inline constexpr int PackageStorageEntryLimit = 250000;
 
@@ -41,4 +41,4 @@ bool packageStorageFileUnchanged(const QString& root, const PackageStorageFile& 
 // acquire maintenance access, then verify this state before deleting any file.
 bool packageStorageLayoutUnchanged(const PackageStorageSnapshot& snapshot);
 
-} // namespace vibestudio
+} // namespace slopstudio

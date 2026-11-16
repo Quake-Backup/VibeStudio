@@ -4,7 +4,7 @@
 #include <QString>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 inline constexpr int PackageCopyMaximumMiB = 131072;
 inline constexpr qsizetype PackageCopyMaximumFiles = 100000;
@@ -60,4 +60,4 @@ private:
 	friend class PackageCopyBudget;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

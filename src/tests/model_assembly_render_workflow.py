@@ -177,7 +177,7 @@ def md3_surfaces(data):
 def check_native(progs):
     """Independent offsets from id's qfiles.h; see docs/CREDITS.md.
 
-    Never calls VibeStudio's importer or uses its emitted geometry as expected
+    Never calls SlopStudio's importer or uses its emitted geometry as expected
     data. MD3 normals use the format's latitude/longitude encoding.
     """
     md3 = (progs / 'assembly_md3.md3').read_bytes()

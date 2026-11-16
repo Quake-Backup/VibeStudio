@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 // All state is mutex-protected because the real controller uses its worker.
 // Fixture clients change/inspect it only inside locked(). No device access.
@@ -107,4 +107,4 @@ inline AudioStreamDeviceFactory fakeAudioStreamFactory(std::shared_ptr<FakeAudio
 		state = std::make_shared<FakeAudioStreamState>();
 	return [state] { return std::make_unique<FakeAudioStreamDevice>(state); };
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -2,7 +2,7 @@
 #include "app/patch_stitch_dialog.h"
 #include <QStatusBar>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool ApplicationShell::applyLevelPatchStitch(int first, int second, const LevelPatchStitchRequest &request, QString *error)
 {
@@ -46,4 +46,4 @@ void ApplicationShell::stitchLevelMapPatchesFromUi()
 		});
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

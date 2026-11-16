@@ -9,12 +9,12 @@
 #include <QRegularExpression>
 #include <QSaveFile>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString text(const char* source) { return QCoreApplication::translate("LevelBuildPakDeployment", source); }
 bool stopped(const PackageReadControl& control) { return control.isCancelled && control.isCancelled(); }
 QString packageName(int slot) { return QStringLiteral("pak%1.pak").arg(slot); }
-QString receiptName(int slot) { return QStringLiteral(".vibestudio-pak%1.json").arg(slot); }
+QString receiptName(int slot) { return QStringLiteral(".slopstudio-pak%1.json").arg(slot); }
 bool readReceipt(const QString& path, int slot, QJsonObject* value, QString* hash, QString* error, const PackageReadControl& control) {
 	if (!safePackageStoragePath(path, error)) {
 		return false;
@@ -42,7 +42,7 @@ bool readReceipt(const QString& path, int slot, QJsonObject* value, QString* has
 	}
 	*value = QJsonDocument::fromJson(bytes).object();
 	const auto target = value->value("target").toString();
-	if (value->value("schemaVersion").toInt() != 1 || value->value("kind") != QStringLiteral("vibestudio-level-pak") ||
+	if (value->value("schemaVersion").toInt() != 1 || value->value("kind") != QStringLiteral("slopstudio-level-pak") ||
 		value->value("slot").toInt(-1) != slot || levelBuildPakMaximumSlot(target) < slot ||
 		!QRegularExpression(QStringLiteral("^[A-Za-z0-9_-]{1,64}$")).match(value->value("mapName").toString()).hasMatch() ||
 		!QRegularExpression(QStringLiteral("^[0-9a-f]{64}$")).match(value->value("packageSha256").toString()).hasMatch()) {
@@ -77,7 +77,7 @@ LevelBuildPakSlot planLevelBuildPakSlot(const QString& directory, const QString&
 	}
 	QMap<int, QFileInfo> packages, receipts;
 	const QRegularExpression packagePattern(QStringLiteral("^pak([0-9]+)\\.pak$"), QRegularExpression::CaseInsensitiveOption);
-	const QRegularExpression receiptPattern(QStringLiteral("^\\.vibestudio-pak([0-9]+)\\.json$"),
+	const QRegularExpression receiptPattern(QStringLiteral("^\\.slopstudio-pak([0-9]+)\\.json$"),
 											QRegularExpression::CaseInsensitiveOption);
 	for (const auto& entry :
 		 QDir(directory).entryInfoList(QDir::AllEntries | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot, QDir::Name)) {
@@ -199,7 +199,7 @@ bool saveLevelBuildPakReceipt(const LevelBuildPakSlot& reviewed, const QString& 
 	}
 	QSaveFile output(reviewed.receiptPath);
 	const auto bytes = QJsonDocument(QJsonObject{{"schemaVersion", 1},
-												 {"kind", "vibestudio-level-pak"},
+												 {"kind", "slopstudio-level-pak"},
 												 {"slot", reviewed.number},
 												 {"target", target},
 												 {"mapName", mapName},
@@ -211,4 +211,4 @@ bool saveLevelBuildPakReceipt(const LevelBuildPakSlot& reviewed, const QString& 
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

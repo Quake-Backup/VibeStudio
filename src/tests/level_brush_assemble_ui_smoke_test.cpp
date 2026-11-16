@@ -10,7 +10,7 @@
 // creation layer refusing; and, in the camera, grid points on faces, a face
 // rectangle, Shift-drag extrusion, a face's corners, the construction plane
 // where no face is, and a hidden brush staying out of reach. TrenchBroom,
-// NetRadiant Custom and VibeStudio profiles at 100%, and at 200% with high
+// NetRadiant Custom and SlopStudio profiles at 100%, and at 200% with high
 // contrast, expanded translations and right-to-left layout. Owned offscreen
 // widgets only.
 #include "app/application_shell.h"
@@ -44,7 +44,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -171,7 +171,7 @@ int main(int argc, char** argv)
 	file.close();
 	const QStringList ids {QStringLiteral("map.assembleBrushTool"), QStringLiteral("map.createAssembledBrush")};
 
-	for (const auto* profile : {"trenchbroom", "netradiant-custom", "vibestudio-default"}) {
+	for (const auto* profile : {"trenchbroom", "netradiant-custom", "slopstudio-default"}) {
 		for (int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);
 			std::cout << "Assemble brush UI " << qPrintable(phase) << std::endl;

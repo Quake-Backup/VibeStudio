@@ -11,7 +11,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct Text { Q_DECLARE_TR_FUNCTIONS(LevelRegionSelection) };
 using Vec = std::array<double, 3>;
@@ -349,4 +349,4 @@ bool selectLevelMapByRegion(LevelMapDocument* document, const LevelRegionSelecti
 	if (report) { *report = std::move(prepared); }
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -31,7 +31,7 @@
 // (GPL-2.0-or-later). Export Map: TrenchBroom MapWindow::exportDocumentAsMap
 // at 4c756be1 (GPL-3.0-or-later). Workflow references only; original Qt
 // implementation, see docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 // Closing asks the worker to stop but keeps the window until it has, as Save
 // Map's progress window does, so nothing races the snapshot being written.
@@ -129,14 +129,14 @@ void ApplicationShell::registerLevelMapTransferCommands()
 	importer.group = StudioCommandGroup::File;
 	importer.label = tr("Import Map…");
 	importer.statusTip = tr("Add another map's brushes, patches and entities at their own coordinates, renaming clashing entity names, as one undo step. "
-						  "A compiled .bsp is converted with VibeMap3 first.");
+						  "A compiled .bsp is converted with SlopMap3 first.");
 	importer.iconName = QStringLiteral("map");
 	importer.handler = [this, folder]() {
 		if (!textMap(m_levelMapDocument)) {
 			statusBar()->showMessage(tr("Open a Quake-family .map before importing another map into it."));
 			return;
 		}
-		// VibeMap3 converts Quake III-family BSPs only, so only those maps offer them.
+		// SlopMap3 converts Quake III-family BSPs only, so only those maps offer them.
 		const QString filter = m_levelMapDocument.format == LevelMapFormat::Quake3Map
 			? tr("Maps (*.map *.bsp)") + QStringLiteral(";;") + tr("Level maps (*.map)") + QStringLiteral(";;") + tr("Compiled maps (*.bsp)")
 			: tr("Level maps (*.map)");
@@ -195,7 +195,7 @@ void ApplicationShell::registerLevelMapTransferCommands()
 		const QString path = QFileDialog::getSaveFileName(this, tr("Export Map"), suggestion(QStringLiteral("-export.map")),
 			plainType + QStringLiteral(";;") + trenchBroomType, &chosen);
 		if (!path.isEmpty()) {
-			exportLevelMapCopyFile(path, chosen == trenchBroomType ? LevelSceneStorage::TrenchBroom : LevelSceneStorage::VibeStudio);
+			exportLevelMapCopyFile(path, chosen == trenchBroomType ? LevelSceneStorage::TrenchBroom : LevelSceneStorage::SlopStudio);
 		}
 	};
 	m_commands->registerCommand(copy);
@@ -273,7 +273,7 @@ bool ApplicationShell::importLevelMapFile(const QString& path, QString* error)
 		return refuse(tr("Open a Quake-family .map before importing another map into it."));
 	}
 	// The compiler context Build uses, and the project's game and installation
-	// folders, for a .bsp's VibeMap3 conversion.
+	// folders, for a .bsp's SlopMap3 conversion.
 	LevelMapBspConversionContext conversion;
 	conversion.workspaceRootPath = m_settings.currentProjectPath();
 	conversion.executableOverrides = m_settings.compilerToolPathOverrides();
@@ -520,4 +520,4 @@ bool ApplicationShell::exportLevelMapObjFile(const QString& path, const LevelMap
 	statusBar()->showMessage(tr("Exported %n brush(es) and patch(es) to %1.", nullptr, count).arg(QDir::toNativeSeparators(report.objPath)));
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

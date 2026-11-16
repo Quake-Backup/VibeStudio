@@ -20,7 +20,7 @@
 #include <QHash>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class LevelDoomWallPart { Upper, Middle, Lower };
 
@@ -45,4 +45,4 @@ bool levelDoomSideTexturedPart(const LevelMapDocument& document, int sidedef, Le
 bool alignLevelMapDoomWallTextures(LevelMapDocument* document, const LevelDoomAlignRequest& request, int* aligned = nullptr,
 	QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

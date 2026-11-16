@@ -1,6 +1,6 @@
 #pragma once
 
-namespace vibestudio::detail
+namespace slopstudio::detail
 {
 bool levelLinkedUpdatesDeferred();
 // Defer linked propagation while a shared service prepares one compound edit.
@@ -13,4 +13,4 @@ class LevelLinkedUpdateScope
 	LevelLinkedUpdateScope(const LevelLinkedUpdateScope&) = delete;
 	LevelLinkedUpdateScope& operator=(const LevelLinkedUpdateScope&) = delete;
 };
-} // namespace vibestudio::detail
+} // namespace slopstudio::detail

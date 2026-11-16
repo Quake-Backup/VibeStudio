@@ -16,8 +16,8 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0;
@@ -80,7 +80,7 @@ class ChangingShaderReader final : public PackageArchiveReader
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (argc != 2 || root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("player-bundle-XXXXXX"));
@@ -201,7 +201,7 @@ int main(int argc, char **argv)
 				 "source asset directory protected in dry run too");
 	const auto protectedTexture = path("assets/textures/player/a.tga");
 	const auto textureBytes = q3Read(protectedTexture);
-	for (const QString &suffix : {QString(), QStringLiteral(".bak"), QStringLiteral(".vibestudio-save.lock")})
+	for (const QString &suffix : {QString(), QStringLiteral(".bak"), QStringLiteral(".slopstudio-save.lock")})
 		for (bool dryRun : {true, false})
 		{
 			const auto output = path(QStringLiteral("alias-%1-%2.pk3").arg(suffix.size()).arg(dryRun));
@@ -326,10 +326,10 @@ int main(int argc, char **argv)
 	PackageStagingModel staged;
 	ok &= expect(staged.loadBaseArchive(*fixture.context.archive, &error) &&
 					 staged.addBytes(fixture.texture, "textures/player/a.tga", &error, PackageStageConflictResolution::ReplaceExisting) &&
-					 PackageDraft::save(path("assets.vibepackage"), &staged, {}, &error),
+					 PackageDraft::save(path("assets.sloppackage"), &staged, {}, &error),
 				 "retain staged project material draft");
 	auto draftCli = cli;
-	draftCli[draftCli.indexOf("--package") + 1] = path("assets.vibepackage");
+	draftCli[draftCli.indexOf("--package") + 1] = path("assets.sloppackage");
 	ok &= expect(process(draftCli + QStringList{"--operation", "player-review"}, 0), "CLI reviews staged portable package assets");
 	// The studio accepts more image variants than the original game. Refuse
 	// altered/unsupported material bytes without modifying the reviewed result.
@@ -572,7 +572,7 @@ int main(int argc, char **argv)
 					 process(cli + QStringList{"--operation", "player-review", "--lod-levels", "1", "--lod-recipes"}, 2) &&
 					 process(cli + QStringList{"--operation", "player-review", "--sound", "scream=" + path("death.wav")}, 4),
 				 "CLI refuses malformed, repeated, conflicting and unknown player options");
-	const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (!evidence.isEmpty())
 	{
 		PlayerBundleFixture retained;

@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -384,4 +384,4 @@ QJsonObject levelBrushMergeReportJson(const LevelBrushMergePlan &plan)
 			{QStringLiteral("unresolved"), plan.geometry().unresolvedCount()},
 			{QStringLiteral("faces"), faces}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

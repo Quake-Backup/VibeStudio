@@ -22,7 +22,7 @@
 #include <tuple>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 // A Face section field. "Mixed" sits below every value as a marker, not a
 // number: the arrows, Up, Down and the wheel do nothing from it, and a typed
@@ -720,4 +720,4 @@ void LevelSurfaceTools::setProfileSteps(double rotationDegrees, bool aboutOrigin
 	m_rotation->setValue(rotationDegrees);
 	m_rotationAnchor->setCurrentIndex(aboutOrigin ? 1 : 0);
 }
-} // namespace vibestudio
+} // namespace slopstudio

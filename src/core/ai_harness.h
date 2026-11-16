@@ -11,7 +11,7 @@
 // other tools, none of the user's config.toml with its MCP servers and hooks, and a read-only
 // sandbox for whatever is left), so it cannot touch the project; whatever it proposes goes
 // through the studio's normal review, as a provider's answer would. Credentials stay with the
-// tool: VibeStudio never reads them, and passes neither tool the variables that would send its
+// tool: SlopStudio never reads them, and passes neither tool the variables that would send its
 // requests elsewhere (an API key, a base URL, a cloud platform switch), so the login is what
 // answers (the Claude and OpenAI connectors are the API-key routes).
 //
@@ -26,7 +26,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class AiHarnessKind {
 	None,
@@ -91,4 +91,4 @@ struct AiHarnessLoginStatus {
 [[nodiscard]] AiHarnessLoginStatus aiHarnessLoginStatus(const QString& connectorId, const QString& program, int timeoutMsecs = 20000);
 [[nodiscard]] QString aiHarnessLoginStatusText(const QString& connectorId, const AiHarnessLoginStatus& status);
 
-} // namespace vibestudio
+} // namespace slopstudio

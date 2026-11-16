@@ -1,7 +1,7 @@
 #include "tests/level_object_test_helpers.h"
-using vibestudio::tests::objectIndex;
-using vibestudio::tests::setObjectCurrentRow;
-using vibestudio::tests::setObjectSelected;
+using slopstudio::tests::objectIndex;
+using slopstudio::tests::setObjectCurrentRow;
+using slopstudio::tests::setObjectSelected;
 #include "app/texture_editor_dialog.h"
 #include "app/texture_canvas.h"
 #include "app/asset_views.h"
@@ -42,14 +42,14 @@ using vibestudio::tests::setObjectSelected;
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 class ExpandedTranslator final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioTextureEditor") { return {}; }
+		if (QByteArray(context) != "SlopStudioTextureEditor") { return {}; }
 		return QStringLiteral("[%1 expanded]").arg(QString::fromUtf8(source));
 	}
 };
@@ -126,9 +126,9 @@ int main(int argc, char** argv)
 		editor->undo(); ok &= expect(editor->document().revision() == shapeRevision, "one shape is one undo command");
 		tool->setCurrentIndex(int(TextureCanvas::Tool::Line)); canvas->setCursorPixel({5, 2}); canvas->applyAtCursor(); canvas->setCursorPixel({8, 5});
 		ok &= expect(canvas->hasPendingShape() && editor->document().revision() == shapeRevision, "Space-style shape command begins without editing pixels");
-		if (!qEnvironmentVariableIsEmpty("VIBESTUDIO_TEST_CAPTURE_ROOT")) {
+		if (!qEnvironmentVariableIsEmpty("SLOPSTUDIO_TEST_CAPTURE_ROOT")) {
 			app.processEvents(); QImage capture(editor->size(), QImage::Format_ARGB32_Premultiplied); capture.fill(Qt::transparent); editor->render(&capture);
-			ok &= expect(capture.save(QDir(qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT")).filePath(QStringLiteral("texture-tools-%1.png").arg(scale))), "render paint controls and a pending shape directly from widgets");
+			ok &= expect(capture.save(QDir(qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT")).filePath(QStringLiteral("texture-tools-%1.png").arg(scale))), "render paint controls and a pending shape directly from widgets");
 		}
 		canvas->applyAtCursor();
 		ok &= expect(settled(editor) && editor->document().image().pixelColor(6, 3) == QColor(Qt::white), "second Space-style shape command commits the endpoint");
@@ -180,7 +180,7 @@ int main(int argc, char** argv)
 		auto* height = editor->findChild<QSpinBox*>(QStringLiteral("textureHeight"));
 		auto* canvasAnchor = editor->findChild<QComboBox*>(QStringLiteral("textureCanvasAnchor"));
 		canvasAnchor->setCurrentIndex(int(TextureAnchor::BottomRight)); width->setValue(20); height->setValue(10);
-		if (!qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT").isEmpty()) {
+		if (!qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT").isEmpty()) {
 			auto* tabs = editor->findChild<QTabWidget*>(QStringLiteral("textureProperties"));
 			for (int section : {1, 5}) {
 				tabs->setCurrentIndex(section); app.processEvents();
@@ -188,7 +188,7 @@ int main(int argc, char** argv)
 				for (bool bottom : {false, true}) {
 					scroll->verticalScrollBar()->setValue(bottom ? scroll->verticalScrollBar()->maximum() : 0); app.processEvents();
 					QImage capture(editor->size(), QImage::Format_ARGB32_Premultiplied); capture.fill(Qt::transparent); editor->render(&capture);
-					ok &= expect(capture.save(QDir(qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT")).filePath(QStringLiteral("texture-transform-%1-%2-%3.png").arg(scale).arg(section).arg(bottom ? "bottom" : "top"))), "render transform controls directly at each layout scale");
+					ok &= expect(capture.save(QDir(qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT")).filePath(QStringLiteral("texture-transform-%1-%2-%3.png").arg(scale).arg(section).arg(bottom ? "bottom" : "top"))), "render transform controls directly at each layout scale");
 				}
 				ok &= expect(scroll->horizontalScrollBar()->maximum() == 0, "new transform controls fit expanded translations and scaling");
 			}
@@ -250,7 +250,7 @@ int main(int argc, char** argv)
 		ok &= expect(settled(editor) && staging.operations().size() == operationCount, "changing the package during encoding prevents stale handoff");
 		package = root.path(); editor->refreshContext();
 		canvas->setTiled(true); canvas->fit();
-		const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			app.processEvents(); QImage capture(editor->size(), QImage::Format_ARGB32_Premultiplied); capture.fill(Qt::transparent); editor->render(&capture);
 			ok &= expect(capture.save(QDir(captures).filePath(QStringLiteral("texture-editor-%1.png").arg(scale))), "save widget-rendered layout evidence");
@@ -557,7 +557,7 @@ int main(int argc, char** argv)
 			ok &= expect(!distant->isHidden(), "dimension queries decode metadata for offscreen rows without requiring an eager image cache");
 			textureFilter->clear();
 		}
-		const auto browserThemes = qEnvironmentVariableIntValue("VIBESTUDIO_TEST_BROWSER_LAYOUT") != 0
+		const auto browserThemes = qEnvironmentVariableIntValue("SLOPSTUDIO_TEST_BROWSER_LAYOUT") != 0
 			? QVector<StudioTheme>{StudioTheme::Dark, StudioTheme::HighContrastDark, StudioTheme::HighContrastLight} : QVector<StudioTheme>{};
 		for (const auto theme : browserThemes) {
 			milestone("Starting browser theme render");
@@ -572,7 +572,7 @@ int main(int argc, char** argv)
 			ok &= expect(previewState && previewState->parentWidget()->isHidden(), "completed texture loading releases the status strip's layout space");
 			ok &= expect(reloadPreviews && reloadPreviews->focusPolicy() != Qt::NoFocus && !reloadPreviews->accessibleName().isEmpty(),
 				"preview reload remains focusable and named across themes and scaling");
-			const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!captures.isEmpty()) {
 				QImage capture(shell->size(), QImage::Format_ARGB32_Premultiplied); capture.fill(Qt::transparent); shell->render(&capture);
 				ok &= expect(capture.save(QDir(captures).filePath(QStringLiteral("texture-browser-%1.png").arg(static_cast<int>(theme)))), "render preview controls from Qt widgets");
@@ -583,7 +583,7 @@ int main(int argc, char** argv)
 	delete shell; app.processEvents(); StudioSettings::setOverrideFilePath({});
 	milestone("Shell handoff complete");
 	performance.insert(QStringLiteral("totalMs"), timer.elapsed());
-	const QString performanceRoot = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+	const QString performanceRoot = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 	if (!performanceRoot.isEmpty()) {
 		QFile report(QDir(performanceRoot).filePath(QStringLiteral("texture-ui-timings.json")));
 		const auto bytes = QJsonDocument(performance).toJson();

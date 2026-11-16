@@ -19,11 +19,11 @@
 #include <algorithm>
 #include <exception>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelMapTransfer)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelMapTransfer)
 };
 
 bool fail(QString* error, const QString& message)
@@ -148,7 +148,7 @@ bool levelMapImportNeedsConversion(const QString& path)
 CompilerCommandRequest levelMapImportConversionRequest(const QString& bspPath, const QString& outputPath, const QString& dialect)
 {
 	CompilerCommandRequest request;
-	request.profileId = QStringLiteral("vibemap3-convert");
+	request.profileId = QStringLiteral("slopmap3-convert");
 	request.inputPath = QFileInfo(bspPath).absoluteFilePath();
 	request.outputPath = QFileInfo(outputPath).absoluteFilePath();
 	request.workingDirectory = QFileInfo(bspPath).absolutePath();
@@ -160,8 +160,8 @@ CompilerCommandRequest levelMapImportConversionRequest(const QString& bspPath, c
 }
 
 namespace {
-// VibeStudio game keys and aliases with the VibeMap3 -game profile and the BSP
-// header that profile reads (tools/quake3/q3map2/games.cpp in VibeMap3).
+// SlopStudio game keys and aliases with the SlopMap3 -game profile and the BSP
+// header that profile reads (tools/quake3/q3map2/games.cpp in SlopMap3).
 struct BspGame {
 	const char* key;
 	const char* game;
@@ -193,23 +193,23 @@ QString levelMapBspConversionGame(const QString& bspPath, const QString& gameKey
 	const QString name = QFileInfo(bspPath).fileName();
 	QFile file(bspPath);
 	if (!file.open(QIODevice::ReadOnly)) {
-		fail(error, Text::tr("VibeMap3 cannot convert %1: the file cannot be read.").arg(name));
+		fail(error, Text::tr("SlopMap3 cannot convert %1: the file cannot be read.").arg(name));
 		return {};
 	}
 	const QByteArray header = file.read(8);
 	if (header.size() < 8) {
-		fail(error, Text::tr("VibeMap3 cannot convert %1: it is too short to be a compiled map.").arg(name));
+		fail(error, Text::tr("SlopMap3 cannot convert %1: it is too short to be a compiled map.").arg(name));
 		return {};
 	}
 	const QByteArray ident = header.left(4);
 	const auto version = static_cast<qint32>(qFromLittleEndian<quint32>(header.constData() + 4));
 	const auto first = static_cast<qint32>(qFromLittleEndian<quint32>(header.constData()));
 	if (ident == "IBSP" && version == 38) {
-		fail(error, Text::tr("VibeMap3 converts Quake III-family BSPs, and %1 is a Quake II BSP. Import its source .map instead.").arg(name));
+		fail(error, Text::tr("SlopMap3 converts Quake III-family BSPs, and %1 is a Quake II BSP. Import its source .map instead.").arg(name));
 		return {};
 	}
 	if (first == 29 || first == 30 || ident == "BSP2" || ident == "2PSB") {
-		fail(error, Text::tr("VibeMap3 converts Quake III-family BSPs, and %1 is a Quake BSP. Import its source .map instead.").arg(name));
+		fail(error, Text::tr("SlopMap3 converts Quake III-family BSPs, and %1 is a Quake BSP. Import its source .map instead.").arg(name));
 		return {};
 	}
 	const QString wanted = gameKey.trimmed().toLower();
@@ -226,7 +226,7 @@ QString levelMapBspConversionGame(const QString& bspPath, const QString& gameKey
 		}
 	}
 	if (!fallback) {
-		fail(error, Text::tr("VibeMap3 cannot convert %1: its header (%2, version %3) is not a BSP format VibeMap3 reads.")
+		fail(error, Text::tr("SlopMap3 cannot convert %1: its header (%2, version %3) is not a BSP format SlopMap3 reads.")
 						.arg(name, QString::fromLatin1(ident.toHex()), QString::number(version)));
 		return {};
 	}
@@ -273,7 +273,7 @@ QString levelMapImportConversionProblem(const CompilerRunResult& result, const Q
 		return result.plan.errors.join(QLatin1Char('\n'));
 	}
 	if (!result.started) {
-		return Text::tr("VibeMap3 did not start. Build it or set its path in Compilers.");
+		return Text::tr("SlopMap3 did not start. Build it or set its path in Compilers.");
 	}
 	// Error output first; q3map2-family tools print their errors to standard
 	// output, so its error lines come next.
@@ -294,12 +294,12 @@ QString levelMapImportConversionProblem(const CompilerRunResult& result, const Q
 		? QStringLiteral("0x") + QString::number(static_cast<quint32>(code), 16).toUpper().rightJustified(8, QLatin1Char('0'))
 		: QString::number(code);
 	if (code != 0 && lines.isEmpty()) {
-		return Text::tr("VibeMap3 exited with code %1 without printing an error. Check that the VibeMap3 in Compilers runs on this system.").arg(exit);
+		return Text::tr("SlopMap3 exited with code %1 without printing an error. Check that the SlopMap3 in Compilers runs on this system.").arg(exit);
 	}
 	if (code != 0) {
-		return Text::tr("VibeMap3 exited with code %1: %2").arg(exit, lines.mid(std::max<qsizetype>(0, lines.size() - 3)).join(QLatin1Char('\n')));
+		return Text::tr("SlopMap3 exited with code %1: %2").arg(exit, lines.mid(std::max<qsizetype>(0, lines.size() - 3)).join(QLatin1Char('\n')));
 	}
-	return Text::tr("VibeMap3 finished but wrote no map to %1.").arg(QDir::toNativeSeparators(convertedPath));
+	return Text::tr("SlopMap3 finished but wrote no map to %1.").arg(QDir::toNativeSeparators(convertedPath));
 }
 
 bool readLevelMapImport(const QString& path, const QString& engineHint, LevelMapDocument* imported, QString* error,
@@ -313,7 +313,7 @@ bool readLevelMapImport(const QString& path, const QString& engineHint, LevelMap
 	}
 	const QFileInfo info(path);
 	if (levelMapImportNeedsConversion(path)) {
-		return fail(error, Text::tr("Convert the compiled .bsp to a .map with VibeMap3 before importing it."));
+		return fail(error, Text::tr("Convert the compiled .bsp to a .map with SlopMap3 before importing it."));
 	}
 	if (!info.isFile()) {
 		return fail(error, Text::tr("Choose an existing .map file to import."));
@@ -718,7 +718,7 @@ LevelMapExportReport exportLevelMapCopy(const LevelMapDocument& document, const 
 		report.save.errors << Text::tr("Choose a file to export the map to.");
 		return report;
 	}
-	// TrenchBroom refuses to export over the open document; so does VibeStudio.
+	// TrenchBroom refuses to export over the open document; so does SlopStudio.
 	if (samePath(request.save.path, document.sourcePath)) {
 		report.save.errors << Text::tr("An export cannot replace the open map. Choose a different file name to export to.");
 		return report;
@@ -761,4 +761,4 @@ QJsonObject levelMapExportReportJson(const LevelMapExportReport& report)
 			{QStringLiteral("warnings"), QJsonArray::fromStringList(report.save.warnings)}};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -6,7 +6,7 @@
 #include <memory>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Backends report the session supplied to open(), even in delayed callbacks.
@@ -102,4 +102,4 @@ private:
 	QString m_error;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

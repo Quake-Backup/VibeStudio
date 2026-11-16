@@ -3,7 +3,7 @@
 #include "core/model_transform.h"
 #include <Qt>
 
-namespace vibestudio {
+namespace slopstudio {
 // World-axis component movement, after the behaviour of TrenchBroom v2026.2
 // MoveHandleDragTracker.h and HandleDragTracker.cpp (GPL-3.0-or-later).
 // Original implementation; references and licence review: docs/CREDITS.md.
@@ -42,4 +42,4 @@ bool levelComponentDragChord(int componentMode, Qt::KeyboardModifiers modifiers)
 // the changed key without querying or taking over the user's input devices.
 Qt::KeyboardModifiers levelComponentModifierState(int key, Qt::KeyboardModifiers modifiers, bool pressed);
 bool levelComponentModifierKey(int key);
-} // namespace vibestudio
+} // namespace slopstudio

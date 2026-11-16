@@ -3,7 +3,7 @@
 #include <QFile>
 #include <QJsonDocument>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh damagedImportFixture()
 {
@@ -53,4 +53,4 @@ inline QByteArray readImportRepairFixture(const QString &path)
 	QFile file(path);
 	return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray{};
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

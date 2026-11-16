@@ -4,7 +4,7 @@
 // entities without lights and models, Brushes across owners, the formats
 // that offer each kind, Doom thing categories, Invert Filters, the saved
 // list, the command ids, the Radiant profiles' Filter keys, and the CLI
-// query over the same service. With the vibestudio binary as the first
+// query over the same service. With the slopstudio binary as the first
 // argument the CLI is checked too.
 
 #include "core/editor_profiles.h"
@@ -27,7 +27,7 @@
 #include <tuple>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -287,7 +287,7 @@ void profileKeys()
 	for (const QString& profile : {QStringLiteral("netradiant-custom"), QStringLiteral("netradiant")}) {
 		expect(filterKeys(profile) == radiant, "Radiant's Filter keys", profile);
 	}
-	for (const QString& profile : {QStringLiteral("trenchbroom"), QStringLiteral("vibestudio-default")}) {
+	for (const QString& profile : {QStringLiteral("trenchbroom"), QStringLiteral("slopstudio-default")}) {
 		expect(filterKeys(profile).isEmpty(), "no filter keys outside the Radiant profiles", profile);
 	}
 }

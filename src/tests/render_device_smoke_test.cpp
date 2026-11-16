@@ -9,7 +9,7 @@
 //
 // The offscreen test platform has no OpenGL, so there only Vulkan renders;
 // a backend that cannot start is reported, not failed. With no backend at
-// all the test exits 77 (skipped). VIBESTUDIO_RENDER_REQUIRE=opengl,vulkan
+// all the test exits 77 (skipped). SLOPSTUDIO_RENDER_REQUIRE=opengl,vulkan
 // turns a missing backend into a failure, for machines that must have it.
 
 #include "core/level_camera_render.h"
@@ -25,7 +25,7 @@
 #include <cstdio>
 #include <cstring>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -791,7 +791,7 @@ int main(int argc, char** argv)
 {
 	QGuiApplication application(argc, argv);
 	prepareRenderBackends();
-	const QStringList required = qEnvironmentVariable("VIBESTUDIO_RENDER_REQUIRE").split(QLatin1Char(','), Qt::SkipEmptyParts);
+	const QStringList required = qEnvironmentVariable("SLOPSTUDIO_RENDER_REQUIRE").split(QLatin1Char(','), Qt::SkipEmptyParts);
 	expect(gpuProgramCount() == int(GpuProgram::Count), QStringLiteral("program table size"));
 	for (int program = 0; program < gpuProgramCount(); ++program) {
 		const GpuProgramInfo* info = gpuProgramInfo(program);

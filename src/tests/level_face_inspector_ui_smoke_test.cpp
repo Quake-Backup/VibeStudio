@@ -43,14 +43,14 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -357,10 +357,10 @@ int main(int argc, char** argv)
 			expect(visible && face && !view->accessibleName().isEmpty() && view->accessibleDescription().contains(QStringLiteral("Pivot"))
 					&& view->focusPolicy() != Qt::NoFocus && view->height() >= 160,
 				"the handles are drawn, and the view is named and describes the pivot", view->accessibleDescription());
-			if (const QString grab = qEnvironmentVariable("VIBESTUDIO_FACE_INSPECTOR_GRAB"); !grab.isEmpty()) {
+			if (const QString grab = qEnvironmentVariable("SLOPSTUDIO_FACE_INSPECTOR_GRAB"); !grab.isEmpty()) {
 				tools->grab().save(QDir(grab).filePath(QStringLiteral("face-%1-%2.png").arg(QLatin1String(pass.profile)).arg(pass.scale)));
 			}
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 			const LevelMapVec3 pivot = view->pivotWorld();
 			QPointF start;
 			levelFaceTexelAt(shell.levelDocument().brushes.first().faces.first(), {}, pivot, &start);

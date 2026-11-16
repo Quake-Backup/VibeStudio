@@ -3,7 +3,7 @@
 #include "core/model_design.h"
 #include "core/model_document.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh uvSquare()
 {
@@ -64,4 +64,4 @@ inline ModelSurface uvGrid(int cells, int rowCells = -1)
 	surface.vertexCount = surface.texCoords.size();
 	return surface;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

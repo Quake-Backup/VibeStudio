@@ -30,7 +30,7 @@
 #include <functional>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -117,14 +117,14 @@ bool readSourceFile(const PackageStagedEntry& entry, QByteArray* bytes, QString*
 	const QFileInfo before(entry.sourceFilePath);
 	if (!before.isFile() || before.size() < 0 || static_cast<quint64>(before.size()) != entry.sizeBytes
 		|| !entry.sourceIdentity || !entry.sourceIdentity->matchesMetadata()) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "A staged source file changed. Stage it again before saving."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "A staged source file changed. Stage it again before saving."); }
 		return false;
 	}
 	PackageContentDevice file(entry.sourceIdentity);
 	if (!file.open(QIODevice::ReadOnly)) {
 		const QFileInfo info(entry.sourceFilePath);
 		if (error) {
-			*error = info.exists() ? QCoreApplication::translate("VibeStudioPackageStaging", "Unable to read source file.") : QCoreApplication::translate("VibeStudioPackageStaging", "Source file does not exist.");
+			*error = info.exists() ? QCoreApplication::translate("SlopStudioPackageStaging", "Unable to read source file.") : QCoreApplication::translate("SlopStudioPackageStaging", "Source file does not exist.");
 		}
 		return false;
 	}
@@ -135,7 +135,7 @@ bool readSourceFile(const PackageStagedEntry& entry, QByteArray* bytes, QString*
 		if (bytes->size() != count || file.error() != QFileDevice::NoError || before.size() != after.size()
 			|| before.lastModified() != after.lastModified()) {
 			bytes->clear();
-			if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Unable to read an unchanged staged source file completely."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to read an unchanged staged source file completely."); }
 			return false;
 		}
 	}
@@ -289,7 +289,7 @@ bool validateArchiveSize(qint64 value, QString* error, const QString& label)
 {
 	if (value < 0 || value > std::numeric_limits<qint32>::max()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioPackageStaging", "%1 exceeds the signed 32-bit limit of this format.").arg(label);
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "%1 exceeds the signed 32-bit limit of this format.").arg(label);
 		}
 		return false;
 	}
@@ -311,7 +311,7 @@ public:
 		if (m_failed || size < 0 || size > std::numeric_limits<qint64>::max() - m_size) { m_failed = true; return false; }
 		if (size > m_maximumSize - m_size) {
 			m_failed = true;
-			m_error = QCoreApplication::translate("VibeStudioPackageStaging", "The output exceeds the %1-byte size supported by the selected source fingerprint budget. Use a smaller package.").arg(m_maximumSize);
+			m_error = QCoreApplication::translate("SlopStudioPackageStaging", "The output exceeds the %1-byte size supported by the selected source fingerprint budget. Use a smaller package.").arg(m_maximumSize);
 			return false;
 		}
 		while (size > 0) {
@@ -409,7 +409,7 @@ QVector<PackageStagedEntry> fileEntriesOnly(const QVector<PackageStagedEntry>& e
 bool sinkError(QString* error)
 {
 	if (error && error->isEmpty()) {
-		*error = QCoreApplication::translate("VibeStudioPackageStaging", "Unable to write package bytes.");
+		*error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to write package bytes.");
 	}
 	return false;
 }
@@ -432,17 +432,17 @@ bool writePakStream(const QVector<PackageStagedEntry>& inputEntries, const Entry
 		const QByteArray name = entry.virtualPath.toLatin1();
 		if (name.isEmpty() || name.size() > kPakNameLimit || QString::fromLatin1(name) != entry.virtualPath) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioPackageStaging", "PAK entry path must be Latin-1 and at most 56 bytes: %1").arg(entry.virtualPath);
+				*error = QCoreApplication::translate("SlopStudioPackageStaging", "PAK entry path must be Latin-1 and at most 56 bytes: %1").arg(entry.virtualPath);
 			}
 			return false;
 		}
-		if (!validateArchiveSize(static_cast<qint64>(entry.sizeBytes), error, QCoreApplication::translate("VibeStudioPackageStaging", "PAK entry size"))) {
+		if (!validateArchiveSize(static_cast<qint64>(entry.sizeBytes), error, QCoreApplication::translate("SlopStudioPackageStaging", "PAK entry size"))) {
 			return false;
 		}
 		payloadTotal += static_cast<qint64>(entry.sizeBytes);
 	}
-	if (!validateArchiveSize(kPakHeaderSize + payloadTotal, error, QCoreApplication::translate("VibeStudioPackageStaging", "PAK directory offset"))
-		|| !validateArchiveSize(static_cast<qint64>(entries.size()) * kPakRecordSize, error, QCoreApplication::translate("VibeStudioPackageStaging", "PAK directory"))) {
+	if (!validateArchiveSize(kPakHeaderSize + payloadTotal, error, QCoreApplication::translate("SlopStudioPackageStaging", "PAK directory offset"))
+		|| !validateArchiveSize(static_cast<qint64>(entries.size()) * kPakRecordSize, error, QCoreApplication::translate("SlopStudioPackageStaging", "PAK directory"))) {
 		return false;
 	}
 
@@ -548,7 +548,7 @@ bool writeZipStream(const QVector<PackageStagedEntry>& inputEntries, const Entry
 		const QByteArray nameBytes = name.toUtf8();
 		if (nameBytes.isEmpty() || nameBytes.size() > std::numeric_limits<quint16>::max()) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioPackageStaging", "ZIP entry path is empty or too long: %1").arg(entry.virtualPath);
+				*error = QCoreApplication::translate("SlopStudioPackageStaging", "ZIP entry path is empty or too long: %1").arg(entry.virtualPath);
 			}
 			return false;
 		}
@@ -613,7 +613,7 @@ bool writeZipStream(const QVector<PackageStagedEntry>& inputEntries, const Entry
 				sink, PackageWritePhase::Write, options.isCancelled, &written, error)) return false;
 			if (written.crc != compressed.crc || written.sha256 != compressed.sha256
 				|| written.payloadSize != payloadSize || written.uncompressedSize != compressed.uncompressedSize) {
-				if (error) *error = QCoreApplication::translate("VibeStudioPackageStaging", "Entry changed between compression measurement and writing: %1").arg(entry.virtualPath);
+				if (error) *error = QCoreApplication::translate("SlopStudioPackageStaging", "Entry changed between compression measurement and writing: %1").arg(entry.virtualPath);
 				return false;
 			}
 		}
@@ -759,20 +759,20 @@ bool admitWrittenIndex(const QVector<PackageStagedEntry>& entries, PackageArchiv
 			const int nameLimit = wad ? (textureWad ? kTextureWadNameLimit : kDoomWadNameLimit) : kPakNameLimit;
 			if (wad ? !wadNameIsValid(name, nameLimit) : (encoded.isEmpty() || encoded.size() > nameLimit || QString::fromLatin1(encoded) != name)) {
 				if (error) { *error = wad
-					? QCoreApplication::translate("VibeStudioPackageStaging", "WAD lump names must be Latin-1, contain no folders, and be at most %1 characters: %2").arg(nameLimit).arg(entry.virtualPath)
-					: QCoreApplication::translate("VibeStudioPackageStaging", "PAK entry path must be Latin-1 and at most 56 bytes: %1").arg(entry.virtualPath); }
+					? QCoreApplication::translate("SlopStudioPackageStaging", "WAD lump names must be Latin-1, contain no folders, and be at most %1 characters: %2").arg(nameLimit).arg(entry.virtualPath)
+					: QCoreApplication::translate("SlopStudioPackageStaging", "PAK entry path must be Latin-1 and at most 56 bytes: %1").arg(entry.virtualPath); }
 				return false;
 			}
 			const auto size = qint64(qMin<quint64>(entry.sizeBytes, std::numeric_limits<qint64>::max()));
-			if (!validateArchiveSize(size, error, wad ? QCoreApplication::translate("VibeStudioPackageStaging", "WAD lump size")
-				: QCoreApplication::translate("VibeStudioPackageStaging", "PAK entry size"))) { return false; }
+			if (!validateArchiveSize(size, error, wad ? QCoreApplication::translate("SlopStudioPackageStaging", "WAD lump size")
+				: QCoreApplication::translate("SlopStudioPackageStaging", "PAK entry size"))) { return false; }
 			nativePayloadTotal += size; // Count and each size are already bounded.
 		}
 		const auto normalized = normalizePackageVirtualPath(name, false);
 		const QString expected = wad && !textureWad ? entry.virtualPath.toUpper() : entry.virtualPath;
 		if (!normalized.isSafe() || normalized.normalizedPath != expected
 			|| (zip ? QString::fromUtf8(encoded) : QString::fromLatin1(encoded)) != name) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "The output entry path cannot be reopened without changing its name: %1").arg(entry.virtualPath); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "The output entry path cannot be reopened without changing its name: %1").arg(entry.virtualPath); }
 			return false;
 		}
 		const qint64 directoryBytes = zip ? 46 + encoded.size() : wad ? (textureWad ? 32 : 16) : 64;
@@ -784,8 +784,8 @@ bool admitWrittenIndex(const QVector<PackageStagedEntry>& entries, PackageArchiv
 	}
 	if (stopped()) { return false; }
 	if (!zip && !validateArchiveSize((wad ? kWadHeaderSize : kPakHeaderSize) + nativePayloadTotal, error,
-		wad ? QCoreApplication::translate("VibeStudioPackageStaging", "WAD directory offset")
-			: QCoreApplication::translate("VibeStudioPackageStaging", "PAK directory offset"))) { return false; }
+		wad ? QCoreApplication::translate("SlopStudioPackageStaging", "WAD directory offset")
+			: QCoreApplication::translate("SlopStudioPackageStaging", "PAK directory offset"))) { return false; }
 	if (!wad) {
 		// Match wire ordering when two differently spelled parent paths share a
 		// case-folded identity; the first spelling determines its text charge.
@@ -910,13 +910,13 @@ bool wadGroupedEntries(const QVector<PackageStagedEntry>& entries, QVector<Packa
 		if (rank < 1000) {
 			if (currentMap < 0) {
 				if (error) {
-					*error = QCoreApplication::translate("VibeStudioPackageStaging", "Cannot tell which map owns the lump %1: the plan is not in WAD source order.").arg(name);
+					*error = QCoreApplication::translate("SlopStudioPackageStaging", "Cannot tell which map owns the lump %1: the plan is not in WAD source order.").arg(name);
 				}
 				return false;
 			}
 			if (currentMapLumps.contains(name)) {
 				if (error) {
-					*error = QCoreApplication::translate("VibeStudioPackageStaging", "One map cannot hold the lump %1 twice.").arg(name);
+					*error = QCoreApplication::translate("SlopStudioPackageStaging", "One map cannot hold the lump %1 twice.").arg(name);
 				}
 				return false;
 			}
@@ -962,7 +962,7 @@ bool writeWadStream(const QVector<PackageStagedEntry>& inputEntries, const Entry
 	const QString magic = options.wadMagic;
 	if (!wadMagicIsSupported(magic)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioPackageStaging", "Unsupported WAD magic: %1").arg(magic);
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Unsupported WAD magic: %1").arg(magic);
 		}
 		return false;
 	}
@@ -996,7 +996,7 @@ bool writeWadStream(const QVector<PackageStagedEntry>& inputEntries, const Entry
 			// is genuinely unknowable, and guessing would emit an interleaved
 			// WAD that no engine can read.
 			if (error) {
-				*error = groupError.isEmpty() ? QCoreApplication::translate("VibeStudioPackageStaging", "Cannot order a multi-map Doom WAD from this plan.") : groupError;
+				*error = groupError.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "Cannot order a multi-map Doom WAD from this plan.") : groupError;
 			}
 			return false;
 		} else {
@@ -1008,7 +1008,7 @@ bool writeWadStream(const QVector<PackageStagedEntry>& inputEntries, const Entry
 				const QString name = entry.virtualPath.toUpper();
 				if (seenLumpNames.contains(name)) {
 					if (error) {
-						*error = QCoreApplication::translate("VibeStudioPackageStaging", "Doom WAD write-back cannot represent duplicate lump names: %1").arg(name);
+						*error = QCoreApplication::translate("SlopStudioPackageStaging", "Doom WAD write-back cannot represent duplicate lump names: %1").arg(name);
 					}
 					return false;
 				}
@@ -1019,7 +1019,7 @@ bool writeWadStream(const QVector<PackageStagedEntry>& inputEntries, const Entry
 	}
 	if (entries.size() > std::numeric_limits<qint32>::max()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioPackageStaging", "WAD entry count exceeds the 32-bit directory limit.");
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "WAD entry count exceeds the 32-bit directory limit.");
 		}
 		return false;
 	}
@@ -1038,16 +1038,16 @@ bool writeWadStream(const QVector<PackageStagedEntry>& inputEntries, const Entry
 		const QString name = textureWad ? entry.virtualPath : entry.virtualPath.toUpper();
 		if (!wadNameIsValid(name, nameLimit)) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioPackageStaging", "WAD lump names must be Latin-1, contain no folders, and be at most %1 characters: %2").arg(nameLimit).arg(entry.virtualPath);
+				*error = QCoreApplication::translate("SlopStudioPackageStaging", "WAD lump names must be Latin-1, contain no folders, and be at most %1 characters: %2").arg(nameLimit).arg(entry.virtualPath);
 			}
 			return false;
 		}
-		if (!validateArchiveSize(static_cast<qint64>(entry.sizeBytes), error, QCoreApplication::translate("VibeStudioPackageStaging", "WAD lump size"))) {
+		if (!validateArchiveSize(static_cast<qint64>(entry.sizeBytes), error, QCoreApplication::translate("SlopStudioPackageStaging", "WAD lump size"))) {
 			return false;
 		}
 		payloadTotal += static_cast<qint64>(entry.sizeBytes);
 	}
-	if (!validateArchiveSize(kWadHeaderSize + payloadTotal, error, QCoreApplication::translate("VibeStudioPackageStaging", "WAD directory offset"))) {
+	if (!validateArchiveSize(kWadHeaderSize + payloadTotal, error, QCoreApplication::translate("SlopStudioPackageStaging", "WAD directory offset"))) {
 		return false;
 	}
 
@@ -1190,7 +1190,7 @@ struct PlanSlot {
 
 bool assembleNewDoomWad(QVector<PackageStagedEntry>* entries, QString* error, PackagePlanWork& preparation)
 {
-	PackagePlanWork work(preparation.nestedControl(), error, QCoreApplication::translate("VibeStudioPackageStaging", "Ordering package WAD lumps"));
+	PackagePlanWork work(preparation.nestedControl(), error, QCoreApplication::translate("SlopStudioPackageStaging", "Ordering package WAD lumps"));
 	if (!work.checkpoint()) { return false; }
 	QStringList names; names.reserve(entries->size());
 	for (const auto& entry : *entries) { if (!work.checkpoint()) { return false; } names << entry.virtualPath; }
@@ -1217,7 +1217,7 @@ bool computePlan(const QVector<PackageStagedEntry>& baseEntries, const QVector<P
 	for (const auto& entry : baseEntries) {
 		if (!work.checkpoint()) { return false; }
 		if (!entry.unavailableReason.isEmpty()) {
-			addConflict(conflicts, {}, entry.virtualPath, QCoreApplication::translate("VibeStudioPackageStaging",
+			addConflict(conflicts, {}, entry.virtualPath, QCoreApplication::translate("SlopStudioPackageStaging",
 				"Original content is unavailable for Undo: %1. %2").arg(entry.virtualPath, entry.unavailableReason), false);
 		}
 	}
@@ -1319,7 +1319,7 @@ bool computePlan(const QVector<PackageStagedEntry>& baseEntries, const QVector<P
 			QVector<PackageStagedEntry> candidate;
 			for (const auto& slot : planSlots) { if (!work.checkpoint()) { return false; } if (slot.alive) { candidate.append(slot.entry); } }
 			QString error;
-			if (preserveSourceOrder) { error = QCoreApplication::translate("VibeStudioPackageStaging", "WAD packages use flat lump names and cannot contain folders."); }
+			if (preserveSourceOrder) { error = QCoreApplication::translate("SlopStudioPackageStaging", "WAD packages use flat lump names and cannot contain folders."); }
 			else { applyPackageDirectoryOperation(&candidate, operation, &error, work.nestedControl(), limits); }
 			if (work.cancelled()) { return false; }
 			if (!error.isEmpty()) { addConflict(conflicts, operation.id, operation.virtualPath, error); continue; }
@@ -1331,31 +1331,31 @@ bool computePlan(const QVector<PackageStagedEntry>& baseEntries, const QVector<P
 		}
 		const PackageVirtualPath normalized = normalizePackageVirtualPath(operation.virtualPath, false);
 		if (!normalized.isSafe()) {
-			addConflict(conflicts, operation.id, operation.virtualPath, QCoreApplication::translate("VibeStudioPackageStaging", "Unsafe package path: %1").arg(packagePathIssueDisplayName(normalized.issue)));
+			addConflict(conflicts, operation.id, operation.virtualPath, QCoreApplication::translate("SlopStudioPackageStaging", "Unsafe package path: %1").arg(packagePathIssueDisplayName(normalized.issue)));
 			continue;
 		}
 
 		if (occupiedDirectory(normalized.normalizedPath)
 			|| ((operation.type == PackageStageOperationType::Add || operation.type == PackageStageOperationType::Replace) && fileParent(normalized.normalizedPath))) {
-			addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "A file and folder would occupy the same package path. Use the folder controls for directory edits."));
+			addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "A file and folder would occupy the same package path. Use the folder controls for directory edits."));
 			continue;
 		}
 		int existingIndex = liveIndex(normalized.normalizedPath);
 		if (operation.sourceOrdinal < -1 || (operation.sourceOrdinal >= 0 && operation.type == PackageStageOperationType::Add)) {
-			addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "Invalid source occurrence selector."));
+			addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "Invalid source occurrence selector."));
 			continue;
 		}
 		if (operation.sourceOrdinal >= 0) {
 			existingIndex = sourceIndex.value(operation.sourceOrdinal, -1);
 			if (existingIndex < 0 || !planSlots.at(existingIndex).alive
 				|| entryKey(planSlots.at(existingIndex).entry.virtualPath) != entryKey(normalized.normalizedPath)) {
-				addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "The selected source occurrence is missing, ambiguous or has a different path. No entry was changed."));
+				addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "The selected source occurrence is missing, ambiguous or has a different path. No entry was changed."));
 				continue;
 			}
 		}
 		if (operation.sourceOrdinal < 0 && index.value(entryKey(normalized.normalizedPath)).size() > 1
 			&& !(operation.type == PackageStageOperationType::Add && operation.conflictResolution == PackageStageConflictResolution::Skip)) {
-			addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "This path occurs more than once. Path-based editing cannot identify one occurrence; no entry was changed."));
+			addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "This path occurs more than once. Path-based editing cannot identify one occurrence; no entry was changed."));
 			continue;
 		}
 		if (operation.type == PackageStageOperationType::Add || operation.type == PackageStageOperationType::Replace) {
@@ -1401,9 +1401,9 @@ bool computePlan(const QVector<PackageStagedEntry>& baseEntries, const QVector<P
 						if (!budget.replaceRecord(PackagePlanBudget::entryBytes(planSlots.at(existingIndex).entry), PackagePlanBudget::entryBytes(staged))) { return false; }
 						planSlots[existingIndex].entry = staged;
 					} else if (operation.conflictResolution == PackageStageConflictResolution::Skip) {
-						addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "Skipped add because an entry already exists."), false);
+						addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "Skipped add because an entry already exists."), false);
 					} else {
-						addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "Cannot add because an entry already exists. Use replace or replace-existing conflict resolution."));
+						addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "Cannot add because an entry already exists. Use replace or replace-existing conflict resolution."));
 					}
 					continue;
 				}
@@ -1423,9 +1423,9 @@ bool computePlan(const QVector<PackageStagedEntry>& baseEntries, const QVector<P
 
 			if (existingIndex < 0) {
 				if (operation.conflictResolution == PackageStageConflictResolution::Skip) {
-					addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "Skipped replace because the entry is missing."), false);
+					addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "Skipped replace because the entry is missing."), false);
 				} else {
-					addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "Cannot replace because the entry is missing."));
+					addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "Cannot replace because the entry is missing."));
 				}
 				continue;
 			}
@@ -1443,25 +1443,25 @@ bool computePlan(const QVector<PackageStagedEntry>& baseEntries, const QVector<P
 		if (operation.type == PackageStageOperationType::Rename) {
 			const PackageVirtualPath target = normalizePackageVirtualPath(operation.targetVirtualPath, false);
 			if (!target.isSafe()) {
-				addConflict(conflicts, operation.id, operation.targetVirtualPath, QCoreApplication::translate("VibeStudioPackageStaging", "Unsafe target package path: %1").arg(packagePathIssueDisplayName(target.issue)));
+				addConflict(conflicts, operation.id, operation.targetVirtualPath, QCoreApplication::translate("SlopStudioPackageStaging", "Unsafe target package path: %1").arg(packagePathIssueDisplayName(target.issue)));
 				continue;
 			}
 			if (existingIndex < 0) {
 				if (operation.conflictResolution == PackageStageConflictResolution::Skip) {
-					addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "Skipped rename because the source entry is missing."), false);
+					addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "Skipped rename because the source entry is missing."), false);
 				} else {
-					addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "Cannot rename because the source entry is missing."));
+					addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "Cannot rename because the source entry is missing."));
 				}
 				continue;
 			}
 			if (occupiedDirectory(target.normalizedPath) || fileParent(target.normalizedPath)) {
-				addConflict(conflicts, operation.id, target.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "A file and folder would occupy the same destination path."));
+				addConflict(conflicts, operation.id, target.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "A file and folder would occupy the same destination path."));
 				continue;
 			}
 			const int targetIndex = liveIndex(target.normalizedPath);
 			const bool samePath = entryKey(target.normalizedPath) == entryKey(normalized.normalizedPath);
 			if (!samePath && index.value(entryKey(target.normalizedPath)).size() > 1) {
-				addConflict(conflicts, operation.id, target.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "The rename target occurs more than once. No entry was changed."));
+				addConflict(conflicts, operation.id, target.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "The rename target occurs more than once. No entry was changed."));
 				continue;
 			}
 			if (!samePath && targetIndex >= 0 && targetIndex != existingIndex) {
@@ -1471,10 +1471,10 @@ bool computePlan(const QVector<PackageStagedEntry>& baseEntries, const QVector<P
 					budget.removeRecord(PackagePlanBudget::entryBytes(planSlots.at(targetIndex).entry));
 					planSlots[targetIndex].entry = {};
 				} else if (operation.conflictResolution == PackageStageConflictResolution::Skip) {
-					addConflict(conflicts, operation.id, target.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "Skipped rename because the target entry exists."), false);
+					addConflict(conflicts, operation.id, target.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "Skipped rename because the target entry exists."), false);
 					continue;
 				} else {
-					addConflict(conflicts, operation.id, target.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "Cannot rename because the target entry already exists."));
+					addConflict(conflicts, operation.id, target.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "Cannot rename because the target entry already exists."));
 					continue;
 				}
 			}
@@ -1490,9 +1490,9 @@ bool computePlan(const QVector<PackageStagedEntry>& baseEntries, const QVector<P
 		if (operation.type == PackageStageOperationType::Delete) {
 			if (existingIndex < 0) {
 				if (operation.conflictResolution == PackageStageConflictResolution::Skip) {
-					addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "Skipped delete because the entry is missing."), false);
+					addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "Skipped delete because the entry is missing."), false);
 				} else {
-					addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("VibeStudioPackageStaging", "Cannot delete because the entry is missing."));
+					addConflict(conflicts, operation.id, normalized.normalizedPath, QCoreApplication::translate("SlopStudioPackageStaging", "Cannot delete because the entry is missing."));
 				}
 				continue;
 			}
@@ -1511,7 +1511,7 @@ bool computePlan(const QVector<PackageStagedEntry>& baseEntries, const QVector<P
 		if (!slot.alive) { continue; }
 		entries.push_back(slot.entry);
 		if (!slot.entry.unavailableReason.isEmpty()) {
-			addConflict(conflicts, slot.entry.operationId, slot.entry.virtualPath, QCoreApplication::translate("VibeStudioPackageStaging",
+			addConflict(conflicts, slot.entry.operationId, slot.entry.virtualPath, QCoreApplication::translate("SlopStudioPackageStaging",
 				"Content is unavailable: %1. Replace or delete this entry before exporting.").arg(slot.entry.virtualPath));
 		}
 	}
@@ -1541,7 +1541,7 @@ bool computePlan(const QVector<PackageStagedEntry>& baseEntries, const QVector<P
 			if (entry.wadInsertBefore.isEmpty()) { remaining.append(entry); continue; }
 			const auto key = entryKey(entry.wadInsertBefore);
 			if (names.value(key) != 1 || !anchors.contains(key) || !doomNamespaceMarker(entry.virtualPath).isEmpty()) {
-				addConflict(conflicts, entry.operationId, entry.virtualPath, QCoreApplication::translate("VibeStudioPackageStaging", "The texture namespace end marker is missing or ambiguous: %1").arg(entry.wadInsertBefore));
+				addConflict(conflicts, entry.operationId, entry.virtualPath, QCoreApplication::translate("SlopStudioPackageStaging", "The texture namespace end marker is missing or ambiguous: %1").arg(entry.wadInsertBefore));
 				remaining.append(entry); continue;
 			}
 			insertions[key].append(entry);
@@ -1565,7 +1565,7 @@ bool computePlan(const QVector<PackageStagedEntry>& baseEntries, const QVector<P
 			}
 			const bool wrongNamespace = entry.wadNamespace == QStringLiteral("global") ? !namespaces.isEmpty() : namespaces.isEmpty() || namespaces.last() != entry.wadNamespace;
 			if (!entry.wadNamespace.isEmpty() && (!marked.isEmpty() || wrongNamespace)) {
-				addConflict(conflicts, entry.operationId, entry.virtualPath, QCoreApplication::translate("VibeStudioPackageStaging", "The staged texture is outside its required WAD namespace: %1").arg(entry.wadNamespace));
+				addConflict(conflicts, entry.operationId, entry.virtualPath, QCoreApplication::translate("SlopStudioPackageStaging", "The staged texture is outside its required WAD namespace: %1").arg(entry.wadNamespace));
 			}
 		}
 		if (assembleDoomOrder) {
@@ -1619,10 +1619,10 @@ bool readWadSourceMetadata(const QString& path, QString* magicOut, QVector<Packa
 	const PackageFileIdentityPtr& identity, const PackageReadControl& control, QString* error,
 	const std::function<bool(const PackageStagingMetadataUsage&)>& charge)
 {
-	PackagePlanWork work(control, error, QCoreApplication::translate("VibeStudioPackageStaging", "Reading package WAD directory"));
+	PackagePlanWork work(control, error, QCoreApplication::translate("SlopStudioPackageStaging", "Reading package WAD directory"));
 	if (!work.checkpoint()) { return false; }
 	const auto failed = [&] {
-		if (!work.cancelled() && error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "The WAD source directory could not be read from its original snapshot."); }
+		if (!work.cancelled() && error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "The WAD source directory could not be read from its original snapshot."); }
 		return false;
 	};
 	std::unique_ptr<QIODevice> file;
@@ -1688,7 +1688,7 @@ public:
 			largest = qMax(largest, entry.sourceOrdinal);
 		}
 		if (largest >= PackageIndexLimits::entryCeiling) {
-			return m_work.refuse(QCoreApplication::translate("VibeStudioPackageStaging", "The source package occurrence is outside the supported range."));
+			return m_work.refuse(QCoreApplication::translate("SlopStudioPackageStaging", "The source package occurrence is outside the supported range."));
 		}
 		m_ordinals.fill(-1, qsizetype(largest + 1)); m_used.fill(false, m_entries.size());
 		for (qsizetype index = 0; index < m_entries.size(); ++index) {
@@ -1754,7 +1754,7 @@ private:
 bool virtualWadMetadata(const QString& magic, const QVector<PackageEntry>& entries, QVector<PackageWadLumpLocation>* lumps,
 	QVector<int>* entrySlots, PackagePlanWork& work, const std::function<bool(const PackageStagingMetadataUsage&)>& charge)
 {
-	const auto invalid = [&] { return work.refuse(QCoreApplication::translate("VibeStudioPackageStaging", "The source snapshot has missing or inconsistent WAD directory metadata.")); };
+	const auto invalid = [&] { return work.refuse(QCoreApplication::translate("SlopStudioPackageStaging", "The source snapshot has missing or inconsistent WAD directory metadata.")); };
 	if (!wadMagicIsSupported(magic)) { return invalid(); }
 	qsizetype count = 0;
 	for (const auto& entry : entries) { if (!work.checkpoint()) { return false; } if (entry.kind == PackageEntryKind::File) { ++count; } }
@@ -1797,7 +1797,7 @@ bool PackageStagingModel::createEmpty(PackageArchiveFormat format, const QString
 	const QString magic = wadMagic.isEmpty() ? QStringLiteral("PWAD") : wadMagic.trimmed().toUpper();
 	if (!(format == PackageArchiveFormat::Pak || format == PackageArchiveFormat::Zip || format == PackageArchiveFormat::Pk3 || format == PackageArchiveFormat::Wad)
 		|| (format == PackageArchiveFormat::Wad ? !wadMagicIsSupported(magic) : !wadMagic.isEmpty())) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Choose PAK, ZIP, PK3, or a supported WAD format for the new package."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Choose PAK, ZIP, PK3, or a supported WAD format for the new package."); }
 		return false;
 	}
 	PackageStagingModel candidate(m_contentLimits, m_metadataLimits, m_planLimits, m_viewLimits);
@@ -1813,7 +1813,7 @@ bool PackageStagingModel::createEmpty(PackageArchiveFormat format, const QString
 bool PackageStagingModel::loadBaseArchive(const PackageArchiveReader& archive, QString* error, const PackageReadControl& control)
 {
 	QString localError; if (!error) { error = &localError; } error->clear();
-	PackagePlanWork work(control, error, QCoreApplication::translate("VibeStudioPackageStaging", "Opening editable package"));
+	PackagePlanWork work(control, error, QCoreApplication::translate("SlopStudioPackageStaging", "Opening editable package"));
 	const auto nested = work.nestedControl();
 	PackageStagingModel candidate(m_contentLimits, m_metadataLimits, m_planLimits, m_viewLimits);
 	PackageStagingContentUsage usage; PackageStagingMetadataUsage metadata;
@@ -1830,7 +1830,7 @@ bool PackageStagingModel::loadBaseArchive(const PackageArchiveReader& archive, Q
 
 bool PackageStagingModel::loadBaseArchiveUnchecked(const PackageArchiveReader& archive, QString* error, const PackageReadControl& control)
 {
-	PackagePlanWork work(control, error, QCoreApplication::translate("VibeStudioPackageStaging", "Reading package base metadata"));
+	PackagePlanWork work(control, error, QCoreApplication::translate("SlopStudioPackageStaging", "Reading package base metadata"));
 	if (!work.checkpoint()) { return false; }
 	PackageStagingMetadataUsage retained;
 	const auto charge = [&](const PackageStagingMetadataUsage& addition) {
@@ -1857,7 +1857,7 @@ bool PackageStagingModel::loadBaseArchiveUnchecked(const PackageArchiveReader& a
 		const auto& source = staged->m_snapshot;
 		if (!source.preparePlan(error, work.nestedControl())) { return false; }
 		if (!staged->isOpen() || !source.summary().canSave) {
-			*error = QCoreApplication::translate("VibeStudioPackageStaging", "Resolve staging conflicts before reading the planned package.");
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Resolve staging conflicts before reading the planned package.");
 			return false;
 		}
 		const auto limits = m_contentLimits; const auto metadataLimits = m_metadataLimits; const auto planLimits = m_planLimits; const auto viewLimits = m_viewLimits;
@@ -1878,7 +1878,7 @@ bool PackageStagingModel::loadBaseArchiveUnchecked(const PackageArchiveReader& a
 		return work.finish();
 	}
 	if (!archive.isOpen()) {
-		*error = QCoreApplication::translate("VibeStudioPackageStaging", "No package is open."); return false;
+		*error = QCoreApplication::translate("SlopStudioPackageStaging", "No package is open."); return false;
 	}
 	clear();
 	const auto* source = dynamic_cast<const PackageArchive*>(&archive);
@@ -1891,7 +1891,7 @@ bool PackageStagingModel::loadBaseArchiveUnchecked(const PackageArchiveReader& a
 		m_metadataLimits.maximumMetadataBytes - retained.metadataBytes, error, work.nestedControl());
 	if (!archive.visitProtectedInputPaths([&](const QString& path) { return sourceInputs.add(path); }, error, work.nestedControl())
 		|| !sourceInputs.finish() || !charge({sourceInputs.paths().size(), sourceInputs.metadataBytes()})) {
-		if (error->isEmpty()) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Unable to retain all package source protections."); }
+		if (error->isEmpty()) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to retain all package source protections."); }
 		return false;
 	}
 	m_protectedInputPaths = sourceInputs.paths();
@@ -1918,12 +1918,12 @@ bool PackageStagingModel::loadBaseArchiveUnchecked(const PackageArchiveReader& a
 	if (wadSource) {
 		if (m_baseReader && m_baseReader->fileIdentity()) {
 			if (m_baseReader->format() != PackageArchiveFormat::Wad) {
-				return work.refuse(QCoreApplication::translate("VibeStudioPackageStaging", "The source snapshot has missing or inconsistent WAD directory metadata."));
+				return work.refuse(QCoreApplication::translate("SlopStudioPackageStaging", "The source snapshot has missing or inconsistent WAD directory metadata."));
 			}
 			if (!readWadSourceMetadata(m_sourcePath, &m_sourceWadMagic, &m_sourceWadLumps,
 				m_baseReader->fileIdentity(), work.nestedControl(), error, charge)) { return false; }
 			if (!archive.wadMagic().isEmpty() && archive.wadMagic() != m_sourceWadMagic) {
-				return work.refuse(QCoreApplication::translate("VibeStudioPackageStaging", "The source snapshot has missing or inconsistent WAD directory metadata."));
+				return work.refuse(QCoreApplication::translate("SlopStudioPackageStaging", "The source snapshot has missing or inconsistent WAD directory metadata."));
 			}
 		} else {
 			const auto magic = archive.wadMagic();
@@ -1952,12 +1952,12 @@ bool PackageStagingModel::loadBaseArchiveUnchecked(const PackageArchiveReader& a
 			staged.modifiedUtc = entry.modifiedUtc; staged.source = QStringLiteral("base-directory"); staged.baseVirtualPath = entry.virtualPath;
 		} else if (entry.kind == PackageEntryKind::File) {
 			if (!entry.readable) {
-				staged.unavailableReason = entry.note.isEmpty() ? QCoreApplication::translate("VibeStudioPackageStaging", "Base entry is not readable and cannot be preserved by the writer.") : entry.note;
+				staged.unavailableReason = entry.note.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "Base entry is not readable and cannot be preserved by the writer.") : entry.note;
 			}
 			staged.virtualPath = entry.virtualPath; staged.kind = PackageEntryKind::File; staged.sizeBytes = entry.sizeBytes;
 			staged.modifiedUtc = entry.modifiedUtc; staged.source = QStringLiteral("base"); staged.baseVirtualPath = entry.virtualPath;
 			if (entry.sourceOrdinal > std::numeric_limits<int>::max()) {
-				*error = QCoreApplication::translate("VibeStudioPackageStaging", "The source package occurrence is outside the supported range."); return false;
+				*error = QCoreApplication::translate("SlopStudioPackageStaging", "The source package occurrence is outside the supported range."); return false;
 			}
 			staged.sourceOrdinal = entry.sourceOrdinal >= 0 ? int(entry.sourceOrdinal) : int(readerOrdinal);
 			staged.sourceMetadataIndex = readerOrdinal;
@@ -1965,8 +1965,8 @@ bool PackageStagingModel::loadBaseArchiveUnchecked(const PackageArchiveReader& a
 			if (!work.checkpoint()) { return false; }
 			const PackageEntry* captured = capturedLookup && staged.sourceReaderIndex >= 0 ? &capturedLookup->entry(staged.sourceReaderIndex) : nullptr;
 			if (!source && staged.unavailableReason.isEmpty()) {
-				if (!captured) { staged.unavailableReason = QCoreApplication::translate("VibeStudioPackageStaging", "The base entry has no matching retained source. Replace it or reopen an owned package snapshot."); }
-				else if (!captured->readable) { staged.unavailableReason = captured->note.isEmpty() ? QCoreApplication::translate("VibeStudioPackageStaging", "Base entry is not readable and cannot be preserved by the writer.") : captured->note; }
+				if (!captured) { staged.unavailableReason = QCoreApplication::translate("SlopStudioPackageStaging", "The base entry has no matching retained source. Replace it or reopen an owned package snapshot."); }
+				else if (!captured->readable) { staged.unavailableReason = captured->note.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "Base entry is not readable and cannot be preserved by the writer.") : captured->note; }
 			}
 			if (wadSource) {
 				const int slot = !virtualWadSlots.isEmpty() ? virtualWadSlots.at(readerOrdinal)
@@ -1977,7 +1977,7 @@ bool PackageStagingModel::loadBaseArchiveUnchecked(const PackageArchiveReader& a
 					// Unmatched metadata has no physical position; keep its identity
 					// distinct until the user removes or replaces that unavailable row.
 					staged.sourceOrdinal = int(m_sourceWadLumps.size() + readerOrdinal);
-				} else { return work.refuse(QCoreApplication::translate("VibeStudioPackageStaging", "The source snapshot has missing or inconsistent WAD directory metadata.")); }
+				} else { return work.refuse(QCoreApplication::translate("SlopStudioPackageStaging", "The source snapshot has missing or inconsistent WAD directory metadata.")); }
 			}
 		} else { continue; }
 		if (!budget.addRecord(PackagePlanBudget::entryBytes(staged)) || !charge(entryMetadata(staged))) { return false; }
@@ -1985,7 +1985,7 @@ bool PackageStagingModel::loadBaseArchiveUnchecked(const PackageArchiveReader& a
 		(staged.kind == PackageEntryKind::Directory ? m_baseDirectories : m_baseEntries).append(std::move(staged));
 	}
 
-	PackagePlanWork sorting(work.nestedControl(), error, QCoreApplication::translate("VibeStudioPackageStaging", "Ordering package base entries"));
+	PackagePlanWork sorting(work.nestedControl(), error, QCoreApplication::translate("SlopStudioPackageStaging", "Ordering package base entries"));
 	if (!sortPackagePlan(&m_baseEntries, wadSource ? stagedEntrySourceLess : stagedEntryLess, sorting)
 		|| !sortPackagePlan(&m_baseDirectories, stagedEntryLess, sorting) || !sorting.finish() || !work.finish()) { return false; }
 	invalidatePlan();
@@ -2063,7 +2063,7 @@ bool PackageStagingModel::preparePlan(QString* error, const PackageReadControl& 
 {
 	if (error) { error->clear(); }
 	QString preparationError;
-	PackagePlanWork work(control, &preparationError, QCoreApplication::translate("VibeStudioPackageStaging", "Preparing package plan"));
+	PackagePlanWork work(control, &preparationError, QCoreApplication::translate("SlopStudioPackageStaging", "Preparing package plan"));
 	const auto fail = [&](PackagePlanWork& phase) {
 		const bool cancelled = phase.cancelled();
 		if (phase.failed() && !cancelled) {
@@ -2085,7 +2085,7 @@ bool PackageStagingModel::preparePlan(QString* error, const PackageReadControl& 
 	QVector<PackageStagedEntry> entries; QVector<PackageStageConflict> conflicts;
 	if (!computePlan(m_baseEntries, m_baseDirectories, m_operations, m_baseConflicts,
 		m_sourceFormat == PackageArchiveFormat::Wad, newDoomWad, m_sourceWadMagic, &conflicts, &entries, work, m_planLimits)) { return fail(work); }
-	PackagePlanWork stats(control, &preparationError, QCoreApplication::translate("VibeStudioPackageStaging", "Preparing package summaries"));
+	PackagePlanWork stats(control, &preparationError, QCoreApplication::translate("SlopStudioPackageStaging", "Preparing package summaries"));
 	PackageStagingSummary result; result.sourcePath = m_sourcePath; result.sourceFormat = m_sourceFormat;
 	result.baseFileCount = static_cast<int>(m_baseEntries.size()); result.baseDirectoryCount = static_cast<int>(m_baseDirectories.size());
 	result.operationCount = static_cast<int>(m_operations.size());
@@ -2101,7 +2101,7 @@ bool PackageStagingModel::preparePlan(QString* error, const PackageReadControl& 
 		for (const auto& conflict : conflicts) {
 			if (!stats.checkpoint() || !budget.addRecord(PackagePlanBudget::conflictBytes(conflict))) { return fail(stats); }
 		}
-		PackageStageConflict overflowConflict{{}, {}, QCoreApplication::translate("VibeStudioPackageStaging", "The planned package's total file size exceeds the supported range."), true};
+		PackageStageConflict overflowConflict{{}, {}, QCoreApplication::translate("SlopStudioPackageStaging", "The planned package's total file size exceeds the supported range."), true};
 		if (!budget.addRecord(PackagePlanBudget::conflictBytes(overflowConflict))) { return fail(stats); }
 		conflicts.append(std::move(overflowConflict));
 	}
@@ -2196,7 +2196,7 @@ bool PackageStagingModel::entryBytes(const PackageStagedEntry& entry, QByteArray
 	if (m_baseReader && entry.sourceReaderIndex >= 0) {
 		return m_baseReader->readEntryAt(entry.sourceReaderIndex, out, error, maxBytes);
 	}
-	if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "The base entry has no retained source. Replace it or reopen the original package."); }
+	if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "The base entry has no retained source. Replace it or reopen the original package."); }
 	return false;
 }
 
@@ -2214,7 +2214,7 @@ bool PackageStagingModel::verifySources(QString* error, const PackageReadControl
 	QSet<QString> checked;
 	for (const auto& entry : plannedEntries()) {
 		if (control.isCancelled && control.isCancelled()) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Package read cancelled."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Package read cancelled."); }
 			return false;
 		}
 		if (!entry.sourceIdentity) { continue; }
@@ -2294,7 +2294,7 @@ QByteArray PackageStagingModel::manifestJson(QString* error, const PackageReadCo
 		if (failed) return true;
 		if (control.isCancelled && control.isCancelled()) {
 			failed = true;
-			if (error) *error = QCoreApplication::translate("VibeStudioPackageStaging", "Package read cancelled.");
+			if (error) *error = QCoreApplication::translate("SlopStudioPackageStaging", "Package read cancelled.");
 		}
 		return failed;
 	};
@@ -2390,7 +2390,7 @@ bool PackageStagingModel::replaceFile(const QString& virtualPath, const QString&
 bool PackageStagingModel::addBytes(const QByteArray& bytes, const QString& virtualPath, QString* error, PackageStageConflictResolution resolution)
 {
 	if (bytes.size() > 64 * 1024 * 1024) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Generated assets are limited to 64 MiB per file."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Generated assets are limited to 64 MiB per file."); }
 		return false;
 	}
 	PackageStageOperation operation;
@@ -2407,9 +2407,9 @@ bool PackageStagingModel::addWadBytes(const QByteArray& bytes, const QString& na
 		|| !wadNameIsValid(name, textureWad ? 16 : 8) || !normalizePackageVirtualPath(name, false).isSafe()
 		|| lumpType < 0 || lumpType > 255 || (textureWad ? !namespaceId.isEmpty() : !QStringList{QStringLiteral("flat"), QStringLiteral("patch"), QStringLiteral("sprite"), QStringLiteral("global")}.contains(namespaceId))
 		|| (!textureWad && (!doomNamespaceMarker(name).isEmpty() || isDoomMapMarker(name.toUpper()) || doomMapLumpRank(name.toUpper()) < 1000))) {
-		return fail(QCoreApplication::translate("VibeStudioPackageStaging", "Choose a valid native WAD lump name, type, and namespace."));
+		return fail(QCoreApplication::translate("SlopStudioPackageStaging", "Choose a valid native WAD lump name, type, and namespace."));
 	}
-	if (!summary().canSave) { return fail(QCoreApplication::translate("VibeStudioPackageStaging", "Resolve package conflicts before staging a native texture.")); }
+	if (!summary().canSave) { return fail(QCoreApplication::translate("SlopStudioPackageStaging", "Resolve package conflicts before staging a native texture.")); }
 	const auto entries = plannedEntries(); QStringList namespaces; QString anchor, existingNamespace; int matches = 0;
 	QHash<QString, int> names; bool malformed = false;
 	for (const auto& entry : entries) {
@@ -2425,20 +2425,20 @@ bool PackageStagingModel::addWadBytes(const QByteArray& bytes, const QString& na
 			namespaces.removeAt(at);
 		} else { malformed = true; }
 	}
-	if (matches > 1 || (matches && !replaceExisting)) { return fail(QCoreApplication::translate("VibeStudioPackageStaging", "The lump name is ambiguous or already exists. Review replacement before staging.")); }
+	if (matches > 1 || (matches && !replaceExisting)) { return fail(QCoreApplication::translate("SlopStudioPackageStaging", "The lump name is ambiguous or already exists. Review replacement before staging.")); }
 	const auto expectedNamespace = namespaceId == QStringLiteral("global") ? QString() : namespaceId;
 	if (!textureWad && (malformed || !namespaces.isEmpty() || (matches && existingNamespace != expectedNamespace) || (!matches && namespaceId == QStringLiteral("global")))) {
-		return fail(QCoreApplication::translate("VibeStudioPackageStaging", "Repair WAD namespace markers or choose a name in the matching texture namespace."));
+		return fail(QCoreApplication::translate("SlopStudioPackageStaging", "Repair WAD namespace markers or choose a name in the matching texture namespace."));
 	}
-	auto next = *this; if (!next.beginOperationGroup(QCoreApplication::translate("VibeStudioPackageStaging", "Stage native texture %1").arg(name), error)) { return false; }
+	auto next = *this; if (!next.beginOperationGroup(QCoreApplication::translate("SlopStudioPackageStaging", "Stage native texture %1").arg(name), error)) { return false; }
 	if (!textureWad && !matches) {
 		if (anchor.isEmpty()) {
 			const QString prefix = namespaceId == QStringLiteral("flat") ? QStringLiteral("F") : namespaceId == QStringLiteral("patch") ? QStringLiteral("P") : QStringLiteral("S");
 			const QString start = prefix + QStringLiteral("_START"); anchor = prefix + QStringLiteral("_END");
-			if (names.contains(entryKey(start)) || names.contains(entryKey(anchor))) { return fail(QCoreApplication::translate("VibeStudioPackageStaging", "WAD namespace marker names are already in use.")); }
+			if (names.contains(entryKey(start)) || names.contains(entryKey(anchor))) { return fail(QCoreApplication::translate("SlopStudioPackageStaging", "WAD namespace marker names are already in use.")); }
 			if (!next.addBytes({}, start, error) || !next.addBytes({}, anchor, error)) { return false; }
 		} else if (names.value(entryKey(anchor)) != 1) {
-			return fail(QCoreApplication::translate("VibeStudioPackageStaging", "The destination namespace has repeated end markers. Choose an unambiguous WAD."));
+			return fail(QCoreApplication::translate("SlopStudioPackageStaging", "The destination namespace has repeated end markers. Choose an unambiguous WAD."));
 		}
 	}
 	PackageStageOperation operation; operation.type = PackageStageOperationType::Add;
@@ -2446,7 +2446,7 @@ bool PackageStagingModel::addWadBytes(const QByteArray& bytes, const QString& na
 	operation.wadLumpType = lumpType; operation.wadInsertBefore = matches ? QString() : anchor;
 	operation.wadNamespace = namespaceId;
 	operation.conflictResolution = replaceExisting ? PackageStageConflictResolution::ReplaceExisting : PackageStageConflictResolution::Block;
-	if (!next.appendOperation(operation, error) || !next.summary().canSave) { return fail(QCoreApplication::translate("VibeStudioPackageStaging", "Native texture staging would create package conflicts.")); }
+	if (!next.appendOperation(operation, error) || !next.summary().canSave) { return fail(QCoreApplication::translate("SlopStudioPackageStaging", "Native texture staging would create package conflicts.")); }
 	if (!next.endOperationGroup(true, error)) { return false; }
 	*this = std::move(next); return true;
 }
@@ -2493,12 +2493,12 @@ bool PackageStagingModel::appendDirectoryOperation(PackageStageOperation operati
 {
 	if (error) { error->clear(); }
 	if (!m_loaded || m_sourceFormat == PackageArchiveFormat::Wad) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Open a folder, PAK, ZIP, or PK3 package to edit folders."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Open a folder, PAK, ZIP, or PK3 package to edit folders."); }
 		return false;
 	}
 	operation.virtualPath = normalizePackageVirtualPath(operation.virtualPath, false).normalizedPath;
 	if (operation.type == PackageStageOperationType::RenameDirectory) { operation.targetVirtualPath = normalizePackageVirtualPath(operation.targetVirtualPath, false).normalizedPath; }
-	PackagePlanWork work(control, error, QCoreApplication::translate("VibeStudioPackageDirectory", "Preparing package folder edit"));
+	PackagePlanWork work(control, error, QCoreApplication::translate("SlopStudioPackageDirectory", "Preparing package folder edit"));
 	const auto nestedControl = work.nestedControl();
 	if (!admitHistoryEdit(true, error)) { return false; }
 	operation.id = QStringLiteral("stage-%1").arg(m_operationSerial + 1);
@@ -2560,7 +2560,7 @@ bool PackageStagingModel::appendOccurrenceOperation(PackageStageOperation operat
 	if (m_loaded && operation.sourceOrdinal >= 0) {
 		for (const auto& entry : m_planEntries) {
 			if (control.isCancelled && control.isCancelled()) {
-				if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Package content admission cancelled."); }
+				if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Package content admission cancelled."); }
 				return false;
 			}
 			if (entry.kind != PackageEntryKind::File || entry.sourceOrdinal != operation.sourceOrdinal) { continue; }
@@ -2569,7 +2569,7 @@ bool PackageStagingModel::appendOccurrenceOperation(PackageStageOperation operat
 		}
 	}
 	if (!match) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Select one existing source occurrence before editing it."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Select one existing source occurrence before editing it."); }
 		return false;
 	}
 	operation.virtualPath = match->virtualPath;
@@ -2579,13 +2579,13 @@ bool PackageStagingModel::appendOccurrenceOperation(PackageStageOperation operat
 bool PackageStagingModel::clearOperation(const QString& operationId, QString* error, const PackageReadControl& control)
 {
 	if (error) { error->clear(); }
-	PackagePlanWork work(control, error, QCoreApplication::translate("VibeStudioPackageStaging", "Preparing package edit"));
+	PackagePlanWork work(control, error, QCoreApplication::translate("SlopStudioPackageStaging", "Preparing package edit"));
 	if (!work.checkpoint()) { return false; }
 	for (qsizetype index = 0; index < m_operations.size(); ++index) {
 		if (!work.checkpoint()) { return false; }
 		if (m_operations.at(index).id != operationId) { continue; }
 		if (!admitHistoryEdit(false, error)) { return false; }
-		const QString label = QCoreApplication::translate("VibeStudioPackageStaging", "Unstage change");
+		const QString label = QCoreApplication::translate("SlopStudioPackageStaging", "Unstage change");
 		PackageStagingMetadataUsage usage, addition{1, 0};
 		if (m_groupDepth == 0) { const auto step = historyMetadata(label); addition.records += step.records; addition.metadataBytes += step.metadataBytes; }
 		if (!m_metadataUsageValid && !metadataUsage(&usage, error, control)) { return false; }
@@ -2626,10 +2626,10 @@ void PackageStagingModel::resetHistory()
 bool PackageStagingModel::beginOperationGroup(const QString& label, QString* error, const PackageReadControl& control)
 {
 	if (error) { error->clear(); }
-	PackagePlanWork work(control, error, QCoreApplication::translate("VibeStudioPackageStaging", "Preparing package edit"));
+	PackagePlanWork work(control, error, QCoreApplication::translate("SlopStudioPackageStaging", "Preparing package edit"));
 	if (!work.checkpoint()) { return false; }
 	if (m_groupDepth >= 256) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Package edit groups exceed the supported nesting limit."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Package edit groups exceed the supported nesting limit."); }
 		return false;
 	}
 	if (m_groupDepth > 0) { ++m_groupDepth; return true; }
@@ -2680,7 +2680,7 @@ bool PackageStagingModel::admitHistoryEdit(bool needsOperationId, QString* error
 {
 	if (m_revisionSerial >= maximumSerial || (needsOperationId && m_operationSerial >= maximumSerial)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioPackageStaging", "The package document has reached its edit-history counter limit. Undo/Redo and draft saving remain available. Export the package and reopen it to start a new history.");
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "The package document has reached its edit-history counter limit. Undo/Redo and draft saving remain available. Export the package and reopen it to start a new history.");
 		}
 		return false;
 	}
@@ -2752,20 +2752,20 @@ bool PackageStagingModel::exportManifest(const QString& outputPath, QString* err
 	}
 	if (outputPath.trimmed().isEmpty()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioPackageStaging", "Manifest output path is required.");
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Manifest output path is required.");
 		}
 		return false;
 	}
 	if (protectsInputPath(outputPath)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioPackageStaging", "Manifest output would replace package source content.");
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Manifest output would replace package source content.");
 		}
 		return false;
 	}
 	QSaveFile file(outputPath);
 	if (!file.open(QIODevice::WriteOnly)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioPackageStaging", "Unable to open package manifest for writing.");
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to open package manifest for writing.");
 		}
 		return false;
 	}
@@ -2773,13 +2773,13 @@ bool PackageStagingModel::exportManifest(const QString& outputPath, QString* err
 	if (json.isEmpty()) return false;
 	if (file.write(json) != json.size()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioPackageStaging", "Unable to write package manifest.");
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to write package manifest.");
 		}
 		return false;
 	}
 	if (!file.commit()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioPackageStaging", "Unable to commit package manifest.");
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to commit package manifest.");
 		}
 		return false;
 	}
@@ -2802,7 +2802,7 @@ PackageStagingArchive::PackageStagingArchive(const PackageStagingModel& staging,
 	m_entries = m_snapshot.plannedEntries();
 	const auto refused = [&] { m_ready = false; m_entries.clear(); m_metadata.clear(); };
 	if (m_entries.size() > limits.maximumEntries) {
-		m_error = QCoreApplication::translate("VibeStudioPackageStaging", "The planned package exceeds the %1-entry snapshot limit. Undo recent edits or use a smaller package.").arg(limits.maximumEntries);
+		m_error = QCoreApplication::translate("SlopStudioPackageStaging", "The planned package exceeds the %1-entry snapshot limit. Undo recent edits or use a smaller package.").arg(limits.maximumEntries);
 		refused(); return;
 	}
 	m_ready = mode == PackageStagingReadMode::InspectPlan ? staging.isLoaded() : m_snapshot.summary().canSave;
@@ -2814,7 +2814,7 @@ PackageStagingArchive::PackageStagingArchive(const PackageStagingModel& staging,
 	const bool textureWad = m_snapshot.sourceWadMagic() == QStringLiteral("WAD2") || m_snapshot.sourceWadMagic() == QStringLiteral("WAD3");
 	QStringList doomNamespaces;
 	for (const auto& staged : m_entries) {
-		if (control.isCancelled && control.isCancelled()) { m_error = QCoreApplication::translate("VibeStudioPackageArchive", "Package snapshot preparation cancelled."); refused(); return; }
+		if (control.isCancelled && control.isCancelled()) { m_error = QCoreApplication::translate("SlopStudioPackageArchive", "Package snapshot preparation cancelled."); refused(); return; }
 		const bool fromBase = staged.sourceReaderIndex >= 0 && staged.sourceReaderIndex < base.size()
 			&& !staged.hasInlineBytes && staged.sourceFilePath.isEmpty();
 		PackageEntry entry = fromBase ? base.at(staged.sourceReaderIndex) : PackageEntry();
@@ -2852,7 +2852,7 @@ PackageStagingArchive::PackageStagingArchive(const PackageStagingModel& staging,
 	if (!admitPackageSnapshot(sourcePath(), m_metadata, warnings(), limits, control, &usage, mode == PackageStagingReadMode::InspectPlan ? &implied : nullptr, &m_error)) { refused(); return; }
 	if (mode == PackageStagingReadMode::InspectPlan) {
 		for (auto& metadata : implied) {
-			if (control.isCancelled && control.isCancelled()) { m_error = QCoreApplication::translate("VibeStudioPackageArchive", "Package snapshot preparation cancelled."); refused(); return; }
+			if (control.isCancelled && control.isCancelled()) { m_error = QCoreApplication::translate("SlopStudioPackageArchive", "Package snapshot preparation cancelled."); refused(); return; }
 			PackageStagedEntry entry; entry.virtualPath = metadata.virtualPath;
 			entry.kind = PackageEntryKind::Directory; entry.source = QStringLiteral("synthetic");
 			m_entries.append(std::move(entry)); m_metadata.append(std::move(metadata));
@@ -2886,11 +2886,11 @@ bool PackageStagingArchive::readEntryBytes(const QString& virtualPath, QByteArra
 	const PackageStagedEntry* match = nullptr;
 	for (const auto& entry : m_entries) {
 		if (entry.kind == PackageEntryKind::File && entryKey(entry.virtualPath) == entryKey(virtualPath)) {
-			if (match) { if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "The staged path is ambiguous."); } return false; }
+			if (match) { if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "The staged path is ambiguous."); } return false; }
 			match = &entry;
 		}
 	}
-	if (!m_ready || !match) { if (error) { *error = (m_error.isEmpty() ? QCoreApplication::translate("VibeStudioPackageStaging", "The staged file is unavailable.") : m_error); } return false; }
+	if (!m_ready || !match) { if (error) { *error = (m_error.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "The staged file is unavailable.") : m_error); } return false; }
 	return m_snapshot.entryBytes(*match, out, error, maxBytes);
 }
 
@@ -2898,7 +2898,7 @@ bool PackageStagingArchive::readEntryAt(qsizetype index, QByteArray* out, QStrin
 {
 	if (out) { out->clear(); } if (error) { error->clear(); }
 	if (!m_ready || index < 0 || index >= m_entries.size() || !m_metadata.at(index).readable || m_entries.at(index).kind != PackageEntryKind::File) {
-		if (error) { *error = (m_error.isEmpty() ? QCoreApplication::translate("VibeStudioPackageStaging", "The staged file is unavailable.") : m_error); }
+		if (error) { *error = (m_error.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "The staged file is unavailable.") : m_error); }
 		return false;
 	}
 	return m_snapshot.entryBytes(m_entries.at(index), out, error, maxBytes);
@@ -2910,7 +2910,7 @@ bool PackageStagingArchive::streamEntryAt(qsizetype index, const std::function<b
 {
 	if (error) error->clear();
 	if (!m_ready || !sink || index < 0 || index >= m_entries.size() || !m_metadata.at(index).readable || m_entries.at(index).kind != PackageEntryKind::File) {
-		if (error) *error = (m_error.isEmpty() ? QCoreApplication::translate("VibeStudioPackageStaging", "The staged file is unavailable.") : m_error);
+		if (error) *error = (m_error.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "The staged file is unavailable.") : m_error);
 		return false;
 	}
 	PackageReadControl control; control.isCancelled = isCancelled;
@@ -2924,8 +2924,8 @@ bool PackageStagingModel::streamEntry(const PackageStagedEntry& entry, const std
 	const auto fail = [error](const QString& message) { if (error) *error = message; return false; };
 	const auto cancelled = [&]() { return control.isCancelled && control.isCancelled(); };
 	if (!sink || entry.kind != PackageEntryKind::File || entry.sizeBytes > static_cast<quint64>(std::numeric_limits<qint64>::max()))
-		return fail(QCoreApplication::translate("VibeStudioPackageStaging", "The staged file is unavailable."));
-	if (cancelled()) return fail(QCoreApplication::translate("VibeStudioPackageStaging", "Package read cancelled."));
+		return fail(QCoreApplication::translate("SlopStudioPackageStaging", "The staged file is unavailable."));
+	if (cancelled()) return fail(QCoreApplication::translate("SlopStudioPackageStaging", "Package read cancelled."));
 	if (!entry.unavailableReason.isEmpty()) { return fail(entry.unavailableReason); }
 	quint64 receivedBytes = 0;
 	if (control.progress) control.progress(entry.virtualPath, 0, static_cast<qint64>(entry.sizeBytes));
@@ -2938,9 +2938,9 @@ bool PackageStagingModel::streamEntry(const PackageStagedEntry& entry, const std
 	};
 	if (entry.hasInlineBytes) {
 		for (qsizetype offset = 0; offset < entry.inlineBytes.size(); offset += 65536) {
-			if (cancelled()) { return fail(QCoreApplication::translate("VibeStudioPackageStaging", "Package read cancelled.")); }
+			if (cancelled()) { return fail(QCoreApplication::translate("SlopStudioPackageStaging", "Package read cancelled.")); }
 			if (!consume(QByteArrayView(entry.inlineBytes).sliced(offset, qMin<qsizetype>(65536, entry.inlineBytes.size() - offset)))) {
-				return fail(QCoreApplication::translate("VibeStudioPackageStaging", "The package byte consumer stopped the read."));
+				return fail(QCoreApplication::translate("SlopStudioPackageStaging", "The package byte consumer stopped the read."));
 			}
 		}
 	} else if (!entry.sourceFilePath.isEmpty()) {
@@ -2948,24 +2948,24 @@ bool PackageStagingModel::streamEntry(const PackageStagedEntry& entry, const std
 		if (!file.open(QIODevice::ReadOnly)) { return fail(file.errorString()); }
 		quint64 received = 0;
 		while (received < entry.sizeBytes) {
-			if (cancelled()) { return fail(QCoreApplication::translate("VibeStudioPackageStaging", "Package read cancelled.")); }
+			if (cancelled()) { return fail(QCoreApplication::translate("SlopStudioPackageStaging", "Package read cancelled.")); }
 			const qint64 count = static_cast<qint64>(qMin<quint64>(65536, entry.sizeBytes - received));
 			const QByteArray chunk = file.read(count);
 			if (chunk.size() != count || file.failed()) { return fail(file.errorString()); }
-			if (!consume(QByteArrayView(chunk))) { return fail(QCoreApplication::translate("VibeStudioPackageStaging", "The package byte consumer stopped the read.")); }
+			if (!consume(QByteArrayView(chunk))) { return fail(QCoreApplication::translate("SlopStudioPackageStaging", "The package byte consumer stopped the read.")); }
 			received += static_cast<quint64>(chunk.size());
 		}
 		if (!entry.sourceIdentity->matchesMetadata()) {
-			return fail(QCoreApplication::translate("VibeStudioPackageStaging", "The staged source changed while reading it."));
+			return fail(QCoreApplication::translate("SlopStudioPackageStaging", "The staged source changed while reading it."));
 		}
 	} else if (m_baseReader && entry.sourceReaderIndex >= 0) {
 		if (!m_baseReader->streamEntryAt(entry.sourceReaderIndex, consume, error, control.isCancelled)) return false;
 	} else {
-		return fail(QCoreApplication::translate("VibeStudioPackageStaging", "The base entry has no retained source. Replace it or reopen the original package."));
+		return fail(QCoreApplication::translate("SlopStudioPackageStaging", "The base entry has no retained source. Replace it or reopen the original package."));
 	}
 	if (receivedBytes != entry.sizeBytes)
-		return fail(QCoreApplication::translate("VibeStudioPackageStaging", "Entry changed size while writing: %1").arg(entry.virtualPath));
-	return !cancelled() || fail(QCoreApplication::translate("VibeStudioPackageStaging", "Package read cancelled."));
+		return fail(QCoreApplication::translate("SlopStudioPackageStaging", "Entry changed size while writing: %1").arg(entry.virtualPath));
+	return !cancelled() || fail(QCoreApplication::translate("SlopStudioPackageStaging", "Package read cancelled."));
 }
 
 PackageWriteReport PackageStagingModel::writeArchive(const PackageWriteRequest& request) const
@@ -2979,7 +2979,7 @@ PackageWriteReport PackageStagingModel::writeArchive(const PackageWriteRequest& 
 	const auto cancelled = [&]() {
 		if (report.cancelled || (request.isCancelled && request.isCancelled())) {
 			if (!report.cancelled) {
-				report.blockedMessages << QCoreApplication::translate("VibeStudioPackageStaging", "Package export cancelled; the destination was left untouched.");
+				report.blockedMessages << QCoreApplication::translate("SlopStudioPackageStaging", "Package export cancelled; the destination was left untouched.");
 			}
 			report.cancelled = true;
 			return true;
@@ -3008,12 +3008,12 @@ PackageWriteReport PackageStagingModel::writeArchive(const PackageWriteRequest& 
 	if (!stagingSummary.canSave) {
 		report.blockedMessages = stagingSummary.blockedMessages;
 		if (report.blockedMessages.isEmpty()) {
-			report.blockedMessages.push_back(QCoreApplication::translate("VibeStudioPackageStaging", "Package staging model is not saveable."));
+			report.blockedMessages.push_back(QCoreApplication::translate("SlopStudioPackageStaging", "Package staging model is not saveable."));
 		}
 		return report;
 	}
 	if (request.destinationPath.trimmed().isEmpty()) {
-		report.blockedMessages.push_back(QCoreApplication::translate("VibeStudioPackageStaging", "Save-as destination path is required."));
+		report.blockedMessages.push_back(QCoreApplication::translate("SlopStudioPackageStaging", "Save-as destination path is required."));
 		return report;
 	}
 	PackageInputProtectionSet inputs(PackageInputProtectionSet::pathCeiling, PackageInputProtectionSet::byteCeiling, &indexError, planControl);
@@ -3030,19 +3030,19 @@ PackageWriteReport PackageStagingModel::writeArchive(const PackageWriteRequest& 
 	// save-as output back at the package that is being read.
 	const bool destinationIsSource = !m_sourcePath.isEmpty() && canonicalComparePath(request.destinationPath).compare(canonicalComparePath(m_sourcePath), Qt::CaseInsensitive) == 0;
 	if (destinationIsSource && !request.allowInPlaceOverwrite) {
-		report.blockedMessages.push_back(QCoreApplication::translate("VibeStudioPackageStaging", "Save-as destination must be different from the source package path."));
+		report.blockedMessages.push_back(QCoreApplication::translate("SlopStudioPackageStaging", "Save-as destination must be different from the source package path."));
 		return report;
 	}
 	if (destinationProtected && !(destinationIsSource && request.allowInPlaceOverwrite && m_sourceFormat != PackageArchiveFormat::Folder)) {
-		report.blockedMessages << QCoreApplication::translate("VibeStudioPackageStaging", "Choose an output outside the source folder and imported input files.");
+		report.blockedMessages << QCoreApplication::translate("SlopStudioPackageStaging", "Choose an output outside the source folder and imported input files.");
 		return report;
 	}
 	const QString manifestPath = request.manifestPath.trimmed().isEmpty() ? report.outputPath + QStringLiteral(".manifest.json") : request.manifestPath;
 	const QString backupPath = request.backupPath.trimmed().isEmpty() ? report.outputPath + QStringLiteral(".bak") : request.backupPath;
-	const QString lockPath = report.outputPath + QStringLiteral(".vibestudio-save.lock");
+	const QString lockPath = report.outputPath + QStringLiteral(".slopstudio-save.lock");
 	if (!checkInput(lockPath, &lockProtected)) { return report; }
 	if (lockProtected) {
-		report.blockedMessages << QCoreApplication::translate("VibeStudioPackageStaging", "The package save lock would modify protected source content. Choose another output path.");
+		report.blockedMessages << QCoreApplication::translate("SlopStudioPackageStaging", "The package save lock would modify protected source content. Choose another output path.");
 		return report;
 	}
 	if (request.writeManifest && !checkInput(manifestPath, &manifestProtected)) { return report; }
@@ -3050,29 +3050,29 @@ PackageWriteReport PackageStagingModel::writeArchive(const PackageWriteRequest& 
 		|| canonicalComparePath(manifestPath).compare(canonicalComparePath(report.outputPath), Qt::CaseInsensitive) == 0
 		|| canonicalComparePath(manifestPath).compare(canonicalComparePath(lockPath), Qt::CaseInsensitive) == 0
 		|| ((request.allowOverwrite || request.allowInPlaceOverwrite) && canonicalComparePath(manifestPath).compare(canonicalComparePath(backupPath), Qt::CaseInsensitive) == 0))) {
-		report.blockedMessages << QCoreApplication::translate("VibeStudioPackageStaging", "Manifest path must be separate from package output, backup, save lock, and source content.");
+		report.blockedMessages << QCoreApplication::translate("SlopStudioPackageStaging", "Manifest path must be separate from package output, backup, save lock, and source content.");
 		return report;
 	}
 	if ((request.allowOverwrite || request.allowInPlaceOverwrite) && !checkInput(backupPath, &backupProtected)) { return report; }
 	if ((request.allowOverwrite || request.allowInPlaceOverwrite) && (backupProtected
 		|| canonicalComparePath(backupPath).compare(canonicalComparePath(report.outputPath), Qt::CaseInsensitive) == 0)) {
-		report.blockedMessages << QCoreApplication::translate("VibeStudioPackageStaging", "Backup path must be separate from package output and source content.");
+		report.blockedMessages << QCoreApplication::translate("SlopStudioPackageStaging", "Backup path must be separate from package output and source content.");
 		return report;
 	}
 	const QFileInfo destinationBefore(request.destinationPath);
 	const bool destinationExists = destinationBefore.exists();
 	if (destinationExists && !request.allowOverwrite && !request.allowInPlaceOverwrite) {
-		report.blockedMessages.push_back(QCoreApplication::translate("VibeStudioPackageStaging", "Destination already exists. Choose a new save-as path or enable overwrite explicitly."));
+		report.blockedMessages.push_back(QCoreApplication::translate("SlopStudioPackageStaging", "Destination already exists. Choose a new save-as path or enable overwrite explicitly."));
 		return report;
 	}
 	if (destinationExists && !QFileInfo(request.destinationPath).isFile()) {
-		report.blockedMessages.push_back(QCoreApplication::translate("VibeStudioPackageStaging", "Destination exists and is not a file."));
+		report.blockedMessages.push_back(QCoreApplication::translate("SlopStudioPackageStaging", "Destination exists and is not a file."));
 		return report;
 	}
 
 	const bool zipFamily = report.format == PackageArchiveFormat::Zip || report.format == PackageArchiveFormat::Pk3;
 	if (!(report.format == PackageArchiveFormat::Pak || zipFamily || report.format == PackageArchiveFormat::Wad)) {
-		report.blockedMessages.push_back(QCoreApplication::translate("VibeStudioPackageStaging", "Write-back supports PAK, ZIP, PK3, and WAD outputs."));
+		report.blockedMessages.push_back(QCoreApplication::translate("SlopStudioPackageStaging", "Write-back supports PAK, ZIP, PK3, and WAD outputs."));
 		return report;
 	}
 
@@ -3089,7 +3089,7 @@ PackageWriteReport PackageStagingModel::writeArchive(const PackageWriteRequest& 
 			magic = QStringLiteral("PWAD");
 		}
 		if (!wadMagicIsSupported(magic)) {
-			report.blockedMessages.push_back(QCoreApplication::translate("VibeStudioPackageStaging", "Unsupported WAD magic: %1").arg(magic));
+			report.blockedMessages.push_back(QCoreApplication::translate("SlopStudioPackageStaging", "Unsupported WAD magic: %1").arg(magic));
 			return report;
 		}
 		options.wadMagic = magic;
@@ -3115,7 +3115,7 @@ PackageWriteReport PackageStagingModel::writeArchive(const PackageWriteRequest& 
 		}
 		for (const auto& entry : entries) {
 			if (entry.kind == PackageEntryKind::Directory && !populated.contains(entryKey(entry.virtualPath))) {
-				report.blockedMessages << QCoreApplication::translate("VibeStudioPackageStaging", "This format cannot preserve the empty folder %1. Add a file, remove the folder, or choose ZIP/PK3.").arg(entry.virtualPath);
+				report.blockedMessages << QCoreApplication::translate("SlopStudioPackageStaging", "This format cannot preserve the empty folder %1. Add a file, remove the folder, or choose ZIP/PK3.").arg(entry.virtualPath);
 			}
 		}
 		if (!report.blockedMessages.isEmpty()) { return report; }
@@ -3178,7 +3178,7 @@ PackageWriteReport PackageStagingModel::writeArchive(const PackageWriteRequest& 
 	if (!runWriter(&sink, &stats, &writerError) || !sink.flush()) {
 		if (cancelled()) return report;
 		if (!sink.errorString().isEmpty()) { writerError = sink.errorString(); }
-		report.blockedMessages.push_back(writerError.isEmpty() ? QCoreApplication::translate("VibeStudioPackageStaging", "Unable to write package bytes.") : writerError);
+		report.blockedMessages.push_back(writerError.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "Unable to write package bytes.") : writerError);
 		return report;
 	}
 
@@ -3204,12 +3204,12 @@ PackageWriteReport PackageStagingModel::writeArchive(const PackageWriteRequest& 
 		if (!runWriter(&verifySink, &verifyStats, &verifyError)) {
 			report.deterministic = false;
 			if (!verifySink.errorString().isEmpty()) { verifyError = verifySink.errorString(); }
-			report.blockedMessages.push_back(verifyError.isEmpty() ? QCoreApplication::translate("VibeStudioPackageStaging", "Determinism verification pass failed.") : verifyError);
+			report.blockedMessages.push_back(verifyError.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "Determinism verification pass failed.") : verifyError);
 		} else {
 			report.determinismVerified = true;
 			report.deterministic = verifySink.digest() == report.sha256;
 			if (!report.deterministic) {
-				report.blockedMessages.push_back(QCoreApplication::translate("VibeStudioPackageStaging", "Determinism verification found different bytes on a repeat write."));
+				report.blockedMessages.push_back(QCoreApplication::translate("SlopStudioPackageStaging", "Determinism verification found different bytes on a repeat write."));
 			}
 		}
 	}
@@ -3260,7 +3260,7 @@ PackageWriteReport PackageStagingModel::writeArchive(const PackageWriteRequest& 
 			report.wroteManifest = true;
 		} else {
 			manifestError = manifest.errorString();
-			report.warnings.push_back(manifestError.isEmpty() ? QCoreApplication::translate("VibeStudioPackageStaging", "Unable to write package manifest.") : manifestError);
+			report.warnings.push_back(manifestError.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "Unable to write package manifest.") : manifestError);
 		}
 	}
 	return report;
@@ -3279,12 +3279,12 @@ bool PackageStagingModel::appendOperation(PackageStageOperation operation, QStri
 {
 	if (error) { error->clear(); }
 	if (!m_loaded) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Load a package before staging changes."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Load a package before staging changes."); }
 		return false;
 	}
 	const auto stopped = [&] {
 		if (!control.isCancelled || !control.isCancelled()) { return false; }
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Package content admission cancelled."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Package content admission cancelled."); }
 		return true;
 	};
 	if (stopped() || !admitHistoryEdit(true, error)) { return false; }
@@ -3296,8 +3296,8 @@ bool PackageStagingModel::appendOperation(PackageStageOperation operation, QStri
 	metadata = m_metadataUsage;
 	if (operation.id.trimmed().isEmpty()) { operation.id = QStringLiteral("stage-%1").arg(m_operationSerial + 1); }
 	const QString label = operation.sourceOrdinal >= 0
-		? QCoreApplication::translate("VibeStudioPackageStaging", "%1 %2 (source entry %3)").arg(packageStageOperationTypeDisplayName(operation.type), operation.virtualPath).arg(operation.sourceOrdinal + 1)
-		: QCoreApplication::translate("VibeStudioPackageStaging", "%1 %2").arg(packageStageOperationTypeDisplayName(operation.type), operation.virtualPath);
+		? QCoreApplication::translate("SlopStudioPackageStaging", "%1 %2 (source entry %3)").arg(packageStageOperationTypeDisplayName(operation.type), operation.virtualPath).arg(operation.sourceOrdinal + 1)
+		: QCoreApplication::translate("SlopStudioPackageStaging", "%1 %2").arg(packageStageOperationTypeDisplayName(operation.type), operation.virtualPath);
 	const auto metadataAddition = [&] {
 		auto value = operationMetadata(operation); ++value.records;
 		if (m_groupDepth == 0) { const auto step = historyMetadata(label); value.records += step.records; value.metadataBytes += step.metadataBytes; }
@@ -3342,11 +3342,11 @@ bool PackageStagingModel::appendOperation(PackageStageOperation operation, QStri
 	};
 	if ((!fits() || !metadataFits(metadata, addedMetadata)) && !reclaim()) { return false; }
 	if (generated > m_contentLimits.maximumGeneratedBytes - usage.generatedBytes) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Retained generated content exceeds the %1-byte document limit. Save and reopen the draft to release inline content, or stage smaller assets.").arg(m_contentLimits.maximumGeneratedBytes); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Retained generated content exceeds the %1-byte document limit. Save and reopen the draft to release inline content, or stage smaller assets.").arg(m_contentLimits.maximumGeneratedBytes); }
 		return false;
 	}
 	if (fingerprints > m_contentLimits.maximumFingerprintBytes - usage.fingerprintBytes) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Retained source fingerprints exceed the %1-byte document limit. Use smaller inputs or save a smaller package and reopen it.").arg(m_contentLimits.maximumFingerprintBytes); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Retained source fingerprints exceed the %1-byte document limit. Use smaller inputs or save a smaller package and reopen it.").arg(m_contentLimits.maximumFingerprintBytes); }
 		return false;
 	}
 	if (!metadataFits(metadata, addedMetadata, error)) { return false; }
@@ -3421,21 +3421,21 @@ QString packageStageOperationTypeDisplayName(PackageStageOperationType type)
 {
 	switch (type) {
 	case PackageStageOperationType::Add:
-		return QCoreApplication::translate("VibeStudioPackageStaging", "Add");
+		return QCoreApplication::translate("SlopStudioPackageStaging", "Add");
 	case PackageStageOperationType::Replace:
-		return QCoreApplication::translate("VibeStudioPackageStaging", "Replace");
+		return QCoreApplication::translate("SlopStudioPackageStaging", "Replace");
 	case PackageStageOperationType::Rename:
-		return QCoreApplication::translate("VibeStudioPackageStaging", "Rename");
+		return QCoreApplication::translate("SlopStudioPackageStaging", "Rename");
 	case PackageStageOperationType::Delete:
-		return QCoreApplication::translate("VibeStudioPackageStaging", "Delete");
+		return QCoreApplication::translate("SlopStudioPackageStaging", "Delete");
 	case PackageStageOperationType::CreateDirectory:
-		return QCoreApplication::translate("VibeStudioPackageStaging", "Create folder");
+		return QCoreApplication::translate("SlopStudioPackageStaging", "Create folder");
 	case PackageStageOperationType::RenameDirectory:
-		return QCoreApplication::translate("VibeStudioPackageStaging", "Rename folder");
+		return QCoreApplication::translate("SlopStudioPackageStaging", "Rename folder");
 	case PackageStageOperationType::DeleteDirectory:
-		return QCoreApplication::translate("VibeStudioPackageStaging", "Delete folder");
+		return QCoreApplication::translate("SlopStudioPackageStaging", "Delete folder");
 	}
-	return QCoreApplication::translate("VibeStudioPackageStaging", "Add");
+	return QCoreApplication::translate("SlopStudioPackageStaging", "Add");
 }
 
 PackageStageOperationType packageStageOperationTypeFromId(const QString& id)
@@ -3504,37 +3504,37 @@ PackageTimestampMode packageTimestampModeFromId(const QString& id)
 QString packageWriteReportText(const PackageWriteReport& report)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioPackageStaging", "Package save-as");
+	lines << QCoreApplication::translate("SlopStudioPackageStaging", "Package save-as");
 	if (!report.blockedMessages.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioPackageStaging", "Blocked:");
+		lines << QCoreApplication::translate("SlopStudioPackageStaging", "Blocked:");
 		for (const QString& blocked : report.blockedMessages) {
 			lines << QStringLiteral("- %1").arg(blocked);
 		}
 	}
-	lines << QCoreApplication::translate("VibeStudioPackageStaging", "Mode: %1").arg(report.dryRun ? QCoreApplication::translate("VibeStudioPackageStaging", "dry run") : QCoreApplication::translate("VibeStudioPackageStaging", "write"));
-	lines << QCoreApplication::translate("VibeStudioPackageStaging", "Output: %1").arg(report.outputPath.isEmpty() ? QCoreApplication::translate("VibeStudioPackageStaging", "not written") : report.outputPath);
-	lines << QCoreApplication::translate("VibeStudioPackageStaging", "Format: %1").arg(packageArchiveFormatId(report.format));
+	lines << QCoreApplication::translate("SlopStudioPackageStaging", "Mode: %1").arg(report.dryRun ? QCoreApplication::translate("SlopStudioPackageStaging", "dry run") : QCoreApplication::translate("SlopStudioPackageStaging", "write"));
+	lines << QCoreApplication::translate("SlopStudioPackageStaging", "Output: %1").arg(report.outputPath.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "not written") : report.outputPath);
+	lines << QCoreApplication::translate("SlopStudioPackageStaging", "Format: %1").arg(packageArchiveFormatId(report.format));
 	if (!report.wadMagic.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioPackageStaging", "WAD magic: %1").arg(report.wadMagic);
+		lines << QCoreApplication::translate("SlopStudioPackageStaging", "WAD magic: %1").arg(report.wadMagic);
 	}
-	lines << QCoreApplication::translate("VibeStudioPackageStaging", "Entries: %1").arg(report.entryCount);
+	lines << QCoreApplication::translate("SlopStudioPackageStaging", "Entries: %1").arg(report.entryCount);
 	if (report.directoryCount > 0) {
-		lines << QCoreApplication::translate("VibeStudioPackageStaging", "Directory records: %1").arg(report.directoryCount);
+		lines << QCoreApplication::translate("SlopStudioPackageStaging", "Directory records: %1").arg(report.directoryCount);
 	}
-	lines << QCoreApplication::translate("VibeStudioPackageStaging", "Bytes: %1").arg(report.bytesWritten);
-	lines << QCoreApplication::translate("VibeStudioPackageStaging", "Compression: %1").arg(report.compressionId.isEmpty() ? QStringLiteral("stored") : report.compressionId);
-	lines << QCoreApplication::translate("VibeStudioPackageStaging", "Compression ratio: %1").arg(report.compressionRatio, 0, 'f', 3);
-	lines << QCoreApplication::translate("VibeStudioPackageStaging", "Timestamps: %1").arg(report.timestampModeId.isEmpty() ? packageTimestampModeId(PackageTimestampMode::Reproducible) : report.timestampModeId);
-	lines << QCoreApplication::translate("VibeStudioPackageStaging", "SHA-256: %1").arg(report.sha256.isEmpty() ? QCoreApplication::translate("VibeStudioPackageStaging", "not available") : report.sha256);
-	lines << QCoreApplication::translate("VibeStudioPackageStaging", "Manifest: %1").arg(report.wroteManifest ? report.manifestPath : QCoreApplication::translate("VibeStudioPackageStaging", "not written"));
+	lines << QCoreApplication::translate("SlopStudioPackageStaging", "Bytes: %1").arg(report.bytesWritten);
+	lines << QCoreApplication::translate("SlopStudioPackageStaging", "Compression: %1").arg(report.compressionId.isEmpty() ? QStringLiteral("stored") : report.compressionId);
+	lines << QCoreApplication::translate("SlopStudioPackageStaging", "Compression ratio: %1").arg(report.compressionRatio, 0, 'f', 3);
+	lines << QCoreApplication::translate("SlopStudioPackageStaging", "Timestamps: %1").arg(report.timestampModeId.isEmpty() ? packageTimestampModeId(PackageTimestampMode::Reproducible) : report.timestampModeId);
+	lines << QCoreApplication::translate("SlopStudioPackageStaging", "SHA-256: %1").arg(report.sha256.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "not available") : report.sha256);
+	lines << QCoreApplication::translate("SlopStudioPackageStaging", "Manifest: %1").arg(report.wroteManifest ? report.manifestPath : QCoreApplication::translate("SlopStudioPackageStaging", "not written"));
 	if (report.overwroteInPlace) {
-		lines << QCoreApplication::translate("VibeStudioPackageStaging", "Replaced in place, backup: %1").arg(report.backupPath.isEmpty() ? QCoreApplication::translate("VibeStudioPackageStaging", "not written") : report.backupPath);
+		lines << QCoreApplication::translate("SlopStudioPackageStaging", "Replaced in place, backup: %1").arg(report.backupPath.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "not written") : report.backupPath);
 	}
 	for (const auto& path : report.recoveryPaths) {
-		lines << QCoreApplication::translate("VibeStudioPackageStaging", "Recovery file: %1").arg(path);
+		lines << QCoreApplication::translate("SlopStudioPackageStaging", "Recovery file: %1").arg(path);
 	}
 	if (!report.warnings.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioPackageStaging", "Warnings:");
+		lines << QCoreApplication::translate("SlopStudioPackageStaging", "Warnings:");
 		for (const QString& warning : report.warnings) {
 			lines << QStringLiteral("- %1").arg(warning);
 		}
@@ -3542,4 +3542,4 @@ QString packageWriteReportText(const PackageWriteReport& report)
 	return lines.join('\n');
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

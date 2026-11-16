@@ -5,7 +5,7 @@
 #include <QHash>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct PackageBrowserFolder {
 	QString path;
@@ -46,4 +46,4 @@ std::shared_ptr<const PackageBrowserIndex> preparePackageBrowserIndex(const Pack
 bool filterPackageBrowser(const PackageBrowserIndex& index, const QString& folder, const QString& query,
 	QVector<qsizetype>* rows, QString* error = nullptr, const PackageReadControl& control = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

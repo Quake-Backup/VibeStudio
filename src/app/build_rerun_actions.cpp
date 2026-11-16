@@ -24,7 +24,7 @@
 #include <QStatusBar>
 #include <QThread>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -344,10 +344,10 @@ void ApplicationShell::refreshLaunchProfileChoices()
 	for (const GameLaunchProfile& profile : gameLaunchProfiles() + mine) {
 		wanted << profile.id + QLatin1Char('|') + profile.displayName + QLatin1Char('|') + profile.argumentLine;
 	}
-	if (m_launchProfileChoice->property("vibestudioProfiles").toStringList() == wanted && m_launchProfileChoice->count() > 0) {
+	if (m_launchProfileChoice->property("slopstudioProfiles").toStringList() == wanted && m_launchProfileChoice->count() > 0) {
 		return;
 	}
-	m_launchProfileChoice->setProperty("vibestudioProfiles", wanted);
+	m_launchProfileChoice->setProperty("slopstudioProfiles", wanted);
 	const QString current = m_launchProfileChoice->currentData().toString();
 	const QSignalBlocker blocker(m_launchProfileChoice);
 	m_launchProfileChoice->clear();
@@ -410,4 +410,4 @@ void ApplicationShell::editGameLaunchProfiles()
 	statusBar()->showMessage(tr("%n launch profile(s) of your own saved.", nullptr, count));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

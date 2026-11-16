@@ -13,7 +13,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool ok, const char *what, const QString &error = {})

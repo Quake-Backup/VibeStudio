@@ -24,7 +24,7 @@
 #include <iostream>
 #include <cmath>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* label, const QString& detail = {})
 {
@@ -146,7 +146,7 @@ int main(int argc, char** argv)
 		}
 	}
 	for (const int scale : {100, 200}) {
-		settings.setSelectedEditorProfileId(QStringLiteral("vibestudio-default"));
+		settings.setSelectedEditorProfileId(QStringLiteral("slopstudio-default"));
 		settings.setLevelViewLayoutPreference(QStringLiteral("profile"));
 		settings.setTextScalePercent(scale); settings.setTheme(scale == 100 ? StudioTheme::Dark : StudioTheme::HighContrastDark); settings.sync();
 		applyStudioTheme(app, studioThemeTokens(scale == 100 ? StudioTheme::Dark : StudioTheme::HighContrastDark, UiDensity::Standard, scale));
@@ -238,7 +238,7 @@ int main(int argc, char** argv)
 				filter->clear(); dialog->resize(scale == 100 ? 760 : 1200, scale == 100 ? 720 : 1100); app.processEvents(QEventLoop::ExcludeUserInputEvents);
 				const auto noteRect = tree->visualItemRect(tree->topLevelItem(0)->child(0));
 				ok &= expect(noteRect.height() > tree->fontMetrics().height() * 2, "long adaptations wrap to readable rows");
-				const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+				const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 				if (!captures.isEmpty()) {
 					QDir().mkpath(captures);
 					QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image);

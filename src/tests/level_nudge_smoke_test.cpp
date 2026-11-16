@@ -20,7 +20,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& detail = {})
@@ -169,7 +169,7 @@ void supportAndDelta()
 void profiles()
 {
 	expect(levelNudgeCameraFollowsPlan(netRadiantCustomLevelControls()) && levelNudgeCameraFollowsPlan(gtkRadiantLevelControls())
-			&& !levelNudgeCameraFollowsPlan(trenchBroomLevelControls()) && !levelNudgeCameraFollowsPlan(vibeStudioLevelControls()),
+			&& !levelNudgeCameraFollowsPlan(trenchBroomLevelControls()) && !levelNudgeCameraFollowsPlan(slopStudioLevelControls()),
 		"Radiant cameras nudge in the plan view's axes; TrenchBroom's camera-relative");
 	const auto keysOf = [](const LevelEditorControls& controls, const char* id) {
 		for (const auto& binding : controls.keys) {
@@ -188,7 +188,7 @@ void profiles()
 				&& keysOf(controls, "map.nudgeWorldDown") == QStringList {QStringLiteral("Num+-")} && keysOf(controls, "map.nudgeDepthUp").isEmpty(),
 			"Radiant: Alt+arrows and the keypad's plus and minus");
 	}
-	expect(keysOf(vibeStudioLevelControls(), "map.nudgeRight") == QStringList {QStringLiteral("Right")}, "VibeStudio: the arrows");
+	expect(keysOf(slopStudioLevelControls(), "map.nudgeRight") == QStringList {QStringLiteral("Right")}, "SlopStudio: the arrows");
 	for (const auto& profile : editorProfileDescriptors()) {
 		const QString held = profile.controls.plan.arrowsDriveCamera ? QStringLiteral("Alt+") : QString();
 		expect(keysOf(profile.controls, "map.nudgeLeft") == QStringList {held + QStringLiteral("Left")}

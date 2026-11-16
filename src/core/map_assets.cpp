@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -27,7 +27,7 @@ void appendAuditWarning(QStringList* warnings, const QString& message)
 	constexpr qsizetype maximum = 128;
 	if (warnings->size() < maximum) { warnings->append(message); }
 	else if (warnings->size() == maximum) {
-		warnings->append(QCoreApplication::translate("VibeStudioMapAssets", "Further texture-audit diagnostics were truncated."));
+		warnings->append(QCoreApplication::translate("SlopStudioMapAssets", "Further texture-audit diagnostics were truncated."));
 	}
 }
 
@@ -333,7 +333,7 @@ bool readAuditBytes(const PackageArchiveReader& archive, const ArchiveIndex& ind
 	const auto at = index.positionByKey.value(path.toLower(), -1);
 	const auto entries = archive.entries();
 	if (at < 0 || at >= entries.size() || !entries.at(at).readable || entries.at(at).sizeBytes > quint64(limit)) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioMapAssets", "The audit input is unavailable or exceeds its byte limit."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioMapAssets", "The audit input is unavailable or exceeds its byte limit."); }
 		return false;
 	}
 	if (auditCancelled(control)) { return false; }
@@ -341,7 +341,7 @@ bool readAuditBytes(const PackageArchiveReader& archive, const ArchiveIndex& ind
 		QByteArray complete;
 		if (!archive.readEntryAt(at, &complete, error, limit)) { return false; }
 		if (quint64(complete.size()) != entries.at(at).sizeBytes) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioMapAssets", "The audit input does not match its declared size."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioMapAssets", "The audit input does not match its declared size."); }
 			return false;
 		}
 		*bytes = std::move(complete); return true;
@@ -370,7 +370,7 @@ QHash<QString, QString> collectShaderDeclarations(const PackageArchiveReader& ar
 		if (auditCancelled(control)) { return owners; }
 		if (scriptCount >= kMaxShaderScripts) {
 			if (warnings) {
-				appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "Stopped after %1 shader scripts; the package declares more than the audit reads.").arg(kMaxShaderScripts));
+				appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "Stopped after %1 shader scripts; the package declares more than the audit reads.").arg(kMaxShaderScripts));
 			}
 			break;
 		}
@@ -379,7 +379,7 @@ QHash<QString, QString> collectShaderDeclarations(const PackageArchiveReader& ar
 		if (position < 0 || position >= entries.size()) { continue; }
 		const auto size = entries.at(position).sizeBytes;
 		if (size > kMaxShaderAuditBytes - admittedBytes) {
-			appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "Shader scripts exceed the audit's aggregate byte limit."));
+			appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "Shader scripts exceed the audit's aggregate byte limit."));
 			break;
 		}
 		admittedBytes += size;
@@ -388,7 +388,7 @@ QHash<QString, QString> collectShaderDeclarations(const PackageArchiveReader& ar
 		QString error;
 		if (!readAuditBytes(archive, index, scriptPath, &bytes, &error, kMaxShaderScriptBytes, control)) {
 			if (warnings) {
-				appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "Unable to read shader script %1: %2").arg(scriptPath, error.isEmpty() ? QCoreApplication::translate("VibeStudioMapAssets", "unknown error") : error));
+				appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "Unable to read shader script %1: %2").arg(scriptPath, error.isEmpty() ? QCoreApplication::translate("SlopStudioMapAssets", "unknown error") : error));
 			}
 			continue;
 		}
@@ -397,13 +397,13 @@ QHash<QString, QString> collectShaderDeclarations(const PackageArchiveReader& ar
 		const QStringList names = collectShaderScriptNames(bytes, &scriptWarnings, control);
 		for (const QString& scriptWarning : scriptWarnings) {
 			if (warnings) {
-				appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "%1: %2").arg(scriptPath, scriptWarning));
+				appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "%1: %2").arg(scriptPath, scriptWarning));
 			}
 		}
 		for (const QString& name : names) {
 			if (auditCancelled(control)) { return owners; }
 			if (owners.size() >= kMaxShaderNames) {
-				if (warnings) { appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "The audit reached its shader-name limit.")); }
+				if (warnings) { appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "The audit reached its shader-name limit.")); }
 				return owners;
 			}
 			const QString key = name.toLower();
@@ -427,10 +427,10 @@ QString describeUse(const MapTextureUse& use)
 		text += QStringLiteral(" #%1").arg(use.objectId);
 	}
 	if (use.faceIndex >= 0) {
-		text += QCoreApplication::translate("VibeStudioMapAssets", " face %1").arg(use.faceIndex);
+		text += QCoreApplication::translate("SlopStudioMapAssets", " face %1").arg(use.faceIndex);
 	}
 	if (use.line > 0) {
-		text += QCoreApplication::translate("VibeStudioMapAssets", " line %1").arg(use.line);
+		text += QCoreApplication::translate("SlopStudioMapAssets", " line %1").arg(use.line);
 	}
 	return text;
 }
@@ -457,17 +457,17 @@ MapTextureAudit runAudit(const LevelMapDocument& document, const PackageArchiveR
 	audit.uniqueCount = static_cast<int>(collection.references.size());
 	if (collection.truncated) {
 		audit.complete = false;
-		appendAuditWarning(&audit.warnings, QCoreApplication::translate("VibeStudioMapAssets", "Stopped after %1 unique texture names; the map references more.").arg(kMaxUniqueTextures));
+		appendAuditWarning(&audit.warnings, QCoreApplication::translate("SlopStudioMapAssets", "Stopped after %1 unique texture names; the map references more.").arg(kMaxUniqueTextures));
 	}
 	if (collection.references.isEmpty()) {
 		if (!archive.isOpen()) {
-			appendAuditWarning(&audit.warnings, QCoreApplication::translate("VibeStudioMapAssets", "The package is not open; no texture lookup was attempted."));
+			appendAuditWarning(&audit.warnings, QCoreApplication::translate("SlopStudioMapAssets", "The package is not open; no texture lookup was attempted."));
 		}
 		return audit;
 	}
 
 	if (!archive.isOpen()) {
-		appendAuditWarning(&audit.warnings, QCoreApplication::translate("VibeStudioMapAssets", "The package is not open; every texture is reported as unresolved."));
+		appendAuditWarning(&audit.warnings, QCoreApplication::translate("SlopStudioMapAssets", "The package is not open; every texture is reported as unresolved."));
 	}
 
 	const ArchiveIndex index = archive.isOpen() ? buildArchiveIndex(archive, control) : ArchiveIndex();
@@ -531,7 +531,7 @@ MapTextureAudit runAudit(const LevelMapDocument& document, const PackageArchiveR
 			const auto position = index.positionByKey.value(resolvedKey, -1);
 			if (position < 0 || position >= metadata.size() || !metadata.at(position).readable) {
 				audit.complete = false; reference.noteId = QStringLiteral("unreadable-package-entry");
-				appendAuditWarning(&audit.warnings, QCoreApplication::translate("VibeStudioMapAssets", "Texture entry %1 is unavailable: %2")
+				appendAuditWarning(&audit.warnings, QCoreApplication::translate("SlopStudioMapAssets", "Texture entry %1 is unavailable: %2")
 					.arg(index.pathByKey.value(resolvedKey), position >= 0 && position < metadata.size() ? metadata.at(position).note : QString()));
 			} else {
 				reference.resolved = true; reference.resolution = MapTextureResolution::ResolvedEntry;
@@ -555,9 +555,9 @@ MapTextureAudit runAudit(const LevelMapDocument& document, const PackageArchiveR
 			QString error;
 			if (!readAuditBytes(archive, index, reference.resolvedPath, &bytes, &error, kMaxDecodeBytes, control)) {
 				++audit.undecodableCount; audit.complete = false;
-				appendAuditWarning(&audit.warnings, QCoreApplication::translate("VibeStudioMapAssets", "Unable to read %1 for %2: %3")
+				appendAuditWarning(&audit.warnings, QCoreApplication::translate("SlopStudioMapAssets", "Unable to read %1 for %2: %3")
 									  .arg(reference.resolvedPath, reference.textureName,
-										  error.isEmpty() ? QCoreApplication::translate("VibeStudioMapAssets", "unknown error") : error));
+										  error.isEmpty() ? QCoreApplication::translate("SlopStudioMapAssets", "unknown error") : error));
 			} else {
 				const IdTechImageDecodeResult decoded = decodeIdTechImage(reference.resolvedPath, bytes, palette);
 				if (decoded.decoded && decoded.width > 0 && decoded.height > 0) {
@@ -567,9 +567,9 @@ MapTextureAudit runAudit(const LevelMapDocument& document, const PackageArchiveR
 					reference.formatId = decoded.formatId.isEmpty() ? idTechImageFormatId(decoded.format) : decoded.formatId;
 				} else {
 					++audit.undecodableCount; audit.complete = false;
-					appendAuditWarning(&audit.warnings, QCoreApplication::translate("VibeStudioMapAssets", "Resolved %1 for %2 but could not decode it: %3")
+					appendAuditWarning(&audit.warnings, QCoreApplication::translate("SlopStudioMapAssets", "Resolved %1 for %2 but could not decode it: %3")
 										  .arg(reference.resolvedPath, reference.textureName,
-											  decoded.error.isEmpty() ? QCoreApplication::translate("VibeStudioMapAssets", "unsupported image data") : decoded.error));
+											  decoded.error.isEmpty() ? QCoreApplication::translate("SlopStudioMapAssets", "unsupported image data") : decoded.error));
 				}
 			}
 		}
@@ -597,7 +597,7 @@ public:
 	DirectoryReader(const QStringList& roots, QStringList* warnings, const PackageIndexLimits& limits) : m_session(limits)
 	{
 		if (roots.size() > PackageArchiveSession::layerCeiling) {
-			if (warnings) { appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "Asset lookup supports at most %1 folder roots. Choose fewer roots before retrying.").arg(PackageArchiveSession::layerCeiling)); }
+			if (warnings) { appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "Asset lookup supports at most %1 folder roots. Choose fewer roots before retrying.").arg(PackageArchiveSession::layerCeiling)); }
 			return;
 		}
 		QStringList sources;
@@ -610,7 +610,7 @@ public:
 			if (!info.exists() || !info.isDir()) {
 				m_complete = false;
 				if (warnings) {
-					appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "Asset folder not found: %1").arg(QDir::toNativeSeparators(trimmed)));
+					appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "Asset folder not found: %1").arg(QDir::toNativeSeparators(trimmed)));
 				}
 				continue;
 			}
@@ -621,9 +621,9 @@ public:
 				: m_session.mountArchive(info.absoluteFilePath(), {}, &error);
 			if (!opened) {
 				if (warnings) {
-					appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "Unable to read asset folder %1: %2")
+					appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "Unable to read asset folder %1: %2")
 									 .arg(QDir::toNativeSeparators(info.absoluteFilePath()),
-										 error.isEmpty() ? QCoreApplication::translate("VibeStudioMapAssets", "unknown error") : error));
+										 error.isEmpty() ? QCoreApplication::translate("SlopStudioMapAssets", "unknown error") : error));
 				}
 				// A rejected source can override earlier roots. Do not publish a
 				// partial catalog that quietly resolves to the wrong asset.
@@ -735,23 +735,23 @@ QString mapTextureUseKindDisplayName(MapTextureUseKind kind)
 	case MapTextureUseKind::Unknown:
 		break;
 	case MapTextureUseKind::WorldspawnFace:
-		return QCoreApplication::translate("VibeStudioMapAssets", "Worldspawn brush face");
+		return QCoreApplication::translate("SlopStudioMapAssets", "Worldspawn brush face");
 	case MapTextureUseKind::BrushEntityFace:
-		return QCoreApplication::translate("VibeStudioMapAssets", "Brush entity face");
+		return QCoreApplication::translate("SlopStudioMapAssets", "Brush entity face");
 	case MapTextureUseKind::PatchShader:
-		return QCoreApplication::translate("VibeStudioMapAssets", "Patch shader");
+		return QCoreApplication::translate("SlopStudioMapAssets", "Patch shader");
 	case MapTextureUseKind::DoomSidedefUpper:
-		return QCoreApplication::translate("VibeStudioMapAssets", "Sidedef upper");
+		return QCoreApplication::translate("SlopStudioMapAssets", "Sidedef upper");
 	case MapTextureUseKind::DoomSidedefLower:
-		return QCoreApplication::translate("VibeStudioMapAssets", "Sidedef lower");
+		return QCoreApplication::translate("SlopStudioMapAssets", "Sidedef lower");
 	case MapTextureUseKind::DoomSidedefMiddle:
-		return QCoreApplication::translate("VibeStudioMapAssets", "Sidedef middle");
+		return QCoreApplication::translate("SlopStudioMapAssets", "Sidedef middle");
 	case MapTextureUseKind::DoomSectorFloor:
-		return QCoreApplication::translate("VibeStudioMapAssets", "Sector floor");
+		return QCoreApplication::translate("SlopStudioMapAssets", "Sector floor");
 	case MapTextureUseKind::DoomSectorCeiling:
-		return QCoreApplication::translate("VibeStudioMapAssets", "Sector ceiling");
+		return QCoreApplication::translate("SlopStudioMapAssets", "Sector ceiling");
 	}
-	return QCoreApplication::translate("VibeStudioMapAssets", "Unknown use");
+	return QCoreApplication::translate("SlopStudioMapAssets", "Unknown use");
 }
 
 QString mapTextureResolutionId(MapTextureResolution resolution)
@@ -773,15 +773,15 @@ QString mapTextureResolutionDisplayName(MapTextureResolution resolution)
 {
 	switch (resolution) {
 	case MapTextureResolution::Missing:
-		return QCoreApplication::translate("VibeStudioMapAssets", "Missing");
+		return QCoreApplication::translate("SlopStudioMapAssets", "Missing");
 	case MapTextureResolution::ResolvedEntry:
-		return QCoreApplication::translate("VibeStudioMapAssets", "Resolved");
+		return QCoreApplication::translate("SlopStudioMapAssets", "Resolved");
 	case MapTextureResolution::ResolvedByShader:
-		return QCoreApplication::translate("VibeStudioMapAssets", "Resolved by shader script");
+		return QCoreApplication::translate("SlopStudioMapAssets", "Resolved by shader script");
 	case MapTextureResolution::EngineHandled:
-		return QCoreApplication::translate("VibeStudioMapAssets", "Engine-handled");
+		return QCoreApplication::translate("SlopStudioMapAssets", "Engine-handled");
 	}
-	return QCoreApplication::translate("VibeStudioMapAssets", "Missing");
+	return QCoreApplication::translate("SlopStudioMapAssets", "Missing");
 }
 
 QString normalizeMapTextureKey(const QString& textureName, LevelMapFormat format)
@@ -934,7 +934,7 @@ QStringList collectShaderScriptNames(const QByteArray& bytes, QStringList* warni
 
 		if (++tokenCount > kMaxShaderTokens) {
 			if (warnings) {
-				appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "Stopped reading the shader script after %1 tokens.").arg(kMaxShaderTokens));
+				appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "Stopped reading the shader script after %1 tokens.").arg(kMaxShaderTokens));
 			}
 			break;
 		}
@@ -955,7 +955,7 @@ QStringList collectShaderScriptNames(const QByteArray& bytes, QStringList* warni
 		if (current == QLatin1Char('}')) {
 			if (depth <= 0) {
 				if (warnings) {
-					appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "Ignored an unmatched closing brace in the shader script."));
+					appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "Ignored an unmatched closing brace in the shader script."));
 				}
 				depth = 0;
 			} else {
@@ -1003,13 +1003,13 @@ QStringList collectShaderScriptNames(const QByteArray& bytes, QStringList* warni
 	}
 
 	if (unterminatedComment && warnings) {
-		appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "The shader script ends inside a block comment."));
+		appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "The shader script ends inside a block comment."));
 	}
 	if (depth != 0 && warnings) {
-		appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "The shader script ends with %1 unclosed brace(s).").arg(depth));
+		appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "The shader script ends with %1 unclosed brace(s).").arg(depth));
 	}
 	if (names.size() >= kMaxShaderNames && warnings) {
-		appendAuditWarning(warnings, QCoreApplication::translate("VibeStudioMapAssets", "Stopped after %1 shader names in one script.").arg(kMaxShaderNames));
+		appendAuditWarning(warnings, QCoreApplication::translate("SlopStudioMapAssets", "Stopped after %1 shader names in one script.").arg(kMaxShaderNames));
 	}
 	return names;
 }
@@ -1027,7 +1027,7 @@ MapTextureAudit auditLevelMapTexturesInDirectories(const LevelMapDocument& docum
 	QStringList warnings;
 	const DirectoryReader reader(roots, &warnings, limits);
 	if (!reader.isOpen()) {
-		warnings << QCoreApplication::translate("VibeStudioMapAssets", "No readable asset folder was supplied.");
+		warnings << QCoreApplication::translate("SlopStudioMapAssets", "No readable asset folder was supplied.");
 	}
 	auto audit = runAudit(document, reader, decodeSizes, warnings);
 	audit.sourceIndexComplete = reader.sourceIndexComplete();
@@ -1038,37 +1038,37 @@ MapTextureAudit auditLevelMapTexturesInDirectories(const LevelMapDocument& docum
 QStringList mapTextureAuditLines(const MapTextureAudit& audit)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioMapAssets", "Texture audit: %1")
-				 .arg(audit.mapName.isEmpty() ? QCoreApplication::translate("VibeStudioMapAssets", "(unnamed map)") : audit.mapName);
-	lines << QCoreApplication::translate("VibeStudioMapAssets", "State: %1").arg(operationStateDisplayName(audit.state()));
-	if (!audit.complete) { lines << QCoreApplication::translate("VibeStudioMapAssets", "Texture audit incomplete; partial counts do not prove that every reference resolves."); }
-	lines << QCoreApplication::translate("VibeStudioMapAssets", "Format: %1").arg(levelMapFormatDisplayName(audit.format));
-	lines << QCoreApplication::translate("VibeStudioMapAssets", "Engine: %1")
-				 .arg(audit.engineFamily.isEmpty() ? QCoreApplication::translate("VibeStudioMapAssets", "unknown") : audit.engineFamily);
-	lines << QCoreApplication::translate("VibeStudioMapAssets", "Package: %1")
-				 .arg(audit.packageSource.isEmpty() ? QCoreApplication::translate("VibeStudioMapAssets", "none") : audit.packageSource);
-	lines << QCoreApplication::translate("VibeStudioMapAssets", "References: %1 across %2 unique name(s)")
+	lines << QCoreApplication::translate("SlopStudioMapAssets", "Texture audit: %1")
+				 .arg(audit.mapName.isEmpty() ? QCoreApplication::translate("SlopStudioMapAssets", "(unnamed map)") : audit.mapName);
+	lines << QCoreApplication::translate("SlopStudioMapAssets", "State: %1").arg(operationStateDisplayName(audit.state()));
+	if (!audit.complete) { lines << QCoreApplication::translate("SlopStudioMapAssets", "Texture audit incomplete; partial counts do not prove that every reference resolves."); }
+	lines << QCoreApplication::translate("SlopStudioMapAssets", "Format: %1").arg(levelMapFormatDisplayName(audit.format));
+	lines << QCoreApplication::translate("SlopStudioMapAssets", "Engine: %1")
+				 .arg(audit.engineFamily.isEmpty() ? QCoreApplication::translate("SlopStudioMapAssets", "unknown") : audit.engineFamily);
+	lines << QCoreApplication::translate("SlopStudioMapAssets", "Package: %1")
+				 .arg(audit.packageSource.isEmpty() ? QCoreApplication::translate("SlopStudioMapAssets", "none") : audit.packageSource);
+	lines << QCoreApplication::translate("SlopStudioMapAssets", "References: %1 across %2 unique name(s)")
 				 .arg(audit.referenceCount)
 				 .arg(audit.uniqueCount);
-	lines << QCoreApplication::translate("VibeStudioMapAssets", "Resolved: %1  Engine-handled: %2  Missing: %3  Undecodable: %4")
+	lines << QCoreApplication::translate("SlopStudioMapAssets", "Resolved: %1  Engine-handled: %2  Missing: %3  Undecodable: %4")
 				 .arg(audit.resolvedCount)
 				 .arg(audit.engineHandledCount)
 				 .arg(audit.missingCount)
 				 .arg(audit.undecodableCount);
 	if (audit.shaderNameCount > 0) {
-		lines << QCoreApplication::translate("VibeStudioMapAssets", "Shader names declared by the package: %1").arg(audit.shaderNameCount);
+		lines << QCoreApplication::translate("SlopStudioMapAssets", "Shader names declared by the package: %1").arg(audit.shaderNameCount);
 	}
 
 	if (audit.missingCount > 0) {
 		lines << QString();
-		lines << QCoreApplication::translate("VibeStudioMapAssets", "Missing textures");
+		lines << QCoreApplication::translate("SlopStudioMapAssets", "Missing textures");
 		for (const MapTextureReference& reference : audit.references) {
 			if (!reference.isMissing()) {
 				continue;
 			}
-			QString line = QCoreApplication::translate("VibeStudioMapAssets", "  %1 (%2 use(s))").arg(reference.textureName).arg(reference.useCount);
+			QString line = QCoreApplication::translate("SlopStudioMapAssets", "  %1 (%2 use(s))").arg(reference.textureName).arg(reference.useCount);
 			if (!reference.uses.isEmpty()) {
-				line += QCoreApplication::translate("VibeStudioMapAssets", " first at %1").arg(describeUse(reference.uses.first()));
+				line += QCoreApplication::translate("SlopStudioMapAssets", " first at %1").arg(describeUse(reference.uses.first()));
 			}
 			lines << line;
 		}
@@ -1076,12 +1076,12 @@ QStringList mapTextureAuditLines(const MapTextureAudit& audit)
 
 	if (audit.engineHandledCount > 0) {
 		lines << QString();
-		lines << QCoreApplication::translate("VibeStudioMapAssets", "Engine-handled names");
+		lines << QCoreApplication::translate("SlopStudioMapAssets", "Engine-handled names");
 		for (const MapTextureReference& reference : audit.references) {
 			if (!reference.engineHandled) {
 				continue;
 			}
-			lines << QCoreApplication::translate("VibeStudioMapAssets", "  %1 (%2 use(s)) [%3]")
+			lines << QCoreApplication::translate("SlopStudioMapAssets", "  %1 (%2 use(s)) [%3]")
 						 .arg(reference.textureName)
 						 .arg(reference.useCount)
 						 .arg(reference.noteId);
@@ -1090,15 +1090,15 @@ QStringList mapTextureAuditLines(const MapTextureAudit& audit)
 
 	if (!audit.references.isEmpty()) {
 		lines << QString();
-		lines << QCoreApplication::translate("VibeStudioMapAssets", "All references");
+		lines << QCoreApplication::translate("SlopStudioMapAssets", "All references");
 		for (const MapTextureReference& reference : audit.references) {
-			QString line = QCoreApplication::translate("VibeStudioMapAssets", "  %1 - %2")
+			QString line = QCoreApplication::translate("SlopStudioMapAssets", "  %1 - %2")
 							   .arg(reference.textureName, mapTextureResolutionDisplayName(reference.resolution));
 			if (!reference.resolvedPath.isEmpty()) {
-				line += QCoreApplication::translate("VibeStudioMapAssets", " [%1]").arg(reference.resolvedPath);
+				line += QCoreApplication::translate("SlopStudioMapAssets", " [%1]").arg(reference.resolvedPath);
 			}
 			if (reference.decoded) {
-				line += QCoreApplication::translate("VibeStudioMapAssets", " %1x%2 %3")
+				line += QCoreApplication::translate("SlopStudioMapAssets", " %1x%2 %3")
 							.arg(reference.width)
 							.arg(reference.height)
 							.arg(reference.formatId);
@@ -1109,7 +1109,7 @@ QStringList mapTextureAuditLines(const MapTextureAudit& audit)
 
 	if (!audit.warnings.isEmpty()) {
 		lines << QString();
-		lines << QCoreApplication::translate("VibeStudioMapAssets", "Warnings");
+		lines << QCoreApplication::translate("SlopStudioMapAssets", "Warnings");
 		for (const QString& warning : audit.warnings) {
 			lines << QStringLiteral("  ") + warning;
 		}
@@ -1174,4 +1174,4 @@ QJsonObject mapTextureAuditJson(const MapTextureAudit& audit)
 	return object;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -27,7 +27,7 @@
 
 // Faces picked by Select Textured move, rotate and scale in Face mode without
 // selecting their brushes: numeric dialog, arrow keys and the manipulator.
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 	settings.setRestoreSession(false); settings.setReducedMotion(true); settings.setLevelViewLayoutPreference("four-views");
 	const auto source = tests::typeSelectionFixture(), path = temp.filePath("faces.map").toUtf8(); QFile file(QString::fromUtf8(path));
 	if (!expect(file.open(QIODevice::WriteOnly) && file.write(source) == source.size(),"fixture")) { return 1; } file.close();
-	for (const auto* profile : {"netradiant-custom","trenchbroom","vibestudio-default"}) {
+	for (const auto* profile : {"netradiant-custom","trenchbroom","slopstudio-default"}) {
 		for (int scale : {100,200}) {
 			std::cout << "Face transform UI " << profile << ' ' << scale << '%' << std::endl;
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);

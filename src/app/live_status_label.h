@@ -4,7 +4,7 @@
 
 #include <QLabel>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // A status label whose accessible name stays fixed ("Mesh editor status")
 // while what it says changes. Its text is mirrored into the accessible
@@ -23,4 +23,4 @@ public:
 	void clear() { setLiveStatus(this, QString()); }
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

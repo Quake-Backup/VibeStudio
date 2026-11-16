@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -54,77 +54,77 @@ struct FilterEntry {
 };
 
 constexpr FilterEntry kQuakeFilters[] = {
-	{"world", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "World Brushes"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Worldspawn, func_group and func_detail with their brushes and patches, the world as Radiant counts it.")},
-	{"entities", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Entities"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Every entity but worldspawn, func_group and func_detail: point entities, and brush entities such as doors and triggers.")},
-	{"brushes", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Every brush, whether it belongs to the world or to an entity. Patches are not brushes.")},
-	{"brush-entities", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brush Entities"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Doors, platforms, triggers and every other entity made of brushes, other than func_group and func_detail.")},
-	{"func-groups", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Func Groups"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "func_group entities with their brushes and patches. Scene groups have their own visibility.")},
-	{"patches", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Patches"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Quake III curved surfaces."), FilterFormats::Quake3},
-	{"detail", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Detail"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes with the detail content flag, and func_detail entities.")},
-	{"structural", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Structural"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes that seal and split the map: on Quake II and III maps every brush without the detail flag outside func_detail, on Quake maps worldspawn and every brush entity but func_detail.")},
-	{"clip", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Clip"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Player, monster and weapon clip brushes and patches; on Quake III maps bot clip has a filter of its own.")},
-	{"player-clip", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Player Clip"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes and patches made wholly of player clip: the player clip content flag, a Quake III shader with surfaceparm playerclip, or a clip, playerclip or fullclip texture.")},
-	{"monster-clip", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Monster Clip"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes and patches made wholly of monster clip: the monster clip content flag, surfaceparm monsterclip, a monsterclip texture, or Quake's clip, which stops monsters too.")},
-	{"weapon-clip", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Weapon Clip"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes and patches made wholly of weapon clip, such as Quake III's weapclip and fullclip, which stop shots as well as players.")},
-	{"botclip", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Bot Clip"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Quake III brushes made wholly of botclip or donotenter, which only bots see."), FilterFormats::Quake3},
-	{"hint", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Hint"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes with a hint face or the hint surface flag, which guide the visibility split.")},
-	{"skip", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Skip"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes skipped on every face, and skip faces on other brushes, such as a hint brush's sides, in the camera. On Quake maps skip counts as caulk and only hintskip counts here.")},
-	{"caulk", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Caulk"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes caulked on every face, and caulk faces on other brushes in the camera. On Quake maps skip counts as caulk.")},
-	{"nodraw", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Nodraw"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes that draw nothing in game: every face has the nodraw surface flag, a Quake III shader with surfaceparm nodraw, or a nodraw texture.")},
-	{"areaportals", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Area Portals"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes with an areaportal face or the area portal content flag, and Quake II func_areaportal entities.")},
-	{"clusterportals", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Cluster Portals"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Quake III brushes made wholly of clusterportal, which split bot route clusters."), FilterFormats::Quake3},
-	{"lightgrid", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Light Grid"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Quake III brushes made wholly of lightgrid, which bound the compiler's light grid."), FilterFormats::Quake3},
-	{"sky", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Sky"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes with a sky face: a Quake III shader with skyParms or surfaceparm sky, or else a sky texture or the sky surface flag.")},
-	{"liquids", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Liquids"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Water, slime and lava brushes: a Quake III shader with surfaceparm water, slime or lava, or else a liquid texture or content flag.")},
-	{"fog", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Fog"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Quake III fog volumes: a brush with a shader that declares surfaceparm fog or fogParms, the fog content flag, or else a texture in a fog or fogs folder or named fog, such as sfx/fog_red."), FilterFormats::Quake3},
-	{"translucent", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Translucent"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Brushes and patches with a see-through face: Quake II's 33% and 66% translucent flags, Quake's { fence textures, or a Quake III shader with qer_trans, alphaFunc or fog.")},
-	{"decals", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Decals"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Quake III brushes with a face whose texture is under decals/."), FilterFormats::Quake3},
-	{"point-entities", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Point Entities"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Point entities such as player starts, items and monsters, but not lights and models, which have filters of their own.")},
-	{"lights", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Lights"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Entities whose class begins with light.")},
-	{"triggers", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Triggers"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Entities whose class begins with trigger_.")},
-	{"monsters", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Monsters"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Entities whose class begins with monster_.")},
-	{"items", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Items and Weapons"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Entities whose class begins with item_, weapon_ or ammo_.")},
-	{"starts", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Player Starts"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Entities whose class begins with info_player.")},
-	{"paths", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Paths"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Path corners and other entities whose class begins with path_.")},
-	{"models", QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "Models"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelViewFilters", "misc_model and misc_gamemodel entities.")},
+	{"world", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "World Brushes"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Worldspawn, func_group and func_detail with their brushes and patches, the world as Radiant counts it.")},
+	{"entities", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Entities"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Every entity but worldspawn, func_group and func_detail: point entities, and brush entities such as doors and triggers.")},
+	{"brushes", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Every brush, whether it belongs to the world or to an entity. Patches are not brushes.")},
+	{"brush-entities", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brush Entities"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Doors, platforms, triggers and every other entity made of brushes, other than func_group and func_detail.")},
+	{"func-groups", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Func Groups"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "func_group entities with their brushes and patches. Scene groups have their own visibility.")},
+	{"patches", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Patches"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Quake III curved surfaces."), FilterFormats::Quake3},
+	{"detail", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Detail"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes with the detail content flag, and func_detail entities.")},
+	{"structural", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Structural"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes that seal and split the map: on Quake II and III maps every brush without the detail flag outside func_detail, on Quake maps worldspawn and every brush entity but func_detail.")},
+	{"clip", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Clip"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Player, monster and weapon clip brushes and patches; on Quake III maps bot clip has a filter of its own.")},
+	{"player-clip", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Player Clip"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes and patches made wholly of player clip: the player clip content flag, a Quake III shader with surfaceparm playerclip, or a clip, playerclip or fullclip texture.")},
+	{"monster-clip", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Monster Clip"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes and patches made wholly of monster clip: the monster clip content flag, surfaceparm monsterclip, a monsterclip texture, or Quake's clip, which stops monsters too.")},
+	{"weapon-clip", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Weapon Clip"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes and patches made wholly of weapon clip, such as Quake III's weapclip and fullclip, which stop shots as well as players.")},
+	{"botclip", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Bot Clip"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Quake III brushes made wholly of botclip or donotenter, which only bots see."), FilterFormats::Quake3},
+	{"hint", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Hint"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes with a hint face or the hint surface flag, which guide the visibility split.")},
+	{"skip", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Skip"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes skipped on every face, and skip faces on other brushes, such as a hint brush's sides, in the camera. On Quake maps skip counts as caulk and only hintskip counts here.")},
+	{"caulk", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Caulk"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes caulked on every face, and caulk faces on other brushes in the camera. On Quake maps skip counts as caulk.")},
+	{"nodraw", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Nodraw"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes that draw nothing in game: every face has the nodraw surface flag, a Quake III shader with surfaceparm nodraw, or a nodraw texture.")},
+	{"areaportals", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Area Portals"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes with an areaportal face or the area portal content flag, and Quake II func_areaportal entities.")},
+	{"clusterportals", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Cluster Portals"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Quake III brushes made wholly of clusterportal, which split bot route clusters."), FilterFormats::Quake3},
+	{"lightgrid", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Light Grid"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Quake III brushes made wholly of lightgrid, which bound the compiler's light grid."), FilterFormats::Quake3},
+	{"sky", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Sky"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes with a sky face: a Quake III shader with skyParms or surfaceparm sky, or else a sky texture or the sky surface flag.")},
+	{"liquids", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Liquids"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Water, slime and lava brushes: a Quake III shader with surfaceparm water, slime or lava, or else a liquid texture or content flag.")},
+	{"fog", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Fog"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Quake III fog volumes: a brush with a shader that declares surfaceparm fog or fogParms, the fog content flag, or else a texture in a fog or fogs folder or named fog, such as sfx/fog_red."), FilterFormats::Quake3},
+	{"translucent", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Translucent"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Brushes and patches with a see-through face: Quake II's 33% and 66% translucent flags, Quake's { fence textures, or a Quake III shader with qer_trans, alphaFunc or fog.")},
+	{"decals", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Decals"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Quake III brushes with a face whose texture is under decals/."), FilterFormats::Quake3},
+	{"point-entities", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Point Entities"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Point entities such as player starts, items and monsters, but not lights and models, which have filters of their own.")},
+	{"lights", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Lights"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Entities whose class begins with light.")},
+	{"triggers", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Triggers"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Entities whose class begins with trigger_.")},
+	{"monsters", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Monsters"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Entities whose class begins with monster_.")},
+	{"items", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Items and Weapons"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Entities whose class begins with item_, weapon_ or ammo_.")},
+	{"starts", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Player Starts"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Entities whose class begins with info_player.")},
+	{"paths", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Paths"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Path corners and other entities whose class begins with path_.")},
+	{"models", QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "Models"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelViewFilters", "misc_model and misc_gamemodel entities.")},
 };
 
 QString translated(const char* text)
 {
-	return QCoreApplication::translate("VibeStudioLevelViewFilters", text);
+	return QCoreApplication::translate("SlopStudioLevelViewFilters", text);
 }
 
 bool isQuakeFamily(const LevelMapDocument& document)
@@ -742,10 +742,10 @@ QVector<LevelViewFilter> levelViewFilters(const LevelMapDocument& document)
 		const QStringList categories = doomCategories(document);
 		for (int index = 0; index < categories.size(); ++index) {
 			filters.push_back({QStringLiteral("things:%1").arg(index), categories.at(index),
-				QCoreApplication::translate("VibeStudioLevelViewFilters", "Things filed under %1.").arg(categories.at(index))});
+				QCoreApplication::translate("SlopStudioLevelViewFilters", "Things filed under %1.").arg(categories.at(index))});
 		}
-		filters.push_back({QStringLiteral("things:other"), QCoreApplication::translate("VibeStudioLevelViewFilters", "Other Things"),
-			QCoreApplication::translate("VibeStudioLevelViewFilters", "Things of types the editor does not name.")});
+		filters.push_back({QStringLiteral("things:other"), QCoreApplication::translate("SlopStudioLevelViewFilters", "Other Things"),
+			QCoreApplication::translate("SlopStudioLevelViewFilters", "Things of types the editor does not name.")});
 	}
 	return filters;
 }
@@ -906,7 +906,7 @@ const LevelViewFilterShader* LevelViewFilterMaterials::find(const QString& textu
 // at 449778b3: qer_trans and surfaceparm fog set QER_TRANS, qer_alphafunc
 // QER_ALPHATEST, skyparms QER_SKY, surfaceparm water, lava and slime
 // QER_LIQUID, playerclip QER_CLIP, botclip QER_BOTCLIP and nodraw
-// QER_NODRAW). VibeStudio also counts a stage's alphaFunc, which the game
+// QER_NODRAW). SlopStudio also counts a stage's alphaFunc, which the game
 // alpha-tests, monsterclip and donotenter. Original implementation over the
 // studio's own parser; see docs/CREDITS.md.
 LevelViewFilterShader levelViewFilterShader(const MaterialDefinition& definition)
@@ -988,4 +988,4 @@ bool levelViewFilterReadsMaterials(const QString& filterId)
 		|| filterId == QLatin1String("sky") || filterId == QLatin1String("nodraw") || filterId == QLatin1String("fog");
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

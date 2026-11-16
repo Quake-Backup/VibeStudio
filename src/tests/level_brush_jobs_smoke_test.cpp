@@ -10,7 +10,7 @@
 #include <QJsonObject>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* message, const QString& error = {})

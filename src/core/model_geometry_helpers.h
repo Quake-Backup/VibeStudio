@@ -4,7 +4,7 @@
 #include <cmath>
 
 // Internal double-precision geometry shared by boundary authoring and diagnostics.
-namespace vibestudio::model_geometry
+namespace slopstudio::model_geometry
 {
 struct P2
 {
@@ -67,4 +67,4 @@ inline bool collapsedTriangle(ModelVec3 a, ModelVec3 b, ModelVec3 c)
 	const ModelVec3 n{ab.y * ac.z - ab.z * ac.y, ab.z * ac.x - ab.x * ac.z, ab.x * ac.y - ab.y * ac.x};
 	return double(n.x) * n.x + double(n.y) * n.y + double(n.z) * n.z < 1e-20;
 }
-} // namespace vibestudio::model_geometry
+} // namespace slopstudio::model_geometry

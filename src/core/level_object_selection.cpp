@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct Text { Q_DECLARE_TR_FUNCTIONS(LevelObjectSelection) };
 constexpr qsizetype maxLines = 16384;
@@ -48,7 +48,7 @@ bool parseLevelMapSourceLines(const QString& text, QVector<int>* lines, QString*
 }
 
 // Original implementation from TB v2026.2 Map_Selection.cpp's selectSiblingNodes
-// and selectNodesWithFilePosition behaviour, adapted to VibeStudio's native
+// and selectNodesWithFilePosition behaviour, adapted to SlopStudio's native
 // object ids and scene metadata. See docs/CREDITS.md for source and licence.
 bool selectLevelMapObjects(LevelMapDocument* document, const LevelObjectSelectionRequest& request,
 	LevelObjectSelectionReport* report, QString* error)
@@ -114,7 +114,7 @@ bool selectLevelMapObjects(LevelMapDocument* document, const LevelObjectSelectio
 			const auto owner = objects.constFind(object.owner);
 			const auto node = membership.value(key,membership.value(object.owner));
 			// Explicit child scene membership takes precedence over its owner's
-			// inherited membership. VibeStudio allows this unlike TB's node tree.
+			// inherited membership. SlopStudio allows this unlike TB's node tree.
 			object.parent = owner != objects.cend() && !owner->world ? object.owner + QLatin1Char('/') + node : sceneParent(node);
 			if (owner != objects.cend() && !owner->world) { object.ownerParent = sceneParent(node); }
 			if (excluded.contains(object.owner)) { excluded.insert(key); }
@@ -214,4 +214,4 @@ bool selectLevelMapObjects(LevelMapDocument* document, const LevelObjectSelectio
 	detail::placementCheckpoint(LevelPlacementPhase::Finalizing,1,1);
 	*document = std::move(candidate); if (report) { report->selection = std::move(selection); } return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -22,7 +22,7 @@ inline int runLanguageServerFixture(const QString& mode)
 	_setmode(_fileno(stdin), _O_BINARY); _setmode(_fileno(stdout), _O_BINARY);
 #endif
 	const auto send = [](const QJsonObject& object) {
-		const auto bytes = vibestudio::LanguageServerFramer::encode(object);
+		const auto bytes = slopstudio::LanguageServerFramer::encode(object);
 		// Split both a header and a UTF-8 payload across writes.
 		std::cout.write(bytes.data(), 7); std::cout.flush();
 		std::cout.write(bytes.data() + 7, bytes.size() - 7); std::cout.flush();
@@ -61,7 +61,7 @@ inline int runLanguageServerFixture(const QString& mode)
 				{QStringLiteral("documentFormattingProvider"), mode != QStringLiteral("no-format")},
 				{QStringLiteral("documentRangeFormattingProvider"), mode != QStringLiteral("no-range-format")},
 				{QStringLiteral("completionProvider"), QJsonObject {{QStringLiteral("resolveProvider"), mode.startsWith(QStringLiteral("resolve-completion"))}, {QStringLiteral("triggerCharacters"), QJsonArray {QStringLiteral("."), QStringLiteral(">")}}}}}},
-				{QStringLiteral("serverInfo"), QJsonObject {{QStringLiteral("name"), QStringLiteral("VibeStudio test server")}}}});
+				{QStringLiteral("serverInfo"), QJsonObject {{QStringLiteral("name"), QStringLiteral("SlopStudio test server")}}}});
 		} else if (method == QStringLiteral("textDocument/didOpen") || method == QStringLiteral("textDocument/didChange")) {
 			const auto document = params.value(QStringLiteral("textDocument")).toObject();
 			const QString uri = document.value(QStringLiteral("uri")).toString();
@@ -103,10 +103,10 @@ inline int runLanguageServerFixture(const QString& mode)
 			const QString uri = (resolve ? params.value(QStringLiteral("data")) : params.value(QStringLiteral("textDocument"))).toObject().value(QStringLiteral("uri")).toString();
 			if (!documents.contains(uri)) { return 49; }
 			QJsonArray changes; QStringList uris = documents.keys();
-			const QString other = QDir(QFileInfo(vibestudio::languageServerPath(uri)).absolutePath()).filePath(QStringLiteral("other.cpp")), otherUri = vibestudio::languageServerUri(other);
+			const QString other = QDir(QFileInfo(slopstudio::languageServerPath(uri)).absolutePath()).filePath(QStringLiteral("other.cpp")), otherUri = slopstudio::languageServerUri(other);
 			if (QFileInfo::exists(other) && !uris.contains(otherUri)) { uris << otherUri; }
 			for (const auto& target : uris) {
-				const QString source = documents.contains(target) ? documents.value(target) : vibestudio::readTextFile(vibestudio::languageServerPath(target)).text;
+				const QString source = documents.contains(target) ? documents.value(target) : slopstudio::readTextFile(slopstudio::languageServerPath(target)).text;
 				const auto position = [&](int at) { const auto prefix = QStringView(source).left(at); return QJsonObject {{QStringLiteral("line"), prefix.count(QLatin1Char('\n'))}, {QStringLiteral("character"), at - prefix.lastIndexOf(QLatin1Char('\n')) - 1}}; };
 				QJsonArray edits;
 				for (int at = source.indexOf(QStringLiteral("value")); at >= 0; at = source.indexOf(QStringLiteral("value"), at + 5)) {
@@ -139,7 +139,7 @@ inline int runLanguageServerFixture(const QString& mode)
 			if (mode == QStringLiteral("rename-empty")) { result(QJsonValue(QJsonValue::Null)); continue; }
 			const QString uri = params.value(QStringLiteral("textDocument")).toObject().value(QStringLiteral("uri")).toString(), source = documents.value(uri);
 			const auto position = params.value(QStringLiteral("position")).toObject();
-			const int at = vibestudio::languageSourceOffset(source, position.value(QStringLiteral("line")).toInt(-1), position.value(QStringLiteral("character")).toInt(-1));
+			const int at = slopstudio::languageSourceOffset(source, position.value(QStringLiteral("line")).toInt(-1), position.value(QStringLiteral("character")).toInt(-1));
 			if (at < 0) { return 46; }
 			int first = at, end = at;
 			const auto nameChar = [](QChar ch) { return ch.isLetterOrNumber() || ch == QLatin1Char('_'); };
@@ -158,10 +158,10 @@ inline int runLanguageServerFixture(const QString& mode)
 				return result;
 			};
 			QJsonArray changes; QStringList uris = documents.keys();
-			const QString extra = QDir(QFileInfo(vibestudio::languageServerPath(uri)).absolutePath()).filePath(QStringLiteral("other.cpp"));
-			const QString extraUri = vibestudio::languageServerUri(extra); if (QFileInfo::exists(extra) && !uris.contains(extraUri)) { uris << extraUri; }
+			const QString extra = QDir(QFileInfo(slopstudio::languageServerPath(uri)).absolutePath()).filePath(QStringLiteral("other.cpp"));
+			const QString extraUri = slopstudio::languageServerUri(extra); if (QFileInfo::exists(extra) && !uris.contains(extraUri)) { uris << extraUri; }
 			for (const auto& target : uris) {
-				const auto sourceEdits = edits(documents.contains(target) ? documents.value(target) : vibestudio::readTextFile(vibestudio::languageServerPath(target)).text);
+				const auto sourceEdits = edits(documents.contains(target) ? documents.value(target) : slopstudio::readTextFile(slopstudio::languageServerPath(target)).text);
 				if (sourceEdits.isEmpty()) { continue; }
 				changes << QJsonObject {{QStringLiteral("textDocument"), QJsonObject {{QStringLiteral("uri"), target}, {QStringLiteral("version"), versions.contains(target) ? QJsonValue(versions.value(target)) : QJsonValue(QJsonValue::Null)}}}, {QStringLiteral("edits"), sourceEdits}};
 			}
@@ -179,8 +179,8 @@ inline int runLanguageServerFixture(const QString& mode)
 			int first = 0, end = int(source.size());
 			if (method.endsWith(QStringLiteral("rangeFormatting"))) {
 				const auto range = params.value(QStringLiteral("range")).toObject(); const auto start = range.value(QStringLiteral("start")).toObject(), finish = range.value(QStringLiteral("end")).toObject();
-				first = vibestudio::languageSourceOffset(source, start.value(QStringLiteral("line")).toInt(-1), start.value(QStringLiteral("character")).toInt(-1));
-				end = vibestudio::languageSourceOffset(source, finish.value(QStringLiteral("line")).toInt(-1), finish.value(QStringLiteral("character")).toInt(-1));
+				first = slopstudio::languageSourceOffset(source, start.value(QStringLiteral("line")).toInt(-1), start.value(QStringLiteral("character")).toInt(-1));
+				end = slopstudio::languageSourceOffset(source, finish.value(QStringLiteral("line")).toInt(-1), finish.value(QStringLiteral("character")).toInt(-1));
 				if (first < 0 || end <= first) { return 43; }
 			}
 			const auto pos = [&](int offset) { const QString prefix = source.left(offset); return QJsonObject {{QStringLiteral("line"), prefix.count(QLatin1Char('\n'))}, {QStringLiteral("character"), offset - prefix.lastIndexOf(QLatin1Char('\n')) - 1}}; };
@@ -190,7 +190,7 @@ inline int runLanguageServerFixture(const QString& mode)
 			}
 			if (!edits.isEmpty() && mode == QStringLiteral("format-overlap")) { edits << edits.first(); }
 			if (!edits.isEmpty() && mode == QStringLiteral("format-large")) { while (edits.size() <= 10000) { edits << edits.first(); } }
-			if (mode == QStringLiteral("format-write-race")) { QFile changed(vibestudio::languageServerPath(uri)); if (changed.open(QIODevice::WriteOnly)) { changed.write("external edit\n"); } }
+			if (mode == QStringLiteral("format-write-race")) { QFile changed(slopstudio::languageServerPath(uri)); if (changed.open(QIODevice::WriteOnly)) { changed.write("external edit\n"); } }
 			result(edits);
 		} else if (method == QStringLiteral("textDocument/signatureHelp")) {
 			if (mode == QStringLiteral("signature-slow")) { QThread::msleep(350); }
@@ -198,7 +198,7 @@ inline int runLanguageServerFixture(const QString& mode)
 			if (mode == QStringLiteral("signature-malformed")) { result(QJsonObject {}); continue; }
 			const auto uri = params.value(QStringLiteral("textDocument")).toObject().value(QStringLiteral("uri")).toString();
 			const auto pos = params.value(QStringLiteral("position")).toObject();
-			const auto source = documents.value(uri); const int offset = vibestudio::languageSourceOffset(source, pos.value(QStringLiteral("line")).toInt(), pos.value(QStringLiteral("character")).toInt());
+			const auto source = documents.value(uri); const int offset = slopstudio::languageSourceOffset(source, pos.value(QStringLiteral("line")).toInt(), pos.value(QStringLiteral("character")).toInt());
 			if (offset < 0) { return 46; }
 			const auto prefix = source.left(offset); const int opening = prefix.lastIndexOf(QLatin1Char('('));
 			if (mode == QStringLiteral("signature-empty") || opening < 0 || prefix.lastIndexOf(QLatin1Char(')')) > opening) { result(QJsonValue(QJsonValue::Null)); continue; }
@@ -229,9 +229,9 @@ inline int runLanguageServerFixture(const QString& mode)
 			const auto at = params.value(QStringLiteral("position")).toObject();
 			const int row = at.value(QStringLiteral("line")).toInt(), column = at.value(QStringLiteral("character")).toInt();
 			const auto text = documents.value(uri);
-			const int offset = vibestudio::languageSourceOffset(text, row, column);
+			const int offset = slopstudio::languageSourceOffset(text, row, column);
 			if (offset < 0) { return 41; }
-			const int start = vibestudio::languageWordStart(text, offset); int end = offset;
+			const int start = slopstudio::languageWordStart(text, offset); int end = offset;
 			while (end < text.size() && (text[end].isLetterOrNumber() || text[end] == QLatin1Char('_'))) { ++end; }
 			const auto word = text.mid(start, end - start);
 			const auto pos = [](int row, int column) { return QJsonObject {{QStringLiteral("line"), row}, {QStringLiteral("character"), column}}; };
@@ -246,16 +246,16 @@ inline int runLanguageServerFixture(const QString& mode)
 			if (mode == QStringLiteral("references-malformed")) { result(QJsonObject {}); continue; }
 			const QString uri = params.value(QStringLiteral("textDocument")).toObject().value(QStringLiteral("uri")).toString();
 			const auto at = params.value(QStringLiteral("position")).toObject();
-			const auto text = documents.value(uri); const int offset = vibestudio::languageSourceOffset(text, at.value(QStringLiteral("line")).toInt(), at.value(QStringLiteral("character")).toInt());
+			const auto text = documents.value(uri); const int offset = slopstudio::languageSourceOffset(text, at.value(QStringLiteral("line")).toInt(), at.value(QStringLiteral("character")).toInt());
 			if (offset < 0 || !params.value(QStringLiteral("context")).toObject().value(QStringLiteral("includeDeclaration")).isBool()) { return 40; }
 			const bool include = params.value(QStringLiteral("context")).toObject().value(QStringLiteral("includeDeclaration")).toBool();
-			const int start = vibestudio::languageWordStart(text, offset); int end = offset;
+			const int start = slopstudio::languageWordStart(text, offset); int end = offset;
 			while (end < text.size() && (text[end].isLetterOrNumber() || text[end] == QLatin1Char('_'))) { ++end; }
 			const auto word = text.mid(start, end - start); QJsonArray matches;
 			auto sources = documents;
-			const QString other = QFileInfo(vibestudio::languageServerPath(uri)).dir().filePath(QStringLiteral("references-other.cpp"));
-			const QString otherUri = vibestudio::languageServerUri(other);
-			if (!sources.contains(otherUri) && QFileInfo::exists(other)) { sources.insert(otherUri, vibestudio::readTextFile(other).text); }
+			const QString other = QFileInfo(slopstudio::languageServerPath(uri)).dir().filePath(QStringLiteral("references-other.cpp"));
+			const QString otherUri = slopstudio::languageServerUri(other);
+			if (!sources.contains(otherUri) && QFileInfo::exists(other)) { sources.insert(otherUri, slopstudio::readTextFile(other).text); }
 			const auto pos = [](int line, int column) { return QJsonObject {{QStringLiteral("line"), line}, {QStringLiteral("character"), column}}; };
 			for (auto source = sources.cbegin(); !word.isEmpty() && source != sources.cend(); ++source) {
 				const auto lines = source.value().split(QLatin1Char('\n')); bool declaration = true;
@@ -269,7 +269,7 @@ inline int runLanguageServerFixture(const QString& mode)
 				}
 			}
 			if (!matches.isEmpty()) { matches << matches.first(); }
-			if (mode == QStringLiteral("references-many") && !matches.isEmpty()) { while (matches.size() <= vibestudio::languageReferenceLimit) { matches << matches.first(); } }
+			if (mode == QStringLiteral("references-many") && !matches.isEmpty()) { while (matches.size() <= slopstudio::languageReferenceLimit) { matches << matches.first(); } }
 			if (mode == QStringLiteral("references-bad")) {
 				matches << QJsonObject {{QStringLiteral("uri"), QStringLiteral("https://example.com/source.cpp")}, {QStringLiteral("range"), QJsonObject {{QStringLiteral("start"), pos(0, 0)}, {QStringLiteral("end"), pos(0, 1)}}}};
 				matches << QJsonObject {{QStringLiteral("uri"), uri}, {QStringLiteral("range"), QJsonObject {{QStringLiteral("start"), pos(2147483647, 0)}, {QStringLiteral("end"), pos(2147483647, 1)}}}};

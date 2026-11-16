@@ -13,11 +13,11 @@
 #include <functional>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 constexpr double kColumn = 230.0;
@@ -3132,4 +3132,4 @@ bool parseMaterialGraphEditsJson(const QByteArray& json, QVector<MaterialGraphEd
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

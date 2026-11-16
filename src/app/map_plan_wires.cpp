@@ -4,7 +4,7 @@
 #include <cmath>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr qsizetype kBatchLines = 2048;
 
@@ -223,4 +223,4 @@ MapPlanWires buildMapPlanSelectionWires(const LevelMapDocument& document, const 
 	return builder.finish();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

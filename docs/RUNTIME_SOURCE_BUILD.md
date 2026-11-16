@@ -6,13 +6,13 @@ profile and original archive hashes. `CHECKSUMS.sha256` covers its complete
 contents. A ZIP also has a separate SHA-256 sidecar. Keep the source companion
 available alongside the binary release through the same distribution channel.
 
-The `vibestudio/` directory contains the captured application source, build
+The `slopstudio/` directory contains the captured application source, build
 files, tests, sample fixtures, catalogs and in-tree dependencies with their
 original notices. It is intentionally the source of the recorded executable;
 later documentation and packaging helpers live outside that directory. The
 outer `scripts/` directory contains the source-companion tooling itself.
 Its fixture tests can be run with `python -B src/tests/source_companion_test.py`;
-set `VIBESTUDIO_TEST_TMP_ROOT` to a disposable project-local test directory.
+set `SLOPSTUDIO_TEST_TMP_ROOT` to a disposable project-local test directory.
 `binary-notices/` preserves the release's original licence/SPDX/build records.
 External compiler executables are not bundled in this profile and remain
 separate tools; their source repositories are recorded in `.gitmodules`.
@@ -25,10 +25,10 @@ the audited executable uses Clang 20.1.7 with Qt 6.10.1 MSVC. The receipt record
 the actual compiler and configuration rather than substituting a newer release.
 
 From the companion directory, put build output in an explicitly selected
-project-local directory outside `vibestudio/`, then run the canonical build:
+project-local directory outside `slopstudio/`, then run the canonical build:
 
 ```powershell
-meson setup .agents/tmp/rebuild/build vibestudio --backend=ninja --buildtype=release --vsenv -Db_vscrt=md -Daudio_playback=enabled
+meson setup .agents/tmp/rebuild/build slopstudio --backend=ninja --buildtype=release --vsenv -Db_vscrt=md -Daudio_playback=enabled
 meson compile -C .agents/tmp/rebuild/build
 meson test -C .agents/tmp/rebuild/build --no-rebuild audio-project-smoke audio-decode-smoke audio-loudness-smoke
 ```

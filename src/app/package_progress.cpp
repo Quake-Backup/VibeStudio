@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString isolate(const QString& text)
 {
@@ -54,11 +54,11 @@ PackageByteProgressText packageByteProgressText(quint64 completed, quint64 total
 	if (total > 0) { amounts += QStringLiteral(" / ") + quantity(total, divisor, true, locale); }
 	PackageByteProgressText result;
 	//: %1 is a localized amount or fraction; %2 is an IEC unit such as KiB.
-	result.compact = isolate(QCoreApplication::translate("VibeStudioPackageProgress", "%1 %2").arg(amounts, QString::fromLatin1(units[unit])));
+	result.compact = isolate(QCoreApplication::translate("SlopStudioPackageProgress", "%1 %2").arg(amounts, QString::fromLatin1(units[unit])));
 	result.exact = total > 0
-		? QCoreApplication::translate("VibeStudioPackageProgress", "Bytes: %1").arg(packageProgressPair(locale.toString(completed), locale.toString(total)))
-		: QCoreApplication::translate("VibeStudioPackageProgress", "Bytes: %1; total unknown").arg(isolate(locale.toString(completed)));
+		? QCoreApplication::translate("SlopStudioPackageProgress", "Bytes: %1").arg(packageProgressPair(locale.toString(completed), locale.toString(total)))
+		: QCoreApplication::translate("SlopStudioPackageProgress", "Bytes: %1; total unknown").arg(isolate(locale.toString(completed)));
 	return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

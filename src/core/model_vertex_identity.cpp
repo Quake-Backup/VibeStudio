@@ -3,7 +3,7 @@
 #include <QCoreApplication>
 #include <QHash>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -105,4 +105,4 @@ void detachModelVertexIdentity(ModelSurface *surface, int vertex, QHash<int, int
 		copies->insert(old, vertex);
 	surface->topologyVertices[vertex] = copies->value(old);
 }
-} // namespace vibestudio
+} // namespace slopstudio

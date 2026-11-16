@@ -17,7 +17,7 @@
 #include <QTimer>
 #include <QTranslator>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* why) { if (!value) { std::cerr << why << '\n'; } return value; }
 bool wait(const std::function<bool()>& ready, int ms = 12000) { QElapsedTimer elapsed; elapsed.start(); while (!ready() && elapsed.elapsed() < ms) { QCoreApplication::processEvents(QEventLoop::AllEvents, 10); QThread::msleep(2); } return ready(); }
@@ -28,7 +28,7 @@ class Expanded final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		if (QByteArray(context) != "vibestudio::CodeLanguagePanel" && QByteArray(context) != "LanguageServer") { return {}; }
+		if (QByteArray(context) != "slopstudio::CodeLanguagePanel" && QByteArray(context) != "LanguageServer") { return {}; }
 		const auto value = QString::fromUtf8(source); return value + QStringLiteral(" ~").repeated(value.size() / 6);
 	}
 };
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 		ok &= expect(refresh && refresh->isVisible() && refresh->focusPolicy() != Qt::NoFocus && !refresh->accessibleName().isEmpty()
 			&& status->text().contains(QStringLiteral("requested by the editor")), "pull diagnostics expose accessible refresh and provider-mode status");
 		refresh->click(); ok &= expect(panel.client()->diagnostics(path).pending && wait([&]() { return panel.client()->diagnostics(path).received; }), "native refresh requests a new report without writing");
-		app.processEvents(); const auto evidence = qEnvironmentVariable("VIBESTUDIO_LANGUAGE_TEST_EVIDENCE");
+		app.processEvents(); const auto evidence = qEnvironmentVariable("SLOPSTUDIO_LANGUAGE_TEST_EVIDENCE");
 		if (!evidence.isEmpty()) { QImage image(panel.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); panel.render(&image); ok &= expect(image.save(QDir(evidence).filePath(QStringLiteral("diagnostic-lifecycle-%1.png").arg(scale))), "render diagnostic controls through QWidget at studio scale"); }
 		panel.client()->stop(); wait([&]() { return panel.client()->state() == QStringLiteral("stopped"); }); if (scale == 200) { app.removeTranslator(&translator); }
 	}

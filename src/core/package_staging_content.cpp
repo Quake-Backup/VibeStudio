@@ -3,7 +3,7 @@
 #include <QCoreApplication>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 
 bool PackageStagingModel::contentUsage(PackageStagingContentUsage* output, QString* error, const PackageReadControl& control) const
 {
@@ -12,11 +12,11 @@ bool PackageStagingModel::contentUsage(PackageStagingContentUsage* output, QStri
 	const auto fail = [error](const QString& message) { if (error) { *error = message; } return false; };
 	if (m_contentLimits.maximumGeneratedBytes < 0 || m_contentLimits.maximumGeneratedBytes > PackageStagingContentLimits::generatedCeiling
 		|| m_contentLimits.maximumFingerprintBytes < 0 || m_contentLimits.maximumFingerprintBytes > PackageStagingContentLimits::fingerprintCeiling) {
-		return fail(QCoreApplication::translate("VibeStudioPackageStaging", "Package content limits are outside their supported range."));
+		return fail(QCoreApplication::translate("SlopStudioPackageStaging", "Package content limits are outside their supported range."));
 	}
 	const auto stopped = [&] {
 		if (!control.isCancelled || !control.isCancelled()) { return false; }
-		fail(QCoreApplication::translate("VibeStudioPackageStaging", "Package content admission cancelled.")); return true;
+		fail(QCoreApplication::translate("SlopStudioPackageStaging", "Package content admission cancelled.")); return true;
 	};
 	if (stopped()) { return false; }
 	if (m_contentUsageValid && m_contentUsageExact) {
@@ -26,13 +26,13 @@ bool PackageStagingModel::contentUsage(PackageStagingContentUsage* output, QStri
 	PackageStagingContentUsage usage;
 	const auto generated = [&](qint64 bytes) {
 		if (bytes < 0 || bytes > m_contentLimits.maximumGeneratedBytes - usage.generatedBytes) {
-			return fail(QCoreApplication::translate("VibeStudioPackageStaging", "Retained generated content exceeds the %1-byte document limit. Save and reopen the draft to release inline content, or stage smaller assets.").arg(m_contentLimits.maximumGeneratedBytes));
+			return fail(QCoreApplication::translate("SlopStudioPackageStaging", "Retained generated content exceeds the %1-byte document limit. Save and reopen the draft to release inline content, or stage smaller assets.").arg(m_contentLimits.maximumGeneratedBytes));
 		}
 		usage.generatedBytes += bytes; return true;
 	};
 	const auto fingerprints = [&](qint64 bytes) {
 		if (bytes < 0 || bytes > m_contentLimits.maximumFingerprintBytes - usage.fingerprintBytes) {
-			return fail(QCoreApplication::translate("VibeStudioPackageStaging", "Retained source fingerprints exceed the %1-byte document limit. Use smaller inputs or save a smaller package and reopen it.").arg(m_contentLimits.maximumFingerprintBytes));
+			return fail(QCoreApplication::translate("SlopStudioPackageStaging", "Retained source fingerprints exceed the %1-byte document limit. Use smaller inputs or save a smaller package and reopen it.").arg(m_contentLimits.maximumFingerprintBytes));
 		}
 		usage.fingerprintBytes += bytes; return true;
 	};
@@ -76,4 +76,4 @@ bool PackageStagingModel::contentUsage(PackageStagingContentUsage* output, QStri
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

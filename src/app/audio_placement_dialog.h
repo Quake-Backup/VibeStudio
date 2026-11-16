@@ -7,7 +7,7 @@ class QComboBox;
 class QDoubleSpinBox;
 class QLineEdit;
 
-namespace vibestudio
+namespace slopstudio
 {
 class AudioPlacementDialog final : public QDialog {
 	Q_OBJECT
@@ -23,4 +23,4 @@ class AudioPlacementDialog final : public QDialog {
 	QLineEdit* m_targetName = nullptr;
 	QDoubleSpinBox* m_position[3]{};
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -19,13 +19,13 @@
 #include <QSignalBlocker>
 #include <QSpinBox>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelCollisionEditor)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelCollisionEditor)
 };
 ModelVec3 vector(QDoubleSpinBox *const *fields)
 {
@@ -784,4 +784,4 @@ void ModelEditorDialog::handoffCollision(bool place)
 		}
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

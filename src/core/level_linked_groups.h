@@ -39,7 +39,7 @@
 
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // What one group holds, as compared and copied.
 struct LevelLinkedContent {
@@ -132,4 +132,4 @@ void syncLevelLinkedGroups(LevelMapDocument* document);
 // Only automatic follow-up edits may cross an open group's editing boundary.
 bool levelLinkedGroupPropagationActive(const LevelMapDocument* document);
 
-} // namespace vibestudio
+} // namespace slopstudio

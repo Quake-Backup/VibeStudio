@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- Filled in by scripts/package_macos_app.py when it assembles VibeStudio.app. -->
+<!-- Filled in by scripts/package_macos_app.py when it assembles SlopStudio.app. -->
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>VibeStudio</string>
+	<string>SlopStudio</string>
 	<key>CFBundleExecutable</key>
-	<string>vibestudio</string>
+	<string>slopstudio</string>
 	<key>CFBundleIconFile</key>
-	<string>vibestudio.icns</string>
+	<string>slopstudio.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>io.github.themuffinator.VibeStudio</string>
+	<string>io.github.themuffinator.SlopStudio</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>VibeStudio</string>
+	<string>SlopStudio</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -30,9 +30,9 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright (C) themuffinator and VibeStudio contributors. GPL-3.0-or-later.</string>
+	<string>Copyright (C) themuffinator and SlopStudio contributors. GPL-3.0-or-later.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>VibeStudio records audio only when you start a recording in the Audio page.</string>
+	<string>SlopStudio records audio only when you start a recording in the Audio page.</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSSupportsAutomaticGraphicsSwitching</key>

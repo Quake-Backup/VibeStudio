@@ -4,7 +4,7 @@
 // X, Y and Z arrows, the view-plane square and the shared pivot in the plan
 // views and the camera; a drag that equals the core service byte for byte
 // in one undo step; Escape; a placed pivot shared by every view; refusal of
-// locked selections. NetRadiant Custom, TrenchBroom and VibeStudio profiles at
+// locked selections. NetRadiant Custom, TrenchBroom and SlopStudio profiles at
 // 100%, and at 200% with high contrast, expanded translations and
 // right-to-left layout. Owned offscreen widgets, Qt Test events and the
 // views' semantic manipulator calls.
@@ -45,7 +45,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -135,7 +135,7 @@ int main(int argc, char** argv)
 	if (!file.open(QIODevice::WriteOnly) || file.write(serializeLevelMap(created).bytes) <= 0) { return 1; }
 	file.close();
 
-	for (const auto* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const auto* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		const bool nrc = QLatin1String(profile) == QLatin1String("netradiant-custom");
 		for (int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);

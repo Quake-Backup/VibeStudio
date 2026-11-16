@@ -19,7 +19,7 @@
 
 #include "core/material_model.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Quake III for .shader, Doom 3 for .mtr; Unknown otherwise.
 MaterialEngine materialEngineForScriptPath(const QString& path);
@@ -162,4 +162,4 @@ bool materialTemplateById(const QString& id, MaterialTemplate* out);
 // The text of a new definition: `name { ... }` with the image filled in.
 QString instantiateMaterialTemplate(const MaterialTemplate& materialTemplate, const QString& name, const QString& image);
 
-} // namespace vibestudio
+} // namespace slopstudio

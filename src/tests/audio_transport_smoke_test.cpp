@@ -5,7 +5,7 @@
 #include "core/audio_export.h"
 #include "core/studio_settings.h"
 #include "tests/fake_audio_playback.h"
-#include "vibestudio_config.h"
+#include "slopstudio_config.h"
 
 #include <QAccessible>
 #include <QAction>
@@ -24,7 +24,7 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 #include <QAudioDecoder>
 #include <QAudioFormat>
 #endif
@@ -33,7 +33,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -276,7 +276,7 @@ bool loopFallback()
 
 bool qtFloatDecode()
 {
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 	bool ok = true;
 	for (int channels : {1, 2, 6}) {
 		AudioClip clip{channels, 44100, {}};
@@ -362,7 +362,7 @@ bool editorTransport(QApplication& app)
 		ok &= expect(play && stop && seek && frame && volume && loop && clock && waveform && transport,
 		             "transport provides named standard controls");
 		if (!(play && stop && seek && frame && volume && loop && clock && waveform && transport)) { return false; }
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 		int starts = 0;
 		editor.beforePlayback = [&]() { ++starts; };
 		volume->setValue(0);
@@ -446,7 +446,7 @@ bool editorTransport(QApplication& app)
 		                 QAccessible::queryAccessibleInterface(frame) && !frame->accessibleName().isEmpty() &&
 		                 clock->height() >= clock->heightForWidth(clock->width()),
 		             "transport controls expose focus, names and uncut expanded status text");
-		const auto directory = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const auto directory = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!directory.isEmpty()) {
 			QDir().mkpath(directory);
 			QImage capture(editor.size(), QImage::Format_ARGB32_Premultiplied);
@@ -472,12 +472,12 @@ int main(int argc, char** argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-transport-XXXXXX")));
 	if (!temporary.isValid()) { return EXIT_FAILURE; }
 	StudioSettings::setOverrideFilePath(QDir(temporary.path()).filePath(QStringLiteral("settings.ini")));
-	qputenv("VIBESTUDIO_AUDIO_RECOVERY_ROOT", QDir(temporary.path()).filePath(QStringLiteral("recovery")).toUtf8());
+	qputenv("SLOPSTUDIO_AUDIO_RECOVERY_ROOT", QDir(temporary.path()).filePath(QStringLiteral("recovery")).toUtf8());
 	const bool core = lifecycle();
 	const bool loops = loopFallback();
 	const bool codec = qtFloatDecode();

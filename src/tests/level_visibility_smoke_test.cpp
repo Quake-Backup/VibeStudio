@@ -14,7 +14,7 @@
 #include <QElapsedTimer>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 void expect(bool result, const char* message, const QString& error = {}) {
@@ -367,7 +367,7 @@ void insertionPolicies()
 	QString error;
 	expect(netRadiantCustomLevelControls().insertionVisibility == LevelInsertionVisibility::FreshInherited
 		&& trenchBroomLevelControls().insertionVisibility == LevelInsertionVisibility::PreserveAndReveal
-		&& vibeStudioLevelControls().insertionVisibility == LevelInsertionVisibility::PreserveAndReveal,"profile insertion policies");
+		&& slopStudioLevelControls().insertionVisibility == LevelInsertionVisibility::PreserveAndReveal,"profile insertion policies");
 	for (const auto policy : {LevelInsertionVisibility::PreserveAndReveal,LevelInsertionVisibility::FreshInherited}) {
 		const bool fresh = policy == LevelInsertionVisibility::FreshInherited;
 		auto map = fixture(3); QString group;

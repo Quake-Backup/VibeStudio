@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Numbered {
@@ -111,11 +111,11 @@ bool levelMapObjectAtNumber(const LevelMapDocument& document, int entity, int pr
 		return false;
 	};
 	if (document.format != LevelMapFormat::QuakeMap && document.format != LevelMapFormat::Quake3Map) {
-		return fail(QCoreApplication::translate("VibeStudioLevelSelection", "Entity and brush numbers belong to Quake-family maps."));
+		return fail(QCoreApplication::translate("SlopStudioLevelSelection", "Entity and brush numbers belong to Quake-family maps."));
 	}
 	const QVector<Numbered> entities = entitiesInOrder(document);
 	if (entity < 0 || entity >= entities.size()) {
-		return fail(QCoreApplication::translate("VibeStudioLevelSelection", "The map has no entity %1; it has %n entit(y)(ies), counted from 0.",
+		return fail(QCoreApplication::translate("SlopStudioLevelSelection", "The map has no entity %1; it has %n entit(y)(ies), counted from 0.",
 			nullptr, static_cast<int>(entities.size()))
 						.arg(entity));
 	}
@@ -128,7 +128,7 @@ bool levelMapObjectAtNumber(const LevelMapDocument& document, int entity, int pr
 	}
 	const QVector<Numbered> primitives = primitivesOf(document, owner.objectId);
 	if (primitive >= primitives.size()) {
-		return fail(QCoreApplication::translate("VibeStudioLevelSelection", "Entity %1 has no brush %2; it has %n brush(es) and patch(es), counted from 0.",
+		return fail(QCoreApplication::translate("SlopStudioLevelSelection", "Entity %1 has no brush %2; it has %n brush(es) and patch(es), counted from 0.",
 			nullptr, static_cast<int>(primitives.size()))
 						.arg(entity)
 						.arg(primitive));
@@ -218,4 +218,4 @@ bool parseLevelMapObjectNumber(const QString& text, int* entity, int* primitive)
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

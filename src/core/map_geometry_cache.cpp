@@ -4,7 +4,7 @@
 #include <array>
 #include <cstring>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr qsizetype keyByteLimit = 1024 * 1024;
 constexpr qsizetype entryLimit = 32768;
@@ -123,4 +123,4 @@ MapBrushGeometryCacheStatistics MapBrushGeometryCache::statistics() const
 	statistics.retainedBrushes = int(m_entries.size()); statistics.retainedBytes = m_retainedBytes;
 	return statistics;
 }
-} // namespace vibestudio
+} // namespace slopstudio

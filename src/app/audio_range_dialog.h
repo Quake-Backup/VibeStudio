@@ -6,7 +6,7 @@ class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
 class QListWidget;
-namespace vibestudio
+namespace slopstudio
 {
 class AudioRangeDialog final : public QDialog {
 	Q_OBJECT
@@ -25,4 +25,4 @@ class AudioRangeDialog final : public QDialog {
 	QDoubleSpinBox *m_first = nullptr, *m_end = nullptr;
 	QLabel *m_summary = nullptr, *m_error = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -10,7 +10,7 @@
 #include <QTextBrowser>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString listHtml(const QStringList& values)
 {
@@ -150,4 +150,4 @@ void EditorProfileDialog::refreshPreview()
 	m_preview->setHtml(html);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -2,7 +2,7 @@
 
 #include "core/box_resize.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Axis-aligned construction plane; hidden axis 2 = XY, 1 = XZ, 0 = YZ.
 // Source units and limits match the shared level brush primitive service.
@@ -24,4 +24,4 @@ bool boxDrawPlaneFromSurface(BoxResizeRay ray, const std::array<BoxResizePoint,3
 bool updateBoxDraw(const BoxDrawDrag& drag, BoxResizeRay ray, bool square, bool cube, ResizeBox* box);
 bool adjustBoxDrawDepth(BoxDrawDrag* drag, int steps);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -20,7 +20,7 @@
 #include <QVBoxLayout>
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct LevelSweepDialog::Work {
 	std::atomic_bool cancelled{false};
@@ -402,4 +402,4 @@ void LevelSweepDialog::accept()
 	}
 	QDialog::accept();
 }
-} // namespace vibestudio
+} // namespace slopstudio

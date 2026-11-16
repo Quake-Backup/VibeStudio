@@ -7,7 +7,7 @@
 #include <QMessageBox>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString moduleId(StudioMode mode) { return workspaceModuleIds().value(int(mode), QStringLiteral("workspace")); }
 StudioMode moduleMode(const QString& id) { const int index = workspaceModuleIds().indexOf(id); return index < 0 ? StudioMode::Workspace : StudioMode(index); }
@@ -105,7 +105,7 @@ bool ApplicationShell::openWorkspaceFrom(const QString& path, QString* error)
 
 void ApplicationShell::openWorkspaceFile()
 {
-	const auto path = QFileDialog::getOpenFileName(this, tr("Open Workspace"), m_workspaceDocumentPath, tr("VibeStudio workspace (*.vibeworkspace)"));
+	const auto path = QFileDialog::getOpenFileName(this, tr("Open Workspace"), m_workspaceDocumentPath, tr("SlopStudio workspace (*.slopworkspace)"));
 	if (path.isEmpty()) { return; }
 	QString error;
 	if (!openWorkspaceFrom(path, &error)) { QMessageBox::warning(this, tr("Workspace Open Failed"), error); }
@@ -113,10 +113,10 @@ void ApplicationShell::openWorkspaceFile()
 
 void ApplicationShell::saveWorkspaceFile()
 {
-	auto path = QFileDialog::getSaveFileName(this, tr("Save Workspace As"), m_workspaceDocumentPath, tr("VibeStudio workspace (*.vibeworkspace)"));
+	auto path = QFileDialog::getSaveFileName(this, tr("Save Workspace As"), m_workspaceDocumentPath, tr("SlopStudio workspace (*.slopworkspace)"));
 	if (path.isEmpty()) { return; }
-	if (QFileInfo(path).suffix().isEmpty()) { path += QStringLiteral(".vibeworkspace"); }
+	if (QFileInfo(path).suffix().isEmpty()) { path += QStringLiteral(".slopworkspace"); }
 	QString error;
 	if (!saveWorkspaceTo(path, true, &error)) { QMessageBox::warning(this, tr("Workspace Save Failed"), error); }
 }
-} // namespace vibestudio
+} // namespace slopstudio

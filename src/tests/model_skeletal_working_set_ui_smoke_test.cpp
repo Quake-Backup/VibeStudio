@@ -34,8 +34,8 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -66,7 +66,7 @@ class Expansion final : public QTranslator
 };
 bool render(QWidget &widget, const QString &name)
 {
-	const auto folder = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto folder = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (folder.isEmpty())
 		return true;
 	QImage target(widget.size() * widget.devicePixelRatioF(), QImage::Format_ARGB32_Premultiplied);
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("working-set-ui-XXXXXX"));

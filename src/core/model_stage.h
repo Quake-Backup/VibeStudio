@@ -18,7 +18,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 struct ModelStageRequest
@@ -118,4 +118,4 @@ bool stageModelSet(const ModelStageSet &set, PackageStagingModel *staging, bool 
 // dependency review.
 [[nodiscard]] QJsonObject modelStageSetJson(const ModelStageSet &set);
 
-} // namespace vibestudio
+} // namespace slopstudio

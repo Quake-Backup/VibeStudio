@@ -19,7 +19,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value,const char* label,const QString& error = {}) { if (!value) { ok = false; std::cerr << label << ": " << error.toStdString() << '\n'; } return value; }
@@ -188,5 +188,5 @@ int main(int argc,char** argv)
 	QApplication app(argc,argv); QTemporaryDir temp; if (!temp.isValid()) { return 1; }
 	StudioSettings::setOverrideFilePath(temp.filePath("settings.ini")); StudioSettings settings;
 	settings.setRestoreSession(false); settings.setReducedMotion(true); settings.setLevelViewLayoutPreference("four-views"); settings.sync();
-	controllerChecks(); shellChecks(app,temp.path(),qEnvironmentVariable("VIBESTUDIO_COMPONENT_UI_EVIDENCE")); return ok ? 0 : 1;
+	controllerChecks(); shellChecks(app,temp.path(),qEnvironmentVariable("SLOPSTUDIO_COMPONENT_UI_EVIDENCE")); return ok ? 0 : 1;
 }

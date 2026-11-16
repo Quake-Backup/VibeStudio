@@ -14,7 +14,7 @@
 #include <QSaveFile>
 #include <QThread>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -26,7 +26,7 @@ namespace {
 // is reported as a hard error again.
 QString missingInputErrorText()
 {
-	return QCoreApplication::translate("VibeStudioCompilerProfiles", "Input file does not exist.");
+	return QCoreApplication::translate("SlopStudioCompilerProfiles", "Input file does not exist.");
 }
 
 QString normalizedId(const QString& value)
@@ -44,7 +44,7 @@ QString absoluteCleanPath(const QString& path)
 
 QString nativePath(const QString& path)
 {
-	return path.isEmpty() ? QCoreApplication::translate("VibeStudioBuildPipeline", "(not resolved)") : QDir::toNativeSeparators(path);
+	return path.isEmpty() ? QCoreApplication::translate("SlopStudioBuildPipeline", "(not resolved)") : QDir::toNativeSeparators(path);
 }
 
 void appendUnique(QStringList* values, const QString& value)
@@ -246,16 +246,16 @@ bool appendStageDiagnostics(
 		return false;
 	}
 	for (const QString& warning : warnings) {
-		appendUnique(&result->warnings, QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\": %2").arg(stage.id, warning));
+		appendUnique(&result->warnings, QCoreApplication::translate("SlopStudioBuildPipeline", "Stage \"%1\": %2").arg(stage.id, warning));
 	}
 	bool hadRealError = false;
 	const QString missingInput = missingInputErrorText();
 	for (const QString& error : errors) {
 		if (allowMissingInputDowngrade && error.trimmed() == missingInput) {
-			appendUnique(&result->warnings, QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\" input %2 does not exist yet; it is produced by an earlier stage of this pipeline.").arg(stage.id, nativePath(inputPath)));
+			appendUnique(&result->warnings, QCoreApplication::translate("SlopStudioBuildPipeline", "Stage \"%1\" input %2 does not exist yet; it is produced by an earlier stage of this pipeline.").arg(stage.id, nativePath(inputPath)));
 			continue;
 		}
-		const QString entry = QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\": %2").arg(stage.id, error);
+		const QString entry = QCoreApplication::translate("SlopStudioBuildPipeline", "Stage \"%1\": %2").arg(stage.id, error);
 		appendUnique(errorsOut ? errorsOut : &result->errors, entry);
 		hadRealError = true;
 	}
@@ -353,7 +353,7 @@ QStringList projectStageArguments(const BuildPipelineStage& stage, const QMap<QS
 			for (const QString& name : variablesInWord(word)) {
 				if (!variables.contains(name)) {
 					if (errors) {
-						errors->push_back(QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\" uses ${%2}, which is not a variable of this pipeline.").arg(stage.id, name));
+						errors->push_back(QCoreApplication::translate("SlopStudioBuildPipeline", "Stage \"%1\" uses ${%2}, which is not a variable of this pipeline.").arg(stage.id, name));
 					}
 					continue;
 				}
@@ -367,7 +367,7 @@ QStringList projectStageArguments(const BuildPipelineStage& stage, const QMap<QS
 		if (!empty.isEmpty()) {
 			if (warnings) {
 				const QString names = QStringLiteral("${%1}").arg(empty.join(QStringLiteral("}, ${")));
-				warnings->push_back(QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\" leaves out \"%2\" because %3 is empty.")
+				warnings->push_back(QCoreApplication::translate("SlopStudioBuildPipeline", "Stage \"%1\" leaves out \"%2\" because %3 is empty.")
 					.arg(stage.id, group.join(QLatin1Char(' ')), names));
 			}
 			continue;
@@ -393,19 +393,19 @@ BuildPipelineResult planPipelineInternal(const BuildPipelineRequest& request, QV
 	}
 
 	if (!buildPipelineForId(request.pipelineId, request.projectPipelines, &result.pipeline)) {
-		result.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "Build pipeline \"%1\" is not known.").arg(request.pipelineId.trimmed());
+		result.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "Build pipeline \"%1\" is not known.").arg(request.pipelineId.trimmed());
 		result.state = OperationState::Failed;
 		return result;
 	}
 
 	if (result.inputPath.isEmpty()) {
-		result.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "Pipeline input path is required.");
+		result.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "Pipeline input path is required.");
 	} else {
 		if (!QFileInfo(result.inputPath).isFile()) {
-			result.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "Pipeline input file does not exist: %1").arg(nativePath(result.inputPath));
+			result.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "Pipeline input file does not exist: %1").arg(nativePath(result.inputPath));
 		}
 		if (!extensionMatches(result.inputPath, result.pipeline.inputExtensions)) {
-			result.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "Pipeline input extension does not match the expected source type for \"%1\".").arg(result.pipeline.id);
+			result.warnings << QCoreApplication::translate("SlopStudioBuildPipeline", "Pipeline input extension does not match the expected source type for \"%1\".").arg(result.pipeline.id);
 		}
 	}
 
@@ -418,20 +418,20 @@ BuildPipelineResult planPipelineInternal(const BuildPipelineRequest& request, QV
 		const BuildPipelineStage& stage = result.pipeline.stages.at(index);
 		if (containsNormalizedId(request.disabledStageIds, stage.id)) {
 			skipped[index] = true;
-			skipReasons[index] = QCoreApplication::translate("VibeStudioBuildPipeline", "Stage was disabled for this run.");
+			skipReasons[index] = QCoreApplication::translate("SlopStudioBuildPipeline", "Stage was disabled for this run.");
 			continue;
 		}
 		if (stage.optional && !stage.enabledByDefault) {
 			skipped[index] = true;
 			skipReasons[index] = result.pipeline.projectDefined
-				? QCoreApplication::translate("VibeStudioBuildPipeline", "Stage is turned off in this project pipeline.")
-				: QCoreApplication::translate("VibeStudioBuildPipeline", "Optional stage is disabled by default for this pipeline.");
+				? QCoreApplication::translate("SlopStudioBuildPipeline", "Stage is turned off in this project pipeline.")
+				: QCoreApplication::translate("SlopStudioBuildPipeline", "Optional stage is disabled by default for this pipeline.");
 			continue;
 		}
 		if (!compilerProfileForId(stage.profileId, &profiles[index])) {
 			skipped[index] = true;
-			skipReasons[index] = QCoreApplication::translate("VibeStudioBuildPipeline", "Compiler profile \"%1\" is not registered in this build.").arg(stage.profileId);
-			appendUnique(&result.warnings, QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\" was skipped: %2").arg(stage.id, skipReasons[index]));
+			skipReasons[index] = QCoreApplication::translate("SlopStudioBuildPipeline", "Compiler profile \"%1\" is not registered in this build.").arg(stage.profileId);
+			appendUnique(&result.warnings, QCoreApplication::translate("SlopStudioBuildPipeline", "Stage \"%1\" was skipped: %2").arg(stage.id, skipReasons[index]));
 			continue;
 		}
 	}
@@ -447,7 +447,7 @@ BuildPipelineResult planPipelineInternal(const BuildPipelineRequest& request, QV
 	}
 	const QString requestedOutputPath = absoluteCleanPath(request.outputPath);
 	if (!requestedOutputPath.isEmpty() && outputStageIndex < 0) {
-		appendUnique(&result.warnings, QCoreApplication::translate("VibeStudioBuildPipeline", "No stage in this pipeline accepts an explicit output path; the requested output path is ignored."));
+		appendUnique(&result.warnings, QCoreApplication::translate("SlopStudioBuildPipeline", "No stage in this pipeline accepts an explicit output path; the requested output path is ignored."));
 	}
 
 	QMap<QString, QString> stageOutputs;
@@ -481,7 +481,7 @@ BuildPipelineResult planPipelineInternal(const BuildPipelineRequest& request, QV
 			stageInputPath = stageOutputs.value(chainedFrom);
 		} else {
 			stageInputPath = latestOutputPath;
-			appendUnique(&result.warnings, QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\" now consumes %2 because stage \"%3\" is not part of this run.").arg(stage.id, nativePath(stageInputPath), stage.inputFromStageId));
+			appendUnique(&result.warnings, QCoreApplication::translate("SlopStudioBuildPipeline", "Stage \"%1\" now consumes %2 because stage \"%3\" is not part of this run.").arg(stage.id, nativePath(stageInputPath), stage.inputFromStageId));
 		}
 
 		CompilerCommandRequest command;
@@ -539,7 +539,7 @@ BuildPipelineResult planPipelineInternal(const BuildPipelineRequest& request, QV
 
 	result.finalOutputPath = latestOutputPath;
 	if (result.plannedStageCount == 0) {
-		appendUnique(&result.warnings, QCoreApplication::translate("VibeStudioBuildPipeline", "No stage of this pipeline is enabled; nothing would be compiled."));
+		appendUnique(&result.warnings, QCoreApplication::translate("SlopStudioBuildPipeline", "No stage of this pipeline is enabled; nothing would be compiled."));
 	}
 	result.state = aggregatePipelineState(result);
 	return result;
@@ -572,167 +572,167 @@ QVector<BuildPipelineDescriptor> buildPipelineDescriptors()
 	return {
 		pipelineDescriptor(
 			QStringLiteral("quake-full"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Quake full compile"),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Quake full compile"),
 			QStringLiteral("idTech2"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Runs the complete Quake-family loop: BSP, visibility, and lighting through VibeMap2."),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Runs the complete Quake-family loop: BSP, visibility, and lighting through SlopMap2."),
 			{QStringLiteral("map")},
 			QStringLiteral("bsp"),
 			{
 				pipelineStage(
 					QStringLiteral("qbsp"),
-					QStringLiteral("vibemap2-bsp"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "QBSP"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Compiles the .map source into a Quake-family BSP."),
+					QStringLiteral("slopmap2-bsp"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "QBSP"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Compiles the .map source into a Quake-family BSP."),
 					QString(),
 					false,
 					true),
 				pipelineStage(
 					QStringLiteral("vis"),
-					QStringLiteral("vibemap2-vis"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "VIS"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Computes the potentially visible set for the compiled BSP, in place."),
+					QStringLiteral("slopmap2-vis"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "VIS"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Computes the potentially visible set for the compiled BSP, in place."),
 					QStringLiteral("qbsp"),
 					true,
 					true),
 				pipelineStage(
 					QStringLiteral("light"),
-					QStringLiteral("vibemap2-light"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "LIGHT"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Computes lightmaps and light data for the compiled BSP, in place."),
+					QStringLiteral("slopmap2-light"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "LIGHT"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Computes lightmaps and light data for the compiled BSP, in place."),
 					QStringLiteral("vis"),
 					true,
 					true),
 			}),
 		pipelineDescriptor(
 			QStringLiteral("quake-fast"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Quake fast iteration"),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Quake fast iteration"),
 			QStringLiteral("idTech2"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Quick edit/test loop: BSP then lighting. Visibility is disabled by default; pass fast-mode switches through stageExtraArguments."),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Quick edit/test loop: BSP then lighting. Visibility is disabled by default; pass fast-mode switches through stageExtraArguments."),
 			{QStringLiteral("map")},
 			QStringLiteral("bsp"),
 			{
 				pipelineStage(
 					QStringLiteral("qbsp"),
-					QStringLiteral("vibemap2-bsp"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "QBSP"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Compiles the .map source into a Quake-family BSP."),
+					QStringLiteral("slopmap2-bsp"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "QBSP"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Compiles the .map source into a Quake-family BSP."),
 					QString(),
 					false,
 					true),
 				pipelineStage(
 					QStringLiteral("vis"),
-					QStringLiteral("vibemap2-vis"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "VIS"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Visibility processing, disabled by default for fast iteration."),
+					QStringLiteral("slopmap2-vis"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "VIS"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Visibility processing, disabled by default for fast iteration."),
 					QStringLiteral("qbsp"),
 					true,
 					false),
 				pipelineStage(
 					QStringLiteral("light"),
-					QStringLiteral("vibemap2-light"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "LIGHT"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Lighting pass; the caller supplies fast-mode arguments."),
+					QStringLiteral("slopmap2-light"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "LIGHT"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Lighting pass; the caller supplies fast-mode arguments."),
 					QStringLiteral("vis"),
 					true,
 					true),
 			}),
 		pipelineDescriptor(
 			QStringLiteral("quake-bsp-only"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Quake BSP only"),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Quake BSP only"),
 			QStringLiteral("idTech2"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Compiles geometry only, without visibility or lighting."),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Compiles geometry only, without visibility or lighting."),
 			{QStringLiteral("map")},
 			QStringLiteral("bsp"),
 			{
 				pipelineStage(
 					QStringLiteral("qbsp"),
-					QStringLiteral("vibemap2-bsp"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "QBSP"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Compiles the .map source into a Quake-family BSP."),
+					QStringLiteral("slopmap2-bsp"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "QBSP"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Compiles the .map source into a Quake-family BSP."),
 					QString(),
 					false,
 					true),
 			}),
 		pipelineDescriptor(
 			QStringLiteral("quake3-full"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Quake III full compile"),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Quake III full compile"),
 			QStringLiteral("idTech3"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Runs the complete Quake III-family loop: BSP, visibility, and lighting through VibeMap3."),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Runs the complete Quake III-family loop: BSP, visibility, and lighting through SlopMap3."),
 			{QStringLiteral("map")},
 			QStringLiteral("bsp"),
 			{
 				pipelineStage(
 					QStringLiteral("bsp"),
-					QStringLiteral("vibemap3-bsp"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "BSP"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Builds the Quake III-family BSP from the .map source."),
+					QStringLiteral("slopmap3-bsp"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "BSP"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Builds the Quake III-family BSP from the .map source."),
 					QString(),
 					false,
 					true),
 				pipelineStage(
 					QStringLiteral("vis"),
-					QStringLiteral("vibemap3-vis"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "VIS"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Computes the potentially visible set for the compiled BSP, in place."),
+					QStringLiteral("slopmap3-vis"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "VIS"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Computes the potentially visible set for the compiled BSP, in place."),
 					QStringLiteral("bsp"),
 					true,
 					true),
 				pipelineStage(
 					QStringLiteral("light"),
-					QStringLiteral("vibemap3-light"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "LIGHT"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Computes lightmaps for the compiled BSP, in place."),
+					QStringLiteral("slopmap3-light"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "LIGHT"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Computes lightmaps for the compiled BSP, in place."),
 					QStringLiteral("vis"),
 					true,
 					true),
 			}),
 		pipelineDescriptor(
 			QStringLiteral("quake3-bsp-only"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Quake III BSP only"),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Quake III BSP only"),
 			QStringLiteral("idTech3"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Compiles Quake III-family geometry only, without visibility or lighting."),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Compiles Quake III-family geometry only, without visibility or lighting."),
 			{QStringLiteral("map")},
 			QStringLiteral("bsp"),
 			{
 				pipelineStage(
 					QStringLiteral("bsp"),
-					QStringLiteral("vibemap3-bsp"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "BSP"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Builds the Quake III-family BSP from the .map source."),
+					QStringLiteral("slopmap3-bsp"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "BSP"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Builds the Quake III-family BSP from the .map source."),
 					QString(),
 					false,
 					true),
 			}),
 		pipelineDescriptor(
 			QStringLiteral("doom-zdbsp"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Doom nodes (ZDBSP)"),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Doom nodes (ZDBSP)"),
 			QStringLiteral("idTech1"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Builds Doom-family map nodes with ZDBSP."),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Builds Doom-family map nodes with ZDBSP."),
 			{QStringLiteral("wad")},
 			QStringLiteral("wad"),
 			{
 				pipelineStage(
 					QStringLiteral("nodes"),
 					QStringLiteral("zdbsp-nodes"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Nodes"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Builds nodes, blockmap, and reject data for a Doom-family WAD."),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Nodes"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Builds nodes, blockmap, and reject data for a Doom-family WAD."),
 					QString(),
 					false,
 					true),
 			}),
 		pipelineDescriptor(
 			QStringLiteral("doom-zokumbsp"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Doom nodes (ZokumBSP)"),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Doom nodes (ZokumBSP)"),
 			QStringLiteral("idTech1"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Builds Doom-family map nodes with ZokumBSP."),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Builds Doom-family map nodes with ZokumBSP."),
 			{QStringLiteral("wad")},
 			QStringLiteral("wad"),
 			{
 				pipelineStage(
 					QStringLiteral("nodes"),
 					QStringLiteral("zokumbsp-nodes"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Nodes"),
-					QCoreApplication::translate("VibeStudioBuildPipeline", "Builds nodes, blockmap, and reject data for a Doom-family WAD."),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Nodes"),
+					QCoreApplication::translate("SlopStudioBuildPipeline", "Builds nodes, blockmap, and reject data for a Doom-family WAD."),
 					QString(),
 					false,
 					true),
@@ -791,7 +791,7 @@ QStringList buildPipelineIdsForInput(const QString& inputPath)
 // TrenchBroom's compilation profiles (CompilationProfileManager and the
 // ${MAP_BASE_NAME}, ${CPU_COUNT} variables of CompilationVariables at
 // 4c756be1, GPL-3.0-or-later): named lists of compiler commands with
-// arguments and variables. Original Qt implementation over VibeStudio's
+// arguments and variables. Original Qt implementation over SlopStudio's
 // compiler profiles, kept in the project manifest; see docs/CREDITS.md.
 QStringList buildPipelineVariableNames()
 {
@@ -907,12 +907,12 @@ QStringList projectBuildPipelineProblems(const BuildPipelineDescriptor& pipeline
 	static const QRegularExpression idPattern(QStringLiteral("^[a-z0-9][a-z0-9-]{0,63}$"));
 	static const QRegularExpression variablePattern(QStringLiteral("^[A-Z][A-Z0-9_]{0,31}$"));
 	if (!idPattern.match(pipeline.id).hasMatch()) {
-		problems << QCoreApplication::translate("VibeStudioBuildPipeline", "A pipeline id uses lower-case letters, digits and hyphens.");
+		problems << QCoreApplication::translate("SlopStudioBuildPipeline", "A pipeline id uses lower-case letters, digits and hyphens.");
 	} else if (buildPipelineForId(pipeline.id)) {
-		problems << QCoreApplication::translate("VibeStudioBuildPipeline", "\"%1\" is a built-in pipeline; choose another id.").arg(pipeline.id);
+		problems << QCoreApplication::translate("SlopStudioBuildPipeline", "\"%1\" is a built-in pipeline; choose another id.").arg(pipeline.id);
 	}
 	if (pipeline.displayName.trimmed().isEmpty()) {
-		problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Give the pipeline a name.");
+		problems << QCoreApplication::translate("SlopStudioBuildPipeline", "Give the pipeline a name.");
 	}
 	int sameId = 0;
 	int sameName = 0;
@@ -921,47 +921,47 @@ QStringList projectBuildPipelineProblems(const BuildPipelineDescriptor& pipeline
 		sameName += !pipeline.displayName.trimmed().isEmpty() && other.displayName.trimmed().compare(pipeline.displayName.trimmed(), Qt::CaseInsensitive) == 0 ? 1 : 0;
 	}
 	if (sameId > 1) {
-		problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Another pipeline of the project has the id \"%1\".").arg(pipeline.id);
+		problems << QCoreApplication::translate("SlopStudioBuildPipeline", "Another pipeline of the project has the id \"%1\".").arg(pipeline.id);
 	}
 	if (sameName > 1) {
-		problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Another pipeline of the project is called \"%1\".").arg(pipeline.displayName.trimmed());
+		problems << QCoreApplication::translate("SlopStudioBuildPipeline", "Another pipeline of the project is called \"%1\".").arg(pipeline.displayName.trimmed());
 	}
 	const QStringList builtInVariables = buildPipelineVariableNames();
 	for (auto it = pipeline.variables.cbegin(); it != pipeline.variables.cend(); ++it) {
 		if (!variablePattern.match(it.key()).hasMatch()) {
-			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Variable \"%1\": a name uses capital letters, digits and underscores, starting with a letter.").arg(it.key());
+			problems << QCoreApplication::translate("SlopStudioBuildPipeline", "Variable \"%1\": a name uses capital letters, digits and underscores, starting with a letter.").arg(it.key());
 		} else if (builtInVariables.contains(it.key())) {
-			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "${%1} is a built-in variable; choose another name.").arg(it.key());
+			problems << QCoreApplication::translate("SlopStudioBuildPipeline", "${%1} is a built-in variable; choose another name.").arg(it.key());
 		}
 	}
 	if (pipeline.stages.isEmpty()) {
-		problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Add at least one stage.");
+		problems << QCoreApplication::translate("SlopStudioBuildPipeline", "Add at least one stage.");
 	}
 	QString family;
 	QStringList stageIds;
 	for (const BuildPipelineStage& stage : pipeline.stages) {
 		const QString label = stage.displayName.trimmed().isEmpty() ? stage.id : stage.displayName.trimmed();
 		if (!idPattern.match(stage.id).hasMatch()) {
-			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\": a stage id uses lower-case letters, digits and hyphens.").arg(label);
+			problems << QCoreApplication::translate("SlopStudioBuildPipeline", "Stage \"%1\": a stage id uses lower-case letters, digits and hyphens.").arg(label);
 		} else if (stageIds.contains(stage.id)) {
-			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Two stages have the id \"%1\".").arg(stage.id);
+			problems << QCoreApplication::translate("SlopStudioBuildPipeline", "Two stages have the id \"%1\".").arg(stage.id);
 		}
 		stageIds << stage.id;
 		CompilerProfileDescriptor profile;
 		if (!compilerProfileForId(stage.profileId, &profile)) {
-			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\": compiler profile \"%2\" is not known.").arg(label, stage.profileId);
+			problems << QCoreApplication::translate("SlopStudioBuildPipeline", "Stage \"%1\": compiler profile \"%2\" is not known.").arg(label, stage.profileId);
 		} else if (family.isEmpty()) {
 			family = profile.engineFamily;
 		} else if (profile.engineFamily.compare(family, Qt::CaseInsensitive) != 0) {
-			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\" is a %2 compiler, but the pipeline starts with a %3 one.").arg(label, profile.engineFamily, family);
+			problems << QCoreApplication::translate("SlopStudioBuildPipeline", "Stage \"%1\" is a %2 compiler, but the pipeline starts with a %3 one.").arg(label, profile.engineFamily, family);
 		}
 		if (stage.argumentLine.count(QLatin1Char('"')) % 2 != 0) {
-			problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\": the arguments have an unclosed quote.").arg(label);
+			problems << QCoreApplication::translate("SlopStudioBuildPipeline", "Stage \"%1\": the arguments have an unclosed quote.").arg(label);
 		}
 		for (const QString& word : splitGameLaunchArguments(stage.argumentLine)) {
 			for (const QString& name : variablesInWord(word)) {
 				if (!builtInVariables.contains(name) && !pipeline.variables.contains(name)) {
-					problems << QCoreApplication::translate("VibeStudioBuildPipeline", "Stage \"%1\" uses ${%2}, which is not a variable of this pipeline.").arg(label, name);
+					problems << QCoreApplication::translate("SlopStudioBuildPipeline", "Stage \"%1\" uses ${%2}, which is not a variable of this pipeline.").arg(label, name);
 				}
 			}
 		}
@@ -1047,7 +1047,7 @@ QVector<BuildPipelineDescriptor> projectBuildPipelines(const ProjectManifest& ma
 		if (problems.isEmpty()) {
 			usable.push_back(pipeline);
 		} else if (warnings) {
-			warnings->push_back(QCoreApplication::translate("VibeStudioBuildPipeline", "Project pipeline \"%1\" is left out: %2")
+			warnings->push_back(QCoreApplication::translate("SlopStudioBuildPipeline", "Project pipeline \"%1\" is left out: %2")
 				.arg(pipeline.displayName.isEmpty() ? pipeline.id : pipeline.displayName, problems.join(QLatin1Char(' '))));
 		}
 	}
@@ -1125,7 +1125,7 @@ BuildPipelineResult runBuildPipeline(const BuildPipelineRequest& request, const 
 
 	QString manifestDirectory = absoluteCleanPath(request.manifestDirectory);
 	if (!manifestDirectory.isEmpty() && !QDir().mkpath(manifestDirectory)) {
-		appendUnique(&result.warnings, QCoreApplication::translate("VibeStudioBuildPipeline", "Could not create the manifest directory %1; stage manifests will not be written.").arg(nativePath(manifestDirectory)));
+		appendUnique(&result.warnings, QCoreApplication::translate("SlopStudioBuildPipeline", "Could not create the manifest directory %1; stage manifests will not be written.").arg(nativePath(manifestDirectory)));
 		manifestDirectory.clear();
 	}
 
@@ -1145,8 +1145,8 @@ BuildPipelineResult runBuildPipeline(const BuildPipelineRequest& request, const 
 			stageResult.skipped = true;
 			stageResult.state = OperationState::Cancelled;
 			stageResult.skipReason = result.cancelled
-				? QCoreApplication::translate("VibeStudioBuildPipeline", "Pipeline was cancelled before this stage started.")
-				: QCoreApplication::translate("VibeStudioBuildPipeline", "An earlier stage failed and the pipeline stops on failure.");
+				? QCoreApplication::translate("SlopStudioBuildPipeline", "Pipeline was cancelled before this stage started.")
+				: QCoreApplication::translate("SlopStudioBuildPipeline", "An earlier stage failed and the pipeline stops on failure.");
 			result.plannedStageCount = qMax(0, result.plannedStageCount - 1);
 			result.skippedStageCount++;
 			if (callbacks.stageFinished) {
@@ -1231,7 +1231,7 @@ BuildPipelineResult runBuildPipeline(const BuildPipelineRequest& request, const 
 			result.completedStageCount++;
 		}
 
-		// A stage that exited 0 still produced its artifacts. VibeMap2 prints non-fatal
+		// A stage that exited 0 still produced its artifacts. SlopMap2 prints non-fatal
 		// "ERROR: ..." notices and carries on (common/bspfile_common.cc, common/bspxfile.cc), so
 		// those lines are reported as warnings instead of failing a pipeline whose every stage
 		// succeeded. The same applies to the partial output of a cancelled stage, which would
@@ -1265,66 +1265,66 @@ BuildPipelineResult runBuildPipeline(const BuildPipelineRequest& request, const 
 QString buildPipelineResultText(const BuildPipelineResult& result)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Build pipeline result");
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Pipeline: %1").arg(result.pipeline.id.isEmpty() ? QCoreApplication::translate("VibeStudioBuildPipeline", "(unknown)") : result.pipeline.id);
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Build pipeline result");
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Pipeline: %1").arg(result.pipeline.id.isEmpty() ? QCoreApplication::translate("SlopStudioBuildPipeline", "(unknown)") : result.pipeline.id);
 	if (!result.pipeline.displayName.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Name: %1").arg(result.pipeline.displayName);
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Name: %1").arg(result.pipeline.displayName);
 	}
 	if (!result.pipeline.engineFamily.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Engine: %1").arg(result.pipeline.engineFamily);
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Engine: %1").arg(result.pipeline.engineFamily);
 	}
 	if (result.pipeline.projectDefined) {
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Source: the project's own pipeline");
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Source: the project's own pipeline");
 	}
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "State: %1").arg(operationStateId(result.state));
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Succeeded: %1").arg(result.succeeded() ? QCoreApplication::translate("VibeStudioBuildPipeline", "yes") : QCoreApplication::translate("VibeStudioBuildPipeline", "no"));
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Dry run: %1").arg(result.dryRun ? QCoreApplication::translate("VibeStudioBuildPipeline", "yes") : QCoreApplication::translate("VibeStudioBuildPipeline", "no"));
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Cancelled: %1").arg(result.cancelled ? QCoreApplication::translate("VibeStudioBuildPipeline", "yes") : QCoreApplication::translate("VibeStudioBuildPipeline", "no"));
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Input: %1").arg(nativePath(result.inputPath));
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Final output: %1").arg(nativePath(result.finalOutputPath));
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Stages: %1 planned, %2 completed, %3 failed, %4 skipped")
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "State: %1").arg(operationStateId(result.state));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Succeeded: %1").arg(result.succeeded() ? QCoreApplication::translate("SlopStudioBuildPipeline", "yes") : QCoreApplication::translate("SlopStudioBuildPipeline", "no"));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Dry run: %1").arg(result.dryRun ? QCoreApplication::translate("SlopStudioBuildPipeline", "yes") : QCoreApplication::translate("SlopStudioBuildPipeline", "no"));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Cancelled: %1").arg(result.cancelled ? QCoreApplication::translate("SlopStudioBuildPipeline", "yes") : QCoreApplication::translate("SlopStudioBuildPipeline", "no"));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Input: %1").arg(nativePath(result.inputPath));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Final output: %1").arg(nativePath(result.finalOutputPath));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Stages: %1 planned, %2 completed, %3 failed, %4 skipped")
 		.arg(result.plannedStageCount)
 		.arg(result.completedStageCount)
 		.arg(result.failedStageCount)
 		.arg(result.skippedStageCount);
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Duration: %1").arg(result.durationMs >= 0 ? QCoreApplication::translate("VibeStudioBuildPipeline", "%1 ms").arg(result.durationMs) : QCoreApplication::translate("VibeStudioBuildPipeline", "not run"));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Duration: %1").arg(result.durationMs >= 0 ? QCoreApplication::translate("SlopStudioBuildPipeline", "%1 ms").arg(result.durationMs) : QCoreApplication::translate("SlopStudioBuildPipeline", "not run"));
 
 	for (const BuildPipelineStageResult& stageResult : result.stages) {
 		lines << QString();
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Stage %1 (%2)").arg(stageResult.stage.id, stageResult.stage.profileId);
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "  State: %1").arg(operationStateId(stageResult.state));
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Stage %1 (%2)").arg(stageResult.stage.id, stageResult.stage.profileId);
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "  State: %1").arg(operationStateId(stageResult.state));
 		if (stageResult.skipped) {
-			lines << QCoreApplication::translate("VibeStudioBuildPipeline", "  Skipped: %1").arg(stageResult.skipReason);
+			lines << QCoreApplication::translate("SlopStudioBuildPipeline", "  Skipped: %1").arg(stageResult.skipReason);
 			continue;
 		}
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "  Input: %1").arg(nativePath(stageResult.inputPath));
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "  Output: %1").arg(nativePath(stageResult.outputPath));
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "  Command line: %1").arg(stageResult.plan.commandLine);
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "  Input: %1").arg(nativePath(stageResult.inputPath));
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "  Output: %1").arg(nativePath(stageResult.outputPath));
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "  Command line: %1").arg(stageResult.plan.commandLine);
 		if (!stageResult.manifestPath.isEmpty()) {
-			lines << QCoreApplication::translate("VibeStudioBuildPipeline", "  Manifest: %1").arg(nativePath(stageResult.manifestPath));
+			lines << QCoreApplication::translate("SlopStudioBuildPipeline", "  Manifest: %1").arg(nativePath(stageResult.manifestPath));
 		}
 		if (stageResult.run.exitCode >= 0) {
-			lines << QCoreApplication::translate("VibeStudioBuildPipeline", "  Exit code: %1").arg(stageResult.run.exitCode);
+			lines << QCoreApplication::translate("SlopStudioBuildPipeline", "  Exit code: %1").arg(stageResult.run.exitCode);
 		}
 	}
 
 	if (!result.registeredOutputPaths.isEmpty()) {
 		lines << QString();
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Registered outputs");
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Registered outputs");
 		for (const QString& output : result.registeredOutputPaths) {
 			lines << QStringLiteral("- %1").arg(nativePath(output));
 		}
 	}
 	if (!result.warnings.isEmpty()) {
 		lines << QString();
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Warnings");
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Warnings");
 		for (const QString& warning : result.warnings) {
 			lines << QStringLiteral("- %1").arg(warning);
 		}
 	}
 	if (!result.errors.isEmpty()) {
 		lines << QString();
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Errors");
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Errors");
 		for (const QString& error : result.errors) {
 			lines << QStringLiteral("- %1").arg(error);
 		}
@@ -1408,9 +1408,9 @@ QVector<GameLaunchProfile> gameLaunchProfiles()
 	return {
 		launchProfile(
 			QStringLiteral("quake-source-port"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Quake source port"),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Quake source port"),
 			QStringLiteral("idTech2"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Quake-family engines and source ports. {mod} is a game directory name such as id1."),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Quake-family engines and source ports. {mod} is a game directory name such as id1."),
 			{
 				QStringLiteral("-basedir {basedir}"),
 				QStringLiteral("-game {mod}"),
@@ -1419,9 +1419,9 @@ QVector<GameLaunchProfile> gameLaunchProfiles()
 			true),
 		launchProfile(
 			QStringLiteral("quake2-source-port"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Quake II source port"),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Quake II source port"),
 			QStringLiteral("idTech2"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Quake II engines and source ports. {mod} is a game directory name such as baseq2."),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Quake II engines and source ports. {mod} is a game directory name such as baseq2."),
 			{
 				// Quake-2 qcommon/files.c FS_InitFilesystem reads a cvar; common.c
 				// applies early +set commands before filesystem initialization.
@@ -1432,9 +1432,9 @@ QVector<GameLaunchProfile> gameLaunchProfiles()
 			true),
 		launchProfile(
 			QStringLiteral("quake3-source-port"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Quake III source port"),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Quake III source port"),
 			QStringLiteral("idTech3"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Quake III-family engines and source ports. {mod} is an fs_game directory such as baseq3."),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Quake III-family engines and source ports. {mod} is an fs_game directory such as baseq3."),
 			{
 				QStringLiteral("+set fs_basepath {basedir}"),
 				QStringLiteral("+set fs_game {mod}"),
@@ -1443,9 +1443,9 @@ QVector<GameLaunchProfile> gameLaunchProfiles()
 			true),
 		launchProfile(
 			QStringLiteral("doom-source-port"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Doom source port"),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Doom source port"),
 			QStringLiteral("idTech1"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Doom-family source ports. {iwad} is the installation's IWAD, {bsp} the built PWAD, and {warp} the map to start on in -warp's numbers: MAP07 becomes 07 and E2M3 becomes 2 3."),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Doom-family source ports. {iwad} is the installation's IWAD, {bsp} the built PWAD, and {warp} the map to start on in -warp's numbers: MAP07 becomes 07 and E2M3 becomes 2 3."),
 			{
 				QStringLiteral("-iwad {iwad}"),
 				QStringLiteral("-file {bsp}"),
@@ -1454,9 +1454,9 @@ QVector<GameLaunchProfile> gameLaunchProfiles()
 			true),
 		launchProfile(
 			QStringLiteral("custom"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Custom launch"),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Custom launch"),
 			QStringLiteral("unknown"),
-			QCoreApplication::translate("VibeStudioBuildPipeline", "Passes only the caller's extra arguments; nothing is added by VibeStudio."),
+			QCoreApplication::translate("SlopStudioBuildPipeline", "Passes only the caller's extra arguments; nothing is added by SlopStudio."),
 			{},
 			false),
 	};
@@ -1510,7 +1510,7 @@ QString defaultGameLaunchProfileId(GameEngineFamily family)
 
 // User launch profiles. Workflow reference: TrenchBroom GameEngineProfile and
 // LaunchGameEngineDialog at 4c756be1 (GPL-3.0-or-later): a named engine with
-// a parameter line of variables. Original Qt implementation with VibeStudio's
+// a parameter line of variables. Original Qt implementation with SlopStudio's
 // own tokens; see docs/CREDITS.md.
 QStringList gameLaunchTokens()
 {
@@ -1572,30 +1572,30 @@ QString userGameLaunchProfileProblem(const GameLaunchProfile& profile)
 {
 	static const QRegularExpression idPattern(QStringLiteral("^[a-z0-9][a-z0-9-]{0,63}$"));
 	if (!idPattern.match(profile.id).hasMatch()) {
-		return QCoreApplication::translate("VibeStudioBuildPipeline", "A launch profile id uses lower-case letters, digits and hyphens.");
+		return QCoreApplication::translate("SlopStudioBuildPipeline", "A launch profile id uses lower-case letters, digits and hyphens.");
 	}
 	if (gameLaunchProfileIds().contains(normalizedId(profile.id))) {
-		return QCoreApplication::translate("VibeStudioBuildPipeline", "\"%1\" is a built-in launch profile; choose another id.").arg(profile.id);
+		return QCoreApplication::translate("SlopStudioBuildPipeline", "\"%1\" is a built-in launch profile; choose another id.").arg(profile.id);
 	}
 	if (profile.displayName.trimmed().isEmpty()) {
-		return QCoreApplication::translate("VibeStudioBuildPipeline", "Give the launch profile a name.");
+		return QCoreApplication::translate("SlopStudioBuildPipeline", "Give the launch profile a name.");
 	}
 	if (profile.argumentLine.count(QLatin1Char('"')) % 2 != 0) {
-		return QCoreApplication::translate("VibeStudioBuildPipeline", "The arguments have an unclosed quote.");
+		return QCoreApplication::translate("SlopStudioBuildPipeline", "The arguments have an unclosed quote.");
 	}
 	const QStringList known = gameLaunchTokens();
 	for (const QStringList& group : gameLaunchArgumentGroups(profile.argumentLine)) {
 		for (const QString& word : group) {
 			for (const QString& name : tokensInWord(word)) {
 				if (!known.contains(name)) {
-					return QCoreApplication::translate("VibeStudioBuildPipeline", "{%1} is not a launch token. Use {map}, {mod}, {basedir}, {bsp}, {iwad} or {warp}.").arg(name);
+					return QCoreApplication::translate("SlopStudioBuildPipeline", "{%1} is not a launch token. Use {map}, {mod}, {basedir}, {bsp}, {iwad} or {warp}.").arg(name);
 				}
 			}
 		}
 	}
 	if (!profile.engineFamily.isEmpty() && profile.engineFamily != QStringLiteral("unknown")
 		&& gameEngineFamilyFromId(profile.engineFamily) == GameEngineFamily::Unknown) {
-		return QCoreApplication::translate("VibeStudioBuildPipeline", "Engine \"%1\" is not idTech1, idTech2 or idTech3.").arg(profile.engineFamily);
+		return QCoreApplication::translate("SlopStudioBuildPipeline", "Engine \"%1\" is not idTech1, idTech2 or idTech3.").arg(profile.engineFamily);
 	}
 	return {};
 }
@@ -1704,7 +1704,7 @@ GameLaunchPlan buildGameLaunchPlan(const GameLaunchRequest& request, const GameI
 		: request.launchProfileId;
 	plan.profileFound = gameLaunchProfileForId(requestedProfileId, request.userProfiles, &plan.profile);
 	if (!plan.profileFound) {
-		plan.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "Game launch profile \"%1\" is not known.").arg(requestedProfileId.trimmed());
+		plan.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "Game launch profile \"%1\" is not known.").arg(requestedProfileId.trimmed());
 		plan.commandLine = compilerCommandLineText(plan.program, plan.arguments);
 		return plan;
 	}
@@ -1713,21 +1713,21 @@ GameLaunchPlan buildGameLaunchPlan(const GameLaunchRequest& request, const GameI
 	// but its switches are probably not this engine's.
 	if (plan.profile.userDefined && !plan.profile.engineFamily.isEmpty() && plan.profile.engineFamily != QLatin1String("unknown")
 		&& installation.engineFamily != GameEngineFamily::Unknown && gameEngineFamilyFromId(plan.profile.engineFamily) != installation.engineFamily) {
-		plan.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "Launch profile \"%1\" is for %2, but the installation is %3.")
+		plan.warnings << QCoreApplication::translate("SlopStudioBuildPipeline", "Launch profile \"%1\" is for %2, but the installation is %3.")
 			.arg(plan.profile.displayName, plan.profile.engineFamily, gameEngineFamilyDisplayName(installation.engineFamily));
 	}
 
 	plan.program = absoluteCleanPath(request.executablePath.trimmed().isEmpty() ? installation.executablePath : request.executablePath);
 	if (plan.program.isEmpty()) {
-		plan.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "No game executable is configured for this installation.");
+		plan.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "No game executable is configured for this installation.");
 	} else {
 		const QFileInfo programInfo(plan.program);
 		if (!programInfo.exists()) {
-			plan.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "Game executable does not exist: %1").arg(nativePath(plan.program));
+			plan.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "Game executable does not exist: %1").arg(nativePath(plan.program));
 		} else if (!programInfo.isFile()) {
-			plan.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "Game executable path is not a file: %1").arg(nativePath(plan.program));
+			plan.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "Game executable path is not a file: %1").arg(nativePath(plan.program));
 		} else if (!programInfo.isExecutable()) {
-			plan.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "Game executable is not marked executable: %1").arg(nativePath(plan.program));
+			plan.warnings << QCoreApplication::translate("SlopStudioBuildPipeline", "Game executable is not marked executable: %1").arg(nativePath(plan.program));
 		}
 	}
 
@@ -1735,7 +1735,7 @@ GameLaunchPlan buildGameLaunchPlan(const GameLaunchRequest& request, const GameI
 	const QString mapName = request.mapName.trimmed();
 	const QString artifactPath = absoluteCleanPath(request.bspPath.trimmed());
 	if (plan.profile.requiresMap && mapName.isEmpty()) {
-		plan.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "This launch profile requires a map name.");
+		plan.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "This launch profile requires a map name.");
 	}
 
 	QMap<QString, QString> tokens;
@@ -1761,7 +1761,7 @@ GameLaunchPlan buildGameLaunchPlan(const GameLaunchRequest& request, const GameI
 		for (const QString& word : group) {
 			for (const QString& name : tokensInWord(word)) {
 				if (!known.contains(name)) {
-					plan.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "Argument \"%1\" uses {%2}, which is not a launch token, so it is passed as written.")
+					plan.warnings << QCoreApplication::translate("SlopStudioBuildPipeline", "Argument \"%1\" uses {%2}, which is not a launch token, so it is passed as written.")
 						.arg(word, name);
 				}
 			}
@@ -1777,25 +1777,25 @@ GameLaunchPlan buildGameLaunchPlan(const GameLaunchRequest& request, const GameI
 		if (missingTokens.isEmpty() || missingTokens == QStringList {QStringLiteral("mod")}) {
 			continue;
 		}
-		plan.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "Argument \"%1\" was dropped because %2 is not set.")
+		plan.warnings << QCoreApplication::translate("SlopStudioBuildPipeline", "Argument \"%1\" was dropped because %2 is not set.")
 			.arg(group.join(QLatin1Char(' ')), missingTokens.join(QStringLiteral(", ")));
 	}
 	plan.arguments += request.extraArguments;
 
 	if (!baseDirectory.isEmpty() && !QFileInfo(baseDirectory).isDir()) {
-		plan.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "Base directory does not exist: %1").arg(nativePath(baseDirectory));
+		plan.warnings << QCoreApplication::translate("SlopStudioBuildPipeline", "Base directory does not exist: %1").arg(nativePath(baseDirectory));
 	}
 	if (!request.bspPath.trimmed().isEmpty() && !QFileInfo(request.bspPath.trimmed()).isFile()) {
-		plan.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "Built map artifact does not exist yet: %1").arg(nativePath(request.bspPath.trimmed()));
+		plan.warnings << QCoreApplication::translate("SlopStudioBuildPipeline", "Built map artifact does not exist yet: %1").arg(nativePath(request.bspPath.trimmed()));
 	}
 
 	plan.workingDirectory = request.workingDirectory.trimmed().isEmpty()
 		? (plan.program.isEmpty() ? QString() : QDir::cleanPath(QFileInfo(plan.program).absolutePath()))
 		: absoluteCleanPath(request.workingDirectory);
 	if (plan.workingDirectory.isEmpty()) {
-		plan.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "No working directory could be resolved for the launch.");
+		plan.warnings << QCoreApplication::translate("SlopStudioBuildPipeline", "No working directory could be resolved for the launch.");
 	} else if (!QFileInfo(plan.workingDirectory).isDir()) {
-		plan.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "Launch working directory does not exist: %1").arg(nativePath(plan.workingDirectory));
+		plan.warnings << QCoreApplication::translate("SlopStudioBuildPipeline", "Launch working directory does not exist: %1").arg(nativePath(plan.workingDirectory));
 	}
 
 	if (plan.profile.id == QStringLiteral("doom-source-port") && !request.bspPath.trimmed().isEmpty() &&
@@ -1835,7 +1835,7 @@ bool startGameLaunch(const GameLaunchPlan& plan, qint64* pidOut, QString* error,
 	if (!plan.runnable || plan.artifactValidationPending || plan.cancelled) {
 		if (error) {
 			*error = plan.errors.isEmpty()
-				? QCoreApplication::translate("VibeStudioBuildPipeline", "Game launch plan is not runnable.")
+				? QCoreApplication::translate("SlopStudioBuildPipeline", "Game launch plan is not runnable.")
 				: plan.errors.join(QStringLiteral("; "));
 		}
 		return false;
@@ -1843,7 +1843,7 @@ bool startGameLaunch(const GameLaunchPlan& plan, qint64* pidOut, QString* error,
 
 	const auto cancelled = [&] {
 		if (isCancelled && isCancelled()) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioBuildPipeline", "Game launch cancelled."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioBuildPipeline", "Game launch cancelled."); }
 			return true;
 		}
 		return false;
@@ -1862,7 +1862,7 @@ bool startGameLaunch(const GameLaunchPlan& plan, qint64* pidOut, QString* error,
 			if (complete) { hash.addData(chunk); }
 		}
 		if (!complete || plan.validatedArtifactHash.isEmpty() || hash.result() != plan.validatedArtifactHash) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioBuildPipeline", "The validated WAD changed or is unavailable. Prepare the launch again before testing."); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioBuildPipeline", "The validated WAD changed or is unavailable. Prepare the launch again before testing."); }
 			return false;
 		}
 	}
@@ -1871,7 +1871,7 @@ bool startGameLaunch(const GameLaunchPlan& plan, qint64* pidOut, QString* error,
 	const bool started = QProcess::startDetached(plan.program, plan.arguments, plan.workingDirectory, &pid);
 	if (!started) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioBuildPipeline", "Failed to start the game process: %1").arg(nativePath(plan.program));
+			*error = QCoreApplication::translate("SlopStudioBuildPipeline", "Failed to start the game process: %1").arg(nativePath(plan.program));
 		}
 		return false;
 	}
@@ -1884,29 +1884,29 @@ bool startGameLaunch(const GameLaunchPlan& plan, qint64* pidOut, QString* error,
 QString gameLaunchPlanText(const GameLaunchPlan& plan)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Game launch plan");
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Profile: %1").arg(plan.profileFound ? plan.profile.id : QCoreApplication::translate("VibeStudioBuildPipeline", "(unknown)"));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Game launch plan");
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Profile: %1").arg(plan.profileFound ? plan.profile.id : QCoreApplication::translate("SlopStudioBuildPipeline", "(unknown)"));
 	if (plan.profileFound) {
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Name: %1").arg(plan.profile.displayName);
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Engine: %1").arg(plan.profile.engineFamily);
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Name: %1").arg(plan.profile.displayName);
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Engine: %1").arg(plan.profile.engineFamily);
 	}
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "State: %1").arg(operationStateId(plan.state()));
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Runnable: %1").arg(plan.runnable ? QCoreApplication::translate("VibeStudioBuildPipeline", "yes") : QCoreApplication::translate("VibeStudioBuildPipeline", "no"));
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Program: %1").arg(nativePath(plan.program));
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Working directory: %1").arg(nativePath(plan.workingDirectory));
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Command line: %1").arg(plan.commandLine);
-	if (plan.artifactValidationPending) { lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Node validation is required before launch."); }
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "State: %1").arg(operationStateId(plan.state()));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Runnable: %1").arg(plan.runnable ? QCoreApplication::translate("SlopStudioBuildPipeline", "yes") : QCoreApplication::translate("SlopStudioBuildPipeline", "no"));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Program: %1").arg(nativePath(plan.program));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Working directory: %1").arg(nativePath(plan.workingDirectory));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Command line: %1").arg(plan.commandLine);
+	if (plan.artifactValidationPending) { lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Node validation is required before launch."); }
 	if (!plan.validatedArtifactHash.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Validated WAD SHA-256: %1").arg(QString::fromLatin1(plan.validatedArtifactHash.toHex()));
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Validated WAD SHA-256: %1").arg(QString::fromLatin1(plan.validatedArtifactHash.toHex()));
 	}
 	if (!plan.warnings.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Warnings");
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Warnings");
 		for (const QString& warning : plan.warnings) {
 			lines << QStringLiteral("- %1").arg(warning);
 		}
 	}
 	if (!plan.errors.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Errors");
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Errors");
 		for (const QString& error : plan.errors) {
 			lines << QStringLiteral("- %1").arg(error);
 		}
@@ -1990,14 +1990,14 @@ GameMapDeployPlan planGameMapDeploy(const GameInstallationProfile& installation,
 	}
 	plan.allowed = !installation.readOnly;
 	if (!plan.allowed) {
-		plan.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "The installation profile is read-only, so the built map cannot be copied into it. Allow test maps for this installation first.");
+		plan.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "The installation profile is read-only, so the built map cannot be copied into it. Allow test maps for this installation first.");
 	}
 
 	const QString builtMap = absoluteCleanPath(builtMapPath);
 	if (builtMap.isEmpty()) {
-		plan.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "No built map was given to copy.");
+		plan.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "No built map was given to copy.");
 	} else if (!QFileInfo(builtMap).isFile()) {
-		plan.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "The built map does not exist yet: %1").arg(nativePath(builtMap));
+		plan.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "The built map does not exist yet: %1").arg(nativePath(builtMap));
 	}
 
 	// A single folder name keeps every write inside the installation root.
@@ -2005,14 +2005,14 @@ GameMapDeployPlan planGameMapDeploy(const GameInstallationProfile& installation,
 	static const QRegularExpression folderName(QStringLiteral("^[A-Za-z0-9_][A-Za-z0-9_.-]*$"));
 	const bool folderValid = folderName.match(plan.gameDirectory).hasMatch() && !plan.gameDirectory.contains(QStringLiteral(".."));
 	if (plan.gameDirectory.isEmpty()) {
-		plan.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "Name the game folder the map goes into, for example id1.");
+		plan.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "Name the game folder the map goes into, for example id1.");
 	} else if (!folderValid) {
-		plan.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "The game folder must be a single folder name inside the installation: %1").arg(plan.gameDirectory);
+		plan.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "The game folder must be a single folder name inside the installation: %1").arg(plan.gameDirectory);
 	}
 	const QString root = absoluteCleanPath(installation.rootPath);
 	const bool rootValid = !root.isEmpty() && QFileInfo(root).isDir();
 	if (!rootValid) {
-		plan.errors << QCoreApplication::translate("VibeStudioBuildPipeline", "The installation folder does not exist: %1").arg(nativePath(root));
+		plan.errors << QCoreApplication::translate("SlopStudioBuildPipeline", "The installation folder does not exist: %1").arg(nativePath(root));
 	}
 	// Without a map, a root, and a valid folder there is no destination to show.
 	if (builtMap.isEmpty() || !rootValid || !folderValid) {
@@ -2021,9 +2021,9 @@ GameMapDeployPlan planGameMapDeploy(const GameInstallationProfile& installation,
 
 	plan.targetDirectory = QDir::cleanPath(QDir(root).filePath(plan.gameDirectory + QStringLiteral("/maps")));
 	if (!QFileInfo(QDir(root).filePath(plan.gameDirectory)).isDir()) {
-		plan.warnings << QCoreApplication::translate("VibeStudioBuildPipeline", "The game folder %1 does not exist yet and will be created.").arg(plan.gameDirectory);
+		plan.warnings << QCoreApplication::translate("SlopStudioBuildPipeline", "The game folder %1 does not exist yet and will be created.").arg(plan.gameDirectory);
 	}
-	// VibeMap2 writes coloured light to .lit and deluxemaps to .lux beside
+	// SlopMap2 writes coloured light to .lit and deluxemaps to .lux beside
 	// the BSP; engines look for them beside the copied map.
 	const QFileInfo mapInfo(builtMap);
 	QStringList sources {builtMap};
@@ -2055,10 +2055,10 @@ bool deployGameMap(const GameMapDeployPlan& plan, QStringList* written, QString*
 		return false;
 	};
 	if (!plan.runnable()) {
-		return fail(plan.errors.isEmpty() ? QCoreApplication::translate("VibeStudioBuildPipeline", "The map copy plan is not runnable.") : plan.errors.join(QStringLiteral(" ")));
+		return fail(plan.errors.isEmpty() ? QCoreApplication::translate("SlopStudioBuildPipeline", "The map copy plan is not runnable.") : plan.errors.join(QStringLiteral(" ")));
 	}
 	if (!QDir().mkpath(plan.targetDirectory)) {
-		return fail(QCoreApplication::translate("VibeStudioBuildPipeline", "Unable to create %1.").arg(nativePath(plan.targetDirectory)));
+		return fail(QCoreApplication::translate("SlopStudioBuildPipeline", "Unable to create %1.").arg(nativePath(plan.targetDirectory)));
 	}
 	for (const GameMapDeployFile& file : plan.files) {
 		if (file.upToDate) {
@@ -2066,25 +2066,25 @@ bool deployGameMap(const GameMapDeployPlan& plan, QStringList* written, QString*
 		}
 		QFile source(file.sourcePath);
 		if (!source.open(QIODevice::ReadOnly)) {
-			return fail(QCoreApplication::translate("VibeStudioBuildPipeline", "Unable to read %1: %2").arg(nativePath(file.sourcePath), source.errorString()));
+			return fail(QCoreApplication::translate("SlopStudioBuildPipeline", "Unable to read %1: %2").arg(nativePath(file.sourcePath), source.errorString()));
 		}
 		QSaveFile destination(file.destinationPath);
 		if (!destination.open(QIODevice::WriteOnly)) {
-			return fail(QCoreApplication::translate("VibeStudioBuildPipeline", "Unable to write %1: %2").arg(nativePath(file.destinationPath), destination.errorString()));
+			return fail(QCoreApplication::translate("SlopStudioBuildPipeline", "Unable to write %1: %2").arg(nativePath(file.destinationPath), destination.errorString()));
 		}
 		while (!source.atEnd()) {
 			const QByteArray chunk = source.read(1 << 20);
 			if (chunk.isEmpty() && source.error() != QFileDevice::NoError) {
 				destination.cancelWriting();
-				return fail(QCoreApplication::translate("VibeStudioBuildPipeline", "Unable to read %1: %2").arg(nativePath(file.sourcePath), source.errorString()));
+				return fail(QCoreApplication::translate("SlopStudioBuildPipeline", "Unable to read %1: %2").arg(nativePath(file.sourcePath), source.errorString()));
 			}
 			if (destination.write(chunk) != chunk.size()) {
 				destination.cancelWriting();
-				return fail(QCoreApplication::translate("VibeStudioBuildPipeline", "Unable to write %1: %2").arg(nativePath(file.destinationPath), destination.errorString()));
+				return fail(QCoreApplication::translate("SlopStudioBuildPipeline", "Unable to write %1: %2").arg(nativePath(file.destinationPath), destination.errorString()));
 			}
 		}
 		if (!destination.commit()) {
-			return fail(QCoreApplication::translate("VibeStudioBuildPipeline", "Unable to write %1: %2").arg(nativePath(file.destinationPath), destination.errorString()));
+			return fail(QCoreApplication::translate("SlopStudioBuildPipeline", "Unable to write %1: %2").arg(nativePath(file.destinationPath), destination.errorString()));
 		}
 		if (written) {
 			written->push_back(file.destinationPath);
@@ -2096,27 +2096,27 @@ bool deployGameMap(const GameMapDeployPlan& plan, QStringList* written, QString*
 QString gameMapDeployPlanText(const GameMapDeployPlan& plan)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Test map copy");
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Test map copy");
 	if (!plan.required) {
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Not needed: the game loads the built file directly.");
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Not needed: the game loads the built file directly.");
 		return lines.join('\n');
 	}
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Game folder: %1").arg(plan.gameDirectory.isEmpty() ? QCoreApplication::translate("VibeStudioBuildPipeline", "(not resolved)") : plan.gameDirectory);
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Target: %1").arg(nativePath(plan.targetDirectory));
-	lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Allowed: %1").arg(plan.allowed ? QCoreApplication::translate("VibeStudioBuildPipeline", "yes") : QCoreApplication::translate("VibeStudioBuildPipeline", "no, the installation is read-only"));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Game folder: %1").arg(plan.gameDirectory.isEmpty() ? QCoreApplication::translate("SlopStudioBuildPipeline", "(not resolved)") : plan.gameDirectory);
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Target: %1").arg(nativePath(plan.targetDirectory));
+	lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Allowed: %1").arg(plan.allowed ? QCoreApplication::translate("SlopStudioBuildPipeline", "yes") : QCoreApplication::translate("SlopStudioBuildPipeline", "no, the installation is read-only"));
 	for (const GameMapDeployFile& file : plan.files) {
-		const QString status = file.upToDate ? QCoreApplication::translate("VibeStudioBuildPipeline", "already up to date")
-			: (file.replacesExisting ? QCoreApplication::translate("VibeStudioBuildPipeline", "replaces the existing file") : QCoreApplication::translate("VibeStudioBuildPipeline", "new"));
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "- %1 -> %2 (%3)").arg(QFileInfo(file.sourcePath).fileName(), nativePath(file.destinationPath), status);
+		const QString status = file.upToDate ? QCoreApplication::translate("SlopStudioBuildPipeline", "already up to date")
+			: (file.replacesExisting ? QCoreApplication::translate("SlopStudioBuildPipeline", "replaces the existing file") : QCoreApplication::translate("SlopStudioBuildPipeline", "new"));
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "- %1 -> %2 (%3)").arg(QFileInfo(file.sourcePath).fileName(), nativePath(file.destinationPath), status);
 	}
 	if (!plan.warnings.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Warnings");
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Warnings");
 		for (const QString& warning : plan.warnings) {
 			lines << QStringLiteral("- %1").arg(warning);
 		}
 	}
 	if (!plan.errors.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioBuildPipeline", "Errors");
+		lines << QCoreApplication::translate("SlopStudioBuildPipeline", "Errors");
 		for (const QString& message : plan.errors) {
 			lines << QStringLiteral("- %1").arg(message);
 		}
@@ -2148,4 +2148,4 @@ QJsonObject gameMapDeployPlanJson(const GameMapDeployPlan& plan)
 	return object;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

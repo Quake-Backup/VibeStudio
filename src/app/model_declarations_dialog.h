@@ -15,7 +15,7 @@ class QPlainTextEdit;
 class QPushButton;
 class QSpinBox;
 
-namespace vibestudio
+namespace slopstudio
 {
 // Skeleton > Game Declarations: previews the Doom 3 model declaration, QuakeC
 // $frame macros, Quake II frame header, GZDoom MODELDEF or (for a KVX voxel)
@@ -66,4 +66,4 @@ class ModelDeclarationsDialog final : public QDialog
 	void refresh();
 	[[nodiscard]] ModelDoom3DefOptions doom3() const;
 };
-} // namespace vibestudio
+} // namespace slopstudio

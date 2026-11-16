@@ -17,7 +17,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value,const char* label,const QString& detail = {}) {
@@ -127,7 +127,7 @@ int main(int argc,char** argv) {
 		settings.setTheme(scale == 100 ? StudioTheme::Dark : StudioTheme::HighContrastDark); settings.setTextScalePercent(scale); settings.sync();
 		applyStudioTheme(app,studioThemeTokens(scale == 100 ? StudioTheme::Dark : StudioTheme::HighContrastDark,UiDensity::Standard,scale));
 		if (scale == 200) { app.installTranslator(&expanded); app.setLayoutDirection(Qt::RightToLeft); }
-		shellChecks(path,qEnvironmentVariable("VIBESTUDIO_COMPONENT_UI_EVIDENCE"),scale);
+		shellChecks(path,qEnvironmentVariable("SLOPSTUDIO_COMPONENT_UI_EVIDENCE"),scale);
 		if (scale == 200) { app.removeTranslator(&expanded); app.setLayoutDirection(Qt::LeftToRight); }
 	}
 	LevelMapDocument dense; expect(tests::createGeometryFixture(129,&dense,&error),"bounded context fixture");

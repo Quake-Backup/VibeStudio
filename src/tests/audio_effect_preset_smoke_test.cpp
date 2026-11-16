@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 	const auto original = untouched;
 	ok &= expect(!instantiateAudioEffectPreset(preset, 8000, &untouched, &error) && untouched == original,
 	             "rate-incompatible preset is rejected without implicit clamping");
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir folder(QDir(root).filePath("audio-effect-presets-XXXXXX"));

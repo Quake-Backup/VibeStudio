@@ -1,4 +1,4 @@
-"""Real VibeMap3 external lightmaps/generated shaders -> reviewed PK3 acceptance.
+"""Real SlopMap3 external lightmaps/generated shaders -> reviewed PK3 acceptance.
 
 Reuses the generated model/draft/map proof. No commercial assets, game launch,
 native input or screen capture. All output stays in the project's .agents/tmp.
@@ -48,14 +48,14 @@ def main():
     shader.write_text(''.join(f'textures/workspace/{name}\n{{\n qer_editorimage textures/workspace/{name}.png\n'
                              f' {{ map $lightmap }}\n {{ map textures/workspace/{name}.png\n blendFunc filter }}\n}}\n'
                              for name in ('wall', 'model')), encoding='utf-8')
-    draft = root / 'runtime-assets.vibepackage'
-    run('stage-lightmapped-materials', ['package', 'draft-save', baseline / 'assets.vibepackage', draft,
+    draft = root / 'runtime-assets.sloppackage'
+    run('stage-lightmapped-materials', ['package', 'draft-save', baseline / 'assets.sloppackage', draft,
                                        '--replace-file', shader, '--replace-entry', 'scripts/workspace.shader'])
     workspace = root / 'prepared'
     captured = run('prepare', ['build', 'prepare', baseline / 'arena.map', '--package', draft,
                               '--output', workspace, '--name', 'arena'])['workspace']
     base = workspace / 'game/baseq3'
-    pipeline = ['build', 'run-prepared', workspace, '--tool', 'vibemap3=' + str(args.compiler.resolve()),
+    pipeline = ['build', 'run-prepared', workspace, '--tool', 'slopmap3=' + str(args.compiler.resolve()),
                 '--stage-args', 'bsp=-threads 2 -meta', '--stage-args', 'vis=-threads 2 -fast']
     external = pipeline + ['--stage-args', 'light=-threads 2 -fast -extlmhacksize 256']
     assert run('external-compile', external)['pipeline']['succeeded']

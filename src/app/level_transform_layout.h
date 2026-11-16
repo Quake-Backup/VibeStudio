@@ -7,7 +7,7 @@
 class QLabel;
 class QDoubleSpinBox;
 
-namespace vibestudio {
+namespace slopstudio {
 // Keeps the same native editors while changing between a compact matrix and
 // stacked axis rows. Widths come from the current font, locale and style.
 class LevelTransformLayout final : public QLayout {
@@ -37,4 +37,4 @@ private:
 	Fields m_fields;
 	QLabel* m_note;
 };
-} // namespace vibestudio
+} // namespace slopstudio

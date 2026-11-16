@@ -1,4 +1,4 @@
-"""Original linked extraction -> VibeMap3 -> PK3 acceptance fixture.
+"""Original linked extraction -> SlopMap3 -> PK3 acceptance fixture.
 
 Generates all geometry and textures locally. No game, input control or screen
 capture is used. Requires an explicit compiler and project-local output root.

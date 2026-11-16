@@ -3,7 +3,7 @@
 #include <cstddef>
 #include <vector>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Prepared stereo Schroeder/Moorer reverberator. The caller validates parameters.
 // Each delay masks unwritten history so resetting never clears large buffers.
@@ -31,4 +31,4 @@ class AudioReverb {
 	int m_rate = 48000;
 	double m_room = -1, m_decay = -1, m_cutoff = -1, m_predelay = -1;
 };
-} // namespace vibestudio
+} // namespace slopstudio

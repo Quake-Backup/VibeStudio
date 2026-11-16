@@ -21,7 +21,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -47,7 +47,7 @@ class Expansion final : public QTranslator
 	bool isEmpty() const override { return false; }
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelSkinSource")
+		if (QByteArray(context) != "SlopStudioModelSkinSource")
 		{
 			return {};
 		}
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
 			ok &= expect(picker.rect().contains(QRect(control->mapTo(&picker, QPoint()), control->size())),
 						 "controls fit normal, expanded and RTL layouts");
 		}
-		const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+		const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 		if (!evidence.isEmpty())
 		{
 			QImage image(picker.size() * picker.devicePixelRatioF(), QImage::Format_ARGB32_Premultiplied);

@@ -4,7 +4,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool AudioTransport::prepare(const AudioSession &session, AudioTransportRange range, int blockFrames, QString *error,
                              const AudioWorkControl &control, bool metering)
@@ -148,4 +148,4 @@ AudioTransport::Block AudioTransport::process(std::span<float> stereo, const Aud
 	}
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

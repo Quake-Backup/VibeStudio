@@ -16,7 +16,7 @@ class QListWidget;
 class QPushButton;
 class QSpinBox;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 
@@ -119,4 +119,4 @@ class ModelDesignDialog final : public QDialog
 	QAction* m_placeAction = nullptr;
 	QPushButton* m_showInMaterials = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

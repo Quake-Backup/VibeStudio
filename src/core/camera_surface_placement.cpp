@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -136,4 +136,4 @@ bool cameraSurfacePlacement(const CameraSurfacePoint &surface, const ResizeBox &
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

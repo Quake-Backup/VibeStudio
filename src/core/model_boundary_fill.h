@@ -2,7 +2,7 @@
 
 #include "core/model_topology.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr int modelBoundaryMaxLoopVertices = 1024;
 inline constexpr qint64 modelBoundaryMaxChecks = 16 * 1024 * 1024;
@@ -22,4 +22,4 @@ struct ModelBoundaryFillReport
 // output values untouched, including when result aliases source.
 bool fillModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &selected, int referenceFrame, int triangleLimit,
 							ModelSurface *result, ModelBoundaryFillReport *report, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

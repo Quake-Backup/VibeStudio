@@ -19,7 +19,7 @@
 class QProcess;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LanguageServerConfig {
 	QString program;
@@ -213,4 +213,4 @@ QString languageServerStateLabel(const QString& state);
 // Canonical project root; missing named buffers are allowed, links are not.
 bool languageProjectSourcePath(const QString& root, const QString& path);
 
-} // namespace vibestudio
+} // namespace slopstudio

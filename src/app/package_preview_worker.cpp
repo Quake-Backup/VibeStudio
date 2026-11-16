@@ -7,7 +7,7 @@
 #include <new>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct PackagePreviewWorker::Work {
 	quint64 serial = 0;
@@ -62,7 +62,7 @@ void PackagePreviewWorker::startNext()
 			if (!request.archive || !request.archive->isOpen() || request.entryIndex < 0 || request.entryIndex >= entries.size()
 				|| entries.at(request.entryIndex).virtualPath != request.virtualPath || request.byteLimit < 0 || request.mediaByteLimit < 0
 				|| request.byteLimit > 64ll * 1024 * 1024 || request.mediaByteLimit > 64ll * 1024 * 1024) {
-				work->result.preview.error = QCoreApplication::translate("VibeStudioPackagePreview", "The selected preview request is no longer valid.");
+				work->result.preview.error = QCoreApplication::translate("SlopStudioPackagePreview", "The selected preview request is no longer valid.");
 				return;
 			}
 			PackageReadControl control;
@@ -73,7 +73,7 @@ void PackagePreviewWorker::startNext()
 		} catch (const std::bad_alloc&) {
 			work->result.preview = {};
 			work->result.preview.virtualPath = request.virtualPath;
-			work->result.preview.error = QCoreApplication::translate("VibeStudioPackagePreview", "Not enough memory to prepare this preview.");
+			work->result.preview.error = QCoreApplication::translate("SlopStudioPackagePreview", "Not enough memory to prepare this preview.");
 		}
 	});
 	m_thread->setParent(this);
@@ -86,4 +86,4 @@ void PackagePreviewWorker::startNext()
 	m_timer->start(); m_thread->start();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

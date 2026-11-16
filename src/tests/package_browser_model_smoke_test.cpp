@@ -5,7 +5,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* message) { if (!condition) { std::cerr << message << '\n'; } return condition; }
 }

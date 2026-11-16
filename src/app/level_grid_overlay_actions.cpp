@@ -19,7 +19,7 @@
 
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::registerLevelGridOverlayCommands()
 {
@@ -90,10 +90,10 @@ void ApplicationShell::toggleLevelGridOverlay(QAction* toggle)
 			: tr("Block grid on, but %1 leaves every axis unsplit, so there are no block lines to draw.").arg(levelBlockSizeSourceText(blocks));
 		if (m_levelMapDocument.format == LevelMapFormat::QuakeMap) {
 			message += QLatin1Char(' ')
-				+ tr("q3map2-family compilers such as VibeMap3 split the world on this grid; Quake and Quake II compilers such as VibeMap2 do not.");
+				+ tr("q3map2-family compilers such as SlopMap3 split the world on this grid; Quake and Quake II compilers such as SlopMap2 do not.");
 		}
 	}
 	statusBar()->showMessage(message, 6000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

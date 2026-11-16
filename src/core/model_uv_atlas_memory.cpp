@@ -7,7 +7,7 @@
 #include <new>
 #include <xatlas.h>
 
-namespace vibestudio::model_atlas_internal
+namespace slopstudio::model_atlas_internal
 {
 struct alignas(std::max_align_t) Allocation
 {
@@ -109,4 +109,4 @@ void *AllocationRegion::reallocate(void *pointer, size_t size)
 	}
 	return block + 1;
 }
-} // namespace vibestudio::model_atlas_internal
+} // namespace slopstudio::model_atlas_internal

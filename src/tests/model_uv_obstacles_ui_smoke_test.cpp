@@ -28,7 +28,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -48,7 +48,7 @@ class Expansion final : public QTranslator
 	}
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelEditor" && QByteArray(context) != "ModelUvObstacles")
+		if (QByteArray(context) != "SlopStudioModelEditor" && QByteArray(context) != "ModelUvObstacles")
 			return {};
 		const auto value = QString::fromUtf8(text);
 		return QStringLiteral("[%1%2]").arg(value, QString(value.size() / 2, '~'));
@@ -67,7 +67,7 @@ bool settle(ModelEditorDialog &editor, ModelUvView &uv)
 }
 bool render(QWidget &widget, int scenario, const QString &phase)
 {
-	const auto directory = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto directory = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (directory.isEmpty())
 		return true;
 	QImage image(widget.size() * widget.devicePixelRatioF(), QImage::Format_ARGB32_Premultiplied);
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("uv-obstacles-ui-XXXXXX"));
@@ -289,7 +289,7 @@ int main(int argc, char **argv)
 	beat();
 	heartbeat.stop();
 	ok &= expect(modelStateFingerprint(large.document().mesh()) == before, "maximum undo restores all fixed and moving pose vertices");
-	const double budget = qEnvironmentVariable("VIBESTUDIO_MODELLER_MAX_AUTHORING_GAP_MS").toDouble();
+	const double budget = qEnvironmentVariable("SLOPSTUDIO_MODELLER_MAX_AUTHORING_GAP_MS").toDouble();
 	ok &= expect(beats > 0 && gap / 1e6 <= (budget > 0 ? budget : 300), "maximum packing and undo remain responsive");
 	std::cout << QJsonDocument(QJsonObject{{"stage", "uv-obstacles"},
 										   {"elapsedMs", elapsed.nsecsElapsed() / 1e6},

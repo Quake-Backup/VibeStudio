@@ -7,7 +7,7 @@
 class QComboBox;
 class QDoubleSpinBox;
 
-namespace vibestudio
+namespace slopstudio
 {
 // OBJ import settings for the Mesh Editor's Open or Import Model: up axis,
 // scale, material libraries and loose data (core/model_obj.h). Opening an
@@ -26,4 +26,4 @@ class ModelObjImportDialog final : public QDialog
 	QComboBox *m_up = nullptr, *m_materials = nullptr, *m_loose = nullptr;
 	QDoubleSpinBox *m_scale = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

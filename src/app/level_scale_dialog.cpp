@@ -3,7 +3,7 @@
 #include <QFormLayout>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 LevelScaleDialog::LevelScaleDialog(const LevelMapDocument& source, QWidget* parent) : LevelTransformDialog(source, parent)
 {
@@ -95,4 +95,4 @@ void LevelScaleDialog::sourceChanged()
 	}
 	m_factors[2]->setEnabled(!doom);
 }
-} // namespace vibestudio
+} // namespace slopstudio

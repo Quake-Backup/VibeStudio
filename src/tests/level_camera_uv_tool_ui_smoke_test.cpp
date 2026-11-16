@@ -47,7 +47,7 @@
 #include <QToolButton>
 #include <QTranslator>
 #include <QVBoxLayout>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
@@ -56,7 +56,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
 		expect(commandPaletteEntryForCommandId(QStringLiteral("map.uvTool"), &entry) && !entry.label.isEmpty() && !entry.summary.isEmpty(),
 			"palette entry for the UV Tool");
 	}
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 	// A focus-layer key the user remapped to a printable key, as TrenchBroom's
 	// Ctrl+3 for the Face inspector could be, still types into a field inside
 	// its surface, and runs the command from elsewhere in the surface.
@@ -325,7 +325,7 @@ int main(int argc, char** argv)
 			camera->setCameraView({60, -460, 64}, 90, 0);
 			ready();
 			camera->setFocus(Qt::OtherFocusReason);
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 			if (nrc) {
 				shell.activateWindow();
 				until([&] { return QApplication::activeWindow() == &shell; }, 5000);
@@ -516,10 +516,10 @@ int main(int argc, char** argv)
 			}
 
 			phase = QStringLiteral("%1 %2%: off").arg(QLatin1String(pass.profile)).arg(pass.scale);
-			if (const QString grab = qEnvironmentVariable("VIBESTUDIO_CAMERA_UV_TOOL_GRAB"); !grab.isEmpty()) {
+			if (const QString grab = qEnvironmentVariable("SLOPSTUDIO_CAMERA_UV_TOOL_GRAB"); !grab.isEmpty()) {
 				camera->grab().save(QDir(grab).filePath(QStringLiteral("camera-uv-%1-%2.png").arg(QLatin1String(pass.profile)).arg(pass.scale)));
 			}
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 			if (nrc) {
 				shell.activateWindow();
 				until([&] { return QApplication::activeWindow() == &shell; }, 5000);

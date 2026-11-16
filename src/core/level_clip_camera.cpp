@@ -5,7 +5,7 @@
 #include <array>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 bool levelCameraClipAxis(const QVector<LevelMapVec3>& points,const LevelMapVec3& eye,const LevelMapVec3& forward,
 	const LevelMapVec3& mins,const LevelMapVec3& maxs,int* axis,int* direction,bool preserveAxis,QString* error)
 {
@@ -65,4 +65,4 @@ bool levelCameraClipAxis(const QVector<LevelMapVec3>& points,const LevelMapVec3&
 	}
 	*axis = resultAxis; *direction = resultDirection; return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -17,7 +17,7 @@
 #include <QLatin1StringView>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 enum class ModelSourceEncoding
@@ -81,4 +81,4 @@ bool unpackModelSourceInfluences(const QJsonValue &value, qsizetype limit, QVect
 // cancellation.
 bool modelSourceReadableBulkDelta(const ModelMesh &mesh, qint64 *delta, QString *error = nullptr, const ModelWorkControl &control = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

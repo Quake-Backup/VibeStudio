@@ -2,7 +2,7 @@
 
 #include "core/model_player_bundle.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // Quake II player packages. The client loads players/<model>/tris.md2 and
 // weapon.md2 (the weapon plays in frame lock with the body), <skin>.pcx with
@@ -62,4 +62,4 @@ QStringList modelQ2PlayerBundleText(const ModelQ2PlayerBundle &bundle);
 // .pak, or .pk2/.zip for ports that read zip packages.
 PackageWriteReport writeModelQ2PlayerBundle(const ModelQ2PlayerBundle &bundle, const QString &path, bool overwrite, bool dryRun,
 											const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

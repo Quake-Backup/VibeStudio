@@ -30,13 +30,13 @@
 #include <algorithm>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelTools)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelTools)
 };
 
 QString plain(QString text)
@@ -428,4 +428,4 @@ void ModelEditorTools::refreshKeyHints()
 	if (!m_hasLast)
 		refreshLastPanel();
 }
-} // namespace vibestudio
+} // namespace slopstudio

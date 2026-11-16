@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -63,7 +63,7 @@ QString findExecutableOverride(const CompilerToolDescriptor& descriptor, const Q
 			return candidate;
 		}
 		if (warnings) {
-			warnings->push_back(QCoreApplication::translate("VibeStudioCompilerRegistry", "Configured compiler executable does not exist: %1").arg(QDir::toNativeSeparators(candidate)));
+			warnings->push_back(QCoreApplication::translate("SlopStudioCompilerRegistry", "Configured compiler executable does not exist: %1").arg(QDir::toNativeSeparators(candidate)));
 		}
 		return {};
 	}
@@ -131,15 +131,15 @@ QString commandLineText(const QString& program, const QStringList& arguments)
 	return parts.join(' ');
 }
 
-// VibeMap2 builds each tool under build/src/<tool directory>, inside a Release folder for
+// SlopMap2 builds each tool under build/src/<tool directory>, inside a Release folder for
 // multi-config generators, and installs every executable flat into the install prefix
-// (external/compilers/vibemap2/src/*/CMakeLists.txt).
-QStringList vibemap2ToolCandidatePaths(const QString& sourceDirectory, const QStringList& baseNames)
+// (external/compilers/slopmap2/src/*/CMakeLists.txt).
+QStringList slopmap2ToolCandidatePaths(const QString& sourceDirectory, const QStringList& baseNames)
 {
 	const QStringList directories = {
-		QStringLiteral("external/compilers/vibemap2/build/src/%1").arg(sourceDirectory),
-		QStringLiteral("external/compilers/vibemap2/build/src/%1/Release").arg(sourceDirectory),
-		QStringLiteral("external/compilers/vibemap2/install"),
+		QStringLiteral("external/compilers/slopmap2/build/src/%1").arg(sourceDirectory),
+		QStringLiteral("external/compilers/slopmap2/build/src/%1/Release").arg(sourceDirectory),
+		QStringLiteral("external/compilers/slopmap2/install"),
 	};
 	QStringList paths;
 	for (const QString& directory : directories) {
@@ -150,15 +150,15 @@ QStringList vibemap2ToolCandidatePaths(const QString& sourceDirectory, const QSt
 	return paths;
 }
 
-// VibeMap3 presets build into build/<preset>/bin (external/compilers/vibemap3/CMakePresets.json)
+// SlopMap3 presets build into build/<preset>/bin (external/compilers/slopmap3/CMakePresets.json)
 // and install into <prefix>/bin.
-QStringList vibemap3CandidatePaths(const QStringList& baseNames)
+QStringList slopmap3CandidatePaths(const QStringList& baseNames)
 {
 	const QStringList directories = {
-		QStringLiteral("external/compilers/vibemap3/build/release/bin"),
-		QStringLiteral("external/compilers/vibemap3/build/cli/bin"),
-		QStringLiteral("external/compilers/vibemap3/build/cpu-only/bin"),
-		QStringLiteral("external/compilers/vibemap3/install/bin"),
+		QStringLiteral("external/compilers/slopmap3/build/release/bin"),
+		QStringLiteral("external/compilers/slopmap3/build/cli/bin"),
+		QStringLiteral("external/compilers/slopmap3/build/cpu-only/bin"),
+		QStringLiteral("external/compilers/slopmap3/install/bin"),
 	};
 	QStringList paths;
 	for (const QString& directory : directories) {
@@ -181,8 +181,8 @@ QString firstUsefulProbeLine(const QString& text)
 	return {};
 }
 
-// VibeMap2 prints "---- <tool> / VibeMap2 <version> ----" (src/common/settings.cc), VibeMap3
-// answers --version with "VibeMap3 <version> (NRC <revision>)" (tools/quake3/q3map2/main.cpp),
+// SlopMap2 prints "---- <tool> / SlopMap2 <version> ----" (src/common/settings.cc), SlopMap3
+// answers --version with "SlopMap3 <version> (NRC <revision>)" (tools/quake3/q3map2/main.cpp),
 // ZDBSP prints "ZDBSP <version> (...)" and ZokumBSP prints "ZokumBSP Version: <version> ...".
 // The pre-rename banners (VibeyMapTools, q3mapx) and their upstreams' (ericw-tools, q3map2)
 // are still recognised for executables configured by hand.
@@ -201,7 +201,7 @@ QString decodeProbeOutput(const QByteArray& bytes)
 
 QString versionBannerLine(const QString& text)
 {
-	static const QRegularExpression bannerPattern(QStringLiteral(R"regex((?:vibemap2|vibemap3|vibeymaptools|q3mapx|ericw-tools|zdbsp|zokumbsp|zennode|q3map|netradiant|version)\b)regex"), QRegularExpression::CaseInsensitiveOption);
+	static const QRegularExpression bannerPattern(QStringLiteral(R"regex((?:slopmap2|slopmap3|vibeymaptools|q3mapx|ericw-tools|zdbsp|zokumbsp|zennode|q3map|netradiant|version)\b)regex"), QRegularExpression::CaseInsensitiveOption);
 	static const QRegularExpression numberPattern(QStringLiteral(R"regex(\b\d+\.\d+)regex"));
 	const QStringList lines = text.split('\n');
 	for (QString line : lines) {
@@ -232,26 +232,26 @@ void probeCompilerVersion(CompilerToolDiscovery* discovery, int startTimeoutMs, 
 	process.start();
 	if (!process.waitForStarted(std::max(100, startTimeoutMs))) {
 		discovery->versionProbeOutcome = CompilerVersionProbeOutcome::Failed;
-		discovery->warnings << QCoreApplication::translate("VibeStudioCompilerRegistry", "Version probe could not start.");
+		discovery->warnings << QCoreApplication::translate("SlopStudioCompilerRegistry", "Version probe could not start.");
 		return;
 	}
 	if (!process.waitForFinished(std::max(250, finishTimeoutMs))) {
 		process.kill();
 		process.waitForFinished(500);
 		discovery->versionProbeOutcome = CompilerVersionProbeOutcome::Failed;
-		discovery->warnings << QCoreApplication::translate("VibeStudioCompilerRegistry", "Version probe timed out.");
+		discovery->warnings << QCoreApplication::translate("SlopStudioCompilerRegistry", "Version probe timed out.");
 		return;
 	}
 
 	discovery->versionProbeExitCode = process.exitCode();
-	// VibeMap2 formats its banner with fmt and emits UTF-8; VibeMap3 (like q3map2) echoes
+	// SlopMap2 formats its banner with fmt and emits UTF-8; SlopMap3 (like q3map2) echoes
 	// the narrow argv it was handed, which on Windows is the ANSI codepage. Decoding
 	// UTF-8 first with a local-8-bit fallback reads both correctly, and matches
 	// what the compiler runner does with streamed output.
 	const QString output = decodeProbeOutput(process.readAllStandardOutput());
 	if (process.exitStatus() != QProcess::NormalExit) {
 		discovery->versionProbeOutcome = CompilerVersionProbeOutcome::Failed;
-		discovery->warnings << QCoreApplication::translate("VibeStudioCompilerRegistry", "Version probe crashed.");
+		discovery->warnings << QCoreApplication::translate("SlopStudioCompilerRegistry", "Version probe crashed.");
 		return;
 	}
 
@@ -269,12 +269,12 @@ void probeCompilerVersion(CompilerToolDiscovery* discovery, int startTimeoutMs, 
 		discovery->versionText = usefulLine;
 		discovery->versionAvailable = false;
 		discovery->versionProbeOutcome = CompilerVersionProbeOutcome::Inferred;
-		discovery->warnings << QCoreApplication::translate("VibeStudioCompilerRegistry", "Version probe produced output without a recognizable version banner; the recorded text is a best guess.");
+		discovery->warnings << QCoreApplication::translate("SlopStudioCompilerRegistry", "Version probe produced output without a recognizable version banner; the recorded text is a best guess.");
 		return;
 	}
 
 	discovery->versionProbeOutcome = CompilerVersionProbeOutcome::Failed;
-	discovery->warnings << QCoreApplication::translate("VibeStudioCompilerRegistry", "Version probe produced no usable output (exit code %1).").arg(discovery->versionProbeExitCode);
+	discovery->warnings << QCoreApplication::translate("SlopStudioCompilerRegistry", "Version probe produced no usable output (exit code %1).").arg(discovery->versionProbeExitCode);
 }
 
 CompilerToolDescriptor tool(
@@ -319,15 +319,15 @@ QString compilerVersionProbeOutcomeText(CompilerVersionProbeOutcome outcome)
 {
 	switch (outcome) {
 	case CompilerVersionProbeOutcome::Probed:
-		return QCoreApplication::translate("VibeStudioCompilerRegistry", "Probed");
+		return QCoreApplication::translate("SlopStudioCompilerRegistry", "Probed");
 	case CompilerVersionProbeOutcome::Inferred:
-		return QCoreApplication::translate("VibeStudioCompilerRegistry", "Inferred");
+		return QCoreApplication::translate("SlopStudioCompilerRegistry", "Inferred");
 	case CompilerVersionProbeOutcome::Failed:
-		return QCoreApplication::translate("VibeStudioCompilerRegistry", "Failed");
+		return QCoreApplication::translate("SlopStudioCompilerRegistry", "Failed");
 	case CompilerVersionProbeOutcome::NotAttempted:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioCompilerRegistry", "Not attempted");
+	return QCoreApplication::translate("SlopStudioCompilerRegistry", "Not attempted");
 }
 
 OperationState CompilerToolDiscovery::state() const
@@ -358,15 +358,15 @@ OperationState CompilerRegistrySummary::overallState() const
 QVector<CompilerToolDescriptor> compilerToolDescriptors()
 {
 	return {
-		tool(QStringLiteral("vibemap2-bsp"), QStringLiteral("vibemap2"), QCoreApplication::translate("VibeStudioCompilerRegistry", "VibeMap2 bsp"), QStringLiteral("idTech2"), QCoreApplication::translate("VibeStudioCompilerRegistry", "Quake BSP compiler"), QStringLiteral("external/compilers/vibemap2"), {QStringLiteral("vibemap2-bsp"), QStringLiteral("vmt-bsp")}, vibemap2ToolCandidatePaths(QStringLiteral("qbsp"), {QStringLiteral("vibemap2-bsp"), QStringLiteral("vmt-bsp")}), {}, {QStringLiteral("quake-map-to-bsp"), QStringLiteral("bsp2"), QStringLiteral("lit-support"), QStringLiteral("vibemap2")}),
-		tool(QStringLiteral("vibemap2-vis"), QStringLiteral("vibemap2"), QCoreApplication::translate("VibeStudioCompilerRegistry", "VibeMap2 vis"), QStringLiteral("idTech2"), QCoreApplication::translate("VibeStudioCompilerRegistry", "Quake visibility compiler"), QStringLiteral("external/compilers/vibemap2"), {QStringLiteral("vibemap2-vis"), QStringLiteral("vmt-vis")}, vibemap2ToolCandidatePaths(QStringLiteral("vis"), {QStringLiteral("vibemap2-vis"), QStringLiteral("vmt-vis")}), {}, {QStringLiteral("quake-vis"), QStringLiteral("fastvis"), QStringLiteral("vibemap2")}),
-		tool(QStringLiteral("vibemap2-light"), QStringLiteral("vibemap2"), QCoreApplication::translate("VibeStudioCompilerRegistry", "VibeMap2 light"), QStringLiteral("idTech2"), QCoreApplication::translate("VibeStudioCompilerRegistry", "Quake light compiler"), QStringLiteral("external/compilers/vibemap2"), {QStringLiteral("vibemap2-light"), QStringLiteral("vmt-light")}, vibemap2ToolCandidatePaths(QStringLiteral("light"), {QStringLiteral("vibemap2-light"), QStringLiteral("vmt-light")}), {}, {QStringLiteral("quake-light"), QStringLiteral("bounce-light"), QStringLiteral("lit-output"), QStringLiteral("vibemap2")}),
-		tool(QStringLiteral("vibemap2-bspinfo"), QStringLiteral("vibemap2"), QCoreApplication::translate("VibeStudioCompilerRegistry", "VibeMap2 bspinfo"), QStringLiteral("idTech2"), QCoreApplication::translate("VibeStudioCompilerRegistry", "Quake BSP inspection helper"), QStringLiteral("external/compilers/vibemap2"), {QStringLiteral("vibemap2-bspinfo"), QStringLiteral("vmt-bspinfo")}, vibemap2ToolCandidatePaths(QStringLiteral("bspinfo"), {QStringLiteral("vibemap2-bspinfo"), QStringLiteral("vmt-bspinfo")}), {}, {QStringLiteral("bsp-inspection"), QStringLiteral("bsp-metadata"), QStringLiteral("captured-output-log"), QStringLiteral("vibemap2-helper"), QStringLiteral("vibemap2"), QStringLiteral("helper-probe-limited"), QStringLiteral("upstream-issue-225"), QStringLiteral("upstream-issue-289")}, {QCoreApplication::translate("VibeStudioCompilerRegistry", "Helper discovery currently verifies executable presence and help/version output only; operation-level bspinfo diagnostics still need smoke-test coverage before automation depends on them.")}),
-		tool(QStringLiteral("vibemap2-bsputil"), QStringLiteral("vibemap2"), QCoreApplication::translate("VibeStudioCompilerRegistry", "VibeMap2 bsputil"), QStringLiteral("idTech2"), QCoreApplication::translate("VibeStudioCompilerRegistry", "Quake BSP utility helper"), QStringLiteral("external/compilers/vibemap2"), {QStringLiteral("vibemap2-bsputil"), QStringLiteral("vmt-bsputil")}, vibemap2ToolCandidatePaths(QStringLiteral("bsputil"), {QStringLiteral("vibemap2-bsputil"), QStringLiteral("vmt-bsputil")}), {}, {QStringLiteral("bsp-utility"), QStringLiteral("bsp-inspection"), QStringLiteral("bsp-mutation-risk"), QStringLiteral("vibemap2-helper"), QStringLiteral("vibemap2"), QStringLiteral("helper-probe-limited"), QStringLiteral("argument-parser-risk"), QStringLiteral("upstream-issue-289"), QStringLiteral("upstream-issue-435")}, {QCoreApplication::translate("VibeStudioCompilerRegistry", "The historical bsputil argument-parsing report (#435) is not explicitly resolved by the VibeMap2 audit; keep BSP-changing operations covered by operation-specific smoke tests."), QCoreApplication::translate("VibeStudioCompilerRegistry", "Helper discovery currently verifies executable presence and help/version output only; operation-level bsputil diagnostics still need smoke-test coverage before automation depends on them.")}),
-		tool(QStringLiteral("vibemap2-hub"), QStringLiteral("vibemap2"), QCoreApplication::translate("VibeStudioCompilerRegistry", "VibeMap2 hub"), QStringLiteral("idTech2"), QCoreApplication::translate("VibeStudioCompilerRegistry", "Quake build and lighting preview hub"), QStringLiteral("external/compilers/vibemap2"), {QStringLiteral("vibemap2-hub"), QStringLiteral("vmt-hub")}, vibemap2ToolCandidatePaths(QStringLiteral("hub"), {QStringLiteral("vibemap2-hub"), QStringLiteral("vmt-hub")}), {}, {QStringLiteral("build-hub"), QStringLiteral("lighting-preview"), QStringLiteral("gui-helper"), QStringLiteral("platform-launch-constraints"), QStringLiteral("isolated-preview-workspace"), QStringLiteral("vibemap2-helper"), QStringLiteral("vibemap2"), QStringLiteral("helper-probe-limited"), QStringLiteral("upstream-issue-480")}, {QCoreApplication::translate("VibeStudioCompilerRegistry", "Hub launch readiness is unverified by VibeStudio. VibeMap2 documents Qt/graphics platform requirements and a Wayland-to-XCB fallback (#480); preview workspace isolation is fixed in VibeMap2 3.1.0."), QCoreApplication::translate("VibeStudioCompilerRegistry", "Helper discovery currently verifies executable presence only for the hub; VibeStudio does not launch GUI helpers during registry probes.")}, false),
-		tool(QStringLiteral("vibemap3"), QStringLiteral("vibemap3"), QCoreApplication::translate("VibeStudioCompilerRegistry", "VibeMap3"), QStringLiteral("idTech3"), QCoreApplication::translate("VibeStudioCompilerRegistry", "Quake III BSP compiler"), QStringLiteral("external/compilers/vibemap3"), {QStringLiteral("vibemap3"), QStringLiteral("q3mapx")}, vibemap3CandidatePaths({QStringLiteral("vibemap3"), QStringLiteral("q3mapx")}), {QStringLiteral("--version")}, {QStringLiteral("idtech3-bsp"), QStringLiteral("meta"), QStringLiteral("vis"), QStringLiteral("light"), QStringLiteral("shader-aware"), QStringLiteral("vibemap3")}),
-		tool(QStringLiteral("zdbsp"), QStringLiteral("zdbsp"), QCoreApplication::translate("VibeStudioCompilerRegistry", "ZDBSP"), QStringLiteral("idTech1"), QCoreApplication::translate("VibeStudioCompilerRegistry", "Doom node builder"), QStringLiteral("external/compilers/zdbsp"), {QStringLiteral("zdbsp")}, {QStringLiteral("external/compilers/zdbsp/build/zdbsp.exe"), QStringLiteral("external/compilers/zdbsp/build/zdbsp"), QStringLiteral("external/compilers/zdbsp/zdbsp.exe"), QStringLiteral("external/compilers/zdbsp/zdbsp")}, {QStringLiteral("-V")}, {QStringLiteral("doom-nodes"), QStringLiteral("extended-nodes"), QStringLiteral("gl-nodes")}),
-		tool(QStringLiteral("zokumbsp"), QStringLiteral("zokumbsp"), QCoreApplication::translate("VibeStudioCompilerRegistry", "ZokumBSP"), QStringLiteral("idTech1"), QCoreApplication::translate("VibeStudioCompilerRegistry", "Doom node/blockmap/reject builder"), QStringLiteral("external/compilers/zokumbsp"), {QStringLiteral("zokumbsp"), QStringLiteral("zennode")}, {QStringLiteral("external/compilers/zokumbsp/build/zokumbsp.exe"), QStringLiteral("external/compilers/zokumbsp/build/zokumbsp"), QStringLiteral("external/compilers/zokumbsp/src/zokumbsp/zokumbsp.exe"), QStringLiteral("external/compilers/zokumbsp/src/zokumbsp/zokumbsp"), QStringLiteral("external/compilers/zokumbsp/src/zokumbsp/zennode.exe"), QStringLiteral("external/compilers/zokumbsp/src/zokumbsp/zennode")}, {}, {QStringLiteral("doom-nodes"), QStringLiteral("blockmap"), QStringLiteral("reject"), QStringLiteral("visplane-aware")}),
+		tool(QStringLiteral("slopmap2-bsp"), QStringLiteral("slopmap2"), QCoreApplication::translate("SlopStudioCompilerRegistry", "SlopMap2 bsp"), QStringLiteral("idTech2"), QCoreApplication::translate("SlopStudioCompilerRegistry", "Quake BSP compiler"), QStringLiteral("external/compilers/slopmap2"), {QStringLiteral("slopmap2-bsp"), QStringLiteral("vmt-bsp")}, slopmap2ToolCandidatePaths(QStringLiteral("qbsp"), {QStringLiteral("slopmap2-bsp"), QStringLiteral("vmt-bsp")}), {}, {QStringLiteral("quake-map-to-bsp"), QStringLiteral("bsp2"), QStringLiteral("lit-support"), QStringLiteral("slopmap2")}),
+		tool(QStringLiteral("slopmap2-vis"), QStringLiteral("slopmap2"), QCoreApplication::translate("SlopStudioCompilerRegistry", "SlopMap2 vis"), QStringLiteral("idTech2"), QCoreApplication::translate("SlopStudioCompilerRegistry", "Quake visibility compiler"), QStringLiteral("external/compilers/slopmap2"), {QStringLiteral("slopmap2-vis"), QStringLiteral("vmt-vis")}, slopmap2ToolCandidatePaths(QStringLiteral("vis"), {QStringLiteral("slopmap2-vis"), QStringLiteral("vmt-vis")}), {}, {QStringLiteral("quake-vis"), QStringLiteral("fastvis"), QStringLiteral("slopmap2")}),
+		tool(QStringLiteral("slopmap2-light"), QStringLiteral("slopmap2"), QCoreApplication::translate("SlopStudioCompilerRegistry", "SlopMap2 light"), QStringLiteral("idTech2"), QCoreApplication::translate("SlopStudioCompilerRegistry", "Quake light compiler"), QStringLiteral("external/compilers/slopmap2"), {QStringLiteral("slopmap2-light"), QStringLiteral("vmt-light")}, slopmap2ToolCandidatePaths(QStringLiteral("light"), {QStringLiteral("slopmap2-light"), QStringLiteral("vmt-light")}), {}, {QStringLiteral("quake-light"), QStringLiteral("bounce-light"), QStringLiteral("lit-output"), QStringLiteral("slopmap2")}),
+		tool(QStringLiteral("slopmap2-bspinfo"), QStringLiteral("slopmap2"), QCoreApplication::translate("SlopStudioCompilerRegistry", "SlopMap2 bspinfo"), QStringLiteral("idTech2"), QCoreApplication::translate("SlopStudioCompilerRegistry", "Quake BSP inspection helper"), QStringLiteral("external/compilers/slopmap2"), {QStringLiteral("slopmap2-bspinfo"), QStringLiteral("vmt-bspinfo")}, slopmap2ToolCandidatePaths(QStringLiteral("bspinfo"), {QStringLiteral("slopmap2-bspinfo"), QStringLiteral("vmt-bspinfo")}), {}, {QStringLiteral("bsp-inspection"), QStringLiteral("bsp-metadata"), QStringLiteral("captured-output-log"), QStringLiteral("slopmap2-helper"), QStringLiteral("slopmap2"), QStringLiteral("helper-probe-limited"), QStringLiteral("upstream-issue-225"), QStringLiteral("upstream-issue-289")}, {QCoreApplication::translate("SlopStudioCompilerRegistry", "Helper discovery currently verifies executable presence and help/version output only; operation-level bspinfo diagnostics still need smoke-test coverage before automation depends on them.")}),
+		tool(QStringLiteral("slopmap2-bsputil"), QStringLiteral("slopmap2"), QCoreApplication::translate("SlopStudioCompilerRegistry", "SlopMap2 bsputil"), QStringLiteral("idTech2"), QCoreApplication::translate("SlopStudioCompilerRegistry", "Quake BSP utility helper"), QStringLiteral("external/compilers/slopmap2"), {QStringLiteral("slopmap2-bsputil"), QStringLiteral("vmt-bsputil")}, slopmap2ToolCandidatePaths(QStringLiteral("bsputil"), {QStringLiteral("slopmap2-bsputil"), QStringLiteral("vmt-bsputil")}), {}, {QStringLiteral("bsp-utility"), QStringLiteral("bsp-inspection"), QStringLiteral("bsp-mutation-risk"), QStringLiteral("slopmap2-helper"), QStringLiteral("slopmap2"), QStringLiteral("helper-probe-limited"), QStringLiteral("argument-parser-risk"), QStringLiteral("upstream-issue-289"), QStringLiteral("upstream-issue-435")}, {QCoreApplication::translate("SlopStudioCompilerRegistry", "The historical bsputil argument-parsing report (#435) is not explicitly resolved by the SlopMap2 audit; keep BSP-changing operations covered by operation-specific smoke tests."), QCoreApplication::translate("SlopStudioCompilerRegistry", "Helper discovery currently verifies executable presence and help/version output only; operation-level bsputil diagnostics still need smoke-test coverage before automation depends on them.")}),
+		tool(QStringLiteral("slopmap2-hub"), QStringLiteral("slopmap2"), QCoreApplication::translate("SlopStudioCompilerRegistry", "SlopMap2 hub"), QStringLiteral("idTech2"), QCoreApplication::translate("SlopStudioCompilerRegistry", "Quake build and lighting preview hub"), QStringLiteral("external/compilers/slopmap2"), {QStringLiteral("slopmap2-hub"), QStringLiteral("vmt-hub")}, slopmap2ToolCandidatePaths(QStringLiteral("hub"), {QStringLiteral("slopmap2-hub"), QStringLiteral("vmt-hub")}), {}, {QStringLiteral("build-hub"), QStringLiteral("lighting-preview"), QStringLiteral("gui-helper"), QStringLiteral("platform-launch-constraints"), QStringLiteral("isolated-preview-workspace"), QStringLiteral("slopmap2-helper"), QStringLiteral("slopmap2"), QStringLiteral("helper-probe-limited"), QStringLiteral("upstream-issue-480")}, {QCoreApplication::translate("SlopStudioCompilerRegistry", "Hub launch readiness is unverified by SlopStudio. SlopMap2 documents Qt/graphics platform requirements and a Wayland-to-XCB fallback (#480); preview workspace isolation is fixed in SlopMap2 3.1.0."), QCoreApplication::translate("SlopStudioCompilerRegistry", "Helper discovery currently verifies executable presence only for the hub; SlopStudio does not launch GUI helpers during registry probes.")}, false),
+		tool(QStringLiteral("slopmap3"), QStringLiteral("slopmap3"), QCoreApplication::translate("SlopStudioCompilerRegistry", "SlopMap3"), QStringLiteral("idTech3"), QCoreApplication::translate("SlopStudioCompilerRegistry", "Quake III BSP compiler"), QStringLiteral("external/compilers/slopmap3"), {QStringLiteral("slopmap3"), QStringLiteral("q3mapx")}, slopmap3CandidatePaths({QStringLiteral("slopmap3"), QStringLiteral("q3mapx")}), {QStringLiteral("--version")}, {QStringLiteral("idtech3-bsp"), QStringLiteral("meta"), QStringLiteral("vis"), QStringLiteral("light"), QStringLiteral("shader-aware"), QStringLiteral("slopmap3")}),
+		tool(QStringLiteral("zdbsp"), QStringLiteral("zdbsp"), QCoreApplication::translate("SlopStudioCompilerRegistry", "ZDBSP"), QStringLiteral("idTech1"), QCoreApplication::translate("SlopStudioCompilerRegistry", "Doom node builder"), QStringLiteral("external/compilers/zdbsp"), {QStringLiteral("zdbsp")}, {QStringLiteral("external/compilers/zdbsp/build/zdbsp.exe"), QStringLiteral("external/compilers/zdbsp/build/zdbsp"), QStringLiteral("external/compilers/zdbsp/zdbsp.exe"), QStringLiteral("external/compilers/zdbsp/zdbsp")}, {QStringLiteral("-V")}, {QStringLiteral("doom-nodes"), QStringLiteral("extended-nodes"), QStringLiteral("gl-nodes")}),
+		tool(QStringLiteral("zokumbsp"), QStringLiteral("zokumbsp"), QCoreApplication::translate("SlopStudioCompilerRegistry", "ZokumBSP"), QStringLiteral("idTech1"), QCoreApplication::translate("SlopStudioCompilerRegistry", "Doom node/blockmap/reject builder"), QStringLiteral("external/compilers/zokumbsp"), {QStringLiteral("zokumbsp"), QStringLiteral("zennode")}, {QStringLiteral("external/compilers/zokumbsp/build/zokumbsp.exe"), QStringLiteral("external/compilers/zokumbsp/build/zokumbsp"), QStringLiteral("external/compilers/zokumbsp/src/zokumbsp/zokumbsp.exe"), QStringLiteral("external/compilers/zokumbsp/src/zokumbsp/zokumbsp"), QStringLiteral("external/compilers/zokumbsp/src/zokumbsp/zennode.exe"), QStringLiteral("external/compilers/zokumbsp/src/zokumbsp/zennode")}, {}, {QStringLiteral("doom-nodes"), QStringLiteral("blockmap"), QStringLiteral("reject"), QStringLiteral("visplane-aware")}),
 	};
 }
 
@@ -387,22 +387,22 @@ bool compilerToolDescriptorForId(const QString& id, CompilerToolDescriptor* out)
 QString renamedCompilerId(const QString& retiredId)
 {
 	static const QHash<QString, QString> renames = {
-		{QStringLiteral("ericw-qbsp"), QStringLiteral("vibemap2-bsp")},
-		{QStringLiteral("ericw-vis"), QStringLiteral("vibemap2-vis")},
-		{QStringLiteral("ericw-light"), QStringLiteral("vibemap2-light")},
-		{QStringLiteral("ericw-bspinfo"), QStringLiteral("vibemap2-bspinfo")},
-		{QStringLiteral("ericw-bsputil"), QStringLiteral("vibemap2-bsputil")},
-		{QStringLiteral("ericw-bsputil-check"), QStringLiteral("vibemap2-bsputil-check")},
-		{QStringLiteral("ericw-bsputil-extract-entities"), QStringLiteral("vibemap2-bsputil-extract-entities")},
-		{QStringLiteral("ericw-bsputil-extract-textures"), QStringLiteral("vibemap2-bsputil-extract-textures")},
-		{QStringLiteral("ericw-lightpreview"), QStringLiteral("vibemap2-hub")},
-		{QStringLiteral("q3map2"), QStringLiteral("vibemap3")},
-		{QStringLiteral("q3map2-probe"), QStringLiteral("vibemap3-probe")},
-		{QStringLiteral("q3map2-bsp"), QStringLiteral("vibemap3-bsp")},
-		{QStringLiteral("q3map2-vis"), QStringLiteral("vibemap3-vis")},
-		{QStringLiteral("q3map2-light"), QStringLiteral("vibemap3-light")},
-		{QStringLiteral("q3map2-convert"), QStringLiteral("vibemap3-convert")},
-		{QStringLiteral("q3map2-pk3"), QStringLiteral("vibemap3-pk3")},
+		{QStringLiteral("ericw-qbsp"), QStringLiteral("slopmap2-bsp")},
+		{QStringLiteral("ericw-vis"), QStringLiteral("slopmap2-vis")},
+		{QStringLiteral("ericw-light"), QStringLiteral("slopmap2-light")},
+		{QStringLiteral("ericw-bspinfo"), QStringLiteral("slopmap2-bspinfo")},
+		{QStringLiteral("ericw-bsputil"), QStringLiteral("slopmap2-bsputil")},
+		{QStringLiteral("ericw-bsputil-check"), QStringLiteral("slopmap2-bsputil-check")},
+		{QStringLiteral("ericw-bsputil-extract-entities"), QStringLiteral("slopmap2-bsputil-extract-entities")},
+		{QStringLiteral("ericw-bsputil-extract-textures"), QStringLiteral("slopmap2-bsputil-extract-textures")},
+		{QStringLiteral("ericw-lightpreview"), QStringLiteral("slopmap2-hub")},
+		{QStringLiteral("q3map2"), QStringLiteral("slopmap3")},
+		{QStringLiteral("q3map2-probe"), QStringLiteral("slopmap3-probe")},
+		{QStringLiteral("q3map2-bsp"), QStringLiteral("slopmap3-bsp")},
+		{QStringLiteral("q3map2-vis"), QStringLiteral("slopmap3-vis")},
+		{QStringLiteral("q3map2-light"), QStringLiteral("slopmap3-light")},
+		{QStringLiteral("q3map2-convert"), QStringLiteral("slopmap3-convert")},
+		{QStringLiteral("q3map2-pk3"), QStringLiteral("slopmap3-pk3")},
 	};
 	return renames.value(normalizedId(retiredId));
 }
@@ -411,9 +411,9 @@ QString unknownCompilerToolIdText(const QString& id)
 {
 	const QString renamed = renamedCompilerId(id);
 	if (!renamed.isEmpty()) {
-		return QCoreApplication::translate("VibeStudioCompilerRegistry", "Unknown compiler tool id: %1. It was renamed %2 when VibeStudio moved to VibeMap2 and VibeMap3.").arg(id, renamed);
+		return QCoreApplication::translate("SlopStudioCompilerRegistry", "Unknown compiler tool id: %1. It was renamed %2 when SlopStudio moved to SlopMap2 and SlopMap3.").arg(id, renamed);
 	}
-	return QCoreApplication::translate("VibeStudioCompilerRegistry", "Unknown compiler tool id: %1").arg(id);
+	return QCoreApplication::translate("SlopStudioCompilerRegistry", "Unknown compiler tool id: %1").arg(id);
 }
 
 CompilerRegistrySummary discoverCompilerTools(const QString& workspaceRootPath, const QStringList& extraSearchPaths)
@@ -446,10 +446,10 @@ CompilerRegistrySummary discoverCompilerTools(const CompilerRegistryOptions& opt
 			probeCompilerVersion(&discovery, options.versionProbeStartTimeoutMs, options.versionProbeTimeoutMs);
 		}
 		if (!discovery.sourceAvailable) {
-			discovery.warnings << QCoreApplication::translate("VibeStudioCompilerRegistry", "Compiler source directory is missing.");
+			discovery.warnings << QCoreApplication::translate("SlopStudioCompilerRegistry", "Compiler source directory is missing.");
 		}
 		if (!discovery.executableAvailable) {
-			discovery.warnings << QCoreApplication::translate("VibeStudioCompilerRegistry", "Compiler executable was not found in known build paths or PATH.");
+			discovery.warnings << QCoreApplication::translate("SlopStudioCompilerRegistry", "Compiler executable was not found in known build paths or PATH.");
 		}
 
 		if (discovery.sourceAvailable) {
@@ -468,27 +468,27 @@ CompilerRegistrySummary discoverCompilerTools(const CompilerRegistryOptions& opt
 QString compilerRegistrySummaryText(const CompilerRegistrySummary& summary)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Compiler registry");
-	lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Tools: %1").arg(summary.tools.size());
-	lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Source available: %1").arg(summary.sourceAvailableCount);
-	lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Executables available: %1").arg(summary.executableAvailableCount);
-	lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Warnings: %1").arg(summary.warningCount);
+	lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Compiler registry");
+	lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Tools: %1").arg(summary.tools.size());
+	lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Source available: %1").arg(summary.sourceAvailableCount);
+	lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Executables available: %1").arg(summary.executableAvailableCount);
+	lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Warnings: %1").arg(summary.warningCount);
 	for (const CompilerToolDiscovery& discovery : summary.tools) {
 		lines << QString();
 		lines << QStringLiteral("%1 [%2]").arg(discovery.descriptor.displayName, discovery.descriptor.id);
-		lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Engine: %1").arg(discovery.descriptor.engineFamily);
-		lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Role: %1").arg(discovery.descriptor.role);
-		lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Source: %1").arg(QDir::toNativeSeparators(discovery.sourcePath));
-		lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Executable: %1").arg(discovery.executablePath.isEmpty() ? QCoreApplication::translate("VibeStudioCompilerRegistry", "not found") : QDir::toNativeSeparators(discovery.executablePath));
-		lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Executable override: %1").arg(discovery.executablePathOverridden ? QCoreApplication::translate("VibeStudioCompilerRegistry", "yes") : QCoreApplication::translate("VibeStudioCompilerRegistry", "no"));
-		lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Version: %1").arg(discovery.versionText.isEmpty() ? QCoreApplication::translate("VibeStudioCompilerRegistry", "unknown") : discovery.versionText);
-		lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Version probe: %1").arg(compilerVersionProbeOutcomeText(discovery.versionProbeOutcome));
-		lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Capabilities: %1").arg(discovery.capabilityFlags.isEmpty() ? QCoreApplication::translate("VibeStudioCompilerRegistry", "none") : discovery.capabilityFlags.join(QStringLiteral(", ")));
+		lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Engine: %1").arg(discovery.descriptor.engineFamily);
+		lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Role: %1").arg(discovery.descriptor.role);
+		lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Source: %1").arg(QDir::toNativeSeparators(discovery.sourcePath));
+		lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Executable: %1").arg(discovery.executablePath.isEmpty() ? QCoreApplication::translate("SlopStudioCompilerRegistry", "not found") : QDir::toNativeSeparators(discovery.executablePath));
+		lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Executable override: %1").arg(discovery.executablePathOverridden ? QCoreApplication::translate("SlopStudioCompilerRegistry", "yes") : QCoreApplication::translate("SlopStudioCompilerRegistry", "no"));
+		lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Version: %1").arg(discovery.versionText.isEmpty() ? QCoreApplication::translate("SlopStudioCompilerRegistry", "unknown") : discovery.versionText);
+		lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Version probe: %1").arg(compilerVersionProbeOutcomeText(discovery.versionProbeOutcome));
+		lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Capabilities: %1").arg(discovery.capabilityFlags.isEmpty() ? QCoreApplication::translate("SlopStudioCompilerRegistry", "none") : discovery.capabilityFlags.join(QStringLiteral(", ")));
 		for (const QString& warning : discovery.warnings) {
-			lines << QCoreApplication::translate("VibeStudioCompilerRegistry", "Warning: %1").arg(warning);
+			lines << QCoreApplication::translate("SlopStudioCompilerRegistry", "Warning: %1").arg(warning);
 		}
 	}
 	return lines.join('\n');
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

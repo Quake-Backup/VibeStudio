@@ -9,7 +9,7 @@ class QLabel;
 class QPushButton;
 class QSpinBox;
 
-namespace vibestudio
+namespace slopstudio
 {
 // Chooses what an md5anim export writes: one skeletal clip, or every clip,
 // and the frame rate. An md5anim stores a whole number of frames per second,
@@ -39,4 +39,4 @@ class ModelMd5ExportDialog final : public QDialog
 	QPushButton *m_accept = nullptr;
 	void refresh();
 };
-} // namespace vibestudio
+} // namespace slopstudio

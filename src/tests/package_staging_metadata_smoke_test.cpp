@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool condition, const char* message)
@@ -130,7 +130,7 @@ bool sourcesAndDrafts(const QDir& root)
 		&& tooSmall.createEmpty(PackageArchiveFormat::Pak) && !tooSmall.loadBaseArchive(PackageStagingArchive(source), &error)
 		&& tooSmall.sourceFormat() == PackageArchiveFormat::Pak && tooSmall.operations().isEmpty(), "Base snapshot adoption obeys the destination metadata policy atomically.");
 
-	const auto refusedPath = root.filePath("refused.vibepackage");
+	const auto refusedPath = root.filePath("refused.sloppackage");
 	auto insufficient = bounded(4);
 	ok &= expect(insufficient.createEmpty(PackageArchiveFormat::Zip) && insufficient.addBytes("x", "x"), "Prepare a draft whose manifest identity cannot fit.");
 	const auto revision = insufficient.revision();
@@ -138,7 +138,7 @@ bool sourcesAndDrafts(const QDir& root)
 		&& !PackageDraft::save(refusedPath, &insufficient, false, &error) && !QFileInfo::exists(refusedPath)
 		&& insufficient.revision() == revision && entry(insufficient, "x") == "x", "Dry and real draft saves include the destination identity before any output is created.");
 
-	const auto draft = root.filePath("metadata.vibepackage");
+	const auto draft = root.filePath("metadata.sloppackage");
 	auto saved = bounded(5);
 	ok &= expect(saved.createEmpty(PackageArchiveFormat::Zip) && saved.addBytes("x", "x") && PackageDraft::save(draft, &saved, false, &error)
 		&& saved.metadataUsage(&usage, &error) && usage.records == 5, "Draft ownership transition fits exactly with its payload and manifest identities.");
@@ -157,7 +157,7 @@ bool sourcesAndDrafts(const QDir& root)
 		"A saved draft reloads at its exact logical text boundary.");
 	auto shortText = bounded(PackageStagingMetadataLimits::recordCeiling, exactBytes - 1);
 	ok &= expect(shortText.createEmpty(PackageArchiveFormat::Zip) && shortText.addBytes("x", "x"), "Prepare a text-limited draft conversion.");
-	const auto shortPath = root.filePath("metadatb.vibepackage"); // Same path length as the measured draft.
+	const auto shortPath = root.filePath("metadatb.sloppackage"); // Same path length as the measured draft.
 	int preflightReads = 0, protectionSteps = 0; PackageReadControl preflightControl;
 	preflightControl.progress = [&](const QString& phase, qint64, qint64) {
 		if (phase == "Retaining package source protections") { ++protectionSteps; } else { ++preflightReads; }

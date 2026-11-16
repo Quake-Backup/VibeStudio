@@ -20,7 +20,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool pass, const char* label, const QString& error = {}) {
@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
 		dialog.setCopies(1);
 		expect(until([&] { return dialog.isReady(); }) && dialog.previewValid(), "single duplicate preview restored");
 		expect(tests::settleModelViewport(*preview), "render settled");
-		const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!capture.isEmpty()) {
 			QDir().mkpath(capture);
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied);

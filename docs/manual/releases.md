@@ -1,7 +1,7 @@
 # Package and release
 
 **Package and Release** turns your project, a map, a model or a set of textures into something players
-can install. VibeStudio works out which files are yours and which the game already has, gathers every
+can install. SlopStudio works out which files are yours and which the game already has, gathers every
 custom texture, shader, model, sound and script your work uses, and writes the package with a readme,
 release notes and a distribution archive. It keeps a changelog and a record of every release, so the
 next one can say what changed.
@@ -22,10 +22,10 @@ next one can say what changed.
 2. Link the game it plays in: select the installation under **Game Installations** and choose
    **Use**, or record it in the project manifest.
 3. Index the game's own files: choose **Index Assets** under **Game Installations**, or **Project** >
-   **Index Game Assets**. VibeStudio reads the game's own packages once and remembers what they hold.
+   **Index Game Assets**. SlopStudio reads the game's own packages once and remembers what they hold.
    Nothing in the installation is changed.
 
-The index is how a release leaves the game's own files out. Without it, VibeStudio cannot tell a
+The index is how a release leaves the game's own files out. Without it, SlopStudio cannot tell a
 stock texture from yours: anything the project lacks is assumed to come with the game, and the
 release says the game's files were not checked. The installation's row on the Workspace page shows
 **assets indexed**, **assets not indexed** or **asset index out of date**; an out-of-date index
@@ -98,7 +98,7 @@ The review beside the options updates as you change them:
 
 ## Files that game code and scripts load
 
-Maps and models are not the only things that name files. VibeStudio also reads the project's game
+Maps and models are not the only things that name files. SlopStudio also reads the project's game
 code and scripts as text, without running them, and follows the file names written out in them:
 
 | Source | What it follows |
@@ -139,7 +139,7 @@ script builds while the game runs. The project's release settings handle them:
 
 Some files never ship from a project: sources such as `.map`, `.psd` and `.blend` (unless you include
 sources), compiler leftovers such as `.prt`, `.lin`, `.log` and `.bak`, programs, the project's
-`.vibestudio` folder, its output and temporary folders, and Quake-family texture WADs, which the
+`.slopstudio` folder, its output and temporary folders, and Quake-family texture WADs, which the
 compiled BSP already contains.
 
 ## Describe the release
@@ -170,14 +170,14 @@ tab, the text file players read.
   **Fixed** or **Security**), describe it, and choose **Record Change**. The change goes into the
   Unreleased section of the project's `CHANGELOG.md` straight away. **Project** > **Record a
   Change…** and **Record Change…** on the Workspace **Releases** card do the same from anywhere.
-- With no changes recorded, VibeStudio suggests them from what changed since the last release, such
+- With no changes recorded, SlopStudio suggests them from what changed since the last release, such
   as maps or textures added and updated, or "First release." for the first one.
 - The notes and readme are generated from the plan and the changelog. Edit them freely before
   publishing; **Regenerate** discards your edits and builds them again.
 - `{{package-sha256}}` and `{{package-size}}` are filled in with the package's SHA-256 hash and size
   when it is written.
 
-The changelog follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and VibeStudio
+The changelog follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and SlopStudio
 rewrites only the parts it changes, so you can also edit it by hand. The readme follows the layout of
 the text files that accompany releases in the [/idgames archive](https://www.doomworld.com/idgames/).
 
@@ -199,7 +199,7 @@ The output folder receives:
 | `RELEASE_NOTES.md` | The release notes, for a website or forum post. |
 | `<name>-<version>.zip` | The distribution archive: the package, the readme and any files that ship beside the package, in the layout players extract into the game folder. |
 
-VibeStudio also records the release in the project's `.vibestudio/releases/<version>.json`, with the
+SlopStudio also records the release in the project's `.slopstudio/releases/<version>.json`, with the
 package's hash and a list of every file, and moves the changelog's unreleased changes under the new
 version. Nothing is written into the game installation, and an existing release is never overwritten
 unless you choose to replace it; replaced files are kept with `.bak` added to their names.
@@ -268,25 +268,25 @@ ones use the project's and game's defaults. Publishing from the window saves the
 
 | Task | Command |
 | --- | --- |
-| Index the game's own files | `vibestudio --cli install register build <installation>` |
+| Index the game's own files | `slopstudio --cli install register build <installation>` |
 | Check the index, or whether a file is the game's | `install register info <installation>`, `install register check <installation> <path>` |
 | Save the index for another machine | `install register export <installation> --output <file>` |
-| List what a project can release | `vibestudio --cli release catalog <project>` |
-| Review a release | `vibestudio --cli release plan <project> --map <map>` |
-| Print the notes or readme | `vibestudio --cli release notes <project> --map <map>`, add `--readme` for the readme |
-| Show or record changes | `vibestudio --cli release changelog <project>`, `--add "<change>" --category added` |
-| Publish | `vibestudio --cli release publish <project> --map <map> --release-version <version>` |
-| List published releases | `vibestudio --cli release history <project>` |
-| Check a map against the game | `vibestudio --cli map dependencies <map> --package <project> --installation <installation>` |
+| List what a project can release | `slopstudio --cli release catalog <project>` |
+| Review a release | `slopstudio --cli release plan <project> --map <map>` |
+| Print the notes or readme | `slopstudio --cli release notes <project> --map <map>`, add `--readme` for the readme |
+| Show or record changes | `slopstudio --cli release changelog <project>`, `--add "<change>" --category added` |
+| Publish | `slopstudio --cli release publish <project> --map <map> --release-version <version>` |
+| List published releases | `slopstudio --cli release history <project>` |
+| Check a map against the game | `slopstudio --cli map dependencies <map> --package <project> --installation <installation>` |
 
 For example:
 
 ```sh
-vibestudio --cli install register build quake3-games-quake3
-vibestudio --cli release plan ./mymod --map maps/arena1.map --json
-vibestudio --cli release changelog ./mymod --add "New arena: The Pit" --category added
-vibestudio --cli release publish ./mymod --map maps/arena1.map --release-version 1.0.0 --dry-run
-vibestudio --cli release publish ./mymod --release-version 1.1.0 --output ./out/1.1.0
+slopstudio --cli install register build quake3-games-quake3
+slopstudio --cli release plan ./mymod --map maps/arena1.map --json
+slopstudio --cli release changelog ./mymod --add "New arena: The Pit" --category added
+slopstudio --cli release publish ./mymod --map maps/arena1.map --release-version 1.0.0 --dry-run
+slopstudio --cli release publish ./mymod --release-version 1.1.0 --output ./out/1.1.0
 ```
 
 Use `--model` or `--texture` instead of `--map` for models and texture folders, and nothing for the

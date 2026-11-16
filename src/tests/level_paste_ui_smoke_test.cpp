@@ -21,7 +21,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool ok = true;
@@ -88,7 +88,7 @@ int main(int argc, char** argv)
 	StudioSettings settings;
 	settings.setRestoreSession(false);
 	settings.setReducedMotion(true);
-	auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (!captures.isEmpty()) {
 		QDir().mkpath(captures);
 	}
@@ -107,9 +107,9 @@ int main(int argc, char** argv)
 		return 1;
 	}
 	for (const QString& profile :
-	     {QStringLiteral("trenchbroom"), QStringLiteral("netradiant-custom"), QStringLiteral("vibestudio-default")}) {
+	     {QStringLiteral("trenchbroom"), QStringLiteral("netradiant-custom"), QStringLiteral("slopstudio-default")}) {
 		for (int scale : {100, 200}) {
-			if (qEnvironmentVariableIsSet("VIBESTUDIO_PASTE_UI_QUICK") && (profile != "trenchbroom" || scale != 100)) {
+			if (qEnvironmentVariableIsSet("SLOPSTUDIO_PASTE_UI_QUICK") && (profile != "trenchbroom" || scale != 100)) {
 				continue;
 			}
 			std::cout << "Paste UI: " << profile.toStdString() << ' ' << scale << " start" << std::endl;
@@ -148,13 +148,13 @@ int main(int argc, char** argv)
 				for (const auto* id : {"map.paste", "map.pasteAtOriginal", "map.pasteAtCursor", "map.pasteToCamera"}) {
 					expect(action(id) && action(id)->isEnabled(), "paste action enabled on text map");
 				}
-				if (profile != "vibestudio-default") {
+				if (profile != "slopstudio-default") {
 					expect(action(profile == "trenchbroom" ? "map.pasteAtOriginal" : "map.pasteToCamera")
 					           ->toolTip()
 					           .contains(profile == "trenchbroom" ? "Ctrl+Alt+V" : "Shift+V"),
 					       "profile paste shortcut hint");
 				}
-				expect(camera->isPerspective() == (profile != "vibestudio-default"), "profile camera projection");
+				expect(camera->isPerspective() == (profile != "slopstudio-default"), "profile camera projection");
 				QApplication::clipboard()->setText(clipboard);
 				const auto base = serializeLevelMap(shell.levelDocument()).bytes;
 				qsizetype undoDepth = shell.levelDocument().undoStack.size();

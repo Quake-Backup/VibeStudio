@@ -12,7 +12,7 @@
 #include <QSet>
 #include <filesystem>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace {
 struct Text { Q_DECLARE_TR_FUNCTIONS(LevelClipboardCli) };
 struct FileState { bool exists = false; QByteArray hash; };
@@ -184,4 +184,4 @@ LevelClipboardCliResult runLevelClipboard(const QStringList& arguments)
 	} else { result.lines << Text::tr("Copied selected objects to %1.").arg(clipboard); }
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

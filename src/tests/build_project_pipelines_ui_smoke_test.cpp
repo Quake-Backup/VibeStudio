@@ -45,7 +45,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -84,7 +84,7 @@ class Expanded final : public QTranslator {
 	}
 };
 
-// A stand-in for vibemap2-bsp: a minimal Quake BSP beside the map it is given.
+// A stand-in for slopmap2-bsp: a minimal Quake BSP beside the map it is given.
 int fakeCompiler(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
@@ -98,7 +98,7 @@ int fakeCompiler(int argc, char** argv)
 	QByteArray bytes(4 + 15 * 8, '\0');
 	qToLittleEndian<qint32>(29, reinterpret_cast<uchar*>(bytes.data()));
 	QFile file(output);
-	std::cout << "fake vibemap2-bsp" << std::endl;
+	std::cout << "fake slopmap2-bsp" << std::endl;
 	return !output.isEmpty() && file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() ? 0 : 1;
 }
 
@@ -158,7 +158,7 @@ QTimer* answerTrust(QWidget* host, TrustAnswer* answer)
 
 int main(int argc, char** argv)
 {
-	if (qEnvironmentVariableIsSet("VIBESTUDIO_PIPELINES_FAKE_COMPILER")) {
+	if (qEnvironmentVariableIsSet("SLOPSTUDIO_PIPELINES_FAKE_COMPILER")) {
 		return fakeCompiler(argc, argv);
 	}
 	qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -173,8 +173,8 @@ int main(int argc, char** argv)
 	if (!temp.isValid()) {
 		return 1;
 	}
-	// The compiler runner starts this program again as vibemap2-bsp.
-	qputenv("VIBESTUDIO_PIPELINES_FAKE_COMPILER", "1");
+	// The compiler runner starts this program again as slopmap2-bsp.
+	qputenv("SLOPSTUDIO_PIPELINES_FAKE_COMPILER", "1");
 	StudioSettings::setOverrideFilePath(temp.filePath("settings.ini"));
 	for (const char* id : {"build.edit-pipelines"}) {
 		CommandPaletteEntry entry;
@@ -199,15 +199,15 @@ int main(int argc, char** argv)
 			return 1;
 		}
 		ProjectManifest manifest = defaultProjectManifest(project, QStringLiteral("Pipelines"));
-		manifest.compilerToolOverrides = {{QStringLiteral("vibemap2-bsp"), QCoreApplication::applicationFilePath()}};
+		manifest.compilerToolOverrides = {{QStringLiteral("slopmap2-bsp"), QCoreApplication::applicationFilePath()}};
 		QString error;
 		if (!expect(saveProjectManifest(manifest, &error), "project manifest", error)) {
 			return 1;
 		}
 		// A saved run beside it whose program is not a compiler at all.
 		CompilerCommandManifest stranger;
-		stranger.profileId = QStringLiteral("vibemap2-bsp");
-		stranger.toolId = QStringLiteral("vibemap2-bsp");
+		stranger.profileId = QStringLiteral("slopmap2-bsp");
+		stranger.toolId = QStringLiteral("slopmap2-bsp");
 		stranger.createdUtc = QDateTime::currentDateTimeUtc();
 		stranger.program = strangerTool;
 		stranger.arguments = {mapPath};

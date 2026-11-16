@@ -16,8 +16,8 @@
 #include <QThread>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0;
@@ -43,7 +43,7 @@ bool settle(ModelMaterialWorker &worker)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("material-slots-XXXXXX"));
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
 	worker.request(visible, package, {{0, 1}});
 	ok &= expect(settle(worker) && delivered == cancelledCount + 1 && !last.assets.cancelled,
 				 "changing slots starts new work after cancellation");
-	const QStringList base{"vibestudio", "--cli", "model", "slots", source};
+	const QStringList base{"slopstudio", "--cli", "model", "slots", source};
 	auto listed = cli::runModelMaterialSlots(base);
 	ok &=
 		expect(listed.exitCode == 0 && listed.payload.value("surfaces").toArray().size() == 3 && !listed.payload.value("written").toBool(),

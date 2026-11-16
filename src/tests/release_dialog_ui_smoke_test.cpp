@@ -5,7 +5,7 @@
 // version, and asks to index a game whose assets are unknown. Every
 // control a keyboard reaches has an accessible name. RELEASE_TEST_LOOK,
 // RELEASE_TEST_SCALE and RELEASE_TEST_RTL run the same checks in other looks;
-// VIBESTUDIO_TEST_SNAPSHOTS=<dir> saves pictures of the states.
+// SLOPSTUDIO_TEST_SNAPSHOTS=<dir> saves pictures of the states.
 
 #include "app/release_dialog.h"
 #include "app/studio_theme.h"
@@ -36,8 +36,8 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
-namespace fixtures = vibestudio::tests::release;
+using namespace slopstudio;
+namespace fixtures = slopstudio::tests::release;
 
 namespace {
 
@@ -58,7 +58,7 @@ bool expect(bool condition, const std::string& message, const QString& detail = 
 
 void snapshot(QWidget* widget, const QString& name)
 {
-	const QString folder = qEnvironmentVariable("VIBESTUDIO_TEST_SNAPSHOTS");
+	const QString folder = qEnvironmentVariable("SLOPSTUDIO_TEST_SNAPSHOTS");
 	if (folder.isEmpty()) {
 		return;
 	}

@@ -12,8 +12,8 @@
 #include <iostream>
 #include <limits>
 #include <random>
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -35,7 +35,7 @@ bool near(double a, double b, double tolerance = .0001)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir tmp(QDir(root).filePath("curve-keys-XXXXXX"));
@@ -327,7 +327,7 @@ int main(int argc, char **argv)
 			   "native export uses retimed dense motion");
 	}
 	expect(!exportEditableModel(retimed, "md5anim", 1, &error).isEmpty(), "MD5 animation exports retimed curves");
-	const QStringList base{"vibestudio", "--cli", "model", "curve-keys", source, "--clip", "0", "--channel", "ty"};
+	const QStringList base{"slopstudio", "--cli", "model", "curve-keys", source, "--clip", "0", "--channel", "ty"};
 	expect(cli::runModelCurveKeys(base).exitCode == 0 && cli::runModelCurveKeys(base).payload["channels"].toArray().size() == 2,
 		   "CLI inspection spans matching joints");
 	const auto arguments = base + QStringList{"--operation", "retime", "--factor", "2", "--output", out};

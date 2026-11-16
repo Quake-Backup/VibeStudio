@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Retains Qt's check box accessibility, focus and toggling while letting a
 // translated caption wrap under itself when text scaling leaves a sidebar
@@ -100,4 +100,4 @@ private:
 	}
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

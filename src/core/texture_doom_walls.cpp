@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <cstring>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool fail(QString* error, const QString& message) { if (error) { *error = message; } return false; }
 qint32 read32(const QByteArray& bytes, qsizetype at) { return qFromLittleEndian<qint32>(bytes.constData() + at); }
@@ -81,9 +81,9 @@ bool parseLayout(const QByteArray& bytes, const QStringList& patchNames, bool st
 
 bool parseDoomPatchNames(const QByteArray& bytes, QStringList* names, QString* error)
 {
-	if (bytes.size() < 4) { return fail(error, QCoreApplication::translate("VibeStudioDoomWalls", "PNAMES is truncated.")); }
+	if (bytes.size() < 4) { return fail(error, QCoreApplication::translate("SlopStudioDoomWalls", "PNAMES is truncated.")); }
 	const qint32 count = read32(bytes, 0);
-	if (count < 0 || count > 65536 || 4 + qint64(count) * 8 > bytes.size()) { return fail(error, QCoreApplication::translate("VibeStudioDoomWalls", "PNAMES has an implausible patch count.")); }
+	if (count < 0 || count > 65536 || 4 + qint64(count) * 8 > bytes.size()) { return fail(error, QCoreApplication::translate("SlopStudioDoomWalls", "PNAMES has an implausible patch count.")); }
 	QStringList parsed;
 	for (qint32 index = 0; index < count; ++index) { parsed << lumpName(bytes, 4 + index * 8); }
 	*names = parsed;
@@ -104,7 +104,7 @@ bool parseDoomTextureLump(const QByteArray& bytes, const QStringList& patchNames
 	QVector<DoomWallTexture> doom, strifeTextures;
 	const bool doomFits = parseLayout(bytes, patchNames, false, &doom);
 	const bool strifeFits = !doomFits && parseLayout(bytes, patchNames, true, &strifeTextures);
-	if (!doomFits && !strifeFits) { return fail(error, QCoreApplication::translate("VibeStudioDoomWalls", "The texture definition lump is malformed or names patches missing from PNAMES.")); }
+	if (!doomFits && !strifeFits) { return fail(error, QCoreApplication::translate("SlopStudioDoomWalls", "The texture definition lump is malformed or names patches missing from PNAMES.")); }
 	*textures = doomFits ? doom : strifeTextures;
 	if (strife) { *strife = strifeFits; }
 	return true;
@@ -138,10 +138,10 @@ bool stageDoomWallTexture(PackageStagingModel* staging, const QString& patchName
 	DoomWallStageReport local;
 	auto* out = report ? report : &local; *out = {};
 	if (!staging || !staging->isLoaded() || (staging->sourceWadMagic() != QStringLiteral("IWAD") && staging->sourceWadMagic() != QStringLiteral("PWAD"))) {
-		return fail(error, QCoreApplication::translate("VibeStudioDoomWalls", "Open a Doom IWAD or PWAD before defining a wall texture."));
+		return fail(error, QCoreApplication::translate("SlopStudioDoomWalls", "Open a Doom IWAD or PWAD before defining a wall texture."));
 	}
-	if (!validLumpName(patchName) || !validLumpName(textureName)) { return fail(error, QCoreApplication::translate("VibeStudioDoomWalls", "Patch and wall texture names need 1–8 lump-name characters.")); }
-	if (size.width() < 1 || size.height() < 1 || size.width() > 32767 || size.height() > 32767) { return fail(error, QCoreApplication::translate("VibeStudioDoomWalls", "Wall texture dimensions are out of range.")); }
+	if (!validLumpName(patchName) || !validLumpName(textureName)) { return fail(error, QCoreApplication::translate("SlopStudioDoomWalls", "Patch and wall texture names need 1–8 lump-name characters.")); }
+	if (size.width() < 1 || size.height() < 1 || size.width() > 32767 || size.height() > 32767) { return fail(error, QCoreApplication::translate("SlopStudioDoomWalls", "Wall texture dimensions are out of range.")); }
 	const QString patch = patchName.toUpper(), texture = textureName.toUpper();
 	const PackageStagingArchive planned(*staging);
 	QByteArray pnamesBytes, textureBytes; bool hasPnames = false, hasTexture = false;
@@ -154,28 +154,28 @@ bool stageDoomWallTexture(PackageStagingModel* staging, const QString& patchName
 	if (hasPnames && !parseDoomPatchNames(pnamesBytes, &names, error)) { return false; }
 	if (hasTexture && !parseDoomTextureLump(textureBytes, names, &textures, &strife, error)) { return false; }
 	if (!names.contains(patch)) {
-		if (names.size() >= 32767) { return fail(error, QCoreApplication::translate("VibeStudioDoomWalls", "PNAMES has no room for another patch.")); }
+		if (names.size() >= 32767) { return fail(error, QCoreApplication::translate("SlopStudioDoomWalls", "PNAMES has no room for another patch.")); }
 		names << patch; out->addedPatchName = true;
 	}
 	DoomWallTexture definition; definition.name = texture; definition.size = size; definition.patches = {{0, 0, patch}};
 	const auto existing = std::find_if(textures.begin(), textures.end(), [&](const DoomWallTexture& t) { return t.name == texture; });
 	if (existing != textures.end()) {
-		if (!replaceExisting) { return fail(error, QCoreApplication::translate("VibeStudioDoomWalls", "TEXTURE1 already defines %1. Enable replacement to redefine it.").arg(texture)); }
+		if (!replaceExisting) { return fail(error, QCoreApplication::translate("SlopStudioDoomWalls", "TEXTURE1 already defines %1. Enable replacement to redefine it.").arg(texture)); }
 		*existing = definition; out->replacedDefinition = true;
 	} else { textures.push_back(definition); }
 	out->createdPatchNames = !hasPnames; out->createdTextureLump = !hasTexture;
 	if (!hasTexture) {
-		out->warnings << QCoreApplication::translate("VibeStudioDoomWalls", "This WAD had no TEXTURE1. Source ports such as ZDoom merge it with the game's textures; original Doom replaces the whole list, so copy the game's definitions in for vanilla play.");
+		out->warnings << QCoreApplication::translate("SlopStudioDoomWalls", "This WAD had no TEXTURE1. Source ports such as ZDoom merge it with the game's textures; original Doom replaces the whole list, so copy the game's definitions in for vanilla play.");
 	}
 	auto next = *staging;
-	if (!next.beginOperationGroup(QCoreApplication::translate("VibeStudioDoomWalls", "Define wall texture %1").arg(texture), error)) { return false; }
+	if (!next.beginOperationGroup(QCoreApplication::translate("SlopStudioDoomWalls", "Define wall texture %1").arg(texture), error)) { return false; }
 	const auto put = [&](const QByteArray& bytes, const QString& name, bool exists) {
 		return exists ? next.addWadBytes(bytes, name, QStringLiteral("global"), 0, true, error) : next.addBytes(bytes, name, error);
 	};
 	if (!put(encodeDoomPatchNames(names), QStringLiteral("PNAMES"), hasPnames) || !put(encodeDoomTextureLump(textures, names, strife), QStringLiteral("TEXTURE1"), hasTexture)) { return false; }
-	if (!next.endOperationGroup(true, error) || !next.summary().canSave) { return fail(error, QCoreApplication::translate("VibeStudioDoomWalls", "Defining the wall texture would create package conflicts.")); }
+	if (!next.endOperationGroup(true, error) || !next.summary().canSave) { return fail(error, QCoreApplication::translate("SlopStudioDoomWalls", "Defining the wall texture would create package conflicts.")); }
 	*staging = std::move(next);
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

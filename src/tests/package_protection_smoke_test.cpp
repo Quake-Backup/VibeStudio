@@ -10,8 +10,8 @@
 #include <memory>
 #include <utility>
 
-using namespace vibestudio;
-using namespace vibestudio::subset_test;
+using namespace slopstudio;
+using namespace slopstudio::subset_test;
 
 namespace {
 bool expect(bool value, const char* message, const QString& error = {})
@@ -53,7 +53,7 @@ bool borrowedProvenance(const QDir& root)
 	ok &= expect(protectedBy(original, input), "An ordinary imported source starts protected.", error);
 	PackageStagingModel rebased; const PackageStagingArchive projection(original);
 	ok &= expect(rebased.loadBaseArchive(projection, &error) && protectedBy(rebased, input), "Rebasing retains original imported sources.", error);
-	const auto draft = root.filePath("rebased.vibepackage"); PackageStagingModel restored;
+	const auto draft = root.filePath("rebased.sloppackage"); PackageStagingModel restored;
 	ok &= expect(PackageDraft::save(draft, &rebased, false, &error) && protectedBy(rebased, input), "Saving a rebased draft retains live source protection.", error);
 	ok &= expect(PackageDraft::load(draft, &restored, &error) && protectedBy(restored, input), "Reopening a rebased draft retains original imported sources.", error);
 	PackageWriteRequest request; request.destinationPath = input; request.format = PackageArchiveFormat::Zip; request.allowOverwrite = true;
@@ -66,7 +66,7 @@ bool providerProvenance(const QDir& root)
 	bool ok = true; QString error; auto provider = std::make_shared<ProtectedReader>(); provider->extra = root.filePath("provider-input.bin");
 	ok &= put(provider->extra, "sentinel"); PackageArchive archive; PackageStagingModel model, restored;
 	ok &= expect(archive.loadSnapshot(provider, &error) && model.loadBaseArchive(archive, &error) && protectedBy(model, provider->extra), "An owned provider's extra source starts protected.", error);
-	const auto draft = root.filePath("provider.vibepackage");
+	const auto draft = root.filePath("provider.sloppackage");
 	ok &= expect(PackageDraft::save(draft, &model, false, &error) && protectedBy(model, provider->extra), "Checkpointing a virtual provider preserves its extra protected source.", error);
 	ok &= expect(PackageDraft::load(draft, &restored, &error) && protectedBy(restored, provider->extra), "Reopening a virtual-provider draft preserves its extra protected source.", error);
 	PackageWriteRequest request; request.destinationPath = provider->extra; request.format = PackageArchiveFormat::Zip; request.allowOverwrite = true;
@@ -77,7 +77,7 @@ bool providerProvenance(const QDir& root)
 bool draftProvenance(const QDir& root)
 {
 	bool ok = true; QString error; PackageStagingModel original, rebased, restored;
-	const auto first = root.filePath("first.vibepackage"), second = root.filePath("second.vibepackage");
+	const auto first = root.filePath("first.sloppackage"), second = root.filePath("second.sloppackage");
 	ok &= original.createEmpty(PackageArchiveFormat::Zip, {}, &error) && original.addBytes("data", "file", &error)
 		&& PackageDraft::save(first, &original, false, &error);
 	ok &= expect(rebased.loadBaseArchive(PackageStagingArchive(original), &error) && protectedBy(rebased, QDir(first).filePath("new.zip")), "A rebased draft protects its original backing directory.", error);
@@ -121,7 +121,7 @@ bool refusalAndCancellation(const QDir& root)
 bool outputCollisions(const QDir& root)
 {
 	bool ok = true; QString error;
-	const auto output = root.filePath("guarded-export.zip"), lock = output + ".vibestudio-save.lock";
+	const auto output = root.filePath("guarded-export.zip"), lock = output + ".slopstudio-save.lock";
 	auto provider = std::make_shared<ProtectedReader>(); provider->extra = lock;
 	PackageArchive archive; PackageStagingModel model;
 	ok &= archive.loadSnapshot(provider, &error) && model.loadBaseArchive(archive, &error);
@@ -131,7 +131,7 @@ bool outputCollisions(const QDir& root)
 		ok &= expect(!report.succeeded() && report.blockedMessages.join(';').contains("save lock") && provider->reads == 0
 			&& !QFileInfo::exists(output) && !QFileInfo::exists(lock), "Save previews and writes refuse a protected lock path before reading or creating anything.", report.blockedMessages.join(';'));
 	}
-	const auto draft = root.filePath("enclosing.vibepackage");
+	const auto draft = root.filePath("enclosing.sloppackage");
 	auto nested = std::make_shared<ProtectedReader>(); nested->extra = QDir(draft).filePath(".write.lock");
 	PackageArchive nestedArchive; PackageStagingModel nestedModel;
 	ok &= nestedArchive.loadSnapshot(nested, &error) && nestedModel.loadBaseArchive(nestedArchive, &error);
@@ -144,7 +144,7 @@ bool outputCollisions(const QDir& root)
 bool manifestValidation(const QDir& root)
 {
 	bool ok = true; QString error; PackageStagingModel source, retained;
-	const auto draft = root.filePath("validation.vibepackage"), manifest = QDir(draft).filePath("document.json");
+	const auto draft = root.filePath("validation.sloppackage"), manifest = QDir(draft).filePath("document.json");
 	ok &= source.createEmpty(PackageArchiveFormat::Zip) && source.addBytes("data", "file") && PackageDraft::save(draft, &source, false, &error);
 	const auto document = QJsonDocument::fromJson(get(manifest)).object(); source.clear();
 	ok &= expect(document.value("version") == 4 && document.value("protectedInputs").isArray(), "Every new draft declares the protection-aware version.");
@@ -172,7 +172,7 @@ bool legacyAndRecovery(const QDir& root)
 	bool ok = true; QString error;
 	for (const int version : {1, 2, 3}) {
 		const auto input = root.filePath(QStringLiteral("legacy-%1.bin").arg(version)); ok &= put(input, "original");
-		const auto draft = root.filePath(QStringLiteral("legacy-%1.vibepackage").arg(version)), manifest = QDir(draft).filePath("document.json");
+		const auto draft = root.filePath(QStringLiteral("legacy-%1.sloppackage").arg(version)), manifest = QDir(draft).filePath("document.json");
 		PackageStagingModel model; ok &= model.createEmpty(PackageArchiveFormat::Zip) && model.addFile(input, "file", &error) && PackageDraft::save(draft, &model, false, &error);
 		model.clear(); auto document = QJsonDocument::fromJson(get(manifest)).object(); document.insert("version", version); document.remove("protectedInputs");
 		if (version == 1) {
@@ -196,7 +196,7 @@ bool legacyAndRecovery(const QDir& root)
 	const auto checkpoint = session->checkpoint(model, "Protected source");
 	ok &= expect(checkpoint.succeeded() && inspectPackageRecovery(checkpoint.path).readable(), "Recovery inventory accepts protection-aware checkpoints.", checkpoint.error);
 	PackageStagingModel restored;
-	ok &= expect(restorePackageRecovery(store, "621b5c42-1ad2-45cb-b3ea-3bd8e71a8650", checkpoint.manifestSha256, root.filePath("restored-protection.vibepackage"), &restored, &error)
+	ok &= expect(restorePackageRecovery(store, "621b5c42-1ad2-45cb-b3ea-3bd8e71a8650", checkpoint.manifestSha256, root.filePath("restored-protection.sloppackage"), &restored, &error)
 		&& protectedBy(restored, provider->extra), "Recovery restoration preserves extra provider sources.", error);
 	const auto manifest = QDir(checkpoint.path).filePath("document.json"); auto document = QJsonDocument::fromJson(get(manifest)).object();
 	document.remove("protectedInputs"); ok &= put(manifest, QJsonDocument(document).toJson());

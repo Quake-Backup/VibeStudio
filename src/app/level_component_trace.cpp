@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 QVector<LevelComponentTraceLabel> paintLevelComponentTrace(QPainter& painter,const LevelComponentGizmoFrame& frame,
 	LevelMapVec3 origin,LevelMapVec3 position,int constrainedAxis,bool pending,bool highContrast,const QPalette& palette)
 {
@@ -54,4 +54,4 @@ QVector<LevelComponentTraceLabel> paintLevelComponentTrace(QPainter& painter,con
 	}
 	painter.restore(); return labels;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -4,11 +4,11 @@
 class QObject;
 class QTextDocument;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Shared rendering for provider documentation. No file/network resources,
 // raw HTML, active links or images; selectable literal text remains available.
 QTextDocument* createLanguageDocumentationDocument(QObject* parent = nullptr);
 void renderLanguageDocumentation(QTextDocument* document, const QVector<LanguageHoverPart>& parts);
 
-} // namespace vibestudio
+} // namespace slopstudio

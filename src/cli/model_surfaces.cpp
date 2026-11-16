@@ -6,7 +6,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -182,4 +182,4 @@ ModelSurfacesCliResult runModelSurfaces(const QStringList &arguments)
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

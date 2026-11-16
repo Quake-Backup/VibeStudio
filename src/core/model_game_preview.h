@@ -37,7 +37,7 @@
 #include <QImage>
 #include <QStringList>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ModelGamePreviewOptions {
 	double time = 0.0;
@@ -91,4 +91,4 @@ bool composeModelQuake3Skin(const MaterialDefinition& definition, const Material
 bool composeModelGameSkin(const ModelMesh& mesh, int surface, const MaterialDefinition* definition, const MaterialImageSet* images,
 	const QImage& fallback, const ModelGamePreviewOptions& options, ModelGameSkin* out, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

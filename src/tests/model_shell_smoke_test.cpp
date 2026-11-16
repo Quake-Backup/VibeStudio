@@ -32,7 +32,7 @@
 #include <crtdbg.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool condition, const char *message)
@@ -79,12 +79,12 @@ int main(int argc, char **argv)
 	elapsed.start();
 	const auto timing = [&](const char *stage)
 	{
-		if (qEnvironmentVariableIsSet("VIBESTUDIO_MODELLER_TIMING"))
+		if (qEnvironmentVariableIsSet("SLOPSTUDIO_MODELLER_TIMING"))
 		{
 			std::cout << "TIMING " << stage << ' ' << elapsed.elapsed() << " ms" << std::endl;
 		}
 	};
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -280,7 +280,7 @@ int main(int argc, char **argv)
 		ok &= expect(StudioSettings().recentFiles(QStringLiteral("model")).contains(QFileInfo(meshPath).absoluteFilePath()),
 					 "the opened source is a recent model file");
 		// A workspace keeps the open source and reopens it in the Mesh Editor.
-		const auto workspacePath = QDir(temporary.path()).filePath(QStringLiteral("models.vibeworkspace"));
+		const auto workspacePath = QDir(temporary.path()).filePath(QStringLiteral("models.slopworkspace"));
 		WorkspaceDocument saved;
 		ok &= expect(shell.saveWorkspaceTo(workspacePath, true, &error) && readWorkspaceDocument(workspacePath, &saved, nullptr, &error) &&
 						 saved.modelSources.size() == 1 && QFileInfo(saved.modelSources.first()) == QFileInfo(meshPath),

@@ -21,7 +21,7 @@
 #include <QTimer>
 #include <QUuid>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 QString textPathIdentity(const QString& path)
@@ -306,4 +306,4 @@ void ApplicationShell::recoverCodeDocumentFromUi()
 	if (!recoverCodeDocument(path, &error)) { QMessageBox::warning(this, tr("Recovery Failed"), error); }
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

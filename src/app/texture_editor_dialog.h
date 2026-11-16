@@ -22,7 +22,7 @@ class QThread;
 class QToolBar;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 class TextureCanvas;
 class PaletteSwatchView;
 class TextureRecoveryWriter;
@@ -219,4 +219,4 @@ private:
 	QComboBox* m_companionNaming = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

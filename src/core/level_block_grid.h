@@ -2,7 +2,7 @@
 
 // The compiler block grid of a Quake-family map.
 //
-// q3map2 (and VibeMap3, which derives from it) splits the world at every
+// q3map2 (and SlopMap3, which derives from it) splits the world at every
 // multiple of a block size along each axis before it chooses any face plane,
 // so brushes that cross those boundaries are cut there. The size comes from
 // the worldspawn "_blocksize" key (or the older "blocksize" and Soldier of
@@ -14,7 +14,7 @@
 //
 // Workflow reference: NRC XYWnd::XY_DrawBlockGrid and the ShowBlocks toggle in
 // radiant/xywindow.cpp at 449778b3 (GPL-2.0-or-later); the key is read as
-// q3map2's ProcessWorldModel in tools/quake3/q3map2/bsp.cpp of VibeMap3 reads
+// q3map2's ProcessWorldModel in tools/quake3/q3map2/bsp.cpp of SlopMap3 reads
 // it. Original Qt implementation; see docs/CREDITS.md.
 
 #include "core/level_map.h"
@@ -24,7 +24,7 @@
 
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 inline constexpr int kLevelBlockSizeDefault = 1024;
 
@@ -72,7 +72,7 @@ struct LevelMapBlockSize {
 [[nodiscard]] QVector<double> levelBlockBoundaries(double low, double high, int size, int limit = 4096, bool* truncated = nullptr);
 
 // "1024 × 1024 × 1024" style text for messages, with "off" for an unsplit
-// axis, translated in the "VibeStudioLevelBlockGrid" context.
+// axis, translated in the "SlopStudioLevelBlockGrid" context.
 [[nodiscard]] QString levelBlockSizeText(const LevelMapBlockSize& size);
 
 // Where the size comes from, for messages: the worldspawn key and its value,
@@ -80,4 +80,4 @@ struct LevelMapBlockSize {
 // the compiler ignores.
 [[nodiscard]] QString levelBlockSizeSourceText(const LevelMapBlockSize& size);
 
-} // namespace vibestudio
+} // namespace slopstudio

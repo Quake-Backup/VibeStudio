@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 AudioRecordingMeters::AudioRecordingMeters(QWidget *parent) : QWidget(parent)
 {
@@ -138,4 +138,4 @@ void AudioRecordingMeters::refresh()
 	       "These are sample meters; analog clipping and true peaks require separate checks."));
 	m_reset->setEnabled(!m_resetPending && measured);
 }
-} // namespace vibestudio
+} // namespace slopstudio

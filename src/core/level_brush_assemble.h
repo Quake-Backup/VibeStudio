@@ -7,7 +7,7 @@
 #include <QPair>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 // The Assemble Brush tool's geometry: TrenchBroom's Brush Tool collects
 // points clicked on surfaces or a construction plane, faces drawn on a plane
 // and flat outlines extruded along their normal, then Create Brush adds the
@@ -82,4 +82,4 @@ QVector<LevelMapVec3> levelBrushPointsExtruded(const QVector<LevelMapVec3>& poin
 // Appends the points not already present exactly. Fails, appending nothing,
 // when the result would exceed kLevelBrushPointsMaximum points.
 bool levelBrushAssembleAppend(QVector<LevelMapVec3>* points, const QVector<LevelMapVec3>& added, int* appended = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

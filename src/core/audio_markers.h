@@ -5,7 +5,7 @@
 #include <QVector>
 #include <optional>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr int AudioCueLimit = 256;
 inline constexpr int AudioCueNameLimit = 128;
@@ -47,4 +47,4 @@ bool decodeWavAudioMarkers(const QByteArray& wav, qint64 frames, AudioMarkers* m
                            AudioWavMarkers* sourceMode = nullptr);
 QByteArray encodeWavAudioMarkers(const AudioMarkers& markers, qint64 frames, int sampleRate, AudioWavMarkers mode,
                                  QString* error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

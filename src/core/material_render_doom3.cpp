@@ -12,11 +12,11 @@
 // stages, tr_deform.cpp for deforms, and the BFG edition's
 // interaction.pixel for the BFG shading. Details: docs/MATERIALS.md.
 
-namespace vibestudio::material_render {
+namespace slopstudio::material_render {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 constexpr double kPi = 3.14159265358979323846;
@@ -820,4 +820,4 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 	return result;
 }
 
-} // namespace vibestudio::material_render
+} // namespace slopstudio::material_render

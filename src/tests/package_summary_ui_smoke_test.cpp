@@ -45,7 +45,7 @@
 #include <limits>
 #include <mutex>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -58,14 +58,14 @@ public:
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
 		const QByteArray scope(context), text(source);
-		return expanded && (scope.endsWith("ApplicationShell") || scope == "VibeStudioPackageStaging")
+		return expanded && (scope.endsWith("ApplicationShell") || scope == "SlopStudioPackageStaging")
 			&& (text.contains("supported range") || text == "Include Staging &Manifest")
 			? QStringLiteral("[%1 — expanded explanation]").arg(QString::fromUtf8(source)) : QString();
 	}
 };
 bool render(QWidget* widget, const QString& name)
 {
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 	if (root.isEmpty()) { return true; }
 	widget->ensurePolished(); if (widget->layout()) { widget->layout()->activate(); }
 	QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); widget->render(&image);
@@ -199,7 +199,7 @@ bool repairOverflow(QApplication& app, ApplicationShell& shell, const QString& p
 		&& !QFileInfo::exists(QFileInfo(output).dir().filePath(QStringLiteral("repaired-%1.manifest.json").arg(scale)))
 		&& fileBytes(path) == original && ready(1) && repaired() && !undo->isEnabled(),
 		"The independently reopened output verifies its surviving byte; adoption clears history and preserves the original source.");
-	const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+	const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 	if (!captures.isEmpty()) {
 		ok &= expect(QFile::copy(output, QDir(captures).filePath(QStringLiteral("package-overflow-repaired-%1.zip").arg(scale))),
 			"Retain the repaired output for independent format validation.");
@@ -292,7 +292,7 @@ int main(int argc, char** argv)
 	const QDir root(temporary.path());
 	QSettings::setDefaultFormat(QSettings::IniFormat);
 	QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, root.filePath(QStringLiteral("qt-settings")));
-	QCoreApplication::setOrganizationName(QStringLiteral("VibeStudioTests"));
+	QCoreApplication::setOrganizationName(QStringLiteral("SlopStudioTests"));
 	StudioSettings::setOverrideFilePath(root.filePath(QStringLiteral("settings.ini")));
 	bool ok = true; const QString path = root.filePath(QStringLiteral("oversized.zip"));
 	if (!tests::summaryZip(path, {{"a.bin", std::numeric_limits<quint64>::max()}, {"b.bin", 1}})) { return 1; }

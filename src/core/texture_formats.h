@@ -7,7 +7,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Byte-level writers for the texture formats added after the original export
 // profiles: IDSP sprites (Quake and Half-Life), Quake II SP2, Half-Life WAD3
@@ -59,4 +59,4 @@ QByteArray encodeSwl(const QVector<QImage>& mips, const QVector<QRgb>& palette, 
 QVector<QImage> textureRgbaMipChain(const QImage& image, const TextureProgress& progress = {});
 QByteArray encodeDdsMipmapped(const QVector<QImage>& mips, const TextureProgress& progress = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

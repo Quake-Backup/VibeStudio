@@ -1,12 +1,12 @@
 # Technology Stack
 
 3D rendering decision (2026-10-08): every 3D view and material preview draws on
-the GPU through VibeStudio's own frame layer (`core/render_device`), with an
+the GPU through SlopStudio's own frame layer (`core/render_device`), with an
 OpenGL backend (3.3 core or ES 3.0 through Qt's `QOpenGLContext`) and a Vulkan
 1.0 backend (the loader opened at run time; declarations from the pinned
 Khronos Vulkan-Headers). The user picks Automatic, OpenGL or Vulkan in
 Settings, with `render set`, or for one run with `--renderer` or
-`VIBESTUDIO_RENDER_BACKEND`. The CPU 3D rasterisers (`app/model_rasterizer`
+`SLOPSTUDIO_RENDER_BACKEND`. The CPU 3D rasterisers (`app/model_rasterizer`
 and the material renderer's) are removed; 2D views keep `QPainter`. QRhi was
 declined because it cannot render under the offscreen platform the tests use
 or in the console-only CLI; bgfx stays declined (a large dependency for
@@ -159,7 +159,7 @@ compiler pipeline. A shared workspace service serializes the current map and
 streams the package reader into independent files with a SHA-256 inventory.
 Qt Widgets workers provide GUI preparation; a modular CLI adapter uses the same
 service. Quake III receives explicit filesystem flags. Quake/Quake II now use
-the same service with isolated VibeMap2 paths, captured WAD2 or validated WAL assets,
+the same service with isolated SlopMap2 paths, captured WAD2 or validated WAL assets,
 and PAK publication including Quake runtime lighting. No new library or compiler
 fork is introduced; Doom prepared layouts remain open. Quake-family deployment reuses
 the package publisher and game launch planner, with one-operation installation
@@ -235,7 +235,7 @@ files. Unsupported exclusion refuses maintenance. GUI/CLI use the same quota,
 review and compaction services; no draft schema or runtime library changes.
 Native macOS/Linux and network-filesystem acceptance remain open.
 
-This document defines the preferred implementation stack for VibeStudio. The
+This document defines the preferred implementation stack for SlopStudio. The
 goal is a seamless, modern, cross-platform, user-friendly, adaptable, and
 efficient development studio for idTech1, idTech2, and idTech3 projects.
 
@@ -265,7 +265,7 @@ library or new dependency was introduced. See [Level Editor](LEVEL_EDITOR.md).
 | Rich animated surfaces | [Qt Quick/QML](https://doc.qt.io/qt-6/qtquick-index.html) | Planned, bounded | Use for contained high-value surfaces only, such as onboarding, visual status views, or graph-like experiences. Do not rewrite the shell around QML without a migration plan. |
 | Build system | [Meson](https://mesonbuild.com/) + [Ninja](https://ninja-build.org/) | Active | Fast, readable, cross-platform, and suitable for CI. |
 | Automation | Python scripts + GitHub Actions | Active | Good fit for validation, release helpers, documentation checks, and CI orchestration. |
-| Project manifests | JSON | Active | Human-readable `.vibestudio/project.json` manifests store roots, folders, timestamps, selected install IDs, project-local overrides, compiler executable overrides, and registered compiler outputs. |
+| Project manifests | JSON | Active | Human-readable `.slopstudio/project.json` manifests store roots, folders, timestamps, selected install IDs, project-local overrides, compiler executable overrides, and registered compiler outputs. |
 | User settings | Qt `QSettings` plus project overrides | Active | Application shell settings, recent projects, recent terminal activity, editor profile selection, accessibility/language preferences, installation profiles, and project-local overrides are active. |
 | Accessibility | [Qt Accessibility](https://doc.qt.io/qt-6/accessible.html), OS accessibility settings, accessible custom widgets | Active/planned | Shell preference storage and accessible control metadata are active; deeper workflow audits and custom-widget coverage are planned. |
 | Scaling | [Qt High DPI](https://doc.qt.io/qt-6/highdpi.html), layout-driven UI, app text scale preferences | Active/planned | Shell text scale presets are active; broader high-DPI and layout smoke coverage is planned. |
@@ -273,19 +273,19 @@ library or new dependency was introduced. See [Level Editor](LEVEL_EDITOR.md).
 | Localization | [Qt internationalization](https://doc.qt.io/qt-6/internationalization.html), Qt Linguist, `lrelease` at build time, `QTranslator` at run time, `QLocale` | Active | Runtime loading landed this round: `i18n/meson.build` compiles each checked-in `.ts` catalog to a `.qm` with `lrelease`, and `installStudioTranslations` resolves and installs the catalog with `QTranslator`, falling back from the exact locale to the base language to the source language and applying layout direction per locale. `lrelease` is optional, so a toolchain without it still builds and simply runs in the source language. Locale preference storage, pseudo-localization, RTL smoke, `QLocale` formatting, pluralization and expansion samples, stale/untranslated reporting, and dry-run `lupdate` validation remain active; finished translations are still seed catalogs. |
 | Asset index/search | [SQLite](https://sqlite.org/) through [Qt SQL](https://doc.qt.io/qt-6/qtsql-index.html), with [FTS5](https://sqlite.org/fts5.html) where available | Planned | Lightweight local database for project metadata, dependencies, search, diagnostics, and recent activity. |
 | CLI parser | Lightweight Qt `QStringList` router with in-process command registry; [CLI11](https://github.com/CLIUtils/CLI11) deferred | Active | Current router keeps project/package/install/asset/map/shader/sprite/code/extension/compiler/AI/credits subcommands dependency-free with JSON output, quiet/verbose/watch/task-state switches, stable exit codes, and testable command metadata through `cli commands`; CLI11 remains deferred until shell completion and broader validation justify the dependency. |
-| Level compilers | VibeStudio's own VibeMap2 (derived from ericw-tools) and VibeMap3 (continuing q3map2 from NetRadiant Custom), plus ZDBSP and ZokumBSP, as Git submodules run as separate processes | Active (integration Partial) | Owning the Quake-family compilers lets fixes land in the compiler instead of only in wrapper workarounds, while process execution keeps every compiler outside VibeStudio's binaries. Profiles, discovery and pipelines target them; no VibeMap2/VibeMap3 end-to-end proof has run inside VibeStudio yet. See [Compiler Integration](COMPILER_INTEGRATION.md#vibestudio-compilers). |
-| Task execution | Qt `QProcess`, threads, signals, and a VibeStudio task model | Active/planned | The reusable operation-state model, shell activity center, compiler process runner, captured logs, cancellation plumbing, and run manifests are active; broader thread-pool/future integration is planned. |
+| Level compilers | SlopStudio's own SlopMap2 (derived from ericw-tools) and SlopMap3 (continuing q3map2 from NetRadiant Custom), plus ZDBSP and ZokumBSP, as Git submodules run as separate processes | Active (integration Partial) | Owning the Quake-family compilers lets fixes land in the compiler instead of only in wrapper workarounds, while process execution keeps every compiler outside SlopStudio's binaries. Profiles, discovery and pipelines target them; no SlopMap2/SlopMap3 end-to-end proof has run inside SlopStudio yet. See [Compiler Integration](COMPILER_INTEGRATION.md#slopstudio-compilers). |
+| Task execution | Qt `QProcess`, threads, signals, and a SlopStudio task model | Active/planned | The reusable operation-state model, shell activity center, compiler process runner, captured logs, cancellation plumbing, and run manifests are active; broader thread-pool/future integration is planned. |
 | External change detection | `QFileSystemWatcher` hints plus authoritative fingerprint polling in `src/core/document_watch.{h,cpp}` | Active | Added this round. The open map, package, and code-editor file are registered by role; a SHA-1 content fingerprint decides what actually changed, and filesystem notifications are treated only as a reason to re-check. The class declares no `Q_OBJECT`, so core still needs no moc, and the shell drives `poll()` from a timer it already owns. |
 | Package/archive layer | PakFu-derived C++ services plus focused format readers and deterministic writers | Active | Package/archive interfaces, virtual path safety, read-only folder/PAK/WAD/ZIP/PK3 entry readers, text/image/model/audio/script metadata previews, safe extraction reports, staged write-back, package manifests, and deterministic PAK/ZIP/PK3/WAD save-as writers are active. `src/core/package_compare.{h,cpp}` added entry-by-entry comparison of two packages, or of a package against a staged plan, this round. |
 | Package publication | Qt Core `QTemporaryFile`, `QSaveFile`, `QLockFile`, SHA-256 and JSON recovery journals | Active | `core/package_publication` reserves output exclusively, verifies bytes, atomically publishes new files without overwrite or replaces an existing package without first moving it away, and preserves an independent original copy. Bounded GUI/CLI folder discovery finds journal metadata; selected recovery verifies content, reports cancellable progress and finishes backup publication using a reviewed journal checksum. Actual package saves remember a bounded output-folder history before writing. No direct-write fallback or new dependency. Cooperating saves are serialized; external writers, power loss and network filesystems remain release-audit boundaries. |
 | Package source identity | Qt Core SHA-256 and a verified read-only `QIODevice` in `core/package_content` | Active | Full-file and 64 KiB chunk hashes detect changed inputs even with preserved size/timestamps. GUI opening, file staging and installation palette reads use cancellable workers. Package metadata previews use one coalescing Qt worker with immutable exact-entry requests, streamed sampling, Cancel/Retry and stale-result rejection. Hashes cost 32 bytes per chunk; payloads remain on disk. Archive/folder opens cap aggregate fingerprints at 64 MiB, alongside 250,000 records/implied folders, 64 MiB logical index metadata and 128 path components. ZIP central records stream through an independent verified chunk cache; directory parsing and preparation expose cancellation/progress. Combined sessions share those budgets across at most 64 layers, including hidden records and relocated paths; multi-folder map texture lookup uses the same admission. Staged documents now separately admit 256 MiB of retained generated bytes and 128 MiB of payload hashes across base, operations and history; draft objects share hashes by content identity. Retained document metadata also admits 1,000,000 logical records and 128 MiB of index/text across base, operations and history; Undo/redo slots stay reserved and draft metadata is checked before payload reads. General reader snapshots and staged folder projections now share 250,000-record/64 MiB text/128-component admission with cancellable preparation, stable entry indexes and explicit GUI/CLI refusal. Known archive wrappers freeze/flatten their backing. Internal plan construction, per-edit projection admission, remaining synchronous view preparation and process-wide accounting remain separate work. This adds no dependency and does not provide a filesystem snapshot or persistent editing storage. |
 | Temporary package copies | `core/package_copy`, shared streamed extraction and Qt workers | Active; native acceptance pending | Exact planned selections, bounded batch admission, empty folders, verified publication and owned temporary lifetimes serve drag-out and disk-based authoring handoffs. Cancel or failure exposes no handoff paths. Preparation keeps quota tokens pending through the UI adoption decision; a worker then discards the batch or commits its reservations. Completed saves and extraction keep authoritative output reports. Shared `core/package_copy_budget` reservations cap initial per-window bytes/files/entries/batches, including pending work; the GUI and strict `package copy-limits` CLI share policy settings. Failed cleanup stays charged. Managed `core/package_copy_store` sessions reuse native directory ownership, bounded metadata review, explicit orphan discard and a dedicated cleanup pool. GUI and strict CLI review share the service; both discard modes exclude live owners. The same native service serializes durable cross-process reservations on a separate coordinator directory; checksummed version-2 records retain pending, completed and failed-cleanup charges through crashes. The physical store owns a checksum-reviewed shared policy, exposed by the GUI and `package copy-store-limits` without preference migration. Native drag, later consumer growth and broader shutdown acceptance remain open. No new dependency. |
-| Package editing documents | `core/package_draft`, immutable content-addressed files, atomic Qt metadata commits, and bounded delta history | Active, incomplete | Portable `.vibepackage` directories preserve source content, staged operations and 256 undo/redo groups. GUI workers and draft CLI routes share verification and publication. Metadata is capped at 32 MiB/250,000 records. The shared planned-view adapter supplies browsing, previews, validation and extraction, including conflict inspection and exact row previews. Version 2 drafts retain ordinal-based edits; version 1 is readable. Source-free new documents and atomic folder edits share core services across GUI/CLI. Draft dry runs stream/hash the same payloads without writing. Live file imports stream verified independent temporary copies whose shared owners retain undo/worker readers and queue cleanup on a dedicated Qt pool drained before application exit; read-only CLI plans explicitly avoid temporary writes. Managed working sessions now reserve bytes and file slots before copying, retain live-reader leases, and expose configurable limits, bounded usage review and explicit crash-orphan discard through shared GUI/CLI services. Automatic local checkpoints reuse this format with session leases, a coalescing Qt worker, metadata inventory, verified restore and guarded discard. Post-commit compaction reclaims unreachable recovery objects. Shared storage scans bound recovery bytes/copy count, including temporary writes; reviewed storage fingerprints permit incomplete-copy cleanup without recursive deletion or automatic eviction. Saved drafts now have per-directory byte/file limits and reviewed unused-object compaction. Native directory leases preserve document/history/worker readers without creating files. Exact occurrence subsets now use core/package_selection and core/package_subset with immutable reader indexes, WAD group expansion and a shared GUI/CLI review. The shared core/package_wad_groups scanner also supplies fingerprint-bound inventories and atomic map/GL renames or complete group deletions, using existing history/draft operations and a worker-backed GUI review. New and opened WAD documents save their reviewed positional plan, including source-free drafts and subsets. Dependency rewrites, broader performance and native/filesystem verification remain release gates. Uses Qt Core and guarded operating-system APIs; no new bundled dependency. |
+| Package editing documents | `core/package_draft`, immutable content-addressed files, atomic Qt metadata commits, and bounded delta history | Active, incomplete | Portable `.sloppackage` directories preserve source content, staged operations and 256 undo/redo groups. GUI workers and draft CLI routes share verification and publication. Metadata is capped at 32 MiB/250,000 records. The shared planned-view adapter supplies browsing, previews, validation and extraction, including conflict inspection and exact row previews. Version 2 drafts retain ordinal-based edits; version 1 is readable. Source-free new documents and atomic folder edits share core services across GUI/CLI. Draft dry runs stream/hash the same payloads without writing. Live file imports stream verified independent temporary copies whose shared owners retain undo/worker readers and queue cleanup on a dedicated Qt pool drained before application exit; read-only CLI plans explicitly avoid temporary writes. Managed working sessions now reserve bytes and file slots before copying, retain live-reader leases, and expose configurable limits, bounded usage review and explicit crash-orphan discard through shared GUI/CLI services. Automatic local checkpoints reuse this format with session leases, a coalescing Qt worker, metadata inventory, verified restore and guarded discard. Post-commit compaction reclaims unreachable recovery objects. Shared storage scans bound recovery bytes/copy count, including temporary writes; reviewed storage fingerprints permit incomplete-copy cleanup without recursive deletion or automatic eviction. Saved drafts now have per-directory byte/file limits and reviewed unused-object compaction. Native directory leases preserve document/history/worker readers without creating files. Exact occurrence subsets now use core/package_selection and core/package_subset with immutable reader indexes, WAD group expansion and a shared GUI/CLI review. The shared core/package_wad_groups scanner also supplies fingerprint-bound inventories and atomic map/GL renames or complete group deletions, using existing history/draft operations and a worker-backed GUI review. New and opened WAD documents save their reviewed positional plan, including source-free drafts and subsets. Dependency rewrites, broader performance and native/filesystem verification remain release gates. Uses Qt Core and guarded operating-system APIs; no new bundled dependency. |
 | Package browser | Qt Widgets list/tree models and a coalescing Qt worker | Active; broader scale/native acceptance pending | `core/package_browser` indexes admitted metadata and filters with shared query semantics and cancellation. `app/package_entry_view` exposes all matches through uniform batched Qt layout, on-demand roles, exact indexes, progress, Cancel/Retry and stale-result rejection. The same worker caches sorted folder relationships, path lookup and composition totals; `app/package_folder_view` exposes native tree roles on demand. Folder edits use revision-bound tree identity while entry filtering is pending. `app/package_staging_view` shares prepared operation/conflict vectors, uses batched fixed-height change rows and formats visible presentation on demand; wrapped overview/composition and a resizable full-details pane preserve review. Exact IDs/occurrences drive actions. Other projection handoffs, whole-shell latency and process-memory totals remain open. Uses existing Qt Core/Widgets; no new library or CLI command. |
 | Package extraction | Shared positional streaming in `core/package_extraction`, Qt temporary files and owned GUI worker | Active | Stored/DEFLATE and staged inputs stream without whole-file buffers. Namespace preflight rejects collisions, links and source destinations; files publish atomically after content validation. Cancel discards the current file and preserves completed files. No new dependency. Planned snapshots support exact entry selectors and relative output mappings, reviewed in a Qt GUI table or supplied through the CLI. |
 | Compression codec | In-tree DEFLATE in `src/core/deflate.{h,cpp}`; zlib and miniz declined | Active | Chosen this round over adding a third-party codec. Reading real PK3s requires inflate, and writing them well requires deflate, but a bundled or system compression library costs a packaging story, a license entry, and a platform matrix on every target. The implementation follows RFC 1951, RFC 1950, and the ZIP appnote's CRC-32, is bounds-checked against hostile input, and is deterministic so archives reproduce. The encoder gained dynamic-Huffman blocks and a `DeflateLevel::Best` level this round: every level except `Store` now measures a stored, a fixed-Huffman, and a dynamic-Huffman encoding of each block and keeps the smallest, so a block is never larger than storing its bytes would be. Entries that would not shrink are stored verbatim instead. |
 | Level-map services | Native C++ parser/editor model over Doom WAD lumps and Quake-family `.map` text | Active | Provides shared GUI/CLI map inspection, entity/texture/statistics/validation surfaces, map creation, undo/redo, worker-based atomic saves with backups and source conflicts, local recovery checkpoints, and compiler profile handoff without adding a rendering dependency yet. |
-| Entity definitions | `src/core/entity_definitions.{h,cpp}` reading Radiant `.def`/`.qc`, Valve `.fgd`, and Quake III `.ent` text | Active | Added this round. A classname alone tells the studio nothing, so the catalogue supplies key types, defaults, spawnflag bit names, sizes, colours, and base-class inheritance, and `validateLevelMapEntities` checks a map against it. No game's definitions ship with VibeStudio; the parser reads whatever the user points it at. |
+| Entity definitions | `src/core/entity_definitions.{h,cpp}` reading Radiant `.def`/`.qc`, Valve `.fgd`, and Quake III `.ent` text | Active | Added this round. A classname alone tells the studio nothing, so the catalogue supplies key types, defaults, spawnflag bit names, sizes, colours, and base-class inheritance, and `validateLevelMapEntities` checks a map against it. No game's definitions ship with SlopStudio; the parser reads whatever the user points it at. |
 | Advanced Studio services | Native C++ services for shader scripts, sprite workflow plans, code indexing, extension manifests, and staged AI creation proposals | Active | Provides shared GUI/CLI coverage for idTech3 shader graph data, stage edits, mounted texture validation, Doom/Quake sprite planning, source tree diagnostics, extension trust/sandbox command plans, and reviewable prompt-to-creation workflows without new dependencies. |
 | 2D editor rendering | Custom `QWidget` subclasses painted with `QPainter` | Active | Chosen this round over Qt Graphics View and over an early GPU backend. The map viewport, image and palette views, waveform view, and the composition/pipeline/timeline charts are all hand-painted widgets, so 2D rendering needs no Qt module beyond Widgets and no third-party renderer. |
 | Texture authoring/export | Bounded native C++ document/profile services and Qt Widgets | Active | Layers, checksummed projects/recovery, CPU paint/transforms and nine GUI/CLI output profiles share validation and guarded publication. Original native encoders generate previewable indexed mips; explicit indexed PNG uses existing Qt compression/core CRC. Optional external Pillow verifies raster fixtures; it is not bundled or required. No new runtime library or rendering backend. WAD2/Doom namespace staging, CLI package drafts, level/model material handoffs and external compiler acceptance use existing services. Project preparation is cancellable; final publication rechecks destination identity. Release evidence and limits are tracked in [Texture Editor](TEXTURE_EDITOR.md). |
@@ -308,12 +308,12 @@ library or new dependency was introduced. See [Level Editor](LEVEL_EDITOR.md).
 | AI connector layer | Provider-neutral connector/model metadata plus manifest-backed workflow experiments | Active experimental | Lets users route reasoning, coding, image, audio, voice, 3D, and agentic workflows through OpenAI, Claude, Gemini, ElevenLabs, Meshy, local/offline models, or future connectors while keeping credentials redacted and outputs staged. |
 | First AI provider | OpenAI connector scaffold, with future provider calls following [Responses](https://platform.openai.com/docs/api-reference/responses) and [tools/function calling](https://developers.openai.com/api/docs/guides/tools) patterns | Active experimental | Text questions, structured output and pictures are sent over Qt Network after opt-in; tool calling through the Responses API remains planned. |
 | Generative AI | Native Qt Network transports: structured JSON output for OpenAI-compatible endpoints, Claude and Gemini; image generation through OpenAI's Images API, Gemini image output and the Stable Diffusion web UI API; sound effects through ElevenLabs' API; deterministic level, texture and sound generators and schema-checked map edits that use them | Active experimental | Level plans, map edits, textures and sounds come from the user's chosen providers (or local runtimes) through the same opt-in, consent, preview and redaction rules as the Assistant, while the rules planner, picture-based texture path, saved proposals and the sound synthesizer keep every generator complete without AI. Text can also reach Claude Code and Codex through the user's own login, a custom command, or an optional in-process GGUF runtime (`-Dggml=enabled`). No new required dependencies. |
-| Tests | Meson tests, Qt Test, focused executable tests, parser fixtures, and deterministic parser fuzzing | Active | Scales from smoke tests to parser safety, CLI parity, package safety, and editor regression coverage. Fuzzing: `src/core/parser_fuzz.{h,cpp}` generates the corpus and the `parser-fuzz-smoke` and `corrupt-fixture-smoke` tests run it. Qt Test: `shell-interaction-smoke` links the `vibestudio_app` static library and drives the real window offscreen; a Qt install without the Test module skips that one test. |
+| Tests | Meson tests, Qt Test, focused executable tests, parser fixtures, and deterministic parser fuzzing | Active | Scales from smoke tests to parser safety, CLI parity, package safety, and editor regression coverage. Fuzzing: `src/core/parser_fuzz.{h,cpp}` generates the corpus and the `parser-fuzz-smoke` and `corrupt-fixture-smoke` tests run it. Qt Test: `shell-interaction-smoke` links the `slopstudio_app` static library and drives the real window offscreen; a Qt install without the Test module skips that one test. |
 | Packaging | PakFu-style scripts, Qt deployment tools, GitHub Actions artifacts | Portable staging and Windows runtime/source pairing active | Windows tooling verifies the selected Qt runtime, original notices, captured build and matching source ZIP. macOS/Linux native deployment, signing, clean-machine acceptance and release publication remain open. |
 
 ## Core Application Stack
 
-Use C++20 and Qt 6 as the durable foundation. VibeStudio is a native desktop
+Use C++20 and Qt 6 as the durable foundation. SlopStudio is a native desktop
 tool with large projects, binary formats, compiler orchestration, custom
 viewports, and low-latency editor interactions; C++ and Qt are the right center
 of gravity for that work.
@@ -337,14 +337,14 @@ Qt-provided notification to reuse.
 The core library stays moc-free. It links Qt Core and Gui only
 (`qt6_core_modules` in the top-level `meson.build`), declares no `Q_OBJECT`, and
 translates through `QCoreApplication::translate` with explicit context strings
-such as `VibeStudioIdTechImage`. Keeping the boundary there means core stays
+such as `SlopStudioIdTechImage`. Keeping the boundary there means core stays
 usable from the CLI and from tests without dragging in the widget stack.
 
 The five core modules added this round hold that line. `model_mesh`,
 `entity_definitions`, `package_compare`, `document_watch`, and `parser_fuzz` are
 all in `core_sources` and link nothing beyond Qt Core and Gui; they translate
-through `VibeStudioModelMesh`, `VibeStudioEntityDefinitions`,
-`VibeStudioPackageCompare`, and `VibeStudioDocumentWatch` contexts, except
+through `SlopStudioModelMesh`, `SlopStudioEntityDefinitions`,
+`SlopStudioPackageCompare`, and `SlopStudioDocumentWatch` contexts, except
 `parser_fuzz`, whose case ids are untranslated diagnostic tokens meant for a
 test log. Gui is what lets `model_mesh` hand back a decoded skin as a `QImage`,
 the same reason `idtech_image` needs it. `DocumentWatcher` is the interesting
@@ -354,7 +354,7 @@ core out of the moc step and also lets a smoke test drive the whole state
 machine through `pollAt()` with no event loop and no real time passing.
 
 Meson and Ninja remain canonical. Do not add CMake as a parallel first-class
-build system for VibeStudio-owned code. External compiler projects may keep
+build system for SlopStudio-owned code. External compiler projects may keep
 their upstream build systems until a wrapper or import strategy is documented.
 
 ## UI And UX Stack
@@ -570,7 +570,7 @@ installation profiles, and the current project path through shared GUI/CLI
 services. Settings must be exportable enough for support and issue reports
 without exposing secrets.
 
-Project manifests use `.vibestudio/project.json` at the project root. The active
+Project manifests use `.slopstudio/project.json` at the project root. The active
 schema stores a version, project ID, display name, source folders, package
 folders, output/temp folders, optional selected installation ID, project-local
 settings overrides, compiler executable search paths/overrides, registered
@@ -581,7 +581,7 @@ Editor profiles are registry-backed routed MVP presets with a settings-backed
 global selection and project-local override path. The active schema records
 layout, camera, selection, grid, terminology, default panels, workflow notes,
 surface-scoped bindings, stable command IDs, and conflict smoke coverage for
-the VibeStudio default, GtkRadiant 1.6.0-style, NetRadiant Custom-style,
+the SlopStudio default, GtkRadiant 1.6.0-style, NetRadiant Custom-style,
 TrenchBroom-style, and QuArK-style workflows. Full camera behavior and deep
 profile-fidelity audits remain planned.
 
@@ -596,9 +596,9 @@ Compiler registry data is now modeled as descriptors over imported compiler
 submodules, expected executable names/build paths, capability flags, user
 executable overrides, and project-local executable overrides. Discovery checks
 source directories, known build-output paths, extra search paths, overrides,
-and PATH, and registry reports can run short version/help probes. VibeMap2
-`vibemap2-bsp`, `vibemap2-vis`, and `vibemap2-light`, ZDBSP/ZokumBSP
-node-builder profiles, and VibeMap3 probe/BSP profiles can produce command
+and PATH, and registry reports can run short version/help probes. SlopMap2
+`slopmap2-bsp`, `slopmap2-vis`, and `slopmap2-light`, ZDBSP/ZokumBSP
+node-builder profiles, and SlopMap3 probe/BSP profiles can produce command
 plans with arguments, working directory,
 expected output, warnings, and readiness. Plans and runs emit
 schema-versioned JSON command manifests with command/environment details,
@@ -699,7 +699,7 @@ for a given input and level, which is what lets the package writers produce
 reproducible archives.
 
 The encoder caught up with the decoder this round. Both now handle stored,
-fixed-Huffman, and dynamic-Huffman blocks, so VibeStudio reads anything a normal
+fixed-Huffman, and dynamic-Huffman blocks, so SlopStudio reads anything a normal
 ZIP tool writes and no longer has to give up ratio to emit it. `deflateRaw`
 tokenizes each chunk once, then measures a stored, a fixed-Huffman, and a
 dynamic-Huffman encoding of it in bits and writes whichever is smallest, with
@@ -754,14 +754,14 @@ dry-run `lupdate` extraction validation, and a source scan that fails on
 literals hidden from `lupdate` inside translation helpers.
 
 Catalogs are compiled, not shipped as source. `i18n/meson.build` runs `lrelease`
-over every checked-in `vibestudio_<locale>.ts` and writes the `.qm` into the
-build directory, installing it under `<datadir>/vibestudio/i18n`. `lrelease` is
+over every checked-in `slopstudio_<locale>.ts` and writes the `.qm` into the
+build directory, installing it under `<datadir>/slopstudio/i18n`. `lrelease` is
 looked up with `required: false`: a toolchain without Qt Linguist tools still
 builds, and the application runs in the source language rather than failing.
 
 At run time `installStudioTranslations` in `src/app/studio_runtime.cpp` resolves
 a catalog and installs it with `QTranslator`. It searches the
-`VIBESTUDIO_I18N_DIR` override first, then the development, installed, and
+`SLOPSTUDIO_I18N_DIR` override first, then the development, installed, and
 portable layouts relative to the executable, then the working directory, and it
 falls back from the requested locale to the base language to `en`. The matching
 Qt base catalog is installed alongside it when one is present, and layout
@@ -977,7 +977,7 @@ version 2 persistence. GUI and `asset audio-markers` share it without another
 dependency. Quake/II legacy cues are explicit delivery behavior; DMX omits
 markers. Compressed editing remains planned.
 
-Prefer native idTech parsers for core formats. VibeStudio must understand WAD,
+Prefer native idTech parsers for core formats. SlopStudio must understand WAD,
 PAK, PK3, BSP, MAP, shader scripts, palettes, sprites, textures, model formats,
 and compiler outputs on their own terms.
 
@@ -1005,7 +1005,7 @@ Use optional helper libraries where they expand workflows without weakening
 format fidelity:
 
 - Qt image APIs for standard image loading and conversion.
-- Qt image APIs plus VibeStudio palette metadata for texture previews, crop,
+- Qt image APIs plus SlopStudio palette metadata for texture previews, crop,
   resize, grayscale/indexed conversion, and batch output queues.
 - Qt Multimedia for simple playback and device integration: the Audio page
   plays through it when the build has the module, and core decides what a
@@ -1041,9 +1041,9 @@ format fidelity:
 ## AI Automation Stack
 
 AI features are optional, disabled by default, and safe-by-design, but the
-product architecture should be AI-native. VibeStudio should treat generative and
+product architecture should be AI-native. SlopStudio should treat generative and
 agentic AI as a core acceleration layer that can plan, draft, explain, generate,
-validate, and repeat workflows through explicit VibeStudio tools.
+validate, and repeat workflows through explicit SlopStudio tools.
 
 The active MVP slice stores global AI-free mode, cloud-connector opt-in,
 agentic-workflow opt-in, provider preferences, configurable model preferences,
@@ -1054,7 +1054,7 @@ services, the GUI inspector/preferences surface, CLI text/JSON, and smoke
 tests. Text questions reach providers through `core/ai_transport` over Qt
 Network: OpenAI-compatible Chat Completions (OpenAI, and local runtimes such as
 Ollama), Anthropic's Messages API, and Gemini's generateContent, shared by the
-Assistant panel and `vibestudio --cli ai ask`. Nothing is sent in AI-free mode,
+Assistant panel and `slopstudio --cli ai ask`. Nothing is sent in AI-free mode,
 the default.
 
 Use Qt Network and provider-specific HTTP/streaming adapters before introducing
@@ -1067,7 +1067,7 @@ reporting, and privacy notes.
 
 OpenAI is the first general-purpose connector scaffold. Future networked
 provider calls should follow the Responses API and tool-calling pattern so
-VibeStudio can expose a small, reviewable set of actions.
+SlopStudio can expose a small, reviewable set of actions.
 
 AI tools must route through normal services: project summary, package metadata
 search, compiler profile listing, command proposal, staged text edits, staged
@@ -1080,7 +1080,7 @@ cost/usage placeholders. AI must not write directly to project files, packages,
 compiler outputs, settings, or source trees without a preview and explicit user
 approval.
 
-Extension integration starts with `vibestudio.extension.json` manifests parsed
+Extension integration starts with `slopstudio.extension.json` manifests parsed
 through the same C++/Qt service layer. The active model records schema version,
 trust level, sandbox model, capabilities, command descriptors, reviewed command
 plans, dry-run defaults, and extension-generated staged files before any command
@@ -1100,7 +1100,7 @@ was: a model plans through the studio's own text connectors (local
 OpenAI-compatible servers included), including the Local GGUF connector,
 whose runtime (`core/ai_gguf_runtime`) is derived from that backend, behind
 the same consent and AI-free rules. Neither ggml nor llama.cpp is a required
-VibeStudio dependency.
+SlopStudio dependency.
 
 Text connectors have three transports (decided 2026-10-22): HTTP; command-line
 harnesses (Claude Code and Codex through the user's own subscription login, and
@@ -1120,21 +1120,21 @@ explicitly credited forks. Invoke compilers through wrapper services that
 capture command manifests, environment, progress, stdout/stderr, diagnostics,
 outputs, and exit state.
 
-Decision (2026-10-08): the Quake-family compilers are VibeStudio's own forks,
-VibeMap2 (`external/compilers/vibemap2`, derived from ericw-tools) and VibeMap3
-(`external/compilers/vibemap3`, continuing q3map2 from NetRadiant Custom),
+Decision (2026-10-08): the Quake-family compilers are SlopStudio's own forks,
+SlopMap2 (`external/compilers/slopmap2`, derived from ericw-tools) and SlopMap3
+(`external/compilers/slopmap3`, continuing q3map2 from NetRadiant Custom),
 replacing the stock ericw-tools and NetRadiant Custom q3map2 submodules. They
-are developed as part of the VibeStudio project, stay separate GPL executables,
-and are discovered under their own names (`vibemap2-*`, `vibemap3`) and their
+are developed as part of the SlopStudio project, stay separate GPL executables,
+and are discovered under their own names (`slopmap2-*`, `slopmap3`) and their
 pre-rename names (`vmt-*`, `q3mapx`). Stock tools remain usable through explicit
 executable overrides. ZDBSP and ZokumBSP are unchanged. Fork URLs, pins and the
 planned repository renames are in
-[Compiler Integration](COMPILER_INTEGRATION.md#vibestudio-compilers).
+[Compiler Integration](COMPILER_INTEGRATION.md#slopstudio-compilers).
 
-VibeStudio-owned compiler orchestration should not depend on a GUI. Every
+SlopStudio-owned compiler orchestration should not depend on a GUI. Every
 compiler run must be reproducible from the CLI.
-The active wrapper slices define VibeMap2, Doom-family node-builder, and
-VibeMap3 command profiles with CLI command planning, manifest writing/loading,
+The active wrapper slices define SlopMap2, Doom-family node-builder, and
+SlopMap3 command profiles with CLI command planning, manifest writing/loading,
 run/rerun execution, copyable command lines, output registration, and GUI
 readiness/run summaries by engine/stage. Process execution captures
 stdout/stderr, parsed diagnostics, duration, exit code, file hashes, and
@@ -1164,7 +1164,7 @@ layouts; neither embeds or reads commercial game data.
 Tests that check what the 3D renderer draws call
 `exitCodeWithoutRenderer()` from `src/tests/render_test_support.h`: where
 neither OpenGL nor Vulkan starts they skip (exit 77), or skip only their
-drawing checks, and with `VIBESTUDIO_RENDER_REQUIRE=1` a missing renderer is a
+drawing checks, and with `SLOPSTUDIO_RENDER_REQUIRE=1` a missing renderer is a
 failure instead. Most tests run on Qt's offscreen platform, where only Vulkan
 draws on Windows and macOS. Hosted runners have no GPU, so CI gives the Linux
 and Windows jobs Mesa's lavapipe, a Vulkan driver that runs on the processor,
@@ -1172,7 +1172,7 @@ and sets the variable, so every drawing check runs there. Linux installs
 `mesa-vulkan-drivers`; Windows runs `scripts/install_software_vulkan.py`,
 which fetches LunarG's Vulkan loader and a mesa-dist-win build of lavapipe,
 both pinned by version and SHA-256, and points `VK_DRIVER_FILES` at lavapipe's
-manifest; then `vibestudio --cli render backends --json` must report Vulkan as
+manifest; then `slopstudio --cli render backends --json` must report Vulkan as
 the active renderer before the tests start. The same script sets lavapipe up
 on any Windows machine without a GPU. Hosted macOS runners still skip the
 drawing checks. `render-device-smoke` compares the backends with
@@ -1212,7 +1212,7 @@ The active packaging and release validation scripts are
 `scripts/validate_credits.py`, validated locally and in PR CI. They create
 versioned Windows, macOS, and Linux staging directories plus optional zips with
 the built binary, documentation, generated offline guide, platform smoke notes,
-samples, checksums, copied VibeStudio/imported-compiler license files,
+samples, checksums, copied SlopStudio/imported-compiler license files,
 schema-versioned package manifests, and checked attribution/submodule revision
 pins. `scripts/build_release.py` and `scripts/package_windows_release.py` add
 fresh-build evidence, Windows Qt deployment, runtime checks and matching source
@@ -1246,7 +1246,7 @@ and writes release notes. `.github/workflows/release.yml` builds and tests every
 platform, then publishes on a `v<VERSION>` tag or a dispatched run. Native
 packaging per platform: an Inno Setup 6 installer plus the verified portable ZIP
 on Windows (`scripts/package_windows_installer.py`), a `macdeployqt`-deployed,
-ad-hoc-signed `VibeStudio.app` in a create-dmg disk image on macOS
+ad-hoc-signed `SlopStudio.app` in a create-dmg disk image on macOS
 (`scripts/package_macos_app.py`), and a linuxdeploy AppImage built from
 `meson install --destdir` on Linux (`scripts/package_appimage.py`, using the
 desktop integration in `packaging/`). Decisions: keep Meson as the only build
@@ -1268,7 +1268,7 @@ The active About/Credits/license surface is backed by structured metadata in
 `--about`/`about` commands, and points to `LICENSE`, `docs/CREDITS.md`,
 `docs/DEPENDENCIES.md`, and `docs/PACKAGING.md`.
 
-Every release artifact must include VibeStudio license text, third-party
+Every release artifact must include SlopStudio license text, third-party
 license files, compiler/toolchain attribution, and a generated credits bundle.
 
 ## Explicit Non-Goals
@@ -1343,7 +1343,7 @@ or separate document/history implementation is introduced.
 ## Shared formats and portable workspaces (2026-10-05)
 
 Native workspace persistence uses bounded Qt JSON, `QLockFile`, SHA-256,
-`QSaveFile` and no-replace publication. `.vibeworkspace` v1 links existing
+`QSaveFile` and no-replace publication. `.slopworkspace` v1 links existing
 project/module documents; it adds no database or archive dependency. The format
 catalog supplies GUI classification/import filters and CLI capability reporting.
 PakFu-derived DDS, FTX and SWL codecs integrate into the existing QImage pipeline;

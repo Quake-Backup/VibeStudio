@@ -10,7 +10,7 @@
 #include <QStackedWidget>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 LevelComponentTransformDialog::LevelComponentTransformDialog(const LevelComponentTransformRequest& initial,
 	const LevelMapVec3& centre, QWidget* parent) : QDialog(parent)
 {
@@ -122,4 +122,4 @@ void LevelComponentTransformDialog::setScopeSummary(const QString& text)
 {
 	m_scope->setText(text); m_scope->setAccessibleDescription(text); m_scope->setVisible(!text.isEmpty());
 }
-} // namespace vibestudio
+} // namespace slopstudio

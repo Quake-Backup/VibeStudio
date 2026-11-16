@@ -138,7 +138,7 @@ issues; tag anchors).
 
 **Delivery targets, detail levels, skin variants and Quake III player packages
 (2026-10-23).** Gaps FMT-06, ATT-LOD-02, UVSKIN-10 and ATT-PLAYER-01 to 03.
-Status: Partial. Everything is checked against VibeStudio's own decoders, the public
+Status: Partial. Everything is checked against SlopStudio's own decoders, the public
 engine sources and one Quake III loader oracle; nothing has engine or
 real-project acceptance yet.
 
@@ -2122,8 +2122,8 @@ shader. Shader availability in the user's project remains unverified.
 
 The generated compiler workflow exercises source import, collision authoring,
 texture export, map export and placement, then runs real Quake-family compilers
-(stock ericw-tools and q3map2 in the recorded runs; not yet rerun with VibeMap2
-and VibeMap3).
+(stock ericw-tools and q3map2 in the recorded runs; not yet rerun with SlopMap2
+and SlopMap3).
 Independent BSP readers verify empty Quake draw-hull points and solid expanded
 hulls at the boxes, Quake II/III player-clip contents, leaf references, rotated
 plane membership and absence of visible clip faces. It uses original assets,
@@ -2295,7 +2295,7 @@ fingerprint after save/reopen; all poses and dense edge selection after restorin
 an unsaved recovery draft; the selected pose and geometry counts after OBJ
 export/reimport; and unchanged source bytes, selection and revision after
 cancelled serialization. It records completion times separately from event-loop
-gaps, supports the optional `VIBESTUDIO_MODELLER_MAX_DOCUMENT_GAP_MS` budget,
+gaps, supports the optional `SLOPSTUDIO_MODELLER_MAX_DOCUMENT_GAP_MS` budget,
 and keeps all fixture files in an automatically removed test directory.
 The source is 25,798,374 bytes, the recovery payload envelope is 28,471,880 bytes,
 and the OBJ frame is 12,613,830 bytes. The 64 MiB serialized limit remains separate
@@ -2617,7 +2617,7 @@ paths without reading payloads; changed package revisions invalidate open
 selections. Immutable snapshots, bounded verified reads, native image decoding
 and candidate edits run through the normal cancellable document worker. CLI
 skin operations share the service and accept archives, folders and portable
-`.vibepackage` drafts. Outputs cannot replace their package/draft inputs.
+`.sloppackage` drafts. Outputs cannot replace their package/draft inputs.
 
 Indexed PNG, PCX, Quake LMP/miptextures, WAL and M8 preserve their actual source
 indices. Embedded palettes are authoritative; external palettes use strict
@@ -3099,7 +3099,7 @@ MDM/MDX, MDR, Ghoul 2 GLM/GLA, IQM, MD5 mesh and animation, LightWave LWO, ASE,
 Half-Life MDL and KVX, with companion-file lookup, a shared skeleton model and
 MD5, IQM and ASE writers; `.mesh.json` version 8 keeps skeletons. The Mesh
 Editor gains the level editor's sidebar layout, one or four views, and
-VibeStudio, Blender, 3ds Max and MilkShape 3D controls profiles with
+SlopStudio, Blender, 3ds Max and MilkShape 3D controls profiles with
 customisation, sharing and CLI parity. See [Native Model Formats](MODEL_FORMATS.md)
 and [Modeller Profiles](MODELLER_PROFILES.md).
 
@@ -3111,7 +3111,7 @@ conflict check. The existing modeller suites pass with the new layout,
 including 200% text, RTL, expanded translations and both high-contrast themes.
 
 Still open: no decoder has been run against real game files; no MD5, IQM or ASE
-export has been loaded in Doom 3, Quake 4, ioquake3, VibeMap3 or q3map2. The later
+export has been loaded in Doom 3, Quake 4, ioquake3, SlopMap3 or q3map2. The later
 [skeleton authoring increments](MODEL_RIG.md) add joint, numeric weight and pose
 edits, followed by [staged weight painting](MODEL_WEIGHT_PAINT.md). Levels of
 detail beyond the first, game animation

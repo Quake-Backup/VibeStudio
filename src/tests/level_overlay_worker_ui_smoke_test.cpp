@@ -12,7 +12,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -158,7 +158,7 @@ int main(int argc, char** argv)
 	qputenv("QT_QPA_FONTDIR",QDir(qEnvironmentVariable("SystemRoot")).filePath("Fonts").toLocal8Bit());
 #endif
 	QApplication app(argc,argv); QApplication::setFont(QFont(QStringLiteral("Segoe UI")));
-	const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (!capture.isEmpty()) { QDir().mkpath(capture); }
 	bool ok = true; auto request = fixture(); const auto original = request.document;
 	MapViewportOverlayWorker worker; MapViewportOverlayResult last; int callbacks = 0; bool guiCallbacks = true;

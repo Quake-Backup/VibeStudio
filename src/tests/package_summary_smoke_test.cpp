@@ -10,7 +10,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -77,7 +77,7 @@ bool history(const QDir& root)
 	const auto summary = manifest.value("summary").toObject();
 	ok &= expect(summary.value("totalsAvailable").toBool() && summary.value("afterBytesExact").toString() == "5"
 		&& !summary.value("afterSizeOverflow").toBool(), "Manifest reports exact decimal totals with availability and overflow state.");
-	const QString draft = root.filePath("history.vibepackage"); PackageStagingModel reopened;
+	const QString draft = root.filePath("history.sloppackage"); PackageStagingModel reopened;
 	ok &= expect(PackageDraft::save(draft, &plan, false, &error) && PackageDraft::load(draft, &reopened, &error)
 		&& reopened.summary().afterBytes == 5 && reopened.redo() && reopened.afterComposition().at(1).id.startsWith("moved:"),
 		"Reopened drafts recompute summaries and retain redo semantics.");

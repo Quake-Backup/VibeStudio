@@ -5,7 +5,7 @@
 #include "core/map_geometry.h"
 #include <cmath>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline QByteArray transformFixture(const QString &kind)
 {
@@ -84,4 +84,4 @@ bool transformUvsMatch(const LevelMapBrush &before, const LevelMapBrush &after, 
 	}
 	return true;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

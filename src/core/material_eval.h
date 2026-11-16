@@ -27,7 +27,7 @@
 
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // --- Quake III ---------------------------------------------------------------
 
@@ -110,4 +110,4 @@ double quakeLightStyleValue(const QString& pattern, double time);
 // The raw Quake value: (c - 'a') * 22, 256 for an empty pattern.
 int quakeLightStyleRaw(const QString& pattern, double time);
 
-} // namespace vibestudio
+} // namespace slopstudio

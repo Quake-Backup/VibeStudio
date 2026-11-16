@@ -10,10 +10,10 @@
 #include <QStyle>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackageFolderModel final : public QAbstractItemModel {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioPackageFolders)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioPackageFolders)
 public:
 	explicit PackageFolderModel(QObject* parent) : QAbstractItemModel(parent) {}
 	std::shared_ptr<const PackageBrowserIndex> snapshot;
@@ -203,4 +203,4 @@ void PackageFolderView::changeEvent(QEvent* event)
 
 void PackageFolderView::refreshPresentation() { updateColumnWidth(currentIndex()); viewport()->update(); }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -20,7 +20,7 @@
 #include <cmath>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -410,4 +410,4 @@ void MaterialPropertyPanel::changeEvent(QEvent* event)
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

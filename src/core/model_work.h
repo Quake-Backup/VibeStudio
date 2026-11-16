@@ -3,7 +3,7 @@
 #include <QString>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelWorkPhase
 {
@@ -47,4 +47,4 @@ class ModelWorkProgress
 	QString *m_error;
 	qint64 m_completed = 0;
 };
-} // namespace vibestudio
+} // namespace slopstudio

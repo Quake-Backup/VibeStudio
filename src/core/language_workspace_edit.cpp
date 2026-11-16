@@ -12,7 +12,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString key(const QString& path)
 {
@@ -156,4 +156,4 @@ QByteArray languageWorkspaceEditPlanHash(const AssetTextSearchReport& report)
 	return QCryptographicHash::hash(QJsonDocument(plan).toJson(QJsonDocument::Compact), QCryptographicHash::Sha256);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

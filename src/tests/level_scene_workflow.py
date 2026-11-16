@@ -1,4 +1,4 @@
-"""Original scene -> model -> VibeMap3 -> package proof. No game or input control."""
+"""Original scene -> model -> SlopMap3 -> package proof. No game or input control."""
 from pathlib import Path
 import argparse
 import hashlib

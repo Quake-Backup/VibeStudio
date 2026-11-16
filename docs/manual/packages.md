@@ -20,7 +20,7 @@ opened stays unchanged until you save, and saving writes a new file unless you c
 | Doom IWAD and PWAD (`.wad`) | Yes | Yes | Keeps the lump order, including repeated map names. Lump names are at most 8 characters. |
 | Quake WAD2, Half-Life WAD3 (`.wad`, `.wad2`, `.wad3`) | Yes | Yes | Compressed lumps are listed but not read; saved lumps are uncompressed. |
 | ZIP and PK3 (`.zip`, `.pk3`, also `.pk4`, `.pkz`) | Yes | Yes | Stored and DEFLATE entries. Encrypted entries and other compression methods are listed but not read; multi-disk archives are refused. |
-| Package draft (`.vibepackage`) | Yes | Yes | Your staged edits and their history, described below. |
+| Package draft (`.sloppackage`) | Yes | Yes | Your staged edits and their history, described below. |
 
 ## Open a package or folder
 
@@ -80,7 +80,7 @@ types such as `wad-flat`, `wad-sprite`, `wad-patch` and `wad-sound`, so `type:im
 
 Press <kbd>Enter</kbd> in the filter to select every match and move to the list, where extraction
 and staging act on the whole selection. Press <kbd>Down</kbd> in the filter to reuse an earlier
-query. The same syntax works in `vibestudio --cli package list <package> --where "<query>"`, and in
+query. The same syntax works in `slopstudio --cli package list <package> --where "<query>"`, and in
 other lists such as **Objects** on the Levels page.
 
 ## Extract files
@@ -100,14 +100,14 @@ discarded. You can also drag a few entries out of the list into another folder o
 
 ## Check package integrity
 
-Choose **Validate** on the Packages header. VibeStudio reads every entry, including each copy of a
+Choose **Validate** on the Packages header. SlopStudio reads every entry, including each copy of a
 repeated WAD lump, checks its size and checksum, and records a SHA-256 hash. A package passes only
 when every file verifies with no warnings. **Export JSON…** saves the report. Validation checks the
 container, not whether each asset works in the game.
 
 ## Compare two packages
 
-Choose **Compare** on the Packages header and pick another archive. VibeStudio pairs entries by path,
+Choose **Compare** on the Packages header and pick another archive. SlopStudio pairs entries by path,
 ignoring case, and reports added, removed, changed, case-only and unchecked entries; files of equal
 size are hashed to prove they match. Search the results, select a row for its paths and hashes, or
 choose **Export JSON…**. Comparison and validation both run in the background and can be cancelled.
@@ -128,7 +128,7 @@ written until you save.
 | Undo or redo | **Edit** > **Undo Package Edit** (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) and **Redo Package Edit** (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd>). |
 
 The same commands sit as icon buttons in the toolbar's **Stage** group; hover over one to see what it
-does. The keys act only while the Packages page has focus. VibeStudio keeps its own copy of each file
+does. The keys act only while the Packages page has focus. SlopStudio keeps its own copy of each file
 you add, so changing the original afterwards does not change the staged entry. ZIP and PK3 keep empty
 folders. A PAK cannot store them, so saving a PAK with an empty folder is refused. WAD has no folders.
 
@@ -162,7 +162,7 @@ by other applications.
 
 ### Replace an existing package
 
-Saving over a file that already exists, including the open package, is opt-in. VibeStudio asks
+Saving over a file that already exists, including the open package, is opt-in. SlopStudio asks
 **Replace Existing Package?** first. If you agree, it writes the new archive beside the old one,
 verifies it, and only then moves the original to `<file>.bak`. If a save is interrupted, **File** >
 **Recover Packages…** > **Interrupted Saves…** checks the files left behind. When the new package is
@@ -171,9 +171,9 @@ already in place and verified, **Finish Reviewed Save…** completes the backup 
 ## Keep work in progress
 
 **File** > **Save Package Draft** (<kbd>Ctrl</kbd>+<kbd>S</kbd> on the Packages page, also an icon on
-the toolbar) stores the source content, your staged changes and their undo history in a `.vibepackage`
+the toolbar) stores the source content, your staged changes and their undo history in a `.sloppackage`
 folder. **File** > **Open Package Draft…** resumes it later, even without the original files; move or
-copy the whole folder. VibeStudio also keeps local recovery checkpoints every 30 seconds by default,
+copy the whole folder. SlopStudio also keeps local recovery checkpoints every 30 seconds by default,
 and **File** > **Recover Packages…** restores one as a new draft.
 
 ## Export part of a package
@@ -190,24 +190,24 @@ notes and a readme, use **Package and Release** instead; see [Package and releas
 
 | Task | Command |
 | --- | --- |
-| Summarise or list | `vibestudio --cli package info <package>`, `package list <package> --where "<query>"` |
-| Preview one entry | `vibestudio --cli package preview <package> <entry>` |
-| Extract | `vibestudio --cli package extract <package> --output <folder>` |
-| Validate | `vibestudio --cli package validate <package>` |
-| Compare | `vibestudio --cli package compare <left> <right>` |
-| Preview staged edits | `vibestudio --cli package stage <package> --add-file <file> --as <entry>` |
-| Save a new package | `vibestudio --cli package save-as <package> <output> --format pk3` |
-| Start an empty package | `vibestudio --cli package create <output> --format pk3` |
-| Save part of a package | `vibestudio --cli package subset <package> <output> --prefix <folder>` |
+| Summarise or list | `slopstudio --cli package info <package>`, `package list <package> --where "<query>"` |
+| Preview one entry | `slopstudio --cli package preview <package> <entry>` |
+| Extract | `slopstudio --cli package extract <package> --output <folder>` |
+| Validate | `slopstudio --cli package validate <package>` |
+| Compare | `slopstudio --cli package compare <left> <right>` |
+| Preview staged edits | `slopstudio --cli package stage <package> --add-file <file> --as <entry>` |
+| Save a new package | `slopstudio --cli package save-as <package> <output> --format pk3` |
+| Start an empty package | `slopstudio --cli package create <output> --format pk3` |
+| Save part of a package | `slopstudio --cli package subset <package> <output> --prefix <folder>` |
 
 For example:
 
 ```sh
-vibestudio --cli package list ./baseq3/pak0.pk3 --where "type:image size>256k"
-vibestudio --cli package validate ./release.pk3 --json
-vibestudio --cli package extract ./pak0.pak --output ./out --entry maps/start.bsp --dry-run
-vibestudio --cli package compare ./release-1.pk3 ./release-2.pk3 --json
-vibestudio --cli package save-as ./mod-folder ./build/mod.pk3 --format pk3 --add-file ./autoexec.cfg --as scripts/autoexec.cfg
+slopstudio --cli package list ./baseq3/pak0.pk3 --where "type:image size>256k"
+slopstudio --cli package validate ./release.pk3 --json
+slopstudio --cli package extract ./pak0.pak --output ./out --entry maps/start.bsp --dry-run
+slopstudio --cli package compare ./release-1.pk3 ./release-2.pk3 --json
+slopstudio --cli package save-as ./mod-folder ./build/mod.pk3 --format pk3 --add-file ./autoexec.cfg --as scripts/autoexec.cfg
 ```
 
 `package validate` and `package compare` exit with code 4 when they find a problem or a difference.

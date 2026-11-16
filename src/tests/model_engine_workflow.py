@@ -198,8 +198,8 @@ def main():
         shutil.copy2(bsp, base / 'maps/acceptance.bsp')
         (base / 'default.cfg').write_text('', encoding='ascii')
         (base / 'ftesrv.cfg').write_text('', encoding='ascii')
-        (case / 'test.fmf').write_text('FTEManifestVer 1\ngame vibestudio-native-test\n'
-                                       'name "VibeStudio generated acceptance fixture"\n'
+        (case / 'test.fmf').write_text('FTEManifestVer 1\ngame slopstudio-native-test\n'
+                                       'name "SlopStudio generated acceptance fixture"\n'
                                        'basegame id1\ndisablehomedir 1\n', encoding='ascii')
         # Startup configuration disables public/listening sockets and automatic
         # configuration writes. No console key events or standard input are read.

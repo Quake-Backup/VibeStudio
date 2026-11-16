@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Independent oracle for VibeStudio's MD5, IQM and ASE writers.
+"""Independent oracle for SlopStudio's MD5, IQM and ASE writers.
 
 Reads the files model_skeletal_writer_oracle_test wrote, with parsers written
 here from the public formats and the engines' loaders, poses them the way the
 engine does, and compares the result with poses computed from each fixture's
 definition.json (joint transforms, weights and bind positions given as
-numbers). No VibeStudio code is used. Standard library only.
+numbers). No SlopStudio code is used. Standard library only.
 
 Conventions, each read from the released source or specification:
 

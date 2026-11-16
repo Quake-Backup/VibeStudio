@@ -4,7 +4,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 
 struct LevelMapPropertiesCliResult {
 	int exitCode = 0;
@@ -23,4 +23,4 @@ struct LevelMapPropertiesCliResult {
 // result to --output (with --dry-run and --overwrite) as other map commands do.
 LevelMapPropertiesCliResult runLevelMapProperties(const QStringList& arguments);
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

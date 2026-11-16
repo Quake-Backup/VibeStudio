@@ -31,7 +31,7 @@
 #include <crtdbg.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int failures = 0;
@@ -104,10 +104,10 @@ bool onSidebar(StudioSidebar *sidebar, const char *id)
 {
 	return sidebar && sidebar->pageIds().contains(QString::fromLatin1(id));
 }
-// Writes the editor to VIBESTUDIO_MODELLER_EVIDENCE when that is set.
+// Writes the editor to SLOPSTUDIO_MODELLER_EVIDENCE when that is set.
 bool capture(QWidget &widget, const QString &name)
 {
-	const auto directory = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto directory = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (directory.isEmpty())
 		return true;
 	if (!QDir().mkpath(directory))
@@ -129,7 +129,7 @@ bool run(QApplication &app, int variant, const QString &settingsPath)
 	ModelEditorDialog *shown = nullptr;
 	const auto shot = [&](QWidget &widget, const char *name)
 	{
-		if (qEnvironmentVariableIsEmpty("VIBESTUDIO_MODELLER_EVIDENCE"))
+		if (qEnvironmentVariableIsEmpty("SLOPSTUDIO_MODELLER_EVIDENCE"))
 			return true;
 		// Evidence shows finished renders in every pane.
 		for (auto *pane : shown ? shown->panes() : QVector<ModelViewport *>{})
@@ -315,13 +315,13 @@ int main(int argc, char **argv)
 #endif
 	QApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-profiles-ui-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-profiles-ui-smoke"); skip >= 0) {
 		return skip;
 	}
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath("mesh-profiles-ui-XXXXXX"));

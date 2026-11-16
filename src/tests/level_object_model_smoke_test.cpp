@@ -18,7 +18,7 @@
 #include <cstring>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool condition, const char* message)
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 		const auto height = list.visualRect(list.model()->index(0, 0)).height();
 		expect(height > 0 && list.visualRect(list.model()->index(1, 0)).height() == height &&
 			list.visualRect(list.model()->index(2, 0)).height() == height, "uniform two-line rows including multiline source fields");
-		const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!capture.isEmpty()) {
 			QDir().mkpath(capture);
 			QImage image(list.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); list.render(&image);

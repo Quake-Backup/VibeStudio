@@ -13,7 +13,7 @@
 #include <QUuid>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -38,22 +38,22 @@ bool write(const QString& path, const QByteArray& bytes)
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-recovery-XXXXXX")));
 	if (!temporary.isValid()) {
 		return 1;
 	}
 	const QString directory = temporary.filePath(QStringLiteral("recovery"));
-	const QByteArray rootOverride = qgetenv("VIBESTUDIO_AUDIO_RECOVERY_ROOT");
-	const bool hadRootOverride = qEnvironmentVariableIsSet("VIBESTUDIO_AUDIO_RECOVERY_ROOT");
-	qunsetenv("VIBESTUDIO_AUDIO_RECOVERY_ROOT");
+	const QByteArray rootOverride = qgetenv("SLOPSTUDIO_AUDIO_RECOVERY_ROOT");
+	const bool hadRootOverride = qEnvironmentVariableIsSet("SLOPSTUDIO_AUDIO_RECOVERY_ROOT");
+	qunsetenv("SLOPSTUDIO_AUDIO_RECOVERY_ROOT");
 	StudioSettings::setOverrideFilePath(temporary.filePath(QStringLiteral("profile/settings.ini")));
 	bool ok = expect(audioRecoveryDirectory() == temporary.filePath(QStringLiteral("profile/audio-recovery")),
 	                 "audio recovery follows an explicit settings profile without creating the folder");
 	StudioSettings::setOverrideFilePath({});
 	if (hadRootOverride) {
-		qputenv("VIBESTUDIO_AUDIO_RECOVERY_ROOT", rootOverride);
+		qputenv("SLOPSTUDIO_AUDIO_RECOVERY_ROOT", rootOverride);
 	}
 	AudioProject project{
 	    {2, 48000, {0.25f, -0.5f, 2.0f, -0.0f}},          1, 2, QStringLiteral("Sound <b>雪</b>"),

@@ -16,7 +16,7 @@
 #include <QtEndian>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -45,7 +45,7 @@ QByteArray read(const QString &path)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return 1;
@@ -218,7 +218,7 @@ int main(int argc, char **argv)
 	const QByteArray stagedBindings("body,models/staged_body\nhead,models/new_head\n");
 	ok &= expect(staging.addBytes(stagedBindings, "default.skin", &error, PackageStageConflictResolution::ReplaceExisting),
 				 "stage new bindings over the package's original skin");
-	const auto draft = temporary.filePath("skin.vibepackage");
+	const auto draft = temporary.filePath("skin.sloppackage");
 	ok &= expect(PackageDraft::save(draft, &staging, false, &error), "save a portable package draft");
 	ok &= expect(cli({"--package", draft, "--entry-index", "0", "--output", output, "--overwrite", "--locale", "en"}, 0),
 				 "CLI imports exact staged occurrence with global locale options");

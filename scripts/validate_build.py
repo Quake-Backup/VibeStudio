@@ -87,8 +87,8 @@ def tiny_wav_bytes() -> bytes:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate a built VibeStudio binary.")
-    parser.add_argument("--binary", required=True, help="Path to vibestudio executable.")
+    parser = argparse.ArgumentParser(description="Validate a built SlopStudio binary.")
+    parser.add_argument("--binary", required=True, help="Path to slopstudio executable.")
     parser.add_argument("--expected-version", required=True, help="Expected version string.")
     args = parser.parse_args()
 
@@ -100,7 +100,7 @@ def main() -> int:
     if os.name != "nt":
         binary.chmod(binary.stat().st_mode | 0o111)
 
-    with tempfile.TemporaryDirectory(prefix="vibestudio-package-smoke-") as package_root, tempfile.TemporaryDirectory(prefix="vibestudio-extract-smoke-") as extraction_root:
+    with tempfile.TemporaryDirectory(prefix="slopstudio-package-smoke-") as package_root, tempfile.TemporaryDirectory(prefix="slopstudio-extract-smoke-") as extraction_root:
         package_root_path = Path(package_root)
         package_file = package_root_path / "textures" / "wall.txt"
         package_file.parent.mkdir(parents=True, exist_ok=True)
@@ -251,7 +251,7 @@ def main() -> int:
         gog_package.write_text("pk3", encoding="utf-8")
         extension_root = package_root_path / "extensions" / "sample"
         extension_root.mkdir(parents=True, exist_ok=True)
-        extension_manifest = extension_root / "vibestudio.extension.json"
+        extension_manifest = extension_root / "slopstudio.extension.json"
         extension_manifest.write_text(
             """{
   "schemaVersion": 1,
@@ -275,12 +275,12 @@ def main() -> int:
 
         checks = [
             (["--cli", "--version"], args.expected_version),
-            (["--cli", "--help"], "Usage: vibestudio --cli"),
+            (["--cli", "--help"], "Usage: slopstudio --cli"),
             (["--cli", "--about"], "GPLv3"),
             (["--cli", "--json", "about"], '"licenseSummary"'),
             (["--cli", "--exit-codes"], "usage-error"),
             (["--cli", "--json", "--exit-codes"], '"exitCodes"'),
-            (["--cli", "--platform-report"], "VibeStudio platform report"),
+            (["--cli", "--platform-report"], "SlopStudio platform report"),
             (["--cli", "--operation-states"], "Operation states"),
             (["--cli", "--ui-primitives"], "UI primitives"),
             (["--cli", "--json", "ui", "semantics"], '"shortcutRegistryOk": true'),
@@ -350,7 +350,7 @@ def main() -> int:
             (["--cli", "map", "hollow", str(map_brush_file), "--object", "brush:1", "--thickness", "4", "--output", str(map_room_file)], "Hollowed 1 brush into 6 walls"),
             (["--cli", "map", "clip", str(map_brush_file), "--object", "brush:1", "--axis", "x", "--at", "32", "--keep", "below", "--output", str(map_clipped_file)], "Remaining selection: brush:2"),
             (["--cli", "map", "resize", str(map_brush_file), "--object", "brush:1", "--size", "128,64,16", "--output", str(map_resized_file)], "Resized: 0 0 32 .. 64 64 48 to 0 0 32 .. 128 64 48"),
-            (["--cli", "--json", "map", "compile-plan", str(map_move_file), "--profile", "vibemap2-bsp"], '"commandLine"'),
+            (["--cli", "--json", "map", "compile-plan", str(map_move_file), "--profile", "slopmap2-bsp"], '"commandLine"'),
             (["--cli", "shader", "inspect", str(shader_file), "--package", str(package_root_path)], "Shader script"),
             (["--cli", "--json", "shader", "inspect", str(shader_file), "--package", str(package_root_path)], '"referenceValidation"'),
             (["--cli", "shader", "set-stage", str(shader_file), "--shader", "textures/base/wall", "--stage", "1", "--directive", "blendFunc", "--value", "GL_DST_COLOR GL_ZERO", "--output", str(shader_edit_file)], "Written: yes"),
@@ -382,22 +382,22 @@ def main() -> int:
             (["--cli", "--json", "project", "info", str(package_root_path)], '"health"'),
             (["--cli", "project", "validate", str(package_root_path)], "Project health"),
             (["--cli", "--studio-report"], "Level Editor"),
-            (["--cli", "--compiler-report"], "VibeMap3"),
+            (["--cli", "--compiler-report"], "SlopMap3"),
             (["--cli", "--compiler-registry"], "Compiler registry"),
             (["--cli", "compiler", "list"], "Compiler registry"),
             (["--cli", "--json", "compiler", "list"], '"tools"'),
-            (["--cli", "compiler", "profiles"], "vibemap2-bsp"),
+            (["--cli", "compiler", "profiles"], "slopmap2-bsp"),
             (["--cli", "compiler", "profiles"], "zdbsp-nodes"),
-            (["--cli", "compiler", "profiles"], "vibemap3-probe"),
+            (["--cli", "compiler", "profiles"], "slopmap3-probe"),
             (["--cli", "--json", "compiler", "profiles"], '"profiles"'),
-            (["--cli", "compiler", "plan", "vibemap2-bsp", "--input", str(map_file)], "Command line:"),
-            (["--cli", "compiler", "plan", "vibemap2-bsp", "--input", str(unicode_map_file)], "Command line:"),
-            (["--cli", "--json", "compiler", "plan", "vibemap2-bsp", "--input", str(map_file)], '"commandLine"'),
+            (["--cli", "compiler", "plan", "slopmap2-bsp", "--input", str(map_file)], "Command line:"),
+            (["--cli", "compiler", "plan", "slopmap2-bsp", "--input", str(unicode_map_file)], "Command line:"),
+            (["--cli", "--json", "compiler", "plan", "slopmap2-bsp", "--input", str(map_file)], '"commandLine"'),
             (["--cli", "compiler", "plan", "zdbsp-nodes", "--input", str(wad_file), "--output", str(package_root_path / "maps" / "doom-nodes.wad")], "zdbsp-nodes"),
-            (["--cli", "compiler", "plan", "vibemap3-probe"], "-help"),
-            (["--cli", "--json", "compiler", "plan", "vibemap3-bsp", "--input", str(map_file)], '"vibemap3-bsp"'),
-            (["--cli", "compiler", "manifest", "vibemap2-bsp", "--input", str(map_file), "--manifest", str(manifest_file)], "Manifest saved"),
-            (["--cli", "--json", "compiler", "manifest", "vibemap3-probe"], '"taskLog"'),
+            (["--cli", "compiler", "plan", "slopmap3-probe"], "-help"),
+            (["--cli", "--json", "compiler", "plan", "slopmap3-bsp", "--input", str(map_file)], '"slopmap3-bsp"'),
+            (["--cli", "compiler", "manifest", "slopmap2-bsp", "--input", str(map_file), "--manifest", str(manifest_file)], "Manifest saved"),
+            (["--cli", "--json", "compiler", "manifest", "slopmap3-probe"], '"taskLog"'),
             (["--cli", "--setup-report"], "First-run setup"),
             (["--cli", "--preferences-report"], "Accessibility and language preferences"),
             (["--cli", "localization", "targets"], "Localization targets"),
@@ -405,10 +405,10 @@ def main() -> int:
             (["--cli", "--json", "--localization-report", "--locale", "ur"], '"expansionSmokeOk"'),
             (["--cli", "--json", "localization", "report", "--locale", "ar"], '"pluralizationSmokeOk": true'),
             (["--cli", "--json", "localization", "report", "--locale", "ar"], '"expansionLayoutSmokeOk": true'),
-            (["--cli", "diagnostics", "bundle", "--output", str(diagnostics_dir)], "vibestudio-diagnostics.json"),
+            (["--cli", "diagnostics", "bundle", "--output", str(diagnostics_dir)], "slopstudio-diagnostics.json"),
             (["--cli", "--json", "diagnostics", "bundle"], '"redaction"'),
             (["--cli", "--json", "diagnostics", "crashes"], '"reports"'),
-            (["--cli", "--json", "credits", "validate"], '"compiler-submodule-revision-vibemap2"'),
+            (["--cli", "--json", "credits", "validate"], '"compiler-submodule-revision-slopmap2"'),
             (["--cli", "--editor-profiles"], "GtkRadiant 1.6.0 Style"),
             (["--cli", "--json", "editor", "profiles"], '"commandId"'),
             (["--cli", "editor", "current"], "Selected editor profile"),

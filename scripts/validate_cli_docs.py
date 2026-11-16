@@ -43,7 +43,7 @@ def command_name(command: dict) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate CLI command registry coverage in user-facing docs.")
-    parser.add_argument("--binary", required=True, help="Path to the built vibestudio executable.")
+    parser.add_argument("--binary", required=True, help="Path to the built slopstudio executable.")
     args = parser.parse_args()
 
     root = repo_root()
@@ -56,7 +56,7 @@ def main() -> int:
     readme = (root / "README.md").read_text(encoding="utf-8")
 
     errors: list[str] = []
-    with tempfile.TemporaryDirectory(prefix="vibestudio-cli-registry-") as isolated:
+    with tempfile.TemporaryDirectory(prefix="slopstudio-cli-registry-") as isolated:
         commands = run_cli_commands(binary, Path(isolated) / "settings.ini")
     seen: set[str] = set()
     for command in commands:
@@ -71,16 +71,16 @@ def main() -> int:
         if not examples:
             errors.append(f"Registered command has no example: {name}")
         for example in examples:
-            if "vibestudio --cli" not in str(example):
-                errors.append(f"Registered command example is not a vibestudio CLI invocation for {name}: {example}")
+            if "slopstudio --cli" not in str(example):
+                errors.append(f"Registered command example is not a slopstudio CLI invocation for {name}: {example}")
         if name not in cli_strategy:
             errors.append(f"docs/CLI_STRATEGY.md is missing registered command: {name}")
 
     # Every registered command must actually be routed. Running it with no
     # arguments should produce that command's own usage error, never the
-    # router's "Unknown VibeStudio CLI subcommand" fallthrough. This is the
+    # router's "Unknown SlopStudio CLI subcommand" fallthrough. This is the
     # check that stops a command from being documented but unreachable.
-    with tempfile.TemporaryDirectory(prefix="vibestudio-cli-docs-") as isolated:
+    with tempfile.TemporaryDirectory(prefix="slopstudio-cli-docs-") as isolated:
         settings_file = Path(isolated) / "settings.ini"
         for command in commands:
             family = str(command.get("family") or "").strip()
@@ -98,7 +98,7 @@ def main() -> int:
                 check=False,
             )
             merged = process.stdout + "\n" + process.stderr
-            if "Unknown VibeStudio CLI subcommand" in merged:
+            if "Unknown SlopStudio CLI subcommand" in merged:
                 errors.append(f"Registered command is not routed: {family} {action}")
 
     required_readme_tokens = [

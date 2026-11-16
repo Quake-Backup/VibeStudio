@@ -8,7 +8,7 @@
 #include <QPointer>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 ModelVec3 modelPoint(LevelMapVec3 p) { return {float(p.x),float(p.y),float(p.z)}; }
 bool same(LevelMapVec3 a, LevelMapVec3 b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
@@ -362,4 +362,4 @@ void ApplicationShell::refreshLevelCameraComponents()
 	// The object manipulator follows the same selection and geometry.
 	refreshLevelObjectGizmos();
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct ModelAuditCliResult
 {
@@ -15,4 +15,4 @@ struct ModelAuditCliResult
 // reports decode issues, editability and optional same-format round trips
 // (core/model_audit.h). Never writes into the source.
 ModelAuditCliResult runModelAudit(const QStringList &arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

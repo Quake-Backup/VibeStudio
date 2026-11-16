@@ -6,7 +6,7 @@
 #include <QString>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Return false to cancel. Called between bounded chunks on the executing thread.
 using TextureProgress = std::function<bool(qint64 completed, qint64 total)>;
@@ -47,4 +47,4 @@ bool paintTextureSegment(QImage* pixels, const QImage& source, QPoint from, QPoi
 bool paintTextureShape(QImage* pixels, const QImage& source, TextureShape shape, QPoint from, QPoint to,
 	QRgb color, const TextureBrush& brush, bool filled, QRect clip, const TextureProgress& progress = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

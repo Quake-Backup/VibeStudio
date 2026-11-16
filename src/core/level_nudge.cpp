@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 constexpr double kDegenerate = 1e-9;
@@ -331,4 +331,4 @@ bool levelNudgeCameraFollowsPlan(const LevelEditorControls& controls)
 	return controls.plan.arrowsDriveCamera;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

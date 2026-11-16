@@ -26,7 +26,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -128,12 +128,12 @@ int main(int argc, char** argv)
 
 	// Profile validation accepts the fractional sizes and names the range.
 	for (const double units : {0.125, 0.25, 0.5}) {
-		LevelEditorControls controls = vibeStudioLevelControls();
+		LevelEditorControls controls = slopStudioLevelControls();
 		controls.defaultGridUnits = units;
 		expect(levelEditorControlProblems(controls).isEmpty(), "a fractional default grid validates", QString::number(units));
 	}
 	{
-		LevelEditorControls controls = vibeStudioLevelControls();
+		LevelEditorControls controls = slopStudioLevelControls();
 		controls.defaultGridUnits = 0.3;
 		const QStringList problems = levelEditorControlProblems(controls);
 		expect(problems.size() == 1 && problems.first().contains(QStringLiteral("0.125")) && problems.first().contains(QStringLiteral("1024")),
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
 
 	// Upstream gives the fractional grids no default key; neither do the
 	// profiles that follow it.
-	for (const char* id : {"netradiant-custom", "trenchbroom", "gtkradiant-1-6", "vibestudio-default", "eureka"}) {
+	for (const char* id : {"netradiant-custom", "trenchbroom", "gtkradiant-1-6", "slopstudio-default", "eureka"}) {
 		const LevelEditorControls controls = levelEditorControlsForProfile(QString::fromLatin1(id));
 		for (const LevelEditorKeyBinding& binding : controls.keys) {
 			expect(!binding.commandId.startsWith(QStringLiteral("map.grid0.")), "no default key for a fractional grid",

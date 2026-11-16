@@ -13,7 +13,7 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -997,4 +997,4 @@ QJsonObject audioSessionSummary(const AudioSession &session)
 	        {"tracks", tracks}};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

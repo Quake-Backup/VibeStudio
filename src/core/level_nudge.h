@@ -30,7 +30,7 @@
 // NudgeSelection, AxisBase_forViewType and Selection_MoveUp/MoveDown at
 // 449778b3 (GPL-2.0-or-later). Original implementation; see docs/CREDITS.md.
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class LevelNudgeDirection { Left, Right, Forward, Back, DepthUp, DepthDown, ZUp, ZDown };
 
@@ -92,4 +92,4 @@ bool levelPlanNudgePlaneDelta(MapRenderProjection projection, const LevelMapVec3
 // Also accepts the palette's hyphenated spelling, such as map.duplicate-move-left.
 bool levelDuplicateMoveCommandForId(const QString& commandId, LevelNudgeCommand* command = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

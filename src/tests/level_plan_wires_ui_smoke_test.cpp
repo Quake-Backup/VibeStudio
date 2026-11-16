@@ -8,7 +8,7 @@
 #include <QImage>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label)
 {
@@ -120,7 +120,7 @@ int main(int argc, char** argv)
 			view.setProjection(projection); view.zoomToFit(); render(view);
 			auto state = view.navigationState(); state.center += QPointF(47.25, -11.75); state.zoom *= 1.375; view.applyLinkedNavigation(state);
 			ok &= matchesFresh(view, map, scale == 2, scale);
-			const auto output = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+			const auto output = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 			if (!output.isEmpty()) {
 				QDir().mkpath(output);
 				ok &= render(view, scale).save(QDir(output).filePath(QStringLiteral("wires-%1-%2.png").arg(scale).arg(int(projection))));

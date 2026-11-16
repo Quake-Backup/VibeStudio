@@ -9,7 +9,7 @@
 #include <utility>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 QString compositionId(const PackageEntry& entry)
@@ -33,7 +33,7 @@ std::shared_ptr<const PackageBrowserIndex> preparePackageBrowserIndex(const Pack
 {
 	if (error) { error->clear(); }
 	if (!archive.isOpen()) { if (error) { *error = archive.errorString(); } return {}; }
-	PackagePlanWork work(control, error, QCoreApplication::translate("VibeStudioPackageBrowser", "Indexing package entries"));
+	PackagePlanWork work(control, error, QCoreApplication::translate("SlopStudioPackageBrowser", "Indexing package entries"));
 	if (!work.checkpoint()) { return {}; }
 	auto result = std::make_shared<PackageBrowserIndex>();
 	result->entries = archive.entries();
@@ -41,7 +41,7 @@ std::shared_ptr<const PackageBrowserIndex> preparePackageBrowserIndex(const Pack
 	result->summary.sourcePath = archive.sourcePath(); result->summary.format = archive.format();
 	result->summary.warningCount = static_cast<int>(archive.warnings().size());
 	if (count > PackageIndexLimits{}.maximumEntries) {
-		work.refuse(QCoreApplication::translate("VibeStudioPackageBrowser", "Package browser entry limit exceeded.")); return {};
+		work.refuse(QCoreApplication::translate("SlopStudioPackageBrowser", "Package browser entry limit exceeded.")); return {};
 	}
 	result->summary.entryCount = static_cast<int>(count);
 	// Working keys and retained folder paths share an independent text bound.
@@ -52,7 +52,7 @@ std::shared_ptr<const PackageBrowserIndex> preparePackageBrowserIndex(const Pack
 	const auto chargeKey = [&](const QString& key) {
 		const auto bytes = static_cast<qint64>(key.size()) * 2;
 		if (bytes > keyLimit - keyBytes) {
-			return work.refuse(QCoreApplication::translate("VibeStudioPackageBrowser", "Package browser index text limit exceeded."));
+			return work.refuse(QCoreApplication::translate("SlopStudioPackageBrowser", "Package browser index text limit exceeded."));
 		}
 		keyBytes += bytes; return true;
 	};
@@ -76,7 +76,7 @@ std::shared_ptr<const PackageBrowserIndex> preparePackageBrowserIndex(const Pack
 		for (auto at = missing.crbegin(); at != missing.crend(); ++at) {
 			if (!work.checkpoint() || !chargeKey(*at)) { return -1; }
 			if (result->folders.size() - 1 >= PackageIndexLimits{}.maximumEntries) {
-				work.refuse(QCoreApplication::translate("VibeStudioPackageBrowser", "Package browser entry limit exceeded.")); return -1;
+				work.refuse(QCoreApplication::translate("SlopStudioPackageBrowser", "Package browser entry limit exceeded.")); return -1;
 			}
 			const auto index = result->folders.size();
 			PackageBrowserFolder node; node.path = *at; node.parent = parent;
@@ -140,11 +140,11 @@ bool filterPackageBrowser(const PackageBrowserIndex& index, const QString& folde
 	QVector<qsizetype>* rows, QString* error, const PackageReadControl& control)
 {
 	if (error) { error->clear(); }
-	PackagePlanWork work(control, error, QCoreApplication::translate("VibeStudioPackageBrowser", "Filtering package entries"));
+	PackagePlanWork work(control, error, QCoreApplication::translate("SlopStudioPackageBrowser", "Filtering package entries"));
 	if (!rows || !work.checkpoint()) { return false; }
 	if (index.entries.size() > PackageIndexLimits{}.maximumEntries || index.childCounts.size() != index.entries.size()
 		|| index.occurrences.size() != index.entries.size()) {
-		return work.refuse(QCoreApplication::translate("VibeStudioPackageBrowser", "Package browser index is invalid."));
+		return work.refuse(QCoreApplication::translate("SlopStudioPackageBrowser", "Package browser index is invalid."));
 	}
 	const QString filter = text.trimmed().toCaseFolded();
 	const bool searching = !filter.isEmpty();
@@ -168,4 +168,4 @@ bool filterPackageBrowser(const PackageBrowserIndex& index, const QString& folde
 	*rows = std::move(candidate); return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -5,7 +5,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -190,4 +190,4 @@ bool audioAutomationFromJson(const QJsonValue &value, QVector<AudioAutomationPoi
 	*points = std::move(next);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

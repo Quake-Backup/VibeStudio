@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label, const QString& error = {})
 {
@@ -31,7 +31,7 @@ QString objectPath(const QString& draft, const QByteArray& bytes)
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv); QTemporaryDir temporary; if (!temporary.isValid()) { return 1; }
-	const QDir root(temporary.path()); const QString path = root.filePath(QStringLiteral("draft.vibepackage"));
+	const QDir root(temporary.path()); const QString path = root.filePath(QStringLiteral("draft.sloppackage"));
 	const QString manifest = QDir(path).filePath(QStringLiteral("document.json")); QString error; bool ok = true;
 	PackageStagingModel plan; plan.createEmpty(PackageArchiveFormat::Pk3);
 	ok &= plan.addBytes("retained", QStringLiteral("first.bin"), &error);

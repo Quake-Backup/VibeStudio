@@ -36,7 +36,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class MaterialPreviewShape {
 	Wall,
@@ -186,4 +186,4 @@ MaterialPreviewShape defaultMaterialPreviewShape(const MaterialDefinition& defin
 // nearly face-on.
 double defaultMaterialPreviewPitch(MaterialPreviewShape shape);
 
-} // namespace vibestudio
+} // namespace slopstudio

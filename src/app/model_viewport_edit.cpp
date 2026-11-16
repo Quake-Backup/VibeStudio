@@ -13,7 +13,7 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -1208,7 +1208,7 @@ void ModelViewport::paintEditOverlays(QPainter &painter)
 		}
 		if (!m_transformBasis.world && !m_transformAxesName.isEmpty())
 			annotations.append({handles[3], m_editCollision.isEmpty() || m_transformTool != ModelTransformTool::Scale
-				? m_transformAxesName : QCoreApplication::translate("VibeStudioModelViewport", "Box local"), 0});
+				? m_transformAxesName : QCoreApplication::translate("SlopStudioModelViewport", "Box local"), 0});
 	}
 	// Reserve gizmo labels first, then place tag names and local-axis labels.
 	// Co-located attachments remain distinguishable; names never overprint one
@@ -1256,4 +1256,4 @@ void ModelViewport::paintEditOverlays(QPainter &painter)
 	}
 	painter.restore();
 }
-} // namespace vibestudio
+} // namespace slopstudio

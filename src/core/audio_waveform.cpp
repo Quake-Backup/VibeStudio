@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -113,4 +113,4 @@ qint64 AudioWaveformData::cacheBytes() const
 	return bytes;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

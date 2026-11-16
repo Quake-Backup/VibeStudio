@@ -34,7 +34,7 @@
 #include <cmath>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool quakeFamily(const LevelMapDocument& document)
 {
@@ -521,4 +521,4 @@ void ApplicationShell::editLevelObjectPivotFromUi()
 		5000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

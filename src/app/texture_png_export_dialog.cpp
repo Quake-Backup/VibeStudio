@@ -18,10 +18,10 @@
 #include <memory>
 #include <new>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 class TexturePngExportDialog final : public QDialog {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioTexturePngExport)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioTexturePngExport)
 public:
 	TexturePngExportDialog(QWidget* parent, const QImage& image, const QString& path, bool overwrite,
 		std::function<void(const TexturePngExportResult&)> completed) : QDialog(parent), m_completed(std::move(completed))
@@ -149,4 +149,4 @@ QDialog* runTexturePngExportDialog(QWidget* parent, const QImage& image, const Q
 	dialog->show(); return dialog;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

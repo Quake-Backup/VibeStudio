@@ -3,7 +3,7 @@
 #include "core/model_mesh.h"
 #include "core/model_work.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // Pose lookup for topology edits that retain independent baked frames. Unlike
 // weight-authoring rebakes, these operations do not replace the frame set.
@@ -15,4 +15,4 @@ struct ModelMeshPoseBinding
 	bool prepare(const ModelMesh &mesh, int reference, QString *error, const ModelWorkControl &control);
 	const QVector<ModelJointMatrix> &pose(const ModelMesh &mesh, int frame) const;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,7 +1,7 @@
 #pragma once
 #include <QStyledItemDelegate>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr int AudioMeterLevelRole = Qt::UserRole + 4;
 QString audioMeterNumeric(const QString &text);
@@ -13,4 +13,4 @@ class AudioMeterDelegate final : public QStyledItemDelegate {
 	using QStyledItemDelegate::QStyledItemDelegate;
 	void paint(QPainter *, const QStyleOptionViewItem &, const QModelIndex &) const override;
 };
-} // namespace vibestudio
+} // namespace slopstudio

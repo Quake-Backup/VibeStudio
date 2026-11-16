@@ -52,7 +52,7 @@ class SemanticPlanner {
     [[nodiscard]] PlanningResult plan(const PromptSpec &request, const PlannerOptions &options = {}) const;
 };
 
-// VibeStudio: the first request plan() sends a model for this normalized request, so a host can show
+// SlopStudio: the first request plan() sends a model for this normalized request, so a host can show
 // it, or ask before it leaves the machine, before planning starts. Later attempts repeat it with the
 // rejected output and its issues.
 [[nodiscard]] TextGenerationRequest semantic_plan_initial_request(const PromptSpec &request,

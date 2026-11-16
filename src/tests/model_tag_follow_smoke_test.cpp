@@ -22,7 +22,7 @@
 #include <crtdbg.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool ok = true;
@@ -401,7 +401,7 @@ int main(int argc, char **argv)
 	}
 #endif
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	QTemporaryDir temporary(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("tag-follow-XXXXXX"));
 	if (!temporary.isValid())
 		return EXIT_FAILURE;

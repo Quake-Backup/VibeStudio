@@ -21,7 +21,7 @@
 #include <QToolButton>
 #include <QTranslator>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* why) { if (!condition) { std::cerr << why << '\n'; } return condition; }
 bool wait(const std::function<bool()>& ready, int ms = 8000)
@@ -39,7 +39,7 @@ class Expanded final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		if (QByteArray(context) != "vibestudio::CodeSignaturePanel") { return {}; }
+		if (QByteArray(context) != "slopstudio::CodeSignaturePanel") { return {}; }
 		const auto text = QString::fromUtf8(source); return text + QStringLiteral(" ~").repeated(text.size() / 5);
 	}
 };
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
 		for (auto* control : {static_cast<QWidget*>(overloads), static_cast<QWidget*>(panel.findChild<QToolButton*>(QStringLiteral("codeSignatureDetails"))), static_cast<QWidget*>(panel.findChild<QPushButton*>(QStringLiteral("codeSignatureClose")))}) {
 			ok &= expect(panel.rect().contains(QRect(control->mapTo(&panel, QPoint()), control->size())) && control->width() >= control->sizeHint().width(), "scaled, expanded controls stay fully inside a narrow parameter panel");
 		}
-		const QString evidence = qEnvironmentVariable("VIBESTUDIO_LANGUAGE_TEST_EVIDENCE");
+		const QString evidence = qEnvironmentVariable("SLOPSTUDIO_LANGUAGE_TEST_EVIDENCE");
 		if (!evidence.isEmpty()) { QImage image(panel.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); panel.render(&image); ok &= expect(image.save(QDir(evidence).filePath(QStringLiteral("signature-help-%1.png").arg(scale))), "render parameter hints without OS capture"); }
 		if (scale == 200) {
 			panel.resize(600, panel.height()); app.processEvents(); panel.layout()->activate();

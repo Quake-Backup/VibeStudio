@@ -39,7 +39,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 MapRenderProjection renderProjection(MapViewportProjection projection)
@@ -426,4 +426,4 @@ void ApplicationShell::nudgeLevelSelectionFromUi(const QString& commandId, int s
 	moveLevelMapSelectionFromViewport(delta.x, delta.y, delta.z);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

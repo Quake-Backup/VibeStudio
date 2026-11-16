@@ -21,7 +21,7 @@
 // - Skeletal formats fill mesh->skeleton and each surface's skinning, then call
 //   bakeModelSkeleton (core/model_skeleton.h) so ordinary frames exist.
 // - User-visible text goes through QCoreApplication::translate with the
-//   context "VibeStudioModelMesh".
+//   context "SlopStudioModelMesh".
 
 #include "core/model_mesh.h"
 #include "core/model_work.h"
@@ -34,7 +34,7 @@
 #include <cmath>
 #include <cstring>
 
-namespace vibestudio::model_formats {
+namespace slopstudio::model_formats {
 
 // Shared caps, matching the legacy decoders in model_mesh.cpp.
 constexpr int kMaxFrames = 8192;
@@ -209,4 +209,4 @@ void decodeKvx(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 // buffers, and .glb): meshes, skins, animations and morph targets.
 void decodeGltf(const QString& path, const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl& control, Companions& companions);
 
-} // namespace vibestudio::model_formats
+} // namespace slopstudio::model_formats

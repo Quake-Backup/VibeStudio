@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -229,7 +229,7 @@ void StudioSplash::paintEvent(QPaintEvent* event)
 	const QFontMetrics heavyMetrics(heavy);
 	const QRect wordmarkRect = visual(QRect(textLeft, content.top() + 2, textWidth, heavyMetrics.height()));
 	painter.setPen(c.text);
-	painter.drawText(wordmarkRect, Qt::AlignLeading | Qt::AlignVCenter | Qt::TextSingleLine, QStringLiteral("VibeStudio"));
+	painter.drawText(wordmarkRect, Qt::AlignLeading | Qt::AlignVCenter | Qt::TextSingleLine, QStringLiteral("SlopStudio"));
 	QFont body = font();
 	painter.setFont(body);
 	const QFontMetrics bodyMetrics(body);
@@ -278,7 +278,7 @@ void StudioSplash::showEvent(QShowEvent* event)
 	placeIndicator();
 	if (!m_announced && studioAccessibilityPreferences().screenReaderAnnouncements) {
 		m_announced = true;
-		announceToScreenReader(this, tr("VibeStudio is starting."));
+		announceToScreenReader(this, tr("SlopStudio is starting."));
 	}
 }
 
@@ -366,7 +366,7 @@ void StudioSplash::beginFade()
 
 void StudioSplash::refreshAccessibleText()
 {
-	setAccessibleName(tr("VibeStudio is starting"));
+	setAccessibleName(tr("SlopStudio is starting"));
 	setAccessibleDescription(m_stageLabel.isEmpty() ? m_versionText : tr("%1 (%2 of %3)").arg(m_stageLabel).arg(m_completedStages).arg(m_expectedStages));
 }
 
@@ -397,4 +397,4 @@ QFont StudioSplash::wordmarkFont() const
 	return heavy;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

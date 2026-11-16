@@ -2,7 +2,7 @@
 
 #include "core/level_map.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct LevelMapDocument;
 
@@ -30,4 +30,4 @@ class LevelMapHistoryScope
 	int m_limit;
 };
 } // namespace detail
-} // namespace vibestudio
+} // namespace slopstudio

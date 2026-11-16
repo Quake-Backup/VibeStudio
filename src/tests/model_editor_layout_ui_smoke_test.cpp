@@ -16,8 +16,8 @@
 // each fits it, with its buttons on the screen, its body scrolling down
 // rather than sideways and no shown control cut short.
 //
-// VIBESTUDIO_MODELLER_EVIDENCE=<dir> saves a render of each state;
-// VIBESTUDIO_LAYOUT_REPORT=1 prints the measurements.
+// SLOPSTUDIO_MODELLER_EVIDENCE=<dir> saves a render of each state;
+// SLOPSTUDIO_LAYOUT_REPORT=1 prints the measurements.
 #include "app/dialog_screen_fit.h"
 #include "app/model_animation_curves_dialog.h"
 #include "app/model_assembly_dialog.h"
@@ -92,7 +92,7 @@
 #include <iostream>
 #include <memory>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int failures = 0;
@@ -107,7 +107,7 @@ bool expect(bool condition, const std::string &message)
 }
 bool reporting()
 {
-	return qEnvironmentVariableIntValue("VIBESTUDIO_LAYOUT_REPORT") != 0;
+	return qEnvironmentVariableIntValue("SLOPSTUDIO_LAYOUT_REPORT") != 0;
 }
 // Every studio string a third longer, in words as German or Finnish run
 // longer, never in one unbreakable run. Qt's own contexts stay as they are:
@@ -174,7 +174,7 @@ QStringList clippedControls(QWidget *root)
 			if (needed > label->height() + 1)
 			{
 				add(label, {label->width(), needed});
-				if (qEnvironmentVariableIntValue("VIBESTUDIO_LAYOUT_REPORT") >= 3 && label->parentWidget())
+				if (qEnvironmentVariableIntValue("SLOPSTUDIO_LAYOUT_REPORT") >= 3 && label->parentWidget())
 				{
 					auto *parent = label->parentWidget();
 					std::cout << "  label hfw " << label->hasHeightForWidth() << " parent " << narrow(describe(parent)) << " "
@@ -203,11 +203,11 @@ QStringList clippedControls(QWidget *root)
 	}
 	return found;
 }
-// With VIBESTUDIO_LAYOUT_REPORT=2, the shown widgets whose minimum takes more
+// With SLOPSTUDIO_LAYOUT_REPORT=2, the shown widgets whose minimum takes more
 // than a third of the room, to find what holds a layout open.
 void reportMinimums(QWidget *root, const QSize &room)
 {
-	if (qEnvironmentVariableIntValue("VIBESTUDIO_LAYOUT_REPORT") < 2)
+	if (qEnvironmentVariableIntValue("SLOPSTUDIO_LAYOUT_REPORT") < 2)
 		return;
 	if (auto *layout = root->layout())
 	{
@@ -229,7 +229,7 @@ void reportMinimums(QWidget *root, const QSize &room)
 }
 bool capture(QWidget &widget, const QString &name)
 {
-	const auto directory = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto directory = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (directory.isEmpty())
 		return true;
 	return QDir().mkpath(directory) && widget.grab().save(QDir(directory).filePath(name + QStringLiteral(".png")));
@@ -315,7 +315,7 @@ void checkEditor(QApplication &app, const Variant &variant, const QSize &size)
 		expect(clipped.isEmpty(), at + ": no shown control is cut short" + (clipped.isEmpty() ? "" : ": " + narrow(clipped.first())));
 		for (auto *pane : editor->panes())
 		{
-			if (pane && pane->isVisible() && !qEnvironmentVariableIsEmpty("VIBESTUDIO_MODELLER_EVIDENCE"))
+			if (pane && pane->isVisible() && !qEnvironmentVariableIsEmpty("SLOPSTUDIO_MODELLER_EVIDENCE"))
 				tests::settleModelViewport(*pane);
 		}
 		expect(capture(host, QStringLiteral("layout-%1-%2x%3-%4-%5")
@@ -446,7 +446,7 @@ void checkEditor(QApplication &app, const Variant &variant, const QSize &size)
 			expect(!outgrown, where + ": showing the " + narrow(id) + " page keeps the editor within its page");
 			if (size == QSize(1280, 720))
 				expect(capture(host, QStringLiteral("page-%1-%2").arg(QString::fromLatin1(variant.name), id)), where + ": save the page render");
-			if (qEnvironmentVariableIntValue("VIBESTUDIO_LAYOUT_REPORT") >= 3 && scroll && scroll->widget())
+			if (qEnvironmentVariableIntValue("SLOPSTUDIO_LAYOUT_REPORT") >= 3 && scroll && scroll->widget())
 			{
 				std::cout << where << " page " << narrow(id) << ": content minimum " << scroll->widget()->minimumSizeHint().width() << '\n';
 				for (auto *child : scroll->widget()->findChildren<QWidget *>())
@@ -679,7 +679,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("mesh-layout-ui-XXXXXX")));

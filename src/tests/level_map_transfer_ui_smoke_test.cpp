@@ -30,7 +30,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -204,7 +204,7 @@ int main(int argc, char** argv)
 	// Every profile at 100%, and the 200% high-contrast, expanded right-to-left
 	// pass for two of them: the shell takes a minute to open on a loaded machine.
 	const QVector<QPair<const char*, int>> passes{{"netradiant-custom", 100}, {"trenchbroom", 100}, {"gtkradiant-1-6", 100}, {"quark", 100},
-		{"vibestudio-default", 100}, {"netradiant-custom", 200}, {"trenchbroom", 200}};
+		{"slopstudio-default", 100}, {"netradiant-custom", 200}, {"trenchbroom", 200}};
 	for (const auto& [profile, scale] : passes) {
 		{
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);

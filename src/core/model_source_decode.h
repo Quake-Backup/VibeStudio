@@ -5,7 +5,7 @@
 
 #include <QJsonValue>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Internal bounded structural decoder for the import-repair quarantine. The
 // result is NOT an editable document: indices, normals and metadata still need
@@ -17,4 +17,4 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 // member is absent and is only meaningful when the function returns true.
 bool parseEditableModelWithMember(const QByteArray &bytes, const QString &member, ModelMesh *mesh, QJsonValue *memberValue, QString *error,
 								  const ModelWorkControl &control);
-} // namespace vibestudio
+} // namespace slopstudio

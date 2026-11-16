@@ -5,23 +5,23 @@
 
 #include "common.glsl"
 
-VIBE_ATTRIBUTE(0) vec3 aPosition;
-VIBE_ATTRIBUTE(1) vec2 aUv;
+SLOP_ATTRIBUTE(0) vec3 aPosition;
+SLOP_ATTRIBUTE(1) vec2 aUv;
 // Unit face normal (turned to agree with the format's vertex normals) and
 // its dot product with the first corner.
-VIBE_ATTRIBUTE(2) vec4 aPlane;
+SLOP_ATTRIBUTE(2) vec4 aPlane;
 // The surface's flat colour.
-VIBE_ATTRIBUTE(3) vec4 aColor;
+SLOP_ATTRIBUTE(3) vec4 aColor;
 // Bit 0: the corner has finite texture coordinates on a textured surface.
 // Bit 1: the triangle is degenerate or not finite and draws nothing.
 // Bits 2..4: the edge opposite corner 0, 1 or 2 is a polygon diagonal, which
 // the edge overlay leaves out. Bit 5: the face grid is drawn on it.
-VIBE_ATTRIBUTE(4) uint aInfo;
+SLOP_ATTRIBUTE(4) uint aInfo;
 // Bit 0: highlighted (selected or stroked). Bits 2..4: the edge opposite
 // corner 0, 1 or 2 is selected.
-VIBE_ATTRIBUTE(5) uint aFlags;
+SLOP_ATTRIBUTE(5) uint aFlags;
 
-VIBE_UNIFORMS {
+SLOP_UNIFORMS {
 	mat4 viewProjection;
 	// xyz: toward the viewer (orthographic) or the eye (perspective).
 	// w: 1 for perspective.
@@ -47,22 +47,22 @@ VIBE_UNIFORMS {
 	vec4 gridParams;
 };
 
-VIBE_VARYING_OUT(0) vec2 vUv;
-VIBE_VARYING_OUT(1) vec3 vBarycentricW;
+SLOP_VARYING_OUT(0) vec2 vUv;
+SLOP_VARYING_OUT(1) vec3 vBarycentricW;
 // Untextured: the shaded flat colour. Textured: r holds the light factor.
-VIBE_FLAT_OUT(2) vec4 vShade;
-VIBE_FLAT_OUT(3) int vTriangle;
+SLOP_FLAT_OUT(2) vec4 vShade;
+SLOP_FLAT_OUT(3) int vTriangle;
 // Bit 0 highlighted, 1 hovered, 2..4 selected edges, 5 textured, 6..8
 // polygon diagonals, 9..10 the axis the face is most nearly square to, 11
 // face grid.
-VIBE_FLAT_OUT(4) uint vFlags;
+SLOP_FLAT_OUT(4) uint vFlags;
 // World position, for fog and the face grid.
-VIBE_VARYING_OUT(5) vec3 vWorld;
+SLOP_VARYING_OUT(5) vec3 vWorld;
 
 void main()
 {
-	int corner = VIBE_VERTEX_INDEX % 3;
-	int triangle = iparams.y + VIBE_VERTEX_INDEX / 3;
+	int corner = SLOP_VERTEX_INDEX % 3;
+	int triangle = iparams.y + SLOP_VERTEX_INDEX / 3;
 	vec3 normal = aPlane.xyz;
 	bool perspective = cameraEye.w > 0.5;
 	float facing = perspective ? dot(normal, cameraEye.xyz) - aPlane.w : dot(normal, cameraEye.xyz);
@@ -71,7 +71,7 @@ void main()
 	vTriangle = triangle;
 	vWorld = aPosition;
 	if ((aInfo & 2u) != 0u || (iparams.z != 0 && !front)) {
-		gl_Position = VIBE_DISCARDED_POSITION;
+		gl_Position = SLOP_DISCARDED_POSITION;
 		vBarycentricW = vec3(0.0);
 		vShade = vec4(0.0);
 		vFlags = 0u;
@@ -106,5 +106,5 @@ void main()
 	// undoing the perspective division of the interpolation.
 	vec3 barycentric = vec3(corner == 0 ? 1.0 : 0.0, corner == 1 ? 1.0 : 0.0, corner == 2 ? 1.0 : 0.0);
 	vBarycentricW = barycentric * clip.w;
-	gl_Position = VIBE_CLIP(clip);
+	gl_Position = SLOP_CLIP(clip);
 }

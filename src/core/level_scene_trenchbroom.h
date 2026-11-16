@@ -17,10 +17,10 @@
 // Map File") and the maps TrenchBroom writes; no TrenchBroom code. See
 // docs/CREDITS.md.
 //
-// VibeStudio's document holds none of this: opening such a map moves the
+// SlopStudio's document holds none of this: opening such a map moves the
 // brushes and patches of its layers and groups into worldspawn, drops the
 // member keys and builds the scene from them, and saving with TrenchBroom
-// groups (LevelSceneStorage::TrenchBroom) writes them back, with VibeStudio's
+// groups (LevelSceneStorage::TrenchBroom) writes them back, with SlopStudio's
 // own scene note after them. When that note is present and still matches the
 // map, it wins: it also holds what TrenchBroom does not keep, such as hidden
 // or locked groups, out-of-sync marks and which objects correspond. A note
@@ -28,10 +28,10 @@
 
 #include "core/level_map.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 [[nodiscard]] QString levelSceneStorageId(LevelSceneStorage storage);
-// "vibestudio" or "trenchbroom", in any case. False for anything else.
+// "slopstudio" or "trenchbroom", in any case. False for anything else.
 bool levelSceneStorageFromId(const QString& id, LevelSceneStorage* storage);
 
 // A layer or group as TrenchBroom's entity gave it.
@@ -95,4 +95,4 @@ struct LevelTrenchBroomExport {
 // selectors of `source`.
 [[nodiscard]] LevelTrenchBroomExport writeLevelTrenchBroomScene(const LevelMapDocument& source, const LevelSceneState& scene);
 
-} // namespace vibestudio
+} // namespace slopstudio

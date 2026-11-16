@@ -4,7 +4,7 @@
 // lib/TbUiLib/src and lib/TbMdlLib/src at 4c756be1 (GPL-3.0-or-later): points
 // clicked on faces snap to the grid in the face's plane, a face drag proposes
 // the grid rectangle on that plane, and a Shift-drag duplicates a flat outline
-// along its normal by grid steps. Original implementation over VibeStudio's
+// along its normal by grid steps. Original implementation over SlopStudio's
 // convex envelope (core/level_brush_points.h); see docs/CREDITS.md.
 
 #include "core/level_brush_assemble.h"
@@ -16,7 +16,7 @@
 #include <array>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 // levelBrushPointsHull()'s spread: closer than this to a point, line or
 // plane does not count as leaving it.
@@ -465,4 +465,4 @@ bool levelBrushAssembleAppend(QVector<LevelMapVec3>* points, const QVector<Level
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

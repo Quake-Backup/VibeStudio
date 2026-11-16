@@ -4,7 +4,7 @@
 #include "app/audio_duplex_device.h"
 #include <portaudio.h>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioPortAudioApi {
 	std::function<PaError()> initialize, terminate;
@@ -20,4 +20,4 @@ struct AudioPortAudioApi {
 	std::function<const char *(PaError)> errorText;
 };
 std::unique_ptr<AudioDuplexDevice> createAudioDuplexDeviceForTest(std::shared_ptr<AudioPortAudioApi> api);
-} // namespace vibestudio
+} // namespace slopstudio

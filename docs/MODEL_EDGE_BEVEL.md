@@ -1,7 +1,7 @@
 # Bevel mesh edges
 
 **Available** — **Bevel Edges** creates chamfers and rounded bands on selected
-edges through the Mesh Editor and `model tool --tool bevel-edges`. VibeStudio
+edges through the Mesh Editor and `model tool --tool bevel-edges`. SlopStudio
 remains pre-alpha and largely untested in real projects; this operation does
 not establish the wider [modeller release gate](MODELLER_RELEASE.md).
 
@@ -11,14 +11,14 @@ not establish the wider [modeller release gate](MODELLER_RELEASE.md).
    can share one operation. Face/vertex selection converts to edges, omitting
    inferred quad diagonals. Explicit edge selectors remain exact.
 2. Choose **Edge → Bevel Edges**, use command search, or press **Ctrl+B** in
-   the VibeStudio or Blender profile. **Ctrl+Shift+B** retains vertex bevel.
+   the SlopStudio or Blender profile. **Ctrl+Shift+B** retains vertex bevel.
 3. Move away from the selection centre or type the width. **Ctrl** snaps the
    pointer width to the translation grid; **Shift** gives finer pointer motion.
    The wheel or **Page Up/Down** changes the segment count from 1 to 32.
 4. Confirm with **Enter**, **Space** or a click. **Esc** discards the preview.
    Preparation runs through the cancellable model worker and leaves the source
    and undo history untouched until confirmation.
-5. Use **Adjust Last Operation** (**F9** in the VibeStudio/Blender profile) to
+5. Use **Adjust Last Operation** (**F9** in the SlopStudio/Blender profile) to
    change **Width**, **Segments**, **Roundness**, **Units per texture repeat**,
    **Quad pairing angle** or **Clamp width to fit**. Accepted adjustments
    replace the original edit as one undo step. Invalid adjustments restore the
@@ -88,9 +88,9 @@ existing limits and skin requirements; the authoring source remains `.mesh.json`
 ## Automate an edge bevel
 
 ```sh
-vibestudio --cli model tool models/prop.mesh.json --tool bevel-edges --edges 0:1,1:2 --width 2 --segments 4 --roundness 1 --output models/bevelled.mesh.json --dry-run --json
-vibestudio --cli model tool models/prop.mesh.json --tool bevel-edges --edges 0:1,1:2 --width 2 --segments 4 --roundness 0.5 --tile-size 64 --angle 40 --reference-frame 0 --output models/bevelled.mesh.json --json
-vibestudio --cli model tool models/prop.mesh.json --tool bevel-edges --edges 0:1,1:2 --width 40 --clamp --output models/clamped.mesh.json --json
+slopstudio --cli model tool models/prop.mesh.json --tool bevel-edges --edges 0:1,1:2 --width 2 --segments 4 --roundness 1 --output models/bevelled.mesh.json --dry-run --json
+slopstudio --cli model tool models/prop.mesh.json --tool bevel-edges --edges 0:1,1:2 --width 2 --segments 4 --roundness 0.5 --tile-size 64 --angle 40 --reference-frame 0 --output models/bevelled.mesh.json --json
+slopstudio --cli model tool models/prop.mesh.json --tool bevel-edges --edges 0:1,1:2 --width 40 --clamp --output models/clamped.mesh.json --json
 ```
 
 Use existing indexed edge pairs; the example indices are placeholders for your

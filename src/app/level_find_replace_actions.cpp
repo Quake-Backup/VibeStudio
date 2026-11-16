@@ -16,7 +16,7 @@
 // at 4c756be1 (GPL-3.0-or-later), and NetRadiant Custom FindTextureDialog and
 // FindReplaceTextures at 449778b3 (GPL-2.0-or-later). Original Qt
 // implementation; see docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 // What the map view hides with filters or Hide, as selectors: Find and
 // Replace leaves those objects alone, as Select All does.
@@ -335,4 +335,4 @@ bool ApplicationShell::fillLevelFindReplaceField(const QString& material)
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

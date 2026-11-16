@@ -3,7 +3,7 @@
 #include "core/level_primitive.h"
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class LevelSweepPath { Arc, Straight, SBend };
 struct LevelSweepRequest {
@@ -51,4 +51,4 @@ bool buildLevelSweep(const LevelMapDocument& document, const LevelSweepRequest& 
 bool sweepLevelMap(LevelMapDocument* document, const LevelSweepRequest& request, LevelSweepReport* report = nullptr,
                    QString* error = nullptr);
 QJsonObject levelSweepReportJson(const LevelSweepReport& report);
-} // namespace vibestudio
+} // namespace slopstudio

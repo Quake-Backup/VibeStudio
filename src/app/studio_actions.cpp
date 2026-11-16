@@ -49,7 +49,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -181,12 +181,12 @@ QString commandToolTip(const QString& label, const QString& statusTip, const QSt
 	name.remove(QChar(0x2026));
 	name = name.trimmed();
 	if (!shortcut.isEmpty()) {
-		name = QCoreApplication::translate("VibeStudioStudioActions", "%1 (%2)").arg(name, shortcut.section(QStringLiteral(", "), 0, 0));
+		name = QCoreApplication::translate("SlopStudioStudioActions", "%1 (%2)").arg(name, shortcut.section(QStringLiteral(", "), 0, 0));
 	}
 	return statusTip.isEmpty() ? name : QStringLiteral("%1\n%2").arg(name, statusTip);
 }
 
-const char* const kExplicitlyDisabledProperty = "vibestudioExplicitlyDisabled";
+const char* const kExplicitlyDisabledProperty = "slopstudioExplicitlyDisabled";
 
 bool explicitlyDisabled(const QAction* action)
 {
@@ -392,21 +392,21 @@ QString studioCommandGroupTitle(StudioCommandGroup group)
 {
 	switch (group) {
 	case StudioCommandGroup::File:
-		return QCoreApplication::translate("VibeStudioStudioActions", "File");
+		return QCoreApplication::translate("SlopStudioStudioActions", "File");
 	case StudioCommandGroup::Edit:
-		return QCoreApplication::translate("VibeStudioStudioActions", "Edit");
+		return QCoreApplication::translate("SlopStudioStudioActions", "Edit");
 	case StudioCommandGroup::View:
-		return QCoreApplication::translate("VibeStudioStudioActions", "View");
+		return QCoreApplication::translate("SlopStudioStudioActions", "View");
 	case StudioCommandGroup::Project:
-		return QCoreApplication::translate("VibeStudioStudioActions", "Project");
+		return QCoreApplication::translate("SlopStudioStudioActions", "Project");
 	case StudioCommandGroup::Build:
-		return QCoreApplication::translate("VibeStudioStudioActions", "Build");
+		return QCoreApplication::translate("SlopStudioStudioActions", "Build");
 	case StudioCommandGroup::Tools:
-		return QCoreApplication::translate("VibeStudioStudioActions", "Tools");
+		return QCoreApplication::translate("SlopStudioStudioActions", "Tools");
 	case StudioCommandGroup::Help:
-		return QCoreApplication::translate("VibeStudioStudioActions", "Help");
+		return QCoreApplication::translate("SlopStudioStudioActions", "Help");
 	}
-	return QCoreApplication::translate("VibeStudioStudioActions", "Tools");
+	return QCoreApplication::translate("SlopStudioStudioActions", "Tools");
 }
 
 namespace {
@@ -417,21 +417,21 @@ QString studioCommandGroupMenuTitle(StudioCommandGroup group)
 {
 	switch (group) {
 	case StudioCommandGroup::File:
-		return QCoreApplication::translate("VibeStudioStudioActions", "&File");
+		return QCoreApplication::translate("SlopStudioStudioActions", "&File");
 	case StudioCommandGroup::Edit:
-		return QCoreApplication::translate("VibeStudioStudioActions", "&Edit");
+		return QCoreApplication::translate("SlopStudioStudioActions", "&Edit");
 	case StudioCommandGroup::View:
-		return QCoreApplication::translate("VibeStudioStudioActions", "&View");
+		return QCoreApplication::translate("SlopStudioStudioActions", "&View");
 	case StudioCommandGroup::Project:
-		return QCoreApplication::translate("VibeStudioStudioActions", "&Project");
+		return QCoreApplication::translate("SlopStudioStudioActions", "&Project");
 	case StudioCommandGroup::Build:
-		return QCoreApplication::translate("VibeStudioStudioActions", "&Build");
+		return QCoreApplication::translate("SlopStudioStudioActions", "&Build");
 	case StudioCommandGroup::Tools:
-		return QCoreApplication::translate("VibeStudioStudioActions", "&Tools");
+		return QCoreApplication::translate("SlopStudioStudioActions", "&Tools");
 	case StudioCommandGroup::Help:
-		return QCoreApplication::translate("VibeStudioStudioActions", "&Help");
+		return QCoreApplication::translate("SlopStudioStudioActions", "&Help");
 	}
-	return QCoreApplication::translate("VibeStudioStudioActions", "&Tools");
+	return QCoreApplication::translate("SlopStudioStudioActions", "&Tools");
 }
 
 const QVector<StudioCommandGroup>& studioCommandGroupOrder()
@@ -779,7 +779,7 @@ void StudioCommandRegistry::installShortcuts()
 				// A built-in key the user or the profile gave another command is
 				// simply theirs.
 				if (!owner.preferred || preferredKeys) {
-					m_conflicts << QCoreApplication::translate("VibeStudioStudioActions", "Shortcut %1 requested by %2 is already bound to %3; it was not installed.")
+					m_conflicts << QCoreApplication::translate("SlopStudioStudioActions", "Shortcut %1 requested by %2 is already bound to %3; it was not installed.")
 						.arg(sequence.toString(QKeySequence::PortableText), registration->commandId, owner.commandId);
 				}
 				continue;
@@ -1899,4 +1899,4 @@ void CommandPaletteDialog::activateCurrentRow()
 	accept();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

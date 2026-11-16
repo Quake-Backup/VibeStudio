@@ -12,7 +12,7 @@
 #include <cstring>
 #include <limits>
 
-namespace vibestudio::material_render {
+namespace slopstudio::material_render {
 
 namespace {
 
@@ -559,10 +559,10 @@ void MaterialGpuFrame::finish(double displayScale, MaterialRenderResult* result,
 	}
 	const GpuReadback* image = rendered.readback(FinalTarget);
 	if (!image) {
-		result->error = QCoreApplication::translate("VibeStudioRendering", "The graphics device did not return this view's image.");
+		result->error = QCoreApplication::translate("SlopStudioRendering", "The graphics device did not return this view's image.");
 		return;
 	}
 	result->image = image->image(QImage::Format_ARGB32);
 }
 
-} // namespace vibestudio::material_render
+} // namespace slopstudio::material_render

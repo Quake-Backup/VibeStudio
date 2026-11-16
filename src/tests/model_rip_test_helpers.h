@@ -4,7 +4,7 @@
 #include "core/model_skeleton.h"
 #include <QJsonDocument>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh ripGrid(int side = 3)
 {
@@ -142,4 +142,4 @@ inline ModelMesh ripSeams()
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

@@ -22,13 +22,13 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelTools)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelTools)
 };
 
 int selectedCount(const ModelSelection &selection)
@@ -550,4 +550,4 @@ void ModelEditorTools::buildProfileActions()
 	addAction(QStringLiteral("meshTypeIn"), Text::tr("Numeric Transform"), {}, [this] { m_editor->showSidebarPage(QStringLiteral("item")); });
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

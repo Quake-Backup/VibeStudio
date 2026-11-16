@@ -25,9 +25,9 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
-namespace fixtures = vibestudio::tests::release;
-namespace doom = vibestudio::tests::doom;
+using namespace slopstudio;
+namespace fixtures = slopstudio::tests::release;
+namespace doom = slopstudio::tests::doom;
 
 namespace {
 
@@ -244,7 +244,7 @@ bool runQuake3Project(const QString& base)
 		ok &= expect(paths.contains(path), "the whole project ships its content", path);
 	}
 	for (const QString& path : {QStringLiteral("src/art.psd"), QStringLiteral("notes.bak"), QStringLiteral("maps/arena1.prt"), QStringLiteral("maps/arena1.map"),
-			 QStringLiteral("textures/base_wall/wall1.tga"), QStringLiteral(".vibestudio/project.json")}) {
+			 QStringLiteral("textures/base_wall/wall1.tga"), QStringLiteral(".slopstudio/project.json")}) {
 		ok &= expect(!paths.contains(path), "sources, scratch files, metadata and stock copies stay out", path);
 	}
 	ok &= expect(plan.canPublish(), "the project plan can publish", problemKinds(plan));

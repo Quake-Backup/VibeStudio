@@ -17,8 +17,8 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
-namespace fixtures = vibestudio::tests::release;
+using namespace slopstudio;
+namespace fixtures = slopstudio::tests::release;
 
 namespace {
 
@@ -120,11 +120,11 @@ bool runQuake3()
 
 	// Malformed registers are refused, not half loaded.
 	ok &= expect(!parseGameAssetRegister("{\"format\":\"something-else\"}", &loaded, &error), "a foreign JSON file is refused");
-	ok &= expect(!parseGameAssetRegister("{\"format\":\"vibestudio-asset-register\",\"version\":99}", &loaded, &error) && error.contains(QStringLiteral("99")),
+	ok &= expect(!parseGameAssetRegister("{\"format\":\"slopstudio-asset-register\",\"version\":99}", &loaded, &error) && error.contains(QStringLiteral("99")),
 		"a future version is refused with its number");
-	ok &= expect(!parseGameAssetRegister("{\"format\":\"vibestudio-asset-register\",\"version\":1,\"sources\":[{\"id\":\"a\",\"path\":\"a\"}],\"files\":[[\"x\",1,\"nothex!!\",0]]}", &loaded, &error),
+	ok &= expect(!parseGameAssetRegister("{\"format\":\"slopstudio-asset-register\",\"version\":1,\"sources\":[{\"id\":\"a\",\"path\":\"a\"}],\"files\":[[\"x\",1,\"nothex!!\",0]]}", &loaded, &error),
 		"a malformed CRC is refused");
-	ok &= expect(!parseGameAssetRegister("{\"format\":\"vibestudio-asset-register\",\"version\":1,\"sources\":[],\"files\":[[\"x\",1,\"00000000\",3]]}", &loaded, &error),
+	ok &= expect(!parseGameAssetRegister("{\"format\":\"slopstudio-asset-register\",\"version\":1,\"sources\":[],\"files\":[[\"x\",1,\"00000000\",3]]}", &loaded, &error),
 		"a file row naming a missing source is refused");
 
 	// Explicit packages override discovery; a missing one fails the build.

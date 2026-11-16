@@ -29,7 +29,7 @@
 #include <cmath>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -844,4 +844,4 @@ bool BrushEditorDialog::insertVertex(const LevelMapVec3 &position, double grid)
 	adoptTopologyEdit(draft, report, {snapLevelMapPosition(position, grid)});
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

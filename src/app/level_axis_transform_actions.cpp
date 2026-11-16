@@ -26,7 +26,7 @@
 #include <QComboBox>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 MapRenderProjection viewProjection(MapViewportProjection projection)
@@ -375,4 +375,4 @@ void ApplicationShell::applyLevelViewTransformFromUi(const QString& commandId, Q
 	statusBar()->showMessage(message);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

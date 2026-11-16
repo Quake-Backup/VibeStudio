@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh transformAxesFixture()
 {
@@ -33,4 +33,4 @@ inline bool nearAxesVectors(const auto &a, const auto &b)
 {
 	return a.size() == b.size() && std::equal(a.begin(), a.end(), b.begin(), [](ModelVec3 x, ModelVec3 y) { return nearAxesVector(x, y); });
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

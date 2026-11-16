@@ -18,7 +18,7 @@ class QProgressBar;
 class QPushButton;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class ProjectSearchPanel final : public QWidget {
 	Q_OBJECT
@@ -94,4 +94,4 @@ private:
 	QTimer* m_progressTimer = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

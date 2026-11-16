@@ -10,7 +10,7 @@ class QPushButton;
 class QKeySequenceEdit;
 class QPlainTextEdit;
 class QToolButton;
-namespace vibestudio {
+namespace slopstudio {
 class StudioSettings;
 class LevelGesturesDialog final : public QDialog {
 	Q_OBJECT
@@ -36,4 +36,4 @@ private:
 	QPushButton* m_export = nullptr;
 	QString m_loadError;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -9,7 +9,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool integer(const QJsonValue& value, int* target)
 {
@@ -130,4 +130,4 @@ QJsonObject languageSignatureContext(const LanguageSignatureHelp& report)
 	return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

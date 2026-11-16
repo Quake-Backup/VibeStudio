@@ -1,7 +1,7 @@
 # Texture editor release-candidate gates
 
 Objective: achieve a release-candidate, professional-grade texture editor for
-VibeStudio's idTech1, idTech2, and idTech3 workflows. The earlier raster editor
+SlopStudio's idTech1, idTech2, and idTech3 workflows. The earlier raster editor
 is a foundation, not evidence that this objective has been achieved.
 
 This is the completion checklist. An unchecked gate stays required even when
@@ -278,7 +278,7 @@ runtime, with limitations recorded in the user guide and support matrix.
   Namespace markers and a new texture undo together, and the versioned package
   draft retains type, insertion anchor and required namespace. Missing markers,
   incompatible namespaces and ambiguous lump names block staging/publication.
-- CLI `texture stage` writes a reviewable `.vibepackage` draft, with separate
+- CLI `texture stage` writes a reviewable `.sloppackage` draft, with separate
   `--replace-texture` and `--overwrite` controls, dry-run validation, target
   palette resolution, structured export/plan reports and no source-archive write.
   Draft corruption fixtures verify that invalid native metadata cannot replace
@@ -511,7 +511,7 @@ runtime, with limitations recorded in the user guide and support matrix.
 
 ## Optimized latency and cancellable project saves — 2026-10-04
 
-- Added opt-in `vibestudio.startup` timing by shell/UI phase and browser timing
+- Added opt-in `slopstudio.startup` timing by shell/UI phase and browser timing
   JSON. The optimized shell constructed in 1.04 s; a 66-native-texture dimension
   query completed in 399 ms with a 37 ms maximum UI heartbeat gap. This resolves
   the remaining release-build startup/query investigation. The earlier 53-second
@@ -611,9 +611,9 @@ runtime, with limitations recorded in the user guide and support matrix.
   The accessibility and meaningful-regression gates are complete: **17 of 21**
   gates are checked; packaging/platform/final-documentation/final-audit remain.
 - The additional local Windows runtime package is staged under
-  `.agents/tmp/texture-editor/runtime-package/vibestudio-0.1.0-rc1-win64-x86_64`.
+  `.agents/tmp/texture-editor/runtime-package/slopstudio-0.1.0-rc1-win64-x86_64`.
   `windeployqt 6.10.1` staged Qt/plugin dependencies and the VC redistributable
-  installer; the installer was not run. All 21 VibeStudio catalogs were compiled
+  installer; the installer was not run. All 21 SlopStudio catalogs were compiled
   with the canonical Meson targets and included. The packaged CLI validation and
   offscreen shell both pass with Qt absent from PATH. Process module inspection
   observes all six Qt libraries plus the offscreen plugin inside the bundle.

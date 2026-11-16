@@ -5,7 +5,7 @@
 #include <cmath>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -278,4 +278,4 @@ QJsonObject levelPatchStitchReportJson(const LevelPatchStitchResult &result)
 			{QStringLiteral("secondGrid"), QJsonArray{result.second.width, result.second.height}},
 			{QStringLiteral("warnings"), QJsonArray::fromStringList(result.warnings)}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -32,7 +32,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // How one path was accounted for. `CaseOnly` means both sides hold the entry
 // but spell its path with different letter case.
@@ -179,4 +179,4 @@ QJsonObject packageCompareJson(const PackageCompareResult& result);
 // Indented UTF-8 JSON. Byte-for-byte reproducible for the same comparison.
 QByteArray packageCompareJsonBytes(const PackageCompareResult& result);
 
-} // namespace vibestudio
+} // namespace slopstudio

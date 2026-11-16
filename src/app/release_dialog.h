@@ -38,7 +38,7 @@ class QToolButton;
 class QTreeWidget;
 class QTreeWidgetItem;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class CompositionChart;
 class LoadingPane;
@@ -69,7 +69,7 @@ struct ReleaseDialogHooks {
 };
 
 class ReleaseDialog final : public QDialog {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioReleaseDialog)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioReleaseDialog)
 
 public:
 	ReleaseDialog(QWidget* parent, ReleaseDialogHooks hooks);
@@ -200,4 +200,4 @@ private:
 	QTimer* m_progressTimer = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

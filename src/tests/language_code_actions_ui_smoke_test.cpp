@@ -17,7 +17,7 @@
 #include <QTimer>
 #include <QTranslator>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* why) { if (!condition) { std::cerr << why << '\n'; } return condition; }
 bool wait(const std::function<bool()>& ready, int ms = 8000)
@@ -34,7 +34,7 @@ class Expanded final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		if (QByteArray(context) != "CodeActionsDialog" && QByteArray(context) != "vibestudio::ProjectSearchPanel") { return {}; }
+		if (QByteArray(context) != "CodeActionsDialog" && QByteArray(context) != "slopstudio::ProjectSearchPanel") { return {}; }
 		const auto text = QString::fromUtf8(source); return text + QStringLiteral(" ~").repeated(text.size() / 6);
 	}
 };
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
 		auto* list = picker.findChild<QListWidget*>(QStringLiteral("codeActionsList")); auto* preview = picker.findChild<QPushButton*>(QStringLiteral("codeActionPreview"));
 		ok &= expect(list && preview && !list->accessibleName().isEmpty() && list->focusPolicy() != Qt::NoFocus && !preview->accessibleName().isEmpty(), "picker exposes keyboard focus and accessible names");
 		list->setCurrentRow(3); picker.accept(); ok &= expect(!preview->isEnabled() && picker.result() != QDialog::Accepted && !list->currentItem()->data(Qt::AccessibleDescriptionRole).toString().isEmpty(), "unavailable entries explain their reason and cannot be accepted"); list->setCurrentRow(0);
-		const QString evidence = qEnvironmentVariable("VIBESTUDIO_LANGUAGE_TEST_EVIDENCE");
+		const QString evidence = qEnvironmentVariable("SLOPSTUDIO_LANGUAGE_TEST_EVIDENCE");
 		const auto render = [&](QWidget& widget, const QString& name) { if (!evidence.isEmpty()) { QImage image(widget.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); widget.render(&image); ok &= expect(image.save(QDir(evidence).filePath(name)), "render actual action widgets without OS capture"); } };
 		render(picker, QStringLiteral("language-code-actions-picker-%1.png").arg(scale));
 		ProjectSearchPanel review; review.resize(scale == 200 ? 1800 : 1100, scale == 200 ? 1100 : 700); review.setLayoutDirection(picker.layoutDirection());

@@ -1,12 +1,12 @@
-# VibeStudio documentation
+# SlopStudio documentation
 
-Start with the **[user manual](manual/index.md)**. It explains what VibeStudio
+Start with the **[user manual](manual/index.md)**. It explains what SlopStudio
 does today, how to install it, and how to use each part of the studio. Every
 release also ships the manual as offline HTML (open `docs/html/index.html` in a
-package, or **VibeStudio Documentation** in the Start menu on Windows).
+package, or **SlopStudio Documentation** in the Start menu on Windows).
 
 > [!WARNING]
-> VibeStudio is pre-alpha and largely untested in real projects. Read
+> SlopStudio is pre-alpha and largely untested in real projects. Read
 > [Project status](manual/status.md) before you trust it with your work.
 
 ## User manual
@@ -14,7 +14,7 @@ package, or **VibeStudio Documentation** in the Start menu on Windows).
 For a visual introduction, open the [HTML showcase](showcase/index.html), with
 twelve development screenshots and an overview of the connected workflows.
 It works directly from disk. Run `python scripts/build_showcase.py` to produce
-`build/showcase/VibeStudio.html`, a single file with embedded screenshots,
+`build/showcase/SlopStudio.html`, a single file with embedded screenshots,
 branding and fonts for offline sharing. Edit `docs/showcase/index.html` to
 update the presentation; `docs/showcase/screenshots.json` records the original
 capture paths and checksums. The showcase reflects pre-alpha development,
@@ -24,7 +24,7 @@ not production readiness.
 | --- | --- | --- |
 | [Welcome](manual/index.md) | [Projects and game installations](manual/projects.md) | [Accessibility and languages](manual/accessibility.md) |
 | [Project status](manual/status.md) | [Level editing](manual/levels.md) | [Command line](manual/cli.md) |
-| [Install VibeStudio](manual/install.md) | [Editor profiles and controls](manual/editor-profiles.md) | [Troubleshooting and FAQ](manual/troubleshooting.md) |
+| [Install SlopStudio](manual/install.md) | [Editor profiles and controls](manual/editor-profiles.md) | [Troubleshooting and FAQ](manual/troubleshooting.md) |
 | [First-run setup](manual/first-run.md) | [Packages](manual/packages.md) | [Build from source](manual/building-from-source.md) |
 | [A tour of the studio](manual/tour.md) | [Package and release](manual/releases.md) | [Changelog](../CHANGELOG.md) |
 | | [Textures and sprites](manual/textures.md) | |
@@ -35,7 +35,7 @@ not production readiness.
 | | [AI assistant (optional)](manual/ai.md) | |
 
 [Support matrix](SUPPORT_MATRIX.md) is the detailed, per-format answer to
-"does VibeStudio handle this file?".
+"does SlopStudio handle this file?".
 
 ## Contributing and maintaining
 

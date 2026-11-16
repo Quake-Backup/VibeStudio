@@ -9,7 +9,7 @@
 #include <QHash>
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Editable, bounded static props. Units and axes match the level editor (Z up).
@@ -80,4 +80,4 @@ bool placeLevelModel(LevelMapDocument* document, const QString& virtualPath, con
 // cannot be read is returned empty, so the review reports it.
 [[nodiscard]] QHash<QString, QByteArray> readStagedModelFiles(const PackageStagingModel& staging, const QStringList& virtualPaths);
 
-} // namespace vibestudio
+} // namespace slopstudio

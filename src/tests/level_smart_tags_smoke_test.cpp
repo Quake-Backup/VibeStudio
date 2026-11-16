@@ -20,7 +20,7 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 void check(bool passed, const char* name, const QString& reason = {})

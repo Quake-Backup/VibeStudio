@@ -5,7 +5,7 @@
 #include "core/level_scene_layers.h"
 #include <QCoreApplication>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct Text { Q_DECLARE_TR_FUNCTIONS(LevelVisibility) };
 QString key(LevelMapSelectionKind kind, int id) { return levelMapSelectionRefId({kind,id}); }
@@ -351,7 +351,7 @@ bool selectAndRevealLevelMapObjects(LevelMapDocument* document, const QVector<Le
 
 namespace {
 // Layer membership follows explicit primitive assignments before owner
-// membership, matching VibeStudio's selection and scene editing context.
+// membership, matching SlopStudio's selection and scene editing context.
 QHash<QString,QString> visibilityLayers(const LevelMapDocument& document, const LevelSceneState& scene)
 {
 	// Shared with the layer commands (core/level_scene_layers.h).
@@ -434,7 +434,7 @@ void detail::reconcileLevelMapVisibility(LevelMapDocument* document, LevelMapUnd
 	const auto hidden = graph.hidden(*document);
 	const auto shownRoots = roots & hidden;
 	document->hiddenObjects.subtract(shownRoots); document->shownObjects.unite(shownRoots);
-	// Explicit primitive membership can add a second parent in VibeStudio.
+	// Explicit primitive membership can add a second parent in SlopStudio.
 	// Reveal external-parent hiding without erasing copied Hidden descendants.
 	const auto protectedHidden = graph.closure(document->hiddenObjects & added,false);
 	document->shownObjects.unite((graph.hidden(*document) & added) - protectedHidden);
@@ -476,4 +476,4 @@ void detail::replayLevelMapVisibilityRemap(LevelMapDocument* document, const Lev
 	carry(&document->shownObjects,forward ? command.removedShownObjects : command.shownObjectsRemovedOnUndo,
 		forward ? command.shownObjectsRemovedOnUndo : command.removedShownObjects);
 }
-} // namespace vibestudio
+} // namespace slopstudio

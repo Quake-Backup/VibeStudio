@@ -1,7 +1,7 @@
 #include "tests/level_object_test_helpers.h"
-using vibestudio::tests::objectIndex;
-using vibestudio::tests::setObjectCurrentRow;
-using vibestudio::tests::setObjectSelected;
+using slopstudio::tests::objectIndex;
+using slopstudio::tests::setObjectCurrentRow;
+using slopstudio::tests::setObjectSelected;
 #include "app/application_shell.h"
 #include "app/level_scene_panel.h"
 #include "app/map_viewport.h"
@@ -30,7 +30,7 @@ using vibestudio::tests::setObjectSelected;
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool pass, const char* label, const QString& error = {}) {
 	if (!pass) {
@@ -42,7 +42,7 @@ class Expansion final : public QTranslator {
   public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		if (QByteArray(context) != "vibestudio::LevelScenePanel") {
+		if (QByteArray(context) != "slopstudio::LevelScenePanel") {
 			return {};
 		}
 		const auto label = QString::fromUtf8(source);
@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
 		if (scale == 200) {
 			ok &= expect(tree->headerItem()->text(0).startsWith('['), "real namespaced translation expansion");
 		}
-		const auto captureRoot = qEnvironmentVariable("VIBESTUDIO_SCENE_CAPTURES");
+		const auto captureRoot = qEnvironmentVariable("SLOPSTUDIO_SCENE_CAPTURES");
 		tree->expandAll();
 		QApplication::processEvents();
 		if (!captureRoot.isEmpty()) {

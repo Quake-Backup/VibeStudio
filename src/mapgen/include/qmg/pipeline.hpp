@@ -30,11 +30,11 @@ struct PipelineOptions {
     // D7 stage switches, copied into the parsed PromptSpec so every stage sees them through
     // layout.spec.switches. All at their defaults by default.
     StageSwitches switches;
-    // VibeStudio: when the text model answers but planning fails (invalid plans past the revision
+    // SlopStudio: when the text model answers but planning fails (invalid plans past the revision
     // budget, bad provenance), plan by the rules instead and say why in planner_fallback. A
     // TextModelUnavailable still stops generation. Off by default.
     bool rules_fallback{false};
-    // VibeStudio: which ranker scores the candidates; RankerBackend::ggml needs a build with ggml.
+    // SlopStudio: which ranker scores the candidates; RankerBackend::ggml needs a build with ggml.
     RankerBackend ranker{RankerBackend::scalar};
 };
 
@@ -44,7 +44,7 @@ struct PipelineResult {
     std::optional<MapBuildResult> map_build;
     SemanticPlan semantic_plan;
     PlannerTrace planner;
-    // VibeStudio: why the text model's planning was set aside for the rules (rules_fallback); empty
+    // SlopStudio: why the text model's planning was set aside for the rules (rules_fallback); empty
     // when it was not. The report adds planner.fallback only when this is set.
     std::string planner_fallback;
     ValidationResult validation;

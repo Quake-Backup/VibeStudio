@@ -20,7 +20,7 @@
 #include <QVBoxLayout>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const QString& message)
 {
@@ -31,7 +31,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioUiPrimitives") { return {}; }
+		if (QByteArray(context) != "SlopStudioUiPrimitives") { return {}; }
 		const QByteArray label(source);
 		if (label == "Copy") { return QStringLiteral("Copy the selected diagnostic section"); }
 		if (label == "Hide Details") { return QStringLiteral("Hide the current diagnostic details"); }
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
 				auto* content = drawer.findChild<QTextEdit*>(QStringLiteral("detailContent"));
 				ok &= expect(content && content->height() >= content->fontMetrics().height() * 3
 					&& drawer.currentSectionId() == QStringLiteral("metadata") && drawer.currentSectionText() == QStringLiteral("Retained authoring metadata"), label + "reflow preserves usable content and section selection");
-				const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+				const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 				if (!capture.isEmpty()) {
 					// Embedded frames inherit their pane background; render the actual parent
 					// instead of compositing a transparent standalone child over black.
@@ -132,7 +132,7 @@ int main(int argc, char** argv)
 			if (scale == 100) { ok &= expect(qAbs(grid.columnWidth(0) - chosenWidth) <= 2, "heading floors do not replace the user's column width after scaling back"); }
 			ok &= expect(grid.topLevelItem(0)->text(1) == subtitle && grid.topLevelItem(0)->toolTip(1) == subtitle
 				&& grid.focusPolicy() != Qt::NoFocus && QAccessible::queryAccessibleInterface(&grid), "property reflow retains values, detail tooltips and native tree accessibility");
-			const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!capture.isEmpty()) {
 				QImage image(grid.size(), QImage::Format_ARGB32_Premultiplied); image.fill(grid.palette().color(QPalette::Window)); grid.render(&image);
 				ok &= expect(image.save(QDir(capture).filePath(QStringLiteral("property-layout-%1-%2.png").arg(scale).arg(width))), "render constrained metadata headings");

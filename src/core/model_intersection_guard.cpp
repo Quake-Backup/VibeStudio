@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <array>
 
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -106,4 +106,4 @@ bool introducedModelIntersections(const ModelMesh &before, const ModelMesh &afte
 	crossings->erase(std::unique(crossings->begin(), crossings->end()), crossings->end());
 	return true;
 }
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

@@ -1,7 +1,7 @@
-"""Original sweep fixtures -> VibeMap3 collision/render geometry -> verified PK3.
+"""Original sweep fixtures -> SlopMap3 collision/render geometry -> verified PK3.
 
 Runs without a game, user input or screen capture. Outputs stay in .agents/tmp.
-The cap oracle uses closed-form coordinates independent of VibeStudio geometry.
+The cap oracle uses closed-form coordinates independent of SlopStudio geometry.
 """
 from pathlib import Path
 import argparse

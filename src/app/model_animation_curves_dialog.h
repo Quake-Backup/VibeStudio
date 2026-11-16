@@ -11,7 +11,7 @@ class QPushButton;
 class QSpinBox;
 class QTableView;
 class QTabWidget;
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class ModelAnimationCurveView;
@@ -98,4 +98,4 @@ class ModelAnimationCurvesDialog final : public QDialog
 	[[nodiscard]] QVector<ModelPoseCurveKey> shownKeys() const;
 	void convertRotation();
 };
-} // namespace vibestudio
+} // namespace slopstudio

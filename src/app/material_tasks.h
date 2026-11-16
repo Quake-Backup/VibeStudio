@@ -11,7 +11,7 @@
 
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Runs one task at a time off the GUI thread and keeps one queued task. A
 // task returns the function that publishes its result; that function runs on
@@ -44,4 +44,4 @@ private:
 	std::shared_ptr<std::atomic_bool> m_stop;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

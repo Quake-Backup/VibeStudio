@@ -5,7 +5,7 @@
 #include <QHash>
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Seam-bounded conformal unwrap: Least Squares Conformal Maps (Lévy, Petitjean,
 // Ray and Maillot, SIGGRAPH 2002), solved per island with a Jacobi-scaled
@@ -53,4 +53,4 @@ bool unwrapModelUvConformal(const ModelSurface &source, const QSet<int> &faces, 
 							const ModelUvUnwrapOptions &options, ModelSurface *result, ModelUvUnwrapReport *report = nullptr,
 							QString *error = nullptr, const ModelWorkControl &control = {});
 [[nodiscard]] QJsonObject modelUvUnwrapJson(const ModelUvUnwrapReport &report);
-} // namespace vibestudio
+} // namespace slopstudio

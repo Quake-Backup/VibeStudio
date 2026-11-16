@@ -5,7 +5,7 @@
 #include <QSignalBlocker>
 #include <QStatusBar>
 
-namespace vibestudio
+namespace slopstudio
 {
 AudioSessionDialog *ApplicationShell::ensureAudioSession()
 {
@@ -73,4 +73,4 @@ void ApplicationShell::showAudioSession(const QString &path)
 		dialog->openSession(path);
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

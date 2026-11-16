@@ -44,7 +44,7 @@ class QTimer;
 class QToolButton;
 class QTreeWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class LoadingPane;
 class MaterialGraphView;
@@ -401,4 +401,4 @@ private:
 	QSplitter* m_graphSplitter = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

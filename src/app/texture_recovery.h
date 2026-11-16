@@ -10,7 +10,7 @@
 
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // A single writer and a coalescing queue. Retired in-flight documents are
 // cancelled and removed after the worker exits, preventing late resurrection.
@@ -42,4 +42,4 @@ private:
 	std::shared_ptr<Result> m_result;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

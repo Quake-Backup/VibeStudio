@@ -2,7 +2,7 @@
 
 // The existing r8brain-free-src 7.5 converter provides double-precision peak
 // reconstruction. Preserve the same cache configuration as audio_resample.cpp.
-// Upstream MIT/Ooura notices: external/audio/r8brain-free-src/VIBESTUDIO.md.
+// Upstream MIT/Ooura notices: external/audio/r8brain-free-src/SLOPSTUDIO.md.
 #define R8B_FILTER_CACHE_MAX 8
 #define R8B_FRACBANK_CACHE_MAX 2
 #include <CDSPResampler.h>
@@ -19,28 +19,28 @@
 #include <mutex>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 constexpr std::array<const char*, 10> RoleIds{"L", "R", "C", "LFE", "Ls", "Rs", "Lb", "Rb", "Cb", "X"};
 const std::array<const char*, 10> RoleNames{
-	QT_TRANSLATE_NOOP("VibeStudioAudioAnalysis", "Left"),
-	QT_TRANSLATE_NOOP("VibeStudioAudioAnalysis", "Right"),
-	QT_TRANSLATE_NOOP("VibeStudioAudioAnalysis", "Center / mono"),
-	QT_TRANSLATE_NOOP("VibeStudioAudioAnalysis", "Low-frequency effects"),
-	QT_TRANSLATE_NOOP("VibeStudioAudioAnalysis", "Left surround"),
-	QT_TRANSLATE_NOOP("VibeStudioAudioAnalysis", "Right surround"),
-	QT_TRANSLATE_NOOP("VibeStudioAudioAnalysis", "Left back"),
-	QT_TRANSLATE_NOOP("VibeStudioAudioAnalysis", "Right back"),
-	QT_TRANSLATE_NOOP("VibeStudioAudioAnalysis", "Center back"),
-	QT_TRANSLATE_NOOP("VibeStudioAudioAnalysis", "Excluded from loudness")};
+	QT_TRANSLATE_NOOP("SlopStudioAudioAnalysis", "Left"),
+	QT_TRANSLATE_NOOP("SlopStudioAudioAnalysis", "Right"),
+	QT_TRANSLATE_NOOP("SlopStudioAudioAnalysis", "Center / mono"),
+	QT_TRANSLATE_NOOP("SlopStudioAudioAnalysis", "Low-frequency effects"),
+	QT_TRANSLATE_NOOP("SlopStudioAudioAnalysis", "Left surround"),
+	QT_TRANSLATE_NOOP("SlopStudioAudioAnalysis", "Right surround"),
+	QT_TRANSLATE_NOOP("SlopStudioAudioAnalysis", "Left back"),
+	QT_TRANSLATE_NOOP("SlopStudioAudioAnalysis", "Right back"),
+	QT_TRANSLATE_NOOP("SlopStudioAudioAnalysis", "Center back"),
+	QT_TRANSLATE_NOOP("SlopStudioAudioAnalysis", "Excluded from loudness")};
 constexpr std::array<int, 10> MeterRoles{EBUR128_LEFT, EBUR128_RIGHT, EBUR128_CENTER, EBUR128_UNUSED,
 	EBUR128_LEFT_SURROUND, EBUR128_RIGHT_SURROUND, EBUR128_Mp135, EBUR128_Mm135, EBUR128_Mp180, EBUR128_UNUSED};
 
 // libebur128 1.2.6 rewrites process-wide constants in init, including while
 // other states read them. All calls, not only construction, share this lock.
-// Upstream/notice record: external/audio/libebur128/VIBESTUDIO.md.
+// Upstream/notice record: external/audio/libebur128/SLOPSTUDIO.md.
 std::mutex& meterMutex() { static std::mutex mutex; return mutex; }
 template<typename F> auto meterCall(F&& call)
 {
@@ -68,11 +68,11 @@ bool measureTruePeak(const AudioClip& clip, AudioAnalysisResult& result, const A
 		const qint64 padding = converter.getInputRequiredForOutput(1);
 		const qint64 outputFrames = (analysis.endFrame - analysis.firstFrame + 2 * padding) * factor;
 		if (padding < 1 || padding > 32768 || outputFrames > std::numeric_limits<int>::max()) {
-			return fail(QCoreApplication::translate("VibeStudioAudioAnalysis", "True-peak interpolation exceeds the processing limit."));
+			return fail(QCoreApplication::translate("SlopStudioAudioAnalysis", "True-peak interpolation exceeds the processing limit."));
 		}
 		const qint64 requiredInput = converter.getInputRequiredForOutput(int(outputFrames));
 		if (requiredInput <= 0 || requiredInput > AudioSampleLimit + 4 * 32768) {
-			return fail(QCoreApplication::translate("VibeStudioAudioAnalysis", "True-peak interpolation exceeds the processing limit."));
+			return fail(QCoreApplication::translate("SlopStudioAudioAnalysis", "True-peak interpolation exceeds the processing limit."));
 		}
 		std::array<double, ChunkFrames> input{};
 		for (int channel = 0; channel < clip.channels; ++channel) {
@@ -85,7 +85,7 @@ bool measureTruePeak(const AudioClip& clip, AudioAnalysisResult& result, const A
 				}
 				const int count = int(std::min<qint64>(ChunkFrames, requiredInput - inputPosition));
 				if (count <= 0) {
-					return fail(QCoreApplication::translate("VibeStudioAudioAnalysis", "Unable to finish true-peak measurement."));
+					return fail(QCoreApplication::translate("SlopStudioAudioAnalysis", "Unable to finish true-peak measurement."));
 				}
 				for (int index = 0; index < count; ++index) {
 					const qint64 frame = analysis.firstFrame + inputPosition + index - padding;
@@ -98,7 +98,7 @@ bool measureTruePeak(const AudioClip& clip, AudioAnalysisResult& result, const A
 				for (qint64 index = 0; index < take; ++index) {
 					const double value = std::abs(converted[index]);
 					if (!std::isfinite(value)) {
-						return fail(QCoreApplication::translate("VibeStudioAudioAnalysis", "The audio meter returned an invalid true-peak result."));
+						return fail(QCoreApplication::translate("SlopStudioAudioAnalysis", "The audio meter returned an invalid true-peak result."));
 					}
 					analysis.channels[channel].truePeak = std::max(*analysis.channels[channel].truePeak, value);
 				}
@@ -107,7 +107,7 @@ bool measureTruePeak(const AudioClip& clip, AudioAnalysisResult& result, const A
 			analysis.truePeak = std::max(*analysis.truePeak, *analysis.channels[channel].truePeak);
 		}
 	} catch (const std::bad_alloc&) {
-		return fail(QCoreApplication::translate("VibeStudioAudioAnalysis", "Unable to allocate the audio meter. The sound is unchanged."));
+		return fail(QCoreApplication::translate("SlopStudioAudioAnalysis", "Unable to allocate the audio meter. The sound is unchanged."));
 	}
 	return true;
 }
@@ -138,7 +138,7 @@ void measureProgramme(const AudioClip& clip, AudioAnalysisResult& result,
 			}
 		}
 		if (!valid) {
-			fail(QCoreApplication::translate("VibeStudioAudioAnalysis",
+			fail(QCoreApplication::translate("SlopStudioAudioAnalysis",
 			    "Loudness needs one valid role per channel, without repeated speaker positions."));
 			return;
 		}
@@ -147,37 +147,37 @@ void measureProgramme(const AudioClip& clip, AudioAnalysisResult& result,
 	if (clip.sampleRate < 8000) {
 		analysis.truePeakStatus = QStringLiteral("unsupported-sample-rate");
 		analysis.truePeakMessage = QCoreApplication::translate(
-		    "VibeStudioAudioAnalysis", "True peak and loudness require a sample rate of at least 8000 Hz. Sample statistics remain available.");
+		    "SlopStudioAudioAnalysis", "True peak and loudness require a sample rate of at least 8000 Hz. Sample statistics remain available.");
 		analysis.loudnessStatus = options.measureLoudness ? analysis.truePeakStatus : QStringLiteral("disabled");
 		analysis.loudnessMessage = options.measureLoudness ? analysis.truePeakMessage : QCoreApplication::translate(
-		    "VibeStudioAudioAnalysis", "Integrated loudness was not requested.");
+		    "SlopStudioAudioAnalysis", "Integrated loudness was not requested.");
 		return;
 	}
 	analysis.truePeakOversampling = clip.sampleRate < 96000 ? 8 : clip.sampleRate < 192000 ? 4 : clip.sampleRate < 384000 ? 2 : 1;
 	const qint64 frames = analysis.endFrame - analysis.firstFrame;
 	if (!options.measureLoudness) {
 		analysis.loudnessStatus = QStringLiteral("disabled");
-		analysis.loudnessMessage = QCoreApplication::translate("VibeStudioAudioAnalysis", "Integrated loudness was not requested.");
+		analysis.loudnessMessage = QCoreApplication::translate("SlopStudioAudioAnalysis", "Integrated loudness was not requested.");
 	} else if (analysis.channelMap.isEmpty()) {
 		analysis.loudnessStatus = QStringLiteral("channel-map-required");
-		analysis.loudnessMessage = QCoreApplication::translate("VibeStudioAudioAnalysis",
+		analysis.loudnessMessage = QCoreApplication::translate("SlopStudioAudioAnalysis",
 		    "Choose speaker roles to measure surround loudness; the document does not retain a speaker layout.");
 	} else if (frames < analysis.loudnessBlockFrames) {
 		analysis.loudnessStatus = QStringLiteral("insufficient-duration");
-		analysis.loudnessMessage = QCoreApplication::translate("VibeStudioAudioAnalysis",
+		analysis.loudnessMessage = QCoreApplication::translate("SlopStudioAudioAnalysis",
 		    "Integrated loudness needs a complete metering block: %1 frames (about 400 ms). The selected range is shorter.").arg(analysis.loudnessBlockFrames);
 	} else {
 		analysis.loudnessStatus = QStringLiteral("measured");
 	}
 	if (!frames) {
 		analysis.truePeakStatus = QStringLiteral("empty-range");
-		analysis.truePeakMessage = QCoreApplication::translate("VibeStudioAudioAnalysis", "There are no samples in this range.");
+		analysis.truePeakMessage = QCoreApplication::translate("SlopStudioAudioAnalysis", "There are no samples in this range.");
 		return;
 	}
 	analysis.truePeakStatus = QStringLiteral("measured");
 	const auto belowGate = [&]() {
 		analysis.loudnessStatus = QStringLiteral("below-gate");
-		analysis.loudnessMessage = QCoreApplication::translate("VibeStudioAudioAnalysis",
+		analysis.loudnessMessage = QCoreApplication::translate("SlopStudioAudioAnalysis",
 		    "No complete loudness block exceeds the absolute gate of -70 LUFS.");
 	};
 	if (analysis.peak == 0) {
@@ -191,7 +191,7 @@ void measureProgramme(const AudioClip& clip, AudioAnalysisResult& result,
 	if (analysis.loudnessStatus != QStringLiteral("measured")) { return; }
 	Meter loudness(meterCall([&]() { return ebur128_init(unsigned(clip.channels), unsigned(clip.sampleRate), EBUR128_MODE_I); }));
 	if (!loudness) {
-		fail(QCoreApplication::translate("VibeStudioAudioAnalysis", "Unable to allocate the audio meter. The sound is unchanged."));
+		fail(QCoreApplication::translate("SlopStudioAudioAnalysis", "Unable to allocate the audio meter. The sound is unchanged."));
 		return;
 	}
 	for (int channel = 0; channel < clip.channels; ++channel) {
@@ -199,7 +199,7 @@ void measureProgramme(const AudioClip& clip, AudioAnalysisResult& result,
 			return ebur128_set_channel(loudness.get(), unsigned(channel), MeterRoles[size_t(analysis.channelMap[channel])]);
 		});
 		if (code != EBUR128_SUCCESS) {
-			fail(QCoreApplication::translate("VibeStudioAudioAnalysis", "The audio meter rejected the channel map."));
+			fail(QCoreApplication::translate("SlopStudioAudioAnalysis", "The audio meter rejected the channel map."));
 			return;
 		}
 	}
@@ -213,7 +213,7 @@ void measureProgramme(const AudioClip& clip, AudioAnalysisResult& result,
 			return ebur128_add_frames_float(loudness.get(), clip.samples.constData() + first * clip.channels, size_t(count));
 		});
 		if (status != EBUR128_SUCCESS) {
-			fail(QCoreApplication::translate("VibeStudioAudioAnalysis", "Audio metering failed while processing the selected range."));
+			fail(QCoreApplication::translate("SlopStudioAudioAnalysis", "Audio metering failed while processing the selected range."));
 			return;
 		}
 	}
@@ -225,7 +225,7 @@ void measureProgramme(const AudioClip& clip, AudioAnalysisResult& result,
 			return code == EBUR128_SUCCESS ? ebur128_relative_threshold(loudness.get(), &threshold) : code;
 		});
 		if (status != EBUR128_SUCCESS || std::isnan(value) || value == std::numeric_limits<double>::infinity()) {
-			fail(QCoreApplication::translate("VibeStudioAudioAnalysis", "The audio meter returned an invalid loudness result.")); return;
+			fail(QCoreApplication::translate("SlopStudioAudioAnalysis", "The audio meter returned an invalid loudness result.")); return;
 		}
 		if (std::isfinite(value)) {
 			analysis.integratedLufs = value;
@@ -266,7 +266,7 @@ QString audioChannelRoleId(AudioChannelRole role)
 QString audioChannelRoleName(AudioChannelRole role)
 {
 	const int index = static_cast<int>(role);
-	return index >= 0 && index < int(RoleNames.size()) ? QCoreApplication::translate("VibeStudioAudioAnalysis", RoleNames[size_t(index)]) : QString();
+	return index >= 0 && index < int(RoleNames.size()) ? QCoreApplication::translate("SlopStudioAudioAnalysis", RoleNames[size_t(index)]) : QString();
 }
 bool parseAudioChannelRole(const QString& id, AudioChannelRole* role)
 {
@@ -297,7 +297,7 @@ AudioAnalysisResult analyzeAudioClip(const AudioClip& clip, qint64 firstFrame, q
 	if (clip.channels < 1 || clip.channels > 8 || clip.sampleRate < 1 || clip.sampleRate > 384000 ||
 	    clip.samples.size() > AudioSampleLimit || clip.samples.size() % clip.channels != 0) {
 		result.error = QCoreApplication::translate(
-		    "VibeStudioAudioAnalysis",
+		    "SlopStudioAudioAnalysis",
 		    "Analysis requires complete audio frames within the editor's format and sample limits.");
 		return result;
 	}
@@ -306,7 +306,7 @@ AudioAnalysisResult analyzeAudioClip(const AudioClip& clip, qint64 firstFrame, q
 	}
 	if (firstFrame < 0 || endFrame < firstFrame || endFrame > clip.frameCount()) {
 		result.error = QCoreApplication::translate(
-		    "VibeStudioAudioAnalysis",
+		    "SlopStudioAudioAnalysis",
 		    "The analysis range must be inside the sound, with its end at or after its start.");
 		return result;
 	}
@@ -317,7 +317,7 @@ AudioAnalysisResult analyzeAudioClip(const AudioClip& clip, qint64 firstFrame, q
 		}
 		if (!std::isfinite(clip.samples[sample])) {
 			result.error =
-			    QCoreApplication::translate("VibeStudioAudioAnalysis", "Audio contains a non-finite sample.");
+			    QCoreApplication::translate("SlopStudioAudioAnalysis", "Audio contains a non-finite sample.");
 			return result;
 		}
 	}
@@ -437,4 +437,4 @@ QJsonObject audioAnalysisJson(const AudioAnalysis& analysis)
 	        {QStringLiteral("measurement"), QStringLiteral("sample-peak; unweighted RMS including DC")}};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

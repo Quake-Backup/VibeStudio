@@ -9,7 +9,7 @@
 #include <QFileInfo>
 #include <QJsonArray>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace { struct Text { Q_DECLARE_TR_FUNCTIONS(LevelSmartTagsCli) }; }
 
 LevelSmartTagsCliResult runLevelSmartTags(const QStringList& arguments)
@@ -126,4 +126,4 @@ LevelSmartTagsCliResult runLevelSmartTags(const QStringList& arguments)
 	result.lines << Text::tr("Applied the smart-tag change in one undo step.") << levelMapSaveReportText(saved);
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

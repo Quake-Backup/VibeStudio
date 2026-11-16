@@ -4,7 +4,7 @@
 
 #include <cstddef>
 
-namespace vibestudio::model_atlas_internal
+namespace slopstudio::model_atlas_internal
 {
 struct Cancelled
 {
@@ -27,4 +27,4 @@ class AllocationRegion
 	size_t m_limit, m_used = 0, m_peak = 0, m_calls = 0;
 	const ModelWorkControl &m_control;
 };
-} // namespace vibestudio::model_atlas_internal
+} // namespace slopstudio::model_atlas_internal

@@ -4,7 +4,7 @@
 #include <QByteArray>
 #include <QHash>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct MapBrushGeometryCacheStatistics {
 	int solved = 0;
@@ -42,4 +42,4 @@ private:
 	MapBrushGeometryCacheStatistics m_statistics;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

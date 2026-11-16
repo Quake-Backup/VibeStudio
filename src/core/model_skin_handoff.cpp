@@ -7,7 +7,7 @@
 
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -164,4 +164,4 @@ QString modelMd2SkinSizeMismatch(const ModelMesh &mesh, QSize image, const QLoca
 		.arg(locale.toString(image.width()), locale.toString(image.height()), locale.toString(mesh.md2SkinSize.width()),
 			 locale.toString(mesh.md2SkinSize.height()));
 }
-} // namespace vibestudio
+} // namespace slopstudio

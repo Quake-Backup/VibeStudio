@@ -14,7 +14,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -252,4 +252,4 @@ std::optional<RecoveredAssemblyDraft> chooseModelAssemblyRecovery(QWidget *paren
 	RecoveryDialog dialog(parent, directory);
 	return dialog.exec() == QDialog::Accepted ? std::move(dialog.result) : std::nullopt;
 }
-} // namespace vibestudio
+} // namespace slopstudio

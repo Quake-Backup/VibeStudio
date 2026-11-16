@@ -2,7 +2,7 @@
 
 #include "core/model_transform.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelTrackballDrag
 {
@@ -22,4 +22,4 @@ struct ModelTrackballDrag
 bool beginModelTrackballDrag(double x, double y, const ModelTransformBasis &view, const ModelTransformBasis &basis, double grid,
 							 ModelTrackballDrag *result);
 bool modelTrackballRotation(const ModelTrackballDrag &drag, double x, double y, ModelVec3 *rotation);
-} // namespace vibestudio
+} // namespace slopstudio

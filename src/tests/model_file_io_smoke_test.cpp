@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -36,7 +36,7 @@ bool write(const QString &path, const QByteArray &bytes)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
 	ok &= expect(!writeModelFile(absent, second, &error, change) && changed && read(appeared) == external,
 				 "a destination created by another writer before publication is protected");
 	{
-		QLockFile lock(existing.resolvedPath + QStringLiteral(".vibestudio-model.lock"));
+		QLockFile lock(existing.resolvedPath + QStringLiteral(".slopstudio-model.lock"));
 		ok &= expect(lock.tryLock(0), "reserve a competing writer fixture");
 		ok &= expect(!writeModelFile(inspectModelWriteTarget(nested), second, &error) && read(nested) == external,
 					 "cooperating concurrent writers fail without modifying the destination");
@@ -146,10 +146,10 @@ int main(int argc, char **argv)
 	ok &= expect(validateModelWriteTarget(inspectModelWriteTarget(nested), &error) && error.isEmpty(),
 				 "read-only target validation accepts a current review and clears prior errors");
 	const auto leftovers =
-		QDir(temporary.path()).entryList({QStringLiteral("*.lock"), QStringLiteral(".vibestudio-model-*")}, QDir::Files | QDir::Hidden);
+		QDir(temporary.path()).entryList({QStringLiteral("*.lock"), QStringLiteral(".slopstudio-model-*")}, QDir::Files | QDir::Hidden);
 	const auto nestedLeftovers =
 		QDir(QFileInfo(nested).absolutePath())
-			.entryList({QStringLiteral("*.lock"), QStringLiteral(".vibestudio-model-*")}, QDir::Files | QDir::Hidden);
+			.entryList({QStringLiteral("*.lock"), QStringLiteral(".slopstudio-model-*")}, QDir::Files | QDir::Hidden);
 	ok &= expect(leftovers.isEmpty() && nestedLeftovers.isEmpty(), "writes clean up only their own staging files and locks");
 	return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

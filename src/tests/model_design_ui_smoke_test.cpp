@@ -29,7 +29,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -45,7 +45,7 @@ class ExpandedModelLabels final : public QTranslator
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelDesignDialog") {
+		if (QByteArray(context) != "SlopStudioModelDesignDialog") {
 			return {};
 		}
 		const QString text = QString::fromUtf8(source);
@@ -186,7 +186,7 @@ int main(int argc, char** argv)
 		dialog->context = []() { return ModelDesignContext(); };
 		dialog->refreshContext();
 		ok &= expect(!place->isEnabled() && !stage->isEnabled(), "missing project context disables staging and placement");
-		const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			for (int tab = 0; tab < properties->count(); ++tab) {
 				properties->setCurrentIndex(tab);

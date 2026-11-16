@@ -1,5 +1,5 @@
 // Offscreen checks of TrenchBroom's generated Create <class> commands on the
-// Levels page, under the NetRadiant Custom, TrenchBroom and VibeStudio
+// Levels page, under the NetRadiant Custom, TrenchBroom and SlopStudio
 // profiles at 100% and at 200% text with the high-visibility theme, an
 // expanding translator and right-to-left layout:
 // - each point and brush class of the map's definitions has a Create
@@ -45,14 +45,14 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -200,7 +200,7 @@ int main(int argc, char** argv)
 									 "@SolidClass = func_wall : \"Wall\" []\n"));
 	const QStringList ids {QStringLiteral("map.createEntity.light"), QStringLiteral("map.createEntity.info_player_start"), QStringLiteral("map.createEntity.func_wall"),
 		QStringLiteral("map.createEntity.func_door")};
-	for (const char* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const char* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		for (const int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);
 			std::cout << "Entity create UI " << phase.toStdString() << std::endl;
@@ -384,7 +384,7 @@ int main(int argc, char** argv)
 					}
 					focusPlan();
 					mark();
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 					// The user's key in the plan view creates a light.
 					shell.activateWindow();
 					expect(until([&] { return QApplication::activeWindow() == &shell; }), "owned offscreen window is active");
@@ -414,7 +414,7 @@ int main(int argc, char** argv)
 					}
 				}
 
-				if (QLatin1String(profile) == QLatin1String("vibestudio-default") && scale == 100) {
+				if (QLatin1String(profile) == QLatin1String("slopstudio-default") && scale == 100) {
 					// Reloading the definitions replaces the commands: a lamp comes,
 					// the light goes, and its key waits for it.
 					QLineEdit* definitions = nullptr;

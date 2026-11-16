@@ -27,7 +27,7 @@
 #include <iostream>
 #include <mutex>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const char* message)
@@ -41,7 +41,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioPackageDialog" && QByteArray(context) != "VibeStudioPackageStaging") { return {}; }
+		if (QByteArray(context) != "SlopStudioPackageDialog" && QByteArray(context) != "SlopStudioPackageStaging") { return {}; }
 		return QStringLiteral("[%1 — expanded translation]").arg(QString::fromUtf8(source));
 	}
 };
@@ -95,7 +95,7 @@ bool inspect(QDialog* dialog, bool metadata, const QString& capture)
 			&& progress->accessibleDescription().endsWith(progress->toolTip()) && !progress->toolTip().isEmpty(),
 			"Exact localized byte counts remain in the tooltip and accessible description.");
 	}
-	const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+	const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 	if (!captures.isEmpty()) {
 		QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image);
 		ok &= expect(dialog->size() == image.size(), "Rendering must preserve the captured dialog extent.");
@@ -164,7 +164,7 @@ bool exercise(const QDir& root, const PackageStagingModel& plan, const QString& 
 			"A finished operation does not retain its old metadata progress description.");
 		delete ownedDialog; ownedDialog = nullptr;
 		ok &= expect(finished && result.report.cancelled && !result.report.outputCommitted && !result.ready()
-			&& !QFileInfo::exists(destination) && !QFileInfo::exists(destination + ".vibestudio-save.lock"),
+			&& !QFileInfo::exists(destination) && !QFileInfo::exists(destination + ".slopstudio-save.lock"),
 			"Export cancellation during protection matching publishes nothing and finishes without blocking the UI.");
 	} else if (copying) {
 		const auto before = root.entryList(QDir::AllEntries | QDir::NoDotAndDotDot);

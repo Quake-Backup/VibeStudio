@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 LevelTextureResetDialog::LevelTextureResetDialog(int selectionFaces, int selectionPatches, const QString &texture, double defaultScale, QWidget *parent)
 	: QDialog(parent), m_selectionFaces(selectionFaces), m_selectionPatches(selectionPatches)
@@ -181,4 +181,4 @@ void LevelTextureResetDialog::updateState()
 		QAccessible::updateAccessibility(&changed);
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

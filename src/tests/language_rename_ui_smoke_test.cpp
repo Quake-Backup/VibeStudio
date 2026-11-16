@@ -17,7 +17,7 @@
 #include <QTimer>
 #include <QTranslator>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* why) { if (!condition) { std::cerr << why << '\n'; } return condition; }
 bool wait(const std::function<bool()>& ready, int ms = 8000)
@@ -34,7 +34,7 @@ class Expanded final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		if (QByteArray(context) != "vibestudio::ProjectSearchPanel") { return {}; }
+		if (QByteArray(context) != "slopstudio::ProjectSearchPanel") { return {}; }
 		const auto text = QString::fromUtf8(source); return text + QStringLiteral(" ~").repeated(text.size() / 6);
 	}
 };
@@ -104,10 +104,10 @@ int main(int argc, char** argv)
 		applyStudioTheme(app, studioThemeTokens(scale == 200 ? StudioTheme::HighContrastDark : StudioTheme::Dark, UiDensity::Standard, scale));
 		// Recreate a panel so its labels also exercise expanded translation.
 		ProjectSearchPanel review; review.resize(scale == 200 ? 1800 : 1100, scale == 200 ? 1100 : 700); review.setLayoutDirection(scale == 200 ? Qt::RightToLeft : Qt::LeftToRight);
-		LanguageRenameRequest request; request.rootPath = temp.path(); request.provider = QStringLiteral("VibeStudio test server"); request.symbol = QStringLiteral("value"); request.newName = QStringLiteral("renamed");
+		LanguageRenameRequest request; request.rootPath = temp.path(); request.provider = QStringLiteral("SlopStudio test server"); request.symbol = QStringLiteral("value"); request.newName = QStringLiteral("renamed");
 		request.rename.workspaceEdit = QJsonObject {{QStringLiteral("changes"), QJsonObject {{languageServerUri(other), QJsonArray {QJsonObject {{QStringLiteral("range"), QJsonObject {{QStringLiteral("start"), QJsonObject {{QStringLiteral("line"), 0}, {QStringLiteral("character"), 0}}}, {QStringLiteral("end"), QJsonObject {{QStringLiteral("line"), 0}, {QStringLiteral("character"), 5}}}}}, {QStringLiteral("newText"), request.newName}}}}}}};
 		const auto token = review.beginReferences(request.rootPath, request.symbol, request.provider, {}, true); review.finishRename(token, request); review.show(); wait([&]() { return !review.busy(); });
-		const QString evidence = qEnvironmentVariable("VIBESTUDIO_LANGUAGE_TEST_EVIDENCE");
+		const QString evidence = qEnvironmentVariable("SLOPSTUDIO_LANGUAGE_TEST_EVIDENCE");
 		if (!evidence.isEmpty()) { QImage image(review.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); review.render(&image); ok &= expect(image.save(QDir(evidence).filePath(QStringLiteral("language-rename-%1.png").arg(scale))), "render rename review without OS screen capture"); }
 		if (scale == 200) { app.removeTranslator(&translator); }
 	}

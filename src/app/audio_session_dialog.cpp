@@ -55,7 +55,7 @@
 #include <atomic>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioSessionWork {
 	std::atomic_bool cancelled{false};
@@ -2183,4 +2183,4 @@ void AudioSessionDialog::closeEvent(QCloseEvent *event)
 	event->accept();
 }
 void AudioSessionDialog::reject() { close(); }
-} // namespace vibestudio
+} // namespace slopstudio

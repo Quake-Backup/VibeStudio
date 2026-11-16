@@ -34,7 +34,7 @@
 // radiant/selection_mtable_extrude.h DragExtrudeFaces at 449778b3
 // (GPL-2.0-or-later). Original implementation; see docs/CREDITS.md.
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class LevelPlaneDragKind { FacingPlanes, Plane, Vertices, Extrude };
 // "facing-planes", "plane", "vertices", "extrude".
@@ -154,4 +154,4 @@ LevelCloneChain levelCloneChain(const LevelMapVec3& mins, const LevelMapVec3& ma
 // does nothing for it. Arrays made elsewhere stay unrecorded.
 void recordLevelCloneChainRepeat(LevelMapDocument* document, const LevelMapVec3& step, int copies);
 
-} // namespace vibestudio
+} // namespace slopstudio

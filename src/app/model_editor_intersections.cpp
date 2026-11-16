@@ -11,13 +11,13 @@
 #include <QSignalBlocker>
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelEditor)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelEditor)
 };
 QString contactText(ModelTriangleContact kind)
 {
@@ -213,4 +213,4 @@ void ModelEditorDialog::selectIntersectionFace(bool second)
 	m_refreshing = false;
 	refresh();
 }
-} // namespace vibestudio
+} // namespace slopstudio

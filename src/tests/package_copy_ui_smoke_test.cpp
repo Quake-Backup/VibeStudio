@@ -36,7 +36,7 @@
 #include <QTimer>
 #include <QTranslator>
 
-using namespace vibestudio;
+using namespace slopstudio;
 using namespace package_copy_test;
 namespace {
 class ExpandedTranslator final : public QTranslator {
@@ -44,7 +44,7 @@ public:
 	bool expanded = false;
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		return expanded && QByteArray(context) == "VibeStudioPackageDialog"
+		return expanded && QByteArray(context) == "SlopStudioPackageDialog"
 			? QStringLiteral("[%1 — expanded label]").arg(QString::fromUtf8(source)) : QString();
 	}
 };
@@ -104,7 +104,7 @@ int main(int argc, char** argv)
 				ok &= expect(dialog->fontMetrics().height() >= 24 && dialog->palette().color(QPalette::Window).lightness() > 128
 					&& dialog->layoutDirection() == Qt::RightToLeft, "copy fixture actually uses large high-contrast RTL text");
 			}
-			const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!captures.isEmpty()) {
 				QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image);
 				ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("package-copy-%1.png").arg(scale))), "record package copy progress");
@@ -148,7 +148,7 @@ int main(int argc, char** argv)
 	const QString project = temporary.filePath(QStringLiteral("project"));
 	if (!expect(QDir().mkpath(project), "create durable project destination")) { return 1; }
 	settings.setCurrentProjectPath(project); settings.sync();
-	const QString fixture = temporary.filePath(QStringLiteral("fixture.vibepackage")); QString error;
+	const QString fixture = temporary.filePath(QStringLiteral("fixture.sloppackage")); QString error;
 	if (!expect(PackageDraft::save(fixture, &plan, false, &error), "save generated copy fixture")) { return 1; }
 	{
 		ApplicationShell shell; shell.show(); shell.openPathFromCommandLine(fixture); app.processEvents();

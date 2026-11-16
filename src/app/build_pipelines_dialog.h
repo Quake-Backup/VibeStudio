@@ -20,7 +20,7 @@ class QPushButton;
 class QTableWidget;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class BuildPipelinesDialog final : public QDialog {
 	Q_OBJECT
@@ -90,4 +90,4 @@ private:
 	QTimer* m_previewTimer = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

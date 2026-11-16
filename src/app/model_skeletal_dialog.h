@@ -14,7 +14,7 @@ class QPushButton;
 class QSpinBox;
 class QTableWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelSkeletalDialog final : public QDialog
 {
@@ -50,4 +50,4 @@ class ModelSkeletalDialog final : public QDialog
 	QPushButton *m_apply = nullptr;
 	void refresh(bool resetFields);
 };
-} // namespace vibestudio
+} // namespace slopstudio

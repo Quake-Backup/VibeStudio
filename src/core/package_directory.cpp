@@ -7,7 +7,7 @@
 #include <QJsonDocument>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString key(const QString& path)
 {
@@ -29,7 +29,7 @@ bool isPackageDirectoryOperation(PackageStageOperationType type)
 QString packageDirectoryIdentity(const QVector<PackageStagedEntry>& entries, const QString& directory, QString* error, const PackageReadControl& control, const PackageStagingPlanLimits& limits)
 {
 	if (error) { error->clear(); }
-	PackagePlanWork work(control, error, QCoreApplication::translate("VibeStudioPackageDirectory", "Checking package folder contents"));
+	PackagePlanWork work(control, error, QCoreApplication::translate("SlopStudioPackageDirectory", "Checking package folder contents"));
 	if (!work.checkpoint()) { return {}; }
 	PackagePlanBudget budget(limits, work);
 	if (!budget.validate() || !budget.checkRecords(entries.size())) { return {}; }
@@ -84,7 +84,7 @@ QString packageDirectoryIdentity(const QVector<PackageStagedEntry>& entries, con
 bool applyPackageDirectoryOperation(QVector<PackageStagedEntry>* entries, const PackageStageOperation& operation, QString* error, const PackageReadControl& control, const PackageStagingPlanLimits& limits)
 {
 	if (error) { error->clear(); }
-	PackagePlanWork work(control, error, QCoreApplication::translate("VibeStudioPackageDirectory", "Preparing package folder edit"));
+	PackagePlanWork work(control, error, QCoreApplication::translate("SlopStudioPackageDirectory", "Preparing package folder edit"));
 	if (!work.checkpoint()) { return false; }
 	const auto fail = [error](const QString& message) {
 		if (error) { *error = message; }
@@ -93,7 +93,7 @@ bool applyPackageDirectoryOperation(QVector<PackageStagedEntry>* entries, const 
 	const auto source = normalizePackageVirtualPath(operation.virtualPath, false);
 	if (!entries || !isPackageDirectoryOperation(operation.type) || !source.isSafe() || source.trailingSlash
 		|| operation.sourceOrdinal >= 0 || operation.hasInlineBytes || !operation.sourceFilePath.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioPackageDirectory", "Choose a safe package folder path."));
+		return fail(QCoreApplication::translate("SlopStudioPackageDirectory", "Choose a safe package folder path."));
 	}
 	PackagePlanBudget inputBudget(limits, work);
 	if (!inputBudget.validate() || !inputBudget.checkRecords(entries->size())) { return false; }
@@ -112,9 +112,9 @@ bool applyPackageDirectoryOperation(QVector<PackageStagedEntry>* entries, const 
 	}
 	const bool creating = operation.type == PackageStageOperationType::CreateDirectory;
 	const bool deleting = operation.type == PackageStageOperationType::DeleteDirectory;
-	if (creating && exists) { return fail(QCoreApplication::translate("VibeStudioPackageDirectory", "A file or folder already uses this path.")); }
+	if (creating && exists) { return fail(QCoreApplication::translate("SlopStudioPackageDirectory", "A file or folder already uses this path.")); }
 	if (!creating && (!exists || files.contains(sourceKey))) {
-		return fail(QCoreApplication::translate("VibeStudioPackageDirectory", "The selected folder is missing or a file occupies its path."));
+		return fail(QCoreApplication::translate("SlopStudioPackageDirectory", "The selected folder is missing or a file occupies its path."));
 	}
 	if (!creating) {
 		QString identityError;
@@ -122,28 +122,28 @@ bool applyPackageDirectoryOperation(QVector<PackageStagedEntry>* entries, const 
 		if (work.cancelled()) { return false; }
 		if (!identityError.isEmpty()) { return fail(identityError); }
 		if (operation.sourceTreeIdentity.isEmpty() || operation.sourceTreeIdentity != identity) {
-			return fail(QCoreApplication::translate("VibeStudioPackageDirectory", "The folder contents changed after this edit was staged. Unstage it and select the folder again."));
+			return fail(QCoreApplication::translate("SlopStudioPackageDirectory", "The folder contents changed after this edit was staged. Unstage it and select the folder again."));
 		}
 	}
 	const auto target = normalizePackageVirtualPath(creating ? source.normalizedPath : operation.targetVirtualPath, false);
 	if (!deleting && (!target.isSafe() || target.trailingSlash)) {
-		return fail(QCoreApplication::translate("VibeStudioPackageDirectory", "Choose a safe destination folder path."));
+		return fail(QCoreApplication::translate("SlopStudioPackageDirectory", "Choose a safe destination folder path."));
 	}
 	const QString targetKey = key(target.normalizedPath);
 	if (!creating && !deleting && sourceKey != targetKey
 		&& (sourceKey.startsWith(targetKey + QLatin1Char('/')) || targetKey.startsWith(sourceKey + QLatin1Char('/')))) {
-		return fail(QCoreApplication::translate("VibeStudioPackageDirectory", "A folder cannot replace its parent or move inside itself."));
+		return fail(QCoreApplication::translate("SlopStudioPackageDirectory", "A folder cannot replace its parent or move inside itself."));
 	}
 	if (!deleting) {
 		for (QString parent = packagePlanParent(targetKey); !parent.isEmpty(); parent = packagePlanParent(parent)) {
 			if (!work.checkpoint()) { return false; }
-			if (files.contains(parent)) { return fail(QCoreApplication::translate("VibeStudioPackageDirectory", "A file occupies a required destination folder.")); }
+			if (files.contains(parent)) { return fail(QCoreApplication::translate("SlopStudioPackageDirectory", "A file occupies a required destination folder.")); }
 		}
 		if (!creating) {
 			for (const auto& entry : *entries) {
 				if (!work.checkpoint()) { return false; }
 				if (!inTree(entry.virtualPath, sourceKey) && inTree(entry.virtualPath, targetKey)) {
-					return fail(QCoreApplication::translate("VibeStudioPackageDirectory", "The destination folder already exists. Choose an unused folder path."));
+					return fail(QCoreApplication::translate("SlopStudioPackageDirectory", "The destination folder already exists. Choose an unused folder path."));
 				}
 			}
 		}
@@ -178,7 +178,7 @@ bool applyPackageDirectoryOperation(QVector<PackageStagedEntry>* entries, const 
 			const QString suffix = entry.virtualPath.section(QLatin1Char('/'), static_cast<int>(prefixParts));
 			entry.virtualPath = target.normalizedPath + (suffix.isEmpty() ? QString() : QLatin1Char('/') + suffix);
 			if (!normalizePackageVirtualPath(entry.virtualPath, false).isSafe()) {
-				return fail(QCoreApplication::translate("VibeStudioPackageDirectory", "A renamed child would exceed the package path limit. Choose a shorter folder path."));
+				return fail(QCoreApplication::translate("SlopStudioPackageDirectory", "A renamed child would exceed the package path limit. Choose a shorter folder path."));
 			}
 			entry.source = QStringLiteral("staged-rename"); entry.operationId = operation.id;
 		}
@@ -197,4 +197,4 @@ bool applyPackageDirectoryOperation(QVector<PackageStagedEntry>* entries, const 
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

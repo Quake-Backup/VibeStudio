@@ -5,7 +5,7 @@
 
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct CodeIndexWorker::Work {
 	std::atomic_bool cancel {false};
@@ -100,4 +100,4 @@ void CodeIndexWorker::startPending()
 	m_thread->start();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

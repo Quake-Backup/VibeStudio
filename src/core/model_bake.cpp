@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -164,15 +164,15 @@ QString modelBakeTypeDisplayName(ModelBakeType type)
 {
 	switch (type) {
 	case ModelBakeType::AmbientOcclusion:
-		return QCoreApplication::translate("VibeStudioModelBake", "Ambient occlusion");
+		return QCoreApplication::translate("SlopStudioModelBake", "Ambient occlusion");
 	case ModelBakeType::ObjectNormal:
-		return QCoreApplication::translate("VibeStudioModelBake", "Object-space normals");
+		return QCoreApplication::translate("SlopStudioModelBake", "Object-space normals");
 	case ModelBakeType::TangentNormal:
-		return QCoreApplication::translate("VibeStudioModelBake", "Tangent-space normals (Doom 3)");
+		return QCoreApplication::translate("SlopStudioModelBake", "Tangent-space normals (Doom 3)");
 	case ModelBakeType::Lighting:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioModelBake", "Lighting");
+	return QCoreApplication::translate("SlopStudioModelBake", "Lighting");
 }
 
 qint64 modelBakeMemoryEstimate(const ModelMesh& target, const ModelMesh* highPoly, const ModelBakeOptions& options)
@@ -198,11 +198,11 @@ bool bakeModelMaps(const ModelMesh& target, const QVector<int>& surfaces, int fr
 	if (!result || width < 8 || height < 8 || width > 4096 || height > 4096 || options.samples < 1 || options.samples > 1024 || options.padding < 0
 		|| options.padding > 64 || !std::isfinite(options.maxDistance) || options.maxDistance < 0 || !std::isfinite(options.cageDistance)
 		|| options.cageDistance < 0 || !std::isfinite(options.ambient) || options.ambient < 0 || options.ambient > 1) {
-		return fail(QCoreApplication::translate("VibeStudioModelBake",
+		return fail(QCoreApplication::translate("SlopStudioModelBake",
 			"Bake sizes are 8 to 4096 texels, 1 to 1024 samples, 0 to 64 texels of padding, and distances and ambient must be positive."));
 	}
 	if (frame < 0 || frame >= target.frames.size()) {
-		return fail(QCoreApplication::translate("VibeStudioModelBake", "Frame %1 does not exist.").arg(frame));
+		return fail(QCoreApplication::translate("SlopStudioModelBake", "Frame %1 does not exist.").arg(frame));
 	}
 	QVector<int> chosen = surfaces;
 	if (chosen.isEmpty()) {
@@ -212,15 +212,15 @@ bool bakeModelMaps(const ModelMesh& target, const QVector<int>& surfaces, int fr
 	}
 	for (const int s : std::as_const(chosen)) {
 		if (s < 0 || s >= target.surfaces.size()) {
-			return fail(QCoreApplication::translate("VibeStudioModelBake", "Surface %1 does not exist.").arg(s));
+			return fail(QCoreApplication::translate("SlopStudioModelBake", "Surface %1 does not exist.").arg(s));
 		}
 	}
 	if (highPoly && (!highPoly->geometryAvailable || highPoly->frames.isEmpty())) {
-		return fail(QCoreApplication::translate("VibeStudioModelBake", "The high-poly model has no geometry."));
+		return fail(QCoreApplication::translate("SlopStudioModelBake", "The high-poly model has no geometry."));
 	}
 	const qint64 estimate = modelBakeMemoryEstimate(target, highPoly, options);
 	if (estimate > options.memoryBudget) {
-		return fail(QCoreApplication::translate("VibeStudioModelBake", "The bake would use %1 MiB, over its %2 MiB budget; bake a smaller size.")
+		return fail(QCoreApplication::translate("SlopStudioModelBake", "The bake would use %1 MiB, over its %2 MiB budget; bake a smaller size.")
 			.arg(estimate / (1024 * 1024)).arg(options.memoryBudget / (1024 * 1024)));
 	}
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
@@ -329,7 +329,7 @@ bool bakeModelMaps(const ModelMesh& target, const QVector<int>& surfaces, int fr
 		covered += texel.covered ? 1 : 0;
 	}
 	if (covered == 0) {
-		return fail(QCoreApplication::translate("VibeStudioModelBake", "The chosen surfaces cover no texel of the 0-1 UV square at this size."));
+		return fail(QCoreApplication::translate("SlopStudioModelBake", "The chosen surfaces cover no texel of the 0-1 UV square at this size."));
 	}
 
 	QImage image(width, height, QImage::Format_ARGB32);
@@ -469,13 +469,13 @@ bool bakeModelMaps(const ModelMesh& target, const QVector<int>& surfaces, int fr
 	baked.maxDistance = maxDistance;
 	baked.cageDistance = cage;
 	if (overlaps > 0) {
-		baked.notes << QCoreApplication::translate("VibeStudioModelBake", "%n texel(s) are covered by more than one triangle; the first one baked wins.", nullptr, overlaps);
+		baked.notes << QCoreApplication::translate("SlopStudioModelBake", "%n texel(s) are covered by more than one triangle; the first one baked wins.", nullptr, overlaps);
 	}
 	if (outside > 0) {
-		baked.notes << QCoreApplication::translate("VibeStudioModelBake", "%n triangle(s) reach outside the 0-1 UV square; only the part inside is baked.", nullptr, outside);
+		baked.notes << QCoreApplication::translate("SlopStudioModelBake", "%n triangle(s) reach outside the 0-1 UV square; only the part inside is baked.", nullptr, outside);
 	}
 	if (misses > 0) {
-		baked.notes << QCoreApplication::translate("VibeStudioModelBake", "%n texel(s) found no high-poly surface within the cage; they keep the low-poly normal.", nullptr, misses);
+		baked.notes << QCoreApplication::translate("SlopStudioModelBake", "%n texel(s) found no high-poly surface within the cage; they keep the low-poly normal.", nullptr, misses);
 	}
 	*result = std::move(baked);
 	return true;
@@ -505,10 +505,10 @@ bool multiplyModelBakeIntoSkin(const QImage& skin, const QImage& map, ModelBakeT
 		return false;
 	};
 	if (type != ModelBakeType::AmbientOcclusion && type != ModelBakeType::Lighting) {
-		return refuse(QCoreApplication::translate("VibeStudioModelBake", "Only occlusion and lighting maps shade a skin; stage a normal map beside it instead."));
+		return refuse(QCoreApplication::translate("SlopStudioModelBake", "Only occlusion and lighting maps shade a skin; stage a normal map beside it instead."));
 	}
 	if (!result || skin.isNull() || map.isNull() || !std::isfinite(strength) || strength < 0.0 || strength > 1.0) {
-		return refuse(QCoreApplication::translate("VibeStudioModelBake", "Shading a skin needs the skin, a baked map and a strength of 0 to 1."));
+		return refuse(QCoreApplication::translate("SlopStudioModelBake", "Shading a skin needs the skin, a baked map and a strength of 0 to 1."));
 	}
 	const QImage shade = (map.size() == skin.size() ? map : map.scaled(skin.size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation))
 							 .convertToFormat(QImage::Format_ARGB32);
@@ -535,7 +535,7 @@ bool multiplyModelBakeIntoSkin(const QImage& skin, const QImage& map, ModelBakeT
 	const QVector<QRgb> table = skin.colorTable();
 	const int usable = fullbrightStart > 0 ? std::min<int>(fullbrightStart, int(table.size())) : int(table.size());
 	if (usable <= 0) {
-		return refuse(QCoreApplication::translate("VibeStudioModelBake", "The indexed skin has no palette entries to shade with."));
+		return refuse(QCoreApplication::translate("SlopStudioModelBake", "The indexed skin has no palette entries to shade with."));
 	}
 	QHash<QRgb, int> nearest;
 	const auto closest = [&](QRgb colour) {
@@ -583,4 +583,4 @@ QString modelBakeCompanionPath(const QString& imagePath, ModelBakeType type)
 	return base + suffix + QStringLiteral(".tga");
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

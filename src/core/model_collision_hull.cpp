@@ -13,13 +13,13 @@
 #include <map>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelCollision)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelCollision)
 };
 bool fail(QString *error, const QString &message)
 {
@@ -652,4 +652,4 @@ QString validateModelCollisionHull(const ModelCollisionBox &box)
 		return Text::tr("A collision hull may have at most 128 faces.");
 	return {};
 }
-} // namespace vibestudio
+} // namespace slopstudio

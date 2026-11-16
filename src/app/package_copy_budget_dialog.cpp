@@ -15,7 +15,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 PackageCopyBudgetDialog::PackageCopyBudgetDialog(std::shared_ptr<PackageCopyBudget> budget, const QString& directory, QWidget* parent)
 	: QDialog(parent), m_budget(std::move(budget))
 {
@@ -92,4 +92,4 @@ void PackageCopyBudgetDialog::updateUsage()
 	}
 	if (m_usage->text() != message) { m_usage->setText(message); }
 }
-} // namespace vibestudio
+} // namespace slopstudio

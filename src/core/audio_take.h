@@ -5,7 +5,7 @@
 #include <memory>
 #include <span>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr int AudioTakeBlockFrames = 4096;
 inline constexpr qint64 AudioTakeByteLimit = 64LL * 1024 * 1024 * 1024;
@@ -94,4 +94,4 @@ AudioTakeBatchReadResult readAudioTakeRanges(const QString &path, const QByteArr
 AudioTakeReadResult readAudioTakeRange(const QString &path, const QByteArray &expectedPrefixSha256, qint64 first,
                                        qint64 end, const QVector<int> &channels, bool allowIncomplete = false,
                                        const AudioWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

@@ -6,7 +6,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -53,8 +53,8 @@ int main(int argc, char** argv)
 					ok &= expect(actual.copy(region) == reference.copy(region),"actual primary label is completely painted inside its uncluttered layout");
 					ok &= expect(view.accessibleDescription().contains(entity.className),"elision preserves full selection identity for assistive technology");
 					if (scale == 200 && ratio == 1.25 && anchor == QPointF(639,399)
-						&& !qEnvironmentVariableIsEmpty("VIBESTUDIO_TEST_CAPTURE_DIR")) {
-						const QDir output(qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR")); QDir().mkpath(output.path());
+						&& !qEnvironmentVariableIsEmpty("SLOPSTUDIO_TEST_CAPTURE_DIR")) {
+						const QDir output(qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR")); QDir().mkpath(output.path());
 						ok &= actual.save(output.filePath(QStringLiteral("level-edge-label-%1.png").arg(int(direction))));
 					}
 					if (sample++ == 0) {

@@ -8,7 +8,7 @@
 // building block of Poly Build and of MilkShape 3D's vertex and face creation
 // tools (Blender manual 4.0, modeling/meshes/tools/poly_build.html; MilkShape
 // 3D 1.8 Vertex and Face tools; behaviour only, reviewed 2026-10-28).
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -127,4 +127,4 @@ bool addFace(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, 
 	selection->faces = {created};
 	return work.check();
 }
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

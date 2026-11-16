@@ -6,7 +6,7 @@
 // controls, refusals of flat and malformed points, Add Selected Corners, the
 // worker-checked preview, one exact undo step in the current material, the
 // remembered points and Cancel. NetRadiant Custom, TrenchBroom and
-// VibeStudio profiles at 100%, and at 200% with high contrast, expanded
+// SlopStudio profiles at 100%, and at 200% with high contrast, expanded
 // translations and right-to-left layout. Owned offscreen widgets only.
 #include "app/application_shell.h"
 #include "app/level_brush_points_dialog.h"
@@ -38,7 +38,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -132,7 +132,7 @@ int main(int argc, char** argv)
 		lazy.reject();
 	}
 
-	for (const auto* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const auto* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		for (int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);
 			std::cout << "Brush points UI " << qPrintable(phase) << std::endl;

@@ -2,7 +2,7 @@
 #include "core/package_archive.h"
 #include <QMap>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelQuakeTexture {
 	QString name, sourcePath;
 	QByteArray miptex;
@@ -18,4 +18,4 @@ struct LevelQuakeTextures {
 LevelQuakeTextures inspectLevelQuakeTextures(const PackageArchiveReader& archive, const PackageReadControl& control = {},
 											 bool includeLooseMiptex = false);
 QByteArray encodeLevelQuakeTextureWad(const LevelQuakeTextures& textures, QString* error, const PackageReadControl& control = {});
-} // namespace vibestudio
+} // namespace slopstudio

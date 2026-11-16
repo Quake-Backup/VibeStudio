@@ -36,7 +36,7 @@
 #include <functional>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -227,4 +227,4 @@ bool ApplicationShell::handleLevelCameraDriveKey(QObject* watched, QEvent* event
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

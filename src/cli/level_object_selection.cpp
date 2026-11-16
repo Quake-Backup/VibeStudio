@@ -6,7 +6,7 @@
 #include <QFileInfo>
 #include <QJsonArray>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace { struct Text { Q_DECLARE_TR_FUNCTIONS(LevelObjectSelectionCli) }; }
 LevelObjectSelectionCliResult runLevelObjectSelection(const QStringList& arguments)
 {
@@ -161,4 +161,4 @@ LevelObjectSelectionCliResult runLevelObjectSelection(const QStringList& argumen
 	} else { result.lines.append(Text::tr("%n selected object(s)",nullptr,static_cast<int>(objects.size()))); result.lines.append(objects); }
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

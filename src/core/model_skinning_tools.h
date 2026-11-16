@@ -5,7 +5,7 @@
 #include <QMap>
 #include <QSet>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 struct ModelSelection;
@@ -78,4 +78,4 @@ bool isModelSkinEdit(ModelEditKind kind);
 // Candidate-only mutation, adopted atomically by ModelDocument. Bind/rebind/
 // reduction preserve the bind frame and rebake affected surfaces only.
 bool applyModelSkinEdit(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

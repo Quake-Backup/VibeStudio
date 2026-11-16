@@ -14,7 +14,7 @@
 
 class QOffscreenSurface;
 
-namespace vibestudio::render_detail {
+namespace slopstudio::render_detail {
 
 // Owns the backend's thread. Every graphics call happens on it; start(),
 // render() and releaseOwner() hand work across and (except release) wait.
@@ -86,4 +86,4 @@ QSurfaceFormat openGLSurfaceFormat();
 std::shared_ptr<DeviceThread> createOpenGLDevice(QOffscreenSurface* surface);
 std::shared_ptr<DeviceThread> createVulkanDevice();
 
-} // namespace vibestudio::render_detail
+} // namespace slopstudio::render_detail

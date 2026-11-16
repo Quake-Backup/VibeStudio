@@ -14,7 +14,7 @@
 #include <QVector>
 #include <QWidget>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct StudioChartSlice {
 	QString id;
@@ -177,4 +177,4 @@ private:
 QColor studioStateColor(OperationState state, bool highContrast, bool lightTheme);
 QString studioStateGlyph(OperationState state);
 
-} // namespace vibestudio
+} // namespace slopstudio

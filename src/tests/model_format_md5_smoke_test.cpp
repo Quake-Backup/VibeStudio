@@ -26,7 +26,7 @@
 #include <iostream>
 #include <memory>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -662,7 +662,7 @@ void testRoundTrips()
 
 	// md5mesh.
 	ModelMd5ExportOptions options;
-	options.commandLine = QStringLiteral("vibestudio \"test\" export");
+	options.commandLine = QStringLiteral("slopstudio \"test\" export");
 	QString error;
 	const QByteArray meshText = exportModelMd5Mesh(mesh, options, &error);
 	if (expect(!meshText.isEmpty() && error.isEmpty(), "md5mesh exports")) {
@@ -698,7 +698,7 @@ void testRoundTrips()
 				}
 			}
 			expect(surfaces, "round-trip surfaces: positions, UVs, triangles and weights");
-			expect(containsText(back.detailLines, QStringLiteral("vibestudio 'test' export")), "command line written with safe quotes");
+			expect(containsText(back.detailLines, QStringLiteral("slopstudio 'test' export")), "command line written with safe quotes");
 		}
 	}
 

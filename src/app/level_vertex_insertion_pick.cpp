@@ -4,7 +4,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 using V = LevelMapVec3;
 V sub(V a,V b) { return {a.x-b.x,a.y-b.y,a.z-b.z,true}; }
@@ -112,4 +112,4 @@ LevelVertexInsertionHit LevelVertexInsertion::pick(const QPointF& point,const Le
 	std::sort(result.brushes.begin(),result.brushes.end());
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

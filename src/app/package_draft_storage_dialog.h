@@ -12,7 +12,7 @@ class QProgressBar;
 class QPushButton;
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackageDraftStorageDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(PackageDraftStorageDialog)
@@ -42,4 +42,4 @@ private:
 	bool m_closeRequested = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

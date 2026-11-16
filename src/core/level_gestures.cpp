@@ -13,7 +13,7 @@
 #include <type_traits>
 #include <tuple>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr qint64 maximumBytes = 64 * 1024;
 using Options = QVector<LevelGestureOption>;
@@ -464,7 +464,7 @@ bool applyLevelGestureOverrides(const LevelEditorControls& base, const QJsonObje
 
 QByteArray serializeLevelGestures(const QString& profile, const QJsonObject& overrides)
 {
-	return QJsonDocument(QJsonObject{{"format", "vibestudio.editor-gestures"}, {"version", 1},
+	return QJsonDocument(QJsonObject{{"format", "slopstudio.editor-gestures"}, {"version", 1},
 		{"profile", normalizedEditorProfileId(profile)}, {"overrides", overrides}}).toJson();
 }
 
@@ -476,9 +476,9 @@ bool parseLevelGestures(const QByteArray& bytes, QString* profile, QJsonObject* 
 	const auto document = QJsonDocument::fromJson(bytes, &parseError);
 	const auto object = document.object();
 	if (parseError.error != QJsonParseError::NoError || !document.isObject() || object.size() != 4
-		|| object.value("format") != QStringLiteral("vibestudio.editor-gestures") || object.value("version") != QJsonValue(1)
+		|| object.value("format") != QStringLiteral("slopstudio.editor-gestures") || object.value("version") != QJsonValue(1)
 		|| !object.value("profile").isString() || !object.value("overrides").isObject()) {
-		return fail(error, QCoreApplication::translate("LevelGestures", "Expected a version 1 VibeStudio gesture file with a profile and overrides."));
+		return fail(error, QCoreApplication::translate("LevelGestures", "Expected a version 1 SlopStudio gesture file with a profile and overrides."));
 	}
 	EditorProfileDescriptor base;
 	if (!editorProfileForId(object.value("profile").toString(), &base)) { return fail(error, QCoreApplication::translate("LevelGestures", "The gesture file names an unknown editor profile.")); }
@@ -522,4 +522,4 @@ bool writeLevelGestures(const QString& path, const QString& profile, const QJson
 	if (!output.open(QIODevice::WriteOnly) || output.write(bytes) != bytes.size() || !output.commit()) { return fail(error, output.errorString()); }
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -24,7 +24,7 @@
 
 // Workflow reference: NetRadiant Custom ImportMap and Map_ImportFile at
 // 449778b3 (GPL-2.0-or-later). Original Qt implementation; see docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 struct LevelMapImportTask {
 	std::atomic_bool cancel{false};
 	std::atomic_bool converting{false};
@@ -90,7 +90,7 @@ LevelMapImportDialog::LevelMapImportDialog(const LevelMapDocument& destination, 
 	m_details = new QPlainTextEdit(this);
 	m_details->setObjectName(QStringLiteral("levelMapImportDetails"));
 	m_details->setAccessibleName(tr("Import details"));
-	m_details->setAccessibleDescription(tr("Renamed entity names and, for a compiled map, the VibeMap3 conversion command and its output."));
+	m_details->setAccessibleDescription(tr("Renamed entity names and, for a compiled map, the SlopMap3 conversion command and its output."));
 	m_details->setReadOnly(true);
 	m_details->setMaximumHeight(fontMetrics().lineSpacing() * 8);
 	m_details->hide();
@@ -159,7 +159,7 @@ void LevelMapImportDialog::start()
 			return;
 		}
 		converted = m_converted->filePath(QFileInfo(m_path).completeBaseName() + QStringLiteral("_converted.map"));
-		m_status->setText(tr("Converting %1 to a map with VibeMap3…").arg(QFileInfo(m_path).fileName()));
+		m_status->setText(tr("Converting %1 to a map with SlopMap3…").arg(QFileInfo(m_path).fileName()));
 	} else {
 		m_status->setText(tr("Reading %1…").arg(QFileInfo(m_path).fileName()));
 	}
@@ -172,7 +172,7 @@ void LevelMapImportDialog::start()
 	task->worker = QThread::create([task, path, engine, dialect, context, converted, convert] {
 		QString source = path;
 		if (convert) {
-			// The header picks VibeMap3's game; Quake and Quake II BSPs are
+			// The header picks SlopMap3's game; Quake and Quake II BSPs are
 			// refused before anything runs.
 			CompilerCommandRequest request;
 			QString refusal;
@@ -194,7 +194,7 @@ void LevelMapImportDialog::start()
 			}
 			const auto problem = levelMapImportConversionProblem(result, converted);
 			if (!problem.isEmpty()) {
-				task->error = LevelMapImportDialog::tr("VibeMap3 could not convert the compiled map: %1").arg(problem);
+				task->error = LevelMapImportDialog::tr("SlopMap3 could not convert the compiled map: %1").arg(problem);
 				return;
 			}
 			source = converted;
@@ -337,4 +337,4 @@ void LevelMapImportDialog::refreshPreview()
 	m_status->setText(status);
 	m_status->setAccessibleDescription(status);
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,6 +1,6 @@
 #include "core/model_document_memory.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 
 void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
@@ -271,4 +271,4 @@ void ModelMemoryLedger::setLive(const Visit &visit)
 	visit(visitor);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

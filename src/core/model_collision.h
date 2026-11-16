@@ -7,7 +7,7 @@
 #include <array>
 #include <optional>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelEditKind;
 struct ModelEdit;
@@ -85,4 +85,4 @@ bool exportModelCollisionMap(const ModelMesh &mesh, const ModelCollisionExport &
 LevelPlacementResult prepareModelCollisionPlacement(const ModelMesh &mesh, const ModelCollisionExport &request, const LevelMapDocument &map,
 													const ModelWorkControl &control = {});
 QString modelCollisionOmissionNote();
-} // namespace vibestudio
+} // namespace slopstudio

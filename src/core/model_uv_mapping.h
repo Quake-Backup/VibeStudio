@@ -1,7 +1,7 @@
 #pragma once
 #include "core/model_uv_atlas.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // Internal shared atlas output admission. Original face/corner identities are
 // retained; chart cuts copy every pose and remap authored seam marks.
@@ -24,4 +24,4 @@ struct ModelUvOverlapScan
 };
 bool findModelUvOverlaps(const QVector<ModelTexCoord> &uv, const QVector<uint32_t> &indices, const QVector<bool> &skip, int maxPairs,
 						 quint64 maxComparisons, ModelUvOverlapScan *scan, QString *error, const ModelWorkControl &control);
-} // namespace vibestudio
+} // namespace slopstudio

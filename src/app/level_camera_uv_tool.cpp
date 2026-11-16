@@ -22,7 +22,7 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 ModelVec3 toModel(const LevelMapVec3& v)
@@ -760,4 +760,4 @@ void LevelCameraUvTool::paint(QPainter& painter) const
 	painter.restore();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

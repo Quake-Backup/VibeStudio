@@ -7,7 +7,7 @@
 #include <QTextCursor>
 #include <QTimer>
 
-namespace vibestudio {
+namespace slopstudio {
 
 QWidget* ApplicationShell::buildCodeSignaturePanel()
 {
@@ -88,4 +88,4 @@ void ApplicationShell::requestCodeSignatureHelp()
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,8 +1,8 @@
-[submodule "external/compilers/vibemap2"]
-	path = external/compilers/vibemap2
+[submodule "external/compilers/slopmap2"]
+	path = external/compilers/slopmap2
 	url = ../VibeyMapTools.git
-[submodule "external/compilers/vibemap3"]
-	path = external/compilers/vibemap3
+[submodule "external/compilers/slopmap3"]
+	path = external/compilers/slopmap3
 	url = ../q3mapx.git
 [submodule "external/compilers/zdbsp"]
 	path = external/compilers/zdbsp

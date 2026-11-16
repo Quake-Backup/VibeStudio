@@ -5,7 +5,7 @@ binding, explicit rebinding, weight reduction and unbinding are available throug
 the shared mesh document and CLI. [Staged weight painting](MODEL_WEIGHT_PAINT.md)
 and [mirrored/spatial transfer](MODEL_WEIGHT_TRANSFER.md) are available, as is [clip retargeting](MODEL_RIG.md#import-and-retarget-clips). Mesh, UV and surface
 edits, and frame edits, keep influences through [per-vertex edit provenance](MODEL_SKIN_PROVENANCE.md); see
-[Weights through other tools](#weights-through-other-tools). VibeStudio is pre-alpha and largely
+[Weights through other tools](#weights-through-other-tools). SlopStudio is pre-alpha and largely
 untested in real projects.
 
 ## Inspect and select influences
@@ -145,13 +145,13 @@ skinned vertex's weights is refused and leaves the model unchanged.
 `model skinning` accepts an editable source positionally or with `--input`:
 
 ```sh
-vibestudio --cli model skinning models/rig.mesh.json --surface 0 --max-influences 4 --json
-vibestudio --cli model skinning models/rig.mesh.json --operation select --surface 0 --filter weighted --joint hand --minimum 0.25 --maximum 1 --json
-vibestudio --cli model skinning models/rig.mesh.json --operation bind --surface 1 --method rigid --joint hand --output models/bound.mesh.json --dry-run --json
-vibestudio --cli model skinning models/rig.mesh.json --operation bind --surfaces 0,1 --method bones --joints root,hand --max-influences 4 --falloff 2 --replace-weights --output models/bound.mesh.json
-vibestudio --cli model skinning models/bound.mesh.json --operation rebind --surface 0 --output models/rebound.mesh.json
-vibestudio --cli model skinning models/rebound.mesh.json --operation prune --surface 0 --max-influences 4 --threshold 0.001 --output models/reduced.mesh.json
-vibestudio --cli model skinning models/reduced.mesh.json --operation unbind --surface 0 --output models/baked.mesh.json
+slopstudio --cli model skinning models/rig.mesh.json --surface 0 --max-influences 4 --json
+slopstudio --cli model skinning models/rig.mesh.json --operation select --surface 0 --filter weighted --joint hand --minimum 0.25 --maximum 1 --json
+slopstudio --cli model skinning models/rig.mesh.json --operation bind --surface 1 --method rigid --joint hand --output models/bound.mesh.json --dry-run --json
+slopstudio --cli model skinning models/rig.mesh.json --operation bind --surfaces 0,1 --method bones --joints root,hand --max-influences 4 --falloff 2 --replace-weights --output models/bound.mesh.json
+slopstudio --cli model skinning models/bound.mesh.json --operation rebind --surface 0 --output models/rebound.mesh.json
+slopstudio --cli model skinning models/rebound.mesh.json --operation prune --surface 0 --max-influences 4 --threshold 0.001 --output models/reduced.mesh.json
+slopstudio --cli model skinning models/reduced.mesh.json --operation unbind --surface 0 --output models/baked.mesh.json
 ```
 
 The default operation is `inspect`, on surface zero. All edits require an

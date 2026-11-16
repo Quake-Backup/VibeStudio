@@ -1,4 +1,4 @@
-// Cap Patch…: VibeStudio's radial caps and NetRadiant Custom's Cap Selection
+// Cap Patch…: SlopStudio's radial caps and NetRadiant Custom's Cap Selection
 // seams (Bevel, Endcap, Inverted Bevel, Inverted Endcap and Cylinder) for
 // every visible selected patch, as one undo step that selects the caps
 // (core/level_patch_cap.h capLevelMapPatches). Workflow reference: NRC
@@ -10,7 +10,7 @@
 #include "app/patch_cap_dialog.h"
 #include <QStatusBar>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool ApplicationShell::applyLevelPatchCaps(const QVector<int> &patchIds, const LevelPatchCapRequest &request, QString *error)
 {
@@ -61,4 +61,4 @@ void ApplicationShell::capLevelMapPatchFromUi()
 		});
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -18,7 +18,7 @@
 
 class QVariantAnimation;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class BusyIndicator;
 
@@ -103,4 +103,4 @@ private:
 	QVariantAnimation* m_fade = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

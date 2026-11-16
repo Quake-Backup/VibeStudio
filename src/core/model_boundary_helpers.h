@@ -2,7 +2,7 @@
 
 #include "core/model_boundary_fill.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // Internal shared budget for lookup, triangulation and every-pose validation.
 struct ModelBoundaryWork
@@ -25,4 +25,4 @@ bool findModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 // Proposed indices must be valid for the source. Checks geometric collapse,
 // new/new and new/existing intersections, including distinct seam indices.
 bool validateModelBoundaryFaces(const ModelSurface &source, const QVector<ModelTriangle> &added, ModelBoundaryWork &work);
-} // namespace vibestudio
+} // namespace slopstudio

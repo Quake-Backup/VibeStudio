@@ -27,7 +27,7 @@ class QTimer;
 class QToolBar;
 class QTreeWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class ModelAssemblyRecoveryWriter;
@@ -211,4 +211,4 @@ class ModelAssemblyDialog final : public QDialog
 	// announced to screen readers as well.
 	void report(const QString &message, LiveStatus kind = LiveStatus::Update);
 };
-} // namespace vibestudio
+} // namespace slopstudio

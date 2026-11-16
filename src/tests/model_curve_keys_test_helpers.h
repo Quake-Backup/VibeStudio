@@ -1,6 +1,6 @@
 #pragma once
 #include "tests/model_animation_curves_test_helpers.h"
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh curveKeysFixture(bool dense = false)
 {
@@ -45,4 +45,4 @@ inline ModelEdit curveKeysEdit(ModelCurveKeyAction action, const ModelMesh &mesh
 			}
 	return edit;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

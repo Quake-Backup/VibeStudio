@@ -3,7 +3,7 @@
 #include <QPainter>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -368,4 +368,4 @@ void LevelSweepGizmo::paint(QPainter& painter, const LevelComponentGizmoFrame& f
 	}
 	painter.restore();
 }
-} // namespace vibestudio
+} // namespace slopstudio

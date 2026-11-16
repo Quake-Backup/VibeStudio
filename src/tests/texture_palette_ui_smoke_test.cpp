@@ -13,7 +13,7 @@
 #include <atomic>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 bool until(const std::function<bool()>& ready)

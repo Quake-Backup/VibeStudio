@@ -24,7 +24,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -792,7 +792,7 @@ int main(int argc, char** argv)
 	checkClassic();
 	QTemporaryDir directory;
 	// Drawing needs OpenGL or Vulkan; every other check runs anywhere.
-	const int renderSkip = vibestudio::test_support::exitCodeWithoutRenderer("material-smoke");
+	const int renderSkip = slopstudio::test_support::exitCodeWithoutRenderer("material-smoke");
 	if (renderSkip == 1) {
 		++failures;
 	} else if (renderSkip < 0 && expect(directory.isValid(), "a temporary folder")) {

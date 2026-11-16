@@ -1,7 +1,7 @@
 #pragma once
 #include <QJsonObject>
 #include <QStringList>
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelVisibilityCliResult {
 	int exitCode = 0;
 	QString error;

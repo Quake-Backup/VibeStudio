@@ -3,7 +3,7 @@
 #include "core/model_document.h"
 #include <array>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh intersectionFixture(bool self = false)
 {
@@ -72,4 +72,4 @@ inline ModelMesh intersectionCrowd(int faces = 362)
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

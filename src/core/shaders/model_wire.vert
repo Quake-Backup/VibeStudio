@@ -5,12 +5,12 @@
 
 #include "common.glsl"
 
-VIBE_ATTRIBUTE(0) vec3 aStart;
-VIBE_ATTRIBUTE(1) vec3 aEnd;
+SLOP_ATTRIBUTE(0) vec3 aStart;
+SLOP_ATTRIBUTE(1) vec3 aEnd;
 // 1: a selected edge, dashed in the selection colour.
-VIBE_ATTRIBUTE(2) uint aSelected;
+SLOP_ATTRIBUTE(2) uint aSelected;
 
-VIBE_UNIFORMS {
+SLOP_UNIFORMS {
 	mat4 viewProjection;
 	// xy: target size in pixels; z: the near plane in clip w, or a large
 	// negative value for orthographic views.
@@ -23,9 +23,9 @@ VIBE_UNIFORMS {
 };
 
 // Endpoints in pixels from the top-left.
-VIBE_FLAT_OUT(0) vec4 vEnds;
+SLOP_FLAT_OUT(0) vec4 vEnds;
 // x: stroke width, y: 1 when selected.
-VIBE_FLAT_OUT(1) vec2 vStroke;
+SLOP_FLAT_OUT(1) vec2 vStroke;
 
 void main()
 {
@@ -37,7 +37,7 @@ void main()
 	float nearW = viewport.z;
 	if (a.w < nearW && b.w < nearW) {
 		vEnds = vec4(0.0);
-		gl_Position = VIBE_DISCARDED_POSITION;
+		gl_Position = SLOP_DISCARDED_POSITION;
 		return;
 	}
 	if (a.w < nearW) {
@@ -54,12 +54,12 @@ void main()
 	vec2 normal = vec2(-direction.y, direction.x);
 	// The stroke's radius plus the widest pixel footprint (half a diagonal).
 	float reach = width * 0.5 + 0.75;
-	int corner = VIBE_VERTEX_INDEX % 6;
+	int corner = SLOP_VERTEX_INDEX % 6;
 	// Two triangles: (0, 1, 2) and (2, 1, 3) of the quad's corners.
 	int quadCorner = corner < 3 ? corner : (corner == 3 ? 2 : (corner == 4 ? 1 : 3));
 	float along = (quadCorner & 1) != 0 ? segmentLength + reach : -reach;
 	float across = (quadCorner & 2) != 0 ? reach : -reach;
 	vec2 pixel = start + direction * along + normal * across;
 	vec2 ndc = pixel / viewport.xy * 2.0 - 1.0;
-	gl_Position = VIBE_CLIP(vec4(ndc, 0.5, 1.0));
+	gl_Position = SLOP_CLIP(vec4(ndc, 0.5, 1.0));
 }

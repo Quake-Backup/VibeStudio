@@ -17,7 +17,7 @@
 
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 
@@ -74,4 +74,4 @@ bool solveModelConstraintIk(const ModelSkeleton &skeleton, QVector<ModelJointMat
 // Source JSON (mesh version 15), inside a clip's entry.
 void writeModelClipStackJson(const ModelSkeletalClip &clip, bool packed, QJsonObject *entry);
 bool readModelClipStackJson(const QJsonObject &entry, int jointCount, bool packedArrays, ModelSkeletalClip *clip);
-} // namespace vibestudio
+} // namespace slopstudio

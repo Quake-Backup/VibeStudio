@@ -31,7 +31,7 @@
 
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct SoundGenerationDialog::Work {
 	std::atomic_bool discard = false;
@@ -162,7 +162,7 @@ SoundGenerationDialog::SoundGenerationDialog(QWidget* parent, SoundGenerationDia
 	m_name->setAccessibleName(tr("Sound name"));
 	m_name->setPlaceholderText(tr("From the description"));
 	options->addRow(tr("&Name:"), m_name);
-	m_folder = new QLineEdit(QStringLiteral("vibestudio"));
+	m_folder = new QLineEdit(QStringLiteral("slopstudio"));
 	m_folder->setObjectName(QStringLiteral("soundGenerationFolder"));
 	m_folder->setAccessibleName(tr("Folder under sound/"));
 	m_folderLabel = new QLabel(tr("&Folder:"));
@@ -171,7 +171,7 @@ SoundGenerationDialog::SoundGenerationDialog(QWidget* parent, SoundGenerationDia
 	m_wad = new QLineEdit;
 	m_wad->setObjectName(QStringLiteral("soundGenerationWad"));
 	m_wad->setAccessibleName(tr("PWAD for the sound lumps"));
-	m_wad->setPlaceholderText(QStringLiteral("wads/vibestudio_sounds.wad"));
+	m_wad->setPlaceholderText(QStringLiteral("wads/slopstudio_sounds.wad"));
 	m_wadLabel = new QLabel(tr("&WAD:"));
 	m_wadLabel->setBuddy(m_wad);
 	options->addRow(m_wadLabel, m_wad);
@@ -772,4 +772,4 @@ void SoundGenerationDialog::keyPressEvent(QKeyEvent* event)
 	QDialog::keyPressEvent(event);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

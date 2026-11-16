@@ -1,0 +1,13 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+<qresource prefix="/branding">
+	<file alias="slopstudio-16.png">icons/png/slopstudio-16.png</file>
+	<file alias="slopstudio-24.png">icons/png/slopstudio-24.png</file>
+	<file alias="slopstudio-32.png">icons/png/slopstudio-32.png</file>
+	<file alias="slopstudio-48.png">icons/png/slopstudio-48.png</file>
+	<file alias="slopstudio-64.png">icons/png/slopstudio-64.png</file>
+	<file alias="slopstudio-128.png">icons/png/slopstudio-128.png</file>
+	<file alias="slopstudio-256.png">icons/png/slopstudio-256.png</file>
+	<file alias="Manrope-ExtraBold.ttf">fonts/Manrope-ExtraBold.ttf</file>
+</qresource>
+</RCC>

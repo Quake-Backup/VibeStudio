@@ -1,8 +1,8 @@
 #include "core/studio_manifest.h"
 
-#include "vibestudio_config.h"
+#include "slopstudio_config.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 QVector<StudioModule> plannedModules()
 {
@@ -62,21 +62,21 @@ QVector<CompilerIntegration> compilerIntegrations()
 {
 	return {
 		{
-			"vibemap2",
-			"VibeMap2",
+			"slopmap2",
+			"SlopMap2",
 			"idTech2 / Quake BSP family",
-			"VibeStudio's Quake and Quake II compiler suite (bsp, vis, light, bspinfo, bsputil, hub), derived from ericw-tools.",
-			"external/compilers/vibemap2",
+			"SlopStudio's Quake and Quake II compiler suite (bsp, vis, light, bspinfo, bsputil, hub), derived from ericw-tools.",
+			"external/compilers/slopmap2",
 			"https://github.com/themuffinator/VibeyMapTools",
 			"4495049a9e4c1f6deadae3a76b8256614840af35",
 			"GPL-3.0",
 		},
 		{
-			"vibemap3",
-			"VibeMap3",
+			"slopmap3",
+			"SlopMap3",
 			"idTech3 / Quake III BSP family",
-			"VibeStudio's Quake III compiler, a continuation of q3map2 from NetRadiant Custom under tools/quake3/q3map2.",
-			"external/compilers/vibemap3",
+			"SlopStudio's Quake III compiler, a continuation of q3map2 from NetRadiant Custom under tools/quake3/q3map2.",
+			"external/compilers/slopmap3",
 			"https://github.com/themuffinator/q3mapx",
 			"897524439cb58d2b736bc96b16c231d22dc5ddce",
 			"GPL-3.0-or-later; imported q3map2 files keep their GPL-2.0-or-later notices",
@@ -111,7 +111,7 @@ QVector<AboutDocument> aboutDocuments()
 			"license",
 			"Project License",
 			"LICENSE",
-			"GPLv3 license text for VibeStudio-owned code.",
+			"GPLv3 license text for SlopStudio-owned code.",
 		},
 		{
 			"credits",
@@ -136,28 +136,28 @@ QVector<AboutDocument> aboutDocuments()
 
 QString versionString()
 {
-	return QString::fromUtf8(VIBESTUDIO_VERSION);
+	return QString::fromUtf8(SLOPSTUDIO_VERSION);
 }
 
 QString githubRepository()
 {
-	return QString::fromUtf8(VIBESTUDIO_GITHUB_REPO);
+	return QString::fromUtf8(SLOPSTUDIO_GITHUB_REPO);
 }
 
 QString updateChannel()
 {
-	return QString::fromUtf8(VIBESTUDIO_UPDATE_CHANNEL);
+	return QString::fromUtf8(SLOPSTUDIO_UPDATE_CHANNEL);
 }
 
 QString projectLicenseSummary()
 {
-	return QStringLiteral("VibeStudio-owned code is distributed under GPLv3. r8brain-free-src (MIT), its Ooura FFT, external compiler submodules, and other third-party components retain their own licenses; see docs/CREDITS.md and the bundled license notices.");
+	return QStringLiteral("SlopStudio-owned code is distributed under GPLv3. r8brain-free-src (MIT), its Ooura FFT, external compiler submodules, and other third-party components retain their own licenses; see docs/CREDITS.md and the bundled license notices.");
 }
 
 QString aboutSurfaceText()
 {
 	QStringList lines;
-	lines << QStringLiteral("VibeStudio %1").arg(versionString());
+	lines << QStringLiteral("SlopStudio %1").arg(versionString());
 	lines << QStringLiteral("Repository: %1").arg(githubRepository());
 	lines << QStringLiteral("Update channel: %1").arg(updateChannel());
 	lines << QStringLiteral("License: %1").arg(projectLicenseSummary());
@@ -167,8 +167,8 @@ QString aboutSurfaceText()
 		lines << QStringLiteral("- %1 [%2]: %3").arg(document.title, document.path, document.description);
 	}
 	lines << QString();
-	lines << QStringLiteral("Imported compiler tools are separate submodules with their own upstream licenses; VibeStudio should invoke them as external tools until a documented source-level license review says otherwise.");
+	lines << QStringLiteral("Imported compiler tools are separate submodules with their own upstream licenses; SlopStudio should invoke them as external tools until a documented source-level license review says otherwise.");
 	return lines.join('\n');
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

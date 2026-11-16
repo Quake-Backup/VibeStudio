@@ -30,7 +30,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -72,7 +72,7 @@ QByteArray sha(const QByteArray &bytes)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -221,7 +221,7 @@ int main(int argc, char **argv)
 														 {QStringLiteral("sha256"), QString::fromLatin1(sha(packaged).toHex())}}}}};
 	const auto pk3 = project.filePath(QStringLiteral("build/crate.pk3"));
 	ok &= expect(subset_test::zip(pk3, {{"models/players/crate/lower.md3", packaged},
-										{"vibestudio/player-bundle.json", QJsonDocument(receipt).toJson()}}),
+										{"slopstudio/player-bundle.json", QJsonDocument(receipt).toJson()}}),
 				 "write a player package with its receipt");
 	ModelOutputRecord packageRecord;
 	ModelOutputStatus packageStatus;
@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 					 packageStatus.state == ModelOutputState::SourceChanged,
 				 "a changed part makes the package stale");
 	ok &= expect(subset_test::zip(pk3, {{"models/players/crate/lower.md3", packaged + "x"},
-										{"vibestudio/player-bundle.json", QJsonDocument(receipt).toJson()}}) &&
+										{"slopstudio/player-bundle.json", QJsonDocument(receipt).toJson()}}) &&
 					 readModelPackageReceipt(pk3, nullptr, &packageStatus, &error) && packageStatus.state == ModelOutputState::OutputChanged,
 				 "a package whose files no longer match its receipt is reported");
 

@@ -11,7 +11,7 @@ class QSpinBox;
 class QLabel;
 class QPushButton;
 class QTabWidget;
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class ModelIkTable;
@@ -99,4 +99,4 @@ class ModelIkDialog final : public QDialog
 	void updateHandle();
 	void dropHandle(const ModelVec3 &point);
 };
-} // namespace vibestudio
+} // namespace slopstudio

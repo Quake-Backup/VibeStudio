@@ -1,4 +1,4 @@
-"""Optional VibeMap3 seam check using original generated fixtures only.
+"""Optional SlopMap3 seam check using original generated fixtures only.
 
 Run from the repository with --binary, --compiler and an explicit disposable
 --output-root under .agents/tmp. Writes exact commands, logs and measured artifacts.

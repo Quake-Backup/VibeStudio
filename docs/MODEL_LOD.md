@@ -189,12 +189,12 @@ and a report warning, since the game would read it wrongly.
 ## CLI
 
 ```sh
-vibestudio --cli model lod ./models/prop.mesh.json --output ./out/prop.md3 --levels 2 --ratio 0.5 --json
-vibestudio --cli model lod ./models/prop.mesh.json --target-triangles 900,300 --save-recipe --json
-vibestudio --cli model lod ./models/prop.mesh.json --level-source 2=./models/prop_low.mesh.json --output ./out/prop.md3 --json
-vibestudio --cli model lod ./models/prop.mesh.json --output ./out/prop.md3 --json
-vibestudio --cli model lod --inspect ./baseq3/models/mapobjects/lamp.md3 --json
-vibestudio --cli model lod --inspect --package ./mymod.pk3 --entry models/mapobjects/lamp.md3 --target et --json
+slopstudio --cli model lod ./models/prop.mesh.json --output ./out/prop.md3 --levels 2 --ratio 0.5 --json
+slopstudio --cli model lod ./models/prop.mesh.json --target-triangles 900,300 --save-recipe --json
+slopstudio --cli model lod ./models/prop.mesh.json --level-source 2=./models/prop_low.mesh.json --output ./out/prop.md3 --json
+slopstudio --cli model lod ./models/prop.mesh.json --output ./out/prop.md3 --json
+slopstudio --cli model lod --inspect ./baseq3/models/mapobjects/lamp.md3 --json
+slopstudio --cli model lod --inspect --package ./mymod.pk3 --entry models/mapobjects/lamp.md3 --target et --json
 ```
 
 `model lod` builds the levels `--levels` (default 2, or fewer when the target

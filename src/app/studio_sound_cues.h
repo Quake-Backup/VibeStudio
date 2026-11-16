@@ -11,7 +11,7 @@
 #include <QObject>
 #include <QStringList>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class AudioPlayback;
 
@@ -28,7 +28,7 @@ QString soundCueId(SoundCue cue);
 QByteArray soundCueWave(SoundCue cue);
 
 // Plays cues through Qt Multimedia when the build has it; otherwise the
-// platform's alert sound. VIBESTUDIO_SOUND_CUES=log records cue ids instead
+// platform's alert sound. SLOPSTUDIO_SOUND_CUES=log records cue ids instead
 // of playing them, for tests.
 class StudioSoundCues final : public QObject {
 	Q_OBJECT
@@ -45,8 +45,8 @@ private:
 	bool m_logOnly = false;
 };
 
-// Cue ids recorded while VIBESTUDIO_SOUND_CUES=log, oldest first.
+// Cue ids recorded while SLOPSTUDIO_SOUND_CUES=log, oldest first.
 QStringList loggedSoundCuesForTesting();
 void clearLoggedSoundCuesForTesting();
 
-} // namespace vibestudio
+} // namespace slopstudio

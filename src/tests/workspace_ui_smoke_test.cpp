@@ -13,7 +13,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool ok, const char* message, const QString& detail = {}) { if (!ok) { std::cerr << message << ": " << detail.toStdString() << '\n'; } return ok; }
 bool put(const QString& path, const QByteArray& bytes) { QFile file(path); return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size(); }
@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 	document.codeFiles << temp.filePath(QStringLiteral("project/code.qc")); document.currentCodeFile = document.codeFiles.first();
 	document.activeModule = QStringLiteral("textures"); document.assetSelections = {{"textures", "textures/wall.dds"}};
 	document.extensions = {{"user", "preserve"}};
-	const auto workspace = temp.filePath(QStringLiteral("fixture.vibeworkspace"));
+	const auto workspace = temp.filePath(QStringLiteral("fixture.slopworkspace"));
 	ok &= expect(writeWorkspaceDocument(workspace, document, {}, nullptr, &error), "workspace fixture", error);
 	{
 		ApplicationShell shell;
@@ -53,14 +53,14 @@ int main(int argc, char** argv)
 		ok &= expect(open && save && open->isEnabled() && save->isEnabled() && !open->text().isEmpty() && !save->statusTip().isEmpty(), "translated menu and command actions");
 		ok &= expect(shell.openWorkspaceFrom(workspace, &error) && mode() == StudioMode::Textures, "workspace opens on the saved module", error);
 		ok &= expect(StudioSettings().currentProjectPath() == document.projectPath, "shared project context restored");
-		const auto saved = temp.filePath(QStringLiteral("saved.vibeworkspace"));
+		const auto saved = temp.filePath(QStringLiteral("saved.slopworkspace"));
 		ok &= expect(shell.saveWorkspaceTo(saved, false, &error), "shell capture", error);
 		WorkspaceDocument captured; QByteArray revision;
 		ok &= expect(readWorkspaceDocument(saved, &captured, &revision, &error) && captured.packagePath == document.packagePath && captured.codeFiles == document.codeFiles &&
 			captured.extensions == document.extensions && captured.assetSelections == document.assetSelections, "package, code and asset selection share workspace context", error);
 		captured.activeModule = QStringLiteral("build");
 		ok &= expect(writeWorkspaceDocument(saved, captured, revision, nullptr, &error) && !shell.saveWorkspaceTo(saved, true, &error), "GUI rejects external workspace changes");
-		const auto broken = temp.filePath(QStringLiteral("bad.vibeworkspace")); put(broken, "{broken");
+		const auto broken = temp.filePath(QStringLiteral("bad.slopworkspace")); put(broken, "{broken");
 		ok &= expect(!shell.openWorkspaceFrom(broken, &error) && mode() == StudioMode::Textures, "invalid open preserves current module");
 		// Command-line and drop routing use the same public opening path.
 		shell.openPathFromCommandLine(workspace);

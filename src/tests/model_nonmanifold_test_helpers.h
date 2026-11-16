@@ -5,7 +5,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // Original radial pages sharing one indexed spine. Every pose stays valid;
 // the two spine vertices need independent copies for every page after repair.
@@ -59,4 +59,4 @@ inline ModelMesh nonmanifoldBook(int pages = 3, int frames = 2, bool unused = tr
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

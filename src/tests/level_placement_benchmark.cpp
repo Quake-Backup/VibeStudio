@@ -7,7 +7,7 @@
 #include <QJsonObject>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 int main(int argc, char** argv) {
 	QCoreApplication app(argc, argv);
 	QJsonArray rows;

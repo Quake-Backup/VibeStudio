@@ -15,8 +15,8 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -34,7 +34,7 @@ bool expect(bool value, const char *message)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("joint-core-XXXXXX"));
@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 	if (!source.open(QIODevice::WriteOnly) || source.write(rigBytes(mesh)) <= 0)
 		return 1;
 	source.close();
-	const QStringList command{"vibestudio",
+	const QStringList command{"slopstudio",
 							  "--cli",
 							  "model",
 							  "pose",

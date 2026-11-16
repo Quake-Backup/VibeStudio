@@ -22,7 +22,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int failures = 0;
@@ -342,7 +342,7 @@ void checkCli(const QString &executable)
 	};
 	const auto select = [&](const QString &operation, const QStringList &extra)
 	{
-		return cli::runModelSelect(QStringList{QStringLiteral("vibestudio"), QStringLiteral("--cli"), QStringLiteral("model"),
+		return cli::runModelSelect(QStringList{QStringLiteral("slopstudio"), QStringLiteral("--cli"), QStringLiteral("model"),
 											   QStringLiteral("select"), source, QStringLiteral("--select"), operation, QStringLiteral("--mode"),
 											   QStringLiteral("edges")} +
 								   extra);
@@ -377,7 +377,7 @@ void checkCli(const QString &executable)
 	expect(result.exitCode == 4 && result.error.contains(QStringLiteral("No selected edge has a loop")), "CLI exits 4 when no seed grows");
 	// --vertices seeds as the editor's vertex mode does: the edges between
 	// them, without quad diagonals.
-	const auto vertices = cli::runModelSelect({QStringLiteral("vibestudio"), QStringLiteral("--cli"), QStringLiteral("model"), QStringLiteral("select"),
+	const auto vertices = cli::runModelSelect({QStringLiteral("slopstudio"), QStringLiteral("--cli"), QStringLiteral("model"), QStringLiteral("select"),
 											   source, QStringLiteral("--select"), QStringLiteral("loop"), QStringLiteral("--mode"),
 											   QStringLiteral("vertices"), QStringLiteral("--vertices"),
 											   QStringLiteral("%1,%2,%3").arg(at(0, 0)).arg(at(1, 0)).arg(at(1, 1))});

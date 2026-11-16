@@ -42,7 +42,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool condition, const char* message, const QString& detail = {})
@@ -141,10 +141,10 @@ void key(QWidget* view, int code, Qt::KeyboardModifiers modifiers = Qt::NoModifi
 	QKeyEvent event(QEvent::KeyPress, code, modifiers);
 	QCoreApplication::sendEvent(view, &event);
 }
-// With VIBESTUDIO_TEST_CAPTURE_DIR set, the view as drawn is saved for review.
+// With SLOPSTUDIO_TEST_CAPTURE_DIR set, the view as drawn is saved for review.
 void capture(MapViewport* view, const QString& name)
 {
-	const QString directory = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const QString directory = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (directory.isEmpty() || !view) {
 		return;
 	}

@@ -6,7 +6,7 @@
 
 class QListWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Retained source pixmaps are bounded independently of package entry count.
 // Callers must remove evicted icons from views too: QIcon copies share pixels.
@@ -34,4 +34,4 @@ private:
 // thumbnails, so 256px RGBA tiles fit together in the shared 64 MiB budget.
 QStringList visibleTextureThumbnailPaths(QListWidget* list, int pathRole);
 
-} // namespace vibestudio
+} // namespace slopstudio

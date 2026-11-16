@@ -58,7 +58,7 @@
 class QTimer;
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ModelSkinPaintProjection;
 
@@ -718,7 +718,7 @@ Q_SIGNALS:
 	void collisionPicked(const QString& name, int pick);
 	void editTransformActiveChanged(bool active);
 	void editTransformPreviewChanged();
-	void editTransformRequested(const vibestudio::ModelTransform& transform);
+	void editTransformRequested(const slopstudio::ModelTransform& transform);
 	void editMoveActiveChanged(bool active);
 	void editMovePreviewChanged(double dx, double dy, double dz);
 	void editMoveRequested(double dx, double dy, double dz);
@@ -729,7 +729,7 @@ Q_SIGNALS:
 	// A drag of the highlighted triangles finished: how far they went, in
 	// mesh units, snapped to the move grid. Never all zero.
 	void moveRequested(double dx, double dy, double dz);
-	void selectionResizeRequested(const vibestudio::ResizeBox& box);
+	void selectionResizeRequested(const slopstudio::ResizeBox& box);
 	// A shear drag released: the side `axis` (0 to 2) on `side` (-1 its
 	// minimum, +1 its maximum) slid by dx, dy, dz. Never all zero.
 	void selectionShearRequested(int axis, int side, double dx, double dy, double dz);
@@ -738,13 +738,13 @@ Q_SIGNALS:
 	void brushDrawToolChanged();
 	void brushDrawActiveChanged(bool active);
 	void brushDrawPreviewChanged();
-	void brushDrawRequested(const vibestudio::ResizeBox& box);
+	void brushDrawRequested(const slopstudio::ResizeBox& box);
 	void componentPicksChanged();
 	void componentModeExitRequested();
 	void componentMoveActiveChanged(bool active);
 	void vertexSnapRequested(int handle);
-	void componentMovePreviewChanged(const vibestudio::ModelVec3& delta);
-	void componentMoveRequested(const vibestudio::ModelVec3& delta);
+	void componentMovePreviewChanged(const slopstudio::ModelVec3& delta);
+	void componentMoveRequested(const slopstudio::ModelVec3& delta);
 	void clipStateChanged();
 	void clipModeChanged(bool enabled);
 	void clipRequested();
@@ -1278,4 +1278,4 @@ private:
 
 QString modelViewportRenderModeDisplayName(ModelViewportRenderMode mode);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -10,7 +10,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool result, const char* message, const QString& error = {})
@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 		ok &= expect(plan.writeArchive(request).succeeded(), "write a valid empty archive", error);
 		PackageArchive output;
 		ok &= expect(output.load(request.destinationPath, &error) && output.entries().isEmpty() && validatePackage(output).valid(), "reopen and validate empty archive", error);
-		const QString draft = request.destinationPath + QStringLiteral(".vibepackage");
+		const QString draft = request.destinationPath + QStringLiteral(".sloppackage");
 		ok &= expect(PackageDraft::save(draft, &plan, false, &error) && !plan.isModified(), "save an empty new document as a draft", error);
 		PackageStagingModel reopened;
 		ok &= expect(PackageDraft::load(draft, &reopened, &error) && reopened.sourceFormat() == format
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
 	ok &= expect(plan.deleteDirectory(QStringLiteral("moved"), &error) && plan.summary().stagedFileCount == 1
 		&& plan.summary().stagedDirectoryCount == 0 && bytes(plan, QStringLiteral("ab/other.txt")) == "other"
 		&& plan.undo() && hasDirectory(plan, QStringLiteral("moved/empty")), "folder deletion and undo retain sibling prefixes and restore empty directories", error);
-	const QString draft = root.filePath(QStringLiteral("folders.vibepackage"));
+	const QString draft = root.filePath(QStringLiteral("folders.sloppackage"));
 	ok &= expect(PackageDraft::save(draft, &plan, false, &error), "save folder history and redo content", error);
 	PackageStagingModel restored;
 	ok &= expect(PackageDraft::load(draft, &restored, &error) && restored.summary().canSave && restored.canRedo()
@@ -108,7 +108,7 @@ int main(int argc, char** argv)
 	PackageStagingModel derived;
 	ok &= derived.loadBaseArchive(PackageStagingArchive(plan), &error);
 	ok &= derived.renameDirectory(QStringLiteral("moved"), QStringLiteral("derived"), &error);
-	const QString derivedDraft = root.filePath(QStringLiteral("derived.vibepackage"));
+	const QString derivedDraft = root.filePath(QStringLiteral("derived.sloppackage"));
 	ok &= expect(PackageDraft::save(derivedDraft, &derived, false, &error) && PackageDraft::load(derivedDraft, &derived, &error)
 		&& derived.summary().canSave && bytes(derived, QStringLiteral("derived/one.txt")) == "one", "rebased generated origins survive directory identity persistence", error);
 	{
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
 		ok &= checked.addFile(input, QStringLiteral("redo.txt"), &error);
 		const QString retained = checked.operations().last().sourceIdentity->path;
 		ok &= checked.undo();
-		const QString output = root.filePath(QStringLiteral("dry-run.vibepackage"));
+		const QString output = root.filePath(QStringLiteral("dry-run.sloppackage"));
 		const auto revision = checked.revision();
 		ok &= expect(PackageDraft::save(output, &checked, false, &error, {}, true)
 			&& !QFileInfo::exists(output) && checked.draftPath().isEmpty() && checked.revision() == revision
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
 			&& PackageDraft::save(output, &clean, true, &error, {}, true), "dry run honors draft overwrite intent", error);
 		ok &= manifest.open(QIODevice::ReadOnly);
 		ok &= expect(manifest.readAll() == original && !QFileInfo::exists(QDir(output).filePath(QStringLiteral(".write.lock"))), "dry run preserves the saved manifest and creates no lock");
-		const QString impossible = input + QStringLiteral("/child.vibepackage");
+		const QString impossible = input + QStringLiteral("/child.sloppackage");
 		ok &= expect(!PackageDraft::save(impossible, &clean, false, &error, {}, true), "dry run rejects a file occupying a destination parent");
 	}
 	{
@@ -187,7 +187,7 @@ int main(int argc, char** argv)
 		ok &= folder.load(source, &error) && savedFolder.loadBaseArchive(folder, &error);
 		ok &= expect(savedFolder.renameDirectory(QStringLiteral("renamed"), QStringLiteral("planned"), &error)
 			&& QDir(QDir(source).filePath(QStringLiteral("renamed/deep"))).exists(), "staging a folder rename leaves the disk source untouched", error);
-		const QString folderDraft = root.filePath(QStringLiteral("disk-folders.vibepackage"));
+		const QString folderDraft = root.filePath(QStringLiteral("disk-folders.sloppackage"));
 		ok &= expect(PackageDraft::save(folderDraft, &savedFolder, false, &error)
 			&& PackageDraft::load(folderDraft, &savedFolder, &error) && savedFolder.summary().canSave
 			&& hasDirectory(savedFolder, QStringLiteral("planned/deep")), "base-directory identities survive draft folder replay", error);

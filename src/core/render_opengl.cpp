@@ -36,7 +36,7 @@
 #define GL_UNSIGNED_SHORT 0x1403
 #endif
 
-namespace vibestudio::render_detail {
+namespace slopstudio::render_detail {
 
 QSurfaceFormat openGLSurfaceFormat()
 {
@@ -204,7 +204,7 @@ bool OpenGLDevice::makeCurrent()
 bool OpenGLDevice::startDevice(RenderDeviceInfo* info)
 {
 	if (!m_surface || !m_surface->isValid()) {
-		info->error = QCoreApplication::translate("VibeStudioRendering", "OpenGL needs the studio's graphical session; it is not available to the command line or the offscreen platform.");
+		info->error = QCoreApplication::translate("SlopStudioRendering", "OpenGL needs the studio's graphical session; it is not available to the command line or the offscreen platform.");
 		info->errorDetail = QStringLiteral("no QOffscreenSurface (prepareRenderBackends() was not called on a QGuiApplication)");
 		return false;
 	}
@@ -213,14 +213,14 @@ bool OpenGLDevice::startDevice(RenderDeviceInfo* info)
 	if (!m_context->create()) {
 		const QString platform = QGuiApplication::platformName();
 		info->error = platform == QLatin1String("offscreen") || platform == QLatin1String("minimal")
-			? QCoreApplication::translate("VibeStudioRendering", "OpenGL is not available on Qt's %1 platform.").arg(platform)
-			: QCoreApplication::translate("VibeStudioRendering", "The graphics driver could not create an OpenGL context.");
+			? QCoreApplication::translate("SlopStudioRendering", "OpenGL is not available on Qt's %1 platform.").arg(platform)
+			: QCoreApplication::translate("SlopStudioRendering", "The graphics driver could not create an OpenGL context.");
 		info->errorDetail = QStringLiteral("QOpenGLContext::create() failed on the %1 platform").arg(platform);
 		m_context.reset();
 		return false;
 	}
 	if (!makeCurrent()) {
-		info->error = QCoreApplication::translate("VibeStudioRendering", "The graphics driver created an OpenGL context but could not use it.");
+		info->error = QCoreApplication::translate("SlopStudioRendering", "The graphics driver created an OpenGL context but could not use it.");
 		info->errorDetail = QStringLiteral("QOpenGLContext::makeCurrent() failed");
 		m_context.reset();
 		return false;
@@ -241,14 +241,14 @@ bool OpenGLDevice::startDevice(RenderDeviceInfo* info)
 	info->softwareImplementation = softwareRenderer(info->deviceName);
 	const bool recent = m_es ? actual.majorVersion() >= 3 : (actual.majorVersion() > 3 || (actual.majorVersion() == 3 && actual.minorVersion() >= 3));
 	if (!recent) {
-		info->error = QCoreApplication::translate("VibeStudioRendering", "VibeStudio needs OpenGL 3.3 or OpenGL ES 3.0; this driver offers %1.").arg(info->apiVersion);
+		info->error = QCoreApplication::translate("SlopStudioRendering", "SlopStudio needs OpenGL 3.3 or OpenGL ES 3.0; this driver offers %1.").arg(info->apiVersion);
 		info->errorDetail = info->driverVersion;
 		m_context->doneCurrent();
 		m_context.reset();
 		return false;
 	}
 	if (m_es && !m_context->hasExtension("GL_EXT_color_buffer_float")) {
-		info->error = QCoreApplication::translate("VibeStudioRendering", "This OpenGL ES driver cannot render the floating-point images VibeStudio's 3D views need.");
+		info->error = QCoreApplication::translate("SlopStudioRendering", "This OpenGL ES driver cannot render the floating-point images SlopStudio's 3D views need.");
 		info->errorDetail = QStringLiteral("GL_EXT_color_buffer_float is missing");
 		m_context->doneCurrent();
 		m_context.reset();
@@ -272,7 +272,7 @@ bool OpenGLDevice::startDevice(RenderDeviceInfo* info)
 	m_gl->glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 	m_programs.assign(size_t(gpuProgramCount()), Program {});
 	if (m_gl->glGetError() != GL_NO_ERROR) {
-		info->error = QCoreApplication::translate("VibeStudioRendering", "The OpenGL driver failed while VibeStudio set up its renderer.");
+		info->error = QCoreApplication::translate("SlopStudioRendering", "The OpenGL driver failed while SlopStudio set up its renderer.");
 		info->errorDetail = QStringLiteral("glGetError after setup");
 		stopDevice();
 		return false;
@@ -657,7 +657,7 @@ GpuFrameResult OpenGLDevice::renderFrame(const GpuFrame& frame, const std::atomi
 	};
 	if (!makeCurrent() || !m_context->isValid()) {
 		markLost(QStringLiteral("QOpenGLContext::makeCurrent() failed; the context is lost"));
-		return failWith(QCoreApplication::translate("VibeStudioRendering", "The graphics device stopped responding."), QStringLiteral("OpenGL context lost"));
+		return failWith(QCoreApplication::translate("SlopStudioRendering", "The graphics device stopped responding."), QStringLiteral("OpenGL context lost"));
 	}
 	++m_frame;
 	QOpenGLExtraFunctions& gl = *m_gl;
@@ -780,7 +780,7 @@ GpuFrameResult OpenGLDevice::renderFrame(const GpuFrame& frame, const std::atomi
 		const GLenum status = gl.glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE) {
 			cleanUp();
-			return failWith(QCoreApplication::translate("VibeStudioRendering", "The OpenGL driver cannot render this view's images."), QStringLiteral("pass %1: framebuffer status 0x%2").arg(passIndex).arg(status, 0, 16));
+			return failWith(QCoreApplication::translate("SlopStudioRendering", "The OpenGL driver cannot render this view's images."), QStringLiteral("pass %1: framebuffer status 0x%2").arg(passIndex).arg(status, 0, 16));
 		}
 		gl.glViewport(0, 0, passSize.width(), passSize.height());
 		gl.glDisable(GL_SCISSOR_TEST);
@@ -811,7 +811,7 @@ GpuFrameResult OpenGLDevice::renderFrame(const GpuFrame& frame, const std::atomi
 			QString error;
 			if (!ensureProgram(draw.program, &error)) {
 				cleanUp();
-				return failWith(QCoreApplication::translate("VibeStudioRendering", "The OpenGL driver could not build one of VibeStudio's shaders."), error);
+				return failWith(QCoreApplication::translate("SlopStudioRendering", "The OpenGL driver could not build one of SlopStudio's shaders."), error);
 			}
 			const GpuProgramInfo* program = gpuProgramInfo(draw.program);
 			gl.glUseProgram(m_programs[size_t(draw.program)].id);
@@ -923,21 +923,21 @@ GpuFrameResult OpenGLDevice::renderFrame(const GpuFrame& frame, const std::atomi
 		QString detail;
 		if (!readTarget(targets[size_t(target)], renderedFormat(frame.targets.at(target).format), targetSize(frame, target), &readback, &detail)) {
 			cleanUp();
-			return failWith(QCoreApplication::translate("VibeStudioRendering", "The OpenGL driver could not return this view's image."), detail);
+			return failWith(QCoreApplication::translate("SlopStudioRendering", "The OpenGL driver could not return this view's image."), detail);
 		}
 		result.readbacks.append(readback);
 	}
 	const GLenum error = gl.glGetError();
 	cleanUp();
 	if (error == GL_OUT_OF_MEMORY) {
-		return failWith(QCoreApplication::translate("VibeStudioRendering", "The graphics device ran out of memory drawing this view."), QStringLiteral("GL_OUT_OF_MEMORY"));
+		return failWith(QCoreApplication::translate("SlopStudioRendering", "The graphics device ran out of memory drawing this view."), QStringLiteral("GL_OUT_OF_MEMORY"));
 	}
 	if (error != GL_NO_ERROR) {
-		return failWith(QCoreApplication::translate("VibeStudioRendering", "The OpenGL driver reported an error while drawing this view."), QStringLiteral("glGetError 0x%1").arg(error, 0, 16));
+		return failWith(QCoreApplication::translate("SlopStudioRendering", "The OpenGL driver reported an error while drawing this view."), QStringLiteral("glGetError 0x%1").arg(error, 0, 16));
 	}
 	if (!m_context->isValid()) {
 		markLost(QStringLiteral("the OpenGL context became invalid during a frame"));
-		return failWith(QCoreApplication::translate("VibeStudioRendering", "The graphics device stopped responding."), QStringLiteral("OpenGL context lost"));
+		return failWith(QCoreApplication::translate("SlopStudioRendering", "The graphics device stopped responding."), QStringLiteral("OpenGL context lost"));
 	}
 	result.success = true;
 	return result;
@@ -950,4 +950,4 @@ std::shared_ptr<DeviceThread> createOpenGLDevice(QOffscreenSurface* surface)
 	return std::make_shared<OpenGLDevice>(surface);
 }
 
-} // namespace vibestudio::render_detail
+} // namespace slopstudio::render_detail

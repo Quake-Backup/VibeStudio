@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 bool put(const QString& path, const QByteArray& bytes) { QFile file(path); return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size(); }
@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 	ok &= expect(patchNames.last() == "P_END" && patchNames.at(patchNames.size() - 2) == "WALLA" && patchNames.at(patchNames.size() - 3) == "P_START"
 		&& hint(patched, "WALLA") == "wad-patch", "patch namespace is visible in the package plan");
 	ok &= expect(staging.undo() && !names(PackageStagingArchive(staging)).contains("P_START") && staging.redo(), "texture and both generated markers undo and redo together");
-	const auto draft = root.filePath("native.vibepackage");
+	const auto draft = root.filePath("native.sloppackage");
 	ok &= expect(PackageDraft::save(draft, &staging, false, &error), "native placements save to a portable package draft");
 	PackageStagingModel reopened;
 	ok &= expect(PackageDraft::load(draft, &reopened, &error) && names(PackageStagingArchive(reopened)) == patchNames
@@ -114,7 +114,7 @@ int main(int argc, char** argv)
 	const auto quakePath = root.filePath("quake.wad"); put(quakePath, wad("WAD2", {{"stone", mip.bytes}, {"raw", "raw bytes"}}, {0x42, 0x42})); PackageArchive quake; quake.load(quakePath); PackageStagingModel quakePlan; quakePlan.loadBaseArchive(quake);
 	ok &= expect(stageTextureExport(mip, options, "stone", &quakePlan, true, &error) && quakePlan.plannedEntries()[0].wadLumpType == 0x44 && quakePlan.plannedEntries()[1].wadLumpType == 0x42, "native mip replacement sets type 0x44 without changing unrelated lump types");
 	ok &= expect(!stageTextureExport(mip, options, "different", &quakePlan, false, &error), "Quake directory and embedded texture names must agree");
-	const auto quakeDraft = root.filePath("quake.vibepackage"); PackageStagingModel quakeReloaded;
+	const auto quakeDraft = root.filePath("quake.sloppackage"); PackageStagingModel quakeReloaded;
 	ok &= expect(PackageDraft::save(quakeDraft, &quakePlan, false, &error) && PackageDraft::load(quakeDraft, &quakeReloaded, &error) && quakeReloaded.plannedEntries()[0].wadLumpType == 0x44, "explicit WAD2 type survives durable draft persistence");
 	write.destinationPath = root.filePath("quake-out.wad"); const auto quakeReport = quakePlan.writeArchive(write); const auto quakeBytes = read(write.destinationPath);
 	const auto directoryOffset = quakeBytes.size() >= 12 ? qFromLittleEndian<quint32>(quakeBytes.constData() + 8) : 0;
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 	QByteArray changedPalette = paletteBytes; changedPalette[72 * 3] = char(240); auto changed = staging; changed.addBytes(changedPalette, "PLAYPAL", &error, PackageStageConflictResolution::ReplaceExisting);
 	ok &= expect(decodeIdTechImageFromArchive(PackageStagingArchive(changed), "NEWFLAT", "doom").image.pixelColor(0, 0).red() == 240, "staged palette replacement immediately changes native decoding");
 	if (argc > 1) {
-		const auto input = root.filePath("flat.png"); pixels.save(input); const auto cliDraft = root.filePath("cli.vibepackage");
+		const auto input = root.filePath("flat.png"); pixels.save(input); const auto cliDraft = root.filePath("cli.sloppackage");
 		const auto cli = [&](QStringList args, bool success, QJsonObject* out = nullptr) {
 			QProcess process; args.prepend("--cli"); args.append("--json"); process.start(QString::fromLocal8Bit(argv[1]), args);
 			if (!process.waitForFinished(20000)) { process.kill(); process.waitForFinished(); return false; }

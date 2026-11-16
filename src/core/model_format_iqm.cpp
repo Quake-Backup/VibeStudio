@@ -44,7 +44,7 @@
 #include <cstring>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -334,11 +334,11 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, &mesh->error);
 	if (!work.check()) { return; }
 	if (!rangeOk(bytes, 0, kIqmHeaderBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM header is truncated.");
 		return;
 	}
 	if (bytes.left(16) != QByteArray("INTERQUAKEMODEL\0", 16)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM identifier is malformed.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM identifier is malformed.");
 		return;
 	}
 
@@ -354,16 +354,16 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	}
 	mesh->version = int(std::min<quint32>(header.version, quint32(std::numeric_limits<int>::max())));
 	if (header.version != 2) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported IQM version %1; only version 2 is decoded.").arg(header.version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported IQM version %1; only version 2 is decoded.").arg(header.version);
 		return;
 	}
 	if (header.fileSize < quint32(kIqmHeaderBytes) || qint64(header.fileSize) > qint64(bytes.size())) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM header declares %1 bytes but the file holds %2.")
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM header declares %1 bytes but the file holds %2.")
 			.arg(header.fileSize).arg(bytes.size());
 		return;
 	}
 	if (qint64(header.fileSize) < qint64(bytes.size())) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-trailing-bytes"), QCoreApplication::translate("VibeStudioModelMesh", "The IQM declares %1 bytes; the %2 byte(s) after them are ignored.")
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-trailing-bytes"), QCoreApplication::translate("SlopStudioModelMesh", "The IQM declares %1 bytes; the %2 byte(s) after them are ignored.")
 			.arg(header.fileSize).arg(qint64(bytes.size()) - qint64(header.fileSize)));
 	}
 	const QByteArray data = qint64(header.fileSize) < qint64(bytes.size()) ? bytes.left(qsizetype(header.fileSize)) : bytes;
@@ -373,20 +373,20 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		|| header.numJoints > quint32(kMaxJoints) || header.numPoses > quint32(kMaxJoints) || header.numAnims > quint32(kMaxFrames)
 		|| header.numFrames > quint32(kMaxFrames) || qint64(header.numFrameChannels) > qint64(header.numPoses) * 10
 		|| qint64(header.numComment) > kMaxTextBytes) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM header declares counts outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM header declares counts outside the supported range.");
 		return;
 	}
 	if (header.numMeshes == 0 && header.numJoints == 0) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM holds neither meshes nor joints.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM holds neither meshes nor joints.");
 		return;
 	}
 	if (header.numPoses != 0 && header.numPoses != header.numJoints) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM has %1 pose(s) for %2 joint(s); it needs one pose per joint or none.")
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM has %1 pose(s) for %2 joint(s); it needs one pose per joint or none.")
 			.arg(header.numPoses).arg(header.numJoints);
 		return;
 	}
 	if (qint64(header.numFrames) * qint64(std::max<quint32>(header.numJoints, 1)) > kIqmMaxPoseSlots) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM declares more frame poses than can be decoded.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM declares more frame poses than can be decoded.");
 		return;
 	}
 
@@ -410,7 +410,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	};
 	for (const Block& block : blocks) {
 		if (block.length != 0 && (qint64(block.offset) < kIqmHeaderBytes || !rangeOk(data, block.offset, block.length))) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM block %1 lies outside the file.").arg(QString::fromLatin1(block.field));
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM block %1 lies outside the file.").arg(QString::fromLatin1(block.field));
 			return;
 		}
 	}
@@ -450,22 +450,22 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			break;
 		}
 		if (!formatOk) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM %1 array uses a format or size this decoder does not read (%2 x%3).")
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM %1 array uses a format or size this decoder does not read (%2 x%3).")
 				.arg(iqmTypeName(type), iqmFormatName(format)).arg(size);
 			return;
 		}
 		const qint64 length = qint64(header.numVertexes) * qint64(size) * iqmFormatBytes(format);
 		if (length != 0 && (qint64(offset) < kIqmHeaderBytes || !rangeOk(data, offset, length))) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM %1 array lies outside the file.").arg(iqmTypeName(type));
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM %1 array lies outside the file.").arg(iqmTypeName(type));
 			return;
 		}
 		arrays[type] = IqmArray{true, format, int(size), qint64(offset)};
 	}
 	if (!arrayLines.isEmpty()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Vertex arrays: %1").arg(arrayLines.join(QStringLiteral(", ")));
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Vertex arrays: %1").arg(arrayLines.join(QStringLiteral(", ")));
 	}
 	if (header.numMeshes > 0 && header.numVertexes > 0 && !arrays[IqmPosition].present) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM has meshes but no position array.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM has meshes but no position array.");
 		return;
 	}
 	const auto component = [&data](const IqmArray& array, qint64 vertex, int index) {
@@ -485,12 +485,12 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		const qint64 base = qint64(header.ofsJoints) + (qint64(index) * kIqmJointBytes);
 		QString name;
 		if (!iqmText(data, header, readU32(data, base), &name)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "IQM joint %1 names text outside the text block.").arg(index);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "IQM joint %1 names text outside the text block.").arg(index);
 			return;
 		}
 		const qint32 parent = readI32(data, base + 4);
 		if (parent < -1 || parent >= qint32(index)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "IQM joint %1 names a parent that does not come before it.").arg(index);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "IQM joint %1 names a parent that does not come before it.").arg(index);
 			return;
 		}
 		ModelVec3 translate, scale;
@@ -500,7 +500,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		ModelJoint joint;
 		const QString unique = iqmUniqueJointName(name, int(index), &usedNames);
 		if (!name.isEmpty() && unique != name) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-duplicate-joint"), QCoreApplication::translate("VibeStudioModelMesh", "IQM joint %1 repeats the name \"%2\" and was renamed \"%3\".").arg(index).arg(name, unique));
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-duplicate-joint"), QCoreApplication::translate("SlopStudioModelMesh", "IQM joint %1 repeats the name \"%2\" and was renamed \"%3\".").arg(index).arg(name, unique));
 		}
 		joint.name = unique;
 		joint.parent = parent;
@@ -511,7 +511,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	if (header.numJoints > 0) {
 		const QVector<ModelJointMatrix> bind = modelJointsToModelSpace(parents, localBind);
 		if (bind.size() != skeleton.joints.size()) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM joint hierarchy could not be resolved.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM joint hierarchy could not be resolved.");
 			return;
 		}
 		for (int index = 0; index < bind.size(); ++index) {
@@ -557,12 +557,12 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 				}
 			}
 			if (channelCount != qint64(header.numFrameChannels)) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM frame channel count (%1) does not match its poses (%2).")
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM frame channel count (%1) does not match its poses (%2).")
 					.arg(header.numFrameChannels).arg(channelCount);
 				return;
 			}
 			if (!parentsMatch) {
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-pose-parents"), QCoreApplication::translate("VibeStudioModelMesh", "IQM pose parents differ from the joint parents; the joint parents are used."));
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-pose-parents"), QCoreApplication::translate("SlopStudioModelMesh", "IQM pose parents differ from the joint parents; the joint parents are used."));
 			}
 			qint64 cursor = header.ofsFrames;
 			for (quint32 frame = 0; frame < header.numFrames; ++frame) {
@@ -613,7 +613,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			// ioquake3 never reads animation names, so a bad one only loses the name.
 			QString name;
 			if (!iqmText(data, header, readU32(data, base), &name)) {
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-animation-name"), QCoreApplication::translate("VibeStudioModelMesh", "IQM animation %1 names text outside the text block.").arg(index));
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-animation-name"), QCoreApplication::translate("SlopStudioModelMesh", "IQM animation %1 names text outside the text block.").arg(index));
 				name.clear();
 			}
 			if (name.isEmpty()) {
@@ -627,7 +627,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 				continue;
 			}
 			if (qint64(first) + qint64(count) > qint64(framePoses.size())) {
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("iqm-animation-range"), QCoreApplication::translate("VibeStudioModelMesh", "IQM animation \"%1\" runs past the last frame and was left out.").arg(name));
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("iqm-animation-range"), QCoreApplication::translate("SlopStudioModelMesh", "IQM animation \"%1\" runs past the last frame and was left out.").arg(name));
 				continue;
 			}
 			if (clipFrames + qint64(count) > qint64(kMaxFrames)) {
@@ -647,7 +647,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			skeleton.clips.append(clip);
 		}
 		if (clipsDropped > 0) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("iqm-animations-capped"), QCoreApplication::translate("VibeStudioModelMesh", "%1 IQM animation(s) were left out to keep the clips within %2 frames.")
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("iqm-animations-capped"), QCoreApplication::translate("SlopStudioModelMesh", "%1 IQM animation(s) were left out to keep the clips within %2 frames.")
 				.arg(clipsDropped).arg(kMaxFrames));
 		}
 		if (header.numAnims == 0) {
@@ -663,7 +663,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 	// Blend arrays drive skinning only when the model has joints.
 	const bool skinned = header.numJoints > 0 && arrays[IqmBlendIndexes].present && arrays[IqmBlendWeights].present;
 	if (header.numJoints > 0 && header.numMeshes > 0 && !skinned) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-no-weights"), QCoreApplication::translate("VibeStudioModelMesh", "The IQM has joints but no blend indexes or weights; its meshes stay in the bind pose."));
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-no-weights"), QCoreApplication::translate("SlopStudioModelMesh", "The IQM has joints but no blend indexes or weights; its meshes stay in the bind pose."));
 	}
 	const int perVertex = skinned ? std::min(arrays[IqmBlendIndexes].size, arrays[IqmBlendWeights].size) : 0;
 
@@ -675,7 +675,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		const qint64 base = qint64(header.ofsMeshes) + (qint64(meshIndex) * kIqmMeshBytes);
 		QString name, material;
 		if (!iqmText(data, header, readU32(data, base), &name) || !iqmText(data, header, readU32(data, base + 4), &material)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "IQM mesh %1 names text outside the text block.").arg(meshIndex);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "IQM mesh %1 names text outside the text block.").arg(meshIndex);
 			return;
 		}
 		const qint64 firstVertex = readU32(data, base + 8);
@@ -683,11 +683,11 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		const qint64 firstTriangle = readU32(data, base + 16);
 		const qint64 triangleCount = readU32(data, base + 20);
 		if (firstVertex + vertexCount > qint64(header.numVertexes) || firstTriangle + triangleCount > qint64(header.numTriangles)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "IQM mesh %1 names vertices or triangles outside the model's lists.").arg(meshIndex);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "IQM mesh %1 names vertices or triangles outside the model's lists.").arg(meshIndex);
 			return;
 		}
 		if (vertexCount == 0) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-empty-mesh"), QCoreApplication::translate("VibeStudioModelMesh", "IQM mesh %1 holds no vertices and was left out.").arg(meshIndex));
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-empty-mesh"), QCoreApplication::translate("SlopStudioModelMesh", "IQM mesh %1 holds no vertices and was left out.").arg(meshIndex));
 			continue;
 		}
 
@@ -717,7 +717,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			geometry.positions[int(vertex)] = ModelVec3{float(component(position, source, 0)), float(component(position, source, 1)),
 				float(component(position, source, 2))};
 			if (!isFinite(geometry.positions.at(int(vertex)))) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "IQM mesh %1 has a vertex position that is not a finite number.").arg(meshIndex);
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "IQM mesh %1 has a vertex position that is not a finite number.").arg(meshIndex);
 				return;
 			}
 			if (arrays[IqmNormal].present) {
@@ -749,7 +749,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 			surface.triangles.append(ModelTriangle{int(a), int(c), int(b)});
 		}
 		if (skippedTriangles > 0) {
-			surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
+			surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
 		}
 
 		// Missing or zero normals are rebuilt from the faces.
@@ -796,7 +796,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 						joints[vertex * perVertex] = 0;
 						weights[vertex * perVertex] = 1.0f;
 					}
-					noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-unweighted-vertices"), QCoreApplication::translate("VibeStudioModelMesh", "%1 vertex(es) of IQM mesh \"%2\" carry no blend weight; they follow joint %3.")
+					noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("iqm-unweighted-vertices"), QCoreApplication::translate("SlopStudioModelMesh", "%1 vertex(es) of IQM mesh \"%2\" carry no blend weight; they follow joint %3.")
 						.arg(unweighted.size()).arg(surface.name, skeleton.joints.first().name));
 				}
 				QString problem;
@@ -817,11 +817,11 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		}
 		const QString text = QString::fromUtf8(comment).section(QLatin1Char('\n'), 0, 0).trimmed().left(200);
 		if (!text.isEmpty()) {
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Comment: %1").arg(text);
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Comment: %1").arg(text);
 		}
 	}
 	if (header.numExtensions > 0) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Extensions: %1, not read.").arg(header.numExtensions);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Extensions: %1, not read.").arg(header.numExtensions);
 	}
 	mesh->skinCount = mesh->skinPaths.size();
 
@@ -830,7 +830,7 @@ void decodeIqm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkControl&
 		if (!bakeModelSkeleton(mesh, ModelSkeletonBakeOptions{}, &problem, control)) {
 			mesh->error = problem;
 			if (mesh->error.isEmpty()) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The IQM skeleton could not be baked into frames.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The IQM skeleton could not be baked into frames.");
 			}
 			return;
 		}
@@ -890,18 +890,18 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 			return fail(problem);
 		}
 		if (skeleton.joints.size() > 256) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The IQM writer stores joint indexes in one byte, so it writes at most 256 joints; the model has %1.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The IQM writer stores joint indexes in one byte, so it writes at most 256 joints; the model has %1.")
 				.arg(skeleton.joints.size()));
 		}
 		if (limits.joints > 0 && skeleton.joints.size() > limits.joints) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The delivery target loads IQM models with at most %1 joints; the model has %2.")
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The delivery target loads IQM models with at most %1 joints; the model has %2.")
 				.arg(limits.joints)
 				.arg(skeleton.joints.size()));
 		}
 	}
 	for (const ModelSurface& surface : mesh.surfaces) {
 		if ((limits.vertices > 0 && surface.vertexCount > limits.vertices) || (limits.triangles > 0 && surface.triangles.size() > limits.triangles)) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh",
+			return fail(QCoreApplication::translate("SlopStudioModelMesh",
 				"The delivery target draws IQM meshes of at most %1 vertices and %2 triangles; surface \"%3\" has %4 and %5.")
 							.arg(limits.vertices)
 							.arg(limits.triangles)
@@ -939,7 +939,7 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 		} else if (frameUsable) {
 			entry.bind = surface.frames.first();
 		} else {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "Surface \"%1\" has no frame geometry to write.").arg(surface.name));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "Surface \"%1\" has no frame geometry to write.").arg(surface.name));
 		}
 		if (entry.bind.normals.size() != surface.vertexCount) {
 			entry.bind.normals = modelFaceNormals(surface, entry.bind.positions);
@@ -947,7 +947,7 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 		for (const ModelTriangle& triangle : surface.triangles) {
 			if (triangle.a < 0 || triangle.b < 0 || triangle.c < 0 || triangle.a >= surface.vertexCount || triangle.b >= surface.vertexCount
 				|| triangle.c >= surface.vertexCount) {
-				return fail(QCoreApplication::translate("VibeStudioModelMesh", "Surface \"%1\" has a triangle outside its vertex list.").arg(surface.name));
+				return fail(QCoreApplication::translate("SlopStudioModelMesh", "Surface \"%1\" has a triangle outside its vertex list.").arg(surface.name));
 			}
 		}
 		totalVertices += surface.vertexCount;
@@ -955,10 +955,10 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 		written.append(entry);
 	}
 	if (written.isEmpty() && !skeletal) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The model has no geometry to write as IQM."));
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The model has no geometry to write as IQM."));
 	}
 	if (totalVertices > qint64(std::numeric_limits<qint32>::max()) || totalTriangles > qint64(std::numeric_limits<qint32>::max())) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The model has more vertices or triangles than an IQM file holds."));
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The model has more vertices or triangles than an IQM file holds."));
 	}
 
 	// Animation frames: every clip in order, as parent-relative channels.
@@ -999,14 +999,14 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 	exactWeights.resize(written.size());
 	exactBack.resize(written.size());
 	if (frameCount * qint64(std::max(jointCount, 1)) > kIqmMaxPoseSlots) {
-		return fail(QCoreApplication::translate("VibeStudioModelMesh", "The model has more animation frames than the IQM writer handles at once."));
+		return fail(QCoreApplication::translate("SlopStudioModelMesh", "The model has more animation frames than the IQM writer handles at once."));
 	}
 	QVector<float> channels(int(frameCount * jointCount * 10));
 	for (qint64 frame = 0; frame < frameCount; ++frame) {
 		if (!work.step()) { return fail(problem); }
 		const QVector<ModelJointMatrix> local = modelJointsToLocalSpace(parents, *framePoses.at(int(frame)));
 		if (local.size() != jointCount) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The joint hierarchy could not be written as IQM poses."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The joint hierarchy could not be written as IQM poses."));
 		}
 		for (int joint = 0; joint < jointCount; ++joint) {
 			decomposeJoint(local.at(joint), channels.data() + ((frame * jointCount + joint) * 10));
@@ -1029,7 +1029,7 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 					high = std::max(high, value);
 				}
 				if (!std::isfinite(low) || !std::isfinite(high)) {
-					return fail(QCoreApplication::translate("VibeStudioModelMesh", "A joint pose is not a finite number and cannot be written as IQM."));
+					return fail(QCoreApplication::translate("SlopStudioModelMesh", "A joint pose is not a finite number and cannot be written as IQM."));
 				}
 				channelOffset[joint * 10 + channel] = low;
 				const double range = double(high) - double(low);
@@ -1264,7 +1264,7 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 				}
 			}
 			if (result.reducedInfluenceVertices > 0) {
-				const QString note = QCoreApplication::translate("VibeStudioModelMesh",
+				const QString note = QCoreApplication::translate("SlopStudioModelMesh",
 					"Vertices with more than four joint influences: %n. IQM keeps the strongest four and rescales them to sum to one; the "
 					"dropped influences carried up to %1% of a vertex's weight (vertex %2 of surface \"%3\"). Use Skin Weights and Binding > "
 					"Reduce and normalise weights with a limit of 4 to review the change before exporting.",
@@ -1275,14 +1275,14 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 				result.omissions << note;
 			}
 			if (!unskinned.isEmpty()) {
-				result.notes << QCoreApplication::translate("VibeStudioModelMesh",
+				result.notes << QCoreApplication::translate("SlopStudioModelMesh",
 					"Surfaces without joint influences (%n): %1. IQM gives them zero blend weights, so they keep their bind position in every "
 					"pose, as in the editor.",
 					nullptr, int(unskinned.size()))
 									.arg(unskinned.join(QStringLiteral(", ")));
 			}
 			if (unskinned.size() < written.size()) {
-				result.notes << QCoreApplication::translate("VibeStudioModelMesh",
+				result.notes << QCoreApplication::translate("SlopStudioModelMesh",
 					"IQM stores blend weights in steps of 1/255; the largest weight change is %1.")
 									.arg(result.maxWeightError, 0, 'g', 4);
 			}
@@ -1311,7 +1311,7 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 		// Joints: the bind pose relative to each parent.
 		const QVector<ModelJointMatrix> localBind = modelJointsToLocalSpace(parents, bindPose);
 		if (localBind.size() != jointCount) {
-			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The joint hierarchy could not be written as IQM poses."));
+			return fail(QCoreApplication::translate("SlopStudioModelMesh", "The joint hierarchy could not be written as IQM poses."));
 		}
 		alignTo4(out);
 		headerField(13, quint32(jointCount));
@@ -1401,7 +1401,7 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 					result.maxJointScaleError = std::max(result.maxJointScaleError, scaleError);
 				}
 			}
-			result.notes << QCoreApplication::translate("VibeStudioModelMesh",
+			result.notes << QCoreApplication::translate("SlopStudioModelMesh",
 				"IQM stores each joint pose channel in 16-bit steps between its smallest and largest value. Largest changes: %1 units of "
 				"joint translation, %2 degrees of rotation and %3 of scale.")
 								.arg(result.maxJointTranslationError, 0, 'g', 4)
@@ -1496,9 +1496,9 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 					headerField(22, quint32(boundsOffset));
 					out.append(boundsBlock);
 				} else {
-					result.notes << QCoreApplication::translate("VibeStudioModelMesh",
+					result.notes << QCoreApplication::translate("SlopStudioModelMesh",
 						"The IQM was written without per-frame bounds because a skinned surface could not be posed: %1")
-						.arg(problem.isEmpty() ? QCoreApplication::translate("VibeStudioModelMesh", "no reason was given.") : problem);
+						.arg(problem.isEmpty() ? QCoreApplication::translate("SlopStudioModelMesh", "no reason was given.") : problem);
 				}
 				problem.clear();
 				// The clip and frame within it that baked frame `frame` belongs to.
@@ -1513,7 +1513,7 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 					// Mostly the format's own 8-bit weights and 16-bit channels, which
 					// grow with the distance between a vertex's influences.
 					const auto [clip, clipFrameIndex] = clipFrame(worstFrame);
-					result.notes << QCoreApplication::translate("VibeStudioModelMesh",
+					result.notes << QCoreApplication::translate("SlopStudioModelMesh",
 						"IQM's stored weights and pose channels move skinned vertices by up to %1 units over the clips (vertex %2 of surface "
 						"\"%3\" in frame %4 of clip \"%5\").")
 												 .arg(result.maxPositionError, 0, 'g', 4)
@@ -1523,7 +1523,7 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 					// Beyond the precision of MD3, the finest game format here, before
 					// any rounding: the motion itself differs, which rebinding can fix.
 					const auto [clip, clipFrameIndex] = clipFrame(layoutFrame);
-					const QString note = QCoreApplication::translate("VibeStudioModelMesh",
+					const QString note = QCoreApplication::translate("SlopStudioModelMesh",
 						"Before any rounding, IQM's layout already moves skinned vertices by up to %1 units, more than MD3's 1/64-unit "
 						"precision (vertex %2 of surface \"%3\" in frame %4 of clip \"%5\"). IQM stores one bind position and four "
 						"influences per vertex and no joint shear, so influences whose offsets disagree (as MD5 weights may) deform "
@@ -1534,7 +1534,7 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 					result.omissions << note;
 				}
 			} else {
-				result.notes << QCoreApplication::translate("VibeStudioModelMesh",
+				result.notes << QCoreApplication::translate("SlopStudioModelMesh",
 					"The clips hold more than %1 vertex positions, so IQM's vertex error and bounds were not computed.")
 									.arg(model_formats::kMaxVertexSlots);
 			}
@@ -1550,7 +1550,7 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 		error->clear();
 	}
 	if (!emptyClips.isEmpty()) {
-		const QString note = QCoreApplication::translate("VibeStudioModelMesh", "Clips that hold no frames were not written (%n): %1.", nullptr,
+		const QString note = QCoreApplication::translate("SlopStudioModelMesh", "Clips that hold no frames were not written (%n): %1.", nullptr,
 			int(emptyClips.size()))
 								 .arg(emptyClips.join(QStringLiteral(", ")));
 		result.notes << note;
@@ -1562,4 +1562,4 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 	return out;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

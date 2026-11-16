@@ -4,7 +4,7 @@
 #include "core/model_work.h"
 #include <QMap>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 enum class ModelWeightTransferMethod
@@ -36,4 +36,4 @@ struct ModelWeightTransferOptions
 // use a frozen bind snapshot, including same-surface and bidirectional mirrors.
 // Equidistant samples with different weights are refused instead of picking a seam.
 bool applyModelWeightTransfer(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

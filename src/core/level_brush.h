@@ -3,7 +3,7 @@
 #include "core/map_geometry.h"
 #include "core/level_texture_mapping.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Component IDs describe the current solved brush, not the arbitrary three
@@ -198,4 +198,4 @@ bool extrudeLevelMapFaces(LevelMapDocument* document, const QVector<LevelMapComp
 bool snapLevelMapBrushVertices(LevelMapDocument *document, const QVector<int> &brushIds, double grid, int *snapped = nullptr,
 							   QStringList *skipped = nullptr, QString *error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

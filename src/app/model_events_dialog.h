@@ -9,7 +9,7 @@ class QComboBox;
 class QPushButton;
 class QTableWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 // Skeleton > Animation Events: the frame commands of one skeletal clip (or,
 // for a model without joints, one vertex animation) in an editable table of
@@ -38,4 +38,4 @@ class ModelEventsDialog final : public QDialog
 	[[nodiscard]] bool skeletal() const;
 	[[nodiscard]] int frameCount() const;
 };
-} // namespace vibestudio
+} // namespace slopstudio

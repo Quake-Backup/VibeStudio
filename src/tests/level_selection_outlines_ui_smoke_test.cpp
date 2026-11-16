@@ -10,7 +10,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label)
 {
@@ -57,8 +57,8 @@ bool matchesFresh(MapViewport& view, const LevelMapDocument& document, bool high
 	fresh.setHighContrast(highContrast); fresh.setShowGrid(view.showGrid()); fresh.setShowLabels(view.showLabels());
 	fresh.setDocument(document); fresh.setSelectionSet(view.selectionSet()); fresh.restoreNavigationState(view.navigationState());
 	const auto actual = render(view, scale), expected = render(fresh, scale);
-	if (actual != expected && !qEnvironmentVariableIsEmpty("VIBESTUDIO_TEST_CAPTURE_DIR")) {
-		const QDir output(qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR"));
+	if (actual != expected && !qEnvironmentVariableIsEmpty("SLOPSTUDIO_TEST_CAPTURE_DIR")) {
+		const QDir output(qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR"));
 		actual.save(output.filePath("mismatch-actual.png")); expected.save(output.filePath("mismatch-fresh.png"));
 	}
 	return expect(actual == expected, label);
@@ -126,7 +126,7 @@ int main(int argc, char** argv)
 			ok &= expect(hits == view.objectsAt(view.viewPointFor(edge.x(), edge.y())) && hits.contains({LevelMapSelectionKind::QuakeBrush,101}),
 				"highlighting preserves independent picking identities");
 			ok &= matchesFresh(view, map, contrast, scale);
-			const auto output = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+			const auto output = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 			if (!output.isEmpty()) {
 				QDir().mkpath(output); ok &= selected.save(QDir(output).filePath(QStringLiteral("selected-outline-%1-%2.png").arg(scale).arg(int(projection))));
 			}
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
 		const auto selected = render(view);
 		const auto a = projected({-112,80,0,true}, projection), b = projected({-112 + 32.0/3,80,128.0/9,true}, projection);
 		ok &= expect(highlightedAlong(selected, view, a, b, false) > 10, "owned curved patch border is highlighted in each projection");
-		const auto output = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto output = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!output.isEmpty()) { ok &= selected.save(QDir(output).filePath(QStringLiteral("selected-owner-%1.png").arg(int(projection)))); }
 	}
 	view.setProjection(MapViewportProjection::TopXY);

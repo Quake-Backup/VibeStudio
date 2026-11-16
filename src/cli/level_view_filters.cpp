@@ -13,7 +13,7 @@
 #include <QJsonArray>
 #include <QSet>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace { struct Text { Q_DECLARE_TR_FUNCTIONS(LevelViewFiltersCli) }; }
 
 LevelViewFiltersCliResult runLevelViewFilters(const QStringList& arguments)
@@ -255,4 +255,4 @@ LevelViewFiltersCliResult runLevelViewFilters(const QStringList& arguments)
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

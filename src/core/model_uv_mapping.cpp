@@ -4,7 +4,7 @@
 #include <QCoreApplication>
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool applyModelUvMapping(const ModelSurface &source, const QVector<int> &faces, const QVector<int> &sourceVertices,
 						 const QVector<ModelTexCoord> &uv, const QVector<uint32_t> &indices, int vertexLimit, ModelSurface *result,
@@ -37,7 +37,7 @@ bool applyModelUvMapping(const ModelSurface &source, const QVector<int> &faces, 
 			if (index >= vertexLimit || qint64(index + 1) * candidate.frames.size() > 1048576)
 			{
 				if (error)
-					*error = QCoreApplication::translate("VibeStudioModelUvAtlas",
+					*error = QCoreApplication::translate("SlopStudioModelUvAtlas",
 														 "Atlas corner splits would exceed the vertex or animation storage limit.");
 				return false;
 			}
@@ -85,4 +85,4 @@ bool applyModelUvMapping(const ModelSurface &source, const QVector<int> &faces, 
 	*result = std::move(candidate);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

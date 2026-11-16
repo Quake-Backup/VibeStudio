@@ -31,7 +31,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -60,7 +60,7 @@ class Expansion final : public QTranslator
 	}
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelEditor" && QByteArray(context) != "VibeStudioModelSkinSource")
+		if (QByteArray(context) != "SlopStudioModelEditor" && QByteArray(context) != "SlopStudioModelSkinSource")
 		{
 			return {};
 		}
@@ -83,7 +83,7 @@ bool settle(ModelEditorDialog &editor)
 }
 bool capture(QWidget &widget, const QString &name)
 {
-	const auto folder = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto folder = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (folder.isEmpty())
 	{
 		return true;
@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return 1;
