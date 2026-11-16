@@ -19,11 +19,22 @@
 
 #include <QJsonObject>
 #include <QPointF>
+#include <QSizeF>
 #include <QString>
 #include <QStringList>
 #include <QVector>
 
 namespace slopstudio {
+
+// Node sizes in scene units (pixels at zoom 1 with text at 100%). The graph's
+// automatic layout and the view that draws it use the same sizes, so laid-out
+// nodes never overlap on screen.
+inline constexpr double kMaterialGraphNodeWidth = 196.0;
+inline constexpr double kMaterialGraphHeader = 26.0;
+inline constexpr double kMaterialGraphSubtitle = 18.0;
+inline constexpr double kMaterialGraphPortRow = 18.0;
+inline constexpr double kMaterialGraphThumbnail = 52.0;
+inline constexpr double kMaterialGraphPadding = 6.0;
 
 // The text a material's edits change.
 enum class MaterialTextKind {
@@ -77,7 +88,11 @@ struct MaterialGraphProperty {
 	QString label;
 	MaterialGraphPropertyType type = MaterialGraphPropertyType::Text;
 	QString value;
+	// Enum: the ids written to the text, and, in the same order, what a
+	// person reads for each (translated). Empty labels mean the ids are
+	// keywords and are shown as they are.
 	QStringList options;
+	QStringList optionLabels;
 	QString help;
 };
 
@@ -106,9 +121,18 @@ struct MaterialGraphNode {
 	// Shown dimmed: present in the text but not drawn (a failed condition,
 	// a stage without an image, an ignored keyword).
 	bool inactive = false;
+	// Part of a Doom 3 image program: it can be wrapped in an image function
+	// (heightmap, addnormals...), and a function node can be unwrapped.
+	bool programNode = false;
 
 	[[nodiscard]] const MaterialGraphProperty* property(const QString& id) const;
 };
+
+// A node's size; `thumbnail` reserves room for its image.
+QSizeF materialGraphNodeSize(const MaterialGraphNode& node, bool thumbnail);
+// The node's title with what it belongs to, for lists and screen readers:
+// "Stage 2: Coordinates", "Output: textures/base/wall". Translated.
+QString materialGraphNodeLabel(const MaterialGraphNode& node);
 
 struct MaterialGraphLink {
 	QString fromNode;
@@ -172,22 +196,42 @@ struct MaterialGraphEdit {
 	QString nodeTemplate;
 	int step = 0;
 	// Classic edits: the material's frame names, so an animated range is
-	// found from any of its members.
+	// found from any of its members. Adding a Doom range also reads it for
+	// the range's last picture: the names after the material in its
+	// namespace, in namespace order.
 	QStringList related;
 };
+
+// Node ids are positions, so moving or removing a stage or tcMod, or wrapping
+// a node, gives other nodes new ids. A move names an id prefix before the
+// edit and after it; `to` is empty when the node is gone.
+struct MaterialGraphIdMove {
+	QString from;
+	QString to;
+};
+
+// The id moves an edit makes, worked out from the graph before it.
+QVector<MaterialGraphIdMove> materialGraphIdMoves(const MaterialGraph& graph, const MaterialGraphEdit& edit);
+// `id` after the moves; empty when the node is gone. Ids no move names stay.
+QString remapMaterialGraphId(const QString& id, const QVector<MaterialGraphIdMove>& moves);
 
 struct MaterialGraphEditResult {
 	bool ok = false;
 	QString error;
 	QString text;
-	// The node to select after the edit, when it moved or is new.
+	// The node to select after the edit: the new node, the one that moved,
+	// or after a removal the node that fed the removed one.
 	QString focusNode;
 	// The material's new name after a rename, else empty.
 	QString renamedTo;
+	// Nodes whose ids the edit changed (materialGraphIdMoves).
+	QVector<MaterialGraphIdMove> idMoves;
 };
 
 // Applies one graph edit to the material's source text and returns the new
-// text. The text is checked by parsing it again.
+// text. The text is checked by parsing it again. Only the material's own
+// definition is re-read while its edits are applied, so a graph edit costs
+// the same in a large script as in a small one.
 MaterialGraphEditResult applyMaterialGraphEdit(const QString& text, MaterialTextKind kind, const QString& material,
 	const MaterialGraphEdit& edit, const QString& sourcePath = QString(), MaterialDialect dialect = MaterialDialect::Automatic);
 

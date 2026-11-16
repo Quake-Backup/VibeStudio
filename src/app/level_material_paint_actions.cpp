@@ -243,6 +243,10 @@ void ApplicationShell::refreshLevelMaterialTools(const QVector<LevelMapTextureUs
 	m_levelMaterialPicker->clear();
 	QStringList choices = m_recentMapTextures;
 	QSet<QString> listed(choices.cbegin(), choices.cend());
+	if (!textureUses && m_levelRefreshShared.textureUses && levelRefreshSharedCurrent()) {
+		// The page refresh this runs in has already scanned the map's surfaces.
+		textureUses = m_levelRefreshShared.textureUses;
+	}
 	const auto uses = textureUses ? *textureUses : levelMapTextureUsage(m_levelMapDocument);
 	for (const auto& use : uses) {
 		if (!listed.contains(use.name)) { listed.insert(use.name); choices << use.name; }

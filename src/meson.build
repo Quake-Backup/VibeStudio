@@ -180,6 +180,7 @@ install_headers('core/material_graph.h', subdir: 'slopstudio/core')
 install_headers('core/material_video.h', subdir: 'slopstudio/core')
 install_headers('core/material_usage.h', subdir: 'slopstudio/core')
 install_headers('core/material_lookup.h', subdir: 'slopstudio/core')
+install_headers('core/material_override.h', subdir: 'slopstudio/core')
 
 core_sources = files(
   'core/render_device.cpp',
@@ -295,6 +296,7 @@ core_sources = files(
   'core/material_video.cpp',
   'core/material_usage.cpp',
   'core/material_lookup.cpp',
+  'core/material_override.cpp',
   'core/ai_connectors.cpp',
   'core/ai_gguf_runtime.cpp',
   'core/ai_harness.cpp',
@@ -1466,6 +1468,39 @@ material_cli_smoke_test = executable(
 )
 test('material-cli-smoke', material_cli_smoke_test, args: [slopstudio], timeout: 240)
 
+# Engine rules of the material scripts: brace recovery, rejection rules,
+# names, stage edits and implicit stages.
+material_script_rules_smoke_test = executable(
+  'material_script_rules_smoke_test',
+  ['tests/material_script_rules_smoke_test.cpp'],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
+  install: false,
+)
+test('material-script-rules-smoke', material_script_rules_smoke_test, timeout: 120)
+
+# Image lookup, decoding of damaged files, caches, the library scan and map
+# usage, on generated packages.
+material_asset_rules_smoke_test = executable(
+  'material_asset_rules_smoke_test',
+  ['tests/material_asset_rules_smoke_test.cpp'],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
+  install: false,
+)
+test('material-asset-rules-smoke', material_asset_rules_smoke_test, timeout: 180)
+
+# The renderer's engine rules: texture coordinates, colours, Doom 3 stage
+# pairing and depth fill, upload reuse; drawing checks skip without a renderer.
+material_render_rules_smoke_test = executable(
+  'material_render_rules_smoke_test',
+  ['tests/material_render_rules_smoke_test.cpp'],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
+  install: false,
+)
+test('material-render-rules-smoke', material_render_rules_smoke_test, timeout: 180)
+
 # The `render` family (backends, test, set) and the renderer overrides, run
 # against the built CLI; drawing checks skip where no renderer starts.
 render_cli_smoke_test = executable(
@@ -1487,6 +1522,16 @@ if qt6_test_dep.found()
     install: false,
   )
   test('material-workbench-ui-smoke', material_workbench_ui_smoke_test, timeout: 600)
+
+  # The node graph view and the property panel as widgets.
+  material_graph_ui_smoke_test = executable(
+    'material_graph_ui_smoke_test',
+    ['tests/material_graph_ui_smoke_test.cpp'],
+    include_directories: slopstudio_includes,
+    dependencies: [slopstudio_app_dep, qt6_test_dep],
+    install: false,
+  )
+  test('material-graph-ui-smoke', material_graph_ui_smoke_test, timeout: 300)
 endif
 
 # Animated materials on the Levels camera.

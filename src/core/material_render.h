@@ -34,6 +34,7 @@
 #include <QString>
 #include <QStringList>
 
+#include <atomic>
 #include <functional>
 
 namespace slopstudio {
@@ -148,6 +149,12 @@ struct MaterialRenderOptions {
 	// Doom 3 _default as the developer grid rather than transparent black.
 	bool developerDefault = false;
 	quint32 seed = 1;
+	// Set it (from any thread) to stop the frame: checked between stages
+	// and handed to the graphics device, which skips a queued frame or stops
+	// between passes. The result is then `cancelled`, with no image. Not
+	// owned; it must outlive the render call. Null: only the `cancelled`
+	// callback can stop it.
+	const std::atomic_bool* cancelFlag = nullptr;
 };
 
 struct MaterialRenderResult {
@@ -171,13 +178,33 @@ struct MaterialRenderResult {
 	QString errorDetail;
 };
 
+// Stops early, with `cancelled` set, when `cancelled` returns true or
+// options.cancelFlag is set.
 MaterialRenderResult renderMaterial(const MaterialDefinition& definition, const MaterialImageSet& images, const MaterialTableSet& tables,
 	const MaterialRenderOptions& options, const std::function<bool()>& cancelled = {});
 
 // A square, face-on swatch: one texture repeat, orthographic, for browser
-// thumbnails.
+// thumbnails. Starts from `base` and sets only the swatch's framing: the
+// size (side x side), time, shape (floor for a Doom flat, else wall; the
+// room seen in perspective from pitch 22 for skies and fog), the default
+// orbit camera, one repeat, and an even light (no lightmap spot, a still
+// Doom 3 light at angle 0, Doom sector light 255 without distance shading).
+// Everything else in `base` (context, parms, globals, sound, seed, filter,
+// background, checker, editor image, rejection, cancelFlag, the rest of the
+// lighting) is kept.
 MaterialRenderResult renderMaterialSwatch(const MaterialDefinition& definition, const MaterialImageSet& images, const MaterialTableSet& tables,
-	int side, double time, const MaterialPreviewLighting& lighting = {});
+	int side, double time, const MaterialRenderOptions& base);
+// The same from default options with `lighting`. `cancelFlag` works as
+// MaterialRenderOptions::cancelFlag.
+MaterialRenderResult renderMaterialSwatch(const MaterialDefinition& definition, const MaterialImageSet& images, const MaterialTableSet& tables,
+	int side, double time, const MaterialPreviewLighting& lighting = {}, const std::atomic_bool* cancelFlag = nullptr);
+
+// How long one loop of the material lasts, as the Materials page's timeline
+// and Export Animation Sheet (and `material render --cycle`) measure it: the
+// longest of the classic frame cycle, each stage's animMap (frames over
+// frequency) and each video stage's duration (videos found in `images`),
+// clamped to 1..60 seconds; 10 seconds when nothing animates by frames.
+double materialCycleSeconds(const MaterialDefinition& definition, const MaterialImageSet& images);
 
 // The shape a material is best seen on: skies and fog get the room, Doom
 // flats and floors the floor, the rest a wall.

@@ -53,7 +53,9 @@ float attenuation(vec3 position, bool projection, bool falloff)
 	}
 	float fall = 0.0;
 	if (falloff) {
-		fall = sampleSlotWrapped(4, vec2(c.z, 0.5), true, 0.0, 2).r;
+		// lightFalloffImage clamps to edge (TR_CLAMP); past the light's box
+		// nothing is lit.
+		fall = (c.z < 0.0 || c.z > 1.0) ? 0.0 : sampleSlotWrapped(4, vec2(c.z, 0.5), true, 0.0, 1).r;
 	} else {
 		float x = c.z * 32.0;
 		float d = max(0.0, abs(x - 15.5) - 0.5);

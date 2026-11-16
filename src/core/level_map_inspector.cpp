@@ -441,9 +441,15 @@ QVector<LevelMapLayerSummary> levelMapLayerSummaries(const LevelMapDocument& doc
 		index.insert(node.id, static_cast<int>(layers.size()));
 		layers << layer;
 	}
-	const QHash<QString, QString> objectLayers = levelSceneObjectLayers(document, document.scene);
-	for (auto it = objectLayers.cbegin(); it != objectLayers.cend(); ++it) {
-		++layers[index.value(it.value(), 0)].objects;
+	if (document.scene.nodes.isEmpty()) {
+		// No layers or groups: every object is in Default. Counted without
+		// naming each one, since the Map tab asks after every edit.
+		layers[0].objects = static_cast<int>(levelSceneObjectCount(document));
+	} else {
+		const QHash<QString, QString> objectLayers = levelSceneObjectLayers(document, document.scene);
+		for (auto it = objectLayers.cbegin(); it != objectLayers.cend(); ++it) {
+			++layers[index.value(it.value(), 0)].objects;
+		}
 	}
 	const QHash<QString, QString> nodeLayers = levelSceneNodeLayers(document.scene);
 	for (const LevelSceneNode& node : document.scene.nodes) {

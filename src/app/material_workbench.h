@@ -23,6 +23,8 @@
 #include "core/material_usage.h"
 #include "core/package_archive.h"
 
+#include <QDialog>
+#include <QElapsedTimer>
 #include <QHash>
 #include <QPointer>
 #include <QWidget>
@@ -31,14 +33,15 @@
 #include <memory>
 
 class QComboBox;
-class QDialog;
 class QLabel;
 class QLineEdit;
 class QListView;
 class QMenu;
 class QSlider;
+class QModelIndex;
 class QSplitter;
 class QTabWidget;
+class QTextDocument;
 class QTextEdit;
 class QTimer;
 class QToolButton;
@@ -46,6 +49,8 @@ class QTreeWidget;
 
 namespace slopstudio {
 
+class BusyIndicator;
+class BusyOverlay;
 class LoadingPane;
 class MaterialGraphView;
 class MaterialLibraryFilter;
@@ -76,6 +81,9 @@ struct MaterialWorkbenchHost {
 	// The page's view settings, kept between sessions (opaque bytes).
 	std::function<QByteArray()> loadState;
 	std::function<void(const QByteArray& state)> saveState;
+	// A base package the studio has read already, by file path, or null: the
+	// workbench then does not read and hash the same file a second time.
+	std::function<std::shared_ptr<const PackageArchiveReader>(const QString& path)> baseReader;
 };
 
 class MaterialWorkbench final : public QWidget {
@@ -118,12 +126,22 @@ public:
 	// What keeps it busy: "scanning", "images", "drawing" or "parsing".
 	[[nodiscard]] QString busyReason() const;
 	[[nodiscard]] bool hasUnsavedChanges() const;
+	// The titles of every text with unsaved changes, the open one first.
+	[[nodiscard]] QStringList unsavedTextTitles() const;
+	// Throws away every unsaved text: the open one goes back to its saved
+	// text (no undo step) and the others are forgotten.
+	void discardUnsavedChanges();
+	// What Save and Ctrl+S do: save the open text, or ask where for a new
+	// script; with nothing to save here, say where the other unsaved texts are.
+	void saveCurrent();
 	bool save(QString* error = nullptr);
 	bool saveAs(const QString& path, QString* error = nullptr);
 	// Saves the current text and every other text with unsaved changes.
 	bool saveAll(QString* error = nullptr);
 	void revert();
-	bool selectMaterial(const QString& name);
+	// `kind` ("doom-wall" or "doom-flat") picks between a Doom wall and flat
+	// of the same name; empty takes either.
+	bool selectMaterial(const QString& name, const QString& kind = QString());
 	[[nodiscard]] QString currentMaterial() const { return m_materialName; }
 	[[nodiscard]] const MaterialDefinition& currentDefinition() const { return m_definition; }
 	[[nodiscard]] MaterialTextKind currentTextKind() const;
@@ -142,8 +160,9 @@ public:
 	// now or once the library is read. When no material has that name,
 	// `missing` (when set) runs with it and returns true when it handled the
 	// request (the modeller shows the image instead); otherwise the library
-	// is filtered to the names that contain it.
-	void revealMaterial(const QString& name, std::function<bool(const QString&)> missing = {});
+	// is filtered to the names that contain it. `kind` as for selectMaterial:
+	// a sidedef names a "doom-wall", a sector plane a "doom-flat".
+	void revealMaterial(const QString& name, std::function<bool(const QString&)> missing = {}, const QString& kind = QString());
 
 	// Whole-definition edits of the current material, each one undo step in
 	// the text: rename it, add a renamed copy after it, or remove it.
@@ -156,8 +175,18 @@ public:
 	bool overrideInPackage(QString* error = nullptr);
 	[[nodiscard]] bool currentIsBase() const;
 	// Writes the preview to a PNG: one frame now, or `frames` frames over
-	// the animation's cycle as a sheet.
+	// the animation's cycle as a sheet. Draws on the calling thread; a sheet
+	// keeps within 8192 pixels a side, with smaller frames when it must.
 	bool exportPreview(const QString& path, int frames = 1, const QSize& size = QSize(), QString* error = nullptr);
+	// The same in the background, with a cancellable busy overlay over the
+	// preview; the result is reported through statusMessage().
+	void exportPreviewInBackground(const QString& path, int frames = 1, const QSize& size = QSize());
+	[[nodiscard]] bool exportRunning() const;
+	// A base package read for the library, by file path, while its file is
+	// unchanged; null otherwise. The shell uses it rather than read it again.
+	[[nodiscard]] std::shared_ptr<const PackageArchiveReader> loadedBasePackage(const QString& path) const;
+	// How many times a script text was parsed on this page, for tests.
+	[[nodiscard]] int scriptParseCount() const { return m_parseCount; }
 
 	// The maps that use materials, read in the background the first time the
 	// Maps tab shows or Find Uses in Maps asks.
@@ -202,22 +231,41 @@ Q_SIGNALS:
 protected:
 	void changeEvent(QEvent* event) override;
 	void showEvent(QShowEvent* event) override;
+	bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:
 	// The text being edited and where saving puts it.
 	struct Document {
+		// Unique across packages: the package it was read from is part of it.
 		QString key;
 		MaterialTextKind kind = MaterialTextKind::None;
 		MaterialEngine engine = MaterialEngine::Unknown;
 		QString title;
 		// A base package's script: shown, not edited (Override in Package).
 		bool readOnly = false;
+		// A script started here that the package does not hold yet.
+		bool isNew = false;
+		// The package a staged text belongs to (packageIdentity()); a text of
+		// another package is never staged into the open one.
+		QString package;
+		// The same package's path as the user sees it.
+		QString packagePath;
 		// A loose file written in place, or a package entry or lump staged.
 		QString filePath;
 		QString virtualPath;
 		// Quake II: the WAL the header text belongs to.
 		QByteArray walBytes;
 		QString savedText;
+		// The library script the text was read from (an index into the
+		// library it was read with), for reusing its parse while unchanged.
+		int scriptIndex = -1;
+		// Where the user was, kept while the text waits in a buffer.
+		QString material;
+		MaterialEngine materialEngine = MaterialEngine::Unknown;
+		QString materialKind;
+		int anchor = -1;
+		int position = -1;
+		int scroll = 0;
 	};
 
 	void buildUi();
@@ -239,10 +287,38 @@ private:
 	[[nodiscard]] QStringList packageImages() const;
 
 	void selectEntry(int entry);
+	// The library entry of the open material (its name, engine and, for Doom,
+	// wall or flat); -1 when the library has none.
+	[[nodiscard]] int currentEntry() const;
 	[[nodiscard]] Document documentFor(int entry, const MaterialDefinition& definition) const;
-	void switchDocument(const Document& document);
+	// Shows `document` in the editor, keeping the open text (its undo history
+	// and place) in a buffer when it has unsaved changes. True when the text
+	// came back from a buffer with its place.
+	bool switchDocument(const Document& document);
+	// A text document of the editor's kind, highlighted for `kind`.
+	QTextDocument* createTextDocument(MaterialTextKind kind, const QString& text);
+	[[nodiscard]] MaterialScriptHighlighter* highlighterOf(QTextDocument* document) const;
+	// Runs highlighter work on the open text without taking it for an edit.
+	void highlightQuietly(const std::function<void()>& work);
+	void forgetBuffer(const QString& key);
+	// Shows a buffered text (from Unsaved Texts) at the place it was left.
+	void showBufferedText(const QString& key);
+	void discardBufferedText(const QString& key);
+	[[nodiscard]] bool currentTextModified() const;
+	// Who the open package is, for document keys and save checks.
+	[[nodiscard]] QString packageIdentity() const;
+	[[nodiscard]] QString scriptKey(const QString& package, const QString& virtualPath) const;
+	// Applies the typed filter (after a short pause) without changing the
+	// open material when the filter hides it.
+	void applyFilter(const std::function<void()>& change);
+	// Applies the filter field's text now, without waiting for the pause.
+	void flushFilter();
+	void setFilterText(const QString& text);
+	// Emits contentChanged() when hasContent() or summary() changed.
+	void notifyContentChanged();
 	void setEditorText(const QString& text);
-	void replaceEditorText(const QString& text);
+	// One undo step, or (join) part of the previous one.
+	void replaceEditorText(const QString& text, bool join = false);
 	void scheduleReparse();
 	void reparse(bool scrollToDefinition);
 	void updateViews(bool materialChanged, bool scrollToDefinition);
@@ -258,6 +334,11 @@ private:
 	void rebuildLibraryMenu();
 	void rebuildMoreMenu();
 	void showLibraryContextMenu(const QPoint& position);
+	void showLibraryContextMenuFor(const QModelIndex& index, const QPoint& position);
+	void buildPreviewSettings(bool focusReset);
+	[[nodiscard]] QSize exportFrameSize() const;
+	void refreshTimeLabelWidth();
+	void finishUsageTracking();
 	void showImagesContextMenu(const QPoint& position);
 	void updateMapsTab();
 	void updateWholeProblems();
@@ -310,15 +391,32 @@ private:
 	bool m_restoringState = false;
 
 	Document m_document;
-	// Unsaved text of documents switched away from, by document key, and
-	// where each one saves.
-	QHash<QString, QString> m_buffers;
+	// Unsaved texts of documents switched away from, by document key, with
+	// their undo history; owned by the workbench. And where each one saves.
+	QHash<QString, QTextDocument*> m_buffers;
 	QHash<QString, Document> m_bufferDocuments;
+	// Set when the open script changed in the package while it was being
+	// edited: saving replaces the newer version.
+	QString m_documentConflict;
+	bool m_currentModified = false;
+	int m_textRevision = -1;
+	// The last property edit from the graph or the properties, so quick
+	// repeats of it join one undo step.
+	QString m_lastPropertyEdit;
+	QPointer<QTextDocument> m_lastPropertyEditDocument;
+	int m_lastPropertyEditSteps = -1;
+	QElapsedTimer m_lastPropertyEditClock;
+	bool m_applyingPropertyEdit = false;
 	QString m_materialName;
 	// A material asked for before the library was read.
 	QString m_requestedName;
+	QString m_requestedKind;
 	std::function<bool(const QString&)> m_requestedMissing;
 	MaterialEngine m_engine = MaterialEngine::Unknown;
+	// Doom keeps walls and flats apart: "doom-wall" or "doom-flat" for the
+	// open Doom material, so one of each with the same name are told apart.
+	// Empty for every other engine.
+	QString m_materialKind;
 	// The library's definition, for materials with no text (Quake textures,
 	// implicit shaders) and as the base classic edits change.
 	MaterialDefinition m_baseDefinition;
@@ -326,14 +424,28 @@ private:
 	QString m_definitionProblem;
 	std::shared_ptr<const MaterialImageSet> m_images;
 	QStringList m_imageReferences;
+	// The image source revision m_images was read from, and the references
+	// of the newest request (published or still being read).
+	QString m_imagesRevision;
+	QStringList m_requestedImageReferences;
 	std::shared_ptr<const MaterialTableSet> m_tables;
+	// The library's tables, and each unchanged script's tables over them,
+	// made once per library.
+	std::shared_ptr<const MaterialTableSet> m_libraryTables;
+	QHash<int, std::shared_ptr<const MaterialTableSet>> m_scriptTables;
+	int m_parseCount = 0;
+	bool m_contentKnown = false;
+	bool m_lastHasContent = false;
+	QString m_lastSummary;
+	bool m_refiltering = false;
+	int m_usageToken = 0;
+	QElapsedTimer m_timelineThrottle;
+	MaterialEngine m_previewSettingsEngine = MaterialEngine::Unknown;
 	bool m_shapeChosen = false;
 	bool m_applyingText = false;
 	bool m_lastModified = false;
 	// The next parse shows a different material, not a new version of it.
 	bool m_materialChangePending = false;
-	// The text the definition was last parsed from.
-	QString m_parsedText;
 	bool m_developerDefault = false;
 	int m_problemCount = 0;
 	int m_imageCount = 0;
@@ -344,9 +456,14 @@ private:
 	MaterialTaskLane* m_scanLane = nullptr;
 	MaterialTaskLane* m_imageLane = nullptr;
 	MaterialTaskLane* m_usageLane = nullptr;
+	MaterialTaskLane* m_exportLane = nullptr;
 	QTimer* m_reparseTimer = nullptr;
 	QTimer* m_visibleTimer = nullptr;
 	QTimer* m_stateTimer = nullptr;
+	QTimer* m_filterTimer = nullptr;
+	BusyOverlay* m_imagesBusy = nullptr;
+	BusyOverlay* m_exportBusy = nullptr;
+	BusyIndicator* m_mapsBusy = nullptr;
 
 	LoadingPane* m_state = nullptr;
 	QLineEdit* m_filter = nullptr;
@@ -394,7 +511,7 @@ private:
 	QLabel* m_mapsSummary = nullptr;
 	QToolButton* m_mapsRescan = nullptr;
 	QTreeWidget* m_mapList = nullptr;
-	QDialog* m_previewSettings = nullptr;
+	QPointer<QDialog> m_previewSettings;
 	QTextEdit* m_details = nullptr;
 	QSplitter* m_mainSplitter = nullptr;
 	QSplitter* m_editorSplitter = nullptr;

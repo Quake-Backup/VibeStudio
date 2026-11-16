@@ -24,10 +24,15 @@ public:
 	~MaterialGraphView() override;
 
 	// Shows a graph. Nodes the user dragged keep their place while
-	// `layoutKey` (the material's name) stays the same.
+	// `layoutKey` (the material's name) stays the same; after an edit made
+	// here, they follow their nodes to new ids (a stage moved earlier keeps
+	// its dragged place).
 	void setGraph(const MaterialGraph& graph, const QString& layoutKey);
 	void clearGraph(const QString& message);
 	[[nodiscard]] const MaterialGraph& graph() const { return m_graph; }
+	// A renamed material keeps its layout: call before showing the graph
+	// under the new name.
+	void renameLayoutKey(const QString& from, const QString& to);
 	// Small pictures for image nodes, by image reference.
 	void setThumbnails(const QHash<QString, QImage>& thumbnails);
 	// What the Add Node menu offers.
@@ -38,11 +43,27 @@ public:
 	[[nodiscard]] bool isReadOnly() const { return m_readOnly; }
 
 	[[nodiscard]] QString selectedNode() const;
+	// Selects a node by id. An id the graph no longer has selects its
+	// nearest existing parent ("stage/0/tcmod/3" -> "stage/0"), else the
+	// output; an empty id clears the selection.
 	void selectNode(const QString& nodeId);
 	void selectIndex(int index);
 	[[nodiscard]] int selectedIndex() const { return m_selected; }
+	// Fits the graph at a zoom its text stays legible at; a graph too large
+	// for that is centred on the selected node (or the output) instead.
 	void fitToView();
+	// Fits the whole graph however small its text becomes.
+	void showWholeGraph();
+	// Forgets where nodes were dragged and fits the automatic layout.
+	void resetLayout();
 	void zoomBy(double factor);
+	[[nodiscard]] double zoom() const { return m_zoom; }
+	// True after a fit that could not show the whole graph legibly.
+	[[nodiscard]] bool showsPartOfGraph() const { return m_partialFit; }
+	[[nodiscard]] bool hasDraggedNodes() const { return !m_moved.isEmpty(); }
+	[[nodiscard]] QPointF nodeScenePosition(const QString& nodeId) const;
+	// Tells screen readers what happened, politely.
+	void announce(const QString& message);
 
 	// For screen readers and tests.
 	[[nodiscard]] int nodeCount() const { return static_cast<int>(m_graph.nodes.size()); }
@@ -51,6 +72,10 @@ public:
 	[[nodiscard]] QString nodeAccessibleDescription(int index) const;
 	QAccessibleInterface* accessibleChild(int index) const;
 	[[nodiscard]] int accessibleChildIndex(const QAccessibleInterface* child) const;
+	// The node's accessible actions: press edits its properties, the menu
+	// action opens its context menu.
+	void activateNode(int index);
+	void showNodeMenu(int index);
 
 Q_SIGNALS:
 	void selectionChanged(const QString& nodeId);
@@ -78,6 +103,16 @@ protected:
 	bool event(QEvent* event) override;
 
 private:
+	// What a node shows, elided to its box once per graph rather than on
+	// every paint.
+	struct NodeText {
+		QString title;
+		QString subtitle;
+		QStringList inputs;
+		QStringList outputs;
+	};
+
+	[[nodiscard]] int indexOf(const QString& nodeId) const { return m_indexById.value(nodeId, -1); }
 	[[nodiscard]] QSizeF nodeSize(int index) const;
 	[[nodiscard]] QPointF nodePosition(int index) const;
 	[[nodiscard]] QRectF sceneRect(int index) const;
@@ -91,14 +126,28 @@ private:
 	void ensureVisible(int index);
 	void moveSelection(int key);
 	void showMenu(const QPoint& globalPosition, int index);
-	void requestEdit(MaterialGraphEditKind kind, int index, const QString& value = QString(), int step = 0, const QString& nodeTemplate = QString());
+	void requestEdit(MaterialGraphEditKind kind, const QString& nodeId, const QString& value = QString(), int step = 0);
+	void sendEdit(const MaterialGraphEdit& edit, const QString& summary);
 	void notifySelection();
 	void resetAccessibleChildren();
+	void rebuildIndex();
+	void ensureTexts() const;
+	void updateNode(int index);
+	void setZoomAround(double zoom, const QPointF& anchor);
 
 	MaterialGraph m_graph;
+	QHash<QString, int> m_indexById;
+	// Per node, the indexes of the links into and out of it.
+	QVector<QVector<int>> m_linksIn;
+	QVector<QVector<int>> m_linksOut;
+	mutable QVector<NodeText> m_texts;
+	mutable bool m_textsValid = false;
 	QString m_layoutKey;
 	// Where the user dragged nodes, by node id, for the current layout key.
 	QHash<QString, QPointF> m_moved;
+	// Id moves of the edit being sent, applied by the graph it produces.
+	QVector<MaterialGraphIdMove> m_pendingMoves;
+	int m_graphGeneration = 0;
 	QHash<QString, QImage> m_thumbnails;
 	QVector<MaterialGraphNodeTemplate> m_templates;
 	QString m_message;
@@ -109,6 +158,9 @@ private:
 	QPointF m_pan;
 	double m_zoom = 1.0;
 	bool m_fitPending = true;
+	bool m_partialFit = false;
+	// The text scale the zoom was last fitted for.
+	double m_fitTextZoom = 1.0;
 
 	enum class Drag {
 		None,
@@ -119,6 +171,9 @@ private:
 	QPointF m_dragOrigin;
 	QPointF m_dragStart;
 	bool m_dragMoved = false;
+	// A left press on the background: it clears the selection on release
+	// unless it became a pan.
+	bool m_backgroundPress = false;
 
 	mutable QHash<int, QAccessible::Id> m_accessibleChildren;
 };

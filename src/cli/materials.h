@@ -12,7 +12,7 @@ struct MaterialsCliResult
 	QStringList lines;
 };
 // `material <action>`: list, inspect, validate, render, graph, edit,
-// templates, new, doom-tables, wal and usage, sharing core/material_* with the
+// templates, new, doom-tables, wal, usage and override, sharing core/material_* with the
 // Materials page. `arguments` holds the whole command line after --cli.
 MaterialsCliResult runMaterialCommand(const QString &action, const QStringList &arguments);
 // The actions runMaterialCommand accepts, for routing.

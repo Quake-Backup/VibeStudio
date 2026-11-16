@@ -341,8 +341,11 @@ void LevelScenePanel::refresh() {
 	m_status->setText(state.problem);
 	m_parent->addItem(tr("Default"), QString());
 	m_creation->addItem(tr("Default"), QString());
-	auto* implicit =
-		new QTreeWidgetItem(m_tree, {tr("Default"), tr("Layer"), QString::number(levelSceneMembers(*m_document, {}, false).size())});
+	// With no layers or groups every object is in Default: counted, not named,
+	// since this runs after every edit.
+	const qsizetype unassigned = state.nodes.isEmpty() ? levelSceneObjectCount(*m_document)
+													  : levelSceneMembers(*m_document, {}, false).size();
+	auto* implicit = new QTreeWidgetItem(m_tree, {tr("Default"), tr("Layer"), QString::number(unassigned)});
 	implicit->setData(0, Qt::UserRole, QString());
 	QHash<QString, QTreeWidgetItem*> items{{QString(), implicit}};
 	const auto lockedNodes = levelSceneLockedNodes(state);

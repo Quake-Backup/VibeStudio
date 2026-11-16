@@ -25,7 +25,8 @@ only and has not been proven against real game packages.
 | Usage | `src/core/material_usage.*` | Which maps in a package use which materials |
 | Lookup | `src/core/material_lookup.*` | The material a level face's texture name finds, for the Levels page |
 | Graph | `src/core/material_graph.*` | Node graphs built from definitions, and graph edits turned into text edits |
-| CLI | `src/cli/materials.*` | `material list`, `inspect`, `validate`, `render`, `graph`, `edit`, `templates`, `new`, `doom-tables`, `wal`, `usage` |
+| Override | `src/core/material_override.*` | Where a copy of a base material goes so the game reads it before (or after) the base one: **Override in Package** and `material override` |
+| CLI | `src/cli/materials.*` | `material list`, `inspect`, `validate`, `render`, `graph`, `edit`, `templates`, `new`, `doom-tables`, `wal`, `usage`, `override` |
 | GUI | `src/app/material_*.cpp` | The Materials workbench on the **Materials** page (the `shell.mode.shaders` mode) |
 
 The GUI and the CLI call the same functions; nothing the page shows is worked
@@ -39,15 +40,25 @@ move a stage or tcMod, wrap or unwrap a Doom 3 expression, expand a Doom 3
 shorthand) is translated into text edits by `applyMaterialGraphEdit`. The text
 is parsed again and the graph rebuilt from it, so the two cannot disagree.
 Node ids are paths (`stage/0/tcmod/1`, `stage/0/color/red/e/a`) and survive
-rebuilds, so the selection and the positions the user dragged nodes to stay.
+rebuilds, so the selection and the positions the user dragged nodes to stay;
+when a graph edit moves or removes a stage or tcMod, or wraps a node, the
+dragged positions and the selection follow their nodes. While a graph edit's
+text edits are applied, only the material's own definition is read again.
 
 Text edits patch only the directive spans they change: comments, indentation
-and the rest of the script are kept byte for byte. On the page a graph edit
+and the rest of the script are kept byte for byte. Moving a stage moves its
+lines whole, comments included, and SWANTBLS edits change only the lines they
+touch, keeping comments, columns and line endings. Enemy Territory's implicit
+stages have no text of their own, so stage edits on them are refused with an
+explanation. On the page a graph edit
 reaches the editor as one replacement of the changed range, so Undo and Redo
 in the text cover graph edits too. Whole definitions are edited the same way:
 renaming (the material node's **Name**, or `rename`), a duplicate placed after
 the original with its comments and layout (`duplicate`), and removal; a rename
-or copy onto a name the script already defines is refused.
+or copy onto a name the script already defines is refused, and so is a name
+the engine's own lexer would split (`isValidMaterialName`: Doom 3 punctuation,
+a leading digit or a decl type word; Quake III spaces, braces, quotes or a
+leading comment).
 
 Classic engines have no material scripts, so their editable text is the form
 their tools already use:
@@ -64,33 +75,72 @@ their tools already use:
 The rules below were checked against the GPL source releases listed in
 [Credits](CREDITS.md#materials-shaders-and-textures-2026-10-08).
 
+Both script parsers first match the braces of the whole file, as the engines
+find each definition's extent before parsing it, and then read every
+definition, stage and table only up to its own closing brace. A mistake inside
+one material (a keyword with no value, a stage inside a stage) therefore
+defaults or drops that material alone and never hides the ones after it; an
+unmatched `{` still runs to the end of the file, as in both engines.
+
 - **Quake III** follows ioquake3 unless a dialect says otherwise (below). An
   unknown keyword, noise outside `rgbGen`,
-  more than four tcMods or a missing image drops the whole shader, and the
+  more than four tcMods, a malformed `fogParms` colour or a missing image
+  drops the whole shader, and the
   engine draws its default shader instead; the preview does the same and says
-  why. Default `rgbGen` is `identityLighting` for opaque and `GL_ONE`/
+  why. `blendFunc`, `rgbGen` or `alphaGen` with no parameter is a warning: the
+  line is ignored and the shader kept. Under the `quake3` dialect a missing
+  opening or closing brace makes the game ignore the whole file (iortcw: a
+  missing opening brace only), so every shader of that file is reported
+  rejected with a `script-ignored` problem. Default `rgbGen` is
+  `identityLighting` for opaque and `GL_ONE`/
   `GL_SRC_ALPHA` source blends, depth writes follow the blend unless
   `depthWrite` is given, and sort defaults follow `polygonOffset`, fog, sky
-  and blending. Waves use the engine's 1024-entry tables, noise its seeded
-  table, and every tcMod, deform, tcGen and colour generator its formula.
+  and blending: skies sort as `sky`, a shader with no stages as `fog`, and the
+  first blended stage decides the rest. Waves use the engine's 1024-entry
+  tables, noise its seeded
+  table, and every tcMod, deform, tcGen and colour generator its formula; a
+  zero `deformVertexes wave` spread is 100, an explicit tcGen beats
+  `map $lightmap`'s default, `skyParms` needs all three parameters, and
+  `nomipmaps` draws without mip levels.
   Overbright lighting halves stages and doubles the display. Within one file
   the first definition wins; across files the alphabetically last script
   wins (ioquake3 reads scripts in reverse order).
 - **Doom 3** parses expressions right-associatively at every level, as
   `idMaterial` does, with tables appending their first value and the `%`
-  operator truncating. An unknown keyword defaults the material. Interactions
+  operator truncating. An unknown keyword, an unknown blend factor, `sort`
+  with no value, `vertexParm` outside 0-3, `fragmentMap` outside 0-7 or a
+  lookup into a table no loaded script defines defaults the material (the
+  table check is a warning while the game's `tables.mtr` is not loaded).
+  Coverage follows the last coverage keyword in the text, and `vertexParm`
+  fills its missing values as the engine does. Interactions
   pair bump, diffuse and specular stages as the engine flushes them, light
   colour is twice the light stage, and shading is either the ARB2 interaction
-  with the specular table or the BFG `pow(N.H, 10)` form. The first decl of a
-  name wins.
+  with the specular table or the BFG `pow(N.H, 10)` form. A material with bumps
+  but no diffuse, specular or `texgen reflect` stage is lit through an implicit
+  `diffusemap _white`, as `AddImplicitStages` adds it; translucent materials
+  are lit too (additively, before their other stages). When every stage is
+  conditioned off, or there are no stages, nothing is drawn; a perforated
+  surface with no active alpha-tested stage fills solid. The material-level
+  `clamp`, `zeroclamp` and `alphazeroclamp` are every stage's default,
+  lighting stages included, and a stage's own repeat keyword overrides it;
+  `zeroclamp` borders are opaque black and `alphazeroclamp` white with no
+  alpha. Built-in images (`_white`, `_currentRender` and the rest) are not
+  listed among a material's images. The first decl of a name wins.
 - **Doom** composes wall textures from patches, keeps flats as indices, and
   shades through `COLORMAP` by sector light, distance and fake contrast.
+  Walls and flats are separate namespaces, so a wall and a flat of one name
+  are both listed and neither shadows the other; walls in a ZDoom PK3's
+  `textures/` folder resolve. A missing patch is listed among the missing
+  images with a `missing-patch` problem (an error when the IWAD is read or the
+  patch number is outside `PNAMES`, a warning for a PWAD read alone).
   Vanilla wraps rows at 128 (tutti-frutti on short textures); Boom wrapping
   is an option. Animations come from ANIMDEFS, then Boom `ANIMATED`, then the
   vanilla table; switches from Boom `SWITCHES`, then the vanilla list.
 - **Quake** gathers `+0`..`+9` and `+a`..`+j` frames at 0.2 s each, warps
   liquids, draws two-layer skies and fullbright colours, and lights through
-  styles at 10 Hz, with GLQuake, modern-port and software renderers.
+  styles at 10 Hz, with GLQuake, modern-port and software renderers. Loose
+  replacements of `*` liquids are also found under the `#` spelling some
+  source ports use.
 - **Quake II** follows the WAL next-frame chain at 2 Hz, flowing and warping
   surfaces, `trans33`/`trans66`, the `intensity` setting and env sky boxes.
 
@@ -108,7 +158,19 @@ reads every Quake III script of a package as one game, the **dialect**:
 | Wolfenstein: Enemy Territory | Wolfenstein's, plus `distanceCull`, `implicitMap`, `implicitMask`, `implicitBlend`, the `lightmap` stage and `tcMod swap` | The alphabetically last |
 | Jedi Knight II and Jedi Academy (OpenJK) | `material`, `sun`, `surfacelight`, `lightColor`, `deform`, `noglfog`, `noTC`, `hitLocation`, `hitMaterial`; stage `clampanimMap`, `oneshotanimMap`, `glow`, `surfaceSprites` and its `ss` options | The alphabetically last |
 
-**Automatic** (the default) picks the dialect from the scripts themselves:
+Each dialect also loads its own image files, and a stage whose image the
+game cannot load drops the shader:
+
+| Dialect | Image files tried |
+|---|---|
+| Quake III Arena (ioquake3), Wolfenstein (iortcw) | The written name, then `.tga`, `.jpg`, `.jpeg`, `.png`, `.pcx`, `.bmp` |
+| Quake III Arena 1.32, Enemy Territory | `.tga` (retried as `.jpg`), and `.jpg`, `.pcx` and `.bmp` as written; anything else loads nothing |
+| Jedi Knight II and Jedi Academy | `.jpg`, `.tga`, `.png` |
+
+Sky box faces follow the same rule (`materialImageExtensionRule`).
+
+**Automatic** (the default) picks the dialect from the scripts themselves,
+ignoring comments:
 Enemy Territory's own keywords first, then whichever of Jedi Knight's and
 Wolfenstein's appear more often, else Quake III Arena. A keyword from another
 game is reported with the game it belongs to. The preview draws what a 32-bit
@@ -131,7 +193,8 @@ name follows the dialect's script order. On the page the base packages are
 the selected game installation's, when it is of the package's engine family;
 base materials show read only, and **Override in Package** copies one into
 `scripts/zz_slopstudio_overrides.shader` (`00_` where the first definition wins:
-Quake III 1.32 and Doom 3) or, for a Quake II WAL, copies the file. The CLI
+Quake III 1.32 and Doom 3) or, for a Quake II WAL, copies the file; the rule
+lives in `core/material_override` and `material override` uses it too. The CLI
 takes `--base`, and lists or checks base materials only with
 `--include-base`.
 
@@ -142,7 +205,10 @@ to one without an extension). `MaterialVideo` reads the chunk index when the
 image set is resolved and decodes frames when they are drawn: codebooks of
 2x2 and 4x4 YCbCr cells, 16 x 16 macroblocks of four 8 x 8 blocks coded as
 kept, moved (with the frame's mean motion), one 4x4 cell, or split into
-quarters, and Doom 3's JPEG frames. Snapshots every few frames bound the cost
+quarters, and Doom 3's JPEG frames. Frames are decoded into two buffers in
+turn, as id's decoder does, so a kept block shows the frame before the
+previous one. Videos larger than 2048 pixels a side are refused, and at most
+100,000 frames are indexed. Snapshots every few frames bound the cost
 of going back. Quake III loops shader videos; Doom 3 holds the last frame
 unless the stage says `loop`. A file that is not RoQ (a Quake II `.cin`)
 keeps the moving stand-in, with the reason in **Images**.
@@ -170,13 +236,18 @@ matrix groups, `patchDef2/3` names), Quake, Half-Life and BSP2 BSPs (faces to
 texinfo to miptex), Quake II BSPs (texinfo), Quake III, Wolfenstein and Jedi
 Knight BSPs (surfaces to shaders), Doom WAD maps (SIDEDEFS and SECTORS), UDMF
 `TEXTMAP` and maps in nested WADs. Names match with or without Quake III's
-`textures/` folder. The page's **Maps** tab and `material usage` show the
+`textures/` folder. Over base packages the scan reads the package's own maps
+(`MaterialUsageScope::Package`, the default), a PWAD in its own lump order.
+With `MaterialUsageScope::WithBase` each base package's maps join, read one
+layer at a time and marked base; a map the package replaces is counted once,
+from the package. The page's **Maps** tab and `material usage` show the
 result; Enter on a `.map` or Doom map opens it in Levels with the material's
 faces selected (a map inside an archive is copied out first), and compiled
 maps are shown on the Packages page. `MaterialLookup` gives the Levels page the
 other direction: the definition a face's name finds (an implicit shader when
-none does), the image editors show for it, and a face-on frame for animated
-textures.
+none does; a Quake III or Doom 3 name written with an extension finds the
+material without it), the image editors show for it, and a face-on frame for
+animated textures.
 
 ## Animated Materials In The Levels Camera
 
@@ -238,7 +309,16 @@ CLI's `--where` reads. Choosing one shows:
   frames a second;
 - the **Nodes** tab: the graph and the selected node's properties, with Add
   Node by category, Remove (Delete), Move Earlier and Later (Alt+Up and
-  Alt+Down), operator wrapping for Doom 3 expressions, and Enter to edit;
+  Alt+Down), operator and image-function wrapping for Doom 3, and Enter to
+  edit. The graph lays itself out as a tree growing from the output, each
+  input in its own band, so nodes never overlap (**Reset Layout** returns
+  dragged ones); **Fit Graph** keeps node text readable and centres on the
+  selection when the whole graph would be too small, **Show Whole Graph**
+  (Shift+F) fits everything. Property edits are sent once the control's own
+  event has finished, the wheel over a choice or number scrolls the panel
+  unless that control has focus, and a held Up or Down key is one edit. After
+  Remove the selection moves to the node that fed the removed one, after Add
+  to the new node;
 - the **Text** tab: the script with highlighting and the parser's problems
   underlined;
 - **Images**: every image the material reads, where the engine found it, and
@@ -249,6 +329,18 @@ CLI's `--where` reads. Choosing one shows:
 Saving writes a loose script in place, or stages the change into the open
 package through the package staging model, so it joins the package's review,
 undo and save; **Save All** does so for every text with unsaved changes.
+Each text belongs to the package it was read from: its document key includes
+the package, so an edit is never staged into another package, and a script
+that changed in the package while it was edited keeps the edits, with a
+problem saying that saving replaces the newer version. Each buffered text
+keeps its own `QTextDocument` and highlighter, so undo history and the cursor
+survive switching away. Closing the studio, opening or closing a package and
+opening another script ask about unsaved material edits
+(`ApplicationShell::confirmMaterialEditsHandled`: Save All, Discard Edits or
+Cancel). **Save**, **Revert**, **New Material** and **More** sit beside the
+editor tabs, so they show on every tab; Ctrl+Alt+S is **Save All**, and
+**More** > **Unsaved Texts** lists the texts with unsaved changes that are not
+open.
 **New Material** starts from a template (`material templates` lists them) in
 the current script, or in a new `scripts/` or `materials/` script.
 
@@ -276,15 +368,34 @@ The page also has:
   of the engine's and game's keywords and the package's images.
 
 The view (list or grid, swatch size, order, base materials, dialect, tab,
-splitter sizes and preview choices) is kept between sessions.
+splitter sizes, preview choices and **Engine View** choices) is kept between
+sessions. The filter applies after a short pause and never opens another
+material.
 
-Scans, image decoding and frames run off the GUI thread; a newer request
-replaces an older one, and nothing scans until the page is shown.
+Scans, image decoding, frames, exports and map reading run off the GUI
+thread; a newer request replaces an older one, and nothing scans until the
+page is shown. Each task lane keeps one worker thread, and its
+`currentStopFlag()` is the frame's `MaterialRenderOptions::cancelFlag`, so a
+superseded frame is skipped or stopped on the render device too. The map
+scan, image reading and exports register with the shared work tracker (the
+status bar's Activity ring and the page's busy indicators); exports have
+progress and **Cancel**, draw at the preview's full resolution, and keep
+sheets within 8192 pixels a side. Swatches are drawn at the screen's pixel
+ratio, from a byte-bounded cache. Previews keep their textures on the render
+device between frames: each texture object has an upload key that is never
+reused, and palettes, colormaps and mesh indices are keyed by their contents
+(video frames are uploaded each time). The workbench and Levels share the
+shell's base package readers. A library script that has not been edited is
+shown from the library's own parse.
 
 ## Accessibility And Localisation
 
 The graph is exposed to screen readers as a list of nodes, each with its
-title, what feeds it and what it feeds; selection changes are announced.
+stage and title ("Stage 2: Coordinates"), what feeds it, what it feeds and
+what can be done with it, with press and menu actions; selection changes and
+the result of each graph edit are announced. Property choices show
+translatable labels while writing the engine keyword, and numbers, paths and
+expressions stay left to right in right-to-left layouts.
 Every control has a name and a description, ports differ by shape as well as
 colour, swatch badges use shapes (a triangle for animated materials, an
 exclamation for dropped ones), and node text scales with the text size
@@ -310,6 +421,18 @@ arrow keys mirror. All text is translatable.
   `bumpyEnvironment` draw the stage's image plainly; those two are
   approximations of the programs' effect.
 - Quake II `.cin` cinematics are not decoded; they are not shader videos.
+- ANIMDEFS `rand` frame durations are continuous rather than whole tics, and
+  Doom 3 stage-level `nomipmaps` is not read.
+- The image file orders for Wolfenstein (taken as ioquake3's) and Jedi Knight
+  follow those games' public sources but are untested on game data.
+- The older `shader inspect` and `shader set-stage` commands still use the
+  earlier `ShaderDocument` parser, without dialects, engine rejection or base
+  packages; `material validate` and `material edit` are the engine-accurate
+  commands.
+- The page's preview shape and playback speed are not kept between sessions.
+- A Doom wall and flat of one name are told apart on the page, but **Show in
+  Materials** from Levels does not yet say which one a face uses (the wall is
+  tried first), and the **Maps** tab counts their uses together.
 - Base packages on the page are the selected game installation's; a package
   of a different engine family gets none.
 - In the Levels camera, animated faces show the face-on frame of their

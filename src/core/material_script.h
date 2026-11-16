@@ -19,6 +19,8 @@
 
 #include "core/material_model.h"
 
+#include <functional>
+
 namespace slopstudio {
 
 // Quake III for .shader, Doom 3 for .mtr; Unknown otherwise.
@@ -58,6 +60,21 @@ QStringList materialGlobalKeywords(MaterialEngine engine, MaterialDialect dialec
 QStringList materialStageKeywords(MaterialEngine engine, MaterialDialect dialect = MaterialDialect::Automatic);
 // One-line help for a keyword, translated; empty when unknown.
 QString materialKeywordHelp(MaterialEngine engine, const QString& keyword, bool stage);
+
+// True when `name` reads back as one material name in `engine`'s script:
+// one word to its lexer (Doom 3 also splits on punctuation), not a comment
+// and, for Doom 3, not a decl type word such as table or material. `error`
+// says why not, translated.
+bool isValidMaterialName(MaterialEngine engine, const QString& name, QString* error = nullptr);
+
+// Doom 3 table lookups against the tables the game would see, which one
+// script cannot know: `findTable` returns the table of a name or nullptr.
+// A table no loaded script defines defaults the material in game
+// (idMaterial::ParseTerm), so it gets a "missing-table" error and an engine
+// rejection when the game's own tables.mtr is loaded (sinTable is not a
+// generated stand-in), and a warning otherwise. A name only a generated
+// stand-in serves gets an Info. Returns the number of missing tables.
+int checkMaterialTables(MaterialDefinition* definition, const std::function<const MaterialTable*(const QString&)>& findTable);
 
 // --- Edits ---------------------------------------------------------------
 

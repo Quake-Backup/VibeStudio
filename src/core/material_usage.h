@@ -46,8 +46,23 @@ struct MaterialMapUse {
 	QString textureName;
 	// Faces, patches, sidedef slots or sector planes using it.
 	int count = 0;
-	// Source lines of the first few uses (.map text only).
+	// Source lines of the first few uses (.map text and UDMF TEXTMAP).
 	QVector<int> lines;
+	// The map comes from a base package beneath the package
+	// (MaterialUsageScope::WithBase).
+	bool base = false;
+};
+
+// Which maps a scan of a package over its base packages
+// (MaterialLayeredReader) reads.
+enum class MaterialUsageScope {
+	// The package's own maps only. A PWAD's maps are read in its own
+	// directory order, never mixed with its IWAD's lumps.
+	Package,
+	// The base packages' maps too, marked as base. Each WAD is read on its
+	// own, and a map the package (or a higher base) replaces is left out, as
+	// the game finds the last map of a name or path.
+	WithBase,
 };
 
 struct MaterialUsageIndex {
@@ -69,8 +84,10 @@ struct MaterialUsageIndex {
 using MaterialUsageProgress = std::function<bool(int done, int total, const QString& phase)>;
 
 // Reads every map in the package. Maps larger than 64 MiB are skipped with
-// a warning.
-MaterialUsageIndex scanMaterialUsage(const PackageArchiveReader& reader, const MaterialUsageProgress& progress = {});
+// a warning. A MaterialLayeredReader is read by `scope`; other readers are
+// read whole.
+MaterialUsageIndex scanMaterialUsage(const PackageArchiveReader& reader, const MaterialUsageProgress& progress = {},
+	MaterialUsageScope scope = MaterialUsageScope::Package);
 
 // The same for one map's bytes, by its path's extension (.map, .bsp) or as a
 // WAD; `mapPath` names it in the result.

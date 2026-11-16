@@ -19,6 +19,7 @@
 #include "core/package_archive.h"
 #include "core/studio_query.h"
 
+#include <QHash>
 #include <QJsonObject>
 #include <QSet>
 #include <QString>
@@ -104,6 +105,8 @@ public:
 	bool readEntryAt(qsizetype index, QByteArray* out, QString* error, qint64 maxBytes = -1) const override;
 
 	[[nodiscard]] const std::shared_ptr<const PackageArchiveReader>& package() const { return m_package; }
+	// The base packages, lowest first.
+	[[nodiscard]] const QVector<std::shared_ptr<const PackageArchiveReader>>& base() const { return m_base; }
 	[[nodiscard]] int baseCount() const { return static_cast<int>(m_base.size()); }
 	// True when the entry at `index` comes from a base layer.
 	[[nodiscard]] bool isBaseEntry(qsizetype index) const;
@@ -119,6 +122,8 @@ private:
 	QVector<std::shared_ptr<const PackageArchiveReader>> m_base;
 	QVector<PackageEntry> m_entries;
 	QVector<Source> m_sources;
+	// Lower-case file path to its last entry.
+	QHash<QString, qsizetype> m_pathIndex;
 };
 
 using MaterialLibraryProgress = std::function<bool(int done, int total, const QString& phase)>;
@@ -143,6 +148,10 @@ public:
 
 	// The entry the game would use for a name, preferring an engine.
 	[[nodiscard]] int indexOf(const QString& name, MaterialEngine engine = MaterialEngine::Unknown) const;
+	// The same, of one kind only ("doom-wall" or "doom-flat": Doom keeps
+	// walls and flats apart, so both may have the same name). An empty kind
+	// takes any.
+	[[nodiscard]] int indexOfKind(const QString& name, MaterialEngine engine, const QString& kind) const;
 	[[nodiscard]] MaterialDefinition definition(int entry) const;
 	[[nodiscard]] const MaterialScript* script(int entry) const;
 	[[nodiscard]] QVector<MaterialEngine> engines() const;
@@ -161,6 +170,9 @@ public:
 	int adoptScript(MaterialScript script, const QString& virtualPath);
 
 	void rebuildEntries();
+	// Rebuilds the name and image lookups after `entries` was changed
+	// directly (rebuildEntries() does this itself).
+	void rebuildIndex();
 
 	// Entries carrying their own definition: classic textures (scriptIndex
 	// -1) and implicit shaders for images no script names (scriptIndex -2).
@@ -176,6 +188,14 @@ public:
 
 private:
 	void resolveShadowing();
+	[[nodiscard]] bool indexCurrent() const { return m_indexedSize == entries.size(); }
+
+	// Lookup key to entry indexes, and an image's key without its extension
+	// to the entries naming it. Built by rebuildEntries() and
+	// rebuildIndex(); lookups scan `entries` when it changed size since.
+	QHash<QString, QVector<int>> m_byName;
+	QHash<QString, QVector<int>> m_byImage;
+	qsizetype m_indexedSize = -1;
 };
 
 MaterialLibrary scanMaterialLibrary(const PackageArchiveReader& reader, const MaterialLibraryOptions& options = {},
