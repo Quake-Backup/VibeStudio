@@ -245,6 +245,7 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Models:** The status bar's Activity ring now turns during Mesh Editor imports, exports, edits, audits, reviews and bakes, and Compare with Disk reads the file in the background.
 - **Models:** Exporting an RTCW MDS from a model that came from MDS, MDM or MDX reports that torso blending is not kept, so a strict export refuses it.
 - VibeStudio is now **SlopStudio**, because another prominent product already uses the VibeStudio name. The app, command (`slopstudio`), files (`.sloppackage`, `.slopworkspace`, the `.slopstudio` project folder), `SLOPSTUDIO_*` environment variables, the SlopMap2 and SlopMap3 compilers and the brand (a new S mark, Slop Orange) all take the new name. Settings, user data, projects, drafts, workspaces, saved documents, compiler ids and `VIBESTUDIO_*` variables from VibeStudio carry over; see Bring your work over from VibeStudio in the Projects chapter.
+- **Branding:** SlopStudio has its own look. The app icon is an orange tile with a charcoal S built on a level editor's grid and paint running off its bottom edge; the wordmark sets Slop in ExtraBold and Studio in SemiBold, with paint running off the o and a drop for the i's dot; installer art, the social preview and the documentation site swap the pixel accents for the editor grid and drips.
 
 ### Removed
 

@@ -1,9 +1,10 @@
 # Branding
 
-SlopStudio's identity is **clean, modern and professional, with a retro pixel
-accent**: an orange tile, a rounded S, and a few square pixels that nod to
-the idTech era the studio serves. This page sets the rules for the logo,
-colours, type and writing, and lists every brand file.
+SlopStudio's identity is **a precise tool with paint on it**: an orange tile, a
+charcoal S built on a level editor's grid, and orange paint running off the
+tile's edge. The grid says engineering; the drips say the work is hands-on and
+a little messy, the way making levels, models and mods is. This page sets the
+rules for the logo, colours, type and writing, and lists every brand file.
 
 <p align="center">
   <picture>
@@ -28,29 +29,38 @@ colours, type and writing, and lists every brand file.
 
 ## The mark
 
-A rounded orange tile holds a white **S** drawn as two round bowls with round
-terminals. Its upper terminal sheds three square pixels that shrink and fade
-toward the tile's top-right corner: a modern stroke turning into retro pixels.
+A rounded orange tile holds a charcoal **S** drawn on a grid: three bars and two
+stems, each two grid cells thick with one-cell gaps, the outer corners of each
+bowl rounded, the inner corners concentric with them and the two ends cut
+square. A faint grid runs across the tile at large sizes. Three drips of
+different lengths run off the tile's bottom edge, and the longest sheds a drop.
 
 | Version | Use it for |
 | --- | --- |
-| Orange tile, white glyph | The default: app icon, favicon, lockups |
-| White tile, orange glyph | On orange backgrounds (social preview, installer art) |
-| Pixel-drawn glyph at 16, 20 and 24 px | Generated automatically; small sizes are hand-placed pixels, not a scaled vector |
+| Orange tile, charcoal S | The default: app icon, favicon, lockups |
+| White tile, orange S | On orange backgrounds (social preview, installer art) |
+| Pixel-drawn S at 16, 20 and 24 px | Generated automatically; small sizes are hand-placed pixels, not a scaled vector |
+| No drips, full bleed | Only where the platform crops the icon to its own shape (the Apple touch icon) |
 
-- Keep clear space around the mark equal to the width of its largest trail
-  pixel (about 8% of the tile).
+- The drips belong to the tile: keep them below it, in the tile's colour, and
+  never move, add or recolour them.
+- The grid is drawn only at 128 px and above; smaller icons and the favicon
+  leave it out.
+- Keep clear space around the mark equal to the longest drip (about 12% of the
+  tile), measured from the tile's sides and top and from the drop.
 - Don't recolour the glyph or tile outside the palette, add effects, outline
-  it, rotate it, or rearrange the trail pixels.
+  it, rotate it, or straighten the drips.
 - Below 32 px, use the provided PNG/ICO sizes; don't scale the large art down.
 
 ## The wordmark and lockups
 
-The wordmark is set in **Manrope ExtraBold** and turned into outlines. "Slop"
-is Slop Orange; "Studio" is white on dark backgrounds or charcoal on light
-ones. The dot on the i is a **square pixel** in Slop Orange (charcoal on
-orange backgrounds). The p's descender sets the space between the wordmark and
-the tagline in the banner.
+The wordmark sets **Slop** in Manrope ExtraBold and **Studio** in Manrope
+SemiBold, turned into outlines. "Slop" is Slop Orange; "Studio" is white on dark
+backgrounds or charcoal on light ones. Paint runs off the bottom of the o in
+"Slop", and the i of "Studio" is dotted with a falling **drop** in Slop Orange
+(on orange backgrounds, "Slop", its drip and the drop are charcoal and "Studio"
+is white). The deeper of the p's descender and the o's drip sets the space
+between the wordmark and the tagline in the banner.
 
 | Lockup | Files (SVG and 2x PNG, transparent) |
 | --- | --- |
@@ -70,19 +80,20 @@ accent (`src/app/studio_theme.cpp`), so the app and its brand match.
 
 | Name | Hex | Use |
 | --- | --- | --- |
-| Slop Orange | `#E8841A` | The brand colour: tiles, highlights, pixel accents |
+| Slop Orange | `#E8841A` | The brand colour: tiles, highlights, drips and drops |
 | Flare | `#F7A040` | Light end of gradients |
 | Ember | `#D66A0E` | Deep end of gradients |
 | Burnt | `#B35900` | Orange text and links on white (meets WCAG AA for body text) |
 | Peach | `#FDE6CC` | Quiet orange tints and chips |
-| White | `#FFFFFF` | Text and glyphs on orange |
+| White | `#FFFFFF` | Text on orange; the tile on orange backgrounds |
 | Snow | `#F4F4F2` | Light surfaces |
 | Silver | `#E2E2E2` | Text on dark interfaces |
 | Ash | `#ABABAB` | Secondary text on dark interfaces |
 | Graphite | `#3A3A3A` | Secondary text on light surfaces |
-| Charcoal | `#242424` | Body text on light surfaces; dark interface background |
+| Charcoal | `#242424` | The S; body text on light surfaces; dark interface background; paint on orange art |
 
-- The tile gradient runs top to bottom from Flare to Ember.
+- The tile gradient runs top to bottom from Flare through Slop Orange to Ember,
+  and carries on down the drips, so the paint deepens as it runs.
 - White on Slop Orange is for large text and glyphs only; small text on orange
   uses charcoal, or sits on a white surface.
 - Never rely on colour alone to carry meaning: status chips always include
@@ -102,12 +113,20 @@ operating system's UI font; the one exception is the wordmark on the start-up
 screen, which is set in Manrope ExtraBold from the resource file, with every
 other line of that screen in the interface font.
 
-## The pixel accent
+## The grid and the drips
 
-Squares only, aligned to a grid, used sparingly: the mark's trail, the i-dots,
-section markers in the HTML documentation, and fields of squares that dissolve
-in from an edge (the social preview, installer art, documentation hero). Keep
-pixel fields away from text, and keep them quiet (white at 5 to 30% on orange).
+Two accents carry the brand beyond the mark, and they always appear together:
+
+- **The editor grid.** Thin lines on a regular pitch, with a stronger line
+  every fourth cell, like a level editor's 2D view. Keep it faint: charcoal at
+  3 to 11% on orange or light surfaces, white at about 12% on orange in the
+  HTML documentation.
+- **The drips.** Paint running off a straight top edge: a thin band with drips
+  of uneven width and length, rounded ends, concave joins, and a drop under the
+  longest. Charcoal on orange art, orange on light art, white at about 24% in
+  the documentation hero. Keep drips away from text and never let one cross a
+  word.
+- The documentation marks section headings with a single orange drop.
 
 ## Writing style
 

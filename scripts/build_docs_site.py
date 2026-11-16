@@ -240,29 +240,33 @@ def pager_html(order: list[Page], current: Page) -> str:
     return "\n".join(parts)
 
 
-def hero_pixels() -> str:
-    """A deterministic field of white squares dissolving in from the right."""
-    cells = []
-    columns, rows, size = 24, 9, 30
-    for row in range(rows):
-        for column in range(columns):
-            u = column / (columns - 1)
-            level = (u - 0.35) * 1.6 - abs(row / (rows - 1) - 0.4) * 0.3
-            seed = (row * 73856093) ^ (column * 19349663)
-            noise = ((seed * 2654435761) & 0xFFFF) / 0xFFFF
-            if level <= 0 or noise > level:
-                continue
-            opacity = min(0.28, 0.06 + level * 0.2 * (0.6 + noise * 0.5))
-            cells.append(f'<rect x="{column * size + 4}" y="{row * size + 4}" width="{size - 8}" height="{size - 8}" '
-                         f'fill="#fff" fill-opacity="{opacity:.3f}"/>')
-    width, height = columns * size, rows * size
-    return (f'<svg class="hero-pixels" viewBox="0 0 {width} {height}" preserveAspectRatio="xMaxYMid slice" '
-            f'aria-hidden="true" focusable="false">{"".join(cells)}</svg>')
+def hero_art() -> str:
+    """The brand's editor grid with white paint running off the hero's top edge
+    (docs/BRANDING.md). Deterministic, so the built site does not change between runs."""
+    width, height, pitch, band = 720, 270, 30, 10
+    lines = [f'<path d="M{x} 0V{height}" />' for x in range(0, width + 1, pitch)]
+    lines += [f'<path d="M0 {y}H{width}" />' for y in range(0, height + 1, pitch)]
+    # Traced the same way round as the drips, so their overlaps add up under nonzero filling.
+    drips = [f"M0 0V{band}H{width}V0Z"]
+    for index in range(11):
+        seed = (index * 2654435761) & 0xFFFFFFFF
+        cx = 40 + index * 64 + (seed % 23) - 11
+        w = 10 + (seed >> 8) % 13
+        reach = 18 + ((seed >> 16) % 1000) ** 2 / 1000000 * 150
+        f = w * 0.55
+        r = w / 2
+        drips.append(f"M{cx - r - f:.1f} {band - 1}V{band}Q{cx - r:.1f} {band} {cx - r:.1f} {band + f:.1f}"
+                     f"V{band + reach - r:.1f}A{r:.1f} {r:.1f} 0 0 0 {cx + r:.1f} {band + reach - r:.1f}"
+                     f"V{band + f:.1f}Q{cx + r:.1f} {band} {cx + r + f:.1f} {band}V{band - 1}Z")
+    return (f'<svg class="hero-art" viewBox="0 0 {width} {height}" preserveAspectRatio="xMaxYMin slice" '
+            f'aria-hidden="true" focusable="false">'
+            f'<g stroke="#fff" stroke-opacity="0.12" stroke-width="1">{"".join(lines)}</g>'
+            f'<path fill="#fff" fill-opacity="0.24" d="{"".join(drips)}"/></svg>')
 
 
 def hero_html() -> str:
     return f"""    <section class="hero" aria-labelledby="hero-title">
-      {hero_pixels()}
+      {hero_art()}
       <h1 id="hero-title">SlopStudio documentation</h1>
       <p>The all-in-one development studio for classic idTech games: levels, models, textures, audio, packages, code and builds in one place.</p>
       <div class="hero-actions">
