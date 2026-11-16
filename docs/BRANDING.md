@@ -128,6 +128,17 @@ Two accents carry the brand beyond the mark, and they always appear together:
   word.
 - The documentation marks section headings with a single orange drop.
 
+## The social preview
+
+The GitHub social preview shows the studio at work. The brand sits on the left:
+the white-tile mark, the wordmark, the descriptor and the workflow chips. On
+the right is a charcoal level-editor viewport showing the top view of an
+original floor plan: brushes snapped to the grid, the selected hall with its
+handles and size, lights, a player start, and a compile running in the status
+bar. The orange background pours over the viewport's top edge and splashes onto
+the plan, and the viewport drips charcoal off its foot, like the mark's tile.
+Keep the floor plan original; never trace a map from a commercial game.
+
 ## Writing style
 
 The same voice runs through the studio, the README, the manual and release
@@ -173,7 +184,7 @@ matches.
 | --- | --- |
 | `logo/slopstudio-mark.svg`, `.png` | The mark at 1024 px |
 | `logo/slopstudio-{wordmark,logo,banner}-on-{dark,light}.svg`, `.png` | Wordmark, lockup and banner on transparent backgrounds |
-| `social/slopstudio-social-preview.png`, `.svg` | 1280 x 640 GitHub social preview |
+| `social/slopstudio-social-preview.png`, `.svg` | 1280 x 640 GitHub social preview (upload the PNG in the repository's **Settings** > **Social preview**) |
 | `icons/slopstudio.svg` | Scalable app icon (Linux `scalable/apps`) |
 | `icons/png/slopstudio-<size>.png` | App icon from 16 to 1024 px |
 | `icons/slopstudio.ico` | Windows icon (16 to 256 px), compiled into `slopstudio.exe` |

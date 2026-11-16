@@ -963,14 +963,14 @@ def editor_grid(x0: float, y0: float, x1: float, y1: float, pitch: float, colour
     return [Item(lines[False], colour, minor), Item(lines[True], colour, major)]
 
 
-def drip_curtain(x0: float, x1: float, edge: float, band: float, colour: str, opacity: float,
+def drip_curtain(x0: float, x1: float, edge: float, band: float, colour: str | Linear, opacity: float,
                  seed: int, longest: float, width: float, count: int) -> list[Item]:
     """Paint along an edge: a band ``band`` deep from ``edge`` down, with ``count`` drips
     of deterministic, uneven widths and lengths, and a drop under the longest ones."""
     paint = Path2D()
     # Counter-clockwise on screen like drip(), so the overlaps add up instead of cancelling.
     paint.move(x0, edge - 1).line(x0, edge + band).line(x1, edge + band).line(x1, edge - 1)
-    spacing = (x1 - x0) / count
+    spacing = (x1 - x0) / max(count, 1)
     for index in range(count):
         jitter = hash01(seed, index, 1) - 0.5
         cx = x0 + spacing * (index + 0.5 + jitter * 0.6)
@@ -989,53 +989,135 @@ def drip_curtain(x0: float, x1: float, edge: float, band: float, colour: str, op
 ON_ORANGE_MARK = MarkStyle(plate_fill=WHITE, glyph=ORANGE)
 
 
+def outline_rect(x: float, y: float, w: float, h: float, stroke: float) -> Path2D:
+    """A rectangle's outline ``stroke`` thick, as an outer contour and a reversed inner one."""
+    p = rect(x, y, w, h)
+    i = stroke
+    p.move(x + i, y + i).line(x + i, y + h - i).line(x + w - i, y + h - i).line(x + w - i, y + i)
+    return p
+
+
+# The social preview's level: an original floor plan on a 16-unit grid,
+# (x, y, w, h) in viewport cells. Rooms, the corridors between them, the
+# selected hall, its lights and the player start.
+SOCIAL_ROOMS = ((2, 3, 9, 7), (11, 6, 5, 2), (16, 2, 11, 11), (17, 13, 2, 6), (15, 19, 12, 6), (5, 10, 2, 10), (2, 20, 8, 5))
+SOCIAL_SELECTED = 2
+SOCIAL_LIGHTS = ((19.5, 5.5), (24.0, 9.5), (21.0, 22.0), (6.0, 6.0))
+SOCIAL_START = (5.5, 6.5)
+
+
 def social_scene(fonts: dict[str, BrandFont]) -> Scene:
+    """GitHub's 1280x640 preview: the brand on the left, the studio at work on
+    the right (a level editor's top view of an original map, compiling), and
+    orange paint pouring off the top edge over the viewport."""
     heavy, medium = fonts["heavy"], fonts["medium"]
     width, height = 1280.0, 640.0
     background = Linear(0, 0, width, height, ((0.0, FLARE), (0.55, ORANGE), (1.0, EMBER)))
     scene = Scene(width, height, "SlopStudio: the all-in-one development studio for classic idTech games", background=background)
-    left = 96.0
-    content: list[Item] = []
-    avoid: list[tuple[float, float, float, float]] = []
+    scene.items.extend(editor_grid(0, 0, width, height, 32, CHARCOAL, 0.045, 0.09, weight=1.5))
 
-    def text(line: str, x: float, baseline: float, size: float, opacity: float = 1.0) -> float:
-        path, advance = text_path(medium, line, x, baseline, size)
-        content.append(Item(path, WHITE, opacity))
-        avoid.append((x - 24, baseline - size, x + advance + 24, baseline + size * 0.35))
+    def text(line: str, x: float, baseline: float, size: float, colour: str = WHITE, opacity: float = 1.0,
+             font: BrandFont = medium) -> float:
+        path, advance = text_path(font, line, x, baseline, size)
+        scene.items.append(Item(path, colour, opacity))
         return advance
 
-    # Small platform line above the logo.
-    text("Open source  ·  Windows  ·  macOS  ·  Linux", left + 4, 108, 24, 0.86)
-    # Inverted mark (white tile, orange glyph) beside the white wordmark.
-    mark_size = 168.0
-    top = 150.0
-    content.extend(mark_items(left, top, mark_size, ON_ORANGE_MARK))
-    text_size = 132.0
+    # --- The brand, left.
+    left = 72.0
+    text("Open source  \u00b7  Windows  \u00b7  macOS  \u00b7  Linux", left + 2, 92, 22, WHITE, 0.88)
+    mark_size = 132.0
+    top = 126.0
+    scene.items.extend(mark_items(left, top, mark_size, ON_ORANGE_MARK))
+    word_x = left + mark_size + 22
+    room = 640 - word_x
+    text_size = 200.0 * room / wordmark_metrics(fonts, 200.0).width
     cap = cap_height(heavy) * text_size / heavy.upem
-    baseline = top + mark_size / 2 + cap / 2
-    word_x = left + mark_size + 34
-    items, word_width = wordmark_items(fonts, word_x, baseline, text_size, ON_ORANGE)
-    content.extend(items)
-    avoid.append((left - 24, top - 24, word_x + word_width + 32, top + mark_size + 24))
-    line_y = top + mark_size + 84
-    text(DESCRIPTOR[0], left + 8, line_y, 48)
-    text(DESCRIPTOR[1], left + 8, line_y + 60, 48)
-    # Workflow chips.
-    chip_x = left + 8
-    chip_y = height - 112
+    baseline = top + mark_size * 0.44 + cap / 2
+    items, _ = wordmark_items(fonts, word_x, baseline, text_size, ON_ORANGE)
+    scene.items.extend(items)
+    line_y = top + mark_size + 76
+    text(DESCRIPTOR[0], left + 4, line_y, 33)
+    text(DESCRIPTOR[1], left + 4, line_y + 44, 33)
+    # Workflow chips, wrapped to the brand's column.
+    chip_x, chip_y = left + 4, line_y + 88
     for label in ("Levels", "Models", "Textures", "Audio", "Packages", "Code", "Build"):
-        size = 25.0
-        chip_w = medium.advance(label) * size / medium.upem + 36
-        content.append(Item(rounded_rect(chip_x, chip_y, chip_w, 46, 23), WHITE, 0.18))
-        label_path, _ = text_path(medium, label, chip_x + 18, chip_y + 31.5, size)
-        content.append(Item(label_path, WHITE))
-        avoid.append((chip_x - 16, chip_y - 16, chip_x + chip_w + 16, chip_y + 62))
-        chip_x += chip_w + 12
-    # The editor grid under everything, and charcoal paint running down from
-    # the top edge on the right, clear of the text.
-    scene.items.extend(editor_grid(0, 0, width, height, 32, CHARCOAL, 0.05, 0.1, weight=1.5))
-    scene.items.extend(drip_curtain(width * 0.6, width, 0, 14, CHARCOAL, 0.92, 11, 240, 34, 7))
-    scene.items.extend(content)
+        size = 22.0
+        chip_w = medium.advance(label) * size / medium.upem + 32
+        if chip_x + chip_w > 640:
+            chip_x, chip_y = left + 4, chip_y + 52
+        scene.items.append(Item(rounded_rect(chip_x, chip_y, chip_w, 40, 20), WHITE, 0.2))
+        text(label, chip_x + 16, chip_y + 27.5, size)
+        chip_x += chip_w + 10
+
+    # --- The studio at work, right: a charcoal viewport on the grid.
+    px, py, pw, ph, radius = 690.0, 58.0, 532.0, 524.0, 22.0
+    scene.items.append(Item(rounded_rect(px, py, pw, ph, radius), CHARCOAL, 1.0, (0, 16, 40, 0.34)))
+    cell = 16.0
+    vx, vy = px + 26, py + 54
+    columns, rows = 30, 26
+    scene.items.extend(editor_grid(vx, vy, vx + columns * cell, vy + rows * cell, cell, WHITE, 0.05, 0.11))
+    for index, (x, y, w, h) in enumerate(SOCIAL_ROOMS):
+        selected = index == SOCIAL_SELECTED
+        bx, by, bw, bh = vx + x * cell, vy + y * cell, w * cell, h * cell
+        scene.items.append(Item(rect(bx, by, bw, bh), ORANGE, 0.3 if selected else 0.14))
+        scene.items.append(Item(outline_rect(bx, by, bw, bh, 2.5 if selected else 2.0), WHITE if selected else ORANGE,
+                                1.0 if selected else 0.9))
+        if selected:
+            # Resize handles on the corners and edge midpoints.
+            for hx in (bx, bx + bw / 2, bx + bw):
+                for hy in (by, by + bh / 2, by + bh):
+                    if hx == bx + bw / 2 and hy == by + bh / 2:
+                        continue
+                    scene.items.append(Item(rect(hx - 5, hy - 5, 10, 10), WHITE))
+            # Its size, the way the editor shows it while dragging.
+            label = f"{w * 32} \u00d7 {h * 32}"
+            size = 15.0
+            label_w = medium.advance(label) * size / medium.upem + 18
+            lx, ly = bx + bw - label_w, by + bh + 12
+            scene.items.append(Item(rounded_rect(lx, ly, label_w, 26, 6), WHITE, 0.92))
+            text(label, lx + 9, ly + 18.5, size, CHARCOAL)
+    for x, y in SOCIAL_LIGHTS:
+        cx, cy = vx + x * cell, vy + y * cell
+        scene.items.append(Item(arc(Path2D(), cx, cy, 13, 0.0, 360.0, move=True), FLARE, 0.16))
+        scene.items.append(Item(arc(Path2D(), cx, cy, 5, 0.0, 360.0, move=True), PEACH))
+    sx, sy = vx + SOCIAL_START[0] * cell, vy + SOCIAL_START[1] * cell
+    scene.items.append(Item(Path2D().move(sx + 12, sy).line(sx - 8, sy - 10).line(sx - 3, sy).line(sx - 8, sy + 10), WHITE))
+
+    # The compile status bar along the viewport's foot.
+    bar_y = py + ph - 46
+    scene.items.append(Item(rect(px + 18, bar_y - 10, pw - 36, 1.5), WHITE, 0.12))
+    stage_x = px + 26
+    for stage, done in (("BSP", True), ("VIS", True), ("LIGHT", False)):
+        dot = arc(Path2D(), stage_x + 6, bar_y + 14, 6, 0.0, 360.0, move=True)
+        scene.items.append(Item(dot, ORANGE if done else ASH, 1.0 if done else 0.6))
+        stage_x += 20 + text(stage, stage_x + 18, bar_y + 20, 17, SILVER) + 18
+    track_x, track_w = stage_x + 4, px + pw - 26 - (stage_x + 4) - 52
+    scene.items.append(Item(rounded_rect(track_x, bar_y + 9, track_w, 10, 5), WHITE, 0.12))
+    scene.items.append(Item(rounded_rect(track_x, bar_y + 9, track_w * 0.72, 10, 5), ORANGE))
+    text("72%", track_x + track_w + 12, bar_y + 20, 17, SILVER)
+
+    # The viewport's tabs, under the paint.
+    tab_x = px + 26
+    for label, active in (("Top", True), ("Camera", False), ("Materials", False)):
+        advance = text(label, tab_x, py + 38, 17, WHITE if active else ASH)
+        if active:
+            scene.items.append(Item(rect(tab_x, py + 46, advance, 2.5), ORANGE))
+        tab_x += advance + 26
+
+    # --- The slop: the orange itself pours off the top edge, in the
+    # background's own gradient, so it shows only where it runs down over the
+    # viewport (right of its tabs) and splashes onto the floor plan.
+    scene.items.extend(drip_curtain(px + radius * 0.6, px + pw - radius * 0.6, py - 3, 8, background, 1.0, 29, 0, 0, 0))
+    scene.items.extend(drip_curtain(px + 250, px + pw - 6, py - 3, 8, background, 1.0, 29, 200, 28, 6))
+    # And the viewport melts a little off its foot, like the mark's tile.
+    scene.items.extend(drip_curtain(px + 60, px + pw - 60, py + ph - 10, 8, CHARCOAL, 1.0, 41, 54, 22, 5))
+    splash_x, splash_y = vx + 12.5 * cell, vy + 14.5 * cell
+    scene.items.append(Item(drop(splash_x, splash_y - 40, 7, 1.2), ORANGE))
+    splat = arc(Path2D(), splash_x, splash_y, 11, 0.0, 360.0, move=True)
+    for angle, distance, r in ((200.0, 20.0, 4.0), (330.0, 22.0, 3.0), (100.0, 19.0, 2.5)):
+        splat.extend(arc(Path2D(), splash_x + distance * math.cos(math.radians(angle)),
+                         splash_y + distance * math.sin(math.radians(angle)), r, 0.0, 360.0, move=True))
+    scene.items.append(Item(splat, ORANGE))
     return scene
 
 
