@@ -34,10 +34,11 @@ and files made with VibeStudio still open; see
 
 > [!WARNING]
 > **SlopStudio is pre-alpha and highly untested.** Most features have
-> automated tests, but very few have been used in real projects, the installers
-> are new, and many planned parts of the studio don't exist yet. Work on copies
-> of your files and keep backups. [Project status](docs/manual/status.md)
-> explains what is and isn't tested.
+> automated tests, but very few have been used in real projects, no release
+> has been published, the automated builds are currently failing, and many
+> planned parts of the studio don't exist yet. Work on copies of your files and
+> keep backups. [Project status](docs/manual/status.md) explains what is and
+> isn't tested, and what alpha will need.
 
 ## What's inside
 
@@ -63,9 +64,10 @@ page lists the gaps.
 
 ## Install
 
-Pre-built downloads are on the [Releases page](https://github.com/themuffinator/SlopStudio/releases).
-Every release lists its files with a `SHA256SUMS.txt`; pre-release versions are
-marked as such.
+No release has been published yet, so for now [build from source](#build-from-source).
+Releases will appear on the [Releases page](https://github.com/themuffinator/SlopStudio/releases).
+Each will list its files with a `SHA256SUMS.txt`, and pre-release versions will
+be marked as such.
 
 | Platform | Download | First launch |
 | --- | --- | --- |

@@ -10,10 +10,11 @@ services as the studio.
 > [!WARNING]
 > **SlopStudio is pre-alpha and highly untested.** It is not ready for
 > production work. Most features have automated tests, but very few have been
-> used in real projects, and many planned parts of the studio do not exist yet.
-> Work on copies, and back up your maps, packages and projects before you open
-> them in SlopStudio. [Project status](status.md) explains what is and is not
-> tested.
+> used in real projects, no release has been published yet, and many planned
+> parts of the studio do not exist yet. Work on copies, and back up your maps,
+> packages and projects before you open them in SlopStudio.
+> [Project status](status.md) explains what is and is not tested, and what
+> alpha will need.
 
 ## What you can do today
 

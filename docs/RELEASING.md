@@ -23,6 +23,11 @@ SlopStudio uses [Semantic Versioning 2.0](https://semver.org/spec/v2.0.0.html).
 | `-rc.N` | A candidate we would ship unless testing finds a problem | `0.2.0-rc.1` |
 | none | A release | `0.2.0` |
 
+The version label is not the project's status. Semantic Versioning has no
+pre-alpha label, so builds carry `-alpha.N` while SlopStudio is still
+pre-alpha; [Project status](manual/status.md#what-alpha-will-need) lists what
+alpha will need. Release notes always carry the status warning.
+
 While the major version is 0, a minor bump (`0.1` to `0.2`) may change
 behaviour or formats; a patch bump only fixes. Builds that are not releases
 (nightlies and workflow dry runs) are labelled `<VERSION>+<date>.<commit>`;
