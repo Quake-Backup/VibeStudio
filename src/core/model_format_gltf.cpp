@@ -61,6 +61,14 @@ constexpr qint64 kMaxAccessorValues = 32LL * 1024LL * 1024LL;
 constexpr int kMaxVertexFrames = 1024;
 constexpr qint64 kMaxJointPoses = 8LL * 1024LL * 1024LL;
 constexpr int kMaxPrimitiveSurfaces = 2048;
+// What one decode may allocate for accessor values and per-vertex attributes,
+// in 4-byte values (256 MiB). An accessor without a buffer view, or many
+// primitives naming one large accessor, costs no file bytes, so the file
+// size alone does not bound the decode. A 64 MiB file of float data decodes
+// to about 16 Mi values plus its per-vertex copies.
+constexpr qint64 kMaxDecodedValues = 64LL * 1024LL * 1024LL;
+constexpr int kMaxMorphTargets = 512;
+constexpr int kMaxSamplers = 65536;
 
 // glTF (x, y, z) -> game (x, -z, y), a proper rotation, so its inverse is its
 // transpose.
@@ -190,6 +198,18 @@ private:
 			m_mesh->error = message;
 		}
 		return false;
+	}
+
+	// Charges `values` 4-byte values against the decode budget before they are
+	// allocated.
+	bool charge(qint64 values)
+	{
+		if (values < 0 || values > kMaxDecodedValues - m_decodedValues) {
+			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF needs more than %1 MiB to decode, more than one model may use; the file may be damaged.")
+				.arg(QString::number(kMaxDecodedValues * 4 / (1024 * 1024))));
+		}
+		m_decodedValues += values;
+		return true;
 	}
 
 	// --- Container -----------------------------------------------------------
@@ -421,6 +441,9 @@ private:
 		}
 		if (expected.size() > 0 && std::find(expected.begin(), expected.end(), components) == expected.end()) {
 			return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF accessor %1 has the wrong number of components for its use.").arg(index));
+		}
+		if (!charge(count * components)) {
+			return false;
 		}
 		out->count = int(count);
 		out->components = components;
@@ -694,6 +717,14 @@ private:
 			return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has more vertices than can be decoded.").arg(instance->surface.name));
 		}
 		const int count = positions.count;
+		if (qint64(count) > kMaxVertexSlots - m_instanceVertices) {
+			return fail(QCoreApplication::translate("VibeStudioModelMesh", "The glTF draws more vertices in all than can be decoded."));
+		}
+		m_instanceVertices += count;
+		// Positions, normals and texture coordinates.
+		if (!charge(qint64(count) * (attributes.contains(QStringLiteral("NORMAL")) ? 8 : 5))) {
+			return false;
+		}
 		instance->positions.resize(count);
 		for (int v = 0; v < count; ++v) {
 			instance->positions[v] = ModelVec3{positions.at(v, 0), positions.at(v, 1), positions.at(v, 2)};
@@ -739,6 +770,9 @@ private:
 		if (instance->skin >= 0 && attributes.contains(QStringLiteral("JOINTS_0")) && attributes.contains(QStringLiteral("WEIGHTS_0"))) {
 			const int sets = attributes.contains(QStringLiteral("JOINTS_1")) && attributes.contains(QStringLiteral("WEIGHTS_1")) ? 2 : 1;
 			instance->perVertex = sets * 4;
+			if (!charge(qint64(count) * instance->perVertex * 2)) {
+				return false;
+			}
 			instance->joints = QVector<int>(count * instance->perVertex, 0);
 			instance->weights = QVector<float>(count * instance->perVertex, 0.0f);
 			for (int set = 0; set < sets; ++set) {
@@ -767,9 +801,16 @@ private:
 		}
 		// Morph targets: position and normal deltas, mixed by weight.
 		const QJsonArray targets = primitive.value(QStringLiteral("targets")).toArray();
+		if (targets.size() > kMaxMorphTargets) {
+			return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF primitive %1 has more than %2 morph targets.")
+				.arg(instance->surface.name, QString::number(kMaxMorphTargets)));
+		}
 		for (int target = 0; target < targets.size(); ++target) {
 			if (!m_work.step()) { return false; }
 			const QJsonObject object = targets.at(target).toObject();
+			if (!charge(qint64(count) * (object.contains(QStringLiteral("NORMAL")) ? 6 : 3))) {
+				return false;
+			}
 			QVector<ModelVec3> deltaPositions(count), deltaNormals;
 			if (object.contains(QStringLiteral("POSITION"))) {
 				Accessor accessor;
@@ -807,11 +848,18 @@ private:
 			if (!readAccessor(primitive.value(QStringLiteral("indices")).toInt(-1), {1}, &accessor)) {
 				return false;
 			}
+			// The indices, then at most three ints per index for the triangles.
+			if (!charge(qint64(accessor.count) * 4)) {
+				return false;
+			}
 			indices.resize(accessor.count);
 			for (int i = 0; i < accessor.count; ++i) {
 				indices[i] = int(accessor.values.at(i));
 			}
 		} else {
+			if (!charge(qint64(count) * 4)) {
+				return false;
+			}
 			indices.resize(count);
 			std::iota(indices.begin(), indices.end(), 0);
 		}
@@ -919,6 +967,9 @@ private:
 				animation.name = QStringLiteral("animation%1").arg(index);
 			}
 			const QJsonArray samplers = object.value(QStringLiteral("samplers")).toArray();
+			if (samplers.size() > kMaxSamplers) {
+				return fail(QCoreApplication::translate("VibeStudioModelMesh", "glTF animation \"%1\" has more samplers than can be read.").arg(animation.name));
+			}
 			bool first = true;
 			for (const QJsonValue& value : samplers) {
 				const QJsonObject sampler = value.toObject();
@@ -1508,6 +1559,8 @@ private:
 	QByteArray m_binChunk;
 	bool m_hasBinChunk = false;
 	bool m_missingUvs = false;
+	qint64 m_decodedValues = 0;
+	qint64 m_instanceVertices = 0;
 	QVector<QByteArray> m_buffers;
 	QVector<Node> m_nodes;
 	QVector<int> m_order;

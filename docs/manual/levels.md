@@ -2477,6 +2477,10 @@ read the outside version. A map is always saved in the format it was opened in. 
 maps and lumps kept. VibeStudio does not convert between Doom and Quake formats or between face formats, apart from the
 optional Valve 220 conversion.
 
+A Quake-family map from an older editor can hold accented letters or symbols in an 8-bit code page rather than UTF-8,
+for example in a level name or a message. VibeStudio keeps those bytes as they are when you save. If you add a
+character that no 8-bit page holds, the map is saved as UTF-8 instead and the save report says so.
+
 In Quake-family maps, a brush you reshape keeps its place in the file. Component moves, the brush editor, split
 extrusion, clipping, CSG and wrap/merge write the changed brush back where the original stood, so the brushes after it
 keep their order and the "entity N, brush M" numbers a compiler reports or **Find Brush by Number…** uses. When an edit

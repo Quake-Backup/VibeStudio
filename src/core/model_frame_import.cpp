@@ -337,11 +337,29 @@ bool applyModelFrameImportEdit(ModelMesh *candidate, const ModelEdit &edit, QStr
 	if (!remapModelFrames(candidate, remap, error, control))
 		return false;
 	const QString stem = o.clipName.isEmpty() ? QString() : modelClipFrameStem(o.clipName, added);
+	// The model's tags by frame, in tag order.
+	QHash<int, QVector<int>> tagsOfFrame;
+	for (int t = 0; t < candidate->tags.size(); ++t)
+	{
+		if (!work.step())
+			return false;
+		tagsOfFrame[candidate->tags[t].frameIndex].append(t);
+	}
 	int frame = first;
 	for (int s = 0; s < o.sources.size(); ++s)
 	{
 		const auto &source = o.sources[s];
 		const auto &maps = mapsOfSource[s];
+		// The first source tag of each (frame, name), as a front-to-back search finds it.
+		QHash<QPair<int, QString>, const ModelTag *> sourceTagAt;
+		for (const auto &tag : source.tags)
+		{
+			if (!work.step())
+				return false;
+			const auto key = qMakePair(tag.frameIndex, tag.name);
+			if (!sourceTagAt.contains(key))
+				sourceTagAt.insert(key, &tag);
+		}
 		for (int k = 0; k < source.frames.size(); ++k, ++frame)
 		{
 			if (!work.step())
@@ -369,13 +387,11 @@ bool applyModelFrameImportEdit(ModelMesh *candidate, const ModelEdit &edit, QStr
 				const int dot = base.indexOf(QLatin1Char('.'));
 				info.name = dot > 0 ? base.left(dot) : base;
 			}
-			for (auto &tag : candidate->tags)
+			for (const int index : tagsOfFrame.value(frame))
 			{
-				if (tag.frameIndex != frame)
-					continue;
-				const auto found = std::find_if(source.tags.cbegin(), source.tags.cend(),
-												[&](const ModelTag &other) { return other.name == tag.name && other.frameIndex == k; });
-				if (found == source.tags.cend())
+				auto &tag = candidate->tags[index];
+				const ModelTag *found = sourceTagAt.value(qMakePair(k, tag.name));
+				if (!found)
 					continue;
 				tag.origin = found->origin;
 				std::copy(std::begin(found->axis), std::end(found->axis), std::begin(tag.axis));

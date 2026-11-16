@@ -626,7 +626,31 @@ Directed directedEdges(const ModelSurface &surface)
 	}
 	return directed;
 }
-void setFace(ModelSurface *surface, Directed *directed, int face, const ModelTriangle &t)
+// Faces whose corners include both ends of each undirected indexed edge.
+using EdgeUses = QHash<ModelEdge, int>;
+// A face's distinct undirected edges; a face repeating an index counts once.
+QVector<ModelEdge> distinctFaceEdges(const ModelTriangle &t)
+{
+	QVector<ModelEdge> edges;
+	for (auto edge : {modelEdge(t.a, t.b), modelEdge(t.b, t.c), modelEdge(t.c, t.a)})
+	{
+		if (!edges.contains(edge))
+			edges.append(edge);
+	}
+	return edges;
+}
+EdgeUses edgeUseCounts(const ModelSurface &surface)
+{
+	EdgeUses uses;
+	uses.reserve(surface.triangles.size() * 3);
+	for (const auto &t : surface.triangles)
+	{
+		for (auto edge : distinctFaceEdges(t))
+			++uses[edge];
+	}
+	return uses;
+}
+void setFace(ModelSurface *surface, Directed *directed, EdgeUses *uses, int face, const ModelTriangle &t)
 {
 	const auto old = surface->triangles[face];
 	for (const auto &edge : {qMakePair(old.a, old.b), qMakePair(old.b, old.c), qMakePair(old.c, old.a)})
@@ -634,10 +658,18 @@ void setFace(ModelSurface *surface, Directed *directed, int face, const ModelTri
 		if (directed->value(edge, -1) == face)
 			directed->remove(edge);
 	}
+	for (auto edge : distinctFaceEdges(old))
+	{
+		auto it = uses->find(edge);
+		if (it != uses->end() && --it.value() <= 0)
+			uses->erase(it);
+	}
 	surface->triangles[face] = t;
 	directed->insert({t.a, t.b}, face);
 	directed->insert({t.b, t.c}, face);
 	directed->insert({t.c, t.a}, face);
+	for (auto edge : distinctFaceEdges(t))
+		++(*uses)[edge];
 }
 // Corners of the two faces across an indexed edge as quad x, d, y, c, where
 // the first face runs x -> y -> c and the second y -> x -> d.
@@ -646,7 +678,7 @@ struct EdgeQuad
 	int first = -1, second = -1;
 	int x = -1, y = -1, c = -1, d = -1;
 };
-bool edgeQuad(const ModelSurface &surface, const Directed &directed, ModelEdge edge, EdgeQuad *quad)
+bool edgeQuad(const ModelSurface &surface, const Directed &directed, const EdgeUses &edgeUses, ModelEdge edge, EdgeQuad *quad)
 {
 	int first = directed.value({edge.first, edge.second}, -1), second = directed.value({edge.second, edge.first}, -1);
 	if (first < 0 || second < 0 || first == second)
@@ -667,16 +699,7 @@ bool edgeQuad(const ModelSurface &surface, const Directed &directed, ModelEdge e
 			quad->d = v;
 	}
 	// Exactly two faces may use the edge.
-	int uses = 0;
-	for (const auto &t : surface.triangles)
-	{
-		const bool hasFirst = t.a == edge.first || t.b == edge.first || t.c == edge.first;
-		const bool hasSecond = t.a == edge.second || t.b == edge.second || t.c == edge.second;
-		uses += hasFirst && hasSecond;
-		if (uses > 2)
-			return false;
-	}
-	return uses == 2 && quad->c >= 0 && quad->d >= 0;
+	return edgeUses.value(modelEdge(edge.first, edge.second)) == 2 && quad->c >= 0 && quad->d >= 0;
 }
 bool strictlyConvex(const std::array<P3, 4> &q)
 {
@@ -709,6 +732,7 @@ bool rotateEdges(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selecti
 	if (!buildModelGeometricTopology(surface, &topology, error))
 		return false;
 	auto directed = directedEdges(surface);
+	auto edgeUses = edgeUseCounts(surface);
 	QSet<ModelEdge> rotated;
 	QSet<int> touched;
 	for (auto edge : sortedEdges(selection->edges))
@@ -716,7 +740,7 @@ bool rotateEdges(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selecti
 		if (!work.step())
 			return false;
 		EdgeQuad quad;
-		if (!edgeQuad(surface, directed, edge, &quad) && !edgeQuad(surface, directed, {edge.second, edge.first}, &quad))
+		if (!edgeQuad(surface, directed, edgeUses, edge, &quad) && !edgeQuad(surface, directed, edgeUses, {edge.second, edge.first}, &quad))
 		{
 			return fail(error, Text::tr("Edge %1–%2 cannot rotate: it needs exactly two consistently wound faces on one UV island.")
 								   .arg(edge.first)
@@ -740,8 +764,8 @@ bool rotateEdges(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selecti
 		{
 			return fail(error, Text::tr("Edge %1–%2 cannot rotate: a new face would collapse in an animation pose.").arg(edge.first).arg(edge.second));
 		}
-		setFace(&surface, &directed, quad.first, first);
-		setFace(&surface, &directed, quad.second, second);
+		setFace(&surface, &directed, &edgeUses, quad.first, first);
+		setFace(&surface, &directed, &edgeUses, quad.second, second);
 		surface.uvSeams.remove(modelEdge(quad.x, quad.y));
 		rotated.remove(modelEdge(quad.x, quad.y));
 		rotated.insert(modelEdge(quad.c, quad.d));
@@ -807,6 +831,7 @@ bool beautifyFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selec
 	if (!buildModelGeometricTopology(surface, &topology, error))
 		return false;
 	auto directed = directedEdges(surface);
+	auto edgeUses = edgeUseCounts(surface);
 	int flips = 0;
 	QSet<int> touched;
 	for (int pass = 0; pass < 64; ++pass)
@@ -826,7 +851,7 @@ bool beautifyFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selec
 			if (surface.uvSeams.contains(edge))
 				continue;
 			EdgeQuad quad;
-			if (!edgeQuad(surface, directed, edge, &quad) && !edgeQuad(surface, directed, {edge.second, edge.first}, &quad))
+			if (!edgeQuad(surface, directed, edgeUses, edge, &quad) && !edgeQuad(surface, directed, edgeUses, {edge.second, edge.first}, &quad))
 				continue;
 			if (!selection->faces.contains(quad.first) || !selection->faces.contains(quad.second) || changed.contains(quad.first) ||
 				changed.contains(quad.second))
@@ -847,8 +872,8 @@ bool beautifyFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selec
 			const ModelTriangle first{quad.x, quad.d, quad.c}, second{quad.d, quad.y, quad.c};
 			if (collapsedInAnyFrame(surface, first) || collapsedInAnyFrame(surface, second))
 				continue;
-			setFace(&surface, &directed, quad.first, first);
-			setFace(&surface, &directed, quad.second, second);
+			setFace(&surface, &directed, &edgeUses, quad.first, first);
+			setFace(&surface, &directed, &edgeUses, quad.second, second);
 			changed << quad.first << quad.second;
 			touched << quad.x << quad.y << quad.c << quad.d;
 			++flips;
@@ -1176,25 +1201,37 @@ bool dissolveVertices(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *se
 	};
 	for (const auto &t : std::as_const(surface.triangles))
 		existing[key(t)]++;
+	// Faces at each target, in ascending order. Added faces are never erased,
+	// only marked dead, so their indices stay valid in the table.
+	QHash<int, QVector<int>> targetFaces, targetAdded;
+	QVector<bool> addedAlive;
+	const auto indexCorners = [&](QHash<int, QVector<int>> *table, int index, const ModelTriangle &t)
+	{
+		for (int v : {t.a, t.b, t.c})
+		{
+			if (!targets.contains(v))
+				continue;
+			auto &list = (*table)[v];
+			if (list.isEmpty() || list.last() != index)
+				list.append(index);
+		}
+	};
+	for (int face = 0; face < surface.triangles.size(); ++face)
+		indexCorners(&targetFaces, face, surface.triangles[face]);
 	for (int vertex : sortedValues(targets))
 	{
 		if (!work.step())
 			return false;
 		QVector<int> fan;
-		for (int face = 0; face < surface.triangles.size(); ++face)
+		for (int face : targetFaces.value(vertex))
 		{
 			if (!removed[face])
-			{
-				const auto &t = surface.triangles[face];
-				if (t.a == vertex || t.b == vertex || t.c == vertex)
-					fan.append(face);
-			}
+				fan.append(face);
 		}
 		QVector<int> addedFan;
-		for (int i = 0; i < added.size(); ++i)
+		for (int i : targetAdded.value(vertex))
 		{
-			const auto &t = added[i];
-			if (t.a == vertex || t.b == vertex || t.c == vertex)
+			if (addedAlive[i])
 				addedFan.append(i);
 		}
 		if (fan.isEmpty() && addedFan.isEmpty())
@@ -1263,14 +1300,16 @@ bool dissolveVertices(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *se
 			removed[face] = true;
 			existing[key(surface.triangles[face])]--;
 		}
-		for (int i = addedFan.size() - 1; i >= 0; --i)
+		for (int index : std::as_const(addedFan))
 		{
-			existing[key(added[addedFan[i]])]--;
-			added.removeAt(addedFan[i]);
+			existing[key(added[index])]--;
+			addedAlive[index] = false;
 		}
 		for (const auto &t : std::as_const(fill))
 		{
+			indexCorners(&targetAdded, int(added.size()), t);
 			added.append(t);
+			addedAlive.append(true);
 			existing[key(t)]++;
 		}
 	}
@@ -1280,8 +1319,12 @@ bool dissolveVertices(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *se
 		if (!removed[face])
 			triangles.append(surface.triangles[face]);
 	}
-	const int firstAdded = triangles.size();
-	triangles += added;
+	const int firstAdded = int(triangles.size());
+	for (int i = 0; i < added.size(); ++i)
+	{
+		if (addedAlive[i])
+			triangles.append(added[i]);
+	}
 	if (triangles.isEmpty())
 		return fail(error, Text::tr("Dissolving would remove every face of the surface."));
 	surface.triangles = std::move(triangles);
@@ -1311,11 +1354,18 @@ bool dissolveFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selec
 		return fail(error, Text::tr("Select the faces to dissolve into one polygon."));
 	const int frame = edit.tool.referenceFrame;
 	QHash<ModelEdge, QVector<int>> uses;
+	QHash<int, QVector<int>> vertexFaces;
 	for (int face = 0; face < surface.triangles.size(); ++face)
 	{
 		const auto &t = surface.triangles[face];
 		for (auto edge : {modelEdge(t.a, t.b), modelEdge(t.b, t.c), modelEdge(t.c, t.a)})
 			uses[edge].append(face);
+		for (int v : {t.a, t.b, t.c})
+		{
+			auto &list = vertexFaces[v];
+			if (list.isEmpty() || list.last() != face)
+				list.append(face);
+		}
 	}
 	// Regions connect through indexed edges, so each keeps one UV island.
 	QHash<int, int> region;
@@ -1401,10 +1451,9 @@ bool dissolveFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selec
 		{
 			if (borderSet.contains(v))
 				continue;
-			for (int face = 0; face < surface.triangles.size(); ++face)
+			for (int face : vertexFaces.value(v))
 			{
-				const auto &t = surface.triangles[face];
-				if ((t.a == v || t.b == v || t.c == v) && region.value(face, -1) != r)
+				if (region.value(face, -1) != r)
 					return fail(error, Text::tr("Vertex %1 inside the region is shared with other faces.").arg(v));
 			}
 			interior.insert(v);

@@ -993,8 +993,10 @@ part together, so nothing is left behind:
 | --- | --- |
 | Surfaces | Every position and normal in every pose. A mirror (negative scale) reverses winding on every surface, so faces keep facing out. |
 | Attachment tags | Origins move and axes turn in every frame. Axes stay orthonormal: a non-uniform scale keeps the forward and up directions, and a mirror recomputes the left axis so tags stay right-handed. |
-| Collision boxes | Centre, size and rotation of the box and of every collision pose. A rotated box under a non-uniform scale would shear and is refused. |
+| Frames | Each frame's origin, which MD3 measures the frame radius about. |
+| Collision boxes | Centre, size and rotation of the box and of every collision pose. A convex hull's points reflect with a mirror, in the volume and in every pose. A rotated box under a non-uniform scale would shear and is refused. |
 | Skeleton | Bind joints, every clip frame and its bounds, skeletal tag offsets and the influences' bind offsets, so baking the skeleton again gives the transformed frames. Skeletal models take rotation, a positive uniform scale and translation only; rotating a model whose root joints have animation curves is refused. |
+| Clip stacks | A clip's base samples move with its frames. Layer translation keys scale (an override layer on a root joint also moves), fixed constraint targets and IK poles move, a target joint's offset scales and an aim's up direction turns. Rotating a model is refused when an override layer, or an additive layer with translation keys, places a root joint, or when a constraint would solve differently after the turn (IK without a pole bends towards a fixed direction); bake the clip's stack first. |
 | Quake MDL | The eye position. |
 
 Bounds and radii are recomputed. The edit always covers every frame, keeps
@@ -1145,9 +1147,24 @@ change. The Animation Curves dialog keeps its 256 newest drafts and
 still compares them with the stored curve. Returning to the saved state clears
 the modified marker.
 
-Internal revision fingerprints stream ordered geometry into SHA-256 with an
-8 KiB buffer and hash the rest of the source in its packed form, so skeletal
-clips and influences cost a few strings rather than millions of JSON numbers.
+Internal revision fingerprints hash each bulk array on its own with SHA-256:
+a surface's triangles, its texture coordinates, and every pose's positions and
+normals. The identity is the hash of the rest of the source in its packed form
+followed by each array's length and digest in model order, so skeletal clips
+and influences cost a few strings rather than millions of JSON numbers. A
+document keeps the digests of the state it summarised last
+(core/model_fingerprint.h). Arrays are shared between states until an edit
+writes to them, so an edit hashes only the arrays it replaced: one pose for a
+frame-local move, where every pose of the model was hashed before. Arrays that
+do need hashing are shared between up to eight threads once they pass 512 KiB
+together. Validation follows the same rule: an edit checks the poses and clip
+stacks it replaced against the state it started from, which had already passed
+(the `validBaseline` argument of `validateEditableModel`), and a document does
+not validate its own state again before each edit. Reuse never changes an
+answer; `model-edit-reuse-smoke` compares each reused result with a full one.
+`model_edit_benchmark [cells] [frames]` prints the cost of the common document
+operations for a grid of that size as JSON; its timings describe one machine
+and are not test thresholds.
 The same pass gives the exact size of the packed source. When that passes the
 source limit, the exact readable size is measured too, from the packed size and
 the bulk arrays' numbers, without writing the readable source. This avoids building a full JSON geometry tree merely to detect
@@ -1616,7 +1633,9 @@ the format `model weight-paint --stroke-file` reads) or one clip's joint curves.
 Closing the dialog removes the sidecar. The chooser lists a copy's sidecars;
 restoring the copy offers them for review, and Review restages the strokes, each
 as its own undo step, or the curve draft, in the dialog; a sidecar whose base
-fingerprint differs from the restored model is refused. Discarding a copy
+fingerprint differs from the restored model is refused. A sidecar written by a
+build that still hashed the model as one stream is matched against that
+earlier fingerprint, so staged work survives the upgrade. Discarding a copy
 discards its sidecars, and the retention policy removes sidecars whose copy is
 gone once the studio that wrote them has stopped.
 

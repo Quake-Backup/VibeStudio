@@ -13,6 +13,7 @@
 #include <QLockFile>
 #include <QProcess>
 #include <QTemporaryDir>
+#include <QtEndian>
 
 #include <cstdlib>
 #include <iostream>
@@ -144,6 +145,39 @@ int main(int argc, char **argv)
 	}
 	const auto native = exportEditableModel(mesh, "md3", 0, &error);
 	ok &= expect(!native.isEmpty() && write(path("source.md3"), native), "independent native fixture");
+	{
+		// MD3 tag records come out per frame in sorted name order whatever order
+		// the model lists its tags in.
+		auto tagged = mesh;
+		const auto tag = [](const char *name, int frame, float x)
+		{
+			ModelTag value;
+			value.name = QString::fromLatin1(name);
+			value.frameIndex = frame;
+			value.origin = {x, float(frame), 2.0f};
+			return value;
+		};
+		tagged.tags = {tag("tag_b", 1, 5), tag("tag_a", 0, 1), tag("tag_b", 0, 3), tag("tag_a", 1, 7)};
+		updateEditableModelMetadata(&tagged);
+		const auto taggedMd3 = exportEditableModel(tagged, "md3", 0, &error);
+		const auto back = decodeModelMesh("tagged.md3", taggedMd3);
+		bool tagsMatch = !taggedMd3.isEmpty() && back.error.isEmpty() && back.tags.size() == 4;
+		for (const auto &source : tagged.tags)
+		{
+			bool found = false;
+			for (const auto &decodedTag : back.tags)
+				found = found || (decodedTag.name == source.name && decodedTag.frameIndex == source.frameIndex && decodedTag.origin.x == source.origin.x &&
+								  decodedTag.origin.y == source.origin.y);
+			tagsMatch = tagsMatch && found;
+		}
+		const int tagCount = taggedMd3.size() > 84 ? qFromLittleEndian<qint32>(taggedMd3.constData() + 80) : 0;
+		const qint64 tagOffset = taggedMd3.size() > 100 ? qFromLittleEndian<qint32>(taggedMd3.constData() + 96) : 0;
+		tagsMatch = tagsMatch && tagCount == 2 && taggedMd3.size() > tagOffset + 3 * 112 &&
+					QByteArray(taggedMd3.constData() + tagOffset) == "tag_a" && QByteArray(taggedMd3.constData() + tagOffset + 112) == "tag_b" &&
+					QByteArray(taggedMd3.constData() + tagOffset + 224) == "tag_a";
+		if (!expect(tagsMatch, "MD3 export writes every frame's tags by name"))
+			std::cerr << "  " << qPrintable(error) << '\n';
+	}
 	request.outputPath = path("./source.md3");
 	request.protectedFiles = {path("source.md3")};
 	ok &= expect(!exportModelFrame(mesh, request).succeeded() && read(path("source.md3")) == native,

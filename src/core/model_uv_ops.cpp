@@ -14,6 +14,7 @@
 #include <cstring>
 #include <numbers>
 #include <numeric>
+#include <unordered_map>
 
 namespace vibestudio
 {
@@ -48,26 +49,71 @@ QSet<int> componentVertices(const ModelSurface &surface, const ModelSelection &s
 	}
 	return vertices;
 }
-void appendBytes(QByteArray *key, const void *data, int size) { key->append(static_cast<const char *>(data), size); }
-// Every pose's position (and normal), plus the topology identity: two corners
-// with equal keys are the same point of the model with different UVs.
-QByteArray geometryKey(const ModelSurface &surface, int vertex, bool normals)
+// Whether two corners are the same point of the model with different UVs:
+// every pose's position (and normal) and the topology identity match bit for
+// bit.
+bool sameGeometry(const ModelSurface &surface, int a, int b, bool normals)
 {
-	QByteArray key;
-	key.reserve(int(surface.frames.size()) * (normals ? 24 : 12) + 4);
+	if (!surface.topologyVertices.isEmpty() && surface.topologyVertices[a] != surface.topologyVertices[b])
+		return false;
 	for (const auto &frame : surface.frames)
 	{
-		appendBytes(&key, &frame.positions[vertex], sizeof(ModelVec3));
-		if (normals)
-			appendBytes(&key, &frame.normals[vertex], sizeof(ModelVec3));
+		if (std::memcmp(&frame.positions[a], &frame.positions[b], sizeof(ModelVec3)) != 0 ||
+			(normals && std::memcmp(&frame.normals[a], &frame.normals[b], sizeof(ModelVec3)) != 0))
+			return false;
 	}
-	if (!surface.topologyVertices.isEmpty())
-		appendBytes(&key, &surface.topologyVertices[vertex], sizeof(int));
-	return key;
+	return true;
+}
+// The lowest vertex with the same geometry as each vertex. Vertices are
+// bucketed by their first pose and topology identity, and only compared in
+// full within a bucket, so no per-vertex key of every pose is built.
+bool geometryClasses(const ModelSurface &surface, bool normals, QVector<int> *classes, ModelWorkProgress &work)
+{
+	struct Reference
+	{
+		std::array<quint32, 7> bits{};
+		bool operator==(const Reference &other) const { return bits == other.bits; }
+	};
+	struct ReferenceHash
+	{
+		size_t operator()(const Reference &key) const { return size_t(qHashBits(key.bits.data(), sizeof(quint32) * key.bits.size())); }
+	};
+	const auto reference = [&](int vertex)
+	{
+		Reference key;
+		if (!surface.frames.isEmpty())
+		{
+			std::memcpy(key.bits.data(), &surface.frames.first().positions[vertex], sizeof(ModelVec3));
+			if (normals)
+				std::memcpy(key.bits.data() + 3, &surface.frames.first().normals[vertex], sizeof(ModelVec3));
+		}
+		if (!surface.topologyVertices.isEmpty())
+			key.bits[6] = quint32(surface.topologyVertices[vertex]);
+		return key;
+	};
+	std::unordered_map<Reference, QVector<int>, ReferenceHash> buckets;
+	classes->resize(surface.vertexCount);
+	for (int v = 0; v < surface.vertexCount; ++v)
+	{
+		if (!work.step())
+			return false;
+		auto &representatives = buckets[reference(v)];
+		int found = v;
+		for (int other : std::as_const(representatives))
+			if (sameGeometry(surface, other, v, normals))
+			{
+				found = other;
+				break;
+			}
+		if (found == v)
+			representatives.append(v);
+		(*classes)[v] = found;
+	}
+	return true;
 }
 bool weldable(const ModelSurface &surface, int a, int b)
 {
-	return geometryKey(surface, a, true) == geometryKey(surface, b, true) && sameModelSkinWeights(surface, a, b);
+	return sameGeometry(surface, a, b, true) && sameModelSkinWeights(surface, a, b);
 }
 quint64 faceKey(ModelTriangle t)
 {
@@ -182,16 +228,13 @@ bool weldMapped(ModelSurface *surface, const QVector<int> &mapping, ModelSelecti
 }
 bool weld(ModelSurface *surface, const QSet<int> &seeds, double tolerance, ModelSelection *selection, QString *error, ModelWorkProgress &work)
 {
-	QHash<QByteArray, QVector<int>> buckets;
-	QVector<QByteArray> keys(surface->vertexCount);
+	QVector<int> keys;
+	if (!geometryClasses(*surface, true, &keys, work))
+		return false;
+	QHash<int, QVector<int>> buckets;
 	for (int v = 0; v < surface->vertexCount; ++v)
-	{
-		if (!work.step())
-			return false;
-		keys[v] = geometryKey(*surface, v, true);
 		buckets[keys[v]].append(v);
-	}
-	QSet<QByteArray> seeded;
+	QSet<int> seeded;
 	for (int v : seeds)
 		seeded.insert(keys[v]);
 	QVector<int> mapping(surface->vertexCount);
@@ -230,7 +273,9 @@ bool weld(ModelSurface *surface, const QSet<int> &seeds, double tolerance, Model
 	if (members.isEmpty())
 		return fail(error, Text::tr("No selected UV corner has a split copy within the weld distance whose position and normal match in "
 									"every pose."));
-	// A joined corner takes the mean UV of everything it joined.
+	// A joined corner takes the mean UV of everything it joined; the surface
+	// only changes once the weld succeeds.
+	ModelSurface averaged = *surface;
 	for (auto it = members.cbegin(); it != members.cend(); ++it)
 	{
 		double u = surface->texCoords[it.key()].u, v = surface->texCoords[it.key()].v;
@@ -240,9 +285,12 @@ bool weld(ModelSurface *surface, const QSet<int> &seeds, double tolerance, Model
 			v += surface->texCoords[member].v;
 		}
 		const double count = double(it.value().size() + 1);
-		surface->texCoords[it.key()] = {float(u / count), float(v / count)};
+		averaged.texCoords[it.key()] = {float(u / count), float(v / count)};
 	}
-	return weldMapped(surface, mapping, selection, error, work);
+	if (!weldMapped(&averaged, mapping, selection, error, work))
+		return false;
+	*surface = std::move(averaged);
+	return true;
 }
 double islandWinding(const ModelSurface &surface, const ModelUvIsland &island)
 {
@@ -268,15 +316,12 @@ bool stitch(const ModelMesh &mesh, ModelSurface *surface, ModelSelection *select
 	QHash<ModelEdge, QVector<int>> edgeFaces;
 	for (const auto &edge : topology.edges)
 		edgeFaces.insert(edge.vertices, edge.faces);
-	QHash<QByteArray, QVector<int>> points;
-	QVector<QByteArray> keys(surface->vertexCount);
+	QVector<int> keys;
+	if (!geometryClasses(*surface, false, &keys, work))
+		return false;
+	QHash<int, QVector<int>> points;
 	for (int v = 0; v < surface->vertexCount; ++v)
-	{
-		if (!work.step())
-			return false;
-		keys[v] = geometryKey(*surface, v, false);
 		points[keys[v]].append(v);
-	}
 	// Corners are kept as (face, slot): faces keep their indices while
 	// islands move, though a moved corner may be split into a new vertex.
 	struct Corner

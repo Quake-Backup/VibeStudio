@@ -25,6 +25,11 @@ Edits that change motion work on the base and evaluate again:
 base), key edits, range transfers, [inverse kinematics](MODEL_IK.md) and
 [pose paste](MODEL_RIG.md#copy-paste-and-mirror-poses). So editing a base key
 moves a hand that an IK constraint holds, and the hand stays on its target.
+[Resample Skeletal Clip and Close Skeletal Loop](MODEL_VERTEX_ANIMATION.md#resample-a-clip-and-close-its-loop)
+also work on the base, so a layer is applied once over the result; they keep
+the clip's length (resampling to the same pose count, a cross-fade or
+replacing the last pose). The inverse kinematics review reports the base pose
+the solver worked on.
 Direct pose edits (transform, copy, interpolate), resizing the clip, moving
 bind joints and adding, reparenting or removing joints are refused until the
 clip's stack is baked; renaming a joint renames constraint and layer

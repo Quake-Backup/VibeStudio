@@ -8,6 +8,7 @@ import os
 import platform
 import shutil
 import stat
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -93,6 +94,23 @@ def host_architecture() -> str:
     return (platform.machine().lower() or "unknown").replace("amd64", "x86_64")
 
 
+# Windows refuses paths longer than MAX_PATH (260 with the terminator) unless
+# long paths are enabled machine-wide, and Explorer's ZIP extraction never
+# accepts them, so a staged tree must stay inside the limit on every host.
+MAX_PACKAGE_PATH = 259
+IGNORED_TREE_NAMES = ("__pycache__",)
+IGNORED_TREE_SUFFIXES = (".pyc",)
+
+
+def check_destination_length(source: Path, destination: Path) -> None:
+    if len(str(destination)) <= MAX_PACKAGE_PATH:
+        return
+    raise ValueError(
+        f"Package path is too long for Windows ({len(str(destination))} characters, limit {MAX_PACKAGE_PATH}): "
+        f"{source} would be staged at {destination}. Shorten the output directory or leave the file out of the package."
+    )
+
+
 def copy_path(source: Path, destination: Path) -> None:
     if source.is_dir():
         if destination.exists():
@@ -101,6 +119,59 @@ def copy_path(source: Path, destination: Path) -> None:
         return
     destination.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(source, destination)
+
+
+def tracked_files(root: Path, relative: str) -> list[Path] | None:
+    """Files git tracks under root/relative, or None when root is not a git
+    checkout (a source archive, say) or git cannot be run."""
+    if not (root / ".git").exists():
+        return None
+    try:
+        result = subprocess.run(["git", "-C", str(root), "ls-files", "-z", "--cached", "--", relative],
+                                capture_output=True, check=False)
+    except OSError:
+        return None
+    if result.returncode != 0:
+        return None
+    files = [root / entry.decode("utf-8", "surrogateescape") for entry in result.stdout.split(b"\0") if entry]
+    return [path for path in files if path.is_file()]
+
+
+def working_tree_files(directory: Path) -> list[Path]:
+    files: list[Path] = []
+    for parent, directories, names in os.walk(directory):
+        directories[:] = sorted(name for name in directories if name not in IGNORED_TREE_NAMES)
+        for name in sorted(names):
+            if name.endswith(IGNORED_TREE_SUFFIXES):
+                continue
+            files.append(Path(parent) / name)
+    return files
+
+
+def stage_tree(root: Path, relative: str, package_dir: Path) -> str:
+    """Copy root/relative into the package, one checked file at a time.
+
+    Only git-tracked files ship, so untracked or ignored local files (such as
+    evidence left beside a sample project) cannot change or break a package.
+    Without a git checkout, the whole working tree is copied as before.
+    Returns the selection used, for the manifest.
+    """
+    source_dir = root / relative
+    destination_dir = package_dir / relative
+    if destination_dir.exists():
+        shutil.rmtree(destination_dir)
+    files = tracked_files(root, relative)
+    selection = "git-tracked"
+    if files is None:
+        files = working_tree_files(source_dir)
+        selection = "working-tree"
+    destination_dir.mkdir(parents=True, exist_ok=True)
+    for source in files:
+        destination = destination_dir / source.relative_to(source_dir)
+        check_destination_length(source, destination)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source, destination)
+    return selection
 
 
 def reject_output_link(path: Path) -> None:
@@ -360,6 +431,7 @@ def build_manifest(
     checksums_path: str,
     compiled_localization: dict,
     html_documentation: bool = False,
+    samples_selection: str = "",
 ) -> dict:
     included_docs = [relative for relative in CANONICAL_DOCS if (root / relative).exists()]
     localization_root = root / "i18n"
@@ -394,6 +466,7 @@ def build_manifest(
         "htmlDocumentation": "docs/html/index.html" if html_documentation else "",
         "platformReadme": platform_readme,
         "includedSamples": included_samples,
+        "samplesSelection": samples_selection,
         "licenseBundle": license_bundle,
         "licenseFiles": license_files,
         "checksums": checksums_path,
@@ -456,8 +529,7 @@ def create_package(
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "*.qm"))
     for catalog in catalogs:
         copy_path(catalog, package_dir / "i18n" / catalog.name)
-    if include_samples:
-        copy_path(root / "samples", package_dir / "samples")
+    samples_selection = stage_tree(root, "samples", package_dir) if include_samples else ""
 
     platform_readme = write_platform_readme(package_dir, target_platform, target_architecture, binary.name)
     license_bundle, license_files = write_license_bundle(root, package_dir)
@@ -481,6 +553,7 @@ def create_package(
                 "CHECKSUMS.sha256",
                 compiled_localization,
                 html_documentation=docs_site is not None,
+                samples_selection=samples_selection,
             ),
             indent=2,
         )

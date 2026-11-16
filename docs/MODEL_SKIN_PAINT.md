@@ -29,10 +29,18 @@ shared edge). So:
 - an occluded face, such as the back of the model, is never touched, and
   nothing behind a perspective camera is;
 - with a **Mirror** axis, texels whose mirror image across the model's X, Y
-  or Z = 0 plane is under the brush, and visible, are painted too.
+  or Z = 0 plane is under the brush, and visible, are painted too;
+- a texel several triangles share, such as the mirrored left and right
+  halves of an MD2 or MD3 laid over one another in UV space, is painted
+  wherever any of those triangles shows under the brush;
+- UVs outside 0-1 wrap, as the preview and the games draw a tiled skin, so a
+  tiled surface paints the texels it shows. A triangle is painted in up to
+  eight repeats of the skin each way.
 
 **Mix** blends by the brush's coverage (full inside the **Hardness** fraction
-of the radius, fading to the rim, times **Opacity**); **Replace** sets texels
+of the radius, fading to the rim, times **Opacity**), laying the colour over
+the skin with straight alpha: a transparent texel takes the brush colour at
+that coverage, so alpha-tested skins do not grow dark fringes; **Replace** sets texels
 at least half covered. A **Stamp** paints an image instead of the colour: it
 is scaled to the brush's diameter and centred on each brush position, its
 colours are painted and its transparency lowers the coverage. **Smudge**
@@ -56,7 +64,9 @@ fullbright and player-colour ranges included.
    **Radius**, **Opacity**, **Hardness**, **Blend**, **Mirror** and
    **Stamp**.
 3. Drag with the left button to paint. <kbd>Esc</kbd> cancels the stroke in
-   progress; **Undo Stroke** and **Redo Stroke** step through strokes.
+   progress; **Undo Stroke** and **Redo Stroke** step through strokes. Each
+   pointer move only paints what the new part of the stroke reaches, yet the
+   skin is always exactly what replaying the whole recorded stroke gives.
 4. Or turn on **Paint in View** and drag in the Mesh Editor's viewport, with
    its own camera; the other mouse buttons still turn and move it, and the
    viewport shows the painted skin as you go. Painting there uses the frame
@@ -65,7 +75,14 @@ fullbright and player-colour ranges included.
    member of the surface's skin as one undo step; for a skin image from the
    open package it stages the image at the same path (PNG, TGA, JPEG, or PCX
    for an indexed skin) as one package step. Its tooltip says which.
+   The painting replaces the whole skin and lines up with the surface's UVs,
+   so **Apply to Model** refuses, and says why, when the surface or its UVs
+   changed since the dialog opened, or when something else (a bake, another
+   paint) changed the skin since; close the dialog and open it again on the
+   current model.
 6. **Save Skin…** writes a PNG, TGA, PCX (indexed skins) or JPEG.
+7. **Close** (or <kbd>Esc</kbd>) with strokes that were neither applied nor
+   saved asks first; **Keep Editing** is the default answer.
 
 ## Command line
 

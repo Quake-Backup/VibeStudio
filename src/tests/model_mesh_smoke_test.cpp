@@ -812,6 +812,62 @@ bool runObjExportSmoke()
 	ok &= expect(exportModelFrameObj(mesh, 5).isEmpty(), "An out-of-range frame exports nothing.");
 	ok &= expect(exportModelFrameObj(mesh, -1).isEmpty(), "A negative frame index exports nothing.");
 	ok &= expect(!exportModelFrameObj(mesh, 0).contains(QStringLiteral("usemtl")), "No material means no usemtl record.");
+
+	// A loose file's absolute path names the user's folders; only its file name
+	// goes into the exported OBJ. A package path is kept.
+	ok &= expect(obj.contains(QStringLiteral("\n# source models/test/pair.md3\n")), "A package source path is kept in the OBJ header.");
+	for (const QString& loose : {QStringLiteral("C:/Users/someone/mods/pair.md3"), QStringLiteral("C:\\Users\\someone\\mods\\pair.md3"),
+			 QStringLiteral("/home/someone/mods/pair.md3"), QStringLiteral("//server/share/someone/pair.md3")}) {
+		ModelMesh renamed = mesh;
+		renamed.sourcePath = loose;
+		const QString text = exportModelFrameObj(renamed, 0);
+		ok &= expect(text.contains(QStringLiteral("\n# source pair.md3\n")) && !text.contains(QStringLiteral("someone")),
+			"A loose source path leaves only its file name in the OBJ header.");
+	}
+
+	// Names from the file stay literal in the summary even when they hold
+	// placeholders such as %3.
+	ModelMesh named = mesh;
+	named.surfaces[0].name = QStringLiteral("odd%3name%2");
+	named.animations = {ModelAnimation{QStringLiteral("clip%2"), 0, 1, 10.0}};
+	const QStringList summary = modelMeshSummaryLines(named);
+	bool literalSurface = false, literalClip = false;
+	for (const QString& line : summary) {
+		literalSurface = literalSurface || line.contains(QStringLiteral("\"odd%3name%2\": "));
+		literalClip = literalClip || line.contains(QStringLiteral("\"clip%2\": frames 0-0"));
+	}
+	ok &= expect(literalSurface && literalClip, "Surface and animation names with %-placeholders stay literal in the summary.");
+	return ok;
+}
+
+bool runLooseFileReadSmoke(const QString& folder)
+{
+	bool ok = true;
+	const QString path = QDir(folder).absoluteFilePath(QStringLiteral("loose/pair.md3"));
+	const QByteArray md3 = buildMd3();
+	QDir().mkpath(QFileInfo(path).absolutePath());
+	{
+		QFile file(path);
+		ok &= expect(file.open(QIODevice::WriteOnly) && file.write(md3) == md3.size(), "The loose MD3 fixture is written.");
+	}
+	const ModelMesh loose = decodeModelMeshFile(path);
+	ok &= expect(loose.error.isEmpty() && loose.geometryAvailable, "A loose MD3 decodes from disk.");
+	const ModelMesh missing = decodeModelMeshFile(QDir(folder).absoluteFilePath(QStringLiteral("loose/missing.md3")));
+	ok &= expect(!missing.error.isEmpty() && !missing.geometryAvailable, "A missing loose file is an error.");
+	const ModelMesh folderRead = decodeModelMeshFile(QFileInfo(path).absolutePath());
+	ok &= expect(!folderRead.error.isEmpty() && !folderRead.geometryAvailable, "A folder is not decoded as a model.");
+	// A valid model followed by padding past 64 MiB is refused, not decoded.
+	const QString big = QDir(folder).absoluteFilePath(QStringLiteral("loose/big.md3"));
+	{
+		QFile file(big);
+		if (file.open(QIODevice::WriteOnly) && file.write(md3) == md3.size() && file.resize(64LL * 1024 * 1024 + 1)) {
+			file.close();
+			const ModelMesh oversized = decodeModelMeshFile(big);
+			ok &= expect(!oversized.error.isEmpty() && oversized.error.contains(QStringLiteral("64 MiB")) && !oversized.geometryAvailable,
+				"A loose model over 64 MiB is refused before decoding.");
+		}
+		file.remove();
+	}
 	return ok;
 }
 
@@ -908,5 +964,6 @@ int main()
 		return EXIT_FAILURE;
 	}
 	ok &= runArchiveSmoke(root);
+	ok &= runLooseFileReadSmoke(temporaryDir.path());
 	return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

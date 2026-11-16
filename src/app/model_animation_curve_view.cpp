@@ -407,6 +407,12 @@ void ModelAnimationCurveView::mouseDoubleClickEvent(QMouseEvent *event)
 }
 void ModelAnimationCurveView::wheelEvent(QWheelEvent *event)
 {
+	// A sideways wheel or touchpad swipe says nothing about zoom.
+	if (event->angleDelta().y() == 0)
+	{
+		event->ignore();
+		return;
+	}
 	const double factor = event->angleDelta().y() > 0 ? .8 : 1.25;
 	const auto anchor = dataPoint(event->position());
 	if (event->modifiers() & Qt::ControlModifier)

@@ -145,7 +145,13 @@ moves, so the writer:
 - writes the full level of detail with an identity collapse map, each
   vertex's normal in its first bone's space, and tags on their bones (a tag's
   own offset is left out and reported);
-- stores triangles clockwise, as the game culls them.
+- stores triangles clockwise, as the game culls them;
+- writes no torso blending: the torso parent is -1 and every bone's and
+  tag's torso weight is 0, so the game does not turn the upper body apart
+  from the legs. The editable model does not keep the torso parent or weights
+  it read, so a model that came from an MDS, MDM or MDX reports this as an
+  omission (`--strict` refuses it); keep the original file when it relies on
+  torso blending.
 
 The writer's test reads the bytes back with VibeStudio's decoder and with an
 independent reader written from `mdsHeader_t` and `R_CalcBone`, and both put
@@ -191,6 +197,11 @@ modeller, following the [Khronos specification](https://registry.khronos.org/glT
   with their name.
 - **Accessors.** Every component type, normalised integers, byte strides and
   sparse storage, each range-checked against its buffer view.
+- **Decode budget.** An accessor without a buffer view, or many primitives
+  naming one large accessor, costs no file bytes, so one decode may hold at
+  most 256 MiB of accessor values and per-vertex data, 4,194,304 vertices
+  across all primitives, 512 morph targets per primitive and 65,536 samplers
+  per animation. A file that asks for more is refused with an error.
 - **Geometry.** Triangle lists, strips and fans become triangles; point and
   line primitives are left out as an omission. `POSITION`, `NORMAL` and
   `TEXCOORD_0` are read; missing normals are rebuilt from the faces. Each
@@ -238,7 +249,14 @@ archive. For a loose file, a relative companion path is tried in the model's
 folder and then in each folder above it, so `models/players/...` resolves from
 the game's base folder. Reading stops at 128 companion files or 256 MiB in
 total; a model whose companions are missing still opens, with a warning naming
-what was not found. Animation-only files (MDX, GLA, `.md5anim`) open on their
+what was not found.
+
+Companion names come from inside the model file, so a loose file's companions
+stay in its own folders: a name with `..`, a drive letter or colon, a network
+(UNC) or device path, or a Windows device name such as `CON` or `NUL` is not
+opened, and an absolute name is read only inside the model's folder. Only
+regular files are read, and each one's size is checked against the 64 MiB
+per-file limit and what is left of the 256 MiB before any of it is read. Animation-only files (MDX, GLA, `.md5anim`) open on their
 own as a skeleton with frames and no geometry.
 
 ## Skeletons

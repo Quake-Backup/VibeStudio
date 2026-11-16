@@ -145,6 +145,13 @@ with curves it keys each channel the same way (the first value at the last
 key, an appended key, or blended keys over the cross-faded poses; rotations
 close to the nearest equivalent angle), so the curves keep authority. **Bake
 curves** closes the loop on sampled poses and removes the curves instead.
+Animation events keep their time: each moves to the resampled pose nearest its
+old frame, so doubling the rate doubles its frame number. Events that land on
+the same pose keep their order. On a clip with
+[constraints or layers](MODEL_ANIMATION_CONSTRAINTS.md), both operations work on
+the clip's base and evaluate the stack again; changing the clip's length (a
+new pose count, or closing the loop by appending the first pose) is refused
+until the stack is baked.
 
 The same two operations are in **Skeleton → Edit Skeletal Animation** as
 **Resample clip** and **Close clip loop**, with **New FPS** or **New pose

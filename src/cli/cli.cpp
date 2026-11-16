@@ -15485,7 +15485,8 @@ int runModelRecoverCommand(const QString& path, const QStringList& args, CliOutp
 		if (!readModelSessionDraft(modelSessionDraftPath(recoveryDirectory, record.id, kind), &draft, &error)) {
 			return printCliError(command, CliExitCode::NotFound, QStringLiteral("This copy keeps no readable %1 session: %2").arg(modelSessionDraftKindId(kind), error), format);
 		}
-		if (draft.baseFingerprint != document.revisionFingerprint()) {
+		// A session staged by a build that identified models with one hash stream still matches its model.
+		if (draft.baseFingerprint != document.revisionFingerprint() && draft.baseFingerprint != modelStateLegacyFingerprint(document.mesh())) {
 			return printCliError(command, CliExitCode::ValidationFailed, QStringLiteral("The %1 session was staged on another version of this model, so it cannot be replayed on the recovered source.").arg(modelSessionDraftKindId(kind)), format);
 		}
 		auto session = modelSessionDraftJson(draft);

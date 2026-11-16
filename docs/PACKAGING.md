@@ -29,7 +29,15 @@ notarised yet, and clean-machine acceptance of the installers remains open.
 - `i18n/` with seed Qt TS catalogs for the 20-language target set plus
   pseudo-localization, and the corresponding compiled QM catalogs available
   beside the selected Meson build's executable;
-- `samples/` with license-clean Doom, Quake, and Quake III-family projects;
+- `samples/` with license-clean Doom, Quake, and Quake III-family projects.
+  From a git checkout only the files git tracks under `samples/` are staged
+  (`git ls-files samples`), so untracked or ignored local projects, evidence and
+  notes left beside the shipped samples never enter a package; without a
+  checkout, such as a source archive, the whole directory is copied as before.
+  The manifest records which happened as `samplesSelection` (`git-tracked` or
+  `working-tree`). Every staged path is also checked against Windows' 259
+  character limit before it is copied, and an over-long one stops packaging
+  with the offending file and its destination named;
 - `licenses/THIRD_PARTY_LICENSES.md` plus VibeStudio license/credits files and
   imported compiler source licenses for VibeMap2, VibeMap3, ZDBSP, and
   ZokumBSP under `licenses/external/compilers/` (VibeMap2 and VibeMap3 as

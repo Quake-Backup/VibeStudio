@@ -1,6 +1,7 @@
 #include "app/model_viewport.h"
 #include "core/level_brush.h"
 #include "app/level_component_trace.h"
+#include "app/locale_number.h"
 #include <QAccessible>
 #include <QApplication>
 #include <QPainter>
@@ -434,14 +435,14 @@ QString ModelViewport::componentSummary() const
 	QString overlap;
 	if (!isMovingComponents() && m_componentCycle.count && m_componentCycle.handle >= 0 && m_componentCycle.handle < m_componentPositions.size()) {
 		const auto p = m_componentPositions[m_componentCycle.handle];
-		overlap = tr("Overlap %1 of %2 · XYZ %3, %4, %5 · ").arg(m_componentCycle.ordinal).arg(m_componentCycle.count).arg(p.x,0,'g',8).arg(p.y,0,'g',8).arg(p.z,0,'g',8);
+		overlap = tr("Overlap %1 of %2 · XYZ %3, %4, %5 · ").arg(m_componentCycle.ordinal).arg(m_componentCycle.count).arg(localeNumber(p.x,8),localeNumber(p.y,8),localeNumber(p.z,8));
 	}
 	if (m_componentGizmo->tool() != LevelComponentTool::Move) { return overlap+m_componentGizmo->summary(); }
 	if (m_componentMoving) {
 		if (!m_componentValid) { return tr("Components unchanged: %1").arg(m_componentError); }
-		const auto delta = m_componentExtrusion ? tr("Extrude: %1 units").arg(m_componentExtrusionDistance,0,'g',8)
+		const auto delta = m_componentExtrusion ? tr("Extrude: %1 units").arg(localeNumber(m_componentExtrusionDistance,8))
 			: (m_componentSplit ? tr("Split components: %1, %2, %3") : tr("Move components: %1, %2, %3"))
-			.arg(m_componentDelta.x,0,'g',6).arg(m_componentDelta.y,0,'g',6).arg(m_componentDelta.z,0,'g',6);
+			.arg(localeNumber(m_componentDelta.x),localeNumber(m_componentDelta.y),localeNumber(m_componentDelta.z));
 		return delta + QStringLiteral(" · ") + (m_componentWorldDrag ? m_componentAxisDrag.description()+QStringLiteral(" · ") : QString{})
 			+ (m_componentPending ? tr("Checking geometry… Escape cancels") : tr("Valid preview · Release to apply"));
 	}

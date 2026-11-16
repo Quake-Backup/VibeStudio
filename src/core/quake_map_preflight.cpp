@@ -158,6 +158,24 @@ bool valueHasParserSensitiveBackslash(const QString& value)
 
 bool lineHasNonIntegerBrushCoordinate(const QString& line, const QuakeMapPreflightOptions* options)
 {
+	// Most maps keep whole-number points, and this runs for every face line of
+	// a map as it opens: only a line with a decimal point inside parentheses can
+	// match, so the others skip the pattern altogether.
+	bool candidate = false;
+	int depth = 0;
+	for (const QChar character : line) {
+		if (character == QLatin1Char('(')) {
+			++depth;
+		} else if (character == QLatin1Char(')')) {
+			depth = std::max(0, depth - 1);
+		} else if (depth > 0 && character == QLatin1Char('.')) {
+			candidate = true;
+			break;
+		}
+	}
+	if (!candidate) {
+		return false;
+	}
 	static const QRegularExpression pointPattern(QStringLiteral(R"(\(\s*([-+]?\d+(?:\.\d+)?)\s+([-+]?\d+(?:\.\d+)?)\s+([-+]?\d+(?:\.\d+)?)\s*\))"));
 	QRegularExpressionMatchIterator matches = pointPattern.globalMatch(line);
 	int checked = 0;
@@ -173,6 +191,9 @@ bool lineHasNonIntegerBrushCoordinate(const QString& line, const QuakeMapPreflig
 
 bool lineHasOriginBrushTexture(const QString& line)
 {
+	if (!line.contains(QLatin1String("origin"), Qt::CaseInsensitive)) {
+		return false;
+	}
 	static const QRegularExpression originTexture(QStringLiteral(R"((^|[\s/\\])(?:common[/\\])?origin($|\s))"), QRegularExpression::CaseInsensitiveOption);
 	return originTexture.match(line).hasMatch();
 }
@@ -428,10 +449,12 @@ QVector<MapEntity> parseMapEntities(const QString& mapText, const QuakeMapPrefli
 					current.values.push_back({keyMatch.captured(1), keyMatch.captured(2), lineNumber});
 				}
 			}
-			if (braceDepth >= 2 && lineHasNonIntegerBrushCoordinate(line, options)) {
+			// Each of these only ever raises a flag on the entity, so a flag
+			// already raised needs no further lines read for it.
+			if (braceDepth >= 2 && !current.hasNonIntegerBrushCoordinate && lineHasNonIntegerBrushCoordinate(line, options)) {
 				current.hasNonIntegerBrushCoordinate = true;
 			}
-			if (braceDepth >= 2) {
+			if (braceDepth >= 2 && !(current.hasEmptyTextureName && current.hasSkipTexture)) {
 				bool isBrushFace = false;
 				const QString textureName = brushFaceTextureName(line, &isBrushFace);
 				if (isBrushFace) {
@@ -443,7 +466,7 @@ QVector<MapEntity> parseMapEntities(const QString& mapText, const QuakeMapPrefli
 					}
 				}
 			}
-			if (braceDepth >= 2 && lineHasOriginBrushTexture(line)) {
+			if (braceDepth >= 2 && !current.hasOriginBrush && lineHasOriginBrushTexture(line)) {
 				current.hasOriginBrush = true;
 			}
 		}

@@ -451,12 +451,12 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 	m_exportMd5 = new WrappingActionButton(Text::tr("Export MD5 Mesh…"), 2);
 	m_exportMd5->setObjectName(QStringLiteral("exportMeshMd5"));
 	m_exportMd5->setToolTip(Text::tr("Write a Doom 3, Quake 4 or Prey md5mesh; a model without joints gets one origin joint."));
-	connect(m_exportMd5, &QPushButton::clicked, this, [this] { exportModel(QStringLiteral("md5mesh")); });
+	connect(m_exportMd5, &QPushButton::clicked, this, [this] { syncDeliveryContext(); exportModel(QStringLiteral("md5mesh")); });
 	form->addRow(m_exportMd5);
 	auto *exportAnim = new WrappingActionButton(Text::tr("Export MD5 Animation of Clip…"), 2);
 	exportAnim->setObjectName(QStringLiteral("exportMeshMd5Anim"));
 	exportAnim->setToolTip(Text::tr("Choose a skeletal clip and its whole frame rate, then write it as an md5anim."));
-	connect(exportAnim, &QPushButton::clicked, this, [this] { exportModel(QStringLiteral("md5anim")); });
+	connect(exportAnim, &QPushButton::clicked, this, [this] { syncDeliveryContext(); exportModel(QStringLiteral("md5anim")); });
 	form->addRow(exportAnim);
 	auto *exportAnims = new WrappingActionButton(Text::tr("Export All Clips as MD5…"), 2);
 	exportAnims->setObjectName(QStringLiteral("exportMeshMd5AnimAll"));
@@ -466,7 +466,7 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 	m_exportIqm = new WrappingActionButton(Text::tr("Export IQM…"), 2);
 	m_exportIqm->setObjectName(QStringLiteral("exportMeshIqm"));
 	m_exportIqm->setToolTip(Text::tr("Write an Inter-Quake Model with joints, weights and every skeletal clip, for ioquake3 and its descendants."));
-	connect(m_exportIqm, &QPushButton::clicked, this, [this] { exportModel(QStringLiteral("iqm")); });
+	connect(m_exportIqm, &QPushButton::clicked, this, [this] { syncDeliveryContext(); exportModel(QStringLiteral("iqm")); });
 	form->addRow(m_exportIqm);
 	// Return to Castle Wolfenstein (core/model_mds.h): bones keep their lengths.
 	auto *exportMds = new WrappingActionButton(Text::tr("Export RTCW MDS…"), 2);
@@ -474,7 +474,7 @@ void ModelEditorDialog::addSkeletonControls(QFormLayout *form)
 	exportMds->setToolTip(Text::tr("Write a Return to Castle Wolfenstein skeletal MDS with every clip as consecutive frames; bones must keep their lengths."));
 	exportMds->setAccessibleName(Text::tr("Export RTCW MDS"));
 	exportMds->setAccessibleDescription(exportMds->toolTip());
-	connect(exportMds, &QPushButton::clicked, this, [this] { exportModel(QStringLiteral("mds")); });
+	connect(exportMds, &QPushButton::clicked, this, [this] { syncDeliveryContext(); exportModel(QStringLiteral("mds")); });
 	form->addRow(exportMds);
 }
 
@@ -483,6 +483,22 @@ void ModelEditorDialog::refreshSkeleton()
 	if (!m_skeletonTree)
 		return;
 	QSignalBlocker blocker(m_skeletonTree);
+	const auto revision = m_document.revisionFingerprint();
+	// A selection change keeps the tree (its scroll position and expanded
+	// joints) and only moves the current item.
+	if (!m_document.mesh().skeleton.isEmpty() && revision == m_skeletonRevision && m_skeletonTree->topLevelItemCount() > 0)
+	{
+		QTreeWidgetItem *current = nullptr;
+		const auto &joint = m_document.selection().joint;
+		if (!joint.isEmpty())
+			for (QTreeWidgetItemIterator it(m_skeletonTree); *it && !current; ++it)
+				if ((*it)->text(0) == joint)
+					current = *it;
+		if (m_skeletonTree->currentItem() != current)
+			m_skeletonTree->setCurrentItem(current);
+		return;
+	}
+	m_skeletonRevision = revision;
 	const bool hadItems = m_skeletonTree->topLevelItemCount() > 0;
 	QSet<QString> expanded;
 	for (QTreeWidgetItemIterator it(m_skeletonTree); *it; ++it)

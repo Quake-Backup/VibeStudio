@@ -365,6 +365,15 @@ see it on the model:
    replaced as one step you can undo, and an image from the open package is
    staged at its own path. Or choose **Save Skin…** to keep a copy as a file.
 
+Where two halves of a model share the same part of the skin, such as a
+mirrored left and right side, the stroke paints wherever either half shows
+under the brush. A skin that repeats across UVs outside 0 to 1 is painted as
+the preview shows it. Closing the dialog with strokes you have neither applied
+nor saved asks first: choose **Keep Editing** or **Discard Strokes**. If the
+surface's faces, UVs or skin change while the dialog is open, **Apply to
+Model** says so and leaves the model alone; open the dialog again on the
+changed model.
+
 A Quake skin is painted with palette colours only. See
 [Painting Skins](../MODEL_SKIN_PAINT.md).
 
@@ -384,7 +393,11 @@ Choose **Bake**; the map appears when it is done, and **Cancel Bake** stops a
 long one. **Save Map…** writes a PNG or TGA. **Apply to Model** shades a Quake
 skin with occlusion or lighting (by **Shade strength**, as one step you can
 undo), or, for a skin image from the open package, shades it or stages a
-normal map beside it. See [Baking Texture Maps](../MODEL_BAKE.md).
+normal map beside it. **Apply to Model** shades the skin as it is when you
+apply, so paint applied since the bake is kept, and it refuses, with the
+reason, when the faces, UVs or pose it baked have changed. The status bar's
+Activity ring turns while a bake runs. See
+[Baking Texture Maps](../MODEL_BAKE.md).
 
 ### Review what the decoder reported
 
@@ -504,6 +517,11 @@ can be cancelled. If source protection cannot be completed, choose a new output
 outside the input package, folder or draft.
 
 ### Shape and clean up geometry
+
+**A tool in progress follows the model.** If you undo, redo or apply another
+edit while a move, rotate, scale or similar tool is still running, the tool is
+cancelled and the status line says why, so it never applies to faces that have
+since changed. Start the tool again on the model as it now is.
 
 **Tune a selection.** After **Select > Select Similar**, **Sharp Edges**,
 **Random** or **Checker Deselect**, press <kbd>F9</kbd> to change its
@@ -1618,7 +1636,11 @@ to see earlier frames dashed and later frames dotted in the 3D view.
 To deliver a 30 FPS clip at Quake's 10 Hz, choose the clip, set **New FPS** under
 **Resample and loop** and choose **Resample Clip**. **Close Clip Loop** removes
 the jump from a cycle's last pose to its first. Skeletal clips have their own
-**Resample Skeletal Clip** and **Close Skeletal Loop**.
+**Resample Skeletal Clip** and **Close Skeletal Loop**; a skeletal clip's
+events move with the resampled frames, so a footstep still sounds at the same
+moment. A clip that keeps constraints or layers can be resampled to the same
+number of frames, cross-faded or have its last frame replaced; for a new frame
+count, bake its stack first.
 
 To fix a few frames at once, select the vertices, set the frame range and use
 **Range sculpt**: **Transform Selection Over Range** (with the **Geometry**
@@ -1649,6 +1671,15 @@ limits and the `model frames` command.
   MD5, IQM or ASE export has been loaded in the original games yet.
 - MDC, MDS, MDM, MDR, Ghoul 2, Half-Life, Hexen II, Heretic II, LightWave and
   KVX models are read only; export them as MD3 or another written format.
+- An RTCW MDS written from a model that came from MDS, MDM or MDX does not
+  keep its torso blending; the export says so, and a strict export refuses.
+- A model opened from a folder reads its companion files (a Ghoul 2 animation,
+  Half-Life sequence groups, Doom 3 clips) only from its own folders: names
+  that point elsewhere, at a network share or at a device are skipped and
+  reported. A glTF that would need more than 256 MiB to decode is refused.
+- Tangent-space normal bakes use one tangent frame per triangle, where Doom 3
+  blends tangents between vertices; smooth low-poly surfaces can show faint
+  facets in game. See [Baking Texture Maps](../MODEL_BAKE.md).
 - IK drag handles, layer weight curves and joint modal pointer-following
   remain planned. Two-bone and chain IK, persistent constraints and layers,
   clip import and retargeting, bone overlays,

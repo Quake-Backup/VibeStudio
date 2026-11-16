@@ -67,6 +67,9 @@ class ModelBakeDialog final : public QDialog
 	QLabel *m_status = nullptr, *m_preview = nullptr;
 	QThread *m_thread = nullptr;
 	std::shared_ptr<std::atomic_bool> m_cancelled;
+	// The bake's entry in the studio's work tracker while it runs, else 0.
+	int m_workToken = 0;
+	void endTrackedWork();
 	ModelBakeResult m_result;
 	ModelBakeOptions m_lastOptions;
 };

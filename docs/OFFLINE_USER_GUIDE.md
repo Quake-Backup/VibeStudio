@@ -1079,8 +1079,10 @@ manifest, for example to attach to a bug report.
 
 The source checkout includes `samples/projects/quake2-hingeworks`, an original
 Quake II rerelease (Q2RE) deathmatch map project. Open that folder to continue
-editing its current **Alpha 5 review candidate**, `game/baseq2/maps/hingeworks_a5.map`.
-Its headless checks pass; the new engine-image review and archive are pending.
+editing its current **Alpha 5 development build**, `game/baseq2/maps/hingeworks_a5.map`.
+Alpha 5 remains unreleased while refinement and review continue. Captures and
+validation records identify their exact build; earlier screenshots do not verify
+later changes. Release requires the map owner's explicit decision.
 Alpha 4 remains the latest approved release.
 Link your own rerelease installation for the stock textures, sounds and music;
 no game assets ship with the sample. Alpha 4 corrects brush joins and a texture
@@ -1093,8 +1095,9 @@ human multiplayer balance testing remains outstanding.
 
 Map versions are independent of VibeStudio's application version. The project
 uses `0.1.0-alpha.5` in release settings, **Alpha 5** in player-facing text, and
-`hingeworks_a5` as its engine map name. Future revisions increment the alpha
-number and keep earlier released packages unchanged. See [Package and
+`hingeworks_a5` as its engine map name. Development revisions stay on Alpha 5
+until its release is approved; subsequent versions keep earlier released
+packages unchanged. See [Package and
 release](manual/releases.md) for the release controls.
 
 ### Panic Protocol campaign experiment
@@ -3749,6 +3752,10 @@ If the file changed outside VibeStudio after you opened it, **Save** refuses: us
 read the outside version. A map is always saved in the format it was opened in. A WAD is written whole, with its other
 maps and lumps kept. VibeStudio does not convert between Doom and Quake formats or between face formats, apart from the
 optional Valve 220 conversion.
+
+A Quake-family map from an older editor can hold accented letters or symbols in an 8-bit code page rather than UTF-8,
+for example in a level name or a message. VibeStudio keeps those bytes as they are when you save. If you add a
+character that no 8-bit page holds, the map is saved as UTF-8 instead and the save report says so.
 
 In Quake-family maps, a brush you reshape keeps its place in the file. Component moves, the brush editor, split
 extrusion, clipping, CSG and wrap/merge write the changed brush back where the original stood, so the brushes after it
@@ -7609,6 +7616,15 @@ see it on the model:
    replaced as one step you can undo, and an image from the open package is
    staged at its own path. Or choose **Save Skin…** to keep a copy as a file.
 
+Where two halves of a model share the same part of the skin, such as a
+mirrored left and right side, the stroke paints wherever either half shows
+under the brush. A skin that repeats across UVs outside 0 to 1 is painted as
+the preview shows it. Closing the dialog with strokes you have neither applied
+nor saved asks first: choose **Keep Editing** or **Discard Strokes**. If the
+surface's faces, UVs or skin change while the dialog is open, **Apply to
+Model** says so and leaves the model alone; open the dialog again on the
+changed model.
+
 A Quake skin is painted with palette colours only. See
 [Painting Skins](MODEL_SKIN_PAINT.md).
 
@@ -7628,7 +7644,11 @@ Choose **Bake**; the map appears when it is done, and **Cancel Bake** stops a
 long one. **Save Map…** writes a PNG or TGA. **Apply to Model** shades a Quake
 skin with occlusion or lighting (by **Shade strength**, as one step you can
 undo), or, for a skin image from the open package, shades it or stages a
-normal map beside it. See [Baking Texture Maps](MODEL_BAKE.md).
+normal map beside it. **Apply to Model** shades the skin as it is when you
+apply, so paint applied since the bake is kept, and it refuses, with the
+reason, when the faces, UVs or pose it baked have changed. The status bar's
+Activity ring turns while a bake runs. See
+[Baking Texture Maps](MODEL_BAKE.md).
 
 #### Review what the decoder reported
 
@@ -7748,6 +7768,11 @@ can be cancelled. If source protection cannot be completed, choose a new output
 outside the input package, folder or draft.
 
 #### Shape and clean up geometry
+
+**A tool in progress follows the model.** If you undo, redo or apply another
+edit while a move, rotate, scale or similar tool is still running, the tool is
+cancelled and the status line says why, so it never applies to faces that have
+since changed. Start the tool again on the model as it now is.
 
 **Tune a selection.** After **Select > Select Similar**, **Sharp Edges**,
 **Random** or **Checker Deselect**, press <kbd>F9</kbd> to change its
@@ -8862,7 +8887,11 @@ to see earlier frames dashed and later frames dotted in the 3D view.
 To deliver a 30 FPS clip at Quake's 10 Hz, choose the clip, set **New FPS** under
 **Resample and loop** and choose **Resample Clip**. **Close Clip Loop** removes
 the jump from a cycle's last pose to its first. Skeletal clips have their own
-**Resample Skeletal Clip** and **Close Skeletal Loop**.
+**Resample Skeletal Clip** and **Close Skeletal Loop**; a skeletal clip's
+events move with the resampled frames, so a footstep still sounds at the same
+moment. A clip that keeps constraints or layers can be resampled to the same
+number of frames, cross-faded or have its last frame replaced; for a new frame
+count, bake its stack first.
 
 To fix a few frames at once, select the vertices, set the frame range and use
 **Range sculpt**: **Transform Selection Over Range** (with the **Geometry**
@@ -8893,6 +8922,15 @@ limits and the `model frames` command.
   MD5, IQM or ASE export has been loaded in the original games yet.
 - MDC, MDS, MDM, MDR, Ghoul 2, Half-Life, Hexen II, Heretic II, LightWave and
   KVX models are read only; export them as MD3 or another written format.
+- An RTCW MDS written from a model that came from MDS, MDM or MDX does not
+  keep its torso blending; the export says so, and a strict export refuses.
+- A model opened from a folder reads its companion files (a Ghoul 2 animation,
+  Half-Life sequence groups, Doom 3 clips) only from its own folders: names
+  that point elsewhere, at a network share or at a device are skipped and
+  reported. A glTF that would need more than 256 MiB to decode is refused.
+- Tangent-space normal bakes use one tangent frame per triangle, where Doom 3
+  blends tangents between vertices; smooth low-poly surfaces can show faint
+  facets in game. See [Baking Texture Maps](MODEL_BAKE.md).
 - IK drag handles, layer weight curves and joint modal pointer-following
   remain planned. Two-bone and chain IK, persistent constraints and layers,
   clip import and retargeting, bone overlays,

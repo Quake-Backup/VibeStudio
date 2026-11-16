@@ -227,6 +227,24 @@ int main(int argc, char **argv)
 			winding &= back.surfaces[0].triangles[t].a == mesh.surfaces[0].triangles[t].a && back.surfaces[0].triangles[t].b == mesh.surfaces[0].triangles[t].b;
 		expect(winding, "triangles keep their counter-clockwise order through the file's clockwise storage");
 	}
+	const auto mentionsTorso = [](const ModelExportReport &r) {
+		for (const QString &omission : r.omissions)
+			if (omission.contains(QStringLiteral("torso")))
+				return true;
+		return false;
+	};
+	expect(!mentionsTorso(report), "a skeleton that never came from an MDS reports no torso loss");
+	// The editable model keeps no torso parent or weights, so an MDS-sourced
+	// model must say they are lost rather than drop them silently.
+	ModelMesh fromMds = mesh;
+	fromMds.sourcePath = QStringLiteral("models/test/arm.MDS");
+	ModelExportReport torsoReport;
+	expect(!exportModelMds(fromMds, {}, &error, {}, &torsoReport).isEmpty() && mentionsTorso(torsoReport) && torsoReport.notes.join('\n').contains(QStringLiteral("torso")),
+		   "an MDS-sourced model reports its torso blending as an omission");
+	ModelMesh decodedMds = mesh;
+	decodedMds.format = ModelMeshFormat::Mdm;
+	ModelExportReport mdmReport;
+	expect(!exportModelMds(decodedMds, {}, &error, {}, &mdmReport).isEmpty() && mentionsTorso(mdmReport), "an MDM-sourced model reports its torso blending too");
 	expect(!exportEditableModel(mesh, QStringLiteral("mds"), 0, &error).isEmpty(), "model export reaches the writer as mds");
 	expect(modelExportFormatIds().contains(QStringLiteral("mds")), "mds is an export id");
 

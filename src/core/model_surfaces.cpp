@@ -48,6 +48,23 @@ void inheritVariantBindings(ModelMesh *mesh, const QString &from, const QString 
 			variant.bindings.append({to, found->material});
 	}
 }
+// Recorded decode issues name surfaces by index. `merged` surfaces join
+// `into` (an index before removal); `removed` ones go, and their issues then
+// concern the whole model. The rest close up over the gaps.
+void remapIssueSurfaces(ModelMesh *mesh, int count, const QSet<int> &merged, int into, const QSet<int> &removed)
+{
+	QVector<int> map(count, -1);
+	int next = 0;
+	for (int i = 0; i < count; ++i)
+		if (!merged.contains(i) && !removed.contains(i))
+			map[i] = next++;
+	for (int i : merged)
+		if (i >= 0 && i < count && into >= 0 && into < count)
+			map[i] = map[into];
+	for (auto &issue : mesh->issues)
+		if (issue.surface >= 0)
+			issue.surface = issue.surface < count ? map[issue.surface] : -1;
+}
 bool validName(const ModelMesh &mesh, const QString &name, int excluding, QString *error)
 {
 	if (name.isEmpty() || name.size() > 128 ||
@@ -115,6 +132,10 @@ bool partition(const ModelSurface &source, const QSet<int> &faces, ModelSurface 
 			}
 		}
 		output.vertexCount = output.texCoords.size();
+		// Pins are corner indices: they follow their corners into either part.
+		for (int pin : source.uvPins)
+			if (pin >= 0 && pin < map.size() && map[pin] >= 0)
+				output.uvPins.insert(map[pin]);
 		// Sharp edges keep their identity labels until compaction relabels them.
 		output.sharpEdges = source.sharpEdges;
 		compactModelVertexIdentities(&output);
@@ -177,6 +198,9 @@ bool appendSurface(ModelSurface *target, ModelSurface source, ModelWorkProgress 
 			return false;
 		target->uvSeams.insert({edge.first + offset, edge.second + offset});
 	}
+	for (int pin : std::as_const(source.uvPins))
+		if (pin >= 0 && pin < source.vertexCount)
+			target->uvPins.insert(pin + offset);
 	appendModelSurfaceOrigins(target, source.editOrigins);
 	target->vertexCount += source.vertexCount;
 	return true;
@@ -263,6 +287,7 @@ bool applyModelSurfaceEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelectio
 	{
 		if (mesh->surfaces.size() == 1)
 			return fail(error, Text::tr("The last surface cannot be deleted."));
+		remapIssueSurfaces(mesh, int(mesh->surfaces.size()), {}, -1, {active});
 		mesh->surfaces.removeAt(active);
 		*selection = {std::min(active, int(mesh->surfaces.size()) - 1), {}, {}};
 	}
@@ -288,7 +313,10 @@ bool applyModelSurfaceEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelectio
 			if (!appendSurface(&mesh->surfaces[target], moved, work, error, control))
 				return false;
 			if (all)
+			{
+				remapIssueSurfaces(mesh, int(mesh->surfaces.size()), {active}, target, {});
 				mesh->surfaces.removeAt(active);
+			}
 			else
 				mesh->surfaces[active] = std::move(remaining);
 			if (!selectFaces(selection, target - int(all && active < target), first, edit.selection.faces.size(), work))
@@ -302,6 +330,9 @@ bool applyModelSurfaceEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelectio
 			if (i != target && edit.surfaces.contains(i) && !appendSurface(&combined, mesh->surfaces[i], work, error, control))
 				return false;
 		mesh->surfaces[target] = std::move(combined);
+		auto merged = edit.surfaces;
+		merged.remove(target);
+		remapIssueSurfaces(mesh, int(mesh->surfaces.size()), merged, target, {});
 		int newTarget = target;
 		for (int i = mesh->surfaces.size() - 1; i >= 0; --i)
 			if (i != target && edit.surfaces.contains(i))

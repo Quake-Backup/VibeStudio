@@ -55,6 +55,7 @@ class QWidget;
 namespace vibestudio
 {
 class ModelBakeDialog;
+class ModelBvh;
 class ModelEditorDialog;
 class ModelSkinPaintDialog;
 class ModelViewport;
@@ -138,6 +139,12 @@ class ModelEditorTools final : public QObject
 	void typeModal(const QString &text);
 	void adjustModal(int steps);
 	bool finishModal(bool commit, QString *error = nullptr);
+	// Cancels a running modal operator because the document is about to change
+	// or has changed under it (Undo, Redo, an edit from a panel or button), and
+	// says so on the status line; the operator's selection and preview belong
+	// to the mesh it started on. The knife re-plans on its own, and Poly
+	// Build's own faces do not end it.
+	void cancelModalForDocumentChange();
 	// UV > Paint Skin… (model_editor_skin_paint.cpp): the paint dialog on the
 	// active surface's skin, wired to Apply to Model and Paint in View.
 	ModelSkinPaintDialog *openSkinPaint();
@@ -321,6 +328,13 @@ class ModelEditorTools final : public QObject
 		ModelEditReport report;
 		// Poly Build: corners placed so far, an existing vertex or -1 with a point.
 		QVector<QPair<int, ModelVec3>> buildCorners;
+		// The document revision the operator started on (or Poly Build last
+		// committed); `ownEdit` is set while Poly Build commits a face.
+		QByteArray revision;
+		bool ownEdit = false;
+		// Face and Face Project snapping: a tree over snapTriangles, so a
+		// pointer move does not test every still face.
+		std::shared_ptr<const ModelBvh> snapBvh;
 	};
 	struct LastOperation
 	{
@@ -363,6 +377,9 @@ class ModelEditorTools final : public QObject
 	QToolButton *m_budget = nullptr;
 	// The delivery targets as last shown, so a change can be announced.
 	QString m_budgetState;
+	// The revision and target choices the delivery-target menu was built for;
+	// a selection change leaves the menu as it is.
+	QString m_targetsKey;
 	QComboBox *m_snapElement = nullptr;
 	QHash<QString, QAction *> m_actions;
 	QVector<KeyHint> m_keyHints;

@@ -18,7 +18,7 @@ python scripts/validate_samples.py --binary builddir/src/vibestudio
 ```
 
 [Hingeworks](projects/quake2-hingeworks/README.md) is a larger Quake II rerelease
-(Q2RE) deathmatch map authoring experiment, currently an **Alpha 5 review candidate** (Alpha 4 is the latest approved release). It keeps editable map sources,
+(Q2RE) deathmatch map authoring experiment, currently an **unreleased Alpha 5 development build** (Alpha 4 is the latest approved release). It keeps editable map sources,
 the design reference, authoring script and release records in a persistent
 VibeStudio project. Its textures, sounds and music require a separately owned
 Quake II rerelease installation. It is not part of the installation-free minimal smoke

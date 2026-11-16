@@ -18,6 +18,7 @@
 #include <QTableView>
 #include <QTemporaryDir>
 #include <QTranslator>
+#include <QWheelEvent>
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
@@ -171,6 +172,13 @@ int main(int argc, char **argv)
 		view.zoomAt(point, 2);
 		ok &= tests::settleModelUv(view);
 		ok &= expect(near(view.uvToScreen({0.75f, 0.25f}), point), "zoom keeps cursor UV anchored");
+		{
+			QWheelEvent sideways(point, view.mapToGlobal(point), QPoint(), QPoint(120, 0), Qt::NoButton, Qt::NoModifier, Qt::NoScrollPhase,
+								 false);
+			QApplication::sendEvent(&view, &sideways);
+			ok &= expect(!view.isRendering() && near(view.uvToScreen({0.75f, 0.25f}), point),
+						 "a horizontal wheel neither zooms nor redraws the UV view");
+		}
 		view.panView({-20, 15});
 		ok &= tests::settleModelUv(view);
 		ok &= expect(near(view.uvToScreen({0.75f, 0.25f}), point + QPointF(-20, 15)), "pan translates the UV camera");
@@ -194,7 +202,14 @@ int main(int argc, char **argv)
 		ok &= expect(view.beginMove(handle) && view.updateMove(handle + movement) && std::abs(view.moveDelta().u - 0.125f) < 1e-6f,
 					 "UV move preview uses shared delta snapping");
 		view.finishMove(false);
+		ok &= expect(view.pixmap().isNull(), "a cancelled UV move preview leaves the view at once");
 		ok &= expect(!view.moving() && commits == 0 && tests::settleModelUv(view), "cancelling retires preview and publishes no edit");
+		// A move that never travelled showed no preview: its image stays.
+		handle = view.moveHandle();
+		ok &= expect(view.beginMove(handle), "a UV drag starts without travelling");
+		view.finishMove(false);
+		ok &= expect(!view.pixmap().isNull() && commits == 0, "cancelling a UV move that showed no preview keeps the image");
+		ok &= tests::settleModelUv(view);
 		handle = view.moveHandle();
 		ok &= expect(view.beginMove(handle) && view.updateMove(handle + movement), "second UV drag starts");
 		view.finishMove(true);

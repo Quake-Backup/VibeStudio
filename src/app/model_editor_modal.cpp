@@ -5,6 +5,7 @@
 #include "app/model_editor_frames.h"
 #include "app/model_viewport.h"
 #include "app/viewport_hud.h"
+#include "core/model_bvh.h"
 #include "core/model_collision.h"
 #include "core/model_edge_slide.h"
 #include "core/model_geometric_topology.h"
@@ -31,6 +32,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <numbers>
 
 namespace vibestudio
@@ -99,27 +101,52 @@ bool planeHit(const ModelPickRay &ray, V point, V normal, V *hit)
 	*hit = add(ray.origin, scale(ray.direction, t));
 	return std::isfinite(hit->x) && std::isfinite(hit->y) && std::isfinite(hit->z);
 }
-// The nearest triangle the ray meets in front of its origin (Moller-Trumbore).
+// Where the ray meets the triangle in front of its origin (Moller-Trumbore),
+// as a distance along the ray; false when it misses.
+bool triangleHit(V origin, V direction, const std::array<V, 3> &triangle, double *t)
+{
+	const V e1 = sub(triangle[1], triangle[0]), e2 = sub(triangle[2], triangle[0]);
+	const V p = cross(direction, e2);
+	const double det = dot(e1, p);
+	if (std::abs(det) < 1e-12)
+		return false;
+	const V s = sub(origin, triangle[0]);
+	const double u = dot(s, p) / det;
+	const V q = cross(s, e1);
+	const double v = dot(direction, q) / det;
+	*t = dot(e2, q) / det;
+	return !(u < 0 || v < 0 || u + v > 1 || *t < 0);
+}
+// The nearest triangle the ray meets in front of its origin.
 bool nearestTriangleHit(V origin, V direction, const QVector<std::array<V, 3>> &triangles, V *hit)
 {
 	double nearest = INFINITY;
 	for (const auto &triangle : triangles)
 	{
-		const V e1 = sub(triangle[1], triangle[0]), e2 = sub(triangle[2], triangle[0]);
-		const V p = cross(direction, e2);
-		const double det = dot(e1, p);
-		if (std::abs(det) < 1e-12)
-			continue;
-		const V s = sub(origin, triangle[0]);
-		const double u = dot(s, p) / det;
-		const V q = cross(s, e1);
-		const double v = dot(direction, q) / det, t = dot(e2, q) / det;
-		if (u < 0 || v < 0 || u + v > 1 || t < 0 || t >= nearest)
+		double t = 0;
+		if (!triangleHit(origin, direction, triangle, &t) || t >= nearest)
 			continue;
 		nearest = t;
 		*hit = add(origin, scale(direction, t));
 	}
 	return std::isfinite(nearest);
+}
+// The same answer through the tree over the triangles: it names the nearest
+// face, and the hit is measured on that face as nearestTriangleHit measures
+// it. A face the tree finds that the scan's own test turns away (a nearly
+// degenerate one) leaves the answer to the scan.
+bool nearestTriangleHit(V origin, V direction, const QVector<std::array<V, 3>> &triangles, const ModelBvh *tree, V *hit)
+{
+	if (!tree)
+		return nearestTriangleHit(origin, direction, triangles, hit);
+	const auto found = tree->nearest(origin, direction, -std::numeric_limits<double>::denorm_min(), INFINITY);
+	if (!found.hit)
+		return false;
+	double t = 0;
+	if (found.index < 0 || found.index >= triangles.size() || !triangleHit(origin, direction, triangles[found.index], &t))
+		return nearestTriangleHit(origin, direction, triangles, hit);
+	*hit = add(origin, scale(direction, t));
+	return true;
 }
 // Signed angle, in degrees, that turns `from` onto `to` about `axis`, both
 // measured in the plane across the axis.
@@ -146,6 +173,10 @@ V axisRotationFor(V axis)
 	return {0, float(pitch), float(yaw)};
 }
 const QColor axisColours[3]{QColor(226, 104, 104), QColor(126, 206, 132), QColor(122, 158, 240)};
+QString modalDocumentChangedText()
+{
+	return Text::tr("The tool was cancelled because the model changed while it ran. Start it again to work on the current mesh.");
+}
 } // namespace
 
 ModelModalOperator ModelEditorTools::modalOperator() const
@@ -160,7 +191,21 @@ bool ModelEditorTools::modalPreviewValid() const
 
 const ModelMesh *ModelEditorTools::modalPreview() const
 {
-	return m_modal && m_modal->previewShown ? &m_modal->preview : nullptr;
+	if (!m_modal || !m_modal->previewShown)
+		return nullptr;
+	// A move, rotate or scale of every pose shows only the displayed pose
+	// while it runs (updateModalPreview); whoever asks for the preview gets
+	// every pose, as the commit makes them.
+	auto &m = *m_modal;
+	if (m.valid && (m.edit.kind == ModelEditKind::Transform || m.edit.kind == ModelEditKind::WeightedTransform) && m.edit.frame < 0 &&
+		m_editor->m_document.mesh().frames.size() > 1)
+	{
+		auto whole = m_editor->m_document.mesh();
+		QString error;
+		if (applyModelEdit(&whole, m.edit, nullptr, &error))
+			m.preview = std::move(whole);
+	}
+	return &m.preview;
 }
 
 double ModelEditorTools::worldPerPixel(const ModelVec3 &at)
@@ -476,6 +521,17 @@ bool ModelEditorTools::beginModal(ModelModalOperator op, const QPointF &pointer,
 			modal->hoverEdge = edgeNear(pointer, &modal->hoverSurface);
 		}
 	}
+	if (!modal->snapTriangles.isEmpty())
+	{
+		QVector<ModelBvhTriangle> triangles;
+		triangles.reserve(modal->snapTriangles.size());
+		for (int i = 0; i < modal->snapTriangles.size(); ++i)
+			triangles.append({modal->snapTriangles[i], -1, i});
+		auto tree = std::make_shared<ModelBvh>();
+		if (tree->build(std::move(triangles)))
+			modal->snapBvh = std::move(tree);
+	}
+	modal->revision = m_editor->m_document.revisionFingerprint();
 	m_modal = std::move(modal);
 	m_viewport->setFocus(Qt::OtherFocusReason);
 	updateModalPreview();
@@ -847,6 +903,11 @@ void ModelEditorTools::updateModalPreview()
 		updateKnifePreview();
 		return;
 	}
+	if (!m_modal->ownEdit && m_modal->revision != m_editor->m_document.revisionFingerprint())
+	{
+		cancelModalForDocumentChange();
+		return;
+	}
 	auto &m = *m_modal;
 	const auto &mesh = m_editor->m_document.mesh();
 	const int frame = std::clamp(m_editor->m_frame->currentIndex(), 0, int(mesh.frames.size()) - 1);
@@ -924,7 +985,7 @@ void ModelEditorTools::updateModalPreview()
 				if (!found)
 					return false;
 			}
-			else if (!nearestTriangleHit(ray.origin, ray.direction, m.snapTriangles, target))
+			else if (!nearestTriangleHit(ray.origin, ray.direction, m.snapTriangles, m.snapBvh.get(), target))
 				return false;
 			if (!m_viewport->projectToView(*target, screen))
 				*screen = m.lastActual;
@@ -1060,7 +1121,7 @@ void ModelEditorTools::updateModalPreview()
 					if (m_viewport->projectToView(p, &screen))
 					{
 						const auto ray = m_viewport->viewRay(screen);
-						if (nearestTriangleHit(ray.origin, ray.direction, m.snapTriangles, &hit))
+						if (nearestTriangleHit(ray.origin, ray.direction, m.snapTriangles, m.snapBvh.get(), &hit))
 						{
 							p = hit;
 							++projected;
@@ -1386,12 +1447,24 @@ void ModelEditorTools::updateModalPreview()
 		ModelSelection resulting;
 		QString error;
 		ModelEditReport report;
+		// A move, rotate or scale of every pose previews the pose the view
+		// shows, and no other: that pose comes out as the commit makes it,
+		// since the pivot, axes and weights come from the pivot frame either
+		// way. Skeletal models derive their poses from the bind pose, Auto
+		// Merge welds across every pose, and playback shows other poses, so
+		// those preview every pose.
+		auto previewEdit = edit;
+		const bool mirrored = double(edit.scale.x) * edit.scale.y * edit.scale.z < 0;
+		if ((edit.kind == ModelEditKind::Transform || edit.kind == ModelEditKind::WeightedTransform) && edit.frame < 0 && !mirrored &&
+			mesh.skeleton.isEmpty() && edit.tool.topology.autoMergeDistance <= 0 && !m_viewport->isPlaying() && edit.pivotFrame >= 0 &&
+			edit.pivotFrame < mesh.frames.size() && edit.pivotFrame == m_viewport->frame())
+			previewEdit.frame = edit.pivotFrame;
 		const bool ready = m.op == ModelModalOperator::BevelEdges || isSpin(m.op) || isRip(m.op)
 			? m_editor->performWork(isRip(m.op) ? Text::tr("Previewing rip…") : isSpin(m.op) ? Text::tr("Previewing spin…") : Text::tr("Previewing edge bevel…"),
 				[&copy, &resulting, &report, edit](ModelDocument &, QString *failure, const ModelWorkControl &control) {
 					return applyModelEdit(&copy, edit, &resulting, failure, control, &report);
 				}, &error, false, ModelEditorDialog::WorkKind::Preview)
-			: applyModelEdit(&copy, edit, &resulting, &error);
+			: applyModelEdit(&copy, previewEdit, &resulting, &error);
 		if (ready)
 		{
 			m.valid = true;
@@ -1496,6 +1569,14 @@ bool ModelEditorTools::finishModal(bool commit, QString *error)
 {
 	if (!m_modal || m_editor->m_working)
 		return false;
+	if (commit && m_modal->op != ModelModalOperator::Knife && !m_modal->ownEdit &&
+		m_modal->revision != m_editor->m_document.revisionFingerprint())
+	{
+		cancelModalForDocumentChange();
+		if (error)
+			*error = modalDocumentChangedText();
+		return false;
+	}
 	if (commit && m_modal->op == ModelModalOperator::Knife)
 	{
 		if (m_modal->pending || !knifeContextUnchanged()) { m_modal->pending = false; updateKnifePreview(); }
@@ -1537,6 +1618,14 @@ bool ModelEditorTools::finishModal(bool commit, QString *error)
 	if (isRip(modal->op)) setSelectionMode(m_editor->m_document.selection().edges.isEmpty() ? 1 : 2);
 	if (isFaceExtrude(modal->op)) setSelectionMode(0);
 	return true;
+}
+
+void ModelEditorTools::cancelModalForDocumentChange()
+{
+	if (!m_modal || m_modal->ownEdit || m_modal->op == ModelModalOperator::Knife || m_editor->m_working)
+		return;
+	finishModal(false);
+	showBanner(modalDocumentChangedText(), {}, LiveStatus::Problem);
 }
 
 bool ModelEditorTools::eventFilter(QObject *watched, QEvent *event)

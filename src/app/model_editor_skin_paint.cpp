@@ -16,8 +16,68 @@
 #include <QCoreApplication>
 #include <QPointer>
 
+#include <algorithm>
+#include <memory>
+
 namespace vibestudio
 {
+namespace
+{
+template <typename T, typename Same> bool sameArray(const QVector<T> &a, const QVector<T> &b, Same same)
+{
+	if (a.size() != b.size())
+		return false;
+	// Unedited arrays stay shared between document states.
+	return a.constData() == b.constData() || std::equal(a.cbegin(), a.cend(), b.cbegin(), same);
+}
+bool sameVectors(const QVector<ModelVec3> &a, const QVector<ModelVec3> &b)
+{
+	return sameArray(a, b, [](const ModelVec3 &p, const ModelVec3 &q) { return p.x == q.x && p.y == q.y && p.z == q.z; });
+}
+// The surface's faces and UVs, which a skin is painted or baked against.
+bool sameSurfaceLayout(const ModelSurface &a, const ModelSurface &b)
+{
+	return a.name == b.name && a.vertexCount == b.vertexCount &&
+		   sameArray(a.triangles, b.triangles, [](const ModelTriangle &p, const ModelTriangle &q) { return p.a == q.a && p.b == q.b && p.c == q.c; }) &&
+		   sameArray(a.texCoords, b.texCoords, [](const ModelTexCoord &p, const ModelTexCoord &q) { return p.u == q.u && p.v == q.v; });
+}
+// What a bake read: every surface's layout and its pose at the baked frame
+// (a bake of every surface lays them all into one map; occlusion sees them all).
+bool sameBakeInput(const ModelMesh &then, const ModelMesh &now, int frame)
+{
+	if (then.surfaces.size() != now.surfaces.size())
+		return false;
+	for (int s = 0; s < then.surfaces.size(); ++s)
+	{
+		const auto &a = then.surfaces[s], &b = now.surfaces[s];
+		if (!sameSurfaceLayout(a, b) || a.frames.size() != b.frames.size())
+			return false;
+		if (frame >= 0 && frame < a.frames.size() &&
+			(!sameVectors(a.frames[frame].positions, b.frames[frame].positions) || !sameVectors(a.frames[frame].normals, b.frames[frame].normals)))
+			return false;
+	}
+	return true;
+}
+// The package's image at `path` as it is now, decoded; null when it cannot be read.
+QByteArray packageBytes(ModelEditorDialog *editor, const QString &path)
+{
+	if (path.isEmpty() || !editor->readPackageFiles)
+		return {};
+	const auto files = editor->readPackageFiles({path});
+	return files.isEmpty() ? QByteArray() : files.cbegin().value();
+}
+QImage packageSkin(ModelEditorDialog *editor, const QString &path)
+{
+	const QByteArray bytes = packageBytes(editor, path);
+	if (bytes.isEmpty())
+		return {};
+	const auto format = detectIdTechImageFormat(path, bytes);
+	const auto decoded = decodeIdTechImage(path, bytes, generatedIdTechPalette(defaultIdTechPaletteIdForFormat(format)));
+	if (decoded.decoded && !decoded.image.isNull() && decoded.image.width() <= 4096 && decoded.image.height() <= 4096)
+		return decoded.image;
+	return {};
+}
+} // namespace
 
 // The surface's skin: its MDL skin as indices, else its material image (read
 // at full size from the package when it can be, with `imagePath` set to its
@@ -38,18 +98,8 @@ QImage ModelEditorTools::surfaceSkin(ModelEditorDialog *editor, int surface, QSt
 			break;
 		}
 	}
-	if (!imagePath->isEmpty() && editor->readPackageFiles)
-	{
-		const auto files = editor->readPackageFiles({*imagePath});
-		if (!files.isEmpty() && !files.cbegin().value().isEmpty())
-		{
-			const QByteArray &bytes = files.cbegin().value();
-			const auto format = detectIdTechImageFormat(*imagePath, bytes);
-			const auto decoded = decodeIdTechImage(*imagePath, bytes, generatedIdTechPalette(defaultIdTechPaletteIdForFormat(format)));
-			if (decoded.decoded && !decoded.image.isNull() && decoded.image.width() <= 4096 && decoded.image.height() <= 4096)
-				skin = decoded.image;
-		}
-	}
+	if (const auto full = packageSkin(editor, *imagePath); !full.isNull())
+		skin = full;
 	return skin;
 }
 
@@ -58,19 +108,39 @@ ModelBakeDialog *ModelEditorTools::openBake()
 	ModelEditorDialog *editor = m_editor;
 	const auto &mesh = editor->document().mesh();
 	const int surface = std::max(0, editor->document().selection().surface);
-	auto *dialog = new ModelBakeDialog(mesh, surface, editor->m_preview->frame(), editor);
+	const int frame = editor->m_preview->frame();
+	auto *dialog = new ModelBakeDialog(mesh, surface, frame, editor);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
 	QString imagePath;
 	const QImage skin = surfaceSkin(editor, surface, &imagePath);
+	// The dialog stays open while the model is edited. The map fits the
+	// faces, UVs and pose it was baked from; an edit that changes those
+	// leaves it applying to the wrong texels, so Apply refuses then.
+	const auto fits = [editor, baked = mesh, frame](QString *error)
+	{
+		if (sameBakeInput(baked, editor->document().mesh(), frame))
+			return true;
+		*error = QCoreApplication::translate("VibeStudioModelBake",
+			"The model's faces, UVs or pose changed since Bake Maps opened, so this map no longer lines up with the skin. Close Bake Maps and bake again.");
+		return false;
+	};
 	// An MDL skin is shaded in place as one undo step, keeping its
 	// fullbright indices (224 and up) lit.
 	if (const int slot = modelSkinPaintMdlSlot(mesh, surface); slot >= 0)
 	{
 		dialog->setApplyTarget(
 			QCoreApplication::translate("VibeStudioModelBake", "Shade MDL skin %1 with an occlusion or lighting map, as one undo step.").arg(slot + 1),
-			[editor, surface](const QImage &map, ModelBakeType type, double strength, QString *error)
+			[editor, surface, slot, fits](const QImage &map, ModelBakeType type, double strength, QString *error)
 			{
 				const auto &current = editor->document().mesh();
+				if (!fits(error))
+					return false;
+				if (modelSkinPaintMdlSlot(current, surface) != slot)
+				{
+					*error = QCoreApplication::translate("VibeStudioModelBake",
+						"The surface's MDL skin changed since Bake Maps opened. Close Bake Maps and open it again.");
+					return false;
+				}
 				QImage shaded;
 				ModelEdit edit;
 				if (!multiplyModelBakeIntoSkin(modelSurfaceIndexedSkin(current, surface), map, type, strength, 224, &shaded, error) ||
@@ -87,14 +157,20 @@ ModelBakeDialog *ModelEditorTools::openBake()
 		dialog->setApplyTarget(
 			QCoreApplication::translate("VibeStudioModelBake", "Shade %1 with an occlusion or lighting map, or stage a normal map beside it, in the open package.")
 				.arg(imagePath),
-			[editor, imagePath, skin](const QImage &map, ModelBakeType type, double strength, QString *error)
+			[editor, imagePath, skin, fits](const QImage &map, ModelBakeType type, double strength, QString *error)
 			{
+				if (!fits(error))
+					return false;
 				QByteArray bytes;
 				QString path = imagePath;
 				if (type == ModelBakeType::AmbientOcclusion || type == ModelBakeType::Lighting)
 				{
+					// Shade the image as the package holds it now, so what was
+					// painted or applied since the dialog opened is kept.
+					const QImage current = packageSkin(editor, imagePath);
 					QImage shaded;
-					if (!multiplyModelBakeIntoSkin(skin, map, type, strength, -1, &shaded, error) || !encodeModelPaintedSkin(shaded, imagePath, &bytes, error))
+					if (!multiplyModelBakeIntoSkin(current.isNull() ? skin : current, map, type, strength, -1, &shaded, error) ||
+						!encodeModelPaintedSkin(shaded, imagePath, &bytes, error))
 						return false;
 				}
 				else
@@ -124,30 +200,77 @@ ModelSkinPaintDialog *ModelEditorTools::openSkinPaint()
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
 	QPointer<ModelSkinPaintDialog> guard(dialog);
 	QPointer<ModelViewport> view(editor->m_preview);
+	// The dialog stays open while the model is edited. The painting lines up
+	// with the surface's faces and UVs as the dialog last read them (painting
+	// in the view reads the model again), and it replaces the whole skin: an
+	// edit that moved the UVs or the surface, or another change to the skin
+	// since (an applied bake), makes Apply refuse rather than undo it.
+	const int surfaceCount = int(mesh.surfaces.size());
+	const auto fits = [editor, guard, surface, surfaceCount](QString *error)
+	{
+		const auto &now = editor->document().mesh();
+		const auto *painted = guard ? &guard->mesh() : nullptr;
+		if (painted && surface < now.surfaces.size() && surface < painted->surfaces.size() && now.surfaces.size() == surfaceCount &&
+			sameSurfaceLayout(painted->surfaces[surface], now.surfaces[surface]))
+			return true;
+		*error = QCoreApplication::translate("VibeStudioModelSkinPaint",
+			"The surface or its UVs changed since Paint Skin opened, so the painting no longer lines up with the model. Close Paint Skin and open it again.");
+		return false;
+	};
+	const auto skinChanged = []
+	{
+		return QCoreApplication::translate("VibeStudioModelSkinPaint",
+			"The skin changed since Paint Skin opened (a bake or another paint was applied to it); applying would discard that change. Close Paint Skin and open it again.");
+	};
 	// Apply to Model: an MDL skin member as one undo step, or the image
 	// staged back into the open package at the path it came from.
 	if (const int slot = modelSkinPaintMdlSlot(mesh, surface); slot >= 0)
 	{
+		// The skins this dialog has seen in the model: the one it opened on
+		// and each it applied (Undo and Redo move between them).
+		auto known = std::make_shared<QVector<QImage>>(QVector<QImage>{modelSurfaceIndexedSkin(mesh, surface)});
 		dialog->setApplyTarget(
 			QCoreApplication::translate("VibeStudioModelSkinPaint", "Replace MDL skin %1 with the painted skin, as one undo step.").arg(slot + 1),
-			[editor, surface](const QImage &painted, QString *error)
+			[editor, surface, slot, fits, skinChanged, known](const QImage &painted, QString *error)
 			{
+				if (!fits(error))
+					return false;
+				const auto &current = editor->document().mesh();
+				if (modelSkinPaintMdlSlot(current, surface) != slot || !known->contains(modelSurfaceIndexedSkin(current, surface)))
+				{
+					*error = skinChanged();
+					return false;
+				}
 				ModelEdit edit;
-				if (!modelSkinPaintMdlEdit(editor->document().mesh(), surface, painted, &edit, error))
+				if (!modelSkinPaintMdlEdit(current, surface, painted, &edit, error))
 					return false;
 				edit.selection = editor->document().selection();
-				return editor->applyEdit(edit, error);
+				if (!editor->applyEdit(edit, error))
+					return false;
+				known->append(modelSurfaceIndexedSkin(editor->document().mesh(), surface));
+				return true;
 			});
 	}
 	else if (!imagePath.isEmpty() && editor->stageSkinImage)
 	{
+		// The package's file as the dialog opened on it and as it staged it.
+		auto staged = std::make_shared<QByteArray>(packageBytes(editor, imagePath));
 		dialog->setApplyTarget(
 			QCoreApplication::translate("VibeStudioModelSkinPaint", "Stage the painted skin as %1 in the open package.").arg(imagePath),
-			[editor, imagePath](const QImage &painted, QString *error)
+			[editor, imagePath, fits, skinChanged, staged](const QImage &painted, QString *error)
 			{
+				if (!fits(error))
+					return false;
+				// Unreadable at opening: nothing to compare with.
+				if (!staged->isEmpty() && packageBytes(editor, imagePath) != *staged)
+				{
+					*error = skinChanged();
+					return false;
+				}
 				QByteArray bytes;
 				if (!encodeModelPaintedSkin(painted, imagePath, &bytes, error) || !editor->stageSkinImage(imagePath, bytes, error))
 					return false;
+				*staged = packageBytes(editor, imagePath);
 				editor->reloadMaterials();
 				return true;
 			});

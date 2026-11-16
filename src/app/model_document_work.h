@@ -22,4 +22,18 @@ bool runModelTask(QWidget *parent, const QString &title, ModelTask task, QString
 // A completed durable write remains successful if cancellation arrives late.
 bool runModelDocumentWork(QWidget *parent, const QString &title, ModelDocument *document, ModelDocumentJob job, QString *error = nullptr,
 						  bool durableWrite = false, std::function<void()> *cancelAction = nullptr);
+
+// Hears every worker the functions above run, so the window's activity
+// indicator counts it (app/studio_progress.h, "Visible Work" in
+// docs/UX_DESIGN.md): `begin` takes the title and returns a token (0 for
+// none), `progress` gets per mille done or -1 while there is no total, and
+// `end` closes the token, whatever way the work ended. The Mesh Editor
+// installs the studio's work tracker; without a reporter nothing is told.
+struct ModelWorkReporter
+{
+	std::function<int(const QString &title)> begin;
+	std::function<void(int token, int perMille)> progress;
+	std::function<void(int token)> end;
+};
+void setModelWorkReporter(ModelWorkReporter reporter);
 } // namespace vibestudio

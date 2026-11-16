@@ -49,7 +49,11 @@ bool parseModelWeightKeys(const QString &text, int frames, QVector<ModelPoseCurv
 [[nodiscard]] QString modelWeightKeysText(const QVector<ModelPoseCurveKey> &keys);
 // Every clip with a stack has a base parallel to its frames and frames equal
 // to the stack's evaluation.
-bool validateModelClipStacks(const ModelMesh &mesh, QString *error = nullptr, const ModelWorkControl &control = {});
+// A clip that still shares its samples, base, layers and constraints with the
+// same clip of `validBaseline`, a model that passed this check with the same
+// joints and tags, is not evaluated again.
+bool validateModelClipStacks(const ModelMesh &mesh, QString *error = nullptr, const ModelWorkControl &control = {},
+							 const ModelMesh *validBaseline = nullptr);
 // Candidate-only EditClipStack.
 bool applyModelClipStack(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});
 // Called by replaceModelSkeletalSamples: `samples` (every sample, computed by

@@ -31,9 +31,14 @@ QByteArray requestKey(const ModelMesh &mesh, const ModelMaterialSource &source)
 		add(surface.skinPaths.value(0));
 	}
 	add(QString::number(mesh.surfaces.size()));
-	if (!mesh.embeddedSkins.isEmpty())
+	// Every embedded texture the snapshot carries: a model with several can
+	// change any one of them.
+	add(QString::number(mesh.embeddedSkins.size()));
+	for (const auto &skin : mesh.embeddedSkins)
 	{
-		add(QString::number(mesh.embeddedSkins.first().image.cacheKey()));
+		add(QString::number(skin.index));
+		add(skin.name);
+		add(QString::number(skin.image.cacheKey()));
 	}
 	return hash.result();
 }

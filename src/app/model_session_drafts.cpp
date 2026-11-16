@@ -239,7 +239,10 @@ void ModelEditorDialog::reviewRecoveredSessions(const QString &recoveryId)
 			continue;
 		}
 		const auto summary = modelSessionDraftSummary(draft);
-		if (draft.baseFingerprint != m_document.revisionFingerprint())
+		// Work staged by a build that identified models with one hash stream
+		// still matches its model.
+		if (draft.baseFingerprint != m_document.revisionFingerprint() &&
+			draft.baseFingerprint != modelStateLegacyFingerprint(m_document.mesh()))
 		{
 			m_status->setText(QCoreApplication::translate("VibeStudioModelEditor",
 														  "Not restored: %1. It was staged on another version of this model.")

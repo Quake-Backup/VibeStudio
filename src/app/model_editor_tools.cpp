@@ -586,7 +586,11 @@ void ModelEditorTools::buildActions()
 	// The Quake III working limit: RB_CheckOverflow drops a surface of 2,000.
 	addAction(QStringLiteral("meshDecimateMd3"), Text::tr("Decimate to MD3 Budget (1,999 Triangles)"), {},
 			  [this] { runKind(ModelEditKind::Decimate, [](ModelEdit &e) { e.tool.targetTriangles = 1999; }); });
-	addAction(QStringLiteral("meshCheckTargets"), Text::tr("Check Delivery Targets…"), {}, [this] { m_editor->checkDeliveryTargets(); });
+	addAction(QStringLiteral("meshCheckTargets"), Text::tr("Check Delivery Targets…"), {}, [this]
+			  {
+				  m_editor->syncDeliveryContext();
+				  m_editor->checkDeliveryTargets();
+			  });
 	// Add (Shift+A).
 	const QVector<QPair<ModelPrimitive, QString>> primitives{
 		{ModelPrimitive::Plane, QStringLiteral("Plane")},		  {ModelPrimitive::Cube, QStringLiteral("Cube")},
@@ -1501,7 +1505,19 @@ bool ModelEditorTools::runTool(const ModelEdit &operation, QString *error)
 	const auto before = m_editor->m_document.revisionFingerprint();
 	QString failure;
 	ModelEditReport report;
-	if (!m_editor->applyEdit(edit, &failure, &report))
+	// Poly Build commits each face while it runs and carries on from the
+	// changed mesh; every other edit ends a running operator.
+	const bool polyBuild = m_modal && m_modal->op == ModelModalOperator::PolyBuild &&
+						   (edit.kind == ModelEditKind::AddFace || edit.kind == ModelEditKind::ExtrudeEdges);
+	if (polyBuild)
+		m_modal->ownEdit = true;
+	const bool applied = m_editor->applyEdit(edit, &failure, &report);
+	if (polyBuild && m_modal && m_modal->op == ModelModalOperator::PolyBuild)
+	{
+		m_modal->ownEdit = false;
+		m_modal->revision = m_editor->m_document.revisionFingerprint();
+	}
+	if (!applied)
 	{
 		if (error)
 			*error = failure;
@@ -2923,6 +2939,8 @@ QString ModelEditorTools::budgetSummary() const
 
 void ModelEditorTools::documentChanged()
 {
+	if (m_modal && !m_modal->ownEdit && m_modal->revision != m_editor->m_document.revisionFingerprint())
+		cancelModalForDocumentChange();
 	trackSelectionOrder();
 	// Hidden faces are kept by index; a surface whose faces changed shows
 	// again rather than hiding the wrong ones.
@@ -2950,6 +2968,23 @@ void ModelEditorTools::documentChanged()
 	if (!m_budget)
 		return;
 	const auto &mesh = m_editor->m_document.mesh();
+	// What the menu and Adjust Last Operation show depends on the mesh and
+	// the target choices, not on the selection: a click that only selects
+	// keeps them. A selection operator's settings follow the selection.
+	QStringList targetFormats{QStringLiteral("md3"), QStringLiteral("md2"), QStringLiteral("mdl"), QStringLiteral("iqm")};
+	if (!mesh.skeleton.isEmpty())
+		targetFormats << QStringLiteral("md5mesh") << QStringLiteral("md5anim");
+	QString key = QString::fromLatin1(m_editor->m_document.revisionFingerprint().toHex()) + QLatin1Char('|') +
+				  m_editor->m_deliveryContext.projectRoot + QLatin1Char('|') + (m_editor->saveDeliveryPreferences ? QLatin1Char('1') : QLatin1Char('0'));
+	for (const auto &format : std::as_const(targetFormats))
+		key += QLatin1Char('|') + m_editor->deliveryTarget(format) + QLatin1Char(':') + QString::number(int(m_editor->deliveryTargetOrigin(format)));
+	if (key == m_targetsKey)
+	{
+		if (m_hasLast && m_lastPanel && m_lastPanel->isVisible() && m_lastSelect.active)
+			refreshLastPanel();
+		return;
+	}
+	m_targetsKey = key;
 	bool all = true;
 	auto *menu = m_budget->menu();
 	// The target submenus are children of the menu; clear() keeps them.
@@ -3012,11 +3047,8 @@ void ModelEditorTools::documentChanged()
 		}
 	}
 	menu->addSeparator();
-	// One exclusive choice of delivery target per format; the MD5 files are
-	// written from skeletal models only.
-	QStringList targetFormats{QStringLiteral("md3"), QStringLiteral("md2"), QStringLiteral("mdl"), QStringLiteral("iqm")};
-	if (!mesh.skeleton.isEmpty())
-		targetFormats << QStringLiteral("md5mesh") << QStringLiteral("md5anim");
+	// One exclusive choice of delivery target per format (targetFormats); the
+	// MD5 files are written from skeletal models only.
 	for (const auto &format : std::as_const(targetFormats))
 	{
 		const auto label = formatLabel(format);
@@ -3089,6 +3121,7 @@ bool ModelEditorTools::exportDetailLevels(const QString &basePath, const QVector
 	// Prepare the whole set first: every file's bytes, the delivery target's
 	// preflight and every destination's review.
 	ModelLodSet set;
+	m_editor->syncDeliveryContext();
 	const auto target = m_editor->deliveryTarget(QStringLiteral("md3"));
 	const QStringList inputs{m_editor->m_recoverySourcePath};
 	const auto revision = m_editor->m_document.revisionFingerprint();

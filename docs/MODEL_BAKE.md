@@ -15,7 +15,7 @@ command `src/cli/model_bake.*`. All of it is original VibeStudio code.
 | Map | What it holds | Background |
 | --- | --- | --- |
 | **Ambient occlusion** | How open each texel is: cosine-weighted rays over the hemisphere around its normal, counted as blocked when they hit the model within the occlusion distance. White is open. | White |
-| **Tangent-space normals (Doom 3)** | The normal in each triangle's tangent frame: red along +s, green along +t (down the image) and blue out of the surface, as Doom 3 derives tangents (`R_DeriveTangents`) and reads its bump maps. | (128, 128, 255) |
+| **Tangent-space normals (Doom 3)** | The normal in each triangle's tangent frame: red along +s, green along +t (down the image) and blue out of the surface, along the s and t gradients Doom 3 derives tangents from (`R_DeriveTangents`) and as it reads its bump maps. | (128, 128, 255) |
 | **Object-space normals** | The normal in model axes, as red, green and blue from -1 to 1. | Mid grey |
 | **Lighting** | An ambient level plus a directional light's Lambert term, with the model's own shadow. | The ambient level |
 
@@ -41,9 +41,16 @@ keeps the low-poly normal and is counted as a miss.
   the same settings always give the same map, whatever order texels are baked
   in.
 
-Only the part of each triangle inside the 0-1 UV square is baked; a texel
+Only the part of each triangle inside the 0-1 UV square is baked. A texel
+centre on an edge two triangles share belongs to one of them; a texel truly
 covered by two triangles takes the first, and the result notes both. A bake
 that would use more than 768 MiB is refused before it starts.
+
+Occlusion and shadow rays leave the surface from just above the face itself.
+Where a smoothed normal leans away from its face (low-poly curves), the part
+of its hemisphere below the face is mirrored back above it, and a light the
+smoothed normal faces but the face turns from is tested along the face, so a
+convex model never shadows or occludes itself.
 
 ## Using it
 
@@ -62,6 +69,12 @@ that would use more than 768 MiB is refused before it starts.
      PCX keeps its palette) and staged at its own path; a normal map is staged
      beside it instead, as `<name>_local.tga` for Doom 3's tangent-space bump
      map (`_objnormal` for object space).
+
+   The dialog stays open while you edit. **Apply to Model** shades the skin
+   as it is when you apply, so painting applied in the meantime is kept. A
+   map fits the faces, UVs and pose it was baked from: when an edit has
+   changed those since the dialog opened, **Apply to Model** refuses and
+   says so; undo the edit or bake again.
 
 ## Command line
 
@@ -84,5 +97,10 @@ without an MDL skin.
 
 - Writing a Doom 3 material stub that names a staged `_local` map.
 - Curvature and thickness maps, cage meshes, and averaged-normal projection.
+- Per-vertex tangents. Tangent-space maps are baked against each triangle's
+  own tangent frame, while Doom 3 sums face tangents per vertex (splitting
+  vertices where the UVs mirror) and interpolates them, so across smooth
+  edges whose triangles' texture gradients differ the baked map and the
+  game's basis disagree slightly.
 - A Doom 3 interaction check of a baked bump map through the Materials
   renderer.

@@ -17,6 +17,17 @@ void ModelViewport::setSkinPaintHandler(std::function<bool(ModelViewportStrokePh
 	setCursor(m_skinPaintHandler ? Qt::CrossCursor : Qt::ArrowCursor);
 }
 
+void ModelViewport::cancelSkinPaintStroke()
+{
+	if (!m_skinPainting) {
+		return;
+	}
+	m_skinPainting = false;
+	if (m_skinPaintHandler) {
+		m_skinPaintHandler(ModelViewportStrokePhase::Cancel, commandPosition());
+	}
+}
+
 bool ModelViewport::skinPaintProjection(ModelSkinPaintProjection* projection)
 {
 	if (!projection || !m_hasMesh || width() < 16 || height() < 16) {

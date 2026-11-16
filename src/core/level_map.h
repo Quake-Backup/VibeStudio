@@ -605,6 +605,12 @@ struct LevelMapDocument {
 	QStringList textLines;
 	// Line ending detected when the source text was loaded, written back as-is.
 	QString lineEnding = QStringLiteral("\n");
+	// True when the source .map was not valid UTF-8, as editors that wrote the
+	// system's 8-bit code page left it. Each byte is then read as one
+	// character and saved as that byte again, so text the user never touched
+	// (a level name, a message) keeps its bytes. Characters beyond 8 bits
+	// added later make the save UTF-8, with a warning.
+	bool sourceTextEightBit = false;
 	QVector<LevelMapEntity> entities;
 	QVector<LevelMapBrush> brushes;
 	QVector<LevelMapPatch> patches;

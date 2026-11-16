@@ -1,6 +1,7 @@
 #include "core/model_bake.h"
 
 #include "core/model_bvh.h"
+#include "core/model_uv_raster.h"
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -68,8 +69,17 @@ double random01(quint32 seed, int x, int y, int sample)
 
 struct Texel {
 	bool covered = false;
-	Vec position, normal, tangent, bitangent;
+	Vec position, normal, face, tangent, bitangent;
 };
+
+// `direction`, tipped just above the plane of the unit `face` normal when it
+// does not already point at least slightly above it.
+Vec aboveFace(Vec direction, Vec face)
+{
+	constexpr double kGrazing = 1e-3;
+	const double height = dot(direction, face);
+	return height >= kGrazing ? direction : normalized(add(direction, mul(face, kGrazing - height)), face);
+}
 
 double radiusOf(const ModelMesh& mesh, int frame)
 {
@@ -279,36 +289,38 @@ bool bakeModelMaps(const ModelMesh& target, const QVector<int>& surfaces, int fr
 			if (std::abs(uvArea) < 1e-12) {
 				continue;
 			}
-			const int x0 = std::max(0, int(std::floor(std::min({px[0], px[1], px[2]}) - 0.5)));
-			const int x1 = std::min(width - 1, int(std::ceil(std::max({px[0], px[1], px[2]}) - 0.5)));
-			const int y0 = std::max(0, int(std::floor(std::min({py[0], py[1], py[2]}) - 0.5)));
-			const int y1 = std::min(height - 1, int(std::ceil(std::max({py[0], py[1], py[2]}) - 0.5)));
 			if (std::min({px[0], px[1], px[2]}) < 0 || std::max({px[0], px[1], px[2]}) > width || std::min({py[0], py[1], py[2]}) < 0
 				|| std::max({py[0], py[1], py[2]}) > height) {
 				++outside;
 			}
-			for (int y = y0; y <= y1; ++y) {
-				for (int x = x0; x <= x1; ++x) {
-					const double cx = x + 0.5, cy = y + 0.5;
-					const double w0 = ((px[1] - cx) * (py[2] - cy) - (px[2] - cx) * (py[1] - cy)) / uvArea;
-					const double w1 = ((px[2] - cx) * (py[0] - cy) - (px[0] - cx) * (py[2] - cy)) / uvArea;
-					const double w2 = 1.0 - w0 - w1;
-					if (w0 < -1e-9 || w1 < -1e-9 || w2 < -1e-9) {
-						continue;
+			// The shared texel-centre rule visits a centre on an edge two
+			// triangles share once, so only real overlaps count as overlaps.
+			bool cancelled = false;
+			rasterizeModelUvTriangle(QPointF(px[0], py[0]), QPointF(px[1], py[1]), QPointF(px[2], py[2]), width, height,
+				[&](int x, int y, double w0, double w1, double w2) {
+					if (!work.step()) {
+						cancelled = true;
+						return false;
 					}
 					Texel& texel = texels[qsizetype(y) * width + x];
 					if (texel.covered) {
 						++overlaps;
-						continue;
+						return true;
 					}
 					texel.covered = true;
 					texel.position = add(add(mul(p[0], w0), mul(p[1], w1)), mul(p[2], w2));
 					texel.normal = normalized(add(add(mul(n[0], w0), mul(n[1], w1)), mul(n[2], w2)), face);
+					// The face's own normal on the side its shading normal faces,
+					// whatever the winding: rays leave the surface on that side.
+					texel.face = dot(face, texel.normal) < 0.0 ? mul(face, -1.0) : face;
 					const Vec t = normalized(sub(tangent, mul(texel.normal, dot(texel.normal, tangent))), Vec{1, 0, 0});
 					const Vec b = normalized(sub(sub(bitangent, mul(texel.normal, dot(texel.normal, bitangent))), mul(t, dot(t, bitangent))), cross(texel.normal, t));
 					texel.tangent = t;
 					texel.bitangent = b;
-				}
+					return true;
+				});
+			if (cancelled) {
+				return false;
 			}
 		}
 	}
@@ -338,7 +350,9 @@ bool bakeModelMaps(const ModelMesh& target, const QVector<int>& surfaces, int fr
 			if (!work.step()) {
 				return false;
 			}
-			const Vec origin = add(texel.position, mul(texel.normal, epsilon));
+			// Rays start just off the face itself, not along the smoothed
+			// normal, so they cannot begin behind their own triangle.
+			const Vec origin = add(texel.position, mul(texel.face, epsilon));
 			switch (options.type) {
 			case ModelBakeType::AmbientOcclusion: {
 				// Cosine-weighted directions around the normal.
@@ -349,7 +363,15 @@ bool bakeModelMaps(const ModelMesh& target, const QVector<int>& surfaces, int fr
 				for (int sample = 0; sample < options.samples; ++sample) {
 					const double r1 = random01(options.seed, x, y, sample * 2), r2 = random01(options.seed, x, y, sample * 2 + 1);
 					const double phi = 2.0 * kPi * r1, r = std::sqrt(r2);
-					const Vec direction = normalized(add(add(mul(u, r * std::cos(phi)), mul(v, r * std::sin(phi))), mul(texel.normal, std::sqrt(std::max(0.0, 1.0 - r2)))));
+					Vec direction = normalized(add(add(mul(u, r * std::cos(phi)), mul(v, r * std::sin(phi))), mul(texel.normal, std::sqrt(std::max(0.0, 1.0 - r2)))));
+					// Where the smoothed normal leans away from the face, part of
+					// its hemisphere lies below the face's plane and would hit
+					// the surface itself: mirror those directions back above it.
+					const double below = dot(direction, texel.face);
+					if (below <= 0.0) {
+						direction = normalized(sub(direction, mul(texel.face, 2.0 * below)));
+					}
+					direction = aboveFace(direction, texel.face);
 					if (occluders.occluded(model(origin), model(direction), 0.0, maxDistance)) {
 						++hits;
 					}
@@ -388,7 +410,10 @@ bool bakeModelMaps(const ModelMesh& target, const QVector<int>& surfaces, int fr
 			}
 			case ModelBakeType::Lighting: {
 				const double lambert = std::max(0.0, dot(texel.normal, light));
-				const bool shadowed = lambert > 0.0 && occluders.occluded(model(origin), model(light), 0.0, radius * 4.0);
+				// A light the smoothed normal faces but the face itself turns
+				// from would shadow every face along the terminator by its own
+				// neighbours; its shadow ray grazes the face instead.
+				const bool shadowed = lambert > 0.0 && occluders.occluded(model(origin), model(aboveFace(light, texel.face)), 0.0, radius * 4.0);
 				line[x] = gray(options.ambient + (1.0 - options.ambient) * (shadowed ? 0.0 : lambert));
 				break;
 			}

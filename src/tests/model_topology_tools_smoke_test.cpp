@@ -2,7 +2,9 @@
 // snap to grid) and the topology tools that follow it, through the shared
 // document service and `model tool`.
 #include "cli/model_tools.h"
+#include "core/model_animation_constraints.h"
 #include "core/model_collision.h"
+#include "core/model_collision_hull.h"
 #include "core/model_design.h"
 #include "core/model_skeleton.h"
 #include "core/model_whole_transform.h"
@@ -480,6 +482,125 @@ void wholeTransformChecks()
 		frameOnly.frame = 0;
 		auto copy = mesh;
 		expect(!applyModelEdit(&copy, frameOnly, nullptr, &error), "Transform Model refuses a single-frame scope");
+	}
+}
+
+// Nine channels for one joint: translation `t` at sample 0, `t2` at sample 1,
+// no rotation, unit scale.
+ModelPoseCurves layerCurves(const QString &joint, ModelVec3 t, ModelVec3 t2)
+{
+	ModelPoseCurves group;
+	group.joint = joint;
+	const double first[3]{t.x, t.y, t.z}, second[3]{t2.x, t2.y, t2.z};
+	for (int c = 0; c < 9; ++c)
+		group.channels[c] = c < 3 ? QVector<ModelPoseCurveKey>{{0, first[c]}, {1, second[c]}}
+								  : QVector<ModelPoseCurveKey>{{0, c >= 6 ? 1.0 : 0.0}};
+	return group;
+}
+ModelVec3 jointOrigin(const ModelJointMatrix &m)
+{
+	return {m.m[3], m.m[7], m.m[11]};
+}
+// Gives the rig fixture's clip a stack, evaluates it and bakes again.
+bool stackRig(ModelMesh *mesh, const QVector<ModelClipLayer> &layers, const QVector<ModelClipConstraint> &constraints, QString *error)
+{
+	auto &clip = mesh->skeleton.clips[0];
+	clip.layers = layers;
+	clip.constraints = constraints;
+	const auto base = clip.frames;
+	return rebaseModelClipStack(mesh->skeleton, &clip, base, error) && bakeModelSkeleton(mesh, {}, error);
+}
+
+void wholeTransformFollowChecks()
+{
+	QString error;
+	// Mirrored hulls reflect; frame origins move.
+	{
+		auto before = propMesh();
+		// A corner tetrahedron: not symmetric about any box axis.
+		const QVector<ModelVec3> corner{{-0.5f, -0.5f, -0.5f}, {0.5f, -0.5f, -0.5f}, {-0.5f, 0.5f, -0.5f}, {-0.5f, -0.5f, 0.5f}};
+		before.collisionBoxes[0].hull = corner;
+		auto &swing = before.collisionBoxes[1];
+		swing.hull = corner;
+		swing.framePoses[1].hull = {{0.5f, 0.5f, 0.5f}, {-0.5f, 0.5f, 0.5f}, {0.5f, -0.5f, 0.5f}, {0.5f, 0.5f, -0.5f}};
+		before.frames[1].origin = {1, 2, 3};
+		expect(validateEditableModel(before).isEmpty(), "the hull fixture validates", validateEditableModel(before).join(QLatin1Char('\n')));
+		auto mesh = before;
+		expect(applyModelEdit(&mesh, modelEdit({}, {}, {-1, 1, 1}), nullptr, &error), "mirror a model with hulls", error);
+		const auto mirrored = [](ModelVec3 p) { return ModelVec3{-p.x, p.y, p.z}; };
+		const auto reflects = [&](const ModelCollisionBox &a, const ModelCollisionBox &b)
+		{
+			const auto from = modelCollisionPoints(a), to = modelCollisionPoints(b);
+			bool same = from.size() == to.size() && !from.isEmpty();
+			for (int i = 0; same && i < from.size(); ++i)
+				same = close(to[i], mirrored(from[i]));
+			return same;
+		};
+		expect(reflects(before.collisionBoxes[0], mesh.collisionBoxes[0]), "a mirrored static hull reflects instead of turning");
+		bool poses = true;
+		for (int f = 0; f < 2; ++f)
+		{
+			ModelCollisionBox a, b;
+			poses &= sampleModelCollisionBox(before.collisionBoxes[1], f, f, 0, &a) && sampleModelCollisionBox(mesh.collisionBoxes[1], f, f, 0, &b) &&
+					 reflects(a, b);
+		}
+		expect(poses, "every pose's hull reflects with the mirror");
+		expect(close(mesh.frames[1].origin, {-1, 2, 3}) && close(mesh.frames[0].origin, {}), "frame origins mirror with the model");
+		expect(validateEditableModel(mesh).isEmpty(), "the mirrored hulls validate", validateEditableModel(mesh).join(QLatin1Char('\n')));
+		auto turnedMesh = before;
+		expect(applyModelEdit(&turnedMesh, modelEdit({1, 2, 3}, {0, 0, 90}, {2, 2, 2}), nullptr, &error) &&
+				   close(turnedMesh.frames[1].origin, moved({1, 2, 3})) && close(turnedMesh.frames[0].origin, moved({})),
+			   "frame origins move, turn and scale with the model", error);
+	}
+	// Clip stacks: the base, layer keys and constraint settings follow.
+	{
+		ModelClipLayer lift;
+		lift.name = QStringLiteral("lift");
+		lift.curves = {layerCurves(QStringLiteral("child"), {0, 0, 1.5f}, {0, 0, 3})};
+		ModelClipConstraint look;
+		look.name = QStringLiteral("look");
+		look.kind = ModelClipConstraintKind::Aim;
+		look.joint = QStringLiteral("child");
+		look.point = {20, 5, 0};
+		look.pole = {0, 0, 1};
+		auto before = riggedMesh();
+		expect(stackRig(&before, {lift}, {look}, &error) && validateEditableModel(before).isEmpty(), "the stacked rig validates", error);
+		auto mesh = before;
+		expect(applyModelEdit(&mesh, modelEdit({1, 2, 3}, {0, 0, 90}, {2, 2, 2}), nullptr, &error), "transform a clip with a layer and a constraint",
+			   error);
+		expect(validateEditableModel(mesh).isEmpty(), "the transformed stack still reproduces its frames", validateEditableModel(mesh).join(QLatin1Char('\n')));
+		const auto &clip = mesh.skeleton.clips[0], &old = before.skeleton.clips[0];
+		bool follows = clip.base.size() == old.base.size() && clip.frames.size() == old.frames.size();
+		for (int f = 0; follows && f < clip.frames.size(); ++f)
+			for (int j = 0; j < 2; ++j)
+				follows &= close(jointOrigin(clip.base[f][j]), moved(jointOrigin(old.base[f][j]))) &&
+						   close(jointOrigin(clip.frames[f][j]), moved(jointOrigin(old.frames[f][j])));
+		expect(follows, "base samples and frames move with the model");
+		const auto &keys = clip.layers[0].curves[0].channels[2];
+		expect(near(keys[0].value, 3) && near(keys[1].value, 6) && near(clip.layers[0].curves[0].channels[0][0].value, 0),
+			   "a child's additive translation keys scale and do not move");
+		expect(close({float(clip.constraints[0].point[0]), float(clip.constraints[0].point[1]), float(clip.constraints[0].point[2])}, moved({20, 5, 0})) &&
+				   close({float(clip.constraints[0].pole[0]), float(clip.constraints[0].pole[1]), float(clip.constraints[0].pole[2])}, {0, 0, 1}),
+			   "an aim's fixed target moves and its up direction turns");
+	}
+	// A root override layer follows translation and scale, not a rotation.
+	{
+		ModelClipLayer place;
+		place.name = QStringLiteral("place");
+		place.additive = false;
+		place.weight = 0.5;
+		place.curves = {layerCurves(QStringLiteral("root"), {2, 0, 0}, {4, 1, 0})};
+		auto before = riggedMesh();
+		expect(stackRig(&before, {place}, {}, &error) && validateEditableModel(before).isEmpty(), "the root-layered rig validates", error);
+		auto mesh = before;
+		const auto snapshot = bytesOf(mesh);
+		expect(!applyModelEdit(&mesh, modelEdit({}, {0, 0, 90}, {1, 1, 1}), nullptr, &error) && bytesOf(mesh) == snapshot &&
+				   error.contains(QStringLiteral("place")) && !error.contains(QStringLiteral("no longer match")),
+			   "rotating a root override layer is refused with its reason", error);
+		expect(applyModelEdit(&mesh, modelEdit({1, 2, 3}, {}, {2, 2, 2}), nullptr, &error) && validateEditableModel(mesh).isEmpty(),
+			   "a root override layer follows a scale and a move", error);
+		const auto &keys = mesh.skeleton.clips[0].layers[0].curves[0].channels[0];
+		expect(near(keys[0].value, 5) && near(keys[1].value, 9), "a root override's translation keys scale and move");
 	}
 }
 
@@ -982,6 +1103,14 @@ void sharpChecks()
 		expect(document.setMesh(mesh, &error) && document.edit(markEdit, &error) && document.undoSteps() == 1, "mark the top edges sharp", error);
 		const auto &s = document.mesh().surfaces[0];
 		expect(s.vertexCount == 12, "each of the four top corners gains one vertex");
+		// Copies are numbered in corner order, so the saved source is the same in every run.
+		bool ordered = s.vertexCount == 12;
+		for (int k = 0; ordered && k < 4; ++k)
+		{
+			const auto copy = s.frames[0].positions[8 + k], corner = s.frames[0].positions[4 + k];
+			ordered = near(copy.x, corner.x) && near(copy.y, corner.y) && near(copy.z, corner.z);
+		}
+		expect(ordered, "split copies follow the order of their corners");
 		bool normals = true;
 		for (int face = 0; face < s.triangles.size(); ++face)
 		{
@@ -1557,6 +1686,7 @@ int main(int argc, char **argv)
 		return 1;
 	alignChecks();
 	wholeTransformChecks();
+	wholeTransformFollowChecks();
 	connectChecks();
 	dissolveChecks();
 	quadRefillChecks();

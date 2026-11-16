@@ -285,6 +285,37 @@ int main(int argc, char **argv)
 			   "the two-bone solve follows keyed targets too");
 	}
 
+	// A layered clip is solved on its base, and the diagnostics describe the
+	// pose the solver worked on, not the layer's turn on top of it.
+	{
+		ModelEdit layer;
+		layer.kind = ModelEditKind::EditClipStack;
+		layer.animation.stack.action = ModelClipStackAction::AddLayer;
+		layer.animation.stack.clip = 0;
+		layer.animation.stack.layer.name = QStringLiteral("turn");
+		ModelPoseCurves group;
+		group.joint = QStringLiteral("j0");
+		const double values[9] = {0, 0, 0, 0, 0, 30, 1, 1, 1};
+		for (int c = 0; c < 9; ++c)
+		{
+			ModelPoseCurveKey key;
+			key.value = values[c];
+			group.channels[c] = {key};
+		}
+		layer.animation.stack.layer.curves = {group};
+		auto solve = chainIkEdit(joints, {3, 4, 0}, {2, 8, 0});
+		solve.ik.iterations = 200;
+		ModelDocument layered;
+		expect(layered.setMesh(mesh, &error) && layered.edit(layer, &error) && layered.edit(solve, &error), "chain IK solves a layered clip's base");
+		const auto layeredSamples = modelIkSamples(layered.mesh(), solve.ik, true);
+		bool baseReached = layeredSamples.size() == 3;
+		for (const auto &sample : layeredSamples)
+			baseReached = baseReached && sample.reached &&
+						  distance(sample.end, modelJointTranslation(layered.mesh().skeleton.clips[0].base[sample.frame][joints - 1])) < 1e-6;
+		expect(baseReached && distance(at(layered.mesh(), 0, joints - 1), {3, 4, 0}) > .5,
+			   "diagnostics of a layered clip report the solved base pose");
+	}
+
 	// Curve protection still applies.
 	ModelEdit capture;
 	capture.kind = ModelEditKind::EditAnimationCurves;

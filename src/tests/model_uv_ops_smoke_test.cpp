@@ -112,6 +112,29 @@ int main(int argc, char **argv)
 		expect(!applyModelEdit(&cancelled, operation(ModelEditKind::WeldUv, {0, {}, {2, 3}}), nullptr, &error, stop) &&
 				   source(cancelled) == kept,
 			   "cancelled weld changes nothing");
+		// Corners that meet in the first pose but part in a later one stay
+		// apart while their neighbours still weld.
+		auto parted = original;
+		expect(applyModelEdit(&parted, operation(ModelEditKind::DetachUv, {0, {}, {2, 3}}), nullptr, &error), "detach for a parted corner");
+		parted.surfaces[0].frames[1].positions[parted.surfaces[0].triangles[2].a].x += 1;
+		expect(applyModelEdit(&parted, weld, nullptr, &error) && parted.surfaces[0].vertexCount == 7,
+			   "only the corners that match in every pose weld", error);
+		// A weld that would collapse a face leaves the surface as it was, UVs
+		// included.
+		auto collapsing = strip(1);
+		collapsing.surfaces[0].topologyVertices.clear();
+		for (auto &frame : collapsing.surfaces[0].frames)
+		{
+			frame.positions[1] = frame.positions[0];
+			frame.normals[1] = frame.normals[0];
+		}
+		const auto unwelded = source(collapsing);
+		ModelEdit join = operation(ModelEditKind::WeldUv, {0, {}, {0}});
+		join.uvTools.weldTolerance = 1;
+		ModelSelection joinSelection = join.selection;
+		expect(!applyModelUvToolEdit(&collapsing, join, &joinSelection, &error) && error.contains(QStringLiteral("collapse")) &&
+				   source(collapsing) == unwelded,
+			   "a refused weld does not average the UVs first");
 	}
 
 	// Stitch moves the smaller island rigidly so the seam meets, then welds.

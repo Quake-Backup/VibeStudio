@@ -122,6 +122,8 @@ constraints](MODEL_ANIMATION_CONSTRAINTS.md) can keep the same limits.
 **Nearest reachable** explicitly clamps the end to the chain's reach. Neither
 policy stretches bones. **Results** reports the remaining target distance and
 whether the target was reached, including unchanged but unreachable poses.
+On a clip with [constraints or layers](MODEL_ANIMATION_CONSTRAINTS.md) the
+solve and its results use the clip's base samples, before the stack.
 For bone lengths `a` and `b`, reach is between `abs(a-b)` and `a+b`.
 
 **Keep end orientation** preserves the hand or foot's original model-space

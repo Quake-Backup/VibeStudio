@@ -165,13 +165,20 @@ bool insetFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 		const P3 normal = unit(faceCross(surface, frame, surface.triangles[b.face]));
 		return unit(cross(normal, position(surface, frame, b.to) - position(surface, frame, b.from)));
 	};
-	const auto regionNormal = [&](int frame)
+	// One region normal per pose, from the unmodified surface: inner copies and
+	// risen interior vertices must not tilt it.
+	QVector<P3> regionNormals;
+	if (!individual)
 	{
-		P3 sum{0, 0, 0};
-		for (int face : faces)
-			sum = sum + faceCross(surface, frame, surface.triangles[face]);
-		return unit(sum);
-	};
+		regionNormals.resize(surface.frames.size());
+		for (int frame = 0; frame < surface.frames.size(); ++frame)
+		{
+			P3 sum{0, 0, 0};
+			for (int face : faces)
+				sum = sum + faceCross(surface, frame, surface.triangles[face]);
+			regionNormals[frame] = unit(sum);
+		}
+	}
 	// Offsets per corner key and pose, computed from the unmodified surface.
 	QHash<QPair<int, int>, QVector<P3>> offsets, flatOffsets;
 	QHash<QPair<int, int>, ModelTexCoord> uvs;
@@ -189,7 +196,7 @@ bool insetFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 		QVector<P3> perFrame(surface.frames.size()), inPlane(surface.frames.size());
 		for (int frame = 0; frame < surface.frames.size(); ++frame)
 		{
-			const P3 lift = individual ? unit(faceCross(surface, frame, surface.triangles[corner.face])) : regionNormal(frame);
+			const P3 lift = individual ? unit(faceCross(surface, frame, surface.triangles[corner.face])) : regionNormals[frame];
 			inPlane[frame] = insetOffset(borderInward(incoming, frame), borderInward(outgoing, frame), options.insetThickness, options.evenThickness);
 			perFrame[frame] = inPlane[frame] + lift * options.insetDepth;
 		}
@@ -254,7 +261,7 @@ bool insetFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 		}
 		for (int frame = 0; frame < surface.frames.size(); ++frame)
 		{
-			const P3 lift = regionNormal(frame) * options.insetDepth;
+			const P3 lift = regionNormals[frame] * options.insetDepth;
 			for (int v : std::as_const(interior))
 				surface.frames[frame].positions[v] = vec(position(surface, frame, v) + lift);
 		}
@@ -719,6 +726,9 @@ bool shadeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 		return false;
 	auto ordered = cornerFaces.keys();
 	std::sort(ordered.begin(), ordered.end());
+	// Copies appended here keep their source's position group, so a later seam
+	// copy's fan still counts the faces an earlier copy moved onto them.
+	QHash<int, int> appendedGroup;
 	for (int vertex : std::as_const(ordered))
 	{
 		if (!work.step())
@@ -732,6 +742,8 @@ bool shadeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 			{
 				index = indexForFan.isEmpty() ? vertex : appendCopy(&surface, vertex);
 				indexForFan.insert(fan, index);
+				if (index != vertex)
+					appendedGroup.insert(index, topology.group(vertex));
 			}
 			auto &t = surface.triangles[face];
 			if (t.a == vertex)
@@ -746,7 +758,7 @@ bool shadeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 				P3 sum{0, 0, 0};
 				for (int member : fan)
 					sum = sum + matchingCornerNormal(surface, frame, surface.triangles[member], [&](int v)
-													 { return v < topology.vertexGroup.size() ? topology.group(v) == group : v == index; });
+													 { return v < topology.vertexGroup.size() ? topology.group(v) == group : appendedGroup.value(v, -1) == group; });
 				if (length(sum) > 1e-12)
 					surface.frames[frame].normals[index] = vec(unit(sum));
 			}

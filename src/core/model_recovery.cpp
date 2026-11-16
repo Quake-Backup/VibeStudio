@@ -1,5 +1,6 @@
 #include "core/model_recovery.h"
 #include "core/model_session_draft.h"
+#include "core/model_source_decode.h"
 #include "core/model_surface_selection.h"
 #include "core/model_collision.h"
 #include "core/model_tags.h"
@@ -469,11 +470,14 @@ ModelRecoveryRecord inspectModelRecovery(const QString &path, ModelRecoverySnaps
 		return record;
 	}
 	ModelRecoverySnapshot candidate;
-	if (!parseEditableModel(payload, &candidate.mesh, &record.error, {cancelled, {}}))
+	// One parse gives the model and the selection stored beside it.
+	QJsonValue storedSelection;
+	if (!parseEditableModelWithMember(payload, QStringLiteral("recoverySelection"), &candidate.mesh, &storedSelection, &record.error,
+									  {cancelled, {}}))
 	{
 		return record;
 	}
-	const auto selection = QJsonDocument::fromJson(payload).object().value(QStringLiteral("recoverySelection")).toObject();
+	const auto selection = storedSelection.toObject();
 	qint64 surface = 0;
 	if (!integer(selection.value(QStringLiteral("surface")), 0, candidate.mesh.surfaces.size() - 1, &surface))
 	{

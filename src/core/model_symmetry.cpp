@@ -76,6 +76,63 @@ bool near(ModelVec3 a, ModelVec3 b, double tolerance)
 {
 	return std::abs(double(a.x) - b.x) <= tolerance && std::abs(double(a.y) - b.y) <= tolerance && std::abs(double(a.z) - b.z) <= tolerance;
 }
+struct GridCell
+{
+	qint64 x = 0, y = 0, z = 0;
+	friend bool operator==(const GridCell &, const GridCell &) = default;
+};
+size_t qHash(const GridCell &cell, size_t seed = 0)
+{
+	return qHashMulti(seed, cell.x, cell.y, cell.z);
+}
+// Points bucketed in cells twice the tolerance wide, so every point within the
+// tolerance of a query lies in the query's cell or a neighbouring one. It only
+// narrows the candidates; callers still apply the exact near() test.
+class PointGrid
+{
+public:
+	explicit PointGrid(double tolerance) : size(std::max(tolerance * 2, 1e-30)) {}
+	void add(ModelVec3 p, int id)
+	{
+		if (finite(p))
+			cells[cellOf(p)].append(id);
+	}
+	template <typename Test> bool any(ModelVec3 p, Test &&test) const
+	{
+		if (!finite(p))
+			return false;
+		const auto centre = cellOf(p);
+		for (qint64 dx = -1; dx <= 1; ++dx)
+		{
+			for (qint64 dy = -1; dy <= 1; ++dy)
+			{
+				for (qint64 dz = -1; dz <= 1; ++dz)
+				{
+					const auto it = cells.constFind(GridCell{centre.x + dx, centre.y + dy, centre.z + dz});
+					if (it == cells.cend())
+						continue;
+					for (int id : it.value())
+					{
+						if (test(id))
+							return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+private:
+	static bool finite(ModelVec3 p) { return std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z); }
+	qint64 index(float value) const
+	{
+		const double cell = std::floor(double(value) / size);
+		return qint64(std::clamp(cell, -4.0e18, 4.0e18));
+	}
+	GridCell cellOf(ModelVec3 p) const { return {index(p.x), index(p.y), index(p.z)}; }
+	double size;
+	QHash<GridCell, QVector<int>> cells;
+};
 } // namespace
 
 bool modelSymmetrySupported(ModelEditKind kind)
@@ -172,15 +229,18 @@ bool applySymmetricModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelect
 		{
 			// A selection that mirrors itself edits both halves already.
 			std::set<Key> keys;
+			PointGrid grid(tolerance);
 			for (int v : std::as_const(vertices))
+			{
 				keys.insert(keyOf(positions[v]));
+				grid.add(positions[v], v);
+			}
 			bool symmetric = true;
 			for (int v : std::as_const(vertices))
 			{
 				const auto mirror = reflected(positions[v], 1 << axis);
-				bool found = keys.count(keyOf(mirror)) > 0;
-				for (auto w = vertices.cbegin(); !found && w != vertices.cend(); ++w)
-					found = near(positions[*w], mirror, tolerance);
+				const bool found = keys.count(keyOf(mirror)) > 0 ||
+								   grid.any(mirror, [&](int w) { return near(positions[w], mirror, tolerance); });
 				symmetric = symmetric && found;
 				if (!symmetric)
 					break;
@@ -271,45 +331,73 @@ bool applySymmetricModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelect
 		// Select the tool's result and its mirror images.
 		const auto &surface = candidate.surfaces[s];
 		const auto &now = surface.frames[frame].positions;
-		const auto matches = [&](ModelVec3 p, const QVector<ModelVec3> &targets)
+		// Reflection only negates coordinates, so testing the reflected query
+		// against the tool's own result is exactly the test against reflected
+		// targets, and one grid per target list serves every combination.
+		const auto gridOf = [&](const QVector<ModelVec3> &points)
+		{
+			PointGrid grid(tolerance);
+			for (int i = 0; i < points.size(); ++i)
+				grid.add(points[i], i);
+			return grid;
+		};
+		QVector<ModelVec3> edgeStarts, edgeEnds;
+		for (const auto &[a, b] : std::as_const(resultEdges))
+		{
+			edgeStarts << a;
+			edgeEnds << b;
+		}
+		const auto vertexGrid = gridOf(resultVertices), faceGrid = gridOf(resultFaces);
+		const auto startGrid = gridOf(edgeStarts), endGrid = gridOf(edgeEnds);
+		const auto matches = [&](ModelVec3 p, const QVector<ModelVec3> &targets, const PointGrid &grid)
 		{
 			for (int combination = 0; combination <= mirroredAxes; ++combination)
 			{
 				if ((combination & ~mirroredAxes) != 0)
 					continue;
-				for (const auto &target : targets)
+				const auto query = reflected(p, combination);
+				if (grid.any(query, [&](int i) { return near(p, reflected(targets[i], combination), tolerance); }))
+					return true;
+			}
+			return false;
+		};
+		const auto edgeMatches = [&](ModelVec3 p, ModelVec3 q)
+		{
+			for (int combination = 0; combination <= mirroredAxes; ++combination)
+			{
+				if ((combination & ~mirroredAxes) != 0)
+					continue;
+				const auto query = reflected(p, combination);
+				const auto forward = [&](int i)
 				{
-					if (near(p, reflected(target, combination), tolerance))
-						return true;
-				}
+					const auto &[a, b] = resultEdges[i];
+					return near(p, reflected(a, combination), tolerance) && near(q, reflected(b, combination), tolerance);
+				};
+				const auto backward = [&](int i)
+				{
+					const auto &[a, b] = resultEdges[i];
+					return near(p, reflected(b, combination), tolerance) && near(q, reflected(a, combination), tolerance);
+				};
+				if (startGrid.any(query, forward) || endGrid.any(query, backward))
+					return true;
 			}
 			return false;
 		};
 		ModelSelection result{s, {}, {}};
 		for (int v = 0; v < surface.vertexCount && !resultVertices.isEmpty(); ++v)
 		{
-			if (matches(now[v], resultVertices))
+			if (matches(now[v], resultVertices, vertexGrid))
 				result.vertices.insert(v);
 		}
 		for (int face = 0; face < surface.triangles.size(); ++face)
 		{
 			const auto &t = surface.triangles[face];
-			if (!resultFaces.isEmpty() && matches(centroid(surface, frame, t), resultFaces))
+			if (!resultFaces.isEmpty() && matches(centroid(surface, frame, t), resultFaces, faceGrid))
 				result.faces.insert(face);
 			for (const auto edge : {modelEdge(t.a, t.b), modelEdge(t.b, t.c), modelEdge(t.c, t.a)})
 			{
-				for (int combination = 0; combination <= mirroredAxes && !resultEdges.isEmpty(); ++combination)
-				{
-					if ((combination & ~mirroredAxes) != 0)
-						continue;
-					for (const auto &[a, b] : std::as_const(resultEdges))
-					{
-						const auto x = reflected(a, combination), y = reflected(b, combination);
-						if ((near(now[edge.first], x, tolerance) && near(now[edge.second], y, tolerance)) ||
-							(near(now[edge.first], y, tolerance) && near(now[edge.second], x, tolerance)))
-							result.edges.insert(edge);
-					}
-				}
+				if (!resultEdges.isEmpty() && edgeMatches(now[edge.first], now[edge.second]))
+					result.edges.insert(edge);
 			}
 		}
 		selection = result;

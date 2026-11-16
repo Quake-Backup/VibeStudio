@@ -370,6 +370,35 @@ int main(int argc, char **argv)
 	ok &= expect(!weldModelSurface(&crowded, crowdedSelection, 0, true, &vertexMap, &faceMap, &error, searchControl) && cancelSearch &&
 					 source(mesh) == crowdedSource && vertexMap == QVector<int>{99},
 				 "weld search polls cancellation inside dense candidate loops");
+	// Long animations: coincident copies that part only in the last of a
+	// thousand poses cost one budget step per pair, not one per pose.
+	mesh = square();
+	{
+		auto &animated = mesh.surfaces[0];
+		for (int i = 0; i < 100; ++i)
+		{
+			animated.texCoords << animated.texCoords[0];
+			for (auto &frame : animated.frames)
+			{
+				frame.positions << frame.positions[0];
+				frame.normals << frame.normals[0];
+			}
+		}
+		while (animated.frames.size() < 1000)
+			animated.frames << animated.frames[0];
+		for (int i = 4; i < 103; ++i)
+			animated.frames.last().positions[i].x += float(i);
+	}
+	updateEditableModelMetadata(&mesh);
+	QSet<int> animatedSelection;
+	for (int i = 0; i < mesh.surfaces[0].vertexCount; ++i)
+		animatedSelection.insert(i);
+	const bool animatedWeld = mesh.surfaces[0].vertexCount == 104 && mesh.surfaces[0].frames.size() == 1000 &&
+							  weldModelSurface(&mesh.surfaces[0], animatedSelection, 0, false, &vertexMap, &faceMap, &error) &&
+							  vertexMap.size() == 104 && vertexMap[103] == vertexMap[0] && vertexMap[4] != vertexMap[0];
+	ok &= expect(animatedWeld, "a weld across a thousand poses stays within its comparison budget");
+	if (!animatedWeld)
+		std::cerr << "  " << qPrintable(error) << '\n';
 
 	if (app.arguments().size() > 1)
 	{

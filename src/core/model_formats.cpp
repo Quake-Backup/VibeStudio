@@ -3,15 +3,18 @@
 #include "core/model_formats_p.h"
 
 #include "core/model_archive.h"
+#include "core/model_file_io.h"
 #include "core/package_archive.h"
 
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QSet>
 
 #include <algorithm>
 #include <memory>
+#include <mutex>
 
 namespace vibestudio {
 
@@ -156,31 +159,174 @@ ModelCompanionSource modelCompanionsFromArchive(const PackageArchiveReader& arch
 	return source;
 }
 
+namespace {
+
+#ifdef Q_OS_WIN
+constexpr Qt::CaseSensitivity kFileNameCase = Qt::CaseInsensitive;
+#else
+constexpr Qt::CaseSensitivity kFileNameCase = Qt::CaseSensitive;
+#endif
+
+bool isWindowsDeviceName(const QString& component)
+{
+	// Windows opens a device for these names whatever the folder or suffix.
+	QString base = component.left(component.indexOf(QLatin1Char('.')));
+	while (base.endsWith(QLatin1Char(' '))) {
+		base.chop(1);
+	}
+	base = base.toUpper();
+	if (base == QLatin1String("CON") || base == QLatin1String("PRN") || base == QLatin1String("AUX") || base == QLatin1String("NUL")
+		|| base == QLatin1String("CONIN$") || base == QLatin1String("CONOUT$") || base == QLatin1String("CLOCK$")) {
+		return true;
+	}
+	if (base.size() == 4 && (base.startsWith(QLatin1String("COM")) || base.startsWith(QLatin1String("LPT")))) {
+		const QChar digit = base.at(3);
+		return digit.isDigit() || digit == QChar(0x00B9) || digit == QChar(0x00B2) || digit == QChar(0x00B3);
+	}
+	return false;
+}
+
+// Companion names usually come from inside the model file, so they must not
+// reach another machine (UNC and device paths), climb out of the folders the
+// lookup searches ("..") or open devices. `absolute` reports a rooted name.
+bool companionNameIsSafe(const QString& name, bool* absolute)
+{
+	QString normalized = name;
+	normalized.replace(QLatin1Char('\\'), QLatin1Char('/'));
+	*absolute = false;
+	if (normalized.isEmpty() || normalized.startsWith(QLatin1String("//"))) {
+		return false;
+	}
+	for (const QChar ch : std::as_const(normalized)) {
+		if (ch.unicode() < 0x20) {
+			return false;
+		}
+	}
+	QStringList parts = normalized.split(QLatin1Char('/'));
+	const bool driveRooted = parts.size() > 1 && parts.first().size() == 2 && parts.first().at(1) == QLatin1Char(':')
+		&& parts.first().at(0).isLetter() && parts.first().at(0).unicode() < 0x80;
+	if (driveRooted) {
+		parts.removeFirst();
+	}
+	*absolute = driveRooted || normalized.startsWith(QLatin1Char('/'));
+	for (const QString& part : std::as_const(parts)) {
+		// ':' would make a drive-relative name ("C:x") or an alternate data stream.
+		if (part == QLatin1String("..") || part.contains(QLatin1Char(':')) || (!part.isEmpty() && isWindowsDeviceName(part))) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool pathIsInside(const QString& path, const QString& root)
+{
+	const QString cleanPath = QDir::cleanPath(path);
+	QString cleanRoot = QDir::cleanPath(root);
+	if (cleanPath.compare(cleanRoot, kFileNameCase) == 0) {
+		return true;
+	}
+	if (!cleanRoot.endsWith(QLatin1Char('/'))) {
+		cleanRoot += QLatin1Char('/');
+	}
+	return cleanPath.startsWith(cleanRoot, kFileNameCase);
+}
+
+struct FileSystemCompanionState {
+	std::mutex mutex;
+	qint64 bytesRead = 0;
+	// Absolute paths this source listed; a decoder may read them back.
+	QSet<QString> listed;
+};
+
+QString listedKey(const QString& path)
+{
+	const QString clean = QDir::cleanPath(path);
+	return kFileNameCase == Qt::CaseInsensitive ? clean.toLower() : clean;
+}
+
+} // namespace
+
 ModelCompanionSource modelCompanionsFromFileSystem(const QString& modelPath)
 {
 	const QString modelDirectory = QFileInfo(modelPath).absolutePath();
 	ModelCompanionSource source;
-	source.read = [modelDirectory](const QString& path, QByteArray* bytes, QString* error) {
-		const auto readFile = [bytes, error](const QString& file) {
-			QFile handle(file);
-			if (!handle.exists() || !handle.open(QIODevice::ReadOnly)) {
-				return false;
+	auto state = std::make_shared<FileSystemCompanionState>();
+	const qint64 maxBytes = source.maxBytes;
+	source.read = [modelDirectory, state, maxBytes](const QString& path, QByteArray* bytes, QString* error) {
+		const auto refuse = [error, &path] {
+			if (error) {
+				*error = QCoreApplication::translate("VibeStudioModelMesh", "The companion file name %1 points outside the model's folders and was not read.").arg(path);
 			}
-			*bytes = handle.readAll();
-			if (error) { error->clear(); }
-			return true;
+			return false;
 		};
-		if (QFileInfo(path).isAbsolute()) {
-			if (readFile(path)) {
-				return true;
+		bool absolute = false;
+		if (!companionNameIsSafe(path, &absolute)) {
+			return refuse();
+		}
+		// 0 found and read, 1 not there, 2 there but refused (error set).
+		const auto readFile = [bytes, error, state, maxBytes](const QString& file) {
+			const QFileInfo info(file);
+			if (!info.isFile()) {
+				return 1;
+			}
+			qint64 remaining = 0;
+			{
+				const std::lock_guard<std::mutex> lock(state->mutex);
+				remaining = std::min(maxBytes - state->bytesRead, modelFileByteLimit);
+			}
+			if (info.size() > remaining) {
+				if (error) {
+					*error = QCoreApplication::translate("VibeStudioModelMesh", "The companion file %1 is larger than the %2 MiB left for companion files and was not read.")
+						.arg(file, QString::number(std::max<qint64>(0, remaining) / (1024 * 1024)));
+				}
+				return 2;
+			}
+			QByteArray data;
+			QString problem;
+			if (!readModelFile(file, &data, &problem)) {
+				if (error) {
+					*error = QCoreApplication::translate("VibeStudioModelMesh", "The companion file %1 could not be read.").arg(file);
+				}
+				return 2;
+			}
+			{
+				const std::lock_guard<std::mutex> lock(state->mutex);
+				if (qint64(data.size()) > maxBytes - state->bytesRead) {
+					if (error) {
+						*error = QCoreApplication::translate("VibeStudioModelMesh", "The model's companion files pass %1 MiB; the rest were left out.")
+							.arg(maxBytes / (1024 * 1024));
+					}
+					return 2;
+				}
+				state->bytesRead += data.size();
+			}
+			*bytes = std::move(data);
+			if (error) { error->clear(); }
+			return 0;
+		};
+		if (absolute) {
+			// A rooted name is read only inside the model's own folder, or when
+			// this source listed it.
+			bool wasListed = false;
+			{
+				const std::lock_guard<std::mutex> lock(state->mutex);
+				wasListed = state->listed.contains(listedKey(path));
+			}
+			if (!wasListed && !pathIsInside(QDir::fromNativeSeparators(path), modelDirectory)) {
+				return refuse();
+			}
+			const int result = readFile(path);
+			if (result != 1) {
+				return result == 0;
 			}
 		} else {
 			// A game-relative path: try it against the model's folder and every
 			// folder above it, so "models/x.gla" resolves from the game folder.
 			QDir folder(modelDirectory);
 			for (int depth = 0; depth < 32; ++depth) {
-				if (readFile(folder.filePath(path))) {
-					return true;
+				const int result = readFile(folder.filePath(path));
+				if (result != 1) {
+					return result == 0;
 				}
 				if (!folder.cdUp()) {
 					break;
@@ -190,7 +336,11 @@ ModelCompanionSource modelCompanionsFromFileSystem(const QString& modelPath)
 		if (error) { *error = QCoreApplication::translate("VibeStudioModelMesh", "Companion file not found: %1").arg(path); }
 		return false;
 	};
-	source.list = [modelDirectory](const QString& directory, const QStringList& suffixes) {
+	source.list = [modelDirectory, state](const QString& directory, const QStringList& suffixes) {
+		bool absoluteDirectory = false;
+		if (!directory.isEmpty() && !companionNameIsSafe(directory, &absoluteDirectory)) {
+			return QStringList();
+		}
 		// A game-relative folder ("def") is looked for beside the model and in
 		// every folder above it, as reads are.
 		QDir folder(QFileInfo(directory).isAbsolute() ? directory : QDir(modelDirectory).filePath(directory));
@@ -219,6 +369,10 @@ ModelCompanionSource modelCompanionsFromFileSystem(const QString& modelPath)
 				path.replace(QLatin1Char('\\'), QLatin1Char('/'));
 				paths.append(path);
 			}
+		}
+		const std::lock_guard<std::mutex> lock(state->mutex);
+		for (const QString& path : std::as_const(paths)) {
+			state->listed.insert(listedKey(path));
 		}
 		return paths;
 	};

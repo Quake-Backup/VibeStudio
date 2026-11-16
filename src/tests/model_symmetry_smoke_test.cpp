@@ -131,6 +131,19 @@ int main(int argc, char **argv)
 		edit.selection.faces = quad(3, 0) + quad(0, 0);
 		expect(applyModelEdit(&mesh, edit, nullptr, &error) && mesh.surfaces[0].triangles.size() == 32, "a symmetric selection edits both sides directly",
 			   error);
+		// Within the merge distance a selection still counts as its own mirror.
+		const double mergeThreshold = edit.tool.mergeThreshold;
+		auto nudged = halves();
+		nudged.surfaces[0].frames[0].positions[0].x -= 0.0005f;
+		edit.tool.mergeThreshold = 0.001;
+		expect(applyModelEdit(&nudged, edit, nullptr, &error) && nudged.surfaces[0].triangles.size() == 32,
+			   "a nearly symmetric selection within the merge distance edits both sides directly", error);
+		edit.tool.mergeThreshold = 0.0001;
+		auto apart = halves();
+		apart.surfaces[0].frames[0].positions[0].x -= 0.0005f;
+		expect(!applyModelEdit(&apart, edit, nullptr, &error) && error.contains(QStringLiteral("both sides")),
+			   "beyond the merge distance it is refused", error);
+		edit.tool.mergeThreshold = mergeThreshold;
 		auto scoped = halves();
 		ModelEdit smooth;
 		smooth.kind = ModelEditKind::ShrinkFatten;

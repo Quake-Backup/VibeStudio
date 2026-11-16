@@ -402,6 +402,39 @@ int main(int argc, char **argv)
 			   "a morph animation imports and exports as an animated MD3");
 	}
 
+	// Decode budget: an accessor without a buffer view costs no file bytes, so
+	// a few-KB file naming one 1,048,576-vertex accessor from many primitives,
+	// or from many morph targets, must stop before it allocates gigabytes.
+	{
+		const auto hostile = [](int primitives, int targets, int count) {
+			QJsonObject big{{"componentType", 5126}, {"type", "VEC3"}, {"count", count}};
+			QJsonArray primitiveList;
+			for (int p = 0; p < primitives; ++p)
+			{
+				QJsonObject primitive{{"attributes", QJsonObject{{"POSITION", 0}}}};
+				QJsonArray targetList;
+				for (int t = 0; t < targets; ++t)
+					targetList.append(QJsonObject{{"POSITION", 0}});
+				if (targets > 0)
+					primitive.insert("targets", targetList);
+				primitiveList.append(primitive);
+			}
+			const QJsonObject root{{"asset", QJsonObject{{"version", "2.0"}}}, {"accessors", QJsonArray{big}},
+				{"meshes", QJsonArray{QJsonObject{{"primitives", primitiveList}}}}, {"nodes", QJsonArray{QJsonObject{{"mesh", 0}}}}};
+			return QJsonDocument(root).toJson(QJsonDocument::Compact);
+		};
+		const QByteArray manyPrimitives = hostile(16, 0, 1048576);
+		const ModelMesh primitiveBomb = decodeModelMesh(QStringLiteral("models/test/bomb.gltf"), manyPrimitives);
+		expect(manyPrimitives.size() < 4096 && !primitiveBomb.error.isEmpty() && !primitiveBomb.geometryAvailable,
+			   "sixteen primitives naming one huge empty accessor are refused");
+		const ModelMesh morphBomb = decodeModelMesh(QStringLiteral("models/test/bomb.gltf"), hostile(1, 40, 1048576));
+		expect(!morphBomb.error.isEmpty() && morphBomb.error.contains(QStringLiteral("MiB")), "forty morph targets on a huge accessor pass the decode budget");
+		const ModelMesh manyTargets = decodeModelMesh(QStringLiteral("models/test/bomb.gltf"), hostile(1, 600, 3));
+		expect(!manyTargets.error.isEmpty() && manyTargets.error.contains(QStringLiteral("morph targets")), "more than 512 morph targets are refused");
+		const ModelMesh modest = decodeModelMesh(QStringLiteral("models/test/modest.gltf"), hostile(4, 8, 30000));
+		expect(modest.error.isEmpty() && modest.geometryAvailable, "a model of real size still decodes within the budget");
+	}
+
 	// Corruption: every truncation and seeded flips of the glb never crash
 	// and never publish geometry with an error.
 	Builder fuzzBuilder;

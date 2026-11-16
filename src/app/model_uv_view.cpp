@@ -497,11 +497,16 @@ void ModelUvView::zoomAt(QPointF point, double factor)
 	{
 		return;
 	}
-	finishMove(false);
-	m_resizeFit = ModelUvFit::None;
 	factor = std::clamp(factor, 0.1, 10.0);
 	const double scale = std::clamp(m_camera.m22() * factor, 0.00001, 1000000.0);
 	factor = scale / m_camera.m22();
+	// At the zoom limit nothing changes, so nothing needs drawing again.
+	if (!std::isfinite(factor) || factor == 1.0)
+	{
+		return;
+	}
+	finishMove(false);
+	m_resizeFit = ModelUvFit::None;
 	m_camera = QTransform(m_camera.m11() * factor, 0, 0, scale, point.x() + (m_camera.dx() - point.x()) * factor,
 						  point.y() + (m_camera.dy() - point.y()) * factor);
 	requestRender();
@@ -632,12 +637,27 @@ void ModelUvView::finishMove(bool commit)
 		return;
 	}
 	const auto delta = m_delta;
+	const bool previewed = m_travelled;
 	m_moving = false;
 	m_travelled = false;
 	m_delta = {};
 	m_button = Qt::NoButton;
 	unsetCursor();
-	requestRender(true);
+	// A cancelled preview must not stay on show, so its image is retired at
+	// once. A move that never travelled showed no preview, and a committed one
+	// showed the layout the edit is about to make: there the last image stays
+	// until the next one is ready, and only a preview still being drawn is
+	// dropped.
+	const bool cancelledPreview = previewed && !(commit && (delta.u != 0 || delta.v != 0));
+	if (previewed && !cancelledPreview)
+	{
+		++m_generation;
+		if (m_work)
+		{
+			m_work->cancelled.store(true);
+		}
+	}
+	requestRender(cancelledPreview);
 	Q_EMIT moveActiveChanged(false);
 	if (commit && (delta.u != 0 || delta.v != 0))
 	{
@@ -790,7 +810,19 @@ void ModelUvView::finishModal(bool commit)
 	m_delta = {};
 	m_button = Qt::NoButton;
 	unsetCursor();
-	requestRender(true);
+	// As finishMove(): a cancelled preview is retired at once; an applied one
+	// keeps its image, and only a preview still being drawn is dropped.
+	const bool applies = commit && ((mode == ModelUvModal::Rotate && value != 0) ||
+									(mode == ModelUvModal::Scale && value != 1 && std::abs(value) >= 1e-6));
+	if (applies)
+	{
+		++m_generation;
+		if (m_work)
+		{
+			m_work->cancelled.store(true);
+		}
+	}
+	requestRender(!applies);
 	Q_EMIT moveActiveChanged(false);
 	announce();
 	if (!commit)
@@ -933,6 +965,12 @@ void ModelUvView::mouseReleaseEvent(QMouseEvent *event)
 }
 void ModelUvView::wheelEvent(QWheelEvent *event)
 {
+	// A sideways wheel or touchpad swipe says nothing about zoom.
+	if (event->angleDelta().y() == 0)
+	{
+		event->ignore();
+		return;
+	}
 	if (!m_moving)
 	{
 		zoomAt(event->position(), std::pow(1.2, event->angleDelta().y() / 120.0));

@@ -14,6 +14,7 @@
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QItemSelectionModel>
 #include <QKeyEvent>
 #include <QLabel>
 #include <QListWidget>
@@ -47,6 +48,27 @@ void accessible(QWidget *w, const QString &name, const QString &description = {}
 bool finite(QPointF p)
 {
 	return std::isfinite(p.x()) && std::isfinite(p.y());
+}
+// The rows as runs of consecutive rows, so selecting them is one change
+// (and one selectionChanged) instead of one per row.
+QItemSelection rowRuns(const QAbstractItemModel *model, const QSet<int> &rows)
+{
+	QVector<int> sorted;
+	sorted.reserve(rows.size());
+	for (int row : rows)
+		if (row >= 0 && row < model->rowCount())
+			sorted.append(row);
+	std::sort(sorted.begin(), sorted.end());
+	QItemSelection selection;
+	for (qsizetype at = 0; at < sorted.size();)
+	{
+		const int first = sorted[at++];
+		int last = first;
+		while (at < sorted.size() && sorted[at] == last + 1)
+			last = sorted[at++];
+		selection.select(model->index(first, 0), model->index(last, 0));
+	}
+	return selection;
 }
 } // namespace
 class ModelWeightTable final : public QAbstractTableModel
@@ -369,10 +391,10 @@ ModelWeightPaintDialog::ModelWeightPaintDialog(const ModelMesh &mesh, const Mode
 								   }
 							   for (auto edge : selection.edges)
 								   selected.unite({edge.first, edge.second});
-							   for (int v : selected)
-								   if (v >= 0 && v < m_tableModel->rowCount())
-									   m_table->selectionModel()->select(m_tableModel->index(v, 0),
-																		 QItemSelectionModel::Select | QItemSelectionModel::Rows);
+							   m_refreshing = true;
+							   m_table->selectionModel()->select(rowRuns(m_tableModel, selected),
+																 QItemSelectionModel::Select | QItemSelectionModel::Rows);
+							   m_refreshing = false;
 						   }
 						   m_selectionOnly->setChecked(!selected.isEmpty());
 						   m_status->setText(valid ? Text::tr("Ready. Strokes are reviewed locally; Apply commits the staged result.")
@@ -437,8 +459,7 @@ void ModelWeightPaintDialog::changed(bool mesh)
 	m_refreshing = true;
 	const auto selected = m_tableModel->surfaceIndex() == surface ? selectedVertices() : QSet<int>{};
 	m_tableModel->setSurface(model.surfaces[surface], joint, surface);
-	for (int v : selected)
-		m_table->selectionModel()->select(m_tableModel->index(v, 0), QItemSelectionModel::Select | QItemSelectionModel::Rows);
+	m_table->selectionModel()->select(rowRuns(m_tableModel, selected), QItemSelectionModel::Select | QItemSelectionModel::Rows);
 	m_refreshing = false;
 	if (mesh)
 	{

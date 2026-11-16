@@ -59,6 +59,7 @@ QWidget *ModelEditorDialog::createUvView()
 	auto *selection =
 		action(QCoreApplication::translate("VibeStudioModelEditor", "Frame Selection"), QStringLiteral("frameMeshUvSelection"));
 	auto *islands = action(QCoreApplication::translate("VibeStudioModelEditor", "Select Islands"), QStringLiteral("selectMeshUvIslands"));
+	m_uvIslandsAction = islands;
 	auto *density = action(QCoreApplication::translate("ModelUvDensityDialog", "Texel Density…"), QStringLiteral("inspectMeshUvDensity"));
 	density->setToolTip(QCoreApplication::translate("ModelUvDensityDialog", "Measure and match UV island texture density using original image dimensions."));
 	connect(density, &QAction::triggered, this, &ModelEditorDialog::editUvDensity);
@@ -106,6 +107,7 @@ QWidget *ModelEditorDialog::createUvView()
 	m_uvHealthStretch->setAccessibleDescription(m_uvHealthStretch->toolTip());
 	tools->addWidget(m_uvHealthStretch);
 	auto *problems = action(QCoreApplication::translate("ModelUvHealth", "Select Shown Problems"), QStringLiteral("selectMeshUvProblems"));
+	m_uvProblemsAction = problems;
 	problems->setToolTip(QCoreApplication::translate("ModelUvHealth", "Select the faces the UV problem overlay shades. The model is not changed."));
 	auto *check = action(QCoreApplication::translate("ModelUvHealth", "Check UV Health"), QStringLiteral("checkMeshUvHealth"));
 	check->setToolTip(QCoreApplication::translate(
@@ -120,6 +122,7 @@ QWidget *ModelEditorDialog::createUvView()
 			});
 	connect(check, &QAction::triggered, this, [this] { checkUvHealth(); });
 	auto *shared = action(QCoreApplication::translate("ModelUvOps", "Show Shared Surfaces"), QStringLiteral("showMeshUvShared"));
+	m_uvSharedAction = shared;
 	shared->setCheckable(true);
 	shared->setToolTip(QCoreApplication::translate("ModelUvOps", "Draw the UVs of other surfaces bound to the same material as dim dashed "
 																 "wires, so islands that would overlap on the shared skin show."));
@@ -131,6 +134,7 @@ QWidget *ModelEditorDialog::createUvView()
 	layoutExport->setToolTip(QCoreApplication::translate("ModelUvLayoutDialog", "Write the UV layout as a skin template image to paint over, or stage it in the package."));
 	connect(layoutExport, &QAction::triggered, this, &ModelEditorDialog::exportUvLayout);
 	auto *transfer = action(QCoreApplication::translate("ModelSkinHandoff", "Transfer Skin…"), QStringLiteral("transferMeshSkin"));
+	m_transferSkinAction = transfer;
 	transfer->setToolTip(QCoreApplication::translate("ModelSkinHandoff", "After a UV edit, repaint the surface's skin for the new UVs by sampling it through the old ones."));
 	connect(transfer, &QAction::triggered, this, &ModelEditorDialog::transferSkin);
 	auto *edit = action(QCoreApplication::translate("ModelSkinHandoff", "Edit Skin…"), QStringLiteral("editMeshSkin"));
@@ -443,6 +447,7 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 		auto *item = new WrappingActionButton(label, 2);
 		item->setObjectName(name);
 		item->setProperty("requiresMeshComponents", true);
+		m_meshComponentButtons.append(item);
 		surface->addRow(item);
 		connect(item, &QPushButton::clicked, this, [this, kind] { execute(kind); });
 		return item;
@@ -466,6 +471,7 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 		auto *item = new WrappingActionButton(label, 2);
 		item->setObjectName(name);
 		item->setProperty("requiresMeshComponents", true);
+		m_meshComponentButtons.append(item);
 		item->setToolTip(tip);
 		item->setAccessibleName(label);
 		item->setAccessibleDescription(tip);
@@ -765,7 +771,8 @@ void ModelEditorDialog::refreshUv()
 														 : m_mdlPreview;
 	const auto image = m_renderMode->currentIndex() == 3 && !material.isNull() ? material : m_checker;
 	const bool meshMode = m_selectionMode->currentIndex() < 3 && selected.tag.isEmpty() && selected.collision.isEmpty() && selected.surfaces.isEmpty();
-	findChild<QAction *>(QStringLiteral("selectMeshUvIslands"))->setEnabled(meshMode);
+	if (m_uvIslandsAction)
+		m_uvIslandsAction->setEnabled(meshMode);
 	const bool atlasSelection = meshMode && !selected.faces.isEmpty() && selected.vertices.isEmpty() && selected.edges.isEmpty();
 	const bool conformal = m_uvUnwrapMethod && m_uvUnwrapMethod->currentIndex() == 1;
 	m_uvUnwrap->setEnabled(atlasSelection || (conformal && meshMode && !selected.vertices.isEmpty() && selected.edges.isEmpty()));
@@ -790,8 +797,10 @@ void ModelEditorDialog::refreshUv()
 	m_uv->setHealthOverlay(overlay, overlay == ModelUvHealthOverlay::None || surface.frames.isEmpty() ? QVector<ModelVec3>{} : surface.frames[pose].positions,
 						   uvSkinSize(selected.surface), m_uvHealthStretch->value());
 	m_uvHealthStretch->setEnabled(overlay == ModelUvHealthOverlay::Stretch);
-	findChild<QAction *>(QStringLiteral("selectMeshUvProblems"))->setEnabled(meshMode && overlay != ModelUvHealthOverlay::None);
-	findChild<QAction *>(QStringLiteral("transferMeshSkin"))->setEnabled(canTransferSkin());
+	if (m_uvProblemsAction)
+		m_uvProblemsAction->setEnabled(meshMode && overlay != ModelUvHealthOverlay::None);
+	if (m_transferSkinAction)
+		m_transferSkinAction->setEnabled(canTransferSkin());
 	// MD2: the resolved skin image against the MD2 skin size.
 	if (m_md2SkinSizeWarning)
 	{
@@ -806,7 +815,7 @@ void ModelEditorDialog::refreshUv()
 		m_md2SkinSizeWarning->setVisible(!mismatch.isEmpty());
 	}
 	QVector<ModelSurface> ghosts;
-	if (const auto *shared = findChild<QAction *>(QStringLiteral("showMeshUvShared")); shared && shared->isChecked())
+	if (m_uvSharedAction && m_uvSharedAction->isChecked())
 		for (int s = 0; s < m_document.mesh().surfaces.size(); ++s)
 			if (s != selected.surface && modelUvSurfacesShareMaterial(surface, m_document.mesh().surfaces[s]))
 				ghosts.append(m_document.mesh().surfaces[s]);

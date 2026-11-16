@@ -209,6 +209,27 @@ bool rebuild(ModelMesh *mesh, const ModelMesh &before, const QVector<Frame> &old
 	QHash<QString, int> skeletalTags;
 	for (int i = 0; i < before.skeleton.tags.size(); ++i)
 		skeletalTags.insert(before.skeleton.tags[i].name, i);
+	// The tags of each old frame, in their stored order.
+	QHash<int, QVector<int>> tagsOfFrame;
+	for (int t = 0; t < before.tags.size(); ++t)
+		tagsOfFrame[before.tags[t].frameIndex].append(t);
+	// Skinning the same influences with the same pose gives the same geometry,
+	// which every branch below keeps as the original frame.
+	const auto samePose = [](const QVector<ModelJointMatrix> &a, const QVector<ModelJointMatrix> &b)
+	{
+		return a.size() == b.size() &&
+			   (a.constData() == b.constData() ||
+				std::equal(a.cbegin(), a.cend(), b.cbegin(), [](const ModelJointMatrix &x, const ModelJointMatrix &y)
+						   { return std::equal(std::cbegin(x.m), std::cend(x.m), std::cbegin(y.m)); }));
+	};
+	QVector<bool> sameSkin;
+	for (int surface = 0; surface < mesh->surfaces.size(); ++surface)
+	{
+		const auto &a = before.surfaces[surface], &b = mesh->surfaces[surface];
+		const auto shared = [](const auto &x, const auto &y) { return x.constData() == y.constData() && x.size() == y.size(); };
+		sameSkin.append(a.vertexCount == b.vertexCount && shared(a.skinning.first, b.skinning.first) && shared(a.skinning.count, b.skinning.count) &&
+						shared(a.skinning.influences, b.skinning.influences) && shared(a.triangles, b.triangles));
+	}
 	for (int i = 0; i < plan.size(); ++i)
 	{
 		if (!work.check())
@@ -230,6 +251,7 @@ bool rebuild(ModelMesh *mesh, const ModelMesh &before, const QVector<Frame> &old
 			info.name = item.clip < 0 ? QStringLiteral("bindpose") : modelBakedFrameName(mesh->skeleton.clips[item.clip].name, item.local, int(mesh->skeleton.clips[item.clip].frames.size()));
 		mesh->frames.append(info);
 		mesh->skeleton.bakedClipForFrame.append(item.clip);
+		const bool unchangedPose = samePose(oldPose, newPose);
 		for (int surface = 0; surface < mesh->surfaces.size(); ++surface)
 		{
 			if (!work.step())
@@ -237,7 +259,7 @@ bool rebuild(ModelMesh *mesh, const ModelMesh &before, const QVector<Frame> &old
 			const auto &oldSurface = before.surfaces[surface];
 			auto &newSurface = mesh->surfaces[surface];
 			const auto &original = oldSurface.frames[item.inherited];
-			if (newSurface.skinning.isEmpty())
+			if (newSurface.skinning.isEmpty() || (unchangedPose && sameSkin[surface]))
 			{
 				newSurface.frames.append(original);
 				continue;
@@ -260,12 +282,11 @@ bool rebuild(ModelMesh *mesh, const ModelMesh &before, const QVector<Frame> &old
 				newSurface.frames.append(std::move(updated));
 			}
 		}
-		for (const auto &original : before.tags)
+		for (int t : tagsOfFrame.value(item.inherited))
 		{
 			if (!work.step())
 				return false;
-			if (original.frameIndex != item.inherited)
-				continue;
+			const auto &original = before.tags[t];
 			auto tag = original;
 			const int index = skeletalTags.value(tag.name, -1);
 			if (index >= 0)

@@ -71,6 +71,41 @@ void select(QTableView *table, const QSet<int> &rows)
 	for (int row : rows)
 		table->selectionModel()->select(table->model()->index(row, 0), QItemSelectionModel::Select | QItemSelectionModel::Rows);
 }
+// The editor's selection becomes the table's rows in one selection change, on
+// opening and after each staged stroke, Undo and Redo, and the rows stay the same.
+void selectionRestoredAtOnce(const ModelMesh &mesh)
+{
+	ModelSelection selection;
+	selection.vertices = {0, 1, 2};
+	ModelWeightPaintDialog dialog(mesh, selection, "tip", 0);
+	auto *table = dialog.findChild<QTableView *>("weightPaintTable");
+	if (!expect(table != nullptr, "the weight table exists"))
+		return;
+	int changes = 0;
+	QObject::connect(table->selectionModel(), &QItemSelectionModel::selectionChanged, &dialog, [&changes] { ++changes; });
+	const auto rows = [&]
+	{
+		QSet<int> result;
+		for (const auto &index : table->selectionModel()->selectedRows())
+			result.insert(index.row());
+		return result;
+	};
+	dialog.show();
+	expect(idle(dialog), "the three-row fixture prepares");
+	expect(rows() == QSet<int>({0, 1, 2}) && changes == 1, "opening selects the editor's three vertices in one change");
+	dialog.findChild<QDoubleSpinBox *>("weightPaintStrength")->setValue(1);
+	dialog.findChild<QDoubleSpinBox *>("weightPaintValue")->setValue(.5);
+	changes = 0;
+	expect(dialog.paintSelected() && rows() == QSet<int>({0, 1, 2}) && changes <= 1, "a staged stroke keeps the rows, restored in one change");
+	changes = 0;
+	dialog.undoStroke();
+	expect(rows() == QSet<int>({0, 1, 2}) && changes <= 1, "Undo keeps the rows, restored in one change");
+	changes = 0;
+	dialog.redoStroke();
+	expect(rows() == QSet<int>({0, 1, 2}) && changes <= 1, "Redo keeps the rows, restored in one change");
+	dialog.reject();
+	dialog.reject();
+}
 class Expansion final : public QTranslator
 {
   public:
@@ -110,6 +145,7 @@ int main(int argc, char **argv)
 	const auto mesh = rigFixture();
 	const auto original = rigBytes(mesh);
 	QString error;
+	selectionRestoredAtOnce(mesh);
 	ModelSelection selection;
 	selection.vertices = {0};
 	{

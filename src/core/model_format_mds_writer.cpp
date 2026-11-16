@@ -146,7 +146,7 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 		for (int v = 0; v < surface.skinning.count.size(); ++v) {
 			if (surface.skinning.count.at(v) > options.maxInfluences) {
 				fail(error, QCoreApplication::translate("VibeStudioModelMds", "Vertex %1 of surface %2 has %3 bone weights; MDS export keeps at most %4.")
-					.arg(v).arg(surface.name).arg(surface.skinning.count.at(v)).arg(options.maxInfluences));
+					.arg(QString::number(v), surface.name, QString::number(surface.skinning.count.at(v)), QString::number(options.maxInfluences)));
 				return {};
 			}
 		}
@@ -196,7 +196,7 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 			}
 			const ModelVec3 scale = modelJointScale(m);
 			if (std::abs(scale.x - 1.0f) > 1e-3f || std::abs(scale.y - 1.0f) > 1e-3f || std::abs(scale.z - 1.0f) > 1e-3f) {
-				fail(error, QCoreApplication::translate("VibeStudioModelMds", "Bone %1 scales in frame %2; MDS bones only rotate.").arg(skeleton.joints.at(bone).name).arg(f));
+				fail(error, QCoreApplication::translate("VibeStudioModelMds", "Bone %1 scales in frame %2; MDS bones only rotate.").arg(skeleton.joints.at(bone).name, QString::number(f)));
 				return {};
 			}
 			// The axes AnglesToAxis must produce: the rows of the vertex
@@ -224,7 +224,7 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 				} else if (std::abs(translation.x - rootOffset.x) > options.distanceTolerance || std::abs(translation.y - rootOffset.y) > options.distanceTolerance
 					|| std::abs(translation.z - rootOffset.z) > options.distanceTolerance) {
 					fail(error, QCoreApplication::translate("VibeStudioModelMds", "Root bones %1 and the first root sit apart in frame %2; MDS roots share one position.")
-						.arg(skeleton.joints.at(bone).name).arg(f));
+						.arg(skeleton.joints.at(bone).name, QString::number(f)));
 					return {};
 				}
 				rebuilt[bone] = rootOffset;
@@ -306,7 +306,7 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 		for (int v = 0; v < surface.vertexCount; ++v) {
 			const int first = surface.skinning.first.value(v), count = surface.skinning.count.value(v);
 			if (count < 1) {
-				fail(error, QCoreApplication::translate("VibeStudioModelMds", "Vertex %1 of surface %2 has no bone weight.").arg(v).arg(surface.name));
+				fail(error, QCoreApplication::translate("VibeStudioModelMds", "Vertex %1 of surface %2 has no bone weight.").arg(QString::number(v), surface.name));
 				return {};
 			}
 			// The normal in the first bone's space (RB_SurfaceAnim rotates it
@@ -392,6 +392,17 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 	}
 	if (!mesh.collisionBoxes.isEmpty()) {
 		result.omissions << QCoreApplication::translate("VibeStudioModelMds", "Collision boxes stay in the editable source; MDS does not store them.");
+	}
+	// The editable model keeps no torso parent or torso weights, so a model
+	// that came from an RTCW or Enemy Territory skeleton may lose them.
+	const QString sourceSuffix = mesh.sourcePath.section(QLatin1Char('.'), -1).toLower();
+	const bool torsoSource = mesh.format == ModelMeshFormat::Mds || mesh.format == ModelMeshFormat::Mdm || mesh.format == ModelMeshFormat::Mdx
+		|| (mesh.sourcePath.contains(QLatin1Char('.'))
+			&& (sourceSuffix == QLatin1String("mds") || sourceSuffix == QLatin1String("mdm") || sourceSuffix == QLatin1String("mdx")));
+	if (torsoSource && options.torsoParent < 0) {
+		result.omissions << QCoreApplication::translate("VibeStudioModelMds",
+			"The source's torso blending is not kept: this MDS is written with no torso parent and a torso weight of 0 on every bone and "
+			"tag, so the game will not turn the upper body separately. Keep the original file if it needs torso blending.");
 	}
 	if (skeleton.clips.size() > 1) {
 		result.notes << QCoreApplication::translate("VibeStudioModelMds",

@@ -161,6 +161,40 @@ int main(int argc, char **argv)
 				   "pins stay inside the surface after a merge");
 	}
 
+	// Pins follow their corners into separated, moved and joined surfaces.
+	{
+		const auto pinnedAt = [](const ModelSurface &surface)
+		{
+			QVector<QPair<float, float>> places;
+			for (int pin : surface.uvPins)
+				places.append({surface.frames[0].positions[pin].x, surface.frames[0].positions[pin].y});
+			std::sort(places.begin(), places.end());
+			return places;
+		};
+		using Places = QVector<QPair<float, float>>;
+		auto mesh = strip(3);
+		mesh.surfaces[0].uvPins = {0, 3, 6};
+		auto separate = operation(ModelEditKind::SeparateFaces, {0, {}, {4, 5}});
+		separate.text = QStringLiteral("right");
+		expect(applyModelEdit(&mesh, separate, nullptr, &error) && mesh.surfaces.size() == 2, "separate the last quad", error);
+		expect(pinnedAt(mesh.surfaces[0]) == Places{{0, 0}, {20, 10}} && pinnedAt(mesh.surfaces[1]) == Places{{20, 10}, {30, 0}},
+			   "separated surfaces keep the pins of their corners, shared corners in both");
+		auto joined = mesh;
+		auto join = operation(ModelEditKind::JoinSurfaces, {0});
+		join.targetSurface = 0;
+		join.surfaces = {0, 1};
+		expect(applyModelEdit(&joined, join, nullptr, &error) && joined.surfaces.size() == 1 &&
+				   pinnedAt(joined.surfaces[0]) == Places{{0, 0}, {20, 10}, {20, 10}, {30, 0}},
+			   "joined surfaces keep every pin", error);
+		auto movedBack = mesh;
+		auto move = operation(ModelEditKind::MoveFacesToSurface, {1, {}, {0}});
+		move.targetSurface = 0;
+		// Face 0 of the right surface is (20, 0), (30, 0), (30, 10).
+		expect(applyModelEdit(&movedBack, move, nullptr, &error) && pinnedAt(movedBack.surfaces[0]) == Places{{0, 0}, {20, 10}, {30, 0}} &&
+				   pinnedAt(movedBack.surfaces[1]) == Places{{20, 10}},
+			   "moving faces carries their pinned corners and leaves the rest", error);
+	}
+
 	// A conformal unwrap keeps stored pins exactly; the rest flattens.
 	{
 		auto mesh = strip(3);

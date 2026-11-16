@@ -429,11 +429,8 @@ QByteArray md3(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 			return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
 															  "The delivery target draws MD3 surfaces of at most %1 vertices and %2 triangles; "
 															  "surface \"%3\" has %4 and %5. Split larger surfaces before export.")
-									  .arg(limits.vertices)
-									  .arg(limits.triangles)
-									  .arg(surface.name)
-									  .arg(surface.vertexCount)
-									  .arg(surface.triangles.size()));
+									  .arg(QString::number(limits.vertices), QString::number(limits.triangles), surface.name,
+										   QString::number(surface.vertexCount), QString::number(surface.triangles.size())));
 		}
 		for (const auto &material : surface.skinPaths)
 		{
@@ -498,6 +495,21 @@ QByteArray md3(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 	integer(bytes, 96, tagOffset);
 	integer(bytes, 100, surfaceOffset);
 	integer(bytes, 104, total);
+	// The first tag of each (frame, name), as a front-to-back search finds it.
+	QHash<QPair<int, QString>, const ModelTag *> tagAt;
+	tagAt.reserve(mesh.tags.size());
+	for (const auto &tag : mesh.tags)
+	{
+		const auto key = qMakePair(tag.frameIndex, tag.name);
+		if (!tagAt.contains(key))
+		{
+			tagAt.insert(key, &tag);
+		}
+		if (!work.step())
+		{
+			return {};
+		}
+	}
 	for (int f = 0; f < frames; ++f)
 	{
 		if (!work.step())
@@ -544,8 +556,13 @@ QByteArray md3(const ModelMesh &mesh, const ModelTargetLimits &limits, QString *
 			{
 				return {};
 			}
-			const auto found = std::find_if(mesh.tags.cbegin(), mesh.tags.cend(),
-											[&](const ModelTag &tag) { return tag.frameIndex == f && tag.name == tagNames[t]; });
+			const ModelTag *found = tagAt.value(qMakePair(f, tagNames[t]));
+			if (!found)
+			{
+				return failure(error, QCoreApplication::translate("VibeStudioModelDocument",
+																  "Every MD3 frame needs every tag; frame %1 has no tag \"%2\".")
+										  .arg(QString::number(f), tagNames[t]));
+			}
 			const int base = tagOffset + (f * tagCount + t) * 112;
 			text(bytes, base, found->name);
 			vector(bytes, base + 64, found->origin);
@@ -1199,17 +1216,41 @@ QByteArray exportNative(const ModelMesh &mesh, const QString &format, const Mode
 			result.prepend(QStringLiteral("# Collision boxes remain in the mesh source; export collision brushes separately.\n"));
 			omit(report, modelCollisionOmissionNote());
 		}
+		// Material state persists across OBJ groups, so every group names its
+		// material, an empty one clearing it for an unassigned surface. Surface
+		// names are single tokens, so a group line is "g <name>"; surfaces that
+		// share a name each add their line, the last surface's first.
+		QHash<QString, QStringList> materialsOfGroup;
 		for (const auto &surface : mesh.surfaces)
 		{
 			if (!modelWorkCheckpoint(control, ModelWorkPhase::Serializing, 0, 0, error))
 			{
 				return {};
 			}
-			// Material state persists across OBJ groups. Explicitly clear it for
-			// an unassigned surface following an assigned one.
-			result.replace(QStringLiteral("g %1\n").arg(surface.name),
-				QStringLiteral("g %1\nusemtl %2\n").arg(surface.name, surface.skinPaths.value(0)));
+			materialsOfGroup[surface.name].prepend(QStringLiteral("usemtl %1\n").arg(surface.skinPaths.value(0)));
 		}
+		QString withMaterials;
+		withMaterials.reserve(result.size() + qsizetype(mesh.surfaces.size()) * 16);
+		for (qsizetype start = 0; start < result.size();)
+		{
+			const qsizetype newline = result.indexOf(QLatin1Char('\n'), start);
+			const qsizetype end = newline < 0 ? result.size() : newline + 1;
+			const QStringView line = QStringView(result).mid(start, end - start);
+			withMaterials += line;
+			if (newline >= 0 && line.startsWith(QLatin1String("g ")))
+			{
+				const auto found = materialsOfGroup.constFind(line.mid(2, line.size() - 3).toString());
+				if (found != materialsOfGroup.constEnd())
+				{
+					for (const QString &material : found.value())
+					{
+						withMaterials += material;
+					}
+				}
+			}
+			start = end;
+		}
+		result = std::move(withMaterials);
 		if (!modelWorkCheckpoint(control, ModelWorkPhase::Serializing, 1, 1, error))
 		{
 			return {};

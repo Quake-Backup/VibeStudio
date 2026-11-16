@@ -82,6 +82,10 @@ bool applyModelPoseRangeEdit(ModelMesh *mesh, const ModelEdit &edit, QString *er
 	if (!transform && (edit.translation.x != 0 || edit.translation.y != 0 || edit.translation.z != 0 || edit.rotation.x != 0 ||
 					   edit.rotation.y != 0 || edit.rotation.z != 0 || edit.scale.x != 1 || edit.scale.y != 1 || edit.scale.z != 1))
 		return fail(error, Text::tr("Move, rotate and scale values apply only to range transforms."));
+	// Copied before the mutable reference detaches anything: QVector sharing
+	// would otherwise let the source and base frames see rewritten frames when
+	// they lie inside the range.
+	const ModelSurface original = std::as_const(mesh->surfaces)[edit.selection.surface];
 	auto &surface = mesh->surfaces[edit.selection.surface];
 	const auto vertices = model_tools::selectedVertexSet(surface, edit.selection);
 	if (vertices.isEmpty())
@@ -107,8 +111,6 @@ bool applyModelPoseRangeEdit(ModelMesh *mesh, const ModelEdit &edit, QString *er
 		if (!resolveModelTransformAxes(*mesh, edit, &resolved.basis, error, control))
 			return false;
 	}
-	const ModelMesh source = *mesh;
-	const auto &original = source.surfaces[edit.selection.surface];
 	const int count = o.last - o.first + 1;
 	for (int k = 0; k < count; ++k)
 	{

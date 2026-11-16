@@ -1074,7 +1074,6 @@ private:
 	QString m_editCollision;
 	QSize m_rasterLogicalSize;
 	bool m_rasterDirty = true;
-	int m_rasterHover = -1;
 	bool m_rasterFailed = false;
 	quint64 m_rasterRevision = 0;
 	quint64 m_baseRasterRevision = 0;
@@ -1257,6 +1256,24 @@ private:
 	quint64 m_texCoordRevision = 0;
 	LevelLinkedGroupDisplay m_linkedGroups;
 	LinkedGroupPaint m_linkedGroupPaint;
+	// The hovered triangle's outline over a shaded or textured frame, drawn
+	// from the presented frame's own projection and masked by its triangle
+	// ids, so pointing at another triangle repaints without rendering again.
+	void paintHoverOverlay(QPainter& painter, const Palette& palette);
+	QImage m_hoverOverlay;
+	QRect m_hoverOverlayPixels;
+	std::weak_ptr<RasterWork> m_hoverOverlayFrame;
+	int m_hoverOverlayTriangle = -1;
+	QRgb m_hoverOverlayColour = 0;
+	// Ends an in-view skin-paint stroke without applying it, as Escape does.
+	void cancelSkinPaintStroke();
+	// Hidden views do not tick playback; showing them resumes it in place.
+	bool m_playbackHidden = false;
+	// The source image each converted surface, Game preview and glow image
+	// came from, so unchanged images are not converted again.
+	QHash<int, qint64> m_surfaceSkinSources, m_gameSkinSources, m_gameGlowSources;
+	// transformGizmoPoints(), also handing back the rotate rings it built.
+	[[nodiscard]] std::array<QPointF, 4> gizmoHandles(std::array<QPolygonF, 3>* rings);
 };
 
 QString modelViewportRenderModeDisplayName(ModelViewportRenderMode mode);

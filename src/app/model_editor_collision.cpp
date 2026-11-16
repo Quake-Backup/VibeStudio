@@ -373,7 +373,9 @@ void ModelEditorDialog::refreshCollision()
 		 : m_collisionTarget->currentData() == "quake2" ? Text::tr("Quake II: player movement only; no monster or projectile collision.")
 														: Text::tr("Quake: expanded clip hulls; no point-trace collision.")) +
 		hullText);
-	refreshContext();
+	// Runs on every playback frame and pick: the delivery context the shell
+	// last pushed stays as it is (reading it parses the project manifest).
+	refreshContextControls();
 }
 void ModelEditorDialog::executeCollision(ModelEditKind kind)
 {

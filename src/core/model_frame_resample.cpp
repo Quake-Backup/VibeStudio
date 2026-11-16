@@ -1,6 +1,8 @@
 #include "core/model_frame_tools.h"
 
+#include "core/model_animation_constraints.h"
 #include "core/model_animation_curves.h"
+#include "core/model_animation_events.h"
 #include "core/model_collision.h"
 #include "core/model_document.h"
 #include "core/model_mdl.h"
@@ -344,12 +346,19 @@ bool resampleSkeletalClip(ModelMesh *mesh, const ModelEdit &edit, QString *error
 	if (!validRate(o.sourceFps))
 		return fail(error, Text::tr("The source rate must be zero (the clip's saved FPS) or from 0.001 to 1000 FPS."));
 	const auto clip = skeleton.clips[o.clip];
-	const int n = int(clip.frames.size());
+	// A clip with constraints or layers is resampled from its base, which its
+	// curves describe; the stack evaluates again over the new samples.
+	const auto &base = modelClipEditableSamples(clip);
+	const int n = int(base.size());
 	const double sourceFps = o.sourceFps > 0 ? o.sourceFps : clip.framesPerSecond;
 	QVector<double> positions;
 	if (!modelResamplePositions(n, sourceFps, o, &positions, error))
 		return false;
 	const int m = int(positions.size());
+	if (m != n && modelClipHasStack(clip))
+		return fail(error, Text::tr("Clip %1 has constraints or layers, whose sample ranges and weight keys would not follow a new frame count. "
+									"Bake its stack first, or resample it to the same number of frames.")
+							   .arg(clip.name));
 	double rate = o.targetFps;
 	if (!(rate > 0))
 		rate = sourceFps > 0 ? (o.cyclic ? sourceFps * m / n : (n > 1 && m > 1 ? sourceFps * (m - 1) / (n - 1) : sourceFps)) : 0;
@@ -394,9 +403,9 @@ bool resampleSkeletalClip(ModelMesh *mesh, const ModelEdit &edit, QString *error
 		const double amount = u - i0;
 		QVector<ModelJointMatrix> pose;
 		if (o.method == ModelResampleMethod::Nearest || amount < 1e-9)
-			pose = clip.frames[int(std::lround(u)) % n];
+			pose = base[int(std::lround(u)) % n];
 		else
-			pose = blendPose(parents, clip.frames[i0], clip.frames[(i0 + 1) % n], amount);
+			pose = blendPose(parents, base[i0], base[(i0 + 1) % n], amount);
 		if (!curveOfJoint.isEmpty())
 		{
 			// Keyed joints follow their rescaled curves exactly.
@@ -408,7 +417,22 @@ bool resampleSkeletalClip(ModelMesh *mesh, const ModelEdit &edit, QString *error
 		}
 		samples.append(pose);
 	}
-	return replaceSkeletalClip(mesh, o.clip, samples, curves, rate, error, control) && work.check();
+	// Events keep their time: each moves to the new sample nearest its old
+	// frame. Several events may share a sample; a stable sort keeps their
+	// order.
+	auto events = clip.events;
+	for (auto &event : events)
+	{
+		const auto at = std::lower_bound(positions.cbegin(), positions.cend(), double(event.frame));
+		int j = int(at - positions.cbegin());
+		if (j >= m || (j > 0 && double(event.frame) - positions[j - 1] < *at - double(event.frame)))
+			j = std::max(0, j - 1);
+		event.frame = std::clamp(j, 0, m - 1);
+	}
+	if (!replaceSkeletalClip(mesh, o.clip, samples, curves, rate, error, control))
+		return false;
+	mesh->skeleton.clips[o.clip].events = sortedModelAnimationEvents(events);
+	return work.check();
 }
 
 bool closeSkeletalLoop(ModelMesh *mesh, const ModelEdit &edit, QString *error, const ModelWorkControl &control)
@@ -418,14 +442,21 @@ bool closeSkeletalLoop(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 	if (o.clip < 0 || o.clip >= skeleton.clips.size())
 		return fail(error, Text::tr("Choose an existing skeletal clip to close its loop."));
 	const auto clip = skeleton.clips[o.clip];
-	const int n = int(clip.frames.size());
+	// The loop is closed on the base of a clip with constraints or layers; the
+	// stack evaluates again over it.
+	const auto &base = modelClipEditableSamples(clip);
+	const int n = int(base.size());
 	if (n < 2)
 		return fail(error, Text::tr("Closing a loop needs a clip of at least two frames."));
+	if (o.loopClose == ModelLoopClose::AppendFirst && modelClipHasStack(clip))
+		return fail(error, Text::tr("Clip %1 has constraints or layers, whose sample ranges and weight keys would not follow a new frame count. "
+									"Bake its stack first, or cross-fade or replace the last frame instead.")
+							   .arg(clip.name));
 	if (o.loopClose == ModelLoopClose::CrossFade && (o.blendFrames < 1 || o.blendFrames > n - 1))
 		return fail(error, Text::tr("Cross-fade 1 to %1 frames of this clip toward its first pose.").arg(n - 1));
 	if (o.loopClose != ModelLoopClose::CrossFade && o.blendFrames != 0)
 		return fail(error, Text::tr("Blend frames apply only to a cross-fade."));
-	auto samples = clip.frames;
+	auto samples = base;
 	const auto parents = modelJointParents(skeleton);
 	if (o.loopClose == ModelLoopClose::ReplaceLast)
 		samples.last() = samples.first();
@@ -435,7 +466,7 @@ bool closeSkeletalLoop(ModelMesh *mesh, const ModelEdit &edit, QString *error, c
 		for (int k = 1; k <= o.blendFrames; ++k)
 		{
 			const int frame = n - 1 - o.blendFrames + k;
-			samples[frame] = blendPose(parents, clip.frames[frame], clip.frames.first(), double(k) / (o.blendFrames + 1));
+			samples[frame] = blendPose(parents, base[frame], base.first(), double(k) / (o.blendFrames + 1));
 		}
 	QVector<ModelPoseCurves> curves;
 	if (!clip.curves.isEmpty() && !o.bakeCurves)

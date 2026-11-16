@@ -96,13 +96,13 @@ int modelAnimationAuthoringSourceVersion(const ModelMesh &mesh)
 	return limited || clipData || vertexEvents ? 15 : 0;
 }
 
-bool validateModelAnimationAuthoring(const ModelMesh &mesh, QString *error, const ModelWorkControl &control)
+bool validateModelAnimationAuthoring(const ModelMesh &mesh, QString *error, const ModelWorkControl &control, const ModelMesh *validBaseline)
 {
 	for (const auto &joint : mesh.skeleton.joints)
 		if (joint.limits.enabled && !validModelJointLimits(joint.limits, error))
 			return false;
 		else if (!joint.limits.enabled && !(joint.limits == ModelJointLimits{}))
 			return fail(error, Text::tr("Joint %1 keeps limit values while its limits are off.").arg(joint.name));
-	return validateModelAnimationEvents(mesh, error) && validateModelClipStacks(mesh, error, control);
+	return validateModelAnimationEvents(mesh, error) && validateModelClipStacks(mesh, error, control, validBaseline);
 }
 } // namespace vibestudio

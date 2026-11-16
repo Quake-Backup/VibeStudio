@@ -1,6 +1,7 @@
 #include "core/model_skin_paint.h"
 
 #include "core/model_document.h"
+#include "core/model_uv_raster.h"
 #include "core/package_archive.h"
 #include "core/package_staging.h"
 #include "core/texture_export.h"
@@ -139,7 +140,421 @@ QJsonArray matrixJson(const std::array<double, 16>& matrix)
 	return list;
 }
 
+// Each channel, straight alpha included, moved `amount` of the way to `to`.
+QRgb lerpRgb(QRgb from, QRgb to, double amount)
+{
+	const auto mix = [amount](int a, int b) { return int(std::lround(a + (b - a) * amount)); };
+	return qRgba(mix(qRed(from), qRed(to)), mix(qGreen(from), qGreen(to)), mix(qBlue(from), qBlue(to)), mix(qAlpha(from), qAlpha(to)));
+}
+
+// An opaque colour at coverage `amount` over `under`, straight alpha: a
+// transparent texel takes the colour itself at that coverage instead of a
+// blend towards its own (meaningless) colour channels. Over an opaque texel
+// this is the plain blend.
+QRgb overRgb(QRgb under, QRgb colour, double amount)
+{
+	if (qAlpha(under) == 255) {
+		return lerpRgb(under, colour, amount);
+	}
+	const double below = qAlpha(under) / 255.0, alpha = amount + below * (1.0 - amount);
+	if (alpha <= 0.0) {
+		return under;
+	}
+	const auto channel = [&](int top, int bottom) { return std::clamp(int(std::lround((top * amount + bottom * below * (1.0 - amount)) / alpha)), 0, 255); };
+	return qRgba(channel(qRed(colour), qRed(under)), channel(qGreen(colour), qGreen(under)), channel(qBlue(colour), qBlue(under)),
+		std::clamp(int(std::lround(alpha * 255.0)), 0, 255));
+}
+
+// floor(coordinate) wrapped into 0..size-1, as the preview samples tiled UVs.
+int wrapTexel(double coordinate, int size)
+{
+	const double cell = std::floor(coordinate);
+	return std::clamp(int(cell - std::floor(cell / size) * size), 0, size - 1);
+}
+
+// How many times a triangle's UVs may repeat the skin along each axis and
+// still be painted in every repeat.
+constexpr int kMaxUvRepeats = 8;
+// Padding is redone in tiles of this many texels around what changed.
+constexpr int kPaddingTile = 32;
+
+uint pixelValue(const QImage& image, int x, int y)
+{
+	return image.format() == QImage::Format_Indexed8 ? uint(image.constScanLine(y)[x]) : uint(reinterpret_cast<const QRgb*>(image.constScanLine(y))[x]);
+}
+
+void setPixelValue(QImage* image, int x, int y, uint value)
+{
+	if (image->format() == QImage::Format_Indexed8) {
+		image->scanLine(y)[x] = uchar(value);
+	} else {
+		reinterpret_cast<QRgb*>(image->scanLine(y))[x] = QRgb(value);
+	}
+}
+
 } // namespace
+
+struct ModelSkinPaintSession::State {
+	// One triangle's claim on a texel of the footprint, where the texel's 3D
+	// point shows in the view and, with a mirror axis, where its mirror does.
+	struct Entry {
+		qsizetype at = 0;
+		QPointF screen, mirrorScreen;
+		bool shown = false, mirrorShown = false;
+	};
+	// A view triangle of the painted surface, projected once for smudge.
+	struct Corners {
+		bool valid = false;
+		QPointF screen[3];
+		double w[3] = {1.0, 1.0, 1.0};
+		ModelTexCoord uv[3];
+	};
+
+	ModelSkinBrush brush;
+	QImage stamp;
+	QRgb flat = 0;
+	bool indexed = false;
+	QVector<QRgb> table;
+	int brushIndex = -1;
+	QHash<QRgb, int> nearest;
+	int width = 0, height = 0;
+	// The skin the stroke started from, it with the stroke's own texels, and
+	// that with the padding.
+	QImage before, core, display;
+	// Sorted by texel, so the entries of one texel lie together, each texel's
+	// in triangle order.
+	QVector<Entry> entries;
+	// The strongest coverage and its colour so far, per entry, directly and
+	// mirrored.
+	QVector<double> direct, mirror;
+	QVector<QRgb> directColour, mirrorColour;
+	QVector<quint8> footprint, painted, touched;
+	QVector<qsizetype> touchedEntries;
+	// Entries by view position: cell (x, y) of `cell` pixels holds the items
+	// cellItems[cellStart[c] .. cellStart[c + 1]), an item being entry * 2,
+	// plus one for the mirrored position.
+	double cell = 1.0;
+	int columns = 1, rows = 1;
+	QVector<qint32> cellStart, cellItems;
+	QSize viewSize;
+	QVector<qint32> ids;
+	QVector<Corners> corners;
+	bool perspective = false;
+	QVector<QPointF> samples;
+	int texels = 0;
+	int left = std::numeric_limits<int>::max(), top = std::numeric_limits<int>::max(), right = -1, bottom = -1;
+
+	void unite(int x, int y)
+	{
+		left = std::min(left, x);
+		top = std::min(top, y);
+		right = std::max(right, x);
+		bottom = std::max(bottom, y);
+	}
+	template<typename Visit>
+	void near(const QPointF& point, Visit visit) const
+	{
+		const auto index = [this](double value, int count) { return int(std::clamp(std::floor(value / cell), 0.0, double(count - 1))); };
+		const int x0 = index(point.x() - brush.radius, columns), x1 = index(point.x() + brush.radius, columns);
+		const int y0 = index(point.y() - brush.radius, rows), y1 = index(point.y() + brush.radius, rows);
+		for (int y = y0; y <= y1; ++y) {
+			for (int x = x0; x <= x1; ++x) {
+				const int c = y * columns + x;
+				for (int k = cellStart.at(c); k < cellStart.at(c + 1); ++k) {
+					visit(cellItems.at(k));
+				}
+			}
+		}
+	}
+	// The run of entries sharing entry e's texel.
+	std::pair<qsizetype, qsizetype> group(qsizetype e) const
+	{
+		qsizetype first = e, last = e + 1;
+		while (first > 0 && entries.at(first - 1).at == entries.at(e).at) {
+			--first;
+		}
+		while (last < entries.size() && entries.at(last).at == entries.at(e).at) {
+			++last;
+		}
+		return {first, last};
+	}
+	// The texel of the painted surface shown at a view point.
+	bool texelAt(const QPointF& point, int* tx, int* ty) const
+	{
+		if (!std::isfinite(point.x()) || !std::isfinite(point.y())) {
+			return false;
+		}
+		const double fx = std::floor(point.x()), fy = std::floor(point.y());
+		if (fx < 0 || fy < 0 || fx >= viewSize.width() || fy >= viewSize.height()) {
+			return false;
+		}
+		const int id = ids.at(qsizetype(fy) * viewSize.width() + qsizetype(fx));
+		if (id < 0 || id >= corners.size() || !corners.at(id).valid) {
+			return false;
+		}
+		const Corners& c = corners.at(id);
+		double w0 = 0, w1 = 0, w2 = 0;
+		barycentric(c.screen[0], c.screen[1], c.screen[2], point.x(), point.y(), &w0, &w1, &w2);
+		if (perspective && c.w[0] > 0 && c.w[1] > 0 && c.w[2] > 0) {
+			// Perspective-correct: weights over W, renormalised.
+			w0 /= c.w[0];
+			w1 /= c.w[1];
+			w2 /= c.w[2];
+			const double sum = w0 + w1 + w2;
+			if (std::abs(sum) < 1e-12) {
+				return false;
+			}
+			w0 /= sum;
+			w1 /= sum;
+			w2 /= sum;
+		}
+		const double u = w0 * c.uv[0].u + w1 * c.uv[1].u + w2 * c.uv[2].u;
+		const double v = w0 * c.uv[0].v + w1 * c.uv[1].v + w2 * c.uv[2].v;
+		if (!std::isfinite(u) || !std::isfinite(v)) {
+			return false;
+		}
+		*tx = wrapTexel(u * width, width);
+		*ty = wrapTexel(v * height, height);
+		return true;
+	}
+	bool paint(qsizetype from, ModelWorkProgress& work, QVector<qsizetype>* changed);
+	bool smudge(qsizetype from, ModelWorkProgress& work, QVector<qsizetype>* changed);
+	bool pad(const QVector<qsizetype>& changed, ModelWorkProgress& work);
+};
+
+bool ModelSkinPaintSession::State::paint(qsizetype from, ModelWorkProgress& work, QVector<qsizetype>* changed)
+{
+	for (qsizetype i = from; i < samples.size(); ++i) {
+		const QPointF sample = samples.at(i);
+		if (!work.step()) {
+			return false;
+		}
+		if (!std::isfinite(sample.x()) || !std::isfinite(sample.y())) {
+			continue;
+		}
+		near(sample, [&](qint32 item) {
+			const qsizetype e = item >> 1;
+			const bool mirrored = (item & 1) != 0;
+			const QPointF& screen = mirrored ? entries.at(e).mirrorScreen : entries.at(e).screen;
+			double weight = brushWeight(brush, std::hypot(sample.x() - screen.x(), sample.y() - screen.y()));
+			QRgb colour = flat;
+			if (weight > 0.0 && !stamp.isNull()) {
+				colour = stampAt(stamp, brush.radius, screen - sample);
+				weight *= qAlpha(colour) / 255.0;
+				colour = qRgba(qRed(colour), qGreen(colour), qBlue(colour), 255);
+			}
+			double& best = mirrored ? mirror[e] : direct[e];
+			if (weight > best) {
+				best = weight;
+				(mirrored ? mirrorColour : directColour)[e] = colour;
+				if (!touched.at(entries.at(e).at)) {
+					touched[entries.at(e).at] = 1;
+					touchedEntries.append(e);
+				}
+			}
+		});
+	}
+	for (const qsizetype e : std::as_const(touchedEntries)) {
+		if (!work.step()) {
+			return false;
+		}
+		const qsizetype at = entries.at(e).at;
+		touched[at] = 0;
+		// The strongest of the triangles sharing the texel, direct before
+		// mirrored, earlier before later on a tie.
+		double amount = 0.0;
+		QRgb colour = flat;
+		const auto [first, last] = group(e);
+		for (qsizetype k = first; k < last; ++k) {
+			if (direct.at(k) > amount) {
+				amount = direct.at(k);
+				colour = directColour.at(k);
+			}
+			if (mirror.at(k) > amount) {
+				amount = mirror.at(k);
+				colour = mirrorColour.at(k);
+			}
+		}
+		if (amount <= 0.0) {
+			continue;
+		}
+		const int x = int(at % width), y = int(at / width);
+		uint value = 0;
+		if (indexed || brush.mode == ModelSkinPaintMode::Replace) {
+			if (amount < 0.5) {
+				continue;
+			}
+			if (indexed) {
+				int index = brushIndex;
+				if (!stamp.isNull()) {
+					const auto known = nearest.constFind(colour);
+					index = known != nearest.cend() ? known.value() : nearest.insert(colour, nearestPaletteIndex(table, colour)).value();
+				}
+				value = uint(index);
+			} else {
+				value = colour;
+			}
+		} else {
+			value = overRgb(QRgb(pixelValue(before, x, y)), colour, amount);
+		}
+		bool moved = value != pixelValue(core, x, y);
+		setPixelValue(&core, x, y, value);
+		if (!painted.at(at)) {
+			painted[at] = 1;
+			++texels;
+			unite(x, y);
+			moved = true;
+		}
+		if (moved) {
+			changed->append(at);
+		}
+	}
+	touchedEntries.clear();
+	return true;
+}
+
+bool ModelSkinPaintSession::State::smudge(qsizetype from, ModelWorkProgress& work, QVector<qsizetype>* changed)
+{
+	QVector<QPair<qsizetype, uint>> writes;
+	for (qsizetype i = std::max<qsizetype>(from, 1); i < samples.size(); ++i) {
+		if (!work.check()) {
+			return false;
+		}
+		const QPointF sample = samples.at(i), delta = sample - samples.at(i - 1);
+		if (delta.isNull() || !std::isfinite(sample.x()) || !std::isfinite(sample.y()) || !std::isfinite(delta.x()) || !std::isfinite(delta.y())) {
+			continue;
+		}
+		const auto weightOf = [&](qsizetype k) {
+			const QPointF& screen = entries.at(k).screen;
+			return entries.at(k).shown ? brushWeight(brush, std::hypot(sample.x() - screen.x(), sample.y() - screen.y())) : 0.0;
+		};
+		// Every step reads the skin as the previous step left it.
+		writes.clear();
+		near(sample, [&](qint32 item) {
+			if (item & 1) {
+				return;
+			}
+			const qsizetype e = item >> 1;
+			const double weight = weightOf(e);
+			if (weight <= 0.0) {
+				return;
+			}
+			// A texel several triangles show moves once, with the one under
+			// the strongest part of the brush.
+			const auto [first, last] = group(e);
+			for (qsizetype k = first; k < last; ++k) {
+				if (k != e && (weightOf(k) > weight || (k < e && weightOf(k) == weight))) {
+					return;
+				}
+			}
+			int tx = 0, ty = 0;
+			if (!texelAt(entries.at(e).screen - delta, &tx, &ty)) {
+				return;
+			}
+			const qsizetype at = entries.at(e).at;
+			const int x = int(at % width), y = int(at / width);
+			const uint here = pixelValue(core, x, y), there = pixelValue(core, tx, ty);
+			if (indexed) {
+				if (weight >= 0.5 && here != there) {
+					writes.append({at, there});
+				}
+			} else {
+				const QRgb after = lerpRgb(QRgb(here), QRgb(there), weight);
+				if (after != here) {
+					writes.append({at, uint(after)});
+				}
+			}
+		});
+		for (const auto& [at, value] : std::as_const(writes)) {
+			const int x = int(at % width), y = int(at / width);
+			setPixelValue(&core, x, y, value);
+			if (!painted.at(at)) {
+				painted[at] = 1;
+				++texels;
+				unite(x, y);
+			}
+			changed->append(at);
+		}
+	}
+	return true;
+}
+
+bool ModelSkinPaintSession::State::pad(const QVector<qsizetype>& changed, ModelWorkProgress& work)
+{
+	const int padding = brush.padding;
+	if (padding <= 0) {
+		for (const qsizetype at : changed) {
+			const int x = int(at % width), y = int(at / width);
+			setPixelValue(&display, x, y, pixelValue(core, x, y));
+		}
+		return true;
+	}
+	// A texel's padding depends only on the painted texels within `padding`
+	// of it, so the passes are redone in a window around each tile that
+	// changed and kept for the tile and its `padding` margin.
+	const int tilesX = (width + kPaddingTile - 1) / kPaddingTile, tilesY = (height + kPaddingTile - 1) / kPaddingTile;
+	QVector<quint8> tiles(qsizetype(tilesX) * tilesY, 0);
+	for (const qsizetype at : changed) {
+		tiles[qsizetype(at / width / kPaddingTile) * tilesX + (at % width) / kPaddingTile] = 1;
+	}
+	const QRect image(0, 0, width, height);
+	QVector<quint8> mask, next;
+	QVector<uint> values;
+	for (int tile = 0; tile < tiles.size(); ++tile) {
+		if (!tiles.at(tile)) {
+			continue;
+		}
+		if (!work.check()) {
+			return false;
+		}
+		const QRect keep = QRect((tile % tilesX) * kPaddingTile, (tile / tilesX) * kPaddingTile, kPaddingTile, kPaddingTile)
+							   .adjusted(-padding, -padding, padding, padding)
+							   .intersected(image);
+		const QRect window = keep.adjusted(-padding, -padding, padding, padding).intersected(image);
+		const int w = window.width(), h = window.height();
+		mask.resize(qsizetype(w) * h);
+		values.resize(qsizetype(w) * h);
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) {
+				const qsizetype at = qsizetype(window.y() + y) * width + window.x() + x;
+				mask[qsizetype(y) * w + x] = painted.at(at);
+				values[qsizetype(y) * w + x] = pixelValue(core, window.x() + x, window.y() + y);
+			}
+		}
+		for (int pass = 0; pass < padding; ++pass) {
+			next = mask;
+			for (int y = 0; y < h; ++y) {
+				for (int x = 0; x < w; ++x) {
+					const qsizetype local = qsizetype(y) * w + x;
+					if (footprint.at(qsizetype(window.y() + y) * width + window.x() + x) || mask.at(local)) {
+						continue;
+					}
+					for (int d = 0; d < 8; ++d) {
+						static const int dx[8] = {-1, 1, 0, 0, -1, 1, -1, 1}, dy[8] = {0, 0, -1, 1, -1, -1, 1, 1};
+						const int nx = x + dx[d], ny = y + dy[d];
+						if (nx < 0 || ny < 0 || nx >= w || ny >= h || !mask.at(qsizetype(ny) * w + nx)) {
+							continue;
+						}
+						values[local] = values.at(qsizetype(ny) * w + nx);
+						next[local] = 1;
+						break;
+					}
+				}
+			}
+			std::swap(mask, next);
+		}
+		for (int y = keep.top(); y <= keep.bottom(); ++y) {
+			for (int x = keep.left(); x <= keep.right(); ++x) {
+				const qsizetype local = qsizetype(y - window.y()) * w + (x - window.x());
+				setPixelValue(&display, x, y, values.at(local));
+				if (mask.at(local) && !painted.at(qsizetype(y) * width + x)) {
+					unite(x, y);
+				}
+			}
+		}
+	}
+	return true;
+}
 
 QPointF ModelSkinPaintView::project(const ModelVec3& p, double* depthOut, double* wOut) const
 {
@@ -286,10 +701,61 @@ bool buildModelSkinPaintView(const ModelMesh& mesh, int frame, const ModelSkinPa
 	return true;
 }
 
-bool paintModelSkinStroke(const ModelMesh& mesh, int surfaceIndex, int frame, const ModelSkinPaintView& view, const ModelSkinPaintStroke& stroke,
-	QImage* skin, ModelSkinPaintResult* result, QString* error, const ModelWorkControl& control)
+ModelSkinPaintSession::ModelSkinPaintSession() = default;
+ModelSkinPaintSession::~ModelSkinPaintSession() = default;
+ModelSkinPaintSession::ModelSkinPaintSession(ModelSkinPaintSession&& other) noexcept = default;
+ModelSkinPaintSession& ModelSkinPaintSession::operator=(ModelSkinPaintSession&& other) noexcept = default;
+
+void ModelSkinPaintSession::clear()
 {
-	if (!skin || skin->isNull()) {
+	m_state.reset();
+}
+
+bool ModelSkinPaintSession::active() const
+{
+	return bool(m_state);
+}
+
+QImage ModelSkinPaintSession::skin() const
+{
+	return m_state ? m_state->display : QImage();
+}
+
+ModelSkinPaintResult ModelSkinPaintSession::result() const
+{
+	ModelSkinPaintResult result;
+	if (m_state) {
+		result.texels = m_state->texels;
+		if (m_state->right >= 0) {
+			result.dirty = QRect(QPoint(m_state->left, m_state->top), QPoint(m_state->right, m_state->bottom));
+		}
+	}
+	return result;
+}
+
+bool ModelSkinPaintSession::extend(const QVector<QPointF>& samples, QString* error, const ModelWorkControl& control)
+{
+	if (!m_state) {
+		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "No stroke is being painted."));
+	}
+	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
+	State& state = *m_state;
+	const qsizetype from = state.samples.size();
+	state.samples += samples;
+	QVector<qsizetype> changed;
+	const bool painted = state.brush.mode == ModelSkinPaintMode::Smudge ? state.smudge(from, work, &changed) : state.paint(from, work, &changed);
+	if (!painted || !state.pad(changed, work) || !work.check()) {
+		m_state.reset();
+		return false;
+	}
+	return true;
+}
+
+bool ModelSkinPaintSession::begin(const ModelMesh& mesh, int surfaceIndex, int frame, const ModelSkinPaintView& view, const ModelSkinPaintStroke& stroke,
+	const QImage& skin, QString* error, const ModelWorkControl& control)
+{
+	m_state.reset();
+	if (skin.isNull()) {
 		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "Painting needs a skin image."));
 	}
 	if (surfaceIndex < 0 || surfaceIndex >= mesh.surfaces.size() || frame < 0 || frame >= mesh.surfaces.at(surfaceIndex).frames.size()) {
@@ -306,18 +772,32 @@ bool paintModelSkinStroke(const ModelMesh& mesh, int surfaceIndex, int frame, co
 		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "A stamp image may be up to %1 pixels on a side.").arg(kMaxStampDimension));
 	}
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
-	const bool indexed = skin->format() == QImage::Format_Indexed8;
-	QImage target = indexed ? *skin : skin->convertToFormat(QImage::Format_ARGB32);
-	if (indexed && target.colorCount() == 0) {
+	if (!work.check()) {
+		return false;
+	}
+	auto state = std::make_unique<State>();
+	State& s = *state;
+	s.indexed = skin.format() == QImage::Format_Indexed8;
+	s.before = s.indexed ? skin : skin.convertToFormat(QImage::Format_ARGB32);
+	if (s.indexed && s.before.colorCount() == 0) {
 		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "The indexed skin has no palette."));
 	}
-	const QVector<QRgb> table = indexed ? target.colorTable() : QVector<QRgb>();
-	const int width = target.width(), height = target.height();
+	s.brush = brush;
+	s.table = s.indexed ? s.before.colorTable() : QVector<QRgb>();
+	s.stamp = brush.stamp.isNull() || brush.mode == ModelSkinPaintMode::Smudge ? QImage() : brush.stamp.convertToFormat(QImage::Format_ARGB32);
+	s.flat = qRgba(brush.colour.red(), brush.colour.green(), brush.colour.blue(), 255);
+	s.brushIndex = s.indexed ? (brush.paletteIndex >= 0 && brush.paletteIndex < s.table.size() ? brush.paletteIndex : nearestPaletteIndex(s.table, s.flat)) : -1;
+	const int width = s.before.width(), height = s.before.height();
+	s.width = width;
+	s.height = height;
 	const ModelSurface& surface = mesh.surfaces.at(surfaceIndex);
 	const auto& positions = surface.frames.at(frame).positions;
-	QHash<QPair<int, int>, int> idOf;
+	QVector<int> idOf(surface.triangles.size(), -1);
 	for (int id = 0; id < view.triangles.size(); ++id) {
-		idOf.insert(view.triangles.at(id), id);
+		const auto [owner, triangle] = view.triangles.at(id);
+		if (owner == surfaceIndex && triangle >= 0 && triangle < idOf.size()) {
+			idOf[triangle] = id;
+		}
 	}
 	const int viewWidth = view.size.width(), viewHeight = view.size.height();
 	const auto visible = [&](const ModelVec3& p, int id, QPointF* screen) {
@@ -334,16 +814,15 @@ bool paintModelSkinStroke(const ModelMesh& mesh, int surfaceIndex, int frame, co
 		const int shown = view.ids.at(at);
 		return shown >= 0 && (shown == id || view.depthVisible(depth, double(view.depth.at(at))));
 	};
-	// Where each texel of the footprint shows in the view, and its mirror.
-	struct Hit {
-		qsizetype at = 0;
-		int x = 0, y = 0;
-		bool shown = false, mirrorShown = false;
-		QPointF screen, mirrorScreen;
-	};
-	QVector<Hit> hits;
-	QVector<bool> footprint(qsizetype(width) * height, false);
-	for (int t = 0; t < surface.triangles.size(); ++t) {
+	// Every texel each triangle covers, wrapped into the skin when its UVs
+	// leave 0-1, placed in 3D and in the view. A texel several triangles
+	// cover (mirrored halves sharing UV space) keeps an entry for each, since
+	// any of them may be the one shown under the brush.
+	const qsizetype texelCount = qsizetype(width) * height;
+	s.footprint = QVector<quint8>(texelCount, 0);
+	const bool mirroring = brush.mirrorAxis >= 0 && brush.mode != ModelSkinPaintMode::Smudge;
+	bool cancelled = false;
+	for (int t = 0; t < surface.triangles.size() && !cancelled; ++t) {
 		if (!work.step()) {
 			return false;
 		}
@@ -356,233 +835,136 @@ bool paintModelSkinStroke(const ModelMesh& mesh, int surfaceIndex, int frame, co
 		if (!valid) {
 			continue;
 		}
-		const QPointF uv[3] = {{surface.texCoords.at(tri.a).u * double(width), surface.texCoords.at(tri.a).v * double(height)},
-			{surface.texCoords.at(tri.b).u * double(width), surface.texCoords.at(tri.b).v * double(height)},
-			{surface.texCoords.at(tri.c).u * double(width), surface.texCoords.at(tri.c).v * double(height)}};
-		const int id = idOf.value({surfaceIndex, t}, -1);
-		const int x0 = std::max(0, int(std::floor(std::min({uv[0].x(), uv[1].x(), uv[2].x()}) - 0.5)));
-		const int x1 = std::min(width - 1, int(std::ceil(std::max({uv[0].x(), uv[1].x(), uv[2].x()}) - 0.5)));
-		const int y0 = std::max(0, int(std::floor(std::min({uv[0].y(), uv[1].y(), uv[2].y()}) - 0.5)));
-		const int y1 = std::min(height - 1, int(std::ceil(std::max({uv[0].y(), uv[1].y(), uv[2].y()}) - 0.5)));
-		for (int y = y0; y <= y1; ++y) {
-			for (int x = x0; x <= x1; ++x) {
-				double w0 = 0, w1 = 0, w2 = 0;
-				if (!barycentric(uv[0], uv[1], uv[2], x + 0.5, y + 0.5, &w0, &w1, &w2)) {
-					continue;
-				}
-				const qsizetype at = qsizetype(y) * width + x;
-				if (footprint.at(at)) {
-					continue;
-				}
-				footprint[at] = true;
-				const ModelVec3& a = positions.at(tri.a);
-				const ModelVec3& b = positions.at(tri.b);
-				const ModelVec3& c = positions.at(tri.c);
-				const ModelVec3 p{float(w0 * a.x + w1 * b.x + w2 * c.x), float(w0 * a.y + w1 * b.y + w2 * c.y), float(w0 * a.z + w1 * b.z + w2 * c.z)};
-				Hit hit;
-				hit.at = at;
-				hit.x = x;
-				hit.y = y;
-				hit.shown = visible(p, id, &hit.screen);
-				if (brush.mirrorAxis >= 0 && brush.mode != ModelSkinPaintMode::Smudge) {
-					ModelVec3 mirrored = p;
-					(brush.mirrorAxis == 0 ? mirrored.x : brush.mirrorAxis == 1 ? mirrored.y : mirrored.z) *= -1.0f;
-					hit.mirrorShown = visible(mirrored, -2, &hit.mirrorScreen);
-				}
-				if (hit.shown || hit.mirrorShown) {
-					hits.append(hit);
-				}
-			}
+		const QPointF uv[3] = {modelUvPixel(surface.texCoords.at(tri.a), width, height), modelUvPixel(surface.texCoords.at(tri.b), width, height),
+			modelUvPixel(surface.texCoords.at(tri.c), width, height)};
+		const double tile0 = std::floor(std::min({uv[0].x(), uv[1].x(), uv[2].x()}) / width), tile1 = std::floor(std::max({uv[0].x(), uv[1].x(), uv[2].x()}) / width);
+		const double row0 = std::floor(std::min({uv[0].y(), uv[1].y(), uv[2].y()}) / height), row1 = std::floor(std::max({uv[0].y(), uv[1].y(), uv[2].y()}) / height);
+		if (!(std::abs(tile0) < 1e6 && std::abs(tile1) < 1e6 && std::abs(row0) < 1e6 && std::abs(row1) < 1e6)) {
+			continue;
 		}
-	}
-	QVector<bool> painted(footprint.size(), false);
-	QRect dirty;
-	int texels = 0;
-	const auto mark = [&](const Hit& hit) {
-		if (!painted.at(hit.at)) {
-			painted[hit.at] = true;
-			dirty = dirty.united(QRect(hit.x, hit.y, 1, 1));
-			++texels;
-		}
-	};
-	const auto mixRgb = [](QRgb from, QRgb to, double amount) {
-		const auto mix = [amount](int a, int b) { return int(std::lround(a + (b - a) * amount)); };
-		return qRgba(mix(qRed(from), qRed(to)), mix(qGreen(from), qGreen(to)), mix(qBlue(from), qBlue(to)), mix(qAlpha(from), qAlpha(to)));
-	};
-	if (brush.mode == ModelSkinPaintMode::Smudge) {
-		// The texel of this surface shown at a view point, from `source`.
-		const auto texelAt = [&](const QPointF& point, int* tx, int* ty) {
-			const int px = int(std::floor(point.x())), py = int(std::floor(point.y()));
-			if (px < 0 || py < 0 || px >= viewWidth || py >= viewHeight) {
+		const int id = idOf.at(t);
+		const ModelVec3& a = positions.at(tri.a);
+		const ModelVec3& b = positions.at(tri.b);
+		const ModelVec3& c = positions.at(tri.c);
+		const auto visit = [&](int x, int y, double w0, double w1, double w2) {
+			if (!work.step()) {
+				cancelled = true;
 				return false;
 			}
-			const int id = view.ids.at(qsizetype(py) * viewWidth + px);
-			if (id < 0 || view.triangles.at(id).first != surfaceIndex) {
-				return false;
+			const qsizetype at = qsizetype(y) * width + x;
+			s.footprint[at] = 1;
+			const ModelVec3 p{float(w0 * a.x + w1 * b.x + w2 * c.x), float(w0 * a.y + w1 * b.y + w2 * c.y), float(w0 * a.z + w1 * b.z + w2 * c.z)};
+			State::Entry entry;
+			entry.at = at;
+			entry.shown = visible(p, id, &entry.screen);
+			if (mirroring) {
+				ModelVec3 mirrored = p;
+				(brush.mirrorAxis == 0 ? mirrored.x : brush.mirrorAxis == 1 ? mirrored.y : mirrored.z) *= -1.0f;
+				entry.mirrorShown = visible(mirrored, -2, &entry.mirrorScreen);
 			}
-			const ModelTriangle& tri = surface.triangles.at(view.triangles.at(id).second);
-			if (tri.a >= surface.texCoords.size() || tri.b >= surface.texCoords.size() || tri.c >= surface.texCoords.size()) {
-				return false;
+			if (entry.shown || entry.mirrorShown) {
+				s.entries.append(entry);
 			}
-			double wa = 1, wb = 1, wc = 1;
-			const QPointF a = view.project(positions.at(tri.a), nullptr, &wa), b = view.project(positions.at(tri.b), nullptr, &wb),
-						  c = view.project(positions.at(tri.c), nullptr, &wc);
-			double w0 = 0, w1 = 0, w2 = 0;
-			barycentric(a, b, c, point.x(), point.y(), &w0, &w1, &w2);
-			if (view.projection.perspective && wa > 0 && wb > 0 && wc > 0) {
-				// Perspective-correct: weights over W, renormalised.
-				w0 /= wa;
-				w1 /= wb;
-				w2 /= wc;
-				const double sum = w0 + w1 + w2;
-				if (std::abs(sum) < 1e-12) {
-					return false;
-				}
-				w0 /= sum;
-				w1 /= sum;
-				w2 /= sum;
-			}
-			const double u = w0 * surface.texCoords.at(tri.a).u + w1 * surface.texCoords.at(tri.b).u + w2 * surface.texCoords.at(tri.c).u;
-			const double v = w0 * surface.texCoords.at(tri.a).v + w1 * surface.texCoords.at(tri.b).v + w2 * surface.texCoords.at(tri.c).v;
-			*tx = std::clamp(int(std::floor(u * width)), 0, width - 1);
-			*ty = std::clamp(int(std::floor(v * height)), 0, height - 1);
 			return true;
 		};
-		for (int i = 1; i < stroke.samples.size(); ++i) {
-			if (!work.check()) {
-				return false;
+		const int lastRow = int(std::min(row1, row0 + kMaxUvRepeats - 1)), lastTile = int(std::min(tile1, tile0 + kMaxUvRepeats - 1));
+		for (int row = int(row0); row <= lastRow && !cancelled; ++row) {
+			for (int tile = int(tile0); tile <= lastTile && !cancelled; ++tile) {
+				const QPointF offset(double(tile) * width, double(row) * height);
+				rasterizeModelUvTriangle(uv[0] - offset, uv[1] - offset, uv[2] - offset, width, height, visit);
 			}
-			const QPointF sample = stroke.samples.at(i), delta = sample - stroke.samples.at(i - 1);
-			if (delta.isNull()) {
-				continue;
-			}
-			const QImage source = target;
-			for (const Hit& hit : std::as_const(hits)) {
-				if (!hit.shown) {
-					continue;
-				}
-				const double weight = brushWeight(brush, std::hypot(sample.x() - hit.screen.x(), sample.y() - hit.screen.y()));
-				int tx = 0, ty = 0;
-				if (weight <= 0.0 || !texelAt(hit.screen - delta, &tx, &ty)) {
-					continue;
-				}
-				if (indexed) {
-					if (weight >= 0.5 && target.pixelIndex(hit.x, hit.y) != source.pixelIndex(tx, ty)) {
-						target.setPixel(hit.x, hit.y, uint(source.pixelIndex(tx, ty)));
-						mark(hit);
-					}
-				} else {
-					const QRgb before = target.pixel(hit.x, hit.y);
-					const QRgb after = mixRgb(before, source.pixel(tx, ty), weight);
-					if (after != before) {
-						target.setPixel(hit.x, hit.y, after);
-						mark(hit);
-					}
-				}
-			}
-		}
-	} else {
-		const QImage stamp = brush.stamp.isNull() ? QImage() : brush.stamp.convertToFormat(QImage::Format_ARGB32);
-		const QRgb flat = qRgba(brush.colour.red(), brush.colour.green(), brush.colour.blue(), 255);
-		double reachLow[2] = {1e30, 1e30}, reachHigh[2] = {-1e30, -1e30};
-		for (const QPointF& sample : stroke.samples) {
-			reachLow[0] = std::min(reachLow[0], sample.x() - brush.radius);
-			reachLow[1] = std::min(reachLow[1], sample.y() - brush.radius);
-			reachHigh[0] = std::max(reachHigh[0], sample.x() + brush.radius);
-			reachHigh[1] = std::max(reachHigh[1], sample.y() + brush.radius);
-		}
-		// The strongest brush position over a view point: its coverage and
-		// colour (the stamp's, when there is one).
-		const auto coverageAt = [&](const QPointF& screen, QRgb* colour) {
-			if (screen.x() < reachLow[0] || screen.x() > reachHigh[0] || screen.y() < reachLow[1] || screen.y() > reachHigh[1]) {
-				return 0.0;
-			}
-			double best = 0.0;
-			for (const QPointF& sample : stroke.samples) {
-				double weight = brushWeight(brush, std::hypot(sample.x() - screen.x(), sample.y() - screen.y()));
-				QRgb texel = flat;
-				if (weight > 0.0 && !stamp.isNull()) {
-					texel = stampAt(stamp, brush.radius, screen - sample);
-					weight *= qAlpha(texel) / 255.0;
-					texel = qRgba(qRed(texel), qGreen(texel), qBlue(texel), 255);
-				}
-				if (weight > best) {
-					best = weight;
-					*colour = texel;
-				}
-			}
-			return best;
-		};
-		const int brushIndex = indexed ? (brush.paletteIndex >= 0 && brush.paletteIndex < table.size() ? brush.paletteIndex : nearestPaletteIndex(table, flat)) : -1;
-		QHash<QRgb, int> nearest;
-		for (const Hit& hit : std::as_const(hits)) {
-			if (!work.step()) {
-				return false;
-			}
-			QRgb colour = flat, mirrorColour = flat;
-			double amount = hit.shown ? coverageAt(hit.screen, &colour) : 0.0;
-			const double mirrored = hit.mirrorShown ? coverageAt(hit.mirrorScreen, &mirrorColour) : 0.0;
-			if (mirrored > amount) {
-				amount = mirrored;
-				colour = mirrorColour;
-			}
-			if (amount <= 0.0) {
-				continue;
-			}
-			if (indexed || brush.mode == ModelSkinPaintMode::Replace) {
-				if (amount < 0.5) {
-					continue;
-				}
-				if (indexed) {
-					int index = brushIndex;
-					if (!stamp.isNull()) {
-						const auto known = nearest.constFind(colour);
-						index = known != nearest.cend() ? known.value() : nearest.insert(colour, nearestPaletteIndex(table, colour)).value();
-					}
-					target.setPixel(hit.x, hit.y, uint(index));
-				} else {
-					target.setPixel(hit.x, hit.y, colour);
-				}
-			} else {
-				target.setPixel(hit.x, hit.y, mixRgb(target.pixel(hit.x, hit.y), colour, amount));
-			}
-			mark(hit);
 		}
 	}
-	// Bleed painted texels past the footprint's edge.
-	for (int pass = 0; pass < brush.padding && texels > 0; ++pass) {
-		if (!work.check()) {
-			return false;
+	if (cancelled) {
+		return false;
+	}
+	std::stable_sort(s.entries.begin(), s.entries.end(), [](const State::Entry& x, const State::Entry& y) { return x.at < y.at; });
+	s.direct = QVector<double>(s.entries.size(), 0.0);
+	s.mirror = QVector<double>(s.entries.size(), 0.0);
+	s.directColour = QVector<QRgb>(s.entries.size(), s.flat);
+	s.mirrorColour = QVector<QRgb>(s.entries.size(), s.flat);
+	s.painted = QVector<quint8>(texelCount, 0);
+	s.touched = QVector<quint8>(texelCount, 0);
+	// Cells about a brush across, so a brush position looks at a few cells.
+	s.cell = std::max({1.0, brush.radius, std::max(viewWidth, viewHeight) / 512.0});
+	s.columns = std::max(1, int(std::ceil(viewWidth / s.cell)));
+	s.rows = std::max(1, int(std::ceil(viewHeight / s.cell)));
+	const auto cellOf = [&s](const QPointF& point) {
+		const int x = int(std::clamp(std::floor(point.x() / s.cell), 0.0, double(s.columns - 1)));
+		const int y = int(std::clamp(std::floor(point.y() / s.cell), 0.0, double(s.rows - 1)));
+		return y * s.columns + x;
+	};
+	s.cellStart = QVector<qint32>(qsizetype(s.columns) * s.rows + 1, 0);
+	for (const State::Entry& entry : std::as_const(s.entries)) {
+		if (entry.shown) {
+			++s.cellStart[cellOf(entry.screen) + 1];
 		}
-		QVector<bool> next = painted;
-		for (int y = 0; y < height; ++y) {
-			for (int x = 0; x < width; ++x) {
-				const qsizetype at = qsizetype(y) * width + x;
-				if (footprint.at(at) || painted.at(at)) {
-					continue;
-				}
-				for (int d = 0; d < 8; ++d) {
-					static const int dx[8] = {-1, 1, 0, 0, -1, 1, -1, 1}, dy[8] = {0, 0, -1, 1, -1, -1, 1, 1};
-					const int nx = x + dx[d], ny = y + dy[d];
-					if (nx < 0 || ny < 0 || nx >= width || ny >= height || !painted.at(qsizetype(ny) * width + nx)) {
-						continue;
-					}
-					target.setPixel(x, y, indexed ? target.pixelIndex(nx, ny) : target.pixel(nx, ny));
-					next[at] = true;
-					dirty = dirty.united(QRect(x, y, 1, 1));
-					break;
-				}
+		if (entry.mirrorShown) {
+			++s.cellStart[cellOf(entry.mirrorScreen) + 1];
+		}
+	}
+	for (qsizetype c = 1; c < s.cellStart.size(); ++c) {
+		s.cellStart[c] += s.cellStart.at(c - 1);
+	}
+	s.cellItems = QVector<qint32>(s.cellStart.last());
+	{
+		QVector<qint32> fill = s.cellStart;
+		for (qsizetype e = 0; e < s.entries.size(); ++e) {
+			if (s.entries.at(e).shown) {
+				s.cellItems[fill[cellOf(s.entries.at(e).screen)]++] = qint32(e * 2);
+			}
+			if (s.entries.at(e).mirrorShown) {
+				s.cellItems[fill[cellOf(s.entries.at(e).mirrorScreen)]++] = qint32(e * 2 + 1);
 			}
 		}
-		painted = std::move(next);
 	}
+	// The surface's triangles as the view shows them, for smudge.
+	s.viewSize = view.size;
+	s.ids = view.ids;
+	s.perspective = view.projection.perspective;
+	if (brush.mode == ModelSkinPaintMode::Smudge) {
+		s.corners = QVector<State::Corners>(view.triangles.size());
+		for (int t = 0; t < surface.triangles.size(); ++t) {
+			const int id = idOf.at(t);
+			const ModelTriangle& tri = surface.triangles.at(t);
+			const int corner[3] = {tri.a, tri.b, tri.c};
+			bool valid = id >= 0;
+			for (const int c : corner) {
+				valid = valid && c >= 0 && c < positions.size() && c < surface.texCoords.size();
+			}
+			if (!valid) {
+				continue;
+			}
+			State::Corners& corners = s.corners[id];
+			corners.valid = true;
+			for (int i = 0; i < 3; ++i) {
+				corners.screen[i] = view.project(positions.at(corner[i]), nullptr, &corners.w[i]);
+				corners.uv[i] = surface.texCoords.at(corner[i]);
+			}
+		}
+	}
+	s.core = s.before;
+	s.display = s.before;
 	if (!work.check()) {
 		return false;
 	}
-	*skin = target;
+	m_state = std::move(state);
+	return extend(stroke.samples, error, control);
+}
+
+bool paintModelSkinStroke(const ModelMesh& mesh, int surfaceIndex, int frame, const ModelSkinPaintView& view, const ModelSkinPaintStroke& stroke,
+	QImage* skin, ModelSkinPaintResult* result, QString* error, const ModelWorkControl& control)
+{
+	if (!skin || skin->isNull()) {
+		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "Painting needs a skin image."));
+	}
+	ModelSkinPaintSession session;
+	if (!session.begin(mesh, surfaceIndex, frame, view, stroke, *skin, error, control)) {
+		return false;
+	}
+	*skin = session.skin();
 	if (result) {
-		result->dirty = dirty;
-		result->texels = texels;
+		*result = session.result();
 	}
 	return true;
 }
@@ -707,20 +1089,67 @@ bool stageModelPaintedSkin(const QByteArray& bytes, const QString& virtualPath, 
 
 QImage renderModelSkinPaintPreview(const ModelMesh& mesh, int frame, const ModelSkinPaintView& view, const QHash<int, QImage>& skins, const QColor& background)
 {
-	QImage image(view.size, QImage::Format_ARGB32);
+	QHash<int, QSize> sizes;
+	for (auto it = skins.cbegin(); it != skins.cend(); ++it) {
+		if (!it.value().isNull()) {
+			sizes.insert(it.key(), it.value().size());
+		}
+	}
+	return renderModelSkinPaintPreview(modelSkinPaintPreviewMap(mesh, frame, view, sizes), skins, background);
+}
+
+QImage renderModelSkinPaintPreview(const ModelSkinPaintPreviewMap& map, const QHash<int, QImage>& skins, const QColor& background)
+{
+	QImage image(map.size, QImage::Format_ARGB32);
 	image.fill(background);
-	if (view.ids.size() != qsizetype(view.size.width()) * view.size.height()) {
+	const qsizetype pixels = qsizetype(map.size.width()) * map.size.height();
+	if (map.surfaces.size() != pixels || map.texels.size() != pixels || map.shades.size() != pixels) {
 		return image;
 	}
-	const Vec eye = normalized({view.projection.eye.x, view.projection.eye.y, view.projection.eye.z}, {0, 0, 1});
 	QHash<int, QImage> converted;
 	for (auto it = skins.cbegin(); it != skins.cend(); ++it) {
-		converted.insert(it.key(), it.value().convertToFormat(QImage::Format_ARGB32));
+		if (!it.value().isNull() && map.skinSizes.value(it.key()) == it.value().size()) {
+			converted.insert(it.key(), it.value().convertToFormat(QImage::Format_ARGB32));
+		}
 	}
-	for (int y = 0; y < view.size.height(); ++y) {
+	for (int y = 0; y < map.size.height(); ++y) {
 		auto* line = reinterpret_cast<QRgb*>(image.scanLine(y));
+		for (int x = 0; x < map.size.width(); ++x) {
+			const qsizetype at = qsizetype(y) * map.size.width() + x;
+			const int s = map.surfaces.at(at);
+			if (s < 0) {
+				continue;
+			}
+			QRgb texel = qRgb(170, 170, 170);
+			const int index = map.texels.at(at);
+			const auto found = converted.constFind(s);
+			if (index >= 0 && found != converted.cend()) {
+				texel = reinterpret_cast<const QRgb*>(found->constScanLine(index / found->width()))[index % found->width()];
+			}
+			const double shade = map.shades.at(at);
+			line[x] = qRgb(int(qRed(texel) * shade), int(qGreen(texel) * shade), int(qBlue(texel) * shade));
+		}
+	}
+	return image;
+}
+
+ModelSkinPaintPreviewMap modelSkinPaintPreviewMap(const ModelMesh& mesh, int frame, const ModelSkinPaintView& view, const QHash<int, QSize>& skinSizes)
+{
+	ModelSkinPaintPreviewMap map;
+	map.size = view.size;
+	map.skinSizes = skinSizes;
+	const qsizetype pixels = qsizetype(view.size.width()) * view.size.height();
+	if (view.ids.size() != pixels) {
+		return map;
+	}
+	map.surfaces = QVector<qint32>(pixels, -1);
+	map.texels = QVector<qint32>(pixels, -1);
+	map.shades = QVector<double>(pixels, 0.0);
+	const Vec eye = normalized({view.projection.eye.x, view.projection.eye.y, view.projection.eye.z}, {0, 0, 1});
+	for (int y = 0; y < view.size.height(); ++y) {
 		for (int x = 0; x < view.size.width(); ++x) {
-			const int id = view.ids.at(qsizetype(y) * view.size.width() + x);
+			const qsizetype at = qsizetype(y) * view.size.width() + x;
+			const int id = view.ids.at(at);
 			if (id < 0) {
 				continue;
 			}
@@ -749,20 +1178,20 @@ QImage renderModelSkinPaintPreview(const ModelMesh& mesh, int frame, const Model
 										 Vec{double(positions.at(tri.c).x) - positions.at(tri.a).x, double(positions.at(tri.c).y) - positions.at(tri.a).y,
 											 double(positions.at(tri.c).z) - positions.at(tri.a).z}),
 				{0, 0, 1});
-			const double shade = 0.45 + 0.55 * std::abs(dot(n, eye));
-			QRgb texel = qRgb(170, 170, 170);
-			const auto found = converted.constFind(s);
-			if (found != converted.cend() && !found->isNull() && tri.a < surface.texCoords.size() && tri.b < surface.texCoords.size() && tri.c < surface.texCoords.size()) {
+			map.surfaces[at] = s;
+			map.shades[at] = 0.45 + 0.55 * std::abs(dot(n, eye));
+			const auto size = skinSizes.constFind(s);
+			if (size != skinSizes.cend() && !size->isEmpty() && tri.a < surface.texCoords.size() && tri.b < surface.texCoords.size()
+				&& tri.c < surface.texCoords.size()) {
 				const double u = w0 * surface.texCoords.at(tri.a).u + w1 * surface.texCoords.at(tri.b).u + w2 * surface.texCoords.at(tri.c).u;
 				const double v = w0 * surface.texCoords.at(tri.a).v + w1 * surface.texCoords.at(tri.b).v + w2 * surface.texCoords.at(tri.c).v;
-				const int tx = ((int(std::floor(u * found->width())) % found->width()) + found->width()) % found->width();
-				const int ty = ((int(std::floor(v * found->height())) % found->height()) + found->height()) % found->height();
-				texel = found->pixel(tx, ty);
+				if (std::isfinite(u * size->width()) && std::isfinite(v * size->height())) {
+					map.texels[at] = wrapTexel(v * size->height(), size->height()) * size->width() + wrapTexel(u * size->width(), size->width());
+				}
 			}
-			line[x] = qRgb(int(qRed(texel) * shade), int(qGreen(texel) * shade), int(qBlue(texel) * shade));
 		}
 	}
-	return image;
+	return map;
 }
 
 bool parseModelSkinPaintStrokes(const QJsonObject& object, ModelSkinPaintCamera* camera, QVector<ModelSkinPaintStroke>* strokes, QString* error,

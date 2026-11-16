@@ -10,7 +10,11 @@
 // barycentric weights and projected into the view; texels whose projection
 // lies under the brush and whose triangle is the visible one there (or lies
 // within a depth tolerance of it, along shared edges) take the brush colour.
-// Because the test is in 3D, a stroke across a UV seam paints both islands
+// UVs outside 0-1 wrap, as the preview draws them (up to 8 repeats each way
+// per triangle). A texel several triangles share (mirrored halves of a model)
+// is painted wherever any of them shows under the brush. Mix blends straight
+// alpha "over" the skin, so a transparent texel takes the brush colour at the
+// brush's coverage. Because the test is in 3D, a stroke across a UV seam paints both islands
 // continuously, and an occluded back face is never touched. A mirror axis
 // paints the texels whose mirrored position lies under the brush too. Painted
 // texels then bleed a few texels past the footprint's edge so filtering does
@@ -27,6 +31,7 @@
 #include "core/model_work.h"
 
 #include <QColor>
+#include <QHash>
 #include <QImage>
 #include <QJsonObject>
 #include <QPointF>
@@ -35,6 +40,7 @@
 #include <QVector>
 
 #include <array>
+#include <memory>
 
 namespace vibestudio {
 
@@ -144,6 +150,35 @@ struct ModelSkinPaintResult {
 bool paintModelSkinStroke(const ModelMesh& mesh, int surface, int frame, const ModelSkinPaintView& view, const ModelSkinPaintStroke& stroke,
 	QImage* skin, ModelSkinPaintResult* result = nullptr, QString* error = nullptr, const ModelWorkControl& control = {});
 
+// A stroke painted as it grows, for interactive painting. begin() places the
+// surface's UV footprint in the view once and paints the stroke's samples;
+// each extend() then only costs the texels near the samples it adds. After
+// any number of extend() calls, skin() and result() are exactly what
+// paintModelSkinStroke paints from the starting skin with every sample so far
+// (paintModelSkinStroke runs through this class). The mesh and view are not
+// referenced after begin(). False with an error on cancellation or invalid
+// input, after which the session is inactive.
+class ModelSkinPaintSession
+{
+public:
+	ModelSkinPaintSession();
+	~ModelSkinPaintSession();
+	ModelSkinPaintSession(ModelSkinPaintSession&& other) noexcept;
+	ModelSkinPaintSession& operator=(ModelSkinPaintSession&& other) noexcept;
+	bool begin(const ModelMesh& mesh, int surface, int frame, const ModelSkinPaintView& view, const ModelSkinPaintStroke& stroke, const QImage& skin,
+		QString* error = nullptr, const ModelWorkControl& control = {});
+	bool extend(const QVector<QPointF>& samples, QString* error = nullptr, const ModelWorkControl& control = {});
+	void clear();
+	[[nodiscard]] bool active() const;
+	// The painted skin (null when inactive) and what the stroke changed so far.
+	[[nodiscard]] QImage skin() const;
+	[[nodiscard]] ModelSkinPaintResult result() const;
+
+private:
+	struct State;
+	std::unique_ptr<State> m_state;
+};
+
 // The surface's own MDL skin as an Indexed8 image with the model's palette,
 // so painting writes palette indices; null when the model has none.
 QImage modelSurfaceIndexedSkin(const ModelMesh& mesh, int surface);
@@ -166,6 +201,20 @@ bool stageModelPaintedSkin(const QByteArray& bytes, const QString& virtualPath, 
 // `skins` on its surfaces (missing ones grey), for the paint dialog.
 QImage renderModelSkinPaintPreview(const ModelMesh& mesh, int frame, const ModelSkinPaintView& view, const QHash<int, QImage>& skins,
 	const QColor& background);
+// What each pixel of a view shows (the surface, its texel in a skin of the
+// size given for that surface or -1 for grey, and the flat shade), so the
+// preview can be redrawn cheaply while a stroke changes the skin. Rendering a
+// map gives exactly the picture renderModelSkinPaintPreview draws from the
+// mesh for skins of those sizes; a skin of another size is drawn grey.
+struct ModelSkinPaintPreviewMap {
+	QSize size;
+	QVector<qint32> surfaces;
+	QVector<qint32> texels;
+	QVector<double> shades;
+	QHash<int, QSize> skinSizes;
+};
+ModelSkinPaintPreviewMap modelSkinPaintPreviewMap(const ModelMesh& mesh, int frame, const ModelSkinPaintView& view, const QHash<int, QSize>& skinSizes);
+QImage renderModelSkinPaintPreview(const ModelSkinPaintPreviewMap& map, const QHash<int, QImage>& skins, const QColor& background);
 
 // Strokes files for model paint-skin: {"camera": {yaw, pitch, zoom, width,
 // height}, "strokes": [{"colour": "#rrggbb", "index", "radius", "opacity",

@@ -127,5 +127,10 @@ as before; it never publishes a release.
 | Linux | `meson setup builddir --prefix=/usr`, build, then `python scripts/package_appimage.py --build-dir builddir --linuxdeploy <path>` |
 | Any | `python scripts/package_source_tarball.py` |
 
+Packages built from a checkout stage only the sample files git tracks, so local
+work under `samples/` (ignored projects, evidence, notes) neither ships nor
+breaks `validate_packaging.py` and `validate_release_assets.py`; a path that
+would exceed Windows' 259 character limit stops packaging with the file named.
+
 See [Packaging](PACKAGING.md) for the portable package layout and the Windows
 runtime evidence, and [Branding](BRANDING.md) for the installer art.

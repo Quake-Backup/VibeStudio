@@ -375,6 +375,46 @@ int main(int argc, char **argv)
 		args[args.indexOf("--faces") + 1] = faces;
 		ok &= expect(cli::runModelSurfaces(args).exitCode == 2, "CLI rejects malformed face indices before editing");
 	}
+	// Recorded decode advisories keep naming the surface they belong to.
+	{
+		auto noted = original;
+		for (int s = -1; s < 3; ++s)
+			noted.issues.append({QStringLiteral("md3-end-offset"), ModelDecodeIssueSeverity::Advisory, s, QStringLiteral("note %1").arg(s)});
+		const auto surfacesOf = [](const ModelMesh &mesh)
+		{
+			QVector<int> result;
+			for (const auto &issue : mesh.issues)
+				result.append(issue.surface);
+			return result;
+		};
+		auto removed = noted;
+		edit = {};
+		edit.kind = ModelEditKind::DeleteSurface;
+		edit.selection.surface = 1;
+		ok &= expect(applyModelEdit(&removed, edit, nullptr, &error) && surfacesOf(removed) == QVector<int>{-1, 0, -1, 1},
+					 "deleting a surface moves later advisories down and makes its own model-wide");
+		auto joined = noted;
+		edit = {};
+		edit.kind = ModelEditKind::JoinSurfaces;
+		edit.targetSurface = 2;
+		edit.surfaces = {1, 2};
+		ok &= expect(applyModelEdit(&joined, edit, nullptr, &error) && surfacesOf(joined) == QVector<int>{-1, 0, 1, 1},
+					 "joined surfaces' advisories follow them into the target");
+		auto moved = noted;
+		edit = {};
+		edit.kind = ModelEditKind::MoveFacesToSurface;
+		edit.selection = {0, {}, {0, 1, 2}};
+		edit.targetSurface = 2;
+		ok &= expect(applyModelEdit(&moved, edit, nullptr, &error) && surfacesOf(moved) == QVector<int>{-1, 1, 0, 1},
+					 "moving every face carries the emptied surface's advisories to the target");
+		auto split = noted;
+		edit = {};
+		edit.kind = ModelEditKind::SeparateFaces;
+		edit.selection = {1, {}, {1}};
+		edit.text = "panel";
+		ok &= expect(applyModelEdit(&split, edit, nullptr, &error) && surfacesOf(split) == surfacesOf(noted),
+					 "separating faces leaves advisories on their surfaces");
+	}
 	if (argc == 2)
 	{
 		QProcess process;

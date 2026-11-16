@@ -49,6 +49,9 @@ their proportions and absorb the remainder so the total remains one. When
 reducing the sole unlocked influence, choose an explicit **Remainder joint**;
 otherwise the stroke is refused. That joint must be different and unlocked.
 It is used only when there are no other positive unlocked influences.
+Locked weights may sum to one within the normalisation tolerance (as three
+locked thirds do); such a vertex has no unlocked share left, so the stroke
+leaves it unchanged, as weight transfer does.
 
 ## Review and apply
 

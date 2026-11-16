@@ -1,5 +1,6 @@
 #include "app/model_lod_dialog.h"
 
+#include "app/locale_number.h"
 #include "app/model_editor_dialog.h"
 #include "app/model_editor_tools.h"
 
@@ -319,7 +320,7 @@ void ModelLodDialog::showReview()
 		{
 			const int count = rows[row].triangles[column];
 			// Words, not colour, mark a level without the surface.
-			auto *item = new QTableWidgetItem(count < 0 ? Text::tr("missing") : QString::number(count));
+			auto *item = new QTableWidgetItem(count < 0 ? Text::tr("missing") : localeNumber(count, 0, 'f'));
 			item->setTextAlignment(Qt::AlignVCenter | Qt::AlignTrailing);
 			m_surfaces->setItem(row, column + 1, item);
 		}
@@ -344,7 +345,7 @@ void ModelLodDialog::showReview()
 	const auto distances = modelQuake3LodSwitchDistances(modelLodRadius(base), int(m_levels.size()) + 1);
 	for (int level = 1; level < distances.size(); ++level)
 		lines << (distances[level] < 0 ? Text::tr("Level %1 never shows with the default view.").arg(level)
-									   : Text::tr("Level %1 shows from %2 units away (cg_fov 90, r_lodscale 5, r_lodbias 0).").arg(level).arg(distances[level], 0, 'f', 1));
+									   : Text::tr("Level %1 shows from %2 units away (cg_fov 90, r_lodscale 5, r_lodbias 0).").arg(level).arg(localeNumber(distances[level], 1, 'f')));
 	m_findings->setPlainText(lines.join(QLatin1Char('\n')));
 }
 

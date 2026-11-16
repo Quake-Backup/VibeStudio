@@ -208,7 +208,7 @@ QString ModelViewport::tagAt(const QPointF &point, double tolerance)
 	}
 	QString result;
 	double nearest = tolerance * tolerance;
-	for (const auto &tag : m_mesh.tags)
+	for (const auto &tag : std::as_const(m_mesh.tags))
 	{
 		if (tag.frameIndex != m_frame)
 		{
@@ -479,12 +479,13 @@ std::array<QPolygonF, 3> ModelViewport::rotationGizmoRings()
 	{
 		return rings;
 	}
+	const std::array<ModelVec3, 3> axes{editGizmoAxis(0), editGizmoAxis(1), editGizmoAxis(2)};
 	for (int axis = 0; axis < 3; ++axis)
 	{
+		const auto &u = axes[size_t((axis + 1) % 3)], &v = axes[size_t((axis + 2) % 3)];
 		for (int step = 0; step <= 96; ++step)
 		{
 			const double angle = step * 2 * std::numbers::pi / 96;
-			const auto u = editGizmoAxis((axis + 1) % 3), v = editGizmoAxis((axis + 2) % 3);
 			const auto point = add(pivot, {float(radius * (u.x * std::cos(angle) + v.x * std::sin(angle))),
 				float(radius * (u.y * std::cos(angle) + v.y * std::sin(angle))),
 				float(radius * (u.z * std::cos(angle) + v.z * std::sin(angle)))});
@@ -493,10 +494,15 @@ std::array<QPolygonF, 3> ModelViewport::rotationGizmoRings()
 	}
 	return rings;
 }
-std::array<QPointF, 4> ModelViewport::transformGizmoPoints()
+std::array<QPointF, 4> ModelViewport::transformGizmoPoints() { return gizmoHandles(nullptr); }
+std::array<QPointF, 4> ModelViewport::gizmoHandles(std::array<QPolygonF, 3> *rings)
 {
 	ensureProjection();
 	std::array<QPointF, 4> result{unavailable(), unavailable(), unavailable(), unavailable()};
+	if (rings)
+	{
+		*rings = {};
+	}
 	ModelVec3 centre;
 	if (!m_moveGizmo || !editPivot(&centre))
 	{
@@ -510,13 +516,17 @@ std::array<QPointF, 4> ModelViewport::transformGizmoPoints()
 	result[3] = origin;
 	if (m_transformTool == ModelTransformTool::Rotate)
 	{
-		const auto rings = rotationGizmoRings();
+		const auto built = rotationGizmoRings();
 		for (int axis = 0; axis < 3; ++axis)
 		{
-			if (rings[axis].size() > 12)
+			if (built[axis].size() > 12)
 			{
-				result[axis] = rings[axis][12];
+				result[axis] = built[axis][12];
 			}
+		}
+		if (rings)
+		{
+			*rings = built;
 		}
 		return result;
 	}
@@ -552,7 +562,8 @@ int ModelViewport::transformGizmoAt(const QPointF &point)
 	{
 		return -1;
 	}
-	const auto handles = transformGizmoPoints();
+	std::array<QPolygonF, 3> rings;
+	const auto handles = gizmoHandles(&rings);
 	const auto centre = handles[3];
 	if (!finite(centre))
 	{
@@ -564,7 +575,6 @@ int ModelViewport::transformGizmoAt(const QPointF &point)
 		// crosses it. Elsewhere the three constrained rings retain priority.
 		const double distanceToCentre = squared(point - centre);
 		if (distanceToCentre <= 64) return 3;
-		const auto rings = rotationGizmoRings();
 		double nearest = 49;
 		int handle = -1;
 		for (int axis = 0; axis < 3; ++axis)
@@ -890,6 +900,7 @@ void ModelViewport::finishEditTransform(bool commit)
 	}
 	const auto transform = m_editTransform;
 	const auto tool = m_transformTool;
+	const bool previewed = m_editMoveTravelled;
 	const bool apply = commit && m_editTransformValid && m_editMoveTravelled &&
 					   (transform.translation.x != 0 || transform.translation.y != 0 || transform.translation.z != 0 ||
 						transform.rotation.x != 0 || transform.rotation.y != 0 || transform.rotation.z != 0 || transform.scale.x != 1 ||
@@ -903,8 +914,24 @@ void ModelViewport::finishEditTransform(bool commit)
 	m_dragStarted = false;
 	unsetCursor();
 	invalidateProjection();
-	invalidateRaster(true);
-	m_raster.clear();
+	// A cancelled preview must not stay on show: the frame presenting it is
+	// retired at once. A gesture that never moved anything showed no preview,
+	// and an applied one showed the pose the edit is about to make, so in both
+	// the frame on show stays until the next one is ready and the view does not
+	// blank; picking waits for that frame, as for any camera change.
+	if (previewed && !apply)
+	{
+		invalidateRaster(true);
+		m_raster.clear();
+	}
+	else if (previewed)
+	{
+		++m_rasterContentRevision;
+		if (m_rasterWork)
+		{
+			m_rasterWork->cancelled.store(true);
+		}
+	}
 	setAccessibleDescription(accessibleSummary());
 	update();
 	Q_EMIT editTransformActiveChanged(false);
@@ -1039,20 +1066,23 @@ void ModelViewport::paintEditOverlays(QPainter &painter)
 			occupied << QRectF(centre - QPointF(8, 8), QSizeF(16, 16));
 		}
 	}
-	const auto handles = transformGizmoPoints();
+	// One pass builds the handles and the rings; the trackball circle is
+	// centred on the same handle trackballGizmoRect() uses.
+	std::array<QPolygonF, 3> rings;
+	const auto handles = gizmoHandles(&rings);
 	if (finite(handles[3]))
 	{
 		painter.setRenderHint(QPainter::Antialiasing, true);
 		const QColor colors[]{QColor(255, 100, 100), QColor(100, 230, 130), QColor(115, 165, 255)};
-		const auto rings = rotationGizmoRings();
 		if (m_transformTool == ModelTransformTool::Rotate)
 		{
 			const bool freeRotation = m_editMoveActive && m_transformHandle == 3;
+			const QRectF trackball(handles[3] - QPointF(trackballRadius, trackballRadius), QSizeF(2 * trackballRadius, 2 * trackballRadius));
 			painter.setBrush(Qt::NoBrush);
 			painter.setPen(QPen(Qt::black, 4));
-			painter.drawEllipse(trackballGizmoRect());
+			painter.drawEllipse(trackball);
 			painter.setPen(QPen(freeRotation ? accent : QColor(Qt::white), 2, Qt::DashLine));
-			painter.drawEllipse(trackballGizmoRect());
+			painter.drawEllipse(trackball);
 			if (freeRotation)
 			{
 				// Keep the guide bounded even while a captured drag leaves the

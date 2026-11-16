@@ -125,5 +125,6 @@ bool applyModelAnimationAuthoringEdit(ModelMesh *candidate, const ModelEdit &edi
 [[nodiscard]] int modelAnimationAuthoringSourceVersion(const ModelMesh &mesh);
 // Joint limits, animation events and clip stacks are valid (part of
 // validateEditableModel).
-bool validateModelAnimationAuthoring(const ModelMesh &mesh, QString *error = nullptr, const ModelWorkControl &control = {});
+bool validateModelAnimationAuthoring(const ModelMesh &mesh, QString *error = nullptr, const ModelWorkControl &control = {},
+									 const ModelMesh *validBaseline = nullptr);
 } // namespace vibestudio

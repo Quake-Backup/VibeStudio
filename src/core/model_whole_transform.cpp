@@ -1,5 +1,6 @@
 #include "core/model_whole_transform.h"
 
+#include "core/model_animation_constraints.h"
 #include "core/model_animation_curves.h"
 #include "core/model_document.h"
 #include "core/model_skeleton.h"
@@ -135,7 +136,7 @@ ModelJointMatrix jointMatrix(const Matrix &linear, const Vector &translation)
 	}
 	return m;
 }
-bool transformCollisionPose(const Affine &affine, ModelVec3 *centre, ModelVec3 *size, ModelVec3 *rotation, QString *error)
+bool transformCollisionPose(const Affine &affine, ModelVec3 *centre, ModelVec3 *size, ModelVec3 *rotation, QVector<ModelVec3> *hull, QString *error)
 {
 	const auto axes = eulerMatrix(*rotation);
 	Vector columns[3];
@@ -152,8 +153,13 @@ bool transformCollisionPose(const Affine &affine, ModelVec3 *centre, ModelVec3 *
 											"align the box with the scaled axes first."));
 	Vector x = normalized(columns[0]), y = normalized(columns[1]), z = normalized(columns[2]);
 	// A box is symmetric: a mirrored box is the same box with one axis reversed.
+	// A hull is not, so its points (in the box frame) reflect across that axis.
 	if (dot(cross(x, y), z) < 0)
+	{
 		y = scaled(y, -1);
+		for (auto &p : *hull)
+			p.y = -p.y;
+	}
 	*rotation = eulerDegrees(x, y, z);
 	*size = {float(size->x * lengths[0]), float(size->y * lengths[1]), float(size->z * lengths[2])};
 	*centre = affine.apply(*centre);
@@ -291,12 +297,16 @@ bool applyModelWholeTransform(ModelMesh *candidate, const ModelEdit &edit, QStri
 	// Collision boxes and every collision pose.
 	for (auto &box : candidate->collisionBoxes)
 	{
-		if (!transformCollisionPose(affine, &box.centre, &box.size, &box.rotation, error))
+		if (!transformCollisionPose(affine, &box.centre, &box.size, &box.rotation, &box.hull, error))
 			return fail(error, QStringLiteral("%1 %2").arg(Text::tr("Collision box %1:").arg(box.name), error ? *error : QString()));
 		for (auto &pose : box.framePoses)
-			if (!transformCollisionPose(affine, &pose.centre, &pose.size, &pose.rotation, error))
+			if (!transformCollisionPose(affine, &pose.centre, &pose.size, &pose.rotation, &pose.hull, error))
 				return false;
 	}
+	// Frame origins are model-space points (MD3 measures each frame's radius
+	// about its origin).
+	for (auto &frame : candidate->frames)
+		frame.origin = affine.apply(frame.origin);
 	// The skeleton: model-space joints turn and move; bind-space offsets scale.
 	auto &skeleton = candidate->skeleton;
 	if (!skeleton.isEmpty())
@@ -306,6 +316,14 @@ bool applyModelWholeTransform(ModelMesh *candidate, const ModelEdit &edit, QStri
 			for (int c = 0; c < 3; ++c)
 				turn[r][c] = affine.linear[r][c] / s;
 		const auto moveJoint = [&](ModelJointMatrix *m) { *m = jointMatrix(multiply(turn, jointLinear(*m)), affine.apply(jointTranslation(*m))); };
+		const auto isRoot = [&](const QString &name)
+		{
+			int joint = -1;
+			for (int j = 0; j < skeleton.joints.size(); ++j)
+				if (skeleton.joints[j].name == name)
+					joint = j;
+			return joint < 0 || skeleton.joints[joint].parent < 0;
+		};
 		for (auto &joint : skeleton.joints)
 			moveJoint(&joint.bind);
 		for (auto &tag : skeleton.tags)
@@ -340,11 +358,7 @@ bool applyModelWholeTransform(ModelMesh *candidate, const ModelEdit &edit, QStri
 			// take a fixed turn exactly through Euler interpolation.
 			for (auto &group : clip.curves)
 			{
-				int joint = -1;
-				for (int j = 0; j < skeleton.joints.size(); ++j)
-					if (skeleton.joints[j].name == group.joint)
-						joint = j;
-				const bool root = joint < 0 || skeleton.joints[joint].parent < 0;
+				const bool root = isRoot(group.joint);
 				if (root && rotated)
 					return fail(error, Text::tr("Root joint %1 has animation curves in clip %2, which a rotation cannot follow exactly. Bake or "
 												"clear the root's curves, or rotate before animating.")
@@ -357,6 +371,66 @@ bool applyModelWholeTransform(ModelMesh *candidate, const ModelEdit &edit, QStri
 						key.outSlope *= s;
 					}
 			}
+			if (!modelClipHasStack(clip))
+				continue;
+			// The stack evaluates layers, then constraints, over `base`, which
+			// moves as the frames do. Layer keys are parent-local like curves;
+			// additive translation keys are deltas, so they scale but do not move.
+			for (auto &pose : clip.base)
+				for (auto &m : pose)
+					moveJoint(&m);
+			for (auto &layer : clip.layers)
+				for (auto &group : layer.curves)
+				{
+					const bool root = isRoot(group.joint);
+					bool movesRoot = root && !layer.additive;
+					for (int channel = 0; channel < 3 && root && !movesRoot; ++channel)
+						for (const auto &key : group.channels[channel])
+							movesRoot = movesRoot || key.value != 0 || key.inSlope != 0 || key.outSlope != 0;
+					if (movesRoot && rotated)
+						return fail(error, Text::tr("Layer %1 of clip %2 places root joint %3, which a rotation cannot follow exactly. Bake the "
+													"clip's stack, or rotate before layering.")
+											   .arg(layer.name, clip.name, group.joint));
+					for (int channel = 0; channel < 3; ++channel)
+						for (auto &key : group.channels[channel])
+						{
+							key.value = key.value * s + (root && !layer.additive ? affine.translation[channel] : 0);
+							key.inSlope *= s;
+							key.outSlope *= s;
+						}
+				}
+			// Fixed targets and IK poles are model-space points, a target joint's
+			// offset is in that joint's space, and an aim's up is a direction.
+			for (auto &c : clip.constraints)
+			{
+				const bool chain = c.kind == ModelClipConstraintKind::Ik || c.kind == ModelClipConstraintKind::FootLock;
+				const bool aims = c.kind == ModelClipConstraintKind::Aim;
+				const Vector point{c.point[0], c.point[1], c.point[2]}, pole{c.pole[0], c.pole[1], c.pole[2]};
+				if (c.kind == ModelClipConstraintKind::Ik || aims)
+					c.point = c.target.isEmpty() ? affine.apply(point) : scaled(point, s);
+				if (chain)
+					c.pole = affine.apply(pole);
+				else if (aims)
+					c.pole = multiply(turn, pole);
+			}
+			// IK without a pole bends a straight chain towards a fixed direction,
+			// so a turned stack can solve differently; refuse rather than change
+			// the motion.
+			QVector<QVector<ModelJointMatrix>> evaluated;
+			if (!evaluateModelClipStack(skeleton, clip, clip.base, &evaluated, error, control))
+				return false;
+			for (int f = 0; f < std::min(evaluated.size(), clip.frames.size()); ++f)
+				for (int j = 0; j < std::min(evaluated[f].size(), clip.frames[f].size()); ++j)
+					for (int n = 0; n < 12; ++n)
+					{
+						const double a = evaluated[f][j].m[n], b = clip.frames[f][j].m[n];
+						if (std::abs(a - b) > std::max(.0001, std::abs(b) * .000002))
+							return fail(error, Text::tr("Clip %1's constraints would solve differently after this transform, at sample %2, joint "
+														"%3. Bake the clip's stack, or transform the model before adding constraints.")
+												   .arg(clip.name)
+												   .arg(f)
+												   .arg(skeleton.joints[j].name));
+					}
 		}
 	}
 	// The Quake MDL eye position is a model-space point.

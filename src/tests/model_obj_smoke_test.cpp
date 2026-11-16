@@ -208,6 +208,19 @@ int main(int argc, char **argv)
 	ok &= expect(importEditableModel("materials.obj", exportEditableModel(splitMaterials, "obj", 0, &error), &restored, &error) &&
 					 sameCorners(splitMaterials, restored),
 				 "exported unassigned surface does not inherit the preceding material");
+	{
+		// Each group names its material right after its "g" line, an empty
+		// usemtl clearing it, exactly as rewriting every group line did.
+		const auto three = decodeModelObj("three.obj", pair + "g a\nusemtl textures/first\nf 1 2 3\ng b\nusemtl\nf 1 4 2\ng c\nusemtl textures/third\nf 2 4 3\n");
+		const QString written = QString::fromUtf8(exportEditableModel(three, "obj", 0, &error));
+		QStringList records;
+		for (const QString &line : written.split(QLatin1Char('\n')))
+			if (line.startsWith(QStringLiteral("g ")) || line.startsWith(QStringLiteral("usemtl")))
+				records << line;
+		const QStringList expected{"g a", "usemtl textures/first", "g b", "usemtl ", "g c", "usemtl textures/third"};
+		ok &= expect(three.isValid() && three.surfaces.size() == 3 && records == expected && written.contains(QStringLiteral("g b\nusemtl \nv ")),
+					 "OBJ export writes each group's material as before");
+	}
 	const auto grouped = decodeModelObj("groups.obj", "o one\ng shared\n" + triangle + "o two\nf 1 2 3\n");
 	ok &= expect(grouped.isValid() && grouped.surfaces.size() == 2 && grouped.surfaces[0].name != grouped.surfaces[1].name,
 				 "objects partition surfaces even when group names repeat");

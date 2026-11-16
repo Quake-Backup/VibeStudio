@@ -44,6 +44,29 @@ QVector<int> removeFaces(ModelSurface *surface, const QVector<bool> &drop, Model
 	*ok = compactUnused(surface, candidates, selection, work);
 	return mapping;
 }
+// Adds every other index edge of each cut's geometric edge, so a face across a
+// UV seam (which uses the twin indices) is split at the same point instead of
+// keeping a T-junction. Fractions are measured from the lower group, which is
+// the same end for every twin.
+void addSeamTwinCuts(const ModelSurface &surface, const ModelGeometricTopology &topology, QHash<ModelEdge, double> *cuts)
+{
+	QHash<ModelEdge, double> fractions;
+	for (auto it = cuts->cbegin(); it != cuts->cend(); ++it)
+		fractions.insert(topology.geometricEdge(it.key().first, it.key().second), it.value());
+	for (auto it = fractions.cbegin(); it != fractions.cend(); ++it)
+	{
+		for (int face : topology.edgeFaces.value(it.key()))
+		{
+			const auto &t = surface.triangles[face];
+			for (const auto &[a, b] : {qMakePair(t.a, t.b), qMakePair(t.b, t.c), qMakePair(t.c, t.a)})
+			{
+				const auto edge = modelEdge(a, b);
+				if (topology.geometricEdge(a, b) == it.key() && !cuts->contains(edge))
+					cuts->insert(edge, it.value());
+			}
+		}
+	}
+}
 } // namespace
 
 bool bisectFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work)
@@ -85,6 +108,7 @@ bool bisectFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selecti
 	}
 	if (cuts.isEmpty() && onPlane.isEmpty())
 		return fail(error, Text::tr("The plane does not cross the selected faces."));
+	addSeamTwinCuts(surface, topology, &cuts);
 	if (!reserveCapacity(*mesh, selection->surface, cuts.size(), qint64(cuts.size()) * 2, error))
 		return false;
 	QHash<ModelEdge, int> created;
@@ -173,6 +197,7 @@ bool symmetrize(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 	QSet<int> chosen(faces.cbegin(), faces.cend());
 	if (!cuts.isEmpty())
 	{
+		addSeamTwinCuts(surface, topology, &cuts);
 		if (!reserveCapacity(*mesh, selection->surface, cuts.size(), qint64(cuts.size()) * 2, error))
 			return false;
 		QHash<ModelEdge, int> created;
@@ -560,14 +585,29 @@ bool bevelVertices(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selec
 	// Helper midpoints that sit in a flat area are dissolved again; on a fold
 	// they stay, so no triangle cuts across the edge.
 	QSet<int> remove = targets;
+	QHash<int, QVector<int>> midpointFaces;
+	if (!midpoints.isEmpty())
+	{
+		for (int face = 0; face < surface.triangles.size(); ++face)
+		{
+			const auto &t = surface.triangles[face];
+			for (int v : {t.a, t.b, t.c})
+			{
+				if (!midpoints.contains(v))
+					continue;
+				auto &list = midpointFaces[v];
+				if (list.isEmpty() || list.last() != face)
+					list.append(face);
+			}
+		}
+	}
 	for (int midpoint : std::as_const(midpoints))
 	{
 		P3 first{0, 0, 0};
 		bool flat = true, seeded = false;
-		for (const auto &t : std::as_const(surface.triangles))
+		for (int face : midpointFaces.value(midpoint))
 		{
-			if (t.a != midpoint && t.b != midpoint && t.c != midpoint)
-				continue;
+			const auto &t = surface.triangles[face];
 			const P3 n = unit(faceCross(surface, frame, t));
 			if (!seeded)
 			{

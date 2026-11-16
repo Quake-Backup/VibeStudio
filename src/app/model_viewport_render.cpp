@@ -24,7 +24,9 @@
 
 #include <QCoreApplication>
 #include <QHash>
+#include <QMutex>
 #include <QSet>
+#include <QVector>
 
 #include <atomic>
 #include <cstring>
@@ -54,6 +56,45 @@ enum SurfaceTarget {
 };
 
 std::atomic<quint64> nextUploadKey {1};
+
+// `image` reduced to fit `limit` on each side. Reductions are kept for every
+// viewport's workers, so a reduced skin or glow keeps one image, and with it
+// one texture key, for as long as it is shown, rather than being filtered
+// and uploaded again on every frame.
+QImage reducedForUpload(const QImage& image, int limit)
+{
+	struct Reduction {
+		qint64 source = 0;
+		int limit = 0;
+		QImage image;
+	};
+	// Each reduction is at most kMaximumSkinSide square: a few are plenty.
+	constexpr qsizetype kKept = 8;
+	static QMutex mutex;
+	static QVector<Reduction> kept;
+	const qint64 source = image.cacheKey();
+	{
+		const QMutexLocker lock(&mutex);
+		for (const Reduction& reduction : std::as_const(kept)) {
+			if (reduction.source == source && reduction.limit == limit) {
+				return reduction.image;
+			}
+		}
+	}
+	const QImage reduced = image.scaled(std::min(image.width(), limit), std::min(image.height(), limit), Qt::IgnoreAspectRatio,
+		Qt::SmoothTransformation);
+	const QMutexLocker lock(&mutex);
+	for (const Reduction& reduction : std::as_const(kept)) {
+		if (reduction.source == source && reduction.limit == limit) {
+			return reduction.image;
+		}
+	}
+	kept.prepend({source, limit, reduced});
+	if (kept.size() > kKept) {
+		kept.removeLast();
+	}
+	return reduced;
+}
 
 using Matrix = std::array<std::array<double, 4>, 4>;
 
@@ -274,17 +315,40 @@ QColor modelSurfaceBaseColor(int surfaceIndex, bool highContrast)
 
 bool modelSkinHasAlpha(const QImage& image)
 {
-	if (!image.hasAlphaChannel()) {
+	if (image.isNull() || !image.hasAlphaChannel()) {
 		return false;
 	}
-	for (int y = 0; y < image.height(); ++y) {
-		for (int x = 0; x < image.width(); ++x) {
-			if (qAlpha(image.pixel(x, y)) != 255) {
-				return true;
+	// Animated materials hand the same frames over again and again; an
+	// image's cache key changes whenever its pixels do.
+	static QMutex mutex;
+	static QHash<qint64, bool> known;
+	const qint64 key = image.cacheKey();
+	{
+		const QMutexLocker lock(&mutex);
+		const auto found = known.constFind(key);
+		if (found != known.cend()) {
+			return found.value();
+		}
+	}
+	const QImage scan = image.format() == QImage::Format_ARGB32_Premultiplied || image.format() == QImage::Format_ARGB32
+		? image : image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+	bool translucent = false;
+	for (int y = 0; y < scan.height() && !translucent; ++y) {
+		const auto* line = reinterpret_cast<const QRgb*>(scan.constScanLine(y));
+		for (int x = 0; x < scan.width(); ++x) {
+			if (qAlpha(line[x]) != 255) {
+				translucent = true;
+				break;
 			}
 		}
 	}
-	return false;
+	const QMutexLocker lock(&mutex);
+	// Bounded: answers for images long gone are only dropped, never wrong.
+	if (known.size() >= 4096) {
+		known.clear();
+	}
+	known.insert(key, translucent);
+	return translucent;
 }
 
 bool ModelViewport::GeometryKey::matchesButTexCoords(const GeometryKey& other) const
@@ -774,13 +838,9 @@ void ModelViewport::renderGpu(RasterWork& work)
 			return known.value();
 		}
 		GpuTextureData texture;
-		if (image.width() > skinLimit || image.height() > skinLimit) {
-			texture.levels = {image.scaled(std::min(image.width(), skinLimit), std::min(image.height(), skinLimit), Qt::IgnoreAspectRatio,
-				Qt::SmoothTransformation)};
-		} else {
-			texture.levels = {image};
-			texture.cacheKey = quint64(image.cacheKey());
-		}
+		const QImage upload = image.width() > skinLimit || image.height() > skinLimit ? reducedForUpload(image, skinLimit) : image;
+		texture.levels = {upload};
+		texture.cacheKey = quint64(upload.cacheKey());
 		const int index = static_cast<int>(frame.textures.size());
 		frame.textures.append(texture);
 		textureIndex.insert(image.cacheKey(), index);
@@ -797,9 +857,10 @@ void ModelViewport::renderGpu(RasterWork& work)
 			return known.value();
 		}
 		GpuTextureData texture;
-		texture.levels = {found->width() > skinLimit || found->height() > skinLimit
-				? found->scaled(std::min(found->width(), skinLimit), std::min(found->height(), skinLimit), Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
-				: *found};
+		// Keyed like a skin, so an unchanged glow layer is uploaded once.
+		const QImage upload = found->width() > skinLimit || found->height() > skinLimit ? reducedForUpload(*found, skinLimit) : *found;
+		texture.levels = {upload};
+		texture.cacheKey = quint64(upload.cacheKey());
 		const int index = static_cast<int>(frame.textures.size());
 		frame.textures.append(texture);
 		textureIndex.insert(found->cacheKey(), index);

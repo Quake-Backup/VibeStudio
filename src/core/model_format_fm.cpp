@@ -231,7 +231,7 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		}
 		if (listed) {
 			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Chunk \"%1\" (version %2, %3 bytes) is kept in the file but not decoded.")
-				.arg(chunk.ident).arg(chunk.version).arg(chunk.size);
+				.arg(chunk.ident, QString::number(chunk.version), QString::number(chunk.size));
 		} else if (!known) {
 			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("fm-unknown-chunk"), QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM holds an unknown chunk \"%1\", which was skipped.").arg(chunk.ident));
 		}

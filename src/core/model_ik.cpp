@@ -703,9 +703,11 @@ QVector<ModelIkSample> modelIkSamples(const ModelMesh &mesh, const ModelIkOption
 	Resolved r;
 	if (!resolve(mesh, o, chained, &r, nullptr))
 		return result;
+	// The poses applyModelIk solves: a stacked clip's base, not its evaluation.
+	const auto &editable = modelClipEditableSamples(mesh.skeleton.clips[o.clip]);
 	for (int f = o.first; f <= o.last; ++f)
 	{
-		const auto &pose = mesh.skeleton.clips[o.clip].frames[f];
+		const auto &pose = editable[f];
 		if (pose.size() != mesh.skeleton.joints.size())
 			return {};
 		double total = 0;

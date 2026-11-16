@@ -116,8 +116,10 @@ manifest, for example to attach to a bug report.
 
 The source checkout includes `samples/projects/quake2-hingeworks`, an original
 Quake II rerelease (Q2RE) deathmatch map project. Open that folder to continue
-editing its current **Alpha 5 review candidate**, `game/baseq2/maps/hingeworks_a5.map`.
-Its headless checks pass; the new engine-image review and archive are pending.
+editing its current **Alpha 5 development build**, `game/baseq2/maps/hingeworks_a5.map`.
+Alpha 5 remains unreleased while refinement and review continue. Captures and
+validation records identify their exact build; earlier screenshots do not verify
+later changes. Release requires the map owner's explicit decision.
 Alpha 4 remains the latest approved release.
 Link your own rerelease installation for the stock textures, sounds and music;
 no game assets ship with the sample. Alpha 4 corrects brush joins and a texture
@@ -130,8 +132,9 @@ human multiplayer balance testing remains outstanding.
 
 Map versions are independent of VibeStudio's application version. The project
 uses `0.1.0-alpha.5` in release settings, **Alpha 5** in player-facing text, and
-`hingeworks_a5` as its engine map name. Future revisions increment the alpha
-number and keep earlier released packages unchanged. See [Package and
+`hingeworks_a5` as its engine map name. Development revisions stay on Alpha 5
+until its release is approved; subsequent versions keep earlier released
+packages unchanged. See [Package and
 release](releases.md) for the release controls.
 
 ## Panic Protocol campaign experiment

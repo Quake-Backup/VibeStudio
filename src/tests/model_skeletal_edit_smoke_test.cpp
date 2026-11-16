@@ -296,6 +296,26 @@ int main(int argc, char **argv)
 	dirty.surfaces[0].frames[0].positions[0].z = 3;
 	expect(applyModelEdit(&dirty, edit, nullptr, &error) && near(dirty.surfaces[0].frames[0].positions[0].z, 3),
 		   "unaffected independent frame edit preserved");
+	// Edits that leave every pose and binding alone keep each frame's geometry
+	// and attachments exactly, independent edits included, in the same order.
+	dirty = animated;
+	dirty.surfaces[0].frames[0].positions[0].z = 3;
+	dirty.surfaces[0].frames[4].normals[1] = {0, 1, 0};
+	for (auto &tag : dirty.tags)
+		if (tag.frameIndex == 4)
+			tag.origin.z = 9;
+	auto renamed = dirty;
+	auto renameClip = operation(ModelEditKind::RenameSkeletalClip, 1);
+	renameClip.skeletal.name = "turn_renamed";
+	auto renameBack = renameClip;
+	renameBack.skeletal.name = dirty.skeleton.clips[1].name;
+	auto retimed = operation(ModelEditKind::SetSkeletalClipTiming, 1);
+	retimed.skeletal.rate = dirty.skeleton.clips[1].framesPerSecond;
+	retimed.skeletal.loops = dirty.skeleton.clips[1].loops;
+	expect(applyModelEdit(&renamed, renameClip, nullptr, &error) && renamed.skeleton.clips[1].name == "turn_renamed" &&
+			   applyModelEdit(&renamed, renameBack, nullptr, &error) && applyModelEdit(&renamed, retimed, nullptr, &error) &&
+			   rigBytes(renamed) == rigBytes(dirty),
+		   "rename and timing edits keep every frame and attachment exactly");
 	dirty = animated;
 	dirty.skeleton.bakedClipForFrame[2] = -2;
 	reject(dirty, edit, "independent frame layout refused");

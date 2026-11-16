@@ -11,9 +11,13 @@
 
 #include <QByteArray>
 #include <QCoreApplication>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QHash>
 #include <QString>
 #include <QStringList>
+#include <QTemporaryDir>
 #include <QVector>
 
 #include <algorithm>
@@ -551,6 +555,53 @@ void testFileSystemLayout()
 	expect(mesh.companionPaths.contains(QStringLiteral("models/md5/other/idle.md5anim")), "the .def's anim read by its game path");
 }
 
+bool writeFile(const QString& path, const QByteArray& bytes)
+{
+	QDir().mkpath(QFileInfo(path).absolutePath());
+	QFile file(path);
+	return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
+}
+
+// A .def from a downloaded mod names its animations; a name that climbs out
+// of the game folder or names another place outright must not be opened,
+// while game-relative names still resolve through the folders above.
+void testDefCompanionNamesOnDisk()
+{
+	QTemporaryDir root;
+	if (!expect(root.isValid(), "a temporary folder for the .def companion test")) {
+		return;
+	}
+	const QString base = root.filePath(QStringLiteral("game/base"));
+	const QString meshPath = base + QStringLiteral("/models/md5/test/chain.md5mesh");
+	const QString decoyClimb = root.filePath(QStringLiteral("idle.md5anim"));
+	const QString decoyAbsolute = root.filePath(QStringLiteral("outside/jump.md5anim"));
+	const QByteArray def = QByteArrayLiteral("model test_chain {\n\tmesh models/md5/test/chain.md5mesh\n\tanim run models/md5/test/walk.md5anim\n"
+		"\tanim idle ../../../../../idle.md5anim\n\tanim jump \"")
+		+ QDir::fromNativeSeparators(decoyAbsolute).toUtf8() + QByteArrayLiteral("\"\n\tanim hop \\\\127.0.0.1\\share\\hop.md5anim\n}\n");
+	expect(writeFile(meshPath, QByteArray(kChainMesh)) && writeFile(base + QStringLiteral("/models/md5/test/walk.md5anim"), QByteArray(kWalkAnim))
+			&& writeFile(base + QStringLiteral("/def/test.def"), def) && writeFile(decoyClimb, QByteArray(kIdleAnim))
+			&& writeFile(decoyAbsolute, QByteArray(kIdleAnim)),
+		".def companion fixtures written");
+	const ModelMesh mesh = decodeModelMeshFile(meshPath);
+	if (!expect(mesh.error.isEmpty(), "md5mesh on disk decodes")) {
+		std::cerr << "  error: " << qPrintable(mesh.error) << "\n";
+		return;
+	}
+	bool outside = false;
+	for (const QString& path : mesh.companionPaths) {
+		outside = outside || path.contains(QStringLiteral("idle.md5anim")) || path.contains(QStringLiteral("jump.md5anim"))
+			|| path.contains(QStringLiteral("hop.md5anim"));
+	}
+	expect(!outside && clipIndexNamed(mesh, QStringLiteral("idle")) < 0 && clipIndexNamed(mesh, QStringLiteral("jump")) < 0,
+		"a .def anim outside the game folder is not opened");
+	expect(clipIndexNamed(mesh, QStringLiteral("run")) >= 0, "a .def anim with a game-relative name still loads");
+	bool explained = false;
+	for (const ModelDecodeIssue& issue : modelDecodeIssues(mesh)) {
+		explained = explained || issue.text.contains(QStringLiteral("outside the model's folders"));
+	}
+	expect(explained, "the refused anim names say why they were not read");
+}
+
 void testAnimDecode()
 {
 	const ModelMesh mesh = decodeModelMesh(QStringLiteral("models/md5/test/walk.md5anim"), QByteArray(kWalkAnim));
@@ -1005,6 +1056,7 @@ int main(int argc, char** argv)
 	testMeshDecode();
 	testBudgetAndSources();
 	testFileSystemLayout();
+	testDefCompanionNamesOnDisk();
 	testAnimDecode();
 	testRoundTrips();
 	testMalformed();

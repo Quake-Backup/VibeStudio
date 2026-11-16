@@ -14,6 +14,78 @@ QSet<QString> objectSet(const LevelMapDocument& document)
 	const auto objects = levelSceneObjects(document);
 	return {objects.cbegin(),objects.cend()};
 }
+// Membership in levelMapVisibilityTargets() without building it. Every edit,
+// undo and redo asks which of a few hidden or shown names still exist; a
+// string for each object of the map, hashed into a set, made each of those
+// cost as much as the map is large. Ids are gathered per kind on first use.
+class VisibilityTargetIndex {
+public:
+	explicit VisibilityTargetIndex(const LevelMapDocument& document) : m_document(document) {}
+	bool contains(const QString& target) const
+	{
+		if (target.startsWith(QLatin1String("group:"))) {
+			if (!m_groupsReady) {
+				for (const auto& node : m_document.scene.nodes) {
+					if (node.kind == LevelSceneNodeKind::Group) { m_groups.insert(node.id); }
+				}
+				m_groupsReady = true;
+			}
+			return m_groups.contains(target.mid(6));
+		}
+		const qsizetype colon = target.indexOf(QLatin1Char(':'));
+		if (colon <= 0) { return false; }
+		bool number = false;
+		const int id = QStringView(target).mid(colon + 1).toInt(&number);
+		// Only the canonical spelling is a target: "brush:07" names nothing.
+		if (!number || QStringView(target).mid(colon + 1) != QString::number(id)) { return false; }
+		const QStringView kind = QStringView(target).left(colon);
+		const bool doom = m_document.format == LevelMapFormat::DoomWad;
+		if (doom) {
+			if (kind == QLatin1String("vertex")) { return ids(m_document.doomVertices, 0).contains(id); }
+			if (kind == QLatin1String("linedef")) { return ids(m_document.doomLinedefs, 1).contains(id); }
+			if (kind == QLatin1String("thing")) { return ids(m_document.doomThings, 2).contains(id); }
+			if (kind == QLatin1String("sector")) { return ids(m_document.doomSectors, 3).contains(id); }
+			return false;
+		}
+		if (kind == QLatin1String("brush")) { return ids(m_document.brushes, 4).contains(id); }
+		if (kind == QLatin1String("patch")) { return ids(m_document.patches, 5).contains(id); }
+		if (kind == QLatin1String("entity")) {
+			if (!m_ready[6]) {
+				for (const auto& entity : m_document.entities) {
+					if (entity.className.compare(QLatin1String("worldspawn"), Qt::CaseInsensitive) != 0) { m_ids[6].insert(entity.id); }
+				}
+				m_ready[6] = true;
+			}
+			return m_ids[6].contains(id);
+		}
+		return false;
+	}
+	QSet<QString> filtered(const QSet<QString>& candidates) const
+	{
+		QSet<QString> result;
+		for (const auto& candidate : candidates) {
+			if (contains(candidate)) { result.insert(candidate); }
+		}
+		return result;
+	}
+
+private:
+	template <typename Records>
+	const QSet<int>& ids(const Records& records, int slot) const
+	{
+		if (!m_ready[slot]) {
+			m_ids[slot].reserve(records.size());
+			for (const auto& record : records) { m_ids[slot].insert(record.id); }
+			m_ready[slot] = true;
+		}
+		return m_ids[slot];
+	}
+	const LevelMapDocument& m_document;
+	mutable QSet<int> m_ids[7];
+	mutable bool m_ready[7] = {};
+	mutable QSet<QString> m_groups;
+	mutable bool m_groupsReady = false;
+};
 // Original hierarchy resolver, informed by TB Node::visible/ensureVisible
 // (4c756be1, GPL-3.0-or-later). Saved scene hiding remains a separate mask.
 QString groupKey(const QString& id) { return QStringLiteral("group:") + id; }
@@ -324,7 +396,7 @@ void detail::reconcileLevelMapVisibility(LevelMapDocument* document, LevelMapUnd
 	command->remapSessionVisibility = true;
 	if (document->hiddenObjects.isEmpty() && document->shownObjects.isEmpty()
 		&& command->initialHiddenObjects.isEmpty() && command->initialShownObjects.isEmpty()) { return; }
-	const auto available = levelMapVisibilityTargets(*document);
+	const VisibilityTargetIndex available(*document);
 	const auto remap = [&](QSet<QString>* state, QSet<QString>* removed) {
 		QSet<QString> carried;
 		for (const auto& old : std::as_const(*state)) {
@@ -340,8 +412,8 @@ void detail::reconcileLevelMapVisibility(LevelMapDocument* document, LevelMapUnd
 	// identities still remap, but new objects neither clone states nor force
 	// visibility through a hidden parent. Linked replacement always inherits.
 	if (command->inheritInsertedVisibility || document->insertionVisibility == LevelInsertionVisibility::FreshInherited) { return; }
-	document->hiddenObjects.unite(command->initialHiddenObjects & available);
-	document->shownObjects.unite(command->initialShownObjects & available);
+	document->hiddenObjects.unite(available.filtered(command->initialHiddenObjects));
+	document->shownObjects.unite(available.filtered(command->initialShownObjects));
 	QSet<QString> added(command->sceneAddedObjects.cbegin(),command->sceneAddedObjects.cend());
 	if (command->hasSceneSnapshot) {
 		QSet<QString> oldNodes;
@@ -350,7 +422,7 @@ void detail::reconcileLevelMapVisibility(LevelMapDocument* document, LevelMapUnd
 			if (!oldNodes.contains(node.id) && node.kind == LevelSceneNodeKind::Group) { added.insert(groupKey(node.id)); }
 		}
 	}
-	added.intersect(available);
+	added = available.filtered(added);
 	if (added.isEmpty()) { return; }
 	const VisibilityGraph graph(*document);
 	auto roots = added;
@@ -387,7 +459,7 @@ void detail::replayLevelMapVisibilityRemap(LevelMapDocument* document, const Lev
 			if (!it.value().isEmpty()) { remap.insert(it.value(),it.key()); }
 		}
 	}
-	const auto available = levelMapVisibilityTargets(*document);
+	const VisibilityTargetIndex available(*document);
 	const auto carry = [&](QSet<QString>* state, QSet<QString>& removed, const QSet<QString>& restored) {
 		removed.clear(); QSet<QString> carried;
 		for (const auto& old : std::as_const(*state)) {
@@ -397,7 +469,7 @@ void detail::replayLevelMapVisibilityRemap(LevelMapDocument* document, const Lev
 			const auto now = remap.value(old,old);
 			if (available.contains(now)) { carried.insert(now); } else { removed.insert(old); }
 		}
-		carried.unite(restored & available); *state = std::move(carried);
+		carried.unite(available.filtered(restored)); *state = std::move(carried);
 	};
 	carry(&document->hiddenObjects,forward ? command.removedHiddenObjects : command.hiddenObjectsRemovedOnUndo,
 		forward ? command.hiddenObjectsRemovedOnUndo : command.removedHiddenObjects);

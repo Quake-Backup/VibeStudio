@@ -90,6 +90,42 @@ read as package entries, UV pins not carried on models with tag anchors,
 per-frame hulls dropped by resampling, and two sidebar rows that pushed the
 views under 45% at 200% text.
 
+**Audit and fix round (2026-11-15).** Status: Partial. A read-through of the
+modeller's mesh tools, document core, format readers and writers, animation
+and skinning, UV, skin and bake code, viewport and editor window recorded about
+80 defects, slow paths and refinements; all but the ones listed below are
+fixed, each with a regression test in the suite. Correctness: tools that left
+UV seams, pins, hulls, frame origins or clip stacks behind an edit; Apply
+Relative Pose and skeletal resampling reading data they had just rewritten or
+applying a stack twice; skin painting and bakes on shared, tiled or curved
+surfaces; modal tools and open Bake and Paint dialogs acting on a model that
+had changed under them. Hostile input: companion file names taken from a model
+file are confined to the model's folders and size-checked, and glTF decoding
+has a memory budget. Speed: an edit re-hashes and re-validates only the arrays
+it replaced ([mesh documents](MODEL_MESH.md)); the viewport no longer renders
+on hover or redraws unchanged mirror panes; skin painting is incremental;
+about twenty quadratic paths in the tools became linear.
+
+On Windows (clang-cl debugoptimized, offscreen Qt), `model_edit_benchmark 100
+100` (20,000 triangles, 100 frames) measured a frame-local move at 7 ms where
+it took 199 ms, and edits to every frame about three times faster; the same
+run hashed the model in 156 ms as one stream, 27 ms as blocks and 1 ms after
+one pose changed. These are one machine's figures while other builds shared
+it, not thresholds. The modeller suite passed 241 of 242 run in parallel and
+242 of 242 with `model-intersections-ui-smoke`, whose two timing checks failed
+under that load, run alone; 105 of the 106 Levels and shell tests that share
+the model viewport passed, and the one failure (`level-brush-jobs-ui-smoke`)
+is in brush job cancellation, outside this round. The repository validators
+(CLI docs, docs, source layout, translation extraction, English plurals,
+offline guide, build) pass. Nothing was run on macOS or Linux, in a game
+engine, or by a user of a screen reader.
+
+Left open by this round: the packed metadata of a skeletal model (clips and
+influences) is still encoded on every edit to identify the state; reading and
+writing a readable source near the 64 MiB limit takes seconds; tangent-space
+bakes use per-triangle tangents; an MDS written from MDS, MDM or MDX loses
+torso blending, now reported as an omission.
+
 Open, with reasons recorded in the feature documents: the non-destructive
 mirror modifier; booleans on skinned surfaces; per-pixel GPU shader stages and
 Doom 3 interaction in the modeller viewport; curvature, thickness and cage

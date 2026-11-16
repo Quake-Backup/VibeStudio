@@ -192,6 +192,9 @@ void checkGeometricTopology()
 	bool closed = true;
 	const auto loop = modelEdgeLoop(quads, quads.geometry.geometricEdge(a, b), &closed);
 	expect(loop.size() == 4 && !closed, "an edge loop spans the grid");
+	// A border edge follows the border round every corner.
+	const auto border = modelEdgeLoop(quads, quads.geometry.geometricEdge(vertexAt(s, 0, 0), vertexAt(s, 8, 0)), &closed);
+	expect(border.size() == 16 && closed && QSet<ModelEdge>(border.cbegin(), border.cend()).size() == 16, "a border loop closes round the grid");
 	QVector<int> elements;
 	const auto ring = modelEdgeRing(quads, quads.geometry.geometricEdge(a, b), &closed, &elements);
 	expect(ring.size() == 5 && elements.size() == 4 && !closed, "an edge ring crosses the column of quads");
@@ -248,6 +251,20 @@ void checkEdgeTools()
 	expect(document.selection().edges == QSet<ModelEdge>{modelEdge(1, 2)}, "the other diagonal is selected");
 	expect(everyFaceFacesUp(document.mesh()), "rotated faces keep their winding");
 	expect(!document.edit(toolEdit(ModelEditKind::RotateEdges, {0, {}, {}, {modelEdge(0, 1)}}), &error), "a border edge cannot rotate");
+	// Two diagonals in one edit, then back again from the rotated faces.
+	ModelDocument twice;
+	expect(twice.setMesh(gridMesh(2, 1), &error), "two-square strip loads");
+	const auto &strip = twice.mesh().surfaces[0];
+	const auto firstDiagonal = modelEdge(vertexAt(strip, 0, 0), vertexAt(strip, 8, 8)),
+			   secondDiagonal = modelEdge(vertexAt(strip, 8, 0), vertexAt(strip, 16, 8));
+	expect(twice.edit(toolEdit(ModelEditKind::RotateEdges, {0, {}, {}, {firstDiagonal, secondDiagonal}}), &error) &&
+			   twice.selection().edges == QSet<ModelEdge>{modelEdge(vertexAt(strip, 8, 0), vertexAt(strip, 0, 8)),
+														   modelEdge(vertexAt(strip, 16, 0), vertexAt(strip, 8, 8))} &&
+			   everyFaceFacesUp(twice.mesh()),
+		   "neighbouring diagonals rotate together");
+	expect(twice.edit(toolEdit(ModelEditKind::RotateEdges, {0, {}, {}, twice.selection().edges}), &error) &&
+			   twice.selection().edges == QSet<ModelEdge>{firstDiagonal, secondDiagonal},
+		   "rotating again restores both diagonals");
 	Q_UNUSED(s);
 	// Poke the first face.
 	expect(document.edit(toolEdit(ModelEditKind::PokeFaces, {0, {}, {0}}), &error), "poke a face");
@@ -319,6 +336,14 @@ void checkMergeAndDissolve()
 	expect(dissolve.mesh().surfaces[0].vertexCount == 8 && dissolve.mesh().surfaces[0].triangles.size() == 6,
 		   "the hole is refilled without the vertex");
 	expect(everyFaceFacesUp(dissolve.mesh()) && posesAgree(dissolve.mesh().surfaces[0]), "dissolve keeps winding and poses");
+	// Neighbouring vertices: the second one's fan is the first one's refill.
+	ModelDocument pair;
+	expect(pair.setMesh(gridMesh(3, 2), &error), "dissolve pair grid loads");
+	const auto &pg = pair.mesh().surfaces[0];
+	expect(pair.edit(toolEdit(ModelEditKind::DissolveVertices, {0, {vertexAt(pg, 8, 8), vertexAt(pg, 16, 8)}, {}}), &error) &&
+			   pair.mesh().surfaces[0].vertexCount == 10 && pair.mesh().surfaces[0].triangles.size() == 8 &&
+			   !pair.selection().faces.isEmpty() && everyFaceFacesUp(pair.mesh()) && posesAgree(pair.mesh().surfaces[0]),
+		   "two neighbouring vertices dissolve into one refill");
 	// Dissolve faces: a 2x2 region becomes one polygon.
 	ModelDocument faces;
 	expect(faces.setMesh(gridMesh(2, 2), &error), "dissolve faces grid loads");
@@ -424,6 +449,39 @@ void checkShading()
 	expect(cube.mesh().surfaces[0].vertexCount == 8, "smooth shading welds same-UV copies");
 	const auto n = cube.mesh().surfaces[0].frames[0].normals[6];
 	expect(near(n.x, n.y) && near(n.y, n.z) && n.x > 0.5f, "smooth corners face diagonally");
+	// A gentle fold across a UV seam beside a hard wall: the wall splits the
+	// first seam copy, and both sides of the seam must still share one normal.
+	auto wedge = meshOf({{0, 0, 0}, {0, 10, 0}, {0, 0, 10}, {10, 0, 0}, {0, 0, 0}, {10, 0, 0}, {0, -10, -3.6f}}, {{0, 1, 2}, {0, 3, 1}, {5, 4, 6}},
+						{{0, 0}, {0, 1}, {1, 0}, {1, 1}, {0.5f, 0.5f}, {0.7f, 0.5f}, {0.6f, 0.9f}});
+	ModelDocument folded;
+	expect(folded.setMesh(wedge, &error), "seamed fold loads");
+	auto autoSmooth = toolEdit(ModelEditKind::ShadeAutoSmooth, {0, {}, allFaces(folded.mesh())});
+	autoSmooth.tool.smoothAngle = 30;
+	expect(folded.edit(autoSmooth, &error), "auto smooth a fold across a seam");
+	const auto &w = folded.mesh().surfaces[0];
+	bool shared = true;
+	int fanCorners = 0;
+	for (int frame = 0; frame < w.frames.size(); ++frame)
+	{
+		QVector<ModelVec3> normals;
+		for (const auto &t : w.triangles)
+		{
+			// The folded faces are the ones reaching x = 10; the wall stays at x = 0.
+			const auto &p = w.frames[0].positions;
+			if (!near(p[t.a].x, 10) && !near(p[t.b].x, 10) && !near(p[t.c].x, 10))
+				continue;
+			for (int v : {t.a, t.b, t.c})
+			{
+				if (near(p[v].x, 0) && near(p[v].y, 0) && near(p[v].z, 0))
+					normals << w.frames[frame].normals[v];
+			}
+		}
+		fanCorners += int(normals.size());
+		for (const auto &normal : std::as_const(normals))
+			shared &= near(normal.x, normals[0].x) && near(normal.y, normals[0].y) && near(normal.z, normals[0].z);
+		shared &= !normals.isEmpty() && normals[0].z > 0.95f && normals[0].y < -0.05f && normals[0].y > -0.3f;
+	}
+	expect(shared && fanCorners == 4, "seam copies in one smooth fan keep one blended normal");
 }
 
 void checkCuts()
@@ -465,6 +523,37 @@ void checkCuts()
 	}
 	expect(mirrored && s.triangles.size() == 16, "every vertex has a mirror partner");
 	expect(everyFaceFacesUp(symmetric.mesh()) && posesAgree(s), "mirrored faces keep the original winding");
+	// Cuts through a UV seam split the unselected face across it too, so no
+	// T-junction opens a hole along the seam.
+	const auto seamedSquare = [](float shift)
+	{
+		return meshOf({{shift, 0, 0}, {shift + 10, 0, 0}, {shift + 10, 10, 0}, {shift, 10, 0}, {shift, 0, 0}, {shift + 10, 10, 0}},
+					  {{0, 1, 2}, {4, 5, 3}}, {{0, 0}, {1, 0}, {1, 1}, {0, 1}, {0.25f, 0}, {1.25f, 1}});
+	};
+	const auto copiesAt = [](const ModelSurface &surface, float x, float y)
+	{
+		int count = 0;
+		for (int v = 0; v < surface.vertexCount; ++v)
+			count += near(surface.frames[0].positions[v].x, x) && near(surface.frames[0].positions[v].y, y) && near(surface.frames[0].positions[v].z, 0);
+		return count;
+	};
+	ModelDocument seamBisect;
+	expect(seamBisect.setMesh(seamedSquare(0), &error), "seamed square loads for bisect");
+	auto seamCut = toolEdit(ModelEditKind::Bisect, {0, {}, {0}});
+	seamCut.tool.point = {5, 0, 0};
+	seamCut.tool.normal = {1, 0, 0};
+	seamCut.tool.keep = ModelBisectKeep::Both;
+	expect(seamBisect.edit(seamCut, &error), "bisect one face beside a seam");
+	const auto &sb = seamBisect.mesh().surfaces[0];
+	expect(sb.triangles.size() == 5 && copiesAt(sb, 5, 5) == 2 && everyFaceFacesUp(seamBisect.mesh()) && posesAgree(sb),
+		   "bisect splits the seam edge on both sides");
+	ModelDocument seamSymmetrize;
+	expect(seamSymmetrize.setMesh(seamedSquare(-5), &error), "seamed square loads for symmetrize");
+	auto seamMirror = toolEdit(ModelEditKind::Symmetrize, {0, {}, {0}});
+	seamMirror.tool.axis = 0;
+	expect(seamSymmetrize.edit(seamMirror, &error), "symmetrize one face beside a seam");
+	const auto &ss = seamSymmetrize.mesh().surfaces[0];
+	expect(copiesAt(ss, 0, 5) == 2 && posesAgree(ss), "symmetrize splits the seam edge on both sides");
 }
 
 void checkPrimitives()

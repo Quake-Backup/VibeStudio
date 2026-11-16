@@ -15,6 +15,7 @@
 #include "core/model_curve_key_tools.h"
 #include "core/model_curve_transfer.h"
 #include "core/model_document_memory.h"
+#include "core/model_fingerprint.h"
 #include "core/model_skeletal_edit.h"
 #include "core/model_skeletal_working_set.h"
 #include "core/model_source_encoding.h"
@@ -449,7 +450,10 @@ struct ModelExportOptions
 // native decode is accepted as an editable source: decode damage and
 // omissions nobody accepted refuse it, advisories do not
 // (core/model_decode_issues.h).
-QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl &control = {});
+// `validBaseline`, when given, is a model that already passed this validation,
+// usually the state an edit started from. Poses and clip stacks whose arrays
+// the mesh still shares with it are not checked again.
+QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl &control = {}, const ModelMesh *validBaseline = nullptr);
 void updateEditableModelMetadata(ModelMesh *mesh);
 bool importEditableModel(const QString &virtualPath, const QByteArray &bytes, ModelMesh *mesh, QString *error = nullptr,
 						 const IdTechPalette *palette = nullptr, const ModelWorkControl &control = {});
@@ -620,8 +624,13 @@ class ModelDocument
 		void visitMemory(ModelMemoryVisitor &visitor) const;
 	};
 	static bool prepareTopology(State *state, QString *error, const ModelWorkControl &control);
-	static bool summarize(State *state, QString *error, const ModelWorkControl &control);
+	// `blocks` supplies the array digests of the state the candidate was built
+	// from and receives the candidate's (core/model_fingerprint.h).
+	static bool summarize(State *state, QString *error, const ModelWorkControl &control, ModelStateBlocks *blocks = nullptr);
 	State m_state;
+	// The array digests of the state summarised last. Its arrays belong to the
+	// live state or to a history step, so it retains no memory of its own.
+	ModelStateBlocks m_blocks;
 	QVector<State> m_undo, m_redo;
 	QByteArray m_savedDigest, m_sourceFingerprint;
 	QString m_path, m_resolvedPath;

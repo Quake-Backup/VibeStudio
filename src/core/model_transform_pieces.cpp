@@ -153,7 +153,37 @@ bool modelTransformPieces(const ModelSurface &surface, const QSet<int> &vertices
 	return work.check();
 }
 
-bool modelNormalTransformBasis(const ModelSurface &surface, int frame, const QSet<int> &vertices, ModelTransformBasis *result)
+namespace
+{
+// The faces each piece touches, ascending, so every piece's basis reads only
+// faces that can pass its filters, in the order a whole-surface scan would.
+QVector<QVector<int>> pieceFaces(const ModelSurface &surface, const QVector<ModelTransformPiece> &pieces)
+{
+	QHash<int, int> pieceOf;
+	for (int i = 0; i < pieces.size(); ++i)
+		for (int v : pieces[i].vertices)
+			pieceOf.insert(v, i);
+	QVector<QVector<int>> faces(pieces.size());
+	for (int face = 0; face < surface.triangles.size(); ++face)
+	{
+		const auto &t = surface.triangles[face];
+		int seen[3]{-1, -1, -1};
+		int count = 0;
+		for (int v : {t.a, t.b, t.c})
+		{
+			const auto found = pieceOf.constFind(v);
+			if (found == pieceOf.cend() || std::find(seen, seen + count, found.value()) != seen + count)
+				continue;
+			seen[count++] = found.value();
+			faces[found.value()].append(face);
+		}
+	}
+	return faces;
+}
+// `faces` limits the scan to those triangles (every triangle when null); the
+// result equals a whole-surface scan when it holds every face touching
+// `vertices`, in ascending order.
+bool normalBasis(const ModelSurface &surface, int frame, const QSet<int> &vertices, const QVector<int> *faces, ModelTransformBasis *result)
 {
 	if (!result || vertices.isEmpty() || frame < 0 || frame >= surface.frames.size())
 		return false;
@@ -167,8 +197,11 @@ bool modelNormalTransformBasis(const ModelSurface &surface, int frame, const QSe
 	P3 z{0, 0, 0};
 	double area = 0;
 	QHash<ModelEdge, int> faceUses;
-	for (const auto &t : surface.triangles)
+	const qsizetype faceCount = faces ? faces->size() : surface.triangles.size();
+	const auto face = [&](qsizetype i) -> const ModelTriangle & { return surface.triangles[faces ? (*faces)[i] : i]; };
+	for (qsizetype i = 0; i < faceCount; ++i)
 	{
+		const auto &t = face(i);
 		if (!vertices.contains(t.a) || !vertices.contains(t.b) || !vertices.contains(t.c))
 			continue;
 		const P3 a = point(pose.positions[t.a]), b = point(pose.positions[t.b]), c = point(pose.positions[t.c]);
@@ -209,8 +242,9 @@ bool modelNormalTransformBasis(const ModelSurface &surface, int frame, const QSe
 	}
 	if (candidates.isEmpty())
 	{
-		for (const auto &t : surface.triangles)
+		for (qsizetype i = 0; i < faceCount; ++i)
 		{
+			const auto &t = face(i);
 			for (const auto edge : {modelEdge(t.a, t.b), modelEdge(t.b, t.c), modelEdge(t.c, t.a)})
 			{
 				if (vertices.contains(edge.first) && vertices.contains(edge.second))
@@ -261,6 +295,12 @@ bool modelNormalTransformBasis(const ModelSurface &surface, int frame, const QSe
 		return false;
 	*result = basis;
 	return true;
+}
+} // namespace
+
+bool modelNormalTransformBasis(const ModelSurface &surface, int frame, const QSet<int> &vertices, ModelTransformBasis *result)
+{
+	return normalBasis(surface, frame, vertices, nullptr, result);
 }
 
 ModelTransform modelPieceTransform(const ModelTransform &transform, const ModelTransformPiece &piece)
@@ -421,6 +461,20 @@ bool modelTransformWeights(const ModelSurface &surface, const ModelGeometricTopo
 			QVector<P3> sources;
 			for (int group : std::as_const(ordered))
 				sources.append(at(surface, reference, group));
+			// Grid cells a little wider than the radius: a source nearer than the
+			// radius lies in a neighbouring cell. Coordinates too far out for
+			// integer cells fall back to testing every source.
+			const double cell = std::max(radius * (1 + 1e-9), 1e-9);
+			double extent = 0;
+			for (const auto &p : surface.frames[reference].positions)
+				extent = std::max({extent, double(std::abs(p.x)), double(std::abs(p.y)), double(std::abs(p.z))});
+			const bool gridded = std::isfinite(extent) && extent / cell < 1e15;
+			const auto cellOf = [&](P3 p)
+			{ return std::array<qint64, 3>{qint64(std::floor(p.x / cell)), qint64(std::floor(p.y / cell)), qint64(std::floor(p.z / cell))}; };
+			std::map<std::array<qint64, 3>, QVector<int>> grid;
+			if (gridded)
+				for (int i = 0; i < sources.size(); ++i)
+					grid[cellOf(sources[i])].append(i);
 			for (int v = 0; v < surface.vertexCount; ++v)
 			{
 				if (!work.step())
@@ -430,14 +484,31 @@ bool modelTransformWeights(const ModelSurface &surface, const ModelGeometricTopo
 				const P3 p = at(surface, reference, v);
 				double nearest = INFINITY;
 				int source = -1;
-				for (int i = 0; i < sources.size(); ++i)
+				// The lowest source among equal distances, as an ascending scan.
+				const auto consider = [&](int i)
 				{
 					const double d = length(p - sources[i]);
-					if (d < nearest)
+					if (d < nearest || (d == nearest && i < source))
 					{
 						nearest = d;
 						source = i;
 					}
+				};
+				if (!gridded)
+					for (int i = 0; i < sources.size(); ++i)
+						consider(i);
+				else
+				{
+					const auto centre = cellOf(p);
+					for (qint64 dx = -1; dx <= 1; ++dx)
+						for (qint64 dy = -1; dy <= 1; ++dy)
+							for (qint64 dz = -1; dz <= 1; ++dz)
+							{
+								const auto found = grid.find({centre[0] + dx, centre[1] + dy, centre[2] + dz});
+								if (found != grid.end())
+									for (int i : std::as_const(found->second))
+										consider(i);
+							}
 				}
 				if (nearest < radius)
 				{
@@ -616,13 +687,14 @@ bool modelTransformPieceMap(const ModelMesh &mesh, int surface, const QSet<int> 
 	if (surface < 0 || surface >= mesh.surfaces.size() ||
 		!modelTransformPieces(mesh.surfaces[surface], vertices, frame, &result.pieces))
 		return false;
+	const auto faces = normalAxes ? pieceFaces(mesh.surfaces[surface], result.pieces) : QVector<QVector<int>>{};
 	for (int i = 0; i < result.pieces.size(); ++i)
 	{
 		auto &piece = result.pieces[i];
 		if (normalAxes)
 		{
 			const QSet<int> members(piece.vertices.cbegin(), piece.vertices.cend());
-			piece.ownAxes = modelNormalTransformBasis(mesh.surfaces[surface], frame, members, &piece.basis);
+			piece.ownAxes = normalBasis(mesh.surfaces[surface], frame, members, &faces[i], &piece.basis);
 		}
 		for (int v : std::as_const(piece.vertices))
 			result.pieceOf.insert(v, i);
@@ -649,15 +721,17 @@ bool modelPieceTransforms(const ModelSurface &surface, const ModelEdit &edit, co
 	// Normal axes come from the pose that places the axes, like Selection axes.
 	const int axesFrame = edit.axesFrame >= 0 ? edit.axesFrame : pivotFrame;
 	QVector<ModelTransform> result;
+	const bool normal = edit.transformSpace == ModelTransformSpace::Normal;
+	const auto faces = normal ? pieceFaces(surface, pieces) : QVector<QVector<int>>{};
 	for (int i = 0; i < pieces.size(); ++i)
 	{
 		auto &piece = pieces[i];
 		// A piece without one facing direction (a closed shape) keeps the
 		// selection's axes.
-		if (edit.transformSpace == ModelTransformSpace::Normal)
+		if (normal)
 		{
 			const QSet<int> members(piece.vertices.cbegin(), piece.vertices.cend());
-			piece.ownAxes = modelNormalTransformBasis(surface, axesFrame, members, &piece.basis);
+			piece.ownAxes = normalBasis(surface, axesFrame, members, &faces[i], &piece.basis);
 		}
 		result.append(modelPieceTransform(transform, piece));
 		for (int v : std::as_const(piece.vertices))

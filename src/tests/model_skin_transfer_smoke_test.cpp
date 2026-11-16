@@ -14,6 +14,7 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
+#include <limits>
 
 using namespace vibestudio;
 using namespace vibestudio::tests;
@@ -144,6 +145,39 @@ int main(int argc, char **argv)
 	expect(transferModelSkin(before, moved, indexed, {8, 8}, options, &result, &report, &error) && result.format() == QImage::Format_Indexed8 &&
 			   result.colorTable() == table && result.pixelIndex(4, 2) == 100 && result.pixelIndex(7, 5) == 3 * 8 + 3 + 100 && report.indexed,
 		   "indexed skins keep exact palette indices", error);
+	// Bilinear blends of an indexed skin take the nearest palette entry of each
+	// blended colour, as the same transfer of the skin's true colours shows.
+	{
+		options.filter = ModelSkinTransferFilter::Bilinear;
+		QImage blendedIndices, blendedColours;
+		const bool both = transferModelSkin(before, moved, indexed, {13, 11}, options, &blendedIndices, &report, &error) &&
+						  transferModelSkin(before, moved, indexed.convertToFormat(QImage::Format_ARGB32), {13, 11}, options, &blendedColours, nullptr,
+											&error);
+		bool nearestEntries = both && blendedIndices.format() == QImage::Format_Indexed8 && report.texels > 0;
+		int checked = 0;
+		for (int y = 0; nearestEntries && y < blendedColours.height(); ++y)
+			for (int x = 0; nearestEntries && x < blendedColours.width(); ++x)
+			{
+				const QRgb colour = blendedColours.pixel(x, y);
+				if (qAlpha(colour) == 0)
+					continue;
+				int best = 0;
+				qint64 distance = std::numeric_limits<qint64>::max();
+				for (int i = 0; i < table.size(); ++i)
+				{
+					const qint64 dr = qRed(table[i]) - qRed(colour), dg = qGreen(table[i]) - qGreen(colour), db = qBlue(table[i]) - qBlue(colour);
+					if (dr * dr + dg * dg + db * db < distance)
+					{
+						distance = dr * dr + dg * dg + db * db;
+						best = i;
+					}
+				}
+				nearestEntries = blendedIndices.pixelIndex(x, y) == best;
+				++checked;
+			}
+		expect(nearestEntries && checked > 0, "bilinear indexed transfers pick the nearest palette entry of each blend", error);
+		options.filter = ModelSkinTransferFilter::Nearest;
+	}
 	// Matching by face reports faces only one side has; the automatic
 	// mapping projects them instead.
 	auto extra = moved;

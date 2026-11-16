@@ -52,8 +52,12 @@ bool splitFans(ModelSurface *surface, const ModelGeometricTopology &topology, co
 		QVector<int> faces;
 		QHash<int, int> corners; // face -> its corner index at the group
 	};
+	// Ascending order everywhere copies are numbered, so a saved source does
+	// not depend on the per-process hash seed.
+	auto orderedGroups = groups.values();
+	std::sort(orderedGroups.begin(), orderedGroups.end());
 	QVector<Fan> fans;
-	for (int group : std::as_const(groups))
+	for (int group : std::as_const(orderedGroups))
 	{
 		if (!work.step())
 			return false;
@@ -115,8 +119,12 @@ bool splitFans(ModelSurface *surface, const ModelGeometricTopology &topology, co
 		if (surface->vertexCount + added > modelDocumentMaxVertices)
 			return fail(error, Text::tr("The edit would exceed the model's vertex, animation storage or triangle limit."));
 		for (auto &remap : remaps)
-			for (auto it = remap.begin(); it != remap.end(); ++it)
-				it.value() = appendCopy(surface, it.key());
+		{
+			auto corners = remap.keys();
+			std::sort(corners.begin(), corners.end());
+			for (int corner : std::as_const(corners))
+				remap[corner] = appendCopy(surface, corner);
+		}
 	}
 	else
 	{

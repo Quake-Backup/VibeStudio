@@ -1212,6 +1212,12 @@ QStringList levelLinkedGroupNodes(const LevelSceneState& state, const QString& n
 
 QStringList levelSelectedSceneGroups(const LevelMapDocument& document)
 {
+	// Only a group can be held whole, and only by a selection. The Levels page
+	// asks after every edit; without either there is no need to name every
+	// object of the map for the selection context.
+	if (document.scene.nodes.isEmpty() || document.selection.isEmpty()) {
+		return {};
+	}
 	const LevelSceneSelectionContext context = levelSceneSelectionContext(document);
 	QSet<QString> selected;
 	for (const LevelMapSelectionRef& ref : document.selection) {
@@ -1231,12 +1237,35 @@ QStringList levelSelectedSceneGroups(const LevelMapDocument& document)
 
 QStringList levelLinkedGroupsOfSelection(const LevelMapDocument& document)
 {
+	// Asked after every edit by the Levels page. A map with no linked group,
+	// or nothing selected, reaches none, and needs neither the selection
+	// context nor an owner for every brush of the map.
+	if (document.selection.isEmpty() || std::none_of(document.scene.nodes.cbegin(), document.scene.nodes.cend(),
+			[](const LevelSceneNode& node) { return !node.linkId.isEmpty(); })) {
+		return {};
+	}
 	const LevelSceneSelectionContext context = levelSceneSelectionContext(document);
+	// Owners of the selected brushes and patches only.
+	QSet<int> selectedBrushes;
+	QSet<int> selectedPatches;
+	for (const LevelMapSelectionRef& ref : document.selection) {
+		if (ref.kind == LevelMapSelectionKind::QuakeBrush) {
+			selectedBrushes.insert(ref.objectId);
+		} else if (ref.kind == LevelMapSelectionKind::QuakePatch) {
+			selectedPatches.insert(ref.objectId);
+		}
+	}
 	QHash<QString, QString> owners;
 	for (const LevelMapBrush& brush : document.brushes) {
+		if (!selectedBrushes.contains(brush.id)) {
+			continue;
+		}
 		owners.insert(levelMapSelectionRefId({LevelMapSelectionKind::QuakeBrush, brush.id}), QStringLiteral("entity:%1").arg(brush.entityId));
 	}
 	for (const LevelMapPatch& patch : document.patches) {
+		if (!selectedPatches.contains(patch.id)) {
+			continue;
+		}
 		owners.insert(levelMapSelectionRefId({LevelMapSelectionKind::QuakePatch, patch.id}), QStringLiteral("entity:%1").arg(patch.entityId));
 	}
 	QSet<QString> reached;

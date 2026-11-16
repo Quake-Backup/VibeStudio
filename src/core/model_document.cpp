@@ -325,7 +325,17 @@ bool compact(ModelSurface *surface, ModelSelection *selection, ModelWorkProgress
 }
 } // namespace
 
-QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl &control)
+namespace
+{
+// Arrays are implicitly shared, so the same data pointer and length in two
+// live models is one array with one content.
+template <typename T> bool sharedArray(const QVector<T> &a, const QVector<T> &b)
+{
+	return a.constData() == b.constData() && a.size() == b.size();
+}
+} // namespace
+
+QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl &control, const ModelMesh *validBaseline)
 {
 	QStringList errors;
 	QString cancelError;
@@ -434,8 +444,21 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 				}
 			}
 		}
-		for (const auto &frame : surface.frames)
+		// A pose that still shares its arrays, and the surface's triangles and
+		// texture coordinates, with a baseline that passed gives the same answer.
+		const ModelSurface *known = nullptr;
+		if (const auto index = qsizetype(&surface - mesh.surfaces.constData()); validBaseline && index < validBaseline->surfaces.size())
 		{
+			const auto &other = validBaseline->surfaces.at(index);
+			if (other.vertexCount == surface.vertexCount && sharedArray(other.triangles, surface.triangles) &&
+				sharedArray(other.texCoords, surface.texCoords))
+			{
+				known = &other;
+			}
+		}
+		for (qsizetype pose = 0; pose < surface.frames.size(); ++pose)
+		{
+			const auto &frame = surface.frames.at(pose);
 			if (!work.step())
 			{
 				return {cancelError};
@@ -445,6 +468,11 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 				errors << QCoreApplication::translate("VibeStudioModelDocument",
 													  "Every frame must contain all vertex positions and normals.");
 				return errors;
+			}
+			if (known && pose < known->frames.size() && sharedArray(known->frames.at(pose).positions, frame.positions) &&
+				sharedArray(known->frames.at(pose).normals, frame.normals))
+			{
+				continue;
 			}
 			for (int i = 0; i < surface.vertexCount; ++i)
 			{
@@ -613,7 +641,7 @@ QStringList validateEditableModel(const ModelMesh &mesh, const ModelWorkControl 
 		QString problem;
 		if (!validateModelSkeleton(mesh, &problem, control)) errors << problem;
 	}
-	if (QString problem; !validateModelAnimationAuthoring(mesh, &problem, control))
+	if (QString problem; !validateModelAnimationAuthoring(mesh, &problem, control, validBaseline))
 		errors << problem;
 	if (!work.check())
 	{
@@ -1298,7 +1326,21 @@ qint64 projectEditableModelBytes(const ModelMesh &mesh, QString *error, const Mo
 	return packed >= 0 && limitedSourceBytes(mesh, packed, &bytes, error, control) ? bytes : -1;
 }
 
+namespace
+{
+bool decodeSourceWithMember(const QByteArray &bytes, ModelMesh *mesh, QString *error, const ModelWorkControl &control, const QString *member,
+							QJsonValue *memberValue);
+}
+
 bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString *error, const ModelWorkControl &control)
+{
+	return decodeSourceWithMember(bytes, mesh, error, control, nullptr, nullptr);
+}
+
+namespace
+{
+bool decodeSourceWithMember(const QByteArray &bytes, ModelMesh *mesh, QString *error, const ModelWorkControl &control, const QString *member,
+							QJsonValue *memberValue)
 {
 	if (error)
 	{
@@ -1325,6 +1367,10 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 		return false;
 	}
 	const auto root = json.object();
+	if (member && memberValue)
+	{
+		*memberValue = root.value(*member);
+	}
 	if (parseError.error != QJsonParseError::NoError || !json.isObject() ||
 		root.value(QStringLiteral("schema")) != QStringLiteral("vibestudio.mesh") ||
 		(root.value(QStringLiteral("version")) != QJsonValue(1) && root.value(QStringLiteral("version")) != QJsonValue(2) &&
@@ -1852,11 +1898,22 @@ bool decodeEditableModelSource(const QByteArray &bytes, ModelMesh *mesh, QString
 	return true;
 }
 
+} // namespace
+
 bool parseEditableModel(const QByteArray &bytes, ModelMesh *mesh, QString *error, const ModelWorkControl &control)
 {
+	return parseEditableModelWithMember(bytes, {}, mesh, nullptr, error, control);
+}
+
+bool parseEditableModelWithMember(const QByteArray &bytes, const QString &member, ModelMesh *mesh, QJsonValue *memberValue, QString *error,
+								  const ModelWorkControl &control)
+{
 	ModelMesh result;
-	if (!decodeEditableModelSource(bytes, mesh ? &result : nullptr, error, control))
+	QJsonValue value;
+	if (!decodeSourceWithMember(bytes, mesh ? &result : nullptr, error, control, memberValue ? &member : nullptr, memberValue ? &value : nullptr))
 		return false;
+	if (memberValue)
+		*memberValue = value;
 	const auto errors = validateEditableModel(result, control);
 	if (!errors.isEmpty())
 		return fail(error, errors.join(QLatin1Char('\n')));
@@ -1870,6 +1927,18 @@ namespace
 {
 bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resultingSelection, QString *error,
 								const ModelWorkControl &control, ModelEditReport *report);
+// Set by ModelDocument::edit for the mesh it hands to applyModelEdit: a
+// document state passed validation when it was adopted, so the edit does not
+// validate its input again. The first edit step consumes it; every later
+// step (a symmetric edit runs several) validates as usual.
+thread_local bool trustedEditInput = false;
+class TrustedEditInput
+{
+  public:
+	TrustedEditInput() { trustedEditInput = true; }
+	~TrustedEditInput() { trustedEditInput = false; }
+	Q_DISABLE_COPY_MOVE(TrustedEditInput)
+};
 }
 
 bool applyModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resultingSelection, QString *error,
@@ -1945,7 +2014,7 @@ bool applyModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resu
 		{ return entry.interpolated > 0 || entry.mirrored > 0 || entry.rebound > 0 || entry.merged > 0 || entry.bound > 0; });
 	if (posed)
 	{
-		const auto errors = validateEditableModel(*mesh, control);
+		const auto errors = validateEditableModel(*mesh, control, &before);
 		if (!errors.isEmpty())
 		{
 			*mesh = before;
@@ -1977,13 +2046,17 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	{
 		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "No editable model is open."));
 	}
+	const bool trusted = std::exchange(trustedEditInput, false);
 	// Live symmetry: the tool, then Symmetrize on the edited part (core/model_symmetry.h).
 	if (edit.tool.symmetryAxes != 0)
 		return applySymmetricModelEdit(mesh, edit, resultingSelection, error, control, report, applyModelEditUnreconciled);
-	const auto originalErrors = validateEditableModel(*mesh, control);
-	if (!originalErrors.isEmpty())
+	if (!trusted)
 	{
-		return fail(error, originalErrors.join(QLatin1Char('\n')));
+		const auto originalErrors = validateEditableModel(*mesh, control);
+		if (!originalErrors.isEmpty())
+		{
+			return fail(error, originalErrors.join(QLatin1Char('\n')));
+		}
 	}
 	if (!validModelTransformAxesOptions(edit, error))
 		return false;
@@ -2193,7 +2266,8 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 			selection.joint.clear();
 		if (!remapModelAnimationEvents(*mesh, &candidate, edit, error))
 			return false;
-		const auto errors = validateEditableModel(candidate, control);
+		// The input passed validation: only what the edit replaced is checked.
+		const auto errors = validateEditableModel(candidate, control, mesh);
 		if (!errors.isEmpty())
 		{
 			return fail(error, errors.join(QLatin1Char('\n')));
@@ -3313,19 +3387,27 @@ bool applyModelEditUnreconciled(ModelMesh *mesh, const ModelEdit &edit, ModelSel
 	default:
 		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "Unknown model edit operation."));
 	}
-	if (!selection.edges.isEmpty() || !surface.uvSeams.isEmpty())
+	// Seam marks of the input name its edges, so they still do while the
+	// triangles are the input's own array. Otherwise drop the marks whose edge
+	// is gone, leaving the set shared with the input when none is.
+	const bool sameTriangles = sharedArray(surface.triangles, source.triangles);
+	if (!selection.edges.isEmpty() || (!surface.uvSeams.isEmpty() && !sameTriangles))
 	{
 		const auto available = modelSurfaceEdges(surface, control);
 		if (!work.check())
 		{
 			return false;
 		}
-		selection.edges.removeIf([&](auto edge) { return !std::binary_search(available.cbegin(), available.cend(), edge); });
-		surface.uvSeams.removeIf([&](auto edge) { return !std::binary_search(available.cbegin(), available.cend(), edge); });
+		const auto gone = [&](auto edge) { return !std::binary_search(available.cbegin(), available.cend(), edge); };
+		selection.edges.removeIf(gone);
+		if (!sameTriangles && std::any_of(surface.uvSeams.cbegin(), surface.uvSeams.cend(), gone))
+		{
+			surface.uvSeams.removeIf(gone);
+		}
 	}
 	if (!remapModelAnimationEvents(*mesh, &candidate, edit, error))
 		return false;
-	const auto errors = validateEditableModel(candidate, control);
+	const auto errors = validateEditableModel(candidate, control, mesh);
 	if (!errors.isEmpty())
 	{
 		return fail(error, errors.join(QLatin1Char('\n')));
@@ -3369,9 +3451,9 @@ void ModelDocument::State::visitMemory(ModelMemoryVisitor &visitor) const
 	}
 }
 
-bool ModelDocument::summarize(State *state, QString *error, const ModelWorkControl &control)
+bool ModelDocument::summarize(State *state, QString *error, const ModelWorkControl &control, ModelStateBlocks *blocks)
 {
-	auto summary = summarizeModelState(state->mesh, error, control);
+	auto summary = summarizeModelState(state->mesh, error, control, blocks);
 	state->digest = std::move(summary.fingerprint);
 	return !state->digest.isEmpty() && limitedSourceBytes(state->mesh, summary.packedSourceBytes, &state->sourceBytes, error, control);
 }
@@ -3408,11 +3490,13 @@ bool ModelDocument::setMesh(const ModelMesh &mesh, QString *error, const ModelWo
 	}
 	State candidate{mesh, {}, {}, 0, {}};
 	updateEditableModelMetadata(&candidate.mesh);
-	if (!summarize(&candidate, error, control) || !prepareTopology(&candidate, error, control))
+	ModelStateBlocks blocks;
+	if (!summarize(&candidate, error, control, &blocks) || !prepareTopology(&candidate, error, control))
 	{
 		return false;
 	}
 	m_state = std::move(candidate);
+	m_blocks = std::move(blocks);
 	m_savedDigest = m_state.digest;
 	m_path.clear();
 	m_resolvedPath.clear();
@@ -3579,11 +3663,16 @@ bool ModelDocument::edit(const ModelEdit &operation, QString *error, const Model
 {
 	State candidate = m_state;
 	ModelEditReport pending;
-	if (!applyModelEdit(&candidate.mesh, operation, &candidate.selection, error, control, report ? &pending : nullptr))
 	{
-		return false;
+		const TrustedEditInput trusted;
+		if (!applyModelEdit(&candidate.mesh, operation, &candidate.selection, error, control, report ? &pending : nullptr))
+		{
+			return false;
+		}
 	}
-	if (!summarize(&candidate, error, control))
+	// Only the arrays this edit replaced are hashed again.
+	ModelStateBlocks blocks = m_blocks;
+	if (!summarize(&candidate, error, control, &blocks))
 	{
 		return false;
 	}
@@ -3613,6 +3702,7 @@ bool ModelDocument::edit(const ModelEdit &operation, QString *error, const Model
 	}
 	m_redo.clear();
 	m_state = std::move(candidate);
+	m_blocks = std::move(blocks);
 	updateLive();
 	trimHistory();
 	if (report) *report = std::move(pending);
@@ -3630,14 +3720,16 @@ bool ModelDocument::adopt(const ModelMesh &mesh, const ModelSelection &selection
 		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
 													   "The model changed after the review was prepared. Review it again before applying."));
 	}
-	const auto errors = validateEditableModel(mesh, control);
+	const auto errors = validateEditableModel(mesh, control, &m_state.mesh);
 	if (!errors.isEmpty())
 	{
 		return fail(error, errors.join(QLatin1Char('\n')));
 	}
 	State candidate{mesh, selection, {}, 0, {}};
 	updateEditableModelMetadata(&candidate.mesh);
-	if (!summarize(&candidate, error, control))
+	// A model a service built from this one shares most of its arrays with it.
+	ModelStateBlocks blocks = m_blocks;
+	if (!summarize(&candidate, error, control, &blocks))
 	{
 		return false;
 	}
@@ -3681,6 +3773,7 @@ bool ModelDocument::adopt(const ModelMesh &mesh, const ModelSelection &selection
 	}
 	m_redo.clear();
 	m_state = std::move(candidate);
+	m_blocks = std::move(blocks);
 	updateLive();
 	trimHistory();
 	return true;

@@ -7,6 +7,7 @@
 #include "app/model_assembly_dialog.h"
 #include "app/model_editor_dialog.h"
 #include "app/studio_layout.h"
+#include "app/studio_progress.h"
 #include "app/studio_theme.h"
 #include "core/model_design.h"
 #include "core/model_file_io.h"
@@ -63,6 +64,17 @@ bool writeSource(const QString &path, const ModelMesh &mesh)
 	ModelDocument document;
 	QString error;
 	return document.setMesh(mesh, &error) && document.save(path, true, &error);
+}
+// Compare reads the file on the editor's worker, which the window's activity
+// indicator counts, and summarises what it read.
+bool comparisonReadsOnWorker(ModelEditorDialog &editor)
+{
+	QStringList running;
+	const auto watch = QObject::connect(&studioWorkTracker(), &WorkTracker::changed, [&running] { running += studioWorkTracker().activeLabels(); });
+	const auto text = editor.sourceComparisonText();
+	QObject::disconnect(watch);
+	return expect(!running.isEmpty() && text.count(QLatin1Char('\n')) == 1 && !text.contains(QStringLiteral("not read")),
+				  "Compare reads the file on disk as tracked work and summarises it");
 }
 } // namespace
 
@@ -137,6 +149,7 @@ int main(int argc, char **argv)
 			ok &= expect(editor.sourceComparisonText().contains(QStringLiteral("unsaved")) == editor.document().isModified() &&
 							 editor.sourceComparisonText().count(QLatin1Char('\n')) == 1,
 						 "Compare summarises the document and the file on disk");
+			ok &= comparisonReadsOnWorker(editor);
 
 			// Keep Editing suppresses the same change; Save then asks first.
 			if (keep)

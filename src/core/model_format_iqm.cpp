@@ -1495,6 +1495,10 @@ QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits
 				if (boundsOk) {
 					headerField(22, quint32(boundsOffset));
 					out.append(boundsBlock);
+				} else {
+					result.notes << QCoreApplication::translate("VibeStudioModelMesh",
+						"The IQM was written without per-frame bounds because a skinned surface could not be posed: %1")
+						.arg(problem.isEmpty() ? QCoreApplication::translate("VibeStudioModelMesh", "no reason was given.") : problem);
 				}
 				problem.clear();
 				// The clip and frame within it that baked frame `frame` belongs to.

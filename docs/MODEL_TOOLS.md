@@ -118,6 +118,10 @@ Modal tools start from the keyboard, the tool shelf or the menus, follow the
 pointer, and finish with Enter, Space or a click. Escape or a right-click
 cancels and leaves the source untouched. Knife uses clicks to add points and
 right-click to start another path; **Enter/Space** confirms and **Esc** cancels.
+A tool works on the mesh it started on: **Undo**, **Redo** or an edit from a
+panel or button while it runs cancels it, and the status line says so (the
+knife plans its cut again on the changed mesh, and Poly Build carries on
+after each face it makes).
 
 | Key | Tool |
 | --- | --- |
@@ -420,8 +424,8 @@ weights. See [skin weights through mesh edits](MODEL_SKIN_PROVENANCE.md) and the
 | Recalculate Outside / Inside | Makes winding consistent across UV seams and turns each connected piece to face outward (or inward). Shift+N and Ctrl+Shift+N in the Blender profile. See [Recalculate outside](#recalculate-outside). |
 | Mark Sharp / Clear Sharp | Makes the selected edges hard or smooth for vertex normals, splitting or welding vertices only where the edges separate faces. See [Hard edges](#hard-edges). |
 | Shade Flat / Smooth / Auto Smooth | Sets MD3/MD2 vertex normals: flat gives each face its own corners, smooth welds same-position same-UV copies, Auto Smooth keeps edges sharper than its angle (30° by default) hard. |
-| Bisect | Cuts the selected faces with a plane and can delete either side. |
-| Symmetrize | Replaces one half of the selection with a mirror of the other, joining vertices within the merge distance of the plane. Mirrored halves share their UV layout, the usual way to save texture space. On a skinned surface, **Symmetrize Skin Weights** first confirms each off-centre joint's mirror partner on the other side of the plane (**Detect Pairs** reads left and right names), or keeps the joint names; joints on the plane always keep theirs. **Adjust Last Operation** asks again for a new axis, and **Repeat Last** for its target surface. |
+| Bisect | Cuts the selected faces with a plane and can delete either side. Where the cut crosses a UV seam, the face on the other side of the seam is split at the same point, so no gap opens; only selected faces are deleted. |
+| Symmetrize | Replaces one half of the selection with a mirror of the other, joining vertices within the merge distance of the plane. A face across a UV seam from a cut edge is split at the plane too, so no gap opens. Mirrored halves share their UV layout, the usual way to save texture space. On a skinned surface, **Symmetrize Skin Weights** first confirms each off-centre joint's mirror partner on the other side of the plane (**Detect Pairs** reads left and right names), or keeps the joint names; joints on the plane always keep theirs. **Adjust Last Operation** asks again for a new axis, and **Repeat Last** for its target surface. |
 | Loop Cut | Adds 1–64 edge loops across a ring of quads; one cut can slide between the sides. Triangles at the ends of an open ring are split too, so no T-junctions remain. |
 | Bevel Vertices | Replaces each selected vertex with a cap whose corners sit the bevel width along every edge it had. Bevelling both ends of an edge keeps a point on that edge where it folds. A width that reaches past a neighbouring vertex is refused. |
 | Bevel Edges | Builds chamfer/rounded bands and joined corner caps with width, 1–32 segments and roundness; **Clamp width to fit** narrows a width that would reach a neighbour instead of refusing it. Retains face-side UVs, interpolates skin influences and checks every stored pose. See [edge bevel](MODEL_EDGE_BEVEL.md). |

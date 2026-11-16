@@ -109,6 +109,7 @@ void ModelEditorDialog::addAnimationControls(QFormLayout *animation)
 	m_animationRate->setValue(m_preview->framesPerSecond());
 	auto *smooth = new WrappingCheckBox(QCoreApplication::translate("VibeStudioModelEditor", "Smooth preview"));
 	smooth->setObjectName(QStringLiteral("meshAnimationSmooth"));
+	m_animationSmooth = smooth;
 	smooth->setAccessibleName(smooth->text());
 	smooth->setToolTip(QCoreApplication::translate(
 		"VibeStudioModelEditor",
@@ -279,7 +280,8 @@ void ModelEditorDialog::refreshAnimationControls()
 		m_animationRate->setValue(m_preview->framesPerSecond());
 	}
 	m_animationRate->setEnabled(!m_preview->mdlPlaybackActive());
-	findChild<QCheckBox *>(QStringLiteral("meshAnimationSmooth"))->setEnabled(!m_preview->mdlPlaybackActive());
+	if (m_animationSmooth)
+		m_animationSmooth->setEnabled(!m_preview->mdlPlaybackActive());
 	m_addAnimation->setEnabled(editable && mesh.animations.size() < modelDocumentMaxAnimations);
 	for (auto *button : m_animationSelectionButtons)
 	{
@@ -306,10 +308,9 @@ void ModelEditorDialog::refreshAnimationControls()
 		control->setToolTip(refusal.isEmpty() ? description : refusal);
 		control->setAccessibleDescription(refusal.isEmpty() ? description : refusal);
 	};
-	for (const auto &[name, kind] : {std::pair{QStringLiteral("duplicateMeshFrame"), ModelEditKind::DuplicateFrame},
-			 std::pair{QStringLiteral("deleteMeshFrame"), ModelEditKind::DeleteFrame}})
+	for (const auto &[control, kind] : {std::pair{m_duplicateFrameButton, ModelEditKind::DuplicateFrame},
+			 std::pair{m_deleteFrameButton, ModelEditKind::DeleteFrame}})
 	{
-		auto *control = findChild<QPushButton *>(name);
 		if (control)
 			control->setEnabled(true);
 		gate(control, kind);

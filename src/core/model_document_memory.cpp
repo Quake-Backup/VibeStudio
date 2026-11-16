@@ -24,6 +24,7 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 		strings(surface.warnings);
 		set(surface.uvSeams);
 		set(surface.uvPins);
+		set(surface.sharpEdges);
 		list(surface.skinning.first);
 		list(surface.skinning.count);
 		list(surface.skinning.influences);
@@ -87,6 +88,10 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 	{
 		string(box.name);
 		list(box.framePoses);
+		for (const auto &pose : box.framePoses)
+		{
+			list(pose.hull);
+		}
 		list(box.hull);
 	}
 	const auto &skeleton = mesh.skeleton;
@@ -146,6 +151,7 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 			for (const auto &group : layer.curves)
 			{
 				string(group.joint);
+				list(group.rotation);
 				for (const auto &channel : group.channels)
 				{
 					list(channel);
@@ -168,6 +174,22 @@ void ModelMemoryVisitor::mesh(const ModelMesh &mesh)
 		string(anchor.surfaceName);
 		list(anchor.vertices);
 		list(anchor.faces);
+	}
+	list(mesh.detailLevels);
+	for (const auto &level : mesh.detailLevels)
+	{
+		string(level.source);
+	}
+	list(mesh.skinVariants);
+	for (const auto &variant : mesh.skinVariants)
+	{
+		string(variant.name);
+		list(variant.bindings);
+		for (const auto &binding : variant.bindings)
+		{
+			string(binding.surface);
+			string(binding.material);
+		}
 	}
 }
 

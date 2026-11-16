@@ -559,14 +559,27 @@ bool evaluateModelClipStack(const ModelSkeleton &skeleton, const ModelSkeletalCl
 	*frames = std::move(poses);
 	return work.check();
 }
-bool validateModelClipStacks(const ModelMesh &mesh, QString *error, const ModelWorkControl &control)
+bool validateModelClipStacks(const ModelMesh &mesh, QString *error, const ModelWorkControl &control, const ModelMesh *validBaseline)
 {
-	for (const auto &clip : mesh.skeleton.clips)
+	// Arrays are implicitly shared: the same data pointer and length in a live
+	// baseline is the same array, so the evaluation would repeat exactly.
+	const auto shared = [](const auto &a, const auto &b) { return a.constData() == b.constData() && a.size() == b.size(); };
+	const bool sameRig = validBaseline && shared(mesh.skeleton.joints, validBaseline->skeleton.joints) &&
+						 shared(mesh.skeleton.tags, validBaseline->skeleton.tags);
+	for (qsizetype index = 0; index < mesh.skeleton.clips.size(); ++index)
 	{
+		const auto &clip = mesh.skeleton.clips.at(index);
 		if (!modelClipHasStack(clip) && clip.base.isEmpty())
 			continue;
 		if (!validModelClipStack(mesh.skeleton, clip, error))
 			return false;
+		if (sameRig && index < validBaseline->skeleton.clips.size())
+		{
+			const auto &known = validBaseline->skeleton.clips.at(index);
+			if (shared(clip.frames, known.frames) && shared(clip.base, known.base) && shared(clip.layers, known.layers) &&
+				shared(clip.constraints, known.constraints))
+				continue;
+		}
 		QVector<Pose> evaluated;
 		if (!evaluateModelClipStack(mesh.skeleton, clip, clip.base, &evaluated, error, control))
 			return false;

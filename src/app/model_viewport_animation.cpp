@@ -297,7 +297,7 @@ void ModelViewport::updatePlaybackTimer()
 	{
 		return;
 	}
-	if (m_playing && !m_reducedMotion && m_hasMesh && canAnimate())
+	if (m_playing && !m_reducedMotion && !m_playbackHidden && m_hasMesh && canAnimate())
 	{
 		m_timer->setInterval(m_nativeMdl || m_interpolateAnimation ? 16 : std::max(16, int(std::ceil(1000.0 / m_fps))));
 		if (!m_timer->isActive())

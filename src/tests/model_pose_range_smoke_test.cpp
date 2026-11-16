@@ -1,5 +1,6 @@
 #include "core/model_document.h"
 #include "core/model_frame_tools.h"
+#include "core/model_pose.h"
 #include "core/model_transform.h"
 #include "tests/model_frame_tools_test_helpers.h"
 
@@ -125,6 +126,35 @@ void checkEdits()
 	expect(near(document.mesh().surfaces[0].frames[2].positions[1], {base.x + d.x - b.x, base.y + d.y - b.y, base.z + d.z - b.z}) &&
 			   untouchedOutside(mesh, document.mesh(), 1, 2),
 		   QStringLiteral("the difference is added to the selection"));
+	document.undo();
+	// Source and base inside the range are read as they were before the edit.
+	auto inside = rangeEdit(ModelEditKind::ApplyRelativePose, 0, 5);
+	inside.poseRange.sourceFrame = 5;
+	inside.poseRange.baseFrame = 0;
+	expect(document.edit(inside, &error), QStringLiteral("relative pose over its own frames: ") + error);
+	bool insideOk = true;
+	for (int f = 0; f < 6; ++f)
+		for (int v : {0, 1})
+		{
+			const auto p = mesh.surfaces[0].frames[f].positions[v], s5 = mesh.surfaces[0].frames[5].positions[v],
+					   s0 = mesh.surfaces[0].frames[0].positions[v];
+			insideOk = insideOk && near(document.mesh().surfaces[0].frames[f].positions[v], {p.x + s5.x - s0.x, p.y + s5.y - s0.y, p.z + s5.z - s0.z});
+		}
+	expect(insideOk, QStringLiteral("a relative pose whose source and base lie inside the range uses their original poses"));
+	document.undo();
+	auto blendInside = rangeEdit(ModelEditKind::BlendFramePose, 0, 5, ModelFrameFalloff::RampIn);
+	blendInside.poseRange.sourceFrame = 2;
+	blendInside.poseRange.amount = .5;
+	expect(document.edit(blendInside, &error), QStringLiteral("blend over its own source frame: ") + error);
+	bool blendOk = true;
+	for (int f = 0; f < 6; ++f)
+		for (int v : {0, 1})
+		{
+			const double w = modelFrameFalloffWeight(ModelFrameFalloff::RampIn, f, 6) * .5;
+			const auto p = mesh.surfaces[0].frames[f].positions[v], s = mesh.surfaces[0].frames[2].positions[v];
+			blendOk = blendOk && near(document.mesh().surfaces[0].frames[f].positions[v], interpolateModelPosition(p, s, w));
+		}
+	expect(blendOk, QStringLiteral("a blend whose source lies inside the range uses its original pose"));
 	document.undo();
 	// Refusals.
 	const auto before = bytes(document.mesh());

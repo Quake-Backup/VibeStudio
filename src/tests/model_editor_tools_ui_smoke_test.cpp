@@ -7,6 +7,7 @@
 #include "app/model_viewport.h"
 #include "core/model_design.h"
 #include "core/studio_settings.h"
+#include "tests/model_rig_test_helpers.h"
 #include "tests/model_viewport_test_helpers.h"
 #include "tests/render_test_support.h"
 
@@ -24,13 +25,16 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QMenuBar>
+#include <QPointer>
 #include <QTemporaryDir>
 #include <QToolBar>
 #include <QToolButton>
+#include <QTreeWidget>
 
 #include <cmath>
 #include <cstdlib>
 #include <iostream>
+#include <tuple>
 #if defined(_MSC_VER) && defined(_DEBUG)
 #include <crtdbg.h>
 #endif
@@ -117,6 +121,218 @@ void key(QWidget *widget, int code, Qt::KeyboardModifiers modifiers = Qt::NoModi
 	QCoreApplication::sendEvent(widget, &press);
 	QKeyEvent release(QEvent::KeyRelease, code, modifiers, text);
 	QCoreApplication::sendEvent(widget, &release);
+}
+// One pose of the first surface, positions and normals, as bytes.
+QByteArray pose(const ModelMesh &mesh, int frame)
+{
+	const auto &geometry = mesh.surfaces[0].frames[frame];
+	return QByteArray(reinterpret_cast<const char *>(geometry.positions.constData()), geometry.positions.size() * qsizetype(sizeof(ModelVec3))) +
+		   QByteArray(reinterpret_cast<const char *>(geometry.normals.constData()), geometry.normals.size() * qsizetype(sizeof(ModelVec3)));
+}
+// A slanted 4x4 grid (z = x/4 + y/8), a flat 2x2 grid at z = 10 over its
+// corner and, above both, a 2x2 grid at z = 20 offset by (3, 5).
+ModelMesh stackedMesh()
+{
+	auto mesh = gridMesh(4, 8);
+	for (auto &frame : mesh.surfaces[0].frames)
+		for (auto &p : frame.positions)
+			p.z += p.x / 4 + p.y / 8;
+	for (const auto &[name, lift, offset] : {std::tuple{QStringLiteral("middle"), 10.0f, QPointF(0, 0)}, std::tuple{QStringLiteral("upper"), 20.0f, QPointF(3, 5)}})
+	{
+		auto surface = gridMesh(2, 8).surfaces[0];
+		surface.name = name;
+		for (auto &frame : surface.frames)
+			for (auto &p : frame.positions)
+				p = {float(p.x + offset.x()), float(p.y + offset.y()), p.z + lift};
+		mesh.surfaces << surface;
+	}
+	updateEditableModelMetadata(&mesh);
+	return mesh;
+}
+
+// What a change of the document does to the tools around it: a running modal
+// tool ends when Undo, Redo or another edit changes the mesh under it; a move
+// over every pose previews the shown pose as it commits; picking keeps the
+// delivery-target menu, the joint tree and a typed material path; the shell's
+// delivery context is not read on every pick; Face Project lands each vertex
+// on the nearest still face behind it.
+void documentChangeChecks(QApplication &app, ModelEditorDialog *editor, ModelEditorTools *tools, ModelViewport *viewport, const QString &folder)
+{
+	QString error;
+	const auto &document = editor->document();
+	auto *undo = editor->findChild<QAction *>(QStringLiteral("undoMesh"));
+	auto *redo = editor->findChild<QAction *>(QStringLiteral("redoMesh"));
+	auto *frame = editor->findChild<QComboBox *>(QStringLiteral("meshFrame"));
+	if (!expect(undo && redo && frame && editor->setMesh(gridMesh(), &error), "reload a grid for the document-change checks"))
+		return;
+	tools->alignView(2, true);
+	viewport->frameModel();
+	expect(tests::settleModelViewport(*viewport), "viewport settles before the document-change checks");
+
+	// Undo from the editing header takes no focus from the view: the move
+	// ends, and nothing commits with indices from the undone mesh.
+	tools->applySelection({0, {}, {0}});
+	expect(tools->beginModal(ModelModalOperator::Move, QPointF(400, 300)), "start a move to undo later");
+	tools->constrainModal(2, false);
+	tools->typeModal(QStringLiteral("4"));
+	expect(tools->finishModal(true, &error), "raise a face");
+	const auto raised = document.revisionFingerprint();
+	tools->applySelection({0, {}, {2, 3}});
+	expect(tools->beginModal(ModelModalOperator::Move, QPointF(400, 300)), "start a move before Undo");
+	tools->constrainModal(2, false);
+	tools->typeModal(QStringLiteral("2"));
+	expect(tools->modalPreviewValid(), "the move previews before Undo");
+	undo->trigger();
+	app.processEvents();
+	const auto undone = document.revisionFingerprint();
+	expect(undone != raised && tools->modalOperator() == ModelModalOperator::None, "Undo ends a running modal move");
+	expect(!tools->finishModal(true, &error) && document.revisionFingerprint() == undone, "nothing commits after Undo ended the move");
+	redo->trigger();
+	app.processEvents();
+	// An edit from a panel or button ends a running operator too.
+	tools->applySelection({0, {}, {4, 5}});
+	expect(tools->beginModal(ModelModalOperator::Scale, QPointF(420, 310)), "start a scale before another edit");
+	tools->typeModal(QStringLiteral("2"));
+	ModelEdit lift;
+	lift.kind = ModelEditKind::Transform;
+	lift.selection = {0, {}, {6}};
+	lift.translation = {0, 0, 1};
+	expect(editor->applyEdit(lift, &error) && tools->modalOperator() == ModelModalOperator::None, "an edit from elsewhere ends a running scale");
+	undo->trigger();
+	undo->trigger();
+	app.processEvents();
+	expect(!document.isModified(), "the grid is back as it was loaded");
+
+	// A rotation and a proportional move over every pose: the preview of the
+	// shown pose is exactly what the commit makes of it; the commit moves
+	// every pose.
+	auto *proportional = editor->findChild<QToolButton *>(QStringLiteral("meshProportional"));
+	for (int shown : {0, 1})
+	{
+		for (bool weighted : {false, true})
+		{
+			if (proportional)
+				proportional->setChecked(weighted);
+			frame->setCurrentIndex(shown);
+			app.processEvents();
+			const auto before = document.mesh();
+			tools->applySelection({0, {}, {0, 1, 2}});
+			const bool started = weighted ? tools->beginModal(ModelModalOperator::Move, QPointF(410, 305))
+										  : tools->beginModal(ModelModalOperator::Rotate, QPointF(410, 305));
+			expect(started, "start a transform over every pose");
+			if (weighted)
+				tools->constrainModal(2, false);
+			tools->typeModal(weighted ? QStringLiteral("5") : QStringLiteral("30"));
+			// What the view shows while the tool runs, and the whole preview.
+			const auto viewed = tools->modalPreviewValid() ? pose(viewport->mesh(), shown) : QByteArray();
+			const auto *preview = tools->modalPreview();
+			const auto whole = preview ? pose(*preview, 1 - shown) : QByteArray();
+			expect(!viewed.isEmpty() && tools->finishModal(true, &error), "the transform previews and commits");
+			expect(pose(document.mesh(), shown) == viewed, "the view's preview of the shown pose is the committed pose");
+			expect(pose(document.mesh(), 1 - shown) == whole, "the preview asked for holds every pose as committed");
+			expect(pose(document.mesh(), 1 - shown) != pose(before, 1 - shown), "the commit transforms the other pose too");
+			undo->trigger();
+			app.processEvents();
+		}
+	}
+	if (proportional)
+		proportional->setChecked(false);
+	frame->setCurrentIndex(0);
+	app.processEvents();
+
+	// Picking keeps what depends on the mesh alone: the delivery-target menu
+	// and the typed material path. An edit refreshes both.
+	auto *budget = editor->findChild<QToolButton *>(QStringLiteral("meshExportBudget"));
+	auto *material = editor->findChild<QLineEdit *>(QStringLiteral("meshMaterial"));
+	if (expect(budget && budget->menu() && !budget->menu()->actions().isEmpty() && material, "the target menu and material path exist"))
+	{
+		const QPointer<QAction> entry = budget->menu()->actions().first();
+		const auto text = budget->text();
+		material->setText(QStringLiteral("textures/typed/skin"));
+		tools->applySelection({0, {}, {9}});
+		tools->applySelection({0, {3}, {}});
+		expect(entry && budget->text() == text, "picking keeps the delivery-target menu");
+		expect(material->text() == QStringLiteral("textures/typed/skin"), "picking keeps a typed material path");
+		expect(editor->applyEdit(lift, &error), "edit the grid");
+		expect(!entry && material->text() != QStringLiteral("textures/typed/skin"), "an edit rebuilds the menu and shows the slot's path again");
+		undo->trigger();
+		app.processEvents();
+	}
+
+	// The shell's delivery context (which reads the project manifest) is
+	// read when it is pushed and before exports, not on picks or frames.
+	int reads = 0;
+	editor->deliveryContext = [&reads]
+	{
+		++reads;
+		return ModelEditorDeliveryContext{};
+	};
+	editor->refreshContext();
+	expect(reads == 1, "a pushed context is read");
+	reads = 0;
+	tools->applySelection({0, {}, {1}});
+	tools->applySelection({0, {}, {1, 2}});
+	frame->setCurrentIndex(1);
+	frame->setCurrentIndex(0);
+	app.processEvents();
+	expect(reads == 0, "picks and frame steps do not read the delivery context");
+	expect(tools->exportDetailLevels(QDir(folder).filePath(QStringLiteral("context.md3")), 1, 0.5, &error) && reads > 0,
+		   "an export reads the delivery context first");
+	editor->deliveryContext = {};
+
+	// The joint tree is rebuilt for a new mesh, not for a pick: its items,
+	// scroll position and folded joints stay, and the current joint follows.
+	auto *joints = editor->findChild<QTreeWidget *>(QStringLiteral("meshSkeletonJoints"));
+	if (expect(joints && editor->setMesh(tests::rigFixture(), &error) && joints->topLevelItemCount() == 1, "open a rig"))
+	{
+		const QPointer<QObject> guard(joints);
+		auto *root = joints->topLevelItem(0);
+		root->setExpanded(false);
+		tools->applySelection({0, {1}, {}});
+		expect(joints->topLevelItem(0) == root && !root->isExpanded(), "a component pick keeps the joint tree and its folded joints");
+		// Picking a joint in the tree selects it and keeps the tree.
+		joints->setCurrentItem(root->child(0));
+		app.processEvents();
+		expect(document.selection().joint == QStringLiteral("tip") && joints->topLevelItem(0) == root && joints->currentItem() &&
+				   joints->currentItem()->text(0) == QStringLiteral("tip"),
+			   "a joint pick keeps the joint tree and moves its current joint");
+		tools->applySelection({0, {0}, {}});
+		expect(joints->topLevelItem(0) == root && !joints->currentItem(), "a component pick leaves no current joint");
+	}
+
+	// Face Project: each upper vertex lands on the nearest still face behind
+	// it, the flat middle grid over its corner, else the slanted grid.
+	auto *element = editor->findChild<QComboBox *>(QStringLiteral("meshSnapElement"));
+	auto *snap = editor->findChild<QCheckBox *>(QStringLiteral("meshSnapTranslation"));
+	if (expect(element && snap && editor->setMesh(stackedMesh(), &error), "open stacked grids for face projection"))
+	{
+		tools->alignView(2, true);
+		viewport->frameModel();
+		expect(tests::settleModelViewport(*viewport), "the stacked grids settle");
+		QSet<int> upper;
+		for (int v = 0; v < 9; ++v)
+			upper << v;
+		element->setCurrentIndex(4);
+		snap->setChecked(true);
+		tools->applySelection({2, upper, {}});
+		QPointF start;
+		viewport->projectToView({11, 13, 20}, &start);
+		expect(tools->beginModal(ModelModalOperator::Move, start) && tools->modalPreviewValid(), "start a projected move");
+		if (!expect(tools->finishModal(true, &error), "confirm the projected move"))
+			std::cerr << qPrintable(error) << '\n';
+		bool landed = true;
+		for (const auto &p : document.mesh().surfaces[2].frames[0].positions)
+		{
+			const bool overMiddle = p.x < 16 && p.y < 16;
+			landed &= near(p.z, overMiddle ? 10 : p.x / 4 + p.y / 8, 1e-3);
+		}
+		expect(landed, "every projected vertex lands on the nearest still face");
+		element->setCurrentIndex(0);
+		snap->setChecked(false);
+		undo->trigger();
+		app.processEvents();
+	}
+	expect(editor->setMesh(gridMesh(), &error), "reload the grid after the document-change checks");
 }
 } // namespace
 
@@ -458,6 +674,8 @@ int main(int argc, char **argv)
 	tools->applySelection({0, {}, {0}});
 	tools->action(QStringLiteral("meshSelectMore"))->trigger();
 	expect(document.selection().faces.size() > 1, "Ctrl+= grows the selection");
+
+	documentChangeChecks(app, editor, tools, viewport, temporary.path());
 
 	// The editor deletes itself on close.
 	editor->close();

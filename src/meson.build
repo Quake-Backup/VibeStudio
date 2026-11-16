@@ -1983,6 +1983,14 @@ level_visibility_smoke_test = executable('level_visibility_smoke_test', ['tests/
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
 test('level-visibility-smoke', level_visibility_smoke_test, timeout: 120)
 
+level_edit_scaling_smoke_test = executable('level_edit_scaling_smoke_test', ['tests/level_edit_scaling_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+test('level-edit-scaling-smoke', level_edit_scaling_smoke_test, timeout: 120)
+
+# Explicit performance harness: timings are evidence, not portable CI thresholds.
+level_edit_benchmark = executable('level_edit_benchmark', ['tests/level_edit_benchmark.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+
 level_visibility_ui_smoke_test = executable('level_visibility_ui_smoke_test', ['tests/level_visibility_ui_smoke_test.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
 test('level-visibility-ui-smoke', level_visibility_ui_smoke_test, timeout: 240)
@@ -2127,6 +2135,10 @@ level_geometry_benchmark = executable('level_geometry_benchmark', ['tests/level_
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
 
 level_plan_selection_benchmark = executable('level_plan_selection_benchmark', ['tests/level_plan_selection_benchmark.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+
+# Explicit performance harness for the model document: evidence, not CI thresholds.
+model_edit_benchmark = executable('model_edit_benchmark', ['tests/model_edit_benchmark.cpp'],
   include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
 
 map_render_smoke_test = executable(
@@ -5171,6 +5183,12 @@ model_fingerprint_smoke_test = executable(
   include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
 )
 test('model-fingerprint-smoke', model_fingerprint_smoke_test, timeout: 90)
+
+model_edit_reuse_smoke_test = executable(
+  'model_edit_reuse_smoke_test', ['tests/model_edit_reuse_smoke_test.cpp'],
+  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+)
+test('model-edit-reuse-smoke', model_edit_reuse_smoke_test, timeout: 90)
 
 audio_test_env = environment()
 audio_test_env.set('VIBESTUDIO_TEST_TMP_ROOT', join_paths(meson.project_source_root(), '.agents', 'tmp', 'audio-editor'))

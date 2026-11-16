@@ -358,16 +358,42 @@ int across(const ModelQuadTopology &topology, ModelEdge edge, int element)
 		return -1;
 	return uses[0].first == element ? uses[1].first : uses[1].first == element ? uses[0].first : -1;
 }
+// Boundary sides (used by one element) at group `vertex`, found through the
+// elements of its faces rather than a scan of every side. A degenerate side
+// joining the group to itself counts once for each of its ends.
+QVector<ModelEdge> boundarySidesAt(const ModelQuadTopology &topology, int vertex)
+{
+	QVector<ModelEdge> edges;
+	QSet<int> elements;
+	for (int face : topology.geometry.groupFaces.value(vertex))
+	{
+		const int element = topology.faceElement.value(face, -1);
+		if (element < 0 || elements.contains(element))
+			continue;
+		elements.insert(element);
+		const auto &e = topology.elements[element];
+		const int sides = e.sides();
+		for (int side = 0; side < sides; ++side)
+		{
+			const auto edge = topology.geometry.geometricEdge(e.corners[side], e.corners[(side + 1) % sides]);
+			if ((edge.first != vertex && edge.second != vertex) || edges.contains(edge) || topology.sideUses.value(edge).size() != 1)
+				continue;
+			edges.append(edge);
+			if (edge.first == edge.second)
+				edges.append(edge);
+		}
+	}
+	return edges;
+}
 // The continuation of a loop arriving at `vertex` along `incoming`, or an
 // invalid edge where the loop ends.
-ModelEdge loopStep(const ModelQuadTopology &topology, ModelEdge incoming, int vertex,
-				   const QHash<int, QVector<ModelEdge>> &boundaryEdges)
+ModelEdge loopStep(const ModelQuadTopology &topology, ModelEdge incoming, int vertex)
 {
 	const ModelEdge none{-1, -1};
 	const auto uses = topology.sideUses.value(incoming);
 	if (uses.size() == 1)
 	{
-		const auto edges = boundaryEdges.value(vertex);
+		const auto edges = boundarySidesAt(topology, vertex);
 		if (edges.size() != 2)
 			return none;
 		return edges[0] == incoming ? edges[1] : edges[1] == incoming ? edges[0] : none;
@@ -401,15 +427,6 @@ QVector<ModelEdge> modelEdgeLoop(const ModelQuadTopology &topology, ModelEdge ge
 	geometric = modelEdge(geometric.first, geometric.second);
 	if (!topology.sideUses.contains(geometric) || topology.diagonals.contains(geometric))
 		return {};
-	QHash<int, QVector<ModelEdge>> boundaryEdges;
-	for (auto it = topology.sideUses.cbegin(); it != topology.sideUses.cend(); ++it)
-	{
-		if (it.value().size() == 1)
-		{
-			boundaryEdges[it.key().first].append(it.key());
-			boundaryEdges[it.key().second].append(it.key());
-		}
-	}
 	QSet<ModelEdge> seen{geometric};
 	const auto walk = [&](int towards, QVector<ModelEdge> *edges)
 	{
@@ -417,7 +434,7 @@ QVector<ModelEdge> modelEdgeLoop(const ModelQuadTopology &topology, ModelEdge ge
 		int vertex = towards;
 		while (true)
 		{
-			const auto next = loopStep(topology, current, vertex, boundaryEdges);
+			const auto next = loopStep(topology, current, vertex);
 			if (next.first < 0)
 				return false;
 			if (next == geometric)

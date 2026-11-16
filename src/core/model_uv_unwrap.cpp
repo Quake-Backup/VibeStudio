@@ -266,11 +266,18 @@ bool unwrapModelUvConformal(const ModelSurface &source, const QSet<int> &faces, 
 		boundary.erase(std::unique(boundary.begin(), boundary.end()), boundary.end());
 		// Pins: the user's, else the two boundary corners farthest apart.
 		QVector<int> pinned;
+		QSet<QPair<float, float>> pinnedAt;
 		for (auto u = unknown.cbegin(); u != unknown.cend(); ++u)
 			if (pins.contains(fanSource[u.key()]))
+			{
 				pinned.append(u.key());
+				const auto at = pins.value(fanSource[u.key()]);
+				pinnedAt.insert({at.u, at.v});
+			}
 		// One pin alone cannot fix an island's turn and scale; it is ignored.
-		const bool userPinned = pinned.size() >= 2;
+		// A pinned vertex on a seam inside the island has a corner on each
+		// side, both held at its one pinned UV: that is still one place.
+		const bool userPinned = pinnedAt.size() >= 2;
 		if (!userPinned)
 			pinned.clear();
 		QVector<int> anchors = pinned;

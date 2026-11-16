@@ -184,9 +184,11 @@ bool weldModelSurface(ModelSurface *surface, const QSet<int> &vertices, double d
 		{
 			return false;
 		}
+		// The budget counts vertex pairs, so a long animation does not use it up;
+		// each pose still answers cancellation.
 		for (const auto &frame : surface->frames)
 		{
-			if (++comparisons > 4194304 || !work.step())
+			if (!work.step())
 			{
 				exhausted = true;
 				return false;

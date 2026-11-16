@@ -20,6 +20,8 @@ original face order, winding, UVs, normals and animation data without welding,
 averaging or recalculating attributes. Partitioned vertices remain in source
 index order. Seam marks follow actual surviving edges. Vertices used only by
 moved faces leave the original surface; originally unused vertices remain there.
+Pinned UV corners stay pinned in whichever surface they land in, including both
+copies of a shared boundary corner, and through Join.
 If every face is separated, the operation renames the existing surface in place.
 If every face is moved, the whole surface (including unused vertices) is appended
 to the target and the source surface is removed. Neither operation leaves an
@@ -43,6 +45,9 @@ surviving surface. Undo and redo restore the corresponding selection and surface
 order. These operations always span every animation pose regardless of the
 Geometry inspector's position-transform scope. Tags, collision boxes, animation
 clips, embedded skins and MDL settings are model-global and remain unchanged.
+Recorded import advisories follow their surface when indices shift: they join
+the target of a Join or of a whole-surface move, and those of a deleted surface
+then concern the whole model.
 
 ## Select and Transform Surfaces
 

@@ -182,6 +182,7 @@ bool ModelEditorDialog::prepareForTarget(const QString &format, bool review, QSt
 	error->clear();
 	if (m_working)
 		return false;
+	syncDeliveryContext();
 	ModelTargetProfile profile;
 	if (!findModelTargetProfile(format, deliveryTarget(format), &profile))
 	{

@@ -273,7 +273,8 @@ class ModelEditorDialog final : public QDialog
 	// Reloads the file from disk, after asking what to do with unsaved edits.
 	bool reloadSource(QString *error = nullptr);
 	// What differs between the file on disk and this document, for Compare.
-	[[nodiscard]] QString sourceComparisonText() const;
+	// The file is read on the editor's worker, with its progress surface.
+	[[nodiscard]] QString sourceComparisonText();
 	// Answers the external-change questions without a dialog (tests): for
 	// Save over a changed source, 0 cancels, 1 saves as, 2 replaces the file;
 	// for Reload with unsaved edits, 0 cancels, 1 saves as first, 2 discards.
@@ -419,6 +420,11 @@ class ModelEditorDialog final : public QDialog
 	QComboBox *m_uvAlignMode = nullptr, *m_uvSnapMode = nullptr, *m_uvUnwrapMethod = nullptr;
 	QCheckBox *m_uvPackRotate = nullptr, *m_uvUnwrapPack = nullptr, *m_uvPackShared = nullptr;
 	QLabel *m_md2SkinSizeWarning = nullptr;
+	QAction *m_uvIslandsAction = nullptr, *m_uvProblemsAction = nullptr, *m_uvSharedAction = nullptr, *m_transferSkinAction = nullptr;
+	// Select All under the component table, and the buttons that need mesh
+	// components (not tags, boxes, surfaces or joints) selected.
+	QPushButton *m_selectAllComponents = nullptr;
+	QList<QPointer<QPushButton>> m_meshComponentButtons;
 	// Edit Skin… round trips (model_editor_skin.cpp).
 	std::unique_ptr<DocumentWatcher> m_skinWatch;
 	QTimer *m_skinWatchTimer = nullptr;
@@ -472,6 +478,9 @@ class ModelEditorDialog final : public QDialog
 	QComboBox *m_materialSlot = nullptr;
 	QPushButton *m_manageMaterialSlots = nullptr, *m_assignMaterial = nullptr, *m_showMaterial = nullptr, *m_skinVariants = nullptr;
 	QPushButton *m_showInMaterials = nullptr;
+	// The surface, preview slot and revision the Material path field was
+	// last filled for; a path typed since is kept until one of them changes.
+	QByteArray m_materialFieldKey;
 	void refreshShowInMaterials();
 	// The document's file changed (opened, saved, replaced by an import or
 	// recovery): recent files and the external-change watch follow it
@@ -510,6 +519,8 @@ class ModelEditorDialog final : public QDialog
 	QSpinBox *m_inbetweenCount = nullptr, *m_copyPoseSource = nullptr;
 	QLabel *m_animationSummary = nullptr;
 	QPushButton *m_addAnimation = nullptr, *m_insertInbetweens = nullptr, *m_copyFramePose = nullptr;
+	QPushButton *m_duplicateFrameButton = nullptr, *m_deleteFrameButton = nullptr;
+	QCheckBox *m_animationSmooth = nullptr;
 	QList<QPushButton *> m_animationSelectionButtons;
 	QByteArray m_animationRevision;
 	ModelEditorAnimationPanel *m_animationPanel = nullptr;
@@ -658,6 +669,9 @@ class ModelEditorDialog final : public QDialog
 	QPushButton *m_workingSetButton = nullptr;
 	QCheckBox *m_showJoints = nullptr, *m_xrayJoints = nullptr, *m_jointDescendants = nullptr;
 	QPushButton *m_exportMd5 = nullptr, *m_exportIqm = nullptr;
+	// The revision the joint tree was built for; a selection change only
+	// moves its current item.
+	QByteArray m_skeletonRevision;
 	SidebarPage *createSidebarPage(const QString &pageId);
 	QFormLayout *addSidebarForm(const QString &pageId, StudioSidebar *sidebar);
 	void buildSidebarPages();
@@ -776,8 +790,13 @@ class ModelEditorDialog final : public QDialog
 	ModelEditorDeliveryContext m_deliveryContext;
 	QString m_deliveryContextKey;
 	// Reads deliveryContext and, for a newly opened project, applies its
-	// saved strict setting.
+	// saved strict setting. The shell's context reads the project manifest
+	// from disk, so this runs when the shell pushes a change (refreshContext)
+	// and before work that needs fresh targets, not on every refresh.
 	void syncDeliveryContext();
+	// refreshContext without reading the delivery context again: the package,
+	// level and placement controls, for the editor's own refreshes.
+	void refreshContextControls();
 	void addExportReportButton(QHBoxLayout *row);
 	// A refused export passes LiveStatus::Problem, so it is announced as one.
 	void presentExportReport(const QString &summary, const ModelExportReport &report, LiveStatus kind = LiveStatus::Result);

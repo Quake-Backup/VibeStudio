@@ -351,6 +351,18 @@ bool dissolveRegions(ModelMesh *mesh, ModelSelection *selection, const Dissolve 
 	for (const auto &polygon : std::as_const(polygons))
 		for (int face : polygon.members)
 			merging.insert(face);
+	// Neighbours of each removable group along the polygons' borders.
+	QHash<int, QSet<int>> borderNeighbours;
+	for (const auto &polygon : std::as_const(polygons))
+	{
+		const int n = int(polygon.corners.size());
+		for (int i = 0; i < n; ++i)
+		{
+			const int group = topology.group(polygon.corners[i]);
+			if (request.removable.contains(group))
+				borderNeighbours[group] << topology.group(polygon.corners[(i + n - 1) % n]) << topology.group(polygon.corners[(i + 1) % n]);
+		}
+	}
 	QSet<int> removed;
 	for (int group : request.removable)
 	{
@@ -359,15 +371,7 @@ bool dissolveRegions(ModelMesh *mesh, ModelSelection *selection, const Dissolve 
 		const auto &around = topology.groupFaces[group];
 		if (std::any_of(around.cbegin(), around.cend(), [&](int face) { return !merging.contains(face); }))
 			continue;
-		// Neighbours along the polygons' borders.
-		QSet<int> neighbours;
-		for (const auto &polygon : std::as_const(polygons))
-		{
-			const int n = polygon.corners.size();
-			for (int i = 0; i < n; ++i)
-				if (topology.group(polygon.corners[i]) == group)
-					neighbours << topology.group(polygon.corners[(i + n - 1) % n]) << topology.group(polygon.corners[(i + 1) % n]);
-		}
+		const QSet<int> neighbours = borderNeighbours.value(group);
 		if (neighbours.size() != 2)
 			continue;
 		if (request.straightOnly)

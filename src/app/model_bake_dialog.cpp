@@ -1,5 +1,6 @@
 #include "app/model_bake_dialog.h"
 
+#include "app/studio_progress.h"
 #include "core/model_document.h"
 #include "core/texture_export.h"
 
@@ -168,12 +169,23 @@ ModelBakeDialog::~ModelBakeDialog()
 void ModelBakeDialog::waitForWorker()
 {
 	if (!m_thread)
+	{
+		endTrackedWork();
 		return;
+	}
 	if (m_cancelled)
 		m_cancelled->store(true);
 	m_thread->wait();
 	delete m_thread;
 	m_thread = nullptr;
+	endTrackedWork();
+}
+
+void ModelBakeDialog::endTrackedWork()
+{
+	if (m_workToken != 0)
+		studioWorkTracker().end(m_workToken);
+	m_workToken = 0;
 }
 
 void ModelBakeDialog::setRunning(bool running)
@@ -206,6 +218,8 @@ bool ModelBakeDialog::start()
 	m_progress->setRange(0, 0);
 	m_status->setText(QCoreApplication::translate("VibeStudioModelBake", "Baking %1…").arg(modelBakeTypeDisplayName(options.type)));
 	setRunning(true);
+	endTrackedWork();
+	m_workToken = studioWorkTracker().begin(m_status->text());
 	const QPointer<ModelBakeDialog> self(this);
 	const auto cancelled = m_cancelled;
 	const ModelMesh mesh = m_mesh;
@@ -262,6 +276,7 @@ void ModelBakeDialog::finished(const ModelBakeResult &result, const QString &err
 		delete m_thread;
 		m_thread = nullptr;
 	}
+	endTrackedWork();
 	m_progress->setRange(0, 1);
 	m_progress->setValue(1);
 	if (ok)

@@ -90,7 +90,6 @@ void ApplicationShell::applyModelViewportProfile()
 	static_cast<void>(modelEditorProfileForId(profileId, &profile));
 	const QString help = tr("%1 controls. %2.").arg(profile.shortName, navigation.join(QStringLiteral("; ")));
 	m_modelViewport->setControlsHelp(help);
-	m_modelViewport->setAccessibleDescription(help);
 	if (m_modelHover && (m_modelHover->text().isEmpty() || !m_modelViewport->hasMesh())) {
 		m_modelHover->setText(help);
 	}

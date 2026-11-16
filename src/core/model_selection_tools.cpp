@@ -6,10 +6,13 @@
 #include <QCoreApplication>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstring>
 #include <map>
 #include <numbers>
 #include <queue>
+#include <set>
 
 namespace vibestudio
 {
@@ -38,6 +41,15 @@ double angleDegrees(P3 a, P3 b)
 	if (length(a) <= 0 || length(b) <= 0)
 		return 180;
 	return std::acos(std::clamp(dot(a, b), -1.0, 1.0)) * 180.0 / std::numbers::pi;
+}
+// True the first time these exact values (compared bit for bit, so NaN cannot
+// merge with anything else) are seen.
+bool distinctKey(std::set<std::array<quint64, 6>> *seen, const std::array<double, 6> &values)
+{
+	std::array<quint64, 6> bits{};
+	for (std::size_t i = 0; i < values.size(); ++i)
+		std::memcpy(&bits[i], &values[i], sizeof(double));
+	return seen->insert(bits).second;
 }
 // Shared lookups for one surface in one pose.
 struct Context
@@ -702,22 +714,40 @@ bool selectModelComponents(const ModelMesh &mesh, const ModelSelection &current,
 			if (seeds.isEmpty())
 				return fail(error, Text::tr("Select faces to compare against."));
 			const double tolerance = c.scale() * 1e-3;
+			// Each seed's measurements once; seeds that measure the same compare the same.
+			struct FaceSeed
+			{
+				P3 cross, unit, centroid;
+				double area;
+			};
+			QVector<FaceSeed> faceSeeds;
+			{
+				std::set<std::array<quint64, 6>> distinct;
+				for (int seed : seeds)
+				{
+					const P3 sn = c.faceCross(seed), centre = c.centroid(seed);
+					const bool coplanar = similarity == ModelSimilarity::Coplanar;
+					if (distinctKey(&distinct, {sn.x, sn.y, sn.z, coplanar ? centre.x : 0, coplanar ? centre.y : 0, coplanar ? centre.z : 0}))
+						faceSeeds.append({sn, unitVector(sn), centre, length(sn)});
+				}
+			}
 			for (int face = 0; face < surface.triangles.size(); ++face)
 			{
 				if (!work.step())
 					return false;
 				const P3 n = c.faceCross(face);
-				for (int seed : seeds)
+				const double area = length(n);
+				const P3 centre = similarity == ModelSimilarity::Coplanar ? c.centroid(face) : P3{0, 0, 0};
+				for (const auto &seed : std::as_const(faceSeeds))
 				{
-					const P3 sn = c.faceCross(seed);
+					const P3 sn = seed.cross;
 					bool match = false;
 					if (similarity == ModelSimilarity::Normal)
 						match = angleDegrees(n, sn) <= request.threshold;
 					else if (similarity == ModelSimilarity::Area)
-						match = std::abs(length(n) - length(sn)) <= length(sn) * request.threshold / 100;
+						match = std::abs(area - seed.area) <= seed.area * request.threshold / 100;
 					else
-						match = angleDegrees(n, sn) <= request.threshold &&
-								std::abs(dot(unitVector(sn), c.centroid(face) - c.centroid(seed))) <= tolerance;
+						match = angleDegrees(n, sn) <= request.threshold && std::abs(dot(seed.unit, centre - seed.centroid)) <= tolerance;
 					if (match)
 					{
 						selected.faces.insert(face);
@@ -745,6 +775,34 @@ bool selectModelComponents(const ModelMesh &mesh, const ModelSelection &current,
 				}
 				return false;
 			};
+			// Only the measurement the similarity compares is kept per seed.
+			struct EdgeSeed
+			{
+				P3 direction;
+				double length = 0, angle = 0;
+				bool seam = false;
+			};
+			QVector<EdgeSeed> edgeSeeds;
+			{
+				std::set<std::array<quint64, 6>> distinct;
+				for (auto seed : seeds)
+				{
+					EdgeSeed measured;
+					std::array<double, 6> key{};
+					if (similarity == ModelSimilarity::Length || similarity == ModelSimilarity::Direction)
+					{
+						measured.direction = c.position(seed.second) - c.position(seed.first);
+						measured.length = length(measured.direction);
+						key = {measured.direction.x, measured.direction.y, measured.direction.z, 0, 0, 0};
+					}
+					else if (similarity == ModelSimilarity::FaceAngle)
+						key[0] = measured.angle = dihedral(seed);
+					else
+						key[0] = (measured.seam = seamed(seed)) ? 1 : 0;
+					if (distinctKey(&distinct, key))
+						edgeSeeds.append(measured);
+				}
+			}
 			QSet<ModelEdge> matched;
 			for (auto it = c.indexEdges.cbegin(); it != c.indexEdges.cend(); ++it)
 			{
@@ -752,21 +810,24 @@ bool selectModelComponents(const ModelMesh &mesh, const ModelSelection &current,
 					return false;
 				const auto e = it.key();
 				const P3 d = c.position(e.second) - c.position(e.first);
-				for (auto seed : seeds)
+				const double edgeLength = length(d);
+				const double angle = similarity == ModelSimilarity::FaceAngle ? dihedral(e) : 0;
+				const bool seam = similarity == ModelSimilarity::Seam && seamed(e);
+				for (const auto &seed : std::as_const(edgeSeeds))
 				{
-					const P3 sd = c.position(seed.second) - c.position(seed.first);
+					const P3 sd = seed.direction;
 					bool match = false;
 					if (similarity == ModelSimilarity::Length)
-						match = std::abs(length(d) - length(sd)) <= length(sd) * request.threshold / 100;
+						match = std::abs(edgeLength - seed.length) <= seed.length * request.threshold / 100;
 					else if (similarity == ModelSimilarity::Direction)
 						match = std::min(angleDegrees(d, sd), angleDegrees(d, sd * -1.0)) <= request.threshold;
 					else if (similarity == ModelSimilarity::FaceAngle)
 					{
-						const double a = dihedral(e), b = dihedral(seed);
+						const double a = angle, b = seed.angle;
 						match = (a < 0) == (b < 0) && std::abs(a - b) <= request.threshold;
 					}
 					else
-						match = seamed(e) == seamed(seed);
+						match = seam == seed.seam;
 					if (match)
 					{
 						matched.insert(e);
@@ -782,6 +843,30 @@ bool selectModelComponents(const ModelMesh &mesh, const ModelSelection &current,
 			if (seeds.isEmpty())
 				return fail(error, Text::tr("Select vertices to compare against."));
 			const auto adjacency = groupAdjacency(c);
+			const bool byNormal = similarity == ModelSimilarity::Normal;
+			struct VertexSeed
+			{
+				P3 normal;
+				qsizetype valence = 0;
+			};
+			QVector<VertexSeed> vertexSeeds;
+			{
+				std::set<std::array<quint64, 6>> distinct;
+				for (int seed : seeds)
+				{
+					VertexSeed measured;
+					std::array<double, 6> key{};
+					if (byNormal)
+					{
+						measured.normal = c.groupNormal(seed);
+						key = {measured.normal.x, measured.normal.y, measured.normal.z, 0, 0, 0};
+					}
+					else
+						key[0] = double(measured.valence = adjacency.value(seed).size());
+					if (distinctKey(&distinct, key))
+						vertexSeeds.append(measured);
+				}
+			}
 			QSet<int> matched;
 			for (int g = 0; g < surface.vertexCount; ++g)
 			{
@@ -789,10 +874,11 @@ bool selectModelComponents(const ModelMesh &mesh, const ModelSelection &current,
 					return false;
 				if (topology.group(g) != g)
 					continue;
-				for (int seed : seeds)
+				const P3 normal = byNormal ? c.groupNormal(g) : P3{0, 0, 0};
+				const qsizetype valence = byNormal ? 0 : adjacency.value(g).size();
+				for (const auto &seed : std::as_const(vertexSeeds))
 				{
-					const bool match = similarity == ModelSimilarity::Normal ? angleDegrees(c.groupNormal(g), c.groupNormal(seed)) <= request.threshold
-																			 : adjacency.value(g).size() == adjacency.value(seed).size();
+					const bool match = byNormal ? angleDegrees(normal, seed.normal) <= request.threshold : valence == seed.valence;
 					if (match)
 					{
 						matched.insert(g);

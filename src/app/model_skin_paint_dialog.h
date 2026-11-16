@@ -67,6 +67,13 @@ class ModelSkinPaintDialog final : public QDialog
 	[[nodiscard]] bool paintingInView() const;
 	// Called with the skin after every change, so the editor can show it.
 	std::function<void(const QImage &)> skinChanged;
+	// Closing with strokes neither applied nor saved asks first: true discards
+	// them. Tests answer here; without it a message box asks, defaulting to
+	// keep editing.
+	std::function<bool()> discardPrompt;
+	// Whether the skin differs from the one last applied, saved or opened.
+	[[nodiscard]] bool hasUnsavedStrokes() const;
+	void reject() override;
 
   protected:
 	void keyPressEvent(QKeyEvent *event) override;
@@ -74,7 +81,9 @@ class ModelSkinPaintDialog final : public QDialog
   private:
 	friend class ModelSkinPaintCanvas;
 	void rebuildView();
-	void repaintStroke();
+	// Paints the samples just added to the stroke, or the whole stroke when
+	// there are none.
+	void repaintStroke(const QVector<QPointF> &added);
 	void refresh();
 	void announce(const QString &text);
 	ModelSkinBrush brush() const;
@@ -85,6 +94,9 @@ class ModelSkinPaintDialog final : public QDialog
 	int m_frame = 0;
 	QImage m_skin;
 	QImage m_before;
+	QImage m_kept;
+	ModelSkinPaintSession m_session;
+	ModelSkinPaintPreviewMap m_previewMap;
 	QImage m_stamp;
 	QVector<QImage> m_undo, m_redo;
 	QVector<ModelSkinPaintStroke> m_strokes, m_redoStrokes;

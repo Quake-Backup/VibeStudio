@@ -1,6 +1,8 @@
 // Individual Origins pivots and Normal transform axes: pieces, pivots, normal
 // bases, the document Transform and Weighted Transform, whole surfaces, frame
 // scope and the CLI.
+#include "core/model_geometric_topology.h"
+#include "core/model_mesh_tools.h"
 #include "core/model_transform_axes.h"
 #include "core/model_transform_pieces.h"
 #include "tests/model_polygon_test_helpers.h"
@@ -217,6 +219,110 @@ int main(int argc, char **argv)
 		transform.basis.world = false;
 		const auto moved = transformModelPoint(mesh.surfaces[0].frames[0].positions[4], map.transformFor(transform, 0, 4));
 		expect(nearPoint(moved, {16, -2, -4}), "the preview moves a piece along its own normal");
+	}
+	{
+		// Each piece's normal axes equal a whole-surface scan of that piece:
+		// whole faces, a face-less edge pair, a lone corner and a tilted square.
+		auto mesh = threeSquares();
+		auto &surface = mesh.surfaces[0];
+		for (auto &pose : surface.frames)
+		{
+			pose.positions[9].z += 3;
+			pose.positions[10].z += 1;
+		}
+		const auto sameBasis = [](const ModelTransformBasis &a, const ModelTransformBasis &b)
+		{
+			bool same = a.world == b.world;
+			for (int i = 0; i < 3; ++i)
+				same = same && a.axes[i].x == b.axes[i].x && a.axes[i].y == b.axes[i].y && a.axes[i].z == b.axes[i].z;
+			return same;
+		};
+		bool same = true;
+		int pieces = 0, own = 0;
+		// Square 0: a face-less edge pair (0, 1) and a lone corner (3); square
+		// 1 whole; square 2 whole and tilted.
+		for (const auto &vertices : {QSet<int>{0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11}, QSet<int>{0, 1, 2, 3, 9, 10, 11}})
+			for (int frame : {0, 1})
+			{
+				ModelTransformPieceMap map;
+				same = same && modelTransformPieceMap(mesh, 0, vertices, {}, frame, true, &map);
+				for (const auto &piece : std::as_const(map.pieces))
+				{
+					ModelTransformBasis expected;
+					const QSet<int> members(piece.vertices.cbegin(), piece.vertices.cend());
+					const bool found = modelNormalTransformBasis(surface, frame, members, &expected);
+					same = same && piece.ownAxes == found && (!found || sameBasis(piece.basis, expected));
+					++pieces;
+					own += int(found);
+				}
+			}
+		expect(same && pieces >= 8 && own >= 4, "each piece's normal axes equal a scan of the whole surface for that piece",
+			   QStringLiteral("%1 pieces, %2 with axes").arg(pieces).arg(own));
+	}
+	{
+		// Falloff from many scattered sources picks the nearest source, the
+		// lowest on equal distances, and stops short of the radius.
+		auto mesh = polygonGrid(24, 24, 1);
+		auto &surface = mesh.surfaces[0];
+		for (int v = 0; v < surface.vertexCount; ++v)
+			surface.frames[0].positions[v].z = v < 300 ? 0.f : float((v * 7) % 5) * 0.25f; // flat rows give exact ties
+		ModelGeometricTopology topology;
+		expect(buildModelGeometricTopology(surface, &topology, &error), "grid topology", error);
+		QSet<int> selected;
+		QHash<int, int> pieceOf;
+		for (int v = 0; v < surface.vertexCount; v += 37)
+		{
+			selected.insert(v);
+			pieceOf.insert(v, v % 4);
+		}
+		ModelMeshToolOptions options;
+		options.proportionalRadius = 3;
+		options.falloff = ModelFalloff::Linear;
+		ModelWorkControl control;
+		ModelWorkProgress work(control, ModelWorkPhase::Editing);
+		QHash<int, ModelTransformWeight> weights;
+		expect(modelTransformWeights(surface, topology, selected, 0, options, pieceOf, &weights, work), "scattered falloff weights");
+		auto sources = selected.values();
+		std::sort(sources.begin(), sources.end());
+		const auto &positions = surface.frames[0].positions;
+		const auto distance = [&](int a, int b)
+		{
+			const double x = double(positions[a].x) - positions[b].x, y = double(positions[a].y) - positions[b].y,
+						 z = double(positions[a].z) - positions[b].z;
+			return std::sqrt(x * x + y * y + z * z);
+		};
+		bool matches = true;
+		int expected = int(selected.size()), ties = 0;
+		for (int v = 0; v < surface.vertexCount; ++v)
+		{
+			if (topology.group(v) != v || selected.contains(v))
+				continue;
+			double nearest = INFINITY;
+			int source = -1, equal = 0;
+			for (int s : std::as_const(sources))
+			{
+				const double d = distance(v, s);
+				equal += int(d == nearest);
+				if (d < nearest)
+				{
+					nearest = d;
+					source = s;
+					equal = 0;
+				}
+			}
+			const double w = nearest < 3 ? modelFalloffWeight(options.falloff, nearest / 3) : 0;
+			if (w <= 0)
+			{
+				matches = matches && !weights.contains(v);
+				continue;
+			}
+			++expected;
+			ties += int(equal > 0);
+			const auto found = weights.constFind(v);
+			matches = matches && found != weights.cend() && std::abs(found->weight - w) < 1e-12 && found->piece == pieceOf.value(source);
+		}
+		expect(matches && weights.size() == expected && ties > 0, "falloff weights match a scan of every source, ties included",
+			   QStringLiteral("%1 weights, %2 expected, %3 ties").arg(weights.size()).arg(expected).arg(ties));
 	}
 	// CLI: model tool and model edit.
 	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");

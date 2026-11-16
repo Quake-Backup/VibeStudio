@@ -24,6 +24,7 @@
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QPushButton>
+#include <QRegularExpression>
 #include <QSpinBox>
 #include <QTableWidget>
 #include <QTemporaryDir>
@@ -226,6 +227,31 @@ void checkDialog(ModelEditorDialog *editor, const QString &directory, bool full)
 	editor->readPackageFiles = {};
 	editor->context = {};
 }
+// The review writes its switch distances the way the user's region writes
+// numbers: a decimal comma in German.
+void localeNumbers()
+{
+	const QLocale previous;
+	QLocale::setDefault(QLocale(QLocale::German, QLocale::Germany));
+	auto *editor = new ModelEditorDialog;
+	editor->resize(1400, 900);
+	editor->show();
+	QApplication::processEvents();
+	QString error, findings;
+	expect(editor->setMesh(prop(), &error), "open the prop for regional numbers");
+	onNextLodDialog(editor, [&](ModelLodDialog *dialog)
+					{
+						if (dialog->review())
+							findings = dialog->findChild<QPlainTextEdit *>(QStringLiteral("meshLodFindings"))->toPlainText();
+						dialog->reject();
+					});
+	expect(editor->reviewDetailLevels(&error), "Detail Levels… opens for regional numbers");
+	expect(QRegularExpression(QStringLiteral("\\d,\\d units")).match(findings).hasMatch() &&
+			   !QRegularExpression(QStringLiteral("\\d\\.\\d units")).match(findings).hasMatch(),
+		   "switch distances use the region's decimal comma");
+	delete editor;
+	QLocale::setDefault(previous);
+}
 } // namespace
 
 int main(int argc, char **argv)
@@ -258,6 +284,7 @@ int main(int argc, char **argv)
 		checkDialog(editor, directory, scenario == 0);
 		delete editor;
 	}
+	localeNumbers();
 	if (failures > 0)
 	{
 		std::cerr << failures << " check(s) failed\n";

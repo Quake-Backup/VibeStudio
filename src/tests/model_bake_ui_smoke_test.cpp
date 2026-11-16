@@ -5,6 +5,7 @@
 // Mesh Editor's UV menu opens it.
 #include "app/model_bake_dialog.h"
 #include "app/model_editor_dialog.h"
+#include "app/studio_progress.h"
 #include "app/studio_theme.h"
 #include "core/model_document.h"
 #include "core/model_skin_paint.h"
@@ -47,6 +48,66 @@ bool waitFor(const std::function<bool()> &condition, int timeout = 60000)
 		QThread::msleep(1);
 	}
 	return condition();
+}
+// Bake Maps stays open while the model is edited: Apply refuses a map baked
+// for faces that have moved since, and applies again once they are back;
+// while a bake runs, the window's activity indicator counts it.
+bool staleBakeRefused(const ModelMesh &mesh)
+{
+	bool ok = true;
+	ModelMesh quake = mesh;
+	ModelEdit add;
+	add.kind = ModelEditKind::AddMdlSkin;
+	add.mdlSkin.size = {32, 32};
+	add.mdlSkin.pixels = QByteArray(32 * 32, char(200));
+	for (int i = 0; i < 256; ++i)
+		add.mdlSkin.palette.append(QByteArray(3, char(i)));
+	QString error;
+	ok &= expect(applyModelEdit(&quake, add, nullptr, &error), "give the stale-bake model an MDL skin");
+	ModelEditorDialog editor;
+	editor.resize(1400, 900);
+	editor.show();
+	ok &= expect(editor.setMesh(quake, &error), "load the stale-bake model");
+	auto *action = editor.findChild<QAction *>("meshBakeMaps");
+	auto *undoMesh = editor.findChild<QAction *>("undoMesh");
+	if (!expect(action && undoMesh, "the editor has Bake Maps and Undo"))
+		return false;
+	action->trigger();
+	auto *dialog = static_cast<ModelBakeDialog *>(editor.findChild<QDialog *>("modelBakeDialog"));
+	auto *apply = dialog ? dialog->findChild<QPushButton *>("modelBakeApply") : nullptr;
+	auto *type = dialog ? dialog->findChild<QComboBox *>("modelBakeType") : nullptr;
+	auto *size = dialog ? dialog->findChild<QComboBox *>("modelBakeSize") : nullptr;
+	auto *status = dialog ? dialog->findChild<QLabel *>("modelBakeStatus") : nullptr;
+	if (!expect(dialog && apply && type && size && status, "Bake Maps opens with Apply to Model"))
+		return false;
+	type->setCurrentIndex(type->findData(int(ModelBakeType::Lighting)));
+	size->setCurrentIndex(0);
+	ok &= expect(dialog->start(), "the bake starts");
+	const QString baking = status->text();
+	ok &= expect(studioWorkTracker().activeLabels().contains(baking), "a running bake shows in the work tracker");
+	ok &= expect(waitFor([&] { return !dialog->running(); }) && apply->isEnabled() && !studioWorkTracker().activeLabels().contains(baking),
+				 "the finished bake leaves the work tracker");
+	// Move every vertex: the map no longer lines up with the skin.
+	ModelEdit move;
+	move.kind = ModelEditKind::Transform;
+	move.selection = {0, {0, 1, 2}, {}};
+	move.translation = {0, 0, 4};
+	ok &= expect(editor.applyEdit(move, &error), "move the model after baking");
+	const QByteArray moved = editor.document().revisionFingerprint();
+	apply->click();
+	ok &= expect(editor.document().revisionFingerprint() == moved && status->text().contains(QStringLiteral("changed")),
+				 "Apply refuses a map baked before the faces moved, and says why");
+	undoMesh->trigger();
+	const QByteArray restored = editor.document().revisionFingerprint();
+	apply->click();
+	ok &= expect(editor.document().revisionFingerprint() != restored, "with the faces back, Apply shades the skin");
+	undoMesh->trigger();
+	// Closing the dialog while it bakes ends its work tracker entry.
+	ok &= expect(dialog->start(), "a bake starts before closing");
+	dialog->close();
+	QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+	ok &= expect(!studioWorkTracker().activeLabels().contains(baking), "closing during a bake ends its work tracker entry");
+	return ok;
 }
 } // namespace
 
@@ -174,5 +235,6 @@ int main(int argc, char **argv)
 			}
 		}
 	}
+	ok &= staleBakeRefused(mesh);
 	return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

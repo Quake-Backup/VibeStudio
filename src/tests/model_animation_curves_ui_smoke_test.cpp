@@ -23,6 +23,7 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
+#include <QWheelEvent>
 #include <cmath>
 #include <iostream>
 using namespace vibestudio;
@@ -171,6 +172,12 @@ int main(int argc, char **argv)
 			   "curve graph exposes an accessible editable value");
 		expect(graph->keyPoint(0).x() < graph->keyPoint(1).x() && graph->layoutDirection() == Qt::LeftToRight,
 			   "time direction remains left to right in RTL layouts");
+		{
+			const QPointF key = graph->keyPoint(1), at = graph->rect().center();
+			QWheelEvent sideways(at, graph->mapToGlobal(at), QPoint(), QPoint(120, 0), Qt::NoButton, Qt::NoModifier, Qt::NoScrollPhase, false);
+			QApplication::sendEvent(graph, &sideways);
+			expect(graph->keyPoint(1) == key, "a horizontal wheel or touchpad swipe does not zoom the curve graph");
+		}
 		expect(render(dialog, QString("graph-%1").arg(scenario)), "render Hermite graph and tangent handles");
 		if (accessible && accessible->valueInterface())
 			accessible->valueInterface()->setCurrentValue(1);

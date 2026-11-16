@@ -1,3 +1,4 @@
+#include "core/model_animation_constraints.h"
 #include "core/model_animation_curves.h"
 #include "core/model_document.h"
 #include "core/model_frame_tools.h"
@@ -289,6 +290,122 @@ void checkSkeletal()
 		   QStringLiteral("closing a skeletal loop appends the first pose: ") + error);
 }
 
+// Resampling and loop closing work on a stacked clip's base, so its layers are
+// applied once.
+void checkSkeletalStack()
+{
+	const auto mesh = tests::skinFixture();
+	QString error;
+	const auto parents = modelJointParents(mesh.skeleton);
+	const auto plain = mesh.skeleton.clips[0].frames;
+	ModelEdit layer;
+	layer.kind = ModelEditKind::EditClipStack;
+	layer.animation.stack.action = ModelClipStackAction::AddLayer;
+	layer.animation.stack.clip = 0;
+	layer.animation.stack.layer.name = "turn";
+	ModelPoseCurves group;
+	group.joint = "arm.L";
+	const double values[9] = {0, 0, 0, 0, 0, 30, 1, 1, 1};
+	for (int c = 0; c < 9; ++c)
+	{
+		ModelPoseCurveKey key;
+		key.value = values[c];
+		group.channels[c] = {key};
+	}
+	layer.animation.stack.layer.curves = {group};
+	const auto sameSamples = [](const QVector<QVector<ModelJointMatrix>> &a, const QVector<QVector<ModelJointMatrix>> &b)
+	{
+		if (a.size() != b.size())
+			return false;
+		for (int f = 0; f < a.size(); ++f)
+			for (int j = 0; j < a[f].size(); ++j)
+				if (modelJointMatrixDistance(a[f][j], b[f][j]) > 1e-4)
+					return false;
+		return true;
+	};
+	const auto evaluatedOnce = [&](const ModelMesh &result)
+	{
+		const auto &clip = result.skeleton.clips[0];
+		QVector<QVector<ModelJointMatrix>> frames;
+		return modelClipHasStack(clip) && evaluateModelClipStack(result.skeleton, clip, clip.base, &frames) && sameSamples(frames, clip.frames);
+	};
+	ModelDocument document;
+	if (!expect(document.setMesh(mesh, &error) && document.edit(layer, &error), QStringLiteral("add a layer: ") + error))
+		return;
+	const auto layered = document.mesh().skeleton.clips[0].frames;
+	ModelEdit same;
+	same.kind = ModelEditKind::ResampleSkeletalClip;
+	same.resample.clip = 0;
+	same.resample.targetFrames = 2;
+	expect(document.edit(same, &error) && sameSamples(document.mesh().skeleton.clips[0].base, plain) &&
+			   sameSamples(document.mesh().skeleton.clips[0].frames, layered) && evaluatedOnce(document.mesh()),
+		   QStringLiteral("resampling a layered clip to its own length leaves its base and evaluation: ") + error);
+	auto longer = same;
+	longer.resample.targetFrames = 3;
+	expect(!document.edit(longer, &error) && error.contains("constraints or layers"),
+		   QStringLiteral("resampling a layered clip to another length asks for a bake: ") + error);
+	for (const auto mode : {ModelLoopClose::ReplaceLast, ModelLoopClose::CrossFade})
+	{
+		ModelEdit close;
+		close.kind = ModelEditKind::CloseSkeletalLoop;
+		close.resample.clip = 0;
+		close.resample.loopClose = mode;
+		close.resample.blendFrames = mode == ModelLoopClose::CrossFade ? 1 : 0;
+		ModelDocument looped;
+		const bool closed = looped.setMesh(mesh, &error) && looped.edit(layer, &error) && looped.edit(close, &error);
+		const auto &clip = looped.mesh().skeleton.clips[0];
+		const auto first = modelJointsToLocalSpace(parents, clip.frames[0]), expectedFirst = modelJointsToLocalSpace(parents, layered[0]);
+		expect(closed && sameSamples({clip.base[0]}, {plain[0]}) && modelJointMatrixDistance(first[1], expectedFirst[1]) < 1e-4 &&
+				   evaluatedOnce(looped.mesh()),
+			   QStringLiteral("closing a layered clip's loop applies the layer once: ") + error);
+	}
+	ModelEdit append;
+	append.kind = ModelEditKind::CloseSkeletalLoop;
+	append.resample.clip = 0;
+	append.resample.loopClose = ModelLoopClose::AppendFirst;
+	expect(!document.edit(append, &error) && error.contains("constraints or layers"), QStringLiteral("appending to a layered clip asks for a bake: ") + error);
+}
+
+// Skeletal resampling keeps each event at its time.
+void checkSkeletalEvents()
+{
+	auto mesh = tests::skinFixture();
+	QString error;
+	ModelAnimationEvent a, b;
+	a.frame = 0;
+	a.command = "step_left";
+	b.frame = 1;
+	b.command = "step_right";
+	mesh.skeleton.clips[0].events = {a, b};
+	ModelDocument document;
+	ModelEdit faster;
+	faster.kind = ModelEditKind::ResampleSkeletalClip;
+	faster.resample.clip = 0;
+	faster.resample.targetFps = 20;
+	expect(document.setMesh(mesh, &error) && document.edit(faster, &error), QStringLiteral("resample an evented clip to 20 FPS: ") + error);
+	const auto &events = document.mesh().skeleton.clips[0].events;
+	expect(document.mesh().skeleton.clips[0].frames.size() == 3 && events.size() == 2 && events[0].frame == 0 && events[1].frame == 2 &&
+			   events[1].command == "step_right",
+		   QStringLiteral("doubling the rate doubles each event's frame"));
+	ModelEdit shorter;
+	shorter.kind = ModelEditKind::ResampleSkeletalClip;
+	shorter.resample.clip = 0;
+	shorter.resample.targetFrames = 2;
+	expect(document.edit(shorter, &error) && document.mesh().skeleton.clips[0].events.size() == 2 &&
+			   document.mesh().skeleton.clips[0].events[1].frame == 1,
+		   QStringLiteral("a shrinking resample moves events with their time: ") + error);
+	auto crowded = mesh;
+	ModelDocument merged;
+	ModelEdit single;
+	single.kind = ModelEditKind::ResampleSkeletalClip;
+	single.resample.clip = 0;
+	single.resample.targetFrames = 1;
+	expect(merged.setMesh(crowded, &error) && merged.edit(single, &error) && merged.mesh().skeleton.clips[0].events.size() == 2 &&
+			   merged.mesh().skeleton.clips[0].events[0].frame == 0 && merged.mesh().skeleton.clips[0].events[1].frame == 0 &&
+			   merged.mesh().skeleton.clips[0].events[0].command == "step_left",
+		   QStringLiteral("events that land on one sample keep their order: ") + error);
+}
+
 QJsonObject runCli(const QString &program, const QStringList &arguments, int *exitCode)
 {
 	QProcess process;
@@ -343,6 +460,8 @@ int main(int argc, char **argv)
 	checkLoops();
 	checkMdl();
 	checkSkeletal();
+	checkSkeletalStack();
+	checkSkeletalEvents();
 	if (argc > 1)
 		checkCli(QString::fromLocal8Bit(argv[1]), QDir(temporary.path()));
 	return ok ? EXIT_SUCCESS : EXIT_FAILURE;

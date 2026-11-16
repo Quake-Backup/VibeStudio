@@ -2,6 +2,7 @@
 #include "core/model_archive.h"
 #include "core/model_document.h"
 #include "core/model_decode_issues.h"
+#include "core/model_file_io.h"
 #include "core/model_formats_p.h"
 #include "core/model_skeleton.h"
 
@@ -11,6 +12,7 @@
 
 #include <QCoreApplication>
 #include <QFile>
+#include <QFileInfo>
 #include <QHash>
 #include <QRgb>
 
@@ -2191,14 +2193,14 @@ ModelMesh decodeModelMesh(const QString& virtualPath, const QByteArray& bytes, c
 
 ModelMesh decodeModelMeshFile(const QString& path, const IdTechPalette* palette, const ModelWorkControl& control)
 {
-	QFile file(path);
-	if (!file.open(QIODevice::ReadOnly)) {
+	QByteArray bytes;
+	QString readError;
+	if (!readModelFile(path, &bytes, &readError, control)) {
 		ModelMesh mesh;
 		mesh.sourcePath = path;
-		mesh.error = QCoreApplication::translate("VibeStudioModelMesh", "The model file could not be opened: %1").arg(file.errorString());
+		mesh.error = readError.isEmpty() ? QCoreApplication::translate("VibeStudioModelMesh", "The model file could not be read.") : readError;
 		return mesh;
 	}
-	const QByteArray bytes = file.readAll();
 	QString normalized = path;
 	normalized.replace(QLatin1Char('\\'), QLatin1Char('/'));
 	return decodeModelMesh(normalized, bytes, palette, control, modelCompanionsFromFileSystem(path));
@@ -2319,17 +2321,13 @@ QStringList modelMeshSummaryLines(const ModelMesh& mesh)
 		lines << QCoreApplication::translate("VibeStudioModelMesh", "Bounding radius: %1").arg(formatCoordinate(mesh.boundingRadius()));
 	}
 	for (const ModelSurface& surface : mesh.surfaces) {
+		// One multi-argument arg(): a name holding "%3" must stay literal.
 		lines << QCoreApplication::translate("VibeStudioModelMesh", "Surface %1 \"%2\": %3 vertices, %4 triangles")
-			.arg(surface.index)
-			.arg(surface.name)
-			.arg(surface.vertexCount)
-			.arg(surface.triangles.size());
+			.arg(QString::number(surface.index), surface.name, QString::number(surface.vertexCount), QString::number(surface.triangles.size()));
 	}
 	for (const ModelAnimation& animation : mesh.animations) {
 		lines << QCoreApplication::translate("VibeStudioModelMesh", "Animation \"%1\": frames %2-%3")
-			.arg(animation.name)
-			.arg(animation.firstFrame)
-			.arg(animation.firstFrame + animation.frameCount - 1);
+			.arg(animation.name, QString::number(animation.firstFrame), QString::number(animation.firstFrame + animation.frameCount - 1));
 	}
 	for (const ModelEmbeddedSkin& skin : mesh.embeddedSkins) {
 		lines << QCoreApplication::translate("VibeStudioModelMesh", "Embedded skin %1: %2 x %3%4")
@@ -2345,10 +2343,8 @@ QStringList modelMeshSummaryLines(const ModelMesh& mesh)
 		lines << QCoreApplication::translate("VibeStudioModelMesh", "Joints: %1").arg(mesh.skeleton.joints.size());
 		for (const ModelSkeletalClip& clip : mesh.skeleton.clips) {
 			lines << QCoreApplication::translate("VibeStudioModelMesh", "Skeletal clip \"%1\": %2 frame(s) at %3 fps%4")
-				.arg(clip.name)
-				.arg(clip.frames.size())
-				.arg(formatCoordinate(clip.framesPerSecond))
-				.arg(clip.sourcePath.isEmpty() ? QString() : QCoreApplication::translate("VibeStudioModelMesh", " from %1").arg(clip.sourcePath));
+				.arg(clip.name, QString::number(clip.frames.size()), formatCoordinate(clip.framesPerSecond),
+					clip.sourcePath.isEmpty() ? QString() : QCoreApplication::translate("VibeStudioModelMesh", " from %1").arg(clip.sourcePath));
 		}
 		for (const ModelSkeletalTag& tag : mesh.skeleton.tags) {
 			const QString joint = tag.joint >= 0 && tag.joint < mesh.skeleton.joints.size() ? mesh.skeleton.joints.at(tag.joint).name : QString();
@@ -2405,7 +2401,16 @@ QString exportModelFrameObj(const ModelMesh& mesh, int frameIndex, const QString
 	QStringList lines;
 	lines << QStringLiteral("# Wavefront OBJ exported by VibeStudio");
 	if (!mesh.sourcePath.isEmpty()) {
-		lines << QStringLiteral("# source %1").arg(sanitizedName(mesh.sourcePath));
+		// A loose file's absolute path names the user's folders; exported assets
+		// keep only its file name. Package entries keep their virtual path.
+		QString source = mesh.sourcePath;
+		source.replace(QLatin1Char('\\'), QLatin1Char('/'));
+		const bool rooted = source.startsWith(QLatin1Char('/')) || (source.size() > 1 && source.at(1) == QLatin1Char(':'))
+			|| QFileInfo(mesh.sourcePath).isAbsolute();
+		if (rooted) {
+			source = source.mid(source.lastIndexOf(QLatin1Char('/')) + 1);
+		}
+		lines << QStringLiteral("# source %1").arg(sanitizedName(source));
 	}
 	const QString frameName = mesh.frames.at(frameIndex).name;
 	lines << QStringLiteral("# frame %1%2").arg(QString::number(frameIndex), frameName.isEmpty() ? QString() : QStringLiteral(" %1").arg(sanitizedName(frameName)));

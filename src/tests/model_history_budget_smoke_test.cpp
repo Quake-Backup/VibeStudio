@@ -5,6 +5,7 @@
 // restore exactly after trimming, document copies keep their own accounting,
 // and the model/historyBudgetMiB setting round-trips.
 #include "core/model_document.h"
+#include "core/model_document_memory.h"
 #include "core/studio_settings.h"
 #include "tests/model_scale_test_helpers.h"
 #include "tests/model_skeletal_budget_test_helpers.h"
@@ -268,6 +269,60 @@ bool skeletal()
 	return ok;
 }
 
+// Every authoring array a state holds is a block the visitor reports.
+bool visited()
+{
+	bool ok = true;
+	const auto blocks = [](const ModelMesh &mesh)
+	{
+		QSet<const void *> addresses;
+		ModelMemoryVisitor visitor([&](const void *address, qint64) { addresses.insert(address); });
+		visitor.mesh(mesh);
+		return addresses;
+	};
+	ModelMesh mesh;
+	ModelSurface surface;
+	surface.sharpEdges = {{0, 1}, {1, 2}};
+	mesh.surfaces = {surface};
+	ModelCollisionBox box;
+	box.framePoses = {ModelCollisionPose{}, ModelCollisionPose{}};
+	box.framePoses[1].hull = {{-0.5f, -0.5f, -0.5f}, {0.5f, -0.5f, -0.5f}, {-0.5f, 0.5f, -0.5f}, {-0.5f, -0.5f, 0.5f}};
+	mesh.collisionBoxes = {box};
+	ModelLodRecipeLevel level;
+	level.generated = false;
+	level.source = QString::fromUtf8("models/prop/hand-made_1.mesh.json");
+	mesh.detailLevels = {level};
+	ModelSkinVariant variant;
+	variant.name = QString::fromUtf8("red team");
+	variant.bindings = {{QString::fromUtf8("body surface"), QString::fromUtf8("models/prop/red.tga")}};
+	mesh.skinVariants = {variant};
+	ModelSkeletalClip clip;
+	ModelClipLayer layer;
+	ModelPoseCurves group;
+	group.rotation = {ModelPoseQuatKey{}};
+	layer.curves = {group};
+	clip.layers = {layer};
+	mesh.skeleton.clips = {clip};
+	// Read through a const view: a mutable index would detach shared arrays.
+	const ModelMesh &view = mesh;
+	const auto found = blocks(view);
+	const auto &variantBinding = view.skinVariants[0].bindings[0];
+	const QVector<std::pair<const void *, const char *>> expected{
+		{&*view.surfaces[0].sharpEdges.constBegin(), "sharp edges"},
+		{view.collisionBoxes[0].framePoses[1].hull.constData(), "a collision pose's hull"},
+		{view.detailLevels.constData(), "detail levels"},
+		{view.detailLevels[0].source.constData(), "a detail level's source"},
+		{view.skinVariants.constData(), "skin variants"},
+		{view.skinVariants[0].name.constData(), "a skin variant's name"},
+		{view.skinVariants[0].bindings.constData(), "a skin variant's bindings"},
+		{variantBinding.surface.constData(), "a binding's surface"},
+		{variantBinding.material.constData(), "a binding's material"},
+		{view.skeleton.clips[0].layers[0].curves[0].rotation.constData(), "a layer's rotation keys"}};
+	for (const auto &[address, what] : expected)
+		ok &= expect(found.contains(address), "history memory counts every authoring array", QString::fromLatin1(what));
+	return ok;
+}
+
 bool settings(const QDir &dir)
 {
 	bool ok = true;
@@ -304,6 +359,7 @@ int main(int argc, char **argv)
 	trimming();
 	walking();
 	skeletal();
+	visited();
 	settings(QDir(temporary.path()));
 	if (failures == 0)
 		std::cout << "model history budget smoke passed" << std::endl;

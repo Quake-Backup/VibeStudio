@@ -329,33 +329,150 @@ bool findModelUvOverlaps(const QVector<ModelTexCoord> &uv, const QVector<uint32_
 	}
 	std::stable_sort(triangles.begin(), triangles.end(), [](const auto &a, const auto &b) { return a.minX < b.minX; });
 	ModelUvOverlapScan result;
-	for (int i = 0; i < triangles.size(); ++i)
+	// Pairs are tested in sweep order (i, then j > i, by minX): a pair whose
+	// boxes overlap is always one the sweep on minX would reach.
+	enum class Tested
+	{
+		Next,
+		Stop,
+		Cancelled
+	};
+	const auto test = [&](int i, int j)
 	{
 		const auto &a = triangles[i];
-		for (int j = i + 1; j < triangles.size() && triangles[j].minX < a.maxX; ++j)
+		const auto &b = triangles[j];
+		if (!work.step())
+		{
+			return Tested::Cancelled;
+		}
+		if (++result.comparisons > maxComparisons)
+		{
+			result.limitReached = true;
+			return Tested::Stop;
+		}
+		if (a.maxY <= b.minY || b.maxY <= a.minY)
+		{
+			return Tested::Next;
+		}
+		if (overlaps(a, b))
+		{
+			result.pairs.append({std::min(a.index, b.index), std::max(a.index, b.index)});
+			if (maxPairs > 0 && result.pairs.size() >= maxPairs)
+			{
+				return Tested::Stop;
+			}
+		}
+		return Tested::Next;
+	};
+	const auto finish = [&](Tested tested)
+	{
+		if (tested == Tested::Cancelled)
+		{
+			return false;
+		}
+		*scan = std::move(result);
+		return work.check();
+	};
+	// A uniform grid over the boxes, about one average box to a cell: only
+	// triangles sharing a cell can overlap, so a packed atlas costs a few
+	// comparisons a triangle where the sweep compares every triangle in the
+	// same column (and long thin ones with most of the atlas).
+	const int count = int(triangles.size());
+	double lowX = 1e300, highX = -1e300, lowY = 1e300, highY = -1e300, sumWidth = 0, sumHeight = 0;
+	bool finite = true;
+	for (const auto &t : std::as_const(triangles))
+	{
+		finite = finite && std::isfinite(t.minX) && std::isfinite(t.maxX) && std::isfinite(t.minY) && std::isfinite(t.maxY);
+		lowX = std::min(lowX, t.minX);
+		highX = std::max(highX, t.maxX);
+		lowY = std::min(lowY, t.minY);
+		highY = std::max(highY, t.maxY);
+		sumWidth += t.maxX - t.minX;
+		sumHeight += t.maxY - t.minY;
+	}
+	constexpr int kMaxCells = 1024;
+	const auto cells = [&](double span, double average)
+	{
+		return span > 0 && std::isfinite(span) ? std::clamp(int(std::ceil(span / std::max(average, span / kMaxCells))), 1, kMaxCells) : 1;
+	};
+	const int columns = finite && count > 0 ? cells(highX - lowX, sumWidth / count) : 1;
+	const int rows = finite && count > 0 ? cells(highY - lowY, sumHeight / count) : 1;
+	const double cellWidth = columns > 1 ? (highX - lowX) / columns : 1.0, cellHeight = rows > 1 ? (highY - lowY) / rows : 1.0;
+	const auto column = [&](double x) { return int(std::clamp(std::floor((x - lowX) / cellWidth), 0.0, double(columns - 1))); };
+	const auto row = [&](double y) { return int(std::clamp(std::floor((y - lowY) / cellHeight), 0.0, double(rows - 1))); };
+	qint64 entries = 0;
+	if (finite)
+	{
+		for (const auto &t : std::as_const(triangles))
+			entries += qint64(column(t.maxX) - column(t.minX) + 1) * (row(t.maxY) - row(t.minY) + 1);
+	}
+	if (!finite || entries > 32LL * count + 4000000LL)
+	{
+		// Boxes too large or not finite for a grid: the plain sweep.
+		for (int i = 0; i < count; ++i)
+		{
+			for (int j = i + 1; j < count && triangles[j].minX < triangles[i].maxX; ++j)
+			{
+				const Tested tested = test(i, j);
+				if (tested != Tested::Next)
+				{
+					return finish(tested);
+				}
+			}
+		}
+	}
+	else
+	{
+		QVector<qint32> cellStart(qsizetype(columns) * rows + 1, 0);
+		QVector<qint32> cellItems(static_cast<qsizetype>(entries), 0);
+		for (const auto &t : std::as_const(triangles))
+			for (int y = row(t.minY); y <= row(t.maxY); ++y)
+				for (int x = column(t.minX); x <= column(t.maxX); ++x)
+					++cellStart[qsizetype(y) * columns + x + 1];
+		for (qsizetype c = 1; c < cellStart.size(); ++c)
+			cellStart[c] += cellStart[c - 1];
+		QVector<qint32> fill = cellStart;
+		for (int i = 0; i < count; ++i)
+		{
+			const auto &t = triangles[i];
+			for (int y = row(t.minY); y <= row(t.maxY); ++y)
+				for (int x = column(t.minX); x <= column(t.maxX); ++x)
+					cellItems[fill[qsizetype(y) * columns + x]++] = i;
+		}
+		QVector<int> seen(count, -1), candidates;
+		for (int i = 0; i < count; ++i)
 		{
 			if (!work.step())
 			{
 				return false;
 			}
-			if (++result.comparisons > maxComparisons)
-			{
-				result.limitReached = true;
-				*scan = std::move(result);
-				return work.check();
-			}
-			const auto &b = triangles[j];
-			if (a.maxY <= b.minY || b.maxY <= a.minY)
-			{
-				continue;
-			}
-			if (overlaps(a, b))
-			{
-				result.pairs.append({std::min(a.index, b.index), std::max(a.index, b.index)});
-				if (maxPairs > 0 && result.pairs.size() >= maxPairs)
+			const auto &a = triangles[i];
+			candidates.clear();
+			for (int y = row(a.minY); y <= row(a.maxY); ++y)
+				for (int x = column(a.minX); x <= column(a.maxX); ++x)
 				{
-					*scan = std::move(result);
-					return work.check();
+					const qsizetype c = qsizetype(y) * columns + x;
+					for (qint32 k = cellStart[c]; k < cellStart[c + 1]; ++k)
+					{
+						const int j = cellItems[k];
+						if (j > i && seen[j] != i)
+						{
+							seen[j] = i;
+							candidates.append(j);
+						}
+					}
+				}
+			std::sort(candidates.begin(), candidates.end());
+			for (const int j : std::as_const(candidates))
+			{
+				if (!(triangles[j].minX < a.maxX))
+				{
+					continue;
+				}
+				const Tested tested = test(i, j);
+				if (tested != Tested::Next)
+				{
+					return finish(tested);
 				}
 			}
 		}

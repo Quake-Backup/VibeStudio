@@ -145,6 +145,22 @@ double gridSpacingForScale(double scale, double radius)
 	return spacing;
 }
 
+// Whether two sets of surface images are the same images, by identity rather
+// than by comparing pixels.
+bool sameImageKeys(const QHash<int, QImage>& a, const QHash<int, QImage>& b)
+{
+	if (a.size() != b.size()) {
+		return false;
+	}
+	for (auto it = a.cbegin(); it != a.cend(); ++it) {
+		const auto other = b.constFind(it.key());
+		if (other == b.cend() || other->cacheKey() != it->cacheKey()) {
+			return false;
+		}
+	}
+	return true;
+}
+
 // The triangle a presented frame drew under a widget point, or -1.
 int triangleIdAt(const ModelRenderFrame& frame, const QPointF& point)
 {
@@ -856,7 +872,7 @@ void ModelViewport::frameModel()
 	if (m_hasMesh && vecIsFinite(m_mesh.mins) && vecIsFinite(m_mesh.maxs)) {
 		auto low = m_mesh.mins, high = m_mesh.maxs;
 		if (m_showCollision) {
-			for (const auto& box : m_mesh.collisionBoxes) {
+			for (const auto& box : std::as_const(m_mesh.collisionBoxes)) {
 				ModelCollisionBox pose;
 				if (!sampleModelCollisionBox(box, m_frame, m_blendFrame, m_frameBlend, &pose)) { continue; }
 				for (const auto p : modelCollisionCorners(pose)) {
@@ -1200,7 +1216,9 @@ void ModelViewport::rebuildMeshTriangles()
 	}
 
 	int total = 0;
-	for (const ModelSurface& surface : m_mesh.surfaces) {
+	// Const access only: a mirror pane knows its mesh is unchanged by still
+	// sharing the source's arrays, which a detaching loop would end.
+	for (const ModelSurface& surface : std::as_const(m_mesh.surfaces)) {
 		total += static_cast<int>(surface.triangles.size());
 	}
 	m_meshTriangles.reserve(total);
@@ -1234,11 +1252,12 @@ void ModelViewport::rebuildMeshTriangles()
 void ModelViewport::setSurfaceSkins(const QHash<int, QImage>& skins)
 {
 	invalidateRaster(true);
-	m_surfaceSkins.clear(); m_surfaceSkinAlpha.clear();
+	m_surfaceSkins.clear(); m_surfaceSkinAlpha.clear(); m_surfaceSkinSources.clear();
 	for (auto it = skins.cbegin(); it != skins.cend(); ++it) {
 		if (it.key() < 0 || it.key() >= m_mesh.surfaces.size() || it.value().isNull()) { continue; }
 		const auto converted = it.value().convertToFormat(QImage::Format_ARGB32_Premultiplied);
 		m_surfaceSkins.insert(it.key(), converted);
+		m_surfaceSkinSources.insert(it.key(), it.value().cacheKey());
 		if (modelSkinHasAlpha(converted)) { m_surfaceSkinAlpha.insert(it.key()); }
 	}
 	invalidateProjection(); setAccessibleDescription(accessibleSummary()); update();
@@ -1246,20 +1265,48 @@ void ModelViewport::setSurfaceSkins(const QHash<int, QImage>& skins)
 
 void ModelViewport::setGameSkins(const QHash<int, QImage>& skins, const QHash<int, QImage>& glows, bool nearest)
 {
-	invalidateRaster(true);
-	m_gameSkins.clear();
-	m_gameGlows.clear();
-	m_gameSkinAlpha.clear();
-	m_gameNearest = nearest;
+	QHash<int, QImage> wanted, wantedGlows;
 	for (auto it = skins.cbegin(); it != skins.cend(); ++it) {
 		if (it.key() < 0 || it.key() >= m_mesh.surfaces.size() || it.value().isNull()) { continue; }
+		wanted.insert(it.key(), it.value());
+		const QImage glow = glows.value(it.key());
+		if (!glow.isNull()) { wantedGlows.insert(it.key(), glow); }
+	}
+	const auto sameSurfaces = [](const QHash<int, QImage>& a, const QHash<int, QImage>& b) {
+		if (a.size() != b.size()) { return false; }
+		for (auto it = a.keyBegin(); it != a.keyEnd(); ++it) { if (!b.contains(*it)) { return false; } }
+		return true;
+	};
+	// New pixels on the same surfaces, such as each dab of an in-view paint
+	// stroke, redraw behind the frame on show; only a different set of
+	// surfaces, or starting or ending the preview, retires it.
+	const bool sameSet = nearest == m_gameNearest && sameSurfaces(wanted, m_gameSkins) && sameSurfaces(wantedGlows, m_gameGlows);
+	if (!sameSet) {
+		invalidateRaster(true);
+		m_gameSkins.clear();
+		m_gameGlows.clear();
+		m_gameSkinAlpha.clear();
+		m_gameSkinSources.clear();
+		m_gameGlowSources.clear();
+		m_gameNearest = nearest;
+	}
+	bool changed = false;
+	for (auto it = wanted.cbegin(); it != wanted.cend(); ++it) {
+		if (m_gameSkins.contains(it.key()) && m_gameSkinSources.value(it.key()) == it.value().cacheKey()) { continue; }
 		const auto converted = it.value().convertToFormat(QImage::Format_ARGB32_Premultiplied);
 		m_gameSkins.insert(it.key(), converted);
-		if (modelSkinHasAlpha(converted)) { m_gameSkinAlpha.insert(it.key()); }
-		const QImage glow = glows.value(it.key());
-		if (!glow.isNull()) { m_gameGlows.insert(it.key(), glow.convertToFormat(QImage::Format_ARGB32_Premultiplied)); }
+		m_gameSkinSources.insert(it.key(), it.value().cacheKey());
+		if (modelSkinHasAlpha(converted)) { m_gameSkinAlpha.insert(it.key()); } else { m_gameSkinAlpha.remove(it.key()); }
+		changed = true;
 	}
-	update();
+	for (auto it = wantedGlows.cbegin(); it != wantedGlows.cend(); ++it) {
+		if (m_gameGlows.contains(it.key()) && m_gameGlowSources.value(it.key()) == it.value().cacheKey()) { continue; }
+		m_gameGlows.insert(it.key(), it.value().convertToFormat(QImage::Format_ARGB32_Premultiplied));
+		m_gameGlowSources.insert(it.key(), it.value().cacheKey());
+		changed = true;
+	}
+	if (sameSet && changed) { invalidateRaster(false); }
+	if (!sameSet || changed) { update(); }
 }
 
 void ModelViewport::updateSurfaceSkinImages(const QHash<int, QImage>& skins)
@@ -1267,8 +1314,11 @@ void ModelViewport::updateSurfaceSkinImages(const QHash<int, QImage>& skins)
 	bool changed = false;
 	for (auto it = skins.cbegin(); it != skins.cend(); ++it) {
 		if (it.key() < 0 || it.key() >= m_mesh.surfaces.size() || it.value().isNull()) { continue; }
+		// An animated material shows the same frames again and again.
+		if (m_surfaceSkins.contains(it.key()) && m_surfaceSkinSources.value(it.key()) == it.value().cacheKey()) { continue; }
 		const auto converted = it.value().convertToFormat(QImage::Format_ARGB32_Premultiplied);
 		m_surfaceSkins.insert(it.key(), converted);
+		m_surfaceSkinSources.insert(it.key(), it.value().cacheKey());
 		if (modelSkinHasAlpha(converted)) { m_surfaceSkinAlpha.insert(it.key()); } else { m_surfaceSkinAlpha.remove(it.key()); }
 		changed = true;
 	}
@@ -1761,15 +1811,6 @@ void ModelViewport::renderVertexOverlay(RasterWork &work)
 
 void ModelViewport::paintTriangles(QPainter &painter, const Palette &palette)
 {
-	const int hovered = m_hover.valid ? m_hover.triangle : -1;
-	if (m_rasterHover != hovered)
-	{
-		m_rasterHover = hovered;
-		if (m_renderMode != ModelViewportRenderMode::Wireframe)
-		{
-			invalidateRaster();
-		}
-	}
 	if (m_renderGeneration != renderBackendGeneration())
 	{
 		// The 3D renderer changed or restarted; draw again on the new one.
@@ -1844,7 +1885,9 @@ void ModelViewport::paintTriangles(QPainter &painter, const Palette &palette)
 		work->surfaceStrokeTriangles = m_surfaceStrokeTriangles;
 		work->edgeSelectionSurface = m_edgeSelectionSurface;
 		work->selectedEdges = m_selectedEdges;
-		work->hover = hovered;
+		// The hover is painted over the presented frame (paintHoverOverlay), so
+		// pointing at another triangle never renders the view again.
+		work->hover = -1;
 		work->palette = palette;
 		work->skin = m_nativeMdl && m_mdlSkinVisible ? m_mdlPlaybackSkins.at(m_mdlSample.skinMember) : m_skin;
 		work->skinHasAlpha = !m_nativeMdl && m_skinHasAlpha;
@@ -1886,6 +1929,23 @@ void ModelViewport::paintTriangles(QPainter &painter, const Palette &palette)
 		{
 			work->result = m_raster;
 			if (m_rasterVertices && m_rasterVertices->surface == m_editSurface)
+			{
+				work->vertices = m_rasterVertices;
+			}
+		}
+		else if (m_rasterVertices && m_rasterVertices->surface == m_editSurface && m_presentedRaster
+			&& m_presentedRaster->vertices == m_rasterVertices)
+		{
+			// A redraw of the same camera and pose, such as a playback tick that
+			// kept the frame or a new selection, draws the same triangle ids, so
+			// the edit surface's projected vertices and their occlusion still hold.
+			const RasterWork& shown = *m_presentedRaster;
+			const bool sameIds = shown.projectionRevision == work->projectionRevision && shown.size == work->size
+				&& shown.logicalSize == work->logicalSize && shown.perspective == work->perspective
+				&& shown.backfaceCulling == work->backfaceCulling && shown.wireframe == work->wireframe
+				&& shown.farClip == work->farClip && shown.geometryKey.matches(work->geometryKey)
+				&& (!work->textured || (shown.skin.cacheKey() == work->skin.cacheKey() && sameImageKeys(shown.surfaceSkins, work->surfaceSkins)));
+			if (sameIds)
 			{
 				work->vertices = m_rasterVertices;
 			}
@@ -1973,6 +2033,7 @@ void ModelViewport::paintTriangles(QPainter &painter, const Palette &palette)
 	if (!m_raster.image.isNull())
 	{
 		painter.drawImage(QRectF(rect()), m_raster.image);
+		paintHoverOverlay(painter, palette);
 	}
 	if (isRendering() || m_rasterFailed)
 	{
@@ -1985,6 +2046,94 @@ void ModelViewport::paintTriangles(QPainter &painter, const Palette &palette)
 		painter.setPen(palette.text);
 		painter.drawText(area, Qt::AlignCenter | Qt::TextWordWrap, message);
 	}
+}
+
+void ModelViewport::paintHoverOverlay(QPainter& painter, const Palette& palette)
+{
+	// Wireframe frames outline the hover from the current camera instead
+	// (paintOverlay); a surface transfer preview numbers its triangles its own way.
+	const int triangle = m_hover.valid ? m_hover.triangle : -1;
+	const auto& frame = m_presentedRaster;
+	if (triangle < 0 || m_renderMode == ModelViewportRenderMode::Wireframe || m_materialStrokeRaster || !frame || !frame->success
+		|| frame->wireframe || !frame->geometry || frame->result.image.isNull() || frame->result.image.cacheKey() != m_raster.image.cacheKey()) {
+		return;
+	}
+	const ModelRenderFrame& shown = frame->result;
+	const QSize pixels = shown.image.size();
+	const GpuGeometry& geometry = *frame->geometry;
+	if (triangle >= frame->meshTriangles.size() || triangle >= geometry.valid.size() || !geometry.valid.testBit(triangle)
+		|| geometry.vertices.size() < (qsizetype(triangle) + 1) * 3 * 44 || shown.source.size() != qsizetype(pixels.width()) * pixels.height()) {
+		return;
+	}
+	const QRgb colour = palette.hover.rgba();
+	if (m_hoverOverlayTriangle != triangle || m_hoverOverlayColour != colour || m_hoverOverlayFrame.lock() != frame) {
+		m_hoverOverlay = {};
+		m_hoverOverlayPixels = {};
+		m_hoverOverlayTriangle = triangle;
+		m_hoverOverlayColour = colour;
+		m_hoverOverlayFrame = frame;
+		// The triangle as that frame projected it, in its physical pixels, cut
+		// at the perspective camera's near plane.
+		const double ratio = shown.pixelRatio;
+		const std::array<ModelVec3, 3> corners {geometry.corner(triangle, 0), geometry.corner(triangle, 1), geometry.corner(triangle, 2)};
+		QPolygonF outline;
+		for (int corner = 0; corner < 3; ++corner) {
+			if (!frame->perspective) {
+				outline << frame->projectPoint(corners[size_t(corner)], nullptr) * ratio;
+				continue;
+			}
+			double x[2], y[2], z[2];
+			frame->toView(corners[size_t(corner)], &x[0], &y[0], &z[0]);
+			frame->toView(corners[size_t((corner + 1) % 3)], &x[1], &y[1], &z[1]);
+			const bool here = z[0] >= kNearPlane, there = z[1] >= kNearPlane;
+			if (here) { outline << frame->fromView(x[0], y[0], z[0]) * ratio; }
+			if (here != there) {
+				const double t = (kNearPlane - z[0]) / (z[1] - z[0]);
+				outline << frame->fromView(x[0] + t * (x[1] - x[0]), y[0] + t * (y[1] - y[0]), kNearPlane) * ratio;
+			}
+		}
+		// The renderer outlined the hover 1.8 logical pixels inside its edges:
+		// a stroke twice that wide, kept only where the frame drew this triangle.
+		const double band = 1.8 * ratio;
+		const QRect area = outline.size() < 3 ? QRect()
+			: outline.boundingRect().adjusted(-band - 1, -band - 1, band + 1, band + 1).toAlignedRect() & QRect(QPoint(), pixels);
+		if (!area.isEmpty()) {
+			QImage overlay(area.size(), QImage::Format_ARGB32_Premultiplied);
+			overlay.fill(Qt::transparent);
+			{
+				QPainter stroke(&overlay);
+				stroke.setRenderHint(QPainter::Antialiasing, true);
+				stroke.translate(-area.topLeft());
+				stroke.setPen(QPen(palette.hover, 2.0 * band));
+				stroke.setBrush(Qt::NoBrush);
+				stroke.drawPolygon(outline);
+			}
+			bool any = false;
+			for (int row = 0; row < area.height(); ++row) {
+				const int* ids = shown.source.constData() + qsizetype(area.top() + row) * pixels.width() + area.left();
+				auto* out = reinterpret_cast<QRgb*>(overlay.scanLine(row));
+				for (int column = 0; column < area.width(); ++column) {
+					if (ids[column] != triangle) {
+						out[column] = 0;
+					} else if (out[column] != 0) {
+						any = true;
+					}
+				}
+			}
+			if (any) {
+				m_hoverOverlay = std::move(overlay);
+				m_hoverOverlayPixels = area;
+			}
+		}
+	}
+	if (m_hoverOverlay.isNull()) {
+		return;
+	}
+	// Placed as the frame itself is drawn: stretched over the whole widget.
+	const double sx = double(width()) / pixels.width();
+	const double sy = double(height()) / pixels.height();
+	const QRect& area = m_hoverOverlayPixels;
+	painter.drawImage(QRectF(area.x() * sx, area.y() * sy, area.width() * sx, area.height() * sy), m_hoverOverlay);
 }
 
 QString ModelViewport::renderFailureText() const
@@ -2175,7 +2324,7 @@ ViewportHudLayout ModelViewport::hudLayoutFor(const QPaintDevice* device) const
 	const auto isolated = [](const QString& value) { return QChar(0x2068) + value + QChar(0x2069); };
 	QStringList left;
 	if (!m_viewLabel.isEmpty()) { left << m_viewLabel; }
-	if (m_perspective) { left << tr("Camera, %1%2 view").arg(qRound(m_fov)).arg(QChar(0x00b0)); }
+	if (m_perspective) { left << tr("Camera, %1%2 view").arg(localeNumber(m_fov, 0, 'f'), QString(QChar(0x00b0))); }
 	left << effectiveRenderModeName();
 	// The far clip's distance, as NetRadiant Custom shows its cubic scale.
 	if (m_farClip > 0.0) { left << isolated(tr("Far clip %1 units").arg(localeNumber(m_farClip, 0, 'f'))); }
@@ -2330,7 +2479,10 @@ void ModelViewport::mouseMoveEvent(QMouseEvent* event)
 	const QPointF position = event->position();
 	rememberCommandPointer(position);
 	if (m_skinPainting) {
-		if (m_skinPaintHandler) { m_skinPaintHandler(ModelViewportStrokePhase::Extend, position); }
+		// A release the view never saw, such as one over a popup, leaves the
+		// button up: the stroke ends as Escape ends it rather than painting on hover.
+		if (!event->buttons().testFlag(Qt::LeftButton)) { cancelSkinPaintStroke(); }
+		else if (m_skinPaintHandler) { m_skinPaintHandler(ModelViewportStrokePhase::Extend, position); }
 		event->accept(); return;
 	}
 	if (m_vertexInsertion->active()) {
@@ -3610,6 +3762,7 @@ void ModelViewport::keyReleaseEvent(QKeyEvent* event)
 
 void ModelViewport::focusOutEvent(QFocusEvent* event)
 {
+	cancelSkinPaintStroke();
 	finishClipPoint(false);
 	finishComponentMove(false); m_componentBanding = false;
 	finishMaterialStroke(false);
@@ -3666,6 +3819,7 @@ bool ModelViewport::event(QEvent* event)
 	}
 	if (event->type() == QEvent::WindowDeactivate || event->type() == QEvent::UngrabMouse
 		|| event->type() == QEvent::Hide || (event->type() == QEvent::EnabledChange && !isEnabled())) {
+		cancelSkinPaintStroke();
 		finishClipPoint(false);
 		finishBrushAssemble(false);
 		finishComponentMove(false); m_componentBanding = false;
@@ -3680,6 +3834,16 @@ bool ModelViewport::event(QEvent* event)
 	}
 	if (event->type() == QEvent::PaletteChange && m_vertexPicking) { invalidateVertexOverlay(); update(); }
 	if (event->type() == QEvent::Hide || (event->type() == QEvent::EnabledChange && !isEnabled())) { finishSurfaceStroke(false); }
+	// A hidden view keeps its place in playback but stops ticking; shown
+	// again, it carries on from the frame it showed rather than jumping ahead.
+	if (event->type() == QEvent::Hide && !m_playbackHidden) {
+		m_playbackHidden = true;
+		updatePlaybackTimer();
+	} else if (event->type() == QEvent::Show && m_playbackHidden) {
+		m_playbackHidden = false;
+		resetPlaybackClock();
+		updatePlaybackTimer();
+	}
 	if (event->type() == QEvent::Hide || (event->type() == QEvent::EnabledChange && !isEnabled())) {
 		m_heldKeys.clear();
 		m_flyTimer->stop();

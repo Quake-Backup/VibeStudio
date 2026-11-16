@@ -216,6 +216,14 @@ int main(int argc, char **argv)
 		auto twice = mesh;
 		edit.uvTools.unwrapMethod = ModelUvUnwrapMethod::Conformal;
 		expect(applyModelEdit(&twice, edit, nullptr, &error) && source(twice) == source(packed), "two runs give identical sources");
+		// A pin on the seam vertex is one pin with a corner on each side of
+		// the cut: alone it cannot fix the island, so it is ignored rather
+		// than collapsing the island onto one point.
+		ModelSurface seamPinned;
+		expect(unwrapModelUvConformal(mesh.surfaces[0], allFaces(mesh), {{0, {.2f, .3f}}}, options, &seamPinned, &report, &error) &&
+				   report.islands.size() == 1 && !report.islands[0].pinned && positiveWinding(seamPinned) &&
+				   raw(seamPinned.texCoords) == raw(result.texCoords),
+			   "one pinned seam vertex unwraps as if unpinned", error);
 	}
 
 	// A planar grid is an isometry; pins keep their UVs exactly.

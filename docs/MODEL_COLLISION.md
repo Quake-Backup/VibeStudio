@@ -112,7 +112,9 @@ and rotation) and shares the 64-volume limit and the name rules. Its points
 are stored inside that frame, so **Apply Box**, the transform tools, **Animate
 Box**, **Make Static from Current Frame**, duplicate and delete all work on it;
 **Scale** stretches it along its local axes. The shape stays the same in every
-pose; an animated hull moves, turns and scales with its poses.
+pose; an animated hull moves, turns and scales with its poses. Mirroring the
+whole model with **Mesh > Transform Model** reflects each hull's points, so an
+asymmetric hull becomes its mirror image rather than turning round.
 
 **Fit New Animated Hull** fits a hull separately in every stored frame instead,
 each within the budget, so a prop that bends or stretches keeps a tight hull in

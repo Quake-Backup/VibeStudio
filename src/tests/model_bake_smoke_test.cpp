@@ -81,6 +81,92 @@ int value(const QImage &image, int x, int y)
 {
 	return qRed(image.pixel(x, y));
 }
+// A closed, convex, low-poly unit sphere with smooth (radial) normals and a
+// latitude-longitude UV layout: s around, t from the top pole down.
+ModelMesh lowPolySphere(int segments, int rings)
+{
+	constexpr double pi = 3.14159265358979323846;
+	ModelSurface surface;
+	surface.name = "sphere";
+	ModelFrameGeometry pose;
+	const auto index = [&](int ring, int segment) { return ring * (segments + 1) + segment; };
+	for (int ring = 0; ring <= rings; ++ring)
+		for (int segment = 0; segment <= segments; ++segment)
+		{
+			const double theta = pi * ring / rings, phi = 2 * pi * segment / segments;
+			const ModelVec3 p{float(std::sin(theta) * std::cos(phi)), float(std::sin(theta) * std::sin(phi)), float(std::cos(theta))};
+			pose.positions.append(p);
+			pose.normals.append(p);
+			surface.texCoords.append({float(segment) / float(segments), float(ring) / float(rings)});
+		}
+	for (int ring = 0; ring < rings; ++ring)
+		for (int segment = 0; segment < segments; ++segment)
+		{
+			// Outward winding; the poles keep only their real triangle.
+			if (ring > 0)
+				surface.triangles.append({index(ring, segment), index(ring + 1, segment + 1), index(ring, segment + 1)});
+			if (ring < rings - 1)
+				surface.triangles.append({index(ring, segment), index(ring + 1, segment), index(ring + 1, segment + 1)});
+		}
+	surface.frames = {pose};
+	surface.vertexCount = int(pose.positions.size());
+	return meshOf({surface});
+}
+// Curved low-poly surfaces: occlusion and lighting rays must not start
+// behind their own face, and edges two triangles share are not overlaps.
+void convexSphere()
+{
+	QString error;
+	const ModelMesh sphere = lowPolySphere(8, 6);
+	ModelBakeOptions options;
+	options.size = {32, 32};
+	options.samples = 32;
+	options.padding = 0;
+	ModelBakeResult ao;
+	if (expect(bakeModelMaps(sphere, {}, 0, nullptr, options, &ao, &error), "a low-poly sphere bakes"))
+	{
+		int darkest = 255;
+		for (int y = 0; y < 32; ++y)
+			for (int x = 0; x < 32; ++x)
+				darkest = std::min(darkest, value(ao.image, x, y));
+		expect(darkest == 255 && ao.texels > 600, "nothing occludes a closed convex sphere: its occlusion is white everywhere");
+		expect(ao.notes.isEmpty(), "triangles sharing UV edges are not reported as overlapping");
+	}
+	// Lighting matches the unshadowed Lambert term of each texel's normal.
+	ModelBakeOptions normals = options;
+	normals.type = ModelBakeType::ObjectNormal;
+	ModelBakeOptions lighting = options;
+	lighting.type = ModelBakeType::Lighting;
+	lighting.lightDirection = {0.9f, 0.3f, 0.3f};
+	lighting.ambient = 0.25;
+	ModelBakeResult object, lit;
+	if (expect(bakeModelMaps(sphere, {}, 0, nullptr, normals, &object, &error) && bakeModelMaps(sphere, {}, 0, nullptr, lighting, &lit, &error),
+			   "the sphere's normals and lighting bake"))
+	{
+		const double length = std::sqrt(0.9 * 0.9 + 0.3 * 0.3 + 0.3 * 0.3);
+		int checked = 0, wrong = 0;
+		for (int y = 0; y < 32; ++y)
+			for (int x = 0; x < 32; ++x)
+			{
+				const QRgb n = object.image.pixel(x, y);
+				if (n == qRgb(128, 128, 128))
+					continue;
+				const auto decode = [](int channel) { return channel / 255.0 * 2.0 - 1.0; };
+				const double lambert = (decode(qRed(n)) * 0.9 + decode(qGreen(n)) * 0.3 + decode(qBlue(n)) * 0.3) / length;
+				if (lambert < 0.05)
+					continue;
+				++checked;
+				wrong += std::abs(value(lit.image, x, y) - (0.25 + 0.75 * lambert) * 255.0) > 4.0 ? 1 : 0;
+			}
+		expect(checked > 100 && wrong == 0, "no texel of a convex sphere that faces the light is shadowed by its own faces");
+	}
+	// A unit quad split on its diagonal covers each texel once.
+	const ModelMesh plane = meshOf({floorQuad()});
+	ModelBakeResult flat;
+	options.size = {16, 16};
+	expect(bakeModelMaps(plane, {}, 0, nullptr, options, &flat, &error) && flat.texels == 256 && flat.notes.isEmpty(),
+		   "the texels on a quad's diagonal belong to one of its triangles, not both");
+}
 } // namespace
 
 int main(int argc, char **argv)
@@ -177,6 +263,8 @@ int main(int argc, char **argv)
 	lighting.lightDirection = {0, 0, -1};
 	expect(bakeModelMaps(plane, {}, 0, nullptr, lighting, &result, &error) && std::abs(value(result.image, 10, 10) - 51) <= 1,
 		   "a floor facing away keeps the ambient level");
+
+	convexSphere();
 
 	// Refusals leave the result alone.
 	ModelBakeResult untouched;

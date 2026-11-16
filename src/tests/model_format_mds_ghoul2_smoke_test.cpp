@@ -6,9 +6,13 @@
 
 #include <QByteArray>
 #include <QCoreApplication>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QHash>
 #include <QString>
 #include <QStringList>
+#include <QTemporaryDir>
 #include <QVector>
 
 #include <algorithm>
@@ -1160,6 +1164,95 @@ void testGlmWithGla()
 	}
 }
 
+bool writeFile(const QString& path, const QByteArray& bytes)
+{
+	QDir().mkpath(QFileInfo(path).absolutePath());
+	QFile file(path);
+	return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
+}
+
+// A GLM on disk whose GLA name climbs out of the game folder or names another
+// place outright must not open that file; the GLA beside the mesh is used.
+void testGlmCompanionNamesOnDisk()
+{
+	QTemporaryDir root;
+	if (!root.isValid()) {
+		expect(false, "a temporary folder for the GLM companion test");
+		return;
+	}
+	const QByteArray gla = buildGla(glaSpec());
+	const QString game = root.filePath(QStringLiteral("game"));
+	const QString meshPath = game + QStringLiteral("/models/test/test.glm");
+	const QString legit = game + QStringLiteral("/models/test/test_anim.gla");
+	const QString decoy = root.filePath(QStringLiteral("decoy.gla"));
+	expect(writeFile(legit, gla) && writeFile(decoy, gla), "GLM companion fixtures written");
+
+	// The game-relative name resolves through the folders above, as before.
+	{
+		const QByteArray glm = buildGlm(glmSpec());
+		expect(writeFile(meshPath, glm), "GLM written");
+		const ModelMesh mesh = decodeModelMeshFile(meshPath);
+		expectNoError(mesh, "GLM on disk decodes with its game-relative GLA");
+		expect(mesh.companionPaths.size() == 1 && mesh.companionPaths.first() == QStringLiteral("models/test/test_anim.gla"),
+			"GLM on disk reads the GLA by its game path");
+	}
+	const auto decoyRead = [](const ModelMesh& mesh) {
+		for (const QString& path : mesh.companionPaths) {
+			if (path.contains(QStringLiteral("decoy"), Qt::CaseInsensitive)) {
+				return true;
+			}
+		}
+		return false;
+	};
+	// "../../../decoy" from game/models/test is the decoy above the game folder.
+	{
+		GlmSpec spec = glmSpec();
+		spec.animName = "../../../decoy";
+		expect(writeFile(meshPath, buildGlm(spec)), "GLM with a climbing name written");
+		const ModelMesh mesh = decodeModelMeshFile(meshPath);
+		expectNoError(mesh, "GLM with a climbing GLA name still decodes");
+		expect(!decoyRead(mesh) && mesh.companionPaths.size() == 1 && mesh.companionPaths.first().endsWith(QStringLiteral("test_anim.gla")),
+			"a GLA name with '..' is not opened; the GLA beside the mesh is used");
+	}
+	// An absolute name (when it fits the 64-byte field) and a UNC name.
+	const QByteArray absolute = QDir::fromNativeSeparators(root.filePath(QStringLiteral("decoy"))).toUtf8();
+	for (const QByteArray& name : {absolute, QByteArray("//127.0.0.1/share/decoy"), QByteArray("\\\\127.0.0.1\\share\\decoy")}) {
+		if (name.size() > 63) {
+			continue;
+		}
+		GlmSpec spec = glmSpec();
+		spec.animName = name;
+		expect(writeFile(meshPath, buildGlm(spec)), "GLM with an outside name written");
+		const ModelMesh mesh = decodeModelMeshFile(meshPath);
+		expectNoError(mesh, "GLM with an outside GLA name still decodes");
+		expect(!decoyRead(mesh) && mesh.companionPaths.size() == 1 && mesh.companionPaths.first().endsWith(QStringLiteral("test_anim.gla")),
+			"an absolute or UNC GLA name is not opened");
+	}
+	// The file-system source itself.
+	const ModelCompanionSource source = modelCompanionsFromFileSystem(meshPath);
+	QByteArray bytes;
+	QString error;
+	expect(!source.read(decoy, &bytes, &error) && error.contains(QStringLiteral("outside")), "an absolute path outside the model's folder is refused");
+	expect(!source.read(QStringLiteral("..\\..\\..\\decoy.gla"), &bytes, &error), "a backslash '..' path is refused");
+	expect(!source.read(QStringLiteral("C:decoy.gla"), &bytes, &error), "a drive-relative path is refused");
+	expect(!source.read(QStringLiteral("models/test/test_anim.gla:stream"), &bytes, &error), "an alternate data stream is refused");
+	expect(!source.read(QStringLiteral("models/NUL.gla"), &bytes, &error) && !source.read(QStringLiteral("con"), &bytes, &error),
+		"Windows device names are refused");
+	expect(!source.read(QStringLiteral("models/test"), &bytes, &error), "a folder is not read as a file");
+	expect(source.read(legit, &bytes, &error) && bytes == gla, "an absolute path inside the model's folder is read");
+	expect(source.read(QStringLiteral("models/test/test_anim.gla"), &bytes, &error) && bytes == gla, "a game-relative path is read");
+	// A file over the per-file limit is refused before it is read.
+	{
+		QFile big(game + QStringLiteral("/models/test/huge.gla"));
+		if (big.open(QIODevice::WriteOnly) && big.resize(64LL * 1024 * 1024 + 1)) {
+			big.close();
+			expect(!source.read(QStringLiteral("models/test/huge.gla"), &bytes, &error) && error.contains(QStringLiteral("MiB")),
+				"a companion over 64 MiB is refused before reading");
+		}
+		big.remove();
+	}
+}
+
 void testGlaAlone()
 {
 	const ModelMesh mesh = decodeModelMesh(QStringLiteral("models/test/test_anim.gla"), buildGla(glaSpec()));
@@ -1371,6 +1464,7 @@ int main(int argc, char** argv)
 	testMdmWithMdx();
 	testMdxAlone();
 	testGlmWithGla();
+	testGlmCompanionNamesOnDisk();
 	testGlaAlone();
 	testJediAcademyRemap();
 	testMalformed();

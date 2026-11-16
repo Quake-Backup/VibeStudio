@@ -127,6 +127,37 @@ int main(int argc, char **argv)
 	std::reverse(smooth.weightStrokes[0].samples.begin(), smooth.weightStrokes[0].samples.end());
 	expect(applyModelEdit(&reversed, smooth, nullptr, &error) && rigBytes(reversed) == rigBytes(document.mesh()),
 		   "smoothing is independent of sample order");
+	// Several Smooth strokes in one edit share the surface's adjacency and see
+	// each other's results, as separate edits do.
+	auto twice = smooth;
+	twice.weightStrokes.append(smooth.weightStrokes[0]);
+	twice.weightStrokes.last().samples = {{1, 1}};
+	auto batched = smoothSource, separate = smoothSource;
+	auto secondSmooth = smooth;
+	secondSmooth.weightStrokes = {twice.weightStrokes.last()};
+	expect(applyModelEdit(&batched, twice, nullptr, &error) && applyModelEdit(&separate, smooth, nullptr, &error) &&
+			   applyModelEdit(&separate, secondSmooth, nullptr, &error) && rigBytes(batched) == rigBytes(separate),
+		   "batched smooth strokes match separate edits");
+	// A binding stored out of vertex order paints to the same weights, written
+	// back in vertex order.
+	auto scattered = smoothSource;
+	{
+		auto &skin = scattered.surfaces[0].skinning;
+		QVector<ModelJointInfluence> influences;
+		for (int v = int(skin.first.size()) - 1; v >= 0; --v)
+		{
+			const int from = skin.first[v];
+			skin.first[v] = int(influences.size());
+			for (int i = from; i < from + skin.count[v]; ++i)
+				influences.append(smoothSource.surfaces[0].skinning.influences[i]);
+		}
+		skin.influences = influences;
+	}
+	auto ordered = smoothSource;
+	expect(applyModelEdit(&scattered, smooth, nullptr, &error) && applyModelEdit(&ordered, smooth, nullptr, &error) &&
+			   rigBytes(scattered) == rigBytes(ordered) && scattered.surfaces[0].skinning.first == ordered.surfaces[0].skinning.first &&
+			   scattered.surfaces[0].skinning.first.value(0) == 0,
+		   "a scattered binding paints to the ordered result");
 	const auto locked = lockedFixture();
 	auto lockEdit = paint("tip", 1, 1);
 	lockEdit.weightStrokes[0].lockedJoints = {"fixed"};
@@ -140,6 +171,23 @@ int main(int argc, char **argv)
 	const auto &newLock = lockResult.surfaces[0].skinning.influences[1];
 	expect(oldLock.weight == newLock.weight && same(oldLock.offset, newLock.offset) && same(oldLock.normalOffset, newLock.normalOffset),
 		   "locked influence and offsets stay exact");
+	// Three locked float thirds sum just above one, within the normalisation
+	// tolerance: the stroke has no budget and leaves the vertex alone.
+	auto thirds = locked;
+	thirds.skeleton.joints.append({"extra", 0, modelJointIdentity()});
+	for (auto &clip : thirds.skeleton.clips)
+		for (auto &pose : clip.frames)
+			pose.append(modelJointIdentity());
+	for (auto &w : thirds.surfaces[0].skinning.influences)
+		w.weight = float(1.0 / 3);
+	expect(bakeModelSkeleton(&thirds), "bake the locked-thirds fixture");
+	updateEditableModelMetadata(&thirds);
+	auto thirdsEdit = paint("extra", 1, 1);
+	thirdsEdit.weightStrokes[0].lockedJoints = {"root", "tip", "fixed"};
+	thirdsEdit.weightStrokes[0].samples = {{0, 1}};
+	const auto thirdsBytes = rigBytes(thirds);
+	expect(applyModelEdit(&thirds, thirdsEdit, nullptr, &error) && rigBytes(thirds) == thirdsBytes,
+		   "locked thirds within the tolerance leave nothing to paint");
 	auto reduce = paint("root", 0, 1);
 	reduce.weightStrokes[0].samples = {{0, 1}};
 	auto candidate = mesh;

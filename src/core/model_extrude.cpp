@@ -120,7 +120,10 @@ bool extrudeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *select
 		}
 	}
 	QSet<int> touched, candidates;
-	const auto seams = surface.uvSeams;
+	// Seam marks by their lower index, so each region looks only at its corners'.
+	QHash<int, QVector<ModelEdge>> seamsAt;
+	for (const auto edge : std::as_const(surface.uvSeams))
+		seamsAt[std::min(edge.first, edge.second)].append(edge);
 	for (int r = 0; r < regions.size(); ++r)
 	{
 		const auto &region = regions[r];
@@ -135,6 +138,7 @@ bool extrudeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *select
 		QSet<int> groups;
 		for (int v : std::as_const(corners))
 			groups.insert(topology.group(v));
+		const QSet<int> regionSet(region.cbegin(), region.cend());
 		// Each group's offset in each pose.
 		QHash<int, QVector<P3>> shift;
 		for (int frame = 0; frame < frames; ++frame)
@@ -155,10 +159,14 @@ bool extrudeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *select
 				{
 					// The region's own vertex normal, scaled so every face moves the
 					// whole distance along its own normal when even thickness is on.
+					// Region faces at the group in ascending order, as the region
+					// lists them; faces away from the group would add nothing.
 					P3 sum{0, 0, 0};
 					QVector<P3> cornersAt;
-					for (int face : region)
+					for (int face : topology.groupFaces[group])
 					{
+						if (!regionSet.contains(face))
+							continue;
 						const P3 c = matchingCornerNormal(surface, frame, surface.triangles[face],
 														  [&](int v) { return topology.group(v) == group; });
 						if (length(c) > 0)
@@ -209,10 +217,13 @@ bool extrudeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *select
 			added.append({copyOf.value(t.a), copyOf.value(t.b), copyOf.value(t.c)});
 			addedSources.append(face);
 		}
-		for (const auto edge : seams)
+		for (int v : std::as_const(corners))
 		{
-			if (copyOf.contains(edge.first) && copyOf.contains(edge.second))
-				surface.uvSeams.insert(modelEdge(copyOf.value(edge.first), copyOf.value(edge.second)));
+			for (const auto edge : seamsAt.value(v))
+			{
+				if (copyOf.contains(edge.first) && copyOf.contains(edge.second))
+					surface.uvSeams.insert(modelEdge(copyOf.value(edge.first), copyOf.value(edge.second)));
+			}
 		}
 		const auto &border = borders[r];
 		if (tile <= 0)

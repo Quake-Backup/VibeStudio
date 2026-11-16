@@ -24,6 +24,7 @@
 #include <QProcess>
 #include <QTemporaryDir>
 
+#include <cmath>
 #include <iostream>
 
 using namespace vibestudio;
@@ -138,6 +139,178 @@ ModelMesh mdlCube()
 	QString error;
 	applyModelEdit(&mesh, add, nullptr, &error);
 	return mesh;
+}
+// The -X and +X faces of the cube as mirrored halves sharing one UV square,
+// offset by whole repeats of the skin; the -X half comes first.
+ModelMesh sharedHalves(float du, float dv)
+{
+	const ModelVec3 faces[2][4] = {{{-1, 1, -1}, {-1, -1, -1}, {-1, -1, 1}, {-1, 1, 1}}, {{1, -1, -1}, {1, 1, -1}, {1, 1, 1}, {1, -1, 1}}};
+	const ModelVec3 normals[2] = {{-1, 0, 0}, {1, 0, 0}};
+	ModelSurface surface;
+	surface.name = "halves";
+	ModelFrameGeometry pose;
+	for (int k = 0; k < 2; ++k)
+	{
+		const int base = int(pose.positions.size());
+		for (int c = 0; c < 4; ++c)
+		{
+			pose.positions.append(faces[k][c]);
+			pose.normals.append(normals[k]);
+		}
+		surface.texCoords.append({du, dv + 1});
+		surface.texCoords.append({du + 1, dv + 1});
+		surface.texCoords.append({du + 1, dv});
+		surface.texCoords.append({du, dv});
+		surface.triangles.append({base, base + 1, base + 2});
+		surface.triangles.append({base, base + 2, base + 3});
+	}
+	surface.frames = {pose};
+	surface.vertexCount = int(pose.positions.size());
+	ModelMesh mesh;
+	mesh.geometryAvailable = true;
+	mesh.surfaces = {surface};
+	mesh.frames = {ModelFrameInfo{0, "frame", {}, {}, {}, 0}};
+	updateEditableModelMetadata(&mesh);
+	return mesh;
+}
+int changedTexels(const QImage &a, const QImage &b)
+{
+	int count = 0;
+	for (int y = 0; y < a.height(); ++y)
+		for (int x = 0; x < a.width(); ++x)
+			count += a.pixel(x, y) != b.pixel(x, y) ? 1 : 0;
+	return count;
+}
+// The stroke painted through a session growing a few samples at a time must
+// be exactly the stroke painted at once.
+bool incrementalMatches(const ModelMesh &mesh, const ModelSkinPaintView &view, const ModelSkinPaintStroke &stroke, const QImage &start)
+{
+	QString error;
+	QImage whole = start;
+	ModelSkinPaintResult wholeResult;
+	if (!paintModelSkinStroke(mesh, 0, 0, view, stroke, &whole, &wholeResult, &error))
+		return false;
+	ModelSkinPaintStroke first = stroke;
+	first.samples = {stroke.samples.first()};
+	ModelSkinPaintSession session;
+	if (!session.begin(mesh, 0, 0, view, first, start, &error))
+		return false;
+	for (qsizetype at = 1, step = 1; at < stroke.samples.size(); at += step, ++step)
+		if (!session.extend(stroke.samples.mid(at, step), &error))
+			return false;
+	const ModelSkinPaintResult grown = session.result();
+	return wholeResult.texels > 0 && session.skin() == whole && grown.texels == wholeResult.texels && grown.dirty == wholeResult.dirty;
+}
+void sharedAndIncremental(const ModelMesh &cubeMesh)
+{
+	QString error;
+	// Mirrored halves share the UV square, and the hidden -X half claims every
+	// texel first: painting the +X half in view must still paint them.
+	const ModelMesh halves = sharedHalves(0, 0);
+	ModelSkinPaintStroke dab;
+	dab.brush.radius = 20;
+	dab.brush.padding = 0;
+	dab.brush.mode = ModelSkinPaintMode::Replace;
+	dab.samples = {{64, 64}};
+	QImage blank(64, 64, QImage::Format_ARGB32);
+	blank.fill(Qt::white);
+	const ModelSkinPaintView fromPlusX = viewFrom(halves, 0);
+	QImage shared = blank;
+	ModelSkinPaintResult result;
+	expect(paintModelSkinStroke(halves, 0, 0, fromPlusX, dab, &shared, &result, &error) && result.texels > 50 &&
+			   changedTexels(shared, blank) == result.texels && shared.pixel(32, 32) == dab.brush.colour.rgb(),
+		   "texels shared by mirrored halves paint where the later, visible half is under the brush");
+	QImage otherSide = blank;
+	expect(paintModelSkinStroke(halves, 0, 0, viewFrom(halves, 180), dab, &otherSide, &result, &error) && result.texels > 50,
+		   "the earlier half paints the shared texels from its own side too");
+
+	// UVs a whole number of repeats away paint the same texels, as the preview
+	// shows them, and smudge reads across the repeat in the same way.
+	const ModelMesh tiled = sharedHalves(1, -2);
+	QImage tiledSkin = blank;
+	expect(paintModelSkinStroke(tiled, 0, 0, viewFrom(tiled, 0), dab, &tiledSkin, &result, &error) && result.texels > 50 && tiledSkin == shared,
+		   "a stroke on UVs outside 0-1 paints the texels they wrap to");
+	QImage halvesSkin = blank;
+	for (int y = 0; y < 64; ++y)
+		for (int x = 0; x < 32; ++x)
+			halvesSkin.setPixel(x, y, qRgb(0, 0, 0));
+	ModelSkinPaintStroke smudge;
+	smudge.brush.radius = 10;
+	smudge.brush.padding = 1;
+	smudge.brush.mode = ModelSkinPaintMode::Smudge;
+	for (int x = 40; x <= 90; x += 2)
+		smudge.samples.append(QPointF(x, 64));
+	QImage smudgedPlain = halvesSkin, smudgedTiled = halvesSkin;
+	expect(paintModelSkinStroke(halves, 0, 0, fromPlusX, smudge, &smudgedPlain, &result, &error) && result.texels > 10 &&
+			   paintModelSkinStroke(tiled, 0, 0, viewFrom(tiled, 0), smudge, &smudgedTiled, nullptr, &error) && smudgedTiled == smudgedPlain,
+		   "smudging tiled UVs drags the skin as smudging the same layout in 0-1 does");
+	QImage preview = renderModelSkinPaintPreview(tiled, 0, viewFrom(tiled, 0), {{0, tiledSkin}}, Qt::black);
+	expect(preview == renderModelSkinPaintPreview(halves, 0, fromPlusX, {{0, shared}}, Qt::black) &&
+			   renderModelSkinPaintPreview(modelSkinPaintPreviewMap(halves, 0, fromPlusX, {{0, QSize(64, 64)}}), {{0, shared}}, Qt::black) ==
+				   renderModelSkinPaintPreview(halves, 0, fromPlusX, {{0, shared}}, Qt::black),
+		   "the preview shows the tiled skin as painted, and a preview map draws what the model draws");
+
+	// Mix blends straight alpha over: half coverage on a transparent texel is
+	// the brush colour at half alpha, not a darkened colour.
+	QImage clear(64, 64, QImage::Format_ARGB32);
+	clear.fill(Qt::transparent);
+	ModelSkinPaintStroke half = dab;
+	half.brush.mode = ModelSkinPaintMode::Mix;
+	half.brush.opacity = 0.5;
+	half.brush.hardness = 1.0;
+	QImage overClear = clear, overWhite = blank;
+	const QColor colour = half.brush.colour;
+	expect(paintModelSkinStroke(halves, 0, 0, fromPlusX, half, &overClear, nullptr, &error) && overClear.pixel(32, 32) == qRgba(colour.red(), colour.green(), colour.blue(), 128),
+		   "half coverage over a transparent texel keeps the brush colour at half alpha");
+	const auto lerp = [](int a, int b) { return int(std::lround(a + (b - a) * 0.5)); };
+	expect(paintModelSkinStroke(halves, 0, 0, fromPlusX, half, &overWhite, nullptr, &error) &&
+			   overWhite.pixel(32, 32) == qRgba(lerp(255, colour.red()), lerp(255, colour.green()), lerp(255, colour.blue()), 255),
+		   "over an opaque texel Mix is the plain blend");
+
+	// A stroke grown sample by sample, as the paint dialog paints it, equals
+	// the recorded stroke replayed at once: soft, mirrored and padded, with a
+	// stamp, a smudge and an indexed skin.
+	ModelSkinPaintCamera camera;
+	camera.yaw = 30;
+	camera.pitch = 20;
+	camera.size = {128, 128};
+	ModelSkinPaintView angled;
+	buildModelSkinPaintView(cubeMesh, 0, camera, &angled, &error);
+	ModelSkinPaintStroke soft;
+	soft.brush.radius = 9;
+	soft.brush.opacity = 0.6;
+	soft.brush.hardness = 0.2;
+	soft.brush.padding = 3;
+	soft.brush.mirrorAxis = 1;
+	for (int i = 0; i < 28; ++i)
+		soft.samples.append(QPointF(30 + i * 2.5, 50 + 20 * std::sin(i / 4.0)));
+	QImage start(96, 64, QImage::Format_ARGB32);
+	start.fill(Qt::white);
+	for (int y = 0; y < 64; ++y)
+		for (int x = 0; x < 96; x += 2)
+			start.setPixel(x, y, qRgb(x * 2, y * 3, 90));
+	expect(incrementalMatches(cubeMesh, angled, soft, start), "a soft, mirrored, padded stroke grown sample by sample equals its replay");
+	QImage stamp(6, 6, QImage::Format_ARGB32);
+	stamp.fill(Qt::transparent);
+	for (int i = 0; i < 6; ++i)
+		stamp.setPixel(i, i, qRgba(0, 200, 0, 160));
+	ModelSkinPaintStroke stamped = soft;
+	stamped.brush.stamp = stamp;
+	expect(incrementalMatches(cubeMesh, angled, stamped, start), "a stamp stroke grown sample by sample equals its replay");
+	ModelSkinPaintStroke dragged = soft;
+	dragged.brush.mode = ModelSkinPaintMode::Smudge;
+	expect(incrementalMatches(cubeMesh, angled, dragged, start), "a smudge grown sample by sample equals its replay");
+	QImage indexed(96, 64, QImage::Format_Indexed8);
+	QVector<QRgb> table;
+	for (int i = 0; i < 256; ++i)
+		table << qRgb(i, i, 255 - i);
+	indexed.setColorTable(table);
+	indexed.fill(3);
+	ModelSkinPaintStroke indexedStroke = soft;
+	indexedStroke.brush.opacity = 1.0;
+	expect(incrementalMatches(cubeMesh, angled, indexedStroke, indexed), "an indexed stroke grown sample by sample equals its replay");
+	ModelSkinPaintSession idle;
+	expect(!idle.active() && !idle.extend({{1, 1}}, &error) && idle.skin().isNull(), "an idle session refuses samples");
 }
 } // namespace
 
@@ -319,6 +492,8 @@ int main(int argc, char **argv)
 				known &= indexedSmudge.pixelIndex(x, y) == 0 || indexedSmudge.pixelIndex(x, y) == 255;
 		expect(known && result.texels > 0, "indexed smudging moves palette indices without inventing new ones");
 	}
+
+	sharedAndIncremental(mesh);
 
 	// Back into the model: the painted MDL skin replaces its slot as one edit.
 	const ModelMesh quake = mdlCube();

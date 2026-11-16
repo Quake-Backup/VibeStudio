@@ -22,6 +22,8 @@
 #include <QPushButton>
 #include <QTimer>
 
+#include <memory>
+
 namespace vibestudio
 {
 struct ModelSourceWatchState
@@ -254,7 +256,7 @@ bool ModelEditorDialog::reloadSource(QString *error)
 	return reloaded;
 }
 
-QString ModelEditorDialog::sourceComparisonText() const
+QString ModelEditorDialog::sourceComparisonText()
 {
 	const QString path = m_sourceWatch ? m_sourceWatch->path : QString();
 	const QLocale locale;
@@ -276,13 +278,25 @@ QString ModelEditorDialog::sourceComparisonText() const
 		return lines.join(QLatin1Char('\n'));
 	}
 	const QString when = locale.toString(info.lastModified(), QLocale::ShortFormat);
-	// Larger files are summarised by size and time; reading them belongs on the worker.
-	QByteArray bytes;
-	ModelMesh disk;
-	if (info.size() <= 16LL * 1024 * 1024 && readModelFile(path, &bytes) && parseEditableModel(bytes, &disk))
+	// Larger files are summarised by size and time. Up to 16 MiB is read and
+	// parsed on the editor's worker, behind its progress surface; the
+	// document itself is left as it is.
+	auto disk = std::make_shared<ModelMesh>();
+	auto parsed = std::make_shared<bool>(false);
+	if (info.size() <= 16LL * 1024 * 1024 &&
+		performWork(QCoreApplication::translate("VibeStudioModelEditor", "Read the File on Disk"),
+			[path, disk, parsed](ModelDocument &, QString *, const ModelWorkControl &)
+			{
+				QByteArray bytes;
+				*parsed = readModelFile(path, &bytes) && parseEditableModel(bytes, disk.get());
+				if (*parsed)
+					updateEditableModelMetadata(disk.get());
+				return true;
+			},
+			nullptr, false, WorkKind::Preview) &&
+		*parsed)
 	{
-		updateEditableModelMetadata(&disk);
-		lines << QCoreApplication::translate("VibeStudioModelEditor", "On disk: %1, saved %2.").arg(summary(disk), when);
+		lines << QCoreApplication::translate("VibeStudioModelEditor", "On disk: %1, saved %2.").arg(summary(*disk), when);
 	}
 	else
 	{

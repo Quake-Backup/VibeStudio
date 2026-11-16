@@ -4,6 +4,7 @@
 
 #include <QCoreApplication>
 #include <QJsonArray>
+#include <QVarLengthArray>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -115,10 +116,15 @@ class FaceTree
 		Nearest best;
 		if (m_nodes.isEmpty())
 			return best;
-		QVector<int> stack{0};
+		// Called once per texel: the stack stays on the call stack for any
+		// tree up to about 60 levels deep and moves to the heap beyond that.
+		QVarLengthArray<int, 64> stack;
+		stack.append(0);
 		while (!stack.isEmpty())
 		{
-			const auto &node = m_nodes[stack.takeLast()];
+			const int top = stack.last();
+			stack.removeLast();
+			const auto &node = m_nodes[top];
 			if (boxDistance2(node, p) > best.distance2)
 				continue;
 			if (node.count > 0)
@@ -301,6 +307,23 @@ bool transferModelSkin(const ModelSurface &before, const ModelSurface &after, co
 				carriers.append(face);
 		}
 	const FaceTree tree(oldCorners, carriers);
+	// Bilinear blends of indexed skins repeat few colours; a small
+	// direct-mapped cache of their nearest palette entries saves a palette
+	// scan per texel. nearestIndex ignores alpha, so entries are keyed by RGB.
+	struct PaletteSlot
+	{
+		QRgb rgb = 0;
+		int index = -1;
+	};
+	QVector<PaletteSlot> paletteCache(indexed && options.filter != ModelSkinTransferFilter::Nearest ? 4096 : 0);
+	const auto nearestCached = [&](QRgb colour)
+	{
+		const QRgb rgb = colour & 0xffffffu;
+		auto &slot = paletteCache[int((rgb * 2654435761u) >> 20) & 4095];
+		if (slot.index < 0 || slot.rgb != rgb)
+			slot = {rgb, nearestIndex(table, colour)};
+		return slot.index;
+	};
 	const auto sample = [&](double u, double v, int *index) -> QRgb
 	{
 		const double x = u * sw, y = v * sh;
@@ -334,7 +357,7 @@ bool transferModelSkin(const ModelSurface &before, const ModelSurface &after, co
 		const QRgb blended = qRgba(int(std::lround(channel[0])), int(std::lround(channel[1])), int(std::lround(channel[2])),
 								   int(std::lround(channel[3])));
 		if (indexed)
-			*index = nearestIndex(table, blended);
+			*index = nearestCached(blended);
 		return blended;
 	};
 	const int faces = byFaces ? shared : int(after.triangles.size());

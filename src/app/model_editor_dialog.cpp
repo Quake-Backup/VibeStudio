@@ -24,6 +24,7 @@
 #include "app/status_line_label.h"
 #include "app/studio_icons.h"
 #include "app/studio_layout.h"
+#include "app/studio_progress.h"
 #include "app/wrapping_action_button.h"
 #include "app/wrapping_check_box.h"
 #include "core/model_tags.h"
@@ -82,6 +83,20 @@
 
 namespace vibestudio
 {
+namespace
+{
+// Every model worker (app/model_document_work.h), in this editor or any
+// modeller dialog, counts in the window's work tracker while it runs, so the
+// status bar's activity ring turns during imports, exports, audits and edits.
+[[maybe_unused]] const bool modelWorkReported = []
+{
+	setModelWorkReporter({[](const QString &title) { return studioWorkTracker().begin(title); },
+						  [](int token, int perMille)
+						  { studioWorkTracker().setProgress(token, perMille < 0 ? OperationProgress{} : OperationProgress{perMille, 1000}); },
+						  [](int token) { studioWorkTracker().end(token); }});
+	return true;
+}();
+} // namespace
 class ModelComponentView final : public QTableView
 {
   public:
@@ -447,6 +462,10 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	m_undo = action(QCoreApplication::translate("VibeStudioModelEditor", "Undo"), QStringLiteral("undoMesh"),
 					[this]()
 					{
+						// The header's Undo takes no focus from the view, so a
+						// running modal tool ends here rather than on focus loss.
+						if (m_tools && m_document.canUndo())
+							m_tools->cancelModalForDocumentChange();
 						if (m_document.undo())
 						{
 							refresh();
@@ -455,6 +474,8 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	m_redo = action(QCoreApplication::translate("VibeStudioModelEditor", "Redo"), QStringLiteral("redoMesh"),
 					[this]()
 					{
+						if (m_tools && m_document.canRedo())
+							m_tools->cancelModalForDocumentChange();
 						if (m_document.redo())
 						{
 							refresh();
@@ -470,13 +491,13 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 		addAction(a);
 	}
 	m_modelMenu->addAction(action(QCoreApplication::translate("VibeStudioModelEditor", "Export MDL…"), QStringLiteral("exportMeshMdl"),
-		[this]() { exportModel(QStringLiteral("mdl")); }));
+		[this]() { syncDeliveryContext(); exportModel(QStringLiteral("mdl")); }));
 	m_modelMenu->addAction(action(QCoreApplication::translate("VibeStudioModelEditor", "Export MD2…"), QStringLiteral("exportMeshMd2"),
-		[this]() { exportModel(QStringLiteral("md2")); }));
+		[this]() { syncDeliveryContext(); exportModel(QStringLiteral("md2")); }));
 	m_modelMenu->addAction(action(QCoreApplication::translate("VibeStudioModelEditor", "Export MD3…"), QStringLiteral("exportMeshMd3"),
-		[this]() { exportModel(QStringLiteral("md3")); }));
+		[this]() { syncDeliveryContext(); exportModel(QStringLiteral("md3")); }));
 	m_modelMenu->addAction(action(QCoreApplication::translate("VibeStudioModelEditor", "Export OBJ Frame…"), QStringLiteral("exportMeshObj"),
-		[this]() { exportModel(QStringLiteral("obj")); }));
+		[this]() { syncDeliveryContext(); exportModel(QStringLiteral("obj")); }));
 	// The skeletal and idTech 4 formats share one submenu.
 	auto *otherFormats = new QMenu(QCoreApplication::translate("VibeStudioModelEditor", "Export Other Format"), this);
 	otherFormats->setObjectName(QStringLiteral("meshExportFormatsMenu"));
@@ -492,7 +513,8 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 				{
 					if (!m_working)
 					{
-						exportModel(format);
+						syncDeliveryContext();
+					exportModel(format);
 					}
 				});
 	};
@@ -589,6 +611,7 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	componentLayout->addWidget(m_table, 1);
 	auto *selectAll = new QPushButton(QCoreApplication::translate("VibeStudioModelEditor", "Select All"));
 	selectAll->setObjectName(QStringLiteral("selectAllMeshComponents"));
+	m_selectAllComponents = selectAll;
 	connect(selectAll, &QPushButton::clicked, m_table, &QTableView::selectAll);
 	componentLayout->addWidget(selectAll);
 	// Panels live on two tabbed sidebars, as on the Levels page; the profile's
@@ -810,6 +833,8 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 		control->setObjectName(name);
 		control->setProperty("requiresMeshComponents", kind != ModelEditKind::Transform && kind != ModelEditKind::SetMaterial &&
 			kind != ModelEditKind::SetMd2SkinSize && kind != ModelEditKind::DuplicateFrame && kind != ModelEditKind::DeleteFrame && kind != ModelEditKind::RenameFrame);
+		if (control->property("requiresMeshComponents").toBool())
+			m_meshComponentButtons.append(control);
 		connect(control, &QPushButton::clicked, this, [this, kind]() { execute(kind); });
 		form->addRow(control);
 		return control;
@@ -998,9 +1023,9 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	animation->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Frame name"), m_frameName);
 	button(animation, QCoreApplication::translate("VibeStudioModelEditor", "Rename Frame"), QStringLiteral("renameMeshFrame"),
 		   ModelEditKind::RenameFrame);
-	button(animation, QCoreApplication::translate("VibeStudioModelEditor", "Duplicate Frame"), QStringLiteral("duplicateMeshFrame"),
+	m_duplicateFrameButton = button(animation, QCoreApplication::translate("VibeStudioModelEditor", "Duplicate Frame"), QStringLiteral("duplicateMeshFrame"),
 		   ModelEditKind::DuplicateFrame);
-	button(animation, QCoreApplication::translate("VibeStudioModelEditor", "Delete Frame"), QStringLiteral("deleteMeshFrame"),
+	m_deleteFrameButton = button(animation, QCoreApplication::translate("VibeStudioModelEditor", "Delete Frame"), QStringLiteral("deleteMeshFrame"),
 		   ModelEditKind::DeleteFrame);
 	addAnimationControls(animation);
 	addTagControls(animation);
@@ -1040,7 +1065,7 @@ ModelEditorDialog::ModelEditorDialog(QWidget *parent) : QDialog(parent)
 	m_virtualPath->setToolTip(QCoreApplication::translate(
 		"VibeStudioModelEditor", "Use .mdl for Quake, .md2 for Quake II or .md3 for Quake III. Export limits apply when staging. "
 								 "The editable source retains authoring metadata. Stage and Place accepts the formats the open map places."));
-	connect(m_virtualPath, &QLineEdit::textChanged, this, [this] { refreshContext(); });
+	connect(m_virtualPath, &QLineEdit::textChanged, this, [this] { refreshContextControls(); });
 	handoffPage->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Package path"), m_virtualPath);
 	m_replace = new WrappingCheckBox(QCoreApplication::translate("VibeStudioModelEditor", "Replace existing entry"));
 	handoffPage->addRow(m_replace);
@@ -1808,7 +1833,7 @@ bool ModelEditorDialog::performWork(const QString &title, ModelDocumentJob job, 
 	{
 		m_recoveryTimer->start();
 	}
-	refreshContext();
+	refreshContextControls();
 	if (m_materialRefreshPending)
 	{
 		m_materialRefreshPending = false;
@@ -1903,6 +1928,8 @@ bool ModelEditorDialog::applyEdit(const ModelEdit &edit, QString *error, ModelEd
 	ModelEditReport pending;
 	m_preview->finishEditMove(false);
 	m_uv->finishMove(false);
+	if (m_tools)
+		m_tools->cancelModalForDocumentChange();
 	// The source of Transfer Skin to New UVs (shared, not copied).
 	const auto unedited = m_document.mesh();
 	const auto title = edit.kind == ModelEditKind::UnwrapUv ? QCoreApplication::translate("VibeStudioModelEditor", "Unwrap and Pack UVs")
@@ -2175,7 +2202,7 @@ void ModelEditorDialog::refresh(bool keepView)
 	{
 		m_uv->frameAll();
 	}
-	refreshContext();
+	refreshContextControls();
 	refreshSkeleton();
 	if (m_tools)
 		m_tools->documentChanged();
@@ -2357,7 +2384,7 @@ void ModelEditorDialog::refreshSelection()
 	m_preview->setVertexPicking(m_selectionMode->currentIndex() == 1);
 	const bool tagMode = m_selectionMode->currentIndex() == 3;
 	const bool collisionMode = m_selectionMode->currentIndex() == 4;
-	findChild<QPushButton *>(QStringLiteral("selectAllMeshComponents"))->setEnabled(!tagMode && !collisionMode && m_selectionMode->currentIndex() != 6);
+	m_selectAllComponents->setEnabled(!tagMode && !collisionMode && m_selectionMode->currentIndex() != 6);
 	m_preview->setCollisionPicking(collisionMode);
 	if (collisionMode)
 	{
@@ -2384,8 +2411,8 @@ void ModelEditorDialog::refreshSelection()
 	{
 		field->setEnabled(!tagTarget);
 	}
-	for (auto *button : findChildren<QPushButton *>())
-		if (button->property("requiresMeshComponents").toBool())
+	for (const auto &button : std::as_const(m_meshComponentButtons))
+		if (button)
 			button->setEnabled(m_selectionMode->currentIndex() < 5);
 	m_xrayVertices->setEnabled(m_selectionMode->currentIndex() == 1);
 	refreshUv();
@@ -2646,6 +2673,14 @@ void ModelEditorDialog::refreshContext()
 		return;
 	}
 	syncDeliveryContext();
+	refreshContextControls();
+}
+void ModelEditorDialog::refreshContextControls()
+{
+	if (m_working)
+	{
+		return;
+	}
 	const auto current = context ? context() : ModelDesignContext{};
 	m_context->setText(
 		QCoreApplication::translate("VibeStudioModelEditor", "Package: %1 · Level: %2")

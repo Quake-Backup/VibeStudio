@@ -15,6 +15,7 @@
 #include <QHBoxLayout>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPushButton>
@@ -101,6 +102,7 @@ ModelSkinPaintDialog::ModelSkinPaintDialog(const ModelMesh &mesh, int surface, i
 	{
 		m_skin = m_skin.convertToFormat(QImage::Format_ARGB32);
 	}
+	m_kept = m_skin;
 	auto *layout = new QHBoxLayout(this);
 	m_canvas = new ModelSkinPaintCanvas(this);
 	layout->addWidget(m_canvas, 1);
@@ -308,6 +310,9 @@ void ModelSkinPaintDialog::rebuildView()
 	QString error;
 	if (!buildModelSkinPaintView(m_mesh, m_frame, m_camera, &m_view, &error))
 		m_status->setText(error);
+	// What every view pixel shows, so painting redraws the preview without
+	// projecting the model again.
+	m_previewMap = modelSkinPaintPreviewMap(m_mesh, m_frame, m_view, {{m_surface, m_skin.size()}});
 	refresh();
 }
 
@@ -346,7 +351,7 @@ void ModelSkinPaintDialog::announce(const QString &text)
 
 QImage ModelSkinPaintDialog::preview() const
 {
-	return renderModelSkinPaintPreview(m_mesh, m_frame, m_view, {{m_surface, m_skin}}, palette().color(QPalette::Base));
+	return renderModelSkinPaintPreview(m_previewMap, {{m_surface, m_skin}}, palette().color(QPalette::Base));
 }
 
 bool ModelSkinPaintDialog::beginStroke(QPointF point)
@@ -359,7 +364,7 @@ bool ModelSkinPaintDialog::beginStroke(QPointF point)
 	m_pending = {};
 	m_pending.brush = brush();
 	m_pending.samples = {point};
-	repaintStroke();
+	repaintStroke({});
 	return true;
 }
 
@@ -376,7 +381,7 @@ bool ModelSkinPaintDialog::beginViewStroke(QPointF point, const ModelSkinPaintVi
 	m_pending.samples = {point};
 	m_pending.hasProjection = true;
 	m_pending.projection = view.projection;
-	repaintStroke();
+	repaintStroke({});
 	return true;
 }
 
@@ -388,25 +393,31 @@ bool ModelSkinPaintDialog::extendStroke(QPointF point)
 	const QPointF last = m_pending.samples.last();
 	const double spacing = std::max(1.0, m_pending.brush.radius / 3.0);
 	const double distance = std::hypot(point.x() - last.x(), point.y() - last.y());
+	QVector<QPointF> added;
 	for (int step = 1; step <= int(distance / spacing); ++step)
-		m_pending.samples.append(last + (point - last) * (step * spacing / distance));
-	m_pending.samples.append(point);
-	repaintStroke();
+		added.append(last + (point - last) * (step * spacing / distance));
+	added.append(point);
+	m_pending.samples += added;
+	repaintStroke(added);
 	return true;
 }
 
-void ModelSkinPaintDialog::repaintStroke()
+void ModelSkinPaintDialog::repaintStroke(const QVector<QPointF> &added)
 {
-	// The whole stroke from the skin it started on, as model paint-skin
-	// replays it, so the result never depends on pointer timing.
-	QImage painted = m_before;
+	// The session paints only what the new samples reach, yet always holds
+	// what model paint-skin paints when it replays the whole recorded stroke
+	// from the skin it started on, so the result never depends on pointer
+	// timing.
 	QString error;
-	if (!paintModelSkinStroke(m_mesh, m_surface, m_frame, strokeView(), m_pending, &painted, nullptr, &error))
+	const bool painted = m_session.active() && !added.isEmpty()
+							 ? m_session.extend(added, &error)
+							 : m_session.begin(m_mesh, m_surface, m_frame, strokeView(), m_pending, m_before, &error);
+	if (!painted)
 	{
 		m_status->setText(error);
 		return;
 	}
-	m_skin = painted;
+	m_skin = m_session.skin();
 	m_canvas->image = preview();
 	m_canvas->update();
 	if (skinChanged)
@@ -419,6 +430,7 @@ bool ModelSkinPaintDialog::finishStroke(bool commit)
 		return false;
 	m_active = false;
 	m_viewStroke = false;
+	m_session.clear();
 	if (!commit)
 	{
 		m_skin = m_before;
@@ -484,8 +496,49 @@ bool ModelSkinPaintDialog::applyToModel()
 			LiveStatus::Problem);
 		return false;
 	}
+	m_kept = m_skin;
 	announce(QCoreApplication::translate("VibeStudioModelSkinPaint", "Applied the painted skin: %1").arg(m_applyButton->toolTip()));
 	return true;
+}
+
+bool ModelSkinPaintDialog::hasUnsavedStrokes() const
+{
+	return m_skin != m_kept;
+}
+
+void ModelSkinPaintDialog::reject()
+{
+	if (m_active)
+		finishStroke(false);
+	if (hasUnsavedStrokes())
+	{
+		bool discard = false;
+		if (discardPrompt)
+		{
+			discard = discardPrompt();
+		}
+		else
+		{
+			QMessageBox box(QMessageBox::Question, QCoreApplication::translate("VibeStudioModelSkinPaint", "Discard Painted Strokes?"),
+				QCoreApplication::translate("VibeStudioModelSkinPaint",
+					"The painted skin has been neither applied to the model nor saved. Close and discard the strokes?"),
+				QMessageBox::NoButton, this);
+			auto *discardButton = box.addButton(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Discard Strokes"), QMessageBox::DestructiveRole);
+			auto *keepButton = box.addButton(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Keep Editing"), QMessageBox::RejectRole);
+			discardButton->setObjectName(QStringLiteral("modelSkinPaintDiscard"));
+			keepButton->setObjectName(QStringLiteral("modelSkinPaintKeepEditing"));
+			box.setDefaultButton(keepButton);
+			box.setEscapeButton(keepButton);
+			box.exec();
+			discard = box.clickedButton() == discardButton;
+		}
+		if (!discard)
+		{
+			announce(QCoreApplication::translate("VibeStudioModelSkinPaint", "Kept the painted strokes; apply or save them before closing."));
+			return;
+		}
+	}
+	QDialog::reject();
 }
 
 void ModelSkinPaintDialog::setPaintInView(bool on)
@@ -509,7 +562,10 @@ bool ModelSkinPaintDialog::saveTo(const QString &path)
 		return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() && file.commit();
 	}();
 	if (written)
+	{
+		m_kept = m_skin;
 		announce(QCoreApplication::translate("VibeStudioModelSkinPaint", "Saved the skin to %1.").arg(QDir::toNativeSeparators(path)));
+	}
 	else
 		setLiveStatus(m_status, error.isEmpty() ? QCoreApplication::translate("VibeStudioModelSkinPaint", "The skin could not be saved to %1.").arg(QDir::toNativeSeparators(path)) : error,
 			LiveStatus::Problem);

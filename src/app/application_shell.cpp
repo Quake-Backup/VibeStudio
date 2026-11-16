@@ -17386,8 +17386,12 @@ void ApplicationShell::refreshStatusChips()
 				: tr("Installation needs review: %1").arg(nativePath(selected.rootPath)));
 	}
 
-	// Discovery walks the search paths on disk, so it is repeated only when the
-	// options change or the last probe is more than a few seconds old.
+	// Discovery walks the search paths on disk, on this thread, so it is
+	// repeated only when the options change or the last probe is a minute old.
+	// Every recorded activity brings the chips up to date, an edit to a map
+	// included: at a few seconds, editing after a pause stalled the page on the
+	// file system each time. Changing a tool's path changes the key, so that
+	// still shows at once.
 	const CompilerRegistryOptions registryOptions = compilerRegistryOptionsForProject(projectPath, m_settings);
 	QStringList overrideKeys;
 	for (const CompilerToolPathOverride& entry : registryOptions.executableOverrides) {
@@ -17396,7 +17400,7 @@ void ApplicationShell::refreshStatusChips()
 	const QString compilerKey = QStringLiteral("%1|%2|%3").arg(projectPath, registryOptions.extraSearchPaths.join(QLatin1Char(';')),
 		overrideKeys.join(QLatin1Char(';')));
 	const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
-	if (compilerKey != m_compilerChipKey || m_compilerChipProbedAtMs < 0 || nowMs - m_compilerChipProbedAtMs > 5000) {
+	if (compilerKey != m_compilerChipKey || m_compilerChipProbedAtMs < 0 || nowMs - m_compilerChipProbedAtMs > 60000) {
 		const CompilerRegistrySummary registry = discoverCompilerTools(registryOptions);
 		m_compilerChipAvailable = 0;
 		for (const CompilerToolDiscovery& tool : registry.tools) {

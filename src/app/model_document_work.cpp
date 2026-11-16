@@ -49,6 +49,11 @@ QString phaseText(ModelWorkPhase phase)
 	}
 	return {};
 }
+ModelWorkReporter &workReporter()
+{
+	static ModelWorkReporter reporter;
+	return reporter;
+}
 class ProgressDialog final : public QDialog
 {
   public:
@@ -143,12 +148,35 @@ bool runModelTask(QWidget *parent, const QString &title, ModelTask task, QString
 	{
 		*cancelAction = [work] { work->cancelled.store(true, std::memory_order_relaxed); };
 	}
+	// The window's activity indicator shows the worker while it runs; the
+	// entry ends on every way out of this function (finished, failed,
+	// cancelled, or the window closed meanwhile).
+	struct ReportedWork
+	{
+		int token = 0;
+		~ReportedWork()
+		{
+			if (token != 0 && workReporter().end)
+				workReporter().end(token);
+		}
+	} reported{workReporter().begin ? workReporter().begin(title) : 0};
 	ProgressDialog progress(parent, title, work);
 	QEventLoop loop;
 	QTimer delay, updates;
 	delay.setSingleShot(true);
 	QObject::connect(&delay, &QTimer::timeout, &progress, &QDialog::show);
-	QObject::connect(&updates, &QTimer::timeout, &progress, [&progress] { progress.refresh(); });
+	QObject::connect(&updates, &QTimer::timeout, &progress,
+					 [&progress, &work, token = reported.token]
+					 {
+						 progress.refresh();
+						 if (token == 0 || !workReporter().progress)
+							 return;
+						 // Per mille keeps large counts in an int; -1 while there is no total.
+						 const auto total = work->total.load(std::memory_order_relaxed);
+						 const auto done = work->completed.load(std::memory_order_relaxed);
+						 const bool measured = total > 0 && !work->cancelled.load(std::memory_order_relaxed);
+						 workReporter().progress(token, measured ? int(std::clamp(double(done) / double(total), 0.0, 1.0) * 1000) : -1);
+					 });
 	auto *thread = QThread::create(
 		[work, task = std::move(task)]
 		{
@@ -234,5 +262,9 @@ bool runModelDocumentWork(QWidget *parent, const QString &title, ModelDocument *
 	}
 	*document = std::move(candidate);
 	return true;
+}
+void setModelWorkReporter(ModelWorkReporter reporter)
+{
+	workReporter() = std::move(reporter);
 }
 } // namespace vibestudio

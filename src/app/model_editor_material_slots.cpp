@@ -46,6 +46,8 @@ void ModelEditorDialog::addMaterialSlotControls(QFormLayout *surface)
 		const auto &item = m_document.mesh().surfaces[m_document.selection().surface];
 		m_previewMaterialSlots.insert(item.name, slot);
 		m_material->setText(item.skinPaths.value(slot));
+		m_materialFieldKey = m_document.revisionFingerprint() + '|' + QByteArray::number(m_document.selection().surface) + '|' +
+							 QByteArray::number(slot);
 		refreshMaterial();
 	});
 	connect(m_manageMaterialSlots, &QPushButton::clicked, this, [this] {
@@ -113,7 +115,15 @@ void ModelEditorDialog::refreshMaterialSlots()
 											   "Add, replace, remove or reorder this surface's external material bindings.")
 				 : QCoreApplication::translate("VibeStudioModelEditor", "Embedded MDL skins use the Animation inspector's skin controls."));
 	m_manageMaterialSlots->setToolTip(m_manageMaterialSlots->accessibleDescription());
-	m_material->setText(surface.skinPaths.value(slot));
+	// A path typed into the field stays while the user picks faces; another
+	// surface, slot or edit shows that slot's path again.
+	const auto fieldKey = m_document.revisionFingerprint() + '|' + QByteArray::number(m_document.selection().surface) + '|' +
+						  QByteArray::number(slot);
+	if (fieldKey != m_materialFieldKey)
+	{
+		m_materialFieldKey = fieldKey;
+		m_material->setText(surface.skinPaths.value(slot));
+	}
 	m_material->setEnabled(external);
 	m_assignMaterial->setEnabled(external);
 	m_showMaterial->setEnabled(external && !surface.skinPaths.isEmpty());

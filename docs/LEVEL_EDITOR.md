@@ -1829,6 +1829,70 @@ large material sets, realistic projects, memory peaks and native platforms
 still need separate measurement and improvement. Timings are machine/build
 evidence, not portable pass/fail limits.
 
+## Edit Operation Scaling
+
+Edits to the level document cost what the edit touches, not what the map
+holds. Records are found by id with a binary search, since ids rise along
+each list, with the linear scan kept as the fallback for any order an edit
+did not keep. Undo and redo ask which hidden or shown names still exist
+without naming every object of the map. A selection change is checked first
+and then made in place, not on a copy of the document. Edits of many
+surfaces or brushes gather source-line ownership once. Undoing a large
+deletion weaves the objects back in one pass. Adding or deleting entities
+leaves the texture list alone. Saving rewrites moved face points with a hand
+scanner in one pass per line, and opening a map skips the preflight patterns
+on lines that cannot match them.
+
+`level_edit_benchmark` is the developer harness for this, separate from CI
+timing thresholds: it opens a synthetic map of 100 to 100,000 brushes from
+text and prints JSON timings for one-object edits (select, move, undo, redo,
+add) and whole-map edits (move, rotate, retexture, duplicate, delete, undo,
+save). Times are the thread's CPU time, so other work on the machine does not
+distort them. Run it at two sizes, for example
+`builddir/src/level_edit_benchmark 4000` and `16000` (`.exe` on Windows), and
+compare: a one-object edit should cost about the same at both, a whole-map
+edit should grow in step with the map.
+
+On a Windows Clang debug build with 4,000 brushes, measured before and after
+this work on one machine: undoing or redoing one move fell from about 14 ms
+to under 0.1 ms, a selection change with history from 1.8 ms to 0.2 ms,
+adding an entity from 7.8 ms to 0.3 ms, moving every brush from 264 ms to
+about 40 ms, and retexturing every brush from 1.1 s to about 0.2 s. These are
+local debug figures, not release measurements or portable limits.
+`level-edit-scaling-smoke` checks the behaviour the faster paths must keep:
+records out of id order, refused selections, shared-line refusals that read
+the same for few and many surfaces, restored order after undo, hidden objects
+followed through structural edits, and face lines rewritten without
+disturbing the rest of the line.
+
+Adding a brush, rotating many brushes with texture lock and saving a heavily
+edited map still do work for every face of the map or of the selection; they
+grow in step with it but with a larger cost per face than the edits above.
+
+The Levels page is now the larger cost of an edit. It refreshes its panels in
+full after each one: with 2,000 brushes in the same debug build, nudging one
+brush takes about half a second of the interface thread, against well under a
+millisecond for the edit itself. Samples put about three fifths of that in the
+page refresh (the inspector rows, command states, map settings and the scene
+selection context, which still names every object of the map), a quarter in
+preparing the edit behind its progress window, which is built for every edit
+though few run long enough to show it, and the rest in recording the activity
+and saving it to settings. Two parts of it are gone: the linked-group queries
+the refresh makes return at once on a map with no linked group or with nothing
+selected, and the status bar's compiler chip probes the disk at most once a
+minute rather than every five seconds, which had stalled the first edit after
+any pause. Refreshing only what an edit changed, and sharing one selection
+context across a refresh, remain to do. None of this has release-build or
+production-map evidence yet. Status: Partial.
+
+A Quake-family `.map` that is not valid UTF-8 is read one character a byte
+and saved the same way (`LevelMapDocument::sourceTextEightBit`), so 8-bit text
+from older editors survives an edit and a save byte for byte. It used to be
+read as UTF-8, which replaced each such byte and wrote the replacement out on
+the next save. Characters beyond 8 bits added later make the save UTF-8, with
+a warning in the save report. A file that opens with a UTF-8 mark keeps the
+UTF-8 reading.
+
 ## Doom Camera Editing
 
 Binary Doom and Hexen maps now render floors, ceilings, solid wall parts and

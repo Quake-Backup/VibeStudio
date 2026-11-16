@@ -1,5 +1,6 @@
 #include "core/model_recovery.h"
 #include "core/model_uv_atlas.h"
+#include "core/model_uv_mapping.h"
 #include "tests/model_uv_test_helpers.h"
 
 #include <QCoreApplication>
@@ -143,12 +144,113 @@ bool bounded(const ModelMesh &mesh, int size, int padding)
 	}
 	return true;
 }
+// The overlap scan as a plain sweep on min X, the way it always reported its
+// pairs: by sweep position, then sorted unless capped by `maxPairs`.
+QVector<QPair<int, int>> sweepOverlaps(const QVector<ModelTexCoord> &uv, const QVector<uint32_t> &indices, int maxPairs)
+{
+	struct Box
+	{
+		std::array<ModelTexCoord, 3> p;
+		double minX, maxX, minY, maxY;
+		int index;
+	};
+	QVector<Box> boxes;
+	for (int i = 0; i + 2 < indices.size(); i += 3)
+	{
+		Box box{{uv[indices[i]], uv[indices[i + 1]], uv[indices[i + 2]]}, 0, 0, 0, 0, i / 3};
+		box.minX = std::min({box.p[0].u, box.p[1].u, box.p[2].u});
+		box.maxX = std::max({box.p[0].u, box.p[1].u, box.p[2].u});
+		box.minY = std::min({box.p[0].v, box.p[1].v, box.p[2].v});
+		box.maxY = std::max({box.p[0].v, box.p[1].v, box.p[2].v});
+		boxes.append(box);
+	}
+	const auto separated = [](const Box &a, const Box &b)
+	{
+		for (const Box *t : {&a, &b})
+			for (int i = 0; i < 3; ++i)
+			{
+				const auto p = t->p[i], q = t->p[(i + 1) % 3];
+				const double x = double(q.v) - p.v, y = double(p.u) - q.u;
+				double loA = 1e20, hiA = -1e20, loB = 1e20, hiB = -1e20;
+				for (int j = 0; j < 3; ++j)
+				{
+					const double pa = x * a.p[j].u + y * a.p[j].v, pb = x * b.p[j].u + y * b.p[j].v;
+					loA = std::min(loA, pa);
+					hiA = std::max(hiA, pa);
+					loB = std::min(loB, pb);
+					hiB = std::max(hiB, pb);
+				}
+				if (std::min(hiA, hiB) - std::max(loA, loB) <= 1e-10 * std::hypot(x, y))
+					return true;
+			}
+		return false;
+	};
+	std::stable_sort(boxes.begin(), boxes.end(), [](const Box &a, const Box &b) { return a.minX < b.minX; });
+	QVector<QPair<int, int>> pairs;
+	for (int i = 0; i < boxes.size(); ++i)
+		for (int j = i + 1; j < boxes.size() && boxes[j].minX < boxes[i].maxX; ++j)
+		{
+			if (boxes[i].maxY <= boxes[j].minY || boxes[j].maxY <= boxes[i].minY || separated(boxes[i], boxes[j]))
+				continue;
+			pairs.append({std::min(boxes[i].index, boxes[j].index), std::max(boxes[i].index, boxes[j].index)});
+			if (maxPairs > 0 && pairs.size() >= maxPairs)
+				return pairs;
+		}
+	std::sort(pairs.begin(), pairs.end());
+	return pairs;
+}
+bool overlapScanMatchesSweep()
+{
+	bool ok = true;
+	QString error;
+	// A packed atlas of 80,000 triangles that touch but never overlap: the
+	// scan compares neighbours only, well inside its work limit.
+	constexpr int cells = 200;
+	QVector<ModelTexCoord> uv;
+	QVector<uint32_t> indices;
+	for (int y = 0; y <= cells; ++y)
+		for (int x = 0; x <= cells; ++x)
+			uv.append({float(x) / cells, float(y) / cells});
+	for (int y = 0; y < cells; ++y)
+		for (int x = 0; x < cells; ++x)
+		{
+			const uint32_t a = uint32_t(y * (cells + 1) + x), b = a + 1, c = a + cells + 2, d = c - 1;
+			indices << a << b << c << a << c << d;
+		}
+	ModelUvOverlapScan packed;
+	ok &= expect(findModelUvOverlaps(uv, indices, {}, 1, 8000000, &packed, &error, {}) && !packed.limitReached && packed.pairs.isEmpty() &&
+					 packed.comparisons < 2000000 && validateModelUvMapping(uv, indices, &error, {}),
+				 "a packed atlas of 80,000 triangles validates without reaching the overlap work limit");
+	// Scattered, partly overlapping and long thin triangles: the same pairs
+	// in the same order as the sweep, capped and uncapped.
+	QVector<ModelTexCoord> scattered;
+	QVector<uint32_t> corners;
+	quint32 state = 12345;
+	const auto next = [&state] { return float((state = state * 1664525u + 1013904223u) >> 8) / float(1u << 24); };
+	for (int t = 0; t < 600; ++t)
+	{
+		const float x = next(), y = next(), size = t % 50 == 0 ? 0.9f : 0.04f * (0.2f + next());
+		const float length = t % 7 == 0 ? 0.6f : size;
+		const auto base = uint32_t(scattered.size());
+		scattered.append({x, y});
+		scattered.append({x + length, y + size * next()});
+		scattered.append({x + size * next(), y + size});
+		corners << base << base + 1 << base + 2;
+	}
+	const auto expected = sweepOverlaps(scattered, corners, 0);
+	ModelUvOverlapScan all, first;
+	ok &= expect(expected.size() > 20 && findModelUvOverlaps(scattered, corners, {}, 0, 100000000, &all, &error, {}) && all.pairs == expected &&
+					 findModelUvOverlaps(scattered, corners, {}, 1, 100000000, &first, &error, {}) && first.pairs == sweepOverlaps(scattered, corners, 1),
+				 "the overlap scan reports the sweep's pairs, in its order");
+	return ok;
+}
 } // namespace
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
 	bool ok = true;
 	QString error;
+	ok &= overlapScanMatchesSweep();
 	const auto original = cylinder();
 	ok &= expect(validateEditableModel(original).isEmpty(), "curved animated fixture is valid");
 	ModelDocument document;
