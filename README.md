@@ -28,6 +28,10 @@ share one window on Windows, macOS and Linux, and a command line drives the
 same services for scripts and automation. An AI assistant is available, but
 optional and off by default.
 
+SlopStudio was called **VibeStudio** until November 2026. Projects, settings
+and files made with VibeStudio still open; see
+[Bring your work over from VibeStudio](docs/manual/projects.md#bring-your-work-over-from-vibestudio).
+
 > [!WARNING]
 > **SlopStudio is pre-alpha and highly untested.** Most features have
 > automated tests, but very few have been used in real projects, the installers

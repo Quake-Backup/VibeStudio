@@ -1,4 +1,5 @@
 #include "core/level_scene_trenchbroom.h"
+#include "core/legacy_names.h"
 #include "core/level_linked_groups.h"
 #include "core/level_scene.h"
 
@@ -323,7 +324,7 @@ QString levelSceneStorageId(LevelSceneStorage storage)
 
 bool levelSceneStorageFromId(const QString& id, LevelSceneStorage* storage)
 {
-	const QString folded = id.trimmed().toLower();
+	const QString folded = withCurrentStudioName(id.trimmed().toLower());
 	if (folded != QLatin1String("trenchbroom") && folded != QLatin1String("slopstudio")) {
 		return false;
 	}

@@ -4,6 +4,7 @@
 #include "app/studio_splash.h"
 #include "app/studio_theme.h"
 #include "cli/cli.h"
+#include "core/legacy_names.h"
 #include "core/package_import_store.h"
 #include "core/localization.h"
 #include "core/package_copy_store.h"
@@ -51,6 +52,13 @@ void configureApplicationMetadata(QCoreApplication& app)
 	app.setOrganizationName(QStringLiteral("DarkMatterProductions"));
 	app.setApplicationName(QStringLiteral("SlopStudio"));
 	app.setApplicationVersion(slopstudio::versionString());
+	// SlopStudio was called VibeStudio until 2026-11-15. On the first run after
+	// the rename, carry the per-user settings and data folders over once. A
+	// --settings-file run is isolated, so it never touches either store.
+	if (slopstudio::StudioSettings::overrideFilePath().isEmpty()) {
+		slopstudio::migrateLegacySettingsStore();
+		slopstudio::migrateLegacyDataDirectories();
+	}
 }
 
 // `--settings-file <path>` keeps automation, CI, and scripted runs away from

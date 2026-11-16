@@ -1,4 +1,5 @@
 #include "core/level_gestures.h"
+#include "core/legacy_names.h"
 #include "core/level_component_selection.h"
 #include "core/editor_profiles.h"
 #include "core/level_camera_keys.h"
@@ -476,7 +477,7 @@ bool parseLevelGestures(const QByteArray& bytes, QString* profile, QJsonObject* 
 	const auto document = QJsonDocument::fromJson(bytes, &parseError);
 	const auto object = document.object();
 	if (parseError.error != QJsonParseError::NoError || !document.isObject() || object.size() != 4
-		|| object.value("format") != QStringLiteral("slopstudio.editor-gestures") || object.value("version") != QJsonValue(1)
+		|| !isCurrentOrLegacyStudioName(object.value("format").toString(), QStringLiteral("slopstudio.editor-gestures")) || object.value("version") != QJsonValue(1)
 		|| !object.value("profile").isString() || !object.value("overrides").isObject()) {
 		return fail(error, QCoreApplication::translate("LevelGestures", "Expected a version 1 SlopStudio gesture file with a profile and overrides."));
 	}

@@ -1180,7 +1180,7 @@
 <context>
     <name>AudioRecovery</name>
     <message>
-        <location filename="../src/core/audio_recovery_store.cpp" line="+102"/>
+        <location filename="../src/core/audio_recovery_store.cpp" line="+103"/>
         <location line="+144"/>
         <location line="+89"/>
         <source>The audio recovery folder is unavailable or unsafe.</source>
@@ -2672,7 +2672,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cli/cli.cpp" line="+638"/>
+        <location filename="../src/cli/cli.cpp" line="+639"/>
         <source>Add or change one of the project&apos;s own build pipelines, kept in its manifest, as Build Pipelines… does: &lt;id&gt; --workspace-root DIR with --name, --description, --from PIPELINE (start from a built-in or project pipeline), --stage ID=PROFILE in order (replaces the stages; each later stage reads the previous output unless --map-input ID), --stage-args ID=ARGUMENTS (quotes keep spaces; ${MAP}, ${MAP_DIR}, ${MAP_NAME}, ${OUTPUT}, ${PROJECT_DIR}, ${GAME_DIR}, ${MOD}, ${CPU_COUNT} and the pipeline&apos;s variables), --disable-stage ID, --enable-stage ID and --variable NAME=VALUE, each repeatable. Exits 4 naming the problems of a pipeline that cannot be saved. Supports --dry-run.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4745,7 +4745,7 @@ The owning studio is still running. Close that document there before discarding 
 <context>
     <name>LevelBuildArtifacts</name>
     <message>
-        <location filename="../src/core/level_build_artifacts.cpp" line="+35"/>
+        <location filename="../src/core/level_build_artifacts.cpp" line="+36"/>
         <source>Build artifact operation cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -4913,7 +4913,7 @@ The owning studio is still running. Close that document there before discarding 
     <message>
         <location filename="../src/cli/level_build_artifacts.cpp" line="+25"/>
         <location filename="../src/cli/level_build_deployment.cpp" line="+31"/>
-        <location filename="../src/cli/level_build_workspace.cpp" line="+30"/>
+        <location filename="../src/cli/level_build_workspace.cpp" line="+31"/>
         <source>Repeated option: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5040,7 +5040,7 @@ The owning studio is still running. Close that document there before discarding 
 <context>
     <name>LevelBuildDeployment</name>
     <message>
-        <location filename="../src/core/level_build_deployment.cpp" line="+38"/>
+        <location filename="../src/core/level_build_deployment.cpp" line="+39"/>
         <source>The deployment target overlaps protected source content.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5051,12 +5051,12 @@ The owning studio is still running. Close that document there before discarding 
     </message>
     <message>
         <location line="+58"/>
-        <location line="+71"/>
+        <location line="+79"/>
         <source>Deployment review cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-107"/>
+        <location line="-115"/>
         <location line="+39"/>
         <source>Choose an installation matching this prepared build target: %1.</source>
         <translation type="unfinished"></translation>
@@ -5077,7 +5077,12 @@ The owning studio is still running. Close that document there before discarding 
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+27"/>
+        <location line="+13"/>
+        <source>%1 was deployed by VibeStudio before the rename and loads after this package, so the game would keep using it. Remove it to play the new build.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+22"/>
         <source>The chosen game folder is occupied by a file.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5519,7 +5524,7 @@ SHA-256: %2</source>
 <context>
     <name>LevelBuildPakDeployment</name>
     <message>
-        <location filename="../src/core/level_build_pak_deployment.cpp" line="+26"/>
+        <location filename="../src/core/level_build_pak_deployment.cpp" line="+27"/>
         <source>Invalid or oversized PAK deployment receipt: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -5587,7 +5592,7 @@ SHA-256: %2</source>
 <context>
     <name>LevelBuildWorkspace</name>
     <message>
-        <location filename="../src/core/level_build_workspace.cpp" line="+43"/>
+        <location filename="../src/core/level_build_workspace.cpp" line="+44"/>
         <source>Build workspace paths must not traverse links: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -7808,7 +7813,7 @@ Assets: %2</source>
 <context>
     <name>LevelGestures</name>
     <message>
-        <location filename="../src/core/level_gestures.cpp" line="+41"/>
+        <location filename="../src/core/level_gestures.cpp" line="+42"/>
         <location line="+20"/>
         <location line="+127"/>
         <source>None</source>
@@ -9003,7 +9008,7 @@ Assets: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+450"/>
+        <location line="+479"/>
         <location line="+167"/>
         <source>Linked groups need a Quake-family map.</source>
         <translation type="unfinished"></translation>
@@ -16899,7 +16904,7 @@ Format: %7, %8</source>
 <context>
     <name>LevelTrenchBroom</name>
     <message>
-        <location filename="../src/core/level_scene_trenchbroom.cpp" line="+278"/>
+        <location filename="../src/core/level_scene_trenchbroom.cpp" line="+279"/>
         <source>Layer</source>
         <translation type="unfinished"></translation>
     </message>
@@ -19752,7 +19757,7 @@ Format: %7, %8</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_document.cpp" line="+2077"/>
+        <location filename="../src/core/model_document.cpp" line="+2078"/>
         <source>Curve settings apply only to animation curve operations.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -20606,7 +20611,7 @@ Format: %7, %8</source>
 <context>
     <name>ModelAppearanceCli</name>
     <message>
-        <location filename="../src/cli/model_appearance.cpp" line="+33"/>
+        <location filename="../src/cli/model_appearance.cpp" line="+34"/>
         <source>Repeated option: %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -20667,7 +20672,7 @@ Format: %7, %8</source>
 <context>
     <name>ModelAssemblyCli</name>
     <message>
-        <location filename="../src/cli/model_assembly.cpp" line="+86"/>
+        <location filename="../src/cli/model_assembly.cpp" line="+87"/>
         <source>Repeated option: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -28772,7 +28777,7 @@ Original source files remain unchanged.</source>
 <context>
     <name>ModelMdlCli</name>
     <message>
-        <location filename="../src/cli/model_mdl.cpp" line="+43"/>
+        <location filename="../src/cli/model_mdl.cpp" line="+44"/>
         <source>Repeated option: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -34055,7 +34060,7 @@ Original source files remain unchanged.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/cli/model_skin_bindings.cpp" line="+45"/>
+        <location filename="../src/cli/model_skin_bindings.cpp" line="+46"/>
         <source>Repeated option: %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -36742,7 +36747,7 @@ Target materials: %2
         </translation>
     </message>
     <message>
-        <location filename="../src/cli/model_tools.cpp" line="+68"/>
+        <location filename="../src/cli/model_tools.cpp" line="+69"/>
         <source>Repeated option: %1.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -41793,7 +41798,7 @@ Ownership and file metadata are checked again. Cancellation may leave some files
 <context>
     <name>PackageCopyStore</name>
     <message>
-        <location filename="../src/core/package_copy_store.cpp" line="+34"/>
+        <location filename="../src/core/package_copy_store.cpp" line="+35"/>
         <source>Temporary copies are in use or cannot be protected for maintenance. Close their studio window and retry.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -41838,7 +41843,7 @@ Ownership and file metadata are checked again. Cancellation may leave some files
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+30"/>
+        <location line="+31"/>
         <source>Shared copy reservations could not be reconciled; the previous charge was retained.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -41850,14 +41855,14 @@ Ownership and file metadata are checked again. Cancellation may leave some files
     <message>
         <location line="+9"/>
         <location line="+4"/>
-        <location line="+52"/>
+        <location line="+53"/>
         <location line="+4"/>
         <location line="+45"/>
         <source>Temporary copy review cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-104"/>
+        <location line="-105"/>
         <source>Temporary copy storage exceeds its review depth limit.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -41907,7 +41912,7 @@ Ownership and file metadata are checked again. Cancellation may leave some files
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+14"/>
+        <location line="+15"/>
         <source>Temporary copies changed. Refresh before discarding them.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -42666,7 +42671,7 @@ Releasing a lock keeps all working payloads. Refresh and review any session sepa
 <context>
     <name>PackageImportStore</name>
     <message>
-        <location filename="../src/core/package_import_store.cpp" line="+61"/>
+        <location filename="../src/core/package_import_store.cpp" line="+62"/>
         <source>Working import metadata is missing, unreadable or too large.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -43235,7 +43240,7 @@ Backup: %2</source>
 <context>
     <name>PackageRecovery</name>
     <message>
-        <location filename="../src/core/package_recovery.cpp" line="+57"/>
+        <location filename="../src/core/package_recovery.cpp" line="+58"/>
         <location line="+68"/>
         <location line="+47"/>
         <location line="+156"/>
@@ -45315,257 +45320,6 @@ Grids: %5 × %6 and %7 × %8</source>
     </message>
 </context>
 <context>
-    <name>StudioSettings</name>
-    <message>
-        <location filename="../src/core/studio_settings.cpp" line="+2026"/>
-        <source>Settings schema %1 inspected read-only; migration to %2 was skipped.</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>TextDocument</name>
-    <message>
-        <location filename="../src/core/text_document.cpp" line="+103"/>
-        <source>Text files larger than 4 MiB are read-only.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>UTF-32 is not supported. This preview is read-only.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>The file is not valid UTF-8 or BOM-marked UTF-16. This preview is read-only.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+20"/>
-        <source>Binary control characters were found. This preview is read-only.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+21"/>
-        <source>The text file could not be opened: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+5"/>
-        <source>The text file could not be read: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <location line="+43"/>
-        <source>No output buffer was supplied.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-41"/>
-        <location line="+43"/>
-        <source>This document cannot be saved.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-42"/>
-        <location line="+73"/>
-        <source>The edited text exceeds the 4 MiB limit.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-70"/>
-        <source>Editor text must use LF paragraph boundaries.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+18"/>
-        <source>The edited text contains invalid Unicode and cannot be saved.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+7"/>
-        <source>The encoded file exceeds the 4 MiB limit.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <location line="+54"/>
-        <source>The edited text cannot be saved without changing its characters.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-26"/>
-        <source>Text edits must stay inside the reviewed document.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Text edits must use ordered, non-overlapping Unicode ranges and LF paragraph boundaries.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+17"/>
-        <source>The edited file exceeds its size limit or contains invalid Unicode.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+25"/>
-        <source>The file reappeared or its parent path changed. It has not been recreated.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The file changed, moved, or became unreadable after it was opened. Your edits have not been written.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <location line="+83"/>
-        <source>The file could not be written: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-79"/>
-        <location line="+84"/>
-        <source>The file could not be committed: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-58"/>
-        <source>Choose a destination file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <source>The destination cannot be inspected safely: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>The destination folder must exist and the file must not be a broken link.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+14"/>
-        <source>The destination has not been inspected.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+11"/>
-        <source>The destination changed after it was reviewed. Your document has not been written.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+54"/>
-        <source>%1 with BOM</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>No line endings</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Mixed: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>%1 · %2</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>TextRecovery</name>
-    <message>
-        <location filename="../src/core/text_recovery.cpp" line="+62"/>
-        <source>Invalid recovery destination.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+1"/>
-        <source>Recovery write cancelled.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The recovery folder is unavailable or is a link.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+9"/>
-        <source>The recovery file is not a regular file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+16"/>
-        <source>The recovery record exceeds its size limit.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>The recovery copy could not be written: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>The recovery write was cancelled or its destination changed.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+2"/>
-        <source>The recovery copy could not be committed: %1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>The recovery record is not a readable regular file.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+4"/>
-        <source>The recovery record could not be read within its size limit.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>The recovery record has an unsupported or damaged header.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>The recovery contents failed their checksum or size check.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+8"/>
-        <source>The recovery timestamp is invalid.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+15"/>
-        <location line="+21"/>
-        <source>The recovery folder is not a regular directory.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="-2"/>
-        <source>Invalid recovery identifier.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+6"/>
-        <source>Only regular recovery files may be discarded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+3"/>
-        <source>The recovery copy could not be discarded.</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
     <name>SlopStudioAccessibility</name>
     <message>
         <location filename="../src/app/studio_accessibility.cpp" line="+200"/>
@@ -45623,7 +45377,7 @@ Grids: %5 × %6 and %7 × %8</source>
 <context>
     <name>SlopStudioAdvancedStudio</name>
     <message>
-        <location filename="../src/core/advanced_studio.cpp" line="+82"/>
+        <location filename="../src/core/advanced_studio.cpp" line="+83"/>
         <source> (line %1)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -49387,7 +49141,7 @@ Grids: %5 × %6 and %7 × %8</source>
 <context>
     <name>SlopStudioAssetRegister</name>
     <message>
-        <location filename="../src/core/game_asset_register.cpp" line="+361"/>
+        <location filename="../src/core/game_asset_register.cpp" line="+362"/>
         <source>Quake</source>
         <translation type="unfinished">Quake</translation>
     </message>
@@ -51382,7 +51136,7 @@ Select a WAV asset, or the audio could not be decoded.</source>
 <context>
     <name>SlopStudioAssistant</name>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+16704"/>
+        <location filename="../src/app/application_shell.cpp" line="+16705"/>
         <source>Show the raw JSON</source>
         <translation type="unfinished"></translation>
     </message>
@@ -55556,7 +55310,7 @@ Select a WAV asset, or the audio could not be decoded.</source>
     <name>SlopStudioCompilerProfiles</name>
     <message>
         <location filename="../src/core/build_pipeline.cpp" line="-2081"/>
-        <location filename="../src/core/compiler_profiles.cpp" line="+844"/>
+        <location filename="../src/core/compiler_profiles.cpp" line="+846"/>
         <source>Input file does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -56307,12 +56061,12 @@ Select a WAV asset, or the audio could not be decoded.</source>
 <context>
     <name>SlopStudioCompilerRegistry</name>
     <message>
-        <location filename="../src/core/compiler_registry.cpp" line="+66"/>
+        <location filename="../src/core/compiler_registry.cpp" line="+68"/>
         <source>Configured compiler executable does not exist: %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+169"/>
+        <location line="+185"/>
         <source>Version probe could not start.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -57432,12 +57186,12 @@ Select a WAV asset, or the audio could not be decoded.</source>
 <context>
     <name>SlopStudioEditorProfiles</name>
     <message>
-        <location filename="../src/core/editor_profiles.cpp" line="+127"/>
+        <location filename="../src/core/editor_profiles.cpp" line="+128"/>
         <source>Levels</source>
         <translation type="unfinished">Màn chơi</translation>
     </message>
     <message>
-        <location line="+45"/>
+        <location line="+46"/>
         <source>SlopStudio Default</source>
         <translation type="unfinished">Mặc định của SlopStudio</translation>
     </message>
@@ -63942,6 +63696,14 @@ Select a WAV asset, or the audio could not be decoded.</source>
         <location line="+2"/>
         <source>Dismiss notice</source>
         <translation type="unfinished">Đóng thông báo</translation>
+    </message>
+</context>
+<context>
+    <name>SlopStudioLegacyNames</name>
+    <message>
+        <location filename="../src/core/legacy_names.cpp" line="+159"/>
+        <source>The VibeStudio project folder %1 could not be renamed to %2.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -76219,7 +75981,7 @@ Searched: %3
 <context>
     <name>SlopStudioLocalization</name>
     <message numerus="yes">
-        <location filename="../src/core/localization.cpp" line="+107"/>
+        <location filename="../src/core/localization.cpp" line="+108"/>
         <source>%n package(s) ready</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -76864,7 +76626,7 @@ Searched: %3
 <context>
     <name>SlopStudioMain</name>
     <message>
-        <location filename="../src/main.cpp" line="+234"/>
+        <location filename="../src/main.cpp" line="+242"/>
         <source>Starting the 3D renderer</source>
         <translation type="unfinished"></translation>
     </message>
@@ -81516,7 +81278,7 @@ Searched: %3
 <context>
     <name>SlopStudioModelAssembly</name>
     <message>
-        <location filename="../src/core/model_assembly.cpp" line="+198"/>
+        <location filename="../src/core/model_assembly.cpp" line="+199"/>
         <source>An assembly needs a name of at most 128 characters and at most 32 parts.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -83824,7 +83586,7 @@ Searched: %3
     <message>
         <location line="+5"/>
         <location line="+70"/>
-        <location filename="../src/core/model_editor_controls.cpp" line="+913"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="+915"/>
         <source>Keys</source>
         <translation type="unfinished">Phím</translation>
     </message>
@@ -84217,7 +83979,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/model_editor_controls.cpp" line="-947"/>
+        <location filename="../src/core/model_editor_controls.cpp" line="-948"/>
         <source>Open or Import</source>
         <translation type="unfinished"></translation>
     </message>
@@ -84488,12 +84250,12 @@ Searched: %3
     </message>
     <message>
         <location line="+1"/>
-        <location line="+890"/>
+        <location line="+891"/>
         <source>Duplicate</source>
         <translation type="unfinished">Nhân bản</translation>
     </message>
     <message>
-        <location line="-889"/>
+        <location line="-890"/>
         <source>Loop Cut</source>
         <translation type="unfinished"></translation>
     </message>
@@ -85133,7 +84895,7 @@ Searched: %3
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+185"/>
+        <location line="+186"/>
         <source>%1 and %2 always move keyboard focus between panels.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -98770,7 +98532,7 @@ Second: surface %6 (%7), face %8</source>
         <location line="-78"/>
         <location line="+187"/>
         <location line="+48"/>
-        <location filename="../src/core/model_session_draft.cpp" line="+131"/>
+        <location filename="../src/core/model_session_draft.cpp" line="+132"/>
         <location line="+133"/>
         <source>The model recovery folder is unavailable or is a link.</source>
         <translation type="unfinished"></translation>
@@ -105719,7 +105481,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
 <context>
     <name>SlopStudioPackageArchive</name>
     <message>
-        <location filename="../src/core/package_archive.cpp" line="+1990"/>
+        <location filename="../src/core/package_archive.cpp" line="+1991"/>
         <location line="+610"/>
         <location line="+8"/>
         <location filename="../src/core/package_extraction.cpp" line="+150"/>
@@ -105727,15 +105489,15 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1791"/>
-        <location line="+1182"/>
+        <location line="-1792"/>
+        <location line="+1183"/>
         <location line="+8"/>
         <location filename="../src/core/package_extraction.cpp" line="+9"/>
         <source>Package entry not found.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1580"/>
+        <location line="-1581"/>
         <source>Unsafe package mount path: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -105771,7 +105533,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+92"/>
+        <location line="+93"/>
         <source>The source snapshot entry changed size: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -106090,7 +105852,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-1055"/>
+        <location line="-1056"/>
         <source>Package entry index is out of range.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -106105,7 +105867,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+105"/>
+        <location line="+106"/>
         <location line="+510"/>
         <source>The source package changed after it was opened. Reopen it before reading entries.</source>
         <translation type="unfinished"></translation>
@@ -106157,16 +105919,16 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/core/package_archive.cpp" line="-1412"/>
+        <location filename="../src/core/package_archive.cpp" line="-1413"/>
         <location line="+390"/>
         <location line="+127"/>
         <location line="+90"/>
-        <location line="+651"/>
+        <location line="+652"/>
         <source>Package opening cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-859"/>
+        <location line="-860"/>
         <source>Package layers exceed the limits of %1 records, %2 metadata bytes or %3 fingerprint bytes. Unmount a layer or use smaller sources.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -106181,7 +105943,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+165"/>
+        <location line="+166"/>
         <location line="+5"/>
         <location line="+33"/>
         <location line="+64"/>
@@ -107161,7 +106923,7 @@ The owning studio is still running; discarding this copy is disabled.</source>
 <context>
     <name>SlopStudioPackageDialog</name>
     <message>
-        <location filename="../src/app/package_operation_dialog.cpp" line="+99"/>
+        <location filename="../src/app/package_operation_dialog.cpp" line="+100"/>
         <source>Package operation status</source>
         <translation type="unfinished"></translation>
     </message>
@@ -107788,7 +107550,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioPackageDraft</name>
     <message>
-        <location filename="../src/core/package_draft.cpp" line="+35"/>
+        <location filename="../src/core/package_draft.cpp" line="+36"/>
         <source>Package draft operation cancelled.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -108282,7 +108044,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioPackagePublication</name>
     <message>
-        <location filename="../src/core/package_publication.cpp" line="+46"/>
+        <location filename="../src/core/package_publication.cpp" line="+47"/>
         <source>Package save cancelled before publication; the destination was left untouched.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -109688,7 +109450,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioProjectContent</name>
     <message>
-        <location filename="../src/core/project_content.cpp" line="+53"/>
+        <location filename="../src/core/project_content.cpp" line="+54"/>
         <location line="+14"/>
         <location line="+240"/>
         <location line="+15"/>
@@ -109773,18 +109535,18 @@ Output: %2</source>
 <context>
     <name>SlopStudioProjectManifest</name>
     <message>
-        <location filename="../src/core/project_manifest.cpp" line="+388"/>
+        <location filename="../src/core/project_manifest.cpp" line="+392"/>
         <source>Untitled Project</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+23"/>
-        <location line="+91"/>
+        <location line="+95"/>
         <source>Project root path is empty.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-83"/>
+        <location line="-87"/>
         <source>Project manifest does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -109799,7 +109561,7 @@ Output: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+123"/>
+        <location line="+127"/>
         <source>Project root does not exist.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -111984,7 +111746,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioReleaseNotes</name>
     <message>
-        <location filename="../src/core/release_notes.cpp" line="+94"/>
+        <location filename="../src/core/release_notes.cpp" line="+95"/>
         <source>Maps</source>
         <translation type="unfinished">Bản đồ</translation>
     </message>
@@ -113192,7 +112954,7 @@ Output: %2</source>
     <name>SlopStudioRendering</name>
     <message>
         <location filename="../src/app/model_viewport.cpp" line="-1920"/>
-        <location filename="../src/core/render_device.cpp" line="+371"/>
+        <location filename="../src/core/render_device.cpp" line="+372"/>
         <source>There was not enough memory to render this view.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -113314,7 +113076,7 @@ Output: %2</source>
     <message>
         <location line="+385"/>
         <location line="+280"/>
-        <location filename="../src/core/render_vulkan.cpp" line="+2000"/>
+        <location filename="../src/core/render_vulkan.cpp" line="+2001"/>
         <source>The graphics device stopped responding.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -113434,7 +113196,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioRuntime</name>
     <message>
-        <location filename="../src/app/studio_runtime.cpp" line="+459"/>
+        <location filename="../src/app/studio_runtime.cpp" line="+460"/>
         <source>Translation catalog could not be loaded: %1</source>
         <translation type="unfinished"></translation>
     </message>
@@ -120175,7 +119937,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioSetup</name>
     <message>
-        <location filename="../src/core/studio_settings.cpp" line="+525"/>
+        <location filename="../src/core/studio_settings.cpp" line="+2554"/>
         <location line="+16"/>
         <source>Welcome and Access</source>
         <translation type="unfinished">Chào mừng và trợ năng</translation>
@@ -120972,7 +120734,7 @@ Output: %2</source>
 <context>
     <name>SlopStudioSpeech</name>
     <message>
-        <location filename="../src/app/studio_speech.cpp" line="+90"/>
+        <location filename="../src/app/studio_speech.cpp" line="+91"/>
         <source>Test log (silent)</source>
         <translation type="unfinished">Nhật ký thử nghiệm (im lặng)</translation>
     </message>
@@ -126217,7 +125979,7 @@ Replace what is there with this variant?</source>
 <context>
     <name>SlopStudioWorkspace</name>
     <message>
-        <location filename="../src/core/workspace_document.cpp" line="+71"/>
+        <location filename="../src/core/workspace_document.cpp" line="+72"/>
         <source>Workspace files must contain 1–1,048,576 bytes.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126287,7 +126049,7 @@ Replace what is there with this variant?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+5"/>
+        <location line="+8"/>
         <source>A workspace keeps at most 32 model sources.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -126388,6 +126150,257 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+1"/>
         <source>Missing: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>StudioSettings</name>
+    <message>
+        <location filename="../src/core/studio_settings.cpp" line="-562"/>
+        <source>Settings schema %1 inspected read-only; migration to %2 was skipped.</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TextDocument</name>
+    <message>
+        <location filename="../src/core/text_document.cpp" line="+103"/>
+        <source>Text files larger than 4 MiB are read-only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>UTF-32 is not supported. This preview is read-only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>The file is not valid UTF-8 or BOM-marked UTF-16. This preview is read-only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+20"/>
+        <source>Binary control characters were found. This preview is read-only.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+21"/>
+        <source>The text file could not be opened: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <source>The text file could not be read: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <location line="+43"/>
+        <source>No output buffer was supplied.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-41"/>
+        <location line="+43"/>
+        <source>This document cannot be saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-42"/>
+        <location line="+73"/>
+        <source>The edited text exceeds the 4 MiB limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-70"/>
+        <source>Editor text must use LF paragraph boundaries.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+18"/>
+        <source>The edited text contains invalid Unicode and cannot be saved.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
+        <source>The encoded file exceeds the 4 MiB limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <location line="+54"/>
+        <source>The edited text cannot be saved without changing its characters.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-26"/>
+        <source>Text edits must stay inside the reviewed document.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Text edits must use ordered, non-overlapping Unicode ranges and LF paragraph boundaries.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+17"/>
+        <source>The edited file exceeds its size limit or contains invalid Unicode.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+25"/>
+        <source>The file reappeared or its parent path changed. It has not been recreated.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>The file changed, moved, or became unreadable after it was opened. Your edits have not been written.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <location line="+83"/>
+        <source>The file could not be written: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-79"/>
+        <location line="+84"/>
+        <source>The file could not be committed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-58"/>
+        <source>Choose a destination file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>The destination cannot be inspected safely: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>The destination folder must exist and the file must not be a broken link.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+14"/>
+        <source>The destination has not been inspected.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+11"/>
+        <source>The destination changed after it was reviewed. Your document has not been written.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+54"/>
+        <source>%1 with BOM</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>No line endings</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Mixed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>%1 · %2</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TextRecovery</name>
+    <message>
+        <location filename="../src/core/text_recovery.cpp" line="+62"/>
+        <source>Invalid recovery destination.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Recovery write cancelled.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>The recovery folder is unavailable or is a link.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
+        <source>The recovery file is not a regular file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+16"/>
+        <source>The recovery record exceeds its size limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>The recovery copy could not be written: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>The recovery write was cancelled or its destination changed.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>The recovery copy could not be committed: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+13"/>
+        <source>The recovery record is not a readable regular file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>The recovery record could not be read within its size limit.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>The recovery record has an unsupported or damaged header.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>The recovery contents failed their checksum or size check.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>The recovery timestamp is invalid.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <location line="+21"/>
+        <source>The recovery folder is not a regular directory.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-2"/>
+        <source>Invalid recovery identifier.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+6"/>
+        <source>Only regular recovery files may be discarded.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>The recovery copy could not be discarded.</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -126553,19 +126566,19 @@ Replace what is there with this variant?</source>
         <location line="-6772"/>
         <location line="+12638"/>
         <location line="+377"/>
-        <location line="+12743"/>
+        <location line="+12747"/>
         <source>Running</source>
         <translation type="unfinished">Đang chạy</translation>
     </message>
     <message>
-        <location line="-25756"/>
-        <location line="+26312"/>
+        <location line="-25760"/>
+        <location line="+26316"/>
         <location filename="../src/app/code_language_actions.cpp" line="+112"/>
         <source>Warning</source>
         <translation type="unfinished">Cảnh báo</translation>
     </message>
     <message>
-        <location line="-26310"/>
+        <location line="-26314"/>
         <source>Failed</source>
         <translation type="unfinished">Không thành công</translation>
     </message>
@@ -126611,12 +126624,12 @@ Replace what is there with this variant?</source>
     <message>
         <location line="+4"/>
         <location line="+26"/>
-        <location line="+25555"/>
+        <location line="+25559"/>
         <source>Unknown</source>
         <translation type="unfinished">Không rõ</translation>
     </message>
     <message>
-        <location line="-25574"/>
+        <location line="-25578"/>
         <location line="+4"/>
         <source>File</source>
         <translation type="unfinished">Tệp</translation>
@@ -126647,13 +126660,13 @@ Replace what is there with this variant?</source>
         <location line="+14"/>
         <location line="+6797"/>
         <location line="+5"/>
-        <location line="+14339"/>
+        <location line="+14343"/>
         <location filename="../src/app/package_context_actions.cpp" line="+22"/>
         <source>Unavailable</source>
         <translation type="unfinished">Không khả dụng</translation>
     </message>
     <message>
-        <location line="-21151"/>
+        <location line="-21155"/>
         <source>Text</source>
         <translation type="unfinished">Văn bản</translation>
     </message>
@@ -126670,12 +126683,12 @@ Replace what is there with this variant?</source>
         <location line="+1155"/>
         <location line="+25"/>
         <location line="+3270"/>
-        <location line="+19838"/>
+        <location line="+19842"/>
         <source>Model</source>
         <translation type="unfinished">Mô hình</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-24286"/>
+        <location filename="../src/app/application_shell.cpp" line="-24290"/>
         <location line="+290"/>
         <location line="+4109"/>
         <location line="+960"/>
@@ -126715,12 +126728,12 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+21541"/>
+        <location line="+21545"/>
         <source>Delete</source>
         <translation type="unfinished">Xóa</translation>
     </message>
     <message>
-        <location line="-21549"/>
+        <location line="-21553"/>
         <source>Stage</source>
         <translation type="unfinished">Dàn dựng</translation>
     </message>
@@ -127023,12 +127036,12 @@ Replace what is there with this variant?</source>
     <message>
         <location line="-13650"/>
         <location line="+6703"/>
-        <location line="+19819"/>
+        <location line="+19823"/>
         <source>Project: %1</source>
         <translation type="unfinished">Dự án: %1</translation>
     </message>
     <message>
-        <location line="-26520"/>
+        <location line="-26524"/>
         <source>Ready checks: %1</source>
         <translation type="unfinished">Mục kiểm tra sẵn sàng: %1</translation>
     </message>
@@ -127146,13 +127159,13 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="-4332"/>
-        <location line="+25087"/>
+        <location line="+25091"/>
         <location filename="../src/app/code_language_actions.cpp" line="+0"/>
         <source>Error</source>
         <translation type="unfinished">Lỗi</translation>
     </message>
     <message>
-        <location line="-25083"/>
+        <location line="-25087"/>
         <source>No model metadata could be read from this entry.</source>
         <translation type="unfinished">Không đọc được siêu dữ liệu mô hình nào từ mục này.</translation>
     </message>
@@ -127206,19 +127219,19 @@ Replace what is there with this variant?</source>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+24788"/>
+        <location line="+24792"/>
         <location filename="../src/app/level_find_replace_actions.cpp" line="+318"/>
         <source>%1 to %2</source>
         <translation type="unfinished">%1 đến %2</translation>
     </message>
     <message>
-        <location line="-24787"/>
+        <location line="-24791"/>
         <source>Radius</source>
         <translation type="unfinished">Bán kính</translation>
     </message>
     <message>
         <location line="+2"/>
-        <location line="+19992"/>
+        <location line="+19996"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="+51"/>
         <location line="+3"/>
         <location filename="../src/app/level_view_actions.cpp" line="-20"/>
@@ -127226,7 +127239,7 @@ Replace what is there with this variant?</source>
         <translation type="unfinished">Hình học</translation>
     </message>
     <message>
-        <location line="-19992"/>
+        <location line="-19996"/>
         <source>Header only; this format&apos;s geometry is not decoded yet.</source>
         <translation type="unfinished">Chỉ có phần đầu; hình học của định dạng này chưa được giải mã.</translation>
     </message>
@@ -127324,12 +127337,12 @@ Nhấp đúp hoặc nhấn Enter để hiện nó trên khu vực Kết cấu.</
     </message>
     <message>
         <location line="+47"/>
-        <location line="+15723"/>
+        <location line="+15727"/>
         <source>SlopStudio</source>
         <translation type="unfinished">SlopStudio</translation>
     </message>
     <message>
-        <location line="-15715"/>
+        <location line="-15719"/>
         <source>Preparing commands and menus</source>
         <translation type="unfinished"></translation>
     </message>
@@ -127342,7 +127355,7 @@ Nhấp đúp hoặc nhấn Enter để hiện nó trên khu vực Kết cấu.</
         <location line="+8"/>
         <location line="+7796"/>
         <location line="+7579"/>
-        <location line="+1851"/>
+        <location line="+1855"/>
         <location line="+3716"/>
         <location line="+3048"/>
         <location filename="../src/app/level_filter_tag_actions.cpp" line="+369"/>
@@ -127354,7 +127367,7 @@ Nhấp đúp hoặc nhấn Enter để hiện nó trên khu vực Kết cấu.</
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-23977"/>
+        <location line="-23981"/>
         <source>Studio work surface</source>
         <translation type="unfinished">Khu vực làm việc của studio</translation>
     </message>
@@ -127584,7 +127597,7 @@ Nhấp đúp hoặc nhấn Enter để hiện nó trên khu vực Kết cấu.</
         <location line="+3"/>
         <location line="+1965"/>
         <location line="+2084"/>
-        <location line="+14950"/>
+        <location line="+14954"/>
         <location line="+4840"/>
         <location line="+666"/>
         <location filename="../src/app/level_sidebar_actions.cpp" line="+281"/>
@@ -127592,7 +127605,7 @@ Nhấp đúp hoặc nhấn Enter để hiện nó trên khu vực Kết cấu.</
         <translation type="unfinished">Vấn đề</translation>
     </message>
     <message>
-        <location line="-24496"/>
+        <location line="-24500"/>
         <source>Workspace search</source>
         <translation type="unfinished">Tìm kiếm không gian làm việc</translation>
     </message>
@@ -127633,12 +127646,12 @@ Nhấp đúp hoặc nhấn Enter để hiện nó trên khu vực Kết cấu.</
     </message>
     <message>
         <location line="+5"/>
-        <location line="+17081"/>
+        <location line="+17085"/>
         <source>Copy Path</source>
         <translation type="unfinished">Sao chép đường dẫn</translation>
     </message>
     <message>
-        <location line="-17080"/>
+        <location line="-17084"/>
         <source>Copy selected virtual path</source>
         <translation type="unfinished">Sao chép đường dẫn ảo đã chọn</translation>
     </message>
@@ -127887,14 +127900,14 @@ Nhấp đúp hoặc nhấn Enter để hiện nó trên khu vực Kết cấu.</
     </message>
     <message>
         <location line="-9318"/>
-        <location line="+21976"/>
+        <location line="+21980"/>
         <location line="+279"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="+1146"/>
         <source>Entity</source>
         <translation type="unfinished">Thực thể</translation>
     </message>
     <message>
-        <location line="-22254"/>
+        <location line="-22258"/>
         <source>Package Plan</source>
         <translation type="unfinished">Kế hoạch gói</translation>
     </message>
@@ -128084,12 +128097,12 @@ Nhấp đúp hoặc nhấn Enter để hiện nó trên khu vực Kết cấu.</
     </message>
     <message>
         <location line="+285"/>
-        <location line="+21760"/>
+        <location line="+21764"/>
         <source>Run the pipeline, then launch the game with the built map once it succeeds.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21733"/>
+        <location line="-21737"/>
         <source>Pipelines…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -128370,12 +128383,12 @@ Nhấp đúp hoặc nhấn Enter để hiện nó trên khu vực Kết cấu.</
     <message>
         <location line="+1"/>
         <location line="+68"/>
-        <location line="+8568"/>
+        <location line="+8572"/>
         <source>Loading texture preview…</source>
         <translation type="unfinished">Đang tải bản xem trước kết cấu…</translation>
     </message>
     <message>
-        <location line="-5713"/>
+        <location line="-5717"/>
         <source>Write the edited map to a new path without touching the source.</source>
         <translation type="unfinished">Ghi bản đồ đã chỉnh sửa vào một đường dẫn mới mà không động đến bản gốc.</translation>
     </message>
@@ -129422,18 +129435,18 @@ Nhấp đúp hoặc nhấn Enter để hiện nó trên khu vực Kết cấu.</
     </message>
     <message>
         <location line="-15"/>
-        <location line="+20950"/>
+        <location line="+20954"/>
         <source>Things</source>
         <translation type="unfinished">Things</translation>
     </message>
     <message>
-        <location line="-20950"/>
-        <location line="+20951"/>
+        <location line="-20954"/>
+        <location line="+20955"/>
         <source>Draw Doom things.</source>
         <translation type="unfinished">Vẽ các thing của Doom.</translation>
     </message>
     <message>
-        <location line="-20950"/>
+        <location line="-20954"/>
         <source>Sector Fill</source>
         <translation type="unfinished">Tô màu sector</translation>
     </message>
@@ -129488,13 +129501,13 @@ Nhấp đúp hoặc nhấn Enter để hiện nó trên khu vực Kết cấu.</
     <message>
         <location line="+6"/>
         <location line="+2488"/>
-        <location line="+19965"/>
+        <location line="+19969"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="-970"/>
         <source>Zoom to Fit</source>
         <translation type="unfinished">Thu phóng vừa khít</translation>
     </message>
     <message>
-        <location line="-22453"/>
+        <location line="-22457"/>
         <source>Frame the whole map in the viewport.</source>
         <translation type="unfinished">Đưa toàn bộ bản đồ vào khung nhìn.</translation>
     </message>
@@ -129505,12 +129518,12 @@ Nhấp đúp hoặc nhấn Enter để hiện nó trên khu vực Kết cấu.</
     </message>
     <message>
         <location line="+11"/>
-        <location line="+22438"/>
+        <location line="+22442"/>
         <source>Zoom to Selection</source>
         <translation type="unfinished">Thu phóng tới vùng chọn</translation>
     </message>
     <message>
-        <location line="-22438"/>
+        <location line="-22442"/>
         <source>Frame the selected objects in the viewport (F).</source>
         <translation type="unfinished">Đưa các đối tượng đã chọn vào khung nhìn (F).</translation>
     </message>
@@ -130463,13 +130476,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="-4554"/>
         <location line="+1274"/>
         <location line="+374"/>
-        <location line="+16810"/>
+        <location line="+16814"/>
         <location filename="../src/app/level_preview_actions.cpp" line="+48"/>
         <source>Details</source>
         <translation type="unfinished">Chi tiết</translation>
     </message>
     <message>
-        <location line="-15990"/>
+        <location line="-15994"/>
         <source>Outline</source>
         <translation type="unfinished">Cấu trúc</translation>
     </message>
@@ -130480,19 +130493,19 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+20"/>
-        <location line="+14579"/>
+        <location line="+14583"/>
         <location line="+11"/>
         <source>No map open</source>
         <translation type="unfinished">Không có bản đồ nào đang mở</translation>
     </message>
     <message>
-        <location line="-14589"/>
-        <location line="+14590"/>
+        <location line="-14593"/>
+        <location line="+14594"/>
         <source>Open a Quake, Quake II, or Quake III .map, or a Doom WAD, to inspect its entities, brushes, and health in the viewport.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14578"/>
+        <location line="-14582"/>
         <location line="+6"/>
         <source>Recent maps</source>
         <translation type="unfinished">Bản đồ gần đây</translation>
@@ -130518,7 +130531,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="+2"/>
         <location line="+451"/>
-        <location filename="../src/app/package_document_actions.cpp" line="+167"/>
+        <location filename="../src/app/package_document_actions.cpp" line="+168"/>
         <source>New Package</source>
         <translation type="unfinished">Tạo gói mới</translation>
     </message>
@@ -131035,7 +131048,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+30"/>
-        <location line="+14014"/>
+        <location line="+14018"/>
         <location line="+8"/>
         <location line="+47"/>
         <location line="+2547"/>
@@ -131045,13 +131058,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Không có gói nào đang mở</translation>
     </message>
     <message>
-        <location line="-17830"/>
-        <location line="+14022"/>
+        <location line="-17834"/>
+        <location line="+14026"/>
         <source>Open a PAK, WAD, ZIP, or PK3 archive, or a folder, to browse its entries, preview content, and stage changes for a new package.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-14000"/>
+        <location line="-14004"/>
         <location line="+11077"/>
         <location filename="../src/app/level_view_actions.cpp" line="-145"/>
         <source>Build</source>
@@ -131064,12 +131077,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+3"/>
-        <location line="+22384"/>
+        <location line="+22388"/>
         <source>Inspect Artifacts</source>
         <translation type="unfinished">Kiểm tra sản phẩm bản dựng</translation>
     </message>
     <message>
-        <location line="-22383"/>
+        <location line="-22387"/>
         <source>Inspect compiled artifacts</source>
         <translation type="unfinished">Kiểm tra sản phẩm đã biên dịch</translation>
     </message>
@@ -131083,7 +131096,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+401"/>
         <location line="+2380"/>
         <location line="+10075"/>
-        <location line="+3020"/>
+        <location line="+3024"/>
         <location line="+985"/>
         <location filename="../src/app/code_formatting.cpp" line="+58"/>
         <location filename="../src/app/code_index_actions.cpp" line="+68"/>
@@ -131094,7 +131107,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Hủy</translation>
     </message>
     <message>
-        <location line="-16459"/>
+        <location line="-16463"/>
         <source>Cancel build pipeline</source>
         <translation type="unfinished">Hủy pipeline xây dựng</translation>
     </message>
@@ -131231,12 +131244,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+5"/>
-        <location line="+22642"/>
+        <location line="+22646"/>
         <source>Show Output</source>
         <translation type="unfinished">Hiện đầu ra</translation>
     </message>
     <message>
-        <location line="-22642"/>
+        <location line="-22646"/>
         <source>Open the folder that holds the compiled map.</source>
         <translation type="unfinished">Mở thư mục chứa bản đồ đã biên dịch.</translation>
     </message>
@@ -131284,12 +131297,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+22014"/>
+        <location line="+22018"/>
         <source>Build Pipeline</source>
         <translation type="unfinished">Pipeline xây dựng</translation>
     </message>
     <message>
-        <location line="-22013"/>
+        <location line="-22017"/>
         <source>Chained compile stages with per-stage logs, diagnostics, and output paths.</source>
         <translation type="unfinished">Các giai đoạn biên dịch nối tiếp kèm nhật ký, chẩn đoán và đường dẫn đầu ra cho từng giai đoạn.</translation>
     </message>
@@ -131532,12 +131545,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+21643"/>
+        <location line="+21647"/>
         <source>Map name to load, for example start</source>
         <translation type="unfinished">Tên bản đồ cần tải, ví dụ start</translation>
     </message>
     <message>
-        <location line="-21641"/>
+        <location line="-21645"/>
         <source>Map</source>
         <translation type="unfinished">Bản đồ</translation>
     </message>
@@ -131565,14 +131578,14 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+5"/>
-        <location line="+22101"/>
+        <location line="+22105"/>
         <location line="+19"/>
         <location line="+3"/>
         <source>Launch Game</source>
         <translation type="unfinished">Khởi chạy trò chơi</translation>
     </message>
     <message>
-        <location line="-22121"/>
+        <location line="-22125"/>
         <source>Launch configured game</source>
         <translation type="unfinished">Khởi chạy trò chơi đã cấu hình</translation>
     </message>
@@ -131785,12 +131798,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="-3"/>
         <location line="+9525"/>
-        <location line="+8829"/>
+        <location line="+8833"/>
         <source>%1%</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18348"/>
+        <location line="-18352"/>
         <source>UI density</source>
         <translation type="unfinished">Mật độ giao diện</translation>
     </message>
@@ -131816,7 +131829,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Điều hướng</translation>
     </message>
     <message>
-        <location line="+14194"/>
+        <location line="+14198"/>
         <source>Reduce motion</source>
         <translation type="unfinished">Giảm chuyển động</translation>
     </message>
@@ -131836,7 +131849,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Chuyển văn bản thành giọng nói</translation>
     </message>
     <message>
-        <location line="-14245"/>
+        <location line="-14249"/>
         <location line="+20"/>
         <source>Language</source>
         <translation type="unfinished">Ngôn ngữ</translation>
@@ -131944,13 +131957,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Suy luận</translation>
     </message>
     <message>
-        <location line="+14091"/>
+        <location line="+14095"/>
         <location line="+3"/>
         <source>Voice</source>
         <translation type="unfinished">Giọng nói</translation>
     </message>
     <message>
-        <location line="-14083"/>
+        <location line="-14087"/>
         <location filename="../src/app/level_protected_property_actions.cpp" line="+127"/>
         <source>Local</source>
         <translation type="unfinished">Cục bộ</translation>
@@ -132313,12 +132326,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+3"/>
         <location line="+93"/>
         <location line="+147"/>
-        <location line="+15688"/>
+        <location line="+15692"/>
         <source>Palette</source>
         <translation type="unfinished">Bảng màu</translation>
     </message>
     <message>
-        <location line="-15927"/>
+        <location line="-15931"/>
         <source>Palette used to decode indexed idTech art. Real palettes are read from the open package when it has one.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -132399,12 +132412,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+3"/>
-        <location line="+15198"/>
+        <location line="+15202"/>
         <source>No palette resolved yet.</source>
         <translation type="unfinished">Chưa xác định được bảng màu.</translation>
     </message>
     <message>
-        <location line="-15196"/>
+        <location line="-15200"/>
         <source>Palette source</source>
         <translation type="unfinished">Nguồn bảng màu</translation>
     </message>
@@ -132611,12 +132624,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+17"/>
-        <location line="+12470"/>
+        <location line="+12474"/>
         <source>No textures to show</source>
         <translation type="unfinished">Không có kết cấu nào để hiển thị</translation>
     </message>
     <message>
-        <location line="-12450"/>
+        <location line="-12454"/>
         <source>Model workbench header</source>
         <translation type="unfinished">Đầu trang bàn làm việc mô hình</translation>
     </message>
@@ -132732,7 +132745,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+9"/>
-        <location line="+16052"/>
+        <location line="+16056"/>
         <location filename="../src/app/level_asset_browsers.cpp" line="+62"/>
         <location line="+100"/>
         <location line="+316"/>
@@ -132740,13 +132753,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Phát</translation>
     </message>
     <message>
-        <location line="-16052"/>
-        <location line="+16060"/>
+        <location line="-16056"/>
+        <location line="+16064"/>
         <source>Play or pause the model animation (Space).</source>
         <translation type="unfinished">Phát hoặc tạm dừng hoạt ảnh mô hình (Space).</translation>
     </message>
     <message>
-        <location line="-16058"/>
+        <location line="-16062"/>
         <source>Play or pause the model animation</source>
         <translation type="unfinished">Phát hoặc tạm dừng hoạt ảnh mô hình</translation>
     </message>
@@ -132980,7 +132993,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+743"/>
         <location line="+360"/>
         <location line="+683"/>
-        <location line="+7020"/>
+        <location line="+7024"/>
         <location line="+834"/>
         <location filename="../src/app/model_page.cpp" line="-96"/>
         <source>Summary</source>
@@ -132992,7 +133005,7 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <translation type="unfinished">Skin</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-16081"/>
+        <location filename="../src/app/application_shell.cpp" line="-16085"/>
         <location filename="../src/app/model_page.cpp" line="+1"/>
         <source>Metadata</source>
         <translation type="unfinished">Siêu dữ liệu</translation>
@@ -133021,12 +133034,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+19"/>
-        <location line="+12213"/>
+        <location line="+12217"/>
         <source>No models to show</source>
         <translation type="unfinished">Không có mô hình nào để hiển thị</translation>
     </message>
     <message>
-        <location line="-12193"/>
+        <location line="-12197"/>
         <source>Audio workbench header</source>
         <translation type="unfinished">Đầu trang bàn làm việc âm thanh</translation>
     </message>
@@ -133089,12 +133102,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+16177"/>
+        <location line="+16181"/>
         <source>Waveform</source>
         <translation type="unfinished">Dạng sóng</translation>
     </message>
     <message>
-        <location line="-16176"/>
+        <location line="-16180"/>
         <source>Format details</source>
         <translation type="unfinished">Chi tiết định dạng</translation>
     </message>
@@ -133135,13 +133148,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+6"/>
-        <location line="+13052"/>
+        <location line="+13056"/>
         <location line="+1"/>
         <source>Volume</source>
         <translation type="unfinished">Âm lượng</translation>
     </message>
     <message>
-        <location line="-13045"/>
+        <location line="-13049"/>
         <source>Playback volume</source>
         <translation type="unfinished">Âm lượng phát</translation>
     </message>
@@ -133242,12 +133255,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+20"/>
-        <location line="+12019"/>
+        <location line="+12023"/>
         <source>No sounds to show</source>
         <translation type="unfinished">Không có âm thanh nào để hiển thị</translation>
     </message>
     <message>
-        <location line="-11999"/>
+        <location line="-12003"/>
         <location line="+2931"/>
         <location line="+6106"/>
         <source>Code</source>
@@ -133339,12 +133352,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+12"/>
-        <location line="+16746"/>
+        <location line="+16750"/>
         <source>No file open.</source>
         <translation type="unfinished">Không có tệp nào đang mở.</translation>
     </message>
     <message>
-        <location line="-16738"/>
+        <location line="-16742"/>
         <location line="+2927"/>
         <source>Code editor</source>
         <translation type="unfinished">Trình chỉnh sửa mã</translation>
@@ -133381,12 +133394,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+4"/>
-        <location line="+16698"/>
+        <location line="+16702"/>
         <source>Choose a file under Project files to edit it here.</source>
         <translation type="unfinished">Hãy chọn một tệp trong mục Tệp dự án để chỉnh sửa tại đây.</translation>
     </message>
     <message>
-        <location line="-16685"/>
+        <location line="-16689"/>
         <source>Open files</source>
         <translation type="unfinished">Tệp đang mở</translation>
     </message>
@@ -133447,12 +133460,12 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     </message>
     <message>
         <location line="+1"/>
-        <location line="+18465"/>
+        <location line="+18469"/>
         <source>Index</source>
         <translation type="unfinished">Chỉ mục</translation>
     </message>
     <message>
-        <location line="-18460"/>
+        <location line="-18464"/>
         <source>Editor and output</source>
         <translation type="unfinished">Trình chỉnh sửa và đầu ra</translation>
     </message>
@@ -133510,13 +133523,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
     <message>
         <location line="+9"/>
         <location line="+978"/>
-        <location line="+10725"/>
+        <location line="+10729"/>
         <location filename="../src/app/release_actions.cpp" line="+482"/>
         <source>No project open</source>
         <translation type="unfinished">Không có dự án nào đang mở</translation>
     </message>
     <message>
-        <location line="-11702"/>
+        <location line="-11706"/>
         <source>Open a project folder to browse and edit its scripts, configs, shaders, and QuakeC with highlighting and diagnostics.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -133885,13 +133898,13 @@ No definition is loaded for this class, so its keys are not known. Load entity d
         <location line="+64"/>
         <location line="+1852"/>
         <location line="+46"/>
-        <location line="+7083"/>
+        <location line="+7087"/>
         <location line="+4398"/>
         <source>Ready</source>
         <translation type="unfinished">Sẵn sàng</translation>
     </message>
     <message>
-        <location line="-19236"/>
+        <location line="-19240"/>
         <location line="+7709"/>
         <location line="+46"/>
         <source>Missing</source>
@@ -133922,7 +133935,7 @@ Last opened %3. Double-click to open.</source>
         <location line="+1865"/>
         <location line="+343"/>
         <location line="+43"/>
-        <location line="+16579"/>
+        <location line="+16583"/>
         <location filename="../src/app/level_duplicate_move_actions.cpp" line="+189"/>
         <location line="+66"/>
         <location filename="../src/app/level_nudge_actions.cpp" line="+369"/>
@@ -133933,7 +133946,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-18822"/>
+        <location line="-18826"/>
         <source>No recent projects</source>
         <translation type="unfinished">Không có dự án gần đây</translation>
     </message>
@@ -134006,18 +134019,18 @@ Last opened %3. Double-click to open.</source>
     </message>
     <message>
         <location line="+44"/>
-        <location line="+20226"/>
+        <location line="+20230"/>
         <source>Test maps allowed</source>
         <translation type="unfinished">Cho phép bản đồ thử nghiệm</translation>
     </message>
     <message>
-        <location line="-20226"/>
+        <location line="-20230"/>
         <source>Installation made read-only</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+19527"/>
+        <location line="+19531"/>
         <location line="+3"/>
         <location line="+8"/>
         <location line="+3"/>
@@ -134027,7 +134040,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished">trò chơi</translation>
     </message>
     <message>
-        <location line="-20225"/>
+        <location line="-20229"/>
         <source>Built maps may be copied into its maps folder before launching.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -134117,13 +134130,13 @@ Last opened %3. Double-click to open.</source>
         <location line="+3445"/>
         <location line="+439"/>
         <location line="+2139"/>
-        <location line="+6017"/>
+        <location line="+6021"/>
         <location line="+38"/>
         <source>%1: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message numerus="yes">
-        <location line="-12075"/>
+        <location line="-12079"/>
         <source>Found %n confirmable installation candidates.</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -134238,7 +134251,7 @@ Last opened %3. Double-click to open.</source>
         <location line="+29"/>
         <location line="+23"/>
         <location line="+79"/>
-        <location line="+5134"/>
+        <location line="+5138"/>
         <location line="+1789"/>
         <location line="+1001"/>
         <location line="+112"/>
@@ -134258,7 +134271,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished">gói</translation>
     </message>
     <message>
-        <location line="-20168"/>
+        <location line="-20172"/>
         <source>Opening package.</source>
         <translation type="unfinished">Đang mở gói.</translation>
     </message>
@@ -134394,12 +134407,12 @@ Last opened %3. Double-click to open.</source>
     </message>
     <message>
         <location line="+40"/>
-        <location line="+19806"/>
+        <location line="+19810"/>
         <source>Package: %1</source>
         <translation type="unfinished">Gói: %1</translation>
     </message>
     <message>
-        <location line="-19806"/>
+        <location line="-19810"/>
         <source>%1 / %2 / %3</source>
         <translation type="unfinished"></translation>
     </message>
@@ -134440,12 +134453,12 @@ Last opened %3. Double-click to open.</source>
     </message>
     <message>
         <location line="+6"/>
-        <location line="+10554"/>
+        <location line="+10558"/>
         <source>modified</source>
         <translation type="unfinished">đã sửa đổi</translation>
     </message>
     <message>
-        <location line="-10518"/>
+        <location line="-10522"/>
         <source>No project open. Dependency graph will connect project roots, installs, packages, and compilers.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -134721,7 +134734,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished">%1 · đã ẩn</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+16200"/>
+        <location filename="../src/app/application_shell.cpp" line="+16204"/>
         <location filename="../src/app/level_object_model.cpp" line="-110"/>
         <source>Brush %1</source>
         <translation type="unfinished">Brush %1</translation>
@@ -134748,9 +134761,9 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished">Đỉnh %1</translation>
     </message>
     <message>
-        <location line="-14737"/>
+        <location line="-14741"/>
         <location line="+3106"/>
-        <location line="+10682"/>
+        <location line="+10686"/>
         <location line="+2415"/>
         <location filename="../src/app/level_object_model.cpp" line="+1"/>
         <source>%1, %2</source>
@@ -134796,7 +134809,7 @@ Last opened %3. Double-click to open.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15841"/>
+        <location filename="../src/app/application_shell.cpp" line="-15845"/>
         <source>LEAK
 The map leaks. The trail from %1 is drawn in the view; press Enter to frame it.</source>
         <translation type="unfinished"></translation>
@@ -134964,22 +134977,22 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <location line="+9"/>
         <location line="+2850"/>
         <location line="+10"/>
-        <location line="+12950"/>
+        <location line="+12954"/>
         <location line="+681"/>
         <location line="+54"/>
         <source>Map edit failed: %1</source>
         <translation type="unfinished">Chỉnh sửa bản đồ không thành công: %1</translation>
     </message>
     <message>
-        <location line="-16551"/>
-        <location line="+16503"/>
+        <location line="-16555"/>
+        <location line="+16507"/>
         <source>Level map entities edited</source>
         <translation type="unfinished">Đã chỉnh sửa các thực thể của bản đồ màn chơi</translation>
     </message>
     <message>
         <location filename="../src/app/ai_generation_actions.cpp" line="-272"/>
         <location line="+56"/>
-        <location filename="../src/app/application_shell.cpp" line="-16503"/>
+        <location filename="../src/app/application_shell.cpp" line="-16507"/>
         <location line="+9"/>
         <location line="+46"/>
         <location line="+93"/>
@@ -134994,7 +135007,7 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <location line="+41"/>
         <location line="+167"/>
         <location line="+9"/>
-        <location line="+12953"/>
+        <location line="+12957"/>
         <location line="+681"/>
         <location line="+54"/>
         <location line="+463"/>
@@ -135101,13 +135114,13 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <translation type="unfinished">Chỉnh sửa bản đồ chưa lưu</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-17011"/>
-        <location line="+16548"/>
+        <location filename="../src/app/application_shell.cpp" line="-17015"/>
+        <location line="+16552"/>
         <source>Level map entity edited</source>
         <translation type="unfinished">Đã chỉnh sửa thực thể của bản đồ màn chơi</translation>
     </message>
     <message>
-        <location line="-16540"/>
+        <location line="-16544"/>
         <source>Select map objects before moving them.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -135140,13 +135153,13 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+16964"/>
+        <location line="+16968"/>
         <location filename="../src/app/level_sidebar_panels.cpp" line="+0"/>
         <source>Level map selection moved</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16917"/>
+        <location line="-16921"/>
         <location line="+30"/>
         <source>Open a Quake-family .map to add entities.</source>
         <translation type="unfinished"></translation>
@@ -135208,7 +135221,7 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message>
         <location line="+199"/>
-        <location line="+13154"/>
+        <location line="+13158"/>
         <source>Texture</source>
         <translation type="unfinished">Kết cấu</translation>
     </message>
@@ -135218,7 +135231,7 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <translation type="unfinished">Đã thêm brush vào bản đồ màn chơi</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15761"/>
+        <location filename="../src/app/application_shell.cpp" line="-15765"/>
         <location line="+33"/>
         <source>Open a Doom or Hexen map to add things.</source>
         <translation type="unfinished"></translation>
@@ -135547,14 +135560,14 @@ All %n entit(y)(ies) match the loaded definitions.</source>
         <location line="+31"/>
         <location line="+314"/>
         <location line="+1"/>
-        <location line="+10519"/>
+        <location line="+10523"/>
         <location filename="../src/app/level_plan_pane_actions.cpp" line="+142"/>
         <location line="+1"/>
         <source>, </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-10827"/>
+        <location line="-10831"/>
         <source>Keys for %1</source>
         <translation type="unfinished">Phím cho %1</translation>
     </message>
@@ -136085,12 +136098,12 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+14251"/>
+        <location line="+14255"/>
         <source>Ceiling flat</source>
         <translation type="unfinished">Flat trần</translation>
     </message>
     <message>
-        <location line="-14249"/>
+        <location line="-14253"/>
         <source>Left empty, each door keeps its own ceiling flat.</source>
         <translation type="unfinished">Nếu để trống, mỗi cửa giữ flat trần riêng của nó.</translation>
     </message>
@@ -137328,14 +137341,14 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message>
         <location line="+0"/>
-        <location line="+10357"/>
+        <location line="+10361"/>
         <location line="+2109"/>
         <location filename="../src/app/build_rerun_actions.cpp" line="+31"/>
         <source>level-map</source>
         <translation type="unfinished">level-map</translation>
     </message>
     <message>
-        <location line="-12465"/>
+        <location line="-12469"/>
         <location line="+1228"/>
         <source>Planning compiler command.</source>
         <translation type="unfinished">Đang lập kế hoạch lệnh trình biên dịch.</translation>
@@ -137377,14 +137390,14 @@ All %n entit(y)(ies) match the loaded definitions.</source>
     </message>
     <message numerus="yes">
         <location line="+36"/>
-        <location line="+14200"/>
+        <location line="+14204"/>
         <source>%n stage(s)</source>
         <translation type="unfinished">
             <numerusform></numerusform>
         </translation>
     </message>
     <message numerus="yes">
-        <location line="-14199"/>
+        <location line="-14203"/>
         <source>%n texture(s)</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -137624,14 +137637,14 @@ Open a folder, PAK, WAD, ZIP, or PK3 to see type and size distribution.</source>
         <location line="+23"/>
         <location line="+313"/>
         <location line="+1798"/>
-        <location line="+3793"/>
+        <location line="+3797"/>
         <source>%n entries</source>
         <translation type="unfinished">
             <numerusform></numerusform>
         </translation>
     </message>
     <message>
-        <location line="-5919"/>
+        <location line="-5923"/>
         <source>Package is empty</source>
         <translation type="unfinished">Gói trống</translation>
     </message>
@@ -137914,18 +137927,18 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+9256"/>
+        <location line="+9260"/>
         <source>Raw Metadata</source>
         <translation type="unfinished">Siêu dữ liệu thô</translation>
     </message>
     <message>
-        <location line="-9147"/>
-        <location line="+11178"/>
+        <location line="-9151"/>
+        <location line="+11182"/>
         <source>Folder %1</source>
         <translation type="unfinished">Thư mục %1</translation>
     </message>
     <message>
-        <location line="-11177"/>
+        <location line="-11181"/>
         <source>Package root</source>
         <translation type="unfinished">Gốc gói</translation>
     </message>
@@ -137955,12 +137968,12 @@ Use Stage Add, Replace, Rename, or Delete to build a save-as plan.</source>
     <message>
         <location line="-3"/>
         <location line="+4"/>
-        <location line="+14683"/>
+        <location line="+14687"/>
         <source>not found</source>
         <translation type="unfinished">không tìm thấy</translation>
     </message>
     <message>
-        <location line="-14684"/>
+        <location line="-14688"/>
         <source>Source only, not built</source>
         <translation type="unfinished">Chỉ có mã nguồn, chưa xây dựng</translation>
     </message>
@@ -137978,12 +137991,12 @@ Tệp thực thi: %2</translation>
     </message>
     <message>
         <location line="+43"/>
-        <location line="+7955"/>
+        <location line="+7959"/>
         <source>Automatic</source>
         <translation type="unfinished">Tự động</translation>
     </message>
     <message>
-        <location line="-7952"/>
+        <location line="-7956"/>
         <source>Project manifest (missing)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -138050,12 +138063,12 @@ Tệp thực thi: %2</translation>
         <location line="+24"/>
         <location line="+52"/>
         <location line="+14"/>
-        <location line="+5753"/>
+        <location line="+5757"/>
         <source>compiler</source>
         <translation type="unfinished">trình biên dịch</translation>
     </message>
     <message>
-        <location line="-5841"/>
+        <location line="-5845"/>
         <source>%1 now runs %2.</source>
         <translation type="unfinished">%1 hiện chạy %2.</translation>
     </message>
@@ -138256,12 +138269,12 @@ Tệp thực thi: %2</translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+12748"/>
+        <location line="+12752"/>
         <source>Skipped: %1</source>
         <translation type="unfinished">Đã bỏ qua: %1</translation>
     </message>
     <message>
-        <location line="-12747"/>
+        <location line="-12751"/>
         <source>Errors: %1</source>
         <translation type="unfinished">Lỗi: %1</translation>
     </message>
@@ -138439,12 +138452,12 @@ Tệp thực thi: %2</translation>
     </message>
     <message>
         <location line="+3"/>
-        <location line="+7103"/>
+        <location line="+7107"/>
         <source>Package Stage Add</source>
         <translation type="unfinished">Dàn dựng thêm vào gói</translation>
     </message>
     <message>
-        <location line="-7103"/>
+        <location line="-7107"/>
         <source>File staged for save-as.</source>
         <translation type="unfinished">Đã dàn dựng tệp để lưu thành.</translation>
     </message>
@@ -138776,7 +138789,7 @@ Edited, not saved:
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8068"/>
+        <location line="+8072"/>
         <source>Undo: %1</source>
         <translation type="unfinished">Hoàn tác: %1</translation>
     </message>
@@ -138786,7 +138799,7 @@ Edited, not saved:
         <translation type="unfinished">Làm lại: %1</translation>
     </message>
     <message>
-        <location line="-7461"/>
+        <location line="-7465"/>
         <source>Draft: %1
 %2</source>
         <translation type="unfinished">Bản nháp: %1
@@ -139002,12 +139015,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+6"/>
-        <location line="+12384"/>
+        <location line="+12388"/>
         <source>Output: %1</source>
         <translation type="unfinished">Đầu ra: %1</translation>
     </message>
     <message>
-        <location line="-12379"/>
+        <location line="-12383"/>
         <source>SHA-256: %1</source>
         <translation type="unfinished">SHA-256: %1</translation>
     </message>
@@ -139329,12 +139342,12 @@ The new archive is written beside it and verified first; only then does the orig
         <location line="+10"/>
         <location line="+10"/>
         <location line="+26"/>
-        <location line="+4677"/>
+        <location line="+4681"/>
         <source>setup</source>
         <translation type="unfinished">thiết lập</translation>
     </message>
     <message>
-        <location line="-4744"/>
+        <location line="-4748"/>
         <source>Setup resumed.</source>
         <translation type="unfinished">Đã tiếp tục thiết lập.</translation>
     </message>
@@ -139408,12 +139421,12 @@ The new archive is written beside it and verified first; only then does the orig
     <message>
         <location line="+0"/>
         <location line="+850"/>
-        <location line="+3843"/>
+        <location line="+3847"/>
         <source>settings</source>
         <translation type="unfinished">cài đặt</translation>
     </message>
     <message>
-        <location line="-4691"/>
+        <location line="-4695"/>
         <source>Settings loaded successfully.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -139611,12 +139624,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+11997"/>
+        <location line="+12001"/>
         <source>Cancellation requested. The current stage is being stopped.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-11992"/>
+        <location line="-11996"/>
         <source>Compiler cancellation requested.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -139762,28 +139775,28 @@ The new archive is written beside it and verified first; only then does the orig
     <message>
         <location line="+3"/>
         <location line="+536"/>
-        <location line="+12357"/>
+        <location line="+12361"/>
         <source>Locale: %1</source>
         <translation type="unfinished">Ngôn ngữ/khu vực: %1</translation>
     </message>
     <message>
-        <location line="-12892"/>
+        <location line="-12896"/>
         <location line="+536"/>
-        <location line="+4391"/>
+        <location line="+4395"/>
         <location line="+7966"/>
         <source>Theme: %1</source>
         <translation type="unfinished">Chủ đề: %1</translation>
     </message>
     <message>
-        <location line="-12892"/>
+        <location line="-12896"/>
         <location line="+536"/>
-        <location line="+4368"/>
+        <location line="+4372"/>
         <location line="+8"/>
         <source>Text scale: %1%</source>
         <translation type="unfinished">Tỷ lệ văn bản: %1%</translation>
     </message>
     <message>
-        <location line="-4911"/>
+        <location line="-4915"/>
         <location line="+536"/>
         <source>Density: %1</source>
         <translation type="unfinished">Mật độ: %1</translation>
@@ -140111,12 +140124,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+0"/>
-        <location line="+3030"/>
+        <location line="+3034"/>
         <source>AI-free</source>
         <translation type="unfinished">Không dùng AI</translation>
     </message>
     <message>
-        <location line="-3030"/>
+        <location line="-3034"/>
         <source>Experimental opt-in</source>
         <translation type="unfinished">Thử nghiệm (tự chọn tham gia)</translation>
     </message>
@@ -140644,12 +140657,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+7732"/>
+        <location line="+7736"/>
         <source>Save File &amp;As…</source>
         <translation type="unfinished">Lưu tệp t&amp;hành…</translation>
     </message>
     <message>
-        <location line="-7731"/>
+        <location line="-7735"/>
         <source>Save this document to a chosen path, preserving its text format and undo history.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -140940,12 +140953,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+5"/>
-        <location line="+9916"/>
+        <location line="+9920"/>
         <source>Edit Brush Components…</source>
         <translation type="unfinished">Chỉnh sửa thành phần brush…</translation>
     </message>
     <message>
-        <location line="-9915"/>
+        <location line="-9919"/>
         <source>Reshape the selected brush&apos;s vertices, edges and faces.</source>
         <translation type="unfinished">Định hình lại các đỉnh, cạnh và mặt của brush đã chọn.</translation>
     </message>
@@ -140961,12 +140974,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+7"/>
-        <location line="+9913"/>
+        <location line="+9917"/>
         <source>Edit Patch Control Points…</source>
         <translation type="unfinished">Chỉnh sửa điểm điều khiển của patch…</translation>
     </message>
     <message>
-        <location line="-9912"/>
+        <location line="-9916"/>
         <source>Reshape, subdivide and texture the selected patch.</source>
         <translation type="unfinished">Định hình lại, chia nhỏ và gán kết cấu cho patch đã chọn.</translation>
     </message>
@@ -141037,12 +141050,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+10021"/>
+        <location line="+10025"/>
         <source>Rotate Selection…</source>
         <translation type="unfinished">Xoay vùng chọn…</translation>
     </message>
     <message>
-        <location line="-10018"/>
+        <location line="-10022"/>
         <source>Rotate 90° R&amp;ight</source>
         <translation type="unfinished">Xoay 90° sang phả&amp;i</translation>
     </message>
@@ -141730,12 +141743,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+26"/>
-        <location line="+9472"/>
+        <location line="+9476"/>
         <source>Paste with Offset…</source>
         <translation type="unfinished">Dán với độ lệch…</translation>
     </message>
     <message>
-        <location line="-9471"/>
+        <location line="-9475"/>
         <source>Preview clipboard objects at an explicit offset, with package materials and one undo step.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -141766,12 +141779,12 @@ The new archive is written beside it and verified first; only then does the orig
     </message>
     <message>
         <location line="+2"/>
-        <location line="+9467"/>
+        <location line="+9471"/>
         <source>Duplicate with Offset…</source>
         <translation type="unfinished">Nhân bản với độ lệch…</translation>
     </message>
     <message>
-        <location line="-9466"/>
+        <location line="-9470"/>
         <source>Preview copies at an explicit offset, preserving texture alignment and entity ownership.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -142641,12 +142654,12 @@ The new archive is written beside it and verified first; only then does the orig
     <message>
         <location line="+5"/>
         <location line="+411"/>
-        <location line="+8334"/>
+        <location line="+8338"/>
         <source>Copy</source>
         <translation type="unfinished">Sao chép</translation>
     </message>
     <message>
-        <location line="-8743"/>
+        <location line="-8747"/>
         <source>Copy the last answer</source>
         <translation type="unfinished">Sao chép câu trả lời gần nhất</translation>
     </message>
@@ -143366,7 +143379,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished">Bản cài đặt cần xem xét: %1</translation>
     </message>
     <message>
-        <location line="+29"/>
+        <location line="+33"/>
         <source>No compilers</source>
         <translation type="unfinished">Không có trình biên dịch</translation>
     </message>
@@ -144076,7 +144089,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9263"/>
+        <location line="-9267"/>
         <source>Undo &amp;Package Edit</source>
         <translation type="unfinished">&amp;Hoàn tác chỉnh sửa gói</translation>
     </message>
@@ -144097,7 +144110,7 @@ The new archive is written beside it and verified first; only then does the orig
         <translation type="unfinished">Làm lại lần chỉnh sửa gói đã hoàn tác gần nhất.</translation>
     </message>
     <message numerus="yes">
-        <location line="+4717"/>
+        <location line="+4721"/>
         <source>%n code file(s)</source>
         <translation type="unfinished">
             <numerusform></numerusform>
@@ -144350,13 +144363,13 @@ Used %n time(s) in the open map</source>
         <translation type="unfinished">Khung hình %1/%2</translation>
     </message>
     <message>
-        <location line="-8942"/>
-        <location line="+8953"/>
+        <location line="-8946"/>
+        <location line="+8957"/>
         <source>%1, %2 x %3</source>
         <translation type="unfinished">%1, %2 x %3</translation>
     </message>
     <message>
-        <location line="-5837"/>
+        <location line="-5841"/>
         <source>Fit the selection to a new size. Texture Scale Lock stretches brush textures with it; otherwise their source parameters stay fixed. Viewport handles use the same setting.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -144421,7 +144434,7 @@ Used %n time(s) in the open map</source>
         <translation type="unfinished">Khóa kết cấu sẽ giữ nguyên biến thể định dạng của bản đồ hoặc báo lý do không thể.</translation>
     </message>
     <message>
-        <location line="+5816"/>
+        <location line="+5820"/>
         <source>Not decodable</source>
         <translation type="unfinished">Không thể giải mã</translation>
     </message>
@@ -144767,8 +144780,8 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished">Hiện trong thư mục</translation>
     </message>
     <message>
-        <location line="-22062"/>
-        <location line="+22068"/>
+        <location line="-22066"/>
+        <location line="+22072"/>
         <location line="+3519"/>
         <source>%1 — %2</source>
         <translation type="unfinished"></translation>
@@ -144813,7 +144826,7 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished">Đã sửa đổi</translation>
     </message>
     <message>
-        <location line="-7438"/>
+        <location line="-7442"/>
         <source>Preview and add a box, wedge, cylinder, cone or sphere brush.</source>
         <translation type="unfinished">Xem trước và thêm brush dạng hộp, hình nêm, hình trụ, hình nón hoặc hình cầu.</translation>
     </message>
@@ -144823,7 +144836,7 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+6026"/>
+        <location line="+6030"/>
         <location line="+171"/>
         <source>Includes pending package changes. Waveforms use PCM; compressed codecs report header metadata.</source>
         <translation type="unfinished"></translation>
@@ -145260,7 +145273,7 @@ Reloading discards them. Reload?</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-21326"/>
+        <location line="-21330"/>
         <source>Showing an excerpt. The Preview tab contains the full sampled text.</source>
         <translation type="unfinished">Đang hiển thị một đoạn trích. Tab Xem trước chứa toàn bộ văn bản đã lấy mẫu.</translation>
     </message>
@@ -145376,7 +145389,7 @@ Tường</translation>
         <translation type="unfinished">Đang tải…</translation>
     </message>
     <message>
-        <location line="+5922"/>
+        <location line="+5926"/>
         <source>Package copy cancelled. No files were handed off.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -145423,10 +145436,10 @@ Tường</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16552"/>
+        <location line="-16556"/>
         <location line="+110"/>
         <location line="+9866"/>
-        <location line="+6585"/>
+        <location line="+6589"/>
         <source>Materials</source>
         <translation type="unfinished">Vật liệu</translation>
     </message>
@@ -145442,7 +145455,7 @@ Tường</translation>
         <translation type="unfinished">Mô hình đã sẵn sàng</translation>
     </message>
     <message>
-        <location line="-21088"/>
+        <location line="-21092"/>
         <source>Size unavailable</source>
         <translation type="unfinished">Không có thông tin kích thước</translation>
     </message>
@@ -145512,36 +145525,36 @@ Tường</translation>
     </message>
     <message>
         <location line="+794"/>
-        <location line="+12470"/>
+        <location line="+12474"/>
         <source>Create a texture or browse images from a package.</source>
         <translation type="unfinished">Tạo một kết cấu hoặc duyệt hình ảnh từ một gói.</translation>
     </message>
     <message>
-        <location line="-12350"/>
+        <location line="-12354"/>
         <source>Preview frames per second. Selecting a clip uses its saved rate when specified; this control does not change the source.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+143"/>
-        <location line="+12213"/>
+        <location line="+12217"/>
         <source>Create a mesh or browse models from a package.</source>
         <translation type="unfinished">Tạo một mesh hoặc duyệt mô hình từ một gói.</translation>
     </message>
     <message>
-        <location line="-12013"/>
-        <location line="+12019"/>
+        <location line="-12017"/>
+        <location line="+12023"/>
         <source>Open a sound or browse audio from a package.</source>
         <translation type="unfinished">Mở một âm thanh hoặc duyệt âm thanh từ một gói.</translation>
     </message>
     <message>
-        <location line="-10756"/>
+        <location line="-10760"/>
         <location line="+4710"/>
         <location line="+39"/>
         <location line="+171"/>
         <location line="+224"/>
         <location line="+1033"/>
         <location line="+1"/>
-        <location line="+4522"/>
+        <location line="+4526"/>
         <location line="+64"/>
         <location line="+4"/>
         <location filename="../src/app/package_context_actions.cpp" line="-76"/>
@@ -145549,7 +145562,7 @@ Tường</translation>
         <translation type="unfinished">Chế độ xem gói không khả dụng</translation>
     </message>
     <message>
-        <location line="-7589"/>
+        <location line="-7593"/>
         <source>Gesture preferences could not be applied: %1. Profile defaults are in use.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -145958,12 +145971,12 @@ Tường</translation>
     </message>
     <message>
         <location line="+9"/>
-        <location line="+12855"/>
+        <location line="+12859"/>
         <source>No materials yet</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-12854"/>
+        <location line="-12858"/>
         <source>Open a package, folder or WAD to browse its textures, shaders and materials with a live preview, or open a .shader or .mtr script.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -146078,14 +146091,14 @@ Tường</translation>
     </message>
     <message numerus="yes">
         <location line="+316"/>
-        <location line="+16505"/>
+        <location line="+16509"/>
         <source>%1 set to %2 on %n entit(y)(ies). Use Save Map to update the file after a change check and backup.</source>
         <translation type="unfinished">
             <numerusform></numerusform>
         </translation>
     </message>
     <message>
-        <location line="-16496"/>
+        <location line="-16500"/>
         <source>Entity key edited; use Save Map to update the file after a change check and backup.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -146123,24 +146136,24 @@ Tường</translation>
     </message>
     <message>
         <location filename="../src/app/application_shell.cpp" line="+595"/>
-        <location line="+9826"/>
+        <location line="+9830"/>
         <location filename="../src/app/model_browser_appearance.cpp" line="-145"/>
         <source>Show in Materials</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9825"/>
+        <location line="-9829"/>
         <source>Preview this texture or shader the way the game draws it, and edit it.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location line="+1"/>
-        <location line="+9822"/>
+        <location line="+9826"/>
         <source>Edit in Texture Editor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-9817"/>
+        <location line="-9821"/>
         <source>This wall texture is composed from patches in TEXTURE1. Edit one of its patches in Textures.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -146752,7 +146765,7 @@ Tường</translation>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+201"/>
+        <location line="+205"/>
         <source>This project turns AI off in its manifest. Every workflow stays local and deterministic here.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -148693,12 +148706,12 @@ A value set here is set on all %n entit(y)(ies).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-16012"/>
+        <location line="-16016"/>
         <source>Surface and component picks cleared. Whole objects remain selected.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+9183"/>
+        <location line="+9187"/>
         <source>Vision</source>
         <comment>accessibility settings group about seeing the screen, not computer vision</comment>
         <translation type="unfinished">Thị giác</translation>
@@ -149072,13 +149085,13 @@ A value set here is set on all %n entit(y)(ies).</source>
         <translation type="unfinished">Hồ sơ</translation>
     </message>
     <message>
-        <location line="-8908"/>
-        <location line="+8909"/>
+        <location line="-8912"/>
+        <location line="+8913"/>
         <source>Program</source>
         <translation type="unfinished">Chương trình</translation>
     </message>
     <message>
-        <location line="-9442"/>
+        <location line="-9446"/>
         <location line="+354"/>
         <source>%1 · on this machine</source>
         <translation type="unfinished"></translation>
@@ -149099,7 +149112,7 @@ A value set here is set on all %n entit(y)(ies).</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8269"/>
+        <location line="+8273"/>
         <source>Find and Replace Textures…</source>
         <translation type="unfinished"></translation>
     </message>
@@ -149952,7 +149965,7 @@ Working directory: %2</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-15550"/>
+        <location filename="../src/app/application_shell.cpp" line="-15554"/>
         <location filename="../src/app/code_document_actions.cpp" line="-109"/>
         <source>Untitled %1</source>
         <translation type="unfinished">%1 chưa đặt tên</translation>
@@ -150325,7 +150338,7 @@ Activate to open line %2.</source>
     </message>
     <message>
         <location line="-28"/>
-        <location filename="../src/app/package_recovery_actions.cpp" line="+117"/>
+        <location filename="../src/app/package_recovery_actions.cpp" line="+118"/>
         <source>Package Draft Directory (*.sloppackage)</source>
         <translation type="unfinished"></translation>
     </message>
@@ -151523,7 +151536,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="+19048"/>
+        <location filename="../src/app/application_shell.cpp" line="+19052"/>
         <location filename="../src/app/level_geometry_actions.cpp" line="+1"/>
         <source>Groups</source>
         <translation type="unfinished"></translation>
@@ -153325,7 +153338,7 @@ Activate to open line %2.</source>
         <translation type="unfinished">Khôi phục bố cục chế độ xem</translation>
     </message>
     <message>
-        <location filename="../src/app/application_shell.cpp" line="-9748"/>
+        <location filename="../src/app/application_shell.cpp" line="-9752"/>
         <location filename="../src/app/level_view_actions.cpp" line="+0"/>
         <source>Maximize Active View</source>
         <translation type="unfinished">Phóng to chế độ xem đang hoạt động</translation>
@@ -153770,7 +153783,7 @@ Activate to open line %2.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../src/app/workspace_actions.cpp" line="+42"/>
+        <location filename="../src/app/workspace_actions.cpp" line="+43"/>
         <source>The workspace exists. Choose another path or explicitly replace it.</source>
         <translation type="unfinished"></translation>
     </message>
@@ -153821,13 +153834,18 @@ Activate to open line %2.</source>
         <translation type="unfinished">Mở không gian làm việc</translation>
     </message>
     <message>
-        <location filename="../src/app/workspace_actions.cpp" line="+0"/>
+        <location filename="../src/app/workspace_actions.cpp" line="+1"/>
         <location line="+8"/>
         <source>SlopStudio workspace (*.slopworkspace)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="-5"/>
+        <location line="-8"/>
+        <source>VibeStudio workspace (*.vibeworkspace)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
         <source>Workspace Open Failed</source>
         <translation type="unfinished">Mở không gian làm việc không thành công</translation>
     </message>

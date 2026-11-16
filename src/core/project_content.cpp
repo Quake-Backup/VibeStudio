@@ -1,4 +1,5 @@
 #include "core/project_content.h"
+#include "core/legacy_names.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -82,7 +83,7 @@ bool isProjectNonContentFolderName(const QString& name)
 		QStringLiteral("__macosx"), QStringLiteral("node_modules"), QStringLiteral("$recycle.bin"), QStringLiteral("system volume information"),
 	};
 	return name.startsWith(QLatin1Char('.')) || names.contains(name.toLower())
-		|| name.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive);
+		|| isPackageDraftPath(name);
 }
 
 QVector<ProjectContentRoot> projectContentRoots(const ProjectManifest& manifest)

@@ -1,4 +1,5 @@
 #include "core/release_notes.h"
+#include "core/legacy_names.h"
 
 #include "core/deflate.h"
 #include "core/game_asset_register.h"
@@ -616,7 +617,7 @@ bool parseReleaseRecord(const QJsonObject& object, ReleaseRecord* record, QStrin
 		}
 		return false;
 	};
-	if (object.value(QStringLiteral("format")).toString() != QStringLiteral("slopstudio-release-record")) {
+	if (!isCurrentOrLegacyStudioName(object.value(QStringLiteral("format")).toString(), QStringLiteral("slopstudio-release-record"))) {
 		return fail(QCoreApplication::translate("SlopStudioReleaseNotes", "The file is not a SlopStudio release record."));
 	}
 	if (object.value(QStringLiteral("version")).toInt(-1) != ReleaseRecord::kFormatVersion) {

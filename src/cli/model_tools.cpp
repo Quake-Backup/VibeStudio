@@ -1,4 +1,5 @@
 #include "cli/model_tools.h"
+#include "core/legacy_names.h"
 #include "cli/model_transform_options.h"
 
 #include "core/game_installation.h"
@@ -1668,7 +1669,7 @@ ModelToolsCliResult runModelLod(const QStringList &arguments)
 		if (package)
 		{
 			const auto path = args.values.value(QStringLiteral("--package"));
-			if (path.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive))
+			if (isPackageDraftPath(path))
 			{
 				PackageStagingModel staging;
 				if (!PackageDraft::load(path, &staging, &error))

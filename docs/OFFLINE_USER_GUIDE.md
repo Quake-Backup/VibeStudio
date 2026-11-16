@@ -1236,6 +1236,28 @@ It does not keep unsaved edits, undo history or camera positions, and opening on
 compiler, launches a game or installs anything. Paths are stored relative to the workspace file, so
 you can move a folder that contains both.
 
+### Bring your work over from VibeStudio
+
+SlopStudio was called VibeStudio until 15 November 2026. Everything VibeStudio wrote still opens:
+
+| What VibeStudio wrote | What SlopStudio does with it |
+| --- | --- |
+| Settings | Copied into SlopStudio's settings the first time it starts with none of its own. The VibeStudio copy is left as it was. |
+| Recovery copies, logs and caches in your user folders | The VibeStudio folders are renamed to SlopStudio's the first time it starts, when SlopStudio has none yet. |
+| A project's `.vibestudio` folder | Renamed to `.slopstudio` the first time SlopStudio opens the project, with the manifest, builds, compiler runs and backups inside. A manifest that keeps temporary files under `.vibestudio` is read as `.slopstudio`. |
+| `.vibepackage` drafts and `.vibeworkspace` files | Open, save and recover as before. New ones are `.sloppackage` and `.slopworkspace`. |
+| Models, assemblies, gesture and control profiles, release records and other saved documents | Open as before; they are saved with the new format names. |
+| VibeMap2 and VibeMap3 compiler ids, executables and version banners | Recognised as SlopMap2 and SlopMap3. |
+| `VIBESTUDIO_*` environment variables | Still read when the matching `SLOPSTUDIO_*` variable is not set. |
+
+Two things are not carried over:
+
+- A `vibestudio_<map>.pk3` that VibeStudio deployed to a Quake III game folder stays there, and the
+  game loads it after SlopStudio's `slopstudio_<map>.pk3`. **Deploy** warns about it; remove it to
+  play the new build.
+- A Quake or Quake II PAK slot that VibeStudio deployed is treated as somebody else's PAK, so
+  SlopStudio deploys to the next free slot and leaves it alone.
+
 ### Command-line equivalents
 
 | Task | Command |

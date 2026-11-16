@@ -401,7 +401,8 @@ ModelStateSummary summarizeModelState(const ModelMesh &mesh, QString *error, con
 	// The identity: the metadata, then every array's length and digest in
 	// model order. Lengths and order are part of it; what was reused is not.
 	QCryptographicHash hash(QCryptographicHash::Sha256);
-	static constexpr char domain[] = "SlopStudio model revision 3";
+	// The hash domain keeps the former name: saved fingerprints must not change.
+	static constexpr char domain[] = "VibeStudio model revision 3";
 	hash.addData(QByteArrayView(domain, sizeof(domain)));
 	GeometryHash stream(hash, control, error, plan.hashedBytes());
 	if (!stream.count(bytes.size()) || !stream.flush())
@@ -468,7 +469,8 @@ QByteArray modelStateLegacyFingerprint(const ModelMesh &mesh, QString *error, co
 		return {};
 	}
 	QCryptographicHash hash(QCryptographicHash::Sha256);
-	static constexpr char domain[] = "SlopStudio model revision 2";
+	// The hash domain keeps the former name: saved fingerprints must not change.
+	static constexpr char domain[] = "VibeStudio model revision 2";
 	hash.addData(QByteArrayView(domain, sizeof(domain)));
 	GeometryHash geometry(hash, control, error);
 	if (!geometry.count(bytes.size()) || !geometry.flush())

@@ -1,4 +1,5 @@
 #include "core/package_recovery.h"
+#include "core/legacy_names.h"
 #include "core/package_protection_p.h"
 #include "core/package_draft_access.h"
 #include "core/package_draft.h"
@@ -177,8 +178,8 @@ PackageRecoveryInfo inspectPackageRecovery(const QString& path, const PackageRea
 	info.manifestSha256 = QCryptographicHash::hash(bytes, QCryptographicHash::Sha256);
 	QJsonParseError parse; const auto document = QJsonDocument::fromJson(bytes, &parse); const auto root = document.object();
 	const auto recovery = root.value(QStringLiteral("recovery")).toObject();
-	if (parse.error != QJsonParseError::NoError || !document.isObject() || root.value(QStringLiteral("type")) != QStringLiteral("slopstudio-package-draft")
-		|| (root.value(QStringLiteral("version")).toInt() != 2 && root.value(QStringLiteral("version")).toInt() != 3 && root.value(QStringLiteral("version")).toInt() != 4) || recovery.value(QStringLiteral("type")) != QStringLiteral("slopstudio-package-recovery")
+	if (parse.error != QJsonParseError::NoError || !document.isObject() || !isCurrentOrLegacyStudioName(root.value(QStringLiteral("type")).toString(), QStringLiteral("slopstudio-package-draft"))
+		|| (root.value(QStringLiteral("version")).toInt() != 2 && root.value(QStringLiteral("version")).toInt() != 3 && root.value(QStringLiteral("version")).toInt() != 4) || !isCurrentOrLegacyStudioName(recovery.value(QStringLiteral("type")).toString(), QStringLiteral("slopstudio-package-recovery"))
 		|| recovery.value(QStringLiteral("version")).toInt() != 1 || recovery.value(QStringLiteral("id")) != info.id) {
 		return invalid(message(QT_TRANSLATE_NOOP("PackageRecovery", "The recovery copy has a damaged or unsupported manifest.")));
 	}

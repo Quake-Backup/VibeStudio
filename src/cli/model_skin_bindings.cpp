@@ -1,4 +1,5 @@
 #include "cli/model_skin_bindings.h"
+#include "core/legacy_names.h"
 #include "core/model_document.h"
 #include "core/model_skin_bindings.h"
 #include "core/package_draft.h"
@@ -88,7 +89,7 @@ ModelSkinBindingsCliResult runModelSkinBindings(const QStringList &arguments)
 	if (package)
 	{
 		const auto path = values.value("--package");
-		if (path.endsWith(".sloppackage", Qt::CaseInsensitive))
+		if (isPackageDraftPath(path))
 		{
 			PackageStagingModel staging;
 			if (!PackageDraft::load(path, &staging, &error))

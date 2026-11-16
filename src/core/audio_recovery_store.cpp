@@ -1,4 +1,5 @@
 #include "core/audio_recovery_store.h"
+#include "core/legacy_names.h"
 #include "core/studio_settings.h"
 
 #include <QCoreApplication>
@@ -214,7 +215,7 @@ QString audioRecoveryDirectory()
 	const QString profile = StudioSettings::overrideFilePath();
 	const QString root = profile.isEmpty() ? QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
 	                                       : QFileInfo(profile).absolutePath();
-	return qEnvironmentVariable("SLOPSTUDIO_AUDIO_RECOVERY_ROOT",
+	return studioEnvironmentVariable("AUDIO_RECOVERY_ROOT",
 	                            QDir(root).filePath(QStringLiteral("audio-recovery")));
 }
 

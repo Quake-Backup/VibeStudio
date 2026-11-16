@@ -1,4 +1,5 @@
 #include "core/game_asset_register.h"
+#include "core/legacy_names.h"
 
 #include "core/deflate.h"
 #include "core/map_assets.h"
@@ -788,7 +789,7 @@ bool parseGameAssetRegister(const QByteArray& bytes, GameAssetRegister* out, QSt
 		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The asset register is not valid JSON: %1").arg(parseError.errorString()));
 	}
 	const QJsonObject root = document.object();
-	if (root.value(QStringLiteral("format")).toString() != QStringLiteral("slopstudio-asset-register")) {
+	if (!isCurrentOrLegacyStudioName(root.value(QStringLiteral("format")).toString(), QStringLiteral("slopstudio-asset-register"))) {
 		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The file is not a SlopStudio asset register."));
 	}
 	const int version = root.value(QStringLiteral("version")).toInt(-1);

@@ -1,4 +1,5 @@
 #include "core/editor_profiles.h"
+#include "core/legacy_names.h"
 #include "core/level_camera_texture.h"
 
 #include "core/studio_semantics.h"
@@ -142,7 +143,8 @@ QString defaultEditorProfileId()
 
 QString normalizedEditorProfileId(const QString& id)
 {
-	QString normalized = id.trimmed().toLower().replace('_', '-');
+	// VibeStudio, the studio's former name, saved "vibestudio-default".
+	QString normalized = withCurrentStudioName(id.trimmed().toLower().replace('_', '-'));
 	normalized.replace(QStringLiteral(" "), QStringLiteral("-"));
 	while (normalized.contains(QStringLiteral("--"))) {
 		normalized.replace(QStringLiteral("--"), QStringLiteral("-"));

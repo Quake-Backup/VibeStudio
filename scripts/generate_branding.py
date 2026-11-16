@@ -549,25 +549,78 @@ def mark_items(x: float, y: float, size: float, style: MarkStyle = MarkStyle()) 
         fill = style.plate_fill or Linear(0, y + inset * s, 0, y + (1024 - inset) * s, ((0.0, FLARE), (1.0, EMBER)))
         shadow = (0, 12 * s * g, 28 * s * g, 0.32) if style.shadow else None
         items.append(Item(rounded_rect(x + inset * s, y + inset * s, plate_size * s, plate_size * s, 216 * g * s), fill, 1.0, shadow))
-    # V: arms from the top corners to the vertex, then three shrinking pixels
-    # continuing the right arm toward the tile's top-right corner.
-    cx, top, bottom, half, stroke = 476.0, 384.0, 738.0, 176.0, 128.0
-    w = stroke * g * s
-    glyph = Path2D()
-    glyph.extend(capsule(gx(cx - half), gy(top), gx(cx), gy(bottom), w))
+    # S: two stacked round bowls with round terminals, then three shrinking
+    # pixels leaving the upper terminal toward the tile's top-right corner.
+    glyph = map_path(s_outline(S_CX, S_MID, S_RADIUS, S_STROKE / 2, S_TERMINAL), gx, gy)
     items.append(Item(glyph, style.glyph))
-    items.append(Item(capsule(gx(cx), gy(bottom), gx(cx + half), gy(top), w), style.glyph))
-    ux, uy = half, -(bottom - top)
-    length = math.hypot(ux, uy)
-    ux, uy = ux / length, uy / length
-    distance = stroke / 2
+    tx = S_CX + S_RADIUS * math.cos(math.radians(S_TERMINAL))
+    ty = S_MID - S_RADIUS + S_RADIUS * math.sin(math.radians(S_TERMINAL))
+    ux, uy = math.cos(math.radians(S_TRAIL)), math.sin(math.radians(S_TRAIL))
+    distance = S_STROKE / 2
     for side, gap, opacity in ((72.0, 34.0, 1.0), (54.0, 30.0, 0.8), (38.0, 28.0, 0.55)):
         distance += gap + side / 2
-        px = round(((cx + half) + ux * distance) / 2) * 2
-        py = round((top + uy * distance) / 2) * 2
+        px = round((tx + ux * distance) / 2) * 2
+        py = round((ty + uy * distance) / 2) * 2
         items.append(Item(rect(gx(px - side / 2), gy(py - side / 2), side * g * s, side * g * s), style.glyph, opacity))
         distance += side / 2
     return items
+
+
+# The S on the 1024-unit design square: centre line of two circles of
+# S_RADIUS meeting at (S_CX, S_MID), terminals S_TERMINAL degrees from the
+# upper bowl's rightmost point (y down) and the pixel trail's heading.
+S_CX, S_MID, S_RADIUS, S_STROKE, S_TERMINAL, S_TRAIL = 462.0, 542.0, 106.0, 104.0, -22.0, -40.0
+
+
+def arc(path: Path2D, cx: float, cy: float, r: float, a0: float, a1: float, move: bool = False) -> Path2D:
+    """Append a circular arc from a0 to a1 degrees (y down) as cubics of at most 90 degrees."""
+    sweep = a1 - a0
+    pieces = max(1, math.ceil(abs(sweep) / 90.0 - 1e-9))
+    step = math.radians(sweep / pieces)
+    k = 4.0 / 3.0 * math.tan(step / 4.0)
+    a = math.radians(a0)
+    if move:
+        path.move(cx + r * math.cos(a), cy + r * math.sin(a))
+    for _ in range(pieces):
+        b = a + step
+        x0, y0 = cx + r * math.cos(a), cy + r * math.sin(a)
+        x1, y1 = cx + r * math.cos(b), cy + r * math.sin(b)
+        path.cubic(x0 - k * r * math.sin(a), y0 + k * r * math.cos(a), x1 + k * r * math.sin(b), y1 - k * r * math.cos(b), x1, y1)
+        a = b
+    return path
+
+
+def s_outline(cx: float, mid: float, r: float, h: float, terminal: float) -> Path2D:
+    """One closed contour: the upper bowl's outside, the lower bowl's inside,
+    the lower terminal's cap, the lower bowl's outside, the upper bowl's inside
+    and the upper terminal's cap. The bowls share the spine point (cx, mid)."""
+    upper, lower = mid - r, mid + r
+    end = terminal + 180.0  # the lower terminal, the upper one turned half a turn
+    p = Path2D()
+    arc(p, cx, upper, r + h, terminal, -270.0, move=True)
+    arc(p, cx, lower, r - h, -90.0, end)
+    ex, ey = cx + r * math.cos(math.radians(end)), lower + r * math.sin(math.radians(end))
+    arc(p, ex, ey, h, end + 180.0, end)
+    arc(p, cx, lower, r + h, end, -90.0)
+    arc(p, cx, upper, r - h, -270.0, terminal)
+    tx, ty = cx + r * math.cos(math.radians(terminal)), upper + r * math.sin(math.radians(terminal))
+    arc(p, tx, ty, h, terminal + 180.0, terminal)
+    return p
+
+
+def map_path(path: Path2D, fx, fy) -> Path2D:
+    """``path`` with every point passed through fx (x) and fy (y)."""
+    out = Path2D()
+    for contour in path.contours:
+        segments = []
+        for segment in contour:
+            values = list(segment[1:])
+            mapped = []
+            for i in range(0, len(values), 2):
+                mapped.extend([fx(values[i]), fy(values[i + 1])])
+            segments.append((segment[0], *mapped))
+        out.contours.append(segments)
+    return out
 
 
 def mark_scene(style: MarkStyle = MarkStyle(), title: str = "SlopStudio") -> Scene:
@@ -576,29 +629,14 @@ def mark_scene(style: MarkStyle = MarkStyle(), title: str = "SlopStudio") -> Sce
     return scene
 
 
-def pixel_v(left: int, top: int, arm: int, step_rows: list[int], trail: list[tuple[int, int, int, float]]):
-    """Pixel cells of a V with ``arm``-wide arms stepping one column per entry of ``step_rows``.
-
-    The arms close into a tip that narrows by a pixel per side per row, then the
-    trail squares (x, y, side, opacity) are added.
-    """
+def pixel_glyph(left: int, top: int, rows: list[str], trail: list[tuple[int, int, int, float]]):
+    """Pixel cells from ``rows`` ('#' lit, anything else dark) placed at (left, top),
+    then the trail squares (x, y, side, opacity)."""
     cells: dict[tuple[int, int], float] = {}
-    steps = len(step_rows)
-    width = arm * 2 + (steps - 1) * 2  # outer width of the V
-    right = left + width - arm
-    row = top
-    for step, rows in enumerate(step_rows):
-        for _ in range(rows):
-            for c in range(arm):
-                cells[(left + step + c, row)] = 1.0
-                cells[(right - step + c, row)] = 1.0
-            row += 1
-    first, last = left + steps - 1, right - steps + 1 + arm - 1
-    while last - first > 1:
-        first, last = first + 1, last - 1
-        for c in range(first, last + 1):
-            cells[(c, row)] = 1.0
-        row += 1
+    for dy, row in enumerate(rows):
+        for dx, char in enumerate(row):
+            if char == "#":
+                cells[(left + dx, top + dy)] = 1.0
     for x, y, side, alpha in trail:
         for dy in range(side):
             for dx in range(side):
@@ -606,11 +644,44 @@ def pixel_v(left: int, top: int, arm: int, step_rows: list[int], trail: list[tup
     return cells
 
 
-# Hand-placed glyphs for the smallest sizes, where a soft diagonal turns to mush.
+# Hand-placed glyphs for the smallest sizes, where the soft curves turn to mush.
 SMALL_GLYPHS = {
-    16: pixel_v(left=3, top=4, arm=2, step_rows=[2, 2, 2], trail=[(11, 2, 1, 0.8)]),
-    20: pixel_v(left=4, top=5, arm=2, step_rows=[2, 2, 2, 2], trail=[(14, 3, 1, 0.85)]),
-    24: pixel_v(left=5, top=6, arm=3, step_rows=[3, 3, 2, 2], trail=[(17, 3, 2, 0.9)]),
+    16: pixel_glyph(5, 4, [
+        ".####.",
+        "##..##",
+        "##....",
+        ".###..",
+        "..###.",
+        "....##",
+        "##..##",
+        ".####.",
+    ], trail=[(12, 3, 1, 0.8)]),
+    20: pixel_glyph(6, 5, [
+        "..###..",
+        ".#####.",
+        "##...##",
+        "##.....",
+        ".####..",
+        "..####.",
+        ".....##",
+        "##...##",
+        ".#####.",
+        "..###..",
+    ], trail=[(14, 4, 1, 0.85), (16, 2, 1, 0.55)]),
+    24: pixel_glyph(7, 7, [
+        "..####..",
+        ".######.",
+        "##....##",
+        "##......",
+        "##......",
+        ".#####..",
+        "..#####.",
+        "......##",
+        "......##",
+        "##....##",
+        ".######.",
+        "..####..",
+    ], trail=[(16, 5, 2, 0.9), (19, 3, 1, 0.6)]),
 }
 
 
@@ -641,14 +712,17 @@ class WordmarkStyle:
     dots: str
 
 
+# The i is dotless so the wordmark can give it a square pixel dot.
+WORDMARK_TEXT = "SlopStudıo"
+
 ON_DARK = WordmarkStyle(ORANGE, WHITE, ORANGE)
 ON_LIGHT = WordmarkStyle(ORANGE, CHARCOAL, ORANGE)
 ON_ORANGE = WordmarkStyle(WHITE, WHITE, CHARCOAL)
 
 
 def wordmark_items(font: BrandFont, x: float, baseline: float, size: float, style: WordmarkStyle) -> tuple[list[Item], float]:
-    """'SlopStudio' with square pixel dots on both i's. Returns items and width."""
-    text = "VıbeStudıo"
+    """'SlopStudio' with a square pixel dot on the i. Returns items and width."""
+    text = WORDMARK_TEXT
     scale = size / font.upem
     positions = font.pen_positions(text)
     slop = Path2D()
@@ -674,6 +748,11 @@ def cap_height(font: BrandFont) -> float:
     return font.ttf["OS/2"].sCapHeight
 
 
+def descender_depth(font: BrandFont, text: str) -> float:
+    """How far ``text``'s glyphs reach below the baseline, in font units (the p of "Slop")."""
+    return max(0.0, -min(font.bounds(font.glyph_name(char))[1] for char in text if not char.isspace()))
+
+
 def lockup_scene(fonts: dict[str, BrandFont], style: WordmarkStyle, title: str, with_tagline: bool,
                  tagline_colour: str = ASH) -> Scene:
     """Mark beside the wordmark; optionally the tagline under the wordmark."""
@@ -685,11 +764,13 @@ def lockup_scene(fonts: dict[str, BrandFont], style: WordmarkStyle, title: str, 
     left = 24.0
     text_x = left + mark + gap
     # The tagline is set to the wordmark's width so the two read as one block.
-    word_width = heavy.advance("VıbeStudıo") * text_size / heavy.upem
+    word_width = heavy.advance(WORDMARK_TEXT) * text_size / heavy.upem
     tag_size = min(56.0, max(36.0, (word_width - 8) / (medium.advance(TAGLINE) / medium.upem)))
     tag_cap = cap_height(medium) * tag_size / medium.upem
+    descent = descender_depth(heavy, WORDMARK_TEXT) * text_size / heavy.upem
     if with_tagline:
-        spacing = tag_size * 0.9
+        # Clear the wordmark's descender, then leave the tagline a little air.
+        spacing = max(tag_size * 0.9, descent + tag_size * 0.4)
         block = cap + spacing + tag_cap
         baseline = 32 + (mark - block) / 2 + cap
     else:
@@ -711,8 +792,9 @@ def wordmark_scene(fonts: dict[str, BrandFont], style: WordmarkStyle, title: str
     size = 200.0
     cap = cap_height(heavy) * size / heavy.upem
     pad = 24.0
+    descent = descender_depth(heavy, WORDMARK_TEXT) * size / heavy.upem
     items, width = wordmark_items(heavy, pad, pad + cap + 8, size, style)
-    scene = Scene(round(width + pad * 2), round(cap + pad * 2 + 16), title)
+    scene = Scene(round(width + pad * 2), round(pad + cap + 8 + max(8.0, descent) + pad), title)
     scene.items.extend(items)
     return scene
 

@@ -244,6 +244,7 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Models:** Limited Dissolve, Rotate Edges, Beautify Faces, Dissolve Vertices and Faces, Bevel Vertices, Inset, Extrude Along Normals, edge loop selection, Select Similar, symmetric editing, individual-origin transforms, proportional falloff, skeletal clip edits, weight-paint smoothing, projected skin transfers, MD3 export, frame import and OBJ export run faster on large models, and Weld UVs and Stitch UVs use far less memory on long animations.
 - **Models:** The status bar's Activity ring now turns during Mesh Editor imports, exports, edits, audits, reviews and bakes, and Compare with Disk reads the file in the background.
 - **Models:** Exporting an RTCW MDS from a model that came from MDS, MDM or MDX reports that torso blending is not kept, so a strict export refuses it.
+- VibeStudio is now **SlopStudio**, because another prominent product already uses the VibeStudio name. The app, command (`slopstudio`), files (`.sloppackage`, `.slopworkspace`, the `.slopstudio` project folder), `SLOPSTUDIO_*` environment variables, the SlopMap2 and SlopMap3 compilers and the brand (a new S mark, Slop Orange) all take the new name. Settings, user data, projects, drafts, workspaces, saved documents, compiler ids and `VIBESTUDIO_*` variables from VibeStudio carry over; see Bring your work over from VibeStudio in the Projects chapter.
 
 ### Removed
 

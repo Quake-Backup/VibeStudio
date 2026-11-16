@@ -1,4 +1,5 @@
 #include "app/package_operation_dialog.h"
+#include "core/legacy_names.h"
 #include "app/package_progress.h"
 #include "core/package_draft.h"
 #include "core/package_draft_storage.h"
@@ -218,7 +219,7 @@ public:
 		const auto state = m_state;
 		const auto workerControl = readControl(state, control);
 		auto* worker = QThread::create([state, path, workerControl]() {
-			if (path.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) {
+			if (isPackageDraftPath(path)) {
 				if (PackageDraft::load(path, &state->load.staging, &state->load.error, workerControl)) {
 					state->load.archive = PackageDraft::baseArchive(state->load.staging, &state->load.error, workerControl);
 				}

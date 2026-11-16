@@ -1,4 +1,5 @@
 #include "core/model_editor_controls.h"
+#include "core/legacy_names.h"
 
 #include <QCoreApplication>
 #include <QHash>
@@ -555,7 +556,8 @@ QString defaultModelEditorProfileId()
 
 QString normalizedModelEditorProfileId(const QString& id)
 {
-	QString key = id.trimmed().toLower();
+	// VibeStudio, the studio's former name, saved "vibestudio-default".
+	QString key = withCurrentStudioName(id.trimmed().toLower());
 	key.replace(QLatin1Char(' '), QLatin1Char('-'));
 	key.replace(QLatin1Char('_'), QLatin1Char('-'));
 	for (const ProfileEntry& entry : kProfiles) {
@@ -1439,7 +1441,7 @@ bool parseModelEditorControlsFile(const QByteArray& bytes, QString* profileId, Q
 		return fail(QCoreApplication::translate("SlopStudioModelControls", "The controls file is not a JSON object: %1.").arg(parse.errorString()));
 	}
 	const QJsonObject object = document.object();
-	if (object.value(QStringLiteral("format")).toString() != QLatin1String("slopstudio.modeller-controls")) {
+	if (!isCurrentOrLegacyStudioName(object.value(QStringLiteral("format")).toString(), QStringLiteral("slopstudio.modeller-controls"))) {
 		return fail(QCoreApplication::translate("SlopStudioModelControls", "The file is not a SlopStudio modeller controls file."));
 	}
 	if (object.value(QStringLiteral("version")).toInt() != 1) {

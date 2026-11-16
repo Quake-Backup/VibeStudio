@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 	for (const auto& descriptor : descriptors) {
 		if (descriptor.integrationId != QStringLiteral("slopmap2")) { continue; }
 		for (const QString& name : descriptor.executableNames) {
-			if (!name.startsWith(QStringLiteral("slopmap2-")) && !name.startsWith(QStringLiteral("vmt-"))) {
+			if (!name.startsWith(QStringLiteral("slopmap2-")) && !name.startsWith(QStringLiteral("vibemap2-")) && !name.startsWith(QStringLiteral("vmt-"))) {
 				return fail("Expected every SlopMap2 binary to avoid generic-name conflicts (#335).");
 			}
 		}

@@ -1,4 +1,5 @@
 #include "core/package_draft.h"
+#include "core/legacy_names.h"
 #include "core/package_protection_p.h"
 #include "core/package_directory.h"
 #include "core/package_draft_access.h"
@@ -52,7 +53,7 @@ bool draftDirectory(const QString& input, QString* absolute, QString* error)
 {
 	if (input.trimmed().isEmpty()) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Choose a .sloppackage draft directory.")); }
 	*absolute = QDir::cleanPath(QFileInfo(input).absoluteFilePath());
-	if (!absolute->endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) {
+	if (!isPackageDraftPath(*absolute)) {
 		return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "A package draft directory must end in .sloppackage."));
 	}
 	return noLinks(*absolute, error);
@@ -589,7 +590,7 @@ bool PackageDraft::load(const QString& directory, PackageStagingModel* staging, 
 	const QJsonObject document = json.object();
 	const auto invalid = [&]() { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Invalid package draft metadata or undo history.")); };
 	const int version = document.value(QStringLiteral("version")).toInt(-1);
-	if (parseError.error != QJsonParseError::NoError || !json.isObject() || document.value(QStringLiteral("type")) != QStringLiteral("slopstudio-package-draft")
+	if (parseError.error != QJsonParseError::NoError || !json.isObject() || !isCurrentOrLegacyStudioName(document.value(QStringLiteral("type")).toString(), QStringLiteral("slopstudio-package-draft"))
 		|| (version != 1 && version != 2 && version != 3 && version != 4)) { return invalid(); }
 	qsizetype recordCount = 0;
 	for (const char* field : {"base", "directories", "conflicts", "wadLumps", "operations", "current", "history"}) {

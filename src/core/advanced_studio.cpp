@@ -1,4 +1,5 @@
 #include "core/advanced_studio.h"
+#include "core/legacy_names.h"
 #include "core/code_files.h"
 
 #include "core/compiler_profiles.h"
@@ -1416,7 +1417,7 @@ ExtensionDiscoveryResult discoverExtensions(const QStringList& searchRoots)
 			result.warnings << QCoreApplication::translate("SlopStudioAdvancedStudio", "Extension root does not exist: %1").arg(QDir::toNativeSeparators(root));
 			continue;
 		}
-		if (rootInfo.isFile() && rootInfo.fileName() == QStringLiteral("slopstudio.extension.json")) {
+		if (rootInfo.isFile() && isCurrentOrLegacyStudioName(rootInfo.fileName(), QStringLiteral("slopstudio.extension.json"))) {
 			ExtensionManifest manifest;
 			QString error;
 			if (loadExtensionManifest(rootInfo.absoluteFilePath(), &manifest, &error)) {
@@ -1426,7 +1427,7 @@ ExtensionDiscoveryResult discoverExtensions(const QStringList& searchRoots)
 			}
 			continue;
 		}
-		QDirIterator iterator(rootInfo.absoluteFilePath(), {QStringLiteral("slopstudio.extension.json")}, QDir::Files, QDirIterator::Subdirectories);
+		QDirIterator iterator(rootInfo.absoluteFilePath(), {QStringLiteral("slopstudio.extension.json"), legacyStudioId(QStringLiteral("slopstudio.extension.json"))}, QDir::Files, QDirIterator::Subdirectories);
 		while (iterator.hasNext()) {
 			ExtensionManifest manifest;
 			QString error;

@@ -652,6 +652,7 @@ core_sources = files(
   'core/text_recovery.cpp',
   'core/studio_semantics.cpp',
   'core/studio_manifest.cpp',
+  'core/legacy_names.cpp',
   'core/studio_query.cpp',
   'core/studio_settings.cpp',
 )
@@ -793,7 +794,7 @@ install_headers('core/package_draft.h', 'core/package_draft_access.h', 'core/pac
 install_headers('core/package_recovery.h', subdir: 'slopstudio/core')
 install_headers('core/package_storage.h', 'core/package_copy.h', 'core/package_copy_budget.h', 'core/package_copy_store.h', subdir: 'slopstudio/core')
 
-install_headers(files('core/level_component_drag.h', 'core/advanced_studio.h', 'core/ai_connectors.h', 'core/ai_transport.h', 'core/ai_workflows.h', 'core/asset_tools.h', 'core/bsp_inspect.h', 'core/build_pipeline.h', 'core/build_program_trust.h', 'core/compiler_artifact_validation.h', 'core/compiler_known_issues.h', 'core/compiler_profiles.h', 'core/compiler_registry.h', 'core/compiler_runner.h', 'core/deflate.h', 'core/document_watch.h', 'core/quake_map_preflight.h', 'core/editor_profiles.h', 'core/entity_definitions.h', 'core/game_installation.h', 'core/idtech_image.h', 'core/level_editor_controls.h', 'core/level_gestures.h', 'core/level_camera_keys.h', 'core/level_map.h', 'core/localization.h', 'core/map_assets.h', 'core/map_geometry.h', 'core/map_preview_mesh.h', 'core/map_render.h', 'core/model_mesh.h', 'core/operation_state.h', 'core/package_archive.h', 'core/package_compare.h', 'core/package_preview.h', 'core/package_staging.h', 'core/package_directory.h', 'core/package_browser.h', 'core/parser_fuzz.h', 'core/project_manifest.h', 'core/studio_semantics.h', 'core/studio_manifest.h', 'core/studio_query.h', 'core/studio_settings.h'), subdir: 'slopstudio/core')
+install_headers(files('core/level_component_drag.h', 'core/advanced_studio.h', 'core/ai_connectors.h', 'core/ai_transport.h', 'core/ai_workflows.h', 'core/asset_tools.h', 'core/bsp_inspect.h', 'core/build_pipeline.h', 'core/build_program_trust.h', 'core/compiler_artifact_validation.h', 'core/compiler_known_issues.h', 'core/compiler_profiles.h', 'core/compiler_registry.h', 'core/compiler_runner.h', 'core/deflate.h', 'core/document_watch.h', 'core/quake_map_preflight.h', 'core/editor_profiles.h', 'core/entity_definitions.h', 'core/game_installation.h', 'core/idtech_image.h', 'core/level_editor_controls.h', 'core/level_gestures.h', 'core/level_camera_keys.h', 'core/level_map.h', 'core/localization.h', 'core/map_assets.h', 'core/map_geometry.h', 'core/map_preview_mesh.h', 'core/map_render.h', 'core/model_mesh.h', 'core/operation_state.h', 'core/package_archive.h', 'core/package_compare.h', 'core/package_preview.h', 'core/package_staging.h', 'core/package_directory.h', 'core/package_browser.h', 'core/parser_fuzz.h', 'core/project_manifest.h', 'core/studio_semantics.h', 'core/studio_manifest.h', 'core/legacy_names.h', 'core/studio_query.h', 'core/studio_settings.h'), subdir: 'slopstudio/core')
 
 install_headers('core/ai_image_transport.h', subdir: 'slopstudio/core')
 install_headers('core/ai_harness.h', 'core/ai_gguf_runtime.h', 'core/ai_json_grammar.h', 'core/process_tree.h', subdir: 'slopstudio/core')
@@ -3752,6 +3753,16 @@ project_manifest_smoke_test = executable(
 )
 
 test('project-manifest-smoke', project_manifest_smoke_test)
+
+legacy_names_smoke_test = executable(
+  'legacy_names_smoke_test',
+  ['tests/legacy_names_smoke_test.cpp'],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
+  install: false,
+)
+
+test('legacy-names-smoke', legacy_names_smoke_test)
 
 game_asset_register_smoke_test = executable(
   'game_asset_register_smoke_test',

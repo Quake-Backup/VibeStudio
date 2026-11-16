@@ -1,7 +1,7 @@
 # Branding
 
 SlopStudio's identity is **clean, modern and professional, with a retro pixel
-accent**: an orange tile, a confident V, and a few square pixels that nod to
+accent**: an orange tile, a rounded S, and a few square pixels that nod to
 the idTech era the studio serves. This page sets the rules for the logo,
 colours, type and writing, and lists every brand file.
 
@@ -14,8 +14,11 @@ colours, type and writing, and lists every brand file.
 
 ## Name and taglines
 
-- Write **SlopStudio**: one word, capital V and S. Never "Slop Studio",
+- Write **SlopStudio**: one word, capital S twice. Never "Slop Studio",
   "Slopstudio" or "SLOPSTUDIO". In commands and file names use `slopstudio`.
+- The studio was called **VibeStudio** until 15 November 2026. Use the old name
+  only when explaining what carries over from it (see
+  [Projects](manual/projects.md)); never as a second brand.
 - **Tagline:** *The all-in-one idTech development studio.*
 - **Descriptor** (when there is room): *The all-in-one development studio for
   classic idTech games.*
@@ -25,9 +28,9 @@ colours, type and writing, and lists every brand file.
 
 ## The mark
 
-A rounded orange tile holds a white **V**. The V's right arm continues as three
-square pixels that shrink and fade toward the corner: a modern stroke turning
-into retro pixels.
+A rounded orange tile holds a white **S** drawn as two round bowls with round
+terminals. Its upper terminal sheds three square pixels that shrink and fade
+toward the tile's top-right corner: a modern stroke turning into retro pixels.
 
 | Version | Use it for |
 | --- | --- |
@@ -45,8 +48,9 @@ into retro pixels.
 
 The wordmark is set in **Manrope ExtraBold** and turned into outlines. "Slop"
 is Slop Orange; "Studio" is white on dark backgrounds or charcoal on light
-ones. Both dots on the i's are **square pixels** in Slop Orange (charcoal on
-orange backgrounds).
+ones. The dot on the i is a **square pixel** in Slop Orange (charcoal on
+orange backgrounds). The p's descender sets the space between the wordmark and
+the tagline in the banner.
 
 | Lockup | Files (SVG and 2x PNG, transparent) |
 | --- | --- |

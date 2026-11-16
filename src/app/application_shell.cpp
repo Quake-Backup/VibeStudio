@@ -1,4 +1,5 @@
 #include "app/application_shell.h"
+#include "core/legacy_names.h"
 #include "app/level_palette_tree.h"
 #include "app/studio_sidebar.h"
 #include "app/editor_profile_dialog.h"
@@ -14046,7 +14047,7 @@ void ApplicationShell::noteUiStall(qint64 milliseconds)
 	// their load, not by anything the user saw; they keep the log line only,
 	// unless a test asks for the record (SLOPSTUDIO_RECORD_UI_PAUSES=1).
 	static const bool recordsPauses = QGuiApplication::platformName() != QLatin1String("offscreen")
-		|| qEnvironmentVariableIntValue("SLOPSTUDIO_RECORD_UI_PAUSES") > 0;
+		|| studioEnvironmentVariableIntValue("RECORD_UI_PAUSES") > 0;
 	if (milliseconds < 2000 || !recordsPauses) {
 		return;
 	}
@@ -20338,7 +20339,7 @@ void ApplicationShell::openDroppedPath(const QString& path)
 		statusBar()->showMessage(tr("Dropped path does not exist: %1").arg(nativePath(path)));
 		return;
 	}
-	if (info.isFile() && info.suffix().compare(QStringLiteral("slopworkspace"), Qt::CaseInsensitive) == 0) {
+	if (info.isFile() && isWorkspaceDocumentPath(info.fileName())) {
 		QString error;
 		if (!openWorkspaceFrom(info.absoluteFilePath(), &error)) { statusBar()->showMessage(error); }
 		return;

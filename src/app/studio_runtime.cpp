@@ -1,4 +1,5 @@
 #include "app/studio_runtime.h"
+#include "core/legacy_names.h"
 
 #include "core/localization.h"
 #include "core/studio_manifest.h"
@@ -382,7 +383,7 @@ QStringList translationSearchPaths()
 {
 	QStringList paths;
 
-	const QByteArray override = qgetenv("SLOPSTUDIO_I18N_DIR");
+	const QByteArray override = studioEnvironmentVariable("I18N_DIR").toLocal8Bit();
 	if (!override.isEmpty()) {
 		appendUniqueExistingDirectory(&paths, QString::fromLocal8Bit(override));
 	}
@@ -516,7 +517,7 @@ TranslationLoadResult installStudioTranslations(QCoreApplication& app, const QSt
 		delete untranslated;
 		untranslated = nullptr;
 	}
-	const QString untranslatedLogPath = qEnvironmentVariable("SLOPSTUDIO_UNTRANSLATED_LOG");
+	const QString untranslatedLogPath = studioEnvironmentVariable("UNTRANSLATED_LOG");
 	if (!sourceLanguage && !untranslatedLogPath.isEmpty()) {
 		untranslated = new UntranslatedMessageLog(untranslatedLogPath, &app);
 		app.installTranslator(untranslated);

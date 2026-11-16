@@ -854,7 +854,8 @@ QByteArray PackageArchive::contentId() const
 	if (!m_open) { return {}; }
 	if (m_fileIdentity) { return m_fileIdentity->sha256; }
 	QCryptographicHash hash(QCryptographicHash::Sha256);
-	hash.addData(QByteArrayView("SlopStudio folder identity v2\0"));
+	// The hash domain keeps the former name: saved fingerprints must not change.
+	hash.addData(QByteArrayView("VibeStudio folder identity v2\0"));
 	QStringList paths = m_folderIdentities.keys();
 	paths.sort(Qt::CaseSensitive);
 	for (const auto& path : paths) {

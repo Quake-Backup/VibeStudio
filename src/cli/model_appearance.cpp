@@ -1,4 +1,5 @@
 #include "cli/model_appearance.h"
+#include "core/legacy_names.h"
 #include "core/model_appearance.h"
 #include "core/model_document.h"
 #include "core/model_material_slots.h"
@@ -70,7 +71,7 @@ ModelAppearanceCliResult runModelAppearance(const QStringList &arguments)
 	PackageArchive archive;
 	if (!readModelFile(path, &bytes, &error)) { return fail(1, error); }
 	const auto package = values.value("--package");
-	if (package.endsWith(".sloppackage", Qt::CaseInsensitive)) {
+	if (isPackageDraftPath(package)) {
 		PackageStagingModel staging;
 		if (!PackageDraft::load(package, &staging, &error)) { return fail(3, error); }
 		archive = packagePlannedArchive(staging, &error);

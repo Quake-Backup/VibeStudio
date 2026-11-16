@@ -195,7 +195,9 @@ const Golden kGolden[] = {
 	{"md5anim", 0, "73e4f9a5bced1431e9fb736b232c0858833d6ab5a81586c92bb202715f70c3cf"},
 	{"md5anim", 1, "6dc1de89af77b12d796ce02f38bb8ef367c962e28b5a3d5073872243e8ad366f"},
 	{"iqm", -1, "b8f32b697f03cf6b32f3c6e616c4883cc5035d52bb3f98ed72d22aa73587943e"},
-	{"ase", -1, "342ec9720af6bd5443a823b79fd5fdebb7fc60a2ad8056be9fe2bc2487a75d32"},
+	// The ASE header comment names the studio, so the 2026-11-15 rename to
+	// SlopStudio changed these bytes and nothing else.
+	{"ase", -1, "236d54fb68b932d9877375b9aa050df2a36ac91af49608d1396e2796716811c8"},
 };
 
 void checkRigidGolden(const QString &directory)
