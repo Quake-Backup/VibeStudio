@@ -7,7 +7,7 @@
 #include <QLabel>
 #include <QThread>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelUvHit
 {
@@ -145,4 +145,4 @@ class ModelUvView final : public QLabel
 	void startRender();
 	void announce();
 };
-} // namespace vibestudio
+} // namespace slopstudio

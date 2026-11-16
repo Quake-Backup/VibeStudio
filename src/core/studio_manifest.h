@@ -4,7 +4,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct StudioModule {
 	QString id;
@@ -42,4 +42,4 @@ QString updateChannel();
 QString projectLicenseSummary();
 QString aboutSurfaceText();
 
-} // namespace vibestudio
+} // namespace slopstudio

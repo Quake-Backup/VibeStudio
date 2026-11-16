@@ -32,7 +32,7 @@
 
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelGenerationDialog::Work {
 	std::atomic_bool discard = false;
@@ -323,7 +323,7 @@ LevelGenerationDialog::LevelGenerationDialog(QWidget* parent, LevelGenerationDia
 	m_save->setAccessibleName(tr("Save the generated level"));
 	m_savePlan = buttons->addButton(tr("Save &Plan…"), QDialogButtonBox::ActionRole);
 	m_savePlan->setAccessibleName(tr("Save the level plan as JSON"));
-	m_savePlan->setToolTip(tr("Keep the plan to edit by hand or build again: vibestudio --cli map generate --plan."));
+	m_savePlan->setToolTip(tr("Keep the plan to edit by hand or build again: slopstudio --cli map generate --plan."));
 	m_saveReport = buttons->addButton(tr("Save R&eport…"), QDialogButtonBox::ActionRole);
 	m_saveReport->setAccessibleName(tr("Save the Quake-MapGen report as JSON"));
 	m_saveReport->setToolTip(tr("Keep the plan, ranking, repairs, and analysis Quake-MapGen recorded, as its .qmg.json report."));
@@ -895,4 +895,4 @@ void LevelGenerationDialog::openInLevels()
 	m_status->setText(tr("Opened \"%1\" in Levels as a new map. Save As gives it a file.").arg(m_result.plan.title));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

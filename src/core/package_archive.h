@@ -14,7 +14,7 @@
 #include <functional>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Shared by the archive reader and staged WAD view. Empty means no marker.
 QString doomNamespaceMarker(const QString& lumpName, bool* opens = nullptr);
@@ -426,4 +426,4 @@ QString safePackageOutputPath(const QString& rootDirectory, const QString& virtu
 PackageExtractionReport extractPackageEntries(const PackageArchiveReader& archive, const PackageExtractionRequest& request, PackageExtractionProgressCallback progress = {});
 QString packageExtractionReportText(const PackageExtractionReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

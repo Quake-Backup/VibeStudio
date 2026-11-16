@@ -18,7 +18,7 @@
 #include <iostream>
 #include <numbers>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -353,7 +353,7 @@ int main(int argc, char **argv)
 	edit.translation = {0, 0, 4};
 	ok &= expect(document.edit(edit, &error) && document.undo() && document.revisionFingerprint() == before,
 				 "imported geometry edits and undoes normally");
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;

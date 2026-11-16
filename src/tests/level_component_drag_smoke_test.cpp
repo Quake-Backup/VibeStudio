@@ -4,7 +4,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value,const char* label) { if (!value) { ok = false; std::cerr << label << '\n'; } return value; }

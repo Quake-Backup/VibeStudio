@@ -5,7 +5,7 @@
 class QLabel;
 class QTreeWidget;
 class QPushButton;
-namespace vibestudio
+namespace slopstudio
 {
 class AudioRecordingMeters final : public QWidget {
 	Q_OBJECT
@@ -29,4 +29,4 @@ class AudioRecordingMeters final : public QWidget {
 	QTreeWidget *m_table = nullptr;
 	QPushButton *m_reset = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -45,7 +45,7 @@
 #include <QTreeWidget>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -751,4 +751,4 @@ void ApplicationShell::setLevelClassFiltersShown(const QStringList& classIds, bo
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

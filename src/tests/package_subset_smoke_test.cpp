@@ -9,8 +9,8 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::subset_test;
+using namespace slopstudio;
+using namespace slopstudio::subset_test;
 namespace {
 bool expect(bool value, const char* message, const QString& error = {})
 {
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 	PackageStagingModel staged; ok &= staged.loadBaseArchive(archive, &error);
 	const auto replacement = root.filePath("replacement.bin"); ok &= put(replacement, "changed-things");
 	ok &= expect(staged.replaceOccurrence(12, replacement, &error), "stage exact source occurrence", error);
-	const QString draft = root.filePath("work.vibepackage"); ok &= PackageDraft::save(draft, &staged, false, &error);
+	const QString draft = root.filePath("work.sloppackage"); ok &= PackageDraft::save(draft, &staged, false, &error);
 	PackageStagingModel loaded; ok &= PackageDraft::load(draft, &loaded, &error); const auto planned = packagePlannedArchive(loaded);
 	ok &= expect(subset.loadBaseArchiveSubsetAt(planned, {index(planned, "THINGS", 1)}, &error, &review), "portable planned snapshot supports exact subset", error);
 	write.destinationPath = root.filePath("edited.wad"); result = subset.writeArchive(write);

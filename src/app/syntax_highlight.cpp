@@ -10,7 +10,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -146,7 +146,7 @@ StudioLanguageDescriptor makeConfigDescriptor()
 	StudioLanguageDescriptor descriptor;
 	descriptor.language = StudioLanguage::Config;
 	descriptor.id = QStringLiteral("config");
-	descriptor.displayName = QCoreApplication::translate("VibeStudioSyntaxHighlight", "Console Config");
+	descriptor.displayName = QCoreApplication::translate("SlopStudioSyntaxHighlight", "Console Config");
 	descriptor.extensions = {
 		QStringLiteral(".cfg"),
 		QStringLiteral(".rc"),
@@ -182,7 +182,7 @@ StudioLanguageDescriptor makeShaderDescriptor()
 	StudioLanguageDescriptor descriptor;
 	descriptor.language = StudioLanguage::ShaderScript;
 	descriptor.id = QStringLiteral("shader");
-	descriptor.displayName = QCoreApplication::translate("VibeStudioSyntaxHighlight", "idTech3 Shader");
+	descriptor.displayName = QCoreApplication::translate("SlopStudioSyntaxHighlight", "idTech3 Shader");
 	descriptor.extensions = { QStringLiteral(".shader") };
 	descriptor.lineCommentTokens = { QStringLiteral("//") };
 	descriptor.keywords = {
@@ -226,7 +226,7 @@ StudioLanguageDescriptor makeQuakeCDescriptor()
 	StudioLanguageDescriptor descriptor;
 	descriptor.language = StudioLanguage::QuakeC;
 	descriptor.id = QStringLiteral("quakec");
-	descriptor.displayName = QCoreApplication::translate("VibeStudioSyntaxHighlight", "QuakeC");
+	descriptor.displayName = QCoreApplication::translate("SlopStudioSyntaxHighlight", "QuakeC");
 	descriptor.extensions = { QStringLiteral(".qc"), QStringLiteral("progs.src") };
 	descriptor.lineCommentTokens = { QStringLiteral("//") };
 	descriptor.blockCommentStart = QStringLiteral("/*");
@@ -262,7 +262,7 @@ StudioLanguageDescriptor makeMapSourceDescriptor()
 	StudioLanguageDescriptor descriptor;
 	descriptor.language = StudioLanguage::MapSource;
 	descriptor.id = QStringLiteral("map-source");
-	descriptor.displayName = QCoreApplication::translate("VibeStudioSyntaxHighlight", "Map Source");
+	descriptor.displayName = QCoreApplication::translate("SlopStudioSyntaxHighlight", "Map Source");
 	descriptor.extensions = { QStringLiteral(".map") };
 	descriptor.lineCommentTokens = { QStringLiteral("//") };
 	descriptor.keywords = {
@@ -285,7 +285,7 @@ StudioLanguageDescriptor makeEntityDefDescriptor()
 	StudioLanguageDescriptor descriptor;
 	descriptor.language = StudioLanguage::EntityDef;
 	descriptor.id = QStringLiteral("entity-def");
-	descriptor.displayName = QCoreApplication::translate("VibeStudioSyntaxHighlight", "Entity Definitions");
+	descriptor.displayName = QCoreApplication::translate("SlopStudioSyntaxHighlight", "Entity Definitions");
 	descriptor.extensions = { QStringLiteral(".def"), QStringLiteral(".fgd"), QStringLiteral(".ent") };
 	descriptor.lineCommentTokens = { QStringLiteral("//") };
 	descriptor.keywords = {
@@ -311,7 +311,7 @@ StudioLanguageDescriptor makeIniDescriptor()
 	StudioLanguageDescriptor descriptor;
 	descriptor.language = StudioLanguage::Ini;
 	descriptor.id = QStringLiteral("ini");
-	descriptor.displayName = QCoreApplication::translate("VibeStudioSyntaxHighlight", "Key/Value Script");
+	descriptor.displayName = QCoreApplication::translate("SlopStudioSyntaxHighlight", "Key/Value Script");
 	descriptor.extensions = {
 		QStringLiteral(".ini"), QStringLiteral(".arena"), QStringLiteral(".menu"),
 		QStringLiteral(".bot"), QStringLiteral(".conf"),
@@ -330,7 +330,7 @@ StudioLanguageDescriptor makeJsonDescriptor()
 	StudioLanguageDescriptor descriptor;
 	descriptor.language = StudioLanguage::Json;
 	descriptor.id = QStringLiteral("json");
-	descriptor.displayName = QCoreApplication::translate("VibeStudioSyntaxHighlight", "JSON");
+	descriptor.displayName = QCoreApplication::translate("SlopStudioSyntaxHighlight", "JSON");
 	descriptor.extensions = { QStringLiteral(".json"), QStringLiteral(".vsproj"), QStringLiteral(".vsmanifest") };
 	descriptor.keywords = { QStringLiteral("true"), QStringLiteral("false"), QStringLiteral("null") };
 	descriptor.caseSensitiveKeywords = true;
@@ -342,7 +342,7 @@ StudioLanguageDescriptor makePlainTextDescriptor()
 	StudioLanguageDescriptor descriptor;
 	descriptor.language = StudioLanguage::PlainText;
 	descriptor.id = QStringLiteral("plain-text");
-	descriptor.displayName = QCoreApplication::translate("VibeStudioSyntaxHighlight", "Plain Text");
+	descriptor.displayName = QCoreApplication::translate("SlopStudioSyntaxHighlight", "Plain Text");
 	descriptor.extensions = { QStringLiteral(".txt"), QStringLiteral(".log"), QStringLiteral(".md") };
 	return descriptor;
 }
@@ -860,4 +860,4 @@ void StudioSyntaxHighlighter::applyDiagnostics(const QString& text)
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

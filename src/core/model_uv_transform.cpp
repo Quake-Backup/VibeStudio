@@ -7,7 +7,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool transformModelUvIslands(const ModelSurface &source, const QSet<int> &faces, const ModelUvIslandTransform &transform,
 							 ModelSurface *result, QString *error, const ModelWorkControl &control)
@@ -228,4 +228,4 @@ bool transformModelUvIslands(const ModelSurface &source, const QSet<int> &faces,
 	*result = std::move(candidate);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

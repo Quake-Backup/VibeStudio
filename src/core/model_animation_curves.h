@@ -2,7 +2,7 @@
 #include "core/model_mesh.h"
 #include <QJsonArray>
 #include <QJsonObject>
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 inline constexpr qint64 modelCurveMaxKeys = 1048576;
@@ -62,4 +62,4 @@ QJsonObject modelPoseCurvesJson(const ModelPoseCurves &group);
 bool modelPoseCurvesFromJson(const QJsonObject &object, int frameCount, ModelPoseCurves *group, QString *error);
 QJsonArray modelClipCurvesJson(const QVector<ModelPoseCurves> &groups);
 bool modelClipCurvesFromJson(const QJsonValue &value, int frameCount, QVector<ModelPoseCurves> *groups, QString *error);
-} // namespace vibestudio
+} // namespace slopstudio

@@ -9,7 +9,7 @@
 #include <array>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -213,7 +213,7 @@ bool composeModelQuakeSkin(const ModelMesh& mesh, int skin, const ModelGamePrevi
 	const int width = mesh.mdl.skinSize.width(), height = mesh.mdl.skinSize.height();
 	if (skin < 0 || skin >= mesh.embeddedSkins.size() || mesh.embeddedSkins.at(skin).indexedFrames.isEmpty() || width <= 0 || height <= 0
 		|| mesh.mdl.palette.size() < 768) {
-		return fail(QCoreApplication::translate("VibeStudioModelGamePreview", "The model has no indexed Quake skin %1 to preview.").arg(skin));
+		return fail(QCoreApplication::translate("SlopStudioModelGamePreview", "The model has no indexed Quake skin %1 to preview.").arg(skin));
 	}
 	const ModelEmbeddedSkin& source = mesh.embeddedSkins.at(skin);
 	// R_AliasSetupSkin: the member whose cumulative end time is past the time
@@ -230,7 +230,7 @@ bool composeModelQuakeSkin(const ModelMesh& mesh, int skin, const ModelGamePrevi
 	member = std::min(member, int(source.indexedFrames.size()) - 1);
 	QByteArray indices = source.indexedFrames.at(member);
 	if (indices.size() != qsizetype(width) * height) {
-		return fail(QCoreApplication::translate("VibeStudioModelGamePreview", "Skin %1 does not match the model's skin size.").arg(skin));
+		return fail(QCoreApplication::translate("SlopStudioModelGamePreview", "Skin %1 does not match the model's skin size.").arg(skin));
 	}
 	const auto* palette = reinterpret_cast<const quint8*>(mesh.mdl.palette.constData());
 	const bool software = options.quakeRenderer == MaterialQuakeRenderer::Software;
@@ -268,13 +268,13 @@ bool composeModelQuakeSkin(const ModelMesh& mesh, int skin, const ModelGamePrevi
 	out->glow = glow;
 	out->nearest = software;
 	if (software) {
-		out->notes << QCoreApplication::translate("VibeStudioModelGamePreview",
+		out->notes << QCoreApplication::translate("SlopStudioModelGamePreview",
 			"Software renderer: point sampled, fullbright texels unlit; the colormap's light levels are approximated by the view's shade.");
 	} else if (options.quakeRenderer == MaterialQuakeRenderer::GLQuake) {
-		out->notes << QCoreApplication::translate("VibeStudioModelGamePreview", "GLQuake: bilinear, and fullbright texels are lit like the rest.");
+		out->notes << QCoreApplication::translate("SlopStudioModelGamePreview", "GLQuake: bilinear, and fullbright texels are lit like the rest.");
 	}
 	if (options.topColor >= 0 || options.bottomColor >= 0) {
-		out->notes << QCoreApplication::translate("VibeStudioModelGamePreview", "Player colours translate indices 16-31 (top) and 96-111 (bottom).");
+		out->notes << QCoreApplication::translate("SlopStudioModelGamePreview", "Player colours translate indices 16-31 (top) and 96-111 (bottom).");
 	}
 	return true;
 }
@@ -333,23 +333,23 @@ bool composeModelQuake3Skin(const MaterialDefinition& definition, const Material
 			continue;
 		}
 		if (stage.imageKind == MaterialImageKind::Lightmap) {
-			note(QCoreApplication::translate("VibeStudioModelGamePreview", "Models have no lightmap; $lightmap stages are left out."));
+			note(QCoreApplication::translate("SlopStudioModelGamePreview", "Models have no lightmap; $lightmap stages are left out."));
 			continue;
 		}
 		int frame = -1;
 		const MaterialTexturePtr texture = textureOf(stage, &frame);
 		if (!texture || !texture->usable()) {
-			note(QCoreApplication::translate("VibeStudioModelGamePreview", "A stage image was not found: %1").arg(stage.imagePath));
+			note(QCoreApplication::translate("SlopStudioModelGamePreview", "A stage image was not found: %1").arg(stage.imagePath));
 			continue;
 		}
 		if (frame >= 0) {
 			out->frame = frame;
 		}
 		if (stage.tcGen.source == MaterialTexCoordSource::Environment) {
-			note(QCoreApplication::translate("VibeStudioModelGamePreview",
+			note(QCoreApplication::translate("SlopStudioModelGamePreview",
 				"tcGen environment depends on the view; the preview maps it like the base coordinates."));
 		} else if (stage.tcGen.source != MaterialTexCoordSource::Base) {
-			note(QCoreApplication::translate("VibeStudioModelGamePreview", "A stage's tcGen is drawn with the base coordinates."));
+			note(QCoreApplication::translate("SlopStudioModelGamePreview", "A stage's tcGen is drawn with the base coordinates."));
 		}
 		// Light-grid stages follow the viewport's shade; the rest are unlit.
 		bool shaded = false;
@@ -373,7 +373,7 @@ bool composeModelQuake3Skin(const MaterialDefinition& definition, const Material
 			gray[0] = gray[1] = gray[2] = 0.0;
 			break;
 		case MaterialColorSource::LightingSpecular:
-			note(QCoreApplication::translate("VibeStudioModelGamePreview", "Specular lighting is not simulated."));
+			note(QCoreApplication::translate("SlopStudioModelGamePreview", "Specular lighting is not simulated."));
 			break;
 		default:
 			break;
@@ -432,7 +432,7 @@ bool composeModelQuake3Skin(const MaterialDefinition& definition, const Material
 		}
 	}
 	if (!definition.deforms.isEmpty()) {
-		notes << QCoreApplication::translate("VibeStudioModelGamePreview", "deformVertexes changes the geometry in game and is not drawn here.");
+		notes << QCoreApplication::translate("SlopStudioModelGamePreview", "deformVertexes changes the geometry in game and is not drawn here.");
 	}
 	out->base = QImage(width, height, QImage::Format_ARGB32_Premultiplied);
 	QImage glow(width, height, QImage::Format_ARGB32_Premultiplied);
@@ -465,7 +465,7 @@ bool composeModelQuake3Skin(const MaterialDefinition& definition, const Material
 	out->notes = notes;
 	if (drawn == 0) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioModelGamePreview", "The shader %1 has no stage that can be drawn on a model.").arg(definition.name);
+			*error = QCoreApplication::translate("SlopStudioModelGamePreview", "The shader %1 has no stage that can be drawn on a model.").arg(definition.name);
 		}
 		return false;
 	}
@@ -489,10 +489,10 @@ bool composeModelGameSkin(const ModelMesh& mesh, int surface, const MaterialDefi
 	*out = {};
 	out->base = fallback;
 	if (definition && definition->engine == MaterialEngine::Doom3) {
-		out->notes << QCoreApplication::translate("VibeStudioModelGamePreview",
+		out->notes << QCoreApplication::translate("SlopStudioModelGamePreview",
 			"Doom 3 bump and specular interaction is not simulated; the diffuse image is shown.");
 	}
 	return !fallback.isNull();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

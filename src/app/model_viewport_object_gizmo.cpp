@@ -14,7 +14,7 @@
 #include <QPainter>
 #include <QTimer>
 
-namespace vibestudio {
+namespace slopstudio {
 
 bool ModelViewport::objectGizmoShown() const
 {
@@ -53,4 +53,4 @@ void ModelViewport::paintObjectGizmo(QPainter& painter)
 	m_objectGizmo->paint(painter, componentGizmoFrame(m_objectGizmo->pivot()), m_highContrast);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

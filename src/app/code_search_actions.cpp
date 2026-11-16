@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 QString searchPathIdentity(const QString& path)
@@ -190,4 +190,4 @@ void ApplicationShell::configureCodeProjectSearch()
 	};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

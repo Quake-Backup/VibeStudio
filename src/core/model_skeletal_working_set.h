@@ -26,7 +26,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ModelSkeletalBudget {
 	int frames = 0;
@@ -130,4 +130,4 @@ bool fitModelSkeletalWorkingSet(ModelMesh* mesh, const QVector<int>* clips, Mode
 // exist or cannot be skinned.
 [[nodiscard]] ModelMesh modelSkeletalSamplePreview(const ModelMesh& mesh, int clip, int sample, int* frame);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -26,7 +26,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -494,4 +494,4 @@ void ModelAssemblyDialog::choosePlayerBundle()
 	fitDialogToScreen(&dialog, QSize(740, 800));
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

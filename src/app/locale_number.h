@@ -6,7 +6,7 @@
 
 #include <initializer_list>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // A number written the way the user's region writes it ("0,5" in German),
 // for text people read: status lines, readouts, accessible text and table
@@ -39,4 +39,4 @@ namespace vibestudio {
 	return parts.join(localeNumberSeparator());
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

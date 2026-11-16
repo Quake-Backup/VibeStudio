@@ -7,7 +7,7 @@
 #include <QGuiApplication>
 #include <QStatusBar>
 
-namespace vibestudio
+namespace slopstudio
 {
 void ApplicationShell::pasteLevelMapFromClipboard(LevelClipboardPlacement mode)
 {
@@ -92,4 +92,4 @@ void ApplicationShell::fillLevelPlacementEntityBounds(LevelPastePlacement* place
 		}
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,7 +1,7 @@
 #pragma once
 #include "core/audio_session.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioMediaUsage {
 	QString id, name, path, availability;
@@ -52,4 +52,4 @@ struct AudioMediaResult {
 AudioMediaResult editAudioMedia(const AudioSession &session, const AudioMediaEdit &edit,
                                 const AudioMediaCandidate &candidate = {}, bool verifyFile = true,
                                 const AudioWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

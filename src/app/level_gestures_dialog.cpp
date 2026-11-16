@@ -19,7 +19,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 // QFormLayout must reserve the full wrapped height inside the scrolling page.
 class GestureLabel final : public QLabel {
@@ -157,12 +157,12 @@ LevelGesturesDialog::LevelGesturesDialog(StudioSettings& settings, const QString
 		Q_EMIT preferencesApplied();
 	});
 	connect(import, &QPushButton::clicked, this, [this] {
-		const auto path = QFileDialog::getOpenFileName(this, tr("Import Gestures"), {}, tr("VibeStudio gestures (*.json)"));
+		const auto path = QFileDialog::getOpenFileName(this, tr("Import Gestures"), {}, tr("SlopStudio gestures (*.json)"));
 		if (path.isEmpty()) { return; }
 		QString error; if (!importFile(path, &error)) { setStatus(error); }
 	});
 	connect(m_export, &QPushButton::clicked, this, [this] {
-		const auto path = QFileDialog::getSaveFileName(this, tr("Export Gestures"), m_profile.id + QStringLiteral("-gestures.json"), tr("VibeStudio gestures (*.json)"));
+		const auto path = QFileDialog::getSaveFileName(this, tr("Export Gestures"), m_profile.id + QStringLiteral("-gestures.json"), tr("SlopStudio gestures (*.json)"));
 		if (path.isEmpty()) { return; }
 		QString error; if (!exportFile(path, true, &error)) { setStatus(error); }
 		else { setStatus(tr("Gesture file exported.")); }
@@ -245,4 +245,4 @@ bool LevelGesturesDialog::exportFile(const QString& path, bool overwrite, QStrin
 {
 	return writeLevelGestures(path, m_profile.id, draft(), overwrite, error, m_settings.storageLocation());
 }
-} // namespace vibestudio
+} // namespace slopstudio

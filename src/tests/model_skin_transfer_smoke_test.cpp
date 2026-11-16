@@ -16,8 +16,8 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -241,7 +241,7 @@ int main(int argc, char **argv)
 	expect(!transferModelSkin(before, moved, source, {8, 8}, options, &first, nullptr, &error, stop) && hash(first) == kept,
 		   "cancellation keeps the caller's image");
 	// CLI.
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	QTemporaryDir temp(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("skin-transfer-XXXXXX"));
 	auto meshBefore = strip(1), meshAfter = strip(1);
 	meshBefore.surfaces[0] = before;
@@ -254,14 +254,14 @@ int main(int argc, char **argv)
 		expect(file.open(QIODevice::WriteOnly) && file.write(serializeEditableModel(mesh, &error)) > 0, "write CLI source");
 	}
 	expect(QImageWriter(texture, "png").write(source), "write the CLI skin");
-	const QStringList base{"vibestudio", "--cli", "model", "skin-transfer", "--from", from, "--to", to, "--texture", texture, "--output", output,
+	const QStringList base{"slopstudio", "--cli", "model", "skin-transfer", "--from", from, "--to", to, "--texture", texture, "--output", output,
 						   "--padding", "0"};
 	auto dry = cli::runModelSkinTransfer(base + QStringList{"--dry-run"});
 	expect(dry.exitCode == 0 && !QFile::exists(output) && dry.payload["transfer"].toObject()["faces"].toInt() == 2, "CLI dry run", dry.error);
 	auto run = cli::runModelSkinTransfer(base);
 	transferModelSkin(before, moved, source, {8, 8}, options, &result, nullptr, &error);
 	expect(run.exitCode == 0 && QImage(output).convertToFormat(QImage::Format_ARGB32) == result, "CLI writes the same skin", run.error);
-	auto protect = cli::runModelSkinTransfer({"vibestudio", "--cli", "model", "skin-transfer", "--from", from, "--to", to, "--texture", texture,
+	auto protect = cli::runModelSkinTransfer({"slopstudio", "--cli", "model", "skin-transfer", "--from", from, "--to", to, "--texture", texture,
 											  "--output", texture, "--overwrite"});
 	expect(protect.exitCode != 0, "the source skin is protected");
 	expect(cli::runModelSkinTransfer(base + QStringList{"--filter", "cubic"}).exitCode == 2, "unknown filters are refused");

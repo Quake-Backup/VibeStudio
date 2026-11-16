@@ -2,7 +2,7 @@
 
 #include "core/level_placement.h"
 
-namespace vibestudio::detail {
+namespace slopstudio::detail {
 // Placement preparation and the clipper preview worker install this scoped,
 // thread-local control and catch cancellation at their transaction boundary.
 // Existing direct authoring calls run without an installed control.
@@ -19,4 +19,4 @@ class PlacementControlScope {
 };
 void placementCancellationCheckpoint();
 void placementCheckpoint(LevelPlacementPhase phase, qint64 completed = 0, qint64 total = 0);
-} // namespace vibestudio::detail
+} // namespace slopstudio::detail

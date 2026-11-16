@@ -8,7 +8,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -338,4 +338,4 @@ QJsonObject levelSweepReportJson(const LevelSweepReport& report)
 	        {"skipped", skipped},
 	        {"sourcesRetained", true}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -4,7 +4,7 @@
 
 #include <QDateTime>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct TextureRecoverySnapshot {
 	TextureDocument document;
@@ -43,4 +43,4 @@ bool restoreTextureRecovery(const QString& path, TextureDocument* document, QJso
 	TextureRecoveryInfo* info = nullptr, QString* error = nullptr, const QByteArray& expectedRecordSha256 = {}, const TextureProgress& progress = {});
 bool removeTextureRecovery(const QString& directory, const QString& id, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

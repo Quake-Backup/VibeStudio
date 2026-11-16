@@ -179,7 +179,7 @@ void require_model_identity(const ModelIdentity &identity, const ModelProvenance
     constexpr std::size_t maximum_identity_bytes = 256;
     if (identity.provenance != expected)
         throw std::runtime_error("text model reported a different provenance than it declared");
-    // VibeStudio: a connector-named model has no digests to give, and must not invent them.
+    // SlopStudio: a connector-named model has no digests to give, and must not invent them.
     const bool named = identity.provenance == ModelProvenance::named_service;
     const bool digests_ok = named ? identity.model_sha256.empty() && identity.tokenizer_sha256.empty()
                                   : valid_sha256(identity.model_sha256) && valid_sha256(identity.tokenizer_sha256);
@@ -195,7 +195,7 @@ void require_generation_metadata(const TextGenerationResult &generated, const Te
         generated.finish_reason != FinishReason::token_limit)
         throw std::runtime_error("text model returned an invalid finish reason");
     if (generated.identity.provenance == ModelProvenance::named_service) {
-        // VibeStudio: a provider's own counts, 0 when unreported; its context limit is unknown.
+        // SlopStudio: a provider's own counts, 0 when unreported; its context limit is unknown.
         if (generated.prompt_tokens > 1000000 || generated.output_tokens > request.max_output_tokens ||
             !safe_provenance_text(generated.inference.device, 128) || generated.inference.threads != 0 ||
             generated.inference.context_limit != 0 || !safe_provenance_text(generated.inference.sampling, 128))
@@ -253,7 +253,7 @@ PlanningResult SemanticPlanner::plan(const PromptSpec &request, const PlannerOpt
     }
     const TextGenerationRequest first = semantic_plan_initial_request(request, options);
     const ModelProvenance provenance = options.model->provenance();
-    // VibeStudio: a connector-named model plans as "connector"; the label also names it in failures.
+    // SlopStudio: a connector-named model plans as "connector"; the label also names it in failures.
     const bool named = provenance == ModelProvenance::named_service;
     const std::string label = named ? "Connector" : "GGUF";
     result.trace.requested_backend = named ? "connector" : "gguf";

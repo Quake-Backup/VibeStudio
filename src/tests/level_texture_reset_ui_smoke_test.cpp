@@ -38,14 +38,14 @@
 #include <QTimer>
 #include <QToolButton>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -228,7 +228,7 @@ int main(int argc, char** argv)
 			check(tbReset, [&] { action(QStringLiteral("map.surfaceReset"))->trigger(); }, QStringLiteral("Reset Texture Alignment"));
 			check(radiantReset, [&] { action(QStringLiteral("map.surfaceRadiantReset"))->trigger(); }, QStringLiteral("Radiant Texture Reset"));
 
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 			{
 				// The profile's key in a plan view.
 				shell.activateWindow();

@@ -31,7 +31,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const char* message)
@@ -56,7 +56,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (!expanded || (QByteArray(context) != "VibeStudioPackageBrowser" && !QByteArray(context).endsWith("ApplicationShell"))
+		if (!expanded || (QByteArray(context) != "SlopStudioPackageBrowser" && !QByteArray(context).endsWith("ApplicationShell"))
 			|| (!QByteArray(source).contains("source entry") && QByteArray(source) != "Cancel" && QByteArray(source) != "Retry")) { return {}; }
 		return QStringLiteral("[%1 — expanded]").arg(QString::fromUtf8(source));
 	}
@@ -96,7 +96,7 @@ int main(int argc, char** argv)
 	wave.append(QByteArray::fromHex("01000100401f0000803e000002001000"));
 	wave.append("data"); u32(wave, 4); wave.append(QByteArray(4, '\0'));
 	plan.addBytes(wave, QStringLiteral("sound/generated.wav"));
-	const QString draftPath = root.filePath(QStringLiteral("browser.vibepackage"));
+	const QString draftPath = root.filePath(QStringLiteral("browser.sloppackage"));
 	ok &= expect(PackageDraft::save(draftPath, &plan, false, &error), "prepare planned browser draft");
 	QByteArray wad("PWAD"); u32(wad, 4); u32(wad, 20); wad.append("AAAABBBB");
 	for (int index = 0; index < 4; ++index) {
@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 	app.installTranslator(&translator);
 	QSettings::setDefaultFormat(QSettings::IniFormat);
 	QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, root.filePath(QStringLiteral("qt-settings")));
-	QCoreApplication::setOrganizationName(QStringLiteral("VibeStudioTests"));
+	QCoreApplication::setOrganizationName(QStringLiteral("SlopStudioTests"));
 	StudioSettings::setOverrideFilePath(root.filePath(QStringLiteral("settings.ini")));
 	mark("fixtures");
 	{
@@ -176,7 +176,7 @@ int main(int argc, char** argv)
 				const bool fits = toolbar->rect().contains(actionRect) && action->width() >= contentWidth;
 				std::cerr << "Listing toolbar " << state.toStdString() << " at " << scale << "%: x=" << actionRect.x()
 					<< " width=" << action->width() << " content=" << contentWidth << " hint=" << action->sizeHint().width() << " toolbar=" << toolbar->width() << '\n';
-				const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+				const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 				if (captures.isEmpty()) { return fits; }
 				QImage image(toolbar->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); toolbar->render(&image);
 				return image.save(QDir(captures).filePath(QStringLiteral("package-list-%1-%2.png").arg(state).arg(scale))) && fits;
@@ -221,7 +221,7 @@ int main(int argc, char** argv)
 				audioFilter->clear(); search->clear();
 			}
 			mark("search-audio");
-			const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			const auto render = [&](const QString& name) {
 				app.processEvents();
 				if (!expect(workbench->width() >= 1200 && workbench->height() >= 500, "render the laid-out browser at its full size")) { return false; }

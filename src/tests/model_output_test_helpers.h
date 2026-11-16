@@ -7,7 +7,7 @@
 
 #include <filesystem>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // Only call for disposable fixtures created by the test, never installed data.
 inline bool modelTestHardLink(const QString &source, const QString &alias)
@@ -62,4 +62,4 @@ void checkModelAuxiliaryOutput(QStringList command, const QString &inputOption, 
 				  "dry-run and write protect auxiliary inputs, alternate spellings and hard links even with overwrite");
 		}
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

@@ -15,8 +15,8 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -124,23 +124,23 @@ int main(int argc, char **argv)
 	auto shared = uvIslandsFixture();
 	expect(modelUvLayoutMaterialSurfaces(shared, 0) == QVector<int>{0, 1}, "surfaces sharing a material draw together");
 	// CLI.
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	QTemporaryDir temp(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("uv-layout-XXXXXX"));
 	const auto input = temp.filePath("strip.mesh.json"), output = temp.filePath("strip_uv.png");
 	QFile file(input);
 	expect(file.open(QIODevice::WriteOnly) && file.write(serializeEditableModel(quad, &error)) > 0, "write CLI source");
 	file.close();
-	const QStringList base{"vibestudio", "--cli", "model", "uv-layout", input, "--size", "64x16", "--output", output};
+	const QStringList base{"slopstudio", "--cli", "model", "uv-layout", input, "--size", "64x16", "--output", output};
 	auto dry = cli::runModelUvLayout(base + QStringList{"--dry-run"});
 	expect(dry.exitCode == 0 && !QFile::exists(output) && dry.payload["layout"].toObject()["faces"].toInt() == 4, "CLI dry run", dry.error);
 	auto written = cli::runModelUvLayout(base);
 	expect(written.exitCode == 0 && QImage(output) == wide.convertToFormat(QImage(output).format()), "CLI writes the same layout", written.error);
 	expect(cli::runModelUvLayout(base).exitCode == 1 && cli::runModelUvLayout(base + QStringList{"--overwrite"}).exitCode == 0,
 		   "existing outputs need --overwrite");
-	auto alias = cli::runModelUvLayout({"vibestudio", "--cli", "model", "uv-layout", input, "--output", input, "--overwrite"});
+	auto alias = cli::runModelUvLayout({"slopstudio", "--cli", "model", "uv-layout", input, "--output", input, "--overwrite"});
 	expect(alias.exitCode != 0, "the source is protected");
 	expect(cli::runModelUvLayout(base + QStringList{"--size", "5000"}).exitCode == 2, "oversized layouts are refused");
-	auto pcxRun = cli::runModelUvLayout({"vibestudio", "--cli", "model", "uv-layout", input, "--output", temp.filePath("strip_uv.pcx"),
+	auto pcxRun = cli::runModelUvLayout({"slopstudio", "--cli", "model", "uv-layout", input, "--output", temp.filePath("strip_uv.pcx"),
 										 "--background", "white", "--fill", "0.25"});
 	expect(pcxRun.exitCode == 0 && QFile::exists(temp.filePath("strip_uv.pcx")), "CLI PCX layout", pcxRun.error);
 	std::cout << checks << " UV layout checks; " << failures << " failures\n";

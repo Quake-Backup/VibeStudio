@@ -26,7 +26,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* message)
 {
@@ -50,7 +50,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "vibestudio::ApplicationShell") { return {}; }
+		if (QByteArray(context) != "slopstudio::ApplicationShell") { return {}; }
 		const QString text = QString::fromUtf8(source);
 		return text + QStringLiteral(" ~").repeated(text.size() / 6);
 	}
@@ -183,9 +183,9 @@ int main(int argc, char** argv)
 			ExpandedLabels translator;
 			if (scale == 200) { app.installTranslator(&translator); }
 			applyStudioTheme(app, studioThemeTokens(scale == 100 ? StudioTheme::Dark : StudioTheme::HighContrastDark, UiDensity::Standard, scale));
-			refresh->setText(QCoreApplication::translate("vibestudio::ApplicationShell", "Refresh Index"));
-			cancel->setText(QCoreApplication::translate("vibestudio::ApplicationShell", "Cancel"));
-			filter->setPlaceholderText(QCoreApplication::translate("vibestudio::ApplicationShell", "Filter symbols and source paths"));
+			refresh->setText(QCoreApplication::translate("slopstudio::ApplicationShell", "Refresh Index"));
+			cancel->setText(QCoreApplication::translate("slopstudio::ApplicationShell", "Cancel"));
+			filter->setPlaceholderText(QCoreApplication::translate("slopstudio::ApplicationShell", "Filter symbols and source paths"));
 			panel->setLayoutDirection(scale == 100 ? Qt::LeftToRight : Qt::RightToLeft);
 			panel->resize(scale == 100 ? 900 : 1400, scale == 100 ? 430 : 740);
 			panel->show();
@@ -196,7 +196,7 @@ int main(int argc, char** argv)
 			QImage image(panel->size(), QImage::Format_ARGB32_Premultiplied);
 			image.fill(Qt::transparent);
 			panel->render(&image);
-			const QString evidence = qEnvironmentVariable("VIBESTUDIO_TEXT_TEST_EVIDENCE");
+			const QString evidence = qEnvironmentVariable("SLOPSTUDIO_TEXT_TEST_EVIDENCE");
 			if (!evidence.isEmpty()) { ok &= expect(image.save(QDir(evidence).filePath(QStringLiteral("code-index-%1.png").arg(scale))), "save index render evidence"); }
 			if (scale == 200) { app.removeTranslator(&translator); }
 		}

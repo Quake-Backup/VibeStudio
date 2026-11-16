@@ -2,7 +2,7 @@
 
 #include "core/box_resize.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 
 struct CameraSurfacePoint
@@ -20,4 +20,4 @@ bool cameraSurfacePoint(BoxResizeRay ray, const std::array<BoxResizePoint, 3> &t
 bool cameraSurfacePlacement(const CameraSurfacePoint &surface, const ResizeBox &bounds, double clearance, double grid,
 							BoxResizePoint *origin);
 
-} // namespace vibestudio
+} // namespace slopstudio

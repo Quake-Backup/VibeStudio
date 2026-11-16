@@ -15,7 +15,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 QByteArray read(const QString &path)
@@ -70,10 +70,10 @@ ModelMesh fixture()
 int main(int argc, char **argv)
 {
 	QCoreApplication application(argc, argv);
-	const QString tempRoot = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const QString tempRoot = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (tempRoot.isEmpty() || !QDir().mkpath(tempRoot))
 	{
-		std::cerr << "Set VIBESTUDIO_TEST_TMP_ROOT inside the project.\n";
+		std::cerr << "Set SLOPSTUDIO_TEST_TMP_ROOT inside the project.\n";
 		return EXIT_FAILURE;
 	}
 	QTemporaryDir temporary(QDir(tempRoot).filePath(QStringLiteral("model-document-XXXXXX")));

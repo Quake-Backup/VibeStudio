@@ -24,7 +24,7 @@
 
 #include "core/level_map.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The entity that receives the moved primitives.
 enum class LevelPrimitiveTarget {
@@ -118,4 +118,4 @@ bool explodeLevelMapSelectionEntities(LevelMapDocument* document, const LevelExp
 // least two brushes or patches.
 [[nodiscard]] bool levelMapSelectionExplodable(const LevelMapDocument& document);
 
-} // namespace vibestudio
+} // namespace slopstudio

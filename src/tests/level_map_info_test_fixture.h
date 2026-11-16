@@ -12,7 +12,7 @@
 
 #include <QStringList>
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 
 inline QString mapInfoBox(const LevelMapVec3& mins, const LevelMapVec3& maxs)
 {
@@ -59,4 +59,4 @@ inline QByteArray mapInfoFixture()
 	return (blocks.join(QLatin1Char('\n')) + QLatin1Char('\n')).toUtf8();
 }
 
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

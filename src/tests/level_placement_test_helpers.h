@@ -4,7 +4,7 @@
 #include "core/map_geometry.h"
 #include <cmath>
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 inline QString placementNumber(double n) { return QString::number(n, 'g', 15); }
 inline QString placementPoint(const LevelMapVec3& p) {
 	return QStringLiteral("( %1 %2 %3 )").arg(placementNumber(p.x), placementNumber(p.y), placementNumber(p.z));
@@ -66,4 +66,4 @@ inline bool placementUvsMatch(const LevelMapBrush& before, const LevelMapBrush& 
 	}
 	return true;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

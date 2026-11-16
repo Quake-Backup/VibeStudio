@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <tuple>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString key(const QString& path)
 {
@@ -118,4 +118,4 @@ AssetTextSearchReport prepareLanguageReferences(const LanguageReferenceRequest& 
 	return report;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

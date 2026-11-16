@@ -135,7 +135,7 @@ def main():
             (scripts / 'audiotest.shader').write_text('textures/audiotest/wall\n{\n { map textures/audiotest/wall.tga }\n}\n', encoding='utf-8')
             assets += [(wall, 'textures/audiotest/wall.tga'), (scripts / 'shaderlist.txt', 'scripts/shaderlist.txt'),
                        (scripts / 'audiotest.shader', 'scripts/audiotest.shader')]
-        draft = output / (game + '.vibepackage')
+        draft = output / (game + '.sloppackage')
         create = ['package', 'create', draft, '--format', archive_format]
         for path, virtual in assets:
             create += ['--add-file', path, '--as', virtual]
@@ -143,7 +143,7 @@ def main():
         untextured = maps / 'untextured.map'
         map_text = room()
         if game == 'quake3':
-            # Use the same format marker as VibeStudio's new Quake III maps.
+            # Use the same format marker as SlopStudio's new Quake III maps.
             map_text = '// Q3Radiant\n' + map_text.replace('info_player_start', 'info_player_deathmatch')
         untextured.write_text(map_text, encoding='utf-8')
         input_map = maps / 'source.map'

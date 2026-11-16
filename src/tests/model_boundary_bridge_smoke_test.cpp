@@ -16,7 +16,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -55,7 +55,7 @@ bool closed(const ModelSurface &surface)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root) || argc != 2)
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("boundary-bridge-XXXXXX"));

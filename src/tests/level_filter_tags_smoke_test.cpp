@@ -21,7 +21,7 @@
 //   and the saved list behave; the project manifest holds or names tags;
 // - `map filters --tags/--project/--class/--classes` and `map visibility
 //   --class` report the same matches without writing anything.
-// With the vibestudio binary as the first argument the CLI is checked too.
+// With the slopstudio binary as the first argument the CLI is checked too.
 
 #include "core/entity_builtin_catalogue.h"
 #include "core/level_document.h"
@@ -47,7 +47,7 @@
 #include <iostream>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -324,7 +324,7 @@ void ids()
 		"class commands");
 	CommandPaletteEntry entry;
 	expect(commandPaletteEntryForCommandId(QStringLiteral("map.filterClass.light"), &entry) && entry.label.contains(QLatin1String("light"))
-			&& entry.category == QCoreApplication::translate("VibeStudioSemantics", "Levels") && !entry.summary.isEmpty() && shellCommandIdExists(QStringLiteral("map.filterClass.light")),
+			&& entry.category == QCoreApplication::translate("SlopStudioSemantics", "Levels") && !entry.summary.isEmpty() && shellCommandIdExists(QStringLiteral("map.filterClass.light")),
 		"class commands are in the shared registry");
 	expect(commandPaletteEntryForCommandId(QStringLiteral("map.filterTag.fog-volume"), &entry) && !entry.summary.isEmpty()
 			&& shellCommandIdExists(QStringLiteral("map.filter-tag.fog-volume")),

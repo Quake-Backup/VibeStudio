@@ -30,7 +30,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Doom runs its game logic at 35 tics a second.
 inline constexpr double kDoomTicsPerSecond = 35.0;
@@ -229,4 +229,4 @@ MaterialDefinition quake2MaterialDefinition(const QString& name, const Quake2Wal
 QString quake2WalInfoText(const Quake2WalInfo& info);
 bool parseQuake2WalInfoText(const QString& text, Quake2WalInfo* info, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

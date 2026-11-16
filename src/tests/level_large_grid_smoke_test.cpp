@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -92,13 +92,13 @@ int main(int argc, char** argv)
 
 	// Profile validation accepts every listed default and names the new limit.
 	for (const double units : sizes) {
-		LevelEditorControls controls = vibeStudioLevelControls();
+		LevelEditorControls controls = slopStudioLevelControls();
 		controls.defaultGridUnits = units;
 		const QStringList problems = levelEditorControlProblems(controls);
 		expect(problems.isEmpty(), "a listed default grid validates", QString::number(units) + QLatin1Char(' ') + problems.join(QLatin1Char(';')));
 	}
 	for (const int units : {0, 3, 2048}) {
-		LevelEditorControls controls = vibeStudioLevelControls();
+		LevelEditorControls controls = slopStudioLevelControls();
 		controls.defaultGridUnits = units;
 		const QStringList problems = levelEditorControlProblems(controls);
 		expect(problems.size() == 1 && problems.first().contains(QStringLiteral("1024")), "an unlisted default grid names the 1 to 1024 range",
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
 
 	// Upstream gives 512 and 1024 no default key in Radiant or TrenchBroom;
 	// Eureka's bindings.cfg puts them on 9 and 0.
-	for (const char* id : {"netradiant-custom", "trenchbroom", "gtkradiant-1-6", "vibestudio-default"}) {
+	for (const char* id : {"netradiant-custom", "trenchbroom", "gtkradiant-1-6", "slopstudio-default"}) {
 		const LevelEditorControls controls = levelEditorControlsForProfile(QString::fromLatin1(id));
 		bool found512 = true, found1024 = true;
 		keysFor(controls, QStringLiteral("map.grid512"), &found512);

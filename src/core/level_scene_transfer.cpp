@@ -4,7 +4,7 @@
 #include <QCoreApplication>
 #include <QUuid>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString freshId() { return QUuid::createUuid().toString(QUuid::WithoutBraces); }
 QString uniqueName(const LevelSceneState& state, const QString& parent, const QString& name)
@@ -144,4 +144,4 @@ bool mergeLevelSceneCopy(const LevelMapDocument& source, const LevelMapDocument&
 	if (copiedNodes) { *copiedNodes = std::move(ids); }
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

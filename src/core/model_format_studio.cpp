@@ -47,7 +47,7 @@
 #include <cstdlib>
 #include <utility>
 
-namespace vibestudio::model_formats {
+namespace slopstudio::model_formats {
 
 namespace {
 
@@ -243,16 +243,16 @@ bool readTextures(const QByteArray& file, const Header& header, TextureSet* out,
 {
 	if (header.textures < 0 || header.textures > kMaxTextures || header.skinReferences < 0 || header.skinReferences > kMaxSkinReferences
 		|| header.skinFamilies < 0 || header.skinFamilies > kMaxSkinFamilies) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life texture table declares counts outside the supported range.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life texture table declares counts outside the supported range.");
 		return false;
 	}
 	if (!tableOk(file, header.textureOffset, header.textures, kTextureBytes)) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life texture table lies outside the file.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life texture table lies outside the file.");
 		return false;
 	}
 	const qint64 referenceCount = qint64(header.skinReferences) * qint64(header.skinFamilies);
 	if (referenceCount > 0 && !rangeOk(file, header.skinOffset, referenceCount * 2)) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life skin families lie outside the file.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life skin families lie outside the file.");
 		return false;
 	}
 	TextureSet set;
@@ -269,16 +269,16 @@ bool readTextures(const QByteArray& file, const Header& header, TextureSet* out,
 		texture.height = readI32(file, base + 72);
 		const qint64 pixelOffset = readI32(file, base + 76);
 		if (texture.width <= 0 || texture.height <= 0 || texture.width > kMaxTextureDimension || texture.height > kMaxTextureDimension) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "Texture %1 (%2) has a size outside the supported range.").arg(index).arg(texture.name);
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "Texture %1 (%2) has a size outside the supported range.").arg(index).arg(texture.name);
 			return false;
 		}
 		const qint64 pixels = qint64(texture.width) * qint64(texture.height);
 		if (!rangeOk(file, pixelOffset, pixels + kPaletteBytes)) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "The pixels of texture %1 (%2) lie outside the file.").arg(index).arg(texture.name);
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "The pixels of texture %1 (%2) lie outside the file.").arg(index).arg(texture.name);
 			return false;
 		}
 		if (pixels > kMaxTexturePixels - totalPixels) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life textures exceed the 64-megapixel preview limit.");
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life textures exceed the 64-megapixel preview limit.");
 			return false;
 		}
 		totalPixels += pixels;
@@ -364,14 +364,14 @@ bool decodeSequence(const QByteArray& file, const Sequence& sequence, int sequen
 				for (;;) {
 					if (!work.step()) { return false; }
 					if (!rangeOk(file, run, 2)) {
-						*error = QCoreApplication::translate("VibeStudioModelMesh", "The animation values of sequence %1 (%2) run past the end of their file.")
+						*error = QCoreApplication::translate("SlopStudioModelMesh", "The animation values of sequence %1 (%2) run past the end of their file.")
 							.arg(sequenceIndex).arg(sequence.label);
 						return false;
 					}
 					valid = readU8(file, run);
 					const int total = readU8(file, run + 1);
 					if (total == 0) {
-						*error = QCoreApplication::translate("VibeStudioModelMesh", "The animation of sequence %1 (%2) holds a value run that covers no frames.")
+						*error = QCoreApplication::translate("SlopStudioModelMesh", "The animation of sequence %1 (%2) holds a value run that covers no frames.")
 							.arg(sequenceIndex).arg(sequence.label);
 						return false;
 					}
@@ -383,7 +383,7 @@ bool decodeSequence(const QByteArray& file, const Sequence& sequence, int sequen
 				}
 				const qint64 at = run + 2 * (valid > frameInRun ? qint64(frameInRun) + 1 : qint64(valid));
 				if (!rangeOk(file, at, 2)) {
-					*error = QCoreApplication::translate("VibeStudioModelMesh", "The animation values of sequence %1 (%2) run past the end of their file.")
+					*error = QCoreApplication::translate("SlopStudioModelMesh", "The animation values of sequence %1 (%2) run past the end of their file.")
 						.arg(sequenceIndex).arg(sequence.label);
 					return false;
 				}
@@ -431,19 +431,19 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, &mesh->error);
 	if (!work.check()) { return; }
 	if (!rangeOk(fileBytes, 0, kHeaderBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life model header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life model header is truncated.");
 		return;
 	}
 	mesh->version = readI32(fileBytes, 4);
 	if (fileBytes.left(4) != QByteArrayLiteral("IDST") || mesh->version != kStudioVersion) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported Half-Life model version %1; only IDST version 10 is decoded.").arg(mesh->version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported Half-Life model version %1; only IDST version 10 is decoded.").arg(mesh->version);
 		return;
 	}
 	const Header header = readHeader(fileBytes);
 	// The engine copies `length` bytes of the file (Mod_LoadStudioModel), so
 	// nothing past it belongs to the model and a longer length means damage.
 	if (header.length < kHeaderBytes || header.length > qint64(fileBytes.size())) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life model declares a length of %1 bytes, but the file holds %2.")
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life model declares a length of %1 bytes, but the file holds %2.")
 			.arg(header.length).arg(fileBytes.size());
 		return;
 	}
@@ -453,42 +453,42 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 		|| header.hitboxes < 0 || header.hitboxes > kMaxHitboxes || header.sequences < 0 || header.sequences > kMaxSequences
 		|| header.groups < 0 || header.groups > kMaxSequenceGroups || header.bodyParts < 0 || header.bodyParts > kMaxBodyParts
 		|| header.attachments < 0 || header.attachments > kMaxAttachments) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life model header declares counts outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life model header declares counts outside the supported range.");
 		return;
 	}
 	if (!tableOk(bytes, header.boneOffset, header.bones, kBoneBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life bone table lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life bone table lies outside the file.");
 		return;
 	}
 	if (!tableOk(bytes, header.sequenceOffset, header.sequences, kSequenceBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life sequence table lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life sequence table lies outside the file.");
 		return;
 	}
 	if (!tableOk(bytes, header.groupOffset, header.groups, kSequenceGroupBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life sequence group table lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life sequence group table lies outside the file.");
 		return;
 	}
 	if (!tableOk(bytes, header.bodyPartOffset, header.bodyParts, kBodyPartBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life body part table lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life body part table lies outside the file.");
 		return;
 	}
 	if (!tableOk(bytes, header.attachmentOffset, header.attachments, kAttachmentBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life attachment table lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life attachment table lies outside the file.");
 		return;
 	}
 
 	if (!header.name.isEmpty()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Internal name: %1").arg(header.name);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Internal name: %1").arg(header.name);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Eye position: %1").arg(formatVector(header.eye));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Movement hull: %1 to %2").arg(formatVector(header.hullMin), formatVector(header.hullMax));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Clipping box: %1 to %2").arg(formatVector(header.clipMin), formatVector(header.clipMax));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Flags: 0x%1").arg(hex(header.flags));
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Bones: %1").arg(header.bones);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Eye position: %1").arg(formatVector(header.eye));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Movement hull: %1 to %2").arg(formatVector(header.hullMin), formatVector(header.hullMax));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Clipping box: %1 to %2").arg(formatVector(header.clipMin), formatVector(header.clipMax));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Flags: 0x%1").arg(hex(header.flags));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Bones: %1").arg(header.bones);
 	if (header.controllers > 0) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Bone controllers: %1 (shown at rest)").arg(header.controllers);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Bone controllers: %1 (shown at rest)").arg(header.controllers);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Hit boxes: %1").arg(header.hitboxes);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Hit boxes: %1").arg(header.hitboxes);
 
 	// Bones (mstudiobone_t, 112 bytes): name[32], parent, flags,
 	// bonecontroller[6], value[6], scale[6].
@@ -507,12 +507,12 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 			bone.value[channel] = readF32(bytes, base + 64 + channel * 4);
 			bone.scale[channel] = readF32(bytes, base + 88 + channel * 4);
 			if (!std::isfinite(bone.value[channel]) || !std::isfinite(bone.scale[channel])) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Bone %1 (%2) has a value that is not a finite number.").arg(index).arg(bone.name);
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Bone %1 (%2) has a value that is not a finite number.").arg(index).arg(bone.name);
 				return;
 			}
 		}
 		if (bone.parent < -1 || bone.parent >= index) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Bone %1 (%2) names a parent that does not come before it.").arg(index).arg(bone.name);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Bone %1 (%2) names a parent that does not come before it.").arg(index).arg(bone.name);
 			return;
 		}
 		bones.append(bone);
@@ -527,7 +527,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 	}
 	const QVector<ModelJointMatrix> restModel = modelJointsToModelSpace(parents, restLocal);
 	if (restModel.size() != bones.size()) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life bone hierarchy could not be resolved.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life bone hierarchy could not be resolved.");
 		return;
 	}
 	for (int index = 0; index < bones.size(); ++index) {
@@ -552,15 +552,15 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 		QByteArray textureFile;
 		QString problem;
 		if (!companions.canRead() || !companions.read(texturePath, &textureFile, &problem)) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-textures-unreadable"), QCoreApplication::translate("VibeStudioModelMesh", "The textures live in %1, which could not be read; the model is shown untextured.").arg(texturePath));
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-textures-unreadable"), QCoreApplication::translate("SlopStudioModelMesh", "The textures live in %1, which could not be read; the model is shown untextured.").arg(texturePath));
 		} else if (!rangeOk(textureFile, 0, kHeaderBytes) || textureFile.left(4) != QByteArrayLiteral("IDST") || readI32(textureFile, 4) != kStudioVersion
 			|| readI32(textureFile, 72) < kHeaderBytes || readI32(textureFile, 72) > textureFile.size()) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-textures-invalid"), QCoreApplication::translate("VibeStudioModelMesh", "The texture file %1 is not a Half-Life texture file; the model is shown untextured.").arg(texturePath));
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-textures-invalid"), QCoreApplication::translate("SlopStudioModelMesh", "The texture file %1 is not a Half-Life texture file; the model is shown untextured.").arg(texturePath));
 		} else {
 			const QByteArray trimmed = textureFile.left(readI32(textureFile, 72));
 			if (!readTextures(trimmed, readHeader(trimmed), &textures, &problem, work)) {
 				if (!mesh->error.isEmpty()) { return; }
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-textures-undecodable"), QCoreApplication::translate("VibeStudioModelMesh", "The texture file %1 could not be decoded (%2); the model is shown untextured.").arg(texturePath, problem));
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-textures-undecodable"), QCoreApplication::translate("SlopStudioModelMesh", "The texture file %1 could not be decoded (%2); the model is shown untextured.").arg(texturePath, problem));
 				textures = TextureSet{};
 			} else {
 				texturesAvailable = true;
@@ -568,14 +568,14 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 		}
 	}
 	if (texturesAvailable) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Textures: %1 from %2").arg(textures.textures.size()).arg(textureSource);
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skin families: %1 of %2 reference(s); family 0 is shown.").arg(textures.families).arg(textures.references);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Textures: %1 from %2").arg(textures.textures.size()).arg(textureSource);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skin families: %1 of %2 reference(s); family 0 is shown.").arg(textures.families).arg(textures.references);
 		for (int index = 0; index < textures.textures.size(); ++index) {
 			const Texture& texture = textures.textures.at(index);
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Texture %1 (%2): %3 x %4, flags 0x%5")
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Texture %1 (%2): %3 x %4, flags 0x%5")
 				.arg(index).arg(texture.name).arg(texture.width).arg(texture.height).arg(hex(texture.flags));
 			if (texture.flags & kTextureChrome) {
-				mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Texture %1 (%2) is chrome: the game generates its texture coordinates at run time.")
+				mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Texture %1 (%2) is chrome: the game generates its texture coordinates at run time.")
 					.arg(index).arg(texture.name);
 			}
 		}
@@ -595,17 +595,17 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 		const int modelCount = readI32(bytes, partBase + 64);
 		const qint64 modelOffset = readI32(bytes, partBase + 72);
 		if (modelCount < 0 || modelCount > kMaxModelsPerPart || !tableOk(bytes, modelOffset, modelCount, kModelBytes)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The models of body part %1 (%2) lie outside the file.").arg(part).arg(partName);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The models of body part %1 (%2) lie outside the file.").arg(part).arg(partName);
 			return;
 		}
 		if (modelCount == 0) {
 			continue;
 		}
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Body part %1 (%2): %3 model(s); model 0 (%4) is shown.")
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Body part %1 (%2): %3 model(s); model 0 (%4) is shown.")
 			.arg(part).arg(partName).arg(modelCount).arg(readFixedName(bytes, modelOffset, 64));
 		for (int other = 1; other < modelCount; ++other) {
 			if (!work.step()) { return; }
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Body part %1 (%2) also holds model %3 (%4).")
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Body part %1 (%2) also holds model %3 (%4).")
 				.arg(part).arg(partName).arg(other).arg(readFixedName(bytes, modelOffset + qint64(other) * kModelBytes, 64));
 		}
 
@@ -621,16 +621,16 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 		const qint64 normalBoneOffset = readI32(bytes, modelBase + 96);
 		const qint64 normalOffset = readI32(bytes, modelBase + 100);
 		if (meshCount < 0 || meshCount > kMaxMeshes || vertexCount < 0 || vertexCount > kMaxModelVertices || normalCount < 0 || normalCount > kMaxModelVertices) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Model %1 of body part %2 declares counts outside the supported range.").arg(modelName).arg(part);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Model %1 of body part %2 declares counts outside the supported range.").arg(modelName).arg(part);
 			return;
 		}
 		if (!tableOk(bytes, meshOffset, meshCount, kMeshBytes) || !tableOk(bytes, vertexBoneOffset, vertexCount, 1) || !tableOk(bytes, vertexOffset, vertexCount, 12)
 			|| !tableOk(bytes, normalBoneOffset, normalCount, 1) || !tableOk(bytes, normalOffset, normalCount, 12)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "A data block of model %1 lies outside the file.").arg(modelName);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "A data block of model %1 lies outside the file.").arg(modelName);
 			return;
 		}
 		if ((vertexCount > 0 || normalCount > 0) && bones.isEmpty()) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The model's vertices follow bones, but it has none.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The model's vertices follow bones, but it has none.");
 			return;
 		}
 		QVector<ModelVec3> vertices(vertexCount);
@@ -640,11 +640,11 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 			vertexBones[index] = readU8(bytes, vertexBoneOffset + index);
 			readVec3(bytes, vertexOffset + qint64(index) * 12, &vertices[index]);
 			if (vertexBones.at(index) >= bones.size()) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "A vertex of model %1 follows bone %2, which does not exist.").arg(modelName).arg(vertexBones.at(index));
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "A vertex of model %1 follows bone %2, which does not exist.").arg(modelName).arg(vertexBones.at(index));
 				return;
 			}
 			if (!isFinite(vertices.at(index))) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "A vertex of model %1 is not a finite number.").arg(modelName);
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "A vertex of model %1 is not a finite number.").arg(modelName);
 				return;
 			}
 		}
@@ -655,7 +655,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 			normalBones[index] = readU8(bytes, normalBoneOffset + index);
 			readVec3(bytes, normalOffset + qint64(index) * 12, &normals[index]);
 			if (normalBones.at(index) >= bones.size()) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "A normal of model %1 follows bone %2, which does not exist.").arg(modelName).arg(normalBones.at(index));
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "A normal of model %1 follows bone %2, which does not exist.").arg(modelName).arg(normalBones.at(index));
 				return;
 			}
 			if (!isFinite(normals.at(index))) {
@@ -685,11 +685,11 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 					texture = &textures.textures.at(textureIndex);
 					surface.skinPaths.append(texture->name);
 				} else {
-					surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "The mesh names skin reference %1, which the model does not have.").arg(skinReference);
+					surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "The mesh names skin reference %1, which the model does not have.").arg(skinReference);
 				}
 			}
 			if (!texture) {
-				noteModelSurfaceIssue(mesh, &surface, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-uv-texels"), QCoreApplication::translate("VibeStudioModelMesh", "The mesh's texture is not available, so its texture coordinates stay in texels."));
+				noteModelSurfaceIssue(mesh, &surface, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-uv-texels"), QCoreApplication::translate("SlopStudioModelMesh", "The mesh's texture is not available, so its texture coordinates stay in texels."));
 			}
 			const bool halfFloatUv = texture && (texture->flags & kTextureHalfFloatUv) != 0;
 			const float width = texture ? float(texture->width) : 1.0f;
@@ -705,7 +705,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 			for (;;) {
 				if (!work.step()) { return; }
 				if (!rangeOk(bytes, cursor, 2)) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The triangle commands of mesh %1 run past the end of the file.").arg(surface.name);
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The triangle commands of mesh %1 run past the end of the file.").arg(surface.name);
 					return;
 				}
 				const int count = readI16(bytes, cursor);
@@ -716,7 +716,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 				const bool fan = count < 0;
 				const int length = std::abs(count);
 				if (!rangeOk(bytes, cursor, qint64(length) * kTriangleCommandBytes)) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The triangle commands of mesh %1 run past the end of the file.").arg(surface.name);
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The triangle commands of mesh %1 run past the end of the file.").arg(surface.name);
 					return;
 				}
 				command.clear();
@@ -729,7 +729,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 					const quint16 s = readU16(bytes, at + 4);
 					const quint16 t = readU16(bytes, at + 6);
 					if (vertex < 0 || vertex >= vertexCount || normal < 0 || normal >= normalCount) {
-						mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "A triangle command of mesh %1 names a vertex or normal outside its model.").arg(surface.name);
+						mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "A triangle command of mesh %1 names a vertex or normal outside its model.").arg(surface.name);
 						return;
 					}
 					const quint64 key = quint64(quint16(vertex)) | (quint64(quint16(normal)) << 16) | (quint64(s) << 32) | (quint64(t) << 48);
@@ -740,7 +740,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 					} else {
 						corner = int(cornerVertex.size());
 						if (corner >= kMaxSurfaceVertices) {
-							mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Mesh %1 holds more corners or triangles than can be decoded.").arg(surface.name);
+							mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Mesh %1 holds more corners or triangles than can be decoded.").arg(surface.name);
 							return;
 						}
 						cornerForKey.insert(key, corner);
@@ -775,7 +775,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 						continue;
 					}
 					if (surface.triangles.size() >= kMaxSurfaceTriangles) {
-						mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Mesh %1 holds more corners or triangles than can be decoded.").arg(surface.name);
+						mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Mesh %1 holds more corners or triangles than can be decoded.").arg(surface.name);
 						return;
 					}
 					ModelTriangle triangle;
@@ -817,7 +817,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 				skinning.influences.append(influence);
 			}
 			if (mesh->surfaces.size() >= kMaxSurfaces) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life model holds more meshes than can be decoded.");
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life model holds more meshes than can be decoded.");
 				return;
 			}
 			mesh->surfaces.append(surface);
@@ -834,11 +834,11 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 		ModelVec3 origin;
 		readVec3(bytes, base + 40, &origin);
 		if (bone < 0 || bone >= bones.size()) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-attachment"), QCoreApplication::translate("VibeStudioModelMesh", "Attachment %1 follows bone %2, which does not exist, and was left out.").arg(index).arg(bone));
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-attachment"), QCoreApplication::translate("SlopStudioModelMesh", "Attachment %1 follows bone %2, which does not exist, and was left out.").arg(index).arg(bone));
 			continue;
 		}
 		if (!isFinite(origin)) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-attachment"), QCoreApplication::translate("VibeStudioModelMesh", "Attachment %1 has a position that is not a finite number and was left out.").arg(index));
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-attachment"), QCoreApplication::translate("SlopStudioModelMesh", "Attachment %1 has a position that is not a finite number and was left out.").arg(index));
 			continue;
 		}
 		ModelSkeletalTag tag;
@@ -848,14 +848,14 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 		mesh->skeleton.tags.append(tag);
 	}
 	if (header.attachments > 0) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Attachments: %1").arg(header.attachments);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Attachments: %1").arg(header.attachments);
 	}
 
 	// Sequences (mstudioseqdesc_t, 176 bytes) and their groups
 	// (mstudioseqgroup_t, 104 bytes). Group 0 is the model itself; group N
 	// lives in "<name>NN.mdl" (R_StudioGetAnim), whose IDSQ header is followed
 	// by animation addressed from the start of that file.
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Sequences: %1 in %2 group(s)").arg(header.sequences).arg(header.groups);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Sequences: %1 in %2 group(s)").arg(header.sequences).arg(header.groups);
 	QHash<int, QByteArray> groupFiles;
 	QHash<int, QString> groupPaths;
 	QSet<int> missingGroups;
@@ -881,15 +881,15 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 			sequence.group = readI32(bytes, base + 156);
 			const QString clipName = sequence.label.isEmpty() ? QStringLiteral("sequence%1").arg(index) : sequence.label;
 			if (sequence.frames <= 0) {
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-empty-sequence"), QCoreApplication::translate("VibeStudioModelMesh", "Sequence %1 (%2) has no frames and was left out.").arg(index).arg(clipName));
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-empty-sequence"), QCoreApplication::translate("SlopStudioModelMesh", "Sequence %1 (%2) has no frames and was left out.").arg(index).arg(clipName));
 				continue;
 			}
 			if (sequence.frames > kMaxFrames) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Sequence %1 (%2) declares more frames than can be decoded.").arg(index).arg(clipName);
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Sequence %1 (%2) declares more frames than can be decoded.").arg(index).arg(clipName);
 				return;
 			}
 			if (sequence.group < 0 || sequence.group >= header.groups) {
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence-group"), QCoreApplication::translate("VibeStudioModelMesh", "Sequence %1 (%2) names sequence group %3, which the model does not have, and was left out.")
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence-group"), QCoreApplication::translate("SlopStudioModelMesh", "Sequence %1 (%2) names sequence group %3, which the model does not have, and was left out.")
 					.arg(index).arg(clipName).arg(sequence.group));
 				continue;
 			}
@@ -937,7 +937,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 						continue;
 					}
 					if (!rangeOk(groupFile, 0, kSequenceHeaderBytes) || groupFile.left(4) != QByteArrayLiteral("IDSQ") || readI32(groupFile, 4) != kStudioVersion) {
-						noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence-group"), QCoreApplication::translate("VibeStudioModelMesh", "The sequence group file %1 is not a Half-Life sequence group (IDSQ 10); its sequences were left out.")
+						noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence-group"), QCoreApplication::translate("SlopStudioModelMesh", "The sequence group file %1 is not a Half-Life sequence group (IDSQ 10); its sequences were left out.")
 							.arg(groupPaths.value(sequence.group)));
 						missingGroups.insert(sequence.group);
 						invalidGroups.insert(sequence.group);
@@ -951,12 +951,12 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 			// Damage in the model itself is an error; damage in a sequence
 			// group file only loses that file's sequences.
 			if (!tableOk(*source, sequence.animOffset, int(bones.size()), kAnimBytes)) {
-				const QString problem = QCoreApplication::translate("VibeStudioModelMesh", "The animation of sequence %1 (%2) lies outside its file.").arg(index).arg(clipName);
+				const QString problem = QCoreApplication::translate("SlopStudioModelMesh", "The animation of sequence %1 (%2) lies outside its file.").arg(index).arg(clipName);
 				if (sequence.group == 0) {
 					mesh->error = problem;
 					return;
 				}
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence"), QCoreApplication::translate("VibeStudioModelMesh", "%1 The sequence was left out.").arg(problem));
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence"), QCoreApplication::translate("SlopStudioModelMesh", "%1 The sequence was left out.").arg(problem));
 				continue;
 			}
 			sequence.label = clipName;
@@ -974,7 +974,7 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 					mesh->error = problem;
 					return;
 				}
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence"), QCoreApplication::translate("VibeStudioModelMesh", "%1 The sequence was left out.").arg(problem));
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence"), QCoreApplication::translate("SlopStudioModelMesh", "%1 The sequence was left out.").arg(problem));
 				continue;
 			}
 			matrixBudget -= matrices;
@@ -986,24 +986,24 @@ void decodeStudioModel(const QString& path, const QByteArray& fileBytes, ModelMe
 		if (groupFiles.contains(it.key()) || invalidGroups.contains(it.key())) {
 			continue;
 		}
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence-group"), QCoreApplication::translate("VibeStudioModelMesh", "The sequence group file %1 could not be read; %2 sequence(s) in it were left out.")
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequence-group"), QCoreApplication::translate("SlopStudioModelMesh", "The sequence group file %1 could not be read; %2 sequence(s) in it were left out.")
 			.arg(groupPaths.value(it.key())).arg(it.value()));
 	}
 	if (blendedSequences > 0) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "%1 sequence(s) blend several animations; the first blend is shown.").arg(blendedSequences);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "%1 sequence(s) blend several animations; the first blend is shown.").arg(blendedSequences);
 	}
 	if (budgetSkipped > 0) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequences-capped"), QCoreApplication::translate("VibeStudioModelMesh", "%1 sequence(s) were left out to keep the decoded animation within %2 frames and %3 joint poses.")
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("studio-sequences-capped"), QCoreApplication::translate("SlopStudioModelMesh", "%1 sequence(s) were left out to keep the decoded animation within %2 frames and %3 joint poses.")
 			.arg(budgetSkipped).arg(kMaxFrames).arg(kMaxClipMatrices));
 	}
 
 	if (bones.isEmpty()) {
 		if (mesh->embeddedSkins.isEmpty()) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life model holds neither bones nor textures.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life model holds neither bones nor textures.");
 			return;
 		}
 		// A "<name>T.mdl" texture file opened on its own.
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "This file holds textures only; the model that uses it holds the geometry.");
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "This file holds textures only; the model that uses it holds the geometry.");
 		return;
 	}
 
@@ -1027,7 +1027,7 @@ void decodeHalfLifeMdl(const QString& path, const QByteArray& bytes, ModelMesh* 
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, &mesh->error);
 	if (!work.check()) { return; }
 	if (!rangeOk(bytes, 0, 8)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life model header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life model header is truncated.");
 		return;
 	}
 	if (bytes.left(4) != QByteArrayLiteral("IDSQ")) {
@@ -1039,17 +1039,17 @@ void decodeHalfLifeMdl(const QString& path, const QByteArray& bytes, ModelMesh* 
 	// holds only animation for the model "<name>.mdl" it is named after; that
 	// model is decoded in its place, with this file as its group NN.
 	if (!rangeOk(bytes, 0, kSequenceHeaderBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Half-Life sequence group header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Half-Life sequence group header is truncated.");
 		return;
 	}
 	mesh->version = readI32(bytes, 4);
 	if (mesh->version != kStudioVersion) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported Half-Life sequence group version %1; only IDSQ version 10 is decoded.").arg(mesh->version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported Half-Life sequence group version %1; only IDSQ version 10 is decoded.").arg(mesh->version);
 		return;
 	}
 	const QString stem = pathStem(path);
 	if (stem.size() < 3 || !stem.at(stem.size() - 1).isDigit() || !stem.at(stem.size() - 2).isDigit()) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "This Half-Life sequence group file is not named <model>NN.mdl, so its model cannot be found.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "This Half-Life sequence group file is not named <model>NN.mdl, so its model cannot be found.");
 		return;
 	}
 	const int group = stem.right(2).toInt();
@@ -1057,14 +1057,14 @@ void decodeHalfLifeMdl(const QString& path, const QByteArray& bytes, ModelMesh* 
 	QByteArray modelBytes;
 	QString problem;
 	if (!companions.canRead() || !companions.read(modelPath, &modelBytes, &problem)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "This file holds only animation for the Half-Life model %1, which could not be read.").arg(modelPath);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "This file holds only animation for the Half-Life model %1, which could not be read.").arg(modelPath);
 		return;
 	}
 	if (modelBytes.left(4) != QByteArrayLiteral("IDST")) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "This file holds only animation for %1, which is not a Half-Life model.").arg(modelPath);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "This file holds only animation for %1, which is not a Half-Life model.").arg(modelPath);
 		return;
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "This file is sequence group %1 of %2; that model is shown with its animation.").arg(group).arg(modelPath);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "This file is sequence group %1 of %2; that model is shown with its animation.").arg(group).arg(modelPath);
 	QHash<int, QByteArray> preloaded;
 	if (group > 0) {
 		preloaded.insert(group, bytes);
@@ -1072,4 +1072,4 @@ void decodeHalfLifeMdl(const QString& path, const QByteArray& bytes, ModelMesh* 
 	decodeStudioModel(modelPath, modelBytes, mesh, control, companions, preloaded);
 }
 
-} // namespace vibestudio::model_formats
+} // namespace slopstudio::model_formats

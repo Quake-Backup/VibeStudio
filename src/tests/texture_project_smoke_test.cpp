@@ -14,7 +14,7 @@
 #include <iostream>
 #include <functional>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 bool put(const QString& path, const QByteArray& bytes) { QFile file(path); return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size(); }
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
 	const auto originalBytes = read(save.path); auto edited = document; edited.selectLayer(0); edited.paintStroke({{7, 7}}, Qt::yellow, 1);
 	TextureProjectSaveRequest backedUp = save; backedUp.overwrite = true; backedUp.dryRun = true;
 	const auto preview = writeTextureProject(edited, backedUp, metadata);
-	ok &= expect(preview.succeeded && !preview.backupPath.isEmpty() && !QFileInfo::exists(root.filePath(QStringLiteral(".vibestudio"))) && read(save.path) == originalBytes, "dry-run plans backups without creating folders or replacing the project");
+	ok &= expect(preview.succeeded && !preview.backupPath.isEmpty() && !QFileInfo::exists(root.filePath(QStringLiteral(".slopstudio"))) && read(save.path) == originalBytes, "dry-run plans backups without creating folders or replacing the project");
 	backedUp.dryRun = false;
 	const auto savedWithBackup = writeTextureProject(edited, backedUp, metadata);
 	ok &= expect(savedWithBackup.succeeded && read(savedWithBackup.backupPath) == originalBytes && read(save.path) == encodeTextureProject(edited, metadata), "native overwrite keeps the exact previous source bytes in a content-addressed backup");

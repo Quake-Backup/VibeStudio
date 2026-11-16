@@ -14,7 +14,7 @@ class QThread;
 class QTimer;
 class QScrollArea;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class LevelMergeDialog final : public QDialog
@@ -59,4 +59,4 @@ class LevelMergeDialog final : public QDialog
 	quint64 m_generation = 0;
 	bool m_ready = false, m_assetsReady = false, m_sourceView = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

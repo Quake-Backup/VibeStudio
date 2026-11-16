@@ -6,7 +6,7 @@
 #include <condition_variable>
 #include <mutex>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -150,4 +150,4 @@ void MaterialTaskLane::finished(const std::shared_ptr<std::atomic_bool>& stop, c
 	startNext();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

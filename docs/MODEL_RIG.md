@@ -59,11 +59,11 @@ frame budget. Bone motion and collision fitting remain separate operations.
 `model rig` reads `.mesh.json` sources and uses the same service as the GUI:
 
 ```sh
-vibestudio --cli model rig models/prop.mesh.json --json
-vibestudio --cli model rig models/prop.mesh.json --operation add --name root --origin 0,0,0 --output models/rig.mesh.json
-vibestudio --cli model rig models/rig.mesh.json --operation add --name hand --parent root --origin 16,0,0 --output models/hand.mesh.json
-vibestudio --cli model rig models/hand.mesh.json --operation weight --joint hand --surface 0 --vertices 1,2 --weight 0.5 --output models/weighted.mesh.json --json
-vibestudio --cli model rig models/weighted.mesh.json --surface 0 --vertices all --json
+slopstudio --cli model rig models/prop.mesh.json --json
+slopstudio --cli model rig models/prop.mesh.json --operation add --name root --origin 0,0,0 --output models/rig.mesh.json
+slopstudio --cli model rig models/rig.mesh.json --operation add --name hand --parent root --origin 16,0,0 --output models/hand.mesh.json
+slopstudio --cli model rig models/hand.mesh.json --operation weight --joint hand --surface 0 --vertices 1,2 --weight 0.5 --output models/weighted.mesh.json --json
+slopstudio --cli model rig models/weighted.mesh.json --surface 0 --vertices all --json
 ```
 
 The operations are `list`, `add`, `rename`, `reparent`, `remove` and `weight`.
@@ -161,8 +161,8 @@ shows the source clip and this model with the result side by side at the same
 stale until it is updated again. Nothing changes until **Apply**.
 
 ```sh
-vibestudio --cli model pose models/imp.mesh.json --operation import --source models/monster/walk.md5anim --name walk --output models/imp-walk.mesh.json --json
-vibestudio --cli model pose models/marine.mesh.json --operation import --source models/zombie.mesh.json --source-clip walk1 --retarget --joint-map map.json --root-scale auto --name walk --output models/marine-walk.mesh.json
+slopstudio --cli model pose models/imp.mesh.json --operation import --source models/monster/walk.md5anim --name walk --output models/imp-walk.mesh.json --json
+slopstudio --cli model pose models/marine.mesh.json --operation import --source models/zombie.mesh.json --source-clip walk1 --retarget --joint-map map.json --root-scale auto --name walk --output models/marine-walk.mesh.json
 ```
 
 `--source` is required; `--source-clip` takes a name or index (default the
@@ -180,7 +180,7 @@ joints, `curveJoints`, `curvesCaptured` and `events`.
 A pose copy holds the whole source rig (joint names, parents and bind poses,
 which identify it), the copied joints and, for a sample range, either each
 joint's parent-local pose or its animation curve keys. It travels as JSON under
-the MIME type `application/x-vibestudio-pose+json` (and as text), or as a file
+the MIME type `application/x-slopstudio-pose+json` (and as text), or as a file
 written by `model pose --operation copy-out`. Pasting is the document edit
 `PastePose`, so it is one undo step, is recovered with the document and is
 validated like other skeletal edits.
@@ -216,10 +216,10 @@ rig's left/right joint names (`detectModelMirrorJointPairs`, as Symmetrize
 uses) pair up.
 
 ```sh
-vibestudio --cli model pose models/walk.mesh.json --operation copy-out --clip 0 --first 0 --last 11 --output poses/half.json --json
-vibestudio --cli model pose models/walk.mesh.json --operation paste --clipboard poses/half.json --clip 0 --first 12 --mirror y --output models/full.mesh.json --json
-vibestudio --cli model pose models/walk.mesh.json --operation mirror --clip 0 --first 4 --last 4 --output models/mirrored.mesh.json
-vibestudio --cli model pose models/other.mesh.json --operation paste --clipboard poses/half.json --clip 2 --first 0 --joint-map map.json --replace-keys --output models/other-walk.mesh.json
+slopstudio --cli model pose models/walk.mesh.json --operation copy-out --clip 0 --first 0 --last 11 --output poses/half.json --json
+slopstudio --cli model pose models/walk.mesh.json --operation paste --clipboard poses/half.json --clip 0 --first 12 --mirror y --output models/full.mesh.json --json
+slopstudio --cli model pose models/walk.mesh.json --operation mirror --clip 0 --first 4 --last 4 --output models/mirrored.mesh.json
+slopstudio --cli model pose models/other.mesh.json --operation paste --clipboard poses/half.json --clip 2 --first 0 --joint-map map.json --replace-keys --output models/other-walk.mesh.json
 ```
 
 `copy-out` takes `--clip N` or `--clip bind`, `--first`, optional `--last`
@@ -236,11 +236,11 @@ axis, plane, the joint pairs used and `outputSource`.
 `model pose` exposes the same operations with text and JSON inspection:
 
 ```sh
-vibestudio --cli model pose models/rig.mesh.json --json
-vibestudio --cli model pose models/rig.mesh.json --operation add --name turn --frames 24 --fps 24 --output models/clip.mesh.json
-vibestudio --cli model pose models/clip.mesh.json --operation transform --clip 0 --joint root --first 23 --last 23 --rotate 0,0,90 --output models/posed.mesh.json
-vibestudio --cli model pose models/posed.mesh.json --operation interpolate --clip 0 --first 0 --last 23 --output models/animated.mesh.json
-vibestudio --cli model pose models/animated.mesh.json --clip 0 --first 12 --json
+slopstudio --cli model pose models/rig.mesh.json --json
+slopstudio --cli model pose models/rig.mesh.json --operation add --name turn --frames 24 --fps 24 --output models/clip.mesh.json
+slopstudio --cli model pose models/clip.mesh.json --operation transform --clip 0 --joint root --first 23 --last 23 --rotate 0,0,90 --output models/posed.mesh.json
+slopstudio --cli model pose models/posed.mesh.json --operation interpolate --clip 0 --first 0 --last 23 --output models/animated.mesh.json
+slopstudio --cli model pose models/animated.mesh.json --clip 0 --first 12 --json
 ```
 
 The example starts with a rig without clips. `list` is the default operation;

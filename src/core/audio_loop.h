@@ -2,7 +2,7 @@
 #include "core/audio_automation.h"
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Repeated playback has an independent physical clock. Keep arithmetic headroom
 // for processing latency while retaining the authored timeline's existing bound.
@@ -24,4 +24,4 @@ inline qint64 audioLoopFrame(qint64 physicalFrame, const AudioTimelineLoop &loop
 	           ? loop.first + (physicalFrame - loop.first) % (loop.end - loop.first)
 	           : physicalFrame;
 }
-} // namespace vibestudio
+} // namespace slopstudio

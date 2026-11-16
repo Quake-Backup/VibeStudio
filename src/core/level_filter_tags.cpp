@@ -24,12 +24,12 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelFilterTags)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelFilterTags)
 };
 
 const QLatin1String kTagPrefix("tag:");
@@ -1087,4 +1087,4 @@ QStringList levelFilterTagsInverted(const LevelFilterTagSet& tags, const QString
 	return inverted;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

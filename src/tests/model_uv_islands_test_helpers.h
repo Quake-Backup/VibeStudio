@@ -5,7 +5,7 @@
 #include <QJsonDocument>
 #include <cmath>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh uvIslandsFixture()
 {
@@ -62,4 +62,4 @@ inline bool uvSamePoses(const ModelSurface &a, const ModelSurface &b)
 		}
 	return true;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

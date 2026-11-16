@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct ModelCollisionCliResult
 {
@@ -12,4 +12,4 @@ struct ModelCollisionCliResult
 	QStringList lines;
 };
 ModelCollisionCliResult runModelCollision(const QStringList &arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

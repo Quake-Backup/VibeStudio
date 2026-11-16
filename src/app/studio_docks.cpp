@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -229,4 +229,4 @@ QByteArray windowStateForDirection(const QByteArray& state, Qt::LayoutDirection 
 	return mirroredWindowState(state).value_or(state);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

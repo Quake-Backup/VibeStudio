@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -197,42 +197,42 @@ QString localizedColorVisionName(ColorVision vision)
 {
 	switch (vision) {
 	case ColorVision::Typical:
-		return QCoreApplication::translate("VibeStudioAccessibility", "Standard colours");
+		return QCoreApplication::translate("SlopStudioAccessibility", "Standard colours");
 	case ColorVision::RedGreen:
-		return QCoreApplication::translate("VibeStudioAccessibility", "Red-green safe (protanopia, deuteranopia)");
+		return QCoreApplication::translate("SlopStudioAccessibility", "Red-green safe (protanopia, deuteranopia)");
 	case ColorVision::BlueYellow:
-		return QCoreApplication::translate("VibeStudioAccessibility", "Blue-yellow safe (tritanopia)");
+		return QCoreApplication::translate("SlopStudioAccessibility", "Blue-yellow safe (tritanopia)");
 	case ColorVision::Monochrome:
-		return QCoreApplication::translate("VibeStudioAccessibility", "Monochrome (no colour)");
+		return QCoreApplication::translate("SlopStudioAccessibility", "Monochrome (no colour)");
 	}
-	return QCoreApplication::translate("VibeStudioAccessibility", "Standard colours");
+	return QCoreApplication::translate("SlopStudioAccessibility", "Standard colours");
 }
 
 QString localizedMessageDurationName(MessageDuration duration)
 {
 	switch (duration) {
 	case MessageDuration::Standard:
-		return QCoreApplication::translate("VibeStudioAccessibility", "Standard");
+		return QCoreApplication::translate("SlopStudioAccessibility", "Standard");
 	case MessageDuration::Longer:
-		return QCoreApplication::translate("VibeStudioAccessibility", "Three times longer");
+		return QCoreApplication::translate("SlopStudioAccessibility", "Three times longer");
 	case MessageDuration::UntilReplaced:
-		return QCoreApplication::translate("VibeStudioAccessibility", "Until the next message");
+		return QCoreApplication::translate("SlopStudioAccessibility", "Until the next message");
 	}
-	return QCoreApplication::translate("VibeStudioAccessibility", "Standard");
+	return QCoreApplication::translate("SlopStudioAccessibility", "Standard");
 }
 
 QString localizedSpeechEventName(const QString& eventId)
 {
 	if (eventId == QStringLiteral("task-results")) {
-		return QCoreApplication::translate("VibeStudioAccessibility", "Long tasks that finish");
+		return QCoreApplication::translate("SlopStudioAccessibility", "Long tasks that finish");
 	}
 	if (eventId == QStringLiteral("task-problems")) {
-		return QCoreApplication::translate("VibeStudioAccessibility", "Failures, warnings, and cancellations");
+		return QCoreApplication::translate("SlopStudioAccessibility", "Failures, warnings, and cancellations");
 	}
 	if (eventId == QStringLiteral("status-messages")) {
-		return QCoreApplication::translate("VibeStudioAccessibility", "Status bar messages");
+		return QCoreApplication::translate("SlopStudioAccessibility", "Status bar messages");
 	}
 	return eventId;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -4,7 +4,7 @@
 #include <QPainter>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool same(LevelMapVec3 a,LevelMapVec3 b) { return a.valid == b.valid && a.x == b.x && a.y == b.y && a.z == b.z; }
 bool finite(QPointF p) { return std::isfinite(p.x()) && std::isfinite(p.y()); }
@@ -112,4 +112,4 @@ void LevelVertexInsertion::paint(QPainter& painter,const LevelComponentGizmoFram
 	}
 	painter.restore();
 }
-} // namespace vibestudio
+} // namespace slopstudio

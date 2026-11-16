@@ -11,12 +11,12 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 PackagePublicationInventory listPackagePublicationJournals(const QStringList& directories, const PackageReadControl& control)
 {
 	PackagePublicationInventory inventory; QSet<QString> seen; bool exhausted = false;
-	static const QRegularExpression pattern(QStringLiteral("^\\.vibestudio-package-[A-Za-z0-9]{6,}\\.payload\\.json$"));
+	static const QRegularExpression pattern(QStringLiteral("^\\.slopstudio-package-[A-Za-z0-9]{6,}\\.payload\\.json$"));
 	if (directories.isEmpty()) {
 		inventory.errors << QCoreApplication::translate("PackagePublicationInventory", "Choose an output folder to inspect interrupted saves."); return inventory;
 	}
@@ -83,4 +83,4 @@ QJsonObject packagePublicationInventoryJson(const PackagePublicationInventory& i
 		{QStringLiteral("payloadsVerified"), false}};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

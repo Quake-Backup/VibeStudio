@@ -40,7 +40,7 @@
 
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelLodLevel
 {
@@ -348,4 +348,4 @@ bool publishModelLodSet(ModelLodSet *set, bool overwrite, QString *error = nullp
 // ("pending", "written" or "failed"), notes, exportNotes and exportOmissions,
 // and source for a hand-made level.
 [[nodiscard]] QJsonArray modelLodSetJson(const ModelLodSet &set);
-} // namespace vibestudio
+} // namespace slopstudio

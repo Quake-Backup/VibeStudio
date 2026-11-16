@@ -9,7 +9,7 @@
 #include <QUuid>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label, const QString& error = {})
 {
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 	ok &= expect(undoLevelMapEdit(&array,&error) && serializeLevelMap(array).bytes == before,"array exact undo",error);
 
 	const auto clipboard = levelMapSelectionText(source,&error);
-	ok &= expect(clipboard.contains("// VibeStudioScene:"),"clipboard carries native scene metadata",error);
+	ok &= expect(clipboard.contains("// SlopStudioScene:"),"clipboard carries native scene metadata",error);
 	LevelMapDocument destination;
 	if (!tests::createGeometryFixture(1,&destination,&error)) { return 1; }
 	QString context;

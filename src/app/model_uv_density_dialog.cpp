@@ -26,7 +26,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -534,4 +534,4 @@ void ModelUvDensityDialog::reject()
 	}
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

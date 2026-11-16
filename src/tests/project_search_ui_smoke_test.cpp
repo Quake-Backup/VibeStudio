@@ -25,7 +25,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 
 bool expect(bool condition, const char* message)
@@ -62,7 +62,7 @@ bool waitForSearch(ProjectSearchPanel& panel)
 
 bool renderEvidence(QWidget& widget, const QString& name)
 {
-	const QString evidence = qEnvironmentVariable("VIBESTUDIO_SEARCH_TEST_EVIDENCE");
+	const QString evidence = qEnvironmentVariable("SLOPSTUDIO_SEARCH_TEST_EVIDENCE");
 	if (evidence.isEmpty()) { return true; }
 	QImage rendering(widget.size(), QImage::Format_ARGB32_Premultiplied);
 	rendering.fill(Qt::transparent);
@@ -93,7 +93,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "vibestudio::ProjectSearchPanel") { return {}; }
+		if (QByteArray(context) != "slopstudio::ProjectSearchPanel") { return {}; }
 		const QString text = QString::fromUtf8(source);
 		return QStringLiteral("[%1%2]").arg(text, QString(text.size() / 3, QLatin1Char('~')));
 	}

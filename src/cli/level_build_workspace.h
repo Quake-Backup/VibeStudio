@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelBuildCliResult {
 	int exitCode = 0;
 	QString error;
@@ -10,4 +10,4 @@ struct LevelBuildCliResult {
 	QStringList lines;
 };
 LevelBuildCliResult runLevelBuildWorkspaceCommand(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

@@ -32,13 +32,13 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelEditor)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelEditor)
 };
 QString filterFor(const QString &format)
 {
@@ -639,4 +639,4 @@ void ModelEditorDialog::exportMd5Animation(bool allClips)
 	}
 	exportMd5Clips(directory, options, overwrite);
 }
-} // namespace vibestudio
+} // namespace slopstudio

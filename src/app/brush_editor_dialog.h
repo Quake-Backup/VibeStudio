@@ -15,7 +15,7 @@ class QLabel;
 class QPushButton;
 class QTableWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 
@@ -40,7 +40,7 @@ class BrushComponentView final : public QWidget
 	QSize minimumSizeHint() const override { return {280, 240}; }
   Q_SIGNALS:
 	void selectionChanged(const QVector<int> &selection);
-	void moveRequested(const vibestudio::LevelMapVec3 &delta);
+	void moveRequested(const slopstudio::LevelMapVec3 &delta);
 
   protected:
 	void paintEvent(QPaintEvent *) override;
@@ -115,4 +115,4 @@ class BrushEditorDialog final : public QDialog
 	std::function<bool(const LevelMapBrush &, QString *)> m_applyHandler;
 	bool m_refreshing = false, m_firstShow = true;
 };
-} // namespace vibestudio
+} // namespace slopstudio

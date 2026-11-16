@@ -11,7 +11,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -100,4 +100,4 @@ QVBoxLayout* addScrollingDialogBody(QVBoxLayout* dialogLayout)
 	return layout;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

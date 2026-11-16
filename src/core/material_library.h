@@ -29,7 +29,7 @@
 #include <functional>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct MaterialLibraryEntry {
 	QString name;
@@ -222,4 +222,4 @@ QJsonObject materialLibraryEntryJson(const MaterialLibraryEntry& entry);
 QJsonObject materialLibraryJson(const MaterialLibrary& library, bool includeEntries = true);
 QStringList materialLibrarySummaryLines(const MaterialLibrary& library);
 
-} // namespace vibestudio
+} // namespace slopstudio

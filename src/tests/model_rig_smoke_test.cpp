@@ -13,8 +13,8 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -37,7 +37,7 @@ bool near(float a, float b)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("rig-XXXXXX"));
@@ -262,7 +262,7 @@ int main(int argc, char **argv)
 		   "cancelled edit cannot commit");
 	const auto output = QDir(temporary.path()).filePath("cli.mesh.json");
 	const auto cliRun = [&](QStringList options) {
-		return cli::runModelRig(QStringList{"vibestudio", "--cli", "model", "rig", path} + options);
+		return cli::runModelRig(QStringList{"slopstudio", "--cli", "model", "rig", path} + options);
 	};
 	const auto listing = cliRun({"--surface", "0", "--vertices", "1", "--json"});
 	expect(listing.exitCode == 0 && listing.payload["vertices"].toArray().size() == 1, "CLI lists selected vertex weights");

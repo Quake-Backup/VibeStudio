@@ -82,17 +82,17 @@ Listing can optionally restrict to one surface; edits require an explicit
 zero-based `--surface` and an `--output` ending in `.mesh.json`.
 
 ```text
-vibestudio --cli model slots prop.mesh.json --json
-vibestudio --cli model slots prop.mesh.json --surface 0 --operation set --slot 1 --material models/prop/blue.pcx --output changed.mesh.json
-vibestudio --cli model slots prop.mesh.json --surface 0 --operation insert --slot 2 --material models/prop/red.pcx --output changed.mesh.json
-vibestudio --cli model slots prop.mesh.json --surface 0 --operation move --slot 1 --to 0 --output changed.mesh.json --dry-run --json
-vibestudio --cli model slots prop.mesh.json --surface 0 --operation remove --slot 1 --output changed.mesh.json
-vibestudio --cli model slots prop.mesh.json --surface 0 --operation replace --material models/prop/red.pcx --material models/prop/blue.pcx --output changed.mesh.json
-vibestudio --cli model slots prop.mesh.json --surface 0 --operation clear --output changed.mesh.json
-vibestudio --cli model materials prop.mesh.json --package assets --surface 0 --material-slot 1 --json
-vibestudio --cli model materials player.md3 --package assets.vibepackage --entry models/players/example/default.skin --json
-vibestudio --cli model materials player.md3 --package assets --entry-index 12 --json
-vibestudio --cli model materials player.mdl --package assets --skin 0 --member 1 --json
+slopstudio --cli model slots prop.mesh.json --json
+slopstudio --cli model slots prop.mesh.json --surface 0 --operation set --slot 1 --material models/prop/blue.pcx --output changed.mesh.json
+slopstudio --cli model slots prop.mesh.json --surface 0 --operation insert --slot 2 --material models/prop/red.pcx --output changed.mesh.json
+slopstudio --cli model slots prop.mesh.json --surface 0 --operation move --slot 1 --to 0 --output changed.mesh.json --dry-run --json
+slopstudio --cli model slots prop.mesh.json --surface 0 --operation remove --slot 1 --output changed.mesh.json
+slopstudio --cli model slots prop.mesh.json --surface 0 --operation replace --material models/prop/red.pcx --material models/prop/blue.pcx --output changed.mesh.json
+slopstudio --cli model slots prop.mesh.json --surface 0 --operation clear --output changed.mesh.json
+slopstudio --cli model materials prop.mesh.json --package assets --surface 0 --material-slot 1 --json
+slopstudio --cli model materials player.md3 --package assets.sloppackage --entry models/players/example/default.skin --json
+slopstudio --cli model materials player.md3 --package assets --entry-index 12 --json
+slopstudio --cli model materials player.mdl --package assets --skin 0 --member 1 --json
 ```
 
 Insert accepts indices from zero through the current count; count appends. Move's
@@ -109,7 +109,7 @@ targets apply. JSON reports the resulting indexed surfaces and ordered
 2 for usage, 4 for model/edit validation and 1 for read/write failures.
 
 `model materials` accepts a native/editable source and a package archive, folder
-or portable `.vibepackage` draft. Use one of three separate appearance modes:
+or portable `.sloppackage` draft. Use one of three separate appearance modes:
 
 - Pair `--surface N` with `--material-slot N` for one external alternate. Other
   surfaces use their primaries.

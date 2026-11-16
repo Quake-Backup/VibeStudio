@@ -17,7 +17,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // One term: a property test, or a bare word when `key` is empty.
 struct StudioQueryTerm {
@@ -45,4 +45,4 @@ bool parseStudioQueryNumber(const QString& text, double* value);
 // query empties can say it was a mistyped key rather than no match.
 QStringList studioQueryUnknownKeys(const StudioQuery& query, const QSet<QString>& known);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // `vertices` (even, at least 4) along a strip; the left half follows "root",
 // the right half "tip", whose child "hand" ends a two-bone chain. Each clip
@@ -194,4 +194,4 @@ inline ModelMesh realisticSkeletalDocument(int clipCount = 40, int framesPerClip
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

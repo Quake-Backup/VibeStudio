@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -136,7 +136,7 @@ AudioEffectsDialog::AudioEffectsDialog(const AudioSession &session, const QStrin
 	});
 	connect(openPreset, &QPushButton::clicked, this, [this] {
 		const auto path = QFileDialog::getOpenFileName(this, tr("Open Effect Preset"), m_presetIdentity.path,
-		                                               tr("VibeStudio effect presets (*.vsfx)"));
+		                                               tr("SlopStudio effect presets (*.vsfx)"));
 		if (!path.isEmpty())
 			loadPresetFile(path);
 	});
@@ -144,7 +144,7 @@ AudioEffectsDialog::AudioEffectsDialog(const AudioSession &session, const QStrin
 		const auto path = QFileDialog::getSaveFileName(this, tr("Save Effect Preset"),
 		                                               m_presetIdentity.path.isEmpty() ? QStringLiteral("effects.vsfx")
 		                                                                               : m_presetIdentity.path,
-		                                               tr("VibeStudio effect presets (*.vsfx)"));
+		                                               tr("SlopStudio effect presets (*.vsfx)"));
 		if (!path.isEmpty())
 			savePresetFile(path, true);
 	});
@@ -598,4 +598,4 @@ bool AudioEffectsDialog::savePresetFile(const QString &path, bool overwrite)
 	    false);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

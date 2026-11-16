@@ -22,7 +22,7 @@
 #include <QByteArray>
 #include <QString>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelMapPreviewMesh;
 
@@ -236,4 +236,4 @@ struct LevelCameraDepthMapping {
 [[nodiscard]] QString levelCameraFarClipSummary(const LevelCameraFarClipState& state, const LevelCameraShadingState& shading);
 [[nodiscard]] QString levelCameraFarClipStepAnnouncement(const LevelCameraFarClipState& before, const LevelCameraFarClipState& after);
 
-} // namespace vibestudio
+} // namespace slopstudio

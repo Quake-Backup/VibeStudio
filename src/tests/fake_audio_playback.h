@@ -6,7 +6,7 @@
 
 // Deterministic event source, with no device discovery or physical audio output.
 // Tests control delayed callbacks and failures separately from the controller.
-class FakeAudioPlaybackBackend final : public vibestudio::AudioPlaybackBackend
+class FakeAudioPlaybackBackend final : public slopstudio::AudioPlaybackBackend
 {
 public:
 	void open(const QByteArray& wav, const QString& hint, quint64 session, float level, bool repeat) override

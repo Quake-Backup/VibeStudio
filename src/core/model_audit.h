@@ -20,7 +20,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ModelAuditOptions {
 	// Format ids (model formats) to audit; empty audits every model format.
@@ -152,4 +152,4 @@ bool auditModels(const QString& path, const ModelAuditOptions& options, ModelAud
 // One line per format, then the entries that are not clean, translated.
 [[nodiscard]] QStringList modelAuditLines(const ModelAuditReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

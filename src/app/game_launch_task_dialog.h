@@ -3,7 +3,7 @@
 #include <QCoreApplication>
 #include <QDialog>
 
-namespace vibestudio {
+namespace slopstudio {
 struct GameLaunchTaskResult {
 	GameLaunchPlan plan;
 	qint64 pid = 0;
@@ -26,4 +26,4 @@ class GameLaunchTaskDialog final : public QDialog {
 									const std::function<void(GameLaunchTaskResult&, const std::function<bool()>&)>& action);
 	std::function<void()> m_cancel;
 };
-} // namespace vibestudio
+} // namespace slopstudio

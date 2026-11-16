@@ -27,7 +27,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelPreviewAssets;
 
@@ -172,4 +172,4 @@ struct LevelMapObjExportRequest {
 LevelMapObjExportReport exportLevelMapObj(const LevelMapDocument& document, const LevelMapObjExportRequest& request);
 QJsonObject levelMapObjExportReportJson(const LevelMapObjExportReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

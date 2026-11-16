@@ -25,7 +25,7 @@ class QTableWidget;
 class QThread;
 class QTreeWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 
 class ModelAuditDialog final : public QDialog
@@ -72,4 +72,4 @@ class ModelAuditDialog final : public QDialog
 	ModelAuditReport m_report;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -12,8 +12,8 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -81,7 +81,7 @@ bool write(const QString &path, const QByteArray &bytes)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("weight-paint-XXXXXX"));
@@ -356,7 +356,7 @@ int main(int argc, char **argv)
 		}
 	}
 	const auto cliOutput = QDir(temporary.path()).filePath("cli.mesh.json");
-	const QStringList command{"vibestudio", "--cli", "model", "weight-paint", input};
+	const QStringList command{"slopstudio", "--cli", "model", "weight-paint", input};
 	const QStringList options{"--surface", "0",	  "--joint",	"tip", "--vertices", "0,1",
 							  "--value",   "0.8", "--strength", "0.5", "--output",	 cliOutput};
 	expect(cli::runModelWeightPaint(command + options + QStringList{"--dry-run"}).exitCode == 0 && !QFile::exists(cliOutput),

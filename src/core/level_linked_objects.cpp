@@ -8,8 +8,8 @@
 // Original correspondence implementation. The behavioural reference is
 // TrenchBroom v2026.2 Map_Groups.cpp (per-node link IDs), GPL-3.0-or-later:
 // https://github.com/TrenchBroom/TrenchBroom/blob/4c756be1a54a28d921d18c77716a5f170bdc31d0/lib/TbMdlLib/src/Map_Groups.cpp
-// VibeStudio uses its own scene codec and UUID mapping; see docs/CREDITS.md.
-namespace vibestudio
+// SlopStudio uses its own scene codec and UUID mapping; see docs/CREDITS.md.
+namespace slopstudio
 {
 
 QSet<QString> levelLinkedObjects(const LevelMapDocument& document, const QStringList& members)
@@ -111,4 +111,4 @@ bool validateLevelLinkedObjects(const LevelMapDocument& document, const LevelSce
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

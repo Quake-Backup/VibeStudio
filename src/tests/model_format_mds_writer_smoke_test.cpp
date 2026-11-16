@@ -1,5 +1,5 @@
 // The RTCW MDS writer (FMT-09, core/model_mds.h): a two-bone skeleton with a
-// clip and a tag bone is written, read back by VibeStudio's decoder and, as an
+// clip and a tag bone is written, read back by SlopStudio's decoder and, as an
 // independent check, by a reader written here from the published mdsHeader_t
 // layout and R_CalcBone/RB_SurfaceAnim maths; refusals for stretching bones,
 // scaling bones, too many weights and models without a skeleton; and
@@ -17,7 +17,7 @@
 #include <cstring>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace
 {
@@ -210,7 +210,7 @@ int main(int argc, char **argv)
 	}
 	expect(counted && worst < 0.02, "an independent reader of the bytes puts every vertex where the clip does, within angle rounding");
 
-	// VibeStudio's decoder agrees, and keeps the tag.
+	// SlopStudio's decoder agrees, and keeps the tag.
 	const ModelMesh back = decodeModelMesh(QStringLiteral("models/test/arm.mds"), bytes);
 	if (expect(back.error.isEmpty() && back.geometryAvailable && back.skeleton.joints.size() == 3, "the decoder reads the written MDS"))
 	{

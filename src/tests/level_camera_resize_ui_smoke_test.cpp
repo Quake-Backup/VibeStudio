@@ -17,7 +17,7 @@
 #include <limits>
 #include <numeric>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -118,7 +118,7 @@ QJsonObject measureResizeScene(int count)
 		"rapid proposals retain the latest bounds without source edits");
 	std::sort(calls.begin(),calls.end());
 	const double totalMs = elapsed.nsecsElapsed()/1e6;
-	const int budget = qEnvironmentVariableIntValue("VIBESTUDIO_LEVEL_RESIZE_MAX_CALL_MS");
+	const int budget = qEnvironmentVariableIntValue("SLOPSTUDIO_LEVEL_RESIZE_MAX_CALL_MS");
 	if (budget > 0) { ok &= expect(calls.last() <= budget,"configured resize GUI-call latency budget"); }
 	view.finishSelectionResize(false);
 	return {{"ok",ok},{"brushes",count},{"triangles",mesh.triangles},{"proposals",64},{"medianCallMs",calls[calls.size()/2]},
@@ -222,7 +222,7 @@ int main(int argc, char** argv)
 	ok &= view.beginSelectionResize(view.selectionResizeHandles()[1]);
 	ok &= expect(view.accessibleDescription().contains(QStringLiteral("expanded")),"resize status remains translatable with enlarged RTL text");
 	ok &= expect(settle(view),"enlarged high-contrast camera picture completes before visual review");
-	const auto output = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const auto output = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (!output.isEmpty()) {
 		QDir().mkpath(output); const QDir folder(output);
 		ok &= original.save(folder.filePath("camera-resize-before.png")); ok &= actual.save(folder.filePath("camera-resize-preview.png"));

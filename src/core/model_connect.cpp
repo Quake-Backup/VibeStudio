@@ -19,7 +19,7 @@
 #include <deque>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 using namespace model_tools;
 namespace
@@ -639,4 +639,4 @@ bool connectModelEdges(ModelMesh *candidate, const ModelEdit &edit, ModelSelecti
 	selection->edges = joined;
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

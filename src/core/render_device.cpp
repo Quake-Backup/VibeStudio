@@ -14,7 +14,7 @@
 #include <cmath>
 #include <cstring>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // ---------------------------------------------------------------------------
 // Identifiers
@@ -78,7 +78,7 @@ QString renderBackendChoiceDisplayName(RenderBackendChoice choice)
 {
 	switch (choice) {
 	case RenderBackendChoice::Automatic:
-		return QCoreApplication::translate("VibeStudioRendering", "Automatic", "3D renderer choice: the first graphics API that works");
+		return QCoreApplication::translate("SlopStudioRendering", "Automatic", "3D renderer choice: the first graphics API that works");
 	case RenderBackendChoice::OpenGL:
 		return renderBackendDisplayName(RenderBackend::OpenGL);
 	case RenderBackendChoice::Vulkan:
@@ -263,7 +263,7 @@ void DeviceThread::run()
 		available = startDevice(&info);
 	} catch (const std::exception& error) {
 		available = false;
-		info.error = QCoreApplication::translate("VibeStudioRendering", "The %1 renderer failed while starting.").arg(renderBackendDisplayName(m_backend));
+		info.error = QCoreApplication::translate("SlopStudioRendering", "The %1 renderer failed while starting.").arg(renderBackendDisplayName(m_backend));
 		info.errorDetail = QString::fromLocal8Bit(error.what());
 	}
 	info.backend = m_backend;
@@ -271,7 +271,7 @@ void DeviceThread::run()
 	info.available = available;
 	info.startupMilliseconds = timer.elapsed();
 	if (!available && info.error.isEmpty()) {
-		info.error = QCoreApplication::translate("VibeStudioRendering", "%1 could not start on this computer.").arg(renderBackendDisplayName(m_backend));
+		info.error = QCoreApplication::translate("SlopStudioRendering", "%1 could not start on this computer.").arg(renderBackendDisplayName(m_backend));
 	}
 	{
 		std::lock_guard lock(m_mutex);
@@ -321,7 +321,7 @@ void DeviceThread::markLost(const QString& detail)
 	std::lock_guard lock(m_mutex);
 	m_lost = true;
 	m_info.available = false;
-	m_info.error = QCoreApplication::translate("VibeStudioRendering",
+	m_info.error = QCoreApplication::translate("SlopStudioRendering",
 		"The graphics device stopped responding. The %1 renderer restarts with the next frame.").arg(renderBackendDisplayName(m_backend));
 	m_info.errorDetail = detail;
 }
@@ -340,7 +340,7 @@ GpuFrameResult DeviceThread::render(const GpuFrame& frame, const std::atomic_boo
 			result.error = m_info.error;
 			result.errorDetail = m_info.errorDetail;
 			if (result.error.isEmpty()) {
-				result.error = QCoreApplication::translate("VibeStudioRendering", "The %1 renderer is not running.").arg(renderBackendDisplayName(m_backend));
+				result.error = QCoreApplication::translate("SlopStudioRendering", "The %1 renderer is not running.").arg(renderBackendDisplayName(m_backend));
 			}
 			return result;
 		}
@@ -368,7 +368,7 @@ GpuFrameResult DeviceThread::render(const GpuFrame& frame, const std::atomic_boo
 					rendered = renderFrame(frame, cancelled);
 				} catch (const std::bad_alloc&) {
 					rendered = {};
-					rendered.error = QCoreApplication::translate("VibeStudioRendering", "There was not enough memory to render this view.");
+					rendered.error = QCoreApplication::translate("SlopStudioRendering", "There was not enough memory to render this view.");
 					rendered.errorDetail = QStringLiteral("std::bad_alloc");
 				}
 			}
@@ -457,7 +457,7 @@ QString validateFrame(const GpuFrame& frame, QString* detail)
 		if (detail) {
 			*detail = why;
 		}
-		return QCoreApplication::translate("VibeStudioRendering", "The view could not be drawn because its frame was malformed.");
+		return QCoreApplication::translate("SlopStudioRendering", "The view could not be drawn because its frame was malformed.");
 	};
 	if (frame.size.isEmpty() || frame.size.width() > kMaximumTargetSide || frame.size.height() > kMaximumTargetSide) {
 		return fail(QStringLiteral("frame size %1x%2 outside 1..%3").arg(frame.size.width()).arg(frame.size.height()).arg(kMaximumTargetSide));
@@ -652,7 +652,7 @@ const EnvironmentChoice& environmentChoice()
 {
 	static const EnvironmentChoice value = [] {
 		EnvironmentChoice result;
-		const QString text = qEnvironmentVariable("VIBESTUDIO_RENDER_BACKEND");
+		const QString text = qEnvironmentVariable("SLOPSTUDIO_RENDER_BACKEND");
 		result.set = !text.trimmed().isEmpty() && renderBackendChoiceFromId(text, &result.choice);
 		return result;
 	}();
@@ -738,10 +738,10 @@ std::shared_ptr<RenderDevice> activeRenderDevice(RenderDeviceInfo* failure)
 		if (failures.size() > 1) {
 			QStringList reasons;
 			for (const RenderDeviceInfo& info : std::as_const(failures)) {
-				reasons << QCoreApplication::translate("VibeStudioRendering", "%1: %2", "renderer name, then why it is unavailable")
+				reasons << QCoreApplication::translate("SlopStudioRendering", "%1: %2", "renderer name, then why it is unavailable")
 							   .arg(renderBackendDisplayName(info.backend), info.error);
 			}
-			failure->error = QCoreApplication::translate("VibeStudioRendering", "No 3D renderer is available. %1").arg(reasons.join(QLatin1Char(' ')));
+			failure->error = QCoreApplication::translate("SlopStudioRendering", "No 3D renderer is available. %1").arg(reasons.join(QLatin1Char(' ')));
 		}
 	}
 	return nullptr;
@@ -911,15 +911,15 @@ QString renderDeviceSummary(const RenderDeviceInfo& info)
 {
 	const QString name = renderBackendDisplayName(info.backend);
 	if (!info.started) {
-		return QCoreApplication::translate("VibeStudioRendering", "%1 (not started)").arg(name);
+		return QCoreApplication::translate("SlopStudioRendering", "%1 (not started)").arg(name);
 	}
 	if (!info.available) {
-		return QCoreApplication::translate("VibeStudioRendering", "%1 unavailable").arg(name);
+		return QCoreApplication::translate("SlopStudioRendering", "%1 unavailable").arg(name);
 	}
-	QString summary = QCoreApplication::translate("VibeStudioRendering", "%1 %2 · %3", "renderer, its version, the graphics device")
+	QString summary = QCoreApplication::translate("SlopStudioRendering", "%1 %2 · %3", "renderer, its version, the graphics device")
 						  .arg(name, info.apiVersion, info.deviceName);
 	if (info.softwareImplementation) {
-		summary = QCoreApplication::translate("VibeStudioRendering", "%1 (runs on the processor)", "a graphics driver that emulates a GPU in software").arg(summary);
+		summary = QCoreApplication::translate("SlopStudioRendering", "%1 (runs on the processor)", "a graphics driver that emulates a GPU in software").arg(summary);
 	}
 	return summary;
 }
@@ -984,7 +984,7 @@ RenderSelfTestResult runRenderSelfTest(RenderDevice& device)
 	const GpuReadback* readback = rendered.readback(0);
 	const QImage image = readback ? readback->image(QImage::Format_ARGB32) : QImage();
 	if (image.size() != size) {
-		result.error = QCoreApplication::translate("VibeStudioRendering", "The %1 renderer did not return its test image.").arg(name);
+		result.error = QCoreApplication::translate("SlopStudioRendering", "The %1 renderer did not return its test image.").arg(name);
 		result.errorDetail = QStringLiteral("read back %1x%2, expected %3x%4").arg(image.width()).arg(image.height()).arg(size.width()).arg(size.height());
 		return result;
 	}
@@ -1002,7 +1002,7 @@ RenderSelfTestResult runRenderSelfTest(RenderDevice& device)
 			const QRgb got = image.pixel(x, y);
 			if (std::abs(qRed(got) - qRed(want)) > 1 || std::abs(qGreen(got) - qGreen(want)) > 1 || std::abs(qBlue(got) - qBlue(want)) > 1
 				|| std::abs(qAlpha(got) - qAlpha(want)) > 1) {
-				result.error = QCoreApplication::translate("VibeStudioRendering", "The %1 renderer drew its test image wrongly.").arg(name);
+				result.error = QCoreApplication::translate("SlopStudioRendering", "The %1 renderer drew its test image wrongly.").arg(name);
 				result.errorDetail = QStringLiteral("pixel (%1, %2) is #%3, expected #%4")
 										 .arg(x)
 										 .arg(y)
@@ -1016,4 +1016,4 @@ RenderSelfTestResult runRenderSelfTest(RenderDevice& device)
 	return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

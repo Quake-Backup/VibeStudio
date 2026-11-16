@@ -22,7 +22,7 @@
 #include <cstring>
 #include <utility>
 
-namespace vibestudio::tests::release {
+namespace slopstudio::tests::release {
 
 inline bool writeFile(const QString& path, const QByteArray& bytes)
 {
@@ -309,9 +309,9 @@ inline bool addQuake3MenuScripts(const QString& root)
 inline QByteArray dmxSound(int samples = 64)
 {
 	QByteArray bytes(8, '\0');
-	vibestudio::tests::doom::put16(bytes, 0, 3);
-	vibestudio::tests::doom::put16(bytes, 2, 11025);
-	vibestudio::tests::doom::put32(bytes, 4, samples + 32);
+	slopstudio::tests::doom::put16(bytes, 0, 3);
+	slopstudio::tests::doom::put16(bytes, 2, 11025);
+	slopstudio::tests::doom::put32(bytes, 4, samples + 32);
 	bytes += QByteArray(samples + 32, char(128));
 	return bytes;
 }
@@ -395,7 +395,7 @@ inline QByteArray doomMapWad(const QString& mapName, const QVector<int>& thingTy
 		map.doomThings.push_back(thing);
 		y += 24.0;
 	}
-	return vibestudio::tests::doom::wad(vibestudio::tests::doom::lumps(serializeLevelMap(map).bytes));
+	return slopstudio::tests::doom::wad(slopstudio::tests::doom::lumps(serializeLevelMap(map).bytes));
 }
 
 // A Doom mod: monsters.wad holds DECORATE (including IMPBALL), SNDINFO,
@@ -404,7 +404,7 @@ inline QByteArray doomMapWad(const QString& mapName, const QVector<int>& thingTy
 // things in MAP02.
 inline bool makeDecorateProject(const QString& root)
 {
-	namespace doom = vibestudio::tests::doom;
+	namespace doom = slopstudio::tests::doom;
 	bool ok = writeManifest(root, QStringLiteral("doom"), QJsonObject {{QStringLiteral("packageName"), QStringLiteral("fireimps")}});
 	QByteArray music("MUS\x1a", 4);
 	music += QByteArray(28, '\0');
@@ -433,7 +433,7 @@ inline bool makeDecorateProject(const QString& root)
 // PNAMES, TEXTURE1) plus a map and a music lump.
 inline QByteArray doom2Iwad()
 {
-	using namespace vibestudio::tests;
+	using namespace slopstudio::tests;
 	QByteArray music("MUS\x1a", 4);
 	music += QByteArray(28, '\0');
 	QVector<doom::Lump> lumps = doom::assets();
@@ -528,4 +528,4 @@ inline QByteArray md3(const QByteArrayList& shaders)
 	return bytes;
 }
 
-} // namespace vibestudio::tests::release
+} // namespace slopstudio::tests::release

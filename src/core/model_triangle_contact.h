@@ -3,7 +3,7 @@
 #include "core/model_mesh.h"
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelTriangleContact
 {
@@ -20,4 +20,4 @@ enum class ModelTriangleContact
 // Degenerate is a defensive failure result, not an intersection classification.
 // Uses scale-relative tolerances; this is not an exact-predicate certificate.
 ModelTriangleContact modelTriangleContact(const std::array<ModelVec3, 3> &a, const std::array<ModelVec3, 3> &b);
-} // namespace vibestudio
+} // namespace slopstudio

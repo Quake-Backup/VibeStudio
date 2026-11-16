@@ -15,7 +15,7 @@
 #include <QTreeWidgetItemIterator>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString pathKey(const QString& path)
 {
@@ -307,4 +307,4 @@ void CodeFilesPanel::filterFiles()
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

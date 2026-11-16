@@ -8,7 +8,7 @@ class QDoubleSpinBox;
 class QLabel;
 class QListWidget;
 class QPushButton;
-namespace vibestudio
+namespace slopstudio
 {
 class AudioRoutingDialog final : public QDialog {
 	Q_OBJECT
@@ -35,4 +35,4 @@ class AudioRoutingDialog final : public QDialog {
 	QLabel *m_status = nullptr;
 	QDialogButtonBox *m_buttons = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

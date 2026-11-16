@@ -3,7 +3,7 @@
 #include "core/model_mesh.h"
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelFrameExportRequest
 {
@@ -32,4 +32,4 @@ struct ModelFrameExportResult
 // before serialization and rechecked by the guarded model writer at commit.
 ModelFrameExportResult exportModelFrame(const ModelMesh &mesh, const ModelFrameExportRequest &request,
 										const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

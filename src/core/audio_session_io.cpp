@@ -14,7 +14,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -162,7 +162,7 @@ bool decodeAudioSession(const QByteArray &bytes, AudioSession *session, QString 
 	     qFromLittleEndian<quint32>(bytes.constData() + 8) != 7 &&
 	     qFromLittleEndian<quint32>(bytes.constData() + 8) != 8)) {
 		return fail(error, message(QT_TRANSLATE_NOOP("AudioSession",
-		                                             "Not a supported, bounded VibeStudio multitrack session.")));
+		                                             "Not a supported, bounded SlopStudio multitrack session.")));
 	}
 	const quint32 jsonSize = qFromLittleEndian<quint32>(bytes.constData() + 12);
 	const auto version = qFromLittleEndian<quint32>(bytes.constData() + 8);
@@ -466,4 +466,4 @@ AudioSessionMixdownReport writeAudioSessionMixdown(const AudioSession &session, 
 	return report;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

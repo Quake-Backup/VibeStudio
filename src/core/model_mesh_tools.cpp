@@ -13,7 +13,7 @@
 #include <numbers>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace model_tools
 {
@@ -1942,4 +1942,4 @@ bool applyModelMeshToolEditUnguarded(ModelMesh *candidate, const ModelEdit &edit
 	}
 }
 } // namespace
-} // namespace vibestudio
+} // namespace slopstudio

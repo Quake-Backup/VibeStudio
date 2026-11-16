@@ -39,7 +39,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

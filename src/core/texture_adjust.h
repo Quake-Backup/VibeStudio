@@ -4,7 +4,7 @@
 
 #include <QColor>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Whole-area raster operations for the texture editor. Every function reads an
 // immutable source, writes ARGB32 pixels only inside `area`, and leaves alpha
@@ -76,4 +76,4 @@ qint64 textureOffPalettePixels(const QImage& image, const QVector<QRgb>& palette
 // Distinct ARGB colours, capped at `limit` (returns limit + 1 when exceeded).
 int textureDistinctColors(const QImage& image, int limit = 65536);
 
-} // namespace vibestudio
+} // namespace slopstudio

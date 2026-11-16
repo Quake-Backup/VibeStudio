@@ -11,7 +11,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -270,10 +270,10 @@ QVector<GameInstallationDetectionCandidate> candidatesForDirectory(const QString
 		candidate.confidencePercent = packages.isEmpty() ? 62 : (folderMatch ? 96 : 84);
 		candidate.matchedPaths = packages;
 		if (packages.isEmpty()) {
-			candidate.warnings << QCoreApplication::translate("VibeStudioGameInstallation", "Folder name matched, but no expected base package was found.");
+			candidate.warnings << QCoreApplication::translate("SlopStudioGameInstallation", "Folder name matched, but no expected base package was found.");
 		}
 		if (profile.executablePath.isEmpty()) {
-			candidate.warnings << QCoreApplication::translate("VibeStudioGameInstallation", "Executable was not found in the detected folder.");
+			candidate.warnings << QCoreApplication::translate("SlopStudioGameInstallation", "Executable was not found in the detected folder.");
 		}
 		candidates.push_back(candidate);
 	}
@@ -389,15 +389,15 @@ QString gameEngineFamilyDisplayName(GameEngineFamily family)
 {
 	switch (family) {
 	case GameEngineFamily::IdTech1:
-		return QCoreApplication::translate("VibeStudioGameInstallation", "idTech1 / Doom-family");
+		return QCoreApplication::translate("SlopStudioGameInstallation", "idTech1 / Doom-family");
 	case GameEngineFamily::IdTech2:
-		return QCoreApplication::translate("VibeStudioGameInstallation", "idTech2 / Quake-family");
+		return QCoreApplication::translate("SlopStudioGameInstallation", "idTech2 / Quake-family");
 	case GameEngineFamily::IdTech3:
-		return QCoreApplication::translate("VibeStudioGameInstallation", "idTech3 / Quake III-family");
+		return QCoreApplication::translate("SlopStudioGameInstallation", "idTech3 / Quake III-family");
 	case GameEngineFamily::Unknown:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioGameInstallation", "Unknown");
+	return QCoreApplication::translate("SlopStudioGameInstallation", "Unknown");
 }
 
 GameEngineFamily gameEngineFamilyFromId(const QString& id)
@@ -428,11 +428,11 @@ QStringList gameEngineFamilyIds()
 QVector<GameDefinition> knownGameDefinitions()
 {
 	// The profile-driven shape mirrors PakFu's durable game/install model while
-	// keeping VibeStudio-owned defaults and Qt-native validation.
+	// keeping SlopStudio-owned defaults and Qt-native validation.
 	return {
 		{
 			QStringLiteral("custom"),
-			QCoreApplication::translate("VibeStudioGameInstallation", "Custom / Unknown"),
+			QCoreApplication::translate("SlopStudioGameInstallation", "Custom / Unknown"),
 			GameEngineFamily::Unknown,
 			{},
 			{},
@@ -441,7 +441,7 @@ QVector<GameDefinition> knownGameDefinitions()
 		},
 		{
 			QStringLiteral("doom"),
-			QCoreApplication::translate("VibeStudioGameInstallation", "Doom-family"),
+			QCoreApplication::translate("SlopStudioGameInstallation", "Doom-family"),
 			GameEngineFamily::IdTech1,
 			{
 				QStringLiteral("doom.wad"),
@@ -455,7 +455,7 @@ QVector<GameDefinition> knownGameDefinitions()
 		},
 		{
 			QStringLiteral("heretic-hexen"),
-			QCoreApplication::translate("VibeStudioGameInstallation", "Heretic / Hexen-family"),
+			QCoreApplication::translate("SlopStudioGameInstallation", "Heretic / Hexen-family"),
 			GameEngineFamily::IdTech1,
 			{
 				QStringLiteral("heretic.wad"),
@@ -467,35 +467,35 @@ QVector<GameDefinition> knownGameDefinitions()
 		},
 		{
 			QStringLiteral("quake"),
-			QCoreApplication::translate("VibeStudioGameInstallation", "Quake"),
+			QCoreApplication::translate("SlopStudioGameInstallation", "Quake"),
 			GameEngineFamily::IdTech2,
 			{
 				QStringLiteral("id1/pak0.pak"),
 			},
 			QStringLiteral("quake"),
-			QStringLiteral("vibemap2"),
+			QStringLiteral("slopmap2"),
 			QStringLiteral("id1"),
 		},
 		{
 			QStringLiteral("quake2"),
-			QCoreApplication::translate("VibeStudioGameInstallation", "Quake II"),
+			QCoreApplication::translate("SlopStudioGameInstallation", "Quake II"),
 			GameEngineFamily::IdTech2,
 			{
 				QStringLiteral("baseq2/pak0.pak"),
 			},
 			QStringLiteral("quake2"),
-			QStringLiteral("vibemap2"),
+			QStringLiteral("slopmap2"),
 			QStringLiteral("baseq2"),
 		},
 		{
 			QStringLiteral("quake3"),
-			QCoreApplication::translate("VibeStudioGameInstallation", "Quake III Arena"),
+			QCoreApplication::translate("SlopStudioGameInstallation", "Quake III Arena"),
 			GameEngineFamily::IdTech3,
 			{
 				QStringLiteral("baseq3/pak0.pk3"),
 			},
 			QStringLiteral("quake3"),
-			QStringLiteral("vibemap3"),
+			QStringLiteral("slopmap3"),
 			QStringLiteral("baseq3"),
 		},
 	};
@@ -600,7 +600,7 @@ GameInstallationProfile normalizedGameInstallationProfile(const GameInstallation
 	if (normalized.paletteId.trimmed().isEmpty()) {
 		normalized.paletteId = definition.defaultPaletteId;
 	}
-	// Installations saved before the move to VibeMap2 and VibeMap3 carry the old defaults.
+	// Installations saved before the move to SlopMap2 and SlopMap3 carry the old defaults.
 	const QString storedCompilerProfileId = normalized.compilerProfileId.trimmed();
 	if (storedCompilerProfileId.isEmpty()
 		|| storedCompilerProfileId.compare(QStringLiteral("ericw-tools"), Qt::CaseInsensitive) == 0
@@ -623,7 +623,7 @@ GameInstallationValidation validateGameInstallationProfile(const GameInstallatio
 	GameInstallationValidation validation;
 
 	if (normalized.rootPath.isEmpty()) {
-		validation.errors << QCoreApplication::translate("VibeStudioGameInstallation", "Installation root is empty.");
+		validation.errors << QCoreApplication::translate("SlopStudioGameInstallation", "Installation root is empty.");
 		return validation;
 	}
 
@@ -631,9 +631,9 @@ GameInstallationValidation validateGameInstallationProfile(const GameInstallatio
 	validation.rootExists = rootInfo.exists();
 	validation.rootIsDirectory = rootInfo.isDir();
 	if (!validation.rootExists) {
-		validation.errors << QCoreApplication::translate("VibeStudioGameInstallation", "Installation root does not exist.");
+		validation.errors << QCoreApplication::translate("SlopStudioGameInstallation", "Installation root does not exist.");
 	} else if (!validation.rootIsDirectory) {
-		validation.errors << QCoreApplication::translate("VibeStudioGameInstallation", "Installation root is not a directory.");
+		validation.errors << QCoreApplication::translate("SlopStudioGameInstallation", "Installation root is not a directory.");
 	}
 
 	if (!normalized.executablePath.isEmpty()) {
@@ -641,15 +641,15 @@ GameInstallationValidation validateGameInstallationProfile(const GameInstallatio
 		validation.executableExists = executableInfo.exists();
 		validation.executableIsFile = executableInfo.isFile();
 		if (!validation.executableExists) {
-			validation.warnings << QCoreApplication::translate("VibeStudioGameInstallation", "Executable path does not exist yet.");
+			validation.warnings << QCoreApplication::translate("SlopStudioGameInstallation", "Executable path does not exist yet.");
 		} else if (!validation.executableIsFile) {
-			validation.warnings << QCoreApplication::translate("VibeStudioGameInstallation", "Executable path is not a file.");
+			validation.warnings << QCoreApplication::translate("SlopStudioGameInstallation", "Executable path is not a file.");
 		}
 	}
 
 	for (const QString& packagePath : normalized.basePackagePaths + normalized.modPackagePaths) {
 		if (!QFileInfo::exists(packagePath)) {
-			validation.warnings << QCoreApplication::translate("VibeStudioGameInstallation", "Package path is missing: %1").arg(QDir::toNativeSeparators(packagePath));
+			validation.warnings << QCoreApplication::translate("SlopStudioGameInstallation", "Package path is missing: %1").arg(QDir::toNativeSeparators(packagePath));
 		}
 	}
 
@@ -663,12 +663,12 @@ GameInstallationValidation validateGameInstallationProfile(const GameInstallatio
 			}
 		}
 		if (!foundExpectedPackage) {
-			validation.warnings << QCoreApplication::translate("VibeStudioGameInstallation", "No expected base package was found for %1.").arg(definition.displayName);
+			validation.warnings << QCoreApplication::translate("SlopStudioGameInstallation", "No expected base package was found for %1.").arg(definition.displayName);
 		}
 	}
 
 	if (normalized.engineFamily == GameEngineFamily::Unknown) {
-		validation.warnings << QCoreApplication::translate("VibeStudioGameInstallation", "Engine family is unknown; compiler and validation defaults will stay generic.");
+		validation.warnings << QCoreApplication::translate("SlopStudioGameInstallation", "Engine family is unknown; compiler and validation defaults will stay generic.");
 	}
 
 	return validation;
@@ -740,7 +740,7 @@ QVector<GameInstallationDetectionCandidate> detectSteamGameInstallations(const Q
 
 	QVector<GameInstallationDetectionCandidate> candidates;
 	for (const QString& directory : oneLevelCandidateDirectories(roots)) {
-		candidates += candidatesForDirectory(directory, QStringLiteral("steam"), QCoreApplication::translate("VibeStudioGameInstallation", "Steam"));
+		candidates += candidatesForDirectory(directory, QStringLiteral("steam"), QCoreApplication::translate("SlopStudioGameInstallation", "Steam"));
 	}
 	return deduplicateCandidates(candidates);
 }
@@ -752,7 +752,7 @@ QVector<GameInstallationDetectionCandidate> detectGogGameInstallations(const QSt
 
 	QVector<GameInstallationDetectionCandidate> candidates;
 	for (const QString& directory : oneLevelCandidateDirectories(roots)) {
-		candidates += candidatesForDirectory(directory, QStringLiteral("gog"), QCoreApplication::translate("VibeStudioGameInstallation", "GOG"));
+		candidates += candidatesForDirectory(directory, QStringLiteral("gog"), QCoreApplication::translate("SlopStudioGameInstallation", "GOG"));
 	}
 	return deduplicateCandidates(candidates);
 }
@@ -764,4 +764,4 @@ QVector<GameInstallationDetectionCandidate> detectGameInstallations(const QStrin
 	return deduplicateCandidates(candidates);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -7,7 +7,7 @@
 #include <QKeySequence>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -25,188 +25,188 @@ struct CommandEntry {
 // are the editor actions' object names. Titles are translated where read.
 constexpr CommandEntry kCommands[] = {
 	// Files and history.
-	{"openMesh", "file", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Open or Import"), "Ctrl+O"},
-	{"saveMesh", "file", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Save"), "Ctrl+S"},
-	{"undoMesh", "edit", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Undo"), "Ctrl+Z"},
-	{"redoMesh", "edit", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Redo"), "Ctrl+Shift+Z|Ctrl+Y"},
+	{"openMesh", "file", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Open or Import"), "Ctrl+O"},
+	{"saveMesh", "file", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Save"), "Ctrl+S"},
+	{"undoMesh", "edit", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Undo"), "Ctrl+Z"},
+	{"redoMesh", "edit", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Redo"), "Ctrl+Shift+Z|Ctrl+Y"},
 	// Modes.
-	{"meshToggleEditMode", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Toggle Object/Edit Mode"), "Tab"},
-	{"meshModeVertex", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Vertex Select Mode"), "1"},
-	{"meshModeEdge", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Edge Select Mode"), "2"},
-	{"meshModeFace", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Face Select Mode"), "3"},
-	{"meshModeBorder", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Border Select Mode"), ""},
-	{"meshModeElement", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Element Select Mode"), ""},
-	{"meshModeObject", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Object (Surface) Select Mode"), ""},
-	{"meshModeTag", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Tag and Joint Mode"), ""},
+	{"meshToggleEditMode", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Toggle Object/Edit Mode"), "Tab"},
+	{"meshModeVertex", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Vertex Select Mode"), "1"},
+	{"meshModeEdge", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Edge Select Mode"), "2"},
+	{"meshModeFace", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Face Select Mode"), "3"},
+	{"meshModeBorder", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Border Select Mode"), ""},
+	{"meshModeElement", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Element Select Mode"), ""},
+	{"meshModeObject", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Object (Surface) Select Mode"), ""},
+	{"meshModeTag", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Tag and Joint Mode"), ""},
 	// Selection.
-	{"meshSelectAll", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Select All"), "A"},
-	{"meshSelectNone", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Select None"), "Alt+A"},
-	{"meshSelectInvert", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Invert Selection"), "Ctrl+I"},
-	{"meshSelectBox", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Box Select"), "B"},
-	{"meshSelectCircle", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Circle Select"), "C"},
-	{"meshSelectLinked", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Select Linked"), "Ctrl+L"},
-	{"meshSelectLinkedPick", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Select Linked Under Pointer"), "L"},
-	{"meshSelectMore", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Grow Selection"), "Ctrl+=|Ctrl+Num++"},
-	{"meshSelectLess", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Shrink Selection"), "Ctrl+-|Ctrl+Num+-"},
+	{"meshSelectAll", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Select All"), "A"},
+	{"meshSelectNone", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Select None"), "Alt+A"},
+	{"meshSelectInvert", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Invert Selection"), "Ctrl+I"},
+	{"meshSelectBox", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Box Select"), "B"},
+	{"meshSelectCircle", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Circle Select"), "C"},
+	{"meshSelectLinked", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Select Linked"), "Ctrl+L"},
+	{"meshSelectLinkedPick", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Select Linked Under Pointer"), "L"},
+	{"meshSelectMore", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Grow Selection"), "Ctrl+=|Ctrl+Num++"},
+	{"meshSelectLess", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Shrink Selection"), "Ctrl+-|Ctrl+Num+-"},
 	// Keyboard routes to Alt+click and Ctrl+Alt+click, as 3ds Max binds them.
-	{"meshSelectLoop", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Select Edge Loops of Selection"), "Alt+L"},
-	{"meshSelectRing", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Select Edge Rings of Selection"), "Alt+R"},
-	{"meshSelectNonManifold", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Select Non-Manifold"), "Shift+Ctrl+Alt+M"},
-	{"meshSelectMirror", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Mirror Selection"), "Shift+Ctrl+M"},
-	{"meshSimilarMenu", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Select Similar Menu"), "Shift+G"},
+	{"meshSelectLoop", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Select Edge Loops of Selection"), "Alt+L"},
+	{"meshSelectRing", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Select Edge Rings of Selection"), "Alt+R"},
+	{"meshSelectNonManifold", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Select Non-Manifold"), "Shift+Ctrl+Alt+M"},
+	{"meshSelectMirror", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Mirror Selection"), "Shift+Ctrl+M"},
+	{"meshSimilarMenu", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Select Similar Menu"), "Shift+G"},
 	// Visibility.
-	{"meshHide", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Hide Selected"), "H"},
-	{"meshHideUnselected", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Hide Unselected"), "Shift+H"},
-	{"meshReveal", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Reveal Hidden"), "Alt+H"},
-	{"meshIsolate", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Isolate Selection"), "Num+/"},
+	{"meshHide", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Hide Selected"), "H"},
+	{"meshHideUnselected", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Hide Unselected"), "Shift+H"},
+	{"meshReveal", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Reveal Hidden"), "Alt+H"},
+	{"meshIsolate", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Isolate Selection"), "Num+/"},
 	// Transforms.
-	{"meshMove", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Move"), "G"},
-	{"meshRotate", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Rotate"), "R"},
-	{"meshScale", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Scale"), "S"},
-	{"meshToolSelect", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Select Tool"), ""},
-	{"meshToolMove", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Move Tool"), ""},
-	{"meshToolRotate", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Rotate Tool"), ""},
-	{"meshToolScale", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Scale Tool"), ""},
-	{"meshAxisX", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Constrain to X"), ""},
-	{"meshAxisY", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Constrain to Y"), ""},
-	{"meshAxisZ", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Constrain to Z"), ""},
-	{"meshAxisFree", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Free or Planar Constraint"), ""},
-	{"meshToggleSnap", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Toggle Snapping"), "Shift+Tab"},
-	{"meshShrinkFatten", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Shrink/Fatten"), "Alt+S"},
-	{"meshFlattenX", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Flatten X"), ""},
-	{"meshFlattenY", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Flatten Y"), ""},
-	{"meshFlattenZ", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Flatten Z"), ""},
-	{"meshSnapSelectionToGrid", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Snap Selection to Grid"), ""},
-	{"meshToggleProportional", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Proportional Editing"), "O"},
-	{"meshCycleFalloff", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Next Proportional Falloff"), "Shift+O"},
+	{"meshMove", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Move"), "G"},
+	{"meshRotate", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Rotate"), "R"},
+	{"meshScale", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Scale"), "S"},
+	{"meshToolSelect", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Select Tool"), ""},
+	{"meshToolMove", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Move Tool"), ""},
+	{"meshToolRotate", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Rotate Tool"), ""},
+	{"meshToolScale", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Scale Tool"), ""},
+	{"meshAxisX", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Constrain to X"), ""},
+	{"meshAxisY", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Constrain to Y"), ""},
+	{"meshAxisZ", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Constrain to Z"), ""},
+	{"meshAxisFree", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Free or Planar Constraint"), ""},
+	{"meshToggleSnap", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Toggle Snapping"), "Shift+Tab"},
+	{"meshShrinkFatten", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Shrink/Fatten"), "Alt+S"},
+	{"meshFlattenX", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Flatten X"), ""},
+	{"meshFlattenY", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Flatten Y"), ""},
+	{"meshFlattenZ", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Flatten Z"), ""},
+	{"meshSnapSelectionToGrid", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Snap Selection to Grid"), ""},
+	{"meshToggleProportional", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Proportional Editing"), "O"},
+	{"meshCycleFalloff", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Next Proportional Falloff"), "Shift+O"},
 	// Mesh editing.
-	{"meshExtrude", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Extrude"), "E"},
-	{"meshInset", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Inset Faces"), "I"},
-	{"meshExtrudeMenu", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Extrude Menu"), "Alt+E"},
-	{"meshExtrudeNormals", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Extrude Faces Along Normals"), ""},
-	{"meshExtrudeIndividual", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Extrude Individual Faces"), ""},
-	{"meshDuplicate", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Duplicate"), "Shift+D"},
-	{"meshLoopCut", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Loop Cut"), "Ctrl+R"},
-	{"meshEdgeSlide", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Edge Slide"), ""},
-	{"meshMakeFace", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Make Face"), "F"},
-	{"meshPolyBuild", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Poly Build"), ""},
-	{"meshIntersectCut", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Intersect (Knife)"), ""},
-	{"meshIntersectUnion", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Intersect (Union)"), ""},
-	{"meshIntersectDifference", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Intersect (Difference)"), ""},
-	{"meshIntersectShared", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Intersect (Shared Volume)"), ""},
-	{"meshBevelVertices", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bevel Vertices"), "Ctrl+Shift+B"},
-	{"meshBevelEdges", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bevel Edges"), "Ctrl+B"},
-	{"meshKnife", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Knife"), "K"},
-	{"meshConnectVertexPath", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Connect Vertex Path"), "J"},
-	{"meshConnectEdges", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Connect Edges"), ""},
-	{"meshSpin", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Spin"), ""},
-	{"meshRip", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Rip"), "V"},
-	{"meshRipFill", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Rip and Fill"), "Alt+V"},
-	{"meshSpinDuplicate", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Spin Duplicates"), ""},
-	{"meshScrew", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Screw"), ""},
-	{"meshArray", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Array"), ""},
-	{"meshMergeCentre", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Merge at Centre"), ""},
-	{"meshMergeCollapse", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Collapse"), ""},
-	{"meshMergeTarget", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Merge at Target Under Pointer"), ""},
-	{"meshAutoMerge", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Auto Merge Vertices"), ""},
-	{"meshPlaceVertex", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Place Vertex"), ""},
-	{"meshPivotTarget", "transform", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Pivot at Target Under Pointer"), ""},
-	{"meshMergeDistance", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Merge by Distance"), ""},
-	{"meshDeleteFaces", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Delete Faces"), ""},
-	{"meshDeleteVertices", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Delete Vertices"), ""},
-	{"meshDeleteEdges", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Delete Edges"), ""},
-	{"meshDissolveEdges", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Dissolve Edges"), ""},
-	{"meshLimitedDissolve", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Limited Dissolve"), ""},
-	{"meshDissolveVertices", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Dissolve Vertices"), ""},
-	{"meshFillHoles", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Fill Boundary Loops"), ""},
-	{"meshBridgeChains", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bridge Edge Chains"), ""},
-	{"meshBridgeFaces", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bridge Faces"), ""},
-	{"meshMirrorFacesX", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Mirror Faces Across X"), ""},
-	{"meshMirrorFacesY", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Mirror Faces Across Y"), ""},
-	{"meshMirrorFacesZ", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Mirror Faces Across Z"), ""},
-	{"meshSubdivide", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Subdivide"), ""},
-	{"meshSplitEdges", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Split Edges"), ""},
-	{"meshPoke", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Poke Faces"), ""},
-	{"meshSmooth", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Smooth Vertices"), ""},
-	{"meshFlip", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Flip Normals"), ""},
-	{"meshRecalculateNormals", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Recalculate Normals"), "Shift+N"},
-	{"meshRecalculateOutside", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Recalculate Outside"), ""},
-	{"meshRecalculateInside", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Recalculate Inside"), ""},
-	{"meshMarkSharp", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Mark Sharp"), ""},
-	{"meshSmoothingGroup", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Make Smoothing Group"), ""},
-	{"meshSelectIntroducedIntersections", "select", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Select New Intersections"), ""},
-	{"meshClearSharp", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Clear Sharp"), ""},
-	{"meshShadeSmooth", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Shade Smooth"), ""},
-	{"meshAddMenu", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Add Menu"), "Shift+A"},
-	{"meshDeleteMenu", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Delete Menu"), "X|Del"},
-	{"meshMergeMenu", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Merge Menu"), "M"},
-	{"meshSnapMenu", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Snap Menu"), "Shift+S"},
-	{"meshVertexMenu", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Vertex Menu"), "Ctrl+V"},
-	{"meshEdgeMenu", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Edge Menu"), "Ctrl+E"},
-	{"meshFaceMenu", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Face Menu"), "Ctrl+F"},
-	{"meshNormalsMenu", "mesh", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Normals Menu"), "Alt+N"},
+	{"meshExtrude", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Extrude"), "E"},
+	{"meshInset", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Inset Faces"), "I"},
+	{"meshExtrudeMenu", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Extrude Menu"), "Alt+E"},
+	{"meshExtrudeNormals", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Extrude Faces Along Normals"), ""},
+	{"meshExtrudeIndividual", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Extrude Individual Faces"), ""},
+	{"meshDuplicate", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Duplicate"), "Shift+D"},
+	{"meshLoopCut", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Loop Cut"), "Ctrl+R"},
+	{"meshEdgeSlide", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Edge Slide"), ""},
+	{"meshMakeFace", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Make Face"), "F"},
+	{"meshPolyBuild", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Poly Build"), ""},
+	{"meshIntersectCut", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Intersect (Knife)"), ""},
+	{"meshIntersectUnion", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Intersect (Union)"), ""},
+	{"meshIntersectDifference", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Intersect (Difference)"), ""},
+	{"meshIntersectShared", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Intersect (Shared Volume)"), ""},
+	{"meshBevelVertices", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Bevel Vertices"), "Ctrl+Shift+B"},
+	{"meshBevelEdges", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Bevel Edges"), "Ctrl+B"},
+	{"meshKnife", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Knife"), "K"},
+	{"meshConnectVertexPath", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Connect Vertex Path"), "J"},
+	{"meshConnectEdges", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Connect Edges"), ""},
+	{"meshSpin", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Spin"), ""},
+	{"meshRip", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Rip"), "V"},
+	{"meshRipFill", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Rip and Fill"), "Alt+V"},
+	{"meshSpinDuplicate", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Spin Duplicates"), ""},
+	{"meshScrew", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Screw"), ""},
+	{"meshArray", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Array"), ""},
+	{"meshMergeCentre", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Merge at Centre"), ""},
+	{"meshMergeCollapse", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Collapse"), ""},
+	{"meshMergeTarget", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Merge at Target Under Pointer"), ""},
+	{"meshAutoMerge", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Auto Merge Vertices"), ""},
+	{"meshPlaceVertex", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Place Vertex"), ""},
+	{"meshPivotTarget", "transform", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Pivot at Target Under Pointer"), ""},
+	{"meshMergeDistance", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Merge by Distance"), ""},
+	{"meshDeleteFaces", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Delete Faces"), ""},
+	{"meshDeleteVertices", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Delete Vertices"), ""},
+	{"meshDeleteEdges", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Delete Edges"), ""},
+	{"meshDissolveEdges", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Dissolve Edges"), ""},
+	{"meshLimitedDissolve", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Limited Dissolve"), ""},
+	{"meshDissolveVertices", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Dissolve Vertices"), ""},
+	{"meshFillHoles", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Fill Boundary Loops"), ""},
+	{"meshBridgeChains", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Bridge Edge Chains"), ""},
+	{"meshBridgeFaces", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Bridge Faces"), ""},
+	{"meshMirrorFacesX", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Mirror Faces Across X"), ""},
+	{"meshMirrorFacesY", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Mirror Faces Across Y"), ""},
+	{"meshMirrorFacesZ", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Mirror Faces Across Z"), ""},
+	{"meshSubdivide", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Subdivide"), ""},
+	{"meshSplitEdges", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Split Edges"), ""},
+	{"meshPoke", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Poke Faces"), ""},
+	{"meshSmooth", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Smooth Vertices"), ""},
+	{"meshFlip", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Flip Normals"), ""},
+	{"meshRecalculateNormals", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Recalculate Normals"), "Shift+N"},
+	{"meshRecalculateOutside", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Recalculate Outside"), ""},
+	{"meshRecalculateInside", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Recalculate Inside"), ""},
+	{"meshMarkSharp", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Mark Sharp"), ""},
+	{"meshSmoothingGroup", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Make Smoothing Group"), ""},
+	{"meshSelectIntroducedIntersections", "select", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Select New Intersections"), ""},
+	{"meshClearSharp", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Clear Sharp"), ""},
+	{"meshShadeSmooth", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Shade Smooth"), ""},
+	{"meshAddMenu", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Add Menu"), "Shift+A"},
+	{"meshDeleteMenu", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Delete Menu"), "X|Del"},
+	{"meshMergeMenu", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Merge Menu"), "M"},
+	{"meshSnapMenu", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Snap Menu"), "Shift+S"},
+	{"meshVertexMenu", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Vertex Menu"), "Ctrl+V"},
+	{"meshEdgeMenu", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Edge Menu"), "Ctrl+E"},
+	{"meshFaceMenu", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Face Menu"), "Ctrl+F"},
+	{"meshNormalsMenu", "mesh", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Normals Menu"), "Alt+N"},
 	// UVs.
-	{"meshUvMenu", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "UV Mapping Menu"), "U"},
-	{"meshUvDensity", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Texel Density"), ""},
-	{"meshUnwrapConformal", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Unwrap (Seams Only)"), ""},
-	{"meshUvWeld", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Weld UVs"), ""},
-	{"meshUvStitch", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Stitch UVs"), ""},
-	{"meshUvAlign", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Align UVs"), ""},
-	{"meshUvSnapTexels", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Snap UVs to Texels"), ""},
-	{"meshUvPin", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Pin UVs"), ""},
-	{"meshUvUnpin", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Unpin UVs"), ""},
-	{"meshUvQuakeFrontBack", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Quake Front/Back Skin Layout"), ""},
-	{"meshUvCheckHealth", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Check UV Health"), ""},
-	{"meshUvExportLayout", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Export UV Layout"), ""},
-	{"meshUvTransferSkin", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Transfer Skin to New UVs"), ""},
-	{"meshUvEditSkin", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Edit Skin"), ""},
-	{"meshUvApplySkin", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Apply Skin from Textures"), ""},
-	{"meshShowUvEditor", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Texture Coordinate Editor"), ""},
-	{"meshAssignMaterial", "uv", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Assign Material to Selection"), ""},
+	{"meshUvMenu", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "UV Mapping Menu"), "U"},
+	{"meshUvDensity", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Texel Density"), ""},
+	{"meshUnwrapConformal", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Unwrap (Seams Only)"), ""},
+	{"meshUvWeld", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Weld UVs"), ""},
+	{"meshUvStitch", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Stitch UVs"), ""},
+	{"meshUvAlign", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Align UVs"), ""},
+	{"meshUvSnapTexels", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Snap UVs to Texels"), ""},
+	{"meshUvPin", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Pin UVs"), ""},
+	{"meshUvUnpin", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Unpin UVs"), ""},
+	{"meshUvQuakeFrontBack", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Quake Front/Back Skin Layout"), ""},
+	{"meshUvCheckHealth", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Check UV Health"), ""},
+	{"meshUvExportLayout", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Export UV Layout"), ""},
+	{"meshUvTransferSkin", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Transfer Skin to New UVs"), ""},
+	{"meshUvEditSkin", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Edit Skin"), ""},
+	{"meshUvApplySkin", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Apply Skin from Textures"), ""},
+	{"meshShowUvEditor", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Texture Coordinate Editor"), ""},
+	{"meshAssignMaterial", "uv", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Assign Material to Selection"), ""},
 	// View.
-	{"meshViewAll", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Frame All"), "Home"},
-	{"meshViewSelected", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Frame Selected"), "Num+.|Num+Del"},
-	{"meshViewFront", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Front View"), "Num+1"},
-	{"meshViewBack", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Back View"), "Ctrl+Num+1"},
-	{"meshViewRight", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Right View"), "Num+3"},
-	{"meshViewLeft", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Left View"), "Ctrl+Num+3"},
-	{"meshViewTop", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Top View"), "Num+7"},
-	{"meshViewBottom", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Bottom View"), "Ctrl+Num+7"},
-	{"meshViewOpposite", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Opposite View"), "Num+9"},
-	{"meshViewPerspective", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Perspective/Orthographic"), "Num+5"},
-	{"meshViewUser", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "User View"), ""},
-	{"meshToggleQuadView", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Toggle Four Views"), "Ctrl+Alt+Q"},
-	{"meshMaximizeView", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Maximise View"), "Ctrl+Space"},
+	{"meshViewAll", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Frame All"), "Home"},
+	{"meshViewSelected", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Frame Selected"), "Num+.|Num+Del"},
+	{"meshViewFront", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Front View"), "Num+1"},
+	{"meshViewBack", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Back View"), "Ctrl+Num+1"},
+	{"meshViewRight", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Right View"), "Num+3"},
+	{"meshViewLeft", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Left View"), "Ctrl+Num+3"},
+	{"meshViewTop", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Top View"), "Num+7"},
+	{"meshViewBottom", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Bottom View"), "Ctrl+Num+7"},
+	{"meshViewOpposite", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Opposite View"), "Num+9"},
+	{"meshViewPerspective", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Perspective/Orthographic"), "Num+5"},
+	{"meshViewUser", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "User View"), ""},
+	{"meshToggleQuadView", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Toggle Four Views"), "Ctrl+Alt+Q"},
+	{"meshMaximizeView", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Maximise View"), "Ctrl+Space"},
 	// The active pane of four views, in reading order. Page keys have no
 	// direction to mirror in right-to-left layouts, and desktops on Linux
 	// take Ctrl+Alt with the arrow keys.
-	{"meshNextView", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Next View"), "Ctrl+Alt+PgDown"},
-	{"meshPreviousView", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Previous View"), "Ctrl+Alt+PgUp"},
-	{"meshToggleSidebars", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Toggle Sidebars"), "N"},
-	{"meshToggleToolShelf", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Toggle Tool Shelf"), "T"},
-	{"meshShadingMenu", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Shading Menu"), "Z"},
-	{"meshToggleWireframe", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Toggle Wireframe"), "Shift+Z"},
-	{"meshToggleXray", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Toggle X-Ray"), "Alt+Z"},
-	{"meshToggleGrid", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Toggle Grid"), ""},
-	{"meshToggleEdges", "view", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Toggle Edged Faces"), ""},
+	{"meshNextView", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Next View"), "Ctrl+Alt+PgDown"},
+	{"meshPreviousView", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Previous View"), "Ctrl+Alt+PgUp"},
+	{"meshToggleSidebars", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Toggle Sidebars"), "N"},
+	{"meshToggleToolShelf", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Toggle Tool Shelf"), "T"},
+	{"meshShadingMenu", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Shading Menu"), "Z"},
+	{"meshToggleWireframe", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Toggle Wireframe"), "Shift+Z"},
+	{"meshToggleXray", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Toggle X-Ray"), "Alt+Z"},
+	{"meshToggleGrid", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Toggle Grid"), ""},
+	{"meshToggleEdges", "view", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Toggle Edged Faces"), ""},
 	// Animation.
-	{"meshPlay", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Play or Pause"), ""},
-	{"meshFrameNext", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Next Frame"), ""},
-	{"meshFramePrevious", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Previous Frame"), ""},
-	{"meshFrameFirst", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "First Frame"), ""},
-	{"meshFrameLast", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Last Frame"), ""},
-	{"meshCopyPoseToFrame", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Copy Pose to Current Frame"), ""},
-	{"meshCopyPose", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Copy Pose"), ""},
-	{"meshPastePose", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Paste Pose"), ""},
-	{"meshPastePoseMirrored", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Paste Pose Mirrored"), ""},
-	{"meshMirrorPose", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Mirror Pose"), ""},
-	{"meshToggleOnionSkin", "animation", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Toggle Onion Skin"), ""},
+	{"meshPlay", "animation", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Play or Pause"), ""},
+	{"meshFrameNext", "animation", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Next Frame"), ""},
+	{"meshFramePrevious", "animation", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Previous Frame"), ""},
+	{"meshFrameFirst", "animation", QT_TRANSLATE_NOOP("SlopStudioModelControls", "First Frame"), ""},
+	{"meshFrameLast", "animation", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Last Frame"), ""},
+	{"meshCopyPoseToFrame", "animation", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Copy Pose to Current Frame"), ""},
+	{"meshCopyPose", "animation", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Copy Pose"), ""},
+	{"meshPastePose", "animation", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Paste Pose"), ""},
+	{"meshPastePoseMirrored", "animation", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Paste Pose Mirrored"), ""},
+	{"meshMirrorPose", "animation", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Mirror Pose"), ""},
+	{"meshToggleOnionSkin", "animation", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Toggle Onion Skin"), ""},
 	// Tools and search.
-	{"meshOperatorSearch", "tools", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Search Commands"), "F3"},
-	{"meshAdjustLast", "tools", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Adjust Last Operation"), "F9"},
-	{"meshRepeatLast", "tools", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Repeat Last"), "Shift+R"},
-	{"meshTypeIn", "tools", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Numeric Transform"), ""},
-	{"meshCursorToOrigin", "tools", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Cursor to World Origin"), "Shift+C"},
+	{"meshOperatorSearch", "tools", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Search Commands"), "F3"},
+	{"meshAdjustLast", "tools", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Adjust Last Operation"), "F9"},
+	{"meshRepeatLast", "tools", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Repeat Last"), "Shift+R"},
+	{"meshTypeIn", "tools", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Numeric Transform"), ""},
+	{"meshCursorToOrigin", "tools", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Cursor to World Origin"), "Shift+C"},
 };
 
 // --- Profiles --------------------------------------------------------------
@@ -491,21 +491,21 @@ struct ProfileEntry {
 };
 
 const ProfileEntry kProfiles[] = {
-	{"studio", QT_TRANSLATE_NOOP("VibeStudioModelControls", "VibeStudio (Blender-style)"), "VibeStudio",
-		QT_TRANSLATE_NOOP("VibeStudioModelControls", "The studio's own controls, following Blender: middle-drag orbits, Shift+middle pans, Ctrl+middle zooms, and Alt+left drag orbits too. G, R and S transform at once; 1, 2 and 3 pick vertices, edges and faces; Tab switches between whole surfaces and their components."),
-		QT_TRANSLATE_NOOP("VibeStudioModelControls", "Starts in the orthographic orbit view. Ctrl+Y also redoes. Alt+L and Alt+R grow the selected edges to loops and rings, as in 3ds Max, and Ctrl+Alt+Page Down and Page Up step between four views."),
-		"https://docs.blender.org/manual/en/latest/editors/3dview/navigate/index.html", "vibestudio|default|vibestudio-default", &studioControls},
-	{"blender", QT_TRANSLATE_NOOP("VibeStudioModelControls", "Blender"), "Blender",
-		QT_TRANSLATE_NOOP("VibeStudioModelControls", "Blender 4 defaults: middle-drag orbits, Shift+middle pans, Ctrl+middle zooms, numpad views, G/R/S modal transforms with X/Y/Z constraints and typed values, E extrude, I inset, Ctrl+R loop cut, H/Alt+H hide and reveal, Tab edit mode, Ctrl+Alt+Q four views and Space to play."),
-		QT_TRANSLATE_NOOP("VibeStudioModelControls", "Three-button emulation is off, as in Blender. Ctrl+B bevels edges, Ctrl+Shift+B bevels vertices, K starts Knife, V rips and Alt+V rips with a fill. Spin is available in the Edge and Face menus. Z and Shift+S open ordinary menus. Arrow keys orbit the view in steps rather than stepping frames. Alt+L and Alt+R (loops and rings of the selected edges) and Ctrl+Alt+Page Down and Page Up (next and previous of four views) are not Blender keys."),
+	{"studio", QT_TRANSLATE_NOOP("SlopStudioModelControls", "SlopStudio (Blender-style)"), "SlopStudio",
+		QT_TRANSLATE_NOOP("SlopStudioModelControls", "The studio's own controls, following Blender: middle-drag orbits, Shift+middle pans, Ctrl+middle zooms, and Alt+left drag orbits too. G, R and S transform at once; 1, 2 and 3 pick vertices, edges and faces; Tab switches between whole surfaces and their components."),
+		QT_TRANSLATE_NOOP("SlopStudioModelControls", "Starts in the orthographic orbit view. Ctrl+Y also redoes. Alt+L and Alt+R grow the selected edges to loops and rings, as in 3ds Max, and Ctrl+Alt+Page Down and Page Up step between four views."),
+		"https://docs.blender.org/manual/en/latest/editors/3dview/navigate/index.html", "slopstudio|default|slopstudio-default", &studioControls},
+	{"blender", QT_TRANSLATE_NOOP("SlopStudioModelControls", "Blender"), "Blender",
+		QT_TRANSLATE_NOOP("SlopStudioModelControls", "Blender 4 defaults: middle-drag orbits, Shift+middle pans, Ctrl+middle zooms, numpad views, G/R/S modal transforms with X/Y/Z constraints and typed values, E extrude, I inset, Ctrl+R loop cut, H/Alt+H hide and reveal, Tab edit mode, Ctrl+Alt+Q four views and Space to play."),
+		QT_TRANSLATE_NOOP("SlopStudioModelControls", "Three-button emulation is off, as in Blender. Ctrl+B bevels edges, Ctrl+Shift+B bevels vertices, K starts Knife, V rips and Alt+V rips with a fill. Spin is available in the Edge and Face menus. Z and Shift+S open ordinary menus. Arrow keys orbit the view in steps rather than stepping frames. Alt+L and Alt+R (loops and rings of the selected edges) and Ctrl+Alt+Page Down and Page Up (next and previous of four views) are not Blender keys."),
 		"https://docs.blender.org/manual/en/latest/interface/keymap/blender_default.html", "blender-3d|blender4|b3d", &blenderControls},
-	{"3ds-max", QT_TRANSLATE_NOOP("VibeStudioModelControls", "3ds Max"), "3ds Max",
-		QT_TRANSLATE_NOOP("VibeStudioModelControls", "Autodesk 3ds Max defaults: four views (Top, Front, Left, Perspective), middle-drag pan, Alt+middle orbit, Ctrl+Alt+middle zoom, Q/W/E/R select, move, rotate and scale tools, Ctrl adds and Alt removes, 1-6 sub-object levels, T/F/L/P/U views, Z zoom extents and Alt+W to maximise a view."),
-		QT_TRANSLATE_NOOP("VibeStudioModelControls", "Border (3) switches to edges and selects the open boundary loops of the selection; Element (5) selects whole connected pieces. Shift+drag with the Move tool duplicates the selection rather than cloning an object. Chamfer (Ctrl+Shift+C) bevels vertices; Connect (Ctrl+Shift+E) adds edges between the selected edges' opposite sides; MeshSmooth (Ctrl+M) subdivides. Cut, Quickslice, Swift Loop, soft selection, the Modifier Stack and quad menus are not emulated; right-click opens the context menu. Ctrl+Alt+Page Down and Page Up step between the four views, which 3ds Max does not do."),
+	{"3ds-max", QT_TRANSLATE_NOOP("SlopStudioModelControls", "3ds Max"), "3ds Max",
+		QT_TRANSLATE_NOOP("SlopStudioModelControls", "Autodesk 3ds Max defaults: four views (Top, Front, Left, Perspective), middle-drag pan, Alt+middle orbit, Ctrl+Alt+middle zoom, Q/W/E/R select, move, rotate and scale tools, Ctrl adds and Alt removes, 1-6 sub-object levels, T/F/L/P/U views, Z zoom extents and Alt+W to maximise a view."),
+		QT_TRANSLATE_NOOP("SlopStudioModelControls", "Border (3) switches to edges and selects the open boundary loops of the selection; Element (5) selects whole connected pieces. Shift+drag with the Move tool duplicates the selection rather than cloning an object. Chamfer (Ctrl+Shift+C) bevels vertices; Connect (Ctrl+Shift+E) adds edges between the selected edges' opposite sides; MeshSmooth (Ctrl+M) subdivides. Cut, Quickslice, Swift Loop, soft selection, the Modifier Stack and quad menus are not emulated; right-click opens the context menu. Ctrl+Alt+Page Down and Page Up step between the four views, which 3ds Max does not do."),
 		"https://help.autodesk.com/view/3DSMAX/2024/ENU/?guid=GUID-A73E1B09-7BFE-4A22-8153-1D3D2237B8E9", "max|3dsmax|3d-studio-max|3ds|autodesk-3ds-max", &maxControls},
-	{"milkshape-3d", QT_TRANSLATE_NOOP("VibeStudioModelControls", "MilkShape 3D"), "MilkShape 3D",
-		QT_TRANSLATE_NOOP("VibeStudioModelControls", "MilkShape 3D 1.8 defaults: four views (Front, Top, Side, 3D), Ctrl+left drag pans, Shift+left drag zooms, left drag rotates the 3D view, F1-F4 select, move, rotate and scale tools, Shift adds and Shift+right drag removes, Ctrl+W welds, Ctrl+N snaps together, Ctrl+H/Ctrl+U hide and unhide."),
-		QT_TRANSLATE_NOOP("VibeStudioModelControls", "Groups are surfaces and Joints are tags and skeleton joints. F5 and F6 switch to vertex and face selection; Poly Build (Vertex menu) creates vertices and faces corner by corner as MilkShape's vertex and face tools do, and Customise Controls can put it on F6. F8 picks tags and joints. Snap Together (Ctrl+N) merges the vertices at their centre; Divide Edge (Ctrl+P) splits the selected edges; Subdivide 3 and 4 poke and subdivide faces. Set Keyframe (Ctrl+K) copies the pose to the current frame. Delete All, the sphere, geosphere, box, cylinder and text tools' click-to-create gestures and the Comments tab are not emulated. Ctrl+Alt+Page Down and Page Up step between the four views, which MilkShape 3D does not do; edge loops and rings of the selection are in the Select menu without keys."),
+	{"milkshape-3d", QT_TRANSLATE_NOOP("SlopStudioModelControls", "MilkShape 3D"), "MilkShape 3D",
+		QT_TRANSLATE_NOOP("SlopStudioModelControls", "MilkShape 3D 1.8 defaults: four views (Front, Top, Side, 3D), Ctrl+left drag pans, Shift+left drag zooms, left drag rotates the 3D view, F1-F4 select, move, rotate and scale tools, Shift adds and Shift+right drag removes, Ctrl+W welds, Ctrl+N snaps together, Ctrl+H/Ctrl+U hide and unhide."),
+		QT_TRANSLATE_NOOP("SlopStudioModelControls", "Groups are surfaces and Joints are tags and skeleton joints. F5 and F6 switch to vertex and face selection; Poly Build (Vertex menu) creates vertices and faces corner by corner as MilkShape's vertex and face tools do, and Customise Controls can put it on F6. F8 picks tags and joints. Snap Together (Ctrl+N) merges the vertices at their centre; Divide Edge (Ctrl+P) splits the selected edges; Subdivide 3 and 4 poke and subdivide faces. Set Keyframe (Ctrl+K) copies the pose to the current frame. Delete All, the sphere, geosphere, box, cylinder and text tools' click-to-create gestures and the Comments tab are not emulated. Ctrl+Alt+Page Down and Page Up step between the four views, which MilkShape 3D does not do; edge loops and rings of the selection are in the Select menu without keys."),
 		"https://chumbalum.swissquake.ch/", "milkshape|ms3d|milkshape3d|milk-shape", &milkShapeControls},
 };
 
@@ -541,7 +541,7 @@ QString describeGesture(Qt::MouseButton button, Qt::KeyboardModifiers modifiers,
 	if (button == Qt::NoButton) {
 		return {};
 	}
-	return mouseGestureText(button, modifiers, drag ? QCoreApplication::translate("VibeStudioModelControls", "drag") : QCoreApplication::translate("VibeStudioModelControls", "click"));
+	return mouseGestureText(button, modifiers, drag ? QCoreApplication::translate("SlopStudioModelControls", "drag") : QCoreApplication::translate("SlopStudioModelControls", "click"));
 }
 
 } // namespace
@@ -577,10 +577,10 @@ QVector<ModelEditorProfile> modelEditorProfiles()
 	for (const ProfileEntry& entry : kProfiles) {
 		ModelEditorProfile profile;
 		profile.id = QString::fromLatin1(entry.id);
-		profile.displayName = QCoreApplication::translate("VibeStudioModelControls", entry.name);
+		profile.displayName = QCoreApplication::translate("SlopStudioModelControls", entry.name);
 		profile.shortName = QString::fromUtf8(entry.shortName);
-		profile.description = QCoreApplication::translate("VibeStudioModelControls", entry.description);
-		profile.adaptations = {QCoreApplication::translate("VibeStudioModelControls", entry.adaptation)};
+		profile.description = QCoreApplication::translate("SlopStudioModelControls", entry.description);
+		profile.adaptations = {QCoreApplication::translate("SlopStudioModelControls", entry.adaptation)};
 		profile.referenceUrl = QString::fromLatin1(entry.url);
 		profile.aliases = QString::fromLatin1(entry.aliases).split(QLatin1Char('|'));
 		profile.controls = entry.controls();
@@ -637,7 +637,7 @@ QVector<ModelEditorCommand> modelEditorCommands()
 		ModelEditorCommand command;
 		command.id = QString::fromLatin1(entry.id);
 		command.category = QString::fromLatin1(entry.category);
-		command.title = QCoreApplication::translate("VibeStudioModelControls", entry.title);
+		command.title = QCoreApplication::translate("SlopStudioModelControls", entry.title);
 		const QString keys = QString::fromLatin1(entry.keys);
 		if (!keys.isEmpty()) {
 			command.defaultKeys = keys.split(QLatin1Char('|'));
@@ -654,7 +654,7 @@ bool modelEditorCommandForId(const QString& id, ModelEditorCommand* out)
 			if (out) {
 				out->id = id;
 				out->category = QString::fromLatin1(entry.category);
-				out->title = QCoreApplication::translate("VibeStudioModelControls", entry.title);
+				out->title = QCoreApplication::translate("SlopStudioModelControls", entry.title);
 				const QString keys = QString::fromLatin1(entry.keys);
 				out->defaultKeys = keys.isEmpty() ? QStringList{} : keys.split(QLatin1Char('|'));
 			}
@@ -726,7 +726,7 @@ QString modelEditorFocusKeyText()
 	const auto native = [](bool forward) {
 		return QKeySequence::fromString(modelEditorFocusKeys(forward).value(0), QKeySequence::PortableText).toString(QKeySequence::NativeText);
 	};
-	return QCoreApplication::translate("VibeStudioModelControls", "%1 and %2 always move keyboard focus between panels.").arg(native(true), native(false));
+	return QCoreApplication::translate("SlopStudioModelControls", "%1 and %2 always move keyboard focus between panels.").arg(native(true), native(false));
 }
 
 bool isModelEditorFocusKey(const QString& key)
@@ -790,15 +790,15 @@ bool modelPaneViewForId(const QString& id, ModelPaneView* out)
 QString modelPaneViewDisplayName(ModelPaneView view)
 {
 	switch (view) {
-	case ModelPaneView::Perspective: return QCoreApplication::translate("VibeStudioModelControls", "Perspective");
-	case ModelPaneView::Top: return QCoreApplication::translate("VibeStudioModelControls", "Top");
-	case ModelPaneView::Bottom: return QCoreApplication::translate("VibeStudioModelControls", "Bottom");
-	case ModelPaneView::Front: return QCoreApplication::translate("VibeStudioModelControls", "Front");
-	case ModelPaneView::Back: return QCoreApplication::translate("VibeStudioModelControls", "Back");
-	case ModelPaneView::Left: return QCoreApplication::translate("VibeStudioModelControls", "Left");
-	case ModelPaneView::Right: return QCoreApplication::translate("VibeStudioModelControls", "Right");
+	case ModelPaneView::Perspective: return QCoreApplication::translate("SlopStudioModelControls", "Perspective");
+	case ModelPaneView::Top: return QCoreApplication::translate("SlopStudioModelControls", "Top");
+	case ModelPaneView::Bottom: return QCoreApplication::translate("SlopStudioModelControls", "Bottom");
+	case ModelPaneView::Front: return QCoreApplication::translate("SlopStudioModelControls", "Front");
+	case ModelPaneView::Back: return QCoreApplication::translate("SlopStudioModelControls", "Back");
+	case ModelPaneView::Left: return QCoreApplication::translate("SlopStudioModelControls", "Left");
+	case ModelPaneView::Right: return QCoreApplication::translate("SlopStudioModelControls", "Right");
 	}
-	return QCoreApplication::translate("VibeStudioModelControls", "Perspective");
+	return QCoreApplication::translate("SlopStudioModelControls", "Perspective");
 }
 
 QString modelTransformStyleId(ModelTransformStyle style)
@@ -905,92 +905,92 @@ QVector<ModelEditorControlRow> modelEditorControlRows(const ModelEditorControls&
 			rows.append({section, view, action, gesture});
 		}
 	};
-	const QString view3D = QCoreApplication::translate("VibeStudioModelControls", "3D view");
-	const QString panes = QCoreApplication::translate("VibeStudioModelControls", "Orthographic views");
-	const QString selection = QCoreApplication::translate("VibeStudioModelControls", "Selection");
-	const QString transforms = QCoreApplication::translate("VibeStudioModelControls", "Transforms");
-	const QString layout = QCoreApplication::translate("VibeStudioModelControls", "Layout");
-	const QString keys = QCoreApplication::translate("VibeStudioModelControls", "Keys");
+	const QString view3D = QCoreApplication::translate("SlopStudioModelControls", "3D view");
+	const QString panes = QCoreApplication::translate("SlopStudioModelControls", "Orthographic views");
+	const QString selection = QCoreApplication::translate("SlopStudioModelControls", "Selection");
+	const QString transforms = QCoreApplication::translate("SlopStudioModelControls", "Transforms");
+	const QString layout = QCoreApplication::translate("SlopStudioModelControls", "Layout");
+	const QString keys = QCoreApplication::translate("SlopStudioModelControls", "Keys");
 	for (const auto& [view, camera] : {std::pair<QString, const CameraViewControls*>{view3D, &controls.navigation.view3D},
 			 std::pair<QString, const CameraViewControls*>{panes, &controls.navigation.orthographic}}) {
-		row(QStringLiteral("navigation"), view, QCoreApplication::translate("VibeStudioModelControls", "Orbit"), describeGesture(camera->orbitButton, camera->orbitModifiers, true));
+		row(QStringLiteral("navigation"), view, QCoreApplication::translate("SlopStudioModelControls", "Orbit"), describeGesture(camera->orbitButton, camera->orbitModifiers, true));
 		for (Qt::MouseButton button : camera->panButtons) {
-			row(QStringLiteral("navigation"), view, QCoreApplication::translate("VibeStudioModelControls", "Pan"), describeGesture(button, camera->panModifiers, true));
+			row(QStringLiteral("navigation"), view, QCoreApplication::translate("SlopStudioModelControls", "Pan"), describeGesture(button, camera->panModifiers, true));
 		}
 		if (camera->leftPanModifiers != Qt::NoModifier) {
-			row(QStringLiteral("navigation"), view, QCoreApplication::translate("VibeStudioModelControls", "Pan"), describeGesture(Qt::LeftButton, camera->leftPanModifiers, true));
+			row(QStringLiteral("navigation"), view, QCoreApplication::translate("SlopStudioModelControls", "Pan"), describeGesture(Qt::LeftButton, camera->leftPanModifiers, true));
 		}
-		row(QStringLiteral("navigation"), view, QCoreApplication::translate("VibeStudioModelControls", "Zoom"),
+		row(QStringLiteral("navigation"), view, QCoreApplication::translate("SlopStudioModelControls", "Zoom"),
 			describeGesture(controls.navigation.zoomButton, controls.navigation.zoomModifiers, true));
 		if (camera == &controls.navigation.view3D && controls.navigation.invertWheel3D) {
-			row(QStringLiteral("navigation"), view, QCoreApplication::translate("VibeStudioModelControls", "Zoom"), QCoreApplication::translate("VibeStudioModelControls", "Wheel up zooms out"));
+			row(QStringLiteral("navigation"), view, QCoreApplication::translate("SlopStudioModelControls", "Zoom"), QCoreApplication::translate("SlopStudioModelControls", "Wheel up zooms out"));
 		} else {
-			row(QStringLiteral("navigation"), view, QCoreApplication::translate("VibeStudioModelControls", "Zoom"), QCoreApplication::translate("VibeStudioModelControls", "Wheel"));
+			row(QStringLiteral("navigation"), view, QCoreApplication::translate("SlopStudioModelControls", "Zoom"), QCoreApplication::translate("SlopStudioModelControls", "Wheel"));
 		}
 		// Three-button emulation turns Alt+left drag into a middle drag in every view.
 		if (controls.navigation.emulateMiddleButton) {
-			row(QStringLiteral("navigation"), view, QCoreApplication::translate("VibeStudioModelControls", "Orbit"), describeGesture(Qt::LeftButton, Qt::AltModifier, true));
+			row(QStringLiteral("navigation"), view, QCoreApplication::translate("SlopStudioModelControls", "Orbit"), describeGesture(Qt::LeftButton, Qt::AltModifier, true));
 		}
 	}
-	row(QStringLiteral("navigation"), panes, QCoreApplication::translate("VibeStudioModelControls", "Orbiting"),
-		controls.navigation.orbitLeavesOrthographic ? QCoreApplication::translate("VibeStudioModelControls", "Turns the view into a user view") : QCoreApplication::translate("VibeStudioModelControls", "Orthographic views never rotate"));
+	row(QStringLiteral("navigation"), panes, QCoreApplication::translate("SlopStudioModelControls", "Orbiting"),
+		controls.navigation.orbitLeavesOrthographic ? QCoreApplication::translate("SlopStudioModelControls", "Turns the view into a user view") : QCoreApplication::translate("SlopStudioModelControls", "Orthographic views never rotate"));
 	const ModelSelectionControls& s = controls.selection;
-	row(QStringLiteral("selection"), selection, QCoreApplication::translate("VibeStudioModelControls", "Select"), describeGesture(Qt::LeftButton, Qt::NoModifier, false));
+	row(QStringLiteral("selection"), selection, QCoreApplication::translate("SlopStudioModelControls", "Select"), describeGesture(Qt::LeftButton, Qt::NoModifier, false));
 	if (s.extendModifiers != Qt::NoModifier) {
-		row(QStringLiteral("selection"), selection, s.extendToggles ? QCoreApplication::translate("VibeStudioModelControls", "Add or remove") : QCoreApplication::translate("VibeStudioModelControls", "Add"),
+		row(QStringLiteral("selection"), selection, s.extendToggles ? QCoreApplication::translate("SlopStudioModelControls", "Add or remove") : QCoreApplication::translate("SlopStudioModelControls", "Add"),
 			describeGesture(Qt::LeftButton, s.extendModifiers, false));
 	}
 	if (s.subtractModifiers != Qt::NoModifier) {
 		// When the path modifier is the same, a click picks a path and only a
 		// box drag removes, as Ctrl does in Blender.
-		row(QStringLiteral("selection"), selection, QCoreApplication::translate("VibeStudioModelControls", "Remove"),
+		row(QStringLiteral("selection"), selection, QCoreApplication::translate("SlopStudioModelControls", "Remove"),
 			describeGesture(Qt::LeftButton, s.subtractModifiers, s.subtractModifiers == s.pathModifiers));
 	}
-	row(QStringLiteral("selection"), selection, QCoreApplication::translate("VibeStudioModelControls", "Remove enclosed"), describeGesture(s.subtractDragButton, s.subtractDragModifiers, true));
+	row(QStringLiteral("selection"), selection, QCoreApplication::translate("SlopStudioModelControls", "Remove enclosed"), describeGesture(s.subtractDragButton, s.subtractDragModifiers, true));
 	if (s.emptyDragBoxSelects) {
-		row(QStringLiteral("selection"), selection, QCoreApplication::translate("VibeStudioModelControls", "Box select"), describeGesture(Qt::LeftButton, Qt::NoModifier, true));
+		row(QStringLiteral("selection"), selection, QCoreApplication::translate("SlopStudioModelControls", "Box select"), describeGesture(Qt::LeftButton, Qt::NoModifier, true));
 	}
 	if (s.loopModifiers != Qt::NoModifier) {
-		row(QStringLiteral("selection"), selection, QCoreApplication::translate("VibeStudioModelControls", "Edge loop"), describeGesture(Qt::LeftButton, s.loopModifiers, false));
+		row(QStringLiteral("selection"), selection, QCoreApplication::translate("SlopStudioModelControls", "Edge loop"), describeGesture(Qt::LeftButton, s.loopModifiers, false));
 	}
 	if (s.ringModifiers != Qt::NoModifier) {
-		row(QStringLiteral("selection"), selection, QCoreApplication::translate("VibeStudioModelControls", "Edge ring"), describeGesture(Qt::LeftButton, s.ringModifiers, false));
+		row(QStringLiteral("selection"), selection, QCoreApplication::translate("SlopStudioModelControls", "Edge ring"), describeGesture(Qt::LeftButton, s.ringModifiers, false));
 	}
 	if (s.pathModifiers != Qt::NoModifier) {
-		row(QStringLiteral("selection"), selection, QCoreApplication::translate("VibeStudioModelControls", "Shortest path"), describeGesture(Qt::LeftButton, s.pathModifiers, false));
+		row(QStringLiteral("selection"), selection, QCoreApplication::translate("SlopStudioModelControls", "Shortest path"), describeGesture(Qt::LeftButton, s.pathModifiers, false));
 	}
 	if (s.doubleClickSelectsLoop) {
-		row(QStringLiteral("selection"), selection, QCoreApplication::translate("VibeStudioModelControls", "Edge loop"), QCoreApplication::translate("VibeStudioModelControls", "Double-click an edge"));
+		row(QStringLiteral("selection"), selection, QCoreApplication::translate("SlopStudioModelControls", "Edge loop"), QCoreApplication::translate("SlopStudioModelControls", "Double-click an edge"));
 	}
-	row(QStringLiteral("selection"), selection, QCoreApplication::translate("VibeStudioModelControls", "Lasso"), describeGesture(s.lassoButton, s.lassoModifiers, true));
-	row(QStringLiteral("selection"), selection, QCoreApplication::translate("VibeStudioModelControls", "Place 3D cursor"), describeGesture(s.cursorButton, s.cursorModifiers, false));
+	row(QStringLiteral("selection"), selection, QCoreApplication::translate("SlopStudioModelControls", "Lasso"), describeGesture(s.lassoButton, s.lassoModifiers, true));
+	row(QStringLiteral("selection"), selection, QCoreApplication::translate("SlopStudioModelControls", "Place 3D cursor"), describeGesture(s.cursorButton, s.cursorModifiers, false));
 	if (s.rightClickMenu) {
-		row(QStringLiteral("selection"), selection, QCoreApplication::translate("VibeStudioModelControls", "Context menu"), describeGesture(Qt::RightButton, Qt::NoModifier, false));
+		row(QStringLiteral("selection"), selection, QCoreApplication::translate("SlopStudioModelControls", "Context menu"), describeGesture(Qt::RightButton, Qt::NoModifier, false));
 	}
 	const ModelTransformControls& t = controls.transform;
-	row(QStringLiteral("transform"), transforms, QCoreApplication::translate("VibeStudioModelControls", "Style"),
-		t.style == ModelTransformStyle::Modal ? QCoreApplication::translate("VibeStudioModelControls", "Keys start a transform that follows the pointer")
-											  : QCoreApplication::translate("VibeStudioModelControls", "Keys pick a tool; drag the selection or its handles"));
+	row(QStringLiteral("transform"), transforms, QCoreApplication::translate("SlopStudioModelControls", "Style"),
+		t.style == ModelTransformStyle::Modal ? QCoreApplication::translate("SlopStudioModelControls", "Keys start a transform that follows the pointer")
+											  : QCoreApplication::translate("SlopStudioModelControls", "Keys pick a tool; drag the selection or its handles"));
 	if (t.dragSelectionTransforms) {
-		row(QStringLiteral("transform"), transforms, QCoreApplication::translate("VibeStudioModelControls", "Transform"), QCoreApplication::translate("VibeStudioModelControls", "Drag the selection with a tool"));
+		row(QStringLiteral("transform"), transforms, QCoreApplication::translate("SlopStudioModelControls", "Transform"), QCoreApplication::translate("SlopStudioModelControls", "Drag the selection with a tool"));
 	}
 	if (t.duplicateDragModifiers != Qt::NoModifier) {
-		row(QStringLiteral("transform"), transforms, QCoreApplication::translate("VibeStudioModelControls", "Duplicate"), describeGesture(Qt::LeftButton, t.duplicateDragModifiers, true));
+		row(QStringLiteral("transform"), transforms, QCoreApplication::translate("SlopStudioModelControls", "Duplicate"), describeGesture(Qt::LeftButton, t.duplicateDragModifiers, true));
 	}
 	if (t.precisionModifiers != Qt::NoModifier) {
-		row(QStringLiteral("transform"), transforms, QCoreApplication::translate("VibeStudioModelControls", "Fine control"), modelModifierText(t.precisionModifiers));
+		row(QStringLiteral("transform"), transforms, QCoreApplication::translate("SlopStudioModelControls", "Fine control"), modelModifierText(t.precisionModifiers));
 	}
 	if (t.snapModifiers != Qt::NoModifier) {
-		row(QStringLiteral("transform"), transforms, QCoreApplication::translate("VibeStudioModelControls", "Snap while held"), modelModifierText(t.snapModifiers));
+		row(QStringLiteral("transform"), transforms, QCoreApplication::translate("SlopStudioModelControls", "Snap while held"), modelModifierText(t.snapModifiers));
 	}
 	if (controls.layout.layout == ModelViewLayout::FourViews) {
 		QStringList names;
 		for (ModelPaneView pane : controls.layout.panes) {
 			names << modelPaneViewDisplayName(pane);
 		}
-		row(QStringLiteral("layout"), layout, QCoreApplication::translate("VibeStudioModelControls", "Views"), names.join(QStringLiteral(", ")));
+		row(QStringLiteral("layout"), layout, QCoreApplication::translate("SlopStudioModelControls", "Views"), names.join(QStringLiteral(", ")));
 	} else {
-		row(QStringLiteral("layout"), layout, QCoreApplication::translate("VibeStudioModelControls", "Views"), controls.layout.startInPerspective ? QCoreApplication::translate("VibeStudioModelControls", "One perspective view") : QCoreApplication::translate("VibeStudioModelControls", "One orbit view"));
+		row(QStringLiteral("layout"), layout, QCoreApplication::translate("SlopStudioModelControls", "Views"), controls.layout.startInPerspective ? QCoreApplication::translate("SlopStudioModelControls", "One perspective view") : QCoreApplication::translate("SlopStudioModelControls", "One orbit view"));
 	}
 	// Every profile keeps these, so a view that takes Tab never traps focus.
 	const auto native = [](const QStringList& portable) {
@@ -1000,8 +1000,8 @@ QVector<ModelEditorControlRow> modelEditorControlRows(const ModelEditorControls&
 		}
 		return text.join(QStringLiteral(", "));
 	};
-	row(QStringLiteral("keys"), keys, QCoreApplication::translate("VibeStudioModelControls", "Move focus to the next panel"), native(modelEditorFocusKeys(true)));
-	row(QStringLiteral("keys"), keys, QCoreApplication::translate("VibeStudioModelControls", "Move focus to the previous panel"), native(modelEditorFocusKeys(false)));
+	row(QStringLiteral("keys"), keys, QCoreApplication::translate("SlopStudioModelControls", "Move focus to the next panel"), native(modelEditorFocusKeys(true)));
+	row(QStringLiteral("keys"), keys, QCoreApplication::translate("SlopStudioModelControls", "Move focus to the previous panel"), native(modelEditorFocusKeys(false)));
 	for (const ModelEditorKeyBinding& binding : modelEditorEffectiveKeys(controls)) {
 		if (binding.keys.isEmpty()) {
 			continue;
@@ -1021,24 +1021,24 @@ QStringList modelEditorControlProblems(const ModelEditorControls& controls)
 	QHash<QString, QString> keyOwner;
 	for (const ModelEditorKeyBinding& binding : controls.keys) {
 		if (!modelEditorCommandForId(binding.commandId)) {
-			problems << QCoreApplication::translate("VibeStudioModelControls", "Unknown command: %1.").arg(binding.commandId);
+			problems << QCoreApplication::translate("SlopStudioModelControls", "Unknown command: %1.").arg(binding.commandId);
 		}
 	}
 	for (const ModelEditorKeyBinding& binding : modelEditorEffectiveKeys(controls)) {
 		for (const QString& key : binding.keys) {
 			const QKeySequence sequence = QKeySequence::fromString(key, QKeySequence::PortableText);
 			if (sequence.isEmpty()) {
-				problems << QCoreApplication::translate("VibeStudioModelControls", "%1 has a key Qt cannot read: %2.").arg(binding.commandId, key);
+				problems << QCoreApplication::translate("SlopStudioModelControls", "%1 has a key Qt cannot read: %2.").arg(binding.commandId, key);
 				continue;
 			}
 			const QString canonical = sequence.toString(QKeySequence::PortableText);
 			if (isModelEditorFocusKey(canonical)) {
-				problems << QCoreApplication::translate("VibeStudioModelControls", "%1 cannot use %2: %3")
+				problems << QCoreApplication::translate("SlopStudioModelControls", "%1 cannot use %2: %3")
 					.arg(binding.commandId, canonical, modelEditorFocusKeyText());
 				continue;
 			}
 			if (keyOwner.contains(canonical) && keyOwner.value(canonical) != binding.commandId) {
-				problems << QCoreApplication::translate("VibeStudioModelControls", "%1 is bound to both %2 and %3.").arg(canonical, keyOwner.value(canonical), binding.commandId);
+				problems << QCoreApplication::translate("SlopStudioModelControls", "%1 is bound to both %2 and %3.").arg(canonical, keyOwner.value(canonical), binding.commandId);
 			} else {
 				keyOwner.insert(canonical, binding.commandId);
 			}
@@ -1053,42 +1053,42 @@ QStringList modelEditorControlProblems(const ModelEditorControls& controls)
 		}
 		const int key = int(modifiers);
 		if (leftRoles.contains(key)) {
-			problems << QCoreApplication::translate("VibeStudioModelControls", "%1 click is both %2 and %3.").arg(modelModifierText(modifiers), leftRoles.value(key), role);
+			problems << QCoreApplication::translate("SlopStudioModelControls", "%1 click is both %2 and %3.").arg(modelModifierText(modifiers), leftRoles.value(key), role);
 		} else {
 			leftRoles.insert(key, role);
 		}
 	};
 	// Subtract is for regions and for clicks no click role claims, so it
 	// may share keys with the loop, ring and path clicks (Blender's Ctrl).
-	claim(s.extendModifiers, QCoreApplication::translate("VibeStudioModelControls", "extend"));
+	claim(s.extendModifiers, QCoreApplication::translate("SlopStudioModelControls", "extend"));
 	if (s.subtractModifiers != Qt::NoModifier && s.subtractModifiers == s.extendModifiers) {
-		problems << QCoreApplication::translate("VibeStudioModelControls", "%1 both adds to and removes from the selection.")
+		problems << QCoreApplication::translate("SlopStudioModelControls", "%1 both adds to and removes from the selection.")
 			.arg(modelModifierText(s.subtractModifiers));
 	}
-	claim(s.loopModifiers, QCoreApplication::translate("VibeStudioModelControls", "loop"));
-	claim(s.ringModifiers, QCoreApplication::translate("VibeStudioModelControls", "ring"));
-	claim(s.pathModifiers, QCoreApplication::translate("VibeStudioModelControls", "path"));
+	claim(s.loopModifiers, QCoreApplication::translate("SlopStudioModelControls", "loop"));
+	claim(s.ringModifiers, QCoreApplication::translate("SlopStudioModelControls", "ring"));
+	claim(s.pathModifiers, QCoreApplication::translate("SlopStudioModelControls", "path"));
 	// A navigation drag on the left button must not shadow selection.
 	for (const CameraViewControls* camera : {&controls.navigation.view3D, &controls.navigation.orthographic}) {
 		if (camera->orbitButton == Qt::LeftButton && camera->orbitModifiers == Qt::NoModifier && controls.selection.emptyDragBoxSelects
 			&& camera == &controls.navigation.orthographic) {
-			problems << QCoreApplication::translate("VibeStudioModelControls", "A plain left drag both orbits the orthographic views and draws a selection box.");
+			problems << QCoreApplication::translate("SlopStudioModelControls", "A plain left drag both orbits the orthographic views and draws a selection box.");
 		}
 	}
 	if (controls.navigation.zoomButton != Qt::NoButton) {
 		for (const CameraViewControls* camera : {&controls.navigation.view3D, &controls.navigation.orthographic}) {
 			if (camera->orbitButton == controls.navigation.zoomButton && camera->orbitModifiers == controls.navigation.zoomModifiers) {
-				problems << QCoreApplication::translate("VibeStudioModelControls", "%1 both orbits and zooms.").arg(modelGestureText(controls.navigation.zoomButton, controls.navigation.zoomModifiers));
+				problems << QCoreApplication::translate("SlopStudioModelControls", "%1 both orbits and zooms.").arg(modelGestureText(controls.navigation.zoomButton, controls.navigation.zoomModifiers));
 			}
 			for (Qt::MouseButton button : camera->panButtons) {
 				if (button == controls.navigation.zoomButton && camera->panModifiers == controls.navigation.zoomModifiers) {
-					problems << QCoreApplication::translate("VibeStudioModelControls", "%1 both pans and zooms.").arg(modelGestureText(controls.navigation.zoomButton, controls.navigation.zoomModifiers));
+					problems << QCoreApplication::translate("SlopStudioModelControls", "%1 both pans and zooms.").arg(modelGestureText(controls.navigation.zoomButton, controls.navigation.zoomModifiers));
 				}
 			}
 		}
 	}
 	if (controls.layout.panes.size() != 4) {
-		problems << QCoreApplication::translate("VibeStudioModelControls", "The four-view layout needs exactly four panes.");
+		problems << QCoreApplication::translate("SlopStudioModelControls", "The four-view layout needs exactly four panes.");
 	}
 	problems.removeDuplicates();
 	return problems;
@@ -1211,9 +1211,9 @@ bool applyModelEditorControlOverrides(const ModelEditorControls& base, const QJs
 		QStringLiteral("layout")};
 	for (auto it = overrides.begin(); it != overrides.end(); ++it) {
 		if (!sections.contains(it.key())) {
-			warn(QCoreApplication::translate("VibeStudioModelControls", "Skipped the unknown section \"%1\".").arg(it.key()));
+			warn(QCoreApplication::translate("SlopStudioModelControls", "Skipped the unknown section \"%1\".").arg(it.key()));
 		} else if (!it.value().isObject()) {
-			warn(QCoreApplication::translate("VibeStudioModelControls", "Skipped \"%1\": it must be an object.").arg(it.key()));
+			warn(QCoreApplication::translate("SlopStudioModelControls", "Skipped \"%1\": it must be an object.").arg(it.key()));
 		}
 	}
 	const auto gesture = [&](const QJsonObject& section, const char* name, Qt::MouseButton* button, Qt::KeyboardModifiers* modifiers) {
@@ -1224,7 +1224,7 @@ bool applyModelEditorControlOverrides(const ModelEditorControls& base, const QJs
 		Qt::MouseButton parsedButton = Qt::NoButton;
 		Qt::KeyboardModifiers parsedModifiers = Qt::NoModifier;
 		if (!section.value(key).isString() || !parseModelGesture(section.value(key).toString(), &parsedButton, &parsedModifiers)) {
-			warn(QCoreApplication::translate("VibeStudioModelControls", "Skipped \"%1\": expected a gesture such as \"Alt+Middle\".").arg(key));
+			warn(QCoreApplication::translate("SlopStudioModelControls", "Skipped \"%1\": expected a gesture such as \"Alt+Middle\".").arg(key));
 			return;
 		}
 		*button = parsedButton;
@@ -1237,7 +1237,7 @@ bool applyModelEditorControlOverrides(const ModelEditorControls& base, const QJs
 		}
 		Qt::KeyboardModifiers parsed = Qt::NoModifier;
 		if (!section.value(key).isString() || !parseModelModifiers(section.value(key).toString(), &parsed)) {
-			warn(QCoreApplication::translate("VibeStudioModelControls", "Skipped \"%1\": expected keys such as \"Ctrl+Alt\" or \"None\".").arg(key));
+			warn(QCoreApplication::translate("SlopStudioModelControls", "Skipped \"%1\": expected keys such as \"Ctrl+Alt\" or \"None\".").arg(key));
 			return;
 		}
 		*modifiers = parsed;
@@ -1248,7 +1248,7 @@ bool applyModelEditorControlOverrides(const ModelEditorControls& base, const QJs
 			return;
 		}
 		if (!section.value(key).isBool()) {
-			warn(QCoreApplication::translate("VibeStudioModelControls", "Skipped \"%1\": expected true or false.").arg(key));
+			warn(QCoreApplication::translate("SlopStudioModelControls", "Skipped \"%1\": expected true or false.").arg(key));
 			return;
 		}
 		*value = section.value(key).toBool();
@@ -1257,7 +1257,7 @@ bool applyModelEditorControlOverrides(const ModelEditorControls& base, const QJs
 	const QJsonObject keys = overrides.value(QStringLiteral("keys")).toObject();
 	for (auto it = keys.begin(); it != keys.end(); ++it) {
 		if (!modelEditorCommandForId(it.key())) {
-			warn(QCoreApplication::translate("VibeStudioModelControls", "Skipped keys for the unknown command \"%1\".").arg(it.key()));
+			warn(QCoreApplication::translate("SlopStudioModelControls", "Skipped keys for the unknown command \"%1\".").arg(it.key()));
 			continue;
 		}
 		QStringList list;
@@ -1275,7 +1275,7 @@ bool applyModelEditorControlOverrides(const ModelEditorControls& base, const QJs
 			if (isModelEditorFocusKey(key)) {
 				ModelEditorCommand command;
 				static_cast<void>(modelEditorCommandForId(it.key(), &command));
-				warn(QCoreApplication::translate("VibeStudioModelControls", "Skipped %1 for %2: %3")
+				warn(QCoreApplication::translate("SlopStudioModelControls", "Skipped %1 for %2: %3")
 					.arg(QKeySequence::fromString(key, QKeySequence::PortableText).toString(QKeySequence::NativeText), command.title, modelEditorFocusKeyText()));
 				focusKey = true;
 				continue;
@@ -1283,7 +1283,7 @@ bool applyModelEditorControlOverrides(const ModelEditorControls& base, const QJs
 			list << key;
 		}
 		if (!valid) {
-			warn(QCoreApplication::translate("VibeStudioModelControls", "Skipped keys for \"%1\": expected a list of key sequences.").arg(it.key()));
+			warn(QCoreApplication::translate("SlopStudioModelControls", "Skipped keys for \"%1\": expected a list of key sequences.").arg(it.key()));
 			continue;
 		}
 		if (focusKey && list.isEmpty()) {
@@ -1356,7 +1356,7 @@ bool applyModelEditorControlOverrides(const ModelEditorControls& base, const QJs
 	if (transform.contains(QStringLiteral("style"))) {
 		ModelTransformStyle style = result.transform.style;
 		if (!modelTransformStyleForId(transform.value(QStringLiteral("style")).toString(), &style)) {
-			warn(QCoreApplication::translate("VibeStudioModelControls", "Skipped \"style\": expected \"modal\" or \"tool\"."));
+			warn(QCoreApplication::translate("SlopStudioModelControls", "Skipped \"style\": expected \"modal\" or \"tool\"."));
 		} else {
 			result.transform.style = style;
 		}
@@ -1370,7 +1370,7 @@ bool applyModelEditorControlOverrides(const ModelEditorControls& base, const QJs
 	if (layout.contains(QStringLiteral("layout"))) {
 		ModelViewLayout parsed = result.layout.layout;
 		if (!modelViewLayoutForId(layout.value(QStringLiteral("layout")).toString(), &parsed)) {
-			warn(QCoreApplication::translate("VibeStudioModelControls", "Skipped \"layout\": expected \"single\" or \"four-views\"."));
+			warn(QCoreApplication::translate("SlopStudioModelControls", "Skipped \"layout\": expected \"single\" or \"four-views\"."));
 		} else {
 			result.layout.layout = parsed;
 		}
@@ -1386,7 +1386,7 @@ bool applyModelEditorControlOverrides(const ModelEditorControls& base, const QJs
 			panes.append(pane);
 		}
 		if (panes.size() != 4) {
-			warn(QCoreApplication::translate("VibeStudioModelControls", "Skipped \"panes\": expected four of perspective, top, bottom, front, back, left and right."));
+			warn(QCoreApplication::translate("SlopStudioModelControls", "Skipped \"panes\": expected four of perspective, top, bottom, front, back, left and right."));
 		} else {
 			result.layout.panes = panes;
 		}
@@ -1420,7 +1420,7 @@ QJsonObject modelEditorControlOverrides(const ModelEditorControls& base, const M
 QByteArray modelEditorControlsFile(const QString& profileId, const QJsonObject& overrides)
 {
 	QJsonObject object;
-	object.insert(QStringLiteral("format"), QStringLiteral("vibestudio.modeller-controls"));
+	object.insert(QStringLiteral("format"), QStringLiteral("slopstudio.modeller-controls"));
 	object.insert(QStringLiteral("version"), 1);
 	object.insert(QStringLiteral("profile"), profileId);
 	object.insert(QStringLiteral("overrides"), overrides);
@@ -1436,21 +1436,21 @@ bool parseModelEditorControlsFile(const QByteArray& bytes, QString* profileId, Q
 	QJsonParseError parse;
 	const QJsonDocument document = QJsonDocument::fromJson(bytes, &parse);
 	if (parse.error != QJsonParseError::NoError || !document.isObject()) {
-		return fail(QCoreApplication::translate("VibeStudioModelControls", "The controls file is not a JSON object: %1.").arg(parse.errorString()));
+		return fail(QCoreApplication::translate("SlopStudioModelControls", "The controls file is not a JSON object: %1.").arg(parse.errorString()));
 	}
 	const QJsonObject object = document.object();
-	if (object.value(QStringLiteral("format")).toString() != QLatin1String("vibestudio.modeller-controls")) {
-		return fail(QCoreApplication::translate("VibeStudioModelControls", "The file is not a VibeStudio modeller controls file."));
+	if (object.value(QStringLiteral("format")).toString() != QLatin1String("slopstudio.modeller-controls")) {
+		return fail(QCoreApplication::translate("SlopStudioModelControls", "The file is not a SlopStudio modeller controls file."));
 	}
 	if (object.value(QStringLiteral("version")).toInt() != 1) {
-		return fail(QCoreApplication::translate("VibeStudioModelControls", "The controls file version %1 is not supported.").arg(object.value(QStringLiteral("version")).toInt()));
+		return fail(QCoreApplication::translate("SlopStudioModelControls", "The controls file version %1 is not supported.").arg(object.value(QStringLiteral("version")).toInt()));
 	}
 	const QString id = normalizedModelEditorProfileId(object.value(QStringLiteral("profile")).toString());
 	if (id.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioModelControls", "The controls file names an unknown profile: %1.").arg(object.value(QStringLiteral("profile")).toString()));
+		return fail(QCoreApplication::translate("SlopStudioModelControls", "The controls file names an unknown profile: %1.").arg(object.value(QStringLiteral("profile")).toString()));
 	}
 	if (!object.value(QStringLiteral("overrides")).isObject() && object.contains(QStringLiteral("overrides"))) {
-		return fail(QCoreApplication::translate("VibeStudioModelControls", "The controls file's overrides must be an object."));
+		return fail(QCoreApplication::translate("SlopStudioModelControls", "The controls file's overrides must be an object."));
 	}
 	*profileId = id;
 	*overrides = object.value(QStringLiteral("overrides")).toObject();
@@ -1458,4 +1458,4 @@ bool parseModelEditorControlsFile(const QByteArray& bytes, QString* profileId, Q
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

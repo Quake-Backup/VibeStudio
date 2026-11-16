@@ -38,7 +38,7 @@
 #include <QSet>
 #include <QStatusBar>
 #include <QTemporaryDir>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 #include <QTimer>
@@ -48,7 +48,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -144,7 +144,7 @@ int main(int argc, char** argv)
 		{QStringLiteral("botclip"), QStringLiteral("Alt+M")}, {QStringLiteral("decals"), QStringLiteral("Shift+D")},
 		{QStringLiteral("translucent"), QStringLiteral("Alt+4")}};
 
-	for (const char* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const char* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		for (int scale : {100, 200}) {
 			const QString profileId = QString::fromLatin1(profile);
 			phase = QStringLiteral("%1 %2%").arg(profileId).arg(scale);
@@ -297,7 +297,7 @@ int main(int argc, char** argv)
 
 				// NetRadiant Custom's Alt+1 reaches the command from a plan view
 				// through the shortcut map, when Qt Test is there to press it.
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				if (nrc) {
 					shell.activateWindow();
 					expect(until([&] { return QApplication::activeWindow() == &shell; }), "owned offscreen window is active");
@@ -323,7 +323,7 @@ int main(int argc, char** argv)
 	// survive an invert; a Quake map disables the Quake III kinds.
 	{
 		phase = QStringLiteral("persistence");
-		settings.setSelectedEditorProfileId(QStringLiteral("vibestudio-default"));
+		settings.setSelectedEditorProfileId(QStringLiteral("slopstudio-default"));
 		settings.setTextScalePercent(100);
 		settings.setTheme(StudioTheme::Dark);
 		settings.setShellLayoutState(levelViewFiltersSettingsKey(), QByteArrayLiteral("world,things:1"));

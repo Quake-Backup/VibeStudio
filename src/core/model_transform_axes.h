@@ -3,7 +3,7 @@
 #include "core/model_transform.h"
 #include "core/model_work.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 // Options are operation controls, not persistent mesh metadata. Selection axes
@@ -11,4 +11,4 @@ struct ModelEdit;
 bool validModelTransformAxesOptions(const ModelEdit &edit, QString *error = nullptr);
 bool resolveModelTransformAxes(const ModelMesh &mesh, const ModelEdit &edit, ModelTransformBasis *result,
 							   QString *error = nullptr, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

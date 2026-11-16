@@ -29,14 +29,14 @@
 #include <algorithm>
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 QString ModelEditorDialog::nativeUvStatus() const
 {
 	const auto &surfaces = m_document.mesh().surfaces;
 	return std::any_of(surfaces.cbegin(), surfaces.cend(), [](const auto &surface) { return !surface.uvSeams.isEmpty(); })
 			   ? QLatin1Char(' ') +
-					 QCoreApplication::translate("VibeStudioModelEditor",
+					 QCoreApplication::translate("SlopStudioModelEditor",
 												 "Export uses resolved UVs and split indices; seam marks remain in the editable source.")
 			   : QString();
 }
@@ -46,7 +46,7 @@ QWidget *ModelEditorDialog::createUvView()
 	auto *layout = new QVBoxLayout(page);
 	layout->setContentsMargins(0, 0, 0, 0);
 	auto *tools = new QToolBar;
-	tools->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "UV view controls"));
+	tools->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "UV view controls"));
 	m_uv = new ModelUvView;
 	m_uv->setObjectName(QStringLiteral("meshUvPreview"));
 	const auto action = [&](const QString &label, const QString &name)
@@ -55,25 +55,25 @@ QWidget *ModelEditorDialog::createUvView()
 		item->setObjectName(name);
 		return item;
 	};
-	auto *all = action(QCoreApplication::translate("VibeStudioModelEditor", "Frame All"), QStringLiteral("frameMeshUvAll"));
+	auto *all = action(QCoreApplication::translate("SlopStudioModelEditor", "Frame All"), QStringLiteral("frameMeshUvAll"));
 	auto *selection =
-		action(QCoreApplication::translate("VibeStudioModelEditor", "Frame Selection"), QStringLiteral("frameMeshUvSelection"));
-	auto *islands = action(QCoreApplication::translate("VibeStudioModelEditor", "Select Islands"), QStringLiteral("selectMeshUvIslands"));
+		action(QCoreApplication::translate("SlopStudioModelEditor", "Frame Selection"), QStringLiteral("frameMeshUvSelection"));
+	auto *islands = action(QCoreApplication::translate("SlopStudioModelEditor", "Select Islands"), QStringLiteral("selectMeshUvIslands"));
 	m_uvIslandsAction = islands;
 	auto *density = action(QCoreApplication::translate("ModelUvDensityDialog", "Texel Density…"), QStringLiteral("inspectMeshUvDensity"));
 	density->setToolTip(QCoreApplication::translate("ModelUvDensityDialog", "Measure and match UV island texture density using original image dimensions."));
 	connect(density, &QAction::triggered, this, &ModelEditorDialog::editUvDensity);
 	islands->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor",
+		"SlopStudioModelEditor",
 		"Expand selected faces, vertices, or edges to their UV islands. Marked seams and split edges separate islands."));
-	m_uvPickIslands = action(QCoreApplication::translate("VibeStudioModelEditor", "Pick Islands"), QStringLiteral("pickMeshUvIslands"));
+	m_uvPickIslands = action(QCoreApplication::translate("SlopStudioModelEditor", "Pick Islands"), QStringLiteral("pickMeshUvIslands"));
 	m_uvPickIslands->setCheckable(true);
 	m_uvPickIslands->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor", "In face mode, clicking the UV view selects a whole island. Control-click toggles it."));
-	m_uvMove = action(QCoreApplication::translate("VibeStudioModelEditor", "Move"), QStringLiteral("moveMeshUvs"));
+		"SlopStudioModelEditor", "In face mode, clicking the UV view selects a whole island. Control-click toggles it."));
+	m_uvMove = action(QCoreApplication::translate("SlopStudioModelEditor", "Move"), QStringLiteral("moveMeshUvs"));
 	m_uvMove->setCheckable(true);
 	m_uvMove->setChecked(true);
-	m_uvMove->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
+	m_uvMove->setToolTip(QCoreApplication::translate("SlopStudioModelEditor",
 													 "Drag the centre square to move selected UVs. Release applies one undo step; "
 													 "Escape cancels. Surface controls provide numeric movement and snapping."));
 	// UV health overlay: shades one problem at a time on the view's worker.
@@ -229,7 +229,7 @@ QWidget *ModelEditorDialog::createUvView()
 			[this](double u, double v)
 			{
 				m_status->setText(
-					QCoreApplication::translate("VibeStudioModelEditor", "UV move preview: U %1, V %2. Release to apply; Escape cancels.")
+					QCoreApplication::translate("SlopStudioModelEditor", "UV move preview: U %1, V %2. Release to apply; Escape cancels.")
 						.arg(localeNumber(u, 7))
 						.arg(localeNumber(v, 7)));
 			});
@@ -264,11 +264,11 @@ QWidget *ModelEditorDialog::createUvView()
 				if (!applyEdit(edit, &error))
 					m_status->setText(error, LiveStatus::Problem);
 				else if (rotation != 0)
-					m_status->setText(QCoreApplication::translate("VibeStudioModelUvView", "Rotated the selected UVs by %1 degrees.")
+					m_status->setText(QCoreApplication::translate("SlopStudioModelUvView", "Rotated the selected UVs by %1 degrees.")
 										  .arg(localeNumber(rotation, 6)),
 									  LiveStatus::Result);
 				else
-					m_status->setText(QCoreApplication::translate("VibeStudioModelUvView", "Scaled the selected UVs by %1 × %2.")
+					m_status->setText(QCoreApplication::translate("SlopStudioModelUvView", "Scaled the selected UVs by %1 × %2.")
 										  .arg(localeNumber(scaleU, 6), localeNumber(scaleV, 6)),
 									  LiveStatus::Result);
 			});
@@ -300,28 +300,28 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 	m_uvAtlasResolution->setRange(32, 4096);
 	m_uvAtlasResolution->setValue(512);
 	m_uvAtlasResolution->setLayoutDirection(Qt::LeftToRight);
-	m_uvAtlasResolution->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "UV atlas width in pixels"));
+	m_uvAtlasResolution->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "UV atlas width in pixels"));
 	m_uvAtlasResolution->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor",
+		"SlopStudioModelEditor",
 		"Texture width used for chart packing and pixel padding. UVs use one texture tile; existing texture images are not repainted."));
 	m_uvAtlasResolution->setAccessibleDescription(m_uvAtlasResolution->toolTip());
-	surface->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Atlas Width"), m_uvAtlasResolution);
+	surface->addRow(QCoreApplication::translate("SlopStudioModelEditor", "Atlas Width"), m_uvAtlasResolution);
 	m_uvAtlasHeight = new QSpinBox;
 	m_uvAtlasHeight->setObjectName(QStringLiteral("meshUvAtlasHeight"));
 	m_uvAtlasHeight->setRange(32, 4096);
 	m_uvAtlasHeight->setValue(512);
 	m_uvAtlasHeight->setLayoutDirection(Qt::LeftToRight);
-	m_uvAtlasHeight->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "UV atlas height in pixels"));
-	m_uvAtlasHeight->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
+	m_uvAtlasHeight->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "UV atlas height in pixels"));
+	m_uvAtlasHeight->setToolTip(QCoreApplication::translate("SlopStudioModelEditor",
 		"Use Same as width for a square atlas, or 32–4096 pixels for a rectangular texture. Chart shape is preserved in texture pixels. "
 		"Match your texture dimensions; this does not resize images or change export skin dimensions."));
 	m_uvAtlasHeight->setAccessibleDescription(m_uvAtlasHeight->toolTip());
-	surface->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Atlas Height"), m_uvAtlasHeight);
-	m_uvAtlasSquare = new WrappingCheckBox(QCoreApplication::translate("VibeStudioModelEditor", "Same as width"));
+	surface->addRow(QCoreApplication::translate("SlopStudioModelEditor", "Atlas Height"), m_uvAtlasHeight);
+	m_uvAtlasSquare = new WrappingCheckBox(QCoreApplication::translate("SlopStudioModelEditor", "Same as width"));
 	m_uvAtlasSquare->setObjectName(QStringLiteral("meshUvAtlasSquare"));
 	m_uvAtlasSquare->setChecked(true);
-	m_uvAtlasSquare->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Keep atlas height equal to width"));
-	m_uvAtlasSquare->setToolTip(QCoreApplication::translate("VibeStudioModelEditor", "Turn off to choose an independent atlas height for a rectangular texture."));
+	m_uvAtlasSquare->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Keep atlas height equal to width"));
+	m_uvAtlasSquare->setToolTip(QCoreApplication::translate("SlopStudioModelEditor", "Turn off to choose an independent atlas height for a rectangular texture."));
 	m_uvAtlasSquare->setAccessibleDescription(m_uvAtlasSquare->toolTip());
 	surface->addRow(m_uvAtlasSquare);
 	m_uvAtlasHeight->setEnabled(false);
@@ -330,12 +330,12 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 	m_uvAtlasPadding->setRange(0, 63);
 	m_uvAtlasPadding->setValue(4);
 	m_uvAtlasPadding->setLayoutDirection(Qt::LeftToRight);
-	m_uvAtlasPadding->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "UV atlas padding in pixels"));
+	m_uvAtlasPadding->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "UV atlas padding in pixels"));
 	m_uvAtlasPadding->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor",
+		"SlopStudioModelEditor",
 		"Padding surrounds charts and the atlas border. Bilinear filtering space is included. Use more padding for mipmapped textures."));
 	m_uvAtlasPadding->setAccessibleDescription(m_uvAtlasPadding->toolTip());
-	surface->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Atlas Padding"), m_uvAtlasPadding);
+	surface->addRow(QCoreApplication::translate("SlopStudioModelEditor", "Atlas Padding"), m_uvAtlasPadding);
 	const auto updatePadding = [this]()
 	{
 		if (m_uvAtlasSquare->isChecked())
@@ -348,15 +348,15 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 	connect(m_uvAtlasResolution, &QSpinBox::valueChanged, this, updatePadding);
 	connect(m_uvAtlasHeight, &QSpinBox::valueChanged, this, updatePadding);
 	connect(m_uvAtlasSquare, &QCheckBox::toggled, this, updatePadding);
-	m_uvUnwrap = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Unwrap and Pack Faces"), 2);
+	m_uvUnwrap = new WrappingActionButton(QCoreApplication::translate("SlopStudioModelEditor", "Unwrap and Pack Faces"), 2);
 	m_uvUnwrap->setObjectName(QStringLiteral("unwrapMeshUv"));
 	m_uvUnwrap->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor", "Create UV charts from selected faces in the displayed pose, honour marked seams, and pack one atlas. All "
+		"SlopStudioModelEditor", "Create UV charts from selected faces in the displayed pose, honour marked seams, and pack one atlas. All "
 								 "animation poses retain their geometry. Undo restores the previous mapping."));
-	m_uvPack = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Pack Selected UVs"), 2);
+	m_uvPack = new WrappingActionButton(QCoreApplication::translate("SlopStudioModelEditor", "Pack Selected UVs"), 2);
 	m_uvPack->setObjectName(QStringLiteral("packMeshUv"));
 	m_uvPack->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor",
+		"SlopStudioModelEditor",
 		"Pack selected faces into one atlas while preserving island shapes, orientation, and relative UV scale. Use Select Islands first "
 		"to include entire islands. Unselected UVs remain fixed and can overlap the new atlas."));
 	for (auto *button : {m_uvUnwrap, m_uvPack})
@@ -388,17 +388,17 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 	connect(m_uvPackAround, &QPushButton::clicked, this, [this] { execute(ModelEditKind::PackUvAround); });
 	m_uvPivotMode = new QComboBox;
 	m_uvPivotMode->setObjectName(QStringLiteral("meshUvPivotMode"));
-	m_uvPivotMode->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "UV transform pivot"));
-	m_uvPivotMode->addItems({QCoreApplication::translate("VibeStudioModelEditor", "UV Origin"),
-							 QCoreApplication::translate("VibeStudioModelEditor", "Selection Centre"),
-							 QCoreApplication::translate("VibeStudioModelEditor", "Custom"),
-							 QCoreApplication::translate("VibeStudioModelEditor", "Individual Islands")});
+	m_uvPivotMode->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "UV transform pivot"));
+	m_uvPivotMode->addItems({QCoreApplication::translate("SlopStudioModelEditor", "UV Origin"),
+							 QCoreApplication::translate("SlopStudioModelEditor", "Selection Centre"),
+							 QCoreApplication::translate("SlopStudioModelEditor", "Custom"),
+							 QCoreApplication::translate("SlopStudioModelEditor", "Individual Islands")});
 	m_uvPivotMode->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor", "Scale and rotate around the origin, selection centre, custom coordinates or each complete island's centre. "
+		"SlopStudioModelEditor", "Scale and rotate around the origin, selection centre, custom coordinates or each complete island's centre. "
 								 "For Individual Islands, use Select Islands first. Shared corners split across all poses. "
 								 "Projection computes each pivot after projecting onto the chosen plane."));
 	m_uvPivotMode->setAccessibleDescription(m_uvPivotMode->toolTip());
-	surface->addRow(QCoreApplication::translate("VibeStudioModelEditor", "UV Pivot"), m_uvPivotMode);
+	surface->addRow(QCoreApplication::translate("SlopStudioModelEditor", "UV Pivot"), m_uvPivotMode);
 	for (int axis = 0; axis < 2; ++axis)
 	{
 		auto *value = new QDoubleSpinBox;
@@ -407,8 +407,8 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 		value->setDecimals(6);
 		value->setRange(-1000000, 1000000);
 		value->setEnabled(false);
-		const auto label = axis == 0 ? QCoreApplication::translate("VibeStudioModelEditor", "Pivot U")
-									 : QCoreApplication::translate("VibeStudioModelEditor", "Pivot V");
+		const auto label = axis == 0 ? QCoreApplication::translate("SlopStudioModelEditor", "Pivot U")
+									 : QCoreApplication::translate("SlopStudioModelEditor", "Pivot V");
 		value->setAccessibleName(label);
 		surface->addRow(label, value);
 	}
@@ -420,21 +420,21 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 					value->setEnabled(index == int(ModelUvPivot::Custom));
 				}
 			});
-	m_uvSnap = new WrappingCheckBox(QCoreApplication::translate("VibeStudioModelEditor", "Snap UV Offset"));
+	m_uvSnap = new WrappingCheckBox(QCoreApplication::translate("SlopStudioModelEditor", "Snap UV Offset"));
 	m_uvSnap->setObjectName(QStringLiteral("meshUvSnap"));
 	m_uvSnap->setAccessibleName(m_uvSnap->text());
 	m_uvSnap->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor", "Snap numeric and dragged UV offsets to multiples of the grid step. One UV unit is one texture tile."));
+		"SlopStudioModelEditor", "Snap numeric and dragged UV offsets to multiples of the grid step. One UV unit is one texture tile."));
 	surface->addRow(m_uvSnap);
 	m_uvGrid = new QDoubleSpinBox;
 	m_uvGrid->setObjectName(QStringLiteral("meshUvGrid"));
-	m_uvGrid->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "UV offset grid step"));
+	m_uvGrid->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "UV offset grid step"));
 	m_uvGrid->setDecimals(6);
 	m_uvGrid->setRange(0.000001, 1000000);
 	m_uvGrid->setValue(0.125);
 	m_uvGrid->setSingleStep(0.03125);
 	m_uvGrid->setEnabled(false);
-	surface->addRow(QCoreApplication::translate("VibeStudioModelEditor", "UV Grid"), m_uvGrid);
+	surface->addRow(QCoreApplication::translate("SlopStudioModelEditor", "UV Grid"), m_uvGrid);
 	connect(m_uvSnap, &QCheckBox::toggled, this,
 			[this](bool enabled)
 			{
@@ -452,17 +452,17 @@ void ModelEditorDialog::addUvControls(QFormLayout *surface)
 		connect(item, &QPushButton::clicked, this, [this, kind] { execute(kind); });
 		return item;
 	};
-	auto *mark = button(QCoreApplication::translate("VibeStudioModelEditor", "Mark UV Seams"), QStringLiteral("markMeshUvSeams"),
+	auto *mark = button(QCoreApplication::translate("SlopStudioModelEditor", "Mark UV Seams"), QStringLiteral("markMeshUvSeams"),
 						ModelEditKind::MarkUvSeams);
-	mark->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
+	mark->setToolTip(QCoreApplication::translate("SlopStudioModelEditor",
 												 "Mark selected edges as UV island boundaries. Marks are saved in editable sources. Detach "
 												 "or move selected faces to split their shared UV corners for native export."));
-	button(QCoreApplication::translate("VibeStudioModelEditor", "Clear UV Seams"), QStringLiteral("clearMeshUvSeams"),
+	button(QCoreApplication::translate("SlopStudioModelEditor", "Clear UV Seams"), QStringLiteral("clearMeshUvSeams"),
 		   ModelEditKind::ClearUvSeams);
-	auto *detach = button(QCoreApplication::translate("VibeStudioModelEditor", "Detach UV Faces"), QStringLiteral("detachMeshUvs"),
+	auto *detach = button(QCoreApplication::translate("SlopStudioModelEditor", "Detach UV Faces"), QStringLiteral("detachMeshUvs"),
 						  ModelEditKind::DetachUv);
 	detach->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor", "Split selected faces from unselected neighbours without moving UVs or changing poses and normals. Select "
+		"SlopStudioModelEditor", "Split selected faces from unselected neighbours without moving UVs or changing poses and normals. Select "
 								 "one island to detach it; Weld UVs joins split corners again."));
 	detach->setAccessibleDescription(detach->toolTip());
 	// UV operators (core/model_uv_ops.h): each is one undo step.
@@ -995,7 +995,7 @@ void ModelEditorDialog::selectUvIslands()
 	}
 	QString error;
 	if (!performWork(
-			QCoreApplication::translate("VibeStudioModelEditor", "Select UV Islands"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Select UV Islands"),
 			[](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
 			{
 				auto selected = candidate.selection();
@@ -1022,4 +1022,4 @@ void ModelEditorDialog::selectUvIslands()
 	m_selectionMode->setCurrentIndex(0);
 	refresh();
 }
-} // namespace vibestudio
+} // namespace slopstudio

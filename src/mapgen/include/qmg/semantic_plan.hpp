@@ -72,7 +72,7 @@ struct SemanticPlanParseResult {
 [[nodiscard]] std::vector<PlanIssue> validate_semantic_plan(const SemanticPlan &plan, const PromptSpec &request);
 [[nodiscard]] std::string render_semantic_plan(const SemanticPlan &plan, bool pretty = false);
 [[nodiscard]] std::string build_semantic_plan_grammar(const PromptSpec &request);
-// VibeStudio: build_semantic_plan_grammar's contract as a JSON Schema for structured output. It holds
+// SlopStudio: build_semantic_plan_grammar's contract as a JSON Schema for structured output. It holds
 // what a schema can (allowed enum values, the requested room count, the verticality and intensity
 // windows); per-position roles stay in the prompt and validate_semantic_plan.
 [[nodiscard]] std::string build_semantic_plan_json_schema(const PromptSpec &request);

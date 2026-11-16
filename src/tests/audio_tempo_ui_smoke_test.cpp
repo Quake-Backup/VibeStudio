@@ -26,7 +26,7 @@
 #include <QTranslator>
 #include <QTreeWidget>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath("tempo-ui-XXXXXX"));
@@ -159,7 +159,7 @@ int main(int argc, char **argv)
 	});
 	session.findChild<QAction *>("sessionTempoMap")->trigger();
 	ok &= expect(session.session().musicalTime == expected, "cancelled map dialog leaves session unchanged");
-	const auto renderRoot = qEnvironmentVariable("VIBESTUDIO_AUDIO_TEMPO_RENDER_DIR");
+	const auto renderRoot = qEnvironmentVariable("SLOPSTUDIO_AUDIO_TEMPO_RENDER_DIR");
 	if (!renderRoot.isEmpty())
 		ok &= QDir().mkpath(renderRoot);
 	struct Layout {

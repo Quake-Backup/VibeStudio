@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct ModelSkinVariantsCliResult
 {
@@ -17,4 +17,4 @@ ModelSkinVariantsCliResult runModelSkinVariants(const QStringList &arguments);
 // model skin-export: writes a Quake III .skin (the primary materials or a
 // variant) or a variant's Doom 3 skin declaration.
 ModelSkinVariantsCliResult runModelSkinExport(const QStringList &arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

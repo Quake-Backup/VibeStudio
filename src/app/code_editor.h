@@ -25,7 +25,7 @@ class QStandardItemModel;
 class QTimer;
 class QToolButton;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class StudioCodeEditor final : public QPlainTextEdit {
 public:
@@ -318,4 +318,4 @@ private:
 	int m_matchCount = 0;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

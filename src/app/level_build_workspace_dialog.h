@@ -14,7 +14,7 @@ class QSpinBox;
 class QThread;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 class LevelBuildWorkspaceDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(LevelBuildWorkspaceDialog)
   public:
@@ -49,4 +49,4 @@ class LevelBuildWorkspaceDialog final : public QDialog {
 	bool m_reducedMotion = false;
 	bool m_closed = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

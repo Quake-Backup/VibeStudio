@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -96,7 +96,7 @@ QStringList validateModelMdl(const ModelMesh &mesh, const ModelWorkControl &cont
 	{
 		if (mesh.format == ModelMeshFormat::QuakeMdl)
 		{
-			return {QCoreApplication::translate("VibeStudioModelMdl",
+			return {QCoreApplication::translate("SlopStudioModelMdl",
 												"MDL authoring requires complete native groups, indexed skins and header settings.")};
 		}
 		for (const auto &skin : mesh.embeddedSkins)
@@ -104,7 +104,7 @@ QStringList validateModelMdl(const ModelMesh &mesh, const ModelWorkControl &cont
 			if (!skin.indexedFrames.isEmpty() || !skin.intervals.isEmpty())
 			{
 				return {
-					QCoreApplication::translate("VibeStudioModelMdl", "Indexed skin data requires MDL settings and a preview palette.")};
+					QCoreApplication::translate("SlopStudioModelMdl", "Indexed skin data requires MDL settings and a preview palette.")};
 			}
 		}
 		return {};
@@ -116,13 +116,13 @@ QStringList validateModelMdl(const ModelMesh &mesh, const ModelWorkControl &cont
 		!std::isfinite(settings.eyePosition.x) || !std::isfinite(settings.eyePosition.y) || !std::isfinite(settings.eyePosition.z))
 	{
 		return {QCoreApplication::translate(
-			"VibeStudioModelMdl",
+			"SlopStudioModelMdl",
 			"MDL settings require a 256-colour palette, dimensions from 1 to 8192, a valid sync type and finite header values.")};
 	}
 	int next = 0;
 	if (settings.frameGroups.isEmpty() || settings.frameGroups.size() > modelDocumentMaxFrames)
 	{
-		return {QCoreApplication::translate("VibeStudioModelMdl", "MDL native frames must cover every pose in order.")};
+		return {QCoreApplication::translate("SlopStudioModelMdl", "MDL native frames must cover every pose in order.")};
 	}
 	for (const auto &group : settings.frameGroups)
 	{
@@ -134,14 +134,14 @@ QStringList validateModelMdl(const ModelMesh &mesh, const ModelWorkControl &cont
 			!intervalsValid(group.intervals))
 		{
 			return {QCoreApplication::translate(
-				"VibeStudioModelMdl",
+				"SlopStudioModelMdl",
 				"MDL native frames must cover every pose in order, with strictly increasing positive group end times.")};
 		}
 		next += group.frameCount();
 	}
 	if (next != mesh.frames.size())
 	{
-		return {QCoreApplication::translate("VibeStudioModelMdl", "MDL native frames must cover every pose in order.")};
+		return {QCoreApplication::translate("SlopStudioModelMdl", "MDL native frames must cover every pose in order.")};
 	}
 	const qint64 perImage = qint64(size.width()) * size.height();
 	qint64 total = 0;
@@ -156,7 +156,7 @@ QStringList validateModelMdl(const ModelMesh &mesh, const ModelWorkControl &cont
 			(skin.intervals.isEmpty() ? members != 1 : skin.intervals.size() != members) || !intervalsValid(skin.intervals))
 		{
 			return {QCoreApplication::translate(
-				"VibeStudioModelMdl", "MDL skins need matching indexed images, a first-member preview and valid cumulative group times.")};
+				"SlopStudioModelMdl", "MDL skins need matching indexed images, a first-member preview and valid cumulative group times.")};
 		}
 		for (const auto &pixels : skin.indexedFrames)
 		{
@@ -167,7 +167,7 @@ QStringList validateModelMdl(const ModelMesh &mesh, const ModelWorkControl &cont
 			}
 			if (pixels.size() != perImage || total > modelMdlMaxSkinPixels)
 			{
-				return {QCoreApplication::translate("VibeStudioModelMdl",
+				return {QCoreApplication::translate("SlopStudioModelMdl",
 													"MDL skin members must match the skin dimensions and total at most 16 megapixels.")};
 			}
 		}
@@ -200,7 +200,7 @@ bool changeModelMdlFrames(ModelMesh *mesh, ModelMdlFrameChange change, int frame
 		error->clear();
 	}
 	const auto invalid = [&]()
-	{ return fail(error, QCoreApplication::translate("VibeStudioModelMdl", "The requested MDL pose or native-frame change is invalid.")); };
+	{ return fail(error, QCoreApplication::translate("SlopStudioModelMdl", "The requested MDL pose or native-frame change is invalid.")); };
 	if (!mesh || frame < 0 || frame >= mesh->frames.size() || count < 1 || count > modelDocumentMaxFrames ||
 		(change != ModelMdlFrameChange::Duplicate && change != ModelMdlFrameChange::Delete &&
 		 change != ModelMdlFrameChange::InsertInbetweens) ||
@@ -283,7 +283,7 @@ bool changeModelMdlFrames(ModelMesh *mesh, ModelMdlFrameChange change, int frame
 			return fail(
 				error,
 				QCoreApplication::translate(
-					"VibeStudioModelMdl",
+					"SlopStudioModelMdl",
 					"The pose edit would produce indistinguishable or non-finite MDL group times. Adjust the native frame timing first."));
 		}
 	}
@@ -294,4 +294,4 @@ bool changeModelMdlFrames(ModelMesh *mesh, ModelMdlFrameChange change, int frame
 	mesh->mdl.frameGroups = std::move(groups);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

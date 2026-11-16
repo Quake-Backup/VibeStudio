@@ -27,8 +27,8 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 
 namespace
 {
@@ -242,11 +242,11 @@ int main(int argc, char **argv)
 	QApplication app(argc, argv);
 	checkChooser();
 	// The editor draws in 3D: skip its checks where no renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-skeletal-export-ui-smoke"); skip >= 0)
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-skeletal-export-ui-smoke"); skip >= 0)
 	{
 		return failures > 0 ? EXIT_FAILURE : skip;
 	}
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;

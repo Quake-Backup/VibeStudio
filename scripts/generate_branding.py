@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate VibeStudio's brand artwork from one geometry description.
+"""Generate SlopStudio's brand artwork from one geometry description.
 
 Every logo, banner, icon and installer image is built here, so the SVG masters
 and the raster exports always agree. Text is converted to outlines from the
@@ -37,7 +37,7 @@ FONT_DIR = BRANDING / "fonts"
 # ---------------------------------------------------------------------------
 # Palette (docs/BRANDING.md). The orange is the studio's dark-theme accent.
 # ---------------------------------------------------------------------------
-ORANGE = "#E8841A"        # Vibe Orange: the brand colour
+ORANGE = "#E8841A"        # Slop Orange: the brand colour
 FLARE = "#F7A040"         # light end of the tile gradient
 EMBER = "#D66A0E"         # deep end of the tile gradient
 BURNT = "#B35900"         # orange for text on white (the light theme's accent)
@@ -51,7 +51,7 @@ CHARCOAL = "#242424"
 
 TAGLINE = "The all-in-one idTech development studio"
 DESCRIPTOR = ("The all-in-one development studio", "for classic idTech games")
-APP_ID = "io.github.themuffinator.VibeStudio"
+APP_ID = "io.github.themuffinator.SlopStudio"
 
 
 def rgb(colour: str) -> tuple[int, int, int]:
@@ -570,7 +570,7 @@ def mark_items(x: float, y: float, size: float, style: MarkStyle = MarkStyle()) 
     return items
 
 
-def mark_scene(style: MarkStyle = MarkStyle(), title: str = "VibeStudio") -> Scene:
+def mark_scene(style: MarkStyle = MarkStyle(), title: str = "SlopStudio") -> Scene:
     scene = Scene(1024, 1024, title)
     scene.items.extend(mark_items(0, 0, 1024, style))
     return scene
@@ -616,7 +616,7 @@ SMALL_GLYPHS = {
 
 def small_icon(size: int) -> Image.Image:
     """Tile rendered as vectors, glyph placed pixel by pixel."""
-    tile = rasterise(Scene(1024, 1024, "VibeStudio", mark_items(0, 0, 1024, MarkStyle())[:1]), size, 8)
+    tile = rasterise(Scene(1024, 1024, "SlopStudio", mark_items(0, 0, 1024, MarkStyle())[:1]), size, 8)
     pixels = tile.load()
     for (column, row), alpha in SMALL_GLYPHS[size].items():
         if 0 <= column < size and 0 <= row < size:
@@ -636,7 +636,7 @@ def icon_png(size: int, style: MarkStyle = MarkStyle()) -> Image.Image:
 # ---------------------------------------------------------------------------
 @dataclass(frozen=True)
 class WordmarkStyle:
-    vibe: str
+    slop: str
     studio: str
     dots: str
 
@@ -647,16 +647,16 @@ ON_ORANGE = WordmarkStyle(WHITE, WHITE, CHARCOAL)
 
 
 def wordmark_items(font: BrandFont, x: float, baseline: float, size: float, style: WordmarkStyle) -> tuple[list[Item], float]:
-    """'VibeStudio' with square pixel dots on both i's. Returns items and width."""
+    """'SlopStudio' with square pixel dots on both i's. Returns items and width."""
     text = "VıbeStudıo"
     scale = size / font.upem
     positions = font.pen_positions(text)
-    vibe = Path2D()
+    slop = Path2D()
     studio = Path2D()
     for index, (char, pen_x) in enumerate(zip(text, positions)):
         outline = transform(font.outline(char), scale, x + pen_x * scale, baseline)
-        (vibe if index < 4 else studio).extend(outline)
-    items = [Item(vibe, style.vibe), Item(studio, style.studio)]
+        (slop if index < 4 else studio).extend(outline)
+    items = [Item(slop, style.slop), Item(studio, style.studio)]
     # Square "pixel" dots: as wide as the stem, centred where the font's round dot sits.
     stem = font.bounds(font.glyph_name("ı"))
     dot = font.dot()
@@ -763,7 +763,7 @@ def social_scene(fonts: dict[str, BrandFont]) -> Scene:
     heavy, medium = fonts["heavy"], fonts["medium"]
     width, height = 1280.0, 640.0
     background = Linear(0, 0, width, height, ((0.0, FLARE), (0.55, ORANGE), (1.0, EMBER)))
-    scene = Scene(width, height, "VibeStudio: the all-in-one development studio for classic idTech games", background=background)
+    scene = Scene(width, height, "SlopStudio: the all-in-one development studio for classic idTech games", background=background)
     left = 96.0
     content: list[Item] = []
     avoid: list[tuple[float, float, float, float]] = []
@@ -813,7 +813,7 @@ def social_scene(fonts: dict[str, BrandFont]) -> Scene:
 # ---------------------------------------------------------------------------
 def wizard_scene(width: float, height: float) -> Scene:
     """Inno Setup's tall side image: orange, mark and dissolving pixels."""
-    scene = Scene(width, height, "VibeStudio setup", background=Linear(0, 0, width * 0.4, height, ((0.0, FLARE), (1.0, EMBER))))
+    scene = Scene(width, height, "SlopStudio setup", background=Linear(0, 0, width * 0.4, height, ((0.0, FLARE), (1.0, EMBER))))
     scene.items.extend(pixel_field(0, height * 0.52, width, height, width / 7, width / 7 * 0.16,
                                    lambda u, v: max(0.0, v * 1.1 - 0.15)))
     size = width * 0.62
@@ -822,7 +822,7 @@ def wizard_scene(width: float, height: float) -> Scene:
 
 
 def wizard_small_scene(size: float) -> Scene:
-    scene = Scene(size, size, "VibeStudio")
+    scene = Scene(size, size, "SlopStudio")
     scene.items.extend(mark_items(0, 0, size))
     return scene
 
@@ -830,7 +830,7 @@ def wizard_small_scene(size: float) -> Scene:
 def dmg_background_scene(fonts: dict[str, BrandFont]) -> Scene:
     """660x400 Finder window: app on the left, Applications on the right."""
     width, height = 660.0, 400.0
-    scene = Scene(width, height, "Install VibeStudio", background=Linear(0, 0, 0, height, ((0.0, "#FBFBFA"), (1.0, "#EFEFED"))))
+    scene = Scene(width, height, "Install SlopStudio", background=Linear(0, 0, 0, height, ((0.0, "#FBFBFA"), (1.0, "#EFEFED"))))
     scene.items.extend(pixel_field(0, height - 96, width, height, 24, 5, lambda u, v: max(0.0, v - 0.1) * 0.9,
                                    colour=ORANGE, ceiling=0.16))
     # Arrow between the two icon slots (icons are placed at x=165 and x=495, y=190).
@@ -839,8 +839,8 @@ def dmg_background_scene(fonts: dict[str, BrandFont]) -> Scene:
     head = Path2D().move(382, 172).line(408, 191).line(382, 210)
     scene.add(head, ORANGE)
     medium = fonts["medium"]
-    caption, caption_width = text_path(medium, "Drag VibeStudio to Applications", 0, 0, 17)
-    caption, _ = text_path(medium, "Drag VibeStudio to Applications", (width - caption_width) / 2, 318, 17)
+    caption, caption_width = text_path(medium, "Drag SlopStudio to Applications", 0, 0, 17)
+    caption, _ = text_path(medium, "Drag SlopStudio to Applications", (width - caption_width) / 2, 318, 17)
     scene.add(caption, GRAPHITE)
     return scene
 
@@ -937,7 +937,7 @@ def webfont_bytes(font_file: str) -> bytes:
 def qrc_text() -> str:
     lines = ['<!DOCTYPE RCC>', '<RCC version="1.0">', '<qresource prefix="/branding">']
     for size in QRC_SIZES:
-        lines.append(f'\t<file alias="vibestudio-{size}.png">icons/png/vibestudio-{size}.png</file>')
+        lines.append(f'\t<file alias="slopstudio-{size}.png">icons/png/slopstudio-{size}.png</file>')
     # The wordmark typeface for the start-up screen (app/studio_splash).
     lines.append('\t<file alias="Manrope-ExtraBold.ttf">fonts/Manrope-ExtraBold.ttf</file>')
     lines += ['</qresource>', '</RCC>']
@@ -960,35 +960,35 @@ def generate(check: bool) -> int:
 
     # Mark and app icons.
     mark = mark_scene()
-    out.svg("logo/vibestudio-mark.svg", mark)
-    out.svg("icons/vibestudio.svg", mark)
+    out.svg("logo/slopstudio-mark.svg", mark)
+    out.svg("icons/slopstudio.svg", mark)
     macos_style = MarkStyle(inset=100.0, shadow=True)
-    out.svg("icons/vibestudio-macos.svg", mark_scene(macos_style))
+    out.svg("icons/slopstudio-macos.svg", mark_scene(macos_style))
     for size in sorted(set(PNG_SIZES + QRC_SIZES + HICOLOR_SIZES)):
-        out.png(f"icons/png/vibestudio-{size}.png", lambda size=size: icon(size))
-    out.png("logo/vibestudio-mark.png", lambda: icon(1024))
-    out.binary("icons/vibestudio.ico", lambda: ico_bytes({s: icon(s) for s in ICO_SIZES}))
+        out.png(f"icons/png/slopstudio-{size}.png", lambda size=size: icon(size))
+    out.png("logo/slopstudio-mark.png", lambda: icon(1024))
+    out.binary("icons/slopstudio.ico", lambda: ico_bytes({s: icon(s) for s in ICO_SIZES}))
     macos = lambda s: icon(s, macos_style) if s >= 32 else icon(s)
-    out.binary("icons/vibestudio.icns", lambda: icns_bytes({s: macos(s) for s in ICNS_SIZES}))
-    out.png("icons/vibestudio-macos-1024.png", lambda: macos(1024))
-    out.text("vibestudio.qrc", qrc_text())
+    out.binary("icons/slopstudio.icns", lambda: icns_bytes({s: macos(s) for s in ICNS_SIZES}))
+    out.png("icons/slopstudio-macos-1024.png", lambda: macos(1024))
+    out.text("slopstudio.qrc", qrc_text())
 
     # Wordmarks, lockups and banners (transparent backgrounds).
     variants = [("on-dark", ON_DARK, "#CFCFCF"), ("on-light", ON_LIGHT, "#5A5A5A")]
     for suffix, style, tagline_colour in variants:
         scenes = {
-            "wordmark": wordmark_scene(fonts, style, "VibeStudio"),
-            "logo": lockup_scene(fonts, style, "VibeStudio", with_tagline=False),
-            "banner": lockup_scene(fonts, style, "VibeStudio: " + TAGLINE, with_tagline=True, tagline_colour=tagline_colour),
+            "wordmark": wordmark_scene(fonts, style, "SlopStudio"),
+            "logo": lockup_scene(fonts, style, "SlopStudio", with_tagline=False),
+            "banner": lockup_scene(fonts, style, "SlopStudio: " + TAGLINE, with_tagline=True, tagline_colour=tagline_colour),
         }
         for kind, scene in scenes.items():
-            out.svg(f"logo/vibestudio-{kind}-{suffix}.svg", scene)
-            out.png(f"logo/vibestudio-{kind}-{suffix}.png", lambda scene=scene: rasterise(scene, round(scene.width * 2)))
+            out.svg(f"logo/slopstudio-{kind}-{suffix}.svg", scene)
+            out.png(f"logo/slopstudio-{kind}-{suffix}.png", lambda scene=scene: rasterise(scene, round(scene.width * 2)))
 
     # Social preview.
     social = social_scene(fonts)
-    out.svg("social/vibestudio-social-preview.svg", social)
-    out.png("social/vibestudio-social-preview.png", lambda: rasterise(social, 1280, 3))
+    out.svg("social/slopstudio-social-preview.svg", social)
+    out.png("social/slopstudio-social-preview.png", lambda: rasterise(social, 1280, 3))
 
     # Web: favicons and fonts for the HTML documentation.
     out.svg("web/favicon.svg", mark)
@@ -1024,7 +1024,7 @@ def generate(check: bool) -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate VibeStudio's brand artwork.")
+    parser = argparse.ArgumentParser(description="Generate SlopStudio's brand artwork.")
     parser.add_argument("--check", action="store_true", help="Verify committed SVG masters and asset presence; write nothing.")
     parser.add_argument("--skip-missing-tools", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()

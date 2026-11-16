@@ -4,7 +4,7 @@
 #include <QJsonArray>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 QString prepareAudioLatency(const AudioSession &session, const AudioRoutingPlan &routing,
                             std::span<const int> stripLatency, int masterLatency, AudioLatencyPlan *result,
@@ -152,4 +152,4 @@ std::array<double, 2> AudioLatencyLine::tick(double left, double right)
 	m_valid = std::min(m_valid + 1, frames);
 	return output;
 }
-} // namespace vibestudio
+} // namespace slopstudio

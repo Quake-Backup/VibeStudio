@@ -22,7 +22,7 @@
 #include <atomic>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct PatchStitchDialog::Work {
 	LevelPatchStitchResult result;
@@ -396,4 +396,4 @@ void PatchStitchDialog::accept()
 	}
 	QDialog::accept();
 }
-} // namespace vibestudio
+} // namespace slopstudio

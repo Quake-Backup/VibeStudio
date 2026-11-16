@@ -22,7 +22,7 @@
 #include <functional>
 #include <type_traits>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Reports every heap block a document state holds, with its size in bytes:
@@ -126,4 +126,4 @@ class ModelMemoryLedger
 	qint64 m_total = 0, m_shared = 0;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

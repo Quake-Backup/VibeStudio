@@ -5,7 +5,7 @@
 #include <QDialog>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelMapOpenResult {
 	LevelMapDocument document;
 	std::shared_ptr<MapBrushGeometryCache> geometry;
@@ -28,4 +28,4 @@ private:
 	explicit LevelMapLoadDialog(QWidget* parent);
 	std::function<void()> m_cancel;
 };
-} // namespace vibestudio
+} // namespace slopstudio

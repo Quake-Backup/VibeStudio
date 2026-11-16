@@ -1,6 +1,6 @@
 # Native Model Formats And Skeletons
 
-This record covers how VibeStudio reads and writes the model formats of the
+This record covers how SlopStudio reads and writes the model formats of the
 idTech 1 to idTech 4 game families, and how skeletal models are held, previewed,
 edited and exported. The user-facing summary is in the
 [Models manual page](manual/models.md); per-format status is in the
@@ -24,7 +24,7 @@ edited and exported. The user-facing summary is in the
 | idTech 4 | Doom 3, Resurrection of Evil, Quake 4, Prey, Enemy Territory: Quake Wars, The Dark Mod | MD5 mesh and animation (with `.def` model declarations), LWO, ASE | MD5 mesh, MD5 animation, ASE |
 | Interchange | Any modeller | Wavefront OBJ | OBJ (one frame) |
 
-`vibestudio --cli model formats` prints the same catalogue, with each format's
+`slopstudio --cli model formats` prints the same catalogue, with each format's
 engines, games, companion files and notes; `--json` adds the export format
 identifiers.
 
@@ -75,7 +75,7 @@ private interface in `src/core/model_formats_p.h`, and is reached only through
   each format's convention on the way in and back again on the way out;
 - reads companion files only through the shared budget (below);
 - reports what it left out as warnings or detail lines, translated in the
-  `VibeStudioModelMesh` context, and gives each warning a severity (see
+  `SlopStudioModelMesh` context, and gives each warning a severity (see
   [Decode issues](#decode-issues));
 - names, in its header comment, the public source each layout and convention
   comes from. The [credits](CREDITS.md#native-model-formats-and-modeller-profiles-2026-10-08)
@@ -153,7 +153,7 @@ moves, so the writer:
   omission (`--strict` refuses it); keep the original file when it relies on
   torso blending.
 
-The writer's test reads the bytes back with VibeStudio's decoder and with an
+The writer's test reads the bytes back with SlopStudio's decoder and with an
 independent reader written from `mdsHeader_t` and `R_CalcBone`, and both put
 every vertex within 0.02 units of the source clip. ET MDM+MDX and Ghoul 2
 GLM+GLA writers are still to come.
@@ -180,7 +180,7 @@ against every [delivery target](MODEL_TARGETS.md) of its own format with the
 writer's own checks, and lists each target's verdict and first broken limit;
 the per-format summary counts how many are ready for each.
 
-The JSON (`vibestudio.model-audit` version 1) sorts entries by container and
+The JSON (`slopstudio.model-audit` version 1) sorts entries by container and
 path and formats by id, and leaves timings out unless asked, so two runs over
 the same files compare byte for byte. Use `--strict` in a regression run.
 
@@ -440,10 +440,10 @@ menu's **Export Other Format**; the **Skeleton** page offers them as **Export MD
 Animation of Clip…** and **Export All Clips as MD5…**.
 
 ```sh
-vibestudio --cli model build ./monster.mesh.json --output ./out/monster.md5mesh --dry-run --json
-vibestudio --cli model build ./monster.mesh.json --output ./out/walk.md5anim --clip walk --json
-vibestudio --cli model build ./monster.mesh.json --all-clips --output-dir ./out/anims --json
-vibestudio --cli model build ./monster.mesh.json --output ./out/monster.iqm --strict --json
+slopstudio --cli model build ./monster.mesh.json --output ./out/monster.md5mesh --dry-run --json
+slopstudio --cli model build ./monster.mesh.json --output ./out/walk.md5anim --clip walk --json
+slopstudio --cli model build ./monster.mesh.json --all-clips --output-dir ./out/anims --json
+slopstudio --cli model build ./monster.mesh.json --output ./out/monster.iqm --strict --json
 ```
 
 `--clip` takes a zero-based index or a clip name. `--frame N` selects the clip
@@ -471,7 +471,7 @@ current frame.
   recorded. Malformed but loadable files may still be refused, and some valid
   variants may not be recognised.
 - The glTF importer has been checked against fixtures built from the
-  specification and VibeStudio's own writers, not yet against files exported
+  specification and SlopStudio's own writers, not yet against files exported
   by Blender or other tools; it has no unit scale option yet (one metre is
   one game unit), and skinned meshes lose their morph animation.
 - Decode issue severities were assigned by reading each decoder, not from
@@ -480,9 +480,9 @@ current frame.
   accept omissions yet.
 - Writers exist for MD5, IQM, ASE and MDS only among the new formats. MDC,
   MDM/MDX, MDR, Ghoul 2, Half-Life MDL, Hexen II MDL, FM, LWO, KVX and glTF are
-  read only. The MDS writer is checked by VibeStudio's decoder and an
+  read only. The MDS writer is checked by SlopStudio's decoder and an
   independent reader in its test, not yet in Return to Castle Wolfenstein.
-- The MD5, IQM and ASE writers are checked through VibeStudio's own decoders,
+- The MD5, IQM and ASE writers are checked through SlopStudio's own decoders,
   recorded output and an independent oracle
   (`src/tests/model_skeletal_writer_oracle.py`, see
   [engine acceptance](MODEL_ENGINE_ACCEPTANCE.md#independent-md5-iqm-and-ase-reader)),

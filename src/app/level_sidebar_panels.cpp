@@ -51,7 +51,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 // Gives each row of a word-wrapped list the height of its text wrapped at
@@ -184,10 +184,10 @@ QListWidgetItem* checklistRow(QListWidget* list, OperationState state, const QSt
 	item->setData(Qt::UserRole, action);
 	item->setData(Qt::UserRole + 2, operationStateId(state));
 	// Said in words as well as by the glyph.
-	const QString stateText = state == OperationState::Completed ? QCoreApplication::translate("VibeStudioLevelSidebar", "Done")
-		: state == OperationState::Failed ? QCoreApplication::translate("VibeStudioLevelSidebar", "Needs attention")
-		: state == OperationState::Warning ? QCoreApplication::translate("VibeStudioLevelSidebar", "Worth checking")
-		: QCoreApplication::translate("VibeStudioLevelSidebar", "Note");
+	const QString stateText = state == OperationState::Completed ? QCoreApplication::translate("SlopStudioLevelSidebar", "Done")
+		: state == OperationState::Failed ? QCoreApplication::translate("SlopStudioLevelSidebar", "Needs attention")
+		: state == OperationState::Warning ? QCoreApplication::translate("SlopStudioLevelSidebar", "Worth checking")
+		: QCoreApplication::translate("SlopStudioLevelSidebar", "Note");
 	item->setData(Qt::AccessibleTextRole, QStringLiteral("%1: %2").arg(stateText, text));
 	item->setToolTip(QStringLiteral("%1: %2").arg(stateText, text));
 	return item;
@@ -1106,4 +1106,4 @@ void ApplicationShell::refreshLevelSidebarBadges()
 	badge(QStringLiteral("entities"), hasMap ? classes : 0);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

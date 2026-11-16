@@ -2,7 +2,7 @@
 
 #include "core/model_player_bundle.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // Quake III weapon model sets, from an assembly. cgame's CG_RegisterWeapon
 // (code/cgame/cg_weapons.c) loads models/weapons2/<w>/<w>.md3 and, beside it,
@@ -45,7 +45,7 @@ struct ModelWeaponBundle
 // surfaces and tags and are checked against Quake III's loader. Each role's local transform and
 // inherited scale are baked into its MD3, as for player packages. Publishes
 // the role models, the material dependency closure and a receipt,
-// vibestudio/weapon-<w>.json. Preview spin is not stored in MD3.
+// slopstudio/weapon-<w>.json. Preview spin is not stored in MD3.
 bool prepareModelWeaponBundle(const ModelAssembly &assembly, const ModelAssemblyResolved &resolved, const ModelAssemblyContext &context,
 							  const ModelWeaponBundleOptions &options, const QString &sourcePath, ModelWeaponBundle *result,
 							  QString *error = nullptr, const ModelWorkControl &control = {});
@@ -54,4 +54,4 @@ QStringList modelWeaponBundleText(const ModelWeaponBundle &bundle);
 // The player package writer: atomic, guarded, deterministic PK3.
 PackageWriteReport writeModelWeaponBundle(const ModelWeaponBundle &bundle, const QString &path, bool overwrite, bool dryRun,
 										  const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

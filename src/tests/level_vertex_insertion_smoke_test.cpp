@@ -13,7 +13,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value,const char* label,const QString& error = {}) { if (!value) { ok = false; std::cerr << label << ": " << error.toStdString() << '\n'; } return value; }

@@ -5,7 +5,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -181,4 +181,4 @@ bool interpolateModelTagQuake3(const ModelTag &first, const ModelTag &second, do
 	*output = result;
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

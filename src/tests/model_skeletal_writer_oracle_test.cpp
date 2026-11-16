@@ -6,14 +6,14 @@
 // API, exported with exportEditableModel, and written next to a
 // definition.json holding those numbers. model_skeletal_writer_oracle.py then
 // reads every exported file with its own parser, written from the public
-// formats and the engines' loaders (no VibeStudio decoder is used), poses it
+// formats and the engines' loaders (no SlopStudio decoder is used), poses it
 // the way the engine would, and compares the result with poses it computes
 // from the definition alone. It also runs negative controls (flipped winding,
 // a wrong quaternion sign, swapped joints) that must fail.
 //
 // argv[1] is the oracle script and argv[2] the Python interpreter; with no
 // interpreter the test exits 77, which meson reports as skipped. Set
-// VIBESTUDIO_MODELLER_EVIDENCE to keep the fixtures, files and receipt.
+// SLOPSTUDIO_MODELLER_EVIDENCE to keep the fixtures, files and receipt.
 
 #include "core/model_design.h"
 #include "core/model_document.h"
@@ -33,7 +33,7 @@
 #include <iostream>
 #include <numbers>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace
 {
@@ -302,7 +302,7 @@ int main(int argc, char **argv)
 		return 77;
 	}
 	QTemporaryDir temporary;
-	const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	const auto root = evidence.isEmpty() ? temporary.path() : QDir(evidence).filePath(QStringLiteral("skeletal-writer-oracle"));
 	if (!evidence.isEmpty())
 		QDir(root).removeRecursively();

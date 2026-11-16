@@ -40,7 +40,7 @@ class QToolButton;
 class QVariantAnimation;
 class QVBoxLayout;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Single-line label that elides instead of growing. Readouts and context
 // lines change constantly and can hold long paths; a plain QLabel's minimum
@@ -147,7 +147,7 @@ Q_SIGNALS:
 	void currentIdChanged(int id);
 	// The user pinned the labels open, or let them collapse, with the
 	// rail's own button.
-	void behaviourChanged(vibestudio::RailBehaviour behaviour);
+	void behaviourChanged(slopstudio::RailBehaviour behaviour);
 	// Escape in the rail: the page should take the focus back.
 	void dismissed();
 	// The resting or current width moved; the host places things again.
@@ -597,4 +597,4 @@ QWidget* createLabeledField(const QString& caption, QWidget* field);
 // key reaches the surface as usual, so it can still cancel or close there.
 void clearOnEscape(QLineEdit* field);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -4,7 +4,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 bool StudioQuery::isEmpty() const
 {
@@ -155,4 +155,4 @@ bool studioQueryMatches(const StudioQuery& query, const StudioQueryProperties& p
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

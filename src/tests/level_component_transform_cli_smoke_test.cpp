@@ -8,7 +8,7 @@
 #include <QProcess>
 #include <QTemporaryDir>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 int main(int argc,char** argv)
 {
 	QCoreApplication app(argc,argv); QTemporaryDir temp; if (argc != 2 || !temp.isValid()) { return 1; }

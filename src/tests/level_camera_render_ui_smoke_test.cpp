@@ -36,7 +36,7 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
@@ -45,7 +45,7 @@
 #include <iostream>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -368,7 +368,7 @@ int main(int argc, char** argv)
 				step("map.previousCameraMode", LevelCameraDrawMode::Flat, {false, false, false});
 				step("map.previousCameraMode", LevelCameraDrawMode::Wireframe, {false, true, false});
 				step("map.previousCameraMode", LevelCameraDrawMode::TexturedEdges, {true, false, true});
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				if (nrc) {
 					// The profile's keys, pressed in the camera.
 					shell.activateWindow();

@@ -9,7 +9,7 @@
 #include <limits>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -520,4 +520,4 @@ bool applyModelWeightTransfer(ModelMesh *mesh, const ModelEdit &edit, QString *e
 	}
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

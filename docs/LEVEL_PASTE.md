@@ -1,6 +1,6 @@
 # Clipboard placement
 
-**Status: Partial.** VibeStudio remains pre-alpha. These commands provide tested
+**Status: Partial.** SlopStudio remains pre-alpha. These commands provide tested
 object placement and face clipboard dispatch; they do not establish complete TB/NRC compatibility or native
 platform acceptance.
 
@@ -162,8 +162,8 @@ options are rejected.
 For object copy and cut:
 
 ```sh
-vibestudio --cli map copy source.map --object brush:0 --object patch:1 --output fragment.map --json
-vibestudio --cli map cut source.map --object entity:1 --clipboard fragment.map --output remaining.map --json
+slopstudio --cli map copy source.map --object brush:0 --object patch:1 --output fragment.map --json
+slopstudio --cli map cut source.map --object entity:1 --clipboard fragment.map --output remaining.map --json
 ```
 
 Selectors are repeatable `entity:id`, `brush:id` or `patch:id`. Output directories
@@ -184,8 +184,8 @@ and `selectedObjects`; it never modifies the source.
 For face records, use the shared surface CLI:
 
 ```sh
-vibestudio --cli map copy-surface source.map --target face:0:1 --target face:0:3 --format map --output faces.map
-vibestudio --cli map paste-surface target.map --clipboard faces.map --target brush:0 --output pasted.map
+slopstudio --cli map copy-surface source.map --target face:0:1 --target face:0:3 --format map --output faces.map
+slopstudio --cli map paste-surface target.map --clipboard faces.map --target brush:0 --output pasted.map
 ```
 
 Face numbers are one-based. JSON remains the default copy format and accepts one
@@ -210,7 +210,7 @@ add-objects command are shared, inside the same scene-lock guard.
 isolated copy, then names the undo step after the file. The GUI runs it as the
 `ImportMap` placement operation behind `LevelPlacementTaskDialog`, so stale
 publication checks and cancellation apply. A `.bsp` is converted first by
-`levelMapImportConversionRequest()` (profile `vibemap3-convert`, `-format`
+`levelMapImportConversionRequest()` (profile `slopmap3-convert`, `-format`
 from the open map's brush dialect, `-o` into a temporary folder).
 
 `levelMapSelectionText()` takes `LevelMapSelectionTextOptions`: the worldspawn

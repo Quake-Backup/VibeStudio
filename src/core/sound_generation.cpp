@@ -19,7 +19,7 @@
 #include <cmath>
 #include <initializer_list>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -987,14 +987,14 @@ bool writeBytes(const QString& path, const QByteArray& bytes, QString* error)
 {
 	if (!QDir().mkpath(QFileInfo(path).absolutePath())) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioSoundGeneration", "Could not create the folder for %1.").arg(QDir::toNativeSeparators(path));
+			*error = QCoreApplication::translate("SlopStudioSoundGeneration", "Could not create the folder for %1.").arg(QDir::toNativeSeparators(path));
 		}
 		return false;
 	}
 	QSaveFile file(path);
 	if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioSoundGeneration", "Could not write %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
+			*error = QCoreApplication::translate("SlopStudioSoundGeneration", "Could not write %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
 		}
 		return false;
 	}
@@ -1004,9 +1004,9 @@ bool writeBytes(const QString& path, const QByteArray& bytes, QString* error)
 QString deliveryFormatText(const AudioDeliveryPlan& plan)
 {
 	if (plan.dmx) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "%1 Hz Doom DMX lump").arg(plan.sampleRate);
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "%1 Hz Doom DMX lump").arg(plan.sampleRate);
 	}
-	return QCoreApplication::translate("VibeStudioSoundGeneration", "%1 Hz %2-bit WAV").arg(plan.sampleRate).arg(audioWavBits(plan.wav.format));
+	return QCoreApplication::translate("SlopStudioSoundGeneration", "%1 Hz %2-bit WAV").arg(plan.sampleRate).arg(audioWavBits(plan.wav.format));
 }
 
 } // namespace
@@ -1014,11 +1014,11 @@ QString deliveryFormatText(const AudioDeliveryPlan& plan)
 QVector<SoundGameProfile> soundGameProfiles()
 {
 	return {
-		{QStringLiteral("doom"), QCoreApplication::translate("VibeStudioSoundGeneration", "Doom"), AudioDeliveryPreset::Doom, true},
-		{QStringLiteral("quake"), QCoreApplication::translate("VibeStudioSoundGeneration", "Quake"), AudioDeliveryPreset::Quake, false},
-		{QStringLiteral("quake2"), QCoreApplication::translate("VibeStudioSoundGeneration", "Quake II"), AudioDeliveryPreset::Quake2, false},
-		{QStringLiteral("quake3"), QCoreApplication::translate("VibeStudioSoundGeneration", "Quake III Arena"), AudioDeliveryPreset::Quake3, false},
-		{QStringLiteral("generic"), QCoreApplication::translate("VibeStudioSoundGeneration", "Any game (44.1 kHz WAV)"), AudioDeliveryPreset::Wav, false},
+		{QStringLiteral("doom"), QCoreApplication::translate("SlopStudioSoundGeneration", "Doom"), AudioDeliveryPreset::Doom, true},
+		{QStringLiteral("quake"), QCoreApplication::translate("SlopStudioSoundGeneration", "Quake"), AudioDeliveryPreset::Quake, false},
+		{QStringLiteral("quake2"), QCoreApplication::translate("SlopStudioSoundGeneration", "Quake II"), AudioDeliveryPreset::Quake2, false},
+		{QStringLiteral("quake3"), QCoreApplication::translate("SlopStudioSoundGeneration", "Quake III Arena"), AudioDeliveryPreset::Quake3, false},
+		{QStringLiteral("generic"), QCoreApplication::translate("SlopStudioSoundGeneration", "Any game (44.1 kHz WAV)"), AudioDeliveryPreset::Wav, false},
 	};
 }
 
@@ -1080,49 +1080,49 @@ QStringList soundGenerationKindIds()
 QString soundGenerationKindDisplayName(const QString& kind)
 {
 	if (kind == QStringLiteral("shot")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Gunshot");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Gunshot");
 	}
 	if (kind == QStringLiteral("laser")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Energy weapon");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Energy weapon");
 	}
 	if (kind == QStringLiteral("explosion")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Explosion");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Explosion");
 	}
 	if (kind == QStringLiteral("pickup")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Pickup");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Pickup");
 	}
 	if (kind == QStringLiteral("powerup")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Power-up");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Power-up");
 	}
 	if (kind == QStringLiteral("jump")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Jump");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Jump");
 	}
 	if (kind == QStringLiteral("hurt")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Pain");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Pain");
 	}
 	if (kind == QStringLiteral("death")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Death");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Death");
 	}
 	if (kind == QStringLiteral("door")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Door or lift");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Door or lift");
 	}
 	if (kind == QStringLiteral("switch")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Switch");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Switch");
 	}
 	if (kind == QStringLiteral("teleport")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Teleport");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Teleport");
 	}
 	if (kind == QStringLiteral("footstep")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Footstep");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Footstep");
 	}
 	if (kind == QStringLiteral("impact")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Impact");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Impact");
 	}
 	if (kind == QStringLiteral("alarm")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Alarm");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Alarm");
 	}
 	if (kind == QStringLiteral("ambience")) {
-		return QCoreApplication::translate("VibeStudioSoundGeneration", "Ambience (loop)");
+		return QCoreApplication::translate("SlopStudioSoundGeneration", "Ambience (loop)");
 	}
 	return kind;
 }
@@ -1175,7 +1175,7 @@ SoundGenerationSpec normalizedSoundGenerationSpec(const SoundGenerationSpec& spe
 			folder += (folder.isEmpty() ? QString() : QStringLiteral("/")) + cleaned;
 		}
 	}
-	normalized.folder = folder.isEmpty() ? QStringLiteral("vibestudio") : folder;
+	normalized.folder = folder.isEmpty() ? QStringLiteral("slopstudio") : folder;
 	normalized.durationSeconds = spec.durationSeconds > 0.0 ? std::clamp(spec.durationSeconds, 0.1, 30.0) : 0.0;
 	normalized.promptInfluence = spec.promptInfluence < 0.0 ? -1.0 : std::clamp(spec.promptInfluence, 0.0, 1.0);
 	normalized.variants = std::clamp(spec.variants, 1, kMaxVariants);
@@ -1368,7 +1368,7 @@ GeneratedSound processGeneratedSound(const AudioClip& raw, const SoundGeneration
 	sound.source = source;
 	sound.seed = spec.seed;
 	if (raw.channels < 1 || raw.sampleRate < 1 || raw.samples.size() < raw.channels) {
-		sound.error = QCoreApplication::translate("VibeStudioSoundGeneration", "The sound is empty.");
+		sound.error = QCoreApplication::translate("SlopStudioSoundGeneration", "The sound is empty.");
 		return sound;
 	}
 	// Mono: games play effects in mono, placed in the world.
@@ -1394,7 +1394,7 @@ GeneratedSound processGeneratedSound(const AudioClip& raw, const SoundGeneration
 		peak = std::max(peak, double(std::abs(sample)));
 	}
 	if (peak < 1e-5) {
-		sound.error = QCoreApplication::translate("VibeStudioSoundGeneration", "The sound is silent.");
+		sound.error = QCoreApplication::translate("SlopStudioSoundGeneration", "The sound is silent.");
 		return sound;
 	}
 	const int rate = clip.sampleRate;
@@ -1416,7 +1416,7 @@ GeneratedSound processGeneratedSound(const AudioClip& raw, const SoundGeneration
 		if (spec.durationSeconds > 0.0 && clip.samples.size() > qint64(spec.durationSeconds * rate * 1.5)) {
 			// A model that ran long is cut back, with room for its tail.
 			clip.samples.resize(qint64(spec.durationSeconds * rate * 1.5));
-			sound.notes << QCoreApplication::translate("VibeStudioSoundGeneration", "The sound ran long and was cut to %1 seconds.")
+			sound.notes << QCoreApplication::translate("SlopStudioSoundGeneration", "The sound ran long and was cut to %1 seconds.")
 							   .arg(QString::number(spec.durationSeconds * 1.5, 'f', 1));
 		}
 		const qint64 fadeIn = std::min<qint64>(rate / 500, clip.samples.size() / 4);
@@ -1493,16 +1493,16 @@ GeneratedSound processGeneratedSound(const AudioClip& raw, const SoundGeneration
 		}
 	}
 	if (!sound.delivery.succeeded()) {
-		sound.error = sound.delivery.error.isEmpty() ? QCoreApplication::translate("VibeStudioSoundGeneration", "The sound could not be converted for the game.")
+		sound.error = sound.delivery.error.isEmpty() ? QCoreApplication::translate("SlopStudioSoundGeneration", "The sound could not be converted for the game.")
 													 : sound.delivery.error;
 		return sound;
 	}
 	sound.peakDecibels = sound.delivery.peak > 0.0 ? 20.0 * std::log10(sound.delivery.peak) : -96.0;
 	if (spec.loop && profile.id == QStringLiteral("doom")) {
-		sound.notes << QCoreApplication::translate("VibeStudioSoundGeneration", "Doom plays sounds once; the loop is kept only in the working copy.");
+		sound.notes << QCoreApplication::translate("SlopStudioSoundGeneration", "Doom plays sounds once; the loop is kept only in the working copy.");
 	}
 	if (!spec.loop && sound.durationMsecs > 4000 && profile.id != QStringLiteral("generic")) {
-		sound.notes << QCoreApplication::translate("VibeStudioSoundGeneration", "%1 seconds is long for an effect; the game holds a channel for all of it.")
+		sound.notes << QCoreApplication::translate("SlopStudioSoundGeneration", "%1 seconds is long for an effect; the game holds a channel for all of it.")
 						   .arg(QString::number(sound.durationMsecs / 1000.0, 'f', 1));
 	}
 	sound.ok = true;
@@ -1523,7 +1523,7 @@ GeneratedSound processGeneratedSoundBytes(const QByteArray& encoded, const QStri
 	if (!decoded.succeeded()) {
 		GeneratedSound sound;
 		sound.source = source;
-		sound.error = QCoreApplication::translate("VibeStudioSoundGeneration", "The model's sound could not be read: %1").arg(decoded.error);
+		sound.error = QCoreApplication::translate("SlopStudioSoundGeneration", "The model's sound could not be read: %1").arg(decoded.error);
 		return sound;
 	}
 	return processGeneratedSound(decoded.clip, spec, source);
@@ -1538,7 +1538,7 @@ SoundGenerationWriteReport writeGeneratedSound(const GeneratedSound& sound, cons
 		return report;
 	};
 	if (!sound.ok) {
-		return fail(sound.error.isEmpty() ? QCoreApplication::translate("VibeStudioSoundGeneration", "There is no finished sound to write.") : sound.error);
+		return fail(sound.error.isEmpty() ? QCoreApplication::translate("SlopStudioSoundGeneration", "There is no finished sound to write.") : sound.error);
 	}
 	const SoundGenerationSpec spec = normalizedSoundGenerationSpec(requested);
 	SoundGameProfile profile;
@@ -1547,13 +1547,13 @@ SoundGenerationWriteReport writeGeneratedSound(const GeneratedSound& sound, cons
 	report.reference = sound.reference;
 	QString error;
 	if (profile.lumps) {
-		const QString wadPath = output.wadPath.trimmed().isEmpty() ? QDir(folder).filePath(QStringLiteral("wads/vibestudio_sounds.wad")) : output.wadPath.trimmed();
+		const QString wadPath = output.wadPath.trimmed().isEmpty() ? QDir(folder).filePath(QStringLiteral("wads/slopstudio_sounds.wad")) : output.wadPath.trimmed();
 		PackageStagingModel staging;
 		const bool exists = QFileInfo::exists(wadPath);
 		if (exists) {
 			PackageArchive archive;
 			if (!archive.load(wadPath, &error)) {
-				return fail(QCoreApplication::translate("VibeStudioSoundGeneration", "Could not open %1: %2").arg(QDir::toNativeSeparators(wadPath), error));
+				return fail(QCoreApplication::translate("SlopStudioSoundGeneration", "Could not open %1: %2").arg(QDir::toNativeSeparators(wadPath), error));
 			}
 			if (!staging.loadBaseArchive(archive, &error)) {
 				return fail(error);
@@ -1562,7 +1562,7 @@ SoundGenerationWriteReport writeGeneratedSound(const GeneratedSound& sound, cons
 				for (const PackageEntry& entry : archive.entries()) {
 					if (entry.virtualPath.compare(sound.name, Qt::CaseInsensitive) == 0) {
 						report.alreadyExists = true;
-						return fail(QCoreApplication::translate("VibeStudioSoundGeneration", "%1 already holds a sound called %2.").arg(QDir::toNativeSeparators(wadPath), sound.name));
+						return fail(QCoreApplication::translate("SlopStudioSoundGeneration", "%1 already holds a sound called %2.").arg(QDir::toNativeSeparators(wadPath), sound.name));
 					}
 				}
 			}
@@ -1570,7 +1570,7 @@ SoundGenerationWriteReport writeGeneratedSound(const GeneratedSound& sound, cons
 			return fail(error);
 		}
 		if (!stageAudioDelivery(sound.delivery.bytes, sound.name, &staging, output.replaceExisting, &error)) {
-			return fail(QCoreApplication::translate("VibeStudioSoundGeneration", "Could not add %1 to %2: %3").arg(sound.name, QDir::toNativeSeparators(wadPath), error));
+			return fail(QCoreApplication::translate("SlopStudioSoundGeneration", "Could not add %1 to %2: %3").arg(sound.name, QDir::toNativeSeparators(wadPath), error));
 		}
 		if (!output.dryRun) {
 			QDir().mkpath(QFileInfo(wadPath).absolutePath());
@@ -1583,41 +1583,41 @@ SoundGenerationWriteReport writeGeneratedSound(const GeneratedSound& sound, cons
 		request.dryRun = output.dryRun;
 		const PackageWriteReport written = staging.writeArchive(request);
 		if (!written.succeeded()) {
-			return fail(QCoreApplication::translate("VibeStudioSoundGeneration", "Could not write %1: %2")
+			return fail(QCoreApplication::translate("SlopStudioSoundGeneration", "Could not write %1: %2")
 							.arg(QDir::toNativeSeparators(wadPath), (written.blockedMessages + written.warnings).join(QStringLiteral(" "))));
 		}
 		report.writtenPaths << wadPath;
-		report.notes << QCoreApplication::translate("VibeStudioSoundGeneration",
+		report.notes << QCoreApplication::translate("SlopStudioSoundGeneration",
 			"Doom plays %1 where a DEHACKED patch or a port's SNDINFO names it; a stock name such as DSPISTOL replaces that sound outright.").arg(sound.name);
 	} else {
 		const QString path = QDir(folder).filePath(sound.virtualPath);
 		if (QFileInfo::exists(path) && !output.replaceExisting) {
 			report.alreadyExists = true;
-			return fail(QCoreApplication::translate("VibeStudioSoundGeneration", "%1 already exists.").arg(QDir::toNativeSeparators(path)));
+			return fail(QCoreApplication::translate("SlopStudioSoundGeneration", "%1 already exists.").arg(QDir::toNativeSeparators(path)));
 		}
 		if (!output.dryRun && !QDir().mkpath(QFileInfo(path).absolutePath())) {
-			return fail(QCoreApplication::translate("VibeStudioSoundGeneration", "Could not create the folder for %1.").arg(QDir::toNativeSeparators(path)));
+			return fail(QCoreApplication::translate("SlopStudioSoundGeneration", "Could not create the folder for %1.").arg(QDir::toNativeSeparators(path)));
 		}
 		if (!writeAudioDelivery(sound.delivery, path, output.replaceExisting, {}, &error, output.dryRun)) {
 			return fail(error);
 		}
 		report.writtenPaths << path;
 		if (profile.id == QStringLiteral("quake")) {
-			report.notes << QCoreApplication::translate("VibeStudioSoundGeneration", "QuakeC plays it as \"%1\": precache_sound, then sound.").arg(sound.reference);
+			report.notes << QCoreApplication::translate("SlopStudioSoundGeneration", "QuakeC plays it as \"%1\": precache_sound, then sound.").arg(sound.reference);
 		} else if (profile.id == QStringLiteral("quake2") || profile.id == QStringLiteral("quake3")) {
-			report.notes << QCoreApplication::translate("VibeStudioSoundGeneration", "A target_speaker plays it with its noise key set to \"%1\".").arg(sound.reference);
+			report.notes << QCoreApplication::translate("SlopStudioSoundGeneration", "A target_speaker plays it with its noise key set to \"%1\".").arg(sound.reference);
 		}
 	}
 
 	// What made it, for review and to make it again.
 	QJsonObject provenance = output.provenance;
-	provenance.insert(QStringLiteral("schema"), QStringLiteral("vibestudio.generated-sound/1"));
+	provenance.insert(QStringLiteral("schema"), QStringLiteral("slopstudio.generated-sound/1"));
 	provenance.insert(QStringLiteral("createdUtc"), QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
 	provenance.insert(QStringLiteral("spec"), soundGenerationSpecJson(spec));
 	provenance.insert(QStringLiteral("sound"), generatedSoundJson(sound));
 	provenance.insert(QStringLiteral("outputs"), QJsonArray::fromStringList(report.writtenPaths));
 	provenance.insert(QStringLiteral("sha256"), QString::fromLatin1(QCryptographicHash::hash(sound.delivery.bytes, QCryptographicHash::Sha256).toHex()));
-	const QString recordPath = QDir(folder).filePath(QStringLiteral(".vibestudio/generated/sounds/%1.json").arg(sound.name));
+	const QString recordPath = QDir(folder).filePath(QStringLiteral(".slopstudio/generated/sounds/%1.json").arg(sound.name));
 	if (!output.dryRun && !writeBytes(recordPath, QJsonDocument(provenance).toJson(QJsonDocument::Indented), &error)) {
 		return fail(error);
 	}
@@ -1690,8 +1690,8 @@ QString generatedSoundSummary(const GeneratedSound& sound)
 	const QString seconds = QString::number(sound.durationMsecs / 1000.0, 'f', 2);
 	const QString format = deliveryFormatText(sound.delivery.plan);
 	return sound.clip.markers.loop
-		? QCoreApplication::translate("VibeStudioSoundGeneration", "%1: %2 s loop, %3, peak %4 dBFS").arg(sound.name, seconds, format, QString::number(sound.peakDecibels, 'f', 1))
-		: QCoreApplication::translate("VibeStudioSoundGeneration", "%1: %2 s, %3, peak %4 dBFS").arg(sound.name, seconds, format, QString::number(sound.peakDecibels, 'f', 1));
+		? QCoreApplication::translate("SlopStudioSoundGeneration", "%1: %2 s loop, %3, peak %4 dBFS").arg(sound.name, seconds, format, QString::number(sound.peakDecibels, 'f', 1))
+		: QCoreApplication::translate("SlopStudioSoundGeneration", "%1: %2 s, %3, peak %4 dBFS").arg(sound.name, seconds, format, QString::number(sound.peakDecibels, 'f', 1));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

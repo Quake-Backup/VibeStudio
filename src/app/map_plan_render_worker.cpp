@@ -3,7 +3,7 @@
 #include <QTimer>
 #include <new>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool sameScene(const MapPlanRenderRequest& a, const MapPlanRenderRequest& b)
 {
@@ -95,4 +95,4 @@ void MapPlanRenderWorker::startNext()
 	});
 	m_thread->start();
 }
-} // namespace vibestudio
+} // namespace slopstudio

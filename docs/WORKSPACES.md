@@ -1,16 +1,16 @@
 # Portable Workspaces
 
-**File → Save Workspace As…** writes a `.vibeworkspace` file. **File → Open
+**File → Save Workspace As…** writes a `.slopworkspace` file. **File → Open
 Workspace…**, drag and drop, and a command-line file argument restore it.
 Both actions are available through the command palette. The file joins the
 current project, package or package draft, map (including its WAD map name),
 saved code tabs, selected texture/model/audio entries, and active studio module.
 
-This is a versioned UTF-8 JSON format owned by VibeStudio. It references saved
+This is a versioned UTF-8 JSON format owned by SlopStudio. It references saved
 work; it does not contain asset payloads or replace editor saves. Save a texture
 as `.vtexture`, audio as `.vsaudio`, meshes as `.mesh.json`, assemblies as
-`.assembly.json`, and package drafts as `.vibepackage`. Each keeps its existing
-validation, undo and recovery rules. The project's `.vibestudio/project.json`
+`.assembly.json`, and package drafts as `.sloppackage`. Each keeps its existing
+validation, undo and recovery rules. The project's `.slopstudio/project.json`
 continues to own build folders, compiler and installation choices; a workspace
 selects that project instead of copying those settings.
 
@@ -35,7 +35,7 @@ documents before closing them; reopen those sources through their editor.
 
 ```json
 {
-  "format": "vibestudio-workspace",
+  "format": "slopstudio-workspace",
   "version": 1,
   "project": "game",
   "package": "game/assets",
@@ -78,16 +78,16 @@ folder must exist and a symbolic-link destination is refused. Existing files
 must be compatible workspaces. An external edit invalidates the shell's saved
 revision; reopen and review it or save elsewhere. A noncooperating writer can
 still race the final check on an existing file, as with the other document
-writers; the lock coordinates VibeStudio writers.
+writers; the lock coordinates SlopStudio writers.
 
 ## CLI
 
 ```sh
-vibestudio --cli workspace create ./work.vibeworkspace \
+slopstudio --cli workspace create ./work.slopworkspace \
   --project ./game --package ./game/assets --map ./game/maps/arena.map \
   --code ./game/scripts/arena.shader --active-module textures --json
-vibestudio --cli workspace inspect ./work.vibeworkspace --json
-vibestudio --cli workspace create ./session.vibeworkspace --from-session --dry-run
+slopstudio --cli workspace inspect ./work.slopworkspace --json
+slopstudio --cli workspace create ./session.slopworkspace --from-session --dry-run
 ```
 
 Repeat `--code` to include more tabs; `--current-code` selects one, and

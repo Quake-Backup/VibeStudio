@@ -1,7 +1,7 @@
 # ericw-tools High-Value Resolution Plan
 
 > [!NOTE]
-> VibeStudio now compiles Quake-family maps with VibeMap2, its own compiler
+> SlopStudio now compiles Quake-family maps with SlopMap2, its own compiler
 > derived from ericw-tools. This plan is kept as written; its issue numbers are
 > upstream ericw-tools issues.
 
@@ -17,7 +17,7 @@ Remaining-pass matrix:
 `docs/plans/ericw-tools-remaining-bugs-resolution.md`
 
 This plan turns the high-value ericw-tools open-issue audit into
-user-facing VibeStudio work. VibeStudio invokes ericw-tools as external
+user-facing SlopStudio work. SlopStudio invokes ericw-tools as external
 executables, so resolution means one of:
 
 - a wrapper or manifest behavior that makes a compile safer or reproducible;
@@ -50,28 +50,28 @@ Implemented on 2026-05-02:
   propagation, and compiler profile integration.
 
 Remaining upstream-only items are still documented below and must not be marked
-fixed by VibeStudio unless ericw-tools is updated or a documented fork is
+fixed by SlopStudio unless ericw-tools is updated or a documented fork is
 created.
 
 ## Remaining-Pass Acceptance
 
 The second Ralph pass extends this plan with a 62-ID acceptance matrix in
 `docs/plans/ericw-tools-remaining-bugs-resolution.md`. That matrix is grouped
-by VibeStudio-owned resolution status: catalog warning, map preflight warning,
+by SlopStudio-owned resolution status: catalog warning, map preflight warning,
 registry/helper readiness, artifact validation, or upstream-only tracked
 limitation.
 
 Keep the boundary strict:
-- "Implemented" means the VibeStudio warning, readiness check, preflight check,
-  or artifact gate exists in VibeStudio.
-- Compiler output correctness still belongs to ericw-tools unless VibeStudio
+- "Implemented" means the SlopStudio warning, readiness check, preflight check,
+  or artifact gate exists in SlopStudio.
+- Compiler output correctness still belongs to ericw-tools unless SlopStudio
   updates the submodule or creates a documented fork.
 - If another Ralph lane has targeted but not landed a source/test change, docs
   should say "targeted in this Ralph pass" instead of presenting it as shipped.
 
 ## Resolution Boundary
 
-| Resolution type | VibeStudio owns | VibeStudio does not own |
+| Resolution type | SlopStudio owns | SlopStudio does not own |
 |---|---|---|
 | Wrapper mitigation | Isolated task directories, explicit working directories, executable descriptors, output registration, cancellation, logs, manifests, and post-run sanity checks. | Changing ericw-tools argument parsing, binary names, native temp-file behavior, or build-system requirements. |
 | Preflight validation | Map/entity/path checks with clickable diagnostics and suggested profile or data fixes. | Compiler parser semantics, compile geometry algorithms, lighting algorithms, or emitted BSP/BSPX contents. |
@@ -90,14 +90,14 @@ User-facing behavior:
   input map, expected output, command line, and warning categories. Registry
   views can show version/help probe results separately from manifests.
 - Compiler runs use isolated temporary directories through `TMP`, `TEMP`, and
-  `TMPDIR`; expected-output registration only promotes files VibeStudio planned.
+  `TMPDIR`; expected-output registration only promotes files SlopStudio planned.
 - Command manifests remain the canonical provenance record when upstream BSP or
   BSPX metadata is absent.
 - Post-run diagnostics warn when expected outputs are missing, BSP format looks
   inconsistent with the selected profile, or profile-requested BSPX metadata is
   absent.
 
-Issues mitigated by VibeStudio: #167, #309, #399, #415, #463, #483.
+Issues mitigated by SlopStudio: #167, #309, #399, #415, #463, #483.
 
 Still upstream-only: embedded compiler parameters, `LMSHIFT` generation fixes,
 light-specific BSPX documentation, and native temp-dir behavior.
@@ -124,9 +124,9 @@ User-facing behavior:
   non-WAD and hardcoded `textures` folder assumptions; deeper asset-root
   resolution checks remain planned.
 - Dotted filenames and destination paths are shown in the compile plan exactly
-  as VibeStudio expects them to resolve.
+  as SlopStudio expects them to resolve.
 
-Issues mitigated by VibeStudio: #87, #199, #201, #230, #245, #288, #293, #346,
+Issues mitigated by SlopStudio: #87, #199, #201, #230, #245, #288, #293, #346,
 #450, #451.
 
 Still upstream-only: native warning text, compiler-side path resolution,
@@ -158,7 +158,7 @@ User-facing behavior:
   action: change map data, change profile options, try a known-good compiler
   version, or accept an upstream-only risk.
 
-Issues mitigated by VibeStudio: #77, #122, #173, #214, #255, #256, #268, #291,
+Issues mitigated by SlopStudio: #77, #122, #173, #214, #255, #256, #268, #291,
 #310, #349, #351, #377, #400, #405, #416, #470, #475.
 
 Still upstream-only: lighting math, style preservation inside the compiler,
@@ -184,7 +184,7 @@ User-facing behavior:
   external maps, risky rotations, entity-forwarding assumptions, and path roots
   that are not portable.
 
-Issues mitigated by VibeStudio: #193, #194, #199, #207, #231, #327, #333, #390,
+Issues mitigated by SlopStudio: #193, #194, #199, #207, #231, #327, #333, #390,
 #417, #422, #444.
 
 Still upstream-only: multiple-region support, areaportal behavior, entity
@@ -205,7 +205,7 @@ Goal: make external executable and dependency problems understandable before
 users lose time to failed compiles.
 
 User-facing behavior:
-- Tool discovery uses VibeStudio descriptors such as `vibemap2-light`, not only
+- Tool discovery uses SlopStudio descriptors such as `slopmap2-light`, not only
   generic executable names like `light`.
 - Setup diagnostics separate missing executable, missing source submodule,
   failed version probe, failed helper-tool smoke test, and likely dependency
@@ -213,10 +213,10 @@ User-facing behavior:
 - `bspinfo`, `bsputil`, and `lightpreview` have first-class registry
   descriptors and readiness warnings; operation-level helper readiness probes
   remain planned.
-- `lightpreview` remains optional; if launched later, VibeStudio documents
+- `lightpreview` remains optional; if launched later, SlopStudio documents
   platform-specific Qt/OpenGL risks and prefers isolated temp paths.
 
-Issues mitigated by VibeStudio: #335, #435, #480, #482.
+Issues mitigated by SlopStudio: #335, #435, #480, #482.
 
 Still upstream-only: upstream package naming, `bsputil` parser fixes,
 `lightpreview` platform launch fixes, and Embree/TBB build compatibility.
@@ -239,5 +239,5 @@ Tests:
 - Manifests preserve enough context for support, rerun, and regression triage
   without embedding secrets or private paths unnecessarily.
 - Documentation in `docs/COMPILER_INTEGRATION.md` and this plan is updated when
-  VibeStudio changes mitigation scope or when upstream ericw-tools resolves a
+  SlopStudio changes mitigation scope or when upstream ericw-tools resolves a
   referenced issue.

@@ -35,9 +35,9 @@ QString platformExecutableName(const QString& baseName)
 #endif
 }
 
-const vibestudio::CompilerToolDescriptor* descriptorById(const QVector<vibestudio::CompilerToolDescriptor>& descriptors, const QString& id)
+const slopstudio::CompilerToolDescriptor* descriptorById(const QVector<slopstudio::CompilerToolDescriptor>& descriptors, const QString& id)
 {
-	for (const vibestudio::CompilerToolDescriptor& descriptor : descriptors) {
+	for (const slopstudio::CompilerToolDescriptor& descriptor : descriptors) {
 		if (descriptor.id == id) {
 			return &descriptor;
 		}
@@ -45,9 +45,9 @@ const vibestudio::CompilerToolDescriptor* descriptorById(const QVector<vibestudi
 	return nullptr;
 }
 
-const vibestudio::CompilerToolDiscovery* discoveryById(const QVector<vibestudio::CompilerToolDiscovery>& discoveries, const QString& id)
+const slopstudio::CompilerToolDiscovery* discoveryById(const QVector<slopstudio::CompilerToolDiscovery>& discoveries, const QString& id)
 {
-	for (const vibestudio::CompilerToolDiscovery& discovery : discoveries) {
+	for (const slopstudio::CompilerToolDiscovery& discovery : discoveries) {
 		if (discovery.descriptor.id == id) {
 			return &discovery;
 		}
@@ -61,8 +61,8 @@ int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
 	const QStringList appArgs = QCoreApplication::arguments();
-	// ZDBSP supports "-V/--version" (external/compilers/zdbsp/main.cpp) and VibeMap3 "--version";
-	// this stand-in answers VibeMap3's probe without a version banner.
+	// ZDBSP supports "-V/--version" (external/compilers/zdbsp/main.cpp) and SlopMap3 "--version";
+	// this stand-in answers SlopMap3's probe without a version banner.
 	if (appArgs.contains(QStringLiteral("-V"))) {
 		std::cout << "ZDBSP 1.19 (fake build)\n";
 		return EXIT_SUCCESS;
@@ -72,23 +72,23 @@ int main(int argc, char** argv)
 		return EXIT_SUCCESS;
 	}
 
-	const QVector<vibestudio::CompilerToolDescriptor> descriptors = vibestudio::compilerToolDescriptors();
+	const QVector<slopstudio::CompilerToolDescriptor> descriptors = slopstudio::compilerToolDescriptors();
 	if (descriptors.size() < 9) {
 		return fail("Expected compiler descriptors for imported tools.");
 	}
 
-	const vibestudio::CompilerToolDescriptor* qbsp = descriptorById(descriptors, QStringLiteral("vibemap2-bsp"));
-	const vibestudio::CompilerToolDescriptor* bspinfo = descriptorById(descriptors, QStringLiteral("vibemap2-bspinfo"));
-	const vibestudio::CompilerToolDescriptor* bsputil = descriptorById(descriptors, QStringLiteral("vibemap2-bsputil"));
-	const vibestudio::CompilerToolDescriptor* lightpreview = descriptorById(descriptors, QStringLiteral("vibemap2-hub"));
-	const vibestudio::CompilerToolDescriptor* zdbsp = descriptorById(descriptors, QStringLiteral("zdbsp"));
+	const slopstudio::CompilerToolDescriptor* qbsp = descriptorById(descriptors, QStringLiteral("slopmap2-bsp"));
+	const slopstudio::CompilerToolDescriptor* bspinfo = descriptorById(descriptors, QStringLiteral("slopmap2-bspinfo"));
+	const slopstudio::CompilerToolDescriptor* bsputil = descriptorById(descriptors, QStringLiteral("slopmap2-bsputil"));
+	const slopstudio::CompilerToolDescriptor* lightpreview = descriptorById(descriptors, QStringLiteral("slopmap2-hub"));
+	const slopstudio::CompilerToolDescriptor* zdbsp = descriptorById(descriptors, QStringLiteral("zdbsp"));
 	if (!qbsp || !bspinfo || !bsputil || !lightpreview || !zdbsp) {
-		return fail("Expected first-class VibeMap2 helper descriptors.");
+		return fail("Expected first-class SlopMap2 helper descriptors.");
 	}
-	// VibeMap2, like ericw-tools, has no --version: an unknown option prints help and still exits 0, and
+	// SlopMap2, like ericw-tools, has no --version: an unknown option prints help and still exits 0, and
 	// "bspinfo --help" would try to open "--help.bsp". Probing with no arguments is the honest form.
 	if (!qbsp->versionProbeArguments.isEmpty() || !qbsp->versionProbeSupported) {
-		return fail("Expected the VibeMap2 bsp probe to run with no arguments.");
+		return fail("Expected the SlopMap2 bsp probe to run with no arguments.");
 	}
 	if (!bspinfo->versionProbeArguments.isEmpty() || !bspinfo->versionProbeSupported) {
 		return fail("Expected the bspinfo probe to stop passing --help.");
@@ -112,7 +112,7 @@ int main(int argc, char** argv)
 		|| !lightpreview->capabilityFlags.contains(QStringLiteral("gui-helper"))
 		|| lightpreview->versionProbeSupported
 		|| lightpreview->readinessWarnings.isEmpty()
-		|| !lightpreview->executableNames.join(QLatin1Char(' ')).contains(QStringLiteral("vibemap2-hub"))) {
+		|| !lightpreview->executableNames.join(QLatin1Char(' ')).contains(QStringLiteral("slopmap2-hub"))) {
 		return fail("Expected hub launch readiness metadata without an unsafe probe.");
 	}
 	if (!lightpreview->capabilityFlags.contains(QStringLiteral("isolated-preview-workspace"))
@@ -120,22 +120,22 @@ int main(int argc, char** argv)
 		return fail("Expected fixed preview isolation alongside the retained platform constraint.");
 	}
 	for (const auto& descriptor : descriptors) {
-		if (descriptor.integrationId != QStringLiteral("vibemap2")) { continue; }
+		if (descriptor.integrationId != QStringLiteral("slopmap2")) { continue; }
 		for (const QString& name : descriptor.executableNames) {
-			if (!name.startsWith(QStringLiteral("vibemap2-")) && !name.startsWith(QStringLiteral("vmt-"))) {
-				return fail("Expected every VibeMap2 binary to avoid generic-name conflicts (#335).");
+			if (!name.startsWith(QStringLiteral("slopmap2-")) && !name.startsWith(QStringLiteral("vmt-"))) {
+				return fail("Expected every SlopMap2 binary to avoid generic-name conflicts (#335).");
 			}
 		}
 		for (int retired : {167, 173, 335, 400, 401, 416, 422, 437, 444, 451, 463, 470, 475, 483, 485}) {
 			if (descriptor.capabilityFlags.contains(QStringLiteral("upstream-issue-%1").arg(retired))) {
-				return fail("Expected no stale upstream-issue capability flag for a retired VibeMap2 report.");
+				return fail("Expected no stale upstream-issue capability flag for a retired SlopMap2 report.");
 			}
 		}
 	}
 	// The pre-rename VibeyMapTools binaries stay discoverable; stock ericw-tools names do not.
 	if (!qbsp->executableNames.join(QLatin1Char(' ')).contains(QStringLiteral("vmt-bsp"))
 		|| qbsp->executableNames.join(QLatin1Char(' ')).contains(QStringLiteral("qbsp"))) {
-		return fail("Expected VibeMap2 bsp to look for vibemap2-bsp and vmt-bsp only.");
+		return fail("Expected SlopMap2 bsp to look for slopmap2-bsp and vmt-bsp only.");
 	}
 
 	QTemporaryDir tempDir;
@@ -143,71 +143,71 @@ int main(int argc, char** argv)
 		return fail("Expected temporary workspace.");
 	}
 	QDir root(tempDir.path());
-	// VibeMap2 builds each tool under build/src/<tool directory>.
-	if (!root.mkpath(QStringLiteral("external/compilers/vibemap2/build/src/qbsp")) || !root.mkpath(QStringLiteral("external/compilers/vibemap2/build/src/bspinfo"))) {
+	// SlopMap2 builds each tool under build/src/<tool directory>.
+	if (!root.mkpath(QStringLiteral("external/compilers/slopmap2/build/src/qbsp")) || !root.mkpath(QStringLiteral("external/compilers/slopmap2/build/src/bspinfo"))) {
 		return fail("Expected fake compiler build directory.");
 	}
 
-	const QString qbspName = platformExecutableName(QStringLiteral("vibemap2-bsp"));
-	if (!touchFile(root.filePath(QStringLiteral("external/compilers/vibemap2/build/src/qbsp/%1").arg(qbspName)))) {
-		return fail("Expected fake vibemap2-bsp executable.");
+	const QString qbspName = platformExecutableName(QStringLiteral("slopmap2-bsp"));
+	if (!touchFile(root.filePath(QStringLiteral("external/compilers/slopmap2/build/src/qbsp/%1").arg(qbspName)))) {
+		return fail("Expected fake slopmap2-bsp executable.");
 	}
-	const QString bspinfoName = platformExecutableName(QStringLiteral("vibemap2-bspinfo"));
-	const QString fakeBspinfoPath = root.filePath(QStringLiteral("external/compilers/vibemap2/build/src/bspinfo/%1").arg(bspinfoName));
+	const QString bspinfoName = platformExecutableName(QStringLiteral("slopmap2-bspinfo"));
+	const QString fakeBspinfoPath = root.filePath(QStringLiteral("external/compilers/slopmap2/build/src/bspinfo/%1").arg(bspinfoName));
 	if (!touchFile(fakeBspinfoPath)) {
 		return fail("Expected fake bspinfo executable.");
 	}
 
-	vibestudio::CompilerRegistryOptions discoveryOptions;
+	slopstudio::CompilerRegistryOptions discoveryOptions;
 	discoveryOptions.workspaceRootPath = tempDir.path();
 	discoveryOptions.probeVersions = false;
-	const vibestudio::CompilerRegistrySummary summary = vibestudio::discoverCompilerTools(discoveryOptions);
+	const slopstudio::CompilerRegistrySummary summary = slopstudio::discoverCompilerTools(discoveryOptions);
 	if (summary.tools.size() != descriptors.size()) {
 		return fail("Expected one discovery result per descriptor.");
 	}
 	if (summary.sourceAvailableCount < 6 || summary.executableAvailableCount < 2) {
-		return fail("Expected fake VibeMap2 source and helper executable discovery.");
+		return fail("Expected fake SlopMap2 source and helper executable discovery.");
 	}
-	if (summary.overallState() != vibestudio::OperationState::Warning) {
+	if (summary.overallState() != slopstudio::OperationState::Warning) {
 		return fail("Expected partial compiler discovery to warn.");
 	}
-	if (!vibestudio::compilerRegistrySummaryText(summary).contains(QStringLiteral("VibeMap2 bsp"))) {
-		return fail("Expected registry text to include VibeMap2 bsp.");
+	if (!slopstudio::compilerRegistrySummaryText(summary).contains(QStringLiteral("SlopMap2 bsp"))) {
+		return fail("Expected registry text to include SlopMap2 bsp.");
 	}
-	const vibestudio::CompilerToolDiscovery* bspinfoDiscovery = discoveryById(summary.tools, QStringLiteral("vibemap2-bspinfo"));
+	const slopstudio::CompilerToolDiscovery* bspinfoDiscovery = discoveryById(summary.tools, QStringLiteral("slopmap2-bspinfo"));
 	if (!bspinfoDiscovery
 		|| !bspinfoDiscovery->executableAvailable
 		|| bspinfoDiscovery->executablePath != QDir::cleanPath(fakeBspinfoPath)
-		|| bspinfoDiscovery->versionProbeOutcome != vibestudio::CompilerVersionProbeOutcome::NotAttempted
+		|| bspinfoDiscovery->versionProbeOutcome != slopstudio::CompilerVersionProbeOutcome::NotAttempted
 		|| !bspinfoDiscovery->warnings.join('\n').contains(QStringLiteral("operation-level bspinfo diagnostics"))) {
 		return fail("Expected fake bspinfo helper discovery with readiness warning.");
 	}
-	vibestudio::CompilerToolDescriptor vibemap3;
-	if (!vibestudio::compilerToolDescriptorForId(QStringLiteral("vibemap3"), &vibemap3) || !vibemap3.capabilityFlags.contains(QStringLiteral("idtech3-bsp"))
-		|| vibemap3.versionProbeArguments != QStringList{QStringLiteral("--version")}) {
-		return fail("Expected VibeMap3 capability flags and its --version probe.");
+	slopstudio::CompilerToolDescriptor slopmap3;
+	if (!slopstudio::compilerToolDescriptorForId(QStringLiteral("slopmap3"), &slopmap3) || !slopmap3.capabilityFlags.contains(QStringLiteral("idtech3-bsp"))
+		|| slopmap3.versionProbeArguments != QStringList{QStringLiteral("--version")}) {
+		return fail("Expected SlopMap3 capability flags and its --version probe.");
 	}
 	// Retired ids are explained, never resolved silently.
-	if (vibestudio::compilerToolDescriptorForId(QStringLiteral("q3map2"))
-		|| vibestudio::renamedCompilerId(QStringLiteral("q3map2")) != QStringLiteral("vibemap3")
-		|| vibestudio::renamedCompilerId(QStringLiteral("ERICW_QBSP")) != QStringLiteral("vibemap2-bsp")
-		|| !vibestudio::renamedCompilerId(QStringLiteral("zdbsp")).isEmpty()
-		|| !vibestudio::unknownCompilerToolIdText(QStringLiteral("ericw-light")).contains(QStringLiteral("vibemap2-light"))) {
-		return fail("Expected retired ericw-tools/q3map2 ids to map to their VibeMap2/VibeMap3 names in messages only.");
+	if (slopstudio::compilerToolDescriptorForId(QStringLiteral("q3map2"))
+		|| slopstudio::renamedCompilerId(QStringLiteral("q3map2")) != QStringLiteral("slopmap3")
+		|| slopstudio::renamedCompilerId(QStringLiteral("ERICW_QBSP")) != QStringLiteral("slopmap2-bsp")
+		|| !slopstudio::renamedCompilerId(QStringLiteral("zdbsp")).isEmpty()
+		|| !slopstudio::unknownCompilerToolIdText(QStringLiteral("ericw-light")).contains(QStringLiteral("slopmap2-light"))) {
+		return fail("Expected retired ericw-tools/q3map2 ids to map to their SlopMap2/SlopMap3 names in messages only.");
 	}
 
 	const QString overridePath = root.filePath(QStringLiteral("custom-qbsp"));
 	if (!touchFile(overridePath)) {
 		return fail("Expected fake override executable.");
 	}
-	vibestudio::CompilerRegistryOptions options;
+	slopstudio::CompilerRegistryOptions options;
 	options.workspaceRootPath = tempDir.path();
 	options.probeVersions = false;
-	options.executableOverrides.push_back({QStringLiteral("vibemap2-bsp"), overridePath});
-	const vibestudio::CompilerRegistrySummary overrideSummary = vibestudio::discoverCompilerTools(options);
+	options.executableOverrides.push_back({QStringLiteral("slopmap2-bsp"), overridePath});
+	const slopstudio::CompilerRegistrySummary overrideSummary = slopstudio::discoverCompilerTools(options);
 	bool overrideApplied = false;
-	for (const vibestudio::CompilerToolDiscovery& discovery : overrideSummary.tools) {
-		if (discovery.descriptor.id == QStringLiteral("vibemap2-bsp")) {
+	for (const slopstudio::CompilerToolDiscovery& discovery : overrideSummary.tools) {
+		if (discovery.descriptor.id == QStringLiteral("slopmap2-bsp")) {
 			overrideApplied = discovery.executablePathOverridden && discovery.executablePath == QDir::cleanPath(overridePath);
 		}
 	}
@@ -219,43 +219,43 @@ int main(int argc, char** argv)
 	if (!touchFile(notAnExecutable)) {
 		return fail("Expected non-executable fixture.");
 	}
-	vibestudio::CompilerRegistryOptions probeOptions;
+	slopstudio::CompilerRegistryOptions probeOptions;
 	probeOptions.workspaceRootPath = tempDir.path();
 	probeOptions.probeVersions = true;
 	probeOptions.versionProbeStartTimeoutMs = 750;
 	probeOptions.versionProbeTimeoutMs = 4000;
 	probeOptions.executableOverrides.push_back({QStringLiteral("zdbsp"), QCoreApplication::applicationFilePath()});
-	probeOptions.executableOverrides.push_back({QStringLiteral("vibemap3"), QCoreApplication::applicationFilePath()});
+	probeOptions.executableOverrides.push_back({QStringLiteral("slopmap3"), QCoreApplication::applicationFilePath()});
 	probeOptions.executableOverrides.push_back({QStringLiteral("zokumbsp"), notAnExecutable});
-	const vibestudio::CompilerRegistrySummary probeSummary = vibestudio::discoverCompilerTools(probeOptions);
+	const slopstudio::CompilerRegistrySummary probeSummary = slopstudio::discoverCompilerTools(probeOptions);
 
-	const vibestudio::CompilerToolDiscovery* zdbspProbe = discoveryById(probeSummary.tools, QStringLiteral("zdbsp"));
+	const slopstudio::CompilerToolDiscovery* zdbspProbe = discoveryById(probeSummary.tools, QStringLiteral("zdbsp"));
 	if (!zdbspProbe
-		|| zdbspProbe->versionProbeOutcome != vibestudio::CompilerVersionProbeOutcome::Probed
+		|| zdbspProbe->versionProbeOutcome != slopstudio::CompilerVersionProbeOutcome::Probed
 		|| !zdbspProbe->versionAvailable
 		|| !zdbspProbe->versionText.contains(QStringLiteral("ZDBSP 1.19"))) {
 		return fail("Expected a recognizable version banner to be reported as probed.");
 	}
-	const vibestudio::CompilerToolDiscovery* vibemap3Probe = discoveryById(probeSummary.tools, QStringLiteral("vibemap3"));
-	if (!vibemap3Probe
-		|| vibemap3Probe->versionProbeOutcome != vibestudio::CompilerVersionProbeOutcome::Inferred
-		|| vibemap3Probe->versionAvailable
-		|| vibemap3Probe->versionProbeExitCode != 0) {
+	const slopstudio::CompilerToolDiscovery* slopmap3Probe = discoveryById(probeSummary.tools, QStringLiteral("slopmap3"));
+	if (!slopmap3Probe
+		|| slopmap3Probe->versionProbeOutcome != slopstudio::CompilerVersionProbeOutcome::Inferred
+		|| slopmap3Probe->versionAvailable
+		|| slopmap3Probe->versionProbeExitCode != 0) {
 		return fail("Expected output without a version banner to be reported as inferred, not successful.");
 	}
-	const vibestudio::CompilerToolDiscovery* zokumProbe = discoveryById(probeSummary.tools, QStringLiteral("zokumbsp"));
+	const slopstudio::CompilerToolDiscovery* zokumProbe = discoveryById(probeSummary.tools, QStringLiteral("zokumbsp"));
 	if (!zokumProbe
-		|| zokumProbe->versionProbeOutcome != vibestudio::CompilerVersionProbeOutcome::Failed
+		|| zokumProbe->versionProbeOutcome != slopstudio::CompilerVersionProbeOutcome::Failed
 		|| zokumProbe->versionAvailable) {
 		return fail("Expected an unusable probe target to be reported as failed.");
 	}
-	const vibestudio::CompilerToolDiscovery* lightpreviewProbe = discoveryById(probeSummary.tools, QStringLiteral("vibemap2-hub"));
+	const slopstudio::CompilerToolDiscovery* lightpreviewProbe = discoveryById(probeSummary.tools, QStringLiteral("slopmap2-hub"));
 	if (!lightpreviewProbe
 		|| lightpreviewProbe->versionProbeAttempted
-		|| lightpreviewProbe->versionProbeOutcome != vibestudio::CompilerVersionProbeOutcome::NotAttempted) {
+		|| lightpreviewProbe->versionProbeOutcome != slopstudio::CompilerVersionProbeOutcome::NotAttempted) {
 		return fail("Expected the GUI hub helper never to be launched by a probe.");
 	}
-	if (!vibestudio::compilerRegistrySummaryText(probeSummary).contains(vibestudio::compilerVersionProbeOutcomeText(vibestudio::CompilerVersionProbeOutcome::Probed))) {
+	if (!slopstudio::compilerRegistrySummaryText(probeSummary).contains(slopstudio::compilerVersionProbeOutcomeText(slopstudio::CompilerVersionProbeOutcome::Probed))) {
 		return fail("Expected the registry report to state the version probe outcome.");
 	}
 

@@ -3,14 +3,14 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 // Topology and 44.1 kHz delay tuning derived from Freeverb Components:
 // Written by Jezar at Dreampoint, June 2000. This code is public domain.
 // https://github.com/sinshu/freeverb/tree/cfcea55553fb59ac57ebf2a237f72cad4296f2b0/Components
-// Original VibeStudio changes: sample-rate/room scaling, per-comb decay,
+// Original SlopStudio changes: sample-rate/room scaling, per-comb decay,
 // frequency damping, stereo-preserving excitation, predelay, true allpass
 // sections, double precision and constant-time reset. See docs/CREDITS.md.
 constexpr std::array<int, 12> tuning{1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617, 556, 441, 341, 225};
@@ -124,4 +124,4 @@ bool AudioReverb::process(double &left, double &right, double width, double mix)
 	right = (1 - mix) * right + mix * (middle - side);
 	return std::isfinite(left) && std::isfinite(right);
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -17,7 +17,7 @@ class QPushButton;
 class QThread;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 class ModelViewport;
 
 // Create Brush from Points: type or paste four or more points, see the convex
@@ -74,4 +74,4 @@ private:
 	quint64 m_generation = 0;
 	bool m_ready = false, m_valid = false, m_closed = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

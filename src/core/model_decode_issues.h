@@ -28,7 +28,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // "advisory", "omission" or "damage".
 QString modelDecodeIssueSeverityId(ModelDecodeIssueSeverity severity);
@@ -90,4 +90,4 @@ QStringList modelDecodeIssueLines(const QVector<ModelDecodeIssue>& issues, const
 // application locale; empty when there are no issues.
 QString modelDecodeIssueSummary(const QVector<ModelDecodeIssue>& issues);
 
-} // namespace vibestudio
+} // namespace slopstudio

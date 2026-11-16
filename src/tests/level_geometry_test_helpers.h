@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 // Original synthetic geometry, laid out on a grid. No game data is required.
 inline bool createGeometryFixture(int count, LevelMapDocument* map, QString* error)
 {
@@ -28,4 +28,4 @@ inline bool createGeometryFixture(int count, LevelMapDocument* map, QString* err
 	map->undoStack.clear(); map->redoStack.clear();
 	return true;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

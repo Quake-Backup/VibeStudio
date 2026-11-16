@@ -9,7 +9,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelQuat exportAboutZ(double degrees)
 {
@@ -102,4 +102,4 @@ inline ModelMesh exportArmFixture()
 	return mesh;
 }
 
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

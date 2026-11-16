@@ -22,7 +22,7 @@
 #include <QJsonValue>
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 [[nodiscard]] bool modelPoseCurvesUseQuaternion(const ModelPoseCurves &group);
 // Keys ordered inside the clip, unit length (within 0.0001), valid modes.
@@ -67,4 +67,4 @@ bool setModelQuatKeyAxis(ModelPoseCurves *group, int frame, int axis, double deg
 // [[frame, x, y, z, w, "linear"], ...]; the reader validates against frameCount.
 [[nodiscard]] QJsonArray modelQuatKeysJson(const QVector<ModelPoseQuatKey> &keys);
 bool modelQuatKeysFromJson(const QJsonValue &value, int frameCount, QVector<ModelPoseQuatKey> *keys);
-} // namespace vibestudio
+} // namespace slopstudio

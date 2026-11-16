@@ -7,7 +7,7 @@
 #include <QImageReader>
 #include <QImageWriter>
 
-namespace vibestudio {
+namespace slopstudio {
 
 const QVector<AssetFormatDescriptor>& assetFormats()
 {
@@ -23,7 +23,7 @@ const QVector<AssetFormatDescriptor>& assetFormats()
 				QString::fromLatin1(module), kind, QString::fromLatin1(read), QString::fromLatin1(outputs).split(',', Qt::SkipEmptyParts),
 				QString::fromUtf8(limitation), true, outputs[0] != '\0'});
 		};
-		add("workspace", "vibeworkspace", "workspace", K::Text, "document", "vibeworkspace");
+		add("workspace", "slopworkspace", "workspace", K::Text, "document", "slopworkspace");
 		add("texture-project", "vtexture", "textures", K::Binary, "document", "vtexture");
 		add("audio-project", "vsaudio", "audio", K::Binary, "document", "vsaudio");
 		add("audio-session", "vssession", "audio", K::Binary, "document", "vssession,wav");
@@ -32,21 +32,21 @@ const QVector<AssetFormatDescriptor>& assetFormats()
 		add("model-design", "model.json", "models", K::Text, "document", "model.json,md3,obj");
 		add("model-assembly", "assembly.json", "models", K::Text, "document", "assembly.json,md3,obj");
 		add("prefab", "vprefab", "levels", K::Text, "document", "vprefab");
-		add("package-draft", "vibepackage", "packages", K::Text, "document", "vibepackage,pak,pk3,zip,wad");
+		add("package-draft", "sloppackage", "packages", K::Text, "document", "sloppackage,pak,pk3,zip,wad");
 		add("pak", "pak", "packages", K::Binary, "archive", "pak,pk3,zip,wad");
 		add("zip", "zip,pk3,pk4,pkz", "packages", K::Binary, "archive", "pak,pk3,zip,wad");
 		add("wad", "wad,wad2,wad3", "packages", K::Binary, "archive", "wad,pak,pk3,zip",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "WAD variants and lump constraints are validated by the package service."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "WAD variants and lump constraints are validated by the package service."));
 		add("map", "map", "levels", K::Text, "document", "map");
 		add("bsp", "bsp", "levels", K::Binary, "metadata", "",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "Compiled BSP inspection; not source-map import or decompilation."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "Compiled BSP inspection; not source-map import or decompilation."));
 		add("entity-definitions", "def,fgd,ent", "levels", K::Text, "text", "text");
 		add("shader", "shader", "shaders", K::Text, "text", "shader");
 		for (const auto& entry : QVector<QPair<QByteArray, QStringList>>{
 			{"png", {"png"}}, {"jpeg", {"jpg", "jpeg"}}, {"bmp", {"bmp"}}, {"gif", {"gif"}},
 			{"tiff", {"tif", "tiff"}}, {"webp", {"webp"}}}) {
 			add(entry.first.constData(), entry.second.join(',').toLatin1().constData(), "textures", K::Image, "pixels", "",
-				QT_TRANSLATE_NOOP("VibeStudioFormats", "Qt image plugin availability is checked at runtime."));
+				QT_TRANSLATE_NOOP("SlopStudioFormats", "Qt image plugin availability is checked at runtime."));
 			auto& format = result.last();
 			const auto readers = QImageReader::supportedImageFormats(), writers = QImageWriter::supportedImageFormats();
 			format.runtimeRead = readers.contains(entry.first);
@@ -55,57 +55,57 @@ const QVector<AssetFormatDescriptor>& assetFormats()
 		}
 		add("tga", "tga", "textures", K::Image, "pixels", "tga");
 		add("pcx", "pcx", "textures", K::Image, "pixels", "pcx",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "8-bit indexed or 3/4-plane input; opaque indexed export."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "8-bit indexed or 3/4-plane input; opaque indexed export."));
 		add("wal", "wal", "textures", K::Image, "pixels", "quake2-wal");
 		add("miptex", "mip", "textures", K::Image, "pixels", "quake-miptex,quake-wad2");
 		add("lmp", "lmp", "textures", K::Image, "pixels", "",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "Content and package namespace determine picture, palette, flat or patch interpretation."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "Content and package namespace determine picture, palette, flat or patch interpretation."));
 		add("m8", "m8", "textures", K::Image, "pixels");
 		add("m32", "m32", "textures", K::Image, "pixels");
 		add("spr", "spr", "textures", K::Image, "pixels", "",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "Quake and Half-Life frames; sprite-container export is unavailable."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "Quake and Half-Life frames; sprite-container export is unavailable."));
 		add("sp2", "sp2,spr2", "textures", K::Image, "pixels", "",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "External frames require the package context."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "External frames require the package context."));
 		add("dds", "dds", "textures", K::Image, "pixels", "dds",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "2D base mip: BC1–BC5, RXGB and supported RGB masks. Export is uncompressed BGRA8; no cubes, volumes or arrays."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "2D base mip: BC1–BC5, RXGB and supported RGB masks. Export is uncompressed BGRA8; no cubes, volumes or arrays."));
 		add("ftx", "ftx", "textures", K::Image, "pixels", "ftx");
 		add("swl", "swl", "textures", K::Image, "pixels", "",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "SiN embedded palette and four mip levels; convert to an available texture export profile."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "SiN embedded palette and four mip levels; convert to an available texture export profile."));
 		add("obj", "obj", "models", K::Model, "geometry", "obj");
 		add("mdl", "mdl", "models", K::Model, "geometry", "mdl,obj");
 		add("md2", "md2", "models", K::Model, "geometry", "md2,obj");
 		add("md3", "md3", "models", K::Model, "geometry", "md3,obj");
 		add("iqm", "iqm", "models", K::Model, "geometry", "iqm,obj",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "Joints, weights and animations; tangents, colours and extensions are not kept."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "Joints, weights and animations; tangents, colours and extensions are not kept."));
 		add("md5mesh", "md5mesh", "models", K::Model, "geometry", "md5mesh,iqm,obj",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "Reads the md5anim files beside the mesh and those a Doom 3 .def names."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "Reads the md5anim files beside the mesh and those a Doom 3 .def names."));
 		add("md5anim", "md5anim", "models", K::Model, "animation", "md5anim",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "A skeleton and one clip, without geometry."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "A skeleton and one clip, without geometry."));
 		add("ase", "ase", "models", K::Model, "geometry", "ase,obj",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "The first mesh of each object; later animation samples are not kept."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "The first mesh of each object; later animation samples are not kept."));
 		// Read-only formats: edit them as a mesh source and export a format the game loads.
 		add("mdc", "mdc", "models", K::Model, "geometry", "",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "Read only; edit as a mesh source and export MD3, which RTCW and ET load."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "Read only; edit as a mesh source and export MD3, which RTCW and ET load."));
 		for (const auto* id : {"mdr", "mds", "mdm", "glm"}) {
 			add(id, id, "models", K::Model, "geometry", "",
-				QT_TRANSLATE_NOOP("VibeStudioFormats", "Skeletal, read only; edit as a mesh source and export MD3, MD5 or IQM."));
+				QT_TRANSLATE_NOOP("SlopStudioFormats", "Skeletal, read only; edit as a mesh source and export MD3, MD5 or IQM."));
 		}
 		for (const auto* id : {"mdx", "gla"}) {
 			add(id, id, "models", K::Model, "animation", "",
-				QT_TRANSLATE_NOOP("VibeStudioFormats", "Bones and frames without geometry; read only."));
+				QT_TRANSLATE_NOOP("SlopStudioFormats", "Bones and frames without geometry; read only."));
 		}
 		for (const auto* id : {"lwo", "fm", "kvx"}) {
 			add(id, id, "models", K::Model, "geometry", "",
-				QT_TRANSLATE_NOOP("VibeStudioFormats", "Read only; edit as a mesh source and export a format the game loads."));
+				QT_TRANSLATE_NOOP("SlopStudioFormats", "Read only; edit as a mesh source and export a format the game loads."));
 		}
 		add("wav", "wav", "audio", K::Audio, "samples", "wav,dmx,vsaudio");
 		add("dmx", "dmx", "audio", K::Audio, "samples", "wav,dmx,vsaudio",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "Digital DMX only; PC-speaker lumps remain metadata-only."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "Digital DMX only; PC-speaker lumps remain metadata-only."));
 		add("vorbis", "ogg", "audio", K::Audio, "samples", "wav,dmx,vsaudio");
 		add("mp3", "mp3", "audio", K::Audio, "samples", "wav,dmx,vsaudio");
 		add("flac", "flac", "audio", K::Audio, "samples", "wav,dmx,vsaudio");
 		add("opus", "opus", "audio", K::Audio, "metadata", "",
-			QT_TRANSLATE_NOOP("VibeStudioFormats", "Playback depends on the host backend; sample editing and conversion are unavailable."));
+			QT_TRANSLATE_NOOP("SlopStudioFormats", "Playback depends on the host backend; sample editing and conversion are unavailable."));
 		return result;
 	}();
 	return formats;
@@ -143,7 +143,7 @@ QJsonObject assetFormatJson(const AssetFormatDescriptor& format)
 	return {{"id", format.id}, {"suffixes", QJsonArray::fromStringList(format.suffixes)}, {"module", format.module},
 		{"preview", assetPreviewKindId(format.preview)}, {"read", format.readCapability},
 		{"exportProfiles", QJsonArray::fromStringList(format.exportProfiles)}, {"conversionProfiles", conversions}, {"availableRead", format.runtimeRead},
-		{"availableWrite", format.runtimeWrite}, {"limitation", QCoreApplication::translate("VibeStudioFormats", format.limitation.toUtf8().constData())}};
+		{"availableWrite", format.runtimeWrite}, {"limitation", QCoreApplication::translate("SlopStudioFormats", format.limitation.toUtf8().constData())}};
 }
 QJsonArray assetFormatsJson() { QJsonArray result; for (const auto& format : assetFormats()) { result.append(assetFormatJson(format)); } return result; }
 
@@ -152,7 +152,7 @@ QString assetImageOpenFilter(bool includeDocuments)
 	QStringList patterns;
 	if (includeDocuments) { patterns << QStringLiteral("*.vtexture"); }
 	for (const auto& suffix : assetFormatSuffixes(AssetPreviewKind::Image)) { patterns << QStringLiteral("*.") + suffix; }
-	return QCoreApplication::translate("VibeStudioFormats", "Textures (%1);;All files (*)").arg(patterns.join(' '));
+	return QCoreApplication::translate("SlopStudioFormats", "Textures (%1);;All files (*)").arg(patterns.join(' '));
 }
 
 QString assetPackageOpenFilter()
@@ -162,6 +162,6 @@ QString assetPackageOpenFilter()
 		if (format.readCapability != QStringLiteral("archive") || !format.runtimeRead) { continue; }
 		for (const auto& suffix : format.suffixes) { patterns << QStringLiteral("*.") + suffix; }
 	}
-	return QCoreApplication::translate("VibeStudioFormats", "Package archives (%1);;All files (*)").arg(patterns.join(' '));
+	return QCoreApplication::translate("SlopStudioFormats", "Package archives (%1);;All files (*)").arg(patterns.join(' '));
 }
-} // namespace vibestudio
+} // namespace slopstudio

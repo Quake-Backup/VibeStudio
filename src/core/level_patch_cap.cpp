@@ -10,7 +10,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -583,4 +583,4 @@ QJsonObject levelPatchCapReportJson(const LevelPatchCapResult &result)
 			{QStringLiteral("skipped"), skipped},
 			{QStringLiteral("warnings"), warnings}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

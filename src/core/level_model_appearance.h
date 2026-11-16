@@ -6,7 +6,7 @@
 
 #include <QJsonObject>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // q3map2 misc_model appearances are material mappings, not native player .skin
 // surface bindings. Keys are pure functions of the map snapshot; package content
@@ -37,4 +37,4 @@ LevelModelAppearance levelModelAppearance(const LevelMapDocument& document, cons
 LevelModelAppearanceResult prepareLevelModelAppearance(const ModelMesh& source, const LevelModelAppearance& appearance,
 	const PackageArchiveReader& archive, const ModelWorkControl& control = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -2,7 +2,7 @@
 
 **Available:** persistent translation, rotation and scale curves for retained
 skeletal clips, with graphical and numeric key editing and a shared CLI.
-VibeStudio remains pre-alpha and largely untested in real projects. This
+SlopStudio remains pre-alpha and largely untested in real projects. This
 milestone does not establish the [modeller production gate](MODELLER_RELEASE.md).
 
 ## Capture and edit motion
@@ -123,10 +123,10 @@ the same joint work everywhere. A pasted pose sets a quaternion key, as it sets
 keys on curves. Convert the joint back to Euler angles to use the other tools.
 
 ```sh
-vibestudio --cli model curves models/keyed.mesh.json --clip 0 --joint upper --operation convert-rotation --to quaternion --output models/quat.mesh.json --json
-vibestudio --cli model curves models/quat.mesh.json --clip 0 --joint upper --operation set-rotation-key --frame 8 --rotate 0,0,90 --interpolation cubic --output models/quat.mesh.json --overwrite
-vibestudio --cli model curves models/quat.mesh.json --clip 0 --joint upper --operation remove-rotation-key --frame 4 --output models/quat.mesh.json --overwrite
-vibestudio --cli model curves models/quat.mesh.json --clip 0 --joint upper --operation convert-rotation --to euler --every-sample --output models/euler.mesh.json
+slopstudio --cli model curves models/keyed.mesh.json --clip 0 --joint upper --operation convert-rotation --to quaternion --output models/quat.mesh.json --json
+slopstudio --cli model curves models/quat.mesh.json --clip 0 --joint upper --operation set-rotation-key --frame 8 --rotate 0,0,90 --interpolation cubic --output models/quat.mesh.json --overwrite
+slopstudio --cli model curves models/quat.mesh.json --clip 0 --joint upper --operation remove-rotation-key --frame 4 --output models/quat.mesh.json --overwrite
+slopstudio --cli model curves models/quat.mesh.json --clip 0 --joint upper --operation convert-rotation --to euler --every-sample --output models/euler.mesh.json
 ```
 
 `set-rotation-key` takes `--rotate x,y,z` in degrees (X then Y then Z) or
@@ -172,10 +172,10 @@ labelling hold-next data as an older schema is refused.
 ## Automate curve edits
 
 ```sh
-vibestudio --cli model curves models/player.mesh.json --clip 0 --json
-vibestudio --cli model curves models/player.mesh.json --clip 0 --joint upper --operation capture --output models/keyed.mesh.json
-vibestudio --cli model curves models/keyed.mesh.json --clip 0 --joint upper --operation set-key --channel rz --frame 8 --value 90 --interpolation cubic --tangent flat --output models/turn.mesh.json --dry-run --json
-vibestudio --cli model curves models/keyed.mesh.json --clip 0 --joint upper --operation bake --output models/sampled.mesh.json
+slopstudio --cli model curves models/player.mesh.json --clip 0 --json
+slopstudio --cli model curves models/player.mesh.json --clip 0 --joint upper --operation capture --output models/keyed.mesh.json
+slopstudio --cli model curves models/keyed.mesh.json --clip 0 --joint upper --operation set-key --channel rz --frame 8 --value 90 --interpolation cubic --tangent flat --output models/turn.mesh.json --dry-run --json
+slopstudio --cli model curves models/keyed.mesh.json --clip 0 --joint upper --operation bake --output models/sampled.mesh.json
 ```
 
 Input is positional or supplied with `--input`. `--clip` is required. The default
@@ -267,10 +267,10 @@ The usual finite-value, positive-scale, key-count and source-size limits apply.
 ### Automate key groups
 
 ```sh
-vibestudio --cli model curve-keys models/keyed.mesh.json --clip 0 --channel ty --json
-vibestudio --cli model curve-keys models/keyed.mesh.json --clip 0 --joint upper --joint lower --channel ry --first 0 --last 8 --operation retime --pivot 0 --factor 2 --output models/slower.mesh.json --dry-run --json
-vibestudio --cli model curve-keys models/keyed.mesh.json --clip 0 --channel rz --samples 2,4 --operation duplicate --offset 8 --output models/copied.mesh.json --dry-run --json
-vibestudio --cli model curve-keys models/keyed.mesh.json --clip 0 --operation reduce --translation-error 0.001 --rotation-error 0.01 --scale-error 0.0001 --output models/reduced.mesh.json --json
+slopstudio --cli model curve-keys models/keyed.mesh.json --clip 0 --channel ty --json
+slopstudio --cli model curve-keys models/keyed.mesh.json --clip 0 --joint upper --joint lower --channel ry --first 0 --last 8 --operation retime --pivot 0 --factor 2 --output models/slower.mesh.json --dry-run --json
+slopstudio --cli model curve-keys models/keyed.mesh.json --clip 0 --channel rz --samples 2,4 --operation duplicate --offset 8 --output models/copied.mesh.json --dry-run --json
+slopstudio --cli model curve-keys models/keyed.mesh.json --clip 0 --operation reduce --translation-error 0.001 --rotation-error 0.01 --scale-error 0.0001 --output models/reduced.mesh.json --json
 ```
 
 Input is positional or supplied with `--input`; `--clip` is required. The
@@ -363,8 +363,8 @@ curves; with a stack, curves describe the clip's base samples.
 ### Automate range transfers
 
 ```sh
-vibestudio --cli model curve-transfer models/keyed.mesh.json --source-clip 0 --target-clip 1 --first 0 --last 8 --target-first 0 --reverse --output models/reversed.mesh.json --dry-run --json
-vibestudio --cli model curve-transfer models/keyed.mesh.json --source-clip 0 --target-clip 1 --first 2 --last 6 --target-first 4 --match-rate --joint upper --joint lower --channel ty --output models/copied.mesh.json --json
+slopstudio --cli model curve-transfer models/keyed.mesh.json --source-clip 0 --target-clip 1 --first 0 --last 8 --target-first 0 --reverse --output models/reversed.mesh.json --dry-run --json
+slopstudio --cli model curve-transfer models/keyed.mesh.json --source-clip 0 --target-clip 1 --first 2 --last 6 --target-first 4 --match-rate --joint upper --joint lower --channel ty --output models/copied.mesh.json --json
 ```
 
 Input is positional or `--input`. All five clip/range options in the examples
@@ -381,7 +381,7 @@ inapplicable options are refused. GUI and CLI use `TransferAnimationCurves`.
 ## Deliver and review game animation
 
 Export through the existing MD5/IQM or baked MDL/MD2/MD3 paths. Native files
-receive sampled motion, not VibeStudio curve metadata, and retain their own
+receive sampled motion, not SlopStudio curve metadata, and retain their own
 limits on names, scales, frame counts and quantisation. Keep `.mesh.json` as
 the editable source. Refresh derivatives used by level placement, attachments
 and packaging; review collision, animation scripts and engine playback.

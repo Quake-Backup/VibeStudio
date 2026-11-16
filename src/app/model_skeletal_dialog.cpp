@@ -23,7 +23,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -582,4 +582,4 @@ ModelEdit ModelSkeletalDialog::edit() const
 	}
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

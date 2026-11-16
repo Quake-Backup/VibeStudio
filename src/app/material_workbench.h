@@ -47,7 +47,7 @@ class QTimer;
 class QToolButton;
 class QTreeWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class BusyIndicator;
 class BusyOverlay;
@@ -518,4 +518,4 @@ private:
 	QSplitter* m_graphSplitter = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

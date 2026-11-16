@@ -10,7 +10,7 @@
 
 #include <cmath>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 
 namespace {
 
@@ -159,7 +159,7 @@ void describeChoice(RenderCliResult* result, const StudioSettings& settings)
 	result->payload.insert(QStringLiteral("automaticOrder"), order);
 	QString from;
 	if (source == QStringLiteral("environment")) {
-		from = Text::tr("set by VIBESTUDIO_RENDER_BACKEND");
+		from = Text::tr("set by SLOPSTUDIO_RENDER_BACKEND");
 	} else if (source == QStringLiteral("command-line")) {
 		from = Text::tr("set by --renderer for this run");
 	} else {
@@ -294,7 +294,7 @@ RenderCliResult runSet(const QStringList& arguments)
 	result.payload.insert(QStringLiteral("overriddenByEnvironment"), renderBackendChoiceSource() == QStringLiteral("environment"));
 	result.lines << Text::tr("Saved the 3D renderer: %1. The studio uses it from its next frame.").arg(renderBackendChoiceDisplayName(choice));
 	if (renderBackendChoiceSource() == QStringLiteral("environment")) {
-		result.lines << Text::tr("VIBESTUDIO_RENDER_BACKEND is set, and chooses for any run while it is.");
+		result.lines << Text::tr("SLOPSTUDIO_RENDER_BACKEND is set, and chooses for any run while it is.");
 	}
 	return result;
 }
@@ -349,4 +349,4 @@ RenderCliResult runRenderCommand(const QString& action, const QStringList& argum
 	return fail(kUsage, Text::tr("Unknown render action %1; use %2.").arg(action, renderCommandActions().join(QStringLiteral(", "))));
 }
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

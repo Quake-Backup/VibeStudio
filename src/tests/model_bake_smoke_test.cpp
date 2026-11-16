@@ -21,7 +21,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace
 {
@@ -310,7 +310,7 @@ int main(int argc, char **argv)
 		   "baked maps are named beside the skin, Doom 3's _local for normals");
 
 	// The command.
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (argc == 2 && !root.isEmpty() && QDir().mkpath(root))
 	{
 		QTemporaryDir temporary(QDir(root).filePath("model-bake-XXXXXX"));

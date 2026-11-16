@@ -22,8 +22,8 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::publication_test;
+using namespace slopstudio;
+using namespace slopstudio::publication_test;
 namespace {
 bool expect(bool value, const char* label) { if (!value) { std::cerr << label << '\n'; } return value; }
 bool wait(const std::function<bool()>& ready)
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 	const QDir root(temporary.path()); bool ok = true; ExpandedTranslator translator;
 	StudioSettings::setOverrideFilePath(root.filePath("settings.ini"));
 	QTranslator english;
-	if (english.load(QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("../i18n/vibestudio_en.qm")))) { app.installTranslator(&english); }
+	if (english.load(QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("../i18n/slopstudio_en.qm")))) { app.installTranslator(&english); }
 	for (int scale : {100, 200}) {
 		applyStudioTheme(app, studioThemeTokens(scale == 100 ? StudioTheme::Dark : StudioTheme::HighContrastLight, UiDensity::Standard, scale));
 		if (scale == 200) { app.installTranslator(&translator); }
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
 			&& !details->accessibleName().isEmpty() && details->isReadOnly() && status->wordWrap(), "verification updates accessible status and readable details");
 		auto* close = dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Close); auto* scroll = dialog.findChild<QScrollArea*>();
 		ok &= expect(close->isVisible() && dialog.rect().contains(QRect(close->mapTo(&dialog, QPoint()), close->size())) && close->focusPolicy() != Qt::NoFocus, "Close stays visible and focusable at each scale");
-		const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			QDir().mkpath(captures); scroll->verticalScrollBar()->setValue(0); QApplication::processEvents(); dialog.repaint();
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog.render(&image);

@@ -74,7 +74,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -1657,7 +1657,7 @@ QString MaterialWorkbench::freeScriptPath(MaterialEngine engine) const
 	const QString folder = engine == MaterialEngine::Doom3 ? QStringLiteral("materials/") : QStringLiteral("scripts/");
 	const QString suffix = engine == MaterialEngine::Doom3 ? QStringLiteral(".mtr") : QStringLiteral(".shader");
 	for (int number = 0; number < 1000; ++number) {
-		const QString candidate = folder + QStringLiteral("vibestudio") + (number == 0 ? QString() : QString::number(number)) + suffix;
+		const QString candidate = folder + QStringLiteral("slopstudio") + (number == 0 ? QString() : QString::number(number)) + suffix;
 		bool used = false;
 		for (const MaterialScript& script : m_library->scripts) {
 			used = used || script.path.compare(candidate, Qt::CaseInsensitive) == 0;
@@ -1676,7 +1676,7 @@ QString MaterialWorkbench::freeScriptPath(MaterialEngine engine) const
 			return candidate;
 		}
 	}
-	return folder + QStringLiteral("vibestudio") + suffix;
+	return folder + QStringLiteral("slopstudio") + suffix;
 }
 
 // --- Selection and documents -------------------------------------------------
@@ -3281,7 +3281,7 @@ void MaterialWorkbench::chooseSaveAs()
 {
 	const bool doom3 = m_document.kind == MaterialTextKind::Doom3Material;
 	const QString filter = doom3 ? tr("Doom 3 materials (*.mtr)") : tr("Quake III shaders (*.shader)");
-	const QString suggested = m_document.virtualPath.isEmpty() ? (doom3 ? QStringLiteral("vibestudio.mtr") : QStringLiteral("vibestudio.shader"))
+	const QString suggested = m_document.virtualPath.isEmpty() ? (doom3 ? QStringLiteral("slopstudio.mtr") : QStringLiteral("slopstudio.shader"))
 															   : QFileInfo(m_document.virtualPath).fileName();
 	const QString path = QFileDialog::getSaveFileName(this, tr("Save Material Script"), suggested, filter);
 	if (!path.isEmpty()) {
@@ -3607,7 +3607,7 @@ bool MaterialWorkbench::overrideInPackage(QString* error)
 	const int entry = currentEntry();
 	if (!m_library || !materialOverrideForEntry(*m_library, entry, dialect(), &copy, &problem)) {
 		if (problem.isEmpty()) {
-			problem = QCoreApplication::translate("VibeStudioMaterials", "Only a base game material can be overridden in the package.");
+			problem = QCoreApplication::translate("SlopStudioMaterials", "Only a base game material can be overridden in the package.");
 		}
 	} else if (!m_reader) {
 		problem = tr("Open the package to put the copy in.");
@@ -4539,4 +4539,4 @@ void MaterialWorkbench::restoreState(const QByteArray& bytes)
 	m_restoringState = false;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

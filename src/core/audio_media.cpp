@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <cstring>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -304,4 +304,4 @@ AudioMediaResult editAudioMedia(const AudioSession &session, const AudioMediaEdi
 		result.session = std::move(next);
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

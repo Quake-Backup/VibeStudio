@@ -9,7 +9,7 @@
 
 class QPainter;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class ModelViewport;
 
@@ -120,4 +120,4 @@ class LevelCameraUvTool final {
 	QString m_previewError;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -37,7 +37,7 @@
 #include <functional>
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackageArchiveReader;
 
@@ -714,4 +714,4 @@ QString modelMeshSummaryText(const ModelMesh& mesh);
 QString exportModelFrameObj(const ModelMesh& mesh, int frameIndex, const QString& materialName = QString(),
 	const ModelWorkControl& control = {}, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

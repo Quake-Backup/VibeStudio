@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -78,7 +78,7 @@ class BoundedReader final : public PackageArchiveReader
 		const auto indexes = files.value(keyFor(path));
 		if (indexes.size() != 1) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioLevelMaterials", "The asset is missing or its name is ambiguous.");
+				*error = QCoreApplication::translate("SlopStudioLevelMaterials", "The asset is missing or its name is ambiguous.");
 			}
 			return false;
 		}
@@ -100,14 +100,14 @@ class BoundedReader final : public PackageArchiveReader
 		}
 		if (!entry.readable || !isSafePackageVirtualPath(entry.virtualPath)) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioLevelMaterials", "The asset is unreadable or has an unsafe package path.");
+				*error = QCoreApplication::translate("SlopStudioLevelMaterials", "The asset is unreadable or has an unsafe package path.");
 			}
 			return false;
 		}
 		if (entry.sizeBytes > static_cast<quint64>(cap)) {
 			m_report->complete = false;
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioLevelMaterials", "The asset exceeds the preview read budget.");
+				*error = QCoreApplication::translate("SlopStudioLevelMaterials", "The asset exceeds the preview read budget.");
 			}
 			return false;
 		}
@@ -115,7 +115,7 @@ class BoundedReader final : public PackageArchiveReader
 		if (!m_source.readEntryAt(index, out, error, cap + 1) || out->size() != static_cast<qint64>(entry.sizeBytes) || !m_tick()) {
 			out->clear();
 			if (error && error->isEmpty()) {
-				*error = QCoreApplication::translate("VibeStudioLevelMaterials",
+				*error = QCoreApplication::translate("SlopStudioLevelMaterials",
 													 "The asset changed, was cancelled, or could not be read completely.");
 			}
 			return false;
@@ -197,7 +197,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 	report.sourcePath = archive.sourcePath();
 	if (!archive.isOpen()) {
 		report.warnings << QCoreApplication::translate(
-			"VibeStudioLevelMaterials",
+			"SlopStudioLevelMaterials",
 			"No readable package snapshot is open. Open an asset folder or package, and resolve any staging conflicts.");
 	}
 	int completed = 0, total = 0;
@@ -288,7 +288,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 			{QStringLiteral("frame"), appearance.frame}, {QStringLiteral("skin"), appearance.skin}, {QStringLiteral("skinPath"), appearance.skinPath}};
 		if (++attemptedModels > std::max(0, options.modelLimit)) {
 			report.complete = false;
-			error = QCoreApplication::translate("VibeStudioLevelMaterials", "Model preview count limit reached.");
+			error = QCoreApplication::translate("SlopStudioLevelMaterials", "Model preview count limit reached.");
 		} else if (error.isEmpty()) {
 			if (decodedPath != keyFor(appearance.modelPath)) {
 				decodedPath = keyFor(appearance.modelPath); decoded = {}; decodeError.clear(); modelHash.clear();
@@ -298,7 +298,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 					modelHash = QString::fromLatin1(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex());
 					decoded = decodeModelMesh(appearance.modelPath, bytes, &palette.palette, control);
 					if (!decoded.embeddedSkins.isEmpty() && palette.palette.generated) {
-						report.warnings << QCoreApplication::translate("VibeStudioLevelMaterials", "%1 uses a generated skin palette; supply the game's palette for accurate colours.").arg(appearance.modelPath);
+						report.warnings << QCoreApplication::translate("SlopStudioLevelMaterials", "%1 uses a generated skin palette; supply the game's palette for accurate colours.").arg(appearance.modelPath);
 					}
 				}
 			}
@@ -311,7 +311,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 				modelVertices += model.vertexCount;
 				modelTriangles += model.triangleCount;
 				if (receipt.value(QStringLiteral("omittedSurfaces")).toInt() > 0) {
-					report.warnings << QCoreApplication::translate("VibeStudioLevelMaterials", "%1: compiler skin omitted %2 surface(s).")
+					report.warnings << QCoreApplication::translate("SlopStudioLevelMaterials", "%1: compiler skin omitted %2 surface(s).")
 						.arg(appearance.modelPath).arg(receipt.value(QStringLiteral("omittedSurfaces")).toInt());
 				}
 				for (const auto &warning : model.warnings) {
@@ -342,7 +342,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 				report.models.insert(it.key(), std::move(model));
 				continue;
 			}
-			if (error.isEmpty()) { error = model.error.isEmpty() ? QCoreApplication::translate("VibeStudioLevelMaterials",
+			if (error.isEmpty()) { error = model.error.isEmpty() ? QCoreApplication::translate("SlopStudioLevelMaterials",
 																		"Model geometry is unsupported or exceeds the preview limit.")
 										  : model.error; }
 		}
@@ -351,7 +351,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 		receipt.insert(QStringLiteral("status"), QStringLiteral("unavailable")); receipt.insert(QStringLiteral("error"), error);
 		receipt.insert(QStringLiteral("selectors"), QJsonArray::fromStringList(modelSelectors.value(it.key())));
 		report.modelAppearances.append(receipt);
-		report.warnings << QCoreApplication::translate("VibeStudioLevelMaterials", "%1: %2").arg(appearance.modelPath, error);
+		report.warnings << QCoreApplication::translate("SlopStudioLevelMaterials", "%1: %2").arg(appearance.modelPath, error);
 	}
 	QMap<QString, QVector<ShaderOwner>> shaders;
 	QStringList scriptTexts;
@@ -398,7 +398,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 	}
 	if (!scriptsComplete) {
 		report.complete = false;
-		report.warnings << QCoreApplication::translate("VibeStudioLevelMaterials",
+		report.warnings << QCoreApplication::translate("SlopStudioLevelMaterials",
 													   "Shader scripts are unreadable, ambiguous, malformed, or exceed the scan budget. "
 													   "Material previews are withheld until shader lookup is reliable.");
 	}
@@ -418,7 +418,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 		++completed;
 		if (report.materials.size() >= std::max(0, options.materialLimit)) {
 			report.complete = false;
-			report.warnings << QCoreApplication::translate("VibeStudioLevelMaterials",
+			report.warnings << QCoreApplication::translate("SlopStudioLevelMaterials",
 														   "Material preview count limit reached; remaining materials use flat shading.");
 			break;
 		}
@@ -437,7 +437,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 				return;
 			}
 			if (request.authored && request.name.isEmpty()) {
-				material.note = QCoreApplication::translate("VibeStudioModelDocument", "No material is assigned to this surface.");
+				material.note = QCoreApplication::translate("SlopStudioModelDocument", "No material is assigned to this surface.");
 				return;
 			}
 			if (!isSafePackageVirtualPath(request.name)) {
@@ -481,7 +481,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 				}
 				if (owners.size() != 1) {
 					material.status = QStringLiteral("ambiguous");
-					material.note = QCoreApplication::translate("VibeStudioLevelMaterials", "Multiple declarations use this shader name.");
+					material.note = QCoreApplication::translate("SlopStudioLevelMaterials", "Multiple declarations use this shader name.");
 					return;
 				}
 				material.shaderPath = owners.first().path;
@@ -500,7 +500,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 					}
 					animated = definition->isAnimated();
 					if (!definition->engineRejection.isEmpty()) {
-						shaderWarnings << QCoreApplication::translate("VibeStudioLevelMaterials",
+						shaderWarnings << QCoreApplication::translate("SlopStudioLevelMaterials",
 							"The game rejects this shader and draws its default image instead: %1").arg(definition->engineRejection);
 					}
 				}
@@ -531,9 +531,9 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 					}
 				}
 				material.note = animated
-					? QCoreApplication::translate("VibeStudioLevelMaterials",
+					? QCoreApplication::translate("SlopStudioLevelMaterials",
 						  "Still image of an animated shader; View > Camera Display > Animate Materials in Camera plays it in the camera.")
-					: QCoreApplication::translate("VibeStudioLevelMaterials",
+					: QCoreApplication::translate("SlopStudioLevelMaterials",
 						  "Static shader image only; lighting, blending, animation, deformation and "
 						  "texture-coordinate effects are not simulated.");
 				if (imageName.isEmpty()) {
@@ -581,7 +581,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 					material.status = QStringLiteral("budget");
 					report.complete = false;
 					material.note =
-						QCoreApplication::translate("VibeStudioLevelMaterials", "Image exceeds the 16-megapixel preview decode limit.");
+						QCoreApplication::translate("SlopStudioLevelMaterials", "Image exceeds the 16-megapixel preview decode limit.");
 					return;
 				}
 				const auto palette = paletteFor(entry.virtualPath, bytes);
@@ -596,7 +596,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 				material.warnings = decoded.warnings;
 				if (decoded.paletted && palette.palette.generated) {
 					material.warnings << QCoreApplication::translate(
-						"VibeStudioLevelMaterials", "A generated palette is used; supply the game's palette for accurate colours.");
+						"SlopStudioLevelMaterials", "A generated palette is used; supply the game's palette for accurate colours.");
 				}
 				if (material.status == QStringLiteral("missing")) {
 					material.status = QStringLiteral("image");
@@ -620,7 +620,7 @@ LevelPreviewAssets resolvePreviewAssets(const LevelMapDocument &document, const 
 				material.image = {};
 				material.status = QStringLiteral("budget");
 				report.complete = false;
-				material.note = QCoreApplication::translate("VibeStudioLevelMaterials", "Material image memory budget reached.");
+				material.note = QCoreApplication::translate("SlopStudioLevelMaterials", "Material image memory budget reached.");
 			} else if (!cached) {
 				report.imageBytes += material.image.sizeInBytes();
 				if (!material.imagePath.isEmpty()) {
@@ -721,7 +721,7 @@ QJsonObject levelPreviewAssetsJson(const LevelPreviewAssets &assets)
 }
 QString levelPreviewAssetsText(const LevelPreviewAssets &assets)
 {
-	QStringList lines{QCoreApplication::translate("VibeStudioLevelMaterials", "Materials: %1/%2 ready; models: %3/%4 ready.")
+	QStringList lines{QCoreApplication::translate("SlopStudioLevelMaterials", "Materials: %1/%2 ready; models: %3/%4 ready.")
 						  .arg(assets.readyCount())
 						  .arg(assets.requestedMaterials)
 						  .arg(assets.models.size())
@@ -739,16 +739,16 @@ QString levelPreviewAssetsText(const LevelPreviewAssets &assets)
 		}
 		lines += material.warnings;
 		for (const auto& input : material.inputs) {
-			lines << QCoreApplication::translate("VibeStudioLevelMaterials", "  %1: %2 · namespace %3 · directory occurrence %4")
+			lines << QCoreApplication::translate("SlopStudioLevelMaterials", "  %1: %2 · namespace %3 · directory occurrence %4")
 				.arg(input.role, input.path, input.namespaceId).arg(input.sourceOrdinal);
 		}
 	}
 	for (const auto& value : assets.modelAppearances) {
 		const auto appearance = value.toObject();
 		const auto skin = appearance.value(QStringLiteral("skin")).toString();
-		lines << QCoreApplication::translate("VibeStudioLevelMaterials", "Model %1 · frame %2 · skin %3 · %4")
+		lines << QCoreApplication::translate("SlopStudioLevelMaterials", "Model %1 · frame %2 · skin %3 · %4")
 			.arg(appearance.value(QStringLiteral("modelPath")).toString()).arg(appearance.value(QStringLiteral("frame")).toInt())
-			.arg(skin.isEmpty() ? QCoreApplication::translate("VibeStudioLevelMaterials", "Default") : skin, appearance.value(QStringLiteral("status")).toString());
+			.arg(skin.isEmpty() ? QCoreApplication::translate("SlopStudioLevelMaterials", "Default") : skin, appearance.value(QStringLiteral("status")).toString());
 		for (const auto& selector : appearance.value(QStringLiteral("selectors")).toArray()) { lines << QStringLiteral("  ") + selector.toString(); }
 		for (const auto& item : appearance.value(QStringLiteral("inputs")).toArray()) {
 			const auto input = item.toObject();
@@ -758,11 +758,11 @@ QString levelPreviewAssetsText(const LevelPreviewAssets &assets)
 		for (const auto& item : appearance.value(QStringLiteral("surfaces")).toArray()) {
 			const auto surface = item.toObject();
 			lines << QStringLiteral("  %1: %2 → %3").arg(surface.value(QStringLiteral("name")).toString(), surface.value(QStringLiteral("sourceMaterial")).toString(),
-				surface.value(QStringLiteral("retained")).toBool() ? surface.value(QStringLiteral("material")).toString() : QCoreApplication::translate("VibeStudioLevelMaterials", "omitted by compiler skin"));
+				surface.value(QStringLiteral("retained")).toBool() ? surface.value(QStringLiteral("material")).toString() : QCoreApplication::translate("SlopStudioLevelMaterials", "omitted by compiler skin"));
 		}
 		if (!appearance.value(QStringLiteral("error")).toString().isEmpty()) { lines << appearance.value(QStringLiteral("error")).toString(); }
 	}
 	lines += assets.warnings;
 	return lines.join(QLatin1Char('\n'));
 }
-} // namespace vibestudio
+} // namespace slopstudio

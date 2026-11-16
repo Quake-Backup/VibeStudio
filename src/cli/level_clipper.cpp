@@ -3,7 +3,7 @@
 #include <QCoreApplication>
 #include <QSet>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 LevelClipperCliResult runLevelClipper(const QStringList& arguments)
 {
 	const auto fail = [](const char* message) { return LevelClipperCliResult{2,QCoreApplication::translate("LevelClipperCli",message),{}, {}}; };
@@ -45,4 +45,4 @@ LevelClipperCliResult runLevelClipper(const QStringList& arguments)
 	for (auto it = values.begin(); it != values.end(); ++it) { result.lines << QStringLiteral("%1 = %2").arg(it.key(),it.value().isBool() ? (it.value().toBool() ? "on" : "off") : it.value().toString()); }
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

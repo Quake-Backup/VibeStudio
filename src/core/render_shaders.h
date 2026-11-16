@@ -13,7 +13,7 @@
 
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class GpuProgram : int {
 	// World-space model and level triangles with flat shading, skins,
@@ -84,4 +84,4 @@ inline const GpuProgramInfo* gpuProgramInfo(GpuProgram program)
 // Bytes per vertex attribute format.
 int gpuVertexFormatSize(GpuVertexFormat format);
 
-} // namespace vibestudio
+} // namespace slopstudio

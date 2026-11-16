@@ -16,7 +16,7 @@ class QProgressBar;
 class QVBoxLayout;
 class QWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class ElidedLabel;
 
@@ -139,4 +139,4 @@ private:
 	bool m_expanded = true;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

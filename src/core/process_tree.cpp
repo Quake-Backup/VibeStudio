@@ -13,7 +13,7 @@
 #include <unistd.h>
 #endif
 
-namespace vibestudio {
+namespace slopstudio {
 
 ProcessTree::ProcessTree(QProcess* process)
 	: m_process(process)
@@ -85,4 +85,4 @@ void ProcessTree::kill()
 	m_process->kill();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

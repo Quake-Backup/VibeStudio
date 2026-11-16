@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct MaterialsCliResult
 {
@@ -17,4 +17,4 @@ struct MaterialsCliResult
 MaterialsCliResult runMaterialCommand(const QString &action, const QStringList &arguments);
 // The actions runMaterialCommand accepts, for routing.
 QStringList materialCommandActions();
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

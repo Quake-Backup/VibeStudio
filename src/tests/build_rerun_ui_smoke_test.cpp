@@ -47,7 +47,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -86,7 +86,7 @@ class Expanded final : public QTranslator {
 	}
 };
 
-// A stand-in for vibemap2-bsp, run by the shell's compiler runner: a minimal
+// A stand-in for slopmap2-bsp, run by the shell's compiler runner: a minimal
 // Quake BSP beside the map it is given.
 int fakeCompiler(int argc, char** argv)
 {
@@ -101,7 +101,7 @@ int fakeCompiler(int argc, char** argv)
 	QByteArray bytes(4 + 15 * 8, '\0');
 	qToLittleEndian<qint32>(29, reinterpret_cast<uchar*>(bytes.data()));
 	QFile file(output);
-	std::cout << "fake vibemap2-bsp" << std::endl;
+	std::cout << "fake slopmap2-bsp" << std::endl;
 	return !output.isEmpty() && file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size() ? 0 : 1;
 }
 
@@ -143,7 +143,7 @@ bool writeFixture(const QString& path, QString* groupId)
 
 int main(int argc, char** argv)
 {
-	if (qEnvironmentVariableIsSet("VIBESTUDIO_RERUN_FAKE_COMPILER")) {
+	if (qEnvironmentVariableIsSet("SLOPSTUDIO_RERUN_FAKE_COMPILER")) {
 		return fakeCompiler(argc, argv);
 	}
 	// Owned offscreen Qt widgets and Qt Test key presses only.
@@ -159,13 +159,13 @@ int main(int argc, char** argv)
 	if (!temp.isValid()) {
 		return 1;
 	}
-	// The compiler runner starts this program again as vibemap2-bsp.
-	qputenv("VIBESTUDIO_RERUN_FAKE_COMPILER", "1");
+	// The compiler runner starts this program again as slopmap2-bsp.
+	qputenv("SLOPSTUDIO_RERUN_FAKE_COMPILER", "1");
 	StudioSettings::setOverrideFilePath(temp.filePath("settings.ini"));
 	StudioSettings settings;
 	settings.setRestoreSession(false);
 	settings.setReducedMotion(true);
-	settings.upsertCompilerToolPathOverride({QStringLiteral("vibemap2-bsp"), QCoreApplication::applicationFilePath()});
+	settings.upsertCompilerToolPathOverride({QStringLiteral("slopmap2-bsp"), QCoreApplication::applicationFilePath()});
 	GameInstallationProfile installation;
 	installation.id = QStringLiteral("rerun-ui-fixture");
 	installation.gameKey = QStringLiteral("quake");
@@ -226,7 +226,7 @@ int main(int argc, char** argv)
 		settings.setLastBuildRun(QString(), {});
 		settings.setLevelCompilerProfile(QStringLiteral("quake"), QString());
 		// Quake III remembers a profile that is not its default one.
-		settings.setLevelCompilerProfile(QStringLiteral("quake3"), QStringLiteral("vibemap3-convert"));
+		settings.setLevelCompilerProfile(QStringLiteral("quake3"), QStringLiteral("slopmap3-convert"));
 		settings.setSelectedGameInstallation(installation.id);
 		settings.setUserGameLaunchProfiles({});
 		settings.setLaunchExtraArguments(installation.id, QString());
@@ -298,9 +298,9 @@ int main(int argc, char** argv)
 					.arg(compileClock.elapsed())
 					.arg(shell.statusBar()->currentMessage(), StudioSettings().currentProjectPath()));
 			const StudioBuildRunRecord record = StudioSettings().lastBuildRun(QString());
-			expect(record.kind == QStringLiteral("profile") && record.id == QStringLiteral("vibemap2-bsp") && !record.launch, "the last build is the profile",
+			expect(record.kind == QStringLiteral("profile") && record.id == QStringLiteral("slopmap2-bsp") && !record.launch, "the last build is the profile",
 				record.kind + QLatin1Char(' ') + record.id);
-			expect(StudioSettings().levelCompilerProfile(QStringLiteral("quake")) == QStringLiteral("vibemap2-bsp"), "the game's profile is remembered");
+			expect(StudioSettings().levelCompilerProfile(QStringLiteral("quake")) == QStringLiteral("slopmap2-bsp"), "the game's profile is remembered");
 			expect(runLast->isEnabled() && mode() == StudioMode::Levels, "Run Last Build is ready, still in Levels");
 
 			// Re-run Last Compile replays the saved run; it becomes the newest.
@@ -543,7 +543,7 @@ int main(int argc, char** argv)
 			}
 			expect(until([&] { return shell.levelDocument().sourcePath == quake3Path; }, 30000) && shell.levelDocument().format == LevelMapFormat::Quake3Map,
 				"the Quake III map opens");
-			expect(levelsProfile && levelsProfile->currentData().toString() == QStringLiteral("vibemap3-convert"),
+			expect(levelsProfile && levelsProfile->currentData().toString() == QStringLiteral("slopmap3-convert"),
 				"the Quake III map starts with the profile remembered for Quake III", levelsProfile ? levelsProfile->currentData().toString() : QString());
 			shell.close();
 			discard.stop();

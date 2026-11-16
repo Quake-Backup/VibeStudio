@@ -18,7 +18,7 @@
 #include <QTreeWidgetItemIterator>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -233,4 +233,4 @@ void ApplicationShell::addProtectedEntityPropertyFromUi()
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Set protected property %1.").arg(key->text().trimmed()), 5000);
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -2,7 +2,7 @@
 
 #include "core/level_brush.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // How a cylinder, cone or sphere sits in its box. Box stretches the corners
 // to the box's sides, with a corner on the first axis across the depth axis,
@@ -85,4 +85,4 @@ struct LevelBrushHullRebuild {
 // 256 distinct brushes; scene locks and an open group's bounds are honoured.
 bool rebuildLevelMapBrushHulls(LevelMapDocument* document, const QVector<LevelBrushHullRebuild>& rebuilds, const QString& texture,
 	const QString& description, const QString& undoDescription, QString* error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

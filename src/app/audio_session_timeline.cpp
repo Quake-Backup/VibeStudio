@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -415,4 +415,4 @@ void AudioSessionTimeline::keyPressEvent(QKeyEvent *event)
 	}
 	QWidget::keyPressEvent(event);
 }
-} // namespace vibestudio
+} // namespace slopstudio

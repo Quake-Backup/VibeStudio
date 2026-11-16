@@ -15,8 +15,8 @@
 #include <iostream>
 #include <numbers>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -58,7 +58,7 @@ bool lengthsKept(const ModelMesh &mesh, int joints, double tolerance = 1e-4)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir tmp(QDir(root).filePath("ik-chain-XXXXXX"));
@@ -370,60 +370,60 @@ int main(int argc, char **argv)
 	const auto source = QDir(tmp.path()).filePath("chain.mesh.json"), out = QDir(tmp.path()).filePath("out.mesh.json");
 	ModelDocument chainSource;
 	expect(chainSource.setMesh(mesh, &error) && chainSource.save(source, false, &error), "save CLI source");
-	auto result = cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+	auto result = cli::runModelIk({"slopstudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
 								   "--end-joint", "j4", "--target", "3,4,0", "--pole", "2,8,0", "--solver", "fabrik", "--iterations", "200", "--output", out, "--json"});
 	expect(result.exitCode == 0 && result.payload["solver"].toString() == "fabrik" && result.payload["samples"].toArray().size() == 3 &&
 			   result.payload["samples"].toArray()[0].toObject()["reached"].toBool(),
 		   "CLI solves a chain");
-	result = cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+	result = cli::runModelIk({"slopstudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
 							  "--end-joint", "j4", "--target-joint", "prop", "--solver", "ccd", "--iterations", "500", "--output", out, "--overwrite"});
 	expect(result.exitCode == 0, "CLI follows a joint with CCD");
-	expect(cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--end-joint", "j4",
+	expect(cli::runModelIk({"slopstudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--end-joint", "j4",
 							"--target", "3,4,0", "--pole", "2,8,0", "--iterations", "4", "--output", out, "--overwrite"})
 				   .exitCode == 2,
 		   "CLI refuses chain options for the two-bone solve");
-	expect(cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+	expect(cli::runModelIk({"slopstudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
 							"--end-joint", "j4", "--target", "3,4,0", "--target-joint", "prop", "--output", out, "--overwrite"})
 				   .exitCode == 2,
 		   "CLI needs exactly one target source");
 	const auto limitedOut = QDir(tmp.path()).filePath("limits.mesh.json");
-	auto rig = cli::runModelRig({"vibestudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "-5,-5,-20",
+	auto rig = cli::runModelRig({"slopstudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "-5,-5,-20",
 								 "--max", "5,5,20", "--output", limitedOut, "--json"});
 	expect(rig.exitCode == 0 && rig.payload["joints"].toArray()[1].toObject().contains("limits"), "CLI sets joint limits");
-	expect(cli::runModelRig({"vibestudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "-5,-5,-20",
+	expect(cli::runModelRig({"slopstudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "-5,-5,-20",
 							 "--output", limitedOut, "--overwrite"})
 				   .exitCode == 2,
 		   "CLI limits need both bounds");
 	const auto swingOut = QDir(tmp.path()).filePath("swing-cli.mesh.json");
-	rig = cli::runModelRig({"vibestudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "-30,-10,-20",
+	rig = cli::runModelRig({"slopstudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "-30,-10,-20",
 							"--max", "30,10,20", "--swing-twist", "x", "--output", swingOut, "--json"});
 	expect(rig.exitCode == 0 &&
 			   rig.payload["joints"].toArray()[1].toObject()["limits"].toObject()["mode"].toString() == QStringLiteral("swing-twist") &&
 			   rig.payload["joints"].toArray()[1].toObject()["limits"].toObject()["twistAxis"].toInt() == 0,
 		   "CLI sets swing-twist limits");
-	expect(cli::runModelRig({"vibestudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "-30,-10,-20",
+	expect(cli::runModelRig({"slopstudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "-30,-10,-20",
 							 "--max", "30,10,20", "--swing-twist", "w", "--output", swingOut, "--overwrite"})
 				   .exitCode == 2,
 		   "CLI swing-twist needs an axis of x, y or z");
-	expect(cli::runModelRig({"vibestudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "5,5,5", "--max",
+	expect(cli::runModelRig({"slopstudio", "--cli", "model", "rig", source, "--operation", "limits", "--joint", "j1", "--min", "5,5,5", "--max",
 							 "30,10,20", "--swing-twist", "x", "--output", swingOut, "--overwrite"})
 				   .exitCode != 0,
 		   "CLI refuses swing bounds that exclude the bind pose");
-	result = cli::runModelIk({"vibestudio", "--cli", "model", "ik", limitedOut, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+	result = cli::runModelIk({"slopstudio", "--cli", "model", "ik", limitedOut, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
 							  "--end-joint", "j4", "--target", "3,4,0", "--pole", "2,8,0", "--limits", "--nearest-reachable", "--output", out,
 							  "--overwrite", "--json"});
 	expect(result.exitCode == 0 && result.payload["withinLimits"].toBool() && result.payload["limits"].toBool(), "CLI honours joint limits");
-	result = cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+	result = cli::runModelIk({"slopstudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
 							  "--end-joint", "j4", "--target-keys", "0:3,4,0; 2:4,3,0", "--pole-keys", "0:2,8,0", "--iterations", "200", "--output",
 							  out, "--overwrite", "--json"});
 	expect(result.exitCode == 0 && result.payload["targetKeys"].toString() == "0:3,4,0; 2:4,3,0" &&
 			   std::abs(result.payload["samples"].toArray()[1].toObject()["target"].toArray()[0].toDouble() - 3.5) < 1e-6,
 		   "CLI solves keyed targets");
-	expect(cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+	expect(cli::runModelIk({"slopstudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
 							"--end-joint", "j4", "--target-keys", "0:3,4,0", "--target", "3,4,0", "--output", out, "--overwrite"})
 				   .exitCode == 2,
 		   "CLI takes one target source");
-	expect(cli::runModelIk({"vibestudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
+	expect(cli::runModelIk({"slopstudio", "--cli", "model", "ik", source, "--clip", "0", "--first", "0", "--last", "2", "--root-joint", "j0",
 							"--end-joint", "j4", "--target-keys", "0:3,4", "--output", out, "--overwrite"})
 				   .exitCode == 2,
 		   "CLI refuses malformed keys");

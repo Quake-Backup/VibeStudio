@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct LevelTransformDialog::Work {
 	LevelMapDocument document;
@@ -414,4 +414,4 @@ void LevelTransformDialog::accept()
 		QDialog::accept();
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

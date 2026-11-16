@@ -1,6 +1,6 @@
 #pragma once
 #include "tests/model_rig_test_helpers.h"
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh ikFixture()
 {
@@ -40,4 +40,4 @@ inline ModelEdit ikEdit()
 	e.ik.pole = {0, 8, 0};
 	return e;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

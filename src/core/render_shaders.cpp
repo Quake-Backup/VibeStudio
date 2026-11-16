@@ -4,7 +4,7 @@
 
 #include <initializer_list>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -145,4 +145,4 @@ int gpuVertexFormatSize(GpuVertexFormat format)
 	return 4;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

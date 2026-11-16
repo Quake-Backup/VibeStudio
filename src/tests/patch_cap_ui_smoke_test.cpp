@@ -21,7 +21,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *label, const QString &error = {})
@@ -139,7 +139,7 @@ int main(int argc, char **argv)
 		}
 		ok &= expect(status->isReadOnly() && status->focusPolicy() != Qt::NoFocus && status->horizontalScrollBar()->maximum() == 0,
 					 "status is selectable and wraps");
-		const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!capture.isEmpty()) {
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied);
 			image.fill(Qt::transparent);

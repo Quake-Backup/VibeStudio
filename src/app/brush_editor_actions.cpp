@@ -3,7 +3,7 @@
 #include "app/map_viewport.h"
 #include <QStatusBar>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool ApplicationShell::applyLevelBrushGeometry(const LevelMapBrush &brush, int brushId, QString *error)
 {
@@ -52,4 +52,4 @@ void ApplicationShell::editLevelMapBrushComponentsFromUi()
 		return;
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

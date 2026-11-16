@@ -1,26 +1,26 @@
 # Branding
 
-VibeStudio's identity is **clean, modern and professional, with a retro pixel
+SlopStudio's identity is **clean, modern and professional, with a retro pixel
 accent**: an orange tile, a confident V, and a few square pixels that nod to
 the idTech era the studio serves. This page sets the rules for the logo,
 colours, type and writing, and lists every brand file.
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="../assets/branding/logo/vibestudio-banner-on-dark.svg">
-    <img alt="VibeStudio: the all-in-one idTech development studio" src="../assets/branding/logo/vibestudio-banner-on-light.svg" width="640">
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/branding/logo/slopstudio-banner-on-dark.svg">
+    <img alt="SlopStudio: the all-in-one idTech development studio" src="../assets/branding/logo/slopstudio-banner-on-light.svg" width="640">
   </picture>
 </p>
 
 ## Name and taglines
 
-- Write **VibeStudio**: one word, capital V and S. Never "Vibe Studio",
-  "Vibestudio" or "VIBESTUDIO". In commands and file names use `vibestudio`.
+- Write **SlopStudio**: one word, capital V and S. Never "Slop Studio",
+  "Slopstudio" or "SLOPSTUDIO". In commands and file names use `slopstudio`.
 - **Tagline:** *The all-in-one idTech development studio.*
 - **Descriptor** (when there is room): *The all-in-one development studio for
   classic idTech games.*
 - Doom, Quake and the id Tech engines belong to their owners. Name them to say
-  what VibeStudio works with, never as part of VibeStudio's own branding, and
+  what SlopStudio works with, never as part of SlopStudio's own branding, and
   never use their logos.
 
 ## The mark
@@ -43,16 +43,16 @@ into retro pixels.
 
 ## The wordmark and lockups
 
-The wordmark is set in **Manrope ExtraBold** and turned into outlines. "Vibe"
-is Vibe Orange; "Studio" is white on dark backgrounds or charcoal on light
-ones. Both dots on the i's are **square pixels** in Vibe Orange (charcoal on
+The wordmark is set in **Manrope ExtraBold** and turned into outlines. "Slop"
+is Slop Orange; "Studio" is white on dark backgrounds or charcoal on light
+ones. Both dots on the i's are **square pixels** in Slop Orange (charcoal on
 orange backgrounds).
 
 | Lockup | Files (SVG and 2x PNG, transparent) |
 | --- | --- |
-| Wordmark | `logo/vibestudio-wordmark-on-dark`, `logo/vibestudio-wordmark-on-light` |
-| Mark + wordmark | `logo/vibestudio-logo-on-dark`, `logo/vibestudio-logo-on-light` |
-| Banner (lockup + tagline) | `logo/vibestudio-banner-on-dark`, `logo/vibestudio-banner-on-light` |
+| Wordmark | `logo/slopstudio-wordmark-on-dark`, `logo/slopstudio-wordmark-on-light` |
+| Mark + wordmark | `logo/slopstudio-logo-on-dark`, `logo/slopstudio-logo-on-light` |
+| Banner (lockup + tagline) | `logo/slopstudio-banner-on-dark`, `logo/slopstudio-banner-on-light` |
 
 Pick the `on-dark` or `on-light` file by the background it sits on. On GitHub
 and in HTML, serve both with `<picture>` and `prefers-color-scheme`, as the
@@ -61,12 +61,12 @@ README does.
 ## Colour
 
 Orange and light greys/white lead. Charcoal is for text and dark interfaces,
-never as a large brand surface. Vibe Orange is the studio's own dark-theme
+never as a large brand surface. Slop Orange is the studio's own dark-theme
 accent (`src/app/studio_theme.cpp`), so the app and its brand match.
 
 | Name | Hex | Use |
 | --- | --- | --- |
-| Vibe Orange | `#E8841A` | The brand colour: tiles, highlights, pixel accents |
+| Slop Orange | `#E8841A` | The brand colour: tiles, highlights, pixel accents |
 | Flare | `#F7A040` | Light end of gradients |
 | Ember | `#D66A0E` | Deep end of gradients |
 | Burnt | `#B35900` | Orange text and links on white (meets WCAG AA for body text) |
@@ -79,7 +79,7 @@ accent (`src/app/studio_theme.cpp`), so the app and its brand match.
 | Charcoal | `#242424` | Body text on light surfaces; dark interface background |
 
 - The tile gradient runs top to bottom from Flare to Ember.
-- White on Vibe Orange is for large text and glyphs only; small text on orange
+- White on Slop Orange is for large text and glyphs only; small text on orange
   uses charcoal, or sits on a white surface.
 - Never rely on colour alone to carry meaning: status chips always include
   their word.
@@ -110,7 +110,7 @@ pixel fields away from text, and keep them quiet (white at 5 to 30% on orange).
 The same voice runs through the studio, the README, the manual and release
 notes.
 
-- **Honest first.** VibeStudio is pre-alpha. Say what works, what is partial,
+- **Honest first.** SlopStudio is pre-alpha. Say what works, what is partial,
   and what is planned; never imply production readiness.
 - **Direct and calm.** Second person, present tense, active voice, short
   sentences. No hype words, exclamation marks or emojis.
@@ -133,7 +133,7 @@ The manual in `docs/manual` is rendered on GitHub and by
 - UI labels in **bold**, exactly as the app shows them; menu paths as
   **File** > **Open Map…**.
 - Keys as `<kbd>Ctrl</kbd>+<kbd>S</kbd>`. Commands as
-  `vibestudio --cli <family> <command>` in fenced `sh` blocks.
+  `slopstudio --cli <family> <command>` in fenced `sh` blocks.
 - Callouts only with GitHub alerts (`[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`,
   `[!WARNING]`, `[!CAUTION]`), at most three per page.
 - Long reference lists go in `<details>` blocks.
@@ -148,14 +148,14 @@ matches.
 
 | Path | What it is |
 | --- | --- |
-| `logo/vibestudio-mark.svg`, `.png` | The mark at 1024 px |
-| `logo/vibestudio-{wordmark,logo,banner}-on-{dark,light}.svg`, `.png` | Wordmark, lockup and banner on transparent backgrounds |
-| `social/vibestudio-social-preview.png`, `.svg` | 1280 x 640 GitHub social preview |
-| `icons/vibestudio.svg` | Scalable app icon (Linux `scalable/apps`) |
-| `icons/png/vibestudio-<size>.png` | App icon from 16 to 1024 px |
-| `icons/vibestudio.ico` | Windows icon (16 to 256 px), compiled into `vibestudio.exe` |
-| `icons/vibestudio.icns`, `icons/vibestudio-macos*` | macOS icon in the macOS tile shape |
-| `vibestudio.qrc` | Qt resource that gives the running app its window icon and the start-up screen its wordmark typeface |
+| `logo/slopstudio-mark.svg`, `.png` | The mark at 1024 px |
+| `logo/slopstudio-{wordmark,logo,banner}-on-{dark,light}.svg`, `.png` | Wordmark, lockup and banner on transparent backgrounds |
+| `social/slopstudio-social-preview.png`, `.svg` | 1280 x 640 GitHub social preview |
+| `icons/slopstudio.svg` | Scalable app icon (Linux `scalable/apps`) |
+| `icons/png/slopstudio-<size>.png` | App icon from 16 to 1024 px |
+| `icons/slopstudio.ico` | Windows icon (16 to 256 px), compiled into `slopstudio.exe` |
+| `icons/slopstudio.icns`, `icons/slopstudio-macos*` | macOS icon in the macOS tile shape |
+| `slopstudio.qrc` | Qt resource that gives the running app its window icon and the start-up screen its wordmark typeface |
 | `web/` | Favicons and Manrope web fonts for the HTML documentation |
 | `installer/` | Windows installer wizard art and the macOS disk image background |
 | `fonts/` | Manrope ExtraBold and SemiBold, with their licence |

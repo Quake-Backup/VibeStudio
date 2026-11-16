@@ -12,7 +12,7 @@ class QTabWidget;
 class QLabel;
 class QPushButton;
 class QLineEdit;
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class ModelCurveKeyReportTable;
@@ -65,4 +65,4 @@ class ModelCurveTransferDialog final : public QDialog
 	void controls();
 	void showPreview();
 };
-} // namespace vibestudio
+} // namespace slopstudio

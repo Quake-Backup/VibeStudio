@@ -18,7 +18,7 @@
 #include <QMap>
 #include <QString>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelDeliveryPreferences
 {
@@ -86,4 +86,4 @@ void setProjectModelDeliveryPreferences(ProjectManifest *manifest, const ModelDe
 // The project folder that holds `path`: the nearest folder at or above it
 // with a project manifest. Empty when there is none.
 [[nodiscard]] QString findModelProjectRoot(const QString &path);
-} // namespace vibestudio
+} // namespace slopstudio

@@ -8,7 +8,7 @@
 #include <QJsonDocument>
 #include <algorithm>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh bevelCube()
 {
@@ -91,4 +91,4 @@ inline bool closedBevel(const ModelMesh &mesh)
 			++vertices;
 	return vertices - topology.edgeFaces.size() + s.triangles.size() == 2;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

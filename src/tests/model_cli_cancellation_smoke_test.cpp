@@ -2,7 +2,7 @@
 // realistic maximum-size source cancelled part way exits 130 with
 // {"cancelled": true}, writes no output and leaves no staging files; on
 // Windows a real Ctrl+Break to a new process group does the same. Stale
-// `.vibestudio-model-*.tmp` staging files of an interrupted writer are removed
+// `.slopstudio-model-*.tmp` staging files of an interrupted writer are removed
 // by the next write, and nothing else is.
 #include "core/cli_cancellation.h"
 #include "core/model_document.h"
@@ -32,7 +32,7 @@
 #include <windows.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -43,7 +43,7 @@ bool expect(bool value, const char *message)
 }
 int stagingFiles(const QString &directory)
 {
-	return int(QDir(directory).entryList({QStringLiteral(".vibestudio-model-*.tmp")}, QDir::Files | QDir::Hidden | QDir::System).size());
+	return int(QDir(directory).entryList({QStringLiteral(".slopstudio-model-*.tmp")}, QDir::Files | QDir::Hidden | QDir::System).size());
 }
 bool touch(const QString &path, const QDateTime &when)
 {
@@ -59,7 +59,7 @@ bool touch(const QString &path, const QDateTime &when)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("model-cli-cancel-XXXXXX")));
@@ -71,16 +71,16 @@ int main(int argc, char **argv)
 
 	// Stale staging files of an interrupted writer go; fresh ones and others stay.
 	const auto old = QDateTime::currentDateTime().addSecs(-3600);
-	ok &= expect(touch(path(QStringLiteral(".vibestudio-model-AbC123.tmp")), old) &&
-					 touch(path(QStringLiteral(".vibestudio-model-XyZ789.tmp")), QDateTime::currentDateTime()) &&
-					 touch(path(QStringLiteral("unrelated.tmp")), old) && touch(path(QStringLiteral(".vibestudio-model-short.tmp")), old),
+	ok &= expect(touch(path(QStringLiteral(".slopstudio-model-AbC123.tmp")), old) &&
+					 touch(path(QStringLiteral(".slopstudio-model-XyZ789.tmp")), QDateTime::currentDateTime()) &&
+					 touch(path(QStringLiteral("unrelated.tmp")), old) && touch(path(QStringLiteral(".slopstudio-model-short.tmp")), old),
 				 "write staging fixtures");
-	ok &= expect(removeStaleModelStagingFiles(temporary.path(), 600) == 1 && !QFileInfo::exists(path(QStringLiteral(".vibestudio-model-AbC123.tmp"))) &&
-					 QFileInfo::exists(path(QStringLiteral(".vibestudio-model-XyZ789.tmp"))) && QFileInfo::exists(path(QStringLiteral("unrelated.tmp"))) &&
-					 QFileInfo::exists(path(QStringLiteral(".vibestudio-model-short.tmp"))),
+	ok &= expect(removeStaleModelStagingFiles(temporary.path(), 600) == 1 && !QFileInfo::exists(path(QStringLiteral(".slopstudio-model-AbC123.tmp"))) &&
+					 QFileInfo::exists(path(QStringLiteral(".slopstudio-model-XyZ789.tmp"))) && QFileInfo::exists(path(QStringLiteral("unrelated.tmp"))) &&
+					 QFileInfo::exists(path(QStringLiteral(".slopstudio-model-short.tmp"))),
 				 "only an old staging file of the model writer's own pattern is removed");
-	QFile::remove(path(QStringLiteral(".vibestudio-model-XyZ789.tmp")));
-	QFile::remove(path(QStringLiteral(".vibestudio-model-short.tmp")));
+	QFile::remove(path(QStringLiteral(".slopstudio-model-XyZ789.tmp")));
+	QFile::remove(path(QStringLiteral(".slopstudio-model-short.tmp")));
 
 	// The progress hook and phase ids, in process.
 	ok &= expect(!cliCancellationRequested() && cliModelWorkPhaseId(ModelWorkPhase::Serializing) == QStringLiteral("serializing"),
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 			QProcess process;
 			auto environment = QProcessEnvironment::systemEnvironment();
 			if (!cancelAt.isEmpty())
-				environment.insert(QStringLiteral("VIBESTUDIO_CLI_CANCEL_AT_PROGRESS"), QString::fromLatin1(cancelAt));
+				environment.insert(QStringLiteral("SLOPSTUDIO_CLI_CANCEL_AT_PROGRESS"), QString::fromLatin1(cancelAt));
 			process.setProcessEnvironment(environment);
 			process.start(QString::fromLocal8Bit(argv[1]), QStringList{QStringLiteral("--cli"), QStringLiteral("--settings-file"),
 																	   path(QStringLiteral("settings.ini"))} +

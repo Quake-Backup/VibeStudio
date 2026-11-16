@@ -21,7 +21,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value,const char* label,const QString& error = {})
@@ -58,7 +58,7 @@ int main(int argc,char** argv)
 	const auto source = tests::typeSelectionFixture(); const auto path = temp.filePath("types.map"); QFile file(path);
 	if (!expect(file.open(QIODevice::WriteOnly) && file.write(source) == source.size(),"UI fixture")) { return 1; } file.close();
 	const QVector<LevelMapSelectionRef> seed{{LevelMapSelectionKind::QuakePatch,1}};
-	for (const auto* profile : {"trenchbroom","netradiant-custom","vibestudio-default"}) {
+	for (const auto* profile : {"trenchbroom","netradiant-custom","slopstudio-default"}) {
 		for (int scale : {100,200}) {
 			std::cout << "Type selection UI " << profile << ' ' << scale << '%' << std::endl;
 			QElapsedTimer phase; phase.start();
@@ -148,7 +148,7 @@ int main(int argc,char** argv)
 				expect(bytes() == source && levelMapHistoryMatchesSaved(shell.levelDocument(),static_cast<int>(shell.levelDocument().undoStack.size())),"entire workflow preserves native source and saved state");
 				std::cout << "Workflow complete: " << phase.elapsed() << " ms" << std::endl;
 				if (native && scale == 200) {
-					const auto capture = qEnvironmentVariable("VIBESTUDIO_TYPE_SELECTION_CAPTURE");
+					const auto capture = qEnvironmentVariable("SLOPSTUDIO_TYPE_SELECTION_CAPTURE");
 					if (!capture.isEmpty()) { QImage image(shell.size(),QImage::Format_ARGB32_Premultiplied); shell.render(&image); expect(image.save(capture),"owned Qt evidence"); }
 				}
 			}

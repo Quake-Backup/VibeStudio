@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label)
 {
@@ -50,7 +50,7 @@ int main(int argc, char** argv)
 		&& inventory.first().toObject().value("manifestSha256").toString() == hash, "settings-isolated default recovery directory");
 	cli({"recoveries", "--directory", store, "--directory", store}, 2);
 	cli({"recoveries", "--write"}, 2); cli({"recoveries", "extra"}, 2); cli({"recoveries", "--directory="}, 2);
-	const QString destination = root.filePath(QStringLiteral("restored.vibepackage"));
+	const QString destination = root.filePath(QStringLiteral("restored.sloppackage"));
 	const QStringList restore{"draft-recover", id, "--expected-sha256", hash, "--output", destination};
 	ok &= expect(cli(restore + QStringList{"--dry-run"}).value("dryRun").toBool() && !QFileInfo::exists(destination), "CLI restore dry run creates no files");
 	cli({"draft-recover", id, "--output", destination}, 2);

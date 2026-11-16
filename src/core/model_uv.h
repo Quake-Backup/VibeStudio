@@ -2,7 +2,7 @@
 
 #include "core/model_topology.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelUvPivot
 {
@@ -56,4 +56,4 @@ struct ModelUvIslandTransform
 // Failure/cancellation leaves result unchanged.
 bool transformModelUvIslands(const ModelSurface &surface, const QSet<int> &faces, const ModelUvIslandTransform &transform,
 							 ModelSurface *result, QString *error = nullptr, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

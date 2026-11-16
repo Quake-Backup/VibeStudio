@@ -19,7 +19,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value,const char* label) {
@@ -216,7 +216,7 @@ int main(int argc,char** argv) {
 	StudioSettings::setOverrideFilePath(temp.filePath("settings.ini")); StudioSettings settings;
 	settings.setRestoreSession(false); settings.setReducedMotion(true); settings.setLevelViewLayoutPreference("four-views"); settings.sync();
 	LevelMapDocument map; QString error; if (!expect(tests::createGeometryFixture(1,&map,&error),"geometry fixture")) { return 1; }
-	const auto evidence = qEnvironmentVariable("VIBESTUDIO_COMPONENT_UI_EVIDENCE");
+	const auto evidence = qEnvironmentVariable("SLOPSTUDIO_COMPONENT_UI_EVIDENCE");
 	coreChecks(); planChecks(app,map,evidence); cameraChecks(map);
 	const auto path = temp.filePath("cycle.map"); if (!expect(saveLevelMapAs(map,path).succeeded(),"saved fixture")) { return 1; }
 	for (int scale : {100,200}) {

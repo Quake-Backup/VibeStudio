@@ -9,9 +9,9 @@
 
 // Original adaptation of NRC Select_ConnectedEntities, Select_AllOfType and their scene walkers,
 // radiant/select.cpp at 449778b3840f8f2062daab15c87cb012f2ac945c (GPL-2.0-or-later).
-// VibeStudio's closed groups, locks, selection history and worker cancellation
+// SlopStudio's closed groups, locks, selection history and worker cancellation
 // use the shared studio model. See docs/CREDITS.md for attribution and review.
-namespace vibestudio::detail {
+namespace slopstudio::detail {
 namespace {
 struct Text { Q_DECLARE_TR_FUNCTIONS(LevelEntitySelection) };
 struct Child { LevelMapSelectionRef ref; int line = 0; };
@@ -202,4 +202,4 @@ bool selectLevelMapEntityQuery(LevelMapDocument* document, const LevelObjectSele
 	result.selection = std::move(selection);
 	*document = std::move(candidate); if (report) { *report = std::move(result); } return true;
 }
-} // namespace vibestudio::detail
+} // namespace slopstudio::detail

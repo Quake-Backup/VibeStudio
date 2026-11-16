@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct ModelGameSkinCliResult
 {
@@ -15,4 +15,4 @@ struct ModelGameSkinCliResult
 // (core/model_game_preview.h) as PNG images, the same composition the Mesh
 // Editor's Shading > Game draws.
 ModelGameSkinCliResult runModelGameSkin(const QStringList &arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

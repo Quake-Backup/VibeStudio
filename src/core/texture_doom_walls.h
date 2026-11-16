@@ -5,7 +5,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackageStagingModel;
 
@@ -45,4 +45,4 @@ struct DoomWallStageReport {
 bool stageDoomWallTexture(PackageStagingModel* staging, const QString& patchName, const QString& textureName, QSize size,
 	bool replaceExisting, DoomWallStageReport* report = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

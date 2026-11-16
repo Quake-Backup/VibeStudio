@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -307,7 +307,7 @@ QString levelAiEditSystemPrompt()
 {
 	// Kept in English: it instructs the model, and the user reviews it as sent.
 	return QStringLiteral(
-		"You edit idTech level maps inside VibeStudio by proposing actions; you never write map text. The user reviews every "
+		"You edit idTech level maps inside SlopStudio by proposing actions; you never write map text. The user reviews every "
 		"action before any is applied, and each applies through the editor as an undoable edit.\n"
 		"Actions: add-entity (classname, origin x y z, keys), set-key and remove-key (an entity key on target entities), "
 		"add-box (an axis-aligned box brush from mins to maxs in worldspawn, with a texture), set-texture (every face of target "
@@ -344,7 +344,7 @@ bool levelAiEditProposalFromJson(const QJsonObject& object, LevelAiEditProposal*
 	parsed.summary = object.value(QStringLiteral("summary")).toString().trimmed();
 	if (!object.value(QStringLiteral("actions")).isArray()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioLevelAiEdit", "The answer has no list of actions.");
+			*error = QCoreApplication::translate("SlopStudioLevelAiEdit", "The answer has no list of actions.");
 		}
 		return false;
 	}
@@ -378,7 +378,7 @@ bool levelAiEditProposalFromJson(const QJsonObject& object, LevelAiEditProposal*
 		parsed.actions.push_back(action);
 	}
 	if (parsed.actions.size() > kMaxActions) {
-		parsed.problems << QCoreApplication::translate("VibeStudioLevelAiEdit", "Only the first %1 of %2 actions were kept.").arg(kMaxActions).arg(parsed.actions.size());
+		parsed.problems << QCoreApplication::translate("SlopStudioLevelAiEdit", "Only the first %1 of %2 actions were kept.").arg(kMaxActions).arg(parsed.actions.size());
 		parsed.actions.resize(kMaxActions);
 	}
 	*proposal = parsed;
@@ -437,17 +437,17 @@ void validateLevelAiEditProposal(const LevelMapDocument& document, LevelAiEditPr
 		action.problems.clear();
 		const auto problem = [&action](const QString& text) { action.problems << text; };
 		if (!quakeFamily) {
-			problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "Proposed edits apply to Quake-family .map files only."));
+			problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "Proposed edits apply to Quake-family .map files only."));
 		}
 		if (!levelAiEditActionKinds().contains(action.kind)) {
-			problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "\"%1\" is not an action VibeStudio can apply.").arg(action.kind));
+			problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "\"%1\" is not an action SlopStudio can apply.").arg(action.kind));
 		}
 		// Targets: they exist, and are what the action works on.
 		QVector<LevelMapSelectionRef> refs;
 		for (const QString& selector : action.targets) {
 			const LevelMapSelectionRef ref = resolveSelector(document, selector);
 			if (ref.kind == LevelMapSelectionKind::None) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "%1 is not an object in this map.").arg(selector));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "%1 is not an object in this map.").arg(selector));
 			} else {
 				refs << ref;
 			}
@@ -455,53 +455,53 @@ void validateLevelAiEditProposal(const LevelMapDocument& document, LevelAiEditPr
 		const bool needsTargets = action.kind == QStringLiteral("set-key") || action.kind == QStringLiteral("remove-key") || action.kind == QStringLiteral("set-texture")
 			|| action.kind == QStringLiteral("move") || action.kind == QStringLiteral("delete");
 		if (needsTargets && action.targets.isEmpty()) {
-			problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "It names nothing to act on."));
+			problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "It names nothing to act on."));
 		}
 		const bool entitiesOnly = action.kind == QStringLiteral("set-key") || action.kind == QStringLiteral("remove-key");
 		for (const LevelMapSelectionRef& ref : refs) {
 			if (entitiesOnly && ref.kind != LevelMapSelectionKind::Entity) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "%1 is not an entity, so it has no keys.").arg(levelMapSelectionRefId(ref)));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "%1 is not an entity, so it has no keys.").arg(levelMapSelectionRefId(ref)));
 			}
 			if (action.kind == QStringLiteral("delete") && ref.kind == LevelMapSelectionKind::Entity) {
 				const LevelMapEntity* entity = entityById(document, ref.objectId);
 				if (entity && entity->className == QStringLiteral("worldspawn")) {
-					problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "The worldspawn holds the world and is never deleted."));
+					problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "The worldspawn holds the world and is never deleted."));
 				}
 			}
 		}
 		const QString targetText = action.targets.join(QStringLiteral(", "));
 		if (action.kind == QStringLiteral("add-entity")) {
 			if (action.classname.isEmpty() || action.classname.contains(QLatin1Char(' ')) || !cleanText(action.classname)) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "The class name must be one word."));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "The class name must be one word."));
 			}
 			if (action.classname == QStringLiteral("worldspawn")) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "A map has one worldspawn already."));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "A map has one worldspawn already."));
 			}
 			if (!vectorUsable(action.origin)) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "The origin must be three numbers between -%1 and %1.").arg(kLargestCoordinate));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "The origin must be three numbers between -%1 and %1.").arg(kLargestCoordinate));
 			}
 			for (const LevelMapProperty& property : action.keys) {
 				if (property.key.contains(QLatin1Char(' ')) || !cleanText(property.key) || !cleanText(property.value)) {
-					problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "Key %1 has a space, quote, or line break in it.").arg(property.key));
+					problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "Key %1 has a space, quote, or line break in it.").arg(property.key));
 				}
 			}
 			QStringList keys;
 			for (const LevelMapProperty& property : action.keys) {
 				keys << QStringLiteral("%1=%2").arg(property.key, property.value);
 			}
-			action.description = keys.isEmpty() ? QCoreApplication::translate("VibeStudioLevelAiEdit", "Add %1 at %2.").arg(action.classname, vectorText(action.origin))
-												 : QCoreApplication::translate("VibeStudioLevelAiEdit", "Add %1 at %2 with %3.").arg(action.classname, vectorText(action.origin), keys.join(QStringLiteral(", ")));
+			action.description = keys.isEmpty() ? QCoreApplication::translate("SlopStudioLevelAiEdit", "Add %1 at %2.").arg(action.classname, vectorText(action.origin))
+												 : QCoreApplication::translate("SlopStudioLevelAiEdit", "Add %1 at %2 with %3.").arg(action.classname, vectorText(action.origin), keys.join(QStringLiteral(", ")));
 		} else if (action.kind == QStringLiteral("set-key")) {
 			if (action.key.isEmpty() || action.key.contains(QLatin1Char(' ')) || !cleanText(action.key) || !cleanText(action.value)) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "The key must be one word and the value one line without quotes."));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "The key must be one word and the value one line without quotes."));
 			}
 			if (action.key == QStringLiteral("classname") && action.value == QStringLiteral("worldspawn")) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "A map has one worldspawn already."));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "A map has one worldspawn already."));
 			}
-			action.description = QCoreApplication::translate("VibeStudioLevelAiEdit", "Set %1 to \"%2\" on %3.").arg(action.key, action.value, targetText);
+			action.description = QCoreApplication::translate("SlopStudioLevelAiEdit", "Set %1 to \"%2\" on %3.").arg(action.key, action.value, targetText);
 		} else if (action.kind == QStringLiteral("remove-key")) {
 			if (action.key.isEmpty() || action.key == QStringLiteral("classname")) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "Name a key to remove other than classname."));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "Name a key to remove other than classname."));
 			}
 			bool anyHas = false;
 			for (const LevelMapSelectionRef& ref : refs) {
@@ -509,36 +509,36 @@ void validateLevelAiEditProposal(const LevelMapDocument& document, LevelAiEditPr
 				anyHas = anyHas || (entity && hasProperty(*entity, action.key));
 			}
 			if (!refs.isEmpty() && !anyHas) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "None of the targets has %1.").arg(action.key));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "None of the targets has %1.").arg(action.key));
 			}
-			action.description = QCoreApplication::translate("VibeStudioLevelAiEdit", "Remove %1 from %2.").arg(action.key, targetText);
+			action.description = QCoreApplication::translate("SlopStudioLevelAiEdit", "Remove %1 from %2.").arg(action.key, targetText);
 		} else if (action.kind == QStringLiteral("add-box")) {
 			if (!vectorUsable(action.mins) || !vectorUsable(action.maxs)) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "The corners must be three numbers each between -%1 and %1.").arg(kLargestCoordinate));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "The corners must be three numbers each between -%1 and %1.").arg(kLargestCoordinate));
 			} else if (action.maxs.x - action.mins.x < 1.0 || action.maxs.y - action.mins.y < 1.0 || action.maxs.z - action.mins.z < 1.0) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "The box must be at least one unit on every side, maxs above mins."));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "The box must be at least one unit on every side, maxs above mins."));
 			}
 			if (action.texture.isEmpty() || !cleanText(action.texture) || action.texture.contains(QLatin1Char(' '))) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "The box needs one texture name."));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "The box needs one texture name."));
 			}
-			action.description = QCoreApplication::translate("VibeStudioLevelAiEdit", "Add a %1 box from %2 to %3.").arg(action.texture, vectorText(action.mins), vectorText(action.maxs));
+			action.description = QCoreApplication::translate("SlopStudioLevelAiEdit", "Add a %1 box from %2 to %3.").arg(action.texture, vectorText(action.mins), vectorText(action.maxs));
 		} else if (action.kind == QStringLiteral("set-texture")) {
 			if (action.texture.isEmpty() || !cleanText(action.texture) || action.texture.contains(QLatin1Char(' '))) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "Name one texture."));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "Name one texture."));
 			}
 			for (const LevelMapSelectionRef& ref : refs) {
 				if (ref.kind == LevelMapSelectionKind::Entity && !ownsGeometry(document, ref.objectId)) {
-					problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "%1 is a point entity, with no faces to texture.").arg(levelMapSelectionRefId(ref)));
+					problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "%1 is a point entity, with no faces to texture.").arg(levelMapSelectionRefId(ref)));
 				}
 			}
-			action.description = QCoreApplication::translate("VibeStudioLevelAiEdit", "Texture %1 with %2.").arg(targetText, action.texture);
+			action.description = QCoreApplication::translate("SlopStudioLevelAiEdit", "Texture %1 with %2.").arg(targetText, action.texture);
 		} else if (action.kind == QStringLiteral("move")) {
 			if (!vectorUsable(action.delta) || (action.delta.x == 0.0 && action.delta.y == 0.0 && action.delta.z == 0.0)) {
-				problem(QCoreApplication::translate("VibeStudioLevelAiEdit", "The move needs a non-zero x, y, z offset."));
+				problem(QCoreApplication::translate("SlopStudioLevelAiEdit", "The move needs a non-zero x, y, z offset."));
 			}
-			action.description = QCoreApplication::translate("VibeStudioLevelAiEdit", "Move %1 by %2.").arg(targetText, vectorText(action.delta));
+			action.description = QCoreApplication::translate("SlopStudioLevelAiEdit", "Move %1 by %2.").arg(targetText, vectorText(action.delta));
 		} else if (action.kind == QStringLiteral("delete")) {
-			action.description = QCoreApplication::translate("VibeStudioLevelAiEdit", "Delete %1.").arg(targetText);
+			action.description = QCoreApplication::translate("SlopStudioLevelAiEdit", "Delete %1.").arg(targetText);
 		}
 		if (action.description.isEmpty()) {
 			action.description = action.kind;
@@ -585,7 +585,7 @@ LevelAiEditApplyReport applyLevelAiEditProposal(LevelMapDocument* document, cons
 		bool done = false;
 		if (!action->targets.isEmpty() && refs.isEmpty()) {
 			// An earlier action took them, as deleting an entity takes its brushes.
-			error = QCoreApplication::translate("VibeStudioLevelAiEdit", "what it names is no longer in the map");
+			error = QCoreApplication::translate("SlopStudioLevelAiEdit", "what it names is no longer in the map");
 		} else if (action->kind == QStringLiteral("add-entity")) {
 			int id = -1;
 			done = addLevelMapEntity(document, action->classname, action->origin, action->keys, &id, &error);
@@ -606,11 +606,11 @@ LevelAiEditApplyReport applyLevelAiEditProposal(LevelMapDocument* document, cons
 		if (done) {
 			++report.applied;
 			report.appliedActions << index;
-			report.lines << QCoreApplication::translate("VibeStudioLevelAiEdit", "Done: %1").arg(action->description);
+			report.lines << QCoreApplication::translate("SlopStudioLevelAiEdit", "Done: %1").arg(action->description);
 		} else {
 			++report.skipped;
 			report.failedActions << index;
-			const QString line = QCoreApplication::translate("VibeStudioLevelAiEdit", "Not done: %1 (%2)").arg(action->description, error);
+			const QString line = QCoreApplication::translate("SlopStudioLevelAiEdit", "Not done: %1 (%2)").arg(action->description, error);
 			report.lines << line;
 			report.errors << line;
 		}
@@ -618,4 +618,4 @@ LevelAiEditApplyReport applyLevelAiEditProposal(LevelMapDocument* document, cons
 	return report;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

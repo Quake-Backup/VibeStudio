@@ -19,13 +19,13 @@
 #include <cmath>
 #include <optional>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelCollision)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelCollision)
 };
 QString property(const LevelMapEntity &entity, const QString &key)
 {
@@ -434,4 +434,4 @@ LevelPlacementResult prepareModelCollisionRefresh(const ModelMesh &mesh, const Q
 	result.succeeded = true;
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

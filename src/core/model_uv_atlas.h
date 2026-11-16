@@ -2,7 +2,7 @@
 
 #include "core/model_mesh.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelUvAtlasOptions
 {
@@ -43,4 +43,4 @@ bool atlasModelUv(const ModelSurface &source, const QSet<int> &faces, int frame,
 bool atlasModelUvSurfaces(const ModelMesh &mesh, int surface, const QSet<int> &faces, const QSet<int> &others, int frame,
 						  const ModelUvAtlasOptions &options, ModelMesh *result, QString *error = nullptr, const ModelWorkControl &control = {},
 						  ModelUvAtlasReport *report = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

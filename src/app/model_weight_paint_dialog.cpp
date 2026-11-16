@@ -30,7 +30,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -788,4 +788,4 @@ bool ModelWeightPaintDialog::eventFilter(QObject *watched, QEvent *event)
 		return false;
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

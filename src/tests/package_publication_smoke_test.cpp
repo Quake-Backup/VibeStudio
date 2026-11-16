@@ -17,7 +17,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool condition, const char* message)
@@ -41,12 +41,12 @@ QString hash(const QByteArray& bytes)
 }
 QString journalIn(const QString& root)
 {
-	const auto files = QDir(root).entryList({QStringLiteral(".vibestudio-package-*.payload.json")}, QDir::Files | QDir::Hidden);
+	const auto files = QDir(root).entryList({QStringLiteral(".slopstudio-package-*.payload.json")}, QDir::Files | QDir::Hidden);
 	return files.size() == 1 ? QDir(root).filePath(files.first()) : QString();
 }
 QStringList transactionFiles(const QString& root)
 {
-	return QDir(root).entryList({QStringLiteral(".vibestudio-package-*")}, QDir::Files | QDir::Hidden);
+	return QDir(root).entryList({QStringLiteral(".slopstudio-package-*")}, QDir::Files | QDir::Hidden);
 }
 PackagePublicationResult publish(const QString& path, bool overwrite, const QByteArray& bytes, PackagePublication::Checkpoint hook = {})
 {

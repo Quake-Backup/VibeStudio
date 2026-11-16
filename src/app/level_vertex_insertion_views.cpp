@@ -2,7 +2,7 @@
 #include "app/model_viewport.h"
 #include <QTimer>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool gesture(bool tool,Qt::KeyboardModifiers keys,Qt::KeyboardModifiers chord,bool worldAxes)
 {
@@ -36,4 +36,4 @@ bool ModelViewport::beginVertexInsertion(const QPointF& point,Qt::KeyboardModifi
 	if (!m_vertexInsertion->begin(point,componentGizmoFrame(),modifiers.testFlag(Qt::AltModifier) ? ModelMoveConstraint::Z : ModelMoveConstraint::ViewPlane,modifiers)) { return false; }
 	m_heldKeys.clear(); m_flyTimer->stop(); return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

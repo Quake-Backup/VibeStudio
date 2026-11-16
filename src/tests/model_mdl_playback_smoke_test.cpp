@@ -20,7 +20,7 @@
 #include <crtdbg.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool condition, const char *message)
@@ -159,7 +159,7 @@ int main(int argc, char **argv)
 #endif
 	QApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-mdl-playback-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-mdl-playback-smoke"); skip >= 0) {
 		return skip;
 	}
 #ifdef Q_OS_WIN

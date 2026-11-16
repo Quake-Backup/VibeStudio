@@ -13,7 +13,7 @@
 #include <QTextCursor>
 #include <QToolButton>
 
-namespace vibestudio {
+namespace slopstudio {
 
 QWidget* ApplicationShell::buildCodeLanguagePanel()
 {
@@ -239,4 +239,4 @@ bool ApplicationShell::requestCodeLanguageReferences(const QString& word)
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

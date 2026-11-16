@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -312,4 +312,4 @@ AudioAnalysisDialog::AudioAnalysisDialog(AudioAnalysis analysis, const QString& 
 	       std::min(std::max(460, fontMetrics().height() * 28), std::max(280, available.height() - 80)));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

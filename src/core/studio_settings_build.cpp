@@ -13,7 +13,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -212,4 +212,4 @@ void StudioSettings::setTrustedBuildPrograms(const QVector<BuildProgramTrustReco
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

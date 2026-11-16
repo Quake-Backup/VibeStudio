@@ -14,7 +14,7 @@
 #include <filesystem>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 
 bool expect(bool condition, const char* message)
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 	const QString second = root.filePath(QStringLiteral("src/main.cpp"));
 	const QByteArray original = QByteArray::fromHex("efbbbf") + QStringLiteral("// café\r\nplayer player_run Player\n  player\rplayer").toUtf8();
 	ok &= expect(writeFile(first, original) && writeFile(second, "void player() {}\n"), "write UTF-8 fixtures");
-	for (const auto& directory : {QStringLiteral(".git"), QStringLiteral("build"), QStringLiteral("builddir-cl"), QStringLiteral(".agents"), QStringLiteral(".vibestudio"), QStringLiteral("node_modules")}) {
+	for (const auto& directory : {QStringLiteral(".git"), QStringLiteral("build"), QStringLiteral("builddir-cl"), QStringLiteral(".agents"), QStringLiteral(".slopstudio"), QStringLiteral("node_modules")}) {
 		ok &= expect(writeFile(root.filePath(directory + QStringLiteral("/nested/ignored.cfg")), "player\n"), "write excluded subtree fixture");
 	}
 	ok &= expect(writeFile(root.filePath(QStringLiteral("invalid.cfg")), QByteArray("player\xc3", 7))

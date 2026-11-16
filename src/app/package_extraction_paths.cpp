@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 QString pathKey(const QString& path)
@@ -43,7 +43,7 @@ public:
 		QWidget* editor = QStyledItemDelegate::createEditor(parent, option, index);
 		if (editor) {
 			editor->setLayoutDirection(Qt::LeftToRight);
-			editor->setAccessibleName(QCoreApplication::translate("VibeStudioPackagePaths", "Relative extraction path"));
+			editor->setAccessibleName(QCoreApplication::translate("SlopStudioPackagePaths", "Relative extraction path"));
 		}
 		return editor;
 	}
@@ -56,26 +56,26 @@ public:
 		: QDialog(parent)
 	{
 		setObjectName(QStringLiteral("packageExtractionPaths"));
-		setWindowTitle(QCoreApplication::translate("VibeStudioPackagePaths", "Extraction Paths"));
+		setWindowTitle(QCoreApplication::translate("SlopStudioPackagePaths", "Extraction Paths"));
 		setAccessibleName(windowTitle());
 		setWindowModality(Qt::WindowModal);
 		resize(900, 540);
 		auto* layout = new QVBoxLayout(this);
 		m_status = new QLabel;
 		m_status->setObjectName(QStringLiteral("extractionPathStatus"));
-		m_status->setAccessibleName(QCoreApplication::translate("VibeStudioPackagePaths", "Extraction path validation"));
+		m_status->setAccessibleName(QCoreApplication::translate("SlopStudioPackagePaths", "Extraction path validation"));
 		m_status->setWordWrap(true);
 		layout->addWidget(m_status);
 		m_paths = new QTreeWidget;
 		m_paths->setObjectName(QStringLiteral("extractionPaths"));
-		m_paths->setAccessibleName(QCoreApplication::translate("VibeStudioPackagePaths", "Source entries and output paths"));
-		m_paths->setAccessibleDescription(QCoreApplication::translate("VibeStudioPackagePaths", "Each source occurrence keeps its own row. Output paths are editable and relative to the chosen directory."));
+		m_paths->setAccessibleName(QCoreApplication::translate("SlopStudioPackagePaths", "Source entries and output paths"));
+		m_paths->setAccessibleDescription(QCoreApplication::translate("SlopStudioPackagePaths", "Each source occurrence keeps its own row. Output paths are editable and relative to the chosen directory."));
 		m_paths->setRootIsDecorated(false);
 		m_paths->setWordWrap(true);
 		m_paths->setTextElideMode(Qt::ElideNone);
 		connect(m_paths->header(), &QHeaderView::sectionResized, m_paths, [this]() { m_paths->doItemsLayout(); });
 		m_paths->setColumnCount(2);
-		m_paths->setHeaderLabels({QCoreApplication::translate("VibeStudioPackagePaths", "Source entry"), QCoreApplication::translate("VibeStudioPackagePaths", "Output path")});
+		m_paths->setHeaderLabels({QCoreApplication::translate("SlopStudioPackagePaths", "Source entry"), QCoreApplication::translate("SlopStudioPackagePaths", "Output path")});
 		m_paths->setItemDelegate(new OutputPathDelegate(m_paths));
 		m_paths->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::EditKeyPressed | QAbstractItemView::SelectedClicked);
 		m_paths->header()->setSectionResizeMode(QHeaderView::Stretch);
@@ -86,7 +86,7 @@ public:
 				continue;
 			}
 			const qint64 ordinal = entry.sourceOrdinal >= 0 ? entry.sourceOrdinal : index;
-			const QString label = QCoreApplication::translate("VibeStudioPackagePaths", "%1 (source entry %2)").arg(entry.virtualPath).arg(ordinal + 1);
+			const QString label = QCoreApplication::translate("SlopStudioPackagePaths", "%1 (source entry %2)").arg(entry.virtualPath).arg(ordinal + 1);
 			QString output = overrides.value(index, entry.virtualPath);
 			if (needsMapping.contains(pathKey(output))) { output = QStringLiteral("source-entry-%1/%2").arg(ordinal + 1).arg(output); }
 			auto* row = new QTreeWidgetItem(m_paths, {label, output});
@@ -98,7 +98,7 @@ public:
 		}
 		layout->addWidget(m_paths, 1);
 		auto* buttons = new QDialogButtonBox(QDialogButtonBox::Cancel);
-		m_extract = buttons->addButton(QCoreApplication::translate("VibeStudioPackagePaths", "Extract"), QDialogButtonBox::AcceptRole);
+		m_extract = buttons->addButton(QCoreApplication::translate("SlopStudioPackagePaths", "Extract"), QDialogButtonBox::AcceptRole);
 		m_extract->setObjectName(QStringLiteral("extractMappedEntries"));
 		connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
 		connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -132,12 +132,12 @@ private:
 			const QString key = pathKey(path);
 			QString error;
 			if (!normalized.isSafe() || packageFilesystemPathIssue(normalized.normalizedPath) != PackagePathIssue::None) {
-				error = QCoreApplication::translate("VibeStudioPackagePaths", "Enter a safe relative file path.");
+				error = QCoreApplication::translate("SlopStudioPackagePaths", "Enter a safe relative file path.");
 			} else if (counts.value(key) > 1 || m_directories.contains(key)) {
-				error = QCoreApplication::translate("VibeStudioPackagePaths", "This output path is already used by another entry.");
+				error = QCoreApplication::translate("SlopStudioPackagePaths", "This output path is already used by another entry.");
 			}
 			for (QString parent = packageVirtualPathParent(key); error.isEmpty() && !parent.isEmpty(); parent = packageVirtualPathParent(parent)) {
-				if (counts.contains(parent)) { error = QCoreApplication::translate("VibeStudioPackagePaths", "Another file occupies a required output directory."); }
+				if (counts.contains(parent)) { error = QCoreApplication::translate("SlopStudioPackagePaths", "Another file occupies a required output directory."); }
 			}
 			auto* item = m_paths->topLevelItem(static_cast<int>(index));
 			item->setToolTip(1, error.isEmpty() ? path : error);
@@ -146,7 +146,7 @@ private:
 		}
 		m_extract->setEnabled(!rows.isEmpty() && firstError.isEmpty());
 		m_status->setText(firstError.isEmpty()
-			? QCoreApplication::translate("VibeStudioPackagePaths", "%n distinct output path(s).", nullptr, static_cast<int>(rows.size()))
+			? QCoreApplication::translate("SlopStudioPackagePaths", "%n distinct output path(s).", nullptr, static_cast<int>(rows.size()))
 			: firstError);
 	}
 	QTreeWidget* m_paths = nullptr;
@@ -207,4 +207,4 @@ bool reviewPackageExtractionPaths(QWidget* parent, const PackageArchiveReader& s
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

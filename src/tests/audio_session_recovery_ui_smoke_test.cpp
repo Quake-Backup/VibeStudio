@@ -27,7 +27,7 @@
 #include <QUuid>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *text)
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
 		writer.checkpoint(id, 1, AudioSessionRecovery{fixture(), {}, {}});
 		return application.exec(); // Parent terminates only this disposable fixture process.
 	}
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root)) {
 		return 1;
 	}
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	const auto directory = temporary.filePath("copies");
-	qputenv("VIBESTUDIO_AUDIO_RECOVERY_ROOT", directory.toUtf8());
+	qputenv("SLOPSTUDIO_AUDIO_RECOVERY_ROOT", directory.toUtf8());
 	StudioSettings::setOverrideFilePath(temporary.filePath("settings.ini"));
 	StudioSettings settings;
 	settings.setAudioRecoveryEnabled(true);
@@ -327,7 +327,7 @@ int main(int argc, char **argv)
 		if (table && sessionRow >= 0) {
 			table->setCurrentCell(sessionRow, 0);
 			table->selectRow(sessionRow);
-			const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!captures.isEmpty()) {
 				QDir().mkpath(captures);
 				QImage image(manager.size(), QImage::Format_ARGB32_Premultiplied);

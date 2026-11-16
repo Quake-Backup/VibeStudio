@@ -9,7 +9,7 @@ class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
 
-namespace vibestudio {
+namespace slopstudio {
 class LevelComponentTransformDialog final : public QDialog {
 	Q_OBJECT
 public:
@@ -36,4 +36,4 @@ private:
 	QLabel* m_error = nullptr;
 	std::function<bool(const LevelComponentTransformRequest&, QString*)> m_apply;
 };
-} // namespace vibestudio
+} // namespace slopstudio

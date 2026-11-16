@@ -4,7 +4,7 @@
 #include <QJsonArray>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -17,30 +17,30 @@ struct TabEntry {
 
 // The studio's own order and names, translated where read.
 constexpr TabEntry kTabs[] = {
-	{"outliner", "tree", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Outliner"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "The model's surfaces, tags, joints and collision boxes, and the components of the current mode, to select and hide.")},
-	{"add", "plus", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Add"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Primitives to add as new surfaces or into the active one, and generated props.")},
-	{"item", "properties", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Item"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "The selection's position, rotation and scale, typed exactly, with the pivot and frame scope.")},
-	{"tool", "edit", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Tool"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Settings of the active tool: snapping, proportional editing, symmetry and the transform handles.")},
-	{"surface", "layers", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Surface"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "The active surface's name, shader or skin, material slots and skin files, UV seams and mapping, and surface operations.")},
-	{"animation", "film", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Animation"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Frames and clips: names, ranges, rates, in-betweens and pose copies.")},
-	{"skeleton", "link", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Skeleton"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Joints, skeletal clips and the companion files they came from, with skeletal exports.")},
-	{"collision", "frame", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Collision"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Collision boxes for map handoff, static or following the animation.")},
-	{"mdl", "cube", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Quake MDL"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Quake MDL skins, groups, timing, header fields and the palette.")},
-	{"export", "export", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Export"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Write the model for a game, stage it in a package, place it in the open map and build detail levels.")},
-	{"health", "check", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Health"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Topology, intersections and export budgets; each finding leads to the elements concerned.")},
-	{"view", "eye", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "View"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Shading, overlays, the view layout, navigation and the controls profile.")},
+	{"outliner", "tree", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Outliner"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "The model's surfaces, tags, joints and collision boxes, and the components of the current mode, to select and hide.")},
+	{"add", "plus", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Add"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Primitives to add as new surfaces or into the active one, and generated props.")},
+	{"item", "properties", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Item"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "The selection's position, rotation and scale, typed exactly, with the pivot and frame scope.")},
+	{"tool", "edit", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Tool"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Settings of the active tool: snapping, proportional editing, symmetry and the transform handles.")},
+	{"surface", "layers", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Surface"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "The active surface's name, shader or skin, material slots and skin files, UV seams and mapping, and surface operations.")},
+	{"animation", "film", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Animation"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Frames and clips: names, ranges, rates, in-betweens and pose copies.")},
+	{"skeleton", "link", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Skeleton"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Joints, skeletal clips and the companion files they came from, with skeletal exports.")},
+	{"collision", "frame", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Collision"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Collision boxes for map handoff, static or following the animation.")},
+	{"mdl", "cube", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Quake MDL"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Quake MDL skins, groups, timing, header fields and the palette.")},
+	{"export", "export", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Export"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Write the model for a game, stage it in a package, place it in the open map and build detail levels.")},
+	{"health", "check", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Health"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Topology, intersections and export budgets; each finding leads to the elements concerned.")},
+	{"view", "eye", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "View"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Shading, overlays, the view layout, navigation and the controls profile.")},
 };
 
 struct FamilyEntry {
@@ -78,26 +78,26 @@ struct TitleEntry {
 };
 
 constexpr TitleEntry kTitles[] = {
-	{"blender", "surface", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Material")},
-	{"blender", "skeleton", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Armature")},
-	{"blender", "collision", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Physics")},
-	{"blender", "health", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Mesh Analysis")},
-	{"max", "outliner", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Scene Explorer")},
-	{"max", "add", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Create")},
-	{"max", "item", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Modify")},
-	{"max", "tool", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Tool Options")},
-	{"max", "surface", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Surface Properties")},
-	{"max", "skeleton", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Hierarchy")},
-	{"max", "animation", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Motion")},
-	{"max", "view", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Display")},
-	{"max", "export", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Utilities")},
-	{"max", "health", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "xView")},
-	{"milkshape", "tool", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Model")},
-	{"milkshape", "outliner", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Groups")},
-	{"milkshape", "skeleton", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Joints")},
-	{"milkshape", "item", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Transform")},
-	{"milkshape", "surface", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Materials")},
-	{"milkshape", "add", QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Primitives")},
+	{"blender", "surface", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Material")},
+	{"blender", "skeleton", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Armature")},
+	{"blender", "collision", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Physics")},
+	{"blender", "health", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Mesh Analysis")},
+	{"max", "outliner", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Scene Explorer")},
+	{"max", "add", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Create")},
+	{"max", "item", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Modify")},
+	{"max", "tool", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Tool Options")},
+	{"max", "surface", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Surface Properties")},
+	{"max", "skeleton", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Hierarchy")},
+	{"max", "animation", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Motion")},
+	{"max", "view", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Display")},
+	{"max", "export", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Utilities")},
+	{"max", "health", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "xView")},
+	{"milkshape", "tool", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Model")},
+	{"milkshape", "outliner", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Groups")},
+	{"milkshape", "skeleton", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Joints")},
+	{"milkshape", "item", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Transform")},
+	{"milkshape", "surface", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Materials")},
+	{"milkshape", "add", QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Primitives")},
 };
 
 struct ModeNames {
@@ -106,18 +106,18 @@ struct ModeNames {
 };
 
 constexpr ModeNames kModeNames[] = {
-	{"studio", {QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Faces"), QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Vertices"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Edges"), QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Tags"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Collision"), QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Surfaces")}},
-	{"blender", {QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Face"), QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Vertex"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Edge"), QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Tags and Bones"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Collision"), QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Object")}},
-	{"max", {QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Polygon"), QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Vertex"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Edge"), QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Helpers"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Collision"), QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Object")}},
-	{"milkshape", {QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Face"), QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Vertex"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Edge"), QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Joint"),
-		QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Collision"), QT_TRANSLATE_NOOP("VibeStudioModelSidebar", "Group")}},
+	{"studio", {QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Faces"), QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Vertices"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Edges"), QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Tags"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Collision"), QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Surfaces")}},
+	{"blender", {QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Face"), QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Vertex"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Edge"), QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Tags and Bones"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Collision"), QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Object")}},
+	{"max", {QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Polygon"), QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Vertex"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Edge"), QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Helpers"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Collision"), QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Object")}},
+	{"milkshape", {QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Face"), QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Vertex"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Edge"), QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Joint"),
+		QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Collision"), QT_TRANSLATE_NOOP("SlopStudioModelSidebar", "Group")}},
 };
 
 const FamilyEntry& familyEntry(const QString& family)
@@ -142,8 +142,8 @@ QVector<ModelSidebarTab> modelSidebarTabs()
 	QVector<ModelSidebarTab> tabs;
 	for (const TabEntry& entry : kTabs) {
 		tabs.append({QString::fromLatin1(entry.id), QString::fromLatin1(entry.icon),
-			QCoreApplication::translate("VibeStudioModelSidebar", entry.title),
-			QCoreApplication::translate("VibeStudioModelSidebar", entry.description)});
+			QCoreApplication::translate("SlopStudioModelSidebar", entry.title),
+			QCoreApplication::translate("SlopStudioModelSidebar", entry.description)});
 	}
 	return tabs;
 }
@@ -163,8 +163,8 @@ bool modelSidebarTabForId(const QString& id, ModelSidebarTab* out)
 		if (id == QLatin1String(entry.id)) {
 			if (out) {
 				*out = {QString::fromLatin1(entry.id), QString::fromLatin1(entry.icon),
-					QCoreApplication::translate("VibeStudioModelSidebar", entry.title),
-					QCoreApplication::translate("VibeStudioModelSidebar", entry.description)};
+					QCoreApplication::translate("SlopStudioModelSidebar", entry.title),
+					QCoreApplication::translate("SlopStudioModelSidebar", entry.description)};
 			}
 			return true;
 		}
@@ -197,7 +197,7 @@ QString modelSidebarTabTitle(const QString& tabId, const QString& family)
 {
 	for (const TitleEntry& entry : kTitles) {
 		if (family == QLatin1String(entry.family) && tabId == QLatin1String(entry.tab)) {
-			return QCoreApplication::translate("VibeStudioModelSidebar", entry.title);
+			return QCoreApplication::translate("SlopStudioModelSidebar", entry.title);
 		}
 	}
 	ModelSidebarTab tab;
@@ -214,7 +214,7 @@ QStringList modelSelectionModeNames(const QString& family)
 	}
 	QStringList names;
 	for (const char* name : chosen->names) {
-		names << QCoreApplication::translate("VibeStudioModelSidebar", name);
+		names << QCoreApplication::translate("SlopStudioModelSidebar", name);
 	}
 	return names;
 }
@@ -260,18 +260,18 @@ bool validateModelSidebarArrangement(const ModelSidebarArrangement& arrangement,
 	QSet<QString> seen;
 	for (const QString& id : arrangement.leading + arrangement.trailing) {
 		if (!known.contains(id)) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioModelSidebar", "Unknown sidebar tab: %1.").arg(id); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioModelSidebar", "Unknown sidebar tab: %1.").arg(id); }
 			return false;
 		}
 		if (seen.contains(id)) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioModelSidebar", "The sidebar tab %1 appears twice.").arg(id); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioModelSidebar", "The sidebar tab %1 appears twice.").arg(id); }
 			return false;
 		}
 		seen.insert(id);
 	}
 	for (const QString& id : known) {
 		if (!seen.contains(id)) {
-			if (error) { *error = QCoreApplication::translate("VibeStudioModelSidebar", "The sidebar tab %1 is missing.").arg(id); }
+			if (error) { *error = QCoreApplication::translate("SlopStudioModelSidebar", "The sidebar tab %1 is missing.").arg(id); }
 			return false;
 		}
 	}
@@ -310,7 +310,7 @@ bool modelSidebarArrangementFromJson(const QJsonObject& object, ModelSidebarArra
 		return list;
 	};
 	if (!object.value(QStringLiteral("leading")).isArray() || !object.value(QStringLiteral("trailing")).isArray()) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioModelSidebar", "A sidebar arrangement needs leading and trailing lists."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioModelSidebar", "A sidebar arrangement needs leading and trailing lists."); }
 		return false;
 	}
 	ModelSidebarArrangement arrangement;
@@ -325,4 +325,4 @@ bool modelSidebarArrangementFromJson(const QJsonObject& object, ModelSidebarArra
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

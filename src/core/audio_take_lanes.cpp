@@ -4,7 +4,7 @@
 #include <QUuid>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -112,4 +112,4 @@ AudioTakeLaneResult editAudioTakeLane(const AudioSession &session, const AudioTa
 	}
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

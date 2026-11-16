@@ -7,7 +7,7 @@
 #include <optional>
 
 class QThread;
-namespace vibestudio {
+namespace slopstudio {
 
 // Independent of the geometry worker: grid/member feedback must not queue
 // behind a large brush/patch projection. One active and one latest pending view.
@@ -28,4 +28,4 @@ private:
 	void startNext();
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

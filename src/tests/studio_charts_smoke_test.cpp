@@ -16,7 +16,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const char* message)
@@ -46,7 +46,7 @@ QImage grabbed(QWidget& widget)
 
 bool capture(const QImage& image, const QString& name)
 {
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 	return root.isEmpty() || image.save(QDir(root).filePath(name + QStringLiteral(".png")));
 }
 

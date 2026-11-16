@@ -23,7 +23,7 @@
 #include <functional>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -587,4 +587,4 @@ void MaterialPropertyPanel::changeEvent(QEvent* event)
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

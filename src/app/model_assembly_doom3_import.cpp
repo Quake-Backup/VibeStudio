@@ -4,7 +4,7 @@
 #include <QCoreApplication>
 #include <QInputDialog>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -89,4 +89,4 @@ void ModelAssemblyDialog::chooseDoom3Entity()
 	if (accepted && !chosen.isEmpty())
 		openDoom3Entity(chosen, &error);
 }
-} // namespace vibestudio
+} // namespace slopstudio

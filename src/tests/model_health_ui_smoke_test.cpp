@@ -29,7 +29,7 @@
 #include <crtdbg.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -55,7 +55,7 @@ class Expansion final : public QTranslator
 	}
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelEditor")
+		if (QByteArray(context) != "SlopStudioModelEditor")
 		{
 			return {};
 		}
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 		{
 			ok &= expect(std::abs(editor.devicePixelRatioF() - 2) < .01, "health UI uses actual 2x device pixel ratio");
 		}
-		const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+		const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 		for (auto *area : editor.findChildren<QScrollArea *>())
 		{
 			if (area->isAncestorOf(inspect))
@@ -235,7 +235,7 @@ int main(int argc, char **argv)
 		finding->setCurrentIndex(4);
 		select->click();
 		ok &= expect(repair->isEnabled() &&
-						 repair->text() == QCoreApplication::translate("VibeStudioModelEditor", "Split Nonmanifold Edges") &&
+						 repair->text() == QCoreApplication::translate("SlopStudioModelEditor", "Split Nonmanifold Edges") &&
 						 editor.document().selection().edges == QSet<ModelEdge>{{0, 1}},
 					 "branch category offers explicit surface repair and exact edge selection");
 		const auto branchSelection = editor.document().selection();
@@ -320,7 +320,7 @@ int main(int argc, char **argv)
 		beat();
 		timer.stop();
 		const double gapMs = gap / 1e6;
-		const double requested = qEnvironmentVariable("VIBESTUDIO_MODELLER_MAX_AUTHORING_GAP_MS").toDouble();
+		const double requested = qEnvironmentVariable("SLOPSTUDIO_MODELLER_MAX_AUTHORING_GAP_MS").toDouble();
 		ok &= expect(gapMs <= (requested > 0 ? requested : 300), "large nonmanifold operation keeps the event loop responsive");
 		std::cout << QJsonDocument(QJsonObject{{"stage", QString::fromLatin1(stage)},
 											   {"elapsedMs", clock.nsecsElapsed() / 1e6},

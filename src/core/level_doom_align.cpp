@@ -14,7 +14,7 @@
 // Doom renderer's pegging in linuxdoom-1.10 r_segs.c (GPL-2.0 source release).
 // Behaviour only; no code is copied.
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -299,4 +299,4 @@ bool alignLevelMapDoomWallTextures(LevelMapDocument* document, const LevelDoomAl
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

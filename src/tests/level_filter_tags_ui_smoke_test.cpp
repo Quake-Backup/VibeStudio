@@ -45,7 +45,7 @@
 #include <QSet>
 #include <QStatusBar>
 #include <QTemporaryDir>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 #include <QTimer>
@@ -57,7 +57,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -324,7 +324,7 @@ int main(int argc, char** argv)
 					find->clear();
 					expect(!lightRow->isHidden(), "clearing it shows every row");
 				}
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				// The user's key reaches the class command from a plan view.
 				shell.activateWindow();
 				expect(until([&] { return QApplication::activeWindow() == &shell; }), "owned offscreen window is active");

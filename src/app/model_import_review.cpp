@@ -14,7 +14,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 QString modelEditorOpenPatterns()
@@ -42,10 +42,10 @@ bool reviewModelImportIssues(QWidget *parent, const QString &fileName, const QVe
 {
 	QDialog dialog(parent);
 	dialog.setObjectName(QStringLiteral("modelImportReview"));
-	dialog.setWindowTitle(QCoreApplication::translate("VibeStudioModelEditor", "Review Import"));
+	dialog.setWindowTitle(QCoreApplication::translate("SlopStudioModelEditor", "Review Import"));
 	dialog.setAccessibleName(dialog.windowTitle());
 	auto *layout = new QVBoxLayout(&dialog);
-	auto *summary = new QLabel(QCoreApplication::translate("VibeStudioModelEditor",
+	auto *summary = new QLabel(QCoreApplication::translate("SlopStudioModelEditor",
 														   "%1 decoded, but the decoder left some of its data out. Accept the omissions "
 														   "to edit the model without that data; saving it records what was left out. "
 														   "The game file itself is not changed.")
@@ -61,9 +61,9 @@ bool reviewModelImportIssues(QWidget *parent, const QString &fileName, const QVe
 	layout->addWidget(counts);
 	auto *list = new QListWidget;
 	list->setObjectName(QStringLiteral("modelImportReviewIssues"));
-	list->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Decode issues"));
+	list->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Decode issues"));
 	list->setAccessibleDescription(QCoreApplication::translate(
-		"VibeStudioModelEditor", "Every decode issue of the model, grouped by severity: what blocks editing comes first, then advisories."));
+		"SlopStudioModelEditor", "Every decode issue of the model, grouped by severity: what blocks editing comes first, then advisories."));
 	list->setWordWrap(true);
 	list->setTextElideMode(Qt::ElideNone);
 	// What decides the choice first: damage cannot be accepted, omissions can,
@@ -91,9 +91,9 @@ bool reviewModelImportIssues(QWidget *parent, const QString &fileName, const QVe
 	}
 	layout->addWidget(list, 1);
 	auto *buttons = new QDialogButtonBox;
-	auto *accept = buttons->addButton(QCoreApplication::translate("VibeStudioModelEditor", "Accept Omissions and Import"), QDialogButtonBox::AcceptRole);
+	auto *accept = buttons->addButton(QCoreApplication::translate("SlopStudioModelEditor", "Accept Omissions and Import"), QDialogButtonBox::AcceptRole);
 	accept->setObjectName(QStringLiteral("acceptImportOmissions"));
-	accept->setAccessibleDescription(QCoreApplication::translate("VibeStudioModelEditor",
+	accept->setAccessibleDescription(QCoreApplication::translate("SlopStudioModelEditor",
 																 "Import the model for editing without the data the decoder left out."));
 	auto *cancel = buttons->addButton(QDialogButtonBox::Cancel);
 	cancel->setObjectName(QStringLiteral("cancelImportReview"));
@@ -112,4 +112,4 @@ bool reviewModelImportIssues(QWidget *parent, const QString &fileName, const QVe
 	return dialog.exec() == QDialog::Accepted;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

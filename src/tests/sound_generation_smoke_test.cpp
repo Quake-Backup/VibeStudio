@@ -23,7 +23,7 @@
 #include <iostream>
 #include <optional>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -90,10 +90,10 @@ void checkProfilesAndNames()
 
 	const SoundGenerationSpec door = normalizedSoundGenerationSpec(specFor(QStringLiteral("heavy metal door slam")));
 	expect(soundGenerationName(door) == QStringLiteral("door_slam"), "Names come from the nouns.");
-	expect(soundGenerationVirtualPath(door) == QStringLiteral("sound/vibestudio/door_slam.wav"), "Quake sounds go under sound/.");
-	expect(soundGenerationReference(door) == QStringLiteral("vibestudio/door_slam.wav"), "Quake names sounds from inside sound/.");
+	expect(soundGenerationVirtualPath(door) == QStringLiteral("sound/slopstudio/door_slam.wav"), "Quake sounds go under sound/.");
+	expect(soundGenerationReference(door) == QStringLiteral("slopstudio/door_slam.wav"), "Quake names sounds from inside sound/.");
 	const SoundGenerationSpec q3 = normalizedSoundGenerationSpec(specFor(QStringLiteral("heavy metal door slam"), QStringLiteral("quake3")));
-	expect(soundGenerationReference(q3) == QStringLiteral("sound/vibestudio/door_slam.wav"), "Quake III names them with sound/.");
+	expect(soundGenerationReference(q3) == QStringLiteral("sound/slopstudio/door_slam.wav"), "Quake III names them with sound/.");
 	const SoundGenerationSpec doom = normalizedSoundGenerationSpec(specFor(QStringLiteral("heavy metal door slam"), QStringLiteral("doom")));
 	expect(soundGenerationName(doom) == QStringLiteral("DSDOORSL"), "Doom lumps are DS and six letters.");
 	expect(soundGenerationVariantSpec(doom, 1, 3).name == QStringLiteral("DSDOORS2") && soundGenerationVariantSpec(door, 2, 3).name == QStringLiteral("door_slam_3"),
@@ -199,9 +199,9 @@ void checkWriting()
 	const SoundGenerationSpec quake = normalizedSoundGenerationSpec(specFor(QStringLiteral("heavy metal door slam")));
 	const GeneratedSound door = processGeneratedSound(synthesizeSound(quake), quake, QStringLiteral("synth"));
 	SoundGenerationWriteReport report = writeGeneratedSound(door, quake, output);
-	const QString path = QDir(folder.path()).filePath(QStringLiteral("sound/vibestudio/door_slam.wav"));
-	const QString record = QDir(folder.path()).filePath(QStringLiteral(".vibestudio/generated/sounds/door_slam.json"));
-	expect(report.ok && QFileInfo::exists(path) && QFileInfo::exists(record) && report.reference == QStringLiteral("vibestudio/door_slam.wav"),
+	const QString path = QDir(folder.path()).filePath(QStringLiteral("sound/slopstudio/door_slam.wav"));
+	const QString record = QDir(folder.path()).filePath(QStringLiteral(".slopstudio/generated/sounds/door_slam.json"));
+	expect(report.ok && QFileInfo::exists(path) && QFileInfo::exists(record) && report.reference == QStringLiteral("slopstudio/door_slam.wav"),
 		"A Quake sound is written under sound/ with its record.");
 	QJsonObject provenance;
 	{
@@ -210,7 +210,7 @@ void checkWriting()
 			provenance = QJsonDocument::fromJson(recordFile.readAll()).object();
 		}
 	}
-	expect(provenance.value(QStringLiteral("schema")).toString() == QStringLiteral("vibestudio.generated-sound/1")
+	expect(provenance.value(QStringLiteral("schema")).toString() == QStringLiteral("slopstudio.generated-sound/1")
 			&& provenance.value(QStringLiteral("connector")).toString() == QStringLiteral("synth") && provenance.value(QStringLiteral("sha256")).toString().size() == 64,
 		"The record says what made it.");
 	report = writeGeneratedSound(door, quake, output);
@@ -225,7 +225,7 @@ void checkWriting()
 	const GeneratedSound first = processGeneratedSound(synthesizeSound(slam), slam, QStringLiteral("synth"));
 	const GeneratedSound second = processGeneratedSound(synthesizeSound(blast), blast, QStringLiteral("synth"));
 	expect(writeGeneratedSound(first, slam, output).ok && writeGeneratedSound(second, blast, output).ok, "Two Doom sounds are written.");
-	const QString wadPath = QDir(folder.path()).filePath(QStringLiteral("wads/vibestudio_sounds.wad"));
+	const QString wadPath = QDir(folder.path()).filePath(QStringLiteral("wads/slopstudio_sounds.wad"));
 	PackageArchive archive;
 	QString error;
 	QStringList lumps;
@@ -241,7 +241,7 @@ void checkWriting()
 	output.replaceExisting = true;
 	const SoundGenerationSpec dry = normalizedSoundGenerationSpec(specFor(QStringLiteral("laser zap"), QStringLiteral("quake2")));
 	report = writeGeneratedSound(processGeneratedSound(synthesizeSound(dry), dry, QStringLiteral("synth")), dry, output);
-	expect(report.ok && !QFileInfo::exists(QDir(folder.path()).filePath(QStringLiteral("sound/vibestudio/laser_zap.wav"))), "A dry run writes nothing.");
+	expect(report.ok && !QFileInfo::exists(QDir(folder.path()).filePath(QStringLiteral("sound/slopstudio/laser_zap.wav"))), "A dry run writes nothing.");
 }
 
 void checkTransport()
@@ -309,16 +309,16 @@ void checkConnections()
 	preferences.preferredAudioConnectorId = QStringLiteral("elevenlabs");
 	expect(resolveAiSoundConnection(preferences).block == AiSoundConnectionBlock::CloudNotAllowed, "ElevenLabs needs cloud connectors allowed.");
 	preferences.cloudConnectorsEnabled = true;
-	preferences.elevenLabsCredentialEnvironmentVariable = QStringLiteral("VIBESTUDIO_TEST_SOUND_KEY");
-	qunsetenv("VIBESTUDIO_TEST_SOUND_KEY");
+	preferences.elevenLabsCredentialEnvironmentVariable = QStringLiteral("SLOPSTUDIO_TEST_SOUND_KEY");
+	qunsetenv("SLOPSTUDIO_TEST_SOUND_KEY");
 	AiSoundConnection connection = resolveAiSoundConnection(preferences);
-	expect(connection.block == AiSoundConnectionBlock::NoCredential && aiSoundConnectionBlockText(connection).contains(QStringLiteral("VIBESTUDIO_TEST_SOUND_KEY")),
+	expect(connection.block == AiSoundConnectionBlock::NoCredential && aiSoundConnectionBlockText(connection).contains(QStringLiteral("SLOPSTUDIO_TEST_SOUND_KEY")),
 		"A missing key is named.");
-	qputenv("VIBESTUDIO_TEST_SOUND_KEY", "sk-sound");
+	qputenv("SLOPSTUDIO_TEST_SOUND_KEY", "sk-sound");
 	connection = resolveAiSoundConnection(preferences);
 	expect(connection.ready() && connection.model == QStringLiteral("eleven_text_to_sound_v2") && aiSoundConnectionApiKey(connection) == QStringLiteral("sk-sound"),
 		"With a key, ElevenLabs is ready with its default model.");
-	qunsetenv("VIBESTUDIO_TEST_SOUND_KEY");
+	qunsetenv("SLOPSTUDIO_TEST_SOUND_KEY");
 	preferences.cloudConnectorsEnabled = false;
 	preferences.preferredAudioConnectorId = QStringLiteral("custom-http");
 	preferences.connectorAudioEndpoints.insert(QStringLiteral("custom-http"), QStringLiteral("http://127.0.0.1:9000"));

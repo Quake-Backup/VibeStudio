@@ -4,7 +4,7 @@
 // worldspawn, selected, in the map's face format as one exact undo and redo
 // step, in an open group, refused in a locked destination and followed by a
 // linked copy; full-precision listings of brushes, faces, edges, vertices and
-// patch control points that read back exactly; and, with the vibestudio
+// patch control points that read back exactly; and, with the slopstudio
 // binary as the first argument, `map add-brush --points` and
 // `map brush-components` with several brushes. Synthetic maps and owned
 // temporary files only.
@@ -30,7 +30,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

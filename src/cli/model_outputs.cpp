@@ -12,7 +12,7 @@
 #include <QJsonArray>
 #include <QSet>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -214,4 +214,4 @@ ModelToolsCliResult runModelOutputs(const QStringList &arguments)
 	result.lines += warnings;
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

@@ -4,7 +4,7 @@
 #include <QStringList>
 #include <random>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 enum class AudioWavFormat { Pcm8, Pcm16, Pcm24, Pcm32, Float32 };
@@ -50,4 +50,4 @@ bool writeAudioExportBytes(const QByteArray &bytes, const QString &path, const Q
 // without scanning PCM samples. Used at the UI-thread package handoff boundary.
 bool isGeneratedIntegerAudioWav(const QByteArray &bytes);
 
-} // namespace vibestudio
+} // namespace slopstudio

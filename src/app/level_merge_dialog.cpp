@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct LevelMergeDialog::Work {
 	LevelBrushMergePlan plan;
@@ -372,4 +372,4 @@ void LevelMergeDialog::accept()
 	}
 	QDialog::accept();
 }
-} // namespace vibestudio
+} // namespace slopstudio

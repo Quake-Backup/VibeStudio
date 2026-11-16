@@ -28,7 +28,7 @@
 #include <cstring>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -397,7 +397,7 @@ bool runZipCrcMismatch(const QDir& root)
 	// CRC-32 in the central directory no longer describes it. Listing succeeds;
 	// reading it must fail rather than hand back silently damaged bytes.
 	const QVector<ArchiveFile> files = {
-		{QByteArrayLiteral("readme.txt"), QByteArrayLiteral("VibeStudio corrupt fixture.\n")},
+		{QByteArrayLiteral("readme.txt"), QByteArrayLiteral("SlopStudio corrupt fixture.\n")},
 	};
 	QByteArray stored = buildZip(files, false);
 	// Local header is 30 bytes plus the 10-byte name, so the payload starts at

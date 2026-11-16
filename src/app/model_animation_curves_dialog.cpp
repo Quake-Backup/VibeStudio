@@ -27,7 +27,7 @@
 #include <QTableView>
 #include <QVBoxLayout>
 #include <algorithm>
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -886,4 +886,4 @@ void ModelAnimationCurvesDialog::reject()
 	}
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

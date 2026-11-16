@@ -3,7 +3,7 @@
 // raised side limits, in-place rebuilds that keep ids, owners, layers, file
 // order and face formats in one exact undo step, hidden, locked, open-group,
 // too-small and linked brushes, and `map add-shape --in-place --fit` and
-// `map add-brush --fit` through the CLI when the vibestudio binary is the
+// `map add-brush --fit` through the CLI when the slopstudio binary is the
 // first argument. Synthetic maps and owned temporary files only.
 #include "core/level_document.h"
 #include "core/level_linked_groups.h"
@@ -29,7 +29,7 @@
 #include <iostream>
 #include <numbers>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

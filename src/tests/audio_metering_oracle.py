@@ -1,7 +1,7 @@
 """Optional independent FFmpeg and NumPy checks of original generated PCM.
 
 No device or external media is used. FFmpeg is a separate test tool, not a
-VibeStudio runtime dependency. Pass a task-local output directory to retain
+SlopStudio runtime dependency. Pass a task-local output directory to retain
 input WAVs, raw reports, tool identity, tolerances and exact binary hashes.
 NumPy supplies long windowed-sinc reconstruction, independent of r8brain.
 """
@@ -66,8 +66,8 @@ def main():
         probe = subprocess.run([str(binary), '--settings-file', str(output / 'settings.ini'), '--cli',
                                 'asset', 'audio-analyze', str(path), '--json'],
                                cwd=output, env=env, text=True, capture_output=True, timeout=60)
-        (output / (name + '-vibestudio.json')).write_text(probe.stdout, encoding='utf-8')
-        (output / (name + '-vibestudio-stderr.txt')).write_text(probe.stderr, encoding='utf-8')
+        (output / (name + '-slopstudio.json')).write_text(probe.stdout, encoding='utf-8')
+        (output / (name + '-slopstudio-stderr.txt')).write_text(probe.stderr, encoding='utf-8')
         probe.check_returncode()
         report = json.loads(probe.stdout)['audioAnalysis']
         summary = reference.stderr.rsplit('Summary:', 1)[1]
@@ -96,7 +96,7 @@ def main():
         results.append({'case': name, 'frames': rate * seconds, 'sampleRate': rate, 'channels': channels,
                         'fixtureSha256': before, 'ffmpegLufs': integrated, 'ffmpegDbtp': peak if math.isfinite(peak) else None,
                         'longSincDbtp': reconstructed,
-                        'vibestudioLufs': actual_loudness, 'vibestudioDbtp': actual_peak, 'passed': passed})
+                        'slopstudioLufs': actual_loudness, 'slopstudioDbtp': actual_peak, 'passed': passed})
         print(name + ': ' + ('pass' if passed else 'FAIL'), flush=True)
     record = {'verifiedAtUtc': datetime.datetime.now(datetime.timezone.utc).isoformat(),
               'binary': str(binary), 'binarySha256': digest(binary), 'ffmpeg': version, 'ffmpegSha256': digest(ffmpeg),

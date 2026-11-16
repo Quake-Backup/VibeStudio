@@ -11,7 +11,7 @@
 #include <thread>
 #include <vector>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class AudioCaptureStop { None, Finish, Abort };
 namespace
@@ -479,4 +479,4 @@ void AudioCapture::refreshInputs()
 {
 	QMetaObject::invokeMethod(m_worker, [worker = m_worker] { worker->refreshInputs(); }, Qt::QueuedConnection);
 }
-} // namespace vibestudio
+} // namespace slopstudio

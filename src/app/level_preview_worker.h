@@ -9,7 +9,7 @@
 class QThread;
 class QTimer;
 
-namespace vibestudio
+namespace slopstudio
 {
 class PackageStagingModel;
 
@@ -68,4 +68,4 @@ class LevelPreviewWorker final : public QObject
 	LevelPreviewAssets m_cachedAssets;
 	MapBrushGeometryCache m_cachedGeometry;
 };
-} // namespace vibestudio
+} // namespace slopstudio

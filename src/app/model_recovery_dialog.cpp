@@ -25,7 +25,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -35,39 +35,39 @@ class RecoveryDialog final : public QDialog
 	RecoveryDialog(QWidget *parent, QString directory) : QDialog(parent), m_directory(std::move(directory))
 	{
 		setObjectName(QStringLiteral("modelRecoveryDialog"));
-		setWindowTitle(QCoreApplication::translate("VibeStudioModelRecovery", "Recover Mesh Documents"));
+		setWindowTitle(QCoreApplication::translate("SlopStudioModelRecovery", "Recover Mesh Documents"));
 		setAccessibleName(windowTitle());
 		auto *layout = new QVBoxLayout(this);
 		auto *location = new QLabel(QDir::toNativeSeparators(m_directory));
 		location->setTextFormat(Qt::PlainText);
 		location->setWordWrap(true);
 		location->setTextInteractionFlags(Qt::TextSelectableByKeyboard | Qt::TextSelectableByMouse);
-		location->setAccessibleName(QCoreApplication::translate("VibeStudioModelRecovery", "Local recovery folder"));
+		location->setAccessibleName(QCoreApplication::translate("SlopStudioModelRecovery", "Local recovery folder"));
 		layout->addWidget(location);
 		m_list = new QListWidget;
 		m_list->setObjectName(QStringLiteral("modelRecoveryList"));
-		m_list->setAccessibleName(QCoreApplication::translate("VibeStudioModelRecovery", "Mesh recovery copies"));
+		m_list->setAccessibleName(QCoreApplication::translate("SlopStudioModelRecovery", "Mesh recovery copies"));
 		m_list->setWordWrap(true);
 		layout->addWidget(m_list, 1);
 		m_progress = new QProgressBar;
 		m_progress->setObjectName(QStringLiteral("modelRecoveryProgress"));
 		// The scan has no known length; under reduced motion the bar stays still.
-		setBusyProgress(m_progress, studioReducedMotion(), QCoreApplication::translate("VibeStudioModelRecovery", "Checking recovery copies…"));
-		m_progress->setAccessibleName(QCoreApplication::translate("VibeStudioModelRecovery", "Recovery progress"));
+		setBusyProgress(m_progress, studioReducedMotion(), QCoreApplication::translate("SlopStudioModelRecovery", "Checking recovery copies…"));
+		m_progress->setAccessibleName(QCoreApplication::translate("SlopStudioModelRecovery", "Recovery progress"));
 		layout->addWidget(m_progress);
 		m_details = new QPlainTextEdit;
 		m_details->setObjectName(QStringLiteral("modelRecoveryDetails"));
 		m_details->setReadOnly(true);
 		m_details->setMinimumHeight(fontMetrics().lineSpacing() * 4);
 		m_details->setMaximumHeight(fontMetrics().lineSpacing() * 8);
-		m_details->setAccessibleName(QCoreApplication::translate("VibeStudioModelRecovery", "Recovery details"));
+		m_details->setAccessibleName(QCoreApplication::translate("SlopStudioModelRecovery", "Recovery details"));
 		layout->addWidget(m_details);
 		auto *buttons = new QDialogButtonBox(QDialogButtonBox::Open | QDialogButtonBox::Cancel);
 		m_restore = buttons->button(QDialogButtonBox::Open);
-		m_restore->setText(QCoreApplication::translate("VibeStudioModelRecovery", "Restore as Draft"));
+		m_restore->setText(QCoreApplication::translate("SlopStudioModelRecovery", "Restore as Draft"));
 		m_restore->setObjectName(QStringLiteral("restoreModelRecovery"));
 		m_discard =
-			buttons->addButton(QCoreApplication::translate("VibeStudioModelRecovery", "Discard Copy"), QDialogButtonBox::ActionRole);
+			buttons->addButton(QCoreApplication::translate("SlopStudioModelRecovery", "Discard Copy"), QDialogButtonBox::ActionRole);
 		m_discard->setObjectName(QStringLiteral("discardModelRecovery"));
 		layout->addWidget(buttons);
 		connect(buttons, &QDialogButtonBox::rejected, this, [this] { reject(); });
@@ -78,7 +78,7 @@ class RecoveryDialog final : public QDialog
 		auto result = std::make_shared<ModelRecoveryScan>();
 		auto states = std::make_shared<QVector<ModelRecoverySourceState>>();
 		start(
-			QCoreApplication::translate("VibeStudioModelRecovery", "Reading local recovery copies…"),
+			QCoreApplication::translate("SlopStudioModelRecovery", "Reading local recovery copies…"),
 			[result, states, directory = m_directory]
 			{
 				*result = listModelRecoveries(directory, interrupted);
@@ -106,11 +106,11 @@ class RecoveryDialog final : public QDialog
 				m_details->setPlainText(
 					!result->error.isEmpty() ? result->error
 					: result->limited		 ? QCoreApplication::translate(
-											   "VibeStudioModelRecovery",
+											   "SlopStudioModelRecovery",
 											   "The scan reached its limit of 128 copies. Review the recovery folder for additional records.")
 					: m_records.isEmpty()
-						? QCoreApplication::translate("VibeStudioModelRecovery", "No local mesh recovery copies were found.")
-						: QCoreApplication::translate("VibeStudioModelRecovery", "Select a copy to review before restoring."));
+						? QCoreApplication::translate("SlopStudioModelRecovery", "No local mesh recovery copies were found.")
+						: QCoreApplication::translate("SlopStudioModelRecovery", "Select a copy to review before restoring."));
 			});
 	}
 	~RecoveryDialog() override
@@ -131,7 +131,7 @@ class RecoveryDialog final : public QDialog
 		{
 			m_closing = true;
 			m_thread->requestInterruption();
-			m_details->setPlainText(QCoreApplication::translate("VibeStudioModelRecovery", "Cancelling recovery…"));
+			m_details->setPlainText(QCoreApplication::translate("SlopStudioModelRecovery", "Cancelling recovery…"));
 			return;
 		}
 		QDialog::reject();
@@ -193,7 +193,7 @@ class RecoveryDialog final : public QDialog
 				}
 				catch (const std::bad_alloc &)
 				{
-					*error = QCoreApplication::translate("VibeStudioModelRecovery", "Not enough memory to read the recovery copy.");
+					*error = QCoreApplication::translate("SlopStudioModelRecovery", "Not enough memory to read the recovery copy.");
 				}
 			});
 		m_thread->setParent(this);
@@ -239,18 +239,18 @@ class RecoveryDialog final : public QDialog
 		QString state = row >= 0 && row < m_states.size() ? modelRecoverySourceStateText(m_states.at(row)) : QString();
 		// Weight strokes or curves staged when the studio stopped (core/model_session_draft.h).
 		for (const auto &draft : inspectModelSessionDrafts(QFileInfo(record->path).absolutePath(), record->id))
-			state += QLatin1Char('\n') + QCoreApplication::translate("VibeStudioModelRecovery",
+			state += QLatin1Char('\n') + QCoreApplication::translate("SlopStudioModelRecovery",
 																	 "Staged but not applied: %1. Restoring offers it for review.")
 											  .arg(modelSessionDraftSummary(draft));
 		m_details->setPlainText(
 			record->isValid()
 				? QCoreApplication::translate(
-					  "VibeStudioModelRecovery",
+					  "SlopStudioModelRecovery",
 					  "%1 · %2\nRestoring opens an unsaved draft. The original source and recovery copy remain unchanged.%3")
 					  .arg(QLocale().formattedDataSize(record->payloadBytes),
-						   record->sourcePath.isEmpty() ? QCoreApplication::translate("VibeStudioModelRecovery", "Unsaved source")
+						   record->sourcePath.isEmpty() ? QCoreApplication::translate("SlopStudioModelRecovery", "Unsaved source")
 														: QDir::toNativeSeparators(record->sourcePath),
-						   live ? QCoreApplication::translate("VibeStudioModelRecovery",
+						   live ? QCoreApplication::translate("SlopStudioModelRecovery",
 															  "\nThe owning studio is still running; discarding this copy is disabled.")
 								: QString()) +
 					  (state.isEmpty() ? QString() : QLatin1Char('\n') + state)
@@ -266,7 +266,7 @@ class RecoveryDialog final : public QDialog
 		auto result = std::make_shared<RecoveredModelDraft>();
 		auto error = std::make_shared<QString>();
 		start(
-			QCoreApplication::translate("VibeStudioModelRecovery", "Verifying and restoring the mesh…"),
+			QCoreApplication::translate("SlopStudioModelRecovery", "Verifying and restoring the mesh…"),
 			[record, result, error]
 			{
 				ModelRecoverySnapshot snapshot;
@@ -297,8 +297,8 @@ class RecoveryDialog final : public QDialog
 		{
 			return;
 		}
-		if (QMessageBox::question(this, QCoreApplication::translate("VibeStudioModelRecovery", "Discard Recovery Copy"),
-								  QCoreApplication::translate("VibeStudioModelRecovery",
+		if (QMessageBox::question(this, QCoreApplication::translate("SlopStudioModelRecovery", "Discard Recovery Copy"),
+								  QCoreApplication::translate("SlopStudioModelRecovery",
 															  "Permanently discard this recovery copy? The original source is unchanged."),
 								  QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Cancel) != QMessageBox::Discard)
 		{
@@ -311,7 +311,7 @@ class RecoveryDialog final : public QDialog
 			return;
 		}
 		delete m_list->takeItem(m_list->currentRow());
-		m_details->setPlainText(QCoreApplication::translate("VibeStudioModelRecovery", "Recovery copy discarded."));
+		m_details->setPlainText(QCoreApplication::translate("SlopStudioModelRecovery", "Recovery copy discarded."));
 	}
 };
 } // namespace
@@ -325,4 +325,4 @@ std::optional<RecoveredModelDraft> chooseModelRecovery(QWidget *parent, const QS
 	}
 	return std::move(dialog.recovered);
 }
-} // namespace vibestudio
+} // namespace slopstudio

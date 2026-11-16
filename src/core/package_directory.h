@@ -2,7 +2,7 @@
 
 #include "core/package_staging.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Metadata identity of the exact live subtree, including empty directories,
 // source occurrences and generated-operation identities. No payload reads.
@@ -12,4 +12,4 @@ bool isPackageDirectoryOperation(PackageStageOperationType type);
 // Applies one whole-tree edit to a candidate. Failure leaves entries unchanged.
 bool applyPackageDirectoryOperation(QVector<PackageStagedEntry>* entries, const PackageStageOperation& operation, QString* error, const PackageReadControl& control = {}, const PackageStagingPlanLimits& limits = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -35,7 +35,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelGenerationSpec {
 	// The user's words; the fields below, when empty, are read from them.
@@ -320,4 +320,4 @@ bool levelGenerationDocument(const LevelGenerationResult& result, LevelMapDocume
 // Human-readable summary lines for the CLI and the dialog.
 [[nodiscard]] QStringList levelGenerationSummaryLines(const LevelGenerationResult& result);
 
-} // namespace vibestudio
+} // namespace slopstudio

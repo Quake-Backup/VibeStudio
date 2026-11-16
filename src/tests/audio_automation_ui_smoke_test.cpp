@@ -18,7 +18,7 @@
 #include <QTimer>
 #include <QTranslator>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 	ok &= expect(effects.applyPreset(makeAudioEffectPreset("dialogue-clean", 48000)) &&
 	                 effects.edit().effectAutomation->isEmpty(),
 	             "preset replacement clears old effect targets");
-	const auto renderRoot = qEnvironmentVariable("VIBESTUDIO_AUDIO_AUTOMATION_RENDERS");
+	const auto renderRoot = qEnvironmentVariable("SLOPSTUDIO_AUDIO_AUTOMATION_RENDERS");
 	if (!renderRoot.isEmpty())
 		ok &= QDir().mkpath(renderRoot);
 	struct Layout {

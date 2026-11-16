@@ -9,7 +9,7 @@
 #include <QtEndian>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -51,19 +51,19 @@ LevelSoundPlan planLevelSound(const LevelSoundTarget& target, const LevelSoundRe
 	};
 	if (target.format != LevelMapFormat::QuakeMap && target.format != LevelMapFormat::Quake3Map) {
 		return invalid(QCoreApplication::translate(
-		    "VibeStudioAudio", "Open a Quake II or Quake III map to place a sound. Other games use package "
+		    "SlopStudioAudio", "Open a Quake II or Quake III map to place a sound. Other games use package "
 		                       "delivery and their game-specific entity tools."));
 	}
 	plan.game = request.game.isEmpty() ? target.game : request.game;
 	if (plan.game.isEmpty()) {
 		return invalid(QCoreApplication::translate(
-		    "VibeStudioAudio", "This map does not identify its game. Choose Quake II only if this is a Quake "
+		    "SlopStudioAudio", "This map does not identify its game. Choose Quake II only if this is a Quake "
 		                       "II map; stock Quake has no arbitrary sound speaker."));
 	}
 	if ((plan.game != QStringLiteral("quake2") && plan.game != QStringLiteral("quake3")) ||
 	    (!target.game.isEmpty() && target.game != plan.game) ||
 	    (target.format == LevelMapFormat::Quake3Map) != (plan.game == QStringLiteral("quake3"))) {
-		return invalid(QCoreApplication::translate("VibeStudioAudio",
+		return invalid(QCoreApplication::translate("SlopStudioAudio",
 		                                           "The sound game profile does not match the open map."));
 	}
 	// Original target_speaker / S_LoadSound behaviour (GPL-2.0-or-later),
@@ -78,7 +78,7 @@ LevelSoundPlan planLevelSound(const LevelSoundTarget& target, const LevelSoundRe
 	    path.split(QLatin1Char('/')).contains(QStringLiteral("..")) ||
 	    path.split(QLatin1Char('/')).contains(QStringLiteral("."))) {
 		return invalid(QCoreApplication::translate(
-		    "VibeStudioAudio",
+		    "SlopStudioAudio",
 		    "Use a sound/ path shorter than 64 ASCII bytes, with letters, digits, underscores, hyphens or "
 		    "dots and a lowercase .wav extension. Relative path segments are not allowed."));
 	}
@@ -86,7 +86,7 @@ LevelSoundPlan planLevelSound(const LevelSoundTarget& target, const LevelSoundRe
 	    !std::isfinite(request.origin.z) || std::abs(request.origin.x) > 1048576 ||
 	    std::abs(request.origin.y) > 1048576 || std::abs(request.origin.z) > 1048576) {
 		return invalid(QCoreApplication::translate(
-		    "VibeStudioAudio", "Sound coordinates must be finite and within ±1048576 map units."));
+		    "SlopStudioAudio", "Sound coordinates must be finite and within ±1048576 map units."));
 	}
 	int flags = 0;
 	if (request.mode == QStringLiteral("loop-on")) {
@@ -94,14 +94,14 @@ LevelSoundPlan planLevelSound(const LevelSoundTarget& target, const LevelSoundRe
 	} else if (request.mode == QStringLiteral("loop-off")) {
 		flags = 2;
 	} else if (request.mode != QStringLiteral("triggered")) {
-		return invalid(QCoreApplication::translate("VibeStudioAudio",
+		return invalid(QCoreApplication::translate("SlopStudioAudio",
 		                                           "Choose loop-on, loop-off or triggered sound playback."));
 	}
 	static const QRegularExpression name(QStringLiteral("\\A[A-Za-z0-9_.:-]{1,63}\\z"));
 	if ((!request.targetName.isEmpty() && !name.match(request.targetName).hasMatch()) ||
 	    (request.mode != QStringLiteral("loop-on") && request.targetName.isEmpty())) {
 		return invalid(QCoreApplication::translate(
-		    "VibeStudioAudio", "Triggered and initially off sounds need a target name. Use at most 63 ASCII "
+		    "SlopStudioAudio", "Triggered and initially off sounds need a target name. Use at most 63 ASCII "
 		                       "letters, digits, underscores, hyphens, dots or colons."));
 	}
 	plan.className = QStringLiteral("target_speaker");
@@ -122,7 +122,7 @@ bool validateLevelSoundWav(const QByteArray& wav, QString* error)
 	const auto bad = [&]() {
 		return fail(error,
 		            QCoreApplication::translate(
-		                "VibeStudioAudio", "Sound placement requires a complete mono 22050 Hz PCM16 WAV. "
+		                "SlopStudioAudio", "Sound placement requires a complete mono 22050 Hz PCM16 WAV. "
 		                                   "Export with the Quake II or Quake III delivery preset first."));
 	};
 	if (wav.size() < 46 || wav.size() > AudioInputByteLimit || wav.first(4) != "RIFF" ||
@@ -183,7 +183,7 @@ bool placeLevelSound(LevelMapDocument* document, const LevelSoundRequest& reques
 	}
 	if (!document) {
 		return fail(error,
-		            QCoreApplication::translate("VibeStudioAudio", "Open a map before placing a sound."));
+		            QCoreApplication::translate("SlopStudioAudio", "Open a map before placing a sound."));
 	}
 	const auto plan = planLevelSound(levelSoundTarget(*document), request);
 	if (!plan.valid()) {
@@ -205,7 +205,7 @@ bool stageLevelSound(PackageStagingModel* staging, LevelMapDocument* document,
 	if (!staging || !document) {
 		return fail(error,
 		            QCoreApplication::translate(
-		                "VibeStudioAudio", "Open a map and a package before staging and placing a sound."));
+		                "SlopStudioAudio", "Open a map and a package before staging and placing a sound."));
 	}
 	// Preflight before copying map history or adding a pending package operation.
 	const auto plan = planLevelSound(levelSoundTarget(*document), request);
@@ -232,4 +232,4 @@ bool stageLevelSound(PackageStagingModel* staging, LevelMapDocument* document,
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

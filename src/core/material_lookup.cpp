@@ -4,7 +4,7 @@
 
 #include <QMutexLocker>
 
-namespace vibestudio {
+namespace slopstudio {
 
 QString materialDisplayImage(const MaterialDefinition& definition)
 {
@@ -192,4 +192,4 @@ QImage MaterialLookup::swatch(const MaterialLookupResult& result, int side, doub
 	return renderMaterialSwatch(result.definition, images, tables, side, seconds).image;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

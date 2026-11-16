@@ -5,7 +5,7 @@
 #include <QRegularExpression>
 #include <QSet>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 AudioSessionCliResult runAudioTake(const QStringList &arguments)
 {
@@ -128,4 +128,4 @@ AudioSessionCliResult runAudioTake(const QStringList &arguments)
 	        {dry ? problem(QT_TRANSLATE_NOOP("AudioTakeCli", "Take export validated; no output written."))
 	             : problem(QT_TRANSLATE_NOOP("AudioTakeCli", "Take range exported: %1")).arg(output)}};
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

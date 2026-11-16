@@ -13,7 +13,7 @@ class QLineEdit;
 class QListWidget;
 class QPushButton;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The user's own launch profiles, after TrenchBroom's game engine profiles:
 // add, name and remove profiles and type each one's engine arguments with
@@ -56,4 +56,4 @@ private:
 	bool m_filling = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

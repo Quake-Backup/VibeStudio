@@ -20,7 +20,7 @@
 #include <QApplication>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::registerLevelFaceFlagCommands()
 {
@@ -154,4 +154,4 @@ void ApplicationShell::toggleLevelSurfacesTab()
 	refreshLevelSurfacesToggle();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

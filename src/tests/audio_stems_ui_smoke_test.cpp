@@ -27,7 +27,7 @@
 #include <QTimer>
 #include <QTranslator>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("stems-ui-XXXXXX"));
@@ -144,7 +144,7 @@ int main(int argc, char **argv)
 	                 session.deliveryReport()["completed"].toInt() == 1 &&
 	                 session.deliveryReport()["delivery"].toObject()["status"] == "cancelled",
 	             "GUI cancellation reports committed files rather than discarding partial delivery details");
-	const auto renders = qEnvironmentVariable("VIBESTUDIO_AUDIO_STEMS_RENDERS");
+	const auto renders = qEnvironmentVariable("SLOPSTUDIO_AUDIO_STEMS_RENDERS");
 	if (!renders.isEmpty())
 		ok &= QDir().mkpath(renders);
 	struct Layout {

@@ -20,7 +20,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message, const QString &error = {})
@@ -192,7 +192,7 @@ int main(int argc, char **argv)
 		ok &= expect(view->renderMode() == ModelViewportRenderMode::FlatShaded, "flat mode control");
 		textures->setChecked(true);
 		ok &= expect(shell.width() <= (scale == 100 ? 1440 : 2000), "scaled controls do not force window wider");
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!captures.isEmpty()) {
 			QDir().mkpath(captures);
 			tests::settleModelViewport(*view);

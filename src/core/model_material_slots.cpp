@@ -2,7 +2,7 @@
 #include "core/package_archive.h"
 #include <QCoreApplication>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -111,4 +111,4 @@ bool modelMaterialPreviewSnapshot(const ModelMesh &mesh, const QHash<int, int> &
 	*result = std::move(snapshot);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

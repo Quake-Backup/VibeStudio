@@ -13,7 +13,7 @@
 
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -229,4 +229,4 @@ ModelBakeCliResult runModelBake(const QStringList &arguments)
 	result.lines += baked.notes;
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

@@ -7,7 +7,7 @@
 
 class QLockFile;
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class AudioRecoveryKind { Waveform, Session };
 QString audioRecoveryKindId(AudioRecoveryKind kind);
@@ -68,4 +68,4 @@ std::unique_ptr<QLockFile> acquireAudioRecoverySession(const QString &directory,
 bool discardAudioRecovery(const QString &directory, const QString &id, const QByteArray &expectedSha256, bool dryRun,
                           QString *error = nullptr, AudioRecoveryKind kind = AudioRecoveryKind::Waveform);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -15,38 +15,38 @@ from pathlib import Path
 TARGETS = {"windows", "macos", "linux"}
 REQUIRED_LICENSE_FILES = [
     "licenses/external/audio/portaudio/LICENSE.txt",
-    "licenses/external/audio/portaudio/VIBESTUDIO.md",
+    "licenses/external/audio/portaudio/SLOPSTUDIO.md",
     "licenses/external/audio/portaudio/UPSTREAM.json",
     "licenses/external/modelling/xatlas/LICENSE",
     "licenses/external/modelling/xatlas/LICENSE-THIRD-PARTY.txt",
-    "licenses/external/modelling/xatlas/VIBESTUDIO.md",
+    "licenses/external/modelling/xatlas/SLOPSTUDIO.md",
     "licenses/external/modelling/xatlas/UPSTREAM.json",
     "licenses/THIRD_PARTY_LICENSES.md",
     "licenses/external/audio/r8brain-free-src/LICENSE",
     "licenses/external/audio/r8brain-free-src/LICENSE-OOURA.txt",
-    "licenses/external/audio/r8brain-free-src/VIBESTUDIO.md",
+    "licenses/external/audio/r8brain-free-src/SLOPSTUDIO.md",
     "licenses/external/audio/r8brain-free-src/UPSTREAM.json",
     "licenses/external/audio/libebur128/COPYING",
-    "licenses/external/audio/libebur128/VIBESTUDIO.md",
+    "licenses/external/audio/libebur128/SLOPSTUDIO.md",
     "licenses/external/audio/libebur128/UPSTREAM.json",
     "licenses/external/audio/libebur128/doc/license/R128Scan.txt",
     "licenses/external/audio/libebur128/doc/license/queue.txt",
     "licenses/external/audio/dr_libs/LICENSE",
-    "licenses/external/audio/dr_libs/VIBESTUDIO.md",
+    "licenses/external/audio/dr_libs/SLOPSTUDIO.md",
     "licenses/external/audio/dr_libs/UPSTREAM.json",
     "licenses/external/audio/libogg/COPYING",
-    "licenses/external/audio/libogg/VIBESTUDIO.md",
+    "licenses/external/audio/libogg/SLOPSTUDIO.md",
     "licenses/external/audio/libogg/UPSTREAM.json",
     "licenses/external/audio/libvorbis/COPYING",
-    "licenses/external/audio/libvorbis/VIBESTUDIO.md",
+    "licenses/external/audio/libvorbis/SLOPSTUDIO.md",
     "licenses/external/audio/libvorbis/UPSTREAM.json",
     "licenses/external/graphics/vulkan-headers/LICENSE.md",
     "licenses/external/graphics/vulkan-headers/LICENSES/Apache-2.0.txt",
-    "licenses/external/graphics/vulkan-headers/VIBESTUDIO.md",
+    "licenses/external/graphics/vulkan-headers/SLOPSTUDIO.md",
     "licenses/external/graphics/vulkan-headers/UPSTREAM.json",
-    "licenses/external/compilers/VibeMap2/COPYING",
-    "licenses/external/compilers/VibeMap3/COPYING",
-    "licenses/external/compilers/VibeMap3/LICENSE",
+    "licenses/external/compilers/SlopMap2/COPYING",
+    "licenses/external/compilers/SlopMap3/COPYING",
+    "licenses/external/compilers/SlopMap3/LICENSE",
     "licenses/external/compilers/ZDBSP/COPYING",
     "licenses/external/compilers/ZokumBSP/COPYING",
 ]
@@ -188,8 +188,8 @@ def validate_portable_targets(root: Path, binary: Path, temp_root: Path) -> list
             "bin/" + binary.name,
             "docs/OFFLINE_USER_GUIDE.md",
             "i18n/README.md",
-            "i18n/vibestudio_en.ts",
-            "i18n/vibestudio_pseudo.ts",
+            "i18n/slopstudio_en.ts",
+            "i18n/slopstudio_pseudo.ts",
             "platform/README.txt",
             "package-manifest.json",
             "CHECKSUMS.sha256",
@@ -199,7 +199,7 @@ def validate_portable_targets(root: Path, binary: Path, temp_root: Path) -> list
             if not (package_dir / relative).exists():
                 raise RuntimeError(f"Missing packaged file for {target}: {relative}")
         checksums = (package_dir / "CHECKSUMS.sha256").read_text(encoding="utf-8")
-        if "package-manifest.json" not in checksums or "docs/OFFLINE_USER_GUIDE.md" not in checksums or "i18n/vibestudio_en.ts" not in checksums:
+        if "package-manifest.json" not in checksums or "docs/OFFLINE_USER_GUIDE.md" not in checksums or "i18n/slopstudio_en.ts" not in checksums:
             raise RuntimeError(f"Checksums do not cover required files in {package_dir}")
     if seen_targets != TARGETS:
         raise RuntimeError(f"Expected targets {sorted(TARGETS)}, got {sorted(seen_targets)}")
@@ -247,7 +247,7 @@ def validate_feedback_cli(binary: Path, temp_root: Path) -> None:
             "--json",
             "compiler",
             "run",
-            "vibemap2-bsp",
+            "slopmap2-bsp",
             str(map_path),
             "--dry-run",
             "--task-state",
@@ -372,7 +372,7 @@ def validate_static_release_checks(root: Path) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Validate MVP release packaging, smoke fixtures, feedback surfaces, and release docs.")
-    parser.add_argument("--binary", required=True, help="Built vibestudio executable to validate.")
+    parser.add_argument("--binary", required=True, help="Built slopstudio executable to validate.")
     parser.add_argument("--report", help="Optional JSON path for release timing measurements.")
     args = parser.parse_args()
 
@@ -383,7 +383,7 @@ def main() -> int:
     report_path = Path(args.report).resolve() if args.report else None
 
     try:
-        with tempfile.TemporaryDirectory(prefix="vibestudio-release-") as temp_dir:
+        with tempfile.TemporaryDirectory(prefix="slopstudio-release-") as temp_dir:
             temp_root = Path(temp_dir)
             validate_offline_guide(root)
             validate_portable_targets(root, binary, temp_root)

@@ -2,7 +2,7 @@
 #include "core/model_document.h"
 #include <QJsonDocument>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh surfaceFixture()
 {
@@ -62,4 +62,4 @@ inline bool exactFace(const ModelSurface &a, int af, const ModelSurface &b, int 
 	const auto at = a.triangles[af], bt = b.triangles[bf];
 	return exactVertex(a, at.a, b, bt.a) && exactVertex(a, at.b, b, bt.b) && exactVertex(a, at.c, b, bt.c);
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

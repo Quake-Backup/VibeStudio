@@ -21,7 +21,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& detail = {})
@@ -238,10 +238,10 @@ void profiles()
 		{"map.flipVertical", QStringLiteral("Ctrl+Alt+F")}};
 	for (const auto& key : tbKeys) {
 		expect(keysOf(tb, key.first) == QStringList {key.second}, "TrenchBroom's view-relative key", QString::fromLatin1(key.first));
-		expect(keysOf(netRadiantCustomLevelControls(), key.first).isEmpty() && keysOf(vibeStudioLevelControls(), key.first).isEmpty(),
-			"NetRadiant Custom and VibeStudio leave them unbound", QString::fromLatin1(key.first));
+		expect(keysOf(netRadiantCustomLevelControls(), key.first).isEmpty() && keysOf(slopStudioLevelControls(), key.first).isEmpty(),
+			"NetRadiant Custom and SlopStudio leave them unbound", QString::fromLatin1(key.first));
 	}
-	expect(tb.flipSnapsPivot && !netRadiantCustomLevelControls().flipSnapsPivot && !vibeStudioLevelControls().flipSnapsPivot,
+	expect(tb.flipSnapsPivot && !netRadiantCustomLevelControls().flipSnapsPivot && !slopStudioLevelControls().flipSnapsPivot,
 		"only TrenchBroom rounds the flip pivot to half the grid");
 	for (const auto& profile : editorProfileDescriptors()) {
 		expect(profile.controls.flipSnapsPivot == (profile.id == QLatin1String("trenchbroom")), "the half-grid flip pivot is TrenchBroom's", profile.id);
@@ -261,7 +261,7 @@ void profiles()
 	LevelEditorControls effective;
 	QJsonObject normalized;
 	QString error;
-	expect(applyLevelGestureOverrides(vibeStudioLevelControls(), {{QStringLiteral("editing.flipSnapsPivot"), QStringLiteral("on")}}, &effective, &normalized, &error)
+	expect(applyLevelGestureOverrides(slopStudioLevelControls(), {{QStringLiteral("editing.flipSnapsPivot"), QStringLiteral("on")}}, &effective, &normalized, &error)
 			&& effective.flipSnapsPivot && normalized.value(QStringLiteral("editing.flipSnapsPivot")) == QStringLiteral("on"),
 		"any profile can round its flip pivot", error);
 	bool listed = false;

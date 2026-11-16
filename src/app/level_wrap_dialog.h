@@ -16,7 +16,7 @@ class QSpinBox;
 class QThread;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 class ModelViewport;
 class LevelWrapDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(LevelWrapDialog)
@@ -51,4 +51,4 @@ private:
 	bool m_ready = false;
 	std::function<bool(const LevelMapDocument&,QString*)> m_applyHandler;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -29,7 +29,7 @@
 
 #include <optional>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 
 namespace {
 
@@ -73,7 +73,7 @@ public:
 				continue;
 			}
 			if (!values.contains(key) && !kGlobalValues.contains(key)) {
-				*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "Unexpected option: %1").arg(argument);
+				*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "Unexpected option: %1").arg(argument);
 				return false;
 			}
 			QString value;
@@ -82,7 +82,7 @@ public:
 			} else if (index + 1 < arguments.size()) {
 				value = arguments[++index];
 			} else {
-				*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "Missing value for %1.").arg(key);
+				*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "Missing value for %1.").arg(key);
 				return false;
 			}
 			m_values[key] << value;
@@ -120,7 +120,7 @@ bool readInteger(const Options& options, const QString& key, int low, int high, 
 	bool ok = false;
 	const int value = options.value(key).toInt(&ok);
 	if (!ok || value < low || value > high) {
-		*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 takes a whole number from %2 to %3.").arg(key).arg(low).arg(high);
+		*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 takes a whole number from %2 to %3.").arg(key).arg(low).arg(high);
 		return false;
 	}
 	*out = value;
@@ -147,7 +147,7 @@ bool readSize(const QString& text, QSize* out)
 bool writeFile(const QString& path, const QByteArray& bytes, bool overwrite, QString* error)
 {
 	if (QFileInfo::exists(path) && !overwrite) {
-		*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 exists; pass --overwrite to replace it.").arg(QDir::toNativeSeparators(path));
+		*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 exists; pass --overwrite to replace it.").arg(QDir::toNativeSeparators(path));
 		return false;
 	}
 	if (!QFileInfo(path).absolutePath().isEmpty()) {
@@ -155,7 +155,7 @@ bool writeFile(const QString& path, const QByteArray& bytes, bool overwrite, QSt
 	}
 	QSaveFile file(path);
 	if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit()) {
-		*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "Could not write %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
+		*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "Could not write %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
 		return false;
 	}
 	return true;
@@ -294,7 +294,7 @@ QString sendBlock(bool ready, const QString& blockText, bool local, const QStrin
 	}
 	if (!local && !options.has(QStringLiteral("--yes"))) {
 		const QString host = QUrl(destination).host();
-		return QCoreApplication::translate("VibeStudioAiGenerationCli",
+		return QCoreApplication::translate("SlopStudioAiGenerationCli",
 			"This sends the request to %1, off this machine. Review it with --dry-run, then pass --yes to send.").arg(host.isEmpty() ? destination : host);
 	}
 	return {};
@@ -365,7 +365,7 @@ bool mapgenSpecFrom(const Options& options, LevelGenerationSpec* spec, QString* 
 	for (const QString& key : {QStringLiteral("--theme"), QStringLiteral("--size"), QStringLiteral("--monsters"), QStringLiteral("--liquid"), QStringLiteral("--wad"),
 			 QStringLiteral("--texture"), QStringLiteral("--textures-from"), QStringLiteral("--plan")}) {
 		if (options.has(key)) {
-			*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 is for the studio generator; Quake-MapGen reads the theme and the rest from --prompt.").arg(key);
+			*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 is for the studio generator; Quake-MapGen reads the theme and the rest from --prompt.").arg(key);
 			return false;
 		}
 	}
@@ -381,7 +381,7 @@ bool mapgenSpecFrom(const Options& options, LevelGenerationSpec* spec, QString* 
 	spec->ranker = options.value(QStringLiteral("--ranker"));
 	const auto checkChoice = [&](const QString& key, const QString& value, const QStringList& allowed) {
 		if (!value.isEmpty() && !allowed.contains(value)) {
-			*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 takes one of: %2.").arg(key, allowed.join(QStringLiteral(", ")));
+			*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 takes one of: %2.").arg(key, allowed.join(QStringLiteral(", ")));
 			return false;
 		}
 		return true;
@@ -401,12 +401,12 @@ bool mapgenSpecFrom(const Options& options, LevelGenerationSpec* spec, QString* 
 		bool ok = false;
 		spec->seed = options.value(QStringLiteral("--seed")).toLongLong(&ok);
 		if (!ok || spec->seed < 0) {
-			*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "--seed takes a whole number of 0 or more.");
+			*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "--seed takes a whole number of 0 or more.");
 			return false;
 		}
 	}
 	if (spec->prompt.trimmed().isEmpty() && spec->game.isEmpty()) {
-		*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "Quake-MapGen needs --prompt \"<the level>\" or at least --game.");
+		*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "Quake-MapGen needs --prompt \"<the level>\" or at least --game.");
 		return false;
 	}
 	*error = levelMapgenSpecProblem(*spec);
@@ -420,13 +420,13 @@ bool levelSpecFrom(const Options& options, LevelGenerationSpec* spec, QString* e
 		return mapgenSpecFrom(options, spec, error);
 	}
 	if (generator != QStringLiteral("studio")) {
-		*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "--generator takes studio or quake-mapgen.");
+		*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "--generator takes studio or quake-mapgen.");
 		return false;
 	}
 	for (const QString& key : {QStringLiteral("--format"), QStringLiteral("--intensity"), QStringLiteral("--candidates"), QStringLiteral("--repair-iterations"), QStringLiteral("--switch"),
 			 QStringLiteral("--ranker")}) {
 		if (options.has(key)) {
-			*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 is for --generator quake-mapgen.").arg(key);
+			*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 is for --generator quake-mapgen.").arg(key);
 			return false;
 		}
 	}
@@ -442,7 +442,7 @@ bool levelSpecFrom(const Options& options, LevelGenerationSpec* spec, QString* e
 	spec->wad = options.value(QStringLiteral("--wad"));
 	const auto checkChoice = [&](const QString& key, const QString& value, const QStringList& allowed) {
 		if (!value.isEmpty() && !allowed.contains(value)) {
-			*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 takes one of: %2.").arg(key, allowed.join(QStringLiteral(", ")));
+			*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 takes one of: %2.").arg(key, allowed.join(QStringLiteral(", ")));
 			return false;
 		}
 		return true;
@@ -462,7 +462,7 @@ bool levelSpecFrom(const Options& options, LevelGenerationSpec* spec, QString* e
 		bool ok = false;
 		spec->seed = options.value(QStringLiteral("--seed")).toLongLong(&ok);
 		if (!ok || spec->seed < 0) {
-			*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "--seed takes a whole number of 0 or more.");
+			*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "--seed takes a whole number of 0 or more.");
 			return false;
 		}
 	}
@@ -470,7 +470,7 @@ bool levelSpecFrom(const Options& options, LevelGenerationSpec* spec, QString* e
 		const qsizetype equals = pair.indexOf(QLatin1Char('='));
 		static const QStringList roles = {QStringLiteral("wall"), QStringLiteral("floor"), QStringLiteral("ceiling"), QStringLiteral("trim"), QStringLiteral("liquid")};
 		if (equals <= 0 || !roles.contains(pair.left(equals)) || pair.mid(equals + 1).trimmed().isEmpty()) {
-			*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "--texture takes role=name, with role one of: %1.").arg(roles.join(QStringLiteral(", ")));
+			*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "--texture takes role=name, with role one of: %1.").arg(roles.join(QStringLiteral(", ")));
 			return false;
 		}
 		spec->textures.insert(pair.left(equals), pair.mid(equals + 1).trimmed());
@@ -479,7 +479,7 @@ bool levelSpecFrom(const Options& options, LevelGenerationSpec* spec, QString* e
 		QString loadError;
 		const QStringList names = textureNamesIn(path, &loadError);
 		if (!loadError.isEmpty()) {
-			*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "Could not read textures from %1: %2").arg(QDir::toNativeSeparators(path), loadError);
+			*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "Could not read textures from %1: %2").arg(QDir::toNativeSeparators(path), loadError);
 			return false;
 		}
 		spec->availableTextures += names;
@@ -506,14 +506,14 @@ PlanOutcome planFor(const Options& options, const LevelGenerationSpec& spec)
 	const QString planner = options.value(QStringLiteral("--planner"), QStringLiteral("rules"));
 	if (planner != QStringLiteral("rules") && planner != QStringLiteral("ai")) {
 		outcome.exitCode = 2;
-		outcome.error = QCoreApplication::translate("VibeStudioAiGenerationCli", "--planner takes rules or ai.");
+		outcome.error = QCoreApplication::translate("SlopStudioAiGenerationCli", "--planner takes rules or ai.");
 		return outcome;
 	}
 	if (options.has(QStringLiteral("--plan"))) {
 		QFile file(options.value(QStringLiteral("--plan")));
 		if (!file.open(QIODevice::ReadOnly)) {
 			outcome.exitCode = 3;
-			outcome.error = QCoreApplication::translate("VibeStudioAiGenerationCli", "Could not read the plan %1.").arg(QDir::toNativeSeparators(file.fileName()));
+			outcome.error = QCoreApplication::translate("SlopStudioAiGenerationCli", "Could not read the plan %1.").arg(QDir::toNativeSeparators(file.fileName()));
 			return outcome;
 		}
 		QStringList problems;
@@ -542,7 +542,7 @@ PlanOutcome planFor(const Options& options, const LevelGenerationSpec& spec)
 		QString error;
 		outcome.dryRun = true;
 		outcome.ok = true;
-		outcome.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Dry run: nothing was sent. %1").arg(aiTextConnectionBlockText(connection));
+		outcome.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Dry run: nothing was sent. %1").arg(aiTextConnectionBlockText(connection));
 		outcome.lines << (buildAiHttpRequest(request, QString(), &http, &error) ? describeAiHttpRequest(http) : error);
 		return outcome;
 	}
@@ -571,7 +571,7 @@ PlanOutcome planFor(const Options& options, const LevelGenerationSpec& spec)
 		elapsed += response.elapsedMsecs;
 		if (!response.ok) {
 			outcome.exitCode = 1;
-			outcome.error = QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 %2").arg(aiChatFailureText(response.failure), response.errorMessage);
+			outcome.error = QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 %2").arg(aiChatFailureText(response.failure), response.errorMessage);
 			return outcome;
 		}
 		previous = response.text;
@@ -592,7 +592,7 @@ PlanOutcome planFor(const Options& options, const LevelGenerationSpec& spec)
 	outcome.ai = usageJson(connection.connectorId, connection.model, connection.endpoint, inputTokens, outputTokens, elapsed);
 	if (!outcome.ok) {
 		// The model's answers never held a plan; the rules make one instead.
-		outcome.warnings << QCoreApplication::translate("VibeStudioAiGenerationCli", "The model's plan could not be used (%1); the rules planner made one instead.")
+		outcome.warnings << QCoreApplication::translate("SlopStudioAiGenerationCli", "The model's plan could not be used (%1); the rules planner made one instead.")
 								 .arg(problems.join(QStringLiteral(" ")));
 		outcome.plan = rulesLevelPlan(spec);
 		outcome.ok = true;
@@ -609,15 +609,15 @@ AiGenerationCliResult runMapgen(const Options& options, const LevelGenerationSpe
 {
 	const QString planner = options.value(QStringLiteral("--planner"), QStringLiteral("rules"));
 	if (planner != QStringLiteral("rules") && planner != QStringLiteral("ai")) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--planner takes rules or ai."));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--planner takes rules or ai."));
 	}
 	if (options.has(QStringLiteral("--save-plan"))) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--save-plan keeps studio plans; Quake-MapGen's plan is in --report."));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--save-plan keeps studio plans; Quake-MapGen's plan is in --report."));
 	}
 	std::optional<LevelMapgenModel> model;
 	if (planner == QStringLiteral("ai")) {
 		if (spec.prompt.trimmed().isEmpty()) {
-			return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--planner ai needs --prompt."));
+			return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--planner ai needs --prompt."));
 		}
 		const AiTextConnection connection = resolveAiTextConnection(preferencesFor(options, false), options.value(QStringLiteral("--provider")));
 		if (options.has(QStringLiteral("--dry-run"))) {
@@ -625,7 +625,7 @@ AiGenerationCliResult runMapgen(const Options& options, const LevelGenerationSpe
 			AiHttpRequest http;
 			QString error;
 			AiGenerationCliResult result;
-			result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Dry run: nothing was sent. %1").arg(aiTextConnectionBlockText(connection));
+			result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Dry run: nothing was sent. %1").arg(aiTextConnectionBlockText(connection));
 			result.lines << (levelMapgenPlanAiRequest(spec, connection, &request, &error) && buildAiHttpRequest(request, QString(), &http, &error) ? describeAiHttpRequest(http) : error);
 			result.payload.insert(QStringLiteral("dryRun"), true);
 			result.payload.insert(QStringLiteral("request"), result.lines.join(QLatin1Char('\n')));
@@ -687,7 +687,7 @@ AiGenerationCliResult runMapgen(const Options& options, const LevelGenerationSpe
 				return failure(1, error);
 			}
 			result.payload.insert(QStringLiteral("output"), path);
-			result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Plan written to %1.").arg(QDir::toNativeSeparators(path));
+			result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Plan written to %1.").arg(QDir::toNativeSeparators(path));
 		}
 		return result;
 	}
@@ -699,7 +699,7 @@ AiGenerationCliResult runMapgen(const Options& options, const LevelGenerationSpe
 			path = QDir(path).filePath(level.suggestedFileName);
 		}
 		if (QFileInfo(path).suffix().compare(QStringLiteral("map"), Qt::CaseInsensitive) != 0) {
-			return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "A %1 level is written as .%2.").arg(level.spec.game, QStringLiteral("map")));
+			return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "A %1 level is written as .%2.").arg(level.spec.game, QStringLiteral("map")));
 		}
 		if (!writeFile(path, level.mapBytes, overwrite, &error)) {
 			return failure(1, error);
@@ -726,10 +726,10 @@ AiGenerationCliResult runMapgen(const Options& options, const LevelGenerationSpe
 		}
 	}
 	for (const QString& warning : level.warnings) {
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Warning: %1").arg(warning);
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Warning: %1").arg(warning);
 	}
 	for (const QString& path : written) {
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Wrote %1").arg(QDir::toNativeSeparators(path));
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Wrote %1").arg(QDir::toNativeSeparators(path));
 	}
 	report.insert(QStringLiteral("written"), QJsonArray::fromStringList(written));
 	result.payload = report;
@@ -755,7 +755,7 @@ AiGenerationCliResult runMapPlan(const QStringList& arguments)
 		return runMapgen(options, spec, true);
 	}
 	if (spec.prompt.trimmed().isEmpty() && options.value(QStringLiteral("--planner")) == QStringLiteral("ai")) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "map plan --planner ai needs --prompt."));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "map plan --planner ai needs --prompt."));
 	}
 	spec = normalizedLevelGenerationSpec(spec);
 	const PlanOutcome outcome = planFor(options, spec);
@@ -785,7 +785,7 @@ AiGenerationCliResult runMapPlan(const QStringList& arguments)
 			return failure(1, error);
 		}
 		result.payload.insert(QStringLiteral("output"), path);
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Plan written to %1.").arg(QDir::toNativeSeparators(path));
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Plan written to %1.").arg(QDir::toNativeSeparators(path));
 	}
 	return result;
 }
@@ -801,7 +801,7 @@ AiGenerationCliResult runMapGenerate(const QStringList& arguments)
 	}
 	if (!options.has(QStringLiteral("--output")) && !options.has(QStringLiteral("--dry-run")) && !options.has(QStringLiteral("--preview"))
 		&& !options.has(QStringLiteral("--report"))) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli",
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli",
 			"map generate needs --output <map or folder> (or --preview/--report to look first). Describe the level with --prompt; --planner ai asks your text model for the plan."));
 	}
 	LevelGenerationSpec spec;
@@ -842,7 +842,7 @@ AiGenerationCliResult runMapGenerate(const QStringList& arguments)
 		}
 		const QString wanted = level.format == QStringLiteral("doom-wad") ? QStringLiteral("wad") : QStringLiteral("map");
 		if (QFileInfo(path).suffix().compare(wanted, Qt::CaseInsensitive) != 0) {
-			return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "A %1 level is written as .%2.").arg(spec.game, wanted));
+			return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "A %1 level is written as .%2.").arg(spec.game, wanted));
 		}
 		if (!writeFile(path, level.mapBytes, overwrite, &error)) {
 			return failure(1, error);
@@ -874,10 +874,10 @@ AiGenerationCliResult runMapGenerate(const QStringList& arguments)
 		result.lines << QStringLiteral("- %1").arg(note);
 	}
 	for (const QString& warning : warnings) {
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Warning: %1").arg(warning);
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Warning: %1").arg(warning);
 	}
 	for (const QString& path : written) {
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Wrote %1").arg(QDir::toNativeSeparators(path));
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Wrote %1").arg(QDir::toNativeSeparators(path));
 	}
 	report.insert(QStringLiteral("written"), QJsonArray::fromStringList(written));
 	report.insert(QStringLiteral("warnings"), QJsonArray::fromStringList(warnings));
@@ -901,17 +901,17 @@ AiGenerationCliResult runMapAiEdit(const QStringList& arguments)
 	}
 	const QString instruction = options.value(QStringLiteral("--prompt")).trimmed();
 	if (input.isEmpty() || (instruction.isEmpty() && !options.has(QStringLiteral("--proposal")))) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli",
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli",
 			"map ai-edit needs a .map and --prompt \"<what to change>\", or --proposal <file> to review a saved proposal."));
 	}
 	LevelMapDocument document;
 	LevelMapLoadRequest load;
 	load.path = input;
 	if (!loadLevelMap(load, &document, &error)) {
-		return failure(3, QCoreApplication::translate("VibeStudioAiGenerationCli", "Could not read the map %1: %2").arg(QDir::toNativeSeparators(input), error));
+		return failure(3, QCoreApplication::translate("SlopStudioAiGenerationCli", "Could not read the map %1: %2").arg(QDir::toNativeSeparators(input), error));
 	}
 	if (document.format != LevelMapFormat::QuakeMap && document.format != LevelMapFormat::Quake3Map) {
-		return failure(4, QCoreApplication::translate("VibeStudioAiGenerationCli", "map ai-edit edits Quake-family .map files; %1 is not one.").arg(QDir::toNativeSeparators(input)));
+		return failure(4, QCoreApplication::translate("SlopStudioAiGenerationCli", "map ai-edit edits Quake-family .map files; %1 is not one.").arg(QDir::toNativeSeparators(input)));
 	}
 	// What the request is about, as the editor's selection says it.
 	if (options.has(QStringLiteral("--select"))) {
@@ -921,7 +921,7 @@ AiGenerationCliResult runMapAiEdit(const QStringList& arguments)
 			bool ok = false;
 			const LevelMapSelectionRef ref {levelMapSelectionKindFromId(selector.left(colon).trimmed()), selector.mid(colon + 1).trimmed().toInt(&ok)};
 			if (colon <= 0 || !ok || !levelMapObjectExists(document, ref)) {
-				return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--select takes selectors such as entity:3,brush:12; %1 is not in this map.").arg(selector.trimmed()));
+				return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--select takes selectors such as entity:3,brush:12; %1 is not in this map.").arg(selector.trimmed()));
 			}
 			refs << ref;
 		}
@@ -936,7 +936,7 @@ AiGenerationCliResult runMapAiEdit(const QStringList& arguments)
 		// A saved proposal, from --save-proposal or written by hand: no model.
 		QFile file(options.value(QStringLiteral("--proposal")));
 		if (!file.open(QIODevice::ReadOnly)) {
-			return failure(3, QCoreApplication::translate("VibeStudioAiGenerationCli", "Could not read the proposal %1.").arg(QDir::toNativeSeparators(file.fileName())));
+			return failure(3, QCoreApplication::translate("SlopStudioAiGenerationCli", "Could not read the proposal %1.").arg(QDir::toNativeSeparators(file.fileName())));
 		}
 		if (!levelAiEditProposalFromAnswer(QString::fromUtf8(file.readAll()), &proposal, &error)) {
 			return failure(4, error);
@@ -947,7 +947,7 @@ AiGenerationCliResult runMapAiEdit(const QStringList& arguments)
 		const AiChatRequest request = levelAiEditRequest(document, instruction, connection.connectorId, connection.model, connection.endpoint, QString(), QDir::homePath());
 		if (options.has(QStringLiteral("--dry-run"))) {
 			AiHttpRequest http;
-			result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Dry run: nothing was sent. %1").arg(aiTextConnectionBlockText(connection));
+			result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Dry run: nothing was sent. %1").arg(aiTextConnectionBlockText(connection));
 			result.lines << (buildAiHttpRequest(request, QString(), &http, &error) ? describeAiHttpRequest(http) : error);
 			result.payload.insert(QStringLiteral("dryRun"), true);
 			result.payload.insert(QStringLiteral("request"), result.lines.join(QLatin1Char('\n')));
@@ -959,12 +959,12 @@ AiGenerationCliResult runMapAiEdit(const QStringList& arguments)
 		}
 		const AiChatResponse response = sendChat(request, aiTextConnectionApiKey(connection), timeoutFor(options));
 		if (!response.ok) {
-			return failure(1, QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 %2").arg(aiChatFailureText(response.failure), response.errorMessage));
+			return failure(1, QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 %2").arg(aiChatFailureText(response.failure), response.errorMessage));
 		}
 		result.payload.insert(QStringLiteral("ai"),
 			usageJson(connection.connectorId, connection.model, connection.endpoint, response.inputTokens, response.outputTokens, response.elapsedMsecs));
 		if (!levelAiEditProposalFromAnswer(response.text, &proposal, &error)) {
-			return failure(4, QCoreApplication::translate("VibeStudioAiGenerationCli", "The model's answer held no proposal: %1").arg(error));
+			return failure(4, QCoreApplication::translate("SlopStudioAiGenerationCli", "The model's answer held no proposal: %1").arg(error));
 		}
 	}
 	validateLevelAiEditProposal(document, &proposal);
@@ -977,27 +977,27 @@ AiGenerationCliResult runMapAiEdit(const QStringList& arguments)
 			bool ok = false;
 			const int number = part.trimmed().toInt(&ok);
 			if (!ok || number < 1 || number > proposal.actions.size()) {
-				return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--only takes action numbers from 1 to %1, such as 1,3.").arg(proposal.actions.size()));
+				return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--only takes action numbers from 1 to %1, such as 1,3.").arg(proposal.actions.size()));
 			}
 			chosen.insert(number - 1);
 		}
 		for (int index = 0; index < proposal.actions.size(); ++index) {
 			LevelAiEditAction& action = proposal.actions[index];
 			if (chosen.contains(index) && !action.valid()) {
-				warnings << QCoreApplication::translate("VibeStudioAiGenerationCli", "Action %1 cannot run: %2").arg(index + 1).arg(action.problems.join(QStringLiteral(" ")));
+				warnings << QCoreApplication::translate("SlopStudioAiGenerationCli", "Action %1 cannot run: %2").arg(index + 1).arg(action.problems.join(QStringLiteral(" ")));
 			}
 			action.enabled = chosen.contains(index) && action.valid();
 		}
 	}
 
-	result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Proposal: %1")
-						.arg(proposal.summary.isEmpty() ? QCoreApplication::translate("VibeStudioAiGenerationCli", "(no summary)") : proposal.summary);
+	result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Proposal: %1")
+						.arg(proposal.summary.isEmpty() ? QCoreApplication::translate("SlopStudioAiGenerationCli", "(no summary)") : proposal.summary);
 	int runnable = 0;
 	for (int index = 0; index < proposal.actions.size(); ++index) {
 		const LevelAiEditAction& action = proposal.actions.at(index);
-		const QString state = !action.valid() ? QCoreApplication::translate("VibeStudioAiGenerationCli", "blocked")
-			: action.enabled					 ? QCoreApplication::translate("VibeStudioAiGenerationCli", "ready")
-												 : QCoreApplication::translate("VibeStudioAiGenerationCli", "left out");
+		const QString state = !action.valid() ? QCoreApplication::translate("SlopStudioAiGenerationCli", "blocked")
+			: action.enabled					 ? QCoreApplication::translate("SlopStudioAiGenerationCli", "ready")
+												 : QCoreApplication::translate("SlopStudioAiGenerationCli", "left out");
 		runnable += action.enabled && action.valid() ? 1 : 0;
 		result.lines << QStringLiteral("%1. [%2] %3").arg(index + 1).arg(state, action.description);
 		if (!action.reason.isEmpty()) {
@@ -1008,10 +1008,10 @@ AiGenerationCliResult runMapAiEdit(const QStringList& arguments)
 		}
 	}
 	if (proposal.actions.isEmpty()) {
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "No actions were proposed.");
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "No actions were proposed.");
 	}
 	for (const QString& warning : warnings) {
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Warning: %1").arg(warning);
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Warning: %1").arg(warning);
 	}
 
 	const bool overwrite = options.has(QStringLiteral("--overwrite"));
@@ -1025,7 +1025,7 @@ AiGenerationCliResult runMapAiEdit(const QStringList& arguments)
 	}
 	if (options.has(QStringLiteral("--output"))) {
 		if (runnable == 0) {
-			return failure(4, QCoreApplication::translate("VibeStudioAiGenerationCli", "None of the proposed actions can run, so nothing was written."));
+			return failure(4, QCoreApplication::translate("SlopStudioAiGenerationCli", "None of the proposed actions can run, so nothing was written."));
 		}
 		const LevelAiEditApplyReport report = applyLevelAiEditProposal(&document, proposal);
 		result.lines += report.lines;
@@ -1043,10 +1043,10 @@ AiGenerationCliResult runMapAiEdit(const QStringList& arguments)
 		result.payload.insert(QStringLiteral("applyLines"), QJsonArray::fromStringList(report.lines));
 		result.payload.insert(QStringLiteral("output"), path);
 	} else {
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Review only: the map was not changed. Pass --output <map> to write it with the ready actions.");
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Review only: the map was not changed. Pass --output <map> to write it with the ready actions.");
 	}
 	for (const QString& path : written) {
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Wrote %1").arg(QDir::toNativeSeparators(path));
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Wrote %1").arg(QDir::toNativeSeparators(path));
 	}
 	result.payload.insert(QStringLiteral("map"), input);
 	result.payload.insert(QStringLiteral("instruction"), instruction);
@@ -1072,7 +1072,7 @@ IdTechPaletteResolution paletteFor(const Options& options, const QString& game, 
 	if (options.has(QStringLiteral("--palette-file"))) {
 		QFile file(options.value(QStringLiteral("--palette-file")));
 		if (!file.open(QIODevice::ReadOnly)) {
-			*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "Could not read the palette %1.").arg(QDir::toNativeSeparators(file.fileName()));
+			*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "Could not read the palette %1.").arg(QDir::toNativeSeparators(file.fileName()));
 			return resolution;
 		}
 		const QByteArray bytes = file.readAll();
@@ -1098,7 +1098,7 @@ IdTechPaletteResolution paletteFor(const Options& options, const QString& game, 
 		resolution.requestedPaletteId = paletteId;
 	}
 	if (resolution.palette.generated) {
-		*warnings << QCoreApplication::translate("VibeStudioAiGenerationCli",
+		*warnings << QCoreApplication::translate("SlopStudioAiGenerationCli",
 			"No %1 palette was given (--palette-file, --palette-root or --package), so a generated stand-in was used.").arg(profile.displayName);
 	}
 	return resolution;
@@ -1120,18 +1120,18 @@ bool textureSpecFrom(const Options& options, TextureGenerationSpec* spec, QStrin
 		spec->dither = value == QStringLiteral("on") || value == QStringLiteral("true") || value == QStringLiteral("1") || value == QStringLiteral("floyd-steinberg");
 	}
 	if (!textureGameProfileForId(spec->game)) {
-		*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "--game takes one of: %1.").arg(textureGameProfileIds().join(QStringLiteral(", ")));
+		*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "--game takes one of: %1.").arg(textureGameProfileIds().join(QStringLiteral(", ")));
 		return false;
 	}
 	TextureGameProfile profile;
 	textureGameProfileForId(spec->game, &profile);
 	spec->game = profile.id;
 	if (!textureGenerationSurfaceIds().contains(spec->surface)) {
-		*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "--surface takes one of: %1.").arg(textureGenerationSurfaceIds().join(QStringLiteral(", ")));
+		*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "--surface takes one of: %1.").arg(textureGenerationSurfaceIds().join(QStringLiteral(", ")));
 		return false;
 	}
 	if (options.has(QStringLiteral("--size")) && !readSize(options.value(QStringLiteral("--size")), &spec->size)) {
-		*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "--size takes WIDTHxHEIGHT, such as 64x64.");
+		*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "--size takes WIDTHxHEIGHT, such as 64x64.");
 		return false;
 	}
 	int blend = spec->seamBlendPercent;
@@ -1143,7 +1143,7 @@ bool textureSpecFrom(const Options& options, TextureGenerationSpec* spec, QStrin
 		bool ok = false;
 		spec->normalStrength = options.value(QStringLiteral("--normal-strength")).toDouble(&ok);
 		if (!ok || spec->normalStrength <= 0.0 || spec->normalStrength > 20.0) {
-			*error = QCoreApplication::translate("VibeStudioAiGenerationCli", "--normal-strength takes a number above 0, up to 20.");
+			*error = QCoreApplication::translate("SlopStudioAiGenerationCli", "--normal-strength takes a number above 0, up to 20.");
 			return false;
 		}
 	}
@@ -1212,7 +1212,7 @@ AiGenerationCliResult runTextureGenerate(const QStringList& arguments)
 		return failure(2, error);
 	}
 	if (spec.prompt.trimmed().isEmpty() && !options.has(QStringLiteral("--from-image"))) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli",
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli",
 			"texture generate needs --prompt (sent to your image model) or --from-image <picture> (no AI)."));
 	}
 	int count = 1;
@@ -1228,7 +1228,7 @@ AiGenerationCliResult runTextureGenerate(const QStringList& arguments)
 		const QString path = options.value(QStringLiteral("--from-image"));
 		QImage picture(path);
 		if (picture.isNull()) {
-			return failure(3, QCoreApplication::translate("VibeStudioAiGenerationCli", "Could not read the picture %1.").arg(QDir::toNativeSeparators(path)));
+			return failure(3, QCoreApplication::translate("SlopStudioAiGenerationCli", "Could not read the picture %1.").arg(QDir::toNativeSeparators(path)));
 		}
 		pictures << picture;
 		count = 1;
@@ -1250,13 +1250,13 @@ AiGenerationCliResult runTextureGenerate(const QStringList& arguments)
 		if (options.has(QStringLiteral("--source"))) {
 			QImage source(options.value(QStringLiteral("--source")));
 			if (source.isNull()) {
-				return failure(3, QCoreApplication::translate("VibeStudioAiGenerationCli", "Could not read the source picture %1.").arg(options.value(QStringLiteral("--source"))));
+				return failure(3, QCoreApplication::translate("SlopStudioAiGenerationCli", "Could not read the source picture %1.").arg(options.value(QStringLiteral("--source"))));
 			}
 			request.sourceImage = pngBytes(source);
 		}
 		if (options.has(QStringLiteral("--dry-run"))) {
 			AiHttpRequest http;
-			result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Dry run: nothing was sent. %1").arg(aiImageConnectionBlockText(connection));
+			result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Dry run: nothing was sent. %1").arg(aiImageConnectionBlockText(connection));
 			result.lines << (buildAiImageHttpRequest(request, QString(), &http, &error) ? describeAiHttpRequest(http) : error);
 			result.payload.insert(QStringLiteral("dryRun"), true);
 			result.payload.insert(QStringLiteral("request"), result.lines.join(QLatin1Char('\n')));
@@ -1268,7 +1268,7 @@ AiGenerationCliResult runTextureGenerate(const QStringList& arguments)
 		}
 		const AiImageResponse response = sendImage(request, aiImageConnectionApiKey(connection), timeoutFor(options));
 		if (!response.ok && response.images.isEmpty()) {
-			return failure(1, QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 %2").arg(aiChatFailureText(response.failure), response.errorMessage));
+			return failure(1, QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 %2").arg(aiChatFailureText(response.failure), response.errorMessage));
 		}
 		if (!response.ok) {
 			warnings << response.errorMessage;
@@ -1285,7 +1285,7 @@ AiGenerationCliResult runTextureGenerate(const QStringList& arguments)
 			}
 		}
 		if (pictures.isEmpty()) {
-			return failure(1, QCoreApplication::translate("VibeStudioAiGenerationCli", "The provider's pictures could not be read."));
+			return failure(1, QCoreApplication::translate("SlopStudioAiGenerationCli", "The provider's pictures could not be read."));
 		}
 		provenance.insert(QStringLiteral("provider"), usageJson(connection.connectorId, response.model.isEmpty() ? connection.model : response.model, connection.endpoint,
 														  response.inputTokens, response.outputTokens, response.elapsedMsecs));
@@ -1321,14 +1321,14 @@ AiGenerationCliResult runTextureGenerate(const QStringList& arguments)
 		QJsonObject entry = generatedTextureJson(texture);
 		entry.insert(QStringLiteral("write"), textureGenerationWriteReportJson(written));
 		texturesJson.append(entry);
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "%1: %2x%3, seam %4 (was %5).")
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "%1: %2x%3, seam %4 (was %5).")
 							.arg(written.mapTextureName)
 							.arg(texture.image.width())
 							.arg(texture.image.height())
 							.arg(texture.seamScoreAfter, 0, 'f', 2)
 							.arg(texture.seamScoreBefore, 0, 'f', 2);
 		for (const QString& path : written.writtenPaths) {
-			result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "  Wrote %1").arg(QDir::toNativeSeparators(path));
+			result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "  Wrote %1").arg(QDir::toNativeSeparators(path));
 		}
 		for (const QString& note : written.notes) {
 			result.lines << QStringLiteral("  - %1").arg(note);
@@ -1339,11 +1339,11 @@ AiGenerationCliResult runTextureGenerate(const QStringList& arguments)
 		if (!writeFile(options.value(QStringLiteral("--preview")), pngBytes(contactSheet(textures)), true, &error)) {
 			return failure(1, error);
 		}
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Preview: %1").arg(QDir::toNativeSeparators(options.value(QStringLiteral("--preview"))));
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Preview: %1").arg(QDir::toNativeSeparators(options.value(QStringLiteral("--preview"))));
 	}
 	warnings.removeDuplicates();
 	for (const QString& warning : warnings) {
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Warning: %1").arg(warning);
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Warning: %1").arg(warning);
 	}
 	result.payload.insert(QStringLiteral("spec"), textureGenerationSpecJson(spec));
 	result.payload.insert(QStringLiteral("textures"), texturesJson);
@@ -1375,15 +1375,15 @@ AiGenerationCliResult runTextureDerive(const QStringList& arguments)
 		input = positional[2];
 	}
 	if (input.isEmpty()) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "texture derive needs --input <texture picture>."));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "texture derive needs --input <texture picture>."));
 	}
 	const QImage image(input);
 	if (image.isNull()) {
-		return failure(3, QCoreApplication::translate("VibeStudioAiGenerationCli", "Could not read the picture %1.").arg(QDir::toNativeSeparators(input)));
+		return failure(3, QCoreApplication::translate("SlopStudioAiGenerationCli", "Could not read the picture %1.").arg(QDir::toNativeSeparators(input)));
 	}
 	TextureGameProfile profile;
 	if (!textureGameProfileForId(options.value(QStringLiteral("--game"), QStringLiteral("quake")), &profile) || profile.normalSuffix.isEmpty()) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--game takes quake, quake2, quake3 or generic: games whose ports read companion maps."));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--game takes quake, quake2, quake3 or generic: games whose ports read companion maps."));
 	}
 	double strength = 2.5;
 	double threshold = 0.82;
@@ -1394,7 +1394,7 @@ AiGenerationCliResult runTextureDerive(const QStringList& arguments)
 		threshold = options.value(QStringLiteral("--glow-threshold")).toDouble();
 	}
 	if (strength <= 0.0 || strength > 20.0 || threshold <= 0.0 || threshold > 1.0) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--normal-strength takes 0-20 and --glow-threshold 0-1."));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--normal-strength takes 0-20 and --glow-threshold 0-1."));
 	}
 	const bool wrap = !options.has(QStringLiteral("--no-seamless"));
 	const QFileInfo info(input);
@@ -1408,7 +1408,7 @@ AiGenerationCliResult runTextureDerive(const QStringList& arguments)
 	};
 	for (const auto& output : outputs) {
 		if (output.second.isNull()) {
-			result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Nothing glows; no %1 map.").arg(output.first);
+			result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Nothing glows; no %1 map.").arg(output.first);
 			continue;
 		}
 		const QString path = QDir(folder).filePath(info.completeBaseName() + output.first + QStringLiteral(".tga"));
@@ -1422,7 +1422,7 @@ AiGenerationCliResult runTextureDerive(const QStringList& arguments)
 			return failure(1, error);
 		}
 		maps.append(QJsonObject {{QStringLiteral("suffix"), output.first}, {QStringLiteral("path"), path}});
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 %2").arg(options.has(QStringLiteral("--dry-run")) ? QStringLiteral("Would write") : QStringLiteral("Wrote"),
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 %2").arg(options.has(QStringLiteral("--dry-run")) ? QStringLiteral("Would write") : QStringLiteral("Wrote"),
 							QDir::toNativeSeparators(path));
 	}
 	result.payload.insert(QStringLiteral("input"), input);
@@ -1453,7 +1453,7 @@ AiGenerationCliResult runAiImage(const QStringList& arguments)
 		return failure(2, error);
 	}
 	if (options.value(QStringLiteral("--prompt")).trimmed().isEmpty()) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "ai image needs --prompt, and --output for where the pictures go."));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "ai image needs --prompt, and --output for where the pictures go."));
 	}
 	const AiAutomationPreferences preferences = preferencesFor(options, true);
 	const AiImageConnection connection = resolveAiImageConnection(preferences, options.value(QStringLiteral("--provider")));
@@ -1467,7 +1467,7 @@ AiGenerationCliResult runAiImage(const QStringList& arguments)
 	request.transparentBackground = options.has(QStringLiteral("--transparent"));
 	request.tileable = options.has(QStringLiteral("--tileable"));
 	if (options.has(QStringLiteral("--size")) && !readSize(options.value(QStringLiteral("--size")), &request.size)) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--size takes WIDTHxHEIGHT, such as 1024x1024."));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--size takes WIDTHxHEIGHT, such as 1024x1024."));
 	}
 	int count = 1;
 	int steps = 0;
@@ -1485,14 +1485,14 @@ AiGenerationCliResult runAiImage(const QStringList& arguments)
 	if (options.has(QStringLiteral("--source"))) {
 		const QImage source(options.value(QStringLiteral("--source")));
 		if (source.isNull()) {
-			return failure(3, QCoreApplication::translate("VibeStudioAiGenerationCli", "Could not read the source picture %1.").arg(options.value(QStringLiteral("--source"))));
+			return failure(3, QCoreApplication::translate("SlopStudioAiGenerationCli", "Could not read the source picture %1.").arg(options.value(QStringLiteral("--source"))));
 		}
 		request.sourceImage = pngBytes(source);
 	}
 	AiGenerationCliResult result;
 	if (options.has(QStringLiteral("--dry-run"))) {
 		AiHttpRequest http;
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Dry run: nothing was sent. %1").arg(aiImageConnectionBlockText(connection));
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Dry run: nothing was sent. %1").arg(aiImageConnectionBlockText(connection));
 		result.lines << (buildAiImageHttpRequest(request, QString(), &http, &error) ? describeAiHttpRequest(http) : error);
 		result.payload.insert(QStringLiteral("dryRun"), true);
 		result.payload.insert(QStringLiteral("connection"), QJsonObject {
@@ -1504,7 +1504,7 @@ AiGenerationCliResult runAiImage(const QStringList& arguments)
 		return result;
 	}
 	if (!options.has(QStringLiteral("--output"))) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "ai image needs --output <picture or folder>."));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "ai image needs --output <picture or folder>."));
 	}
 	const QString blocked = sendBlock(connection.ready(), aiImageConnectionBlockText(connection), connection.local, connection.endpoint, options);
 	if (!blocked.isEmpty()) {
@@ -1512,7 +1512,7 @@ AiGenerationCliResult runAiImage(const QStringList& arguments)
 	}
 	const AiImageResponse response = sendImage(request, aiImageConnectionApiKey(connection), timeoutFor(options));
 	if (response.images.isEmpty()) {
-		return failure(1, QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 %2").arg(aiChatFailureText(response.failure), response.errorMessage));
+		return failure(1, QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 %2").arg(aiChatFailureText(response.failure), response.errorMessage));
 	}
 	const QString output = options.value(QStringLiteral("--output"));
 	const bool folder = QFileInfo(output).isDir() || output.endsWith(QLatin1Char('/')) || output.endsWith(QLatin1Char('\\')) || response.images.size() > 1;
@@ -1539,13 +1539,13 @@ AiGenerationCliResult runAiImage(const QStringList& arguments)
 			return failure(1, error);
 		}
 		written.append(path);
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Wrote %1").arg(QDir::toNativeSeparators(path));
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Wrote %1").arg(QDir::toNativeSeparators(path));
 		if (!image.revisedPrompt.isEmpty()) {
-			result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "  The provider drew: %1").arg(image.revisedPrompt);
+			result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "  The provider drew: %1").arg(image.revisedPrompt);
 		}
 	}
 	if (!response.ok) {
-		result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Warning: %1").arg(response.errorMessage);
+		result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Warning: %1").arg(response.errorMessage);
 	}
 	result.payload.insert(QStringLiteral("written"), written);
 	result.payload.insert(QStringLiteral("usage"), usageJson(connection.connectorId, response.model.isEmpty() ? connection.model : response.model, connection.endpoint,
@@ -1580,15 +1580,15 @@ AiGenerationCliResult runAudioGenerate(const QStringList& arguments)
 	spec.prompt = options.value(QStringLiteral("--prompt")).trimmed();
 	spec.kind = options.value(QStringLiteral("--kind")).trimmed().toLower();
 	if (spec.prompt.isEmpty() && spec.kind.isEmpty()) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli",
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli",
 			"asset audio-generate needs --prompt \"<the sound>\" or --kind <%1>.").arg(soundGenerationKindIds().join(QLatin1Char('|'))));
 	}
 	if (!spec.kind.isEmpty() && !soundGenerationKindIds().contains(spec.kind)) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--kind takes %1.").arg(soundGenerationKindIds().join(QStringLiteral(", "))));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--kind takes %1.").arg(soundGenerationKindIds().join(QStringLiteral(", "))));
 	}
 	SoundGameProfile profile;
 	if (!soundGameProfileForId(options.value(QStringLiteral("--game"), QStringLiteral("quake")), &profile)) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--game takes %1.").arg(soundGameProfileIds().join(QStringLiteral(", "))));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--game takes %1.").arg(soundGameProfileIds().join(QStringLiteral(", "))));
 	}
 	spec.game = profile.id;
 	spec.name = options.value(QStringLiteral("--name"));
@@ -1599,19 +1599,19 @@ AiGenerationCliResult runAudioGenerate(const QStringList& arguments)
 	if (options.has(QStringLiteral("--duration"))) {
 		spec.durationSeconds = options.value(QStringLiteral("--duration")).toDouble(&ok);
 		if (!ok || spec.durationSeconds < 0.1 || spec.durationSeconds > 30.0) {
-			return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--duration takes seconds from 0.1 to 30."));
+			return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--duration takes seconds from 0.1 to 30."));
 		}
 	}
 	if (options.has(QStringLiteral("--influence"))) {
 		spec.promptInfluence = options.value(QStringLiteral("--influence")).toDouble(&ok);
 		if (!ok || spec.promptInfluence < 0.0 || spec.promptInfluence > 1.0) {
-			return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--influence takes a number from 0 to 1."));
+			return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--influence takes a number from 0 to 1."));
 		}
 	}
 	if (options.has(QStringLiteral("--seed"))) {
 		spec.seed = options.value(QStringLiteral("--seed")).toLongLong(&ok);
 		if (!ok || spec.seed < 0 || spec.seed > 0x7fffffff) {
-			return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--seed takes a whole number from 0 to 2147483647."));
+			return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--seed takes a whole number from 0 to 2147483647."));
 		}
 	}
 	if (!readInteger(options, QStringLiteral("--variants"), 1, 4, &spec.variants, &error)) {
@@ -1627,18 +1627,18 @@ AiGenerationCliResult runAudioGenerate(const QStringList& arguments)
 		} else if (loop == QStringLiteral("off") || loop == QStringLiteral("false") || loop == QStringLiteral("no")) {
 			spec.loop = false;
 		} else {
-			return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--loop takes on or off."));
+			return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--loop takes on or off."));
 		}
 	}
 	const QString source = options.value(QStringLiteral("--source"), QStringLiteral("synth")).trimmed().toLower();
 	if (source != QStringLiteral("synth") && source != QStringLiteral("ai")) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--source takes synth (no AI) or ai."));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--source takes synth (no AI) or ai."));
 	}
 	if (source == QStringLiteral("ai") && spec.prompt.isEmpty()) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli", "--source ai needs --prompt: the model works from the description."));
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli", "--source ai needs --prompt: the model works from the description."));
 	}
 	if (!options.has(QStringLiteral("--output")) && !options.has(QStringLiteral("--preview")) && !options.has(QStringLiteral("--dry-run"))) {
-		return failure(2, QCoreApplication::translate("VibeStudioAiGenerationCli",
+		return failure(2, QCoreApplication::translate("SlopStudioAiGenerationCli",
 			"asset audio-generate needs --output <project folder> (or --preview <wav> to listen first)."));
 	}
 
@@ -1657,10 +1657,10 @@ AiGenerationCliResult runAudioGenerate(const QStringList& arguments)
 			request.promptInfluence = spec.promptInfluence;
 			request.loop = spec.loop;
 			AiHttpRequest http;
-			result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Dry run: nothing was sent. %1").arg(aiSoundConnectionBlockText(connection));
+			result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Dry run: nothing was sent. %1").arg(aiSoundConnectionBlockText(connection));
 			result.lines << (buildAiSoundHttpRequest(request, QString(), &http, &error) ? describeAiHttpRequest(http) : error);
 			if (spec.variants > 1) {
-				result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 such requests would be sent, one per variant.").arg(spec.variants);
+				result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 such requests would be sent, one per variant.").arg(spec.variants);
 			}
 			result.payload.insert(QStringLiteral("dryRun"), true);
 			result.payload.insert(QStringLiteral("request"), result.lines.join(QLatin1Char('\n')));
@@ -1676,7 +1676,7 @@ AiGenerationCliResult runAudioGenerate(const QStringList& arguments)
 	} else {
 		provenance.insert(QStringLiteral("connector"), QStringLiteral("synth"));
 		if (options.has(QStringLiteral("--dry-run"))) {
-			result.lines << QCoreApplication::translate("VibeStudioAiGenerationCli", "Dry run: the synthesizer runs on this machine; nothing is sent, and nothing is written.");
+			result.lines << QCoreApplication::translate("SlopStudioAiGenerationCli", "Dry run: the synthesizer runs on this machine; nothing is sent, and nothing is written.");
 		}
 	}
 
@@ -1702,7 +1702,7 @@ AiGenerationCliResult runAudioGenerate(const QStringList& arguments)
 			request.loop = variant.loop;
 			const AiSoundResponse response = sendSound(request, aiSoundConnectionApiKey(connection), timeoutFor(options));
 			if (!response.ok) {
-				return failure(1, QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 %2").arg(aiChatFailureText(response.failure), response.errorMessage));
+				return failure(1, QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 %2").arg(aiChatFailureText(response.failure), response.errorMessage));
 			}
 			record.insert(QStringLiteral("promptSent"), request.prompt);
 			record.insert(QStringLiteral("elapsedMs"), double(response.elapsedMsecs));
@@ -1739,7 +1739,7 @@ AiGenerationCliResult runAudioGenerate(const QStringList& arguments)
 			const SoundGenerationWriteReport report = writeGeneratedSound(sound, variant, output);
 			if (!report.ok) {
 				return failure(report.alreadyExists ? 4 : 1, report.alreadyExists
-						? QCoreApplication::translate("VibeStudioAiGenerationCli", "%1 Pass --overwrite to replace it.").arg(report.error)
+						? QCoreApplication::translate("SlopStudioAiGenerationCli", "%1 Pass --overwrite to replace it.").arg(report.error)
 						: report.error);
 			}
 			for (const QString& note : report.notes) {
@@ -1756,8 +1756,8 @@ AiGenerationCliResult runAudioGenerate(const QStringList& arguments)
 		sounds.append(entry);
 	}
 	for (const QString& path : written) {
-		result.lines << (output.dryRun ? QCoreApplication::translate("VibeStudioAiGenerationCli", "Would write %1").arg(QDir::toNativeSeparators(path))
-									   : QCoreApplication::translate("VibeStudioAiGenerationCli", "Wrote %1").arg(QDir::toNativeSeparators(path)));
+		result.lines << (output.dryRun ? QCoreApplication::translate("SlopStudioAiGenerationCli", "Would write %1").arg(QDir::toNativeSeparators(path))
+									   : QCoreApplication::translate("SlopStudioAiGenerationCli", "Wrote %1").arg(QDir::toNativeSeparators(path)));
 	}
 	result.payload.insert(QStringLiteral("spec"), soundGenerationSpecJson(spec));
 	result.payload.insert(QStringLiteral("source"), source);
@@ -1769,4 +1769,4 @@ AiGenerationCliResult runAudioGenerate(const QStringList& arguments)
 	return result;
 }
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

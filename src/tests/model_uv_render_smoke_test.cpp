@@ -6,8 +6,8 @@
 #include <QJsonObject>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests::uvRender;
+using namespace slopstudio;
+using namespace slopstudio::tests::uvRender;
 namespace
 {
 bool benchmark(const QString &name, ModelSurface surface, int ratio, bool selected)
@@ -47,7 +47,7 @@ bool benchmark(const QString &name, ModelSurface surface, int ratio, bool select
 					 .toJson(QJsonDocument::Compact)
 					 .constData()
 			  << std::endl;
-	const int budget = qEnvironmentVariableIntValue("VIBESTUDIO_MODELLER_MAX_UV_RENDER_MS");
+	const int budget = qEnvironmentVariableIntValue("SLOPSTUDIO_MODELLER_MAX_UV_RENDER_MS");
 	return expect(success && result.topology->edges.size() == (name == QStringLiteral("grid") ? 195585 : 131069) &&
 					  result.image.size() == QSize(1024 * ratio, 768 * ratio),
 				  "maximum workload preserves complete topology and requested physical size") &&

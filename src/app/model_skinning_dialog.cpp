@@ -23,7 +23,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -521,4 +521,4 @@ void ModelSkinningDialog::reject()
 	}
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

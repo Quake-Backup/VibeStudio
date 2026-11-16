@@ -12,7 +12,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -25,74 +25,74 @@ struct ToolGroup {
 const QList<ToolGroup>& toolGroups()
 {
 	static const QList<ToolGroup> groups {
-		{"clipboard", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Clipboard"),
+		{"clipboard", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Clipboard"),
 			{"map.copySelection", "map.cutSelection", "map.copySurface", "map.paste", "map.pasteAtOriginal", "map.pasteAtCursor", "map.pasteToCamera", "map.pasteWithOffset", "map.pasteSurface",
 				"map.importMap", "map.exportSelectionAsMap", "map.exportSelectionAsObj"}},
-		{"brush", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Brush"),
+		{"brush", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Brush"),
 			{"map.clipTool", "map.quickClip", "map.clipSelection", "map.clipperOptions", "map.hollowSelection", "map.hollowTouching", "map.makeRoom", "map.makeRoomOptions", "map.carve", "map.mergeBrushes",
 				"map.wrapMerge", "map.wrapMergePoints", "map.intersect", "map.editBrushComponents", "map.makeDetail", "map.makeStructural"}},
 		// NetRadiant Custom's Brush menu prefabs (app/level_prism_actions.cpp).
-		{"brush-shapes", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Brush Shapes"),
+		{"brush-shapes", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Brush Shapes"),
 			{"map.makePrism", "map.makeCone", "map.makeSphere", "map.make3SidedPrism", "map.make4SidedPrism", "map.make5SidedPrism",
 				"map.make6SidedPrism", "map.make7SidedPrism", "map.make8SidedPrism", "map.make9SidedPrism",
 				// TrenchBroom's Create Brush (app/level_brush_points_actions.cpp)
 				// and Brush Tool (app/level_brush_assemble_actions.cpp).
 				"map.createBrushFromPoints", "map.assembleBrushTool", "map.createAssembledBrush"}},
-		{"vertices", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Vertices"),
+		{"vertices", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Vertices"),
 			{"map.vertexTool", "map.edgeTool", "map.faceTool", "map.componentMoveTool", "map.componentRotateTool", "map.componentScaleTool", "map.componentShearTool", "map.componentPivotTool", "map.componentResetPivot", "map.componentGizmoOptions", "map.transformComponents", "map.snapPickedVertex", "map.componentUvLock", "map.componentUvFit", "map.componentXray", "map.insertVertexTool", "map.splitComponents", "map.extrudeFaces", "map.extrudeSplit", "map.extrudePrecisely", "map.sweepTool", "map.sweepApply", "map.sweepDecreaseScale", "map.sweepIncreaseScale", "map.sweepFaces", "map.removeComponents", "map.snapVertices", "map.copyVertexCoordinates"}},
-		{"component-selection", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Component Selection"),
+		{"component-selection", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Component Selection"),
 			{"map.nextComponent", "map.previousComponent", "map.componentTouchingEdges", "map.componentTouchingFaces", "map.growComponents", "map.shrinkComponents", "map.connectedComponents"}},
-		{"transform", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Transform"),
+		{"transform", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Transform"),
 			{"map.translateTool", "map.rotateTool", "map.scaleTool", "map.rotateOrScaleTool", "map.transformTool", "map.selectOrTransformTool", "map.buildTool", "map.setObjectPivot", "map.resetObjectPivot", "map.moveSelection", "map.resizeSelection", "map.scaleSelection", "map.rotatePrecisely", "map.rotateLeft", "map.rotateRight", "map.rollClockwise",
 				"map.rollCounterclockwise", "map.pitchClockwise", "map.pitchCounterclockwise", "map.flipHorizontal",
 				"map.flipVertical", "map.flipX", "map.flipY", "map.flipZ", "map.rotateX", "map.rotateY", "map.rotateZ", "map.shearTool", "map.shearSelection", "map.snapToGrid", "map.roundToGrid", "map.dropToFloor", "map.duplicateWithOffset", "map.duplicateUnique",
 				"map.repeat", "map.clearRepeat", "map.copyRepeatRecipe", "map.repeatTransforms", "map.resetRepeatTransforms"}},
-		{"nudge", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Nudge"),
+		{"nudge", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Nudge"),
 			{"map.nudgeLeft", "map.nudgeRight", "map.nudgeForward", "map.nudgeBack", "map.nudgeDepthUp", "map.nudgeDepthDown", "map.nudgeWorldUp",
 				"map.nudgeWorldDown"}},
-		{"duplicate-move", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Duplicate and Move"),
+		{"duplicate-move", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Duplicate and Move"),
 			{"map.duplicateMoveLeft", "map.duplicateMoveRight", "map.duplicateMoveForward", "map.duplicateMoveBack", "map.duplicateMoveDepthUp",
 				"map.duplicateMoveDepthDown", "map.moveToCamera"}},
-		{"align", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Align"),
+		{"align", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Align"),
 			{"map.alignLeft", "map.alignRight", "map.alignTop", "map.alignBottom", "map.alignCentreHorizontal", "map.alignCentreVertical"}},
-		{"select", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Select"),
+		{"select", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Select"),
 			{"map.selectAll", "map.selectNone", "map.invertSelection", "map.selectSiblings", "map.expandSelectionToLayers", "map.selectSourceLines", "map.selectConnectedEntities", "map.selectAllOfType", "map.selectTextured", "map.selectSimilar", "map.selectByTexture", "map.selectTargets", "map.selectSources",
 				"map.selectWholeEntities", "map.selectInside", "map.selectTouching", "map.selectCompleteTall", "map.selectPartialTall", "map.hideSelection",
 				"map.isolateSelection", "map.showAll"}},
-		{"navigate", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Navigate"),
+		{"navigate", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Navigate"),
 			{"map.frameSelection", "map.focusCameraOnSelection", "map.levelCamera", "map.resetCameraZoom", "map.cameraFloorUp", "map.cameraFloorDown", "map.cameraSpeedUp", "map.cameraSpeedDown", "map.centerOnSelection",
 				"map.zoomToFit", "map.zoomActualSize", "map.resetPlanViews", "map.goToCoordinates", "map.findObject"}},
-		{"entities", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Entities"),
+		{"entities", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Entities"),
 			{"map.addEntity", "map.createEntity", "map.tieToEntity", "map.moveToWorld", "map.movePrimitivesToEntity", "map.movePrimitivesToFirstEntity", "map.moveSelectedToWorld",
 				"map.explodeEntity", "map.explodeEntityUnique", "map.connectEntities", "map.killConnectEntities", "map.replaceKeyValues", "map.setEntityColour",
 					"map.normaliseEntityColour", "map.replaceWithPrefab"}},
-		{"groups", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Groups"),
+		{"groups", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Groups"),
 			{"map.openGroup", "map.closeGroup", "map.closeAllGroups", "map.moveToLayer", "map.createLinkedDuplicate", "map.selectLinkedGroups", "map.updateLinkedGroups", "map.separateLinkedGroups", "map.addProtectedProperty", "map.clearProtectedProperties", "map.extractLinkedGroups"}},
-		{"surfaces", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Surfaces"),
+		{"surfaces", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Surfaces"),
 			{"map.applyTexture", "map.replaceTexture", "map.revealMaterial", "map.alignSurfaces", "map.uvEditor", "map.showFaceInspector", "map.uvTool", "map.paintMaterial", "map.sampleMaterial",
 				"map.surfaceReset", "map.surfaceRadiantReset", "map.resetTextures", "map.surfaceFitWidth", "map.surfaceFitHeight",
 				"map.surfaceProjectAxial", "map.surfaceProjectView", "map.surfaceProjectCamera", "map.surfaceClearFlags"}},
-		{"camera-textures", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Move Textures from Camera"),
+		{"camera-textures", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Move Textures from Camera"),
 			{"map.moveTexturesUp", "map.moveTexturesDown", "map.moveTexturesLeft", "map.moveTexturesRight", "map.moveTexturesUpCoarse",
 				"map.moveTexturesDownCoarse", "map.moveTexturesLeftCoarse", "map.moveTexturesRightCoarse", "map.moveTexturesUpFine",
 				"map.moveTexturesDownFine", "map.moveTexturesLeftFine", "map.moveTexturesRightFine", "map.flipTexturesHorizontally",
 				"map.flipTexturesVertically"}},
-		{"rotate-textures", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Rotate Textures"),
+		{"rotate-textures", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Rotate Textures"),
 			{"map.rotateTexturesClockwise", "map.rotateTexturesClockwiseCoarse", "map.rotateTexturesClockwiseFine",
 				"map.rotateTexturesCounterclockwise", "map.rotateTexturesCounterclockwiseCoarse", "map.rotateTexturesCounterclockwiseFine"}},
-		{"patches", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Patches"),
+		{"patches", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Patches"),
 			{"map.addPatch", "map.patchCylinder", "map.patchSquareCylinder", "map.patchEndCap", "map.patchBevel", "map.patchClassicCone",
 				"map.patchSphere", "map.patchExactCylinder", "map.patchExactCone", "map.patchExactSphere", "map.editPatch", "map.stitchPatches", "map.capPatch", "map.thickenPatch", "map.deformPatch", "map.convertToPatches", "map.patchInvert", "map.patchTranspose"}},
-		{"patchMatrix", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Patch Rows and Columns"),
+		{"patchMatrix", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Patch Rows and Columns"),
 			{"map.patchInsertColumns", "map.patchAddColumns", "map.patchInsertRows", "map.patchAddRows", "map.patchDeleteFirstColumns",
 				"map.patchDeleteLastColumns", "map.patchDeleteFirstRows", "map.patchDeleteLastRows", "map.patchRedisperseColumns",
 				"map.patchRedisperseRows", "map.patchSmoothColumns", "map.patchSmoothRows"}},
-		{"doom", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Sectors and Lines"),
+		{"doom", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Sectors and Lines"),
 			{"map.drawSector", "map.makeSectorMode", "map.addSector", "map.addThing", "map.splitLinedefs", "map.curveLinedefs", "map.flipLinedefs", "map.mergeVertices",
 				"map.joinSectors", "map.mergeSectors", "map.makeDoor", "map.raiseCameraSurface", "map.lowerCameraSurface", "map.brightenCameraSurface",
 				"map.darkenCameraSurface", "map.nudgeCameraTextureLeft", "map.nudgeCameraTextureRight", "map.nudgeCameraTextureUp",
 				"map.nudgeCameraTextureDown", "map.dragCameraTextures", "map.alignWallTexturesCrosshair", "map.alignWallTextures"}},
-		{"region", QT_TRANSLATE_NOOP("VibeStudioLevelTools", "Region and Build"),
+		{"region", QT_TRANSLATE_NOOP("SlopStudioLevelTools", "Region and Build"),
 			{"map.regionSetSelection", "map.regionSetView", "map.regionDraw", "map.regionSetBrush", "map.regionBounds", "map.regionSelect",
 				"map.regionClear", "map.regionSave", "map.regionCompile", "build.runLast", "compiler.rerunLast", "game.launch", "map.exportMap", "map.exportMapAsObj",
 				"map.mapInfo", "map.loadLeakTrail", "map.loadPortals"}},
@@ -130,14 +130,14 @@ void ApplicationShell::buildLevelToolsPage(SidebarPage* page)
 		}
 		// The first two groups start open; the rest wait to be asked for.
 		const QString groupId = QLatin1String(group.id);
-		SidebarSection* section = addLevelSidebarSection(page, QStringLiteral("tools.") + groupId, QCoreApplication::translate("VibeStudioLevelTools", group.title), body, 0,
+		SidebarSection* section = addLevelSidebarSection(page, QStringLiteral("tools.") + groupId, QCoreApplication::translate("SlopStudioLevelTools", group.title), body, 0,
 			groupId == QLatin1String("brush") || groupId == QLatin1String("transform"));
 		m_levelToolSections.insert(groupId, section);
 		// NetRadiant Custom's CSG Tool window, as the section after Brush
 		// (level_csg_tool_actions.cpp); CSG Tool opens it.
 		if (groupId == QLatin1String("brush")) {
 			m_levelToolSections.insert(QStringLiteral("csg"), addLevelSidebarSection(page, QStringLiteral("tools.csg"),
-				QCoreApplication::translate("VibeStudioLevelTools", "CSG Tool"), buildLevelCsgToolPanel(), 0, false));
+				QCoreApplication::translate("SlopStudioLevelTools", "CSG Tool"), buildLevelCsgToolPanel(), 0, false));
 		}
 	}
 	refreshLevelToolsPage();
@@ -173,4 +173,4 @@ void ApplicationShell::refreshLevelToolsPage()
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

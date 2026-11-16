@@ -30,7 +30,7 @@
 
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelGeometricTopology
 {
@@ -89,4 +89,4 @@ bool buildModelQuadTopology(const ModelSurface &surface, int frame, double maxAn
 QVector<ModelEdge> modelEdgeLoop(const ModelQuadTopology &topology, ModelEdge geometric, bool *closed = nullptr);
 QVector<ModelEdge> modelEdgeRing(const ModelQuadTopology &topology, ModelEdge geometric, bool *closed = nullptr,
 								 QVector<int> *elements = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

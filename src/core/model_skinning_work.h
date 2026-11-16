@@ -3,7 +3,7 @@
 #include "core/model_mesh.h"
 #include "core/model_work.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // Shared frame validation/rebaking for binding and weight authoring. Keeps
 // independent tracks and original bind bytes intact.
@@ -17,4 +17,4 @@ struct ModelSkinningWork
 	bool validateSurface(const ModelMesh &mesh, int surface, QString *error, const ModelWorkControl &control) const;
 	bool bakeSurface(ModelMesh *mesh, int surface, QString *error, const ModelWorkControl &control) const;
 };
-} // namespace vibestudio
+} // namespace slopstudio

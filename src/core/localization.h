@@ -6,10 +6,10 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LocalizationTarget {
-	// BCP 47 id, such as "pt-BR"; the catalog is vibestudio_pt_BR.ts.
+	// BCP 47 id, such as "pt-BR"; the catalog is slopstudio_pt_BR.ts.
 	QString localeName;
 	// The language's name in the interface language (translated).
 	QString englishName;
@@ -157,7 +157,7 @@ bool isSystemLocalizationPreference(const QString& localeName);
 // a target, or "en".
 QString preferredLocalizationTargetId(const QStringList& languageTags);
 // The target for the operating system's interface languages. The
-// VIBESTUDIO_SYSTEM_LANGUAGES environment variable (comma separated tags)
+// SLOPSTUDIO_SYSTEM_LANGUAGES environment variable (comma separated tags)
 // stands in for the platform list, for tests.
 QString systemLocalizationTargetId();
 QStringList systemLanguageTags();
@@ -171,8 +171,8 @@ QString pseudoLocalizeText(const QString& text);
 QString translationExpansionText(const QString& text);
 QStringList expectedTranslationCatalogFileNames();
 QString translationCatalogRootEnvironmentVariable();
-// Resolution order: explicit argument, VIBESTUDIO_I18N_DIR, <app dir>/i18n,
-// <app dir>/../i18n, <app dir>/../share/vibestudio/i18n, <cwd>/i18n, then the
+// Resolution order: explicit argument, SLOPSTUDIO_I18N_DIR, <app dir>/i18n,
+// <app dir>/../i18n, <app dir>/../share/slopstudio/i18n, <cwd>/i18n, then the
 // relative "i18n" fallback. The result records every directory that was tried.
 CatalogRootResolution resolveTranslationCatalogRoot(const QString& explicitCatalogRootPath = QString());
 // Ordered .qm paths to try for a locale: exact match, base language, then the
@@ -200,4 +200,4 @@ QVector<TranslationExpansionLayoutCheck> translationExpansionLayoutChecks();
 LocalizationSmokeReport buildLocalizationSmokeReport(const QString& localeName = QString(), const QString& catalogRootPath = QString());
 QString localizationSmokeReportText(const LocalizationSmokeReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

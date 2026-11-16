@@ -1,6 +1,6 @@
 # Efficiency Philosophy
 
-VibeStudio exists to make idTech1, idTech2, and idTech3 development faster,
+SlopStudio exists to make idTech1, idTech2, and idTech3 development faster,
 clearer, and easier than stitching together many separate tools. Efficiency is
 not only performance. It is the total time, attention, and uncertainty removed
 from the creative loop.
@@ -118,7 +118,7 @@ after the tool exited. The runner now polls with `waitForFinished(100)` and
 pumps both channels on every iteration, splitting complete lines out of a
 pending buffer and handing each one to the log callback and the diagnostic
 parser immediately. The same loop checks the cancellation callback and the
-timeout, so a long VibeMap3 stage produces live output, can be cancelled, and can
+timeout, so a long SlopMap3 stage produces live output, can be cancelled, and can
 be timed out instead of appearing frozen. Full stdout and stderr are still
 captured for the manifest, and any trailing partial line is flushed after exit.
 
@@ -132,8 +132,8 @@ profile, with the user responsible for pointing each stage at the previous
 stage's output. `runBuildPipeline()` replaces that with a declared chain.
 
 Registered pipelines include `quake-full` (bsp, vis, light through
-VibeMap2), `quake-fast` (bsp then light, visibility off by default),
-`quake-bsp-only`, `quake3-full` and `quake3-bsp-only` (VibeMap3 BSP, vis, and
+SlopMap2), `quake-fast` (bsp then light, visibility off by default),
+`quake-bsp-only`, `quake3-full` and `quake3-bsp-only` (SlopMap3 BSP, vis, and
 light stages), and the `doom-zdbsp` and `doom-zokumbsp` node builders. A stage
 declares `inputFromStageId`, so the first stage is told where to write and the
 in-place stages follow it automatically. `planBuildPipeline()` resolves stages,
@@ -281,7 +281,7 @@ position, so each map's own lump bytes are compared.
 Only what survives all of that is read and hashed with SHA-256, and that read is
 bounded by `PackageCompareRequest::maxEntryBytes`, which falls back to
 `kPackageCompareDefaultMaxEntryBytes` (256 MiB) when it is not positive and is
-set from `--max-entry-bytes` on `vibestudio --cli package compare`. An entry
+set from `--max-entry-bytes` on `slopstudio --cli package compare`. An entry
 over the budget is skipped with the `entry-too-large` note and `Uncompared`
 status, increments `uncomparedCount`, and prevents `identical()` from returning
 true for a content comparison. Source archive reads stream through bounded
@@ -361,7 +361,7 @@ every keystroke of a query.
 
 ## Modern Acceleration Techniques
 
-VibeStudio should combine deterministic tooling with modern automation:
+SlopStudio should combine deterministic tooling with modern automation:
 
 - Generative AI for draft content, explanations, shader scaffolds, entity
   snippets, texture/model/audio ideation, documentation, and command recipes.
@@ -397,11 +397,11 @@ AI-free mode requirements:
 
 ## Efficiency Metrics
 
-Set `QT_LOGGING_RULES=vibestudio.startup.info=true` to log shell construction
+Set `QT_LOGGING_RULES=slopstudio.startup.info=true` to log shell construction
 phases and cumulative/phase elapsed milliseconds. On Windows, also set
 `QT_FORCE_STDERR_LOGGING=1` when collecting these logs through standard error.
 Logging is off by default and records fixed phase names without project paths.
-`QT_LOGGING_RULES=vibestudio.ui.refresh.info=true` also traces package detail,
+`QT_LOGGING_RULES=slopstudio.ui.refresh.info=true` also traces package detail,
 listing, tree, composition and document refreshes, including the package-only
 command update, plus shared command, surface,
 workspace and status updates. It records function names and elapsed milliseconds,

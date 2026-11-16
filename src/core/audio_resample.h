@@ -2,7 +2,7 @@
 
 #include "core/audio_clip.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Nearest destination frame, ties upward. Returns -1 for invalid rates or a
@@ -15,4 +15,4 @@ qint64 audioFrameAtSampleRate(qint64 frame, int sourceRate, int targetRate);
 // The source is immutable; cancellation or failure returns no partial clip.
 AudioClipResult resampleAudioClip(const AudioClip& clip, int targetRate, const AudioWorkControl& control = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

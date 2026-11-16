@@ -18,7 +18,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 	{
 		return EXIT_FAILURE;
 	}
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -159,19 +159,19 @@ int main(int argc, char **argv)
 				 "unsupported level placement leaves package staging intact with an actionable diagnostic");
 	const auto skin = tests::skinLump(63);
 	ok &= expect(staging.addBytes(skin, "textures/skin.lmp", &error) &&
-					 PackageDraft::save(path("skins.vibepackage"), &staging, false, &error),
+					 PackageDraft::save(path("skins.sloppackage"), &staging, false, &error),
 				 "persist generated staged skin in a portable package draft");
-	const auto draftManifest = QDir(path("skins.vibepackage")).filePath("document.json");
+	const auto draftManifest = QDir(path("skins.sloppackage")).filePath("document.json");
 	QByteArray manifestBefore;
 	ok &= expect(readModelFile(draftManifest, &manifestBefore, &error), "snapshot draft before import");
 	const QStringList skinArgs{"model", "mdl", path("source.mesh.json"), "--operation", "add-skin"};
-	ok &= expect(run(skinArgs + QStringList{"--package", path("skins.vibepackage"), "--entry", "textures/skin.lmp", "--output",
+	ok &= expect(run(skinArgs + QStringList{"--package", path("skins.sloppackage"), "--entry", "textures/skin.lmp", "--output",
 											path("draft-skin.mesh.json"), "--dry-run"}) &&
 					 !QFileInfo::exists(path("draft-skin.mesh.json")) &&
 					 output.value("skinSource").toObject().value("path") == "textures/skin.lmp" &&
 					 output.value("skinSource").toObject().value("paletteKind") == "model",
 				 "draft skin dry run exposes source receipt without writing");
-	ok &= expect(run(skinArgs + QStringList{"--package", path("skins.vibepackage"), "--entry", "textures/skin.lmp", "--output",
+	ok &= expect(run(skinArgs + QStringList{"--package", path("skins.sloppackage"), "--entry", "textures/skin.lmp", "--output",
 											path("draft-skin.mesh.json")}),
 				 "CLI imports a staged generated skin directly from a draft");
 	ModelDocument imported;
@@ -179,8 +179,8 @@ int main(int argc, char **argv)
 					 imported.mesh().embeddedSkins.last().indexedFrames[0] == skin.mid(8),
 				 "saved source embeds exact staged pixels");
 	QByteArray manifestAfter;
-	const auto protectedDraftOutput = QDir(path("skins.vibepackage")).filePath("protected.mesh.json");
-	ok &= expect(run(skinArgs + QStringList{"--package", path("skins.vibepackage"), "--entry", "textures/skin.lmp", "--output",
+	const auto protectedDraftOutput = QDir(path("skins.sloppackage")).filePath("protected.mesh.json");
+	ok &= expect(run(skinArgs + QStringList{"--package", path("skins.sloppackage"), "--entry", "textures/skin.lmp", "--output",
 											protectedDraftOutput, "--overwrite"},
 					 2) &&
 					 !QFileInfo::exists(protectedDraftOutput),
@@ -224,7 +224,7 @@ int main(int argc, char **argv)
 			const auto inputBytes = tests::modelTestReadFile(inputPath);
 			const auto linkedOutput = QDir(temporary.path()).filePath(QStringLiteral("%1-%2-alias.mesh.json").arg(variant).arg(dry));
 			ok &= expect(tests::modelTestHardLink(inputPath, linkedOutput), "create independent package input hard-link fixture");
-			const auto packagePath = variant == "archive" ? path("skins.wad") : variant == "folder" ? directory : path("skins.vibepackage");
+			const auto packagePath = variant == "archive" ? path("skins.wad") : variant == "folder" ? directory : path("skins.sloppackage");
 			auto linkedArgs = skinArgs + QStringList{"--package", packagePath, "--entry-index", "0", "--output", linkedOutput, "--overwrite"};
 			if (dry) linkedArgs.append("--dry-run");
 			ok &= expect(run(linkedArgs, 2) && tests::modelTestReadFile(inputPath) == inputBytes && tests::modelTestReadFile(linkedOutput) == inputBytes,

@@ -6,7 +6,7 @@
 
 #include "core/level_map.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The selection with each brush and patch of a brush entity replaced by that
 // entity, as Radiant's Expand Selection to Whole Entities does. World brushes
@@ -26,4 +26,4 @@ bool levelMapObjectNumber(const LevelMapDocument& document, const LevelMapSelect
 // numbers; false when the line names none.
 bool parseLevelMapObjectNumber(const QString& text, int* entity, int* primitive);
 
-} // namespace vibestudio
+} // namespace slopstudio

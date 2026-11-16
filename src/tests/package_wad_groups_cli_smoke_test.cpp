@@ -10,8 +10,8 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::subset_test;
+using namespace slopstudio;
+using namespace slopstudio::subset_test;
 namespace { bool expect(bool value, const char* label) { if (!value) { std::cerr << label << '\n'; } return value; } }
 int main(int argc, char** argv)
 {
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
 	auto result = cli(QStringList{"stage", source} + rename);
 	ok &= expect(result.value("staging").toObject().value("operations").toArray().size() == 1, "CLI stages exact map label");
 	cli(QStringList{"save-as", source, output, "--dry-run"} + rename);
-	const auto draft = root.filePath("work.vibepackage"); cli(QStringList{"draft-save", source, draft, "--dry-run"} + rename);
+	const auto draft = root.filePath("work.sloppackage"); cli(QStringList{"draft-save", source, draft, "--dry-run"} + rename);
 	ok &= expect(!QFileInfo::exists(output) && !QFileInfo::exists(draft) && get(settings) == initialSettings && get(source) == original, "group dry runs leave sources, outputs and settings unchanged");
 	for (const QStringList& invalid : {QStringList{"--rename-group", "map:11"}, {"--group-to", "MAP03"}, {"--delete-group", "map:11"},
 		{"--rename-group=", "--group-to=MAP03", "--groups-fingerprint=" + fingerprint}, {"--delete-group=map:999", "--groups-fingerprint=" + fingerprint},
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 	cli({"save-as", draft, output, "--delete-group=map:11", "--groups-fingerprint", next}); PackageArchive archive;
 	ok &= expect(archive.load(output, &error) && index(archive, "MAP03") < 0 && index(archive, "MAP01") >= 0, "CLI draft group deletion writes only intended groups");
 	ok &= expect(get(source) == original, "group edits preserve source archive bytes");
-	const auto freshDraft = root.filePath("new.vibepackage"); auto expected = newWadFixture();
+	const auto freshDraft = root.filePath("new.sloppackage"); auto expected = newWadFixture();
 	QStringList create{"create", freshDraft, "--format", "wad", "--wad-magic", "PWAD"};
 	for (const auto& [name, bytes] : expected) {
 		const auto path = root.filePath("input-" + QString::fromLatin1(name)); ok &= put(path, bytes);
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 	ok &= wad(expectedOutput, {{"TITLEMAP", {}}, {"TEXTMAP", "namespace=\"zdoom\";"}, {"CUSTOM", "sidecar"}, {"ZNODES", "nodes"}, {"ENDMAP", {}}});
 	ok &= expect(get(freshSubset) == get(expectedOutput) && get(QDir(freshDraft).filePath("document.json")) == originalDraft,
 		"CLI new WAD subset keeps the full named UDMF run without changing its draft");
-	const auto looseDraft = root.filePath("loose.vibepackage"); const auto looseMap = map("MAP01", "-loose");
+	const auto looseDraft = root.filePath("loose.sloppackage"); const auto looseMap = map("MAP01", "-loose");
 	QStringList assemble{"create", looseDraft, "--format", "wad"};
 	for (auto at = looseMap.crbegin(); at != looseMap.crend(); ++at) {
 		const auto path = root.filePath("loose-" + QString::fromLatin1(at->first)); ok &= put(path, at->second);

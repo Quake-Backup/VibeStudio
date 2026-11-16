@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct PackageCopyLimitsCliResult {
 	int exitCode = 0;
 	QString error, summary;
@@ -10,4 +10,4 @@ struct PackageCopyLimitsCliResult {
 };
 PackageCopyLimitsCliResult runPackageCopyLimits(const QStringList& arguments);
 PackageCopyLimitsCliResult runPackageCopyStoreLimits(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

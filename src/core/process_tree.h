@@ -9,7 +9,7 @@
 
 class QProcess;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class ProcessTree {
 public:
@@ -32,4 +32,4 @@ private:
 	bool m_adopted = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

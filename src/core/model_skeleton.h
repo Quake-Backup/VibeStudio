@@ -22,7 +22,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // --- Maths -----------------------------------------------------------------
 
@@ -190,4 +190,4 @@ bool rebakeModelSkeleton(ModelMesh* mesh, QString* error = nullptr, const ModelW
 [[nodiscard]] QJsonObject modelSkeletonJson(const ModelMesh& mesh, bool packed = false, const ModelWorkControl& control = {});
 bool modelSkeletonFromJson(const QJsonObject& object, ModelMesh* mesh, QString* error = nullptr, bool packedArrays = false);
 
-} // namespace vibestudio
+} // namespace slopstudio

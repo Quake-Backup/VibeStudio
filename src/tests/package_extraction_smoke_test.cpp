@@ -14,7 +14,7 @@
 #include <filesystem>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const char* message)
@@ -194,7 +194,7 @@ int main(int argc, char** argv)
 	const auto late = extractPackageEntries(source, request);
 	ok &= expect(!late.succeeded() && late.writtenCount == 0 && read(raced) == "arrived later", "new output publication must never clobber a late file");
 	request.control = {};
-	ok &= expect(QDir(request.targetDirectory).entryList({QStringLiteral(".vibestudio-extract-*")}, QDir::Files | QDir::Hidden).isEmpty(),
+	ok &= expect(QDir(request.targetDirectory).entryList({QStringLiteral(".slopstudio-extract-*")}, QDir::Files | QDir::Hidden).isEmpty(),
 		"failed new-file publication removes its own disposable temporary output");
 
 	source.setNames({QStringLiteral("a.txt"), QStringLiteral("z.txt")});

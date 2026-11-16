@@ -5,7 +5,7 @@
 #include <QCoreApplication>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -350,4 +350,4 @@ bool applyModelSurfaceEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelectio
 	}
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -29,7 +29,7 @@
 
 #include <QString>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 
@@ -51,4 +51,4 @@ bool modelOriginOffset(const ModelMesh &mesh, int frame, ModelOriginTarget targe
 // The uniform scale that makes the model `height` units tall (along Z) in
 // the chosen pose.
 bool modelHeightScale(const ModelMesh &mesh, int frame, double height, double *factor, QString *error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

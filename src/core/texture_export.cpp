@@ -21,12 +21,12 @@
 #include <limits>
 #include <type_traits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool fail(QString* error, const QString& text) { if (error) { *error = text; } return false; }
 bool checkpoint(const TextureProgress& progress, qint64 done, qint64 total, QString* error)
 {
-	return !progress || progress(done, total) || fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Texture export cancelled."));
+	return !progress || progress(done, total) || fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Texture export cancelled."));
 }
 bool isQuake(TextureExportFormat format) { return format == TextureExportFormat::QuakeMiptex || format == TextureExportFormat::QuakeWad2; }
 bool isHalfLifeMip(TextureExportFormat format) { return format == TextureExportFormat::HalfLifeMiptex || format == TextureExportFormat::HalfLifeWad3; }
@@ -109,7 +109,7 @@ bool validName(const QString& name, int limit, bool path, bool optional = false)
 }
 bool validate(const QImage& image, const TextureExportOptions& options, const IdTechPaletteResolution& palette, QString* error)
 {
-	if (image.isNull()) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Cannot export an empty texture.")); }
+	if (image.isNull()) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Cannot export an empty texture.")); }
 	if (!validTextureSize(image.size(), error)) { return false; }
 	if (image.format() == QImage::Format_Indexed8) {
 		TextureDocument validated;
@@ -118,49 +118,49 @@ bool validate(const QImage& image, const TextureExportOptions& options, const Id
 	if (textureExportFormatId(options.format).isEmpty() || alphaId(options.alpha).isEmpty() || fullbrightId(options.fullbright).isEmpty() || mipFilterId(options.mipFilter).isEmpty() ||
 		!options.matte.isValid() || options.matte.alpha() != 255 || options.alphaThreshold < 1 || options.alphaThreshold > 255 ||
 		options.leftOffset < -32768 || options.leftOffset > 32767 || options.topOffset < -32768 || options.topOffset > 32767) {
-		return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Invalid export profile, alpha mode, matte, threshold, mipmap filter, or patch offsets."));
+		return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Invalid export profile, alpha mode, matte, threshold, mipmap filter, or patch offsets."));
 	}
 	if (options.spriteType < 0 || options.spriteType >= spriteTypeIds().size() || options.spriteTexture < 0 || options.spriteTexture >= spriteTextureIds().size()) {
-		return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Invalid sprite orientation or Half-Life sprite texture format."));
+		return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Invalid sprite orientation or Half-Life sprite texture format."));
 	}
 	if (usesSelectedPalette(options)) {
-		if (!palette.palette.isValid()) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "This export profile needs a resolved 256-color palette.")); }
-		if (palette.palette.generated && !options.allowGeneratedPalette) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "The selected palette is a generated stand-in. Resolve a game palette or explicitly allow generated colors.")); }
+		if (!palette.palette.isValid()) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "This export profile needs a resolved 256-color palette.")); }
+		if (palette.palette.generated && !options.allowGeneratedPalette) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "The selected palette is a generated stand-in. Resolve a game palette or explicitly allow generated colors.")); }
 	}
-	if (isMipmapped(options.format) && (image.width() % 16 || image.height() % 16)) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Mipmapped game textures require width and height divisible by 16.")); }
+	if (isMipmapped(options.format) && (image.width() % 16 || image.height() % 16)) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Mipmapped game textures require width and height divisible by 16.")); }
 	if (isQuake(options.format)) {
-		if (!validName(options.name, 15, false)) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Quake texture names need 1–15 ASCII letters, digits, or texture-name punctuation, without folders.")); }
-		if (!options.extendedLimits && qint64(image.width()) * image.height() * 85 / 64 + 40 > 2 * 1024 * 1024) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "This texture exceeds the original Quake compiler's entire 2 MiB texture lump. Enable source-port limits for a compatible compiler and engine.")); }
-		if (options.name.startsWith(QStringLiteral("sky")) && !options.extendedLimits && image.size() != QSize(256, 128)) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Classic Quake sky textures require a 256 × 128 canvas.")); }
+		if (!validName(options.name, 15, false)) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Quake texture names need 1–15 ASCII letters, digits, or texture-name punctuation, without folders.")); }
+		if (!options.extendedLimits && qint64(image.width()) * image.height() * 85 / 64 + 40 > 2 * 1024 * 1024) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "This texture exceeds the original Quake compiler's entire 2 MiB texture lump. Enable source-port limits for a compatible compiler and engine.")); }
+		if (options.name.startsWith(QStringLiteral("sky")) && !options.extendedLimits && image.size() != QSize(256, 128)) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Classic Quake sky textures require a 256 × 128 canvas.")); }
 	}
 	if (options.format == TextureExportFormat::Quake2Wal) {
-		if (!validName(options.name, 31, true) || !validName(options.animationNext, 31, true, true)) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "WAL texture and animation names must be safe relative ASCII names of at most 31 characters.")); }
-		if (!options.extendedLimits && qint64(image.width()) * image.height() > 512 * 256) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "The original Quake II renderer accepts at most 131,072 indexed pixels. Enable source-port limits only for a compatible target.")); }
+		if (!validName(options.name, 31, true) || !validName(options.animationNext, 31, true, true)) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "WAL texture and animation names must be safe relative ASCII names of at most 31 characters.")); }
+		if (!options.extendedLimits && qint64(image.width()) * image.height() > 512 * 256) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "The original Quake II renderer accepts at most 131,072 indexed pixels. Enable source-port limits only for a compatible target.")); }
 	}
 	if (isHalfLifeMip(options.format)) {
-		if (!validName(options.name, 15, false)) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Half-Life texture names need 1–15 ASCII letters, digits, or texture-name punctuation, without folders.")); }
+		if (!validName(options.name, 15, false)) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Half-Life texture names need 1–15 ASCII letters, digits, or texture-name punctuation, without folders.")); }
 	}
 	if (options.format == TextureExportFormat::SinSwl) {
-		if (!validName(options.name, 63, true) || !validName(options.animationNext, 63, true, true)) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "SWL texture and animation names must be safe relative ASCII names of at most 63 characters.")); }
-		if (options.surfaceValue < -32768 || options.surfaceValue > 32767) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "SWL stores the surface value in 16 bits: choose -32768 to 32767.")); }
+		if (!validName(options.name, 63, true) || !validName(options.animationNext, 63, true, true)) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "SWL texture and animation names must be safe relative ASCII names of at most 63 characters.")); }
+		if (options.surfaceValue < -32768 || options.surfaceValue > 32767) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "SWL stores the surface value in 16 bits: choose -32768 to 32767.")); }
 	}
 	if (options.format == TextureExportFormat::Quake2Sprite && !validName(options.name, 55, true)) {
-		return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Quake II sprite frames are named from the native name: a safe relative path of at most 55 characters, such as sprites/flame."));
+		return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Quake II sprite frames are named from the native name: a safe relative path of at most 55 characters, such as sprites/flame."));
 	}
 	if (!options.wallTexture.isEmpty() && (!validName(options.wallTexture, 8, false) || options.wallTexture.contains(QLatin1Char('.')))) {
-		return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "A Doom wall texture name needs 1–8 lump-name characters."));
+		return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "A Doom wall texture name needs 1–8 lump-name characters."));
 	}
-	if (options.format == TextureExportFormat::DoomFlat && image.size() != QSize(64, 64)) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Doom flats require exactly 64 × 64 pixels.")); }
-	if (options.format == TextureExportFormat::DoomPatch && !options.extendedLimits && image.height() > 255) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Classic Doom patches are limited to 255 rows. Enable source-port limits to write tall patch posts.")); }
+	if (options.format == TextureExportFormat::DoomFlat && image.size() != QSize(64, 64)) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Doom flats require exactly 64 × 64 pixels.")); }
+	if (options.format == TextureExportFormat::DoomPatch && !options.extendedLimits && image.height() > 255) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Classic Doom patches are limited to 255 rows. Enable source-port limits to write tall patch posts.")); }
 	const bool alphaSupported = alphaKind(options) != AlphaKind::Opaque;
-	if (options.alpha == TextureExportAlpha::Threshold && !alphaSupported) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "This opaque profile cannot use alpha thresholding. Choose a matte or supply an opaque image.")); }
+	if (options.alpha == TextureExportAlpha::Threshold && !alphaSupported) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "This opaque profile cannot use alpha thresholding. Choose a matte or supply an opaque image.")); }
 	return true;
 }
 
 QImage prepareAlpha(const QImage& source, const TextureExportOptions& options, qint64* changed, QString* error, const TextureProgress& progress)
 {
 	QImage image = source.convertToFormat(QImage::Format_ARGB32);
-	if (image.isNull()) { fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Unable to allocate export pixels.")); return {}; }
+	if (image.isNull()) { fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Unable to allocate export pixels.")); return {}; }
 	const bool opaque = alphaKind(options) == AlphaKind::Opaque, binary = alphaKind(options) == AlphaKind::Binary;
 	for (int y = 0; y < image.height(); ++y) {
 		if (!checkpoint(progress, y, image.height(), error)) { return {}; }
@@ -169,7 +169,7 @@ QImage prepareAlpha(const QImage& source, const TextureExportOptions& options, q
 			const int alpha = qAlpha(row[x]);
 			if (options.alpha == TextureExportAlpha::Strict) {
 				if ((opaque && alpha != 255) || (binary && alpha != 0 && alpha != 255)) {
-					fail(error, QCoreApplication::translate("VibeStudioTextureExport", "The image contains alpha that this profile cannot store. Choose a matte, or a binary threshold for a profile with transparency.")); return {};
+					fail(error, QCoreApplication::translate("SlopStudioTextureExport", "The image contains alpha that this profile cannot store. Choose a matte, or a binary threshold for a profile with transparency.")); return {};
 				}
 			} else if (options.alpha == TextureExportAlpha::Matte) {
 				const auto blend = [alpha](int value, int background) { return (value * alpha + background * (255 - alpha) + 127) / 255; };
@@ -213,7 +213,7 @@ QImage quantize(const QImage& source, const QImage& prepared, const TextureExpor
 	const int candidates = options.fullbright == TextureFullbrightMode::Allow ? limit : std::min(limit, fullbright);
 	for (int index = candidates; index < 256; ++index) { effective.colors[index] = effective.colors[0]; }
 	QImage image = quantizeToIdTechPalette(prepared, effective, options.dither, [&](int done, int total) { return checkpoint(progress, total + done * 2, total * 4, error); });
-	if (image.isNull()) { if (error && error->isEmpty()) { *error = QCoreApplication::translate("VibeStudioTextureExport", "Unable to quantize export pixels."); } return {}; }
+	if (image.isNull()) { if (error && error->isEmpty()) { *error = QCoreApplication::translate("SlopStudioTextureExport", "Unable to quantize export pixels."); } return {}; }
 	image.setColorTable(storedTable);
 	for (int y = 0; y < image.height(); ++y) {
 		if (!checkpoint(progress, image.height() * 3 + y, image.height() * 4, error)) { return {}; }
@@ -221,7 +221,7 @@ QImage quantize(const QImage& source, const QImage& prepared, const TextureExpor
 		const auto* original = sourceIndexed ? source.constScanLine(y) : nullptr;
 		for (int x = 0; x < image.width(); ++x) {
 			if (original && unchanged(original[x], rgba[x])) { indices[x] = original[x]; }
-			if (indexedPng && qAlpha(storedTable[indices[x]]) != qAlpha(rgba[x])) { fail(error, QCoreApplication::translate("VibeStudioTextureExport", "The selected palette cannot preserve this image's alpha. Choose a compatible palette, a matte, or RGBA PNG.")); return {}; }
+			if (indexedPng && qAlpha(storedTable[indices[x]]) != qAlpha(rgba[x])) { fail(error, QCoreApplication::translate("SlopStudioTextureExport", "The selected palette cannot preserve this image's alpha. Choose a compatible palette, a matte, or RGBA PNG.")); return {}; }
 		}
 	}
 	return checkpoint(progress, 1, 1, error) ? image : QImage();
@@ -232,7 +232,7 @@ QImage quantize(const QImage& source, const QImage& prepared, const TextureExpor
 QImage boxMip(const QImage& source, bool quake, TextureFullbrightMode mode, int limit, int transparent, QString* error, const TextureProgress& progress)
 {
 	QImage image(source.size() / 2, QImage::Format_Indexed8); image.setColorTable(source.colorTable());
-	if (image.isNull()) { fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Unable to allocate mipmap pixels.")); return {}; }
+	if (image.isNull()) { fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Unable to allocate mipmap pixels.")); return {}; }
 	QHash<quint32, uchar> cache;
 	for (int y = 0; y < image.height(); ++y) {
 		if (!checkpoint(progress, y, image.height(), error)) { return {}; }
@@ -281,7 +281,7 @@ QByteArray encodeIndexedPng(const QImage& image, QString* error, const TexturePr
 	}
 	if (!checkpoint(progress, 1, 2, error)) { return {}; }
 	const auto compressed = qCompress(rows, 6);
-	if (compressed.size() <= 4) { fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Unable to compress indexed PNG pixels.")); return {}; }
+	if (compressed.size() <= 4) { fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Unable to compress indexed PNG pixels.")); return {}; }
 	QByteArray bytes = QByteArray::fromHex("89504e470d0a1a0a");
 	const auto chunk = [&](const QByteArray& type, const QByteArray& payload) {
 		QByteArray size(4, '\0'); qToBigEndian(quint32(payload.size()), size.data()); bytes += size; bytes += type; bytes += payload;
@@ -378,24 +378,24 @@ QByteArray encodePatch(const QImage& indexed, const QImage& alpha, const Texture
 QVector<TextureExportProfile> textureExportProfiles()
 {
 	return {
-		{TextureExportFormat::Png, QStringLiteral("png"), QCoreApplication::translate("VibeStudioTextureExport", "PNG · RGBA"), QStringLiteral("png"), QCoreApplication::translate("VibeStudioTextureExport", "Lossless color and alpha. Requires a PNG-capable target engine."), false, false},
-		{TextureExportFormat::IndexedPng, QStringLiteral("png-indexed"), QCoreApplication::translate("VibeStudioTextureExport", "PNG · game palette"), QStringLiteral("png"), QCoreApplication::translate("VibeStudioTextureExport", "Indexed PNG with an embedded palette. Alpha must be representable by that palette."), true, false},
-		{TextureExportFormat::Targa, QStringLiteral("tga"), QCoreApplication::translate("VibeStudioTextureExport", "Targa · RGBA"), QStringLiteral("tga"), QCoreApplication::translate("VibeStudioTextureExport", "32-bit BGRA, bottom-left origin, explicit alpha; suitable for Quake III image references."), false, false},
-		{TextureExportFormat::Dds, QStringLiteral("dds"), QStringLiteral("DDS · BGRA8"), QStringLiteral("dds"), QCoreApplication::translate("VibeStudioTextureExport", "Uncompressed 32-bit color and alpha, one surface without mipmaps. Requires a DDS-capable target."), false, false},
-		{TextureExportFormat::Ftx, QStringLiteral("ftx"), QStringLiteral("FTX · RGBA8"), QStringLiteral("ftx"), QCoreApplication::translate("VibeStudioTextureExport", "Lossless 32-bit color and alpha for FTX-capable tools and engines."), false, false},
-		{TextureExportFormat::Pcx, QStringLiteral("pcx"), QCoreApplication::translate("VibeStudioTextureExport", "PCX · opaque palette"), QStringLiteral("pcx"), QCoreApplication::translate("VibeStudioTextureExport", "8-bit RLE with an embedded palette and even row stride. Original Quake II has additional size and row-stride limits."), true, false},
-		{TextureExportFormat::QuakeMiptex, QStringLiteral("quake-miptex"), QCoreApplication::translate("VibeStudioTextureExport", "Quake · miptexture"), QStringLiteral("mip"), QCoreApplication::translate("VibeStudioTextureExport", "Four opaque indexed mip levels; dimensions divisible by 16. The game supplies the palette."), true, true},
-		{TextureExportFormat::QuakeWad2, QStringLiteral("quake-wad2"), QCoreApplication::translate("VibeStudioTextureExport", "Quake · WAD2 texture"), QStringLiteral("wad"), QCoreApplication::translate("VibeStudioTextureExport", "One miptexture in a WAD2 archive, with lump type 0x44 and four mip levels."), true, true},
-		{TextureExportFormat::Quake2Wal, QStringLiteral("quake2-wal"), QCoreApplication::translate("VibeStudioTextureExport", "Quake II · WAL"), QStringLiteral("wal"), QCoreApplication::translate("VibeStudioTextureExport", "Four opaque mips with animation and surface metadata. Index 255 is reserved; classic output is limited to 131,072 pixels."), true, true},
-		{TextureExportFormat::DoomFlat, QStringLiteral("doom-flat"), QCoreApplication::translate("VibeStudioTextureExport", "Doom · flat"), QStringLiteral("lmp"), QCoreApplication::translate("VibeStudioTextureExport", "Raw 64 × 64 opaque indexed pixels. Place between flat namespace markers in a Doom WAD."), true, false},
-		{TextureExportFormat::DoomPatch, QStringLiteral("doom-patch"), QCoreApplication::translate("VibeStudioTextureExport", "Doom · patch"), QStringLiteral("lmp"), QCoreApplication::translate("VibeStudioTextureExport", "Column posts with binary transparency and signed offsets. Tall patches require compatible source ports."), true, false},
-		{TextureExportFormat::DdsMipmapped, QStringLiteral("dds-mipmaps"), QCoreApplication::translate("VibeStudioTextureExport", "DDS · BGRA8 with mipmaps"), QStringLiteral("dds"), QCoreApplication::translate("VibeStudioTextureExport", "Uncompressed 32-bit color and alpha with an area-averaged mip chain down to 1 × 1. Requires a DDS-capable target."), false, false},
-		{TextureExportFormat::SinSwl, QStringLiteral("sin-swl"), QCoreApplication::translate("VibeStudioTextureExport", "SiN · SWL"), QStringLiteral("swl"), QCoreApplication::translate("VibeStudioTextureExport", "Four indexed mips with their own palette, animation name and surface flags. Index 255 is transparent."), true, true},
-		{TextureExportFormat::HalfLifeMiptex, QStringLiteral("halflife-miptex"), QCoreApplication::translate("VibeStudioTextureExport", "Half-Life · miptexture"), QStringLiteral("mip"), QCoreApplication::translate("VibeStudioTextureExport", "Four indexed mips with their own palette; dimensions divisible by 16. A name starting with { makes index 255 transparent."), true, true},
-		{TextureExportFormat::HalfLifeWad3, QStringLiteral("halflife-wad3"), QCoreApplication::translate("VibeStudioTextureExport", "Half-Life · WAD3 texture"), QStringLiteral("wad"), QCoreApplication::translate("VibeStudioTextureExport", "One miptexture and its palette in a new WAD3 archive, lump type 0x43."), true, true},
-		{TextureExportFormat::QuakeSprite, QStringLiteral("quake-spr"), QCoreApplication::translate("VibeStudioTextureExport", "Quake · sprite"), QStringLiteral("spr"), QCoreApplication::translate("VibeStudioTextureExport", "Each visible layer is one frame, indexed with the game palette. Index 255 is transparent."), true, false, true},
-		{TextureExportFormat::HalfLifeSprite, QStringLiteral("halflife-spr"), QCoreApplication::translate("VibeStudioTextureExport", "Half-Life · sprite"), QStringLiteral("spr"), QCoreApplication::translate("VibeStudioTextureExport", "Each visible layer is one frame, sharing one embedded palette and a Half-Life texture format."), true, false, true},
-		{TextureExportFormat::Quake2Sprite, QStringLiteral("quake2-sp2"), QCoreApplication::translate("VibeStudioTextureExport", "Quake II · sprite"), QStringLiteral("sp2"), QCoreApplication::translate("VibeStudioTextureExport", "An SP2 naming one PCX per visible layer; the frames are written or staged beside it. Index 255 is transparent."), true, false, true}
+		{TextureExportFormat::Png, QStringLiteral("png"), QCoreApplication::translate("SlopStudioTextureExport", "PNG · RGBA"), QStringLiteral("png"), QCoreApplication::translate("SlopStudioTextureExport", "Lossless color and alpha. Requires a PNG-capable target engine."), false, false},
+		{TextureExportFormat::IndexedPng, QStringLiteral("png-indexed"), QCoreApplication::translate("SlopStudioTextureExport", "PNG · game palette"), QStringLiteral("png"), QCoreApplication::translate("SlopStudioTextureExport", "Indexed PNG with an embedded palette. Alpha must be representable by that palette."), true, false},
+		{TextureExportFormat::Targa, QStringLiteral("tga"), QCoreApplication::translate("SlopStudioTextureExport", "Targa · RGBA"), QStringLiteral("tga"), QCoreApplication::translate("SlopStudioTextureExport", "32-bit BGRA, bottom-left origin, explicit alpha; suitable for Quake III image references."), false, false},
+		{TextureExportFormat::Dds, QStringLiteral("dds"), QStringLiteral("DDS · BGRA8"), QStringLiteral("dds"), QCoreApplication::translate("SlopStudioTextureExport", "Uncompressed 32-bit color and alpha, one surface without mipmaps. Requires a DDS-capable target."), false, false},
+		{TextureExportFormat::Ftx, QStringLiteral("ftx"), QStringLiteral("FTX · RGBA8"), QStringLiteral("ftx"), QCoreApplication::translate("SlopStudioTextureExport", "Lossless 32-bit color and alpha for FTX-capable tools and engines."), false, false},
+		{TextureExportFormat::Pcx, QStringLiteral("pcx"), QCoreApplication::translate("SlopStudioTextureExport", "PCX · opaque palette"), QStringLiteral("pcx"), QCoreApplication::translate("SlopStudioTextureExport", "8-bit RLE with an embedded palette and even row stride. Original Quake II has additional size and row-stride limits."), true, false},
+		{TextureExportFormat::QuakeMiptex, QStringLiteral("quake-miptex"), QCoreApplication::translate("SlopStudioTextureExport", "Quake · miptexture"), QStringLiteral("mip"), QCoreApplication::translate("SlopStudioTextureExport", "Four opaque indexed mip levels; dimensions divisible by 16. The game supplies the palette."), true, true},
+		{TextureExportFormat::QuakeWad2, QStringLiteral("quake-wad2"), QCoreApplication::translate("SlopStudioTextureExport", "Quake · WAD2 texture"), QStringLiteral("wad"), QCoreApplication::translate("SlopStudioTextureExport", "One miptexture in a WAD2 archive, with lump type 0x44 and four mip levels."), true, true},
+		{TextureExportFormat::Quake2Wal, QStringLiteral("quake2-wal"), QCoreApplication::translate("SlopStudioTextureExport", "Quake II · WAL"), QStringLiteral("wal"), QCoreApplication::translate("SlopStudioTextureExport", "Four opaque mips with animation and surface metadata. Index 255 is reserved; classic output is limited to 131,072 pixels."), true, true},
+		{TextureExportFormat::DoomFlat, QStringLiteral("doom-flat"), QCoreApplication::translate("SlopStudioTextureExport", "Doom · flat"), QStringLiteral("lmp"), QCoreApplication::translate("SlopStudioTextureExport", "Raw 64 × 64 opaque indexed pixels. Place between flat namespace markers in a Doom WAD."), true, false},
+		{TextureExportFormat::DoomPatch, QStringLiteral("doom-patch"), QCoreApplication::translate("SlopStudioTextureExport", "Doom · patch"), QStringLiteral("lmp"), QCoreApplication::translate("SlopStudioTextureExport", "Column posts with binary transparency and signed offsets. Tall patches require compatible source ports."), true, false},
+		{TextureExportFormat::DdsMipmapped, QStringLiteral("dds-mipmaps"), QCoreApplication::translate("SlopStudioTextureExport", "DDS · BGRA8 with mipmaps"), QStringLiteral("dds"), QCoreApplication::translate("SlopStudioTextureExport", "Uncompressed 32-bit color and alpha with an area-averaged mip chain down to 1 × 1. Requires a DDS-capable target."), false, false},
+		{TextureExportFormat::SinSwl, QStringLiteral("sin-swl"), QCoreApplication::translate("SlopStudioTextureExport", "SiN · SWL"), QStringLiteral("swl"), QCoreApplication::translate("SlopStudioTextureExport", "Four indexed mips with their own palette, animation name and surface flags. Index 255 is transparent."), true, true},
+		{TextureExportFormat::HalfLifeMiptex, QStringLiteral("halflife-miptex"), QCoreApplication::translate("SlopStudioTextureExport", "Half-Life · miptexture"), QStringLiteral("mip"), QCoreApplication::translate("SlopStudioTextureExport", "Four indexed mips with their own palette; dimensions divisible by 16. A name starting with { makes index 255 transparent."), true, true},
+		{TextureExportFormat::HalfLifeWad3, QStringLiteral("halflife-wad3"), QCoreApplication::translate("SlopStudioTextureExport", "Half-Life · WAD3 texture"), QStringLiteral("wad"), QCoreApplication::translate("SlopStudioTextureExport", "One miptexture and its palette in a new WAD3 archive, lump type 0x43."), true, true},
+		{TextureExportFormat::QuakeSprite, QStringLiteral("quake-spr"), QCoreApplication::translate("SlopStudioTextureExport", "Quake · sprite"), QStringLiteral("spr"), QCoreApplication::translate("SlopStudioTextureExport", "Each visible layer is one frame, indexed with the game palette. Index 255 is transparent."), true, false, true},
+		{TextureExportFormat::HalfLifeSprite, QStringLiteral("halflife-spr"), QCoreApplication::translate("SlopStudioTextureExport", "Half-Life · sprite"), QStringLiteral("spr"), QCoreApplication::translate("SlopStudioTextureExport", "Each visible layer is one frame, sharing one embedded palette and a Half-Life texture format."), true, false, true},
+		{TextureExportFormat::Quake2Sprite, QStringLiteral("quake2-sp2"), QCoreApplication::translate("SlopStudioTextureExport", "Quake II · sprite"), QStringLiteral("sp2"), QCoreApplication::translate("SlopStudioTextureExport", "An SP2 naming one PCX per visible layer; the frames are written or staged beside it. Index 255 is transparent."), true, false, true}
 	};
 }
 QString textureExportFormatId(TextureExportFormat format) { for (const auto& profile : textureExportProfiles()) { if (profile.format == format) { return profile.id; } } return {}; }
@@ -445,7 +445,7 @@ bool textureExportOptionsFromJson(const QJsonObject& object, TextureExportOption
 {
 	TextureExportOptions parsed;
 	const auto defaults = textureExportOptionsJson(parsed);
-	for (auto it = object.begin(); it != object.end(); ++it) { if (!defaults.contains(it.key())) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Unknown texture export option: %1").arg(it.key())); } }
+	for (auto it = object.begin(); it != object.end(); ++it) { if (!defaults.contains(it.key())) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Unknown texture export option: %1").arg(it.key())); } }
 	const auto field = [&](const char* key) { const auto name = QLatin1String(key); return object.value(name).isUndefined() ? defaults.value(name) : object.value(name); };
 	const auto number = [&](const char* key, qint64 low, qint64 high, auto* output) {
 		const auto value = field(key); const double n = value.toDouble(std::numeric_limits<double>::quiet_NaN());
@@ -472,7 +472,7 @@ bool textureExportOptionsFromJson(const QJsonObject& object, TextureExportOption
 	if (alpha == QStringLiteral("strict")) { parsed.alpha = TextureExportAlpha::Strict; } else if (alpha == QStringLiteral("matte")) { parsed.alpha = TextureExportAlpha::Matte; } else if (alpha == QStringLiteral("threshold")) { parsed.alpha = TextureExportAlpha::Threshold; } else { valid = false; }
 	if (mip == QStringLiteral("box")) { parsed.mipFilter = TextureMipmapFilter::Box; } else if (mip == QStringLiteral("nearest")) { parsed.mipFilter = TextureMipmapFilter::Nearest; } else { valid = false; }
 	if (fullbright == QStringLiteral("preserve")) { parsed.fullbright = TextureFullbrightMode::Preserve; } else if (fullbright == QStringLiteral("exclude")) { parsed.fullbright = TextureFullbrightMode::Exclude; } else if (fullbright == QStringLiteral("allow")) { parsed.fullbright = TextureFullbrightMode::Allow; } else { valid = false; }
-	if (!options || !valid) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Invalid or unsupported texture export options.")); }
+	if (!options || !valid) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Invalid or unsupported texture export options.")); }
 	*options = std::move(parsed); return true;
 }
 
@@ -505,13 +505,13 @@ IdTechPalette exportPalette(const QVector<QImage>& prepared, const TextureExport
 	if (usesSelectedPalette(options)) { return selected; }
 	const bool reserve = reservesIndex255(options);
 	auto colors = buildTexturePalette(prepared, reserve ? 255 : 256, progress);
-	if (colors.isEmpty()) { fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Texture export cancelled.")); return {}; }
+	if (colors.isEmpty()) { fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Texture export cancelled.")); return {}; }
 	colors.resize(256, qRgb(0, 0, 0));
 	// Half-Life tools conventionally store pure blue in the transparent entry.
 	if (reserve) { colors[255] = qRgb(0, 0, 255); }
 	IdTechPalette palette;
 	palette.id = QStringLiteral("image"); palette.colors = colors; palette.transparentIndex = reserve ? 255 : -1;
-	palette.displayName = QCoreApplication::translate("VibeStudioTextureExport", "Palette built from the image");
+	palette.displayName = QCoreApplication::translate("SlopStudioTextureExport", "Palette built from the image");
 	palette.sourceDescription = palette.displayName;
 	return palette;
 }
@@ -555,14 +555,14 @@ TextureExportResult encodeSprite(const QVector<QImage>& frames, const TextureExp
 		stored.colors << (sum[3] ? qRgb(int(sum[0] / sum[3]), int(sum[1] / sum[3]), int(sum[2] / sum[3])) : qRgb(255, 255, 255));
 	} else {
 		stored = exportPalette(prepared, options, palette.palette, &result.error, part(frames.size()));
-		if (!stored.isValid()) { if (result.error.isEmpty()) { result.error = QCoreApplication::translate("VibeStudioTextureExport", "This export profile needs a resolved 256-color palette."); } return result; }
+		if (!stored.isValid()) { if (result.error.isEmpty()) { result.error = QCoreApplication::translate("SlopStudioTextureExport", "This export profile needs a resolved 256-color palette."); } return result; }
 	}
 	QVector<QImage> indexed;
 	for (qsizetype index = 0; index < frames.size(); ++index) {
 		QImage frame, preview;
 		if (indexAlpha) {
 			frame = QImage(prepared[index].size(), QImage::Format_Indexed8); preview = QImage(prepared[index].size(), QImage::Format_ARGB32);
-			if (frame.isNull() || preview.isNull()) { result.error = QCoreApplication::translate("VibeStudioTextureExport", "Unable to allocate sprite frame pixels."); return result; }
+			if (frame.isNull() || preview.isNull()) { result.error = QCoreApplication::translate("SlopStudioTextureExport", "Unable to allocate sprite frame pixels."); return result; }
 			frame.setColorTable(stored.colors);
 			for (int y = 0; y < frame.height(); ++y) {
 				auto* out = frame.scanLine(y); auto* view = reinterpret_cast<QRgb*>(preview.scanLine(y));
@@ -580,11 +580,11 @@ TextureExportResult encodeSprite(const QVector<QImage>& frames, const TextureExp
 		indexed << frame; result.frames << preview;
 	}
 	result.preview = result.frames.first();
-	if (usesSelectedPalette(options) && palette.palette.generated) { result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "Generated palette used: colors will not match an original game palette."); }
+	if (usesSelectedPalette(options) && palette.palette.generated) { result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "Generated palette used: colors will not match an original game palette."); }
 	if (options.format == TextureExportFormat::Quake2Sprite) {
 		if (frames.size() > 32) {
-			if (!options.extendedLimits) { result.error = QCoreApplication::translate("VibeStudioTextureExport", "Quake II loads at most 32 sprite frames. Hide layers, or enable source-port limits for a compatible engine."); return result; }
-			result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "More than 32 frames: the original Quake II refuses this sprite.");
+			if (!options.extendedLimits) { result.error = QCoreApplication::translate("SlopStudioTextureExport", "Quake II loads at most 32 sprite frames. Hide layers, or enable source-port limits for a compatible engine."); return result; }
+			result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "More than 32 frames: the original Quake II refuses this sprite.");
 		}
 		QVector<TextureSp2Frame> entries;
 		for (qsizetype index = 0; index < indexed.size(); ++index) {
@@ -597,7 +597,7 @@ TextureExportResult encodeSprite(const QVector<QImage>& frames, const TextureExp
 			entries.push_back({size, QPoint(offset.x(), size.height() - offset.y()), name});
 		}
 		result.bytes = encodeSp2Sprite(entries);
-		result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "The SP2 names %n PCX frame(s), written or staged beside it.", nullptr, int(entries.size()));
+		result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "The SP2 names %n PCX frame(s), written or staged beside it.", nullptr, int(entries.size()));
 	} else {
 		TextureSpriteEncoding sprite;
 		sprite.version = halfLife ? 2 : 1; sprite.type = options.spriteType; sprite.texFormat = options.spriteTexture;
@@ -608,10 +608,10 @@ TextureExportResult encodeSprite(const QVector<QImage>& frames, const TextureExp
 			sprite.origins << QPoint(-offset.x(), offset.y());
 		}
 		result.bytes = encodeIdspSprite(sprite);
-		if (!halfLife) { result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "Quake draws palette index 255 as transparent and stores no other alpha."); }
-		else if (options.imagePalette && !indexAlpha) { result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "One palette was built from all frames' colors."); }
+		if (!halfLife) { result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "Quake draws palette index 255 as transparent and stores no other alpha."); }
+		else if (options.imagePalette && !indexAlpha) { result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "One palette was built from all frames' colors."); }
 	}
-	if (result.bytes.isEmpty() || result.bytes.size() > textureOutputByteLimit) { if (result.error.isEmpty()) { result.error = QCoreApplication::translate("VibeStudioTextureExport", "The encoded texture is empty or exceeds 64 MiB."); } return result; }
+	if (result.bytes.isEmpty() || result.bytes.size() > textureOutputByteLimit) { if (result.error.isEmpty()) { result.error = QCoreApplication::translate("SlopStudioTextureExport", "The encoded texture is empty or exceeds 64 MiB."); } return result; }
 	if (!checkpoint(progress, steps * 1000, steps * 1000, &result.error)) { result.bytes.clear(); return result; }
 	result.succeeded = true; return result;
 }
@@ -635,8 +635,8 @@ TextureExportResult encodeTextureDocumentExport(const TextureDocument& document,
 TextureExportResult encodeTextureFrames(const QVector<QImage>& frames, const TextureExportOptions& options, const IdTechPaletteResolution& palette, const TextureProgress& progress)
 {
 	TextureExportResult result;
-	if (frames.isEmpty()) { result.error = QCoreApplication::translate("VibeStudioTextureExport", "A sprite needs at least one visible layer."); return result; }
-	if (frames.size() > TextureDocument::MaximumLayers) { result.error = QCoreApplication::translate("VibeStudioTextureExport", "A sprite export supports at most 32 frames."); return result; }
+	if (frames.isEmpty()) { result.error = QCoreApplication::translate("SlopStudioTextureExport", "A sprite needs at least one visible layer."); return result; }
+	if (frames.size() > TextureDocument::MaximumLayers) { result.error = QCoreApplication::translate("SlopStudioTextureExport", "A sprite export supports at most 32 frames."); return result; }
 	for (const auto& frame : frames) { if (!validate(frame, options, palette, &result.error)) { return result; } }
 	if (isSprite(options.format)) { return encodeSprite(frames, options, palette, progress); }
 	const QImage& image = frames.first();
@@ -648,15 +648,15 @@ TextureExportResult encodeTextureFrames(const QVector<QImage>& frames, const Tex
 		// Palette building checks cancellation without advancing the reported
 		// fraction, so quantization's progress that follows stays monotonic.
 		stored = exportPalette({pixels}, options, palette.palette, &result.error, [&](qint64, qint64) { return part(1)(0, 1); });
-		if (!stored.isValid()) { if (result.error.isEmpty()) { result.error = QCoreApplication::translate("VibeStudioTextureExport", "This export profile needs a resolved 256-color palette."); } return result; }
+		if (!stored.isValid()) { if (result.error.isEmpty()) { result.error = QCoreApplication::translate("SlopStudioTextureExport", "This export profile needs a resolved 256-color palette."); } return result; }
 		indexed = quantize(image, pixels, options, stored, &result.preservedIndices, &result.error, part(1, 2));
 		if (indexed.isNull()) { return result; }
 		if (transparentIndex(options)) { indexed = withTransparentIndex(indexed, pixels); }
 		result.preview = alphaKind(options) == AlphaKind::Binary ? binaryPreview(indexed, pixels) : indexed;
-		if (usesSelectedPalette(options) && palette.palette.generated) { result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "Generated palette used: colors will not match an original game palette."); }
+		if (usesSelectedPalette(options) && palette.palette.generated) { result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "Generated palette used: colors will not match an original game palette."); }
 		if (embedsPalette(options.format)) {
 			result.embeddedPalette = stored.colors;
-			if (options.imagePalette) { result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "The stored palette was built from the image's colors."); }
+			if (options.imagePalette) { result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "The stored palette was built from the image's colors."); }
 		}
 	} else { result.preview = pixels; }
 	if (!checkpoint(part(3), 0, 1, &result.error)) { return result; }
@@ -673,14 +673,14 @@ TextureExportResult encodeTextureFrames(const QVector<QImage>& frames, const Tex
 		if (isHalfLifeMip(options.format)) {
 			const auto lump = encodeWad3Miptex(result.mipLevels, options.name, stored.colors);
 			result.bytes = options.format == TextureExportFormat::HalfLifeWad3 ? encodeWad3Archive(lump, options.name) : lump;
-			if (image.width() > 512 || image.height() > 512) { result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "Textures over 512 pixels per side may exceed GoldSrc engine and compiler limits."); }
+			if (image.width() > 512 || image.height() > 512) { result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "Textures over 512 pixels per side may exceed GoldSrc engine and compiler limits."); }
 		} else if (options.format == TextureExportFormat::SinSwl) {
 			result.bytes = encodeSwl(result.mipLevels, stored.colors, {options.name, options.animationNext, options.surfaceFlags, options.contentFlags, qint16(options.surfaceValue)});
-			result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "SiN's palette checksum and lighting, animation and physics properties are written as zero.");
+			result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "SiN's palette checksum and lighting, animation and physics properties are written as zero.");
 		} else { result.bytes = encodeMip(result.mipLevels, options); }
 	} else if (options.format == TextureExportFormat::DdsMipmapped) {
 		result.mipLevels = textureRgbaMipChain(pixels, part(4, 2));
-		if (result.mipLevels.isEmpty()) { result.error = QCoreApplication::translate("VibeStudioTextureExport", "Texture export cancelled."); return result; }
+		if (result.mipLevels.isEmpty()) { result.error = QCoreApplication::translate("SlopStudioTextureExport", "Texture export cancelled."); return result; }
 		result.bytes = encodeDdsMipmapped(result.mipLevels, part(6));
 	} else if (options.format == TextureExportFormat::IndexedPng) { result.bytes = encodeIndexedPng(indexed, &result.error, part(6)); }
 	else if (options.format == TextureExportFormat::Png) {
@@ -692,18 +692,18 @@ TextureExportResult encodeTextureFrames(const QVector<QImage>& frames, const Tex
 	}
 	else if (options.format == TextureExportFormat::Pcx) {
 		result.bytes = encodePcx(indexed, stored, &result.error, part(6));
-		if (image.width() % 2 || image.width() > 640 || image.height() > 480 || qint64(image.width()) * image.height() > 512 * 256) { result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "Valid PCX, but outside original Quake II's even-width, 640 × 480 and 131,072-pixel loading limits."); }
-		result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "PCX stores no alpha. Quake II uses its global palette and interprets index 255 as transparent.");
+		if (image.width() % 2 || image.width() > 640 || image.height() > 480 || qint64(image.width()) * image.height() > 512 * 256) { result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "Valid PCX, but outside original Quake II's even-width, 640 × 480 and 131,072-pixel loading limits."); }
+		result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "PCX stores no alpha. Quake II uses its global palette and interprets index 255 as transparent.");
 	} else if (options.format == TextureExportFormat::DoomFlat) { result.bytes = packedRows(indexed); }
 	else if (options.format == TextureExportFormat::DoomPatch) {
 		result.bytes = encodePatch(indexed, pixels, options, &result.error, part(6));
-		if (image.height() > 255) { result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "Tall patch posts require a compatible source port."); }
-		if (image.width() > 2048 || image.height() > 2048 || std::abs(options.leftOffset) >= 4096 || std::abs(options.topOffset) >= 4096) { result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "These patch dimensions or offsets exceed GZDoom's 2048-pixel and ±4095-offset recognition limits. Confirm support in the target port."); }
-		if (result.bytes.size() > 65535) { result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "Large patches can exceed original Doom wall-texture column offsets; review the target engine and texture composition."); }
+		if (image.height() > 255) { result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "Tall patch posts require a compatible source port."); }
+		if (image.width() > 2048 || image.height() > 2048 || std::abs(options.leftOffset) >= 4096 || std::abs(options.topOffset) >= 4096) { result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "These patch dimensions or offsets exceed GZDoom's 2048-pixel and ±4095-offset recognition limits. Confirm support in the target port."); }
+		if (result.bytes.size() > 65535) { result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "Large patches can exceed original Doom wall-texture column offsets; review the target engine and texture composition."); }
 	}
-	if (result.bytes.isEmpty() || result.bytes.size() > textureOutputByteLimit) { if (result.error.isEmpty()) { result.error = QCoreApplication::translate("VibeStudioTextureExport", "The encoded texture is empty or exceeds 64 MiB."); } return result; }
+	if (result.bytes.isEmpty() || result.bytes.size() > textureOutputByteLimit) { if (result.error.isEmpty()) { result.error = QCoreApplication::translate("SlopStudioTextureExport", "The encoded texture is empty or exceeds 64 MiB."); } return result; }
 	if (!checkpoint(progress, 8000, 8000, &result.error)) { result.bytes.clear(); return result; }
-	if (options.extendedLimits && (isMipmapped(options.format) || options.format == TextureExportFormat::DoomPatch)) { result.warnings << QCoreApplication::translate("VibeStudioTextureExport", "Source-port limits enabled; validate the chosen engine and compiler before packaging."); }
+	if (options.extendedLimits && (isMipmapped(options.format) || options.format == TextureExportFormat::DoomPatch)) { result.warnings << QCoreApplication::translate("SlopStudioTextureExport", "Source-port limits enabled; validate the chosen engine and compiler before packaging."); }
 	result.succeeded = true; return result;
 }
 
@@ -722,7 +722,7 @@ bool saveTextureFramesExport(const QVector<QImage>& frames, const TextureExportO
 	bool overwrite, bool dryRun, TextureExportResult* result, QString* error, const TextureProgress& progress)
 {
 	if (error) { error->clear(); }
-	if (QFileInfo(path).suffix().compare(textureExportSuffix(options.format), Qt::CaseInsensitive) != 0) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "The export filename extension must match the selected profile.")); }
+	if (QFileInfo(path).suffix().compare(textureExportSuffix(options.format), Qt::CaseInsensitive) != 0) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "The export filename extension must match the selected profile.")); }
 	TextureOutputTarget target; if (!inspectTextureOutputTarget(path, overwrite, &target, error, [&] { return progress && !progress(0, 1); })) { return false; }
 	auto encoded = encodeTextureFrames(frames, options, palette, progress);
 	const bool ready = encoded.succeeded;
@@ -779,12 +779,12 @@ bool stageTextureExport(const TextureExportResult& result, const TextureExportOp
 	if (error) { error->clear(); }
 	if (!staging || !staging->isLoaded() || !result.succeeded || result.bytes.isEmpty() || result.bytes.size() > 64 * 1024 * 1024
 		|| result.preview.isNull() || !validTextureSize(result.preview.size(), error)) {
-		return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Open a package and validate a bounded texture export before staging."));
+		return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Open a package and validate a bounded texture export before staging."));
 	}
 	if (staging->sourceFormat() == PackageArchiveFormat::Wad) {
 		const auto magic = staging->sourceWadMagic();
 		if ((magic == QStringLiteral("WAD2") && options.format == TextureExportFormat::QuakeMiptex) || (magic == QStringLiteral("WAD3") && options.format == TextureExportFormat::HalfLifeMiptex)) {
-			if (path != options.name) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "The WAD lump name must match the miptexture export name.")); }
+			if (path != options.name) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "The WAD lump name must match the miptexture export name.")); }
 			return staging->addWadBytes(result.bytes, path, {}, magic == QStringLiteral("WAD3") ? 0x43 : 0x44, replaceExisting, error);
 		}
 		if ((magic == QStringLiteral("PWAD") || magic == QStringLiteral("IWAD"))
@@ -807,31 +807,31 @@ bool stageTextureExport(const TextureExportResult& result, const TextureExportOp
 			}
 			// The patch and its wall definition stage as one package undo step.
 			auto next = *staging;
-			if (!next.beginOperationGroup(QCoreApplication::translate("VibeStudioTextureExport", "Stage wall texture %1").arg(options.wallTexture.toUpper()), error) ||
+			if (!next.beginOperationGroup(QCoreApplication::translate("SlopStudioTextureExport", "Stage wall texture %1").arg(options.wallTexture.toUpper()), error) ||
 				!next.addWadBytes(result.bytes, path, namespaceId, 0, replaceExisting, error) ||
 				!stageDoomWallTexture(&next, path, options.wallTexture, result.preview.size(), replaceExisting, nullptr, error) || !next.endOperationGroup(true, error)) { return false; }
 			*staging = std::move(next); return true;
 		}
-		return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Choose Quake miptexture for WAD2, Half-Life miptexture for WAD3, or Doom flat/patch for IWAD/PWAD."));
+		return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Choose Quake miptexture for WAD2, Half-Life miptexture for WAD3, or Doom flat/patch for IWAD/PWAD."));
 	}
 	const auto normalized = normalizePackageVirtualPath(path, false);
 	if (!normalized.isSafe() || QFileInfo(normalized.normalizedPath).suffix().compare(textureExportSuffix(options.format), Qt::CaseInsensitive) != 0) {
-		return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Choose a safe package-relative path with the selected export profile's extension."));
+		return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Choose a safe package-relative path with the selected export profile's extension."));
 	}
 	auto next = *staging;
 	const auto resolution = replaceExisting ? PackageStageConflictResolution::ReplaceExisting : PackageStageConflictResolution::Block;
 	// A sprite and the frames it names stage as one package undo step.
 	const bool grouped = !result.companions.isEmpty();
-	if (grouped && !next.beginOperationGroup(QCoreApplication::translate("VibeStudioTextureExport", "Stage sprite %1").arg(normalized.normalizedPath), error)) { return false; }
+	if (grouped && !next.beginOperationGroup(QCoreApplication::translate("SlopStudioTextureExport", "Stage sprite %1").arg(normalized.normalizedPath), error)) { return false; }
 	for (const auto& companion : result.companions) {
 		const auto frame = normalizePackageVirtualPath(companion.path, false);
 		if (!frame.isSafe() || !next.addBytes(companion.bytes, frame.normalizedPath, error, resolution)) {
-			return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "A sprite frame path is unsafe or conflicts with the package: %1").arg(companion.path));
+			return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "A sprite frame path is unsafe or conflicts with the package: %1").arg(companion.path));
 		}
 	}
 	if (!next.addBytes(result.bytes, normalized.normalizedPath, error, resolution) || (grouped && !next.endOperationGroup(true, error))
-		|| !next.summary().canSave) { return fail(error, QCoreApplication::translate("VibeStudioTextureExport", "Resolve package conflicts or enable replacement before staging this texture.")); }
+		|| !next.summary().canSave) { return fail(error, QCoreApplication::translate("SlopStudioTextureExport", "Resolve package conflicts or enable replacement before staging this texture.")); }
 	*staging = std::move(next); return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

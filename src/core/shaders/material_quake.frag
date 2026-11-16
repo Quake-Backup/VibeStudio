@@ -14,15 +14,15 @@
 
 #include "material_common.glsl"
 
-VIBE_VARYING_IN(0) vec3 vPosition;
-VIBE_VARYING_IN(1) vec3 vNormal;
-VIBE_VARYING_IN(2) vec3 vTangent;
-VIBE_VARYING_IN(3) vec3 vBitangent;
-VIBE_VARYING_IN(4) vec4 vTexCoord;
-VIBE_VARYING_IN(5) vec4 vColor;
-VIBE_VARYING_IN(6) float vDepth;
+SLOP_VARYING_IN(0) vec3 vPosition;
+SLOP_VARYING_IN(1) vec3 vNormal;
+SLOP_VARYING_IN(2) vec3 vTangent;
+SLOP_VARYING_IN(3) vec3 vBitangent;
+SLOP_VARYING_IN(4) vec4 vTexCoord;
+SLOP_VARYING_IN(5) vec4 vColor;
+SLOP_VARYING_IN(6) float vDepth;
 
-VIBE_FRAGMENT_OUT(0) vec4 outColor;
+SLOP_FRAGMENT_OUT(0) vec4 outColor;
 
 bool flag(int bit)
 {

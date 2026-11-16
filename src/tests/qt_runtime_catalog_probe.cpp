@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 	const QDir sdk(QString::fromLocal8Bit(argv[3]));
 	QJsonArray appCatalogs, qtCatalogs;
 	bool valid = true;
-	for (const auto& name : application.entryList({QStringLiteral("vibestudio_*.qm")}, QDir::Files)) {
+	for (const auto& name : application.entryList({QStringLiteral("slopstudio_*.qm")}, QDir::Files)) {
 		QTranslator reader;
 		const bool loaded = reader.load(application.filePath(name));
 		valid &= loaded;
@@ -45,10 +45,10 @@ int main(int argc, char** argv)
 		qtCatalogs.append(QJsonObject{{"name", name}, {"loaded", loaded}, {"matchesSdkButtons", same}, {"cancel", cancel}});
 	}
 	QTranslator english;
-	valid &= english.load(application.filePath(QStringLiteral("vibestudio_en.qm"))) && app.installTranslator(&english);
-	const QString singular = QCoreApplication::translate("vibestudio::AudioAnalysisDialog",
+	valid &= english.load(application.filePath(QStringLiteral("slopstudio_en.qm"))) && app.installTranslator(&english);
+	const QString singular = QCoreApplication::translate("slopstudio::AudioAnalysisDialog",
 	    "Peak %1 dBFS · RMS %2 dBFS · %n sample(s) above full scale", nullptr, 1);
-	const QString plural = QCoreApplication::translate("vibestudio::AudioAnalysisDialog",
+	const QString plural = QCoreApplication::translate("slopstudio::AudioAnalysisDialog",
 	    "Peak %1 dBFS · RMS %2 dBFS · %n sample(s) above full scale", nullptr, 5);
 	valid &= appCatalogs.size() == 21 && !qtCatalogs.isEmpty() && translatedButtons > 0 &&
 	         singular.contains(QStringLiteral("1 sample above")) && plural.contains(QStringLiteral("5 samples above"));

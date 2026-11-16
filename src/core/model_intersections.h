@@ -4,7 +4,7 @@
 
 #include <QSet>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr qint64 modelIntersectionMaxPairs = 67108864;
 inline constexpr qint64 modelIntersectionMaxNodeChecks = 268435456;
@@ -45,4 +45,4 @@ struct ModelIntersectionReport
 bool inspectModelIntersections(const ModelMesh &mesh, const ModelIntersectionOptions &options, ModelIntersectionReport *result,
 							   QString *error = nullptr, const ModelWorkControl &control = {});
 QString modelIntersectionKindId(ModelTriangleContact kind);
-} // namespace vibestudio
+} // namespace slopstudio

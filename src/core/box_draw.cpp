@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr double limit = 32768;
 bool finite(BoxResizePoint point)
@@ -120,4 +120,4 @@ bool adjustBoxDrawDepth(BoxDrawDrag* drag, int steps)
 	drag->depth = depth; return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

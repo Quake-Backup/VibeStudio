@@ -12,8 +12,8 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -40,7 +40,7 @@ bool write(const QString &path, const QByteArray &bytes)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir tmp(QDir(root).filePath("curves-XXXXXX"));
@@ -345,7 +345,7 @@ int main(int argc, char **argv)
 	candidate = longClip;
 	expect(applyModelEdit(&candidate, captureCurves(), nullptr, &error), "capture full preview frame budget");
 	std::cout << "1023-sample capture: " << timer.elapsed() << " ms\n";
-	const QStringList base{"vibestudio", "--cli", "model", "curves", source, "--clip", "0", "--joint", "upper"};
+	const QStringList base{"slopstudio", "--cli", "model", "curves", source, "--clip", "0", "--joint", "upper"};
 	auto result = cli::runModelCurves(base);
 	expect(result.exitCode == 0 && result.payload["curves"].toArray().size() == 1, "CLI inspects full stored channels");
 	const QStringList keyArgs{"--operation", "set-key",			"--channel", "ty",		  "--frame", "2",		 "--value",

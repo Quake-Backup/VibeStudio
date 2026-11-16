@@ -15,13 +15,13 @@
 // Poly Build: build faces corner by corner in any view, the way MilkShape
 // 3D's vertex and face tools and Blender's Poly Build tool do (behaviour only,
 // see docs/MODEL_TOOLS.md). Each face is one Add Face edit and one undo step.
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelTools)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelTools)
 };
 // How near, in pixels, a click must be to reuse an existing vertex.
 constexpr double reach = 12;
@@ -303,4 +303,4 @@ void ModelEditorTools::paintPolyBuild(QPainter &painter)
 	painter.drawLine(m.pointer + QPointF(0, -reach - 6), m.pointer + QPointF(0, -reach + 4));
 	painter.drawLine(m.pointer + QPointF(0, reach - 4), m.pointer + QPointF(0, reach + 6));
 }
-} // namespace vibestudio
+} // namespace slopstudio

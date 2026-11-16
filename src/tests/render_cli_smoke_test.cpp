@@ -1,7 +1,7 @@
 // The `render` CLI family end to end, run as a separate process: backends,
-// test and set, the --renderer and VIBESTUDIO_RENDER_BACKEND overrides, and
+// test and set, the --renderer and SLOPSTUDIO_RENDER_BACKEND overrides, and
 // their usage errors. A machine where no renderer starts still checks the
-// reports and errors; VIBESTUDIO_RENDER_REQUIRE=1 makes that a failure.
+// reports and errors; SLOPSTUDIO_RENDER_REQUIRE=1 makes that a failure.
 
 #include <QCoreApplication>
 #include <QDir>
@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 	QCoreApplication app(argc, argv);
 	QTemporaryDir temp;
 	if (!temp.isValid() || argc != 2) {
-		std::cerr << "usage: render_cli_smoke_test <vibestudio>\n";
+		std::cerr << "usage: render_cli_smoke_test <slopstudio>\n";
 		return 1;
 	}
 	const QString cli = QString::fromLocal8Bit(argv[1]);
@@ -48,9 +48,9 @@ int main(int argc, char** argv)
 	const auto run = [&](const QStringList& arguments, const QString& environmentChoice = QString()) {
 		QProcess process;
 		QProcessEnvironment environment = QProcessEnvironment::systemEnvironment();
-		environment.remove(QStringLiteral("VIBESTUDIO_RENDER_BACKEND"));
+		environment.remove(QStringLiteral("SLOPSTUDIO_RENDER_BACKEND"));
 		if (!environmentChoice.isEmpty()) {
-			environment.insert(QStringLiteral("VIBESTUDIO_RENDER_BACKEND"), environmentChoice);
+			environment.insert(QStringLiteral("SLOPSTUDIO_RENDER_BACKEND"), environmentChoice);
 		}
 		process.setProcessEnvironment(environment);
 		process.setWorkingDirectory(temp.path());
@@ -91,8 +91,8 @@ int main(int argc, char** argv)
 		expect(ids.contains(result.value(QStringLiteral("active")).toString()), "render backends names the renderer in use", lastOutput);
 	} else {
 		expect(result.value(QStringLiteral("active")).isNull(), "with no renderer, none is in use", lastOutput);
-		if (qEnvironmentVariableIntValue("VIBESTUDIO_RENDER_REQUIRE") != 0) {
-			expect(false, "VIBESTUDIO_RENDER_REQUIRE is set, but no renderer starts", lastOutput);
+		if (qEnvironmentVariableIntValue("SLOPSTUDIO_RENDER_REQUIRE") != 0) {
+			expect(false, "SLOPSTUDIO_RENDER_REQUIRE is set, but no renderer starts", lastOutput);
 		} else {
 			std::cout << "No renderer starts on this machine: drawing checks skipped.\n";
 		}
@@ -121,7 +121,7 @@ int main(int argc, char** argv)
 	result = run({QStringLiteral("backends")}, QStringLiteral("vulkan"));
 	expect(result.value(QStringLiteral("choice")).toString() == QStringLiteral("vulkan")
 			&& result.value(QStringLiteral("choiceSource")).toString() == QStringLiteral("environment"),
-		"VIBESTUDIO_RENDER_BACKEND overrides the preference", lastOutput);
+		"SLOPSTUDIO_RENDER_BACKEND overrides the preference", lastOutput);
 	result = run({QStringLiteral("backends"), QStringLiteral("--renderer=opengl")}, QStringLiteral("vulkan"));
 	expect(result.value(QStringLiteral("choiceSource")).toString() == QStringLiteral("command-line"), "--renderer wins over the environment", lastOutput);
 	run({QStringLiteral("backends"), QStringLiteral("--renderer"), QStringLiteral("software")});

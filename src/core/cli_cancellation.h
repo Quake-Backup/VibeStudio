@@ -15,7 +15,7 @@
 
 #include "core/model_work.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // 128 + SIGINT, the code shells report for an interrupted command.
 inline constexpr int cliCancelledExitCode = 130;
@@ -36,4 +36,4 @@ void requestCliCancellation();
 // started without a control (core/model_work_defaults.h). Later
 // cliModelWorkControl calls report progress too when `progress` is set.
 void installCliModelWorkDefaults(bool progress);
-} // namespace vibestudio
+} // namespace slopstudio

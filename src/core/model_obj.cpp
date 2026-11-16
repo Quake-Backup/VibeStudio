@@ -20,7 +20,7 @@
 // Visualizer 3.0 Appendix B1, reviewed 2026-10-05:
 // https://www.martinreddy.net/gfx/3d/OBJ.spec
 // Format facts only; no upstream implementation or specification text copied.
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -88,7 +88,7 @@ class Reader
 		}
 		if (bytes.isEmpty() || bytes.size() > modelDocumentMaxSourceBytes)
 		{
-			fail(QCoreApplication::translate("VibeStudioModelObj", "OBJ source must contain between 1 byte and 64 MiB."));
+			fail(QCoreApplication::translate("SlopStudioModelObj", "OBJ source must contain between 1 byte and 64 MiB."));
 			return mesh;
 		}
 		qsizetype cursor = bytes.startsWith("\xEF\xBB\xBF") ? 3 : 0;
@@ -108,7 +108,7 @@ class Reader
 			const qsizetype count = (end < 0 ? bytes.size() : end) - cursor;
 			if (count + logical.size() > maxLineBytes)
 			{
-				fail(QCoreApplication::translate("VibeStudioModelObj", "An OBJ logical line exceeds 64 KiB."));
+				fail(QCoreApplication::translate("SlopStudioModelObj", "An OBJ logical line exceeds 64 KiB."));
 				return failed();
 			}
 			QByteArrayView part(bytes.constData() + cursor, count);
@@ -120,7 +120,7 @@ class Reader
 				}
 				if ((uchar(c) < 32 && c != '\r' && c != '\t') || uchar(c) == 127)
 				{
-					fail(QCoreApplication::translate("VibeStudioModelObj", "OBJ contains a binary or control character."));
+					fail(QCoreApplication::translate("SlopStudioModelObj", "OBJ contains a binary or control character."));
 					return failed();
 				}
 			}
@@ -143,7 +143,7 @@ class Reader
 				logical.append(' ');
 				if (cursor == bytes.size())
 				{
-					fail(QCoreApplication::translate("VibeStudioModelObj", "OBJ ends during a continued line."));
+					fail(QCoreApplication::translate("SlopStudioModelObj", "OBJ ends during a continued line."));
 					return failed();
 				}
 				continue;
@@ -156,23 +156,23 @@ class Reader
 		}
 		if (faces.isEmpty())
 		{
-			fail(QCoreApplication::translate("VibeStudioModelObj", "OBJ contains no polygon faces."));
+			fail(QCoreApplication::translate("SlopStudioModelObj", "OBJ contains no polygon faces."));
 			return failed();
 		}
 		if (usedPositions.size() != positions.size())
 		{
 			if (m_options.refuseLooseData)
 			{
-				fail(QCoreApplication::translate("VibeStudioModelObj",
+				fail(QCoreApplication::translate("SlopStudioModelObj",
 												 "OBJ contains loose vertices. Remove vertices unused by faces before importing."));
 				return failed();
 			}
 			const int loose = int(positions.size() - usedPositions.size());
-			notes << QCoreApplication::translate("VibeStudioModelObj", "Dropped %n vertices that no face uses.", nullptr, loose);
+			notes << QCoreApplication::translate("SlopStudioModelObj", "Dropped %n vertices that no face uses.", nullptr, loose);
 		}
 		if (looseRecords > 0)
 		{
-			notes << QCoreApplication::translate("VibeStudioModelObj", "Dropped %n line and point records; only faces are imported.", nullptr,
+			notes << QCoreApplication::translate("SlopStudioModelObj", "Dropped %n line and point records; only faces are imported.", nullptr,
 												 looseRecords);
 		}
 		if (!build() || !bindMaterials() || !work.check())
@@ -221,7 +221,7 @@ class Reader
 	qint64 checks = 0;
 	bool fail(const QString &reason)
 	{
-		mesh.error = QCoreApplication::translate("VibeStudioModelObj", "OBJ line %1: %2").arg(line).arg(reason);
+		mesh.error = QCoreApplication::translate("SlopStudioModelObj", "OBJ line %1: %2").arg(line).arg(reason);
 		return false;
 	}
 	ModelMesh failed()
@@ -238,14 +238,14 @@ class Reader
 		}
 		return ++checks <= maxGeometryChecks ||
 			   fail(QCoreApplication::translate(
-				   "VibeStudioModelObj", "Polygon validation exceeds its work limit. Triangulate complex polygons before importing."));
+				   "SlopStudioModelObj", "Polygon validation exceeds its work limit. Triangulate complex polygons before importing."));
 	}
 	bool number(QByteArrayView token, double *out)
 	{
 		bool valid = false;
 		*out = token.toDouble(&valid);
 		return (valid && std::isfinite(*out) && std::abs(*out) <= 1000000) ||
-			   fail(QCoreApplication::translate("VibeStudioModelObj", "Coordinates must be finite numbers within ±1,000,000."));
+			   fail(QCoreApplication::translate("SlopStudioModelObj", "Coordinates must be finite numbers within ±1,000,000."));
 	}
 	bool name(const QVector<QByteArrayView> &tokens, QString *out)
 	{
@@ -263,7 +263,7 @@ class Reader
 		if (decoder.hasError() || out->size() > 128 ||
 			std::any_of(out->begin(), out->end(), [](QChar c) { return c.category() == QChar::Other_Control; }))
 		{
-			return fail(QCoreApplication::translate("VibeStudioModelObj",
+			return fail(QCoreApplication::translate("SlopStudioModelObj",
 													"Names must be valid UTF-8 with at most 128 characters and no controls."));
 		}
 		return true;
@@ -275,7 +275,7 @@ class Reader
 		if (!valid || !value || value > count || value < -count)
 		{
 			return fail(QCoreApplication::translate(
-				"VibeStudioModelObj", "A face index is zero, malformed, forward-referencing, or outside the declared vertex list."));
+				"SlopStudioModelObj", "A face index is zero, malformed, forward-referencing, or outside the declared vertex list."));
 		}
 		*out = int(value > 0 ? value - 1 : count + value);
 		return true;
@@ -320,7 +320,7 @@ class Reader
 			tokens.append(bytes.sliced(start, i - start));
 			if (tokens.size() > maxPolygonCorners + 1)
 			{
-				return fail(QCoreApplication::translate("VibeStudioModelObj", "An OBJ record exceeds 1,024 values or polygon corners."));
+				return fail(QCoreApplication::translate("SlopStudioModelObj", "An OBJ record exceeds 1,024 values or polygon corners."));
 			}
 		}
 		if (tokens.isEmpty())
@@ -334,7 +334,7 @@ class Reader
 			if ((command == "v" && (count < 3 || count > 4)) || (command == "vn" && count != 3) ||
 				(command == "vt" && (count < 1 || count > 3)))
 			{
-				return fail(QCoreApplication::translate("VibeStudioModelObj",
+				return fail(QCoreApplication::translate("SlopStudioModelObj",
 														"A vertex record has unsupported components; vertex colours are not supported."));
 			}
 			std::array<double, 4> values{0, 0, 0, 1};
@@ -348,7 +348,7 @@ class Reader
 			if ((command == "v" && values[3] != 1) || (command == "vt" && values[2] != 0))
 			{
 				return fail(QCoreApplication::translate(
-					"VibeStudioModelObj",
+					"SlopStudioModelObj",
 					"Weighted positions and 3D texture coordinates cannot be represented. Export polygon positions and 2D UVs."));
 			}
 			if (command != "vt" && m_options.up == ModelObjUpAxis::Y)
@@ -364,7 +364,7 @@ class Reader
 					values[i] *= m_options.scale;
 					if (std::abs(values[i]) > 1000000)
 					{
-						return fail(QCoreApplication::translate("VibeStudioModelObj",
+						return fail(QCoreApplication::translate("SlopStudioModelObj",
 																"A scaled position falls outside ±1,000,000. Choose a smaller scale."));
 					}
 				}
@@ -379,13 +379,13 @@ class Reader
 				const Vec n{values[0], values[1], values[2]};
 				if (length(n) < 1e-12)
 				{
-					return fail(QCoreApplication::translate("VibeStudioModelObj", "Vertex normals must be nonzero."));
+					return fail(QCoreApplication::translate("SlopStudioModelObj", "Vertex normals must be nonzero."));
 				}
 				normals.append(normalized(n));
 			}
 			return (positions.size() <= modelDocumentMaxVertices && uvs.size() <= modelDocumentMaxVertices &&
 					normals.size() <= modelDocumentMaxVertices) ||
-				   fail(QCoreApplication::translate("VibeStudioModelObj", "An OBJ position, UV, or normal list exceeds 65,536 entries."));
+				   fail(QCoreApplication::translate("SlopStudioModelObj", "An OBJ position, UV, or normal list exceeds 65,536 entries."));
 		}
 		if (command == "o")
 		{
@@ -402,7 +402,7 @@ class Reader
 				return false;
 			}
 			return material.isEmpty() || isSafePackageVirtualPath(material) ||
-				   fail(QCoreApplication::translate("VibeStudioModelObj",
+				   fail(QCoreApplication::translate("SlopStudioModelObj",
 													"A direct material assignment must be a safe package-relative path."));
 		}
 		if (command == "s")
@@ -410,7 +410,7 @@ class Reader
 			if (tokens.size() != 2)
 			{
 				return fail(
-					QCoreApplication::translate("VibeStudioModelObj", "Smoothing requires off, on, zero, or a positive group number."));
+					QCoreApplication::translate("SlopStudioModelObj", "Smoothing requires off, on, zero, or a positive group number."));
 			}
 			if (tokens[1] == "off" || tokens[1] == "0")
 			{
@@ -425,13 +425,13 @@ class Reader
 			bool valid = false;
 			smoothing = tokens[1].toInt(&valid);
 			return (valid && smoothing > 0) ||
-				   fail(QCoreApplication::translate("VibeStudioModelObj", "Smoothing requires off, on, zero, or a positive group number."));
+				   fail(QCoreApplication::translate("SlopStudioModelObj", "Smoothing requires off, on, zero, or a positive group number."));
 		}
 		if (command == "mtllib")
 		{
 			if (m_options.materials == ModelObjMaterials::Refuse)
 			{
-				return fail(QCoreApplication::translate("VibeStudioModelObj",
+				return fail(QCoreApplication::translate("SlopStudioModelObj",
 														"This import refuses Wavefront material libraries. Export without materials, or "
 														"resolve or ignore the library."));
 			}
@@ -446,7 +446,7 @@ class Reader
 		{
 			if (m_options.refuseLooseData)
 			{
-				return fail(QCoreApplication::translate("VibeStudioModelObj",
+				return fail(QCoreApplication::translate("SlopStudioModelObj",
 														"OBJ contains line or point records. Export faces only, or drop loose data."));
 			}
 			++looseRecords;
@@ -456,14 +456,14 @@ class Reader
 		{
 			return fail(
 				QCoreApplication::translate(
-					"VibeStudioModelObj",
+					"SlopStudioModelObj",
 					"Unsupported OBJ record '%1'. Export polygon faces without free-form geometry, lines, points, or external commands.")
 					.arg(QString::fromLatin1(command.data(), command.size())));
 		}
 		if (tokens.size() < 4 || triangleCount + tokens.size() - 3 > modelDocumentMaxTriangles)
 		{
 			return fail(QCoreApplication::translate(
-				"VibeStudioModelObj", "Faces need at least three corners and the model may contain at most 131,072 triangles."));
+				"SlopStudioModelObj", "Faces need at least three corners and the model may contain at most 131,072 triangles."));
 		}
 		Face face;
 		face.line = line;
@@ -477,7 +477,7 @@ class Reader
 			}
 			if (!face.corners.isEmpty() && ((c.uv < 0) != (face.corners[0].uv < 0) || (c.normal < 0) != (face.corners[0].normal < 0)))
 			{
-				return fail(QCoreApplication::translate("VibeStudioModelObj",
+				return fail(QCoreApplication::translate("SlopStudioModelObj",
 														"Every corner of a face must use the same position/UV/normal index form."));
 			}
 			face.corners.append(c);
@@ -494,7 +494,7 @@ class Reader
 			if (mesh.surfaces.size() >= 32)
 			{
 				return fail(
-					QCoreApplication::translate("VibeStudioModelObj", "OBJ object/group/material combinations exceed 32 surfaces."));
+					QCoreApplication::translate("SlopStudioModelObj", "OBJ object/group/material combinations exceed 32 surfaces."));
 			}
 			ModelSurface surface;
 			QString base = groups.isEmpty() ? object : groups;
@@ -547,7 +547,7 @@ class Reader
 		const double normalLength = length(n);
 		if (normalLength <= 1e-10)
 		{
-			return fail(QCoreApplication::translate("VibeStudioModelObj", "A polygon is collapsed or has inconsistent winding."));
+			return fail(QCoreApplication::translate("SlopStudioModelObj", "A polygon is collapsed or has inconsistent winding."));
 		}
 		face->normal = n;
 		const double planarTolerance = std::max(1e-7, extent * 1e-6);
@@ -559,7 +559,7 @@ class Reader
 			if (std::abs(dot(p, n)) / normalLength > planarTolerance)
 			{
 				return fail(QCoreApplication::translate(
-					"VibeStudioModelObj", "A polygon is not planar. Triangulate it in the source modeller before importing."));
+					"SlopStudioModelObj", "A polygon is not planar. Triangulate it in the source modeller before importing."));
 			}
 			points.append(drop == 0 ? Point{p.y, p.z} : (drop == 1 ? Point{p.x, p.z} : Point{p.x, p.y}));
 		}
@@ -579,7 +579,7 @@ class Reader
 				if (length(subtract(position(i), position(j))) == 0)
 				{
 					return fail(
-						QCoreApplication::translate("VibeStudioModelObj", "A polygon repeats a position or contains a zero-length edge."));
+						QCoreApplication::translate("SlopStudioModelObj", "A polygon repeats a position or contains a zero-length edge."));
 				}
 				if (j == i + 1 || (i == 0 && j == count - 1))
 				{
@@ -589,12 +589,12 @@ class Reader
 				const double abC = orient(a, b, c), abD = orient(a, b, d), cdA = orient(c, d, a), cdB = orient(c, d, b);
 				if (((abC > 0 && abD < 0) || (abC < 0 && abD > 0)) && ((cdA > 0 && cdB < 0) || (cdA < 0 && cdB > 0)))
 				{
-					return fail(QCoreApplication::translate("VibeStudioModelObj", "A polygon intersects itself."));
+					return fail(QCoreApplication::translate("SlopStudioModelObj", "A polygon intersects itself."));
 				}
 				if (onSegment(a, b, c) || onSegment(a, b, d) || onSegment(c, d, a) || onSegment(c, d, b))
 				{
 					return fail(
-						QCoreApplication::translate("VibeStudioModelObj", "A polygon has overlapping or touching non-adjacent edges."));
+						QCoreApplication::translate("SlopStudioModelObj", "A polygon has overlapping or touching non-adjacent edges."));
 				}
 			}
 		}
@@ -650,13 +650,13 @@ class Reader
 			}
 			if (!clipped)
 			{
-				return fail(QCoreApplication::translate("VibeStudioModelObj",
+				return fail(QCoreApplication::translate("SlopStudioModelObj",
 														"A polygon cannot be triangulated without losing or collapsing corners."));
 			}
 		}
 		if (sign * orient(points[remaining[0]], points[remaining[1]], points[remaining[2]]) <= 0)
 		{
-			return fail(QCoreApplication::translate("VibeStudioModelObj", "A polygon ends in a collapsed triangle."));
+			return fail(QCoreApplication::translate("SlopStudioModelObj", "A polygon ends in a collapsed triangle."));
 		}
 		face->triangles.append({remaining[0], remaining[1], remaining[2]});
 		return true;
@@ -678,14 +678,14 @@ class Reader
 		QString problem;
 		if (!resolve || library.contains(QLatin1String("..")) || !m_companions->read(path, &bytes, &problem))
 		{
-			notes << QCoreApplication::translate("VibeStudioModelObj",
+			notes << QCoreApplication::translate("SlopStudioModelObj",
 												 "Material library %1 was not read; material names are kept as material paths.")
 						 .arg(library);
 			return true;
 		}
 		if (bytes.size() > 1024 * 1024)
 		{
-			notes << QCoreApplication::translate("VibeStudioModelObj", "Material library %1 is larger than 1 MiB and was not read.")
+			notes << QCoreApplication::translate("SlopStudioModelObj", "Material library %1 is larger than 1 MiB and was not read.")
 						 .arg(library);
 			return true;
 		}
@@ -725,7 +725,7 @@ class Reader
 		}
 		if (ignored > 0)
 		{
-			notes << QCoreApplication::translate("VibeStudioModelObj",
+			notes << QCoreApplication::translate("SlopStudioModelObj",
 												 "Material library %1: kept diffuse maps; %n shading statements (colours, "
 												 "specular, transparency and other maps) have no idTech equivalent.",
 												 nullptr, ignored)
@@ -763,11 +763,11 @@ class Reader
 			const QString bound = virtualDirectory.isEmpty() ? image : virtualDirectory + QLatin1Char('/') + image;
 			if (!isSafePackageVirtualPath(bound))
 			{
-				notes << QCoreApplication::translate("VibeStudioModelObj", "Material %1 keeps its name: its image %2 is not a package path.")
+				notes << QCoreApplication::translate("SlopStudioModelObj", "Material %1 keeps its name: its image %2 is not a package path.")
 							 .arg(surface.skinPaths.first(), found.value());
 				continue;
 			}
-			notes << QCoreApplication::translate("VibeStudioModelObj", "Surface %1 uses image %2 from material %3.")
+			notes << QCoreApplication::translate("SlopStudioModelObj", "Surface %1 uses image %2 from material %3.")
 						 .arg(surface.name, bound, surface.skinPaths.first());
 			surface.skinPaths.first() = bound;
 		}
@@ -796,7 +796,7 @@ class Reader
 					if (++totalVertices > modelDocumentMaxVertices)
 					{
 						return fail(QCoreApplication::translate(
-							"VibeStudioModelObj", "UV, normal, smoothing, or material splits exceed 65,536 editable vertices."));
+							"SlopStudioModelObj", "UV, normal, smoothing, or material splits exceed 65,536 editable vertices."));
 					}
 					ModelVec3 normal;
 					if (c.normal >= 0)
@@ -809,7 +809,7 @@ class Reader
 						if (length(sum) <= 1e-10)
 						{
 							return fail(QCoreApplication::translate(
-								"VibeStudioModelObj",
+								"SlopStudioModelObj",
 								"A smoothing group produces a zero normal. Correct winding or supply explicit normals."));
 						}
 						normal = normalized(sum);
@@ -842,7 +842,7 @@ ModelMesh decodeModelObj(const QString &path, const QByteArray &bytes, const Mod
 	{
 		ModelMesh mesh;
 		mesh.sourcePath = path;
-		mesh.error = QCoreApplication::translate("VibeStudioModelObj", "OBJ scale must be from 0.000001 to 1,000,000.");
+		mesh.error = QCoreApplication::translate("SlopStudioModelObj", "OBJ scale must be from 0.000001 to 1,000,000.");
 		return mesh;
 	}
 	Reader reader(path, control, options, companions);
@@ -852,7 +852,7 @@ ModelMesh decodeModelObj(const QString &path, const QByteArray &bytes, const Mod
 		*notes = reader.notes;
 		if (options.up == ModelObjUpAxis::Y)
 		{
-			notes->prepend(QCoreApplication::translate("VibeStudioModelObj", "Converted Y-up, -Z-forward coordinates to Z up."));
+			notes->prepend(QCoreApplication::translate("SlopStudioModelObj", "Converted Y-up, -Z-forward coordinates to Z up."));
 		}
 	}
 	return mesh;
@@ -878,4 +878,4 @@ ModelMesh decodeModelObjFromArchive(const PackageArchiveReader &archive, const Q
 	const auto companions = modelCompanionsFromArchive(archive, control);
 	return decodeModelObj(path, bytes, ModelObjImportOptions{}, &companions, nullptr, control);
 }
-} // namespace vibestudio
+} // namespace slopstudio

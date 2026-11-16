@@ -33,7 +33,7 @@
 #include <QAction>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 LevelMapVec3 mapVector(const ModelVec3& value)
@@ -202,4 +202,4 @@ bool ApplicationShell::runLevelCameraTextureCommand(const QString& commandId, QS
 	return queueLevelSurfaceEdit(request, error, true);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

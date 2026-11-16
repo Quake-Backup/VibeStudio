@@ -191,11 +191,11 @@ records where they came from. Its keys are:
 | `_vs_collision_transform` | The placement transform: 12 numbers, row by row, translation last. |
 | `_vs_collision_model` | The instance's `model` key, for instance placement. |
 
-ericw-tools and VibeMap2, Quake II `qbsp3`, and q3map2 and VibeMap3 merge
+ericw-tools and SlopMap2, Quake II `qbsp3`, and q3map2 and SlopMap3 merge
 `func_group` brushes into the world, as they do for TrenchBroom's groups, so
 the record changes nothing in the compiled map. A compiler without `func_group`
 support, such as the original 1996 Quake `qbsp`, would keep it as a separate
-brush entity; compile Quake maps with VibeMap2 or ericw-tools.
+brush entity; compile Quake maps with SlopMap2 or ericw-tools.
 Underscore keys are ignored by the games. Only the revision tracks collision:
 a render-only mesh edit leaves placed collision current.
 
@@ -274,9 +274,9 @@ None of these exports runs the game; in-game collision and physics are not
 verified.
 
 ```sh
-vibestudio --cli model collision models/crate.mesh.json --operation export-ase --target doom3 --output models/crate.ase --json
-vibestudio --cli model collision models/crate.mesh.json --operation export-clipmodel --target doom3 --box body --output models/crate_clip.ase --json
-vibestudio --cli model collision models/crate.mesh.json --operation export-cm --target doom3 --model-path models/props/crate.ase --output models/props/crate.cm --json
+slopstudio --cli model collision models/crate.mesh.json --operation export-ase --target doom3 --output models/crate.ase --json
+slopstudio --cli model collision models/crate.mesh.json --operation export-clipmodel --target doom3 --box body --output models/crate_clip.ase --json
+slopstudio --cli model collision models/crate.mesh.json --operation export-cm --target doom3 --model-path models/props/crate.ase --output models/props/crate.cm --json
 ```
 
 MDL, MD2, MD3 and OBJ exports do not embed these boxes and report the omission.
@@ -287,7 +287,7 @@ volumes into the bake with **Include part collision in bakes** (see
 
 ## Source And Recovery
 
-Sources with static collision use `vibestudio.mesh` version 5, or version 6 when
+Sources with static collision use `slopstudio.mesh` version 5, or version 6 when
 clip FPS is saved. The required version-5
 `collisionBoxes` array contains objects with exactly `name`, `centre`, `size`
 and `rotation`; all three vectors have three numeric components. Version 5
@@ -357,20 +357,20 @@ pivot can choose another point. Animated `export-map` and `place` require
 `--frame N` and return that frame in JSON. Static sources retain earlier defaults.
 
 ```sh
-vibestudio --cli model collision models/prop.mesh.json --operation fit-animated --name body --output models/animated-collision.mesh.json
-vibestudio --cli model collision models/animated-collision.mesh.json --operation transform --box body --frame 2 --offset 0,0,4 --output models/animated-collision.mesh.json
-vibestudio --cli model collision models/animated-collision.mesh.json --operation export-map --frame 2 --target quake2 --output maps/pose-clip.map --json
+slopstudio --cli model collision models/prop.mesh.json --operation fit-animated --name body --output models/animated-collision.mesh.json
+slopstudio --cli model collision models/animated-collision.mesh.json --operation transform --box body --frame 2 --offset 0,0,4 --output models/animated-collision.mesh.json
+slopstudio --cli model collision models/animated-collision.mesh.json --operation export-map --frame 2 --target quake2 --output maps/pose-clip.map --json
 ```
 
 ```sh
-vibestudio --cli model collision models/prop.mesh.json --operation fit --name body --frame all --output models/prop-collision.mesh.json --dry-run --json
-vibestudio --cli model collision models/prop.mesh.json --operation fit --name body --output models/prop-collision.mesh.json
-vibestudio --cli model collision models/prop-collision.mesh.json --operation transform --box body --offset 0,0,8 --rotate 0,0,15 --scale 1.25,1,1 --output models/prop-collision.mesh.json
-vibestudio --cli model collision models/prop-collision.mesh.json --operation export-map --target quake2 --origin 128,0,0 --output maps/prop-clip.map --json
-vibestudio --cli model collision models/prop-collision.mesh.json --operation place --target quake3 --material common/clip --map maps/source.map --output maps/with-prop-clip.map --json
-vibestudio --cli model collision models/prop-collision.mesh.json --operation place --target quake3 --material common/clip --map maps/source.map --instance entity:12 --output maps/with-prop-clip.map --json
-vibestudio --cli model collision models/prop-collision.mesh.json --operation placed --map maps/with-prop-clip.map --json
-vibestudio --cli model collision models/prop-collision.mesh.json --operation refresh --map maps/with-prop-clip.map --output maps/refreshed.map --json
+slopstudio --cli model collision models/prop.mesh.json --operation fit --name body --frame all --output models/prop-collision.mesh.json --dry-run --json
+slopstudio --cli model collision models/prop.mesh.json --operation fit --name body --output models/prop-collision.mesh.json
+slopstudio --cli model collision models/prop-collision.mesh.json --operation transform --box body --offset 0,0,8 --rotate 0,0,15 --scale 1.25,1,1 --output models/prop-collision.mesh.json
+slopstudio --cli model collision models/prop-collision.mesh.json --operation export-map --target quake2 --origin 128,0,0 --output maps/prop-clip.map --json
+slopstudio --cli model collision models/prop-collision.mesh.json --operation place --target quake3 --material common/clip --map maps/source.map --output maps/with-prop-clip.map --json
+slopstudio --cli model collision models/prop-collision.mesh.json --operation place --target quake3 --material common/clip --map maps/source.map --instance entity:12 --output maps/with-prop-clip.map --json
+slopstudio --cli model collision models/prop-collision.mesh.json --operation placed --map maps/with-prop-clip.map --json
+slopstudio --cli model collision models/prop-collision.mesh.json --operation refresh --map maps/with-prop-clip.map --output maps/refreshed.map --json
 ```
 
 Exit codes are 0 success, 2 invalid/irrelevant arguments and 4 failed source,
@@ -385,8 +385,8 @@ The optional `src/tests/model_collision_compiler_workflow.py` proof creates two
 rotated volumes, transforms one through local scaling and world rotation/movement,
 and creates a sealed room and original texture/palette/shader assets. It
 runs authoring, export and placement through the real CLI, then invokes the
-supplied Quake and Quake III compilers: VibeMap2 `vibemap2-bsp` through
-`--qbsp` and VibeMap3 `vibemap3` through `--q3map2`. Stock ericw-tools `qbsp`
+supplied Quake and Quake III compilers: SlopMap2 `slopmap2-bsp` through
+`--qbsp` and SlopMap3 `slopmap3` through `--q3map2`. Stock ericw-tools `qbsp`
 and q3map2, which the recorded runs used, are accepted too. It independently
 reads BSP29 hulls and IBSP38/46 brush planes, leaf references, contents and
 draw surfaces. Quake hulls 1/2 contain the boxes while draw hull 0 remains
@@ -394,7 +394,7 @@ empty at those positions;
 Quake II/III contain player-clip brushes with no visible clip faces.
 
 ```sh
-python src/tests/model_collision_compiler_workflow.py --binary <vibestudio> --qbsp <vibemap2-bsp> --q3map2 <vibemap3> --output-root .agents/tmp/modeller-collision-compiler
+python src/tests/model_collision_compiler_workflow.py --binary <slopstudio> --qbsp <slopmap2-bsp> --q3map2 <slopmap3> --output-root .agents/tmp/modeller-collision-compiler
 ```
 
 Use a new output directory inside `.agents/tmp`. The proof records binary and

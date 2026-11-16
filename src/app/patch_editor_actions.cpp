@@ -6,7 +6,7 @@
 #include <QComboBox>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 bool ApplicationShell::applyLevelPatch(const LevelMapPatch& patch, int patchId, QString* error)
 {
 	const auto previousRevision = m_levelMapDocument.revision;
@@ -111,4 +111,4 @@ void ApplicationShell::editLevelMapPatchFromUi(bool creating)
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Patch %1 replaced the selection. Save the map to include it in the next build.").arg(created), 6000);
 }
-} // namespace vibestudio
+} // namespace slopstudio

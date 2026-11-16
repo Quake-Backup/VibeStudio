@@ -24,7 +24,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message, const QString& detail = {})
 {
@@ -68,7 +68,7 @@ bool inspectDialogLayout(QApplication& app, StudioSettings& settings)
 						QStringLiteral("%1 scale=%2 size=%3x%4 hfw=%5 painted=%6").arg(label->objectName()).arg(scale).arg(label->width()).arg(label->height())
 						.arg(label->heightForWidth(label->width())).arg(paintedLabelHeight(*label)));
 				}
-				const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+				const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 				if (!captures.isEmpty()) {
 					QDir().mkpath(captures); QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog.render(&image);
 					ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("layout-%1-%2.png").arg(tab).arg(scale))), "layout inspection rendered");
@@ -171,7 +171,7 @@ int main(int argc, char** argv)
 				dialog->findChild<QTabWidget*>("gestureTabs")->setCurrentIndex(2);
 				{ QEventLoop settle; QTimer::singleShot(50, &settle, &QEventLoop::quit); settle.exec(QEventLoop::ExcludeUserInputEvents); }
 				ok &= expect(dialog->rect().contains(QRect(apply->mapTo(dialog, QPoint()), apply->size())), "overlap details keep Apply visible");
-				const auto detailCaptures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+				const auto detailCaptures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 				if (!detailCaptures.isEmpty()) {
 					QDir().mkpath(detailCaptures); QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image);
 					ok &= expect(image.save(QDir(detailCaptures).filePath(QStringLiteral("gesture-overlaps-%1.png").arg(scale))), "shortcut overlap details rendered");
@@ -226,7 +226,7 @@ int main(int argc, char** argv)
 						ok &= expect(!field->accessibleName().isEmpty() && QAccessible::queryAccessibleInterface(field) && field->focusPolicy() != Qt::NoFocus, "gesture fields have keyboard and accessible controls");
 					}
 					ok &= expect(dialog->rect().contains(QRect(apply->mapTo(dialog, QPoint()), apply->size())), "footer remains in dialog");
-					const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+					const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 					if (!captures.isEmpty()) {
 						QDir().mkpath(captures); QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image);
 						ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("gestures-%1-%2.png").arg(tab).arg(scale))), "dialog rendered");

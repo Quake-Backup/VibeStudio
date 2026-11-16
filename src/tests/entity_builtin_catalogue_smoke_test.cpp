@@ -15,7 +15,7 @@
 #include <iostream>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -516,7 +516,7 @@ bool checkGameForMap()
 	LevelMapDocument trenchbroom = quakeMap({bareWorld}, {folderBrush});
 	trenchbroom.originalText = QStringLiteral("// Game: Quake\n// Format: Valve\n{\n}\n");
 	ok &= expect(builtinEntityGameForMap(trenchbroom) == BuiltinEntityGame::Quake, "TrenchBroom's Quake header outweighs folder texture names");
-	header.originalText = QStringLiteral("{\n// VibeStudio target: quake2\n}\n");
+	header.originalText = QStringLiteral("{\n// SlopStudio target: quake2\n}\n");
 	ok &= expect(builtinEntityGameForMap(header) == BuiltinEntityGame::Quake, "only the first line carries the header");
 
 	ok &= expect(builtinEntityGameForMap(quakeMap({})) == BuiltinEntityGame::Quake, "an empty Quake-format map is Quake");

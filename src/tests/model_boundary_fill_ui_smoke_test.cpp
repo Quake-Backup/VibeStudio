@@ -24,7 +24,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool condition, const char *message)
@@ -46,7 +46,7 @@ class Expansion final : public QTranslator
 	}
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelEditor")
+		if (QByteArray(context) != "SlopStudioModelEditor")
 			return {};
 		const auto value = QString::fromUtf8(text);
 		return QStringLiteral("[%1%2]").arg(value, QString(value.size() / 2, '~'));
@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("boundary-fill-ui-XXXXXX"));
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 						 "expanded fill control fits the scaled/RTL inspector without horizontal overflow");
 		}
 		fill->setFocus(Qt::OtherFocusReason);
-		const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+		const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 		if (!evidence.isEmpty())
 		{
 			QImage image(editor.size() * editor.devicePixelRatioF(), QImage::Format_ARGB32_Premultiplied);

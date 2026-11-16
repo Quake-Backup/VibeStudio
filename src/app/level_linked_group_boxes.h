@@ -16,7 +16,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // One linked group's box, in map units.
 struct LevelLinkedGroupBox {
@@ -80,4 +80,4 @@ bool operator==(const LevelLinkedGroupDisplay& left, const LevelLinkedGroupDispl
 [[nodiscard]] LevelLinkedGroupDisplay levelLinkedGroupDisplay(const QVector<LevelLinkedGroupBox>& boxes, const QStringList& openGroups,
 	const QHash<QString, QVector<LevelMapSelectionRef>>& groupSelections, const QVector<LevelMapSelectionRef>& selection, bool showAll);
 
-} // namespace vibestudio
+} // namespace slopstudio

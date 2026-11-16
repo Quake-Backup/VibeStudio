@@ -16,7 +16,7 @@ class QLabel;
 class QLineEdit;
 class QTableWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelControlsDialog final : public QDialog
 {
@@ -66,4 +66,4 @@ class ModelControlsDialog final : public QDialog
 	void refreshProblems();
 	[[nodiscard]] QString selectedCommand() const;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -24,7 +24,7 @@
 #include <QTranslator>
 #include <QUuid>
 
-using namespace vibestudio;
+using namespace slopstudio;
 using namespace package_copy_test;
 namespace {
 class Expanded final : public QTranslator {
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
 		auto live = copyPackageEntries(reader, request); if (!expect(live.succeeded(), "prepare a live UI session")) { return 1; }
 		const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces), path = QDir(store).filePath(id + QStringLiteral(".copies"));
 		const QString batch = QDir(path).filePath(QStringLiteral("package-copy-abc123")), payload = QDir(batch).filePath(QStringLiteral("saved.txt"));
-		const auto record = QJsonDocument(QJsonObject{{"schemaVersion", 1}, {"kind", "vibestudio-package-copies"}, {"id", id},
+		const auto record = QJsonDocument(QJsonObject{{"schemaVersion", 1}, {"kind", "slopstudio-package-copies"}, {"id", id},
 			{"createdUtc", QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs)}}).toJson();
 		if (!expect(QDir().mkpath(batch) && write(payload, "orphan") && write(QDir(path).filePath(QStringLiteral("session.json")), record), "prepare owned UI orphan fixture")) { return 1; }
 		PackageCopySessionsDialog dialog(store); dialog.show(); ok &= expect(settle(app, dialog), "asynchronous copy inventory settles");
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
 		if (auto* scroll = dialog.findChild<QScrollArea*>()) {
 			ok &= expect(scroll->horizontalScrollBar()->maximum() == 0, "long shared diagnostics wrap within the review viewport");
 		}
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog.render(&image);
 			ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("package-copy-sessions-%1.png").arg(scale))), "render session review");

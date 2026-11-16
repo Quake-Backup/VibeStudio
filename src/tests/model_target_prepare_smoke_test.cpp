@@ -31,8 +31,8 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 
 namespace
 {

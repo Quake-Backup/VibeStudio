@@ -9,7 +9,7 @@
 #include <functional>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ModelMesh;
 class GameAssetRegister;
@@ -94,4 +94,4 @@ QString levelDependencyStatusName(LevelDependencyStatus status);
 QJsonObject levelDependencyReportJson(const LevelDependencyReport& report);
 QString levelDependencyReportText(const LevelDependencyReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

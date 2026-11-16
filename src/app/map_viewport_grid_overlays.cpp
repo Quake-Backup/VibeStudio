@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -232,4 +232,4 @@ QString MapViewport::gridCoordinatesDescription() const
 	return tr("Grid coordinates are on, but this view is too small to label its lines.");
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

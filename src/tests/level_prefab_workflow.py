@@ -1,4 +1,4 @@
-"""Original prefab -> Models -> VibeMap3 -> package integration proof.
+"""Original prefab -> Models -> SlopMap3 -> package integration proof.
 
 Use --output-root below the project's .agents/tmp. --compiler is optional;
 without it, this still exercises CLI validation, dependencies and PK3 round trips.
@@ -112,7 +112,7 @@ def main():
     run('unknown-option', ['map', 'inspect-prefab', prefab, '--unknown', '--json'], expected=2)
     run('extra-input', ['map', 'inspect-prefab', prefab, 'extra', '--json'], expected=2)
     malformed = root / 'invalid.vprefab'
-    malformed.write_text('{"format":"VibeStudioPrefab","version":2}', encoding='utf-8')
+    malformed.write_text('{"format":"SlopStudioPrefab","version":2}', encoding='utf-8')
     run('invalid-version', ['map', 'inspect-prefab', malformed, '--json'], expected=4)
     run('missing-file', ['map', 'inspect-prefab', root / 'missing.vprefab', '--json'], expected=3)
     room = base / 'maps' / 'room.map'

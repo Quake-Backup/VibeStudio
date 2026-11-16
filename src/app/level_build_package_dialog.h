@@ -14,7 +14,7 @@ class QSpinBox;
 class QTableWidget;
 class QThread;
 class QTimer;
-namespace vibestudio {
+namespace slopstudio {
 class LevelBuildPackageDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(LevelBuildPackageDialog)
   public:
@@ -65,4 +65,4 @@ class LevelBuildPackageDialog final : public QDialog {
 	QPushButton *m_reviewButton = nullptr, *m_publish = nullptr, *m_cancel = nullptr, *m_browse = nullptr;
 	bool m_reducedMotion = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

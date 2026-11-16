@@ -15,7 +15,7 @@
 #include <numeric>
 #include <xatlas.h>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -184,7 +184,7 @@ bool prepare(const ModelSurface &source, const QSet<int> &selected, int frame, b
 								 : std::max((double(uvHi.u) - uvLo.u) * uAspect, double(uvHi.v) - uvLo.v);
 	if (extent <= 0 || !std::isfinite(extent))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+		return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas",
 													   "Selected faces have no usable area. Repair geometry or project UVs first."));
 	}
 	const double scale = 1024.0 / extent;
@@ -275,7 +275,7 @@ bool validateAtlas(const QVector<ModelTexCoord> &uv, const QVector<uint32_t> &in
 		if (std::abs(area) < 1e-14)
 		{
 			return fail(error, QCoreApplication::translate(
-								   "VibeStudioModelUvAtlas",
+								   "SlopStudioModelUvAtlas",
 								   "A selected face has collapsed UVs. Repair geometry, unwrap again, or increase atlas resolution."));
 		}
 	}
@@ -286,12 +286,12 @@ bool validateAtlas(const QVector<ModelTexCoord> &uv, const QVector<uint32_t> &in
 	}
 	if (scan.limitReached)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+		return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas",
 													   "UV overlap validation reached its work limit. Process fewer faces at a time."));
 	}
 	if (!scan.pairs.isEmpty())
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+		return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas",
 													   "Selected UV faces overlap inside an island. Add seams and unwrap before packing."));
 	}
 	return work.check();
@@ -522,7 +522,7 @@ bool runAtlas(const Input &input, const QVector<ModelTexCoord> &uvInput, bool un
 	model_atlas_internal::AllocationRegion region(size_t(options.memoryLimit), control);
 	try
 	{
-		// Uses xatlas's reviewed MIT/BSD implementation; see external/modelling/xatlas/VIBESTUDIO.md.
+		// Uses xatlas's reviewed MIT/BSD implementation; see external/modelling/xatlas/SLOPSTUDIO.md.
 		Progress progress{control, error};
 		AtlasOwner atlas;
 		xatlas::SetProgressCallback(atlas.value, Progress::callback, &progress);
@@ -559,7 +559,7 @@ bool runAtlas(const Input &input, const QVector<ModelTexCoord> &uvInput, bool un
 		}
 		if (added != xatlas::AddMeshError::Success)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas", "The atlas input could not be prepared: %1.")
+			return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas", "The atlas input could not be prepared: %1.")
 								   .arg(QString::fromLatin1(xatlas::StringForEnum(added))));
 		}
 		xatlas::ChartOptions charts;
@@ -588,7 +588,7 @@ bool runAtlas(const Input &input, const QVector<ModelTexCoord> &uvInput, bool un
 		if (maximum == 0 || atlas.value->chartCount == 0)
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelUvAtlas",
+						QCoreApplication::translate("SlopStudioModelUvAtlas",
 													"No usable UV charts were produced. Repair degenerate faces or project UVs first."));
 		}
 		pack.texelsPerUnit =
@@ -683,13 +683,13 @@ bool runAtlas(const Input &input, const QVector<ModelTexCoord> &uvInput, bool un
 		}
 		if (atlas.value->atlasCount != 1 || atlas.value->meshCount != 1 || !atlas.value->meshes)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+			return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas",
 														   "The charts do not fit one atlas. Increase its size or reduce padding."));
 		}
 		const auto &output = atlas.value->meshes[0];
 		if (output.indexCount != uint32_t(input.indices.size()))
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+			return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas",
 														   "Atlas generation changed the face count. No changes were applied."));
 		}
 		Layout result;
@@ -705,7 +705,7 @@ bool runAtlas(const Input &input, const QVector<ModelTexCoord> &uvInput, bool un
 				!std::isfinite(point.u) || !std::isfinite(point.v) || point.u < 0 || point.v < 0 || point.u > 1 || point.v > 1)
 			{
 				return fail(error, QCoreApplication::translate(
-									   "VibeStudioModelUvAtlas",
+									   "SlopStudioModelUvAtlas",
 									   "A selected face could not be mapped into the atlas. Repair degenerate geometry or UVs first."));
 			}
 			result.uv.append(point);
@@ -721,7 +721,7 @@ bool runAtlas(const Input &input, const QVector<ModelTexCoord> &uvInput, bool un
 			if (index >= uint32_t(result.uv.size()) ||
 				input.sourceVertices[output.vertexArray[index].xref] != input.sourceVertices[input.indices[i]])
 			{
-				return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+				return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas",
 															   "Atlas generation changed a face corner. No changes were applied."));
 			}
 			result.indices.append(index);
@@ -735,12 +735,12 @@ bool runAtlas(const Input &input, const QVector<ModelTexCoord> &uvInput, bool un
 	}
 	catch (const model_atlas_internal::Cancelled &)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas", "UV atlas operation cancelled. No changes were applied."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas", "UV atlas operation cancelled. No changes were applied."));
 	}
 	catch (const std::bad_alloc &)
 	{
 		return fail(
-			error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+			error, QCoreApplication::translate("SlopStudioModelUvAtlas",
 											   "UV atlas generation exceeded its memory budget. Reduce the face selection or atlas size."));
 	}
 }
@@ -799,7 +799,7 @@ bool atlasLayout(const ModelSurface &source, const QSet<int> &faces, int frame, 
 		options.memoryLimit < 65536 || options.memoryLimit > 256 * 1024 * 1024 || options.vertexLimit < 1 || options.vertexLimit > 65536)
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelUvAtlas",
+					QCoreApplication::translate("SlopStudioModelUvAtlas",
 												"Select faces and a valid reference frame. Atlas width and height must be 32–4096 pixels; "
 												"padding must be 0–64 and less than one eighth of the smaller dimension."));
 	}
@@ -807,7 +807,7 @@ bool atlasLayout(const ModelSurface &source, const QSet<int> &faces, int frame, 
 	{
 		if (face < 0 || face >= source.triangles.size())
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas", "A selected atlas face no longer exists."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas", "A selected atlas face no longer exists."));
 		}
 	}
 	Input input;
@@ -864,7 +864,7 @@ bool atlasLayout(const ModelSurface &source, const QSet<int> &faces, int frame, 
 			if (!work.step())
 				return false;
 			if ((signedArea(input.uv, input.indices, face) < 0) != (signedArea(best.uv, best.indices, face) < 0))
-				return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+				return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas",
 															   "Packing would mirror a UV island. No changes were applied."));
 		}
 	}
@@ -878,7 +878,7 @@ bool atlasModelUv(const ModelSurface &source, const QSet<int> &faces, int frame,
 {
 	if (!result)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas", "A selected atlas face no longer exists."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas", "A selected atlas face no longer exists."));
 	}
 	Layout layout;
 	if (!atlasLayout(source, faces, frame, unwrap, options, &layout, error, control))
@@ -908,12 +908,12 @@ bool atlasModelUvSurfaces(const ModelMesh &mesh, int surface, const QSet<int> &f
 {
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
 	if (!result || surface < 0 || surface >= mesh.surfaces.size() || frame < 0 || frame >= mesh.frames.size())
-		return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas", "Choose an existing surface and reference frame."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas", "Choose an existing surface and reference frame."));
 	auto sorted = others.values();
 	std::sort(sorted.begin(), sorted.end());
 	for (int s : sorted)
 		if (s < 0 || s >= mesh.surfaces.size() || s == surface || !modelUvSurfacesShareMaterial(mesh.surfaces[surface], mesh.surfaces[s]))
-			return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+			return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas",
 														   "Pack only other surfaces that share a material slot with the active surface."));
 	// One combined surface: the active surface's selected faces and every
 	// face of the others, each part keeping its own vertex range.
@@ -929,7 +929,7 @@ bool atlasModelUvSurfaces(const ModelMesh &mesh, int surface, const QSet<int> &f
 		vertexOffset.append(combined.vertexCount);
 		faceOffset.append(int(combined.triangles.size()));
 		if (s.frames.size() <= frame)
-			return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas", "Choose an existing surface and reference frame."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas", "Choose an existing surface and reference frame."));
 		combined.texCoords += s.texCoords;
 		combined.frames[0].positions += s.frames[frame].positions;
 		combined.frames[0].normals += s.frames[frame].normals;
@@ -973,7 +973,7 @@ bool atlasModelUvSurfaces(const ModelMesh &mesh, int surface, const QSet<int> &f
 				const auto out = layout.indices[i * 3 + corner];
 				const int source = layout.sourceVertices[out];
 				if (partOfVertex(source) != p)
-					return fail(error, QCoreApplication::translate("VibeStudioModelUvAtlas",
+					return fail(error, QCoreApplication::translate("SlopStudioModelUvAtlas",
 																   "Atlas generation changed a face corner. No changes were applied."));
 				if (outputIndex[out] < 0)
 				{
@@ -997,4 +997,4 @@ bool atlasModelUvSurfaces(const ModelMesh &mesh, int surface, const QSet<int> &f
 	*result = std::move(candidate);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

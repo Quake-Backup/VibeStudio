@@ -21,7 +21,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* message, const QString& detail = {})
@@ -56,7 +56,7 @@ int main(int argc, char** argv)
 	if (!tests::createGeometryFixture(2,&fixture,&error)) { return 1; }
 	const auto path = temp.filePath("layout.map"); const auto original = serializeLevelMap(fixture).bytes;
 	QFile file(path); if (!file.open(QIODevice::WriteOnly) || file.write(original) != original.size()) { return 1; } file.close();
-	for (const auto& profile : {QStringLiteral("trenchbroom"),QStringLiteral("netradiant-custom"),QStringLiteral("vibestudio-default")}) {
+	for (const auto& profile : {QStringLiteral("trenchbroom"),QStringLiteral("netradiant-custom"),QStringLiteral("slopstudio-default")}) {
 		for (int scale : {100,200}) {
 			std::cout << "Transform layout " << profile.toStdString() << ' ' << scale << '%' << std::endl;
 			settings.setSelectedEditorProfileId(profile); settings.setTextScalePercent(scale);
@@ -144,7 +144,7 @@ int main(int argc, char** argv)
 					&& shell.levelDocument().undoStack.size() == history+1,"pending value commits once through normal authoring");
 				shell.findChild<QAction*>("map.undo")->trigger();
 				expect(serializeLevelMap(shell.levelDocument()).bytes == original,"transform undo preserves exact source");
-				const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+				const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 				if (!captures.isEmpty() && profile == "trenchbroom") {
 					sidebar->setFixedWidth(420); settle(); scroll->verticalScrollBar()->setValue(0); settle();
 					QDir().mkpath(captures); QImage image(sidebar->size(),QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); sidebar->render(&image);

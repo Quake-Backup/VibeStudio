@@ -2,7 +2,7 @@
 
 **Status: Partial.** Persistent constraints and animation layers on skeletal
 clips are available in the Mesh Editor and the command line, evaluated by one
-shared clip evaluation stack. VibeStudio is pre-alpha and largely untested in
+shared clip evaluation stack. SlopStudio is pre-alpha and largely untested in
 real projects; none of this has been checked against production rigs.
 
 ## How the stack works
@@ -92,10 +92,10 @@ stack changed). Every button that changes the clip is one undo step; keys stay
 a draft until then.
 
 ```sh
-vibestudio --cli model constraints models/imp.mesh.json --operation add --clip 0 --kind foot-lock --joint lfoot --first 4 --last 12 --output models/planted.mesh.json --json
-vibestudio --cli model constraints models/imp.mesh.json --operation add --clip 2 --kind aim --joint head --target prop --axis x --pole 0,0,1 --output models/look.mesh.json
-vibestudio --cli model constraints models/look.mesh.json --operation add-layer --clip 2 --layer breathe.json --mode additive --weight 0.5 --name breathe --output models/breathing.mesh.json
-vibestudio --cli model constraints models/breathing.mesh.json --operation bake --clip 2 --output models/baked.mesh.json
+slopstudio --cli model constraints models/imp.mesh.json --operation add --clip 0 --kind foot-lock --joint lfoot --first 4 --last 12 --output models/planted.mesh.json --json
+slopstudio --cli model constraints models/imp.mesh.json --operation add --clip 2 --kind aim --joint head --target prop --axis x --pole 0,0,1 --output models/look.mesh.json
+slopstudio --cli model constraints models/look.mesh.json --operation add-layer --clip 2 --layer breathe.json --mode additive --weight 0.5 --name breathe --output models/breathing.mesh.json
+slopstudio --cli model constraints models/breathing.mesh.json --operation bake --clip 2 --output models/baked.mesh.json
 ```
 
 `list` (the default) reports each clip's constraints and layers. `add` needs

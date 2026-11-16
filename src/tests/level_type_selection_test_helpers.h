@@ -1,6 +1,6 @@
 #pragma once
 #include "tests/level_entity_selection_test_helpers.h"
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 inline QByteArray typeSelectionFixture()
 {
 	auto source = entitySelectionFixture(); LevelMapDocument map;

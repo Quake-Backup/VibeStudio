@@ -17,9 +17,9 @@
 // its bind, R_t = Rbind_t * Rbind_s^-1 * R_s, the common bind-compensated
 // rotation transfer (as described for example in the Blender and Maya
 // retargeting documentation); destination bone lengths come from its bind and
-// only the root's motion is carried, scaled. Original VibeStudio code.
+// only the root's motion is carried, scaled. Original SlopStudio code.
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -363,4 +363,4 @@ bool applyModelClipImport(ModelMesh *mesh, const ModelEdit &edit, QString *error
 	return finishClip(mesh, int(mesh->skeleton.clips.size()) - 1, o, p, error, control) && validateModelSkeleton(*mesh, error, control) &&
 		   work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

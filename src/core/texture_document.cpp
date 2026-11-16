@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 TextureDocument TextureDocument::storageSnapshot() const
 {
@@ -32,7 +32,7 @@ bool fail(QString* error, const QString& message)
 }
 bool checkpoint(const TextureProgress& progress, qint64 completed, qint64 total, QString* error)
 {
-	return !progress || progress(completed, total) || fail(error, QCoreApplication::translate("VibeStudioTexture", "Texture operation cancelled."));
+	return !progress || progress(completed, total) || fail(error, QCoreApplication::translate("SlopStudioTexture", "Texture operation cancelled."));
 }
 bool integer(const QJsonObject& object, const char* key, int* result)
 {
@@ -103,7 +103,7 @@ bool validLayers(QSize size, const QVector<TextureLayer>& layers, int active, QS
 	if (!validTextureSize(size, error)) { return false; }
 	if (layers.isEmpty() || layers.size() > TextureDocument::MaximumLayers || active < 0 || active >= layers.size() ||
 		qint64(size.width()) * size.height() * layers.size() > TextureDocument::MaximumLayerPixels) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "A texture supports 1–32 layers and at most 33,554,432 layer pixels in total."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "A texture supports 1–32 layers and at most 33,554,432 layer pixels in total."));
 	}
 	QSet<int> ids;
 	qint64 pixelBytes = 0;
@@ -112,23 +112,23 @@ bool validLayers(QSize size, const QVector<TextureLayer>& layers, int active, QS
 		if (layer.id < 1 || layer.id > 1000000000 || ids.contains(layer.id) || layer.name.trimmed().isEmpty() || layer.name.size() > 128 ||
 			layer.name.contains(QChar::Null) || layer.pixels.isNull() || layer.pixels.size() != size || layer.opacity < 0 || layer.opacity > 100 ||
 			textureBlendModeId(layer.blend).isEmpty() || !supportedPixels) {
-			return fail(error, QCoreApplication::translate("VibeStudioTexture", "Invalid layer identity, name, dimensions, opacity, blend mode, or pixel format. Layers use 8-bit RGBA or indexed pixels."));
+			return fail(error, QCoreApplication::translate("SlopStudioTexture", "Invalid layer identity, name, dimensions, opacity, blend mode, or pixel format. Layers use 8-bit RGBA or indexed pixels."));
 		}
 		if (layer.pixels.format() == QImage::Format_Indexed8 && (layer.pixels.colorCount() < 1 || layer.pixels.colorCount() > 256)) {
-			return fail(error, QCoreApplication::translate("VibeStudioTexture", "An indexed layer requires 1–256 palette entries."));
+			return fail(error, QCoreApplication::translate("SlopStudioTexture", "An indexed layer requires 1–256 palette entries."));
 		}
 		if (layer.pixels.format() == QImage::Format_Indexed8 && layer.pixels.colorCount() < 256) {
 			const int colors = layer.pixels.colorCount();
 			for (int y = 0; y < size.height(); ++y) {
 				const uchar* row = layer.pixels.constScanLine(y);
 				if (std::any_of(row, row + size.width(), [colors](uchar index) { return index >= colors; })) {
-					return fail(error, QCoreApplication::translate("VibeStudioTexture", "An indexed layer contains pixels outside its palette."));
+					return fail(error, QCoreApplication::translate("SlopStudioTexture", "An indexed layer contains pixels outside its palette."));
 				}
 			}
 		}
 		pixelBytes += layer.pixels.sizeInBytes();
 		if (pixelBytes > TextureDocument::MaximumLayerBytes) {
-			return fail(error, QCoreApplication::translate("VibeStudioTexture", "Layer pixel storage exceeds the 128 MiB document limit."));
+			return fail(error, QCoreApplication::translate("SlopStudioTexture", "Layer pixel storage exceeds the 128 MiB document limit."));
 		}
 		ids.insert(layer.id);
 	}
@@ -179,7 +179,7 @@ bool validTextureSize(QSize size, QString* error)
 {
 	if (size.width() < 1 || size.height() < 1 || size.width() > TextureDocument::MaximumDimension ||
 	    size.height() > TextureDocument::MaximumDimension || qint64(size.width()) * size.height() > TextureDocument::MaximumPixels) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Texture dimensions must be 1–4096 with at most 4,194,304 pixels."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Texture dimensions must be 1–4096 with at most 4,194,304 pixels."));
 	}
 	return true;
 }
@@ -188,11 +188,11 @@ bool TextureDocument::reset(const QImage& image, QString* error)
 {
 	if (error) { error->clear(); }
 	if (image.isNull() || !validTextureSize(image.size(), error)) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Cannot edit this image. Use a decoded image of at most 4,194,304 pixels and 4096 pixels per side."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Cannot edit this image. Use a decoded image of at most 4,194,304 pixels and 4096 pixels per side."));
 	}
 	TextureLayer layer;
 	layer.id = 1;
-	layer.name = QCoreApplication::translate("VibeStudioTexture", "Background");
+	layer.name = QCoreApplication::translate("SlopStudioTexture", "Background");
 	// Preserve indexed palette entries and alpha for lossless project storage.
 	layer.pixels = image.format() == QImage::Format_Indexed8 ? image : image.convertToFormat(QImage::Format_ARGB32);
 	return restoreLayers(image.size(), {layer}, 0, error);
@@ -269,10 +269,10 @@ bool TextureDocument::selectLayer(int index)
 bool TextureDocument::create(QSize size, QColor color, QString* error)
 {
 	if (!validTextureSize(size, error) || !color.isValid()) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Choose valid dimensions and a valid color."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Choose valid dimensions and a valid color."));
 	}
 	QImage next(size, QImage::Format_ARGB32);
-	if (next.isNull()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Unable to allocate the texture.")); }
+	if (next.isNull()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Unable to allocate the texture.")); }
 	next.fill(color);
 	if (!reset(next, error)) { return false; }
 	m_savedRevision = 0;
@@ -320,7 +320,7 @@ void TextureDocument::trimHistory(bool preferRedo)
 bool TextureDocument::commit(State next, const QString& label, QString* error)
 {
 	if (m_stroking) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "The texture operation could not be applied."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "The texture operation could not be applied."));
 	}
 	if (!validLayers(next.size, next.layers, next.active, error)) { return false; }
 	bool same = next.size == m_state.size && next.layers.size() == m_state.layers.size();
@@ -349,7 +349,7 @@ bool TextureDocument::editable(QString* error) const
 {
 	const auto* layer = activeLayer();
 	if (!layer || layer->locked || !layer->visible) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Select a visible, unlocked layer to edit pixels."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Select a visible, unlocked layer to edit pixels."));
 	}
 	return true;
 }
@@ -370,18 +370,18 @@ bool TextureDocument::addLayer(const QString& name, const QImage& pixels, QStrin
 {
 	if (m_stroking || m_state.layers.isEmpty() || m_state.layers.size() >= MaximumLayers || m_layerSerial >= 1000000000 ||
 		qint64(m_state.size.width()) * m_state.size.height() * (m_state.layers.size() + 1) > MaximumLayerPixels) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "The document cannot hold another layer within its resource limits."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "The document cannot hold another layer within its resource limits."));
 	}
 	TextureLayer layer;
 	layer.id = m_layerSerial + 1; layer.name = name.trimmed();
 	if (pixels.isNull()) { layer.pixels = QImage(m_state.size, QImage::Format_ARGB32); layer.pixels.fill(Qt::transparent); }
 	else {
-		if (pixels.size() != m_state.size) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Imported layers must match the canvas dimensions.")); }
+		if (pixels.size() != m_state.size) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Imported layers must match the canvas dimensions.")); }
 		layer.pixels = pixels.format() == QImage::Format_Indexed8 ? pixels : pixels.convertToFormat(QImage::Format_ARGB32);
 	}
 	auto next = m_state;
 	next.active++; next.layers.insert(next.active, layer);
-	if (!commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Add layer"), error)) { return false; }
+	if (!commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Add layer"), error)) { return false; }
 	m_layerSerial = layer.id;
 	return true;
 }
@@ -392,9 +392,9 @@ bool TextureDocument::duplicateLayer(QString* error)
 	if (!layer) { return false; }
 	auto next = m_state;
 	TextureLayer copy = *layer; copy.id = m_layerSerial + 1;
-	copy.name = QCoreApplication::translate("VibeStudioTexture", "%1 copy").arg(layer->name).left(128);
+	copy.name = QCoreApplication::translate("SlopStudioTexture", "%1 copy").arg(layer->name).left(128);
 	next.layers.insert(++next.active, copy);
-	if (!commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Duplicate layer"), error)) { return false; }
+	if (!commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Duplicate layer"), error)) { return false; }
 	m_layerSerial = copy.id;
 	return true;
 }
@@ -402,17 +402,17 @@ bool TextureDocument::duplicateLayer(QString* error)
 bool TextureDocument::removeLayer(QString* error)
 {
 	if (!activeLayer() || activeLayer()->locked || m_state.layers.size() <= 1) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Keep at least one layer, and unlock a layer before removing it."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Keep at least one layer, and unlock a layer before removing it."));
 	}
 	auto next = m_state; next.layers.removeAt(next.active); next.active = std::min(next.active, int(next.layers.size()) - 1);
-	return commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Remove layer"), error);
+	return commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Remove layer"), error);
 }
 
 bool TextureDocument::moveLayer(int index, QString* error)
 {
-	if (index < 0 || index >= m_state.layers.size()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Layer destination is out of range.")); }
+	if (index < 0 || index >= m_state.layers.size()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Layer destination is out of range.")); }
 	auto next = m_state; next.layers.move(next.active, index); next.active = index;
-	return commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Reorder layer"), error);
+	return commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Reorder layer"), error);
 }
 
 bool TextureDocument::setLayerProperties(const QString& name, bool visible, bool locked, int opacity, TextureBlendMode blend, QString* error)
@@ -420,33 +420,33 @@ bool TextureDocument::setLayerProperties(const QString& name, bool visible, bool
 	if (!activeLayer()) { return false; }
 	auto next = m_state; auto& layer = next.layers[next.active];
 	layer.name = name.trimmed(); layer.visible = visible; layer.locked = locked; layer.opacity = opacity; layer.blend = blend;
-	return commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Layer properties"), error);
+	return commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Layer properties"), error);
 }
 
 bool TextureDocument::mergeDown(QString* error)
 {
-	if (!editable(error) || m_state.active == 0) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Choose a layer above an unlocked visible layer to merge down.")); }
+	if (!editable(error) || m_state.active == 0) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Choose a layer above an unlocked visible layer to merge down.")); }
 	const auto& lower = m_state.layers[m_state.active - 1];
 	if (lower.locked || !lower.visible || lower.blend != TextureBlendMode::Normal || activeLayer()->blend != TextureBlendMode::Normal) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Merge Down requires two visible, unlocked layers with Normal blending. Flatten preserves the complete blended appearance."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Merge Down requires two visible, unlocked layers with Normal blending. Flatten preserves the complete blended appearance."));
 	}
 	auto next = m_state;
 	const QImage merged = compositeLayers(next.size, {lower, *activeLayer()});
 	next.layers.removeAt(next.active--);
 	next.layers[next.active].pixels = merged; next.layers[next.active].opacity = 100;
-	return commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Merge down"), error);
+	return commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Merge down"), error);
 }
 
 bool TextureDocument::flatten(QString* error)
 {
 	if (m_state.layers.isEmpty()) { return false; }
 	for (const auto& layer : m_state.layers) {
-		if (layer.locked) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Unlock all layers before flattening the document.")); }
+		if (layer.locked) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Unlock all layers before flattening the document.")); }
 	}
 	auto next = m_state;
-	TextureLayer layer; layer.id = m_layerSerial + 1; layer.name = QCoreApplication::translate("VibeStudioTexture", "Flattened"); layer.pixels = image();
+	TextureLayer layer; layer.id = m_layerSerial + 1; layer.name = QCoreApplication::translate("SlopStudioTexture", "Flattened"); layer.pixels = image();
 	next.layers = {layer}; next.active = 0;
-	if (!commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Flatten"), error)) { return false; }
+	if (!commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Flatten"), error)) { return false; }
 	m_layerSerial = layer.id; return true;
 }
 
@@ -454,7 +454,7 @@ bool TextureDocument::setSelection(QRect rectangle, QString* error)
 {
 	if (m_stroking || (!rectangle.isEmpty() && (rectangle.x() < 0 || rectangle.y() < 0 ||
 		qint64(rectangle.x()) + rectangle.width() > m_state.size.width() || qint64(rectangle.y()) + rectangle.height() > m_state.size.height()))) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "The selection must lie inside the canvas."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "The selection must lie inside the canvas."));
 	}
 	m_state.selection = rectangle.isEmpty() ? QRect() : rectangle;
 	return true;
@@ -469,7 +469,7 @@ bool TextureDocument::clearSelectedPixels(QString* error)
 {
 	if (!editable(error)) { return false; }
 	QImage next = replaceTexturePixels(activeLayer()->pixels, editBounds(), {}, {}, error);
-	return commitPixels(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Clear pixels"), error);
+	return commitPixels(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Clear pixels"), error);
 }
 
 bool TextureDocument::pastePixels(const QImage& pixels, QPoint position, QString* error)
@@ -480,11 +480,11 @@ bool TextureDocument::pastePixels(const QImage& pixels, QPoint position, QString
 	}
 	if (!editable(error) || !validTextureSize(pixels.size(), error) || qint64(position.x()) + pixels.width() <= editBounds().left() ||
 		qint64(position.y()) + pixels.height() <= editBounds().top() || position.x() > editBounds().right() || position.y() > editBounds().bottom()) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "The pasted image must intersect the editable canvas area."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "The pasted image must intersect the editable canvas area."));
 	}
 	QImage next = activeLayer()->pixels.convertToFormat(QImage::Format_ARGB32);
 	QPainter painter(&next); painter.setClipRect(editBounds()); painter.drawImage(position, pixels); painter.end();
-	return commitPixels(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Paste pixels"), error);
+	return commitPixels(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Paste pixels"), error);
 }
 
 bool TextureDocument::moveSelectedPixels(QPoint delta, QString* error)
@@ -494,15 +494,15 @@ bool TextureDocument::moveSelectedPixels(QPoint delta, QString* error)
 	// Refuse destructive clipping; canvas resize is an explicit separate action.
 	const qint64 left = qint64(source.x()) + delta.x(), top = qint64(source.y()) + delta.y();
 	if (left < 0 || top < 0 || left + source.width() > m_state.size.width() || top + source.height() > m_state.size.height()) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Moving the selection would place pixels outside the canvas."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Moving the selection would place pixels outside the canvas."));
 	}
 	auto next = m_state;
 	QImage& pixels = next.layers[next.active].pixels; const QImage cut = pixels.copy(source);
-	if (cut.isNull()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Unable to allocate transformed pixels.")); }
+	if (cut.isNull()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Unable to allocate transformed pixels.")); }
 	pixels = replaceTexturePixels(pixels, source, cut, source.topLeft() + delta, error);
 	if (pixels.isNull()) { return false; }
 	next.selection = source.translated(delta);
-	return commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Move pixels"), error);
+	return commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Move pixels"), error);
 }
 
 bool TextureDocument::offsetPixels(QPoint delta, QString* error, const TextureProgress& progress)
@@ -514,7 +514,7 @@ bool TextureDocument::offsetPixels(QPoint delta, QString* error, const TexturePr
 	if (!checkpoint(progress, 0, area.height(), error)) { return false; }
 	if (dx == 0 && dy == 0) { return true; }
 	const QImage source = activeLayer()->pixels.copy(area);
-	if (source.isNull()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Unable to allocate offset pixels.")); }
+	if (source.isNull()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Unable to allocate offset pixels.")); }
 	QImage next = activeLayer()->pixels;
 	const int pixelBytes = source.format() == QImage::Format_Indexed8 ? 1 : 4;
 	for (int y = 0; y < area.height(); ++y) {
@@ -525,7 +525,7 @@ bool TextureDocument::offsetPixels(QPoint delta, QString* error, const TexturePr
 		std::copy_n(from + (area.width() - dx) * pixelBytes, dx * pixelBytes, to);
 	}
 	if (!checkpoint(progress, area.height(), area.height(), error)) { return false; }
-	return commitPixels(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Offset pixels"), error);
+	return commitPixels(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Offset pixels"), error);
 }
 
 bool TextureDocument::undo()
@@ -555,10 +555,10 @@ bool TextureDocument::beginStroke(QPoint point, QColor color, const TextureBrush
 {
 	if (!editable(error)) { return false; }
 	if (m_stroking || !validTexturePaintPoint(point, m_state.size, brush.wrap) || !color.isValid() || !validTextureBrush(brush)) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "A stroke needs a valid pixel, color, and brush of width 1–128. Wrapped points must lie inside the 3 × 3 repeat."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "A stroke needs a valid pixel, color, and brush of width 1–128. Wrapped points must lie inside the 3 × 3 repeat."));
 	}
 	QImage pixels = activeLayer()->pixels.convertToFormat(QImage::Format_ARGB32);
-	if (pixels.isNull()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Unable to allocate stroke pixels.")); }
+	if (pixels.isNull()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Unable to allocate stroke pixels.")); }
 	m_strokeBefore = m_state; m_stroking = true; m_lastPoint = point;
 	m_color = color.rgba(); m_brush = brush;
 	m_state.layers[m_state.active].pixels = std::move(pixels);
@@ -607,8 +607,8 @@ bool TextureDocument::endStroke()
 	if (!m_stroking) { return false; }
 	State next = m_state; m_state = m_strokeBefore; m_strokeBefore = {}; m_stroking = false;
 	const QImage composite = m_composite; const QRegion dirty = m_compositeDirty;
-	const QString label = m_brush.mode == TexturePaintMode::Clone ? QCoreApplication::translate("VibeStudioTexture", "Clone pixels") :
-		QCoreApplication::translate("VibeStudioTexture", "Paint stroke");
+	const QString label = m_brush.mode == TexturePaintMode::Clone ? QCoreApplication::translate("SlopStudioTexture", "Clone pixels") :
+		QCoreApplication::translate("SlopStudioTexture", "Paint stroke");
 	if (!commit(std::move(next), label)) { return false; }
 	// The stroke preview already describes the committed pixels. Retain it
 	// across release so finishing a gesture does not render the whole canvas.
@@ -633,19 +633,19 @@ bool TextureDocument::paintStroke(const QVector<QPoint>& points, QColor color, c
 
 bool TextureDocument::paintStroke(const QVector<QPoint>& points, QColor color, const TextureBrush& brush, const QVector<int>& widths, QString* error, const TextureProgress& progress)
 {
-	if (points.isEmpty() || points.size() > 65536) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "A stroke needs 1–65,536 points.")); }
+	if (points.isEmpty() || points.size() > 65536) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "A stroke needs 1–65,536 points.")); }
 	if (!widths.isEmpty() && (widths.size() != points.size() || std::any_of(widths.cbegin(), widths.cend(), [](int width) { return width < 1 || width > 128; }))) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Give every stroke point a brush width of 1–128, or none."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Give every stroke point a brush width of 1–128, or none."));
 	}
 	const int widest = widths.isEmpty() ? brush.width : *std::max_element(widths.cbegin(), widths.cend());
 	const int copies = (brush.mirrorX ? 2 : 1) * (brush.mirrorY ? 2 : 1);
 	for (const auto& point : points) {
-		if (!validTexturePaintPoint(point, m_state.size, brush.wrap)) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Stroke points must lie inside the texture, or its 3 × 3 repeat when wrapping.")); }
+		if (!validTexturePaintPoint(point, m_state.size, brush.wrap)) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Stroke points must lie inside the texture, or its 3 × 3 repeat when wrapping.")); }
 	}
-	if (!validTextureBrush(brush)) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Choose a valid brush shape, paint mode, and width of 1–128.")); }
+	if (!validTextureBrush(brush)) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Choose a valid brush shape, paint mode, and width of 1–128.")); }
 	qint64 stamps = 1; QPoint previous = points.first();
 	for (const auto& point : points) { stamps += std::max(std::abs(point.x() - previous.x()), std::abs(point.y() - previous.y())) + 1; previous = point; }
-	if (stamps * widest * widest * copies > 256ll * 1024 * 1024) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "The stroke exceeds the 268,435,456 pixel-write work limit. Split it into shorter strokes.")); }
+	if (stamps * widest * widest * copies > 256ll * 1024 * 1024) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "The stroke exceeds the 268,435,456 pixel-write work limit. Split it into shorter strokes.")); }
 	if (!checkpoint(progress, 0, stamps, error)) { return false; }
 	TextureBrush first = brush; if (!widths.isEmpty()) { first.width = widths.first(); }
 	if (!beginStroke(points.first(), color, first, error)) { return false; }
@@ -666,7 +666,7 @@ bool TextureDocument::drawShape(TextureShape shape, QPoint from, QPoint to, QCol
 	if (!editable(error)) { return false; }
 	if (!color.isValid() || !validTextureBrush(brush) || brush.mode == TexturePaintMode::Clone || !validTexturePaintPoint(from, m_state.size, brush.wrap) ||
 		!validTexturePaintPoint(to, m_state.size, brush.wrap) || (shape != TextureShape::Line && shape != TextureShape::Rectangle && shape != TextureShape::Ellipse)) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Choose a valid shape, brush, color, and endpoints inside the canvas or wrapped repeat."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Choose a valid shape, brush, color, and endpoints inside the canvas or wrapped repeat."));
 	}
 	QImage next = activeLayer()->pixels.convertToFormat(QImage::Format_ARGB32);
 	const auto report = [&](qint64 done, qint64 total) { return checkpoint(progress, done, total, error); };
@@ -679,8 +679,8 @@ bool TextureDocument::drawShape(TextureShape shape, QPoint from, QPoint to, QCol
 		if (!validTexturePaintPoint(a, m_state.size, brush.wrap) || !validTexturePaintPoint(b, m_state.size, brush.wrap)) { continue; }
 		if (!paintTextureShape(&next, activeLayer()->pixels, shape, a, b, color.rgba(), brush, filled, editBounds(), report)) { return false; }
 	}
-	const QString label = shape == TextureShape::Line ? QCoreApplication::translate("VibeStudioTexture", "Draw line") :
-		(shape == TextureShape::Rectangle ? QCoreApplication::translate("VibeStudioTexture", "Draw rectangle") : QCoreApplication::translate("VibeStudioTexture", "Draw ellipse"));
+	const QString label = shape == TextureShape::Line ? QCoreApplication::translate("SlopStudioTexture", "Draw line") :
+		(shape == TextureShape::Rectangle ? QCoreApplication::translate("SlopStudioTexture", "Draw rectangle") : QCoreApplication::translate("SlopStudioTexture", "Draw ellipse"));
 	return commitPixels(std::move(next), label, error);
 }
 
@@ -695,14 +695,14 @@ bool TextureDocument::floodFill(QPoint point, QColor color, int tolerance, bool 
 	if (wrap && validTexturePaintPoint(point, m_state.size, true)) {
 		point = {(point.x() % m_state.size.width() + m_state.size.width()) % m_state.size.width(), (point.y() % m_state.size.height() + m_state.size.height()) % m_state.size.height()};
 	}
-	if (!editBounds().contains(point) || !color.isValid() || tolerance < 0 || tolerance > 255) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Fill needs a selected image pixel, valid color, and tolerance from 0 to 255.")); }
+	if (!editBounds().contains(point) || !color.isValid() || tolerance < 0 || tolerance > 255) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Fill needs a selected image pixel, valid color, and tolerance from 0 to 255.")); }
 	const QRgb target = activeLayer()->pixels.pixel(point), replacement = color.rgba();
 	const QRect bounds = editBounds();
 	const qint64 total = qint64(bounds.width()) * bounds.height();
 	if (!checkpoint(progress, 0, total, error)) { return false; }
 	if (target == replacement && tolerance == 0) { return true; }
 	QImage next = activeLayer()->pixels.convertToFormat(QImage::Format_ARGB32);
-	if (next.isNull()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Unable to allocate fill pixels.")); }
+	if (next.isNull()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Unable to allocate fill pixels.")); }
 	const int width = next.width(), height = next.height(), stride = next.bytesPerLine() / int(sizeof(QRgb));
 	auto* pixels = reinterpret_cast<QRgb*>(next.bits());
 	const auto matches = [&](QRgb value) {
@@ -735,25 +735,25 @@ bool TextureDocument::floodFill(QPoint point, QColor color, int tolerance, bool 
 		visit(x - 1, y); visit(x + 1, y); visit(x, y - 1); visit(x, y + 1);
 	}
 	if (!checkpoint(progress, total, total, error)) { return false; }
-	return commitPixels(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Fill"), error);
+	return commitPixels(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Fill"), error);
 }
 
 bool TextureDocument::crop(QRect rectangle, QString* error, const TextureProgress& progress)
 {
-	if (rectangle.isEmpty() || !QRect(QPoint(), m_state.size).contains(rectangle)) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "The crop rectangle must lie completely inside the texture.")); }
+	if (rectangle.isEmpty() || !QRect(QPoint(), m_state.size).contains(rectangle)) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "The crop rectangle must lie completely inside the texture.")); }
 	auto next = m_state; next.size = rectangle.size(); next.selection = {};
 	for (int i = 0; i < next.layers.size(); ++i) {
 		if (!checkpoint(progress, i, next.layers.size(), error)) { return false; }
 		next.layers[i].pixels = next.layers[i].pixels.copy(rectangle);
 	}
 	if (!checkpoint(progress, next.layers.size(), next.layers.size(), error)) { return false; }
-	return commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Crop canvas"), error);
+	return commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Crop canvas"), error);
 }
 
 bool TextureDocument::resize(QSize size, bool smooth, QString* error, const TextureProgress& progress)
 {
 	if (!validTextureSize(size, error)) { return false; }
-	if (qint64(size.width()) * size.height() * m_state.layers.size() > MaximumLayerPixels) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Resizing all layers would exceed the document pixel limit.")); }
+	if (qint64(size.width()) * size.height() * m_state.layers.size() > MaximumLayerPixels) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Resizing all layers would exceed the document pixel limit.")); }
 	auto next = m_state; next.size = size; next.selection = {};
 	for (int i = 0; i < next.layers.size(); ++i) {
 		const auto report = [&](qint64 done, qint64 total) { return !progress || progress(i * 1000 + done * 1000 / std::max(qint64(1), total), next.layers.size() * 1000); };
@@ -761,15 +761,15 @@ bool TextureDocument::resize(QSize size, bool smooth, QString* error, const Text
 		if (next.layers[i].pixels.isNull()) { return false; }
 	}
 	if (!checkpoint(progress, next.layers.size(), next.layers.size(), error)) { return false; }
-	return commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Resample canvas"), error);
+	return commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Resample canvas"), error);
 }
 
 bool TextureDocument::resizeCanvas(QSize size, QPoint offset, QString* error, const TextureProgress& progress)
 {
 	if (!validTextureSize(size, error)) { return false; }
-	if (qint64(size.width()) * size.height() * m_state.layers.size() > MaximumLayerPixels) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Resizing all layers would exceed the document pixel limit.")); }
+	if (qint64(size.width()) * size.height() * m_state.layers.size() > MaximumLayerPixels) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Resizing all layers would exceed the document pixel limit.")); }
 	if (qint64(offset.x()) + m_state.size.width() <= 0 || qint64(offset.y()) + m_state.size.height() <= 0 || offset.x() >= size.width() || offset.y() >= size.height()) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "The existing canvas must intersect the new canvas."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "The existing canvas must intersect the new canvas."));
 	}
 	auto next = m_state; next.size = size; next.selection = {};
 	for (int i = 0; i < next.layers.size(); ++i) {
@@ -778,16 +778,16 @@ bool TextureDocument::resizeCanvas(QSize size, QPoint offset, QString* error, co
 		if (next.layers[i].pixels.isNull()) { return false; }
 	}
 	if (!checkpoint(progress, 1, 1, error)) { return false; }
-	return commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Set canvas size"), error);
+	return commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Set canvas size"), error);
 }
 
 bool TextureDocument::resizeSelectedPixels(QSize size, bool smooth, TextureAnchor anchor, QString* error, const TextureProgress& progress)
 {
 	if (!editable(error) || !validTextureSize(size, error)) { return false; }
 	const QRect source = m_state.selection;
-	if (source.isEmpty() || textureAnchorId(anchor).isEmpty()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Choose a rectangular selection and a valid anchor.")); }
+	if (source.isEmpty() || textureAnchorId(anchor).isEmpty()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Choose a rectangular selection and a valid anchor.")); }
 	const QRect destination(source.topLeft() + textureAnchorOffset(size, source.size(), anchor), size);
-	if (!QRect(QPoint(), m_state.size).contains(destination)) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "The transformed selection must fit completely inside the canvas.")); }
+	if (!QRect(QPoint(), m_state.size).contains(destination)) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "The transformed selection must fit completely inside the canvas.")); }
 	const auto resampleProgress = [&](qint64 done, qint64 total) { return !progress || progress(done * 1000 / std::max(qint64(1), total), 2000); };
 	const auto replaceProgress = [&](qint64 done, qint64 total) { return !progress || progress(1000 + done * 1000 / std::max(qint64(1), total), 2000); };
 	const QImage pixels = resizeTexturePixels(activeLayer()->pixels.copy(source), size, smooth, error, resampleProgress);
@@ -796,17 +796,17 @@ bool TextureDocument::resizeSelectedPixels(QSize size, bool smooth, TextureAncho
 	next.layers[next.active].pixels = replaceTexturePixels(activeLayer()->pixels, source, pixels, destination.topLeft(), error, replaceProgress);
 	if (next.layers[next.active].pixels.isNull()) { return false; }
 	next.selection = destination;
-	return commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Resize selected pixels"), error);
+	return commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Resize selected pixels"), error);
 }
 
 bool TextureDocument::rotateSelectedPixelsClockwise(TextureAnchor anchor, QString* error, const TextureProgress& progress)
 {
 	if (!editable(error)) { return false; }
 	const QRect source = m_state.selection;
-	if (source.isEmpty() || textureAnchorId(anchor).isEmpty()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Choose a rectangular selection and a valid anchor.")); }
+	if (source.isEmpty() || textureAnchorId(anchor).isEmpty()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Choose a rectangular selection and a valid anchor.")); }
 	const QSize size = source.size().transposed();
 	const QRect destination(source.topLeft() + textureAnchorOffset(size, source.size(), anchor), size);
-	if (!QRect(QPoint(), m_state.size).contains(destination)) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "The transformed selection must fit completely inside the canvas.")); }
+	if (!QRect(QPoint(), m_state.size).contains(destination)) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "The transformed selection must fit completely inside the canvas.")); }
 	const auto rotateProgress = [&](qint64 done, qint64 total) { return !progress || progress(done * 1000 / std::max(qint64(1), total), 2000); };
 	const auto replaceProgress = [&](qint64 done, qint64 total) { return !progress || progress(1000 + done * 1000 / std::max(qint64(1), total), 2000); };
 	const QImage pixels = rotateTexturePixelsClockwise(activeLayer()->pixels.copy(source), error, rotateProgress);
@@ -815,7 +815,7 @@ bool TextureDocument::rotateSelectedPixelsClockwise(TextureAnchor anchor, QStrin
 	next.layers[next.active].pixels = replaceTexturePixels(activeLayer()->pixels, source, pixels, destination.topLeft(), error, replaceProgress);
 	if (next.layers[next.active].pixels.isNull()) { return false; }
 	next.selection = destination;
-	return commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Rotate selected pixels"), error);
+	return commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Rotate selected pixels"), error);
 }
 
 bool TextureDocument::flip(bool horizontal, QString* error)
@@ -827,10 +827,10 @@ bool TextureDocument::flip(bool horizontal, QString* error)
 #else
 	part = part.mirrored(horizontal, !horizontal);
 #endif
-	if (part.isNull()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Unable to allocate transformed pixels.")); }
-	if (m_state.selection.isEmpty()) { return commitPixels(part, QCoreApplication::translate("VibeStudioTexture", "Flip pixels"), error); }
+	if (part.isNull()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Unable to allocate transformed pixels.")); }
+	if (m_state.selection.isEmpty()) { return commitPixels(part, QCoreApplication::translate("SlopStudioTexture", "Flip pixels"), error); }
 	QImage next = replaceTexturePixels(activeLayer()->pixels, editBounds(), part, editBounds().topLeft(), error);
-	return commitPixels(next, QCoreApplication::translate("VibeStudioTexture", "Flip pixels"), error);
+	return commitPixels(next, QCoreApplication::translate("SlopStudioTexture", "Flip pixels"), error);
 }
 
 bool TextureDocument::rotateClockwise(QString* error, const TextureProgress& progress)
@@ -842,20 +842,20 @@ bool TextureDocument::rotateClockwise(QString* error, const TextureProgress& pro
 		if (next.layers[i].pixels.isNull()) { return false; }
 	}
 	if (!checkpoint(progress, next.layers.size(), next.layers.size(), error)) { return false; }
-	return commit(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Rotate canvas"), error);
+	return commit(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Rotate canvas"), error);
 }
 
 bool TextureDocument::remapPalette(const IdTechPalette& palette, bool dither, QString* error, const TextureProgress& progress)
 {
-	if (!palette.isValid()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Resolve a valid game palette before remapping colors.")); }
+	if (!palette.isValid()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Resolve a valid game palette before remapping colors.")); }
 	if (!editable(error)) { return false; }
 	const auto report = [&](int done, int total) { return checkpoint(progress, done, total, error); };
-	if (m_state.selection.isEmpty()) { return commitPixels(quantizeToIdTechPalette(activeLayer()->pixels, palette, dither, report), QCoreApplication::translate("VibeStudioTexture", "Remap palette"), error); }
+	if (m_state.selection.isEmpty()) { return commitPixels(quantizeToIdTechPalette(activeLayer()->pixels, palette, dither, report), QCoreApplication::translate("SlopStudioTexture", "Remap palette"), error); }
 	QImage next = activeLayer()->pixels.convertToFormat(QImage::Format_ARGB32);
 	const auto converted = quantizeToIdTechPalette(next.copy(editBounds()), palette, dither, report);
 	if (converted.isNull()) { return false; }
 	QPainter painter(&next); painter.setCompositionMode(QPainter::CompositionMode_Source); painter.drawImage(editBounds().topLeft(), converted); painter.end();
-	return commitPixels(next, QCoreApplication::translate("VibeStudioTexture", "Remap palette"), error);
+	return commitPixels(next, QCoreApplication::translate("SlopStudioTexture", "Remap palette"), error);
 }
 
 bool TextureDocument::adjustColors(const TextureColorAdjustment& adjustment, QString* error, const TextureProgress& progress)
@@ -863,7 +863,7 @@ bool TextureDocument::adjustColors(const TextureColorAdjustment& adjustment, QSt
 	if (!editable(error)) { return false; }
 	if (textureColorAdjustmentIsIdentity(adjustment) && validTextureColorAdjustment(adjustment)) { return checkpoint(progress, 1, 1, error); }
 	QImage next = adjustTextureColors(activeLayer()->pixels, editBounds(), adjustment, error, progress);
-	return !next.isNull() && commitPixels(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Adjust colors"), error);
+	return !next.isNull() && commitPixels(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Adjust colors"), error);
 }
 
 bool TextureDocument::applyFilter(const TextureFilterSettings& settings, QString* error, const TextureProgress& progress)
@@ -873,11 +873,11 @@ bool TextureDocument::applyFilter(const TextureFilterSettings& settings, QString
 	if (next.isNull()) { return false; }
 	QString label;
 	switch (settings.kind) {
-	case TextureFilterKind::Blur: label = QCoreApplication::translate("VibeStudioTexture", "Blur"); break;
-	case TextureFilterKind::Sharpen: label = QCoreApplication::translate("VibeStudioTexture", "Sharpen"); break;
-	case TextureFilterKind::Noise: label = QCoreApplication::translate("VibeStudioTexture", "Add noise"); break;
-	case TextureFilterKind::Emboss: label = QCoreApplication::translate("VibeStudioTexture", "Emboss"); break;
-	case TextureFilterKind::Edges: label = QCoreApplication::translate("VibeStudioTexture", "Find edges"); break;
+	case TextureFilterKind::Blur: label = QCoreApplication::translate("SlopStudioTexture", "Blur"); break;
+	case TextureFilterKind::Sharpen: label = QCoreApplication::translate("SlopStudioTexture", "Sharpen"); break;
+	case TextureFilterKind::Noise: label = QCoreApplication::translate("SlopStudioTexture", "Add noise"); break;
+	case TextureFilterKind::Emboss: label = QCoreApplication::translate("SlopStudioTexture", "Emboss"); break;
+	case TextureFilterKind::Edges: label = QCoreApplication::translate("SlopStudioTexture", "Find edges"); break;
 	}
 	return commitPixels(std::move(next), label, error);
 }
@@ -886,25 +886,25 @@ bool TextureDocument::drawGradient(const TextureGradient& gradient, QString* err
 {
 	if (!editable(error)) { return false; }
 	if (!QRect(QPoint(), m_state.size).contains(gradient.from) || !QRect(QPoint(), m_state.size).contains(gradient.to)) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Gradient endpoints must lie inside the canvas."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Gradient endpoints must lie inside the canvas."));
 	}
 	QImage next = gradientTexturePixels(activeLayer()->pixels, editBounds(), gradient, error, progress);
-	return !next.isNull() && commitPixels(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Gradient"), error);
+	return !next.isNull() && commitPixels(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Gradient"), error);
 }
 
 bool TextureDocument::replaceColor(QColor from, QColor to, int tolerance, bool keepAlpha, QString* error, const TextureProgress& progress)
 {
 	if (!editable(error)) { return false; }
-	if (!from.isValid() || !to.isValid()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "Choose valid colors to find and replace.")); }
+	if (!from.isValid() || !to.isValid()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "Choose valid colors to find and replace.")); }
 	QImage next = replaceTextureColor(activeLayer()->pixels, editBounds(), from.rgba(), to.rgba(), tolerance, keepAlpha, error, progress);
-	return !next.isNull() && commitPixels(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Replace color"), error);
+	return !next.isNull() && commitPixels(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Replace color"), error);
 }
 
 bool TextureDocument::makeSeamless(int blend, QString* error, const TextureProgress& progress)
 {
 	if (!editable(error)) { return false; }
 	QImage next = seamlessTexturePixels(activeLayer()->pixels, editBounds(), blend, error, progress);
-	return !next.isNull() && commitPixels(std::move(next), QCoreApplication::translate("VibeStudioTexture", "Make seamless"), error);
+	return !next.isNull() && commitPixels(std::move(next), QCoreApplication::translate("SlopStudioTexture", "Make seamless"), error);
 }
 
 QVector<QImage> TextureDocument::layerFrames() const
@@ -923,7 +923,7 @@ QVector<QImage> TextureDocument::layerFrames() const
 
 QByteArray TextureDocument::pngBytes(QString* error) const
 {
-	if (image().isNull()) { fail(error, QCoreApplication::translate("VibeStudioTexture", "There is no texture to save.")); return {}; }
+	if (image().isNull()) { fail(error, QCoreApplication::translate("SlopStudioTexture", "There is no texture to save.")); return {}; }
 	return encodeTextureOutputPng(image(), error);
 }
 
@@ -932,7 +932,7 @@ bool TextureDocument::savePng(const QString& path, bool overwrite, bool dryRun, 
 	if (error) { error->clear(); }
 	const QFileInfo info(path);
 	if (info.suffix().compare(QStringLiteral("png"), Qt::CaseInsensitive) != 0) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Choose a PNG export filename."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Choose a PNG export filename."));
 	}
 	TextureOutputTarget target;
 	if (!inspectTextureOutputTarget(path, overwrite, &target, error)) { return false; }
@@ -946,10 +946,10 @@ bool loadTextureFile(const QString& path, const IdTechPalette& palette, TextureD
 	if (!checkpoint(progress, 0, 0, error)) { return false; }
 	QFile file(path);
 	if (!document || !QFileInfo(path).isFile() || !file.open(QIODevice::ReadOnly) || file.size() > 64 * 1024 * 1024) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Unable to open texture, or the input exceeds 64 MiB."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Unable to open texture, or the input exceeds 64 MiB."));
 	}
 	const auto bytes = file.read(64 * 1024 * 1024 + 1);
-	if (file.error() != QFile::NoError || bytes.size() > 64 * 1024 * 1024) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "The texture could not be read within the 64 MiB input limit.")); }
+	if (file.error() != QFile::NoError || bytes.size() > 64 * 1024 * 1024) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "The texture could not be read within the 64 MiB input limit.")); }
 	QBuffer buffer; buffer.setData(bytes); buffer.open(QIODevice::ReadOnly);
 	QImageReader reader(&buffer);
 	if (reader.canRead() && !validTextureSize(reader.size(), error)) { return false; }
@@ -967,7 +967,7 @@ bool loadTextureFile(const QString& path, const IdTechPalette& palette, TextureD
 
 bool applyTextureOperations(TextureDocument* document, const QJsonArray& operations, const IdTechPalette& palette, QString* error, const TextureProgress& progress)
 {
-	if (!document || operations.size() > 256) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "A texture recipe supports at most 256 operations.")); }
+	if (!document || operations.size() > 256) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "A texture recipe supports at most 256 operations.")); }
 	auto next = *document;
 	for (int index = 0; index < operations.size(); ++index) {
 		const auto report = [&](qint64 done, qint64 total) { return checkpoint(progress, index * 1000 + (total > 0 ? done * 1000 / total : 0), operations.size() * 1000, error); };
@@ -1092,8 +1092,8 @@ bool applyTextureOperations(TextureDocument* document, const QJsonArray& operati
 			applied = integer(op, "x", &x) && integer(op, "y", &y) && next.offsetPixels({x, y}, &problem, report);
 		}
 		if (!applied) {
-			return fail(error, QCoreApplication::translate("VibeStudioTexture", "Operation %1 (%2) failed: %3").arg(index + 1).arg(type,
-				problem.isEmpty() ? QCoreApplication::translate("VibeStudioTexture", "Invalid operation or fields.") : problem));
+			return fail(error, QCoreApplication::translate("SlopStudioTexture", "Operation %1 (%2) failed: %3").arg(index + 1).arg(type,
+				problem.isEmpty() ? QCoreApplication::translate("SlopStudioTexture", "Invalid operation or fields.") : problem));
 		}
 	}
 	if (!checkpoint(progress, operations.size() * 1000, operations.size() * 1000, error)) { return false; }
@@ -1104,20 +1104,20 @@ bool applyTextureOperations(TextureDocument* document, const QJsonArray& operati
 bool stageTexturePng(const QByteArray& png, const QString& virtualPath, PackageStagingModel* staging, bool replaceExisting, QString* error)
 {
 	if (!staging || !staging->isLoaded() || staging->sourceFormat() == PackageArchiveFormat::Wad) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Open a folder, PAK, ZIP, or PK3 before staging a PNG. Use a native texture export profile for WAD staging."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Open a folder, PAK, ZIP, or PK3 before staging a PNG. Use a native texture export profile for WAD staging."));
 	}
 	const auto normalized = normalizePackageVirtualPath(virtualPath, false);
 	if (!normalized.isSafe() || !normalized.normalizedPath.endsWith(QStringLiteral(".png"), Qt::CaseInsensitive)) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Choose a safe package-relative PNG path."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Choose a safe package-relative PNG path."));
 	}
 	QBuffer buffer; buffer.setData(png); buffer.open(QIODevice::ReadOnly); QImageReader reader(&buffer, "PNG");
-	if (!validTextureSize(reader.size(), error) || reader.read().isNull()) { return fail(error, QCoreApplication::translate("VibeStudioTexture", "The staged texture is not a valid bounded PNG.")); }
+	if (!validTextureSize(reader.size(), error) || reader.read().isNull()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "The staged texture is not a valid bounded PNG.")); }
 	auto next = *staging;
 	if (!next.addBytes(png, normalized.normalizedPath, error, replaceExisting ? PackageStageConflictResolution::ReplaceExisting : PackageStageConflictResolution::Block) || !next.summary().canSave) {
-		return fail(error, QCoreApplication::translate("VibeStudioTexture", "Resolve package conflicts or enable replacement before staging this texture."));
+		return fail(error, QCoreApplication::translate("SlopStudioTexture", "Resolve package conflicts or enable replacement before staging this texture."));
 	}
 	*staging = std::move(next);
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

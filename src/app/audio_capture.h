@@ -5,7 +5,7 @@
 #include <atomic>
 
 class QThread;
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioInputDevice {
 	QByteArray id;
@@ -93,4 +93,4 @@ class AudioCapture final : public QObject {
 	QVector<AudioInputDevice> m_inputs;
 	AudioCaptureSnapshot m_snapshot;
 };
-} // namespace vibestudio
+} // namespace slopstudio

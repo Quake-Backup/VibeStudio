@@ -7,7 +7,7 @@
 #include <QFileInfo>
 #include <QJsonArray>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace { struct Text { Q_DECLARE_TR_FUNCTIONS(LevelRegionSelectionCli) }; }
 LevelRegionSelectionCliResult runLevelRegionSelection(const QStringList& arguments)
 {
@@ -83,4 +83,4 @@ LevelRegionSelectionCliResult runLevelRegionSelection(const QStringList& argumen
 	result.lines.append(Text::tr("%n matching object(s)",nullptr,static_cast<int>(matches.size()))); result.lines.append(matches);
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

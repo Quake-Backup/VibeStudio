@@ -2,7 +2,7 @@
 
 #include "core/model_transform.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelSelection;
 struct ModelJointFrame
@@ -34,4 +34,4 @@ struct ModelJointPreview
 // edits by the same tolerance as the document's skeletal authoring service.
 bool previewModelJointTransform(const ModelMesh &mesh, int frame, const QString &joint, const ModelJointMatrix &delta, bool descendants,
 								ModelJointPreview *result, QString *error = nullptr, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

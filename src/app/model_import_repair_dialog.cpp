@@ -17,13 +17,13 @@
 #include <QTableView>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelImportRepair)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelImportRepair)
 };
 QString description(const ModelImportRepairChange &change)
 {
@@ -188,7 +188,7 @@ ModelImportRepairDialog::ModelImportRepairDialog(const ModelImportRepairPlan &pl
 	m_output->setText(input.dir().filePath(stem + QStringLiteral("-repaired.mesh.json")));
 	connect(browse, &QPushButton::clicked, this, [this] {
 		const auto path =
-			QFileDialog::getSaveFileName(this, Text::tr("Save Repaired Copy"), outputPath(), Text::tr("VibeStudio mesh (*.mesh.json)"));
+			QFileDialog::getSaveFileName(this, Text::tr("Save Repaired Copy"), outputPath(), Text::tr("SlopStudio mesh (*.mesh.json)"));
 		if (!path.isEmpty())
 			m_output->setText(path);
 	});
@@ -212,4 +212,4 @@ QString ModelImportRepairDialog::outputPath() const
 {
 	return m_output->text().trimmed();
 }
-} // namespace vibestudio
+} // namespace slopstudio

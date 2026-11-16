@@ -117,7 +117,7 @@ def main():
     assert len(new_groups) == 1 and f"group:{new_groups[0]['id']}" in result['shown']
     assert len(set(new_groups[0]['objects']) & set(result['hidden'])) == 1
     assert grouped.read_bytes() == original_grouped and not result['mapWritten']
-    for profile, fresh in [('trenchbroom', False), ('netradiant-custom', True), ('vibestudio-default', False)]:
+    for profile, fresh in [('trenchbroom', False), ('netradiant-custom', True), ('slopstudio-default', False)]:
         result = run(f'{profile}-clone-policy', ['map', 'visibility', grouped, '--profile', profile, '--mode', 'duplicate',
                      '--object', 'brush:0', '--object', 'brush:1', '--offset', '-128,0,0', '--hidden', 'brush:1', '--shown', state])
         assert result['profile'] == profile and result['insertionVisibility'] == ('fresh-inherited' if fresh else 'preserve-and-reveal')

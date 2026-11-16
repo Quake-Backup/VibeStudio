@@ -23,7 +23,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -206,4 +206,4 @@ void ApplicationShell::showLevelMapInfo()
 	});
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

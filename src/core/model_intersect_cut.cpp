@@ -14,7 +14,7 @@
 // Triangle-Triangle Intersection Test", Journal of Graphics Tools 2(2),
 // 1997) and inside tests use ray parity with the Möller-Trumbore ray-triangle
 // test (1997). No code is used.
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -644,4 +644,4 @@ bool intersectCut(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *select
 	}
 	return work.check();
 }
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

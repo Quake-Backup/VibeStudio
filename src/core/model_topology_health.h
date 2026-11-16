@@ -2,7 +2,7 @@
 
 #include "core/model_topology.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelHealthEdge
 {
@@ -49,4 +49,4 @@ bool inspectModelTopology(const ModelSurface &surface, ModelTopologyHealth *resu
 bool repairModelTopology(const ModelSurface &source, ModelTopologyRepair repair, int vertexLimit, ModelSurface *result,
 						 QVector<QVector<int>> *vertexMap, QVector<int> *faceMap, QString *error = nullptr,
 						 const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

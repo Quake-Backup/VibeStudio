@@ -24,7 +24,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -295,7 +295,7 @@ bool ApplicationShell::saveLevelMapAsFromUi()
 		return false;
 	}
 	const LevelSceneStorage previous = m_levelMapDocument.sceneStorage;
-	m_levelMapDocument.sceneStorage = chosenType == trenchBroomType ? LevelSceneStorage::TrenchBroom : LevelSceneStorage::VibeStudio;
+	m_levelMapDocument.sceneStorage = chosenType == trenchBroomType ? LevelSceneStorage::TrenchBroom : LevelSceneStorage::SlopStudio;
 	if (!saveLevelDocument(output, true)) {
 		m_levelMapDocument.sceneStorage = previous;
 		return false;
@@ -337,4 +337,4 @@ void ApplicationShell::recoverLevelMapFromUi()
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -10,7 +10,7 @@
 #include <QSaveFile>
 #include <QSet>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -138,4 +138,4 @@ ModelAuditCliResult runModelAudit(const QStringList &arguments)
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

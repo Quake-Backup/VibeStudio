@@ -6,7 +6,7 @@
 
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Where a placed model entity puts its model, read from the keys level preview
 // draws it with: the entity origin, then `angles` ("pitch yaw roll": yaw about Z,
@@ -33,4 +33,4 @@ LevelMapVec3 applyLevelModelInstanceAffine(const std::array<double, 12> &affine,
 // True for an entity that places a model through its `model` key (misc_model,
 // misc_gamemodel and similar); false for brush-model references such as "*1".
 bool levelEntityPlacesModel(const LevelMapEntity &entity);
-} // namespace vibestudio
+} // namespace slopstudio

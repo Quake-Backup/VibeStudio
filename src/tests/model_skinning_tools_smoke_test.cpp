@@ -12,8 +12,8 @@
 #include <QUuid>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -54,7 +54,7 @@ ModelMesh fixture()
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto temporaryRoot = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto temporaryRoot = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (temporaryRoot.isEmpty() || !QDir().mkpath(temporaryRoot))
 		return 1;
 	QTemporaryDir temporary(QDir(temporaryRoot).filePath("skinning-XXXXXX"));
@@ -287,7 +287,7 @@ int main(int argc, char **argv)
 				   "IQM retained weights animate within native quantisation tolerance");
 		}
 	}
-	const QStringList command{"vibestudio", "--cli", "model", "skinning", input};
+	const QStringList command{"slopstudio", "--cli", "model", "skinning", input};
 	expect(cli::runModelSkinning(command + QStringList{"--surface", "1"}).exitCode == 0, "CLI reports bound influences");
 	const auto selected = cli::runModelSkinning(command + QStringList{"--operation", "select", "--surface", "1", "--filter", "weighted",
 																	  "--joint", "tip", "--minimum", "0.3", "--maximum", "0.4"});

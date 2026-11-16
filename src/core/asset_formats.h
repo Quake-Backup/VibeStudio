@@ -3,7 +3,7 @@
 #include "core/asset_tools.h"
 #include <QJsonArray>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Capability catalog, not a promise that any file with a matching suffix is valid.
 // Content parsers remain authoritative. Extraction of original bytes is separate
@@ -28,4 +28,4 @@ QJsonArray assetFormatsJson();
 QString assetImageOpenFilter(bool includeDocuments = false);
 QString assetPackageOpenFilter();
 
-} // namespace vibestudio
+} // namespace slopstudio

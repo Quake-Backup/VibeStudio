@@ -8,9 +8,9 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
-struct AppearanceText { Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelModelAppearance) };
+struct AppearanceText { Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelModelAppearance) };
 QString clean(QString path) { return path.replace(QLatin1Char('\\'), QLatin1Char('/')); }
 QString property(const LevelMapEntity& entity, const QString& key)
 {
@@ -269,4 +269,4 @@ LevelModelAppearanceResult prepareLevelModelAppearance(const ModelMesh& source, 
 	result.mesh = std::move(prepared);
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

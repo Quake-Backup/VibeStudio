@@ -1,7 +1,7 @@
 #include "tests/level_object_test_helpers.h"
-using vibestudio::tests::objectIndex;
-using vibestudio::tests::setObjectCurrentRow;
-using vibestudio::tests::setObjectSelected;
+using slopstudio::tests::objectIndex;
+using slopstudio::tests::setObjectCurrentRow;
+using slopstudio::tests::setObjectSelected;
 #include "package_entry_test_helpers.h"
 // Drives the real studio window the way a user would: opens generated
 // fixtures, switches surfaces, selects rows, presses keys, and checks that the
@@ -33,7 +33,7 @@ using vibestudio::tests::setObjectSelected;
 #include "core/project_manifest.h"
 #include "core/studio_settings.h"
 #include "tests/fake_ai_provider.h"
-#include "vibestudio_config.h"
+#include "slopstudio_config.h"
 #include "tests/render_test_support.h"
 
 #include "qmg/prompt.hpp"
@@ -117,7 +117,7 @@ using vibestudio::tests::setObjectSelected;
 #include <crtdbg.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -1068,12 +1068,12 @@ QTreeWidgetItem* findTreeItem(QTreeWidget* tree, int role, const QString& value)
 	return nullptr;
 }
 
-// Set VIBESTUDIO_TEST_SNAPSHOTS to a folder to save a picture of the window at
+// Set SLOPSTUDIO_TEST_SNAPSHOTS to a folder to save a picture of the window at
 // points only interaction reaches (a finished build, a located tool), for
 // visual review. Normal runs save nothing.
 void snapshot(ApplicationShell& shell, const char* name)
 {
-	const QString directory = qEnvironmentVariable("VIBESTUDIO_TEST_SNAPSHOTS");
+	const QString directory = qEnvironmentVariable("SLOPSTUDIO_TEST_SNAPSHOTS");
 	if (directory.isEmpty()) {
 		return;
 	}
@@ -1085,7 +1085,7 @@ void snapshot(ApplicationShell& shell, const char* name)
 // The same for a dialog or other top-level widget.
 void snapshotWidget(QWidget* widget, const char* name)
 {
-	const QString directory = qEnvironmentVariable("VIBESTUDIO_TEST_SNAPSHOTS");
+	const QString directory = qEnvironmentVariable("SLOPSTUDIO_TEST_SNAPSHOTS");
 	if (directory.isEmpty() || !widget) {
 		return;
 	}
@@ -1096,12 +1096,12 @@ void snapshotWidget(QWidget* widget, const char* name)
 
 // A dialog closing can leave no window active for a moment, and window-wide
 // shortcuts only fire in the active window, so every check starts here.
-// VIBESTUDIO_TEST_ONLY=checkA,checkB runs only the named checks, for quick
+// SLOPSTUDIO_TEST_ONLY=checkA,checkB runs only the named checks, for quick
 // iteration on one feature; unset, every check runs. A check that relies on
 // an earlier one's state needs that one named too.
 bool checkSelected(const char* name)
 {
-	static const QStringList only = qEnvironmentVariable("VIBESTUDIO_TEST_ONLY").split(QLatin1Char(','), Qt::SkipEmptyParts);
+	static const QStringList only = qEnvironmentVariable("SLOPSTUDIO_TEST_ONLY").split(QLatin1Char(','), Qt::SkipEmptyParts);
 	return only.isEmpty() || only.contains(QLatin1String(name));
 }
 
@@ -3670,7 +3670,7 @@ void checkAudioBrowser(ApplicationShell& shell, const Fixtures& fixtures)
 	check(waveform->hasPeaks() && waveform->durationMs() == 1000, "A DMX sound should draw a one-second waveform.");
 	check(time->text() == QStringLiteral("Stopped · 0:00.00 / 0:01.00") && time->accessibleDescription() == QStringLiteral("Stopped"),
 		"The time readout should show the playback state, playhead and length.");
-	check(play->isEnabled() == (VIBESTUDIO_HAVE_AUDIO_PLAYBACK != 0) && !stop->isEnabled(),
+	check(play->isEnabled() == (SLOPSTUDIO_HAVE_AUDIO_PLAYBACK != 0) && !stop->isEnabled(),
 		"Play should be offered when the build can play, and Stop only once something plays.");
 	check(play->shortcut() == QKeySequence(Qt::Key_Space), "Space should play and pause.");
 
@@ -3709,8 +3709,8 @@ void checkAudioBrowser(ApplicationShell& shell, const Fixtures& fixtures)
 	check(waveform->playhead() == 0 && time->text() == QStringLiteral("Stopped · 0:00.00 / 0:01.00"), "Another sound should start from the top.");
 
 	// Real playback needs an audio device and makes a sound, so it runs only
-	// when VIBESTUDIO_TEST_PLAYBACK is set, and then at zero volume.
-	if (VIBESTUDIO_HAVE_AUDIO_PLAYBACK == 0 || !qEnvironmentVariableIsSet("VIBESTUDIO_TEST_PLAYBACK")) {
+	// when SLOPSTUDIO_TEST_PLAYBACK is set, and then at zero volume.
+	if (SLOPSTUDIO_HAVE_AUDIO_PLAYBACK == 0 || !qEnvironmentVariableIsSet("SLOPSTUDIO_TEST_PLAYBACK")) {
 		return;
 	}
 	if (auto* volume = child<QSlider>(shell, "audioVolume")) {
@@ -4058,7 +4058,7 @@ void checkDoomTagLinks(const Fixtures& fixtures)
 	check(view.tagLinkCount() == 1 && view.drawnTagLinkCount() == 0, "With links hidden and nothing selected, the view should know the link but not draw it.");
 	view.setSelectionSet({{LevelMapSelectionKind::DoomLinedef, 0}});
 	check(view.drawnTagLinkCount() == 1, "Selecting the line should draw its link to the tagged room.");
-	if (const QString directory = qEnvironmentVariable("VIBESTUDIO_TEST_SNAPSHOTS"); !directory.isEmpty()) {
+	if (const QString directory = qEnvironmentVariable("SLOPSTUDIO_TEST_SNAPSHOTS"); !directory.isEmpty()) {
 		QDir().mkpath(directory);
 		view.grab().save(QDir(directory).filePath(QStringLiteral("doom-tag-links.png")));
 	}
@@ -4230,7 +4230,7 @@ void checkCrashRecovery(ApplicationShell& shell, const Fixtures& fixtures)
 	const QDir crashes(QDir(fixtures.project).filePath(QStringLiteral("crashes")));
 	const QString sessionId = QStringLiteral("0123456789abcdef0123456789abcdef");
 	writeFile(crashes.filePath(QStringLiteral("session-0-%1.marker").arg(sessionId)),
-		QStringLiteral("VibeStudio session marker\nformatVersion: 1\nversion: 0.9.9-test\nsessionId: %1\nprocessId: 0\nsessionStarted: %2\n")
+		QStringLiteral("SlopStudio session marker\nformatVersion: 1\nversion: 0.9.9-test\nsessionId: %1\nprocessId: 0\nsessionStarted: %2\n")
 			.arg(sessionId, QDateTime::currentDateTimeUtc().addSecs(-7200).toString(Qt::ISODate))
 			.toUtf8());
 	CrashReportInfo crash;
@@ -4693,11 +4693,11 @@ void checkCameraDepth(ApplicationShell& shell, const Fixtures& fixtures)
 		std::cerr << "Occlusion edge colours: " << edgeColours << "; viewport: " << camera->width() << 'x' << camera->height()
 			<< "; highlighted: " << camera->highlightedTriangleCount() << "; mode: " << static_cast<int>(camera->renderMode()) << '\n';
 	}
-	const QString capture = qEnvironmentVariable("VIBESTUDIO_TEST_DEPTH_CAPTURE");
+	const QString capture = qEnvironmentVariable("SLOPSTUDIO_TEST_DEPTH_CAPTURE");
 	if (!capture.isEmpty()) { check(occlusionImage.save(capture), "The owned occlusion render should save."); }
 	camera->setShowEdges(false);
 
-	combo->setCurrentIndex(combo->findData(QStringLiteral("vibestudio-default")));
+	combo->setCurrentIndex(combo->findData(QStringLiteral("slopstudio-default")));
 	settle();
 	if (!previousMap.isEmpty()) {
 		shell.openPathFromCommandLine(previousMap);
@@ -5018,7 +5018,7 @@ void checkAssistant(ApplicationShell& shell, const Fixtures& fixtures)
 // TrenchBroom's one 3D-first view, right-drag look, WASD flying, and a drag
 // that draws a brush; NetRadiant Custom's camera beside the 2D view, Shift
 // to select, clicks that step down a stack, and a right click that toggles
-// mouse look; each with its own keys. The VibeStudio controls come back as
+// mouse look; each with its own keys. The SlopStudio controls come back as
 // they were.
 void checkEditorProfiles(ApplicationShell& shell, const Fixtures& fixtures)
 {
@@ -5139,7 +5139,7 @@ void checkEditorProfiles(ApplicationShell& shell, const Fixtures& fixtures)
 				shown += (*it)->parent() && !(*it)->isHidden() ? 1 : 0;
 			}
 			check(shown >= 1 && look && look->isHidden(), "Filtering the reference should keep only the matching rows.");
-			if (const QString directory = qEnvironmentVariable("VIBESTUDIO_TEST_SNAPSHOTS"); !directory.isEmpty()) {
+			if (const QString directory = qEnvironmentVariable("SLOPSTUDIO_TEST_SNAPSHOTS"); !directory.isEmpty()) {
 				filter->clear();
 				settle();
 				QDir().mkpath(directory);
@@ -5397,11 +5397,11 @@ void checkEditorProfiles(ApplicationShell& shell, const Fixtures& fixtures)
 		trigger(shell, "map.undo");
 	}
 
-	// Back to the VibeStudio controls, as they were.
-	choose("vibestudio-default");
+	// Back to the SlopStudio controls, as they were.
+	choose("slopstudio-default");
 	check(map->isVisible() && !camera->isVisible() && !camera->isPerspective() && map->gridSize() == 64 && keysOf("map.clipTool") == QStringLiteral("X")
 			&& keysOf("map.previewWireframe") == QStringLiteral("W") && keysOf("map.cycleView").isEmpty(),
-		"The VibeStudio profile should bring back its 2D-first view, orbit preview, grid, and keys.");
+		"The SlopStudio profile should bring back its 2D-first view, orbit preview, grid, and keys.");
 	// A middle-button pan leaves the ordinary pointer behind, so the next
 	// left click selects rather than pans.
 	drag(map, Qt::MiddleButton, Qt::NoModifier, map->rect().center(), map->rect().center() + QPoint(30, 20));
@@ -6829,7 +6829,7 @@ void checkLevelTextures(ApplicationShell& shell, const Fixtures& fixtures)
 	check(names().first() == QStringLiteral("base/floor") && names().indexOf(QStringLiteral("base/floor")) < names().indexOf(QStringLiteral("base/wall"))
 			&& textures->item(0)->toolTip().contains(QStringLiteral("applied lately")),
 		"A texture applied lately should lead the list, ahead of one used more."); 
-	if (!qEnvironmentVariableIsEmpty("VIBESTUDIO_TEST_SNAPSHOTS")) {
+	if (!qEnvironmentVariableIsEmpty("SLOPSTUDIO_TEST_SNAPSHOTS")) {
 		for (QWidget* parent = textures->parentWidget(); parent; parent = parent->parentWidget()) {
 			if (auto* tabs = qobject_cast<QTabWidget*>(parent)) {
 				tabs->setCurrentIndex(tabs->indexOf(textures->parentWidget()) >= 0 ? tabs->indexOf(textures->parentWidget()) : tabs->currentIndex());
@@ -6962,7 +6962,7 @@ void checkGoToDefinition(ApplicationShell& shell, const Fixtures& fixtures)
 		emit outline->itemActivated(outline->item(0));
 		settle();
 		check(editor->textCursor().blockNumber() == 1, "Enter on a symbol should move the caret to it.");
-		if (auto* sideTabs = child<QTabWidget>(shell, "codeSideTabs"); sideTabs && !qEnvironmentVariableIsEmpty("VIBESTUDIO_TEST_SNAPSHOTS")) {
+		if (auto* sideTabs = child<QTabWidget>(shell, "codeSideTabs"); sideTabs && !qEnvironmentVariableIsEmpty("SLOPSTUDIO_TEST_SNAPSHOTS")) {
 			sideTabs->setCurrentIndex(1);
 			snapshot(shell, "code-outline");
 			sideTabs->setCurrentIndex(0);
@@ -8338,8 +8338,8 @@ void checkBuildLoop(ApplicationShell& shell, const Fixtures& fixtures)
 	// Locate points qbsp at this program, which stands in for it.
 	sections->setCurrentIndex(1);
 	settle();
-	QTreeWidgetItem* qbsp = findTreeItem(tools, Qt::UserRole, QStringLiteral("vibemap2-bsp"));
-	check(qbsp != nullptr, "The tool list should include VibeMap2 bsp.");
+	QTreeWidgetItem* qbsp = findTreeItem(tools, Qt::UserRole, QStringLiteral("slopmap2-bsp"));
+	check(qbsp != nullptr, "The tool list should include SlopMap2 bsp.");
 	if (!qbsp) {
 		return;
 	}
@@ -8357,7 +8357,7 @@ void checkBuildLoop(ApplicationShell& shell, const Fixtures& fixtures)
 	});
 	locate->click();
 	settle();
-	qbsp = findTreeItem(tools, Qt::UserRole, QStringLiteral("vibemap2-bsp"));
+	qbsp = findTreeItem(tools, Qt::UserRole, QStringLiteral("slopmap2-bsp"));
 	check(qbsp && qbsp->text(3) == QStringLiteral("Chosen path") && sameFile(qbsp->text(2), standIn),
 		"Locate should make qbsp run the chosen program.");
 	check(automatic->isEnabled(), "Use Automatic should be offered once a path is chosen.");
@@ -8604,13 +8604,13 @@ void checkBuildLoop(ApplicationShell& shell, const Fixtures& fixtures)
 	// Use Automatic forgets the chosen path.
 	sections->setCurrentIndex(1);
 	settle();
-	qbsp = findTreeItem(tools, Qt::UserRole, QStringLiteral("vibemap2-bsp"));
+	qbsp = findTreeItem(tools, Qt::UserRole, QStringLiteral("slopmap2-bsp"));
 	if (qbsp) {
 		tools->setCurrentItem(qbsp);
 		settle();
 		automatic->click();
 		settle();
-		qbsp = findTreeItem(tools, Qt::UserRole, QStringLiteral("vibemap2-bsp"));
+		qbsp = findTreeItem(tools, Qt::UserRole, QStringLiteral("slopmap2-bsp"));
 		check(qbsp && qbsp->text(3) != QStringLiteral("Chosen path"), "Use Automatic should forget the chosen path.");
 	}
 
@@ -8821,7 +8821,7 @@ void checkGenerators(ApplicationShell& shell, const Fixtures& fixtures)
 		provider.answer(200, FakeAiProvider::openAiAnswer(QString::fromStdString(qmg::render_semantic_plan(qmg::make_rule_semantic_plan(request)))));
 		modelPlanner->setChecked(true);
 		generate->click();
-		check(QTest::qWaitFor([&] { return !levelDialog->busy() && levelDialog->result().plan.planner == QStringLiteral("quake-mapgen:vibestudio/local-offline"); }, 60000),
+		check(QTest::qWaitFor([&] { return !levelDialog->busy() && levelDialog->result().plan.planner == QStringLiteral("quake-mapgen:slopstudio/local-offline"); }, 60000),
 			"The local text model should plan for Quake-MapGen.");
 		generator->setCurrentIndex(generator->findData(QStringLiteral("studio")));
 		settle();
@@ -8880,7 +8880,7 @@ void checkGenerators(ApplicationShell& shell, const Fixtures& fixtures)
 	check(QTest::qWaitFor([&] { return !textureDialog->busy() && variants->count() == 1; }, 30000), "A picture should become one game-ready variant.");
 	save->click();
 	settle();
-	check(QFileInfo::exists(QDir(fixtures.project).filePath(QStringLiteral("wads/vibestudio_generated.wad"))),
+	check(QFileInfo::exists(QDir(fixtures.project).filePath(QStringLiteral("wads/slopstudio_generated.wad"))),
 		"Save to Project should put the Quake texture into the project's generated WAD.");
 
 	// A local Stable Diffusion web UI draws two variants, tiling on its side.
@@ -9141,9 +9141,9 @@ void checkSoundGenerator(ApplicationShell& shell, const Fixtures& fixtures)
 	snapshotWidget(dialog, "sound-generator");
 	save->click();
 	settle();
-	const QString door = QDir(fixtures.project).filePath(QStringLiteral("sound/vibestudio/door_slam_1.wav"));
-	check(QFileInfo::exists(door) && QFileInfo::exists(QDir(fixtures.project).filePath(QStringLiteral(".vibestudio/generated/sounds/door_slam_1.json")))
-			&& status->text().contains(QStringLiteral("vibestudio/door_slam_1.wav")),
+	const QString door = QDir(fixtures.project).filePath(QStringLiteral("sound/slopstudio/door_slam_1.wav"));
+	check(QFileInfo::exists(door) && QFileInfo::exists(QDir(fixtures.project).filePath(QStringLiteral(".slopstudio/generated/sounds/door_slam_1.json")))
+			&& status->text().contains(QStringLiteral("slopstudio/door_slam_1.wav")),
 		"Save to Project should write the Quake WAV and its record into the project.");
 
 	// Ambience loops by default; a Doom sound goes into a PWAD.
@@ -9156,7 +9156,7 @@ void checkSoundGenerator(ApplicationShell& shell, const Fixtures& fixtures)
 	prompt->setPlainText(QStringLiteral("shotgun blast"));
 	dialog->generate();
 	check(QTest::qWaitFor([&] { return !dialog->busy() && list->count() == 1; }, 30000), "The Doom variant should be made.");
-	check(dialog->saveSelected(false) && QFileInfo::exists(QDir(fixtures.project).filePath(QStringLiteral("wads/vibestudio_sounds.wad"))),
+	check(dialog->saveSelected(false) && QFileInfo::exists(QDir(fixtures.project).filePath(QStringLiteral("wads/slopstudio_sounds.wad"))),
 		"A Doom sound should be saved as a lump in the project's PWAD.");
 
 	// In AI-free mode the model is not asked.
@@ -9245,8 +9245,8 @@ int main(int argc, char** argv)
 	}
 	StudioSettings::setOverrideFilePath(settingsDir.filePath(QStringLiteral("settings.ini")));
 	// Speech and sound cues go to silent logs, so no check is ever heard.
-	qputenv("VIBESTUDIO_SPEECH_ENGINE", "log");
-	qputenv("VIBESTUDIO_SOUND_CUES", "log");
+	qputenv("SLOPSTUDIO_SPEECH_ENGINE", "log");
+	qputenv("SLOPSTUDIO_SOUND_CUES", "log");
 
 	// Invisible on every platform: no window flashes up during a test run, and
 	// nothing depends on a desktop session. The offscreen plugin has no system
@@ -9262,11 +9262,11 @@ int main(int argc, char** argv)
 
 	QApplication app(argc, argv);
 	app.setOrganizationName(QStringLiteral("DarkMatterProductions"));
-	app.setApplicationName(QStringLiteral("VibeStudioTest"));
+	app.setApplicationName(QStringLiteral("SlopStudioTest"));
 	{
-		const int renderSkip = vibestudio::test_support::exitCodeWithoutRenderer("shell-interaction-smoke");
+		const int renderSkip = slopstudio::test_support::exitCodeWithoutRenderer("shell-interaction-smoke");
 		drawsIn3D = renderSkip < 0;
-		check(renderSkip != 1, "VIBESTUDIO_RENDER_REQUIRE is set, but no 3D renderer starts.");
+		check(renderSkip != 1, "SLOPSTUDIO_RENDER_REQUIRE is set, but no 3D renderer starts.");
 	}
 	applyStudioTheme(app, studioThemeTokens(StudioTheme::Dark, UiDensity::Standard, 100));
 
@@ -9283,9 +9283,9 @@ int main(int argc, char** argv)
 		quake.executablePath = QCoreApplication::applicationFilePath();
 		quake.readOnly = true;
 		settings.upsertGameInstallation(quake);
-		// VIBESTUDIO_TEST_THEME=high-contrast runs the same checks in the
+		// SLOPSTUDIO_TEST_THEME=high-contrast runs the same checks in the
 		// high-visibility theme, for reviewing snapshots there.
-		if (qEnvironmentVariable("VIBESTUDIO_TEST_THEME") == QStringLiteral("high-contrast")) {
+		if (qEnvironmentVariable("SLOPSTUDIO_TEST_THEME") == QStringLiteral("high-contrast")) {
 			AccessibilityPreferences preferences = settings.accessibilityPreferences();
 			preferences.theme = StudioTheme::HighContrastDark;
 			settings.setAccessibilityPreferences(preferences);

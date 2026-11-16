@@ -55,13 +55,13 @@
 #include <numbers>
 #include <tuple>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelTools)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelTools)
 };
 QString plain(QString text)
 {
@@ -3194,4 +3194,4 @@ bool ModelEditorTools::exportDetailLevels(const QString &basePath, const QVector
 								  combined);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

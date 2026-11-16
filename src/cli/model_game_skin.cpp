@@ -13,7 +13,7 @@
 #include <QJsonArray>
 #include <QSet>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -204,4 +204,4 @@ ModelGameSkinCliResult runModelGameSkin(const QStringList &arguments)
 	result.lines += skin.notes;
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

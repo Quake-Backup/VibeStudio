@@ -7,7 +7,7 @@
 
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 // The Levels object manipulators, after NetRadiant Custom's Translate (W),
 // Rotate, Scale and Transform tools: one tool at a time on the tool bar, all
 // turning, moving and sizing about one shared pivot. Select keeps the views'
@@ -258,4 +258,4 @@ bool shearLevelMapObjects(LevelMapDocument* document, const LevelObjectShearRequ
 // edges; past it the bounds' twelve edges stand in and `limited` is set.
 QVector<QPair<LevelMapVec3, LevelMapVec3>> levelObjectManipulatorEdges(const LevelMapDocument& document,
 	const QVector<LevelMapSelectionRef>& objects, int limit = 16384, bool* limited = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

@@ -34,8 +34,8 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 
 namespace
 {
@@ -261,9 +261,9 @@ int main(int argc, char **argv)
 	qputenv("QT_QPA_FONTDIR", QDir(qEnvironmentVariable("SystemRoot")).filePath(QStringLiteral("Fonts")).toLocal8Bit());
 #endif
 	QApplication app(argc, argv);
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-lod-ui-smoke"); skip >= 0)
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-lod-ui-smoke"); skip >= 0)
 		return skip;
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("lod-ui-XXXXXX")));

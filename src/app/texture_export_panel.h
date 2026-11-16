@@ -12,7 +12,7 @@ class QLabel;
 class QLineEdit;
 class QSpinBox;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class TextureExportPanel final : public QWidget {
 public:
@@ -41,4 +41,4 @@ private:
 	bool m_loading = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

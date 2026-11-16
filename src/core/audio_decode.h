@@ -3,7 +3,7 @@
 #include "core/audio_clip.h"
 #include <cstddef>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Header sniffing only; success does not establish stream validity. Stable IDs:
@@ -20,4 +20,4 @@ struct AudioDecodeBudget {
 AudioClipResult decodeCompressedAudio(const QByteArray& bytes, const AudioWorkControl& control = {},
                                       const AudioDecodeBudget& budget = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

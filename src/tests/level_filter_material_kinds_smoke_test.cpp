@@ -12,7 +12,7 @@
 //   clip textures, which never read shaders;
 // - the command ids, palette entries and NetRadiant keys (Alt+4 Translucent);
 // - `map filters --package` reporting the shader-aware matches.
-// With the vibestudio binary as the first argument the CLI is checked too.
+// With the slopstudio binary as the first argument the CLI is checked too.
 
 #include "core/editor_profiles.h"
 #include "core/level_document.h"
@@ -36,7 +36,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

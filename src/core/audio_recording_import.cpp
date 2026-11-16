@@ -11,7 +11,7 @@
 #include <limits>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -371,7 +371,7 @@ QJsonObject audioRecordingImportRequestJson(const AudioRecordingImportRequest &r
 			item.insert("loopPass", qint64(selection.loopPass) + 1);
 		selections.append(item);
 	}
-	QJsonObject result{{"format", "VibeStudioRecordingImport"},
+	QJsonObject result{{"format", "SlopStudioRecordingImport"},
 	                   {"version", request.comp ? 3
 	                               : looped     ? 2
 	                                            : 1},
@@ -468,4 +468,4 @@ QStringList audioRecordingProtectedPaths(const QString &directory)
 		paths << audioRecordingArmPath(folder.absolutePath(), arm);
 	return paths;
 }
-} // namespace vibestudio
+} // namespace slopstudio

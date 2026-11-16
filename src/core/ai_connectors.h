@@ -5,7 +5,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct AiCapabilityDescriptor {
 	QString id;
@@ -117,4 +117,4 @@ AiAutomationPreferences normalizedAiAutomationPreferences(const AiAutomationPref
 QString aiAutomationPreferencesText(const AiAutomationPreferences& preferences);
 QString aiConnectorSummaryText(const AiConnectorDescriptor& connector);
 
-} // namespace vibestudio
+} // namespace slopstudio

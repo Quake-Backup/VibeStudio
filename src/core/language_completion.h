@@ -6,7 +6,7 @@
 #include <QVector>
 #include "core/completion_snippet.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LanguageCompletionEdit {
 	int offset = 0;
@@ -55,4 +55,4 @@ int languageSourceOffset(const QString& source, int line, int character);
 // Start of the identifier prefix ending at a UTF-16 caret boundary.
 int languageWordStart(const QString& source, int caret);
 
-} // namespace vibestudio
+} // namespace slopstudio

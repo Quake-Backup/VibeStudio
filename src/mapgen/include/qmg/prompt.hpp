@@ -13,7 +13,7 @@ struct PromptOverrides {
     std::optional<std::uint64_t> seed;
     std::optional<int> room_count;
     std::optional<int> target_players;
-    // VibeStudio: the Generate Level dialog's and CLI's choices, 0..1, in place of the words the
+    // SlopStudio: the Generate Level dialog's and CLI's choices, 0..1, in place of the words the
     // prompt would otherwise be read for.
     std::optional<double> verticality;
     std::optional<double> intensity;

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Independently verify synthetic export fixtures using optional Pillow.
 
-Run texture-export-smoke with VIBESTUDIO_TEST_CAPTURE_ROOT set to an existing
+Run texture-export-smoke with SLOPSTUDIO_TEST_CAPTURE_ROOT set to an existing
 project-local directory, then pass that directory to this script.
 """
 from __future__ import annotations

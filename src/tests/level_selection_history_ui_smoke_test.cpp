@@ -22,7 +22,7 @@
 #include <QTreeWidget>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label)
 {
@@ -63,10 +63,10 @@ int main(int argc, char** argv)
 	const auto path = temp.filePath("history.map"); QFile file(path);
 	if (!file.open(QIODevice::WriteOnly)) { return 1; }
 	file.write(serializeLevelMap(map).bytes); file.close();
-	const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (!captures.isEmpty()) { QDir().mkpath(captures); }
 	const LevelMapSelectionRef a{LevelMapSelectionKind::QuakeBrush, 0}, c{LevelMapSelectionKind::QuakeBrush, 2};
-	for (const auto& profile : {QStringLiteral("trenchbroom"), QStringLiteral("netradiant-custom"), QStringLiteral("vibestudio-default")}) {
+	for (const auto& profile : {QStringLiteral("trenchbroom"), QStringLiteral("netradiant-custom"), QStringLiteral("slopstudio-default")}) {
 		for (int scale : {100, 200}) {
 			std::cout << "Selection history UI " << profile.toStdString() << " " << scale << std::endl;
 			settings.setSelectedEditorProfileId(profile); settings.setTextScalePercent(scale);

@@ -10,7 +10,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -79,7 +79,7 @@ bool ModelAssemblyDocument::restoreDraft(const ModelAssembly &assembly, const QS
 		std::none_of(assembly.parts.cbegin(), assembly.parts.cend(), [&](const auto &part) { return part.id == selected; }))
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelAssembly", "The recovered selection does not name an assembly part."));
+					QCoreApplication::translate("SlopStudioModelAssembly", "The recovered selection does not name an assembly part."));
 	}
 	candidate.m_state.selected = selected;
 	candidate.m_recovered = true;
@@ -97,7 +97,7 @@ bool ModelAssemblyDocument::load(const QString &path, QString *error, const Mode
 	ModelAssembly assembly;
 	if (QFileInfo(path).size() > modelAssemblyMaxSourceBytes)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "The assembly source exceeds 1 MiB."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly", "The assembly source exceeds 1 MiB."));
 	}
 	if (!readModelFile(path, &bytes, error, control) || !parseModelAssembly(bytes, &assembly, error))
 	{
@@ -125,7 +125,7 @@ bool ModelAssemblyDocument::save(const QString &path, bool overwrite, QString *e
 	if (!path.endsWith(QStringLiteral(".assembly.json"), Qt::CaseInsensitive))
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelAssembly", "Assembly sources must use the .assembly.json extension."));
+					QCoreApplication::translate("SlopStudioModelAssembly", "Assembly sources must use the .assembly.json extension."));
 	}
 	const auto target = inspectModelWriteTarget(path, control);
 	if (!target.isValid())
@@ -134,7 +134,7 @@ bool ModelAssemblyDocument::save(const QString &path, bool overwrite, QString *e
 	}
 	if (modelPathsReferToSameFile(path, m_recoverySource) || modelPathsReferToSameFile(target.resolvedPath, m_recoveryResolvedSource))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 													   "Save the recovered assembly to a different path from its original source."));
 	}
 	if (!validateModelArchiveOutputs(archive.get(), {target.path, target.resolvedPath}, error, control))
@@ -144,12 +144,12 @@ bool ModelAssemblyDocument::save(const QString &path, bool overwrite, QString *e
 	const bool current = modelPathsReferToSameFile(path, m_path);
 	if (current && (!target.existed || target.sha256 != m_sourceHash || !modelPathsReferToSameFile(target.resolvedPath, m_resolvedPath)))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 													   "The assembly source changed on disk. Reload it or save to a different path."));
 	}
 	if (target.existed && !current && !overwrite)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 													   "The assembly output exists. Choose another path or explicitly enable overwrite."));
 	}
 	if (!validateModelAssembly(m_state.assembly, error))
@@ -164,7 +164,7 @@ bool ModelAssemblyDocument::save(const QString &path, bool overwrite, QString *e
 		{
 			if (modelPathsReferToSameFile(part.source, path))
 			{
-				return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+				return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 															   "An assembly source cannot replace one of its model inputs."));
 			}
 			part.source = directory.relativeFilePath(part.source);
@@ -172,7 +172,7 @@ bool ModelAssemblyDocument::save(const QString &path, bool overwrite, QString *e
 		if (part.skin && part.skin->sourceKind == ModelAssemblySource::File)
 		{
 			if (modelPathsReferToSameFile(part.skin->source, path))
-				return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+				return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 															   "An assembly source cannot replace one of its linked skin inputs."));
 			part.skin->source = directory.relativeFilePath(part.skin->source);
 		}
@@ -184,7 +184,7 @@ bool ModelAssemblyDocument::save(const QString &path, bool overwrite, QString *e
 	const auto bytes = QJsonDocument(modelAssemblyJson(portable)).toJson(QJsonDocument::Indented);
 	if (bytes.size() > modelAssemblyMaxSourceBytes)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "The assembly source exceeds 1 MiB."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly", "The assembly source exceeds 1 MiB."));
 	}
 	const auto savedHash = modelAssemblyFingerprint(m_state.assembly);
 	const auto sourceHash = QCryptographicHash::hash(bytes, QCryptographicHash::Sha256);
@@ -238,7 +238,7 @@ bool ModelAssemblyDocument::setPart(const QString &previousId, const ModelAssemb
 										[&](const auto &p) { return p.id == previousId; });
 		if (found == candidate.assembly.parts.end())
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "Select an existing assembly part."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelAssembly", "Select an existing assembly part."));
 		}
 		*found = part;
 		if (candidate.assembly.q3Animation)
@@ -278,7 +278,7 @@ bool ModelAssemblyDocument::removeBranch(const QString &id, QString *error)
 		std::find_if(candidate.assembly.parts.cbegin(), candidate.assembly.parts.cend(), [&](const auto &p) { return p.id == id; });
 	if (found == candidate.assembly.parts.cend())
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "Select an existing assembly part."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly", "Select an existing assembly part."));
 	}
 	for (int pass = 0; pass < candidate.assembly.parts.size(); ++pass)
 	{
@@ -292,7 +292,7 @@ bool ModelAssemblyDocument::removeBranch(const QString &id, QString *error)
 	}
 	if (candidate.assembly.q3Animation &&
 		(removed.contains(candidate.assembly.q3Animation->lowerPart) || removed.contains(candidate.assembly.q3Animation->upperPart)))
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 													   "Remove or rebind native animation before deleting one of its model parts."));
 	candidate.selected = found->parent;
 	candidate.assembly.parts.removeIf([&](const auto &part) { return removed.contains(part.id); });
@@ -313,7 +313,7 @@ bool ModelAssemblyDocument::setQ3Animation(const std::optional<ModelAssemblyQ3An
 bool ModelAssemblyDocument::setTagInterpolation(ModelTagInterpolation mode, QString *error)
 {
 	if (mode != ModelTagInterpolation::ShortestArc && mode != ModelTagInterpolation::Quake3Renderer)
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "Choose a supported tag interpolation."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly", "Choose a supported tag interpolation."));
 	auto candidate = m_state;
 	candidate.assembly.tagInterpolation = mode;
 	commit(std::move(candidate));
@@ -346,4 +346,4 @@ bool ModelAssemblyDocument::redo()
 	m_state = m_redo.takeLast();
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

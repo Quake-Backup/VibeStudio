@@ -3,7 +3,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 // map hollow's wall options, read after the map is loaded and --object
 // selected: `caulk` (--caulk) uses the game's caulk material, `caulkTexture`
 // (--caulk-texture NAME, when `caulkTextureGiven`) names one and implies
@@ -46,4 +46,4 @@ LevelRoomOptionsCliResult runLevelRoomOptions(const QStringList& arguments);
 // --context opens a group first. Requires --output; --dry-run and
 // --overwrite as for other map commands.
 LevelRoomOptionsCliResult runLevelBrushOffset(const QStringList& arguments, bool shrink);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

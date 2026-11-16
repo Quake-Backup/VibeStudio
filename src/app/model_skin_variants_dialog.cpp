@@ -24,13 +24,13 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelSkinVariants)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelSkinVariants)
 };
 void describe(QWidget *widget, const char *id, const QString &name, const QString &description)
 {
@@ -508,15 +508,15 @@ bool ModelEditorDialog::editSkinVariants(QString *error)
 	if (m_working || !supportsModelMaterialSlots(m_document.mesh()))
 	{
 		if (error)
-			*error = m_working ? QCoreApplication::translate("VibeStudioModelSkinVariants", "Wait for the current model operation to finish.")
-							   : QCoreApplication::translate("VibeStudioModelSkinVariants",
+			*error = m_working ? QCoreApplication::translate("SlopStudioModelSkinVariants", "Wait for the current model operation to finish.")
+							   : QCoreApplication::translate("SlopStudioModelSkinVariants",
 															 "This model's skins are embedded; skin variants name external materials.");
 		return false;
 	}
 	ModelSkinVariantsDialog dialog(this);
 	dialog.exec();
 	if (dialog.modified())
-		m_status->setText(QCoreApplication::translate("VibeStudioModelSkinVariants", "Skin variant changes were not applied."));
+		m_status->setText(QCoreApplication::translate("SlopStudioModelSkinVariants", "Skin variant changes were not applied."));
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

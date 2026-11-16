@@ -9,7 +9,7 @@
 #include <QStatusBar>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 bool ApplicationShell::canSelectLevelMapRegion(LevelMapRegionSelection mode) const
 {
 	if (m_levelRegionSelectionBusy || m_levelMapDocument.format == LevelMapFormat::Unknown || m_levelMapDocument.selection.isEmpty()
@@ -114,4 +114,4 @@ void ApplicationShell::selectLevelMapRegionFromUi(LevelMapRegionSelection mode)
 		? tr("Selected %n object(s). Selection volumes removed; Undo restores them. Save before building.",nullptr,static_cast<int>(m_levelMapDocument.selection.size()))
 		: tr("Selected %n object(s).",nullptr,static_cast<int>(m_levelMapDocument.selection.size())));
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,4 +1,4 @@
-# Quake-MapGen's research tooling (VIBESTUDIO.md, "Research tools"). The map recipes and the
+# Quake-MapGen's research tooling (SLOPSTUDIO.md, "Research tools"). The map recipes and the
 # multiplayer portfolio programs build against mapgen_dep and are never installed. The tests mirror
 # Quake-MapGen's CMakeLists.txt and cmake/Qmg*.cmake for everything that runs without game data,
 # compilers, engines or Node, all in the mapgen-research suite. The native movement and teleport
@@ -48,7 +48,7 @@ executable('mapgen_span_trace', 'mp_portfolio/span_trace.cpp', dependencies: map
 
 # The Python research tests, run from src/mapgen as Quake-MapGen ran them from its root. The groups
 # that need Quake-MapGen's untracked out/ scripts, game trees, pinned compilers or Node are not
-# registered; VIBESTUDIO.md lists them with what they need. The native groups run their contract
+# registered; SLOPSTUDIO.md lists them with what they need. The native groups run their contract
 # cases here and skip their integration cases unless the private native build and retained out/
 # inputs are present. Quake-MapGen asks for Python 3.10 or newer.
 mapgen_research_python = find_program('python', 'python3', required: false, version: '>=3.10')

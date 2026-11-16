@@ -9,7 +9,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -131,7 +131,7 @@ int main(int argc, char** argv)
 			ok &= matchesBounds(view, points, points.selection) && matchesFresh(view, points, "point selection frames both points at expanded scale");
 			const auto expectedCenter = (projected(first.origin, projection) + projected(second.origin, projection)) * 0.5;
 			ok &= expect(view.navigationState().center == expectedCenter, "framing centers both point objects");
-			const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+			const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 			if (!captures.isEmpty()) {
 				QDir().mkpath(captures); QImage image(view.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); view.render(&image);
 				ok &= image.save(QDir(captures).filePath(QStringLiteral("point-selection-%1-%2.png").arg(scale).arg(int(projection))));

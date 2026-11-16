@@ -4,11 +4,11 @@
     python scripts/package_windows_installer.py --package-dir <staged package> --output dist
 
 The staged package is the directory scripts/package_windows_release.py (or
-package_portable.py plus windeployqt) produced: bin/vibestudio.exe with its Qt
+package_portable.py plus windeployqt) produced: bin/slopstudio.exe with its Qt
 runtime, docs, i18n, samples and licenses. This script converts the brand's
 wizard art to the BMPs Inno Setup needs and runs ISCC on
-packaging/windows/vibestudio.iss. The result is
-VibeStudio-<version>-windows-x64-setup.exe.
+packaging/windows/slopstudio.iss. The result is
+SlopStudio-<version>-windows-x64-setup.exe.
 """
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from release_meta import ROOT, Version, asset_names, read_version
 
 BRANDING = ROOT / "assets" / "branding"
-SCRIPT = ROOT / "packaging" / "windows" / "vibestudio.iss"
+SCRIPT = ROOT / "packaging" / "windows" / "slopstudio.iss"
 
 
 def find_iscc(explicit: str | None) -> Path:
@@ -54,13 +54,13 @@ def wizard_art(directory: Path) -> None:
 
 
 def build(package_dir: Path, output: Path, version: Version, iscc: Path) -> Path:
-    if not (package_dir / "bin" / "vibestudio.exe").is_file():
-        raise FileNotFoundError(f"No bin/vibestudio.exe in the staged package: {package_dir}")
-    if not (package_dir / "licenses" / "vibestudio" / "LICENSE").is_file():
-        raise FileNotFoundError("The staged package has no licenses/vibestudio/LICENSE.")
+    if not (package_dir / "bin" / "slopstudio.exe").is_file():
+        raise FileNotFoundError(f"No bin/slopstudio.exe in the staged package: {package_dir}")
+    if not (package_dir / "licenses" / "slopstudio" / "LICENSE").is_file():
+        raise FileNotFoundError("The staged package has no licenses/slopstudio/LICENSE.")
     output.mkdir(parents=True, exist_ok=True)
     name = asset_names(str(version))["windows-installer"]
-    with tempfile.TemporaryDirectory(prefix="vibestudio-installer-") as temp:
+    with tempfile.TemporaryDirectory(prefix="slopstudio-installer-") as temp:
         art = Path(temp)
         wizard_art(art)
         command = [
@@ -69,7 +69,7 @@ def build(package_dir: Path, output: Path, version: Version, iscc: Path) -> Path
             f"/DVersionInfo={version.major}.{version.minor}.{version.patch}.0",
             f"/DSourceDir={package_dir.resolve()}",
             f"/DArtDir={art}",
-            f"/DIconFile={(BRANDING / 'icons' / 'vibestudio.ico').resolve()}",
+            f"/DIconFile={(BRANDING / 'icons' / 'slopstudio.ico').resolve()}",
             f"/DOutputDir={output.resolve()}",
             f"/DOutputBaseFilename={Path(name).stem}",
             str(SCRIPT),

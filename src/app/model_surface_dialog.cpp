@@ -17,7 +17,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -252,4 +252,4 @@ void ModelSurfaceDialog::refresh(bool operationChanged)
 	m_summary->setText(summary);
 	m_apply->setEnabled(problem.isEmpty());
 }
-} // namespace vibestudio
+} // namespace slopstudio

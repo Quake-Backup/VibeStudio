@@ -9,7 +9,7 @@
 class QThread;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // One background scanner per shell, with a coalesced latest request. Reset
 // invalidates results immediately; a retired scan never publishes into a new
@@ -38,4 +38,4 @@ private:
 	quint64 m_serial = 0;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

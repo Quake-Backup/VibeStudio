@@ -6,7 +6,7 @@
 #include <QJsonDocument>
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -263,4 +263,4 @@ ModelToolsCliResult runModelUvDensity(const QStringList &args)
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

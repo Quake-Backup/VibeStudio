@@ -18,7 +18,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // `caulkTexture`, when set, goes on every wall face except the one facing the
 // room and those lying on the plane of an open face, which stay in sight
@@ -153,4 +153,4 @@ QJsonObject levelRoomPreferencesJson(const LevelRoomPreferences& preferences);
 // field, a value of the wrong type or preferences that cannot be saved.
 bool updateLevelRoomPreferences(const QJsonObject& values, LevelRoomPreferences* preferences, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

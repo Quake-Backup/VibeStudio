@@ -17,13 +17,13 @@
 // neo/framework/DeclManager.cpp (MakeNameCanonical), GPL-3.0-or-later,
 // reviewed 2026-10-22. Behaviour only; see docs/CREDITS.md.
 // https://github.com/id-Software/DOOM-3/blob/master/neo/framework/DeclSkin.cpp
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelSkinVariants)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelSkinVariants)
 };
 bool fail(QString *error, const QString &message)
 {
@@ -424,7 +424,7 @@ bool writeModelDoom3Skin(const ModelMesh &mesh, const ModelSkinVariant &variant,
 										"the material. Bind %1 in the variant too, or give it its own primary material.")
 								   .arg(surface.name, material, variant.name, mapped.value(key), mappedBy.value(key)));
 	}
-	QString text = QStringLiteral("// Doom 3 skin declaration written by VibeStudio: variant %1.\n").arg(variant.name);
+	QString text = QStringLiteral("// Doom 3 skin declaration written by SlopStudio: variant %1.\n").arg(variant.name);
 	text += QStringLiteral("skin %1\n{\n").arg(declName);
 	if (!modelPath.isEmpty())
 		text += QStringLiteral("\tmodel\t%1\n").arg(quoted(modelPath));
@@ -537,4 +537,4 @@ bool parseModelDoom3Skins(const QByteArray &bytes, QVector<ModelDoom3Skin> *skin
 	*skins = std::move(result);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

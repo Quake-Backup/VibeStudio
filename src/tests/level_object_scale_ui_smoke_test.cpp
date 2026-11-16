@@ -9,7 +9,7 @@
 // manipulator, with Alt resizing about the centre and Shift keeping
 // proportions in a plan view; TrenchBroom's edge and corner handles in the
 // camera with Shift and Alt; Rotate or Scale Tool for objects and components;
-// refusal of locked selections. NetRadiant Custom, TrenchBroom and VibeStudio
+// refusal of locked selections. NetRadiant Custom, TrenchBroom and SlopStudio
 // profiles at 100%, and at 200% with high contrast, expanded translations and
 // right-to-left layout.
 #include "app/application_shell.h"
@@ -46,7 +46,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -140,7 +140,7 @@ int main(int argc, char** argv)
 	if (!file.open(QIODevice::WriteOnly) || file.write(serializeLevelMap(created).bytes) <= 0) { return 1; }
 	file.close();
 
-	for (const auto* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const auto* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		const bool trenchBroom = QLatin1String(profile) == QLatin1String("trenchbroom");
 		for (int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);

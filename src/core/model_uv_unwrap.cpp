@@ -22,7 +22,7 @@
 // least-squares (CGLS) iteration with Jacobi column scaling. No code is taken
 // from another implementation.
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -571,4 +571,4 @@ QJsonObject modelUvUnwrapJson(const ModelUvUnwrapReport &report)
 			{"minAreaRatio", report.minAreaRatio},
 			{"maxAreaRatio", report.maxAreaRatio}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

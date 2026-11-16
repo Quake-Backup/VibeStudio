@@ -9,14 +9,14 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
 // Tolerances follow the conventions used by the released idTech qbsp sources
 // (see `ON_EPSILON` / `DIST_EPSILON` in ericw-tools,
-// https://github.com/ericwa/ericw-tools), the base of VibeStudio's VibeMap2 in
-// external/compilers/vibemap2. They are reimplemented here, not copied.
+// https://github.com/ericwa/ericw-tools), the base of SlopStudio's SlopMap2 in
+// external/compilers/slopmap2. They are reimplemented here, not copied.
 constexpr double kOnPlaneEpsilon = 0.01;
 constexpr double kNormalEpsilon = 1.0e-6;
 constexpr double kDistanceEpsilon = 1.0e-4;
@@ -295,7 +295,7 @@ QRectF rectFromPoints(const QVector<QPointF>& points)
 QString vectorText(const LevelMapVec3& value)
 {
 	if (!value.valid) {
-		return QCoreApplication::translate("VibeStudioMapGeometry", "unknown");
+		return QCoreApplication::translate("SlopStudioMapGeometry", "unknown");
 	}
 	return QStringLiteral("%1, %2, %3").arg(value.x, 0, 'f', 1).arg(value.y, 0, 'f', 1).arg(value.z, 0, 'f', 1);
 }
@@ -374,8 +374,8 @@ QVector<QPolygonF> MapBrushGeometry::footprintPolygons() const
 MapPlane planeFromPoints(const LevelMapVec3& a, const LevelMapVec3& b, const LevelMapVec3& c, MapGeometryPrecision precision)
 {
 	// idTech convention, matching `PlaneFromPoints` in the released qbsp sources
-	// (ericw-tools, https://github.com/ericwa/ericw-tools, the base of VibeMap2 in
-	// external/compilers/vibemap2): normal = cross(a - b, c - b), normalised,
+	// (ericw-tools, https://github.com/ericwa/ericw-tools, the base of SlopMap2 in
+	// external/compilers/slopmap2): normal = cross(a - b, c - b), normalised,
 	// and distance = dot(a, normal). Map brush face normals therefore point away
 	// from the brush interior.
 	MapPlane plane;
@@ -459,7 +459,7 @@ MapBrushGeometry solveBrushGeometry(const QVector<LevelMapBrushFace>& faces, int
 		if (plane.valid) {
 			++validPlaneCount;
 		} else {
-			geometry.warnings << QCoreApplication::translate("VibeStudioMapGeometry", "Face %1 has a degenerate plane; its three points are collinear or identical.").arg(index);
+			geometry.warnings << QCoreApplication::translate("SlopStudioMapGeometry", "Face %1 has a degenerate plane; its three points are collinear or identical.").arg(index);
 		}
 		planes.append(plane);
 
@@ -494,14 +494,14 @@ MapBrushGeometry solveBrushGeometry(const QVector<LevelMapBrushFace>& faces, int
 			if (std::abs(first.distance - second.distance) > duplicateDistance) {
 				continue;
 			}
-			geometry.warnings << QCoreApplication::translate("VibeStudioMapGeometry", "Faces %1 and %2 are duplicate planes.").arg(i).arg(j);
+			geometry.warnings << QCoreApplication::translate("SlopStudioMapGeometry", "Faces %1 and %2 are duplicate planes.").arg(i).arg(j);
 			duplicateReported = true;
 			break;
 		}
 	}
 
 	if (faces.size() < 4) {
-		geometry.warnings << QCoreApplication::translate("VibeStudioMapGeometry", "Brush has fewer than four planes and cannot enclose a volume.");
+		geometry.warnings << QCoreApplication::translate("SlopStudioMapGeometry", "Brush has fewer than four planes and cannot enclose a volume.");
 	}
 
 	int solvedFaceCount = 0;
@@ -556,7 +556,7 @@ MapBrushGeometry solveBrushGeometry(const QVector<LevelMapBrushFace>& faces, int
 		for (MapFacePolygon& face : geometry.faces) {
 			face.points.clear();
 		}
-		geometry.warnings << QCoreApplication::translate("VibeStudioMapGeometry", "Brush is open on at least one side and encloses no volume.");
+		geometry.warnings << QCoreApplication::translate("SlopStudioMapGeometry", "Brush is open on at least one side and encloses no volume.");
 	} else if (solvedFaceCount >= 4) {
 		const bool finite = std::isfinite(minX) && std::isfinite(minY) && std::isfinite(minZ)
 			&& std::isfinite(maxX) && std::isfinite(maxY) && std::isfinite(maxZ);
@@ -565,22 +565,22 @@ MapBrushGeometry solveBrushGeometry(const QVector<LevelMapBrushFace>& faces, int
 			&& (maxY - minY) > kOnPlaneEpsilon
 			&& (maxZ - minZ) > kOnPlaneEpsilon;
 		if (!finite) {
-			geometry.warnings << QCoreApplication::translate("VibeStudioMapGeometry", "Brush bounds are not finite; the brush encloses no volume.");
+			geometry.warnings << QCoreApplication::translate("SlopStudioMapGeometry", "Brush bounds are not finite; the brush encloses no volume.");
 		} else if (!nonDegenerate) {
 			geometry.mins = makeVec3(minX, minY, minZ);
 			geometry.maxs = makeVec3(maxX, maxY, maxZ);
-			geometry.warnings << QCoreApplication::translate("VibeStudioMapGeometry", "Brush is flat on at least one axis and encloses no volume.");
+			geometry.warnings << QCoreApplication::translate("SlopStudioMapGeometry", "Brush is flat on at least one axis and encloses no volume.");
 		} else {
 			geometry.mins = makeVec3(minX, minY, minZ);
 			geometry.maxs = makeVec3(maxX, maxY, maxZ);
 			geometry.solved = true;
 		}
 	} else if (validPlaneCount >= 4) {
-		geometry.warnings << QCoreApplication::translate("VibeStudioMapGeometry", "Brush encloses no volume; only %1 of %2 planes produced a face.")
+		geometry.warnings << QCoreApplication::translate("SlopStudioMapGeometry", "Brush encloses no volume; only %1 of %2 planes produced a face.")
 			.arg(solvedFaceCount)
 			.arg(validPlaneCount);
 	} else if (faces.size() >= 4) {
-		geometry.warnings << QCoreApplication::translate("VibeStudioMapGeometry", "Brush encloses no volume; fewer than four usable planes remain.");
+		geometry.warnings << QCoreApplication::translate("SlopStudioMapGeometry", "Brush encloses no volume; fewer than four usable planes remain.");
 	}
 
 	if (cancelled()) { return geometry; }
@@ -943,7 +943,7 @@ MapGeometrySummary summarizeLevelMapGeometry(const LevelMapDocument& document)
 				break;
 			}
 			++reportedWarnings;
-			summary.warnings << QCoreApplication::translate("VibeStudioMapGeometry", "Brush %1: %2").arg(brush.brushId).arg(warning);
+			summary.warnings << QCoreApplication::translate("SlopStudioMapGeometry", "Brush %1: %2").arg(brush.brushId).arg(warning);
 		}
 	}
 
@@ -957,7 +957,7 @@ MapGeometrySummary summarizeLevelMapGeometry(const LevelMapDocument& document)
 			++summary.openSectorCount;
 			if (reportedWarnings < 16) {
 				++reportedWarnings;
-				summary.warnings << QCoreApplication::translate("VibeStudioMapGeometry", "Sector %1 has %2 unclosed boundary edges.")
+				summary.warnings << QCoreApplication::translate("SlopStudioMapGeometry", "Sector %1 has %2 unclosed boundary edges.")
 					.arg(outline.sectorId)
 					.arg(outline.openEdgeCount);
 			}
@@ -990,17 +990,17 @@ MapGeometrySummary summarizeLevelMapGeometry(const LevelMapDocument& document)
 QStringList mapGeometrySummaryLines(const MapGeometrySummary& summary)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioMapGeometry", "Brushes solved: %1 / %2").arg(summary.solvedBrushCount).arg(summary.brushCount);
-	lines << QCoreApplication::translate("VibeStudioMapGeometry", "Unsolved brushes: %1").arg(summary.degenerateBrushCount);
-	lines << QCoreApplication::translate("VibeStudioMapGeometry", "Face polygons: %1 (%2 points)").arg(summary.faceCount).arg(summary.polygonPointCount);
-	lines << QCoreApplication::translate("VibeStudioMapGeometry", "Patch meshes: %1").arg(summary.patchCount);
-	lines << QCoreApplication::translate("VibeStudioMapGeometry", "Sector outlines: %1 (%2 with open edges)").arg(summary.sectorOutlineCount).arg(summary.openSectorCount);
-	lines << QCoreApplication::translate("VibeStudioMapGeometry", "Geometry bounds min: %1").arg(vectorText(summary.mins));
-	lines << QCoreApplication::translate("VibeStudioMapGeometry", "Geometry bounds max: %1").arg(vectorText(summary.maxs));
+	lines << QCoreApplication::translate("SlopStudioMapGeometry", "Brushes solved: %1 / %2").arg(summary.solvedBrushCount).arg(summary.brushCount);
+	lines << QCoreApplication::translate("SlopStudioMapGeometry", "Unsolved brushes: %1").arg(summary.degenerateBrushCount);
+	lines << QCoreApplication::translate("SlopStudioMapGeometry", "Face polygons: %1 (%2 points)").arg(summary.faceCount).arg(summary.polygonPointCount);
+	lines << QCoreApplication::translate("SlopStudioMapGeometry", "Patch meshes: %1").arg(summary.patchCount);
+	lines << QCoreApplication::translate("SlopStudioMapGeometry", "Sector outlines: %1 (%2 with open edges)").arg(summary.sectorOutlineCount).arg(summary.openSectorCount);
+	lines << QCoreApplication::translate("SlopStudioMapGeometry", "Geometry bounds min: %1").arg(vectorText(summary.mins));
+	lines << QCoreApplication::translate("SlopStudioMapGeometry", "Geometry bounds max: %1").arg(vectorText(summary.maxs));
 	if (summary.warnings.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioMapGeometry", "Geometry warnings: none");
+		lines << QCoreApplication::translate("SlopStudioMapGeometry", "Geometry warnings: none");
 	} else {
-		lines << QCoreApplication::translate("VibeStudioMapGeometry", "Geometry warnings: %1").arg(summary.warnings.size());
+		lines << QCoreApplication::translate("SlopStudioMapGeometry", "Geometry warnings: %1").arg(summary.warnings.size());
 		for (const QString& warning : summary.warnings) {
 			lines << warning;
 		}
@@ -1008,4 +1008,4 @@ QStringList mapGeometrySummaryLines(const MapGeometrySummary& summary)
 	return lines;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

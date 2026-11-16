@@ -27,7 +27,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -73,7 +73,7 @@ int main(int argc,char** argv)
 	const auto assets = temp.filePath("assets");
 	if (!expect(tests::putMaterialFile(QDir(assets).filePath("textures/studio/checker.png"),tests::materialImage(128,64))
 		&& tests::putMaterialFile(QDir(assets).filePath("textures/metal.png"),tests::materialImage(64,64)),"original fixture material dimensions")) { return 1; }
-	for (const auto* profile : {"netradiant-custom","trenchbroom","vibestudio-default"}) {
+	for (const auto* profile : {"netradiant-custom","trenchbroom","slopstudio-default"}) {
 		for (int scale : {100,200}) {
 			std::cout << "Textured selection UI " << profile << ' ' << scale << '%' << std::endl;
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);
@@ -108,7 +108,7 @@ int main(int argc,char** argv)
 					&& view->componentMode() == MapViewport::ComponentMode::Off && view->pickedComponentCount() == 0,"independent face without parent object or handles",shell.statusBar()->currentMessage());
 				expect(camera->texturedSurfaceCount() == 1 && camera->highlightedTriangleCount() == 2,"camera independent face highlight");
 				if (native && scale == 100) {
-					const auto capture = qEnvironmentVariable("VIBESTUDIO_TEXTURED_SELECTION_CAPTURE");
+					const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEXTURED_SELECTION_CAPTURE");
 					if (!capture.isEmpty()) {
 						QImage plan(view->size(),QImage::Format_ARGB32_Premultiplied); view->render(&plan); expect(plan.save(capture+".plan.png"),"plan face outline capture");
 						QImage shot(shell.size(),QImage::Format_ARGB32_Premultiplied); shell.render(&shot); expect(shot.save(capture+".normal.png"),"normal shell capture");
@@ -181,7 +181,7 @@ int main(int argc,char** argv)
 				expect(bytes() == baseline,"query and selection workflows leave source bytes unchanged");
 				material->setEditText("metal"); query->trigger();
 				if (native && scale == 200) {
-					const auto capture = qEnvironmentVariable("VIBESTUDIO_TEXTURED_SELECTION_CAPTURE");
+					const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEXTURED_SELECTION_CAPTURE");
 					expect(until([&] { return camera->isEnabled() && !camera->isRendering(); }),"expanded selection camera ready");
 					if (!capture.isEmpty()) { QImage image(shell.size(),QImage::Format_ARGB32_Premultiplied); shell.render(&image); expect(image.save(capture),"owned Qt capture"); }
 				}

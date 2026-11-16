@@ -14,7 +14,7 @@ class QProgressBar;
 class QTableWidget;
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct PackageRecoveryReport;
 
@@ -51,4 +51,4 @@ private:
 	bool m_closeRequested = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

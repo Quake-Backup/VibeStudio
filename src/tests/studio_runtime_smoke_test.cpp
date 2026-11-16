@@ -23,7 +23,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -60,7 +60,7 @@ CrashReportInfo sampleReport()
 	info.processId = 4321;
 	info.sessionStarted = QDateTime::fromSecsSinceEpoch(1'700'000'000, QTimeZone::utc());
 	info.crashedAt = QDateTime::fromSecsSinceEpoch(1'700'000'500, QTimeZone::utc());
-	info.sessionLogPath = QStringLiteral("/tmp/vibestudio/logs/vibestudio-20260101.log");
+	info.sessionLogPath = QStringLiteral("/tmp/slopstudio/logs/slopstudio-20260101.log");
 	info.reasonId = QStringLiteral("signal");
 	info.reasonDetail = QStringLiteral("SIGSEGV");
 	info.exceptionCode = QStringLiteral("0xc0000005");
@@ -79,7 +79,7 @@ bool runFormatRoundTripSmoke()
 	const CrashReportInfo original = sampleReport();
 	const QByteArray text = formatCrashReportText(original);
 
-	ok &= expect(text.startsWith("VibeStudio crash report\n"), "A report should start with its banner.");
+	ok &= expect(text.startsWith("SlopStudio crash report\n"), "A report should start with its banner.");
 	ok &= expect(text.contains("\nreasonId: signal\n"), "The reason id should be written as a plain field.");
 	ok &= expect(text.contains("\n[backtrace]\n"), "The backtrace section marker should be present.");
 	ok &= expect(text.contains("\n[log]\n"), "The log section marker should be present.");
@@ -126,13 +126,13 @@ bool runParseRobustnessSmoke()
 
 	ok &= expect(!parseCrashReportText(QByteArray()).valid, "Empty input should not parse as a report.");
 	ok &= expect(!parseCrashReportText(QByteArrayLiteral("not a report at all")).valid, "Unrelated text should not parse.");
-	ok &= expect(!parseCrashReportText(QByteArrayLiteral("VibeStudio session marker\nprocessId: 1\n")).valid,
+	ok &= expect(!parseCrashReportText(QByteArrayLiteral("SlopStudio session marker\nprocessId: 1\n")).valid,
 		"A session marker should not parse as a crash report.");
 
 	// A banner with nothing after it, and a banner followed by junk.
-	ok &= expect(parseCrashReportText(QByteArrayLiteral("VibeStudio crash report\n")).valid, "A bare banner is still a report.");
+	ok &= expect(parseCrashReportText(QByteArrayLiteral("SlopStudio crash report\n")).valid, "A bare banner is still a report.");
 	const CrashReportInfo junk = parseCrashReportText(QByteArrayLiteral(
-		"VibeStudio crash report\n"
+		"SlopStudio crash report\n"
 		"garbage without a separator\n"
 		": leading colon\n"
 		"processId: not-a-number\n"
@@ -145,7 +145,7 @@ bool runParseRobustnessSmoke()
 	ok &= expect(junk.logLines.size() == 1, "The log section should still be read.");
 
 	// Binary noise must not be able to steer the parser.
-	QByteArray hostile = QByteArrayLiteral("VibeStudio crash report\n");
+	QByteArray hostile = QByteArrayLiteral("SlopStudio crash report\n");
 	hostile.append(QByteArray(4096, '\0'));
 	hostile.append("\n[backtrace]\n");
 	hostile.append(QByteArray(1024, '\xff'));
@@ -195,7 +195,7 @@ bool runPreviousSessionSmoke(const QString& directory)
 		QStringLiteral("crash-20260101T000000-0-%1.txt").arg(staleSessionId));
 	ok &= expect(writeFile(reportPath, formatCrashReportText(stale)), "The seeded crash report should be written.");
 
-	QByteArray marker = QByteArrayLiteral("VibeStudio session marker\n");
+	QByteArray marker = QByteArrayLiteral("SlopStudio session marker\n");
 	marker.append("formatVersion: 1\n");
 	marker.append("version: 0.9.9-test\n");
 	marker.append("sessionId: ");
@@ -229,7 +229,7 @@ bool runPreviousSessionSmoke(const QString& directory)
 	ok &= expect(markerFile.open(QIODevice::ReadOnly), "The session marker should be readable.");
 	const QByteArray markerText = markerFile.readAll();
 	markerFile.close();
-	ok &= expect(markerText.startsWith("VibeStudio session marker\n"), "The marker should carry the marker banner.");
+	ok &= expect(markerText.startsWith("SlopStudio session marker\n"), "The marker should carry the marker banner.");
 	ok &= expect(markerText.contains(QStringLiteral("sessionId: %1\n").arg(status.sessionId).toUtf8()), "The marker should carry this session's id.");
 	ok &= expect(markerText.contains("\nprocessId: "), "The marker should carry the owning process id.");
 	ok &= expect(markerText.contains("\nsessionStarted: "), "The marker should carry the session start time.");
@@ -303,26 +303,26 @@ bool runUntranslatedLogSmoke(QCoreApplication& app, const QString& directory)
 {
 	bool ok = true;
 	const QString logPath = QDir(directory).filePath(QStringLiteral("untranslated.tsv"));
-	qputenv("VIBESTUDIO_UNTRANSLATED_LOG", QFile::encodeName(logPath));
+	qputenv("SLOPSTUDIO_UNTRANSLATED_LOG", QFile::encodeName(logPath));
 	const TranslationLoadResult german = installStudioTranslations(app, QStringLiteral("de"));
-	const QString germanName = QCoreApplication::translate("VibeStudioLocalization", "German");
-	QCoreApplication::translate("VibeStudioRuntimeTest", "Not in any catalog");
-	QCoreApplication::translate("VibeStudioRuntimeTest", "Not in any catalog");
-	QCoreApplication::translate("vibestudio::RuntimeTest", "Two\nlines");
+	const QString germanName = QCoreApplication::translate("SlopStudioLocalization", "German");
+	QCoreApplication::translate("SlopStudioRuntimeTest", "Not in any catalog");
+	QCoreApplication::translate("SlopStudioRuntimeTest", "Not in any catalog");
+	QCoreApplication::translate("slopstudio::RuntimeTest", "Two\nlines");
 	QCoreApplication::translate("QDialogButtonBox", "Not ours");
 	installStudioTranslations(app, QStringLiteral("en"));
-	QCoreApplication::translate("VibeStudioRuntimeTest", "Asked in English");
-	qunsetenv("VIBESTUDIO_UNTRANSLATED_LOG");
+	QCoreApplication::translate("SlopStudioRuntimeTest", "Asked in English");
+	qunsetenv("SLOPSTUDIO_UNTRANSLATED_LOG");
 
 	QFile file(logPath);
 	ok &= expect(file.open(QIODevice::ReadOnly | QIODevice::Text), "The untranslated log should be written.");
 	const QList<QByteArray> lines = file.readAll().split('\n');
-	ok &= expect(lines.count(QByteArray("VibeStudioRuntimeTest\tNot in any catalog\t")) == 1, "An untranslated message should be logged once.");
-	ok &= expect(lines.contains(QByteArray("vibestudio::RuntimeTest\tTwo\\nlines\t")), "A line break should be logged escaped.");
+	ok &= expect(lines.count(QByteArray("SlopStudioRuntimeTest\tNot in any catalog\t")) == 1, "An untranslated message should be logged once.");
+	ok &= expect(lines.contains(QByteArray("slopstudio::RuntimeTest\tTwo\\nlines\t")), "A line break should be logged escaped.");
 	ok &= expect(!lines.contains(QByteArray("QDialogButtonBox\tNot ours\t")), "Qt's own contexts should not be logged.");
-	ok &= expect(!lines.contains(QByteArray("VibeStudioRuntimeTest\tAsked in English\t")), "The source language should log nothing.");
+	ok &= expect(!lines.contains(QByteArray("SlopStudioRuntimeTest\tAsked in English\t")), "The source language should log nothing.");
 	if (german.installed && germanName != QStringLiteral("German")) {
-		ok &= expect(!lines.contains(QByteArray("VibeStudioLocalization\tGerman\t")), "A translated message should not be logged.");
+		ok &= expect(!lines.contains(QByteArray("SlopStudioLocalization\tGerman\t")), "A translated message should not be logged.");
 	}
 	return ok;
 }
@@ -336,8 +336,8 @@ bool runPluralFallbackSmoke(QCoreApplication& app)
 	bool ok = true;
 	const TranslationLoadResult german = installStudioTranslations(app, QStringLiteral("de"));
 	if (!german.fallbackCatalogPath.isEmpty()) {
-		const QString one = QCoreApplication::translate("VibeStudioModelEditor", "%Ln vert(ex)(ices)", nullptr, 1);
-		const QString two = QCoreApplication::translate("VibeStudioModelEditor", "%Ln vert(ex)(ices)", nullptr, 2);
+		const QString one = QCoreApplication::translate("SlopStudioModelEditor", "%Ln vert(ex)(ices)", nullptr, 1);
+		const QString two = QCoreApplication::translate("SlopStudioModelEditor", "%Ln vert(ex)(ices)", nullptr, 2);
 		ok &= expect(one.startsWith(QLatin1Char('1')) && two.startsWith(QLatin1Char('2')) && !one.contains(QLatin1Char('('))
 				&& !two.contains(QLatin1Char('(')) && one != two,
 			"A count the German catalog leaves untranslated should take a plural form, not the source's markup.");

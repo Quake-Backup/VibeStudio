@@ -8,7 +8,7 @@
 // large quad on the face plane and clipping it against every other face plane.
 // The plane-from-three-points convention matches id Software's released qbsp
 // sources (ericw-tools `PlaneFromPoints`, upstream at
-// https://github.com/ericwa/ericw-tools), the base of VibeStudio's VibeMap2
+// https://github.com/ericwa/ericw-tools), the base of SlopStudio's SlopMap2
 // compiler submodule.
 //
 // Doom sector outlines are traced from the linedef/sidedef/sector relationships
@@ -25,7 +25,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct MapPlane {
 	double normalX = 0.0;
@@ -103,4 +103,4 @@ QStringList mapGeometrySummaryLines(const MapGeometrySummary& summary);
 QVector<QVector<LevelMapVec3>> tessellatePatchMesh(const LevelMapPatch& patch, int subdivisions = 4);
 QVector<QVector<QPointF>> tessellatePatchTexCoords(const LevelMapPatch& patch, int subdivisions = 4);
 
-} // namespace vibestudio
+} // namespace slopstudio

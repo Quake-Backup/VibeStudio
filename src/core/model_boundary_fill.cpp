@@ -10,7 +10,7 @@
 #include <limits>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -232,7 +232,7 @@ bool ModelBoundaryWork::step()
 	if (!stopped && ++checks > modelBoundaryMaxChecks)
 	{
 		fail(error, QCoreApplication::translate(
-						"VibeStudioModelBoundaryFill",
+						"SlopStudioModelBoundaryFill",
 						"The boundary operation exceeded its geometry-check limit. Reduce the loop, surface or animation complexity."));
 		stopped = true;
 	}
@@ -249,13 +249,13 @@ bool findModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 	auto *error = work.error;
 	if (!result || selected.isEmpty() || source.frames.isEmpty() || source.vertexCount < 3 || source.texCoords.size() != source.vertexCount)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelBoundaryFill", "Select boundary edges on a valid surface."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelBoundaryFill", "Select boundary edges on a valid surface."));
 	}
 	for (const auto &frame : source.frames)
 	{
 		if (frame.positions.size() != source.vertexCount || frame.normals.size() != source.vertexCount)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelBoundaryFill",
+			return fail(error, QCoreApplication::translate("SlopStudioModelBoundaryFill",
 														   "Every pose must contain all boundary positions and normals."));
 		}
 		for (auto p : frame.positions)
@@ -266,7 +266,7 @@ bool findModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 			}
 			if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(p.z))
 			{
-				return fail(error, QCoreApplication::translate("VibeStudioModelBoundaryFill", "Boundary positions must be finite."));
+				return fail(error, QCoreApplication::translate("SlopStudioModelBoundaryFill", "Boundary positions must be finite."));
 			}
 		}
 	}
@@ -281,7 +281,7 @@ bool findModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 		if (t.a < 0 || t.b < 0 || t.c < 0 || t.a >= source.vertexCount || t.b >= source.vertexCount || t.c >= source.vertexCount ||
 			t.a == t.b || t.b == t.c || t.c == t.a)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelBoundaryFill", "The surface contains an invalid triangle."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelBoundaryFill", "The surface contains an invalid triangle."));
 		}
 		for (auto directed : {ModelEdge{t.a, t.b}, ModelEdge{t.b, t.c}, ModelEdge{t.c, t.a}})
 		{
@@ -320,7 +320,7 @@ bool findModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 		const auto use = edges.constFind(seed);
 		if (use == edges.cend() || use->count != 1)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelBoundaryFill",
+			return fail(error, QCoreApplication::translate("SlopStudioModelBoundaryFill",
 														   "Edge %1:%2 is not a boundary edge. Select edges used by exactly one face.")
 								   .arg(seed.first)
 								   .arg(seed.second));
@@ -342,7 +342,7 @@ bool findModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 			{
 				return fail(error,
 							QCoreApplication::translate(
-								"VibeStudioModelBoundaryFill",
+								"SlopStudioModelBoundaryFill",
 								"The selected boundary branches or has inconsistent winding at vertex %1. Repair its topology first.")
 								.arg(vertex));
 			}
@@ -350,7 +350,7 @@ bool findModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 			const auto edge = modelEdge(vertex, next);
 			if (visited.contains(edge))
 			{
-				return fail(error, QCoreApplication::translate("VibeStudioModelBoundaryFill",
+				return fail(error, QCoreApplication::translate("SlopStudioModelBoundaryFill",
 															   "The selected edges do not form separate closed boundary loops."));
 			}
 			visited.insert(edge);
@@ -358,7 +358,7 @@ bool findModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 			if (loop.size() > modelBoundaryMaxLoopVertices)
 			{
 				return fail(error, QCoreApplication::translate(
-									   "VibeStudioModelBoundaryFill",
+									   "SlopStudioModelBoundaryFill",
 									   "A boundary loop can contain at most %1 vertices. Divide this boundary before editing it.")
 									   .arg(modelBoundaryMaxLoopVertices));
 			}
@@ -366,7 +366,7 @@ bool findModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 		} while (vertex != start);
 		if (loop.size() < 3)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelBoundaryFill",
+			return fail(error, QCoreApplication::translate("SlopStudioModelBoundaryFill",
 														   "A boundary loop needs at least three distinct vertices."));
 		}
 		std::rotate(loop.begin(), std::min_element(loop.begin(), loop.end()), loop.end());
@@ -395,7 +395,7 @@ bool validateModelBoundaryFaces(const ModelSurface &source, const QVector<ModelT
 			{
 				return fail(work.error,
 							QCoreApplication::translate(
-								"VibeStudioModelBoundaryFill",
+								"SlopStudioModelBoundaryFill",
 								"Proposed face %1 collapses in frame %2. Adjust the boundaries or choose another reference pose.")
 								.arg(source.triangles.size() + face)
 								.arg(frame));
@@ -414,7 +414,7 @@ bool validateModelBoundaryFaces(const ModelSurface &source, const QVector<ModelT
 					return fail(
 						error,
 						QCoreApplication::translate(
-							"VibeStudioModelBoundaryFill",
+							"SlopStudioModelBoundaryFill",
 							"Proposed face %1 intersects face %2 in frame %3. Adjust the selected boundaries or obstructing geometry.")
 							.arg(source.triangles.size() + face)
 							.arg(other)
@@ -437,7 +437,7 @@ bool fillModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 	if (!result || selected.isEmpty() || referenceFrame < 0 || referenceFrame >= source.frames.size() || source.vertexCount < 3 ||
 		source.texCoords.size() != source.vertexCount || triangleLimit < source.triangles.size())
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelBoundaryFill",
+		return fail(error, QCoreApplication::translate("SlopStudioModelBoundaryFill",
 													   "Select boundary edges on a valid surface and choose an existing reference frame."));
 	}
 	ModelBoundaryLoops boundary;
@@ -453,7 +453,7 @@ bool fillModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 		newFaces += loop.size() - 2;
 		if (source.triangles.size() + newFaces > triangleLimit)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelBoundaryFill",
+			return fail(error, QCoreApplication::translate("SlopStudioModelBoundaryFill",
 														   "Filling these loops would exceed the document's triangle limit."));
 		}
 	}
@@ -475,7 +475,7 @@ bool fillModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 		if (triangles.isEmpty())
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelBoundaryFill",
+						QCoreApplication::translate("SlopStudioModelBoundaryFill",
 													"Boundary at vertex %1 cannot be triangulated in frame %2 without crossings, collapsed "
 													"faces or an existing interior edge. Adjust the loop or reference frame.")
 							.arg(loop[0])
@@ -487,7 +487,7 @@ bool fillModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 			{
 				return work.stopped
 						   ? false
-						   : fail(error, QCoreApplication::translate("VibeStudioModelBoundaryFill",
+						   : fail(error, QCoreApplication::translate("SlopStudioModelBoundaryFill",
 																	 "The proposed cap at vertex %1 folds, crosses or collapses in frame "
 																	 "%2. Adjust that pose or choose another reference frame.")
 											 .arg(loop[0])
@@ -524,4 +524,4 @@ bool fillModelBoundaryLoops(const ModelSurface &source, const QSet<ModelEdge> &s
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

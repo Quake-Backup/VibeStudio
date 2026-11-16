@@ -8,7 +8,7 @@
 #include <QVector>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct CodeFileEntry {
 	QString filePath;
@@ -50,4 +50,4 @@ bool isExcludedCodeDirectory(const QString& path);
 StudioQueryProperties codeFileQueryProperties(const CodeFileEntry& file);
 CodeFilesResult listCodeFiles(const CodeFilesRequest& request);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -70,12 +70,12 @@ if pa_enabled
   pa_endian = host_machine.endian() == 'little' ? '-DPA_LITTLE_ENDIAN=1' : '-DPA_BIG_ENDIAN=1'
   # ALSA uses GNU typeof and Unix pthread feature declarations, as in upstream.
   pa_c_standard = host_machine.system() == 'windows' ? 'c11' : 'gnu11'
-  pa_library = static_library('vibestudio_portaudio', pa_sources, pa_platform_sources,
+  pa_library = static_library('slopstudio_portaudio', pa_sources, pa_platform_sources,
     include_directories: [pa_headers, pa_common_headers, pa_os_includes, pa_host_includes],
     c_args: pa_host_args + [pa_endian], dependencies: pa_platform_deps,
     override_options: ['c_std=' + pa_c_standard, 'werror=false', 'warning_level=0'], install: false)
   audio_duplex_dep = declare_dependency(link_with: pa_library, include_directories: pa_headers,
     dependencies: pa_platform_deps)
 endif
-install_data('LICENSE.txt', 'UPSTREAM.json', 'VIBESTUDIO.md',
-  install_dir: get_option('datadir') / 'vibestudio/licenses/portaudio')
+install_data('LICENSE.txt', 'UPSTREAM.json', 'SLOPSTUDIO.md',
+  install_dir: get_option('datadir') / 'slopstudio/licenses/portaudio')

@@ -9,7 +9,7 @@
 
 class QThread;
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // One active checkpoint and one replaceable pending snapshot. Retirement is
@@ -51,4 +51,4 @@ class ModelRecoveryWriter final : public QObject
 	void removeRetired();
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

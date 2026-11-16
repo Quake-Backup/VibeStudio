@@ -12,8 +12,8 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0;
@@ -28,7 +28,7 @@ bool expect(bool condition, const char *message)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("surface-authoring-XXXXXX"));
@@ -342,7 +342,7 @@ int main(int argc, char **argv)
 			   "cancellation during surface assembly is atomic and responsive");
 	// Shared CLI parser/service plus a real executable dispatch check.
 	ok &= expect(document.setMesh(original, &error) && document.save(source, false, &error), "save CLI input");
-	const QStringList base{"vibestudio", "--cli", "model", "surfaces", source};
+	const QStringList base{"slopstudio", "--cli", "model", "surfaces", source};
 	const auto list = cli::runModelSurfaces(base);
 	ok &= expect(list.exitCode == 0 && list.payload.value("surfaces").toArray().size() == 3 && !list.payload.value("written").toBool(),
 				 "CLI lists indexed surfaces and ordered materials without mutation");

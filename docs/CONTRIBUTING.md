@@ -1,6 +1,6 @@
 # Contributing
 
-VibeStudio contributions should move the roadmap through small, credited,
+SlopStudio contributions should move the roadmap through small, credited,
 testable vertical slices. Prefer one workflow becoming genuinely more usable
 over a large isolated subsystem that cannot be validated from the GUI or CLI.
 
@@ -34,13 +34,13 @@ Recommended local command on Unix-like systems:
 meson setup builddir --backend ninja
 meson compile -C builddir
 meson test -C builddir --print-errorlogs
-python scripts/validate_build.py --binary builddir/src/vibestudio --expected-version "$(cat VERSION)"
-python scripts/validate_cli_docs.py --binary builddir/src/vibestudio
+python scripts/validate_build.py --binary builddir/src/slopstudio --expected-version "$(cat VERSION)"
+python scripts/validate_cli_docs.py --binary builddir/src/slopstudio
 python scripts/validate_credits.py
 python scripts/extract_translations.py --check --dry-run
-python scripts/validate_samples.py --binary builddir/src/vibestudio
-python scripts/validate_packaging.py --binary builddir/src/vibestudio
-python scripts/validate_release_assets.py --binary builddir/src/vibestudio
+python scripts/validate_samples.py --binary builddir/src/slopstudio
+python scripts/validate_packaging.py --binary builddir/src/slopstudio
+python scripts/validate_release_assets.py --binary builddir/src/slopstudio
 ```
 
 ## Changelog And Documentation

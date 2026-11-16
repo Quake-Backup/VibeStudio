@@ -7,7 +7,7 @@
 #include <QScopedValueRollback>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString documentText(const QTextDocument* document) { return document->toRawText().replace(QChar(0x2029), QLatin1Char('\n')); }
 }
@@ -28,12 +28,12 @@ QString StudioCodeEditor::snippetStatus() const
 	QVector<int> numbers;
 	for (int i = 0; i < m_snippetStops.size(); ++i) { const int number = m_snippetStops[i].number; if (!m_snippetRetired[i] && number > 0 && !numbers.contains(number)) { numbers << number; } }
 	std::sort(numbers.begin(), numbers.end());
-	return QCoreApplication::translate("VibeStudioCodeEditor", "Snippet field %1 of %2")
+	return QCoreApplication::translate("SlopStudioCodeEditor", "Snippet field %1 of %2")
 		.arg(numbers.indexOf(m_snippetStops[m_snippetStop].number) + 1).arg(numbers.size());
 }
 void StudioCodeEditor::publishSnippetState()
 {
-	if (snippetActive()) { setAccessibleDescription(snippetStatus() + QStringLiteral(". ") + QCoreApplication::translate("VibeStudioCodeEditor", "Tab moves to the next field, Shift+Tab to the previous field. Escape finishes snippet editing.")); }
+	if (snippetActive()) { setAccessibleDescription(snippetStatus() + QStringLiteral(". ") + QCoreApplication::translate("SlopStudioCodeEditor", "Tab moves to the next field, Shift+Tab to the previous field. Escape finishes snippet editing.")); }
 	scheduleHighlight(); if (snippetChanged) { snippetChanged(); }
 }
 bool StudioCodeEditor::finishSnippet(bool moveToFinal)
@@ -145,7 +145,7 @@ void StudioCodeEditor::runSnippetEdit(const std::function<void()>& operation)
 	for (int i = 0; i < m_snippetStops.size(); ++i) { if (i != m_snippetStop && !m_snippetRetired[i] && m_snippetStops[i].number == active.number) { mirrors << i; } }
 	const qint64 bytes = text.toUtf8().size(), projectedBytes = m_snippetUtf8Bytes + (bytes - oldBytes) * (mirrors.size() + 1);
 	if (text.size() > 65536 || projectedBytes > textDocumentByteLimit) {
-		finishSnippet(); m_snippetNotice = QCoreApplication::translate("VibeStudioCodeEditor", "Snippet linking ended because the edit exceeds its size limit. Your typed text was kept."); publishSnippetState(); return;
+		finishSnippet(); m_snippetNotice = QCoreApplication::translate("SlopStudioCodeEditor", "Snippet linking ended because the edit exceeds its size limit. Your typed text was kept."); publishSnippetState(); return;
 	}
 	m_snippetUtf8Bytes = projectedBytes;
 	std::sort(mirrors.begin(), mirrors.end(), [this](int a, int b) { return m_snippetStops[a].offset > m_snippetStops[b].offset; });
@@ -180,4 +180,4 @@ void StudioCodeEditor::appendSnippetSelections(QList<QTextEdit::ExtraSelection>*
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

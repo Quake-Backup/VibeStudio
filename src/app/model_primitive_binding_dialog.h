@@ -14,7 +14,7 @@ class QLineEdit;
 class QPushButton;
 class QRadioButton;
 
-namespace vibestudio
+namespace slopstudio
 {
 // Chooses how Add Primitive's new vertices follow the skeleton when the
 // target surface is skinned. New geometry has no source vertex to take
@@ -48,4 +48,4 @@ class ModelPrimitiveBindingDialog final : public QDialog
 	LiveStatusLabel *m_status = nullptr;
 	QPushButton *m_apply = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

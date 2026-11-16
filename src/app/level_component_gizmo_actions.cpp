@@ -12,7 +12,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 void ApplicationShell::setLevelComponentTool(int tool)
 {
 	for (auto* view : std::as_const(m_levelPlanViews)) { view->finishComponentMove(false); }
@@ -80,4 +80,4 @@ void ApplicationShell::editLevelComponentGizmoOptions()
 	}
 	refreshLevelComponentGizmos(); refreshLevelGeometryCommands();
 }
-} // namespace vibestudio
+} // namespace slopstudio

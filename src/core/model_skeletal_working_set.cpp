@@ -9,7 +9,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -357,4 +357,4 @@ ModelMesh modelSkeletalSamplePreview(const ModelMesh& mesh, int clip, int sample
 	return preview;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

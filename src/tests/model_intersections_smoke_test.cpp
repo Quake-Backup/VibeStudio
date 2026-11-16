@@ -18,7 +18,7 @@
 #include <limits>
 #include <random>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -47,7 +47,7 @@ int main(int argc, char **argv)
 	QCoreApplication app(argc, argv);
 	if (app.arguments().size() < 2)
 		return 1;
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("intersections-XXXXXX"));

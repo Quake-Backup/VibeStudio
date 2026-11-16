@@ -32,7 +32,7 @@
 #include <QSignalBlocker>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 
 QVector<BuildPipelineDescriptor> ApplicationShell::projectBuildPipelinesForBuild() const
 {
@@ -194,4 +194,4 @@ bool ApplicationShell::confirmBuildProgramsTrusted(const QVector<BuildProgramUse
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

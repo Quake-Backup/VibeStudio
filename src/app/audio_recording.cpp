@@ -11,7 +11,7 @@
 #include <mutex>
 #include <thread>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class AudioRecordingStop { None, Finish, Abort };
 namespace
@@ -767,4 +767,4 @@ bool AudioRecording::meterResetPending() const
 {
 	return busy() && m_meterReset && m_snapshot.meterEpoch < m_meterReset->load();
 }
-} // namespace vibestudio
+} // namespace slopstudio

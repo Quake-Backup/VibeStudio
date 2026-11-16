@@ -1,7 +1,7 @@
 #pragma once
 #include "core/audio_session_io.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioStemExportRequest {
 	QString directory, prefix;
@@ -44,4 +44,4 @@ AudioStemPlan planAudioSessionStems(const AudioSession &session, const AudioStem
 // bounded manifest update; crashes leave an explicitly incomplete manifest.
 AudioStemExportReport writeAudioSessionStems(const AudioSession &session, const AudioStemExportRequest &request,
                                              const AudioWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

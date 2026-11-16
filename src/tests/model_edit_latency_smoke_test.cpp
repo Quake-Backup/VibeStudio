@@ -4,10 +4,10 @@
 // process hold. Functional checks always run: a finished edit leaves a valid
 // model, a cancelled one leaves the revision, selection and history as they
 // were. Timings are evidence for docs, not CI thresholds: budgets apply only
-// when VIBESTUDIO_MODELLER_MAX_EDIT_MS / VIBESTUDIO_MODELLER_MAX_CANCEL_MS /
-// VIBESTUDIO_MODELLER_MAX_EDIT_GAP_MS are set. By default one fixture and two
-// edits run; VIBESTUDIO_MODELLER_FULL_LATENCY=1 runs every fixture and edit.
-// VIBESTUDIO_MODELLER_EVIDENCE names a JSON file for the measurements.
+// when SLOPSTUDIO_MODELLER_MAX_EDIT_MS / SLOPSTUDIO_MODELLER_MAX_CANCEL_MS /
+// SLOPSTUDIO_MODELLER_MAX_EDIT_GAP_MS are set. By default one fixture and two
+// edits run; SLOPSTUDIO_MODELLER_FULL_LATENCY=1 runs every fixture and edit.
+// SLOPSTUDIO_MODELLER_EVIDENCE names a JSON file for the measurements.
 #include "app/model_editor_dialog.h"
 #include "app/studio_theme.h"
 #include "core/model_document.h"
@@ -43,7 +43,7 @@
 #include <psapi.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -119,17 +119,17 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("edit-latency-XXXXXX")));
 	if (!temporary.isValid())
 		return EXIT_FAILURE;
 	StudioSettings::setOverrideFilePath(QDir(temporary.path()).filePath(QStringLiteral("settings.ini")));
-	const bool full = qEnvironmentVariableIntValue("VIBESTUDIO_MODELLER_FULL_LATENCY") != 0;
-	const int editBudget = qEnvironmentVariableIntValue("VIBESTUDIO_MODELLER_MAX_EDIT_MS");
-	const int cancelBudget = qEnvironmentVariableIntValue("VIBESTUDIO_MODELLER_MAX_CANCEL_MS");
-	const int gapBudget = qEnvironmentVariableIntValue("VIBESTUDIO_MODELLER_MAX_EDIT_GAP_MS");
+	const bool full = qEnvironmentVariableIntValue("SLOPSTUDIO_MODELLER_FULL_LATENCY") != 0;
+	const int editBudget = qEnvironmentVariableIntValue("SLOPSTUDIO_MODELLER_MAX_EDIT_MS");
+	const int cancelBudget = qEnvironmentVariableIntValue("SLOPSTUDIO_MODELLER_MAX_CANCEL_MS");
+	const int gapBudget = qEnvironmentVariableIntValue("SLOPSTUDIO_MODELLER_MAX_EDIT_GAP_MS");
 	bool ok = true;
 	QString error;
 	QJsonArray evidence;
@@ -260,7 +260,7 @@ int main(int argc, char **argv)
 
 	// The editor's worker path: the largest event-loop gap while a maximum
 	// edit runs, and how quickly Cancel stops it.
-	if (vibestudio::test_support::exitCodeWithoutRenderer("model-edit-latency-smoke") < 0)
+	if (slopstudio::test_support::exitCodeWithoutRenderer("model-edit-latency-smoke") < 0)
 	{
 		applyStudioTheme(app, studioThemeTokens(StudioTheme::Dark, UiDensity::Standard, 100));
 		ModelEditorDialog editor;
@@ -318,7 +318,7 @@ int main(int argc, char **argv)
 
 	const auto json = QJsonDocument(QJsonObject{{QStringLiteral("evidence"), evidence}, {QStringLiteral("full"), full}}).toJson(QJsonDocument::Compact);
 	std::cout << "EVIDENCE " << json.constData() << std::endl;
-	if (const auto path = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE"); !path.isEmpty())
+	if (const auto path = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE"); !path.isEmpty())
 	{
 		QFile file(path);
 		ok &= expect(file.open(QIODevice::WriteOnly) && file.write(json) == json.size(), "write the evidence file");

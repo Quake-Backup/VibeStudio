@@ -1,4 +1,4 @@
-# VibeStudio Roadmap
+# SlopStudio Roadmap
 
 The [modeller production plan](plans/modeller-production.md) tracks complete
 idTech modelling workflows and separate acceptance requirements. Joint hierarchy
@@ -82,7 +82,7 @@ and modern scene-editor families. QuArK has routed viewport controls; modern
 held-button flight and middle-button orbit/pan use shared routing. Settings,
 Controls help, aliases and CLI expose actual bindings and adaptation gaps.
 Ninety-seven gesture and navigation-key settings can now be overridden per profile
-through staged GUI controls, validated CLI batches and portable VibeStudio
+through staged GUI controls, validated CLI batches and portable SlopStudio
 import/export. Fly, drive and mouse-look keys share conflict checks and command
 overlap diagnostics. Native preference import and native acceptance remain open.
 Standalone NetRadiant and Sledge now have distinct audited profiles. Temporary
@@ -139,15 +139,15 @@ prop edits, shader verification and original-engine acceptance remain open.
 This increment does not close the professional modeller release gate. See
 [Model Collision](MODEL_COLLISION.md) and [release evidence](MODELLER_RELEASE.md).
 
-Quake-family compilation now targets VibeStudio's own compilers: VibeMap2,
-derived from ericw-tools, for Quake and Quake II, and VibeMap3, continuing q3map2
+Quake-family compilation now targets SlopStudio's own compilers: SlopMap2,
+derived from ericw-tools, for Quake and Quake II, and SlopMap3, continuing q3map2
 from NetRadiant Custom, for Quake III. Profiles, discovery, pipelines and
 prepared builds use them, and the old `ericw-*` and `q3map2*` tool and profile
 ids are refused, naming the new id. The Quake/Quake II and Quake III prepared-build
-proofs passed with VibeMap2 and VibeMap3 on Windows on 2026-10-08; the other
+proofs passed with SlopMap2 and SlopMap3 on Windows on 2026-10-08; the other
 compiler proofs recorded below ran stock ericw-tools and q3map2 and have not been
-repeated yet, and the known-issue catalogue still needs a re-audit against VibeMap2. See
-[Compiler Integration](COMPILER_INTEGRATION.md#vibestudio-compilers).
+repeated yet, and the known-issue catalogue still needs a re-audit against SlopMap2. See
+[Compiler Integration](COMPILER_INTEGRATION.md#slopstudio-compilers).
 
 Quake/Quake II/Quake III prepared builds now connect current map edits, generated/staged package
 assets, compiler execution and package publication through one verified snapshot.
@@ -319,7 +319,7 @@ owner/group preservation and linked-copy undo. Arbitrary point insertion,
 component rotation/scale/shear, broader deformation texture lock, exact profile
 gestures and native cross-platform acceptance remain open.
 
-VibeStudio should become the definitive open-source development studio for
+SlopStudio should become the definitive open-source development studio for
 idTech1, idTech2, and idTech3 games: one seamless, modern, cross-platform,
 user-friendly, adaptable, and efficient environment where a creator can manage
 game installations, edit assets and maps, run compilers, package content, test
@@ -328,13 +328,13 @@ switching tools.
 
 In practical terms, the long-term goal is:
 
-- [ ] A new user can point VibeStudio at their games and projects, then start working within minutes.
+- [ ] A new user can point SlopStudio at their games and projects, then start working within minutes.
 - [ ] A mapper can build, inspect, fix, package, and launch a playable map from one workspace.
 - [ ] An artist can create or edit textures, sprites, models, audio, and shaders with game-aware previews.
 - [ ] A programmer or scripter can edit code/scripts/configs with project-aware search and diagnostics.
 - [ ] A release maintainer can validate packages, preserve credits, generate manifests, and ship reproducible builds.
 - [ ] Users can choose familiar level-editor profiles inspired by GtkRadiant 1.6.0, NetRadiant Custom, TrenchBroom, and QuArK.
-- [ ] Users always know what VibeStudio is doing, what is queued, what succeeded, what failed, and where output went.
+- [ ] Users always know what SlopStudio is doing, what is queued, what succeeded, what failed, and where output went.
 - [ ] Users can start simple and delve into deeper metadata, logs, graphs, manifests, and raw format details when needed.
 - [ ] Users can tailor language, accessibility, theme, editor profile, game installs, projects, compilers, AI, CLI, and automation through a complete modern setup flow.
 - [ ] Users can work comfortably with high-visibility themes, UI/text scaling, keyboard navigation, assistive tools, OS-backed TTS, and localized UI.
@@ -343,7 +343,7 @@ In practical terms, the long-term goal is:
 
 ## North-Star Metrics
 
-These metrics define whether VibeStudio is moving toward the goal. When a task
+These metrics define whether SlopStudio is moving toward the goal. When a task
 changes behavior, update or add a metric-backed test where practical.
 
 ### Seamless Workflow
@@ -425,16 +425,16 @@ changes behavior, update or add a metric-backed test where practical.
 - [ ] Prompt-based workflows produce reviewable plans, staged changes, command manifests, or diffs before writing.
 - [ ] Agentic workflows expose plan, context, tool calls, staged changes, validation, cancellation, and final summary.
 - [x] Levels can be generated from a description, planned by deterministic rules or by a text model's schema-checked plan, and opened as an editable map (Quake, Quake II, Quake III, Doom).
-- [x] Quake-MapGen is part of VibeStudio as the Map Generator (`src/mapgen`, Partial): Quake, Quake II and Quake III levels with capture the flag, four map dialects, stage switches and navigation, visibility and lighting analysis, from the Generate Level dialog or `map generate --generator quake-mapgen`, planned by its rules or through the studio's text connectors.
+- [x] Quake-MapGen is part of SlopStudio as the Map Generator (`src/mapgen`, Partial): Quake, Quake II and Quake III levels with capture the flag, four map dialects, stage switches and navigation, visibility and lighting analysis, from the Generate Level dialog or `map generate --generator quake-mapgen`, planned by its rules or through the studio's text connectors.
 - [x] Bring Quake-MapGen's research tools (map recipes, reference-map study, benchmark, knowledge base) into the Map Generator.
 - [ ] Localise the Map Generator's analysis findings.
 - [x] Text pipelines can use Claude Code or Codex through the user's own subscription login, a custom command, or a GGUF model run inside the studio with ggml (`-Dggml=enabled`), besides HTTP providers and local servers.
 - [ ] Image and sound generation through local ggml runtimes (stable-diffusion.cpp and similar).
-- [ ] Compile Map Generator output with VibeMap2/VibeMap3 in the studio and feed leak pointfiles back to its local seal repair.
+- [ ] Compile Map Generator output with SlopMap2/SlopMap3 in the studio and feed leak pointfiles back to its local seal repair.
 - [x] Game-ready textures can be generated by an image model (OpenAI, Gemini, or a local Stable Diffusion web UI) or from a picture, with seam blending, palette conversion, and source-port companion maps.
 - [x] The open map can be edited from an instruction: a text model proposes schema-checked actions that are validated against the map, reviewed, and applied as undoable editor edits (`map ai-edit` and Edit with AI).
 - [x] Game-ready sound effects can be made from a description by a deterministic synthesizer (no AI) or a sound model (ElevenLabs or a custom endpoint), delivered as Doom DMX lumps or Quake-family WAVs with seamless loops, and placed in Quake II/III maps.
-- [ ] AI actions call explicit VibeStudio tools for package scans, compiler runs, text edits, and project changes.
+- [ ] AI actions call explicit SlopStudio tools for package scans, compiler runs, text edits, and project changes.
 - [ ] AI activity logs redact secrets and show what project context was used.
 - [ ] AI-free mode is complete for core editing, packaging, compiling, validation, launch/testing, and CLI automation.
 - [ ] At least one workflow explains compiler logs and proposes a reproducible next command.
@@ -479,11 +479,11 @@ idTech project workbench that proves the end-to-end loop:
 MVP exit criteria:
 
 - [ ] Runs on Windows, macOS, and Linux from CI-built artifacts.
-- [x] Supports at least one complete idTech2/Quake-family compile loop (proved with stock ericw-tools, before the move to VibeMap2).
+- [x] Supports at least one complete idTech2/Quake-family compile loop (proved with stock ericw-tools, before the move to SlopMap2).
 - [x] Supports at least one Doom-family node-building loop using ZDBSP or ZokumBSP.
-- [x] Supports at least one idTech3 diagnostic or compile loop (proved with NetRadiant Custom q3map2, before the move to VibeMap3).
-- [x] Proves the Quake-family and Quake III compile loops again with VibeStudio's own VibeMap2 and VibeMap3 (Windows, 2026-10-08).
-- [ ] Reruns the artifacts, deployment and MD3 appearance compiler proofs with VibeMap2 and VibeMap3, and on macOS and Linux.
+- [x] Supports at least one idTech3 diagnostic or compile loop (proved with NetRadiant Custom q3map2, before the move to SlopMap3).
+- [x] Proves the Quake-family and Quake III compile loops again with SlopStudio's own SlopMap2 and SlopMap3 (Windows, 2026-10-08).
+- [ ] Reruns the artifacts, deployment and MD3 appearance compiler proofs with SlopMap2 and SlopMap3, and on macOS and Linux.
 - [x] Supports package browsing for folders, PAK, WAD, and PK3/ZIP-family archives.
 - [x] Supports previews for core text, image/palette, audio metadata and waveform, and model/map metadata.
 - [x] Supports audio playback through Qt Multimedia when the build links it; without it, audio previews stop at metadata and waveform.
@@ -604,7 +604,7 @@ Exit criteria:
 
 ## Milestone 1: PakFu Core Migration MVP
 
-Goal: make VibeStudio useful as a safe package/project browser before deeper
+Goal: make SlopStudio useful as a safe package/project browser before deeper
 editors arrive.
 
 ### Core Package Abstractions
@@ -688,10 +688,10 @@ Exit criteria:
 
 ## Milestone 2: Project And Installation Workbench
 
-Goal: make VibeStudio understand games and projects, not just individual files.
+Goal: make SlopStudio understand games and projects, not just individual files.
 
 ### Project Model
-- [x] Define `.vibestudio/project.json` schema.
+- [x] Define `.slopstudio/project.json` schema.
 - [x] Add project create/open/save.
 - [x] Add project root, source folders, package folders, output folders, and temp folders.
 - [x] Add project-local settings override layer.
@@ -736,7 +736,7 @@ editors.
 - [x] Add user-configured executable paths (Build > Toolchain **Locate…** and `compiler set-path`).
 - [x] Add project-local compiler overrides.
 - [x] Add compiler version probing.
-- [x] Add capability flags for Doom node builders, VibeMap2, and VibeMap3 (first written for ericw-tools and q3map2).
+- [x] Add capability flags for Doom node builders, SlopMap2, and SlopMap3 (first written for ericw-tools and q3map2).
 
 ### Command Manifests
 - [x] Define compiler run manifest schema.
@@ -746,17 +746,17 @@ editors.
 - [x] Add copy command line action.
 
 ### Toolchain Slices
-- [x] Add VibeMap2 profile: `vibemap2-bsp` (first written for ericw-tools `qbsp`).
-- [x] Add VibeMap2 profile: `vibemap2-vis` (first written for ericw-tools `vis`).
-- [x] Add VibeMap2 profile: `vibemap2-light` (first written for ericw-tools `light`).
+- [x] Add SlopMap2 profile: `slopmap2-bsp` (first written for ericw-tools `qbsp`).
+- [x] Add SlopMap2 profile: `slopmap2-vis` (first written for ericw-tools `vis`).
+- [x] Add SlopMap2 profile: `slopmap2-light` (first written for ericw-tools `light`).
 - [x] Add ZDBSP profile for a selected WAD/map.
 - [x] Add ZokumBSP profile for a selected WAD/map.
-- [x] Add VibeMap3 info/help/probe profile (first written for q3map2).
-- [x] Add VibeMap3 compile profile for a simple `.map` (first written for q3map2).
-- [x] Move the Quake-family toolchain to VibeStudio's own VibeMap2 and VibeMap3, renaming the `ericw-*` and `q3map2*` ids and refusing the old ones with the new id named.
-- [ ] Rerun the Quake-family and Quake III compiler proofs with VibeMap2 and VibeMap3.
-- [ ] Re-audit the known-issue catalogue against VibeMap2's upstream audit and retire the entries it resolves.
-- [ ] Ship VibeMap2 and VibeMap3 programs with VibeStudio releases.
+- [x] Add SlopMap3 info/help/probe profile (first written for q3map2).
+- [x] Add SlopMap3 compile profile for a simple `.map` (first written for q3map2).
+- [x] Move the Quake-family toolchain to SlopStudio's own SlopMap2 and SlopMap3, renaming the `ericw-*` and `q3map2*` ids and refusing the old ones with the new id named.
+- [ ] Rerun the Quake-family and Quake III compiler proofs with SlopMap2 and SlopMap3.
+- [ ] Re-audit the known-issue catalogue against SlopMap2's upstream audit and retire the entries it resolves.
+- [ ] Ship SlopMap2 and SlopMap3 programs with SlopStudio releases.
 
 ### Diagnostics
 - [x] Capture stdout/stderr in task log.
@@ -772,7 +772,7 @@ editors.
 - [x] Add "copy CLI equivalent" and "copy manifest" actions.
 
 Exit criteria:
-- [x] User can run at least one compile/build command for each engine family from VibeStudio, watch progress, inspect summaries/logs, locate outputs, and keep a reproducible record.
+- [x] User can run at least one compile/build command for each engine family from SlopStudio, watch progress, inspect summaries/logs, locate outputs, and keep a reproducible record.
 
 ## Milestone 3A: CLI Parity Backbone
 
@@ -864,7 +864,7 @@ Goal: ship the smallest public version that proves the complete loop.
 - [x] Add Windows portable package.
 - [x] Add macOS portable package.
 - [x] Add Linux portable package.
-- [x] Add license bundle for VibeStudio and compiler/toolchain sources.
+- [x] Add license bundle for SlopStudio and compiler/toolchain sources.
 - [x] Add generated offline user guide.
 - [x] Add release asset validation.
 
@@ -898,7 +898,7 @@ Goal: ship the smallest public version that proves the complete loop.
 - [ ] Smoke-test Linux clean machine launch.
 - [x] Run the offscreen `--self-test` GUI smoke check on Windows, macOS, and Linux in PR CI: the shell is
   built, every work surface is visited and repainted, and shortcut conflicts are reported.
-- [x] Drive the real window in CI: `shell-interaction-smoke` builds the shell from the `vibestudio_app`
+- [x] Drive the real window in CI: `shell-interaction-smoke` builds the shell from the `slopstudio_app`
   library and checks page-scoped keys, find and filters, navigation between surfaces, unsaved-edit guards,
   viewer controls, and the map, build, problem, object loop against a stand-in compiler.
 - [x] Smoke-test opening fixture PAK/WAD/PK3.
@@ -930,7 +930,7 @@ Goal: ship the smallest public version that proves the complete loop.
 - [x] Verify credits and license bundle skeleton.
 
 MVP release exit criteria:
-- [x] A user can install/open VibeStudio, configure a game/project, browse assets, run a compiler profile, inspect diagnostics, and locate or launch output.
+- [x] A user can install/open SlopStudio, configure a game/project, browse assets, run a compiler profile, inspect diagnostics, and locate or launch output.
 - [x] The app is honest about what editing surfaces are still previews or planned.
 
 ## Milestone 5: Safe Write-Back And Packaging
@@ -984,7 +984,7 @@ Goal: make package edits practical without sacrificing trust.
   worker byte/phase progress with cancellation within one file. Prepare in-place
   manifest content before publication. Metadata scale, older preview/drag and
   standalone compression analysis remain release work.
-- [x] Add portable `.vibepackage` editing drafts with independent payloads,
+- [x] Add portable `.sloppackage` editing drafts with independent payloads,
   grouped undo/redo, worker save/open, dirty-state choices, session restore, and
   CLI draft save/info/undo/redo. Open drafts retain history across archive exports.
 - [x] Add automatic package checkpoints, visible status, a recovery chooser and
@@ -1586,7 +1586,7 @@ Goal: widen the workbench into a real asset studio.
   outside changes, and write the setup steps' names in translatable title case.
 
 Exit criteria:
-- [x] VibeStudio replaces PakFu for core browse/preview/package workflows and adds project/compiler context.
+- [x] SlopStudio replaces PakFu for core browse/preview/package workflows and adds project/compiler context.
 
 ## Milestone 7: Level Editing MVP
 
@@ -1833,7 +1833,7 @@ Goal: evolve from workbench into the full all-encompassing studio.
 - [x] Add extension-generated file staging.
 
 Exit criteria:
-- [x] Common mod development no longer requires VibeStudio users to leave for routine shader, sprite, script, package, and build operations.
+- [x] Common mod development no longer requires SlopStudio users to leave for routine shader, sprite, script, package, and build operations.
 
 ## Continuous Quality Backlog
 
@@ -1857,7 +1857,7 @@ related area.
 - [x] Add fuzz target for ZIP/PK3 parser.
 - [ ] Add fuzz targets for the new binary parsers: inflate, the idTech image decoders, and BSP/portal/leak
   inspection. Partly done: `parser-fuzz-smoke` runs a deterministic corpus, generated by a seeded xorshift
-  generator over seven mutations and re-runnable through `VIBESTUDIO_FUZZ_SEED`, through `inflateRaw`,
+  generator over seven mutations and re-runnable through `SLOPSTUDIO_FUZZ_SEED`, through `inflateRaw`,
   `inflateZlib`, `decodeIdTechImage`, `detectIdTechImageFormat`, `inspectBspBytes`, `PackageArchive::load`,
   `loadLevelMap` for both `.map` and Doom WAD input, and `decodeModelMesh`. The portal (`.prt`) and leak
   point (`.pts`/`.lin`) readers take a path rather than a buffer and are not fuzzed yet.
@@ -1947,9 +1947,9 @@ Use this queue to get to MVP quickly.
 10. [x] Add project manifest and workspace dashboard with project health summary.
 11. [x] Add compiler registry and executable discovery.
 12. [x] Add CLI subcommand router, JSON output, and exit-code contract.
-13. [x] Add `qbsp/vis/light` wrapper profiles (ericw-tools then, VibeMap2 now).
+13. [x] Add `qbsp/vis/light` wrapper profiles (ericw-tools then, SlopMap2 now).
 14. [x] Add ZDBSP or ZokumBSP wrapper profile.
-15. [x] Add probe/compile wrapper profiles for Quake III (q3map2 then, VibeMap3 now).
+15. [x] Add probe/compile wrapper profiles for Quake III (q3map2 then, SlopMap3 now).
 16. [x] Add structured task logs, command manifests, and output-path reporting.
 17. [x] Add package composition and compiler pipeline graphical summaries.
 18. [x] Add editor profile registry and routed MVP presets.
@@ -2082,7 +2082,7 @@ preview remain separate acceptance work.
 ## Module cohesion and format breadth
 
 Implemented: shared format capabilities and texture import filters; portable
-`.vibeworkspace` GUI/CLI persistence; DDS/FTX import and export, SWL import,
+`.slopworkspace` GUI/CLI persistence; DDS/FTX import and export, SWL import,
 TIFF routing and PK4/PKZ aliases. The [PakFu comparison](ASSET_FORMATS.md#pakfu-comparison-and-remaining-work)
 tracks SPAK/resources/encrypted PK3, more model geometry, IDWAV, cinematics and
 binary inspectors. Each needs bounded parsing, fixture evidence, target-engine
@@ -2118,7 +2118,7 @@ optional corner UV lock and atomic linked-group history. Direct plan/camera
 rotation, scale, shear and pivot controls use the same validation worker.
 These are increments toward [level editor production parity](plans/level-editor-production.md);
 dense-map performance, native profile acceptance and the full TB/NRC command
-audit remain open. VibeStudio remains pre-alpha.
+audit remain open. SlopStudio remains pre-alpha.
 
 Camera component selection now groups genuinely coincident vertices, edges and
 faces, while plan views retain projected stacks. All/None/Invert preserve the

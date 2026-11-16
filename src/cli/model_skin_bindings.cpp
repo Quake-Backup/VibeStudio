@@ -9,7 +9,7 @@
 #include <QJsonDocument>
 #include <limits>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -88,7 +88,7 @@ ModelSkinBindingsCliResult runModelSkinBindings(const QStringList &arguments)
 	if (package)
 	{
 		const auto path = values.value("--package");
-		if (path.endsWith(".vibepackage", Qt::CaseInsensitive))
+		if (path.endsWith(".sloppackage", Qt::CaseInsensitive))
 		{
 			PackageStagingModel staging;
 			if (!PackageDraft::load(path, &staging, &error))
@@ -191,4 +191,4 @@ ModelSkinBindingsCliResult runModelSkinBindings(const QStringList &arguments)
 		result.lines << packed;
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

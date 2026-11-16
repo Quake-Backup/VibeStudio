@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -217,4 +217,4 @@ bool renderModelVertexOverlay(const ModelVertexProjection &projection, QSize siz
 	*image = std::move(result);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

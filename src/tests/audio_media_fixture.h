@@ -2,7 +2,7 @@
 #include "tests/audio_range_fixture.h"
 #include <QFile>
 
-namespace vibestudio::test
+namespace slopstudio::test
 {
 inline AudioSession mediaFixture()
 {
@@ -26,4 +26,4 @@ inline QByteArray readMediaFixture(const QString &path)
 	QFile file(path);
 	return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
 }
-} // namespace vibestudio::test
+} // namespace slopstudio::test

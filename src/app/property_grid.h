@@ -2,7 +2,7 @@
 
 #include <QTreeWidget>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Metadata grids keep translated headings readable through font/theme changes,
 // preserve a user's property-column width, and scroll when both cannot fit.
@@ -19,4 +19,4 @@ private:
 	bool m_updatingMetrics = false, m_metricsQueued = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

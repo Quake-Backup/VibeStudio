@@ -1,6 +1,6 @@
 # Repeat object commands
 
-**Status: Partial.** VibeStudio remains pre-alpha. This implements a bounded
+**Status: Partial.** SlopStudio remains pre-alpha. This implements a bounded
 TrenchBroom-style repeat workflow; it does not establish complete editor parity
 or native platform acceptance.
 
@@ -48,7 +48,7 @@ retain the existing format, coordinate, entity-angle and topology restrictions.
 **Copy Repeat Recipe** copies versioned JSON. Save it in the project, then run:
 
 ```sh
-vibestudio --cli map repeat maps/room.map --recipe repeat.json \
+slopstudio --cli map repeat maps/room.map --recipe repeat.json \
   --object brush:6 --output maps/repeated.map --json
 ```
 
@@ -102,7 +102,7 @@ repeated. Component mode composes the same parts into one
 `LevelComponentTransformKind::Affine` request
 (`levelRepeatTransformsComponentRequest`), so UV lock and independent face
 picks behave as for **Transform Components**. NetRadiant Custom adds a skew
-term to the rotation matrix; VibeStudio applies scale, skew, rotation and
+term to the rotation matrix; SlopStudio applies scale, skew, rotation and
 translation in that order, which matches it whenever one of skew and rotation
 is absent. Quake-family text maps only; Doom maps keep **Repeat Last
 Commands**. `map repeat-transforms` names the transforms on the command line.
@@ -125,6 +125,6 @@ components, CLI) and `level-duplicate-move-ui-smoke` (shell keys and actions).
 
 Large real-project sequences, physical input, assistive technology and native
 macOS/Linux acceptance remain open. TrenchBroom's undo grouping can differ:
-VibeStudio deliberately commits each replay atomically. Array, component and
+SlopStudio deliberately commits each replay atomically. Array, component and
 other command families need separate applicability reviews. Reference provenance
 is recorded in [Credits](CREDITS.md#repeatable-object-commands).

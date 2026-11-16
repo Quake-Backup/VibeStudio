@@ -24,7 +24,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -508,4 +508,4 @@ void ModelQ3AnimationDialog::finish(bool exporting)
 	m_exportRequested = exporting;
 	accept();
 }
-} // namespace vibestudio
+} // namespace slopstudio

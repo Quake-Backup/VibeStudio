@@ -19,7 +19,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -85,7 +85,7 @@ int main(int argc, char** argv)
 	QApplication::setAttribute(Qt::AA_DontUseNativeDialogs);
 	QApplication app(argc, argv);
 	app.setQuitOnLastWindowClosed(false);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-import-ui-XXXXXX")));
 	if (!temporary.isValid()) {
@@ -95,11 +95,11 @@ int main(int argc, char** argv)
 	QSettings::setDefaultFormat(QSettings::IniFormat);
 	QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, temporary.path());
 	StudioSettings::setOverrideFilePath(QDir(temporary.path()).filePath(QStringLiteral("settings.ini")));
-	qputenv("VIBESTUDIO_AUDIO_RECOVERY_ROOT",
+	qputenv("SLOPSTUDIO_AUDIO_RECOVERY_ROOT",
 	        QDir(temporary.path()).filePath(QStringLiteral("recovery")).toUtf8());
 	QString error;
 	bool ok = true;
-	const QDir compressedFixtures(qEnvironmentVariable("VIBESTUDIO_AUDIO_FIXTURES"));
+	const QDir compressedFixtures(qEnvironmentVariable("SLOPSTUDIO_AUDIO_FIXTURES"));
 	{
 		auto* browser = new ApplicationShell;
 		browser->show();

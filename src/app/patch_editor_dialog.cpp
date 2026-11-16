@@ -37,7 +37,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 PatchControlView::PatchControlView(QWidget* parent) : QWidget(parent)
 {
@@ -945,4 +945,4 @@ void PatchEditorDialog::refresh()
 	m_redoAction->setEnabled(!m_redo.isEmpty());
 	m_refreshing = false;
 }
-} // namespace vibestudio
+} // namespace slopstudio

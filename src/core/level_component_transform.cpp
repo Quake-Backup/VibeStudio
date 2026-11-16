@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool fail(QString* error, const char* text)
 {
@@ -265,4 +265,4 @@ bool transformLevelMapComponents(LevelMapDocument* document, const QVector<Level
 	if (report) { *report = result; }
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

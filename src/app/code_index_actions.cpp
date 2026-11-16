@@ -23,7 +23,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 bool sameIndexPath(const QString& left, const QString& right)
@@ -256,4 +256,4 @@ QString ApplicationShell::ensureDefinitionIndex()
 	return root;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

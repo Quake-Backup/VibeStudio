@@ -22,7 +22,7 @@
 class QThreadPool;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // What the list needs for a library, prepared with the scan: the filter
 // properties of every entry.
@@ -156,4 +156,4 @@ private:
 	bool m_showShadowed = true;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

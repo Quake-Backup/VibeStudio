@@ -24,7 +24,7 @@
 #include <QApplication>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 QString materialKey(QString name)
@@ -193,4 +193,4 @@ bool ApplicationShell::applyLevelFaceAttributesFromUi(const LevelFaceAttributesE
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -4,7 +4,7 @@
 samples, with a model-space target and bend pole, and
 [long-chain IK](#solve-longer-chains) (FABRIK or CCD) with
 [joint limits](#limit-joint-rotation), targets that follow a joint, per-sample
-targets and targets placed at the 3D cursor. VibeStudio remains pre-alpha
+targets and targets placed at the 3D cursor. SlopStudio remains pre-alpha
 and largely untested in real projects. This does not establish the
 [production gate](MODELLER_RELEASE.md).
 
@@ -167,7 +167,7 @@ Native round-trip fixtures do not prove acceptance in the original engines.
 ## Automate the solve
 
 ```sh
-vibestudio --cli model ik ./models/player.mesh.json --clip 0 --first 0 --last 8 --end-joint foot.L --target 0,8,0 --pole 0,4,8 --output ./models/planted.mesh.json --dry-run --json
+slopstudio --cli model ik ./models/player.mesh.json --clip 0 --first 0 --last 8 --end-joint foot.L --target 0,8,0 --pole 0,4,8 --output ./models/planted.mesh.json --dry-run --json
 ```
 
 Input is positional or supplied with `--input`. All of `--clip`, `--first`,
@@ -183,7 +183,7 @@ flags are `--nearest-reachable`,
 options. Repeated, unknown or malformed options are refused.
 
 ```sh
-vibestudio --cli model ik ./models/monster.mesh.json --clip 2 --first 0 --last 30 --root-joint spine1 --end-joint head --solver fabrik --limits --target-joint prop --target-offset 0,0,8 --output ./models/look.mesh.json --json
+slopstudio --cli model ik ./models/monster.mesh.json --clip 2 --first 0 --last 30 --root-joint spine1 --end-joint head --solver fabrik --limits --target-joint prop --target-offset 0,0,8 --output ./models/look.mesh.json --json
 ```
 
 JSON includes per-sample end position, target, target distance, tolerance and

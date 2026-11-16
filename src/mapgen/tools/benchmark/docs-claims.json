@@ -3,7 +3,7 @@
   "schema_version": 1,
   "description": "Machine-checkable statements that README.md, docs/ROADMAP.md and docs/PLAYTEST_PROTOCOL.md must keep (X3 truth patch and H6 protocol, docs/RC_PHASE1_AUDIT_AND_PLAN.md sections 9.10 and 9.12). Intended for a later qmg_docs_claims CTest. Changing a claim needs the same review as changing the docs.",
   "regex_dialect": "python-re",
-  "vibestudio": "VibeStudio: README.md is kept as docs/UPSTREAM_README.md with its links repointed, so the README claims read that file and expect the repointed links.",
+  "slopstudio": "SlopStudio: README.md is kept as docs/UPSTREAM_README.md with its links repointed, so the README claims read that file and expect the repointed links.",
   "semantics": {
     "file": "Path relative to the repository root, read as UTF-8 with LF line endings.",
     "expect": "'match': re.search(regex, text) must find a match. 'no_match': it must find none.",

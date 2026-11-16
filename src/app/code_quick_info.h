@@ -9,7 +9,7 @@ class QPushButton;
 class QProgressBar;
 class QTextBrowser;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class CodeQuickInfoPanel final : public QWidget {
 	Q_OBJECT
@@ -34,4 +34,4 @@ private:
 	bool m_busy = false, m_hasInfo = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

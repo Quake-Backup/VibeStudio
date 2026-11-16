@@ -24,7 +24,7 @@
 #include <memory>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -1245,7 +1245,7 @@ SetupSummary StudioSettings::setupSummary() const
 		summary.nextAction = QStringLiteral("Open the workspace dashboard and continue normal project work.");
 	} else if (progress.skipped) {
 		summary.status = QStringLiteral("skipped");
-		summary.nextAction = QStringLiteral("Resume setup when you want to finish tailoring VibeStudio.");
+		summary.nextAction = QStringLiteral("Resume setup when you want to finish tailoring SlopStudio.");
 	} else if (progress.started) {
 		summary.status = QStringLiteral("in-progress");
 		summary.nextAction = QStringLiteral("Continue the current setup step or skip setup for now.");
@@ -1269,7 +1269,7 @@ SetupSummary StudioSettings::setupSummary() const
 		const QStringList systemLanguages = systemLanguageTags();
 		const QString firstLanguage = systemLanguages.isEmpty() ? QString() : systemLanguages.first().section(QLatin1Char('-'), 0, 0).section(QLatin1Char('_'), 0, 0).toLower();
 		if (systemLocalizationTargetId() == QStringLiteral("en") && !firstLanguage.isEmpty() && firstLanguage != QStringLiteral("en")) {
-			summary.warnings.push_back(QStringLiteral("The system language (%1) has no VibeStudio translation, so the interface is in English.").arg(systemLanguages.first()));
+			summary.warnings.push_back(QStringLiteral("The system language (%1) has no SlopStudio translation, so the interface is in English.").arg(systemLanguages.first()));
 		}
 	}
 	const AccessibilityPreferences defaults;
@@ -2014,7 +2014,7 @@ void StudioSettings::ensureSchema()
 		m_migrationNotes.push_back(QStringLiteral("Settings schema version %1 is newer than this build's %2; the store is opened read-only.")
 			.arg(storedVersion)
 			.arg(kSchemaVersion));
-		qWarning("VibeStudio settings at %s use schema version %d, newer than the supported version %d; no settings will be written.",
+		qWarning("SlopStudio settings at %s use schema version %d, newer than the supported version %d; no settings will be written.",
 			qUtf8Printable(m_settings->fileName()),
 			storedVersion,
 			kSchemaVersion);
@@ -2548,46 +2548,46 @@ QString setupStepDisplayName(SetupStep step)
 	// Title case as the Settings pages write it: short words stay lower case.
 	switch (step) {
 	case SetupStep::WelcomeAccess:
-		return QCoreApplication::translate("VibeStudioSetup", "Welcome and Access");
+		return QCoreApplication::translate("SlopStudioSetup", "Welcome and Access");
 	case SetupStep::WorkspaceProfile:
-		return QCoreApplication::translate("VibeStudioSetup", "Workspace and Editor Profile");
+		return QCoreApplication::translate("SlopStudioSetup", "Workspace and Editor Profile");
 	case SetupStep::ProjectsPackages:
-		return QCoreApplication::translate("VibeStudioSetup", "Projects and Packages");
+		return QCoreApplication::translate("SlopStudioSetup", "Projects and Packages");
 	case SetupStep::GameInstallations:
-		return QCoreApplication::translate("VibeStudioSetup", "Game Installations");
+		return QCoreApplication::translate("SlopStudioSetup", "Game Installations");
 	case SetupStep::Toolchains:
-		return QCoreApplication::translate("VibeStudioSetup", "Toolchains");
+		return QCoreApplication::translate("SlopStudioSetup", "Toolchains");
 	case SetupStep::AiAutomation:
-		return QCoreApplication::translate("VibeStudioSetup", "AI and Automation");
+		return QCoreApplication::translate("SlopStudioSetup", "AI and Automation");
 	case SetupStep::CliIntegration:
-		return QCoreApplication::translate("VibeStudioSetup", "CLI Integration");
+		return QCoreApplication::translate("SlopStudioSetup", "CLI Integration");
 	case SetupStep::ReviewFinish:
-		return QCoreApplication::translate("VibeStudioSetup", "Review and Finish");
+		return QCoreApplication::translate("SlopStudioSetup", "Review and Finish");
 	}
-	return QCoreApplication::translate("VibeStudioSetup", "Welcome and Access");
+	return QCoreApplication::translate("SlopStudioSetup", "Welcome and Access");
 }
 
 QString setupStepDescription(SetupStep step)
 {
 	switch (step) {
 	case SetupStep::WelcomeAccess:
-		return QCoreApplication::translate("VibeStudioSetup", "Review language, region formats, theme, colour vision, text scale, focus, motion, alerts, and TTS preferences.");
+		return QCoreApplication::translate("SlopStudioSetup", "Review language, region formats, theme, colour vision, text scale, focus, motion, alerts, and TTS preferences.");
 	case SetupStep::WorkspaceProfile:
-		return QCoreApplication::translate("VibeStudioSetup", "Choose your role, the level editor profile whose keys and mouse controls feel familiar, and the 3D renderer: OpenGL, Vulkan or Automatic.");
+		return QCoreApplication::translate("SlopStudioSetup", "Choose your role, the level editor profile whose keys and mouse controls feel familiar, and the 3D renderer: OpenGL, Vulkan or Automatic.");
 	case SetupStep::ProjectsPackages:
-		return QCoreApplication::translate("VibeStudioSetup", "Open a project folder, initialize a manifest, or defer project/package setup.");
+		return QCoreApplication::translate("SlopStudioSetup", "Open a project folder, initialize a manifest, or defer project/package setup.");
 	case SetupStep::GameInstallations:
-		return QCoreApplication::translate("VibeStudioSetup", "Add, detect, select, skip, or revisit game installation profiles without modifying game files.");
+		return QCoreApplication::translate("SlopStudioSetup", "Add, detect, select, skip, or revisit game installation profiles without modifying game files.");
 	case SetupStep::Toolchains:
-		return QCoreApplication::translate("VibeStudioSetup", "Prepare for compiler detection and command manifests.");
+		return QCoreApplication::translate("SlopStudioSetup", "Prepare for compiler detection and command manifests.");
 	case SetupStep::AiAutomation:
-		return QCoreApplication::translate("VibeStudioSetup", "Keep AI disabled by default or plan connector setup later.");
+		return QCoreApplication::translate("SlopStudioSetup", "Keep AI disabled by default or plan connector setup later.");
 	case SetupStep::CliIntegration:
-		return QCoreApplication::translate("VibeStudioSetup", "Review CLI availability and scriptable settings reports.");
+		return QCoreApplication::translate("SlopStudioSetup", "Review CLI availability and scriptable settings reports.");
 	case SetupStep::ReviewFinish:
-		return QCoreApplication::translate("VibeStudioSetup", "Inspect skipped, complete, pending, and warning states before entering the workspace.");
+		return QCoreApplication::translate("SlopStudioSetup", "Inspect skipped, complete, pending, and warning states before entering the workspace.");
 	}
-	return QCoreApplication::translate("VibeStudioSetup", "Review language, region formats, theme, colour vision, text scale, focus, motion, alerts, and TTS preferences.");
+	return QCoreApplication::translate("SlopStudioSetup", "Review language, region formats, theme, colour vision, text scale, focus, motion, alerts, and TTS preferences.");
 }
 
 SetupStep setupStepFromId(const QString& id)
@@ -2615,4 +2615,4 @@ QVector<SetupStep> setupSteps()
 	};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

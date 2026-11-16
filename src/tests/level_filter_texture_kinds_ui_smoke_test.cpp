@@ -34,7 +34,7 @@
 #include <QFont>
 #include <QStatusBar>
 #include <QTemporaryDir>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 #include <QTimer>
@@ -44,7 +44,7 @@
 #include <iostream>
 #include <tuple>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -228,7 +228,7 @@ int main(int argc, char** argv)
 				action(QStringLiteral("map.resetFilters"))->trigger();
 				expect(view->filteredCount() == 0, "Show Every Kind brings them back");
 
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				if (nrc && scale == 100) {
 					shell.activateWindow();
 					expect(until([&] { return QApplication::activeWindow() == &shell; }), "owned offscreen window is active");

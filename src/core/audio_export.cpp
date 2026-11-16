@@ -11,7 +11,7 @@
 #include <cmath>
 #include <random>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -87,7 +87,7 @@ QByteArray AudioWavEncoder::encode(const AudioClip &clip, QString *error, const 
 	}
 	const auto cancelled = [&]() {
 		if (control.cancelled && control.cancelled()) {
-			fail(error, QCoreApplication::translate("VibeStudioAudio", "WAV encoding cancelled."));
+			fail(error, QCoreApplication::translate("SlopStudioAudio", "WAV encoding cancelled."));
 			return true;
 		}
 		return false;
@@ -104,7 +104,7 @@ QByteArray AudioWavEncoder::encode(const AudioClip &clip, QString *error, const 
 	const bool floating = options.format == AudioWavFormat::Float32;
 	if (!bits || (floating && options.dither)) {
 		fail(error, QCoreApplication::translate(
-		                "VibeStudioAudio", "Choose a supported WAV precision. Dither applies only to integer PCM."));
+		                "SlopStudioAudio", "Choose a supported WAV precision. Dither applies only to integer PCM."));
 		return {};
 	}
 	// RIFF/WAVE and WAVEFORMATEXTENSIBLE layouts follow Microsoft's public
@@ -201,13 +201,13 @@ bool writeAudioExportBytes(const QByteArray &bytes, const QString &path, const Q
 		error->clear();
 	}
 	if (bytes.isEmpty() || bytes.size() > AudioInputByteLimit) {
-		return fail(error, QCoreApplication::translate("VibeStudioAudio",
+		return fail(error, QCoreApplication::translate("SlopStudioAudio",
 		                                               "Encoded audio is empty or exceeds the export limit."));
 	}
 	const auto checkDestination = [&]() {
 		const QFileInfo info(path);
 		if (path.trimmed().isEmpty() || !suffixes.contains(info.suffix(), Qt::CaseInsensitive)) {
-			return fail(error, QCoreApplication::translate("VibeStudioAudio",
+			return fail(error, QCoreApplication::translate("SlopStudioAudio",
 			                                               "Choose an output file with one of these extensions: %1.")
 			                       .arg(suffixes.join(QStringLiteral(", "))));
 		}
@@ -215,11 +215,11 @@ bool writeAudioExportBytes(const QByteArray &bytes, const QString &path, const Q
 			if (!protectedPath.isEmpty() && audioPathsReferToSameFile(path, protectedPath)) {
 				return fail(error,
 				            QCoreApplication::translate(
-				                "VibeStudioAudio", "Export to a new path to preserve the source sound or package."));
+				                "SlopStudioAudio", "Export to a new path to preserve the source sound or package."));
 			}
 		}
 		if (info.isSymLink() || info.isDir() || (!overwrite && info.exists())) {
-			return fail(error, QCoreApplication::translate("VibeStudioAudio",
+			return fail(error, QCoreApplication::translate("SlopStudioAudio",
 			                                               "The output exists or is a link. Choose another file or "
 			                                               "explicitly allow overwriting a regular file."));
 		}
@@ -231,10 +231,10 @@ bool writeAudioExportBytes(const QByteArray &bytes, const QString &path, const Q
 	if (dryRun) {
 		return checkDestination();
 	}
-	QLockFile lock(QFileInfo(path).absoluteFilePath() + QStringLiteral(".vibestudio-export.lock"));
+	QLockFile lock(QFileInfo(path).absoluteFilePath() + QStringLiteral(".slopstudio-export.lock"));
 	if (!lock.tryLock(0)) {
 		return fail(error, QCoreApplication::translate(
-		                       "VibeStudioAudio",
+		                       "SlopStudioAudio",
 		                       "Another export may be writing this sound, or the destination is not writable."));
 	}
 	if (!checkDestination()) {
@@ -244,7 +244,7 @@ bool writeAudioExportBytes(const QByteArray &bytes, const QString &path, const Q
 	file.setDirectWriteFallback(false);
 	if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size()) {
 		return fail(error,
-		            QCoreApplication::translate("VibeStudioAudio", "Unable to save audio: %1").arg(file.errorString()));
+		            QCoreApplication::translate("SlopStudioAudio", "Unable to save audio: %1").arg(file.errorString()));
 	}
 	if (!checkDestination()) {
 		file.cancelWriting();
@@ -252,7 +252,7 @@ bool writeAudioExportBytes(const QByteArray &bytes, const QString &path, const Q
 	}
 	if (!file.commit()) {
 		return fail(error,
-		            QCoreApplication::translate("VibeStudioAudio", "Unable to save audio: %1").arg(file.errorString()));
+		            QCoreApplication::translate("SlopStudioAudio", "Unable to save audio: %1").arg(file.errorString()));
 	}
 	return true;
 }
@@ -294,4 +294,4 @@ bool isGeneratedIntegerAudioWav(const QByteArray &bytes)
 	return decodeWavAudioMarkers(bytes, dataSize / stride, &markers);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

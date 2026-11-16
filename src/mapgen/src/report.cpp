@@ -712,7 +712,7 @@ std::string render_report(const PipelineResult &result) {
     quote(output, result.planner.model.model_sha256);
     output << ", \"tokenizer_sha256\": ";
     quote(output, result.planner.model.tokenizer_sha256);
-    // VibeStudio: only a connector-named model adds this key, so rules and GGUF reports keep their bytes.
+    // SlopStudio: only a connector-named model adds this key, so rules and GGUF reports keep their bytes.
     if (result.planner.model.provenance == ModelProvenance::named_service)
         output << ", \"provenance\": \"named_service\"";
     output << "},\n    \"inference\": {\"device\": ";
@@ -721,7 +721,7 @@ std::string render_report(const PipelineResult &result) {
            << ", \"context_limit\": " << result.planner.inference.context_limit << ", \"sampling\": ";
     quote(output, result.planner.inference.sampling);
     output << '}';
-    // VibeStudio: only a rules fallback adds this key, so other reports keep their bytes.
+    // SlopStudio: only a rules fallback adds this key, so other reports keep their bytes.
     if (!result.planner_fallback.empty()) {
         output << ",\n    \"fallback\": ";
         quote(output, result.planner_fallback);

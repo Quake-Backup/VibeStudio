@@ -8,7 +8,7 @@
 #include <algorithm>
 
 class QPainter;
-namespace vibestudio {
+namespace slopstudio {
 
 // Exact physical subpixel phases: no snapping of marker positions. Only the
 // repeated ring raster is cached; source identities and picking stay separate.
@@ -33,4 +33,4 @@ private:
 	QRgb m_color = 0;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

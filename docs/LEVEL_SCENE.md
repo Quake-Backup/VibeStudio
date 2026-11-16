@@ -144,7 +144,7 @@ content are **linked groups**, and the groups sharing one link id form a **link
 set**. **Create Linked Duplicate** makes a member (TrenchBroom's and Blender's
 name for the act). None of the members is an original, so neither "copy" nor
 "instance" is used for them; Hammer-style instances, which draw another map
-file, are a different feature. The implementation is VibeStudio's own
+file, are a different feature. The implementation is SlopStudio's own
 (`core/level_linked_groups.*`).
 
 **Create Linked Duplicate** (for the closed group the selection holds whole)
@@ -330,7 +330,7 @@ source conflict checks and independent backups apply.
 | `set-protected-property` | `--objects entity:N,... --key k --value v [--context <group UUID>]`; `--value=` preserves an explicitly empty value |
 | `clear-protected-properties` | `--objects entity:N,... [--context <group UUID>]`; clear selected linked entities' flags and restore available shared values |
 
-Every writing operation also takes `--scene-format vibestudio|trenchbroom`, the
+Every writing operation also takes `--scene-format slopstudio|trenchbroom`, the
 scene storage to save with (see [TrenchBroom map keys](#trenchbroom-map-keys));
 without it a map keeps the storage it opened with, and the report gives the one
 written as `sceneStorage`. WADs refuse `trenchbroom`.
@@ -354,8 +354,8 @@ The scene JSON report is version 6 and includes each node's `link`, `frame`
 (12 numbers, a 3x4 affine map row by row), `outOfSync` and `linkObjects`
 mapping from native selectors to persistent object UUIDs, plus the root
 `protectedProperties` mapping from entity selectors to protected-key arrays.
-The root's `storage` is `vibestudio` or `trenchbroom`, and a node read from
-TrenchBroom's keys lists the ones VibeStudio keeps without editing as
+The root's `storage` is `slopstudio` or `trenchbroom`, and a node read from
+TrenchBroom's keys lists the ones SlopStudio keeps without editing as
 `trenchBroom`.
 Text listings add each linked group's frame in words and **Out of sync**.
 
@@ -393,7 +393,7 @@ must understand version 6 to edit such a scene. Scenes without links or
 protection are still written as version 2. Anchors and digests are not saved:
 they are worked out again when the map opens. Version 7 adds a
 `trenchBroom` object to every node, the keys of the TrenchBroom layer or group
-entity it was read from that VibeStudio does not edit (such as `_tb_id`,
+entity it was read from that SlopStudio does not edit (such as `_tb_id`,
 `_tb_layer_color` and `_tb_layer_omit_from_export`), and a root `trenchBroom`
 boolean: true when the map body carries TrenchBroom's entities and objects are
 numbered as the map reads once they are taken out. It is written for TrenchBroom
@@ -413,7 +413,7 @@ one-slot undo/context, cancellation, stale selection and atomic refusals. The op
 `src/tests/level_linked_extraction_workflow.py` compares compiled geometry, texture
 coordinates, normals and entity values before/after extraction across classic,
 Valve 220 and brush-primitive maps, then validates packaged source and BSP output.
-Older VibeStudio builds that do not understand version 4 preserve it as opaque
+Older SlopStudio builds that do not understand version 4 preserve it as opaque
 metadata; use a version-4-aware build to edit that scene's organisation.
 
 Explicit linked creation and update publish their prepared document only after
@@ -421,7 +421,7 @@ the geometry and metadata succeed. Refusals retain native records, selection,
 revision, history and caller output. Their intermediate commands are retained
 until folded, including when the configured undo limit is one.
 
-Text maps append `\n// VibeStudioScene: <base64>\n` after the native body. Removing
+Text maps append `\n// SlopStudioScene: <base64>\n` after the native body. Removing
 that exact trailer preserves source line numbers. The fingerprint is SHA-256 of
 the native bytes before the trailer. Serializer emission events translate sparse
 editing IDs to the actual written parser order without parsing or solving the map
@@ -470,7 +470,7 @@ layers, groups and linked groups in, implemented independently from its manual
 - Precedence: a version 7 note with `trenchBroom` true that still matches the
   body wins, because it holds what TrenchBroom does not keep (group visibility
   and locks, out-of-sync marks, object identities). A matching note without it,
-  written before VibeStudio read TrenchBroom's keys, binds to the map as it is,
+  written before SlopStudio read TrenchBroom's keys, binds to the map as it is,
   and the map opens as it is. Otherwise TrenchBroom's keys are read, and a note
   that no longer matches is set aside with an issue rather than preserved.
 - A document opened from TrenchBroom's keys, or saved with
@@ -562,7 +562,7 @@ policies; they do not replace OS screen-reader or physical keyboard acceptance.
 
 `src/tests/level_scene_workflow.py` generates an original room and model, hides and locks
 them through the actual CLI, compares baseline and organized map geometry after
-a VibeMap3 BSP compile, runs VIS/LIGHT and publishes a validated package. Supply `--binary`,
+a SlopMap3 BSP compile, runs VIS/LIGHT and publishes a validated package. Supply `--binary`,
 `--compiler` and `--output-root` under `.agents/tmp`. No game is launched.
 
 `level_scene_locks_benchmark` reports five unrelated-edit timings with no locks,

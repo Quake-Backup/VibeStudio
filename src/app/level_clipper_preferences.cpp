@@ -12,7 +12,7 @@
 #include <QStatusBar>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 LevelMapClipOptions ApplicationShell::levelClipOptions() const
 {
 	return {m_levelClipPreferences.material == LevelClipMaterial::Custom ? m_levelClipPreferences.customTexture
@@ -73,4 +73,4 @@ void ApplicationShell::editLevelClipperPreferences()
 	});
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -25,7 +25,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -294,4 +294,4 @@ void ModelEditorDialog::exportUvLayout()
 						  .arg(request.stage ? request.path : QDir::toNativeSeparators(request.path)),
 					  LiveStatus::Result);
 }
-} // namespace vibestudio
+} // namespace slopstudio

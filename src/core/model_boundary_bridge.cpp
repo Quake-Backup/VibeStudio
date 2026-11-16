@@ -13,7 +13,7 @@
 // open loops, bridging two face selections; manual 4.0,
 // modeling/meshes/editing/edge/bridge_edge_loops.html, reviewed 2026-10-28).
 // The implementation is original.
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -525,4 +525,4 @@ bool bridgeModelFaceRegions(const ModelSurface &source, const QSet<int> &faces, 
 		*report = std::move(receipt);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

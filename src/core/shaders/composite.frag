@@ -3,16 +3,16 @@
 
 #include "common.glsl"
 
-VIBE_UNIFORMS {
+SLOP_UNIFORMS {
 	vec4 multiply;
 	vec4 add;
 };
 
-VIBE_SAMPLER(0) tex0;
+SLOP_SAMPLER(0) tex0;
 
-VIBE_VARYING_IN(0) vec2 vUv;
+SLOP_VARYING_IN(0) vec2 vUv;
 
-VIBE_FRAGMENT_OUT(0) vec4 outColor;
+SLOP_FRAGMENT_OUT(0) vec4 outColor;
 
 void main()
 {

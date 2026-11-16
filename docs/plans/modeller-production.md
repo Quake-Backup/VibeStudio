@@ -1,6 +1,6 @@
 # Modeller production plan
 
-The goal is a complete modeller for idTech game work. VibeStudio remains
+The goal is a complete modeller for idTech game work. SlopStudio remains
 pre-alpha and largely untested in real projects. Functionality and acceptance
 are separate; the [release gate](../MODELLER_RELEASE.md) remains the authority
 for completion. Synthetic fixtures do not establish engine or real-project
@@ -130,7 +130,7 @@ keep clips their frame names rebuild. `--strict` and **Refuse exports that
 leave data out** refuse lossy writes. Thirteen [delivery targets](../MODEL_TARGETS.md)
 preflight vanilla and source-port limits from public engine sources, Quake III
 detail sets are capped at the two levels the game loads, and an independent
-Python oracle reads MD5, IQM and ASE without VibeStudio's decoders. The full
+Python oracle reads MD5, IQM and ASE without SlopStudio's decoders. The full
 modeller suite passed 145 of 146 in its lane (the known assembly playback
 timing check, since fixed). **Prepare for target**, saved targets, RTCW/ET,
 GZDoom and Q2PRO targets, and engine load tests remain open.

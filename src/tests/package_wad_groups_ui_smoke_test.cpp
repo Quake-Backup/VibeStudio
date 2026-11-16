@@ -29,8 +29,8 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::subset_test;
+using namespace slopstudio;
+using namespace slopstudio::subset_test;
 namespace {
 bool expect(bool value, const char* label) { if (!value) { std::cerr << label << '\n'; } return value; }
 bool wait(const std::function<bool()>& ready)
@@ -59,7 +59,7 @@ bool prepare(PackageWadGroupsDialog& dialog, bool remove, const QString& target 
 }
 bool capture(QWidget& widget, const QString& name)
 {
-	const auto folder = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT"); if (folder.isEmpty()) { return true; }
+	const auto folder = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT"); if (folder.isEmpty()) { return true; }
 	QDir().mkpath(folder); QApplication::processEvents(); widget.repaint(); QImage image(widget.size(), QImage::Format_ARGB32_Premultiplied);
 	image.fill(Qt::transparent); widget.render(&image); return image.save(QDir(folder).filePath(name));
 }
@@ -173,7 +173,7 @@ int main(int argc, char** argv)
 		ok &= expect(shows("MAP02"), "shell undo restores map marker");
 	}
 	{
-		const auto freshPath = root.filePath("new.vibepackage"); ok &= PackageDraft::save(freshPath, &fresh, false, &error);
+		const auto freshPath = root.filePath("new.sloppackage"); ok &= PackageDraft::save(freshPath, &fresh, false, &error);
 		ApplicationShell shell; shell.show(); shell.openPathFromCommandLine(freshPath);
 		auto* action = shell.findChild<QAction*>("package.groups"); auto list = tests::PackageRows(shell.findChild<PackageEntryView*>("packageEntries"));
 		auto* filter = shell.findChild<QLineEdit*>("packageFilter"); filter->setText("TITLEMAP");

@@ -8,7 +8,7 @@
 
 #include "common.glsl"
 
-VIBE_UNIFORMS {
+SLOP_UNIFORMS {
 	mat4 viewProjection;
 	// xyz: the camera's eye; w: 1 for an orthographic view.
 	vec4 eye;
@@ -40,14 +40,14 @@ VIBE_UNIFORMS {
 	ivec4 samplerInfo[8];
 };
 
-VIBE_SAMPLER(0) tex0;
-VIBE_SAMPLER(1) tex1;
-VIBE_SAMPLER(2) tex2;
-VIBE_SAMPLER(3) tex3;
-VIBE_SAMPLER(4) tex4;
-VIBE_SAMPLER(5) tex5;
-VIBE_SAMPLER(6) tex6;
-VIBE_SAMPLER(7) tex7;
+SLOP_SAMPLER(0) tex0;
+SLOP_SAMPLER(1) tex1;
+SLOP_SAMPLER(2) tex2;
+SLOP_SAMPLER(3) tex3;
+SLOP_SAMPLER(4) tex4;
+SLOP_SAMPLER(5) tex5;
+SLOP_SAMPLER(6) tex6;
+SLOP_SAMPLER(7) tex7;
 
 const float kPi = 3.14159265358979323846;
 

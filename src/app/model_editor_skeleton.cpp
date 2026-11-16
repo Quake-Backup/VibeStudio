@@ -41,13 +41,13 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelEditor)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelEditor)
 };
 } // namespace
 
@@ -566,4 +566,4 @@ void ModelEditorDialog::refreshSkeleton()
 	if (!hadItems) m_skeletonTree->expandToDepth(2);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -39,7 +39,7 @@
 #include <QVector>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackageArchiveReader;
 
@@ -228,4 +228,4 @@ QImage renderIdTechPaletteSwatch(const IdTechPalette& palette, int cellSize = 12
 QStringList idTechPaletteSummaryLines(const IdTechPaletteResolution& resolution);
 QStringList idTechImageSummaryLines(const IdTechImageDecodeResult& result);
 
-} // namespace vibestudio
+} // namespace slopstudio

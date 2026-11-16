@@ -11,7 +11,7 @@
 
 #include <algorithm>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(LaunchProfilesCli)
@@ -244,4 +244,4 @@ LaunchProfilesCliResult runLaunchProfiles(const QStringList& arguments)
 	return fail(2, Text::tr("Unknown launch command: %1.").arg(action));
 }
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

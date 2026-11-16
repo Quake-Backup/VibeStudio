@@ -9,7 +9,7 @@
 #include <iostream>
 
 namespace package_copy_test {
-using namespace vibestudio;
+using namespace slopstudio;
 inline bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 inline QByteArray read(const QString& path) { QFile file(path); return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray(); }
 class Reader final : public PackageArchiveReader {

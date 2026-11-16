@@ -9,7 +9,7 @@
 #include <QFile>
 #include <QFileInfo>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 
 inline QByteArray materialImage(int width, int height, bool alternate = false)
@@ -73,4 +73,4 @@ inline const LevelPreviewMaterial *materialNamed(const LevelPreviewAssets &asset
 	}
 	return nullptr;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

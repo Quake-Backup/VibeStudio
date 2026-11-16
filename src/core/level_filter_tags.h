@@ -58,7 +58,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ProjectManifest;
 
@@ -196,4 +196,4 @@ QStringList levelViewFiltersWithoutClasses(const QStringList& hiddenIds);
 // The list after Invert Filters flips every tag of the set as well.
 QStringList levelFilterTagsInverted(const LevelFilterTagSet& tags, const QStringList& hiddenIds);
 
-} // namespace vibestudio
+} // namespace slopstudio

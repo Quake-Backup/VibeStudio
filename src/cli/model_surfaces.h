@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct ModelSurfacesCliResult
 {
@@ -12,4 +12,4 @@ struct ModelSurfacesCliResult
 	QStringList lines;
 };
 ModelSurfacesCliResult runModelSurfaces(const QStringList &arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

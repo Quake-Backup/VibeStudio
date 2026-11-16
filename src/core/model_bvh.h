@@ -1,7 +1,7 @@
 #pragma once
 
 // A bounding volume hierarchy over triangles for ray queries (UVSKIN-06
-// baking): nearest hit and any hit within a distance. Original VibeStudio
+// baking): nearest hit and any hit within a distance. Original SlopStudio
 // code: median splits on the longest axis of the centroid bounds, eight
 // triangles a leaf, the Moeller-Trumbore ray-triangle test (T. Moeller and
 // B. Trumbore, "Fast, Minimum Storage Ray/Triangle Intersection", Journal of
@@ -14,7 +14,7 @@
 
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ModelBvhTriangle {
 	std::array<ModelVec3, 3> corners;
@@ -60,4 +60,4 @@ private:
 	QVector<Node> m_nodes;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

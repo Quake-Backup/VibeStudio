@@ -1,4 +1,4 @@
-"""Original clip-material fixtures through VibeMap3, dependencies and PK3 export.
+"""Original clip-material fixtures through SlopMap3, dependencies and PK3 export.
 
 No game installation or game launch is used. Output stays under .agents/tmp.
 BSP layout reference is credited under Shared clipper in docs/CREDITS.md.

@@ -16,7 +16,7 @@
 #include <numeric>
 #include <unordered_map>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -746,4 +746,4 @@ bool applyModelUvToolEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection
 	}
 	return fail(error, Text::tr("This is not a UV tool operation."));
 }
-} // namespace vibestudio
+} // namespace slopstudio

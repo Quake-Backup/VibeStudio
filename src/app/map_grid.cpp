@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 bool sameMapGridView(const MapGridView& a, const MapGridView& b)
 {
 	return a.viewport == b.viewport && a.center.x() == b.center.x() && a.center.y() == b.center.y()
@@ -254,4 +254,4 @@ bool renderMapGrid(const MapGridView& view, MapGridFrame* frame, const std::atom
 	if (stopped()) { return false; }
 	frame->view = view; frame->image = std::move(image); return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

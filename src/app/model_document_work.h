@@ -6,7 +6,7 @@
 
 class QWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 using ModelDocumentJob = std::function<bool(ModelDocument &candidate, QString *error, const ModelWorkControl &control)>;
 using ModelTask = std::function<bool(QString *error, const ModelWorkControl &control)>;
@@ -36,4 +36,4 @@ struct ModelWorkReporter
 	std::function<void(int token)> end;
 };
 void setModelWorkReporter(ModelWorkReporter reporter);
-} // namespace vibestudio
+} // namespace slopstudio

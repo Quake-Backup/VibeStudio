@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelPlacementDialog::Work {
 	LevelMapDocument candidate;
 	LevelPreviewAssets assets;
@@ -373,4 +373,4 @@ void LevelPlacementDialog::reject() {
 	}
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

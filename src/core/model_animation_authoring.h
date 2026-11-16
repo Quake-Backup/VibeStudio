@@ -13,7 +13,7 @@
 
 #include "core/model_pose_clipboard.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 enum class ModelEditKind;
@@ -127,4 +127,4 @@ bool applyModelAnimationAuthoringEdit(ModelMesh *candidate, const ModelEdit &edi
 // validateEditableModel).
 bool validateModelAnimationAuthoring(const ModelMesh &mesh, QString *error = nullptr, const ModelWorkControl &control = {},
 									 const ModelMesh *validBaseline = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

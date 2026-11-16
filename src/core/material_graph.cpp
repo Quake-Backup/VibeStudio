@@ -15,11 +15,11 @@
 #include <limits>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 // The automatic layout: the gap between columns, between nodes stacked in a
@@ -3873,4 +3873,4 @@ bool parseMaterialGraphEditsJson(const QByteArray& json, QVector<MaterialGraphEd
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

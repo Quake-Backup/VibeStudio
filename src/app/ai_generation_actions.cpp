@@ -40,7 +40,7 @@
 #include <QUrl>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -61,8 +61,8 @@ QString generationDestination(const QString& connectorId, const QString& endpoin
 QString generationCredentialText(const QString& connectorId)
 {
 	return aiTextTransport(connectorId) == AiTextTransport::Harness
-		? QCoreApplication::translate("VibeStudioAiGeneration", "the tool signs in with your own login, in an empty folder with its tools turned off, so it can only answer")
-		: QCoreApplication::translate("VibeStudioAiGeneration", "your API key is sent only to authenticate");
+		? QCoreApplication::translate("SlopStudioAiGeneration", "the tool signs in with your own login, in an empty folder with its tools turned off, so it can only answer")
+		: QCoreApplication::translate("SlopStudioAiGeneration", "your API key is sent only to authenticate");
 }
 
 } // namespace
@@ -638,4 +638,4 @@ void ApplicationShell::saveAiSoundModelFields()
 	statusBar()->showMessage(tr("Saved the %1 sound model settings.").arg(m_aiSoundConnector->currentText()), 4000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

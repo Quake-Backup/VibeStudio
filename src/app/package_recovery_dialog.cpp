@@ -24,7 +24,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 PackageRecoveryDialog::PackageRecoveryDialog(QString directory, QWidget* parent, QStringList publicationDirectories)
 	: QDialog(parent), m_directory(std::move(directory)), m_cancel(std::make_shared<std::atomic_bool>(false))
 {
@@ -232,4 +232,4 @@ void PackageRecoveryDialog::discardSelected()
 	}, [this, error, removed]() { if (*removed) { reload(); } else { m_status->setText(*error); } });
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

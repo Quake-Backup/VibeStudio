@@ -6,7 +6,7 @@
 #include <QTransform>
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelUvFit
 {
@@ -58,4 +58,4 @@ QRectF modelUvSelectionBounds(const ModelSurface &surface, const ModelSelection 
 // antialiased 2D line painter (app/wire_lines), with seams/selection above ordinary geometry.
 // Cancellation never publishes a partial image, camera or topology.
 bool renderModelUv(const ModelUvRenderRequest &request, ModelUvRenderResult *result, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

@@ -16,8 +16,8 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -73,7 +73,7 @@ ModelMesh fixture()
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("skeletal-XXXXXX"));
@@ -377,7 +377,7 @@ int main(int argc, char **argv)
 	control.cancelled = [&] { return ++polls > 5; };
 	expect(!applyModelEdit(&cancelled, edit, nullptr, &error, control) && rigBytes(cancelled) == cancelBefore, "cancellation atomic");
 	const auto output = QDir(temporary.path()).filePath("out.mesh.json");
-	const auto run = [&](QStringList args) { return cli::runModelPose(QStringList{"vibestudio", "--cli", "model", "pose", path} + args); };
+	const auto run = [&](QStringList args) { return cli::runModelPose(QStringList{"slopstudio", "--cli", "model", "pose", path} + args); };
 	expect(run({"--json"}).payload["clips"].toArray().size() == 2, "CLI lists clips");
 	const auto inspected = run({"--clip", "1", "--first", "1"}).payload;
 	expect(inspected["pose"].toArray().size() == 2 && inspected["poseClip"].toInt() == 1 && inspected["poseFrame"].toInt() == 1,

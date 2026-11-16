@@ -18,7 +18,7 @@
 // app/level_linked_group_boxes.h, through this view's camera: box edges are
 // clipped to the near plane, names keep clear of the heads-up tags and of each
 // other, and an arrow needs both of its groups' centres in front of the camera.
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -258,4 +258,4 @@ void ModelViewport::paintLinkedGroups(QPainter& painter, const Palette& palette)
 	painter.restore();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

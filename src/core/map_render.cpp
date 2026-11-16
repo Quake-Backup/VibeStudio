@@ -30,7 +30,7 @@
 // Quake-family map coordinates come from the `.map` text format as parsed by
 // `level_map`; brush polygons are solved in `map_geometry`.
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -755,13 +755,13 @@ QString projectionDisplayName(MapRenderProjection projection)
 {
 	switch (projection) {
 	case MapRenderProjection::TopXY:
-		return QCoreApplication::translate("VibeStudioMapRender", "Top (X/Y)");
+		return QCoreApplication::translate("SlopStudioMapRender", "Top (X/Y)");
 	case MapRenderProjection::FrontXZ:
-		return QCoreApplication::translate("VibeStudioMapRender", "Front (X/Z)");
+		return QCoreApplication::translate("SlopStudioMapRender", "Front (X/Z)");
 	case MapRenderProjection::SideZY:
-		return QCoreApplication::translate("VibeStudioMapRender", "Side (Y/Z)");
+		return QCoreApplication::translate("SlopStudioMapRender", "Side (Y/Z)");
 	}
-	return QCoreApplication::translate("VibeStudioMapRender", "Top (X/Y)");
+	return QCoreApplication::translate("SlopStudioMapRender", "Top (X/Y)");
 }
 
 QString selectionKindLabel(LevelMapSelectionKind kind)
@@ -824,12 +824,12 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 	const int width = std::clamp(options.width, 64, 16384);
 	const int height = std::clamp(options.height, 64, 16384);
 	if (width != options.width || height != options.height) {
-		local.warnings << QCoreApplication::translate("VibeStudioMapRender", "Requested image size was clamped to the supported range.");
+		local.warnings << QCoreApplication::translate("SlopStudioMapRender", "Requested image size was clamped to the supported range.");
 	}
 	const int maxMargin = std::max(0, std::min(width, height) / 2 - 8);
 	const int margin = std::clamp(options.margin, 0, maxMargin);
 	if (margin != options.margin) {
-		local.warnings << QCoreApplication::translate("VibeStudioMapRender", "Requested margin was clamped to fit the image.");
+		local.warnings << QCoreApplication::translate("SlopStudioMapRender", "Requested margin was clamped to fit the image.");
 	}
 	local.width = width;
 	local.height = height;
@@ -844,7 +844,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 		collectQuakeScene(document, options, &scene);
 	}
 	if (scene.unprojectedBrushCount > 0) {
-		local.warnings << QCoreApplication::translate("VibeStudioMapRender", "Some brushes could not be solved and were omitted: %1").arg(svgInt(scene.unprojectedBrushCount));
+		local.warnings << QCoreApplication::translate("SlopStudioMapRender", "Some brushes could not be solved and were omitted: %1").arg(svgInt(scene.unprojectedBrushCount));
 	}
 	// A leak trail runs out into the void, so the picture is framed to include
 	// it rather than cutting it off at the map's edge.
@@ -856,7 +856,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 	view.pixelWidth = static_cast<double>(width);
 	view.pixelHeight = static_cast<double>(height);
 	if (!scene.bounds.valid) {
-		local.warnings << QCoreApplication::translate("VibeStudioMapRender", "Document contains no renderable geometry.");
+		local.warnings << QCoreApplication::translate("SlopStudioMapRender", "Document contains no renderable geometry.");
 		scene.bounds.minX = -1.0;
 		scene.bounds.maxX = 1.0;
 		scene.bounds.minY = -1.0;
@@ -866,7 +866,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 	double spanX = scene.bounds.maxX - scene.bounds.minX;
 	double spanY = scene.bounds.maxY - scene.bounds.minY;
 	if (spanX < 1e-6 || spanY < 1e-6) {
-		local.warnings << QCoreApplication::translate("VibeStudioMapRender", "Projected geometry is flat on one axis for this projection.");
+		local.warnings << QCoreApplication::translate("SlopStudioMapRender", "Projected geometry is flat on one axis for this projection.");
 		spanX = std::max(spanX, 1e-6);
 		spanY = std::max(spanY, 1e-6);
 	}
@@ -895,12 +895,12 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 	// Grid.
 	if (options.showGrid) {
 		if (!std::isfinite(options.gridSize) || options.gridSize <= 0) {
-			local.warnings << QCoreApplication::translate("VibeStudioMapRender", "Grid size must be greater than zero; the grid was skipped.");
+			local.warnings << QCoreApplication::translate("SlopStudioMapRender", "Grid size must be greater than zero; the grid was skipped.");
 		} else {
 			const double grid = options.gridSize;
 			const double estimated = ((worldRight - worldLeft) / grid) + ((worldTop - worldBottom) / grid) + 4.0;
 			if (estimated > static_cast<double>(kMaxGridLines)) {
-				local.warnings << QCoreApplication::translate("VibeStudioMapRender", "Grid skipped: %1 world units per pixel would need too many lines.").arg(svgNumber(local.unitsPerPixel));
+				local.warnings << QCoreApplication::translate("SlopStudioMapRender", "Grid skipped: %1 world units per pixel would need too many lines.").arg(svgNumber(local.unitsPerPixel));
 			} else {
 				body += QStringLiteral("  <g id=\"vs-grid\" shape-rendering=\"crispEdges\">\n");
 				const long long firstX = static_cast<long long>(std::floor(worldLeft / grid));
@@ -930,7 +930,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 	// axis, as the Levels views draw it with Show Block Grid.
 	if (options.showBlockGrid) {
 		if (!levelMapHasBlockGrid(document)) {
-			local.warnings << QCoreApplication::translate("VibeStudioMapRender", "Doom maps have no compiler block grid; the block grid was skipped.");
+			local.warnings << QCoreApplication::translate("SlopStudioMapRender", "Doom maps have no compiler block grid; the block grid was skipped.");
 		} else {
 			const LevelMapBlockSize blocks = levelMapBlockSize(document);
 			const int horizontal = options.projection == MapRenderProjection::SideZY ? 1 : 0;
@@ -940,7 +940,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 			const QVector<double> xs = levelBlockBoundaries(worldLeft, worldRight, blocks.along(horizontal), kMaxGridLines, &tooManyX);
 			const QVector<double> ys = levelBlockBoundaries(worldBottom, worldTop, blocks.along(vertical), kMaxGridLines, &tooManyY);
 			if (tooManyX || tooManyY) {
-				local.warnings << QCoreApplication::translate("VibeStudioMapRender", "Block grid skipped along an axis: %1 world units per pixel would need too many lines.").arg(svgNumber(local.unitsPerPixel));
+				local.warnings << QCoreApplication::translate("SlopStudioMapRender", "Block grid skipped along an axis: %1 world units per pixel would need too many lines.").arg(svgNumber(local.unitsPerPixel));
 			}
 			if (!xs.isEmpty() || !ys.isEmpty()) {
 				const QString attributes = QStringLiteral(" stroke-dasharray=\"8 4\"");
@@ -963,9 +963,9 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 		body += QStringLiteral("  <g id=\"vs-sectors\">\n");
 		for (const SectorShape& sector : scene.sectors) {
 			const QString fill = sectorTint(palette, sector.lightLevel);
-			QString title = QCoreApplication::translate("VibeStudioMapRender", "Sector %1 light %2").arg(svgInt(sector.sectorId), svgInt(sector.lightLevel));
+			QString title = QCoreApplication::translate("SlopStudioMapRender", "Sector %1 light %2").arg(svgInt(sector.sectorId), svgInt(sector.lightLevel));
 			if (sector.openEdgeCount > 0) {
-				title += QStringLiteral(" ") + QCoreApplication::translate("VibeStudioMapRender", "(open edges: %1)").arg(svgInt(sector.openEdgeCount));
+				title += QStringLiteral(" ") + QCoreApplication::translate("SlopStudioMapRender", "(open edges: %1)").arg(svgInt(sector.openEdgeCount));
 			}
 			for (const QVector<QPointF>& loop : sector.loops) {
 				QVector<QPointF> pixels;
@@ -991,9 +991,9 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 			const QPointF b = view.toPixel(line.b);
 			const double strokeWidth = (line.twoSided ? 0.8 : 1.8) * contrastBoost;
 			const QString color = line.twoSided ? palette.twoSidedLine : palette.oneSidedLine;
-			QString title = QCoreApplication::translate("VibeStudioMapRender", "Linedef %1 (%2)").arg(svgInt(line.linedefId), line.twoSided ? QCoreApplication::translate("VibeStudioMapRender", "two-sided") : QCoreApplication::translate("VibeStudioMapRender", "one-sided"));
+			QString title = QCoreApplication::translate("SlopStudioMapRender", "Linedef %1 (%2)").arg(svgInt(line.linedefId), line.twoSided ? QCoreApplication::translate("SlopStudioMapRender", "two-sided") : QCoreApplication::translate("SlopStudioMapRender", "one-sided"));
 			if (line.special != 0 || line.tag != 0) {
-				title += QStringLiteral(" ") + QCoreApplication::translate("VibeStudioMapRender", "special %1 tag %2").arg(svgInt(line.special), svgInt(line.tag));
+				title += QStringLiteral(" ") + QCoreApplication::translate("SlopStudioMapRender", "special %1 tag %2").arg(svgInt(line.special), svgInt(line.tag));
 			}
 			appendLineElement(&body, a, b, color, strokeWidth, QString(), title);
 			++local.drawnLinedefCount;
@@ -1007,7 +1007,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 		const QString attributes = QStringLiteral(" fill=\"") + palette.vertex + QStringLiteral("\" stroke=\"none\"");
 		for (const VertexShape& vertex : scene.vertices) {
 			appendRectElement(&body, view.toPixel(vertex.position), options.highContrast ? 2.0 : 1.5, attributes,
-				QCoreApplication::translate("VibeStudioMapRender", "Vertex %1").arg(svgInt(vertex.vertexId)));
+				QCoreApplication::translate("SlopStudioMapRender", "Vertex %1").arg(svgInt(vertex.vertexId)));
 		}
 		body += QStringLiteral("  </g>\n");
 	}
@@ -1020,7 +1020,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 		const QString markerAttributes = QStringLiteral(" fill=\"none\" stroke=\"") + palette.thing + QStringLiteral("\" stroke-width=\"") + svgNumber(1.2 * contrastBoost) + QStringLiteral("\"");
 		for (const ThingShape& thing : scene.things) {
 			const QPointF center = view.toPixel(thing.position);
-			const QString title = QCoreApplication::translate("VibeStudioMapRender", "Thing %1 type %2 angle %3").arg(svgInt(thing.thingId), svgInt(thing.type), svgInt(thing.angle));
+			const QString title = QCoreApplication::translate("SlopStudioMapRender", "Thing %1 type %2 angle %3").arg(svgInt(thing.thingId), svgInt(thing.type), svgInt(thing.angle));
 			appendCircleElement(&body, center, radius, markerAttributes, title);
 			const double dirX = thing.direction.x();
 			const double dirY = -thing.direction.y();
@@ -1046,12 +1046,12 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 				pixels.push_back(view.toPixel(point));
 			}
 			const QString attributes = strokeAttributes(brush.brushEntity ? palette.entityBrush : palette.worldBrush, 1.1 * contrastBoost, brush.brushEntity);
-			QString title = QCoreApplication::translate("VibeStudioMapRender", "Brush %1").arg(svgInt(brush.brushId));
+			QString title = QCoreApplication::translate("SlopStudioMapRender", "Brush %1").arg(svgInt(brush.brushId));
 			if (!brush.className.isEmpty()) {
-				title += QStringLiteral(" ") + QCoreApplication::translate("VibeStudioMapRender", "in %1").arg(brush.className);
+				title += QStringLiteral(" ") + QCoreApplication::translate("SlopStudioMapRender", "in %1").arg(brush.className);
 			}
 			if (!brush.textureName.isEmpty()) {
-				title += QStringLiteral(" ") + QCoreApplication::translate("VibeStudioMapRender", "texture %1").arg(brush.textureName);
+				title += QStringLiteral(" ") + QCoreApplication::translate("SlopStudioMapRender", "texture %1").arg(brush.textureName);
 			}
 			appendPolygonElement(&body, pixels, attributes, title);
 			++local.drawnBrushCount;
@@ -1064,9 +1064,9 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 		body += QStringLiteral("  <g id=\"vs-patches\">\n");
 		const QString attributes = strokeAttributes(palette.patch, 0.9 * contrastBoost);
 		for (const PatchShape& patch : scene.patches) {
-			QString title = QCoreApplication::translate("VibeStudioMapRender", "Patch %1").arg(svgInt(patch.patchId));
+			QString title = QCoreApplication::translate("SlopStudioMapRender", "Patch %1").arg(svgInt(patch.patchId));
 			if (!patch.textureName.isEmpty()) {
-				title += QStringLiteral(" ") + QCoreApplication::translate("VibeStudioMapRender", "texture %1").arg(patch.textureName);
+				title += QStringLiteral(" ") + QCoreApplication::translate("SlopStudioMapRender", "texture %1").arg(patch.textureName);
 			}
 			bool titled = false;
 			for (const QVector<QPointF>& polyline : patch.polylines) {
@@ -1100,7 +1100,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 			const QPointF normal(-direction.y(), direction.x());
 			const QPointF tip = to - direction * 7.0;
 			appendPolylineElement(&links, {from, tip}, strokeAttributes(palette.link, linkWidth, link.key == QStringLiteral("killtarget")),
-				QCoreApplication::translate("VibeStudioMapRender", "Entity %1 %2 %3, entity %4").arg(svgInt(link.sourceEntityId), link.key, link.name, svgInt(link.targetEntityId)));
+				QCoreApplication::translate("SlopStudioMapRender", "Entity %1 %2 %3, entity %4").arg(svgInt(link.sourceEntityId), link.key, link.name, svgInt(link.targetEntityId)));
 			appendPolygonElement(&links, {tip, tip - direction * 8.0 + normal * 4.0, tip - direction * 8.0 - normal * 4.0},
 				QStringLiteral(" fill=\"") + palette.link + QStringLiteral("\""), QString());
 			++local.drawnTargetLinkCount;
@@ -1117,7 +1117,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 		const QString attributes = QStringLiteral(" fill=\"none\" stroke=\"") + palette.entity + QStringLiteral("\" stroke-width=\"") + svgNumber(1.2 * contrastBoost) + QStringLiteral("\"");
 		for (const EntityShape& entity : scene.entities) {
 			const QPointF center = view.toPixel(entity.position);
-			const QString title = QCoreApplication::translate("VibeStudioMapRender", "Entity %1 %2").arg(svgInt(entity.entityId), entity.className);
+			const QString title = QCoreApplication::translate("SlopStudioMapRender", "Entity %1 %2").arg(svgInt(entity.entityId), entity.className);
 			appendPolygonElement(&body, diamondPoints(center, radius), attributes, title);
 			++local.drawnEntityCount;
 		}
@@ -1154,7 +1154,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 					continue;
 				}
 				appendLineElement(&overlay, view.toPixel(line.a), view.toPixel(line.b), palette.highlight, highlightWidth, QString(),
-					QCoreApplication::translate("VibeStudioMapRender", "Highlighted linedef %1").arg(svgInt(line.linedefId)));
+					QCoreApplication::translate("SlopStudioMapRender", "Highlighted linedef %1").arg(svgInt(line.linedefId)));
 			}
 			break;
 		case LevelMapSelectionKind::DoomVertex:
@@ -1163,7 +1163,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 					continue;
 				}
 				appendRectElement(&overlay, view.toPixel(vertex.position), 3.0, lineAttributes,
-					QCoreApplication::translate("VibeStudioMapRender", "Highlighted vertex %1").arg(svgInt(vertex.vertexId)));
+					QCoreApplication::translate("SlopStudioMapRender", "Highlighted vertex %1").arg(svgInt(vertex.vertexId)));
 			}
 			break;
 		case LevelMapSelectionKind::DoomThing:
@@ -1172,7 +1172,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 					continue;
 				}
 				appendCircleElement(&overlay, view.toPixel(thing.position), 6.0, lineAttributes,
-					QCoreApplication::translate("VibeStudioMapRender", "Highlighted thing %1").arg(svgInt(thing.thingId)));
+					QCoreApplication::translate("SlopStudioMapRender", "Highlighted thing %1").arg(svgInt(thing.thingId)));
 			}
 			break;
 		case LevelMapSelectionKind::DoomSector:
@@ -1186,7 +1186,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 					for (const QPointF& point : loop) {
 						pixels.push_back(view.toPixel(point));
 					}
-					appendPolygonElement(&overlay, pixels, lineAttributes, QCoreApplication::translate("VibeStudioMapRender", "Highlighted sector %1").arg(svgInt(sector.sectorId)));
+					appendPolygonElement(&overlay, pixels, lineAttributes, QCoreApplication::translate("SlopStudioMapRender", "Highlighted sector %1").arg(svgInt(sector.sectorId)));
 				}
 			}
 			break;
@@ -1200,7 +1200,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 				for (const QPointF& point : brush.polygon) {
 					pixels.push_back(view.toPixel(point));
 				}
-				appendPolygonElement(&overlay, pixels, lineAttributes, QCoreApplication::translate("VibeStudioMapRender", "Highlighted brush %1").arg(svgInt(brush.brushId)));
+				appendPolygonElement(&overlay, pixels, lineAttributes, QCoreApplication::translate("SlopStudioMapRender", "Highlighted brush %1").arg(svgInt(brush.brushId)));
 			}
 			break;
 		case LevelMapSelectionKind::QuakePatch:
@@ -1215,7 +1215,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 					for (const QPointF& point : polyline) {
 						pixels.push_back(view.toPixel(point));
 					}
-					appendPolylineElement(&overlay, pixels, lineAttributes, titled ? QString() : QCoreApplication::translate("VibeStudioMapRender", "Highlighted patch %1").arg(svgInt(patch.patchId)));
+					appendPolylineElement(&overlay, pixels, lineAttributes, titled ? QString() : QCoreApplication::translate("SlopStudioMapRender", "Highlighted patch %1").arg(svgInt(patch.patchId)));
 					titled = true;
 				}
 			}
@@ -1226,7 +1226,7 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 					continue;
 				}
 				appendPolygonElement(&overlay, diamondPoints(view.toPixel(entity.position), 7.0), lineAttributes,
-					QCoreApplication::translate("VibeStudioMapRender", "Highlighted entity %1").arg(svgInt(entity.entityId)));
+					QCoreApplication::translate("SlopStudioMapRender", "Highlighted entity %1").arg(svgInt(entity.entityId)));
 			}
 			for (const BrushShape& brush : scene.brushes) {
 				if (brush.entityId != options.highlightObjectId) {
@@ -1237,14 +1237,14 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 				for (const QPointF& point : brush.polygon) {
 					pixels.push_back(view.toPixel(point));
 				}
-				appendPolygonElement(&overlay, pixels, lineAttributes, QCoreApplication::translate("VibeStudioMapRender", "Highlighted brush %1").arg(svgInt(brush.brushId)));
+				appendPolygonElement(&overlay, pixels, lineAttributes, QCoreApplication::translate("SlopStudioMapRender", "Highlighted brush %1").arg(svgInt(brush.brushId)));
 			}
 			break;
 		case LevelMapSelectionKind::None:
 			break;
 		}
 		if (overlay.isEmpty()) {
-			local.warnings << QCoreApplication::translate("VibeStudioMapRender", "Highlight target %1 %2 was not found in the rendered geometry.")
+			local.warnings << QCoreApplication::translate("SlopStudioMapRender", "Highlight target %1 %2 was not found in the rendered geometry.")
 								  .arg(selectionKindLabel(options.highlightKind), svgInt(options.highlightObjectId));
 		} else {
 			body += QStringLiteral("  <g id=\"vs-highlight\">\n") + overlay + QStringLiteral("  </g>\n");
@@ -1263,15 +1263,15 @@ QString renderLevelMapSvg(const LevelMapDocument& document, const MapRenderOptio
 		const double leakWidth = 2.4 * contrastBoost;
 		QString leak;
 		appendPolylineElement(&leak, pixels, strokeAttributes(palette.leak, leakWidth),
-			QCoreApplication::translate("VibeStudioMapRender", "Leak trail, %1 points").arg(svgInt(pixels.size())));
-		appendCircleElement(&leak, pixels.first(), 5.0, QStringLiteral(" fill=\"") + palette.leak + QStringLiteral("\""), QCoreApplication::translate("VibeStudioMapRender", "Leak trail start"));
-		appendRectElement(&leak, pixels.last(), 5.0, strokeAttributes(palette.leak, leakWidth), QCoreApplication::translate("VibeStudioMapRender", "Leak trail end"));
+			QCoreApplication::translate("SlopStudioMapRender", "Leak trail, %1 points").arg(svgInt(pixels.size())));
+		appendCircleElement(&leak, pixels.first(), 5.0, QStringLiteral(" fill=\"") + palette.leak + QStringLiteral("\""), QCoreApplication::translate("SlopStudioMapRender", "Leak trail start"));
+		appendRectElement(&leak, pixels.last(), 5.0, strokeAttributes(palette.leak, leakWidth), QCoreApplication::translate("SlopStudioMapRender", "Leak trail end"));
 		body += QStringLiteral("  <g id=\"vs-leak\">\n") + leak + QStringLiteral("  </g>\n");
 		local.drawnLeakPointCount = static_cast<int>(pixels.size());
 	}
 
-	const QString mapName = document.mapName.trimmed().isEmpty() ? QCoreApplication::translate("VibeStudioMapRender", "Level map") : document.mapName;
-	QString description = QCoreApplication::translate("VibeStudioMapRender", "Projection %1, %2 world units per pixel.").arg(projectionDisplayName(options.projection), svgNumber(local.unitsPerPixel));
+	const QString mapName = document.mapName.trimmed().isEmpty() ? QCoreApplication::translate("SlopStudioMapRender", "Level map") : document.mapName;
+	QString description = QCoreApplication::translate("SlopStudioMapRender", "Projection %1, %2 world units per pixel.").arg(projectionDisplayName(options.projection), svgNumber(local.unitsPerPixel));
 
 	QString svg;
 	svg.reserve(body.size() + 2048);
@@ -1305,31 +1305,31 @@ MapRenderReport writeLevelMapSvg(const LevelMapDocument& document, const MapRend
 	// convention used by saveLevelMapAs; a dry run leaves it false.
 	report.rendered = false;
 	if (outputPath.trimmed().isEmpty()) {
-		report.error = QCoreApplication::translate("VibeStudioMapRender", "Output path is required.");
+		report.error = QCoreApplication::translate("SlopStudioMapRender", "Output path is required.");
 		return report;
 	}
 	report.outputPath = QFileInfo(outputPath).absoluteFilePath();
 	const QFileInfo outputInfo(report.outputPath);
 	if (outputInfo.exists() && !overwriteExisting && !dryRun) {
-		report.error = QCoreApplication::translate("VibeStudioMapRender", "Output already exists. Use overwrite to replace it.");
+		report.error = QCoreApplication::translate("SlopStudioMapRender", "Output already exists. Use overwrite to replace it.");
 		return report;
 	}
 	if (dryRun) {
-		report.warnings << (outputInfo.exists() ? QCoreApplication::translate("VibeStudioMapRender", "Would overwrite SVG output.") : QCoreApplication::translate("VibeStudioMapRender", "Would write SVG output."));
+		report.warnings << (outputInfo.exists() ? QCoreApplication::translate("SlopStudioMapRender", "Would overwrite SVG output.") : QCoreApplication::translate("SlopStudioMapRender", "Would write SVG output."));
 		return report;
 	}
 	if (!QDir().mkpath(outputInfo.absolutePath())) {
-		report.error = QCoreApplication::translate("VibeStudioMapRender", "Unable to create output directory.");
+		report.error = QCoreApplication::translate("SlopStudioMapRender", "Unable to create output directory.");
 		return report;
 	}
 	QSaveFile file(report.outputPath);
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-		report.error = QCoreApplication::translate("VibeStudioMapRender", "Unable to open the SVG output for writing.");
+		report.error = QCoreApplication::translate("SlopStudioMapRender", "Unable to open the SVG output for writing.");
 		return report;
 	}
 	const QByteArray bytes = svg.toUtf8();
 	if (file.write(bytes) != bytes.size() || !file.commit()) {
-		report.error = QCoreApplication::translate("VibeStudioMapRender", "Unable to write the SVG output.");
+		report.error = QCoreApplication::translate("SlopStudioMapRender", "Unable to write the SVG output.");
 		return report;
 	}
 	report.rendered = true;
@@ -1339,35 +1339,35 @@ MapRenderReport writeLevelMapSvg(const LevelMapDocument& document, const MapRend
 QString mapRenderReportText(const MapRenderReport& report)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioMapRender", "Map render");
+	lines << QCoreApplication::translate("SlopStudioMapRender", "Map render");
 	if (!report.outputPath.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioMapRender", "Output: %1").arg(report.outputPath);
+		lines << QCoreApplication::translate("SlopStudioMapRender", "Output: %1").arg(report.outputPath);
 	}
-	lines << QCoreApplication::translate("VibeStudioMapRender", "Rendered: %1").arg(report.rendered ? QCoreApplication::translate("VibeStudioMapRender", "yes") : QCoreApplication::translate("VibeStudioMapRender", "no"));
-	lines << QCoreApplication::translate("VibeStudioMapRender", "Size: %1 x %2").arg(svgInt(report.width), svgInt(report.height));
-	lines << QCoreApplication::translate("VibeStudioMapRender", "Units per pixel: %1").arg(svgNumber(report.unitsPerPixel));
-	lines << QCoreApplication::translate("VibeStudioMapRender", "Linedefs: %1").arg(svgInt(report.drawnLinedefCount));
-	lines << QCoreApplication::translate("VibeStudioMapRender", "Things: %1").arg(svgInt(report.drawnThingCount));
-	lines << QCoreApplication::translate("VibeStudioMapRender", "Sectors: %1").arg(svgInt(report.drawnSectorCount));
-	lines << QCoreApplication::translate("VibeStudioMapRender", "Brushes: %1").arg(svgInt(report.drawnBrushCount));
-	lines << QCoreApplication::translate("VibeStudioMapRender", "Patches: %1").arg(svgInt(report.drawnPatchCount));
-	lines << QCoreApplication::translate("VibeStudioMapRender", "Entities: %1").arg(svgInt(report.drawnEntityCount));
+	lines << QCoreApplication::translate("SlopStudioMapRender", "Rendered: %1").arg(report.rendered ? QCoreApplication::translate("SlopStudioMapRender", "yes") : QCoreApplication::translate("SlopStudioMapRender", "no"));
+	lines << QCoreApplication::translate("SlopStudioMapRender", "Size: %1 x %2").arg(svgInt(report.width), svgInt(report.height));
+	lines << QCoreApplication::translate("SlopStudioMapRender", "Units per pixel: %1").arg(svgNumber(report.unitsPerPixel));
+	lines << QCoreApplication::translate("SlopStudioMapRender", "Linedefs: %1").arg(svgInt(report.drawnLinedefCount));
+	lines << QCoreApplication::translate("SlopStudioMapRender", "Things: %1").arg(svgInt(report.drawnThingCount));
+	lines << QCoreApplication::translate("SlopStudioMapRender", "Sectors: %1").arg(svgInt(report.drawnSectorCount));
+	lines << QCoreApplication::translate("SlopStudioMapRender", "Brushes: %1").arg(svgInt(report.drawnBrushCount));
+	lines << QCoreApplication::translate("SlopStudioMapRender", "Patches: %1").arg(svgInt(report.drawnPatchCount));
+	lines << QCoreApplication::translate("SlopStudioMapRender", "Entities: %1").arg(svgInt(report.drawnEntityCount));
 	if (report.drawnTargetLinkCount > 0) {
-		lines << QCoreApplication::translate("VibeStudioMapRender", "Target links: %1").arg(svgInt(report.drawnTargetLinkCount));
+		lines << QCoreApplication::translate("SlopStudioMapRender", "Target links: %1").arg(svgInt(report.drawnTargetLinkCount));
 	}
 	if (report.drawnLeakPointCount > 0) {
-		lines << QCoreApplication::translate("VibeStudioMapRender", "Leak trail points: %1").arg(svgInt(report.drawnLeakPointCount));
+		lines << QCoreApplication::translate("SlopStudioMapRender", "Leak trail points: %1").arg(svgInt(report.drawnLeakPointCount));
 	}
 	if (report.drawnBlockLineCount > 0) {
-		lines << QCoreApplication::translate("VibeStudioMapRender", "Block grid lines: %1").arg(svgInt(report.drawnBlockLineCount));
+		lines << QCoreApplication::translate("SlopStudioMapRender", "Block grid lines: %1").arg(svgInt(report.drawnBlockLineCount));
 	}
 	for (const QString& warning : report.warnings) {
-		lines << QCoreApplication::translate("VibeStudioMapRender", "Warning: %1").arg(warning);
+		lines << QCoreApplication::translate("SlopStudioMapRender", "Warning: %1").arg(warning);
 	}
 	if (!report.error.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioMapRender", "Error: %1").arg(report.error);
+		lines << QCoreApplication::translate("SlopStudioMapRender", "Error: %1").arg(report.error);
 	}
 	return lines.join('\n');
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

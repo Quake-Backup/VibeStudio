@@ -13,7 +13,7 @@
 #include <QFileInfo>
 #include <QTimer>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelAssemblyWatchState
 {
@@ -86,4 +86,4 @@ void ModelAssemblyDialog::pollAssemblyWatch(qint64 monotonicMsecs)
 					: QCoreApplication::translate("ModelAssemblyDialog", "A linked part changed on disk and could not be read again: %1").arg(error),
 		   reloaded ? LiveStatus::Result : LiveStatus::Problem);
 }
-} // namespace vibestudio
+} // namespace slopstudio

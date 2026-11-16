@@ -17,7 +17,7 @@
 
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr double kPlaneDragThreshold = 4.0;
 bool quakeFamily(const LevelMapDocument& document)
@@ -137,4 +137,4 @@ void ModelViewport::paintPlaneDrag(QPainter& painter)
 	m_planeDrag->paint(painter, componentGizmoFrame(m_planeDrag->pick().anchor), m_highContrast);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

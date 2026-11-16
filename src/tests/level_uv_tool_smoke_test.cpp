@@ -33,7 +33,7 @@
 #include <iostream>
 #include <numbers>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

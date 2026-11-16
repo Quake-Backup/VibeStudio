@@ -11,7 +11,7 @@ class QTableView;
 class QLabel;
 class QProgressBar;
 class QDialogButtonBox;
-namespace vibestudio {
+namespace slopstudio {
 class UdmfPropertyModel;
 struct UdmfEditTask;
 class LevelUdmfDialog final : public QDialog {
@@ -39,4 +39,4 @@ class LevelUdmfDialog final : public QDialog {
 	QProgressBar* m_progress;
 	QDialogButtonBox* m_buttons;
 };
-} // namespace vibestudio
+} // namespace slopstudio

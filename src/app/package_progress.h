@@ -3,7 +3,7 @@
 #include <QLocale>
 #include <QString>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Keep numeric fractions in logical order inside translated RTL status text.
 QString packageProgressPair(const QString& completed, const QString& total);
@@ -22,4 +22,4 @@ struct PackageByteProgressText {
 // localized byte counts belong in tooltips and accessible descriptions.
 PackageByteProgressText packageByteProgressText(quint64 completed, quint64 total, const QLocale& locale = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

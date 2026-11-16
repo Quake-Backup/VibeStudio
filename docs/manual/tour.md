@@ -1,6 +1,6 @@
 # A tour of the studio
 
-This page shows you around the VibeStudio window: the bar along the top, the
+This page shows you around the SlopStudio window: the bar along the top, the
 pages on the left rail, the side panels, the status bar, and the keys that move
 you between them.
 
@@ -13,16 +13,16 @@ Alt.
 
 ## While the studio starts
 
-A start-up screen appears as soon as VibeStudio is launched, before the window
+A start-up screen appears as soon as SlopStudio is launched, before the window
 exists, so you are never left wondering whether it is coming. It shows the
-VibeStudio mark, the version and its pre-alpha status, and a line that names
+SlopStudio mark, the version and its pre-alpha status, and a line that names
 what the studio is doing right now (**Building the Levels page**, **Applying
 your preferences**, **Restoring your session**) with a progress track that
 fills as the stages go by. It uses your theme, text size and language, keeps
 still under **Reduce motion**, and fades away once the window has painted and
 your last session is back.
 
-Start VibeStudio with `--no-splash` to skip it, for example from a script.
+Start SlopStudio with `--no-splash` to skip it, for example from a script.
 
 ## The studio bar
 
@@ -49,7 +49,7 @@ shows where you are.
 Choose **Help** > **Documentation** to open the bundled HTML user manual in
 your browser. It works offline in release packages. If no bundled manual is
 available, as in development builds, the command opens the
-[online manual](https://github.com/themuffinator/VibeStudio/blob/main/docs/manual/index.md).
+[online manual](https://github.com/themuffinator/SlopStudio/blob/main/docs/manual/index.md).
 You can also find **Documentation** in the Command Palette.
 
 ## Find commands and files
@@ -188,7 +188,7 @@ opens **Packages**, the compilers item opens the **Build** page's
 | Build and Launch | <kbd>F5</kbd> (in the NetRadiant Custom and NetRadiant profiles, <kbd>F5</kbd> is Run Last Build) |
 | Next or previous build problem | <kbd>F4</kbd>, <kbd>Shift</kbd>+<kbd>F4</kbd> |
 | Read aloud, or stop reading | <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>U</kbd> |
-| About VibeStudio | <kbd>Shift</kbd>+<kbd>F1</kbd> |
+| About SlopStudio | <kbd>Shift</kbd>+<kbd>F1</kbd> |
 
 Press <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move between
 controls. Two places use Tab themselves. In the code editor Tab indents; on
@@ -203,12 +203,12 @@ page they work on. **Change Keys…** gives a command keys of your own, and
 ## Pick up where you left off
 
 - **Reopen the last session at start** is on by default (**Settings** >
-  **Appearance and Language** > **Startup and Recovery**). VibeStudio reopens
+  **Appearance and Language** > **Startup and Recovery**). SlopStudio reopens
   the package, map and code files that were open, on the page you closed it on,
   and the status bar says what it reopened. The start-up screen stays over the
   window, saying **Restoring your session**, until that is done. Opening a file
   from the command line with `--open <path>` skips this.
-- If VibeStudio closed unexpectedly, the next start shows
+- If SlopStudio closed unexpectedly, the next start shows
   **The studio closed unexpectedly last time.** in a bar above the page. The
   files that were open are not reopened by themselves, in case one of them
   caused the crash: choose **Reopen Last Session** to open them, or
@@ -226,4 +226,4 @@ page they work on. **Change Keys…** gives a command keys of your own, and
 - [Visual showcase](../showcase/index.html): twelve development screenshots
   spanning authoring, project tools, builds and accessibility.
 - [UX design](../UX_DESIGN.md): the principles behind the window's layout.
-- [Portable workspaces](../WORKSPACES.md): what a `.vibeworkspace` file keeps.
+- [Portable workspaces](../WORKSPACES.md): what a `.slopworkspace` file keeps.

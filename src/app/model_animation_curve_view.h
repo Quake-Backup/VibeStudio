@@ -2,7 +2,7 @@
 #include "core/model_animation_curves.h"
 #include <QWidget>
 #include <functional>
-namespace vibestudio
+namespace slopstudio
 {
 class ModelAnimationCurveView final : public QWidget
 {
@@ -65,4 +65,4 @@ class ModelAnimationCurveView final : public QWidget
 	int nearest(QPointF position) const;
 	void notifyKeyChanged();
 };
-} // namespace vibestudio
+} // namespace slopstudio

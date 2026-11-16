@@ -7,7 +7,7 @@
 #include <QCoreApplication>
 #include <QJsonDocument>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -70,12 +70,12 @@ bool StudioSettings::setModelEditorControlOverrides(const QString& profile, cons
 	if (error) { error->clear(); }
 	const QString normalized = normalizedModelEditorProfileId(profile);
 	if (normalized.isEmpty()) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioModelControls", "Unknown modeller profile: %1.").arg(profile); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioModelControls", "Unknown modeller profile: %1.").arg(profile); }
 		return false;
 	}
 	if (isReadOnly()) {
 		++m_discardedWrites;
-		if (error) { *error = QCoreApplication::translate("VibeStudioModelControls", "The settings store is read-only."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioModelControls", "The settings store is read-only."); }
 		return false;
 	}
 	// Store only what still differs from the profile once applied, so a
@@ -83,7 +83,7 @@ bool StudioSettings::setModelEditorControlOverrides(const QString& profile, cons
 	const ModelEditorControls base = modelEditorControlsForProfile(normalized);
 	ModelEditorControls edited;
 	applyModelEditorControlOverrides(base, overrides, &edited);
-	const QJsonObject cleaned = vibestudio::modelEditorControlOverrides(base, edited);
+	const QJsonObject cleaned = slopstudio::modelEditorControlOverrides(base, edited);
 	const QString key = overridesKey(normalized);
 	if (cleaned.isEmpty()) {
 		removeKey(key);
@@ -92,7 +92,7 @@ bool StudioSettings::setModelEditorControlOverrides(const QString& profile, cons
 	}
 	sync();
 	if (status() != QSettings::NoError) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioModelControls", "Unable to save the modeller controls."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioModelControls", "Unable to save the modeller controls."); }
 		return false;
 	}
 	return true;
@@ -120,4 +120,4 @@ void StudioSettings::setModelSidebarState(const QString& family, const QJsonObje
 	writeValue(sidebarKey(family), QJsonDocument(state).toJson(QJsonDocument::Compact));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

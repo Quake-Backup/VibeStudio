@@ -12,8 +12,8 @@ enum class FinishReason {
     token_limit,
 };
 
-// VibeStudio: how a model is identified. A local GGUF is named by the SHA-256 of its weights and
-// tokenizer. A model reached through a VibeStudio AI connector (a hosted provider, or a local
+// SlopStudio: how a model is identified. A local GGUF is named by the SHA-256 of its weights and
+// tokenizer. A model reached through a SlopStudio AI connector (a hosted provider, or a local
 // OpenAI-compatible server) can only be named by connector and model: its digests stay empty, its
 // token counts are whatever the provider reported (0 when it reported none), and its context limit
 // is unknown (0).
@@ -43,7 +43,7 @@ struct TextGenerationRequest {
     std::string user_prompt;
     std::string grammar;
     std::string grammar_root{"root"};
-    // VibeStudio: the same contract as a JSON Schema, for providers that take structured output
+    // SlopStudio: the same contract as a JSON Schema, for providers that take structured output
     // instead of a grammar (build_semantic_plan_json_schema).
     std::string json_schema;
     std::uint64_t seed{};
@@ -60,7 +60,7 @@ struct TextGenerationResult {
     InferenceConfig inference;
 };
 
-// VibeStudio: thrown by a TextModel that could not answer at all (no connection, refused, cancelled),
+// SlopStudio: thrown by a TextModel that could not answer at all (no connection, refused, cancelled),
 // as opposed to answering with an invalid plan. Planning stops; a rules fallback never hides it.
 class TextModelUnavailable : public std::runtime_error {
   public:
@@ -71,7 +71,7 @@ class TextModel {
   public:
     virtual ~TextModel() = default;
     [[nodiscard]] virtual TextGenerationResult generate(const TextGenerationRequest &request) = 0;
-    // VibeStudio: what generate() will report in identity.provenance; the planner records it as the
+    // SlopStudio: what generate() will report in identity.provenance; the planner records it as the
     // requested backend before the first call.
     [[nodiscard]] virtual ModelProvenance provenance() const { return ModelProvenance::local_weights; }
 };

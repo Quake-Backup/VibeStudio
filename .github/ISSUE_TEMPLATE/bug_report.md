@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a reproducible VibeStudio problem.
+about: Report a reproducible SlopStudio problem.
 title: "[Bug]: "
 labels: bug
 ---
@@ -17,7 +17,7 @@ Describe what went wrong and what you expected instead.
 
 ## Environment
 
-- VibeStudio version:
+- SlopStudio version:
 - OS:
 - Build source: local, PR artifact, nightly artifact, other:
 - Relevant game/project family: Doom, Quake, Quake II, Quake III, other:

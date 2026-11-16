@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -134,4 +134,4 @@ void ApplicationShell::setLevelMapGridUnits(double units)
 	statusBar()->showMessage(snapped ? tr("Grid: %1 units. Snap to grid turned on.").arg(size) : tr("Grid: %1 units.").arg(size), 2000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

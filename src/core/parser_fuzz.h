@@ -2,7 +2,7 @@
 
 // Deterministic corpus generation for parser fuzz tests.
 //
-// VibeStudio's binary readers (DEFLATE, idTech images, BSP, PAK/WAD/ZIP, Doom
+// SlopStudio's binary readers (DEFLATE, idTech images, BSP, PAK/WAD/ZIP, Doom
 // WAD maps, model meshes) all parse bytes that arrive from somewhere the user
 // does not control. This helper turns a handful of valid seed inputs into a
 // fixed corpus of corrupted ones so those readers can be exercised against
@@ -26,7 +26,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Marsaglia's xorshift, with Vigna's multiplier scramble (xorshift64*).
 // - G. Marsaglia, "Xorshift RNGs", Journal of Statistical Software 8(14), 2003:
@@ -109,4 +109,4 @@ QVector<FuzzCase> buildFuzzCorpus(const QVector<QByteArray>& seeds, quint64 seed
 // same constant.
 quint64 parserFuzzSeed(const char* environmentVariable, quint64 fallbackSeed);
 
-} // namespace vibestudio
+} // namespace slopstudio

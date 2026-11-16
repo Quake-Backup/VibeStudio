@@ -6,7 +6,7 @@
 #include <QSize>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 class LevelSurfaceClipboard;
 struct LevelSurfacePasteOptions;
@@ -280,4 +280,4 @@ bool levelTextureValues(const LevelMapBrushFace &face, QSize imageSize, LevelTex
 // Writes the ticked values of `values` into one face in its own format, as
 // Reset Textures does; the name and targets of the request are not read.
 bool assignLevelTextureValues(LevelMapBrushFace *face, const LevelTextureResetRequest &values, QSize imageSize, QString *error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

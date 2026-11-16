@@ -28,7 +28,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::model_formats {
+namespace slopstudio::model_formats {
 
 namespace {
 
@@ -134,7 +134,7 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	while (offset < qint64(bytes.size())) {
 		if (!work.step()) { return; }
 		if (!rangeOk(bytes, offset, kChunkHeaderBytes)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "A Heretic II FM chunk header is truncated.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "A Heretic II FM chunk header is truncated.");
 			return;
 		}
 		Chunk chunk;
@@ -143,18 +143,18 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		chunk.size = readI32(bytes, offset + kChunkIdentBytes + 4);
 		chunk.offset = offset + kChunkHeaderBytes;
 		if (chunk.size < 0 || !rangeOk(bytes, chunk.offset, chunk.size)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM chunk \"%1\" runs past the end of the file.").arg(chunk.ident);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM chunk \"%1\" runs past the end of the file.").arg(chunk.ident);
 			return;
 		}
 		if (chunks.size() >= kMaxChunks) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM holds more chunks than can be decoded.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM holds more chunks than can be decoded.");
 			return;
 		}
 		chunks.append(chunk);
 		offset = chunk.offset + chunk.size;
 	}
 	if (chunks.isEmpty() || chunks.first().ident.compare(QStringLiteral("header"), Qt::CaseInsensitive) != 0) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM does not open with a header chunk.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM does not open with a header chunk.");
 		return;
 	}
 
@@ -163,11 +163,11 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	const Chunk& headerChunk = chunks.first();
 	mesh->version = headerChunk.version;
 	if (headerChunk.version != kHeaderVersion) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported Heretic II FM header version %1; only version 2 is decoded.").arg(headerChunk.version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported Heretic II FM header version %1; only version 2 is decoded.").arg(headerChunk.version);
 		return;
 	}
 	if (headerChunk.size < kHeaderFieldBytes) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM header chunk is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM header chunk is truncated.");
 		return;
 	}
 	const qint64 h = headerChunk.offset;
@@ -182,18 +182,18 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	const int frameCount = readI32(bytes, h + 32);
 	const int meshNodeCount = readI32(bytes, h + 36);
 	if (skinWidth <= 0 || skinHeight <= 0 || skinWidth > kMaxSkinDimension || skinHeight > kMaxSkinDimension) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM skin size is outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM skin size is outside the supported range.");
 		return;
 	}
 	if (skinCount < 0 || skinCount > kMaxSkins || positionCount <= 0 || positionCount > kMaxSurfaceVertices || stCount <= 0 || stCount > kMaxSurfaceVertices
 		|| triangleCount <= 0 || triangleCount > kMaxSurfaceTriangles || frameCount <= 0 || frameCount > kMaxFrames || glCommandCount < 0
 		|| meshNodeCount < 0 || meshNodeCount > kMaxMeshNodes) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM header declares counts outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM header declares counts outside the supported range.");
 		return;
 	}
 	const qint64 minimumFrameBytes = kFrameHeaderBytes + qint64(positionCount) * kVertexBytes;
 	if (frameSize < minimumFrameBytes || frameSize > minimumFrameBytes + 4096) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM frame size does not match the declared vertex count.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM frame size does not match the declared vertex count.");
 		return;
 	}
 
@@ -201,12 +201,12 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	for (const Chunk& chunk : chunks) {
 		chunkNames << chunk.ident;
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skin size: %1 x %2").arg(skinWidth).arg(skinHeight);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Positions: %1").arg(positionCount);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Texture coordinates: %1").arg(stCount);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "GL commands: %1").arg(glCommandCount);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Mesh nodes: %1").arg(meshNodeCount);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Chunks: %1").arg(chunkNames.join(QStringLiteral(", ")));
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skin size: %1 x %2").arg(skinWidth).arg(skinHeight);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Positions: %1").arg(positionCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Texture coordinates: %1").arg(stCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "GL commands: %1").arg(glCommandCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Mesh nodes: %1").arg(meshNodeCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Chunks: %1").arg(chunkNames.join(QStringLiteral(", ")));
 
 	// Chunks this decoder does not use are listed; unknown ones are skipped,
 	// as the game skips them.
@@ -217,7 +217,7 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		if (!work.step()) { return; }
 		const QString key = chunk.ident.toLower();
 		if (seen.contains(key)) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("fm-repeated-chunk"), QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM repeats the chunk \"%1\"; the first one is used.").arg(chunk.ident));
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("fm-repeated-chunk"), QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM repeats the chunk \"%1\"; the first one is used.").arg(chunk.ident));
 			continue;
 		}
 		seen.insert(key);
@@ -230,10 +230,10 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 			listed = listed || key == QLatin1String(name);
 		}
 		if (listed) {
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Chunk \"%1\" (version %2, %3 bytes) is kept in the file but not decoded.")
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Chunk \"%1\" (version %2, %3 bytes) is kept in the file but not decoded.")
 				.arg(chunk.ident, QString::number(chunk.version), QString::number(chunk.size));
 		} else if (!known) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("fm-unknown-chunk"), QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM holds an unknown chunk \"%1\", which was skipped.").arg(chunk.ident));
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("fm-unknown-chunk"), QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM holds an unknown chunk \"%1\", which was skipped.").arg(chunk.ident));
 		}
 	}
 
@@ -244,18 +244,18 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	const Chunk* glCommandChunk = findChunk(chunks, "glcmds");
 	const Chunk* meshChunk = findChunk(chunks, "mesh nodes");
 	if (!frameChunk && findChunk(chunks, "comp data")) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM stores only compressed frames, which are not decoded.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM stores only compressed frames, which are not decoded.");
 		return;
 	}
 	if (!stChunk || !triangleChunk || !frameChunk) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM lacks its texture coordinate, triangle or frame chunk.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM lacks its texture coordinate, triangle or frame chunk.");
 		return;
 	}
 	const auto versionOk = [mesh](const Chunk* chunk, int expected) {
 		if (chunk->version == expected) {
 			return true;
 		}
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported Heretic II FM \"%1\" chunk version %2; version %3 is decoded.")
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported Heretic II FM \"%1\" chunk version %2; version %3 is decoded.")
 			.arg(chunk->ident).arg(chunk->version).arg(expected);
 		return false;
 	};
@@ -264,28 +264,28 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		return;
 	}
 	if (stChunk->size < qint64(stCount) * kStBytes) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM texture coordinate chunk is shorter than the header declares.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM texture coordinate chunk is shorter than the header declares.");
 		return;
 	}
 	if (triangleChunk->size < qint64(triangleCount) * kTriangleBytes) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM triangle chunk is shorter than the header declares.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM triangle chunk is shorter than the header declares.");
 		return;
 	}
 	if (frameChunk->size < qint64(frameCount) * qint64(frameSize)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM frame chunk is shorter than the header declares.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM frame chunk is shorter than the header declares.");
 		return;
 	}
 	if (glCommandChunk && glCommandChunk->version == kGlCmdVersion && glCommandChunk->size < qint64(glCommandCount) * 4) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM GL command chunk is shorter than the header declares.");
+		mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM GL command chunk is shorter than the header declares.");
 	}
 
 	// Skin names. The game refuses a skin chunk that does not hold exactly
 	// num_skins names, but loads a model without one (and so without skins).
 	if (skinCount > 0 && !skinChunk) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("fm-no-skins"), QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM declares %1 skin(s) but holds no skin chunk.").arg(skinCount));
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("fm-no-skins"), QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM declares %1 skin(s) but holds no skin chunk.").arg(skinCount));
 	} else if (skinCount > 0) {
 		if (skinChunk->size != qint64(skinCount) * kSkinNameBytes) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM skin chunk does not hold the %1 skin name(s) the header declares.").arg(skinCount);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM skin chunk does not hold the %1 skin name(s) the header declares.").arg(skinCount);
 			return;
 		}
 		for (int index = 0; index < skinCount; ++index) {
@@ -301,9 +301,9 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	bool haveNodes = false;
 	if (meshNodeCount > 0) {
 		if (!meshChunk) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("fm-no-mesh-nodes"), QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM declares %1 mesh node(s) but holds no mesh node chunk; it is shown as one surface.").arg(meshNodeCount));
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("fm-no-mesh-nodes"), QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM declares %1 mesh node(s) but holds no mesh node chunk; it is shown as one surface.").arg(meshNodeCount));
 		} else if (meshChunk->size < qint64(meshNodeCount) * kMeshNodeBytes) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM mesh node chunk is shorter than the header declares.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM mesh node chunk is shorter than the header declares.");
 			return;
 		} else {
 			haveNodes = true;
@@ -320,13 +320,13 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 						used[triangle] = true;
 					}
 				}
-				mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Mesh node %1: %2 triangle(s), GL commands from %3 (%4)")
+				mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Mesh node %1: %2 triangle(s), GL commands from %3 (%4)")
 					.arg(node).arg(selected.size()).arg(readI16(bytes, base + 512)).arg(readI16(bytes, base + 514));
 				nodeTriangles.append(selected);
 			}
 			const int unused = int(std::count(used.cbegin(), used.cend(), false));
 			if (unused > 0) {
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("fm-unused-triangles"), QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) belong to no mesh node; the game does not draw them, so they are left out.").arg(unused));
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("fm-unused-triangles"), QCoreApplication::translate("SlopStudioModelMesh", "%1 triangle(s) belong to no mesh node; the game does not draw them, so they are left out.").arg(unused));
 			}
 		}
 	}
@@ -350,7 +350,7 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		readVec3(bytes, base, &frameScale[frame]);
 		readVec3(bytes, base + 12, &frameTranslate[frame]);
 		if (!isFinite(frameScale.at(frame)) || !isFinite(frameTranslate.at(frame))) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "A Heretic II FM frame has a non-finite scale or translation.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "A Heretic II FM frame has a non-finite scale or translation.");
 			return;
 		}
 		ModelFrameInfo info;
@@ -422,7 +422,7 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 		surface.vertexCount = int(positionForCorner.size());
 		vertexSlots += qint64(surface.vertexCount) * frameCount;
 		if (vertexSlots > kMaxVertexSlots) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM declares more frame vertices than can be decoded.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM declares more frame vertices than can be decoded.");
 			return;
 		}
 		surface.frames.reserve(frameCount);
@@ -447,19 +447,19 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 			surface.frames.append(geometry);
 		}
 		if (mesh->surfaces.size() >= kMaxSurfaces) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM holds more surfaces than can be decoded.");
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM holds more surfaces than can be decoded.");
 			return;
 		}
 		mesh->surfaces.append(surface);
 	}
 	if (skippedTriangles > 0) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
+		mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.").arg(skippedTriangles);
 	}
 	if (invalidNormals > 0) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM has %1 invalid normal indices; preview substitutes +Z.").arg(invalidNormals);
+		mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM has %1 invalid normal indices; preview substitutes +Z.").arg(invalidNormals);
 	}
 	if (mesh->surfaces.isEmpty()) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The Heretic II FM contains no usable triangles.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The Heretic II FM contains no usable triangles.");
 		return;
 	}
 	mesh->animations = inferAnimations(mesh->frames, work);
@@ -467,4 +467,4 @@ void decodeHereticFm(const QByteArray& bytes, ModelMesh* mesh, const ModelWorkCo
 	mesh->geometryAvailable = true;
 }
 
-} // namespace vibestudio::model_formats
+} // namespace slopstudio::model_formats

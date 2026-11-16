@@ -13,7 +13,7 @@ class QPushButton;
 class QTableWidget;
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackageImportDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(PackageImportDialog)
@@ -44,4 +44,4 @@ private:
 	bool m_closeRequested = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

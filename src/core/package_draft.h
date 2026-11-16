@@ -2,9 +2,9 @@
 
 #include "core/package_staging.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
-// A .vibepackage directory is a portable editing document: document.json is
+// A .sloppackage directory is a portable editing document: document.json is
 // atomically replaced, while objects/<sha256> contains independent immutable
 // payload copies. Version 3 can explicitly retain missing original content as
 // history metadata after a repair. Keep the complete directory when sharing.
@@ -27,4 +27,4 @@ private:
 		const QByteArray& expectedManifestSha256 = {}, qint64 maximumAdditionalBytes = -1, bool preflightForWrite = false);
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -13,11 +13,11 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 constexpr qint64 kImageReadLimit = 64LL * 1024 * 1024;
@@ -2020,4 +2020,4 @@ bool decodeDoomPatchIndices(const QByteArray& bytes, QVector<int>* indices, QSiz
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

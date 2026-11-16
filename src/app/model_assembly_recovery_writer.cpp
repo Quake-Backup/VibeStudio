@@ -4,7 +4,7 @@
 #include <QThread>
 #include <QUuid>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelAssemblyRecoveryWriter::Result
 {
@@ -203,4 +203,4 @@ void ModelAssemblyRecoveryWriter::startNext()
 			});
 	m_thread->start();
 }
-} // namespace vibestudio
+} // namespace slopstudio

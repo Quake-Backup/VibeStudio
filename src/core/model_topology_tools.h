@@ -22,7 +22,7 @@
 
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 struct ModelSelection;
@@ -90,4 +90,4 @@ bool setModelVertexPositions(ModelMesh *candidate, const ModelEdit &edit, ModelS
 // Splits vertex normals along the surface's stored sharp edges (after
 // Recalculate Normals or Shade Smooth recomputed them); frame -1 for every pose.
 bool applyModelSharpEdges(ModelSurface *surface, int frame, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

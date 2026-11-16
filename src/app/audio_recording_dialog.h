@@ -19,7 +19,7 @@ class QSpinBox;
 class QTabWidget;
 class QThread;
 class QTreeWidget;
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioRecordingDialogWork;
 class AudioRecordingMeters;
@@ -125,4 +125,4 @@ class AudioRecordingDialog final : public QDialog {
 	QProgressBar *m_progress = nullptr;
 	QPushButton *m_record = nullptr, *m_import = nullptr, *m_stop = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -7,7 +7,7 @@
 
 #include <QThread>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 ModelRecoveryInventory discoverModelRecoveries(const QString &meshDirectory, const QString &assemblyDirectory,
@@ -91,4 +91,4 @@ void ModelRecoveryDiscovery::start(const QString &meshDirectory, const QString &
 	m_thread->start();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

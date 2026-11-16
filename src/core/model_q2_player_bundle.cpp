@@ -23,13 +23,13 @@
 // <skin>.pcx, <skin>_i.pcx and view weapons). GPL-2.0-or-later reference,
 // reviewed 2026-10-28; original implementation, no code copied.
 // https://github.com/id-Software/Quake-2/blob/master/game/m_player.h
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelQ2Player)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelQ2Player)
 };
 bool fail(QString *error, const QString &message)
 {
@@ -325,7 +325,7 @@ bool prepareModelQ2PlayerBundle(const ModelQ2PlayerOptions &options, const QStri
 	package.receipt = {{"schemaVersion", 1},	{"format", "quake2-player-bundle"}, {"model", options.modelName},
 					   {"models", models},		{"sounds", soundReceipts},			{"palette", palette.sourceVirtualPath},
 					   {"files", files}};
-	if (!addModelBundleFile(&package, QStringLiteral("vibestudio/q2-player-%1.json").arg(options.modelName), QStringLiteral("receipt"),
+	if (!addModelBundleFile(&package, QStringLiteral("slopstudio/q2-player-%1.json").arg(options.modelName), QStringLiteral("receipt"),
 							QJsonDocument(package.receipt).toJson(), error))
 		return false;
 	std::sort(package.files.begin(), package.files.end(), [](const auto &a, const auto &b) { return a.path < b.path; });
@@ -365,4 +365,4 @@ PackageWriteReport writeModelQ2PlayerBundle(const ModelQ2PlayerBundle &bundle, c
 	const auto format = suffix == QStringLiteral("pak") ? PackageArchiveFormat::Pak : PackageArchiveFormat::Zip;
 	return writeModelBundleArchive(bundle.package, path, format, overwrite, dryRun, control);
 }
-} // namespace vibestudio
+} // namespace slopstudio

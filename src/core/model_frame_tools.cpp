@@ -12,7 +12,7 @@
 #include <cmath>
 #include <utility>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -745,4 +745,4 @@ QString modelNativeClipSummary(const QVector<ModelNativeClipCheck> &checks)
 		text += QLatin1Char(' ') + Text::tr("Saved clip FPS stays in the editable source; set timing in the game's own animation files.");
 	return text;
 }
-} // namespace vibestudio
+} // namespace slopstudio

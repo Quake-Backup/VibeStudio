@@ -6,7 +6,7 @@
 #include <QFileInfo>
 #include <QSet>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 LevelBookmarksCliResult runLevelBookmarks(const QStringList& arguments)
 {
 	const auto failure = [](int code, const QString& message) { return LevelBookmarksCliResult{code, message, {}, {}}; };
@@ -98,4 +98,4 @@ LevelBookmarksCliResult runLevelBookmarks(const QStringList& arguments)
 	for (const auto& view : views) { result.lines << QStringLiteral("%1  %2  [%3]").arg(view.id, view.name, levelViewLayoutId(view.view.layout)); }
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

@@ -15,7 +15,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 AudioTempoDialog::AudioTempoDialog(const AudioTempoMap &map, int sampleRate, qint64 cursor, QWidget *parent)
     : QDialog(parent), m_map(map), m_rate(sampleRate)
@@ -257,4 +257,4 @@ void AudioTempoDialog::setMeter()
 	}
 	replace(next);
 }
-} // namespace vibestudio
+} // namespace slopstudio

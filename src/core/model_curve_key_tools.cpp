@@ -6,7 +6,7 @@
 #include <QCoreApplication>
 #include <algorithm>
 #include <cmath>
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -333,4 +333,4 @@ bool describeModelCurveKeyChanges(const QVector<ModelPoseCurves> &before, const 
 	*report = std::move(result);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

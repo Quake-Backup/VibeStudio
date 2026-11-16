@@ -11,7 +11,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -439,4 +439,4 @@ bool applyModelWholeTransform(ModelMesh *candidate, const ModelEdit &edit, QStri
 		return false;
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

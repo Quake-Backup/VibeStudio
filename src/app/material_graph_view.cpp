@@ -24,7 +24,7 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -1754,4 +1754,4 @@ bool MaterialGraphView::event(QEvent* event)
 	return QWidget::event(event);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

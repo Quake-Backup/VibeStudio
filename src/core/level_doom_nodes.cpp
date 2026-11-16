@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 // Original bounded readers of the layouts written by ZDBSP processor.cpp,
 // bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659 (GPL-2.0-or-later; Randy Heit).
@@ -409,4 +409,4 @@ bool invalidateLevelDoomNodeProducts(QVector<LevelMapWadSourceLump>* lumps, int 
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

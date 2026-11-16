@@ -25,7 +25,7 @@
 #include <atomic>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 // Keep the editor unavailable until the writer has stopped, including after
@@ -553,4 +553,4 @@ void ProjectSearchPanel::showMatchDetails()
 	m_details->setPlainText(details);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

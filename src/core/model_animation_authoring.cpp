@@ -9,7 +9,7 @@
 #include <QCoreApplication>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -105,4 +105,4 @@ bool validateModelAnimationAuthoring(const ModelMesh &mesh, QString *error, cons
 			return fail(error, Text::tr("Joint %1 keeps limit values while its limits are off.").arg(joint.name));
 	return validateModelAnimationEvents(mesh, error) && validateModelClipStacks(mesh, error, control, validBaseline);
 }
-} // namespace vibestudio
+} // namespace slopstudio

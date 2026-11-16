@@ -12,7 +12,7 @@ class QProgressBar;
 class QTextBrowser;
 class QToolButton;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class CodeSignaturePanel final : public QWidget {
 	Q_OBJECT
@@ -43,4 +43,4 @@ private:
 	bool m_busy = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

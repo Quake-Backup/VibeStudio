@@ -4,7 +4,7 @@
 #include <QTimer>
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct CodeFilesWorker::Work {
 	std::atomic_bool cancel {false};
@@ -86,4 +86,4 @@ void CodeFilesWorker::startPending()
 	m_thread->start();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

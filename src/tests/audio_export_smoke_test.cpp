@@ -13,7 +13,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -33,7 +33,7 @@ QByteArray read(const QString& path)
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-export-XXXXXX")));
 	if (!temporary.isValid()) {
@@ -128,11 +128,11 @@ int main(int argc, char** argv)
 	             "encoding cancellation discards partial bytes");
 	const QString path = QDir(temporary.path()).filePath(QStringLiteral("result.wav"));
 	ok &= expect(saveAudioWav(floating, {AudioWavFormat::Float32}, path, false, {}, &error, true) &&
-	                 !QFileInfo::exists(path) && !QFileInfo::exists(path + QStringLiteral(".vibestudio-export.lock")),
+	                 !QFileInfo::exists(path) && !QFileInfo::exists(path + QStringLiteral(".slopstudio-export.lock")),
 	             "precision dry runs create neither output nor lock file");
 	ok &= expect(saveAudioWav(floating, {AudioWavFormat::Float32}, path, false, {}, &error) && read(path) == floats,
 	             "atomic precision export writes the exact encoded stream");
-	QLockFile lock(path + QStringLiteral(".vibestudio-export.lock"));
+	QLockFile lock(path + QStringLiteral(".slopstudio-export.lock"));
 	ok &= expect(lock.tryLock() && !saveAudioWav(extremes, {AudioWavFormat::Pcm8}, path, true, {}, &error) &&
 	                 read(path) == floats,
 	             "a concurrent cooperating writer blocks replacement without altering the file");

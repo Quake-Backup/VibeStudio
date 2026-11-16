@@ -9,8 +9,8 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::subset_test;
+using namespace slopstudio;
+using namespace slopstudio::subset_test;
 namespace {
 bool expect(bool value, const char* label, const QString& error = {}) { if (!value) { std::cerr << label << ": " << error.toStdString() << '\n'; } return value; }
 QStringList names(const PackageStagingModel& model) { QStringList result; for (const auto& entry : model.plannedEntries()) { result << entry.virtualPath; } return result; }
@@ -44,7 +44,7 @@ bool newWadOrderWorkflow(const QDir& root, const QString& magic)
 	const auto expectedSubset = root.filePath(magic + "-expected-subset.wad");
 	ok &= wad(expectedSubset, {{"TITLEMAP", {}}, {"TEXTMAP", "namespace=\"zdoom\";"}, {"CUSTOM", "sidecar"}, {"ZNODES", "nodes"}, {"ENDMAP", {}}}, magic.toLatin1());
 	ok &= expect(subset.writeArchive(write).succeeded() && get(write.destinationPath) == get(expectedSubset), "subset writer retains source-free named map order");
-	const auto draft = root.filePath(magic + "-new.vibepackage"); PackageStagingModel restored;
+	const auto draft = root.filePath(magic + "-new.sloppackage"); PackageStagingModel restored;
 	ok &= expect(PackageDraft::save(draft, &model, false, &error) && PackageDraft::load(draft, &restored, &error)
 		&& names(restored) == plannedNames && restored.sourcePath().isEmpty() && restored.sourceWadLumps().isEmpty(), "portable draft retains construction order and source-free identity", error);
 	const auto draftInventory = inspectPackageWadGroups(restored); edit = {named(draftInventory, "F_START").id, draftInventory.fingerprint, {}, true};
@@ -99,7 +99,7 @@ bool unorderedWadWorkflow(const QDir& root)
 	const auto renamedNames = names(model); ok &= expect(model.undo() && names(model) == expectedNames && model.redo() && names(model) == renamedNames,
 		"assembly and rename replay with the same membership through undo and redo");
 	for (auto& [name, bytes] : expected) { Q_UNUSED(bytes); if (name == "MAP01") { name = "INTRO"; } else if (name == "GL_MAP01") { name = "GL_INTRO"; } }
-	const auto draft = root.filePath("assembled.vibepackage"); PackageStagingModel restored;
+	const auto draft = root.filePath("assembled.sloppackage"); PackageStagingModel restored;
 	ok &= expect(PackageDraft::save(draft, &model, false, &error) && PackageDraft::load(draft, &restored, &error) && names(restored) == renamedNames,
 		"draft history replays assembly before the marker loses its conventional name", error);
 	PackageWriteRequest write; write.destinationPath = root.filePath("assembled-renamed.wad"); const auto expectedPath = root.filePath("expected-assembled.wad"); ok &= wad(expectedPath, expected);
@@ -144,7 +144,7 @@ int main(int argc, char** argv)
 		&& names(roundtrip) == renamed, "save preserves group order and companion labels", error);
 	QByteArray payload; const auto planned = packagePlannedArchive(roundtrip);
 	ok &= expect(planned.readEntryAt(index(planned, "THINGS", 1), &payload, &error) && payload == "THINGS-second", "map rename preserves exact second-map bytes");
-	const auto draft = root.filePath("work.vibepackage"); ok &= PackageDraft::save(draft, &model, false, &error);
+	const auto draft = root.filePath("work.sloppackage"); ok &= PackageDraft::save(draft, &model, false, &error);
 	PackageStagingModel restored; ok &= expect(PackageDraft::load(draft, &restored, &error) && names(restored) == renamed && restored.undo()
 		&& names(restored) == names(original) && restored.redo(), "portable draft replays grouped rename and history", error);
 	for (const QString& target : {QString("MAP01"), QString("THINGS"), QString("F_START"), QString("TEXTMAP"), QString("PNAMES"), QString("GL_FOO"), QString("LONGNAME"), QString("../BAD"), QString("bad label"), QString("é")}) {

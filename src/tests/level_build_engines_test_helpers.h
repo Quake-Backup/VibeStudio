@@ -4,7 +4,7 @@
 #include "core/package_staging.h"
 #include "tests/package_subset_test_helpers.h"
 #include <QtEndian>
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 inline QByteArray buildMiptex(const QByteArray& name) {
 	QByteArray bytes(40, '\0');
 	bytes.replace(0, name.size(), name);
@@ -58,4 +58,4 @@ inline bool buildEngineFixture(const QString& root, const QString& target, Level
 	}
 	return archive->load(assets, error);
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

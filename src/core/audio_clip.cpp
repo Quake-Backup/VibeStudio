@@ -12,7 +12,7 @@
 #include <cmath>
 #include <filesystem>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -55,17 +55,17 @@ qint64 AudioClip::durationMs() const
 QString validateAudioClip(const AudioClip& clip, bool allowEmpty)
 {
 	if (clip.channels < 1 || clip.channels > 8 || clip.sampleRate < 1 || clip.sampleRate > 384000) {
-		return QCoreApplication::translate("VibeStudioAudio",
+		return QCoreApplication::translate("SlopStudioAudio",
 		                                   "Audio requires 1–8 channels and a sample rate between 1 and 384000 Hz.");
 	}
 	if ((!allowEmpty && clip.samples.isEmpty()) || clip.samples.size() > AudioSampleLimit ||
 	    clip.samples.size() % clip.channels != 0) {
-		return QCoreApplication::translate("VibeStudioAudio",
+		return QCoreApplication::translate("SlopStudioAudio",
 		                                   "Audio must contain complete frames and at most 16777216 samples.");
 	}
 	for (float value : clip.samples) {
 		if (!std::isfinite(value)) {
-			return QCoreApplication::translate("VibeStudioAudio", "Audio contains a non-finite sample.");
+			return QCoreApplication::translate("SlopStudioAudio", "Audio contains a non-finite sample.");
 		}
 	}
 	return validateAudioMarkers(clip.markers, clip.frameCount());
@@ -81,7 +81,7 @@ AudioClipResult applyAudioEdit(const AudioClip& clip, const AudioEdit& edit, con
 	const qint64 end = edit.endFrame == -1 ? clip.frameCount() : edit.endFrame;
 	if (edit.firstFrame < 0 || end > clip.frameCount() || end <= edit.firstFrame) {
 		result.error =
-		    QCoreApplication::translate("VibeStudioAudio", "Select a non-empty frame range within the sound.");
+		    QCoreApplication::translate("SlopStudioAudio", "Select a non-empty frame range within the sound.");
 		return result;
 	}
 	const QString op = edit.operation;
@@ -90,25 +90,25 @@ AudioClipResult applyAudioEdit(const AudioClip& clip, const AudioEdit& edit, con
 	    QStringLiteral("fade-in"), QStringLiteral("fade-out"), QStringLiteral("gain"),    QStringLiteral("normalize"),
 	    QStringLiteral("mono"),    QStringLiteral("stereo"),   QStringLiteral("invert"),  QStringLiteral("remove-dc")};
 	if (!operations.contains(op)) {
-		result.error = QCoreApplication::translate("VibeStudioAudio", "Unknown audio edit: %1.").arg(op);
+		result.error = QCoreApplication::translate("SlopStudioAudio", "Unknown audio edit: %1.").arg(op);
 		return result;
 	}
 	if ((op == QStringLiteral("gain") || op == QStringLiteral("normalize")) &&
 	    (!std::isfinite(edit.decibels) || edit.decibels < -96.0 ||
 	     edit.decibels > (op == QStringLiteral("normalize") ? 0.0 : 24.0))) {
 		result.error = QCoreApplication::translate(
-		    "VibeStudioAudio", "Gain must be between -96 and +24 dB; normalization must be between -96 and 0 dBFS.");
+		    "SlopStudioAudio", "Gain must be between -96 and +24 dB; normalization must be between -96 and 0 dBFS.");
 		return result;
 	}
 	if (op == QStringLiteral("mono") && (edit.firstFrame != 0 || end != clip.frameCount())) {
 		result.error = QCoreApplication::translate(
-		    "VibeStudioAudio", "Mono conversion applies to the whole sound. Select all frames first.");
+		    "SlopStudioAudio", "Mono conversion applies to the whole sound. Select all frames first.");
 		return result;
 	}
 	if (op == QStringLiteral("stereo") && (clip.channels != 1 || edit.firstFrame != 0 || end != clip.frameCount() ||
 	                                       clip.frameCount() > AudioSampleLimit / 2)) {
 		result.error = QCoreApplication::translate(
-		    "VibeStudioAudio", "Stereo conversion requires a whole mono sound within the sample limit.");
+		    "SlopStudioAudio", "Stereo conversion requires a whole mono sound within the sample limit.");
 		return result;
 	}
 	const auto cancelled = [&]() {
@@ -226,7 +226,7 @@ AudioClipResult createAudioClip(int sampleRate, int channels, qint64 frames, con
 	}
 	if (frames < 0 || frames > AudioSampleLimit / channels) {
 		result.error =
-		    QCoreApplication::translate("VibeStudioAudio", "The requested sound length exceeds the sample limit.");
+		    QCoreApplication::translate("SlopStudioAudio", "The requested sound length exceeds the sample limit.");
 		return result;
 	}
 	if (control.cancelled && control.cancelled()) {
@@ -251,17 +251,17 @@ AudioClipResult replaceAudioRange(const AudioClip& clip, qint64 first, qint64 en
 	}
 	if (clip.channels != insertion.channels || clip.sampleRate != insertion.sampleRate) {
 		result.error = QCoreApplication::translate(
-		    "VibeStudioAudio",
+		    "SlopStudioAudio",
 		    "Pasted audio must have the same sample rate and channel count. Convert it before pasting.");
 		return result;
 	}
 	if (first < 0 || end < first || end > clip.frameCount()) {
-		result.error = QCoreApplication::translate("VibeStudioAudio", "The paste range is outside the sound.");
+		result.error = QCoreApplication::translate("SlopStudioAudio", "The paste range is outside the sound.");
 		return result;
 	}
 	const qint64 frames = clip.frameCount() - (end - first) + insertion.frameCount();
 	if (frames > AudioSampleLimit / clip.channels) {
-		result.error = QCoreApplication::translate("VibeStudioAudio", "Pasting would exceed the sample limit.");
+		result.error = QCoreApplication::translate("SlopStudioAudio", "Pasting would exceed the sample limit.");
 		return result;
 	}
 	result.clip = {clip.channels, clip.sampleRate, {}};
@@ -306,12 +306,12 @@ AudioClipResult mixAudioClip(const AudioClip& clip, qint64 first, const AudioCli
 	}
 	if (clip.channels != source.channels || clip.sampleRate != source.sampleRate) {
 		result.error = QCoreApplication::translate(
-		    "VibeStudioAudio",
+		    "SlopStudioAudio",
 		    "Mixed audio must have the same sample rate and channel count. Convert it before mixing.");
 		return result;
 	}
 	if (first < 0 || first > clip.frameCount() || first + source.frameCount() > AudioSampleLimit / clip.channels) {
-		result.error = QCoreApplication::translate("VibeStudioAudio",
+		result.error = QCoreApplication::translate("SlopStudioAudio",
 		                                           "The mix position or resulting length is outside the sound limits.");
 		return result;
 	}
@@ -391,16 +391,16 @@ bool stageAudioWav(const QByteArray& wav, const QString& virtualPath, PackageSta
                    QString* error)
 {
 	if (!staging || !staging->isLoaded() || staging->sourceFormat() == PackageArchiveFormat::Wad) {
-		return fail(error, QCoreApplication::translate("VibeStudioAudio",
+		return fail(error, QCoreApplication::translate("SlopStudioAudio",
 		                                               "Open a folder, PAK, ZIP, or PK3 package to stage a "
 		                                               "WAV sound. Doom WAD output requires DMX encoding."));
 	}
 	if (QFileInfo(virtualPath).suffix().compare(QStringLiteral("wav"), Qt::CaseInsensitive) != 0) {
-		return fail(error, QCoreApplication::translate("VibeStudioAudio", "The package sound path must end in .wav."));
+		return fail(error, QCoreApplication::translate("SlopStudioAudio", "The package sound path must end in .wav."));
 	}
 	// Fixed canonical headers can be checked without scanning samples on the UI thread.
 	if (!isGeneratedIntegerAudioWav(wav)) {
-		return fail(error, QCoreApplication::translate("VibeStudioAudio",
+		return fail(error, QCoreApplication::translate("SlopStudioAudio",
 		                                               "The generated integer PCM WAV could not be validated."));
 	}
 	// Apply to a value copy so path/collision failures cannot alter the live plan.
@@ -413,11 +413,11 @@ bool stageAudioWav(const QByteArray& wav, const QString& virtualPath, PackageSta
 	if (next.summary().blockingCount > staging->summary().blockingCount) {
 		return fail(error,
 		            QCoreApplication::translate(
-		                "VibeStudioAudio",
+		                "SlopStudioAudio",
 		                "This path conflicts with the package. Enable Replace existing entry or choose another path."));
 	}
 	*staging = std::move(next);
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

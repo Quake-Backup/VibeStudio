@@ -3,7 +3,7 @@
 #include <QCoreApplication>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 using NodeIndex = QHash<QString,const LevelSceneNode*>;
 NodeIndex nodeIndex(const LevelSceneState& scene)
@@ -194,4 +194,4 @@ bool changeLevelSceneGroupContext(LevelMapDocument* document, const QString& id,
 	*document = std::move(candidate);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

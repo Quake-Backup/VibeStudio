@@ -26,7 +26,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -43,7 +43,7 @@ class Expansion final : public QTranslator
 	bool isEmpty() const override { return false; }
 	QString translate(const char *context, const char *source, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelRecovery")
+		if (QByteArray(context) != "SlopStudioModelRecovery")
 		{
 			return {};
 		}
@@ -56,7 +56,7 @@ bool capture(QDialog &dialog, int scale)
 	auto *restore = dialog.findChild<QPushButton *>(QStringLiteral("restoreModelRecovery"));
 	bool ok = restore && restore->width() >= restore->fontMetrics().horizontalAdvance(restore->text()) + 12 &&
 			  restore->focusPolicy() != Qt::NoFocus;
-	const auto directory = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto directory = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (!directory.isEmpty())
 	{
 		QDir().mkpath(directory);
@@ -119,7 +119,7 @@ int main(int argc, char **argv)
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
 	applyStudioTheme(app, studioThemeTokens(StudioTheme::Dark, UiDensity::Standard, 100));
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;

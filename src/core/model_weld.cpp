@@ -15,7 +15,7 @@
 #include <cmath>
 #include <map>
 
-namespace vibestudio
+namespace slopstudio
 {
 using namespace model_tools;
 namespace
@@ -263,4 +263,4 @@ bool setModelVertexPositions(ModelMesh *candidate, const ModelEdit &edit, ModelS
 	Q_UNUSED(selection);
 	return refreshNormals(&surface, around, work, edit.frame);
 }
-} // namespace vibestudio
+} // namespace slopstudio

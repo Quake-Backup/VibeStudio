@@ -30,7 +30,7 @@ TRANSLATABLE_RE = re.compile(
 #
 #     QString mapText(const char* source)
 #     {
-#         return QCoreApplication::translate("VibeStudioLevelMap", source);
+#         return QCoreApplication::translate("SlopStudioLevelMap", source);
 #     }
 #
 # translates at run time while every mapText("...") literal stays out of the
@@ -515,7 +515,7 @@ def repo_root() -> Path:
 
 
 def expected_catalogs(root: Path) -> list[Path]:
-    return sorted((root / "i18n").glob("vibestudio_*.ts"))
+    return sorted((root / "i18n").glob("slopstudio_*.ts"))
 
 
 def source_files(root: Path) -> list[Path]:
@@ -613,7 +613,7 @@ def merge_unsupported_catalog(lupdate: Path, root: Path, catalog: Path) -> None:
     original_bytes = catalog.read_bytes()
     original = ET.ElementTree(ET.fromstring(original_bytes))
     original_messages = catalog_messages(original)
-    with tempfile.TemporaryDirectory(prefix="vibestudio-lupdate-merge-") as temporary:
+    with tempfile.TemporaryDirectory(prefix="slopstudio-lupdate-merge-") as temporary:
         target = Path(temporary) / catalog.name
         source_only = copy.deepcopy(original)
         for translation in source_only.iter("translation"):
@@ -693,7 +693,7 @@ def run_lupdate(lupdate: Path, root: Path, catalogs: list[Path], write: bool) ->
         target_paths = catalogs
         temp_dir: tempfile.TemporaryDirectory[str] | None = None
     else:
-        temp_dir = tempfile.TemporaryDirectory(prefix="vibestudio-lupdate-")
+        temp_dir = tempfile.TemporaryDirectory(prefix="slopstudio-lupdate-")
         temp_root = Path(temp_dir.name)
         target_paths = [temp_root / catalog.name for catalog in catalogs]
 
@@ -784,8 +784,8 @@ def main() -> int:
 
     if len(catalogs) < 48:
         errors.append("Expected 47 target catalogs plus the pseudo-localization catalog in i18n/.")
-    if not any(catalog.name == "vibestudio_pseudo.ts" for catalog in catalogs):
-        errors.append("Expected i18n/vibestudio_pseudo.ts.")
+    if not any(catalog.name == "slopstudio_pseudo.ts" for catalog in catalogs):
+        errors.append("Expected i18n/slopstudio_pseudo.ts.")
     if len(sources) < 20:
         errors.append("Expected C++ source/header files under src/ for extraction.")
     if call_count < 20:

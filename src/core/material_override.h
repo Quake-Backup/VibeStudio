@@ -6,9 +6,9 @@
 // A Quake III shader or Doom 3 material is copied as text into an override
 // script the game reads in the right order: Quake III (as ioquake3, RTCW, ET
 // and Jedi Knight run it) lets the alphabetically last script win, so the copy
-// goes into scripts/zz_vibestudio_overrides.shader; Quake III 1.32 and Doom 3
-// keep the first definition, so it goes into scripts/00_vibestudio_overrides
-// .shader or materials/00_vibestudio_overrides.mtr. A Quake II texture is a
+// goes into scripts/zz_slopstudio_overrides.shader; Quake III 1.32 and Doom 3
+// keep the first definition, so it goes into scripts/00_slopstudio_overrides
+// .shader or materials/00_slopstudio_overrides.mtr. A Quake II texture is a
 // WAL file: the package gets its own copy at the same path.
 #include "core/material_library.h"
 #include "core/material_model.h"
@@ -16,7 +16,7 @@
 #include <QByteArray>
 #include <QString>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct MaterialOverride {
 	QString name;
@@ -47,4 +47,4 @@ bool materialOverrideForEntry(const MaterialLibrary& library, int entry, Materia
 // already defines the name or the result does not parse.
 bool materialOverrideScriptText(const QString& existing, const MaterialOverride& copy, MaterialDialect dialect, QString* text, QString* error);
 
-} // namespace vibestudio
+} // namespace slopstudio

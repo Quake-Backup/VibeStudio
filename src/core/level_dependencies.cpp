@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 constexpr qint64 maxScriptBytes = 4 * 1024 * 1024;
@@ -145,11 +145,11 @@ LevelDependencyReport inspectDoomDependencies(const LevelMapDocument& document, 
 	// subset needs table rewriting and namespace/occurrence closure, not merely
 	// copying the files that happened to contribute pixels to this camera.
 	report.exportSupported = false;
-	report.limitations = {QCoreApplication::translate("VibeStudioLevelDependencies", "Reviews Doom wall textures, flats, patches, texture definitions and palette inputs in the selected package. Thing sprites, sounds, scripts and engine-selected resources require a separate review.")};
-	report.limitations << QCoreApplication::translate("VibeStudioLevelDependencies", "Doom review identifies exact flat, patch, texture-table and palette inputs. Asset subset export is unavailable until whole texture tables and WAD namespace groups can be preserved or rewritten together.");
+	report.limitations = {QCoreApplication::translate("SlopStudioLevelDependencies", "Reviews Doom wall textures, flats, patches, texture definitions and palette inputs in the selected package. Thing sprites, sounds, scripts and engine-selected resources require a separate review.")};
+	report.limitations << QCoreApplication::translate("SlopStudioLevelDependencies", "Doom review identifies exact flat, patch, texture-table and palette inputs. Asset subset export is unavailable until whole texture tables and WAD namespace groups can be preserved or rewritten together.");
 	if (document.doomFormat == LevelMapDoomFormat::Udmf) {
 		report.complete = false;
-		report.warnings << QCoreApplication::translate("VibeStudioLevelDependencies", "UDMF material dependencies are not decoded.");
+		report.warnings << QCoreApplication::translate("SlopStudioLevelDependencies", "UDMF material dependencies are not decoded.");
 		return report;
 	}
 	LevelPreviewAssetOptions options; options.materialLimit = maxDependencies;
@@ -192,7 +192,7 @@ LevelDependencyReport inspectDoomDependencies(const LevelMapDocument& document, 
 				dependency.sourceLayer = stockLayerId(*stock, source);
 				dependency.stockSource = stock->sourceLabel(source);
 				dependency.resolvedPath = material.name.toUpper();
-				dependency.note = QCoreApplication::translate("VibeStudioLevelDependencies", "Provided by %1.").arg(dependency.stockSource);
+				dependency.note = QCoreApplication::translate("SlopStudioLevelDependencies", "Provided by %1.").arg(dependency.stockSource);
 			}
 		}
 		if (dependency.status == LevelDependencyStatus::Stock) { ++report.stockCount; }
@@ -213,12 +213,12 @@ LevelDependencyReport inspectDoomDependencies(const LevelMapDocument& document, 
 			row.kind = QStringLiteral("doom-input"); row.reference = input.path; row.resolvedPath = input.path; row.sourceLayer = input.layer;
 			row.status = LevelDependencyStatus::Resolved; row.sizeBytes = input.sizeBytes; row.sourceOrdinal = input.sourceOrdinal; row.namespaceId = input.namespaceId;
 			row.selectors = dependency.selectors; row.requiredBy = {material.key};
-			row.note = QCoreApplication::translate("VibeStudioLevelDependencies", "Doom input: %1 · namespace %2 · directory occurrence %3").arg(input.role, input.namespaceId).arg(input.sourceOrdinal);
+			row.note = QCoreApplication::translate("SlopStudioLevelDependencies", "Doom input: %1 · namespace %2 · directory occurrence %3").arg(input.role, input.namespaceId).arg(input.sourceOrdinal);
 			inputRows.insert(input.entryIndex, int(report.dependencies.size())); report.dependencies << std::move(row);
 			report.resolvedPaths << input.path; report.totalBytes += input.sizeBytes;
 		}
 		if (report.dependencies.size() >= maxDependencies) {
-			report.complete = false; report.warnings << QCoreApplication::translate("VibeStudioLevelDependencies", "Dependency limit exceeded; the report is incomplete."); break;
+			report.complete = false; report.warnings << QCoreApplication::translate("SlopStudioLevelDependencies", "Dependency limit exceeded; the report is incomplete."); break;
 		}
 	}
 	return report;
@@ -240,16 +240,16 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 	report.mapPath = document.sourcePath;
 	report.mapName = document.mapName;
 	report.packagePath = archive.sourcePath();
-	report.limitations << QCoreApplication::translate("VibeStudioLevelDependencies", "Checks explicit map references, native model materials, MD3 detail levels beside their models, MD3 misc_model compiler skins and remaps, and images in referenced Quake III shaders. Compiler overrides on other model formats, secondary shader references, game-code assets, and dynamically selected files require a separate review.");
-	report.limitations << QCoreApplication::translate("VibeStudioLevelDependencies", "An asset subset contains resolved files and whole shader scripts. It does not include the map, compiled BSP, or game installation.");
+	report.limitations << QCoreApplication::translate("SlopStudioLevelDependencies", "Checks explicit map references, native model materials, MD3 detail levels beside their models, MD3 misc_model compiler skins and remaps, and images in referenced Quake III shaders. Compiler overrides on other model formats, secondary shader references, game-code assets, and dynamically selected files require a separate review.");
+	report.limitations << QCoreApplication::translate("SlopStudioLevelDependencies", "An asset subset contains resolved files and whole shader scripts. It does not include the map, compiled BSP, or game installation.");
 	if (!archive.isOpen() || document.format == LevelMapFormat::Unknown) {
 		report.complete = false;
-		report.warnings << QCoreApplication::translate("VibeStudioLevelDependencies", "Open a supported map and package before checking dependencies.");
+		report.warnings << QCoreApplication::translate("SlopStudioLevelDependencies", "Open a supported map and package before checking dependencies.");
 		return report;
 	}
 	if (document.format == LevelMapFormat::DoomWad) { return inspectDoomDependencies(document, archive, report, progress, stock); }
 	if (stock) {
-		report.limitations << QCoreApplication::translate("VibeStudioLevelDependencies", "References the game's own packages provide are listed as provided by the game and are not expanded further.");
+		report.limitations << QCoreApplication::translate("SlopStudioLevelDependencies", "References the game's own packages provide are listed as provided by the game and are not expanded further.");
 	}
 	int completed = 0;
 	int total = 0;
@@ -268,7 +268,7 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 	LevelQuakeTextures quakeTextures;
 	const bool skipTextures = quakeTexturesEmbedded && document.format == LevelMapFormat::QuakeMap && target != QStringLiteral("quake2");
 	if (skipTextures) {
-		report.limitations << QCoreApplication::translate("VibeStudioLevelDependencies", "Quake textures are compiled into the BSP, so they are not checked.");
+		report.limitations << QCoreApplication::translate("SlopStudioLevelDependencies", "Quake textures are compiled into the BSP, so they are not checked.");
 	}
 	if (document.format == LevelMapFormat::QuakeMap && target != QStringLiteral("quake2") && !skipTextures) {
 		PackageReadControl control;
@@ -308,7 +308,7 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 		if (completed >= maxScripts || shaderCount >= maxShaders || entry.sizeBytes > static_cast<quint64>(maxScriptBytes)
 			|| entry.sizeBytes > maxAllScriptBytes - scriptBytes) {
 			report.complete = false;
-			report.warnings << QCoreApplication::translate("VibeStudioLevelDependencies", "Shader scan budget exceeded at %1; the report is incomplete.").arg(entry.virtualPath);
+			report.warnings << QCoreApplication::translate("SlopStudioLevelDependencies", "Shader scan budget exceeded at %1; the report is incomplete.").arg(entry.virtualPath);
 			break;
 		}
 		++completed;
@@ -319,8 +319,8 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 			|| !archive.readEntryBytes(entry.virtualPath, &bytes, &error, maxScriptBytes + 1)
 			|| static_cast<quint64>(bytes.size()) != entry.sizeBytes) {
 			report.complete = false;
-			report.warnings << QCoreApplication::translate("VibeStudioLevelDependencies", "Cannot inspect shader script %1: %2").arg(entry.virtualPath,
-				error.isEmpty() ? QCoreApplication::translate("VibeStudioLevelDependencies", "ambiguous, unsafe, unreadable, or changed entry") : error);
+			report.warnings << QCoreApplication::translate("SlopStudioLevelDependencies", "Cannot inspect shader script %1: %2").arg(entry.virtualPath,
+				error.isEmpty() ? QCoreApplication::translate("SlopStudioLevelDependencies", "ambiguous, unsafe, unreadable, or changed entry") : error);
 			continue;
 		}
 		if (!tick()) {
@@ -334,7 +334,7 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 		for (const ShaderDefinition& shader : parsed.shaders) {
 			if (++shaderCount > maxShaders) {
 				report.complete = false;
-				report.warnings << QCoreApplication::translate("VibeStudioLevelDependencies", "Too many shader declarations; the report is incomplete.");
+				report.warnings << QCoreApplication::translate("SlopStudioLevelDependencies", "Too many shader declarations; the report is incomplete.");
 				break;
 			}
 			shaders[keyFor(shader.name)].append({entry.virtualPath, shader});
@@ -365,7 +365,7 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 			if (pending.size() >= maxDependencies) {
 				report.complete = false;
 				if (!warnedLimit) {
-					report.warnings << QCoreApplication::translate("VibeStudioLevelDependencies", "Dependency limit exceeded; the report is incomplete.");
+					report.warnings << QCoreApplication::translate("SlopStudioLevelDependencies", "Dependency limit exceeded; the report is incomplete.");
 					warnedLimit = true;
 				}
 				return;
@@ -557,7 +557,7 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 			if (owners.size() != 1) {
 				dependency.status = LevelDependencyStatus::Ambiguous;
 				for (const ShaderOwner& owner : owners) { appendUnique(&dependency.candidates, owner.path); }
-				dependency.note = QCoreApplication::translate("VibeStudioLevelDependencies", "Multiple scripts declare this shader; resolve the duplicate before exporting.");
+				dependency.note = QCoreApplication::translate("SlopStudioLevelDependencies", "Multiple scripts declare this shader; resolve the duplicate before exporting.");
 			} else {
 				const ShaderOwner& owner = owners.first();
 				resolveFile(&dependency, {owner.path});
@@ -574,7 +574,7 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 			dependency.sourceLayer = stockLayerId(*stock, script->source);
 			dependency.stockSource = stock->sourceLabel(script->source);
 			dependency.sizeBytes = script->sizeBytes;
-			dependency.note = QCoreApplication::translate("VibeStudioLevelDependencies", "Declared by %1 in %2.").arg(script->path, dependency.stockSource);
+			dependency.note = QCoreApplication::translate("SlopStudioLevelDependencies", "Declared by %1 in %2.").arg(script->path, dependency.stockSource);
 		} else {
 			QStringList candidates {dependency.reference};
 			if (dependency.kind == QStringLiteral("texture")) {
@@ -613,7 +613,7 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 			QByteArray bytes; QString error;
 			if (dependency.sizeBytes > 64ULL * 1024 * 1024 || dependency.sizeBytes > 256ULL * 1024 * 1024 - walBytes || !readIdTechImageEntry(archive, dependency.resolvedPath, &bytes, &error)) {
 				dependency.status = LevelDependencyStatus::Unreadable;
-				dependency.note = error.isEmpty() ? QCoreApplication::translate("VibeStudioLevelDependencies", "WAL inspection exceeds the texture byte limit.") : error;
+				dependency.note = error.isEmpty() ? QCoreApplication::translate("SlopStudioLevelDependencies", "WAL inspection exceeds the texture byte limit.") : error;
 			} else {
 				walBytes += dependency.sizeBytes;
 				IdTechImageDecodeContext context; context.isCancelled = [&] { return !tick(); };
@@ -631,12 +631,12 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 			QByteArray bytes; QString error;
 			if (++modelsRead > maxModels || dependency.sizeBytes > static_cast<quint64>(maxModelBytes) || dependency.sizeBytes > maxAllModelBytes - modelBytes) {
 				report.complete = false;
-				dependency.note = QCoreApplication::translate("VibeStudioLevelDependencies", "Model dependency scan budget exceeded; materials are incomplete.");
+				dependency.note = QCoreApplication::translate("SlopStudioLevelDependencies", "Model dependency scan budget exceeded; materials are incomplete.");
 			} else {
 				modelBytes += dependency.sizeBytes;
 				if (!archive.readEntryBytes(dependency.resolvedPath, &bytes, &error, maxModelBytes + 1) || bytes.size() != static_cast<qint64>(dependency.sizeBytes)) {
 					dependency.status = LevelDependencyStatus::Unreadable; report.complete = false;
-					dependency.note = error.isEmpty() ? QCoreApplication::translate("VibeStudioLevelDependencies", "The model changed or could not be read completely.") : error;
+					dependency.note = error.isEmpty() ? QCoreApplication::translate("SlopStudioLevelDependencies", "The model changed or could not be read completely.") : error;
 				} else {
 					if (!tick()) { return report; }
 					const ModelMesh model = decodeModelMesh(dependency.resolvedPath, bytes, nullptr, modelControl);
@@ -644,7 +644,7 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 					for (const auto& surface : model.surfaces) { warnings += surface.warnings; }
 					if (!model.geometryAvailable || !model.error.isEmpty() || !warnings.isEmpty()) {
 						report.complete = false;
-						dependency.note = QCoreApplication::translate("VibeStudioLevelDependencies", "Model material coverage is incomplete: %1").arg(!model.error.isEmpty() ? model.error : warnings.join(QLatin1Char(';')));
+						dependency.note = QCoreApplication::translate("SlopStudioLevelDependencies", "Model material coverage is incomplete: %1").arg(!model.error.isEmpty() ? model.error : warnings.join(QLatin1Char(';')));
 					}
 					// Quake III loads name_1.md3 and on beside an MD3 when they exist
 					// (R_RegisterModel); the ones the package has ship with it.
@@ -673,7 +673,7 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 								if (finding.code == QStringLiteral("frames") || finding.code == QStringLiteral("surface-names") || finding.code == QStringLiteral("surfaces")) { problems << finding.message; }
 							}
 							if (!problems.isEmpty()) {
-								const QString mismatch = QCoreApplication::translate("VibeStudioLevelDependencies", "This detail level does not match its model: %1 Write the detail levels again with the model, or remove this file.").arg(problems.join(QLatin1Char(' ')));
+								const QString mismatch = QCoreApplication::translate("SlopStudioLevelDependencies", "This detail level does not match its model: %1 Write the detail levels again with the model, or remove this file.").arg(problems.join(QLatin1Char(' ')));
 								dependency.note = dependency.note.isEmpty() ? mismatch : dependency.note + QLatin1Char(' ') + mismatch;
 							}
 						}
@@ -686,7 +686,7 @@ static LevelDependencyReport inspectDependencies(const LevelMapDocument& documen
 					for (const auto& use : variants) {
 						if (++appearancesRead > maxModels) {
 							report.complete = false;
-							dependency.note = QCoreApplication::translate("VibeStudioLevelDependencies", "Model appearance scan budget exceeded; materials are incomplete.");
+							dependency.note = QCoreApplication::translate("SlopStudioLevelDependencies", "Model appearance scan budget exceeded; materials are incomplete.");
 							break;
 						}
 						if (!use.appearance.skinPath.isEmpty()) { enqueue(QStringLiteral("model-skin"), use.appearance.skinPath, use.selectors, dependency.resolvedPath); }
@@ -754,7 +754,7 @@ LevelDependencyReport inspectModelMaterialDependencies(const ModelMesh& mesh, co
 	context.sourcePath = mesh.sourcePath;
 	context.mapName = mesh.sourcePath;
 	auto report = inspectDependencies(context, archive, std::move(progress), QStringLiteral("quake3"), &mesh, stock.get());
-	report.limitations = {QCoreApplication::translate("VibeStudioLevelDependencies",
+	report.limitations = {QCoreApplication::translate("SlopStudioLevelDependencies",
 		"Reviews all retained model material slots and explicit images in their Quake III shaders. Whole declaring scripts are retained; game-code assets and source-port shader extensions need a separate review.")};
 	return report;
 }
@@ -776,13 +776,13 @@ QString levelDependencyStatusId(LevelDependencyStatus status)
 QString levelDependencyStatusName(LevelDependencyStatus status)
 {
 	switch (status) {
-	case LevelDependencyStatus::Resolved: return QCoreApplication::translate("VibeStudioLevelDependencies", "Resolved");
-	case LevelDependencyStatus::Missing: return QCoreApplication::translate("VibeStudioLevelDependencies", "Missing");
-	case LevelDependencyStatus::Builtin: return QCoreApplication::translate("VibeStudioLevelDependencies", "Engine provided");
-	case LevelDependencyStatus::Ambiguous: return QCoreApplication::translate("VibeStudioLevelDependencies", "Ambiguous");
-	case LevelDependencyStatus::Unreadable: return QCoreApplication::translate("VibeStudioLevelDependencies", "Unreadable");
-	case LevelDependencyStatus::Unsafe: return QCoreApplication::translate("VibeStudioLevelDependencies", "Unsafe path");
-	case LevelDependencyStatus::Stock: return QCoreApplication::translate("VibeStudioLevelDependencies", "Provided by the game");
+	case LevelDependencyStatus::Resolved: return QCoreApplication::translate("SlopStudioLevelDependencies", "Resolved");
+	case LevelDependencyStatus::Missing: return QCoreApplication::translate("SlopStudioLevelDependencies", "Missing");
+	case LevelDependencyStatus::Builtin: return QCoreApplication::translate("SlopStudioLevelDependencies", "Engine provided");
+	case LevelDependencyStatus::Ambiguous: return QCoreApplication::translate("SlopStudioLevelDependencies", "Ambiguous");
+	case LevelDependencyStatus::Unreadable: return QCoreApplication::translate("SlopStudioLevelDependencies", "Unreadable");
+	case LevelDependencyStatus::Unsafe: return QCoreApplication::translate("SlopStudioLevelDependencies", "Unsafe path");
+	case LevelDependencyStatus::Stock: return QCoreApplication::translate("SlopStudioLevelDependencies", "Provided by the game");
 	}
 	return {};
 }
@@ -812,14 +812,14 @@ QJsonObject levelDependencyReportJson(const LevelDependencyReport& report)
 QString levelDependencyReportText(const LevelDependencyReport& report)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioLevelDependencies", "Dependencies for %1: %2 file(s), %3 bytes, %4 problem(s)")
+	lines << QCoreApplication::translate("SlopStudioLevelDependencies", "Dependencies for %1: %2 file(s), %3 bytes, %4 problem(s)")
 		.arg(report.mapName).arg(report.resolvedPaths.size()).arg(report.totalBytes).arg(report.problemCount);
 	if (report.stockCount > 0) {
-		lines << QCoreApplication::translate("VibeStudioLevelDependencies", "Provided by the game: %n reference(s)", nullptr, report.stockCount);
+		lines << QCoreApplication::translate("SlopStudioLevelDependencies", "Provided by the game: %n reference(s)", nullptr, report.stockCount);
 	}
 	if (!report.complete) {
-		lines << (report.cancelled ? QCoreApplication::translate("VibeStudioLevelDependencies", "Cancelled; results are incomplete.")
-			: QCoreApplication::translate("VibeStudioLevelDependencies", "Incomplete; inspect the warnings before exporting."));
+		lines << (report.cancelled ? QCoreApplication::translate("SlopStudioLevelDependencies", "Cancelled; results are incomplete.")
+			: QCoreApplication::translate("SlopStudioLevelDependencies", "Incomplete; inspect the warnings before exporting."));
 	}
 	for (const LevelDependency& dependency : report.dependencies) {
 		lines << QStringLiteral("[%1] %2: %3%4").arg(levelDependencyStatusName(dependency.status), dependency.kind, dependency.reference,
@@ -827,7 +827,7 @@ QString levelDependencyReportText(const LevelDependencyReport& report)
 		if (!dependency.selectors.isEmpty()) { lines << QStringLiteral("  ") + dependency.selectors.join(QStringLiteral(", ")); }
 		if (dependency.kind == QStringLiteral("doom-input")) { lines << QStringLiteral("  ") + dependency.note; }
 		if (dependency.status != LevelDependencyStatus::Resolved && !dependency.candidates.isEmpty()) {
-			lines << QCoreApplication::translate("VibeStudioLevelDependencies", "  Searched: %1").arg(dependency.candidates.join(QStringLiteral(", ")));
+			lines << QCoreApplication::translate("SlopStudioLevelDependencies", "  Searched: %1").arg(dependency.candidates.join(QStringLiteral(", ")));
 		}
 	}
 	lines += report.warnings;
@@ -835,4 +835,4 @@ QString levelDependencyReportText(const LevelDependencyReport& report)
 	return lines.join(QLatin1Char('\n'));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

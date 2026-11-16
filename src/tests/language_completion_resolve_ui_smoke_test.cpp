@@ -15,7 +15,7 @@
 #include <QTimer>
 #include <QTranslator>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* why) { if (!condition) { std::cerr << why << '\n'; } return condition; }
 bool wait(const std::function<bool()>& ready, int ms = 8000)
@@ -38,7 +38,7 @@ class Expanded final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		if (QByteArray(context) != "VibeStudioCodeEditor") { return {}; }
+		if (QByteArray(context) != "SlopStudioCodeEditor") { return {}; }
 		const auto text = QString::fromUtf8(source); return text + QStringLiteral(" ~").repeated(text.size() / 6);
 	}
 };
@@ -101,7 +101,7 @@ int main(int argc, char** argv)
 		const auto token = editor.beginLanguageCompletions();
 		editor.finishLanguageCompletions(token, list, [&](const auto& item) { accepted = !item.needsResolve; return accepted; }, [&](int choice, const auto&) { requested = choice; });
 		ok &= expect(requested == 0 && !editor.completer()->popup()->accessibleName().isEmpty(), "first visible suggestion resolves automatically with accessible popup metadata");
-		const QString evidence = qEnvironmentVariable("VIBESTUDIO_LANGUAGE_TEST_EVIDENCE");
+		const QString evidence = qEnvironmentVariable("SLOPSTUDIO_LANGUAGE_TEST_EVIDENCE");
 		if (!evidence.isEmpty()) { QImage image(editor.completer()->popup()->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); editor.completer()->popup()->render(&image); ok &= expect(image.save(QDir(evidence).filePath(QStringLiteral("completion-resolve-%1.png").arg(scale))), "render resolving popup without OS capture"); }
 		const auto second = editor.completer()->completionModel()->index(1, 0); editor.completer()->popup()->setCurrentIndex(second);
 		QMetaObject::invokeMethod(editor.completer(), "highlighted", Qt::DirectConnection, Q_ARG(QModelIndex, second));

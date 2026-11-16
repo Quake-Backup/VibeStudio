@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <numeric>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -121,7 +121,7 @@ QString lumpNameAt(const QByteArray& bytes, qsizetype at)
 
 // TEXTURE1/TEXTURE2 directory names. Layout from Chocolate Doom 3.1.0 r_data.c
 // (maptexture_t; GPL-2.0-or-later). Copyright (C) 1993-1996 Id Software, Inc.;
-// 2005-2014 Simon Howard. Bounds-checked Qt parsing is VibeStudio code.
+// 2005-2014 Simon Howard. Bounds-checked Qt parsing is SlopStudio code.
 QStringList doomTextureTableNames(const QByteArray& bytes, bool* valid)
 {
 	QStringList names;
@@ -358,41 +358,41 @@ QVector<GameStockPackage> gameStockPackageCandidates(const QString& gameKey)
 		packages.push_back({path, role, label});
 	};
 	if (key == QStringLiteral("quake")) {
-		const QString quake = QCoreApplication::translate("VibeStudioAssetRegister", "Quake");
+		const QString quake = QCoreApplication::translate("SlopStudioAssetRegister", "Quake");
 		add(QStringLiteral("id1/pak0.pak"), QStringLiteral("base"), quake);
 		add(QStringLiteral("id1/pak1.pak"), QStringLiteral("base"), quake);
-		add(QStringLiteral("hipnotic/pak0.pak"), QStringLiteral("expansion"), QCoreApplication::translate("VibeStudioAssetRegister", "Scourge of Armagon"));
-		add(QStringLiteral("rogue/pak0.pak"), QStringLiteral("expansion"), QCoreApplication::translate("VibeStudioAssetRegister", "Dissolution of Eternity"));
+		add(QStringLiteral("hipnotic/pak0.pak"), QStringLiteral("expansion"), QCoreApplication::translate("SlopStudioAssetRegister", "Scourge of Armagon"));
+		add(QStringLiteral("rogue/pak0.pak"), QStringLiteral("expansion"), QCoreApplication::translate("SlopStudioAssetRegister", "Dissolution of Eternity"));
 	} else if (key == QStringLiteral("quake2")) {
-		const QString quake2 = QCoreApplication::translate("VibeStudioAssetRegister", "Quake II");
+		const QString quake2 = QCoreApplication::translate("SlopStudioAssetRegister", "Quake II");
 		add(QStringLiteral("baseq2/pak0.pak"), QStringLiteral("base"), quake2);
 		add(QStringLiteral("baseq2/pak1.pak"), QStringLiteral("base"), quake2);
 		add(QStringLiteral("baseq2/pak2.pak"), QStringLiteral("base"), quake2);
-		add(QStringLiteral("xatrix/pak0.pak"), QStringLiteral("expansion"), QCoreApplication::translate("VibeStudioAssetRegister", "The Reckoning"));
-		add(QStringLiteral("rogue/pak0.pak"), QStringLiteral("expansion"), QCoreApplication::translate("VibeStudioAssetRegister", "Ground Zero"));
+		add(QStringLiteral("xatrix/pak0.pak"), QStringLiteral("expansion"), QCoreApplication::translate("SlopStudioAssetRegister", "The Reckoning"));
+		add(QStringLiteral("rogue/pak0.pak"), QStringLiteral("expansion"), QCoreApplication::translate("SlopStudioAssetRegister", "Ground Zero"));
 	} else if (key == QStringLiteral("quake3")) {
-		const QString quake3 = QCoreApplication::translate("VibeStudioAssetRegister", "Quake III Arena");
+		const QString quake3 = QCoreApplication::translate("SlopStudioAssetRegister", "Quake III Arena");
 		for (int i = 0; i <= 8; ++i) {
 			add(QStringLiteral("baseq3/pak%1.pk3").arg(i), QStringLiteral("base"), quake3);
 		}
-		const QString teamArena = QCoreApplication::translate("VibeStudioAssetRegister", "Team Arena");
+		const QString teamArena = QCoreApplication::translate("SlopStudioAssetRegister", "Team Arena");
 		for (int i = 0; i <= 3; ++i) {
 			add(QStringLiteral("missionpack/pak%1.pk3").arg(i), QStringLiteral("expansion"), teamArena);
 		}
 	} else if (key == QStringLiteral("doom")) {
 		// Each IWAD is a whole game. The first one found is the base; the
 		// others count only when a project names them.
-		add(QStringLiteral("doom2.wad"), QStringLiteral("base"), QCoreApplication::translate("VibeStudioAssetRegister", "Doom II"));
-		add(QStringLiteral("doom.wad"), QStringLiteral("base"), QCoreApplication::translate("VibeStudioAssetRegister", "The Ultimate Doom"));
-		add(QStringLiteral("tnt.wad"), QStringLiteral("base"), QCoreApplication::translate("VibeStudioAssetRegister", "TNT: Evilution"));
-		add(QStringLiteral("plutonia.wad"), QStringLiteral("base"), QCoreApplication::translate("VibeStudioAssetRegister", "The Plutonia Experiment"));
-		add(QStringLiteral("freedoom2.wad"), QStringLiteral("base"), QCoreApplication::translate("VibeStudioAssetRegister", "Freedoom: Phase 2"));
-		add(QStringLiteral("freedoom1.wad"), QStringLiteral("base"), QCoreApplication::translate("VibeStudioAssetRegister", "Freedoom: Phase 1"));
-		add(QStringLiteral("doom1.wad"), QStringLiteral("base"), QCoreApplication::translate("VibeStudioAssetRegister", "Doom shareware"));
+		add(QStringLiteral("doom2.wad"), QStringLiteral("base"), QCoreApplication::translate("SlopStudioAssetRegister", "Doom II"));
+		add(QStringLiteral("doom.wad"), QStringLiteral("base"), QCoreApplication::translate("SlopStudioAssetRegister", "The Ultimate Doom"));
+		add(QStringLiteral("tnt.wad"), QStringLiteral("base"), QCoreApplication::translate("SlopStudioAssetRegister", "TNT: Evilution"));
+		add(QStringLiteral("plutonia.wad"), QStringLiteral("base"), QCoreApplication::translate("SlopStudioAssetRegister", "The Plutonia Experiment"));
+		add(QStringLiteral("freedoom2.wad"), QStringLiteral("base"), QCoreApplication::translate("SlopStudioAssetRegister", "Freedoom: Phase 2"));
+		add(QStringLiteral("freedoom1.wad"), QStringLiteral("base"), QCoreApplication::translate("SlopStudioAssetRegister", "Freedoom: Phase 1"));
+		add(QStringLiteral("doom1.wad"), QStringLiteral("base"), QCoreApplication::translate("SlopStudioAssetRegister", "Doom shareware"));
 	} else if (key == QStringLiteral("heretic-hexen")) {
-		add(QStringLiteral("heretic.wad"), QStringLiteral("base"), QCoreApplication::translate("VibeStudioAssetRegister", "Heretic"));
-		add(QStringLiteral("hexen.wad"), QStringLiteral("base"), QCoreApplication::translate("VibeStudioAssetRegister", "Hexen"));
-		add(QStringLiteral("hexdd.wad"), QStringLiteral("expansion"), QCoreApplication::translate("VibeStudioAssetRegister", "Deathkings of the Dark Citadel"));
+		add(QStringLiteral("heretic.wad"), QStringLiteral("base"), QCoreApplication::translate("SlopStudioAssetRegister", "Heretic"));
+		add(QStringLiteral("hexen.wad"), QStringLiteral("base"), QCoreApplication::translate("SlopStudioAssetRegister", "Hexen"));
+		add(QStringLiteral("hexdd.wad"), QStringLiteral("expansion"), QCoreApplication::translate("SlopStudioAssetRegister", "Deathkings of the Dark Citadel"));
 	}
 	return packages;
 }
@@ -403,7 +403,7 @@ QVector<GameAssetRegisterSource> discoverGameStockSources(const GameInstallation
 	const QString root = QDir::cleanPath(installation.rootPath.trimmed());
 	if (root.isEmpty() || !QFileInfo(root).isDir()) {
 		if (warnings) {
-			*warnings << QCoreApplication::translate("VibeStudioAssetRegister", "The installation folder does not exist: %1").arg(QDir::toNativeSeparators(root));
+			*warnings << QCoreApplication::translate("SlopStudioAssetRegister", "The installation folder does not exist: %1").arg(QDir::toNativeSeparators(root));
 		}
 		return sources;
 	}
@@ -444,7 +444,7 @@ QVector<GameAssetRegisterSource> discoverGameStockSources(const GameInstallation
 		if (QFileInfo(absolute).isFile()) {
 			append(absolute, QStringLiteral("base"), QString());
 		} else if (warnings) {
-			*warnings << QCoreApplication::translate("VibeStudioAssetRegister", "A saved base package was not found: %1").arg(QDir::toNativeSeparators(absolute));
+			*warnings << QCoreApplication::translate("SlopStudioAssetRegister", "A saved base package was not found: %1").arg(QDir::toNativeSeparators(absolute));
 		}
 	}
 	return sources;
@@ -478,7 +478,7 @@ GameAssetRegisterBuildResult buildGameAssetRegister(const GameAssetRegisterBuild
 			const QFileInfo info(absolute);
 			// A folder counts too: a mod's loose files are part of what it provides.
 			if (!info.exists()) {
-				return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Stock package not found: %1").arg(QDir::toNativeSeparators(absolute)));
+				return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Stock package not found: %1").arg(QDir::toNativeSeparators(absolute)));
 			}
 			GameAssetRegisterSource source;
 			const QString relative = reg.installationRoot.isEmpty() ? QString() : QDir(reg.installationRoot).relativeFilePath(info.absoluteFilePath());
@@ -495,16 +495,16 @@ GameAssetRegisterBuildResult buildGameAssetRegister(const GameAssetRegisterBuild
 				duplicate = duplicate || existing.id == source.id;
 			}
 			if (duplicate) {
-				return fail(QCoreApplication::translate("VibeStudioAssetRegister", "A stock package is listed twice: %1").arg(source.id));
+				return fail(QCoreApplication::translate("SlopStudioAssetRegister", "A stock package is listed twice: %1").arg(source.id));
 			}
 			sources << source;
 		}
 		if (sources.size() > GameAssetRegister::kMaximumSources) {
-			return fail(QCoreApplication::translate("VibeStudioAssetRegister", "A register can index at most %1 packages.").arg(GameAssetRegister::kMaximumSources));
+			return fail(QCoreApplication::translate("SlopStudioAssetRegister", "A register can index at most %1 packages.").arg(GameAssetRegister::kMaximumSources));
 		}
 	}
 	if (sources.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioAssetRegister", "No stock packages were found for %1. Check the installation folder and game, or name the packages explicitly.")
+		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "No stock packages were found for %1. Check the installation folder and game, or name the packages explicitly.")
 						.arg(gameDefinitionForKey(reg.gameKey).displayName));
 	}
 
@@ -513,12 +513,12 @@ GameAssetRegisterBuildResult buildGameAssetRegister(const GameAssetRegisterBuild
 	for (int sourceIndex = 0; sourceIndex < sources.size(); ++sourceIndex) {
 		if (cancelled()) {
 			result.cancelled = true;
-			return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Indexing was cancelled."));
+			return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Indexing was cancelled."));
 		}
 		GameAssetRegisterSource source = sources[sourceIndex];
 		const QString label = source.label.isEmpty() ? source.relativePath : source.label;
 		if (request.control.progress) {
-			request.control.progress(QCoreApplication::translate("VibeStudioAssetRegister", "Opening %1").arg(source.relativePath), 0, source.sizeBytes);
+			request.control.progress(QCoreApplication::translate("SlopStudioAssetRegister", "Opening %1").arg(source.relativePath), 0, source.sizeBytes);
 		}
 		PackageArchive archive;
 		QString error;
@@ -526,15 +526,15 @@ GameAssetRegisterBuildResult buildGameAssetRegister(const GameAssetRegisterBuild
 		loadControl.isCancelled = request.control.isCancelled;
 		loadControl.progress = [&request, &source](const QString&, qint64 completed, qint64 total) {
 			if (request.control.progress) {
-				request.control.progress(QCoreApplication::translate("VibeStudioAssetRegister", "Opening %1").arg(source.relativePath), completed, total);
+				request.control.progress(QCoreApplication::translate("SlopStudioAssetRegister", "Opening %1").arg(source.relativePath), completed, total);
 			}
 		};
 		if (!archive.load(source.absolutePath, &error, loadControl)) {
 			if (cancelled()) {
 				result.cancelled = true;
-				return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Indexing was cancelled."));
+				return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Indexing was cancelled."));
 			}
-			return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Unable to open %1: %2").arg(QDir::toNativeSeparators(source.absolutePath), error));
+			return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Unable to open %1: %2").arg(QDir::toNativeSeparators(source.absolutePath), error));
 		}
 		source.format = archive.format();
 		const QVector<PackageEntry> entries = archive.entries();
@@ -562,13 +562,13 @@ GameAssetRegisterBuildResult buildGameAssetRegister(const GameAssetRegisterBuild
 			}
 			if (cancelled()) {
 				result.cancelled = true;
-				return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Indexing was cancelled."));
+				return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Indexing was cancelled."));
 			}
 			if (reg.files.size() >= GameAssetRegister::kMaximumFiles) {
-				return fail(QCoreApplication::translate("VibeStudioAssetRegister", "The stock packages hold more than %1 files; the register cannot index them.").arg(GameAssetRegister::kMaximumFiles));
+				return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The stock packages hold more than %1 files; the register cannot index them.").arg(GameAssetRegister::kMaximumFiles));
 			}
 			if (!entry.readable) {
-				result.warnings << QCoreApplication::translate("VibeStudioAssetRegister", "%1: %2 cannot be read and was left out.").arg(source.relativePath, entry.virtualPath);
+				result.warnings << QCoreApplication::translate("SlopStudioAssetRegister", "%1: %2 cannot be read and was left out.").arg(source.relativePath, entry.virtualPath);
 				continue;
 			}
 			GameAssetRegisterFile file;
@@ -594,16 +594,16 @@ GameAssetRegisterBuildResult buildGameAssetRegister(const GameAssetRegisterBuild
 				if (!streamed) {
 					if (cancelled()) {
 						result.cancelled = true;
-						return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Indexing was cancelled."));
+						return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Indexing was cancelled."));
 					}
-					return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Unable to read %1 in %2: %3").arg(entry.virtualPath, source.relativePath, readError));
+					return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Unable to read %1 in %2: %3").arg(entry.virtualPath, source.relativePath, readError));
 				}
 				file.crc32 = crc;
 				result.bytesRead += entry.sizeBytes;
 			}
 			doneBytes += entry.sizeBytes;
 			if (request.control.progress && (fileCount % 32 == 0)) {
-				request.control.progress(QCoreApplication::translate("VibeStudioAssetRegister", "Indexing %1").arg(label), qint64(doneBytes), qint64(totalBytes));
+				request.control.progress(QCoreApplication::translate("SlopStudioAssetRegister", "Indexing %1").arg(label), qint64(doneBytes), qint64(totalBytes));
 			}
 			const int fileIndex = int(reg.files.size());
 			reg.files << file;
@@ -612,20 +612,20 @@ GameAssetRegisterBuildResult buildGameAssetRegister(const GameAssetRegisterBuild
 			const QString lower = entry.virtualPath.toLower();
 			if (lower.startsWith(QStringLiteral("scripts/")) && lower.endsWith(QStringLiteral(".shader"))) {
 				if (qint64(entry.sizeBytes) > kMaximumScriptBytes || scriptBytes + qint64(entry.sizeBytes) > kMaximumAllScriptBytes) {
-					result.warnings << QCoreApplication::translate("VibeStudioAssetRegister", "%1: shader script %2 is over the scan budget; its shaders were not indexed.").arg(source.relativePath, entry.virtualPath);
+					result.warnings << QCoreApplication::translate("SlopStudioAssetRegister", "%1: shader script %2 is over the scan budget; its shaders were not indexed.").arg(source.relativePath, entry.virtualPath);
 				} else {
 					scriptBytes += qint64(entry.sizeBytes);
 					QByteArray bytes;
 					QString readError;
 					if (!archive.readEntryAt(index, &bytes, &readError, kMaximumScriptBytes + 1)) {
-						return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Unable to read %1 in %2: %3").arg(entry.virtualPath, source.relativePath, readError));
+						return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Unable to read %1 in %2: %3").arg(entry.virtualPath, source.relativePath, readError));
 					}
 					QStringList scriptWarnings;
 					PackageReadControl scriptControl;
 					scriptControl.isCancelled = request.control.isCancelled;
 					for (const QString& name : collectShaderScriptNames(bytes, &scriptWarnings, scriptControl)) {
 						if (++nameCount > GameAssetRegister::kMaximumNames) {
-							return fail(QCoreApplication::translate("VibeStudioAssetRegister", "The stock packages declare more names than the register can hold."));
+							return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The stock packages declare more names than the register can hold."));
 						}
 						reg.shaders << GameAssetRegisterName {name, sourceIndex, fileIndex};
 					}
@@ -658,18 +658,18 @@ GameAssetRegisterBuildResult buildGameAssetRegister(const GameAssetRegisterBuild
 				added = addName(QStringLiteral("music"), upper);
 			} else if (upper == QStringLiteral("TEXTURE1") || upper == QStringLiteral("TEXTURE2") || upper == QStringLiteral("PNAMES")) {
 				if (qint64(entry.sizeBytes) > kMaximumTableBytes) {
-					return fail(QCoreApplication::translate("VibeStudioAssetRegister", "%1 in %2 is too large to index.").arg(upper, source.relativePath));
+					return fail(QCoreApplication::translate("SlopStudioAssetRegister", "%1 in %2 is too large to index.").arg(upper, source.relativePath));
 				}
 				QByteArray bytes;
 				QString readError;
 				if (!archive.readEntryAt(index, &bytes, &readError, kMaximumTableBytes + 1)) {
-					return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Unable to read %1 in %2: %3").arg(upper, source.relativePath, readError));
+					return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Unable to read %1 in %2: %3").arg(upper, source.relativePath, readError));
 				}
 				bool valid = false;
 				const bool patches = upper == QStringLiteral("PNAMES");
 				const QStringList names = patches ? doomPatchTableNames(bytes, &valid) : doomTextureTableNames(bytes, &valid);
 				if (!valid) {
-					result.warnings << QCoreApplication::translate("VibeStudioAssetRegister", "%1 in %2 is malformed; its names were not indexed.").arg(upper, source.relativePath);
+					result.warnings << QCoreApplication::translate("SlopStudioAssetRegister", "%1 in %2 is malformed; its names were not indexed.").arg(upper, source.relativePath);
 				}
 				for (const QString& name : names) {
 					added = added && addName(patches ? QStringLiteral("patch") : QStringLiteral("texture"), name);
@@ -681,7 +681,7 @@ GameAssetRegisterBuildResult buildGameAssetRegister(const GameAssetRegisterBuild
 				}
 			}
 			if (!added) {
-				return fail(QCoreApplication::translate("VibeStudioAssetRegister", "The stock packages declare more names than the register can hold."));
+				return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The stock packages declare more names than the register can hold."));
 			}
 		}
 		source.fileCount = fileCount;
@@ -690,7 +690,7 @@ GameAssetRegisterBuildResult buildGameAssetRegister(const GameAssetRegisterBuild
 	reg.rebuildIndex();
 	result.succeeded = true;
 	if (request.control.progress) {
-		request.control.progress(QCoreApplication::translate("VibeStudioAssetRegister", "Indexed %1").arg(reg.installationName), 1, 1);
+		request.control.progress(QCoreApplication::translate("SlopStudioAssetRegister", "Indexed %1").arg(reg.installationName), 1, 1);
 	}
 	return result;
 }
@@ -718,7 +718,7 @@ QString gameAssetRegisterPath(const QString& installationId)
 QByteArray gameAssetRegisterJsonBytes(const GameAssetRegister& reg)
 {
 	QJsonObject root;
-	root.insert(QStringLiteral("format"), QStringLiteral("vibestudio-asset-register"));
+	root.insert(QStringLiteral("format"), QStringLiteral("slopstudio-asset-register"));
 	root.insert(QStringLiteral("version"), GameAssetRegister::kFormatVersion);
 	root.insert(QStringLiteral("game"), reg.gameKey);
 	root.insert(QStringLiteral("installation"), QJsonObject {
@@ -780,20 +780,20 @@ bool parseGameAssetRegister(const QByteArray& bytes, GameAssetRegister* out, QSt
 		return false;
 	};
 	if (bytes.size() > GameAssetRegister::kMaximumFileBytes) {
-		return fail(QCoreApplication::translate("VibeStudioAssetRegister", "The asset register file is too large."));
+		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The asset register file is too large."));
 	}
 	QJsonParseError parseError;
 	const QJsonDocument document = QJsonDocument::fromJson(bytes, &parseError);
 	if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-		return fail(QCoreApplication::translate("VibeStudioAssetRegister", "The asset register is not valid JSON: %1").arg(parseError.errorString()));
+		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The asset register is not valid JSON: %1").arg(parseError.errorString()));
 	}
 	const QJsonObject root = document.object();
-	if (root.value(QStringLiteral("format")).toString() != QStringLiteral("vibestudio-asset-register")) {
-		return fail(QCoreApplication::translate("VibeStudioAssetRegister", "The file is not a VibeStudio asset register."));
+	if (root.value(QStringLiteral("format")).toString() != QStringLiteral("slopstudio-asset-register")) {
+		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The file is not a SlopStudio asset register."));
 	}
 	const int version = root.value(QStringLiteral("version")).toInt(-1);
 	if (version != GameAssetRegister::kFormatVersion) {
-		return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Asset register version %1 is not supported; rebuild it with this version of VibeStudio.").arg(version));
+		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Asset register version %1 is not supported; rebuild it with this version of SlopStudio.").arg(version));
 	}
 	GameAssetRegister reg;
 	reg.gameKey = normalizedGameKey(root.value(QStringLiteral("game")).toString());
@@ -805,7 +805,7 @@ bool parseGameAssetRegister(const QByteArray& bytes, GameAssetRegister* out, QSt
 	reg.studioVersion = root.value(QStringLiteral("studioVersion")).toString();
 	const QJsonArray sources = root.value(QStringLiteral("sources")).toArray();
 	if (sources.size() > GameAssetRegister::kMaximumSources) {
-		return fail(QCoreApplication::translate("VibeStudioAssetRegister", "The asset register lists too many packages."));
+		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The asset register lists too many packages."));
 	}
 	for (const QJsonValue& value : sources) {
 		const QJsonObject object = value.toObject();
@@ -819,7 +819,7 @@ bool parseGameAssetRegister(const QByteArray& bytes, GameAssetRegister* out, QSt
 		source.modifiedUtc = QDateTime::fromString(object.value(QStringLiteral("modifiedUtc")).toString(), Qt::ISODateWithMs).toUTC();
 		source.fileCount = object.value(QStringLiteral("files")).toInt();
 		if (source.id.isEmpty() || source.relativePath.isEmpty()) {
-			return fail(QCoreApplication::translate("VibeStudioAssetRegister", "The asset register has a package without an id or path."));
+			return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The asset register has a package without an id or path."));
 		}
 		if (!reg.installationRoot.isEmpty() && QDir::isRelativePath(source.relativePath)) {
 			source.absolutePath = QDir(reg.installationRoot).absoluteFilePath(source.relativePath);
@@ -830,7 +830,7 @@ bool parseGameAssetRegister(const QByteArray& bytes, GameAssetRegister* out, QSt
 	}
 	const QJsonArray files = root.value(QStringLiteral("files")).toArray();
 	if (files.size() > GameAssetRegister::kMaximumFiles) {
-		return fail(QCoreApplication::translate("VibeStudioAssetRegister", "The asset register lists too many files."));
+		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The asset register lists too many files."));
 	}
 	reg.files.reserve(files.size());
 	for (const QJsonValue& value : files) {
@@ -841,7 +841,7 @@ bool parseGameAssetRegister(const QByteArray& bytes, GameAssetRegister* out, QSt
 		file.source = row.at(3).toInt(-1);
 		file.typeHint = row.at(4).toString();
 		if (file.path.isEmpty() || size < 0 || !parseCrcHex(row.at(2).toString(), &file.crc32) || file.source < 0 || file.source >= reg.sources.size()) {
-			return fail(QCoreApplication::translate("VibeStudioAssetRegister", "The asset register has a malformed file row."));
+			return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The asset register has a malformed file row."));
 		}
 		file.sizeBytes = quint64(size);
 		reg.files << file;
@@ -852,7 +852,7 @@ bool parseGameAssetRegister(const QByteArray& bytes, GameAssetRegister* out, QSt
 		GameAssetRegisterName name {row.at(0).toString(), row.at(1).toInt(-1), row.at(2).toInt(-1)};
 		if (name.name.isEmpty() || name.source < 0 || name.source >= reg.sources.size() || name.file < -1 || name.file >= reg.files.size()
 			|| ++nameCount > GameAssetRegister::kMaximumNames) {
-			return fail(QCoreApplication::translate("VibeStudioAssetRegister", "The asset register has a malformed shader row."));
+			return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The asset register has a malformed shader row."));
 		}
 		reg.shaders << name;
 	}
@@ -862,7 +862,7 @@ bool parseGameAssetRegister(const QByteArray& bytes, GameAssetRegister* out, QSt
 			const QJsonArray row = value.toArray();
 			GameAssetRegisterName name {row.at(0).toString(), row.at(1).toInt(-1), -1};
 			if (name.name.isEmpty() || name.source < 0 || name.source >= reg.sources.size() || ++nameCount > GameAssetRegister::kMaximumNames) {
-				return fail(QCoreApplication::translate("VibeStudioAssetRegister", "The asset register has a malformed Doom name row."));
+				return fail(QCoreApplication::translate("SlopStudioAssetRegister", "The asset register has a malformed Doom name row."));
 			}
 			reg.doomNames[it.key()] << name;
 		}
@@ -883,19 +883,19 @@ bool saveGameAssetRegister(const GameAssetRegister& reg, const QString& path, QS
 		return false;
 	};
 	if (path.trimmed().isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioAssetRegister", "No asset register path was given."));
+		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "No asset register path was given."));
 	}
 	const QFileInfo info(path);
 	if (!QDir().mkpath(info.absolutePath())) {
-		return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Unable to create the asset register folder %1.").arg(QDir::toNativeSeparators(info.absolutePath())));
+		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Unable to create the asset register folder %1.").arg(QDir::toNativeSeparators(info.absolutePath())));
 	}
 	QSaveFile file(info.absoluteFilePath());
 	if (!file.open(QIODevice::WriteOnly)) {
-		return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Unable to write %1: %2").arg(QDir::toNativeSeparators(info.absoluteFilePath()), file.errorString()));
+		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Unable to write %1: %2").arg(QDir::toNativeSeparators(info.absoluteFilePath()), file.errorString()));
 	}
 	const QByteArray bytes = gameAssetRegisterJsonBytes(reg);
 	if (file.write(bytes) != bytes.size() || !file.commit()) {
-		return fail(QCoreApplication::translate("VibeStudioAssetRegister", "Unable to write %1: %2").arg(QDir::toNativeSeparators(info.absoluteFilePath()), file.errorString()));
+		return fail(QCoreApplication::translate("SlopStudioAssetRegister", "Unable to write %1: %2").arg(QDir::toNativeSeparators(info.absoluteFilePath()), file.errorString()));
 	}
 	return true;
 }
@@ -905,19 +905,19 @@ bool loadGameAssetRegister(const QString& path, GameAssetRegister* reg, QString*
 	QFile file(path);
 	if (!file.exists()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioAssetRegister", "No asset register at %1.").arg(QDir::toNativeSeparators(path));
+			*error = QCoreApplication::translate("SlopStudioAssetRegister", "No asset register at %1.").arg(QDir::toNativeSeparators(path));
 		}
 		return false;
 	}
 	if (file.size() > GameAssetRegister::kMaximumFileBytes) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioAssetRegister", "The asset register file is too large.");
+			*error = QCoreApplication::translate("SlopStudioAssetRegister", "The asset register file is too large.");
 		}
 		return false;
 	}
 	if (!file.open(QIODevice::ReadOnly)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioAssetRegister", "Unable to read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
+			*error = QCoreApplication::translate("SlopStudioAssetRegister", "Unable to read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
 		}
 		return false;
 	}
@@ -936,7 +936,7 @@ GameAssetRegisterStatus gameAssetRegisterFreshness(const GameAssetRegister& reg,
 	status.createdUtc = reg.createdUtc;
 	if (normalizedGameKey(reg.gameKey) != normalizedGameKey(installation.gameKey)) {
 		status.fresh = false;
-		status.staleReasons << QCoreApplication::translate("VibeStudioAssetRegister", "The register was built for %1, but the installation is now %2.")
+		status.staleReasons << QCoreApplication::translate("SlopStudioAssetRegister", "The register was built for %1, but the installation is now %2.")
 								   .arg(gameDefinitionForKey(reg.gameKey).displayName, gameDefinitionForKey(installation.gameKey).displayName);
 	}
 	const QString root = QDir::cleanPath(installation.rootPath);
@@ -947,18 +947,18 @@ GameAssetRegisterStatus gameAssetRegisterFreshness(const GameAssetRegister& reg,
 		const QFileInfo info(absolute);
 		if (absolute.isEmpty() || !info.isFile()) {
 			status.fresh = false;
-			status.staleReasons << QCoreApplication::translate("VibeStudioAssetRegister", "%1 is no longer in the installation.").arg(source.relativePath);
+			status.staleReasons << QCoreApplication::translate("SlopStudioAssetRegister", "%1 is no longer in the installation.").arg(source.relativePath);
 			continue;
 		}
 		if (info.size() != source.sizeBytes || info.lastModified().toUTC() != source.modifiedUtc) {
 			status.fresh = false;
-			status.staleReasons << QCoreApplication::translate("VibeStudioAssetRegister", "%1 changed since it was indexed.").arg(source.relativePath);
+			status.staleReasons << QCoreApplication::translate("SlopStudioAssetRegister", "%1 changed since it was indexed.").arg(source.relativePath);
 		}
 	}
 	for (const GameAssetRegisterSource& source : discoverGameStockSources(installation)) {
 		if (!registered.contains(source.id)) {
 			status.fresh = false;
-			status.staleReasons << QCoreApplication::translate("VibeStudioAssetRegister", "%1 was added to the installation after indexing.").arg(source.relativePath);
+			status.staleReasons << QCoreApplication::translate("SlopStudioAssetRegister", "%1 was added to the installation after indexing.").arg(source.relativePath);
 		}
 	}
 	return status;
@@ -1090,20 +1090,20 @@ QJsonObject gameAssetRegisterStatusJson(const GameAssetRegisterStatus& status)
 QString gameAssetRegisterSummaryText(const GameAssetRegister& reg)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioAssetRegister", "%1: %2 stock file(s) in %3 package(s)")
+	lines << QCoreApplication::translate("SlopStudioAssetRegister", "%1: %2 stock file(s) in %3 package(s)")
 				 .arg(reg.installationName.isEmpty() ? gameDefinitionForKey(reg.gameKey).displayName : reg.installationName)
 				 .arg(reg.files.size())
 				 .arg(reg.sources.size());
 	for (const GameAssetRegisterSource& source : reg.sources) {
-		lines << QCoreApplication::translate("VibeStudioAssetRegister", "  %1  [%2]  %3 file(s)").arg(source.relativePath, source.role).arg(source.fileCount);
+		lines << QCoreApplication::translate("SlopStudioAssetRegister", "  %1  [%2]  %3 file(s)").arg(source.relativePath, source.role).arg(source.fileCount);
 	}
 	if (!reg.shaders.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioAssetRegister", "Shader declarations: %1").arg(reg.shaders.size());
+		lines << QCoreApplication::translate("SlopStudioAssetRegister", "Shader declarations: %1").arg(reg.shaders.size());
 	}
 	QStringList namespaces = reg.doomNames.keys();
 	std::sort(namespaces.begin(), namespaces.end());
 	for (const QString& ns : std::as_const(namespaces)) {
-		lines << QCoreApplication::translate("VibeStudioAssetRegister", "Doom %1 names: %2").arg(ns).arg(reg.doomNames.value(ns).size());
+		lines << QCoreApplication::translate("SlopStudioAssetRegister", "Doom %1 names: %2").arg(ns).arg(reg.doomNames.value(ns).size());
 	}
 	return lines.join(QLatin1Char('\n'));
 }
@@ -1113,7 +1113,7 @@ bool fileCrc32(const QString& path, quint32* crc, QString* error, const std::fun
 	QFile file(path);
 	if (!file.open(QIODevice::ReadOnly)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioAssetRegister", "Unable to read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
+			*error = QCoreApplication::translate("SlopStudioAssetRegister", "Unable to read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
 		}
 		return false;
 	}
@@ -1121,14 +1121,14 @@ bool fileCrc32(const QString& path, quint32* crc, QString* error, const std::fun
 	while (!file.atEnd()) {
 		if (isCancelled && isCancelled()) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioAssetRegister", "Cancelled.");
+				*error = QCoreApplication::translate("SlopStudioAssetRegister", "Cancelled.");
 			}
 			return false;
 		}
 		const QByteArray chunk = file.read(kChunkBytes);
 		if (chunk.isEmpty() && !file.atEnd()) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioAssetRegister", "Unable to read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
+				*error = QCoreApplication::translate("SlopStudioAssetRegister", "Unable to read %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
 			}
 			return false;
 		}
@@ -1140,4 +1140,4 @@ bool fileCrc32(const QString& path, quint32* crc, QString* error, const std::fun
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

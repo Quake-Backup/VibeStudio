@@ -1,5 +1,5 @@
 {
   map "sample_q3"
-  longname "VibeStudio Sample"
+  longname "SlopStudio Sample"
   type "ffa"
 }

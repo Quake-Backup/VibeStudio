@@ -4,7 +4,7 @@
 #include <QStyle>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 int labelHeight(const QLabel* label, int width)
 {
@@ -103,4 +103,4 @@ int LevelTransformLayout::arrange(const QRect& rect, bool apply) const
 	const int note = labelHeight(m_note,width); place(m_note,0,y,width,note);
 	return y+note+contentsMargins().top()+contentsMargins().bottom();
 }
-} // namespace vibestudio
+} // namespace slopstudio

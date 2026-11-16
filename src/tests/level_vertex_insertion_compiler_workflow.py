@@ -1,4 +1,4 @@
-"""Original inserted-corner fixtures through VibeMap3 and PK3 publication.
+"""Original inserted-corner fixtures through SlopMap3 and PK3 publication.
 
 No game data, installation or launch. Quake III BSP layout references and
 licence review are recorded under Shared clipper in docs/CREDITS.md.

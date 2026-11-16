@@ -11,8 +11,8 @@
 #include <limits>
 #include <utility>
 
-using namespace vibestudio;
-using namespace vibestudio::subset_test;
+using namespace slopstudio;
+using namespace slopstudio::subset_test;
 
 namespace {
 bool expect(bool value, const char* message, const QString& error = {})
@@ -87,7 +87,7 @@ bool ownedReader(const QDir& root)
 		&& bytes == "original", "Export uses the same owned source as preview.", result.blockedMessages.join(';'));
 	write.destinationPath = root.filePath("protected-input.zip"); write.allowOverwrite = true;
 	ok &= expect(!model.writeArchive(write).succeeded() && get(write.destinationPath) == "sentinel", "Adoption retains the provider's additional protected inputs.");
-	const auto draft = root.filePath("owned.vibepackage"); PackageStagingModel restored;
+	const auto draft = root.filePath("owned.sloppackage"); PackageStagingModel restored;
 	ok &= expect(PackageDraft::save(draft, &model, false, &error) && PackageDraft::load(draft, &restored, &error)
 		&& restored.entryBytes(restored.plannedEntries().first(), &bytes, &error) && bytes == "original",
 		"Draft checkpointing materializes the owned provider's bytes.", error);
@@ -138,7 +138,7 @@ bool ownedWad(const QDir& root)
 			&& output.readEntryAt(1, &bytes, &error) && bytes == "second"
 			&& (magic == "PWAD" || magic == "IWAD" || (output.entries()[0].wadLumpType == 0 && output.entries()[1].wadLumpType == 0x44)),
 			"Owned WAD export preserves its subtype, exact directory types including zero, and second lump.", result.blockedMessages.join(';'));
-		const auto draft = root.filePath(magic + ".vibepackage"); PackageStagingModel restored;
+		const auto draft = root.filePath(magic + ".sloppackage"); PackageStagingModel restored;
 		ok &= expect(PackageDraft::save(draft, &model, false, &error) && PackageDraft::load(draft, &restored, &error)
 			&& restored.sourceWadMagic() == magic && restored.plannedEntries()[0].wadLumpType == 0
 			&& restored.entryBytes(restored.plannedEntries()[1], &bytes, &error) && bytes == "second",
@@ -156,7 +156,7 @@ bool verifyProvider(const QDir& root)
 		ok &= expect(!archive.verifySourceIdentity(&error) && error.contains("changed size"), "Provider verification rejects short and oversized streams.", error);
 		PackageWriteRequest request; request.destinationPath = root.filePath(QStringLiteral("size-%1.zip").arg(actual));
 		ok &= expect(!model.writeArchive(request).succeeded() && !QFileInfo::exists(request.destinationPath), "A provider size mismatch cannot publish an archive.");
-		ok &= expect(!PackageDraft::save(root.filePath(QStringLiteral("size-%1.vibepackage").arg(actual)), &model, false, &error), "A provider size mismatch cannot checkpoint a draft.", error);
+		ok &= expect(!PackageDraft::save(root.filePath(QStringLiteral("size-%1.sloppackage").arg(actual)), &model, false, &error), "A provider size mismatch cannot checkpoint a draft.", error);
 	}
 	for (const bool ignoreSink : {false, true}) {
 		auto provider = std::make_shared<Reader>(); provider->add("file", "data"); provider->ignoreSink = ignoreSink;

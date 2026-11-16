@@ -2,7 +2,7 @@
 
 **Available** — **Rip** opens a connected vertex or edge selection, branched
 or not, and moves one adjoining side. **Rip and Fill** adds faces across that gap. Both use the
-shared Mesh Editor document and CLI service. VibeStudio is pre-alpha and
+shared Mesh Editor document and CLI service. SlopStudio is pre-alpha and
 largely untested in real projects; [production acceptance](MODELLER_RELEASE.md)
 remains open.
 
@@ -11,7 +11,7 @@ remains open.
 1. Select a vertex or a connected edge chain between faces. The chain may
    branch: see [Branched rips](#branched-rips).
 2. Choose **Vertex → Rip** or **Edge → Rip**. **Rip and Fill** starts with the
-   gap filled. The VibeStudio and Blender profiles also use **V** and **Alt+V**.
+   gap filled. The SlopStudio and Blender profiles also use **V** and **Alt+V**.
 3. The face under the starting pointer chooses the moving side. When the
    pointer misses an incident face, the nearest visible incident face centre
    is used. **B** swaps the side; **F** toggles filling. The starting face stays
@@ -102,9 +102,9 @@ the separate connectivity of its input surfaces.
 ## Automate a rip
 
 ```sh
-vibestudio --cli model tool models/prop.mesh.json --tool rip --vertices 4 --side-face 3 --offset 2,0,0 --output models/ripped.mesh.json --dry-run --json
-vibestudio --cli model tool models/prop.mesh.json --tool rip --edges 4:7,7:10 --side-face 6 --offset 0,2,0 --fill --output models/filled.mesh.json --json
-vibestudio --cli model tool models/prop.mesh.json --tool rip --edges 3:4,4:5,1:4 --side-face 6 --offset 0,2,0 --output models/branched.mesh.json --json
+slopstudio --cli model tool models/prop.mesh.json --tool rip --vertices 4 --side-face 3 --offset 2,0,0 --output models/ripped.mesh.json --dry-run --json
+slopstudio --cli model tool models/prop.mesh.json --tool rip --edges 4:7,7:10 --side-face 6 --offset 0,2,0 --fill --output models/filled.mesh.json --json
+slopstudio --cli model tool models/prop.mesh.json --tool rip --edges 3:4,4:5,1:4 --side-face 6 --offset 0,2,0 --output models/branched.mesh.json --json
 ```
 
 Use actual component indices from the source model. `--side-face` and

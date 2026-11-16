@@ -17,7 +17,7 @@ class QSpinBox;
 class QThread;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 class ModelViewport;
 enum class LevelPlacementMode { Duplicate, Paste };
 
@@ -69,4 +69,4 @@ class LevelPlacementDialog final : public QDialog {
 	bool m_ready = false, m_valid = false, m_updating = false, m_closed = false;
 	bool m_reducedMotion = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

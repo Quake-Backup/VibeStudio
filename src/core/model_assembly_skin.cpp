@@ -5,7 +5,7 @@
 #include <QDir>
 #include <QFileInfo>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool validateModelAssemblySkin(const ModelAssemblySkin &skin, QString *error)
 {
@@ -18,7 +18,7 @@ bool validateModelAssemblySkin(const ModelAssemblySkin &skin, QString *error)
 	{
 		if (error)
 			*error = QCoreApplication::translate(
-				"VibeStudioModelAssembly",
+				"SlopStudioModelAssembly",
 				"Linked skins need a valid file or normalized package path. Only package skins can name an entry index.");
 		return false;
 	}
@@ -40,7 +40,7 @@ bool resolveModelAssemblySkin(const ModelAssemblySkin &skin, const ModelAssembly
 		{
 			if (error)
 				*error =
-					QCoreApplication::translate("VibeStudioModelAssembly", "Relative skin references need an assembly source directory.");
+					QCoreApplication::translate("SlopStudioModelAssembly", "Relative skin references need an assembly source directory.");
 			return false;
 		}
 		result.source = QDir::cleanPath(QDir(context.directory).absoluteFilePath(skin.source));
@@ -51,7 +51,7 @@ bool resolveModelAssemblySkin(const ModelAssemblySkin &skin, const ModelAssembly
 		{
 			if (error)
 				*error =
-					QCoreApplication::translate("VibeStudioModelAssembly", "The linked skin path changed while reading. Reload its input.");
+					QCoreApplication::translate("SlopStudioModelAssembly", "The linked skin path changed while reading. Reload its input.");
 			return false;
 		}
 	}
@@ -60,7 +60,7 @@ bool resolveModelAssemblySkin(const ModelAssemblySkin &skin, const ModelAssembly
 		if (!context.archive || !context.archive->isOpen())
 		{
 			if (error)
-				*error = QCoreApplication::translate("VibeStudioModelAssembly",
+				*error = QCoreApplication::translate("SlopStudioModelAssembly",
 													 "Open the package used by this assembly before loading linked skins.");
 			return false;
 		}
@@ -103,4 +103,4 @@ QJsonObject modelAssemblySkinInputJson(const ModelAssemblySkinInput &skin)
 			{"entryIndex", skin.entryIndex}, {"sha256", QString::fromLatin1(skin.sha256.toHex())},
 			{"bytes", skin.bytes},			 {"bindings", modelSkinBindingPlanJson(skin.bindings)}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -40,7 +40,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -1515,4 +1515,4 @@ void ModelAssemblyDialog::changeEvent(QEvent *event)
 		QTimer::singleShot(0, this, [this] { m_inspectorScroll->setMinimumWidth(m_inspector->minimumSizeHint().width() + 30); });
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

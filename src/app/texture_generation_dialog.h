@@ -30,7 +30,7 @@ class QPushButton;
 class QRadioButton;
 class QSpinBox;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct TextureGenerationDialogHooks {
 	// The game the open package, map, or project targets, or empty.
@@ -56,7 +56,7 @@ struct TextureGenerationDialogHooks {
 };
 
 class TextureGenerationDialog final : public QDialog {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioTextureGenerationDialog)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioTextureGenerationDialog)
 
 public:
 	TextureGenerationDialog(QWidget* parent, TextureGenerationDialogHooks hooks);
@@ -132,4 +132,4 @@ private:
 	QPushButton* m_openEditor = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

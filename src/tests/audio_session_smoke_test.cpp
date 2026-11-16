@@ -17,7 +17,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool result, const char *name)
@@ -70,7 +70,7 @@ AudioSession fixture()
 int main(int argc, char **argv)
 {
 	QCoreApplication application(argc, argv);
-	const QString temporaryRoot = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const QString temporaryRoot = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (temporaryRoot.isEmpty() || !QDir().mkpath(temporaryRoot)) {
 		return EXIT_FAILURE;
 	}

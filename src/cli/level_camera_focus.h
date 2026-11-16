@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelCameraFocusCliResult {
 	int exitCode = 0;
 	QString error;
@@ -10,4 +10,4 @@ struct LevelCameraFocusCliResult {
 	QStringList lines;
 };
 LevelCameraFocusCliResult runLevelCameraFocus(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

@@ -4,7 +4,7 @@
 // rates, IQM influence reduction and quantisation reports, independent frame
 // edits, attachments, material slots and strict exports, the all-clips
 // batch, the clips, frame origins and skeleton MDL, MD2, MD3 and OBJ cannot
-// hold, and `model build` (when the vibestudio executable is passed).
+// hold, and `model build` (when the slopstudio executable is passed).
 #include "core/model_document.h"
 #include "core/model_md5.h"
 #include "core/model_iqm.h"
@@ -27,8 +27,8 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 
 namespace
 {
@@ -215,7 +215,7 @@ void checkRigidGolden(const QString &directory)
 		std::cerr << qPrintable(error) << '\n';
 		return;
 	}
-	const auto dump = qEnvironmentVariable("VIBESTUDIO_SKELETAL_EXPORT_DUMP");
+	const auto dump = qEnvironmentVariable("SLOPSTUDIO_SKELETAL_EXPORT_DUMP");
 	if (!dump.isEmpty())
 	{
 		QDir().mkpath(dump);
@@ -891,7 +891,7 @@ void checkClipBatch(const QString &directory)
 		   "clips that share a file name are refused");
 }
 
-void checkCli(const QString &vibestudio, const QString &directory)
+void checkCli(const QString &slopstudio, const QString &directory)
 {
 	QString error;
 	ModelDocument document;
@@ -911,7 +911,7 @@ void checkCli(const QString &vibestudio, const QString &directory)
 		process.setWorkingDirectory(directory);
 		arguments = QStringList{QStringLiteral("--cli"), QStringLiteral("--settings-file"), QDir(directory).filePath(QStringLiteral("settings.ini"))} +
 					arguments + QStringList{QStringLiteral("--json")};
-		process.start(vibestudio, arguments);
+		process.start(slopstudio, arguments);
 		const bool done = process.waitForStarted(10000) && process.waitForFinished(60000);
 		const auto output = process.readAllStandardOutput();
 		result = QJsonDocument::fromJson(output).object();

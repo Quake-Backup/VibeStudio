@@ -1,5 +1,5 @@
 #include "qmg/generator.hpp"
-// VibeStudio: Quake-MapGen's GgmlRanker (qmg/ggml_ranker.hpp) is LayoutRanker here.
+// SlopStudio: Quake-MapGen's GgmlRanker (qmg/ggml_ranker.hpp) is LayoutRanker here.
 #include "qmg/layout_ranker.hpp"
 #include "qmg/layout_fingerprint.hpp"
 #include "qmg/pipeline.hpp"

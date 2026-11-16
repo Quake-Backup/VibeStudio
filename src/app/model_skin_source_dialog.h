@@ -8,7 +8,7 @@
 class QComboBox;
 class QTableView;
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelSkinSourcePurpose { IndexedTexture, ShaderBindings, Image, PreviewBindings };
 // Metadata-only picker. Payloads are read by the document worker after acceptance.
@@ -24,4 +24,4 @@ class ModelSkinSourceDialog final : public QDialog
 	QTableView *m_entries = nullptr;
 	QComboBox *m_operation = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -16,7 +16,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -286,4 +286,4 @@ void ModelSkeletalWorkingSetDialog::refresh()
 	m_details->setText(modelSkeletalWorkingSetLines(plan, QLocale()).join(QLatin1Char('\n')));
 	m_apply->setEnabled(plan.fits && plan.changes());
 }
-} // namespace vibestudio
+} // namespace slopstudio

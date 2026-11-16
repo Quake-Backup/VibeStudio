@@ -33,7 +33,7 @@
 
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelEditKind;
 struct ModelEdit;
@@ -262,4 +262,4 @@ bool applyModelMeshToolEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSe
 // 1 at the radius). Shared by the viewport preview and the committed edit.
 double modelFalloffWeight(ModelFalloff falloff, double distance);
 QString modelPrimitiveName(ModelPrimitive primitive);
-} // namespace vibestudio
+} // namespace slopstudio

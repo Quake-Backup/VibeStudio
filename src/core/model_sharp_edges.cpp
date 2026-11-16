@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 using namespace model_tools;
 namespace
@@ -328,4 +328,4 @@ bool markModelSharpEdges(ModelMesh *candidate, const ModelEdit &edit, ModelSelec
 	selection->faces.removeIf([&](int face) { return face >= surface.triangles.size(); });
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

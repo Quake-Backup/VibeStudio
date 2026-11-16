@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -172,7 +172,7 @@ QVector<BuildProgramUse> buildPipelineProgramUses(const BuildPipelineResult& pla
 			continue;
 		}
 		BuildProgramUse use = compilerPlanProgramUse(stage.plan);
-		use.label = QCoreApplication::translate("VibeStudioBuildTrust", "Stage %1 (%2)").arg(stage.stage.displayName.isEmpty() ? stage.stage.id : stage.stage.displayName,
+		use.label = QCoreApplication::translate("SlopStudioBuildTrust", "Stage %1 (%2)").arg(stage.stage.displayName.isEmpty() ? stage.stage.id : stage.stage.displayName,
 			stage.stage.profileId);
 		uses.push_back(use);
 	}
@@ -270,10 +270,10 @@ QString buildProgramReviewText(const BuildProgramReview& review)
 		if (!use.label.trimmed().isEmpty()) {
 			lines << use.label;
 		}
-		lines << QCoreApplication::translate("VibeStudioBuildTrust", "Program: %1").arg(QDir::toNativeSeparators(cleanAbsolute(use.program)));
-		lines << QCoreApplication::translate("VibeStudioBuildTrust", "Command line: %1").arg(use.commandLine);
+		lines << QCoreApplication::translate("SlopStudioBuildTrust", "Program: %1").arg(QDir::toNativeSeparators(cleanAbsolute(use.program)));
+		lines << QCoreApplication::translate("SlopStudioBuildTrust", "Command line: %1").arg(use.commandLine);
 		if (!use.workingDirectory.trimmed().isEmpty()) {
-			lines << QCoreApplication::translate("VibeStudioBuildTrust", "Folder: %1").arg(QDir::toNativeSeparators(use.workingDirectory));
+			lines << QCoreApplication::translate("SlopStudioBuildTrust", "Folder: %1").arg(QDir::toNativeSeparators(use.workingDirectory));
 		}
 	}
 	return lines.join(QLatin1Char('\n'));
@@ -300,4 +300,4 @@ QJsonObject buildProgramReviewJson(const BuildProgramReview& review)
 	return object;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

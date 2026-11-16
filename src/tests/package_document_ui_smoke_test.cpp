@@ -35,12 +35,12 @@
 #include <memory>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 struct DocumentStep {
 	QString label;
 	QElapsedTimer elapsed;
-	bool trace = qEnvironmentVariableIsSet("VIBESTUDIO_TEST_PACKAGE_DOCUMENT_TRACE");
+	bool trace = qEnvironmentVariableIsSet("SLOPSTUDIO_TEST_PACKAGE_DOCUMENT_TRACE");
 	explicit DocumentStep(QString name) : label(std::move(name)) {
 		elapsed.start();
 		if (trace) { std::cerr << "Begin " << label.toStdString() << '\n'; }
@@ -65,7 +65,7 @@ public:
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
 		const QByteArray text(source);
-		if (expanded && QByteArray(context) == "VibeStudioPackageArchive" && text.startsWith("Package entry paths exceed")) {
+		if (expanded && QByteArray(context) == "SlopStudioPackageArchive" && text.startsWith("Package entry paths exceed")) {
 			return QStringLiteral("[%1 — expanded admission explanation]").arg(QString::fromUtf8(source));
 		}
 		return expanded && QByteArray(context).endsWith("ApplicationShell")
@@ -96,7 +96,7 @@ int main(int argc, char** argv)
 	{ QFile file(recentMapPath); if (!file.open(QIODevice::WriteOnly) || file.write("// recent-map fixture\n") < 0) { return 1; } }
 	{ StudioSettings settings; settings.recordRecentFile(QStringLiteral("map"), recentMapPath); settings.sync(); }
 	PackageStagingModel fixture;
-	const QString fixturePath = root.filePath(QStringLiteral("fixture.vibepackage"));
+	const QString fixturePath = root.filePath(QStringLiteral("fixture.sloppackage"));
 	{
 		DocumentStep step("prepare two-entry fixture");
 		fixture.createEmpty(PackageArchiveFormat::Pk3);
@@ -106,7 +106,7 @@ int main(int argc, char** argv)
 	}
 	const auto brokenPackagePath = root.filePath(QStringLiteral("damaged.pk3"));
 	{ QFile file(brokenPackagePath); if (!file.open(QIODevice::WriteOnly) || file.write("not an archive") < 0) { return 1; } }
-	const QString deepFixture = root.filePath(QStringLiteral("snapshot-depth.vibepackage"));
+	const QString deepFixture = root.filePath(QStringLiteral("snapshot-depth.sloppackage"));
 	{
 		DocumentStep step("prepare legacy-depth fixture");
 		if (!tests::saveLegacyDeepPackageDraft(deepFixture, &error)) { std::cerr << error.toStdString(); return 1; }
@@ -172,7 +172,7 @@ int main(int argc, char** argv)
 			const auto render = [&](QWidget* widget, const QString& name) {
 				DocumentStep step("render " + name);
 				widget->ensurePolished(); widget->layout()->activate(); app.processEvents();
-				const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+				const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 				if (captures.isEmpty()) { return true; }
 				QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); widget->render(&image);
 				return image.save(QDir(captures).filePath(QStringLiteral("package-%1-%2.png").arg(name).arg(scale)));
@@ -195,7 +195,7 @@ int main(int argc, char** argv)
 			});
 			trigger(close);
 			ok &= expect(dirtyPrompt && save->isEnabled(), "closing even an empty unsaved package prompts and Cancel keeps it");
-			const QString emptyDraft = root.filePath(QStringLiteral("empty-%1.vibepackage").arg(scale)); saveTo(emptyDraft);
+			const QString emptyDraft = root.filePath(QStringLiteral("empty-%1.sloppackage").arg(scale)); saveTo(emptyDraft);
 			PackageStagingModel restored;
 			ok &= expect(PackageDraft::load(emptyDraft, &restored, &error) && restored.sourcePath().isEmpty() && restored.plannedEntries().isEmpty(), "GUI-created empty draft has no synthetic filesystem source");
 			std::cerr << "Empty draft saved at " << lifecycleTime.elapsed() << " ms\n";
@@ -294,7 +294,7 @@ int main(int argc, char** argv)
 			ok &= expect(!select("source/deep/file.txt") && select("other/keep.txt"), "folder plus child selection deletes the subtree once and preserves siblings");
 			trigger(undo);
 			ok &= expect(select("source/new-empty") && select("source/deep/file.txt"), "one undo restores both empty and populated folders");
-			const QString edited = root.filePath(QStringLiteral("edited-%1.vibepackage").arg(scale)); saveTo(edited);
+			const QString edited = root.filePath(QStringLiteral("edited-%1.sloppackage").arg(scale)); saveTo(edited);
 			ok &= expect(PackageDraft::load(edited, &restored, &error) && restored.canRedo() && restored.redo() && restored.summary().stagedFileCount == 1, "GUI folder deletion redo persists in the saved draft");
 			std::cerr << "Folder lifecycle saved at " << lifecycleTime.elapsed() << " ms\n";
 			trigger(close);
@@ -329,7 +329,7 @@ int main(int argc, char** argv)
 		QTimer::singleShot(0, [&]() { if (auto* dialog = qobject_cast<QInputDialog*>(app.activeModalWidget())) { dialog->findChild<QComboBox*>()->setCurrentIndex(6); dialog->accept(); } });
 		trigger(create);
 		ok &= expect(!folder->isEnabled(), "flat WAD documents disable folder creation");
-		const QString wad = root.filePath(QStringLiteral("texture.vibepackage")); saveTo(wad);
+		const QString wad = root.filePath(QStringLiteral("texture.sloppackage")); saveTo(wad);
 		PackageStagingModel restored; ok &= expect(PackageDraft::load(wad, &restored, &error) && restored.sourceWadMagic() == QStringLiteral("WAD3"), "GUI-selected WAD variant survives draft save");
 		trigger(close);
 	}

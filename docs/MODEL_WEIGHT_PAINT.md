@@ -1,7 +1,7 @@
 # Paint skin weights
 
 **Available:** staged vertex weight painting for retained skeletal models.
-VibeStudio is pre-alpha and largely untested in real projects. This tool does
+SlopStudio is pre-alpha and largely untested in real projects. This tool does
 not establish production or native-engine acceptance.
 
 Open **Mesh Editor → Skeleton → Paint Skin Weights**. Bind an unskinned
@@ -98,9 +98,9 @@ normal workflows; painting does not silently publish exports or compile maps.
 ## Use the command line
 
 ```sh
-vibestudio --cli model weight-paint ./models/rig.mesh.json --surface 0 --joint arm --vertices 1,2,3 --mode replace --value 0.7 --strength 1 --output ./models/painted.mesh.json --json
-vibestudio --cli model weight-paint ./models/rig.mesh.json --surface 0 --joint arm --vertices all --mode smooth --strength 0.25 --locked-joints spine --remainder-joint root --output ./models/smoothed.mesh.json --dry-run --json
-vibestudio --cli model weight-paint ./models/rig.mesh.json --stroke-file ./paint-strokes.json --output ./models/painted.mesh.json --json
+slopstudio --cli model weight-paint ./models/rig.mesh.json --surface 0 --joint arm --vertices 1,2,3 --mode replace --value 0.7 --strength 1 --output ./models/painted.mesh.json --json
+slopstudio --cli model weight-paint ./models/rig.mesh.json --surface 0 --joint arm --vertices all --mode smooth --strength 0.25 --locked-joints spine --remainder-joint root --output ./models/smoothed.mesh.json --dry-run --json
+slopstudio --cli model weight-paint ./models/rig.mesh.json --stroke-file ./paint-strokes.json --output ./models/painted.mesh.json --json
 ```
 
 Direct painting requires `--surface`, `--joint`, `--vertices all|N,N` and

@@ -21,7 +21,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The generated command ids are "map.createEntity.<class>", so a key the user
 // gives one class still works after the definitions are reloaded, or a map
@@ -99,4 +99,4 @@ QString levelEntityCreateBlockedReason(const LevelMapDocument& document, const L
 bool createLevelMapEntityOfClass(LevelMapDocument* document, const LevelEntityCreateRequest& request, LevelEntityCreateReport* report = nullptr,
 	QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

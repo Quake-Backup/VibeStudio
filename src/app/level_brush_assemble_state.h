@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 // The Assemble Brush tool's points, shared by the plan views and the camera
 // as the clip tool shares its points (app/level_clip_state.h). Each view
 // keeps a copy; the shell propagates every change and checks the hull on a
@@ -38,4 +38,4 @@ struct LevelBrushAssemblePreview {
 	int faces = 0;
 	QString message;
 };
-} // namespace vibestudio
+} // namespace slopstudio

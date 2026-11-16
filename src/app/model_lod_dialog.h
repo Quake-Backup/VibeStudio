@@ -24,7 +24,7 @@ class QSpinBox;
 class QTableWidget;
 class QWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelEditorDialog;
 
@@ -80,4 +80,4 @@ class ModelLodDialog final : public QDialog
 	void controlsChanged();
 	void showReview();
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -13,7 +13,7 @@ class QPushButton;
 class QSpinBox;
 class QTabWidget;
 class QThread;
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioTakeDialogWork;
 class AudioTakeDialog final : public QDialog {
@@ -60,4 +60,4 @@ class AudioTakeDialog final : public QDialog {
 	QProgressBar *m_progress = nullptr;
 	QPushButton *m_record = nullptr, *m_stop = nullptr, *m_import = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

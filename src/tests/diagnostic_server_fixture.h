@@ -9,7 +9,7 @@ inline int runDiagnosticServerFixture(const QString& mode)
 #ifdef Q_OS_WIN
 	_setmode(_fileno(stdin), _O_BINARY); _setmode(_fileno(stdout), _O_BINARY);
 #endif
-	const auto send = [](const QJsonObject& message) { const auto bytes = vibestudio::LanguageServerFramer::encode(message); std::cout.write(bytes.data(), bytes.size()); std::cout.flush(); };
+	const auto send = [](const QJsonObject& message) { const auto bytes = slopstudio::LanguageServerFramer::encode(message); std::cout.write(bytes.data(), bytes.size()); std::cout.flush(); };
 	const auto log = [&](const QString& message) { send({{QStringLiteral("jsonrpc"), QStringLiteral("2.0")}, {QStringLiteral("method"), QStringLiteral("window/logMessage")}, {QStringLiteral("params"), QJsonObject {{QStringLiteral("message"), message}}}}); };
 	const bool pull = mode.startsWith(QStringLiteral("pull"));
 	QHash<QString, QString> documents; QHash<QString, int> versions, requests; bool refreshed = false;
@@ -44,7 +44,7 @@ inline int runDiagnosticServerFixture(const QString& mode)
 			if (!documents.contains(uri) || mode == QStringLiteral("save-disabled")) { return 73; }
 			const bool include = mode != QStringLiteral("save-no-text");
 			if (params.contains(QStringLiteral("text")) != include || (include && params.value(QStringLiteral("text")).toString() != documents.value(uri))) { return 74; }
-			const auto saved = vibestudio::readTextFile(vibestudio::languageServerPath(uri));
+			const auto saved = slopstudio::readTextFile(slopstudio::languageServerPath(uri));
 			if (!saved.editable() || saved.text != documents.value(uri)) { return 75; }
 			log(QStringLiteral("saved:%1 version=%2 text=%3").arg(uri).arg(versions.value(uri)).arg(include ? QStringLiteral("included") : QStringLiteral("omitted")));
 			if (!pull) { send({{QStringLiteral("jsonrpc"), QStringLiteral("2.0")}, {QStringLiteral("method"), QStringLiteral("textDocument/publishDiagnostics")}, {QStringLiteral("params"), QJsonObject {

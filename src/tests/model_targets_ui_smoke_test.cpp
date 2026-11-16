@@ -31,8 +31,8 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 
 namespace
 {
@@ -265,9 +265,9 @@ int main(int argc, char **argv)
 #endif
 	QApplication app(argc, argv);
 	// The editor draws in 3D: skip its checks where no renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-targets-ui-smoke"); skip >= 0)
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-targets-ui-smoke"); skip >= 0)
 		return skip;
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("targets-ui-XXXXXX")));

@@ -22,7 +22,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool ok, const char *message, const QString &error = {})
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 		ok &= expect(serializeLevelMap(map).bytes == unchanged, "preview does not mutate source");
 		ok &= expect(tests::settleModelViewport(*preview), "render completes");
 		ok &= expect(dialog.findChild<QScrollArea*>()->horizontalScrollBar()->maximum() == 0, "translated controls fit without horizontal clipping");
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!captures.isEmpty()) {
 			QDir().mkpath(captures);
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied);

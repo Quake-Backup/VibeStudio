@@ -6,7 +6,7 @@
 // someone else. Re-run Last Compile replays the program a saved run names, and
 // a project's compiler paths and build pipelines can point a stage at a
 // program inside the project. Such a program starts only when it is one of the
-// compilers VibeStudio knows from the user's own configuration (Toolchain
+// compilers SlopStudio knows from the user's own configuration (Toolchain
 // paths, `compiler set-path`, search paths typed on the command line, the
 // studio's compiler folders and PATH) for the right game, or when the user has
 // trusted it for that project before. Otherwise the command line is shown and
@@ -22,13 +22,13 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct BuildPipelineResult;
 struct CompilerCommandManifest;
 struct CompilerCommandPlan;
 
-// A compiler executable VibeStudio resolves from the user's configuration.
+// A compiler executable SlopStudio resolves from the user's configuration.
 struct KnownCompilerProgram {
 	QString toolId;
 	QString engineFamily;
@@ -111,4 +111,4 @@ QString buildProgramTrustId(BuildProgramTrust trust);
 QString buildProgramReviewText(const BuildProgramReview& review);
 QJsonObject buildProgramReviewJson(const BuildProgramReview& review);
 
-} // namespace vibestudio
+} // namespace slopstudio

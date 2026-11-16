@@ -19,7 +19,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& error = {})
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 	auto original = tests::prefabFixture(); original.replace("\"target\" \"gate\"","\"target\" \"fired\"");
 	const auto path = temp.filePath("connections.map"); QFile file(path);
 	if (!file.open(QIODevice::WriteOnly) || file.write(original) != original.size()) { return 1; } file.close();
-	for (const auto& profile : {QStringLiteral("trenchbroom"),QStringLiteral("netradiant-custom"),QStringLiteral("vibestudio-default")}) {
+	for (const auto& profile : {QStringLiteral("trenchbroom"),QStringLiteral("netradiant-custom"),QStringLiteral("slopstudio-default")}) {
 		for (int scale : {100,200}) {
 			std::cout << "Connection UI " << profile.toStdString() << ' ' << scale << '%' << std::endl;
 			settings.setSelectedEditorProfileId(profile); settings.setTextScalePercent(scale);
@@ -120,7 +120,7 @@ int main(int argc, char** argv)
 					connect->trigger(); expect(bytes() == original && shell.statusBar()->currentMessage().contains("changed"),"pending result rejects changed selection",shell.statusBar()->currentMessage());
 				}
 				if (native && scale == 200) {
-					const auto capture = qEnvironmentVariable("VIBESTUDIO_CONNECTION_CAPTURE");
+					const auto capture = qEnvironmentVariable("SLOPSTUDIO_CONNECTION_CAPTURE");
 					if (!capture.isEmpty()) { QImage image(shell.size(),QImage::Format_ARGB32_Premultiplied); shell.render(&image); expect(image.save(capture),"owned Qt render evidence"); }
 				}
 			}

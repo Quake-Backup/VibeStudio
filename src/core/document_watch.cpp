@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // ---------------------------------------------------------------------------
 // Fingerprints
@@ -55,17 +55,17 @@ bool DocumentFingerprint::contentMatches(const DocumentFingerprint& other) const
 QString DocumentFingerprint::describe() const
 {
 	if (!exists) {
-		return QCoreApplication::translate("VibeStudioDocumentWatch", "missing");
+		return QCoreApplication::translate("SlopStudioDocumentWatch", "missing");
 	}
-	QString text = QCoreApplication::translate("VibeStudioDocumentWatch", "%1 bytes, modified %2")
+	QString text = QCoreApplication::translate("SlopStudioDocumentWatch", "%1 bytes, modified %2")
 		.arg(QString::number(size), modified.toUTC().toString(Qt::ISODate));
 	if (hashed && !contentHash.isEmpty()) {
 		text += QStringLiteral(" [%1]").arg(QString::fromLatin1(contentHash.left(6).toHex()));
 	} else if (hashSkipped) {
-		text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioDocumentWatch", "(too large to hash)");
+		text += QLatin1Char(' ') + QCoreApplication::translate("SlopStudioDocumentWatch", "(too large to hash)");
 	}
 	if (!errorId.isEmpty()) {
-		text += QLatin1Char(' ') + QCoreApplication::translate("VibeStudioDocumentWatch", "(unreadable)");
+		text += QLatin1Char(' ') + QCoreApplication::translate("SlopStudioDocumentWatch", "(unreadable)");
 	}
 	return text;
 }
@@ -205,19 +205,19 @@ QString documentWatchRoleDisplayName(DocumentWatchRole role)
 {
 	switch (role) {
 	case DocumentWatchRole::LevelMap:
-		return QCoreApplication::translate("VibeStudioDocumentWatch", "Open map");
+		return QCoreApplication::translate("SlopStudioDocumentWatch", "Open map");
 	case DocumentWatchRole::Package:
-		return QCoreApplication::translate("VibeStudioDocumentWatch", "Open package");
+		return QCoreApplication::translate("SlopStudioDocumentWatch", "Open package");
 	case DocumentWatchRole::CodeEditor:
-		return QCoreApplication::translate("VibeStudioDocumentWatch", "Code editor file");
+		return QCoreApplication::translate("SlopStudioDocumentWatch", "Code editor file");
 	case DocumentWatchRole::ProjectManifest:
-		return QCoreApplication::translate("VibeStudioDocumentWatch", "Project manifest");
+		return QCoreApplication::translate("SlopStudioDocumentWatch", "Project manifest");
 	case DocumentWatchRole::Auxiliary:
-		return QCoreApplication::translate("VibeStudioDocumentWatch", "Supporting file");
+		return QCoreApplication::translate("SlopStudioDocumentWatch", "Supporting file");
 	case DocumentWatchRole::Unknown:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioDocumentWatch", "Watched file");
+	return QCoreApplication::translate("SlopStudioDocumentWatch", "Watched file");
 }
 
 DocumentWatchRole documentWatchRoleFromId(const QString& id)
@@ -264,19 +264,19 @@ QString documentChangeKindDisplayName(DocumentChangeKind kind)
 {
 	switch (kind) {
 	case DocumentChangeKind::Modified:
-		return QCoreApplication::translate("VibeStudioDocumentWatch", "Changed on disk");
+		return QCoreApplication::translate("SlopStudioDocumentWatch", "Changed on disk");
 	case DocumentChangeKind::Touched:
-		return QCoreApplication::translate("VibeStudioDocumentWatch", "Touched (content unchanged)");
+		return QCoreApplication::translate("SlopStudioDocumentWatch", "Touched (content unchanged)");
 	case DocumentChangeKind::Removed:
-		return QCoreApplication::translate("VibeStudioDocumentWatch", "Removed from disk");
+		return QCoreApplication::translate("SlopStudioDocumentWatch", "Removed from disk");
 	case DocumentChangeKind::Replaced:
-		return QCoreApplication::translate("VibeStudioDocumentWatch", "Replaced on disk");
+		return QCoreApplication::translate("SlopStudioDocumentWatch", "Replaced on disk");
 	case DocumentChangeKind::Created:
-		return QCoreApplication::translate("VibeStudioDocumentWatch", "Created on disk");
+		return QCoreApplication::translate("SlopStudioDocumentWatch", "Created on disk");
 	case DocumentChangeKind::None:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioDocumentWatch", "Unchanged");
+	return QCoreApplication::translate("SlopStudioDocumentWatch", "Unchanged");
 }
 
 DocumentChangeKind documentChangeKindFromId(const QString& id)
@@ -317,11 +317,11 @@ bool documentChangeKindIsSubstantive(DocumentChangeKind kind)
 
 QString DocumentChangeEvent::describe() const
 {
-	QString text = QCoreApplication::translate("VibeStudioDocumentWatch", "%1: %2 (%3)")
+	QString text = QCoreApplication::translate("SlopStudioDocumentWatch", "%1: %2 (%3)")
 		.arg(documentWatchRoleDisplayName(role), documentChangeKindDisplayName(kind), path);
 	if (coalescedNotifications > 1) {
 		text += QLatin1Char(' ')
-			+ QCoreApplication::translate("VibeStudioDocumentWatch", "[%1 notifications coalesced]").arg(QString::number(coalescedNotifications));
+			+ QCoreApplication::translate("SlopStudioDocumentWatch", "[%1 notifications coalesced]").arg(QString::number(coalescedNotifications));
 	}
 	return text;
 }
@@ -349,14 +349,14 @@ QStringList documentChangeEventLines(const QVector<DocumentChangeEvent>& events)
 {
 	QStringList lines;
 	if (events.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioDocumentWatch", "No external changes detected.");
+		lines << QCoreApplication::translate("SlopStudioDocumentWatch", "No external changes detected.");
 		return lines;
 	}
-	lines << QCoreApplication::translate("VibeStudioDocumentWatch", "%1 external change(s) detected:").arg(QString::number(events.size()));
+	lines << QCoreApplication::translate("SlopStudioDocumentWatch", "%1 external change(s) detected:").arg(QString::number(events.size()));
 	for (const DocumentChangeEvent& event : events) {
 		lines << QStringLiteral("- ") + event.describe();
-		lines << QStringLiteral("    ") + QCoreApplication::translate("VibeStudioDocumentWatch", "was %1").arg(event.previous.describe());
-		lines << QStringLiteral("    ") + QCoreApplication::translate("VibeStudioDocumentWatch", "now %1").arg(event.current.describe());
+		lines << QStringLiteral("    ") + QCoreApplication::translate("SlopStudioDocumentWatch", "was %1").arg(event.previous.describe());
+		lines << QStringLiteral("    ") + QCoreApplication::translate("SlopStudioDocumentWatch", "now %1").arg(event.current.describe());
 	}
 	return lines;
 }
@@ -947,4 +947,4 @@ QVector<DocumentChangeEvent> DocumentWatcher::pollInternal(qint64 monotonicMsecs
 	return events;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

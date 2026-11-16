@@ -1,11 +1,11 @@
-// VibeStudio sample shader script.
+// SlopStudio sample shader script.
 //
 // Hand-authored placeholder shaders for the Quake III sample project. No
 // content is taken from a commercial game; these exist so shader parsing,
 // stage editing, and the map texture audit have something real to resolve
 // against.
 
-textures/vibestudio/sample
+textures/slopstudio/sample
 {
   surfaceparm nolightmap
 }

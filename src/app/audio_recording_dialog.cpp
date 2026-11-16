@@ -31,7 +31,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioRecordingDialogWork {
 	std::atomic<bool> cancelled{false};
@@ -1570,4 +1570,4 @@ void AudioRecordingDialog::importTakes()
 	    },
 	    WorkKind::Import);
 }
-} // namespace vibestudio
+} // namespace slopstudio

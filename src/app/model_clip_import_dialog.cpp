@@ -27,7 +27,7 @@
 #include <QTableWidget>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -440,4 +440,4 @@ void ModelClipImportDialog::reject()
 	}
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

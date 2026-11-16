@@ -4,7 +4,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LanguageCodeAction {
 	QString title, kind, disabledReason;
@@ -25,4 +25,4 @@ bool validLanguageCodeActionRange(const QString& source, int offset, int length)
 LanguageCodeActions parseLanguageCodeActions(const QJsonValue& reply, bool resolveSupported);
 LanguageCodeAction resolveLanguageCodeAction(const LanguageCodeAction& original, const QJsonValue& reply);
 
-} // namespace vibestudio
+} // namespace slopstudio

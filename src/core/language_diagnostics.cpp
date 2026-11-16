@@ -8,7 +8,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool positionNumber(const QJsonValue& value, int* number)
 {
@@ -132,4 +132,4 @@ bool LanguageServerClient::retryDiagnostics(int id, const QJsonObject& error)
 	return false;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

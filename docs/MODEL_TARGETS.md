@@ -51,7 +51,7 @@ by that target; the editable source's own limits still apply (32 surfaces,
 | MD5 animation | `doom3`: Doom 3 (id Software) | Yes | None |
 | MD5 animation | `q2pro`: Q2PRO | | 1,024 frames per clip, 256 joints |
 
-OBJ and ASE have no targets. `vibestudio --cli model targets --json` prints the
+OBJ and ASE have no targets. `slopstudio --cli model targets --json` prints the
 same table with each target's description and sources.
 
 Some targets carry advice the limits cannot express:
@@ -292,14 +292,14 @@ choices.
 ## CLI
 
 ```sh
-vibestudio --cli model targets --format mdl --json
-vibestudio --cli model targets ./models/prop.mesh.json --json
-vibestudio --cli model targets ./models/prop.mesh.json --format md3 --target ioquake3 --json
-vibestudio --cli model prepare ./models/prop.mesh.json --format md3 --output ./models/prop.prepared.mesh.json --json
-vibestudio --cli model targets --project ./mymod --save --format md3 --target et --strict --json
-vibestudio --cli model targets --project ./mymod --json
-vibestudio --cli model build ./models/monster.mesh.json --output ./out/monster.mdl --target quakespasm --json
-vibestudio --cli model lod ./models/prop.mesh.json --output ./out/prop.md3 --target ioquake3 --json
+slopstudio --cli model targets --format mdl --json
+slopstudio --cli model targets ./models/prop.mesh.json --json
+slopstudio --cli model targets ./models/prop.mesh.json --format md3 --target ioquake3 --json
+slopstudio --cli model prepare ./models/prop.mesh.json --format md3 --output ./models/prop.prepared.mesh.json --json
+slopstudio --cli model targets --project ./mymod --save --format md3 --target et --strict --json
+slopstudio --cli model targets --project ./mymod --json
+slopstudio --cli model build ./models/monster.mesh.json --output ./out/monster.mdl --target quakespasm --json
+slopstudio --cli model lod ./models/prop.mesh.json --output ./out/prop.md3 --target ioquake3 --json
 ```
 
 `model targets` without a source lists the targets (`--format` and `--target`

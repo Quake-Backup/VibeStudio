@@ -14,7 +14,7 @@ class QListWidget;
 class QPushButton;
 class QSpinBox;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelAnimationCurveView;
 // Skeleton > Constraints and Layers: a clip's persistent constraints (IK, aim,
@@ -73,4 +73,4 @@ class ModelConstraintsDialog final : public QDialog
 	[[nodiscard]] int clip() const;
 	[[nodiscard]] int frameCount() const;
 };
-} // namespace vibestudio
+} // namespace slopstudio

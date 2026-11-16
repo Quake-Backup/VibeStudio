@@ -1,9 +1,9 @@
 #include "app/audio_playback.h"
 
 #include "core/audio_clip.h"
-#include "vibestudio_config.h"
+#include "slopstudio_config.h"
 
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 #include <QAudioDevice>
 #include <QAudioOutput>
 #include <QBuffer>
@@ -20,11 +20,11 @@
 #include <QPointer>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 // Original adapter using Qt 6.10.1's public media/device contract. No upstream
 // source is copied. See Qt Multimedia attribution in docs/CREDITS.md.
 class QtAudioPlaybackBackend final : public AudioPlaybackBackend
@@ -155,7 +155,7 @@ void AudioPlaybackBackend::clearAndWait(QObject* context, std::function<void()> 
 AudioPlayback::AudioPlayback(QObject* parent, std::unique_ptr<AudioPlaybackBackend> backend, int timeoutMs)
     : QObject(parent), m_backend(std::move(backend))
 {
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 	if (!m_backend) { m_backend = std::make_unique<QtAudioPlaybackBackend>(); }
 #endif
 	m_timeout.setSingleShot(true);
@@ -440,4 +440,4 @@ void AudioPlayback::setLoop(bool enabled)
 	if (m_backend) { m_backend->setLoop(enabled); }
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -38,7 +38,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackageArchiveReader;
 
@@ -184,4 +184,4 @@ QStringList mapTextureAuditLines(const MapTextureAudit& audit);
 QString mapTextureAuditText(const MapTextureAudit& audit);
 QJsonObject mapTextureAuditJson(const MapTextureAudit& audit);
 
-} // namespace vibestudio
+} // namespace slopstudio

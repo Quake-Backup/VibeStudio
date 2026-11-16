@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 #include <numbers>
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -345,4 +345,4 @@ bool validateModelCurveGroup(const ModelPoseCurves &group, int frameCount, QStri
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

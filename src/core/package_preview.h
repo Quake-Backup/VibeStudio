@@ -9,7 +9,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class PackagePreviewKind {
 	Unavailable,
@@ -95,4 +95,4 @@ PackagePreview buildPackageEntryPreview(const PackageArchiveReader& archive, con
 // names. Path-based previews refuse ambiguity rather than choosing a lump.
 PackagePreview buildPackageEntryPreviewAt(const PackageArchiveReader& archive, qsizetype entryIndex, qint64 byteLimit = 65536, qint64 imageByteLimit = 64ll * 1024ll * 1024ll, const PackageReadControl& control = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

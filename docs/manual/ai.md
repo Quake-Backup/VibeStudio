@@ -1,6 +1,6 @@
 # AI assistant (optional)
 
-VibeStudio can ask a text, image or sound model for help: questions about your
+SlopStudio can ask a text, image or sound model for help: questions about your
 map, code or build, generated levels, textures and sounds, and proposed map
 edits. All of it is optional, and nothing is sent anywhere until you turn it
 on.
@@ -17,7 +17,7 @@ on.
 
 ## AI-free mode
 
-AI-free mode is on when you install VibeStudio. While it is on, no request goes
+AI-free mode is on when you install SlopStudio. While it is on, no request goes
 to any model, local or cloud, and the status bar shows **AI-free**. Editing,
 building, packaging, validation, launching and the command line never need
 AI, and every generator has a local path that works without it.
@@ -25,7 +25,7 @@ AI, and every generator has a local path that works without it.
 A project can also switch AI off for itself, whatever the studio setting:
 
 ```sh
-vibestudio --cli project init ./mymod --project-ai-free on
+slopstudio --cli project init ./mymod --project-ai-free on
 ```
 
 A project can only make AI stricter; it never turns AI on. Run the same command
@@ -102,7 +102,7 @@ Stable Diffusion web UI, such as AUTOMATIC1111 or Forge, at
 
 ## Use your Claude or ChatGPT login
 
-If you have a Claude or ChatGPT plan, VibeStudio can ask its models through the
+If you have a Claude or ChatGPT plan, SlopStudio can ask its models through the
 tools you already sign in to, with no API key: **Claude Code** for Claude (for
 example Opus 5.5), and **Codex** for OpenAI's models. Every text feature works
 this way: the Assistant, both level generators, **Edit Map with AI**, and
@@ -123,7 +123,7 @@ this way: the Assistant, both level generators, **Edit Map with AI**, and
    says how, then asks it to reply OK. If the tool is signed in with an API
    key, it warns you that requests are billed to that key, not to your plan.
 
-VibeStudio runs the tool in a new, empty folder, so it can only answer:
+SlopStudio runs the tool in a new, empty folder, so it can only answer:
 
 - **Claude Code** runs in print mode with `--safe-mode`: no built-in tools,
   MCP servers, hooks, plugins, `CLAUDE.md` files, memory or saved session.
@@ -141,14 +141,14 @@ VibeStudio runs the tool in a new, empty folder, so it can only answer:
 - Cancelling a request, or its timing out, ends the tool and everything it
   started, then removes the run folder.
 
-VibeStudio never reads the tools' credentials. The first request from a
+SlopStudio never reads the tools' credentials. The first request from a
 project shows exactly what will run, command and all, in the usual
-**Send to …?** dialog. If a tool is too old for an option VibeStudio passes,
-the request fails with "… is older than VibeStudio needs" and the command
+**Send to …?** dialog. If a tool is too old for an option SlopStudio passes,
+the request fails with "… is older than SlopStudio needs" and the command
 that updates it.
 
 **Custom Command** runs any other program that answers a prompt, such as
-another vendor's command-line tool. VibeStudio cannot tell where the program
+another vendor's command-line tool. SlopStudio cannot tell where the program
 sends your prompt, so it counts as a cloud connector even when it runs on your
 computer: it needs **Allow cloud AI connectors**, and the first request from a
 project asks you first. Enter its command line as the **Program**, with
@@ -167,7 +167,7 @@ Gemini, a local runtime or a custom endpoint. For sounds, set **Audio** and its
 model under **Sound Model**: ElevenLabs or a custom endpoint. Each generator
 also has its own path with no AI.
 
-## Run a GGUF model inside VibeStudio
+## Run a GGUF model inside SlopStudio
 
 > [!NOTE]
 > **Status: Partial.** Only builds you make yourself with `-Dggml=enabled` can
@@ -207,7 +207,7 @@ its own grammar and records the model file's SHA-256 in its report.
 ## Use a cloud provider
 
 1. Put your provider's API key in an environment variable for your user
-   account (see the table below), then restart VibeStudio so it can read it.
+   account (see the table below), then restart SlopStudio so it can read it.
 2. Open **Settings** > **AI and Automation**, untick **AI-free mode** and tick
    **Allow cloud AI connectors**.
 3. Under **Text Model**, pick the provider in **Connector** and type the
@@ -234,7 +234,7 @@ The ID is what the command line takes, as in `--provider claude-code` or
 | **Local GGUF Model (ggml)** | `local-gguf` | Text questions from a `.gguf` file, only in builds made with `-Dggml=enabled`, not in the released packages | None | Partial |
 | **Meshy** | `meshy` | Listed for 3D and pictures; sends nothing yet | `MESHY_API_KEY` | Planned |
 
-VibeStudio reads keys only from these environment variables. It never asks you
+SlopStudio reads keys only from these environment variables. It never asks you
 to type a key into the studio and never stores one in its settings, projects or
 logs. Do not paste keys into a question, a map, a script or a context file.
 
@@ -265,7 +265,7 @@ panel opens and explains which setting to change.
 
 ## Choose what is sent
 
-Only your question and the items you tick are sent, along with VibeStudio's
+Only your question and the items you tick are sent, along with SlopStudio's
 own instructions to the model. The page you are on decides what starts ticked:
 
 | Item | What it contains | Ticked at first on |
@@ -289,7 +289,7 @@ readable by default, or the raw request body. For Claude Code, Codex and
 Custom Command it shows the command that would run, with the files and input
 it would get; for the GGUF connector, what the model would be given.
 
-The first time a project sends to an endpoint off your computer, VibeStudio
+The first time a project sends to an endpoint off your computer, SlopStudio
 shows the request in a **Send to …?** dialog, where **Cancel** is the default
 and **Send** sends it. The dialog says where the request goes: to the
 provider, with your API key used only to sign in; to Anthropic or OpenAI
@@ -349,7 +349,7 @@ buttons appear:
 
 Like the Assistant, each generator asks before its first request to an
 endpoint off your computer. Saved textures and sounds record what made them in
-the project's `.vibestudio/generated` folder.
+the project's `.slopstudio/generated` folder.
 
 ## When a request cannot be sent
 
@@ -363,13 +363,13 @@ missing:
 | … has no endpoint. | Enter the **Endpoint**; a custom connector has no default. |
 | … sends to …, off this machine, and cloud connectors are not allowed. | Tick **Allow cloud AI connectors**, or use a local runtime. Claude Code, Codex and Custom Command always need it. |
 | No model is set for … | Type the **Model** name. |
-| … needs an API key in the … environment variable, which is not set. | Set the variable, then restart VibeStudio. |
+| … needs an API key in the … environment variable, which is not set. | Set the variable, then restart SlopStudio. |
 | … was not found (looked in: …). | Install Claude Code or Codex, or choose **Browse** next to **Program** and pick the program. |
 | … is not signed in. | Run `claude auth login` or `codex login` in a terminal. |
-| … is older than VibeStudio needs … | Update the tool: `claude update` for Claude Code, `npm install -g @openai/codex@latest` for Codex. |
+| … is older than SlopStudio needs … | Update the tool: `claude update` for Claude Code, `npm install -g @openai/codex@latest` for Codex. |
 | No command is set for Custom Command. | Enter the command line as the **Program**. |
-| … is a batch file VibeStudio cannot run safely. | Point **Program** at the `.exe`, or at `node` and the tool's script. |
-| This build of VibeStudio has no ggml runtime. | Use a build made with `-Dggml=enabled`, or run llama.cpp's server and use **Local/Offline Runtime**. |
+| … is a batch file SlopStudio cannot run safely. | Point **Program** at the `.exe`, or at `node` and the tool's script. |
+| This build of SlopStudio has no ggml runtime. | Use a build made with `-Dggml=enabled`, or run llama.cpp's server and use **Local/Offline Runtime**. |
 | No GGUF model file is set. | Choose **Browse** next to **Model** and pick a `.gguf` file. The same goes for "… does not exist" and "… is not a .gguf model file". |
 | This project turns AI off in its manifest. | Run `project init` with `--project-ai-free off`, as shown under [AI-free mode](#ai-free-mode). |
 
@@ -390,9 +390,9 @@ missing:
 ## Command-line equivalents
 
 ```sh
-vibestudio --cli ai status --json
-vibestudio --cli ai test-connection --json
-vibestudio --cli ai ask --prompt "why does qbsp report a leak?" --context-file build/qbsp.log --dry-run
+slopstudio --cli ai status --json
+slopstudio --cli ai test-connection --json
+slopstudio --cli ai ask --prompt "why does qbsp report a leak?" --context-file build/qbsp.log --dry-run
 ```
 
 `--dry-run` prints the request without your key and sends nothing. A command
@@ -410,9 +410,9 @@ commands do not. For `claude-code`, `codex` and `custom-command`,
 the `.gguf` file:
 
 ```sh
-vibestudio --cli ai test-connection --provider claude-code --json
-vibestudio --cli ai ask --provider claude-code --model sonnet --prompt "why does qbsp report a leak?" --context-file build/qbsp.log --yes
-vibestudio --cli map generate --generator quake-mapgen --prompt "Quake 2 deathmatch, 8 rooms" --planner ai --output maps/qmg.map --report maps/qmg.json --yes
+slopstudio --cli ai test-connection --provider claude-code --json
+slopstudio --cli ai ask --provider claude-code --model sonnet --prompt "why does qbsp report a leak?" --context-file build/qbsp.log --yes
+slopstudio --cli map generate --generator quake-mapgen --prompt "Quake 2 deathmatch, 8 rooms" --planner ai --output maps/qmg.map --report maps/qmg.json --yes
 ```
 
 <details>

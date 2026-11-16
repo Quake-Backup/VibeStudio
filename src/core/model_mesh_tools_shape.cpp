@@ -10,7 +10,7 @@
 #include <numbers>
 #include <queue>
 
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -886,4 +886,4 @@ bool solidify(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection,
 	return work.check();
 }
 
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

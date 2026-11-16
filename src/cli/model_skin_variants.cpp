@@ -9,7 +9,7 @@
 #include <QFileInfo>
 #include <QJsonArray>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -245,4 +245,4 @@ ModelSkinVariantsCliResult runModelSkinExport(const QStringList &arguments)
 		result.lines << Text::tr("Surfaces keeping their primary material: %1.").arg(inherited.join(QStringLiteral(", ")));
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

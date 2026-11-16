@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -418,4 +418,4 @@ void MaterialScriptHighlighter::underlineDiagnostics(const QString& text)
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

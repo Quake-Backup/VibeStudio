@@ -8,7 +8,7 @@ class QLineEdit;
 class QListWidget;
 class QPushButton;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelMaterialSlotsDialog final : public QDialog
 {
@@ -28,4 +28,4 @@ class ModelMaterialSlotsDialog final : public QDialog
 	void populate(int selected);
 	void refresh();
 };
-} // namespace vibestudio
+} // namespace slopstudio

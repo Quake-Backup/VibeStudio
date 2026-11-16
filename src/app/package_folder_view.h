@@ -5,7 +5,7 @@
 #include <QTreeView>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackageFolderModel;
 
@@ -40,4 +40,4 @@ private:
 	QString m_revision;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

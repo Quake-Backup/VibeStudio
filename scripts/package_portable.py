@@ -19,7 +19,7 @@ TARGETS: dict[str, dict[str, object]] = {
         "displayName": "Windows",
         "archiveName": "win64",
         "launcherNotes": [
-            "Launch bin/vibestudio.exe after running the package on a Windows machine with the Qt runtime staged by windeployqt.",
+            "Launch bin/slopstudio.exe after running the package on a Windows machine with the Qt runtime staged by windeployqt.",
             "Portable packages do not modify game installs or source projects until the user chooses an explicit write/export action.",
         ],
         "deploymentTool": "windeployqt",
@@ -37,7 +37,7 @@ TARGETS: dict[str, dict[str, object]] = {
         "displayName": "Linux",
         "archiveName": "linux",
         "launcherNotes": [
-            "Launch bin/vibestudio after staging the Qt runtime through the distribution package, linuxdeploy, AppImage, or another documented Linux deployment path.",
+            "Launch bin/slopstudio after staging the Qt runtime through the distribution package, linuxdeploy, AppImage, or another documented Linux deployment path.",
             "Run the CLI smoke commands from this README before publishing a Linux artifact.",
         ],
         "deploymentTool": "linuxdeploy/AppImage or distribution packaging",
@@ -62,10 +62,10 @@ CANONICAL_DOCS = [
 ]
 
 COMPILER_LICENSE_SOURCES = [
-    ("VibeMap2", "external/compilers/vibemap2/COPYING"),
-    ("VibeMap3", "external/compilers/vibemap3/COPYING"),
-    # NetRadiant Custom's per-component licence summary, which VibeMap3 keeps.
-    ("VibeMap3", "external/compilers/vibemap3/LICENSE"),
+    ("SlopMap2", "external/compilers/slopmap2/COPYING"),
+    ("SlopMap3", "external/compilers/slopmap3/COPYING"),
+    # NetRadiant Custom's per-component licence summary, which SlopMap3 keeps.
+    ("SlopMap3", "external/compilers/slopmap3/LICENSE"),
     ("ZDBSP", "external/compilers/zdbsp/COPYING"),
     ("ZokumBSP", "external/compilers/zokumbsp/src/COPYING"),
 ]
@@ -226,7 +226,7 @@ def staged_license_files(package_dir: Path) -> list[str]:
 
 def compiled_catalogs(root: Path, binary: Path, explicit_directory: Path | None) -> tuple[dict, list[Path]]:
     directory = (explicit_directory if explicit_directory is not None else binary.parent.parent / "i18n").resolve()
-    expected = sorted(path.with_suffix(".qm").name for path in (root / "i18n").glob("vibestudio_*.ts"))
+    expected = sorted(path.with_suffix(".qm").name for path in (root / "i18n").glob("slopstudio_*.ts"))
     available = [directory / name for name in expected if (directory / name).is_file()]
     missing = [name for name in expected if not (directory / name).is_file()]
     if explicit_directory is not None and (not directory.is_dir() or missing):
@@ -245,7 +245,7 @@ def write_platform_readme(package_dir: Path, target_platform: str, target_archit
     readme = package_dir / "platform" / "README.txt"
     readme.parent.mkdir(parents=True, exist_ok=True)
     lines = [
-        f"VibeStudio portable package target: {target['displayName']} ({target_architecture})",
+        f"SlopStudio portable package target: {target['displayName']} ({target_architecture})",
         "",
         "Launch notes:",
     ]
@@ -255,12 +255,12 @@ def write_platform_readme(package_dir: Path, target_platform: str, target_archit
             "",
             "Clean-machine smoke checklist:",
             f"- Confirm the staged executable exists at bin/{binary_name}.",
-            "- Run `vibestudio --cli --version`.",
-            "- Run `vibestudio --cli package validate <fixture-or-sample-package> --json`.",
-            "- Run `vibestudio --cli compiler profiles --json`.",
-            "- Run `vibestudio --cli localization report --locale ar --json`.",
+            "- Run `slopstudio --cli --version`.",
+            "- Run `slopstudio --cli package validate <fixture-or-sample-package> --json`.",
+            "- Run `slopstudio --cli compiler profiles --json`.",
+            "- Run `slopstudio --cli localization report --locale ar --json`.",
             "- Open the GUI, complete or skip first-run setup, and verify the Activity Center is visible.",
-            "- Confirm docs/OFFLINE_USER_GUIDE.md, i18n/vibestudio_en.ts, and licenses/THIRD_PARTY_LICENSES.md are present.",
+            "- Confirm docs/OFFLINE_USER_GUIDE.md, i18n/slopstudio_en.ts, and licenses/THIRD_PARTY_LICENSES.md are present.",
             "- Check compiledLocalization in package-manifest.json; runtime translations require the listed .qm catalogs, not just .ts sources.",
         ]
     )
@@ -274,7 +274,7 @@ def write_license_bundle(root: Path, package_dir: Path) -> tuple[str, list[str]]
 
     copied_sources: list[str] = []
     for license_file in root_license_files(root):
-        destination = license_dir / "vibestudio" / license_file.name
+        destination = license_dir / "slopstudio" / license_file.name
         copy_path(license_file, destination)
         copied_sources.append(relative_path(destination, package_dir))
 
@@ -296,7 +296,7 @@ def write_license_bundle(root: Path, package_dir: Path) -> tuple[str, list[str]]
         compiler_rows.append(f"| {name} | `{relative}` | `{relative_path(destination, package_dir)}` |")
 
     audio_rows: list[str] = []
-    for name in ("LICENSE", "LICENSE-OOURA.txt", "VIBESTUDIO.md", "UPSTREAM.json"):
+    for name in ("LICENSE", "LICENSE-OOURA.txt", "SLOPSTUDIO.md", "UPSTREAM.json"):
         relative = f"external/audio/r8brain-free-src/{name}"
         destination = license_dir / relative
         copy_path(root / relative, destination)
@@ -305,7 +305,7 @@ def write_license_bundle(root: Path, package_dir: Path) -> tuple[str, list[str]]
 
     decoder_rows: list[str] = []
     for component in ("dr_libs", "libogg", "libvorbis"):
-        for name in ("LICENSE" if component == "dr_libs" else "COPYING", "VIBESTUDIO.md", "UPSTREAM.json"):
+        for name in ("LICENSE" if component == "dr_libs" else "COPYING", "SLOPSTUDIO.md", "UPSTREAM.json"):
             relative = f"external/audio/{component}/{name}"
             destination = license_dir / relative
             copy_path(root / relative, destination)
@@ -313,7 +313,7 @@ def write_license_bundle(root: Path, package_dir: Path) -> tuple[str, list[str]]
             decoder_rows.append(f"- `{relative_path(destination, package_dir)}`")
 
     meter_rows: list[str] = []
-    for name in ("COPYING", "VIBESTUDIO.md", "UPSTREAM.json", "doc/license/R128Scan.txt", "doc/license/queue.txt"):
+    for name in ("COPYING", "SLOPSTUDIO.md", "UPSTREAM.json", "doc/license/R128Scan.txt", "doc/license/queue.txt"):
         relative = f"external/audio/libebur128/{name}"
         destination = license_dir / relative
         copy_path(root / relative, destination)
@@ -321,7 +321,7 @@ def write_license_bundle(root: Path, package_dir: Path) -> tuple[str, list[str]]
         meter_rows.append(f"- `{relative_path(destination, package_dir)}`")
 
     duplex_rows: list[str] = []
-    for name in ("LICENSE.txt", "VIBESTUDIO.md", "UPSTREAM.json"):
+    for name in ("LICENSE.txt", "SLOPSTUDIO.md", "UPSTREAM.json"):
         relative = f"external/audio/portaudio/{name}"
         destination = license_dir / relative
         copy_path(root / relative, destination)
@@ -329,7 +329,7 @@ def write_license_bundle(root: Path, package_dir: Path) -> tuple[str, list[str]]
         duplex_rows.append(f"- `{relative_path(destination, package_dir)}`")
 
     atlas_rows: list[str] = []
-    for name in ("LICENSE", "LICENSE-THIRD-PARTY.txt", "VIBESTUDIO.md", "UPSTREAM.json"):
+    for name in ("LICENSE", "LICENSE-THIRD-PARTY.txt", "SLOPSTUDIO.md", "UPSTREAM.json"):
         relative = f"external/modelling/xatlas/{name}"
         destination = license_dir / relative
         copy_path(root / relative, destination)
@@ -337,7 +337,7 @@ def write_license_bundle(root: Path, package_dir: Path) -> tuple[str, list[str]]
         atlas_rows.append(f"- `{relative_path(destination, package_dir)}`")
 
     render_rows: list[str] = []
-    for name in ("LICENSE.md", "LICENSES/Apache-2.0.txt", "LICENSES/MIT.txt", "VIBESTUDIO.md", "UPSTREAM.json"):
+    for name in ("LICENSE.md", "LICENSES/Apache-2.0.txt", "LICENSES/MIT.txt", "SLOPSTUDIO.md", "UPSTREAM.json"):
         relative = f"external/graphics/vulkan-headers/{name}"
         destination = license_dir / relative
         copy_path(root / relative, destination)
@@ -350,12 +350,12 @@ def write_license_bundle(root: Path, package_dir: Path) -> tuple[str, list[str]]
             [
                 "# Third-Party Licenses",
                 "",
-                "This bundle keeps license and attribution files visible in portable VibeStudio packages.",
+                "This bundle keeps license and attribution files visible in portable SlopStudio packages.",
                 "Compiler sources are not bundled as executable toolchains in this package unless a future release manifest says otherwise, but their imported source licenses remain copied for review.",
                 "",
-                "## VibeStudio",
+                "## SlopStudio",
                 "",
-                "- VibeStudio root license: `licenses/vibestudio/LICENSE`.",
+                "- SlopStudio root license: `licenses/slopstudio/LICENSE`.",
                 "- Credits: `licenses/docs/CREDITS.md`.",
                 "- Dependency notes: `licenses/docs/DEPENDENCIES.md`.",
                 "- Packaging notes: `licenses/docs/PACKAGING.md`.",
@@ -436,7 +436,7 @@ def build_manifest(
     included_docs = [relative for relative in CANONICAL_DOCS if (root / relative).exists()]
     localization_root = root / "i18n"
     included_localization_catalogs = (
-        sorted(relative_path(path, root) for path in localization_root.glob("vibestudio_*.ts") if path.is_file())
+        sorted(relative_path(path, root) for path in localization_root.glob("slopstudio_*.ts") if path.is_file())
         if localization_root.exists()
         else []
     )
@@ -502,7 +502,7 @@ def create_package(
 
     compiled_localization, catalogs = compiled_catalogs(root, binary, compiled_translations)
 
-    package_name = f"vibestudio-{version}-{TARGETS[target_platform]['archiveName']}-{target_architecture}"
+    package_name = f"slopstudio-{version}-{TARGETS[target_platform]['archiveName']}-{target_architecture}"
     package_dir = safe_package_dir(output_root, package_name)
     archive_path = package_dir.parent / f"{package_dir.name}.zip" if archive else None
     if archive_path is not None:
@@ -579,8 +579,8 @@ def requested_targets(target_platform: str) -> list[str]:
 
 def main() -> int:
     root = repo_root()
-    parser = argparse.ArgumentParser(description="Stage portable VibeStudio package artifacts.")
-    parser.add_argument("--binary", required=True, help="Built vibestudio executable to stage.")
+    parser = argparse.ArgumentParser(description="Stage portable SlopStudio package artifacts.")
+    parser.add_argument("--binary", required=True, help="Built slopstudio executable to stage.")
     parser.add_argument("--output", default=str(root / "dist"), help="Output directory for staged packages.")
     parser.add_argument("--version", default=read_version(root), help="Package version. Defaults to VERSION.")
     parser.add_argument("--no-samples", action="store_true", help="Do not include sample projects.")

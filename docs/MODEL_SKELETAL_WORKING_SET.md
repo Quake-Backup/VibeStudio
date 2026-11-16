@@ -2,7 +2,7 @@
 
 **Available:** a skeletal working set that chooses which clips are baked into
 editable frames, with oversized skeletal imports re-baked to fit instead of
-refused. VibeStudio remains pre-alpha and largely untested in real projects.
+refused. SlopStudio remains pre-alpha and largely untested in real projects.
 This does not establish the [production gate](MODELLER_RELEASE.md).
 
 An editable source holds at most 1,024 frames and 1,048,576 frame vertices
@@ -30,7 +30,7 @@ opens with a notice; delete clips until it fits before saving. See
 Open an MD5, IQM, MDR, MDS, MDM or Ghoul 2 model with **Open / Import…** (the
 dialog also lists **All files**), or select one in **Models** and choose **Mesh
 Editor**. Designs and baked assembly poses handed to the editor are treated the
-same way. When the baked frames exceed the editable budget, VibeStudio re-bakes
+same way. When the baked frames exceed the editable budget, SlopStudio re-bakes
 them from the skeleton:
 
 - It keeps the bind pose, then takes clips in file order while they fit three
@@ -101,10 +101,10 @@ working set; their export report names the clips left out of the file.
 ## Use the command line
 
 ```sh
-vibestudio --cli model import ./models/monster.md5mesh --output ./out/monster.mesh.json --json
-vibestudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --json
-vibestudio --cli model pose ./out/monster.mesh.json --json
-vibestudio --cli model pose ./out/monster.mesh.json --operation working-set --clips idle,run --output ./out/run.mesh.json --json
+slopstudio --cli model import ./models/monster.md5mesh --output ./out/monster.mesh.json --json
+slopstudio --cli model import ./models/monster.md5mesh --clips idle,walk --output ./out/monster.mesh.json --json
+slopstudio --cli model pose ./out/monster.mesh.json --json
+slopstudio --cli model pose ./out/monster.mesh.json --operation working-set --clips idle,run --output ./out/run.mesh.json --json
 ```
 
 `model import` re-bakes an oversized skeletal model the same way. `--clips`

@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 const QVector<QString CameraFlyKeys::*> directions {&CameraFlyKeys::forward, &CameraFlyKeys::back, &CameraFlyKeys::left,
 	&CameraFlyKeys::right, &CameraFlyKeys::up, &CameraFlyKeys::down, &CameraFlyKeys::turnLeft, &CameraFlyKeys::turnRight,
@@ -318,4 +318,4 @@ int levelCameraSteppedMoveSpeed(int speed, int direction, double automaticSpeed)
 	}
 	return speed;
 }
-} // namespace vibestudio
+} // namespace slopstudio

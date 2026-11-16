@@ -15,7 +15,7 @@
 #include <iostream>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -39,7 +39,7 @@ void wait(int milliseconds)
 bool checkLoggingEngine()
 {
 	bool ok = true;
-	qputenv("VIBESTUDIO_SPEECH_ENGINE", "log");
+	qputenv("SLOPSTUDIO_SPEECH_ENGINE", "log");
 	clearLoggedSpeechForTesting();
 	StudioSpeech speech;
 	ok &= expect(speech.available() && !speech.engineName().isEmpty() && speech.unavailableReason().isEmpty(), "The log engine should be available.");
@@ -59,18 +59,18 @@ bool checkLoggingEngine()
 	ok &= expect(!speech.say(QStringLiteral("   ")), "Blank text should not be spoken.");
 	const QStringList spoken = loggedSpeechForTesting();
 	ok &= expect(spoken == QStringList({QStringLiteral("Build finished"), speechTestPhrase()}), "The log engine should record what was said, simplified.");
-	qunsetenv("VIBESTUDIO_SPEECH_ENGINE");
+	qunsetenv("SLOPSTUDIO_SPEECH_ENGINE");
 	return ok;
 }
 
 bool checkSilencedEngine()
 {
 	bool ok = true;
-	qputenv("VIBESTUDIO_SPEECH_ENGINE", "none");
+	qputenv("SLOPSTUDIO_SPEECH_ENGINE", "none");
 	StudioSpeech speech;
 	ok &= expect(!speech.available() && speech.engineName().isEmpty() && !speech.unavailableReason().isEmpty(), "A silenced engine should say why.");
 	ok &= expect(!speech.say(QStringLiteral("Hello")) && speech.voices().isEmpty() && !speech.isSpeaking(), "A silenced engine should speak nothing.");
-	qunsetenv("VIBESTUDIO_SPEECH_ENGINE");
+	qunsetenv("SLOPSTUDIO_SPEECH_ENGINE");
 	ok &= expect(normalizedSpeechRate(-20) == -10 && normalizedSpeechPitch(20) == 10 && normalizedSpeechVolume(-5) == 0, "Speech ranges should clamp.");
 	return ok;
 }

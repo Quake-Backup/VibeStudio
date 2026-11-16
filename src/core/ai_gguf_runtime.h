@@ -1,6 +1,6 @@
 #pragma once
 
-// GGUF language models run inside VibeStudio through llama.cpp and ggml: the Local GGUF connector.
+// GGUF language models run inside SlopStudio through llama.cpp and ggml: the Local GGUF connector.
 // Present only in builds configured with -Dggml=enabled (scripts/build_ggml.py builds the pinned
 // llama.cpp); elsewhere aiGgufRuntimeAvailable() is false and a request says how to get it.
 //
@@ -18,7 +18,7 @@
 
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 
 [[nodiscard]] bool aiGgufRuntimeAvailable();
 // "llama.cpp c1d0e7a, CPU", or empty without the runtime.
@@ -62,4 +62,4 @@ struct AiGgufResult {
 
 [[nodiscard]] AiGgufResult runAiGguf(const AiGgufRequest& request, const std::atomic_bool* cancelled = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

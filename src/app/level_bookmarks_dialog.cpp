@@ -11,7 +11,7 @@
 #include <QVBoxLayout>
 #include <QUuid>
 
-namespace vibestudio {
+namespace slopstudio {
 LevelBookmarksDialog::LevelBookmarksDialog(LevelViewBookmarks bookmarks, Capture capture, Restore restore,
 	Commit commit, Reload reload, bool readOnly, QWidget* parent)
 	: QDialog(parent), m_bookmarks(std::move(bookmarks)), m_capture(std::move(capture)), m_restore(std::move(restore)),
@@ -183,4 +183,4 @@ bool LevelBookmarksDialog::exportFile(const QString& path, bool overwrite)
 	report(tr("Exported %n saved view(s).", nullptr, m_bookmarks.size()));
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

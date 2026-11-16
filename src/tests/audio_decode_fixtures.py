@@ -32,7 +32,7 @@ def main():
         ("mp3-no-xing", "mp3", 2, 44100, ["-b:a", "128k", "-write_xing", "0"]),
     ] + [(f"vorbis-{n}ch", "ogg", n, 48000, ["-q:a", "5"]) for n in [1, 2, 3, 4, 5, 6, 7, 8]]
     version = subprocess.check_output([args.ffmpeg, "-version"], text=True).splitlines()[0]
-    manifest = {"source": "VibeStudio-generated synthetic tones and transient; no external media", "encoder": version, "oracles": {"mp3/flac": version, "vorbis": f"libsndfile {soundfile.__libsndfile_version__} via python-soundfile {soundfile.__version__}"}, "cases": []}
+    manifest = {"source": "SlopStudio-generated synthetic tones and transient; no external media", "encoder": version, "oracles": {"mp3/flac": version, "vorbis": f"libsndfile {soundfile.__libsndfile_version__} via python-soundfile {soundfile.__version__}"}, "cases": []}
     for name, extension, channels, rate, options in cases:
         frames = 8192
         samples = array.array("f", (0.42 * math.sin(2 * math.pi * (237 + ch * 179) * i / rate)
@@ -51,7 +51,7 @@ def main():
             assert decoded_rate == rate and decoded.shape == (frames, channels)
             # libsndfile returns Vorbis packet order. Label speakers from the
             # Xiph specification, then select them in WAVE/FLAC order. This
-            # independent oracle does not consume VibeStudio's decoder output.
+            # independent oracle does not consume SlopStudio's decoder output.
             speakers = {
                 1: ["M"], 2: ["FL", "FR"], 3: ["FL", "FC", "FR"],
                 4: ["FL", "FR", "BL", "BR"], 5: ["FL", "FC", "FR", "BL", "BR"],

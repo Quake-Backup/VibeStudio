@@ -23,7 +23,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 #include <atomic>
-namespace vibestudio {
+namespace slopstudio {
 struct LevelBuildPackageDialog::Work {
 	std::atomic_bool cancel{false};
 	QMutex mutex;
@@ -454,4 +454,4 @@ void LevelBuildPackageDialog::reject() {
 	}
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

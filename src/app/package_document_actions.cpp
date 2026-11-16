@@ -23,7 +23,7 @@
 #include <QScopedValueRollback>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 
 qsizetype ApplicationShell::selectedPackageEntryIndex() const
 {
@@ -70,11 +70,11 @@ QString ApplicationShell::packageWatchPath() const
 void ApplicationShell::openPackageDraft()
 {
 	if (m_packageReadRunning || m_packageSaveRunning || m_packageExtractionRunning) { return; }
-	const QString path = QFileDialog::getExistingDirectory(this, tr("Open Package Draft (.vibepackage)"),
+	const QString path = QFileDialog::getExistingDirectory(this, tr("Open Package Draft (.sloppackage)"),
 		m_packageStaging.draftPath().isEmpty() ? m_settings.currentProjectPath() : m_packageStaging.draftPath());
 	if (path.isEmpty() || !confirmStagedPackageChangesHandled()) { return; }
-	if (!path.endsWith(QStringLiteral(".vibepackage"), Qt::CaseInsensitive)) {
-		QMessageBox::warning(this, tr("Open Package Draft"), tr("Choose the complete .vibepackage draft directory.")); return;
+	if (!path.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) {
+		QMessageBox::warning(this, tr("Open Package Draft"), tr("Choose the complete .sloppackage draft directory.")); return;
 	}
 	loadPackagePath(path);
 	setMode(StudioMode::Packages);
@@ -89,10 +89,10 @@ bool ApplicationShell::savePackageDraft(bool saveAs)
 		if (name.isEmpty()) { name = QStringLiteral("package"); }
 		const QString directory = !m_settings.currentProjectPath().isEmpty() ? m_settings.currentProjectPath()
 			: m_packageStaging.sourcePath().isEmpty() ? QDir::currentPath() : QFileInfo(m_packageStaging.sourcePath()).absolutePath();
-		path = QFileDialog::getSaveFileName(this, tr("Save Package Draft"), QDir(directory).filePath(name + QStringLiteral(".vibepackage")),
-			tr("Package Draft Directory (*.vibepackage)"), nullptr, QFileDialog::DontConfirmOverwrite);
+		path = QFileDialog::getSaveFileName(this, tr("Save Package Draft"), QDir(directory).filePath(name + QStringLiteral(".sloppackage")),
+			tr("Package Draft Directory (*.sloppackage)"), nullptr, QFileDialog::DontConfirmOverwrite);
 		if (path.isEmpty()) { return false; }
-		if (!path.endsWith(QStringLiteral(".vibepackage"), Qt::CaseInsensitive)) { path += QStringLiteral(".vibepackage"); }
+		if (!path.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) { path += QStringLiteral(".sloppackage"); }
 		if (QFileInfo::exists(QDir(path).filePath(QStringLiteral("document.json")))
 			&& QMessageBox::question(this, tr("Replace Package Draft"), tr("Replace the saved draft in %1?").arg(QDir::toNativeSeparators(path)),
 				QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) { return false; }
@@ -329,4 +329,4 @@ void ApplicationShell::showPackageTreeContextMenu(const QPoint& position)
 	else if (chosen == rename || chosen == remove) { stagePackageFolder(chosen == rename, path, revision); }
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

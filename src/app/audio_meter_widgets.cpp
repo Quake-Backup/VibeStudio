@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 QString audioMeterNumeric(const QString &text) { return QChar(0x2066) + text + QChar(0x2069); }
 QString audioMeterDb(double amplitude)
@@ -30,4 +30,4 @@ void AudioMeterDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
 	bar.textVisible = false;
 	option.widget->style()->drawControl(QStyle::CE_ProgressBar, &bar, painter, option.widget);
 }
-} // namespace vibestudio
+} // namespace slopstudio

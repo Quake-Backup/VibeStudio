@@ -16,7 +16,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 CodeLanguagePanel::CodeLanguagePanel(QWidget* parent) : QWidget(parent), m_client(new LanguageServerClient(this))
 {
@@ -179,4 +179,4 @@ void CodeLanguagePanel::refresh()
 	else { m_refreshTimer->stop(); }
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

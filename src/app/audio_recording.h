@@ -5,7 +5,7 @@
 #include <QObject>
 
 class QThread;
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioRecordingRequest {
 	QString directory;
@@ -76,4 +76,4 @@ class AudioRecording final : public QObject {
 	quint64 m_epoch = 0;
 	bool m_available = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -16,7 +16,7 @@
 #include <unistd.h>
 #endif
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -62,7 +62,7 @@ QJsonObject planJson(const AudioRecordingPlan &plan)
 		                        {"replacePlayback", arm.replacePlayback},
 		                        {"monitorGain", arm.monitorGain}});
 	}
-	QJsonObject result{{"format", "VibeStudioRecording"},
+	QJsonObject result{{"format", "SlopStudioRecording"},
 	                   {"version", pass.loopPasses == 1 ? 1 : 2},
 	                   {"name", plan.name},
 	                   {"sourceSessionPath", plan.sourceSessionPath},
@@ -208,7 +208,7 @@ QJsonObject receiptJson(const AudioRecordingReceipt &receipt, const QByteArray &
 		                         {"headerValid", take.headerValid},
 		                         {"complete", take.complete},
 		                         {"prefixSha256", QString::fromLatin1(take.prefixSha256.toHex())}});
-	return {{"format", "VibeStudioRecordingResult"},
+	return {{"format", "SlopStudioRecordingResult"},
 	        {"version", 1},
 	        {"planSha256", QString::fromLatin1(planDigest.toHex())},
 	        {"outcome", int(receipt.outcome)},
@@ -450,4 +450,4 @@ QJsonObject audioRecordingInfoJson(const AudioRecordingInfo &info)
 	        {"result", info.receiptRecord},
 	        {"takes", takes}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

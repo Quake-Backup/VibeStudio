@@ -22,7 +22,7 @@
 
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The key NetRadiant Custom's colour commands write.
 [[nodiscard]] QString levelEntityColourKey();
@@ -129,4 +129,4 @@ bool normaliseLevelMapSelectionEntityColour(LevelMapDocument* document, LevelEnt
 [[nodiscard]] bool levelMapSelectionHasEntityColourTargets(const LevelMapDocument& document);
 [[nodiscard]] bool levelMapSelectionEntityColourNormalisable(const LevelMapDocument& document, const QString& key = levelEntityColourKey());
 
-} // namespace vibestudio
+} // namespace slopstudio

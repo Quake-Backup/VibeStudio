@@ -5,7 +5,7 @@
 
 #include <QHash>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Opaque content identity for a validated editable model. This is an internal
 // revision key, not a file checksum or a substitute for source serialization.
@@ -55,4 +55,4 @@ struct ModelStateBlocks
 // what was reused.
 ModelStateSummary summarizeModelState(const ModelMesh &mesh, QString *error = nullptr, const ModelWorkControl &control = {},
 									  ModelStateBlocks *blocks = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

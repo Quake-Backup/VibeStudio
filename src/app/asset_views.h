@@ -12,7 +12,7 @@
 #include <QVector>
 #include <QWidget>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Zoomable, pannable image preview with checkerboard alpha, nearest-neighbour
 // magnification for indexed art, and an optional pixel readout.
@@ -194,4 +194,4 @@ private:
 	QString m_emptyText;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

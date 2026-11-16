@@ -19,7 +19,7 @@
 #include <future>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 QByteArray read(const QString& path)
@@ -267,7 +267,7 @@ int main(int argc, char** argv)
 	for (auto& future : concurrent) {
 		ok &= expect(future.get(), QStringLiteral("Concurrent independent decoder allocation regions"));
 	}
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-decode-XXXXXX")));
 	if (argc > 2 && temporary.isValid()) {

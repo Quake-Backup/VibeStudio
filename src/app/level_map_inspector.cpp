@@ -19,7 +19,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -541,4 +541,4 @@ void LevelMapModsEditor::updateButtons()
 	m_down->setEnabled(m_applies && row >= 0 && row < m_list->count() - 1);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

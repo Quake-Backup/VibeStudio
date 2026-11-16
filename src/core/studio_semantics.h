@@ -6,7 +6,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Status chip vocabulary
 // ---------------------
@@ -110,4 +110,4 @@ QString statusChipSummaryText();
 QString shortcutRegistrySummaryText();
 QString commandPaletteSummaryText();
 
-} // namespace vibestudio
+} // namespace slopstudio

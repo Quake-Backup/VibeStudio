@@ -11,7 +11,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 
 struct AiGenerationCliResult {
 	int exitCode = 0;
@@ -30,4 +30,4 @@ AiGenerationCliResult runAudioGenerate(const QStringList& arguments);
 AiGenerationCliResult runTextureDerive(const QStringList& arguments);
 AiGenerationCliResult runAiImage(const QStringList& arguments);
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

@@ -4,7 +4,7 @@
 #include <QJsonObject>
 #include <QSize>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 struct ModelSelection;
@@ -50,4 +50,4 @@ QJsonObject modelUvDensityJson(const ModelUvDensityReport &report);
 // an empty selection refuses. Per-island centres, seams and every pose survive.
 bool applyModelUvDensity(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error,
 						 const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

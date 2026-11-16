@@ -12,7 +12,7 @@
 #include <QtEndian>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -51,7 +51,7 @@ QByteArray envelope(const QByteArray &native, const QJsonObject &metadata)
 int main(int argc, char **argv)
 {
 	QCoreApplication application(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root)) {
 		return 1;
 	}

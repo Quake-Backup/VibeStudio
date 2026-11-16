@@ -21,7 +21,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& error = {})
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
 	const auto original = tests::entitySelectionFixture(); const auto path = temp.filePath("connected.map"); QFile file(path);
 	if (!expect(file.open(QIODevice::WriteOnly) && file.write(original) == original.size(),"write map")) { return 1; } file.close();
 	const QVector<LevelMapSelectionRef> seed{{LevelMapSelectionKind::QuakePatch,2}};
-	for (const auto* profile : {"trenchbroom","netradiant-custom","vibestudio-default"}) {
+	for (const auto* profile : {"trenchbroom","netradiant-custom","slopstudio-default"}) {
 		for (int scale : {100,200}) {
 			std::cout << "Connected selection UI " << profile << ' ' << scale << '%' << std::endl;
 			settings.setSelectedEditorProfileId(profile); settings.setTextScalePercent(scale);
@@ -140,7 +140,7 @@ int main(int argc, char** argv)
 				}
 				expect(bytes() == original && levelMapHistoryMatchesSaved(shell.levelDocument(),static_cast<int>(shell.levelDocument().undoStack.size())),"entire selection workflow preserves native content and saved state");
 				if (native && scale == 200) {
-					const auto capture = qEnvironmentVariable("VIBESTUDIO_CONNECTED_SELECTION_CAPTURE");
+					const auto capture = qEnvironmentVariable("SLOPSTUDIO_CONNECTED_SELECTION_CAPTURE");
 					if (!capture.isEmpty()) { QImage image(shell.size(),QImage::Format_ARGB32_Premultiplied); shell.render(&image); expect(image.save(capture),"owned Qt render evidence"); }
 				}
 			}

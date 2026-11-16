@@ -15,7 +15,7 @@ class QPushButton;
 class QSpinBox;
 class QTableView;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class ModelSkinTable;
@@ -65,4 +65,4 @@ class ModelSkinningDialog final : public QDialog
 	void review();
 	void chooseVertices();
 };
-} // namespace vibestudio
+} // namespace slopstudio

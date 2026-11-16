@@ -18,13 +18,13 @@
 #include <QTabWidget>
 #include <QTableWidget>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelControls)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelControls)
 };
 
 const Qt::KeyboardModifiers kModifierChoices[] = {
@@ -539,4 +539,4 @@ void ModelControlsDialog::refreshProblems()
 	m_problems->setText(problems.isEmpty() ? Text::tr("No conflicts.") : problems.join(QLatin1Char('\n')));
 	m_problems->setProperty("state", problems.isEmpty() ? QStringLiteral("ok") : QStringLiteral("warning"));
 }
-} // namespace vibestudio
+} // namespace slopstudio

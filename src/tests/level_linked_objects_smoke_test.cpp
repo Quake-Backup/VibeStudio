@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace
 {
@@ -63,7 +63,7 @@ QString property(const LevelMapDocument& document, int id, const QString& key)
 
 QJsonObject metadata(const QByteArray& bytes)
 {
-	const QByteArray marker("\n// VibeStudioScene: ");
+	const QByteArray marker("\n// SlopStudioScene: ");
 	const auto at = bytes.lastIndexOf(marker);
 	return at < 0 ? QJsonObject() : QJsonDocument::fromJson(QByteArray::fromBase64(bytes.mid(at + marker.size()).trimmed())).object();
 }

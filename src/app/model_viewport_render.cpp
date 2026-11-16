@@ -32,7 +32,7 @@
 #include <cstring>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 using namespace model_viewport_detail;
 
@@ -811,7 +811,7 @@ void ModelViewport::renderGpu(RasterWork& work)
 		return;
 	}
 	const RenderDeviceInfo info = device->info();
-	work.deviceSummary = vibestudio::renderDeviceSummary(info);
+	work.deviceSummary = slopstudio::renderDeviceSummary(info);
 	const int skinLimit = std::max(64, std::min(kMaximumSkinSide, info.maxTextureSize > 0 ? info.maxTextureSize : kMaximumSkinSide));
 	// Orthographic views have no eye position: fog counts from the front of
 	// the geometry's bounds along the view.
@@ -1026,7 +1026,7 @@ void ModelViewport::renderGpu(RasterWork& work)
 	const GpuReadback* color = result.readback(colorResult);
 	const GpuReadback* ids = result.readback(Ids);
 	if (!color || !ids) {
-		work.error = QCoreApplication::translate("VibeStudioRendering", "The graphics device did not return this view's image.");
+		work.error = QCoreApplication::translate("SlopStudioRendering", "The graphics device did not return this view's image.");
 		return;
 	}
 	work.result.image = color->image(QImage::Format_ARGB32_Premultiplied);
@@ -1080,4 +1080,4 @@ QPolygonF ModelViewport::triangleOutline(int triangle) const
 	return outline.size() >= 3 ? outline : QPolygonF();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

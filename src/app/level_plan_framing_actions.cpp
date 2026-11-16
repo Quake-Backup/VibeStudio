@@ -25,7 +25,7 @@
 #include <algorithm>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::registerLevelPlanFramingCommands()
 {
@@ -265,4 +265,4 @@ void ApplicationShell::resetLevelPlanViews()
 	statusBar()->showMessage(tr("The other 2D views take the %1 view's zoom and its position on the axes they share.").arg(name), 4000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

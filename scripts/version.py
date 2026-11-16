@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Show, set and bump VibeStudio's version (the VERSION file).
+"""Show, set and bump SlopStudio's version (the VERSION file).
 
     python scripts/version.py                      # current version and what it implies
     python scripts/version.py json                 # the same, for tools
@@ -80,7 +80,7 @@ def describe(version: Version) -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Show, set and bump VibeStudio's version.")
+    parser = argparse.ArgumentParser(description="Show, set and bump SlopStudio's version.")
     commands = parser.add_subparsers(dest="command")
     commands.add_parser("show", help="Print the current version and its release names (default).")
     commands.add_parser("json", help="Print the current version and release names as JSON.")

@@ -16,7 +16,7 @@ class QSpinBox;
 class QTableWidget;
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 class PackageWadGroupsDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(PackageWadGroupsDialog)
 public:
@@ -51,4 +51,4 @@ private:
 	QPushButton* m_apply = nullptr;
 	QPushButton* m_cancel = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

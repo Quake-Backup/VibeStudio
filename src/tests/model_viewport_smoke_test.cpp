@@ -19,7 +19,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -36,7 +36,7 @@ class ExpandedStatus final : public QTranslator
   public:
 	QString translate(const char *context, const char *source, const char *, int) const override
 	{
-		if (QByteArray(context) == "vibestudio::ModelViewport" && QString::fromUtf8(source) == QStringLiteral("Rendering model…"))
+		if (QByteArray(context) == "slopstudio::ModelViewport" && QString::fromUtf8(source) == QStringLiteral("Rendering model…"))
 		{
 			return QStringLiteral("Rendering the model preview with an expanded translated status message…");
 		}
@@ -495,12 +495,12 @@ int main(int argc, char **argv)
 #endif
 	QApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-viewport-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-viewport-smoke"); skip >= 0) {
 		return skip;
 	}
 	const auto savePreview = [&](ModelViewport &preview, const QString &name)
 	{
-		const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+		const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 		if (evidence.isEmpty())
 		{
 			return true;
@@ -560,7 +560,7 @@ int main(int argc, char **argv)
 		viewport.render(&image);
 		ok &= expect(!red(image, rear), "hidden selected edges do not draw through the front surface");
 		viewport.setHighlightedEdges(-1, {});
-		const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+		const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 		if (!evidence.isEmpty())
 		{
 			QDir().mkpath(evidence);

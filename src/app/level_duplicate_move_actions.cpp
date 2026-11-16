@@ -35,7 +35,7 @@
 #include <QAction>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 bool textMapFormat(const LevelMapDocument& document)
@@ -299,4 +299,4 @@ void ApplicationShell::repeatLevelMapTransformsFromUi()
 		.arg(applied).arg(pivot.x).arg(pivot.y).arg(pivot.z), 7000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -2,13 +2,13 @@
 
 #include "core/model_collision.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // Collision placed in a level keeps a record of where it came from. Each
 // placement is one func_group entity holding the brushes; its keys name the
 // mesh source, a fingerprint of the collision volumes, the frame, the target
 // and material, and the placement transform. func_group is merged into the
-// world by ericw-tools/VibeMap2, Quake II qbsp3 and q3map2/VibeMap3, as
+// world by ericw-tools/SlopMap2, Quake II qbsp3 and q3map2/SlopMap3, as
 // TrenchBroom's groups are, so the record changes nothing in the compiled map.
 inline constexpr auto modelCollisionRecordSource = "_vs_collision_source";
 inline constexpr auto modelCollisionRecordRevision = "_vs_collision_revision";
@@ -82,4 +82,4 @@ bool modelCollisionInstanceFromSelection(const LevelMapDocument &map, ModelColli
 LevelPlacementResult prepareModelCollisionRefresh(const ModelMesh &mesh, const QString &meshSource, const LevelMapDocument &map,
 												  int entityId, int instanceEntityId = -1, bool allowUnrecordedSource = false,
 												  const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

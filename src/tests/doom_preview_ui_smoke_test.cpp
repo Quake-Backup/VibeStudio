@@ -25,8 +25,8 @@
 #include <QTreeWidget>
 #include <iostream>
 
-using namespace vibestudio;
-namespace d = vibestudio::tests::doom;
+using namespace slopstudio;
+namespace d = slopstudio::tests::doom;
 bool expect(bool value, const char* label, const QString& detail = {}) { if (!value) { std::cerr << label << ": " << detail.toStdString() << '\n'; } return value; }
 bool until(const std::function<bool()>& ready)
 {
@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 #endif
 	QApplication app(argc,argv); QTemporaryDir temp; bool ok=temp.isValid(); QString error;
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("doom-preview-ui-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("doom-preview-ui-smoke"); skip >= 0) {
 		return skip;
 	}
 	StudioSettings::setOverrideFilePath(temp.filePath(QStringLiteral("settings.ini")));
@@ -172,7 +172,7 @@ int main(int argc, char** argv)
 		ok &= expect(offsets()==unnudged,"each nudge undoes on its own");
 		ok &= until([&]{return view->isEnabled();}) && tests::settleModelViewport(*view);
 		view->setCameraView({-150,-150,80},45,-15); ok &= tests::settleModelViewport(*view);
-		const auto captures=qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto captures=qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!captures.isEmpty()) {
 			QImage image(shell.size(),QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); shell.render(&image);
 			ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("doom-camera-%1.png").arg(scale))),"save rendered Doom camera");

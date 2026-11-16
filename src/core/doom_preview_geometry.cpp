@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 QString doomPreviewMaterialKey(const QString& name, bool flat)
 {
@@ -209,4 +209,4 @@ DoomPreviewGeometry buildDoomPreviewGeometry(const LevelMapDocument& document, c
 	return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

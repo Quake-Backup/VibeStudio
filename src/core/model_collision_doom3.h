@@ -2,7 +2,7 @@
 
 #include "core/model_collision.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 class PackageArchiveReader;
 struct ModelExportReport;
@@ -91,4 +91,4 @@ ModelDoom3CollisionMaterialCheck checkModelDoom3CollisionMaterial(const PackageA
 																	const ModelWorkControl &control = {});
 // "unchecked", "defined", "undefined" or "no-collision-keyword".
 QString modelDoom3CollisionMaterialStateId(ModelDoom3CollisionMaterialState state);
-} // namespace vibestudio
+} // namespace slopstudio

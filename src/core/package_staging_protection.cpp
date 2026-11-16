@@ -2,11 +2,11 @@
 #include "core/package_plan_p.h"
 #include "core/package_protection_p.h"
 
-namespace vibestudio {
+namespace slopstudio {
 bool PackageStagingModel::visitProtectedInputPaths(const std::function<bool(const QString&)>& visitor,
 	QString* error, const PackageReadControl& control) const
 {
-	PackagePlanWork work(control, error, QCoreApplication::translate("VibeStudioPackageStaging", "Retaining package source protections"));
+	PackagePlanWork work(control, error, QCoreApplication::translate("SlopStudioPackageStaging", "Retaining package source protections"));
 	const auto path = [&](const QString& value) { return work.checkpoint() && (value.isEmpty() || (visitor && visitor(value))); };
 	const auto identity = [&](const PackageFileIdentityPtr& value) {
 		return !value || (path(value->path) && path(value->resolvedPath)
@@ -39,7 +39,7 @@ bool PackageStagingModel::freezeInputProtections(QString* error, const PackageRe
 		m_metadataLimits.maximumMetadataBytes - retained.metadataBytes, error, control, implicitDirectory);
 	const auto& from = source ? *source : *this;
 	if (!from.visitProtectedInputPaths([&](const QString& path) { return inputs.add(path); }, error, control) || !inputs.finish()) {
-		if (error && error->isEmpty()) { *error = QCoreApplication::translate("VibeStudioPackageStaging", "Unable to retain all package source protections."); }
+		if (error && error->isEmpty()) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to retain all package source protections."); }
 		return false;
 	}
 	m_protectedInputPaths = inputs.paths(); invalidatePlan(); return true;
@@ -55,4 +55,4 @@ bool PackageStagingArchive::visitProtectedInputPaths(const std::function<bool(co
 {
 	return m_snapshot.visitProtectedInputPaths(visitor, error, control);
 }
-} // namespace vibestudio
+} // namespace slopstudio

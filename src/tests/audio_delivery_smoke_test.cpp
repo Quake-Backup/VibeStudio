@@ -15,7 +15,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -40,7 +40,7 @@ bool write(const QString& path, const QByteArray& bytes)
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-delivery-XXXXXX")));
 	if (!temporary.isValid()) {
@@ -130,7 +130,7 @@ int main(int argc, char** argv)
 	           "invalid delivery options fail before output");
 	const QString output = QDir(temporary.path()).filePath(QStringLiteral("DSFIXTUR.dmx"));
 	ok &= expect(writeAudioDelivery(doom, output, false, {}, &error, true) && !QFileInfo::exists(output) &&
-	                 !QFileInfo::exists(output + QStringLiteral(".vibestudio-export.lock")),
+	                 !QFileInfo::exists(output + QStringLiteral(".slopstudio-export.lock")),
 	             "delivery dry run creates neither output nor lock");
 	ok &= expect(writeAudioDelivery(doom, output, false, {}, &error) && read(output) == doom.bytes,
 	             "delivery commits exact prepared bytes");
@@ -138,7 +138,7 @@ int main(int argc, char** argv)
 	             "every protected source path is enforced even with overwrite");
 	ok &= expect(!writeAudioDelivery(doom, output + QStringLiteral(".wav"), false, {}, &error),
 	             "DMX cannot masquerade as a WAV file");
-	QLockFile lock(output + QStringLiteral(".vibestudio-export.lock"));
+	QLockFile lock(output + QStringLiteral(".slopstudio-export.lock"));
 	ok &= expect(lock.tryLock(0) && !writeAudioDelivery(tpdf, output, true, {}, &error) && read(output) == doom.bytes,
 	             "competing delivery cannot replace an active writer's file");
 	lock.unlock();

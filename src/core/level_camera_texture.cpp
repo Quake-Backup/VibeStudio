@@ -9,7 +9,7 @@
 
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 constexpr double kDegenerate = 1e-9;
@@ -244,4 +244,4 @@ LevelTextureTurn levelTextureTurnSense(const LevelMapVec3& before, const LevelMa
 	return sine > 0 ? LevelTextureTurn::Counterclockwise : LevelTextureTurn::Clockwise;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -14,7 +14,7 @@
 #include <QByteArray>
 #include <QString>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ModelExportReport;
 struct ModelTargetLimits;
@@ -35,4 +35,4 @@ struct ModelTargetLimits;
 [[nodiscard]] QByteArray exportModelIqm(const ModelMesh& mesh, const ModelTargetLimits& limits, QString* error = nullptr,
 	const ModelWorkControl& control = {}, ModelExportReport* report = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -18,7 +18,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -324,4 +324,4 @@ void ModelRigDialog::refresh()
 						   "external scripts that refer to the old joint name.");
 	m_summary->setText(summary);
 }
-} // namespace vibestudio
+} // namespace slopstudio

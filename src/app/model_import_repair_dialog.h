@@ -3,7 +3,7 @@
 #include <QDialog>
 
 class QLineEdit;
-namespace vibestudio
+namespace slopstudio
 {
 class ModelImportRepairDialog final : public QDialog
 {
@@ -14,4 +14,4 @@ class ModelImportRepairDialog final : public QDialog
   private:
 	QLineEdit *m_output = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -6,7 +6,7 @@
 // exact bytes; locked, hidden and world-only selections are refused or left
 // out; linked copies take the colour in the same step; the open group is
 // respected. K sets the colour in the NetRadiant Custom and NetRadiant
-// profiles only, and Normalise has no key, as upstream. With the vibestudio
+// profiles only, and Normalise has no key, as upstream. With the slopstudio
 // binary as its argument it drives `map entity-colour` too.
 
 #include "core/editor_profiles.h"
@@ -31,7 +31,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -404,10 +404,10 @@ void profileKeys()
 	for (const QString& profile : {QStringLiteral("netradiant-custom"), QStringLiteral("netradiant")}) {
 		expect(keysFor(profile, QStringLiteral("map.setEntityColour")) == QStringList {QStringLiteral("K")}, "K sets the entity colour", profile);
 	}
-	for (const QString& profile : {QStringLiteral("trenchbroom"), QStringLiteral("vibestudio-default")}) {
+	for (const QString& profile : {QStringLiteral("trenchbroom"), QStringLiteral("slopstudio-default")}) {
 		expect(keysFor(profile, QStringLiteral("map.setEntityColour")).isEmpty(), "no Set Entity Colour key outside the NetRadiant family", profile);
 	}
-	for (const QString& profile : {QStringLiteral("netradiant-custom"), QStringLiteral("netradiant"), QStringLiteral("trenchbroom"), QStringLiteral("vibestudio-default")}) {
+	for (const QString& profile : {QStringLiteral("netradiant-custom"), QStringLiteral("netradiant"), QStringLiteral("trenchbroom"), QStringLiteral("slopstudio-default")}) {
 		expect(keysFor(profile, QStringLiteral("map.normaliseEntityColour")).isEmpty(), "Normalise Entity Colour has no key", profile);
 		EditorProfileDescriptor descriptor;
 		QString conflict;

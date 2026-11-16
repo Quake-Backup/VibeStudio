@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -102,8 +102,8 @@ void checkNamesAndSizes()
 	named.name = QStringLiteral("Hull Plate 01!");
 	named.directory = QStringLiteral("e1u1");
 	expect(textureGenerationMapName(named) == QStringLiteral("e1u1/hull_plate_01"), "A Quake II map name is folder/name, cleaned.");
-	expect(textureGenerationMapName(spec(QStringLiteral("quake3"), QStringLiteral("wall"))) == QStringLiteral("vibestudio/rusted_riveted_metal"),
-		"Quake III textures default to the vibestudio folder.");
+	expect(textureGenerationMapName(spec(QStringLiteral("quake3"), QStringLiteral("wall"))) == QStringLiteral("slopstudio/rusted_riveted_metal"),
+		"Quake III textures default to the slopstudio folder.");
 
 	expect(textureGenerationOutputSize(spec(QStringLiteral("quake"), QStringLiteral("wall"))) == QSize(64, 64), "Quake walls default to 64x64.");
 	expect(textureGenerationOutputSize(spec(QStringLiteral("quake"), QStringLiteral("sky"))) == QSize(256, 128), "Quake skies are 256x128.");
@@ -215,7 +215,7 @@ void checkProcessing()
 	GeneratedTexture lava = processGeneratedTexture(picture, spec(QStringLiteral("quake2"), QStringLiteral("liquid"), QStringLiteral("bubbling lava")),
 		generatedPalette(QStringLiteral("quake2")));
 	expect(lava.ok && lava.exportOptions.format == TextureExportFormat::Quake2Wal && lava.exportOptions.contentFlags == 8u && lava.exportOptions.surfaceFlags == 8u
-			&& lava.exportOptions.name == QStringLiteral("vibestudio/bubbling_lava"),
+			&& lava.exportOptions.name == QStringLiteral("slopstudio/bubbling_lava"),
 		"A Quake II lava texture is a warping WAL with lava contents and its folder in its name.");
 
 	TextureGenerationSpec quake3Spec = spec(QStringLiteral("quake3"), QStringLiteral("wall"));
@@ -278,14 +278,14 @@ void checkWriting()
 	TextureGenerationOutput dry = output;
 	dry.dryRun = true;
 	const TextureGenerationWriteReport dryRun = writeGeneratedTexture(quake, quakeSpec, dry);
-	const QString wad = folder.filePath(QStringLiteral("wads/vibestudio_generated.wad"));
+	const QString wad = folder.filePath(QStringLiteral("wads/slopstudio_generated.wad"));
 	expect(dryRun.ok && dryRun.writtenPaths.contains(wad) && !QFileInfo::exists(wad), "A dry run lists the outputs and writes nothing.");
 	TextureGenerationWriteReport report = writeGeneratedTexture(quake, quakeSpec, output);
 	expect(report.ok && QFileInfo::exists(wad) && archiveHas(wad, QStringLiteral("rusted_riveted"), QStringLiteral("wad-texture")) && report.mapTextureName == QStringLiteral("rusted_riveted"),
 		"A Quake texture is added to a new WAD2 under wads/.");
 	expect(QFileInfo::exists(folder.filePath(QStringLiteral("textures/rusted_riveted_norm.tga"))) && QFileInfo::exists(folder.filePath(QStringLiteral("textures/rusted_riveted_gloss.tga"))),
 		"Companions go to textures/ where DarkPlaces-style ports read them.");
-	const QString record = folder.filePath(QStringLiteral(".vibestudio/generated/textures/rusted_riveted.json"));
+	const QString record = folder.filePath(QStringLiteral(".slopstudio/generated/textures/rusted_riveted.json"));
 	QFile recordFile(record);
 	const bool recordOpened = recordFile.open(QIODevice::ReadOnly);
 	const QJsonObject provenance = QJsonDocument::fromJson(recordFile.readAll()).object();
@@ -312,10 +312,10 @@ void checkWriting()
 	// Quake II: a WAL under textures/<folder>.
 	const TextureGenerationSpec quake2Spec = spec(QStringLiteral("quake2"), QStringLiteral("wall"));
 	report = writeGeneratedTexture(processGeneratedTexture(picture, quake2Spec, generatedPalette(QStringLiteral("quake2"))), quake2Spec, output);
-	const QString wal = folder.filePath(QStringLiteral("textures/vibestudio/rusted_riveted_metal.wal"));
+	const QString wal = folder.filePath(QStringLiteral("textures/slopstudio/rusted_riveted_metal.wal"));
 	QFile walFile(wal);
 	const bool walOpened = walFile.open(QIODevice::ReadOnly);
-	expect(report.ok && walOpened && walFile.read(32).startsWith("vibestudio/rusted_riveted_metal") && report.mapTextureName == QStringLiteral("vibestudio/rusted_riveted_metal"),
+	expect(report.ok && walOpened && walFile.read(32).startsWith("slopstudio/rusted_riveted_metal") && report.mapTextureName == QStringLiteral("slopstudio/rusted_riveted_metal"),
 		"A Quake II texture is a WAL whose header names its path.");
 
 	// Quake III: a TGA, and a shader for a glowing texture, written once.
@@ -329,18 +329,18 @@ void checkWriting()
 	quake3Spec.companions = true;
 	const GeneratedTexture panel = processGeneratedTexture(lights, quake3Spec, {});
 	report = writeGeneratedTexture(panel, quake3Spec, output);
-	const QString shaderPath = folder.filePath(QStringLiteral("scripts/vibestudio_generated.shader"));
+	const QString shaderPath = folder.filePath(QStringLiteral("scripts/slopstudio_generated.shader"));
 	QFile shaderFile(shaderPath);
 	const bool shaderOpened = shaderFile.open(QIODevice::ReadOnly);
 	const QString shader = QString::fromUtf8(shaderFile.readAll());
 	shaderFile.close();
-	expect(report.ok && shaderOpened && QFileInfo::exists(folder.filePath(QStringLiteral("textures/vibestudio/tech_panel_yellow.tga")))
-			&& QFileInfo::exists(folder.filePath(QStringLiteral("textures/vibestudio/tech_panel_yellow_glow.tga")))
-			&& shader.contains(QStringLiteral("textures/vibestudio/tech_panel_yellow\n{")) && shader.contains(QStringLiteral("blendFunc GL_ONE GL_ONE")),
+	expect(report.ok && shaderOpened && QFileInfo::exists(folder.filePath(QStringLiteral("textures/slopstudio/tech_panel_yellow.tga")))
+			&& QFileInfo::exists(folder.filePath(QStringLiteral("textures/slopstudio/tech_panel_yellow_glow.tga")))
+			&& shader.contains(QStringLiteral("textures/slopstudio/tech_panel_yellow\n{")) && shader.contains(QStringLiteral("blendFunc GL_ONE GL_ONE")),
 		"A glowing Quake III texture gets a TGA, a _glow map, and a shader with an additive stage.");
 	report = writeGeneratedTexture(panel, quake3Spec, output);
 	const bool shaderReopened = shaderFile.open(QIODevice::ReadOnly);
-	expect(report.ok && shaderReopened && QString::fromUtf8(shaderFile.readAll()).count(QStringLiteral("textures/vibestudio/tech_panel_yellow\n{")) == 1,
+	expect(report.ok && shaderReopened && QString::fromUtf8(shaderFile.readAll()).count(QStringLiteral("textures/slopstudio/tech_panel_yellow\n{")) == 1,
 		"The shader is not written twice.");
 	shaderFile.close();
 

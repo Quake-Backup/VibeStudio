@@ -80,7 +80,7 @@
 #include <iostream>
 #include <memory>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int failures = 0;
@@ -104,7 +104,7 @@ class Expansion final : public QTranslator
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
 		const QByteArray name(context);
-		if (name != "VibeStudioModelTools" && name != "VibeStudioModelEditor")
+		if (name != "SlopStudioModelTools" && name != "SlopStudioModelEditor")
 			return {};
 		const auto s = QString::fromUtf8(text);
 		return QStringLiteral("[%1 %2]").arg(s, QStringLiteral("~~ ").repeated(s.size() / 6));
@@ -155,7 +155,7 @@ void checkEditorAnnouncements(const std::string &variant, const QDir &directory)
 {
 	const auto file = [&](const char *name) { return directory.filePath(QString::fromUtf8(variant.c_str()) + QLatin1Char('-') + QString::fromLatin1(name)); };
 	// As the installed translator gives it.
-	const QString ripRefused = QCoreApplication::translate("VibeStudioModelTools", "Rip refused");
+	const QString ripRefused = QCoreApplication::translate("SlopStudioModelTools", "Rip refused");
 	QString error;
 	ModelEditorDialog editor;
 	editor.setAttribute(Qt::WA_DeleteOnClose, false);
@@ -346,7 +346,7 @@ void checkEditorAnnouncements(const std::string &variant, const QDir &directory)
 		}
 		expect(!tool->modalPreviewValid() && heard.size() == started, variant + ": a refused spin preview is not announced while typing",
 			   heardText());
-		const QString spinRefused = QCoreApplication::translate("VibeStudioModelTools", "Spin refused");
+		const QString spinRefused = QCoreApplication::translate("SlopStudioModelTools", "Spin refused");
 		expect(!tool->finishModal(true, &error) && !error.isEmpty(), variant + ": the refused spin does not apply");
 		settle();
 		expect(heard.size() == started + 1 && heard.last().kind == LiveStatus::Problem && heard.last().message.contains(spinRefused),
@@ -372,7 +372,7 @@ void checkRecoveryFailure(const QDir &directory)
 		ModelEditorDialog editor;
 		editor.setAttribute(Qt::WA_DeleteOnClose, false);
 		auto *line = dynamic_cast<LiveStatusLabel *>(editor.findChild<QLabel *>(QStringLiteral("meshRecoveryStatus")));
-		const QString failed = QCoreApplication::translate("VibeStudioModelEditor", "Recovery failed: %1").arg(QString());
+		const QString failed = QCoreApplication::translate("SlopStudioModelEditor", "Recovery failed: %1").arg(QString());
 		if (!expect(line && editor.setMesh(tests::ripGrid(), &error), "recovery: the editor opens the grid", error))
 			return;
 		settle();
@@ -672,7 +672,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("mesh-accessibility-ui-XXXXXX")));

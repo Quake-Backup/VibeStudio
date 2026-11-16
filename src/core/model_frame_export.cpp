@@ -7,7 +7,7 @@
 
 #include <QCoreApplication>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -26,7 +26,7 @@ bool protect(const ModelWriteTarget &target, const ModelFrameExportRequest &requ
 		if (modelPathsReferToSameFile(target.path, source) || modelPathsReferToSameFile(target.resolvedPath, source))
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelExport",
+						QCoreApplication::translate("SlopStudioModelExport",
 													"An exported model cannot replace its source or package. Choose another output path."));
 		}
 	}
@@ -44,7 +44,7 @@ static ModelFrameExportResult prepareAndWriteFrame(const ModelMesh &mesh, const 
 	}
 	if (!mesh.isValid() || !mesh.geometryAvailable || request.frame < 0 || request.frame >= mesh.frames.size())
 	{
-		result.error = mesh.error.isEmpty() ? QCoreApplication::translate("VibeStudioModelExport",
+		result.error = mesh.error.isEmpty() ? QCoreApplication::translate("SlopStudioModelExport",
 																		  "Select a decoded model and an existing frame before exporting.")
 											: mesh.error;
 		return result;
@@ -64,7 +64,7 @@ static ModelFrameExportResult prepareAndWriteFrame(const ModelMesh &mesh, const 
 		}
 		if (target.existed && !request.overwrite)
 		{
-			result.error = QCoreApplication::translate("VibeStudioModelExport",
+			result.error = QCoreApplication::translate("SlopStudioModelExport",
 													   "The model output exists. Choose a new path or explicitly enable overwrite.");
 			return result;
 		}
@@ -74,14 +74,14 @@ static ModelFrameExportResult prepareAndWriteFrame(const ModelMesh &mesh, const 
 	{
 		if (result.error.isEmpty())
 		{
-			result.error = QCoreApplication::translate("VibeStudioModelExport", "The selected frame produced no exportable geometry.");
+			result.error = QCoreApplication::translate("SlopStudioModelExport", "The selected frame produced no exportable geometry.");
 		}
 		return result;
 	}
 	if (obj.size() > modelFileByteLimit || (result.bytes = obj.toUtf8()).size() > modelFileByteLimit)
 	{
 		result.bytes.clear();
-		result.error = QCoreApplication::translate("VibeStudioModelExport", "The model output exceeds the 64 MiB export limit.");
+		result.error = QCoreApplication::translate("SlopStudioModelExport", "The model output exceeds the 64 MiB export limit.");
 		return result;
 	}
 	result.notes = mesh.warnings;
@@ -93,16 +93,16 @@ static ModelFrameExportResult prepareAndWriteFrame(const ModelMesh &mesh, const 
 	if (mesh.frames.size() > 1 || !mesh.animations.isEmpty())
 	{
 		result.notes << QCoreApplication::translate(
-			"VibeStudioModelExport", "OBJ contains only the selected pose; other frames and animation clips remain in the source.");
+			"SlopStudioModelExport", "OBJ contains only the selected pose; other frames and animation clips remain in the source.");
 	}
 	if (!mesh.tags.isEmpty())
 	{
 		result.notes << QCoreApplication::translate(
-			"VibeStudioModelExport", "OBJ does not store attachment tags. Retain the source or export MD3 from the mesh editor.");
+			"SlopStudioModelExport", "OBJ does not store attachment tags. Retain the source or export MD3 from the mesh editor.");
 	}
 	if (!mesh.skinPaths.isEmpty() || !mesh.embeddedSkins.isEmpty())
 	{
-		result.notes << QCoreApplication::translate("VibeStudioModelExport",
+		result.notes << QCoreApplication::translate("SlopStudioModelExport",
 													"This geometry export does not copy textures or native skin metadata. The mesh "
 													"editor's OBJ export retains per-surface material assignments.");
 	}
@@ -137,4 +137,4 @@ ModelFrameExportResult exportModelFrame(const ModelMesh &mesh, const ModelFrameE
 	}
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

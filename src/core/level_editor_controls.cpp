@@ -13,7 +13,7 @@
 #include <cmath>
 #include <tuple>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -44,31 +44,31 @@ QString buttonName(Qt::MouseButton button)
 {
 	switch (button) {
 	case Qt::LeftButton:
-		return QCoreApplication::translate("VibeStudioLevelControls", "Left");
+		return QCoreApplication::translate("SlopStudioLevelControls", "Left");
 	case Qt::RightButton:
-		return QCoreApplication::translate("VibeStudioLevelControls", "Right");
+		return QCoreApplication::translate("SlopStudioLevelControls", "Right");
 	case Qt::MiddleButton:
-		return QCoreApplication::translate("VibeStudioLevelControls", "Middle");
+		return QCoreApplication::translate("SlopStudioLevelControls", "Middle");
 	default:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioLevelControls", "Button");
+	return QCoreApplication::translate("SlopStudioLevelControls", "Button");
 }
 
 QString modifierPrefix(Qt::KeyboardModifiers modifiers)
 {
 	QStringList parts;
 	if (modifiers.testFlag(Qt::ControlModifier)) {
-		parts << QCoreApplication::translate("VibeStudioLevelControls", "Ctrl");
+		parts << QCoreApplication::translate("SlopStudioLevelControls", "Ctrl");
 	}
 	if (modifiers.testFlag(Qt::ShiftModifier)) {
-		parts << QCoreApplication::translate("VibeStudioLevelControls", "Shift");
+		parts << QCoreApplication::translate("SlopStudioLevelControls", "Shift");
 	}
 	if (modifiers.testFlag(Qt::AltModifier)) {
-		parts << QCoreApplication::translate("VibeStudioLevelControls", "Alt");
+		parts << QCoreApplication::translate("SlopStudioLevelControls", "Alt");
 	}
 	if (modifiers.testFlag(Qt::MetaModifier)) {
-		parts << QCoreApplication::translate("VibeStudioLevelControls", "Meta");
+		parts << QCoreApplication::translate("SlopStudioLevelControls", "Meta");
 	}
 	return parts.isEmpty() ? QString() : parts.join(QLatin1Char('+')) + QLatin1Char('+');
 }
@@ -87,19 +87,19 @@ QString keysText(const CameraFlyKeys& keys)
 	QStringList parts;
 	const auto add = [&parts](const QString& key, const QString& what) {
 		if (!key.isEmpty()) {
-			parts << QCoreApplication::translate("VibeStudioLevelControls", "%1 %2").arg(key, what);
+			parts << QCoreApplication::translate("SlopStudioLevelControls", "%1 %2").arg(key, what);
 		}
 	};
-	add(keys.forward, QCoreApplication::translate("VibeStudioLevelControls", "forward"));
-	add(keys.back, QCoreApplication::translate("VibeStudioLevelControls", "back"));
-	add(keys.left, QCoreApplication::translate("VibeStudioLevelControls", "left"));
-	add(keys.right, QCoreApplication::translate("VibeStudioLevelControls", "right"));
-	add(keys.up, QCoreApplication::translate("VibeStudioLevelControls", "up"));
-	add(keys.down, QCoreApplication::translate("VibeStudioLevelControls", "down"));
-	add(keys.turnLeft, QCoreApplication::translate("VibeStudioLevelControls", "turn left"));
-	add(keys.turnRight, QCoreApplication::translate("VibeStudioLevelControls", "turn right"));
-	add(keys.pitchUp, QCoreApplication::translate("VibeStudioLevelControls", "look up"));
-	add(keys.pitchDown, QCoreApplication::translate("VibeStudioLevelControls", "look down"));
+	add(keys.forward, QCoreApplication::translate("SlopStudioLevelControls", "forward"));
+	add(keys.back, QCoreApplication::translate("SlopStudioLevelControls", "back"));
+	add(keys.left, QCoreApplication::translate("SlopStudioLevelControls", "left"));
+	add(keys.right, QCoreApplication::translate("SlopStudioLevelControls", "right"));
+	add(keys.up, QCoreApplication::translate("SlopStudioLevelControls", "up"));
+	add(keys.down, QCoreApplication::translate("SlopStudioLevelControls", "down"));
+	add(keys.turnLeft, QCoreApplication::translate("SlopStudioLevelControls", "turn left"));
+	add(keys.turnRight, QCoreApplication::translate("SlopStudioLevelControls", "turn right"));
+	add(keys.pitchUp, QCoreApplication::translate("SlopStudioLevelControls", "look up"));
+	add(keys.pitchDown, QCoreApplication::translate("SlopStudioLevelControls", "look down"));
 	return parts.join(QStringLiteral(", "));
 }
 
@@ -173,7 +173,7 @@ QString levelEditorGridCommandId(double units)
 	return QStringLiteral("map.grid%1").arg(levelEditorGridSizeText(units));
 }
 
-LevelEditorControls vibeStudioLevelControls()
+LevelEditorControls slopStudioLevelControls()
 {
 	// The Levels page as it has always behaved: a 2D plan first, a rubber
 	// band over empty space, the middle button to pan, and an orthographic
@@ -749,7 +749,7 @@ LevelEditorControls netRadiantCustomLevelControls()
 		bind("map.make8SidedPrism", {QStringLiteral("Ctrl+8")}),
 		bind("map.make9SidedPrism", {QStringLiteral("Ctrl+9")}),
 		// NRC radiant/filters.cpp ConstructFilters at 449778b3
-		// (GPL-2.0-or-later): the Filter menu's keys, for the kinds VibeStudio
+		// (GPL-2.0-or-later): the Filter menu's keys, for the kinds SlopStudio
 		// filters. Key facts only; see docs/CREDITS.md. Ctrl+P (Patches) stays
 		// unbound: the studio keeps it for Go to File, a window-wide key, and
 		// Lightgrid has no key upstream either.
@@ -935,19 +935,19 @@ QString levelViewLayoutDisplayName(LevelViewLayout layout)
 {
 	switch (layout) {
 	case LevelViewLayout::CameraBesidePlans:
-		return QCoreApplication::translate("VibeStudioLevelControls", "Camera Beside Plans");
+		return QCoreApplication::translate("SlopStudioLevelControls", "Camera Beside Plans");
 	case LevelViewLayout::CameraAbovePlans:
-		return QCoreApplication::translate("VibeStudioLevelControls", "Camera Above Plans");
+		return QCoreApplication::translate("SlopStudioLevelControls", "Camera Above Plans");
 	case LevelViewLayout::FourViews:
-		return QCoreApplication::translate("VibeStudioLevelControls", "Four views: camera, top, front and side");
+		return QCoreApplication::translate("SlopStudioLevelControls", "Four views: camera, top, front and side");
 	case LevelViewLayout::Single3D:
-		return QCoreApplication::translate("VibeStudioLevelControls", "One view, 3D first");
+		return QCoreApplication::translate("SlopStudioLevelControls", "One view, 3D first");
 	case LevelViewLayout::CameraAndPlan:
-		return QCoreApplication::translate("VibeStudioLevelControls", "3D camera beside a 2D view");
+		return QCoreApplication::translate("SlopStudioLevelControls", "3D camera beside a 2D view");
 	case LevelViewLayout::Single2D:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioLevelControls", "One view, 2D first");
+	return QCoreApplication::translate("SlopStudioLevelControls", "One view, 2D first");
 }
 
 int levelPlanPanesShownCount(const LevelPlanPanes& panes)
@@ -1079,18 +1079,18 @@ QString cameraWheelId(CameraWheel wheel)
 
 QString mouseGestureText(Qt::MouseButton button, Qt::KeyboardModifiers modifiers, const QString& what)
 {
-	return QCoreApplication::translate("VibeStudioLevelControls", "%1%2 %3").arg(modifierPrefix(modifiers), buttonName(button), what);
+	return QCoreApplication::translate("SlopStudioLevelControls", "%1%2 %3").arg(modifierPrefix(modifiers), buttonName(button), what);
 }
 
 QVector<LevelEditorControlRow> levelEditorControlRows(const LevelEditorControls& controls)
 {
 	QVector<LevelEditorControlRow> rows;
-	const QString layout = QCoreApplication::translate("VibeStudioLevelControls", "Layout");
-	const QString plan = QCoreApplication::translate("VibeStudioLevelControls", "2D view");
-	const QString camera = QCoreApplication::translate("VibeStudioLevelControls", "3D view");
-	const QString keyboard = QCoreApplication::translate("VibeStudioLevelControls", "Keys");
-	const QString drag = QCoreApplication::translate("VibeStudioLevelControls", "drag");
-	const QString click = QCoreApplication::translate("VibeStudioLevelControls", "click");
+	const QString layout = QCoreApplication::translate("SlopStudioLevelControls", "Layout");
+	const QString plan = QCoreApplication::translate("SlopStudioLevelControls", "2D view");
+	const QString camera = QCoreApplication::translate("SlopStudioLevelControls", "3D view");
+	const QString keyboard = QCoreApplication::translate("SlopStudioLevelControls", "Keys");
+	const QString drag = QCoreApplication::translate("SlopStudioLevelControls", "drag");
+	const QString click = QCoreApplication::translate("SlopStudioLevelControls", "click");
 	const QHash<QString, QString> sections {
 		{layout, QStringLiteral("layout")},
 		{plan, QStringLiteral("plan")},
@@ -1103,209 +1103,209 @@ QVector<LevelEditorControlRow> levelEditorControlRows(const LevelEditorControls&
 		}
 	};
 
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Views"), levelViewLayoutDisplayName(controls.layout));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Grid"), QCoreApplication::translate("VibeStudioLevelControls", "%1 units").arg(controls.defaultGridUnits));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Changing the grid"),
-		controls.gridChangeEnablesSnap ? QCoreApplication::translate("VibeStudioLevelControls", "Turns Snap on")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Leaves Snap as it was"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Quick-turn pivot"),
-		controls.quickTurnSnapsPivot ? QCoreApplication::translate("VibeStudioLevelControls", "Selection centre rounded to the grid while Snap is on")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Exact selection centre"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Flip pivot"),
-		controls.flipSnapsPivot ? QCoreApplication::translate("VibeStudioLevelControls", "Selection centre rounded to half the grid while Snap is on")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Exact selection centre"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Inside the Rotate tool's rings"),
-		controls.objectRotateFreeTurn ? QCoreApplication::translate("VibeStudioLevelControls", "A drag turns the selection freely")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Clicks and drags select and move as usual"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Texture rotation step"),
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Views"), levelViewLayoutDisplayName(controls.layout));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Grid"), QCoreApplication::translate("SlopStudioLevelControls", "%1 units").arg(controls.defaultGridUnits));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Changing the grid"),
+		controls.gridChangeEnablesSnap ? QCoreApplication::translate("SlopStudioLevelControls", "Turns Snap on")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Leaves Snap as it was"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Quick-turn pivot"),
+		controls.quickTurnSnapsPivot ? QCoreApplication::translate("SlopStudioLevelControls", "Selection centre rounded to the grid while Snap is on")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Exact selection centre"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Flip pivot"),
+		controls.flipSnapsPivot ? QCoreApplication::translate("SlopStudioLevelControls", "Selection centre rounded to half the grid while Snap is on")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Exact selection centre"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Inside the Rotate tool's rings"),
+		controls.objectRotateFreeTurn ? QCoreApplication::translate("SlopStudioLevelControls", "A drag turns the selection freely")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Clicks and drags select and move as usual"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Texture rotation step"),
 		controls.surfaceRotateAboutOrigin
-			? QCoreApplication::translate("VibeStudioLevelControls", "%1° about the texture origin").arg(controls.surfaceRotationStep)
-			: QCoreApplication::translate("VibeStudioLevelControls", "%1° about each face centre").arg(controls.surfaceRotationStep));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Paste placement"),
-		controls.pasteAtCursor ? QCoreApplication::translate("VibeStudioLevelControls", "Cursor") :
-			QCoreApplication::translate("VibeStudioLevelControls", "Original position"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Duplicate placement"),
-		controls.nudgeAfterDuplicate ? QCoreApplication::translate("VibeStudioLevelControls", "One grid step right and down in the active plan")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Original position"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Duplicate selection mode"),
-		controls.duplicateRequiresObjectMode ? QCoreApplication::translate("VibeStudioLevelControls", "Object mode only")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Selected objects, including while editing their components"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Entity connections"),
+			? QCoreApplication::translate("SlopStudioLevelControls", "%1° about the texture origin").arg(controls.surfaceRotationStep)
+			: QCoreApplication::translate("SlopStudioLevelControls", "%1° about each face centre").arg(controls.surfaceRotationStep));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Paste placement"),
+		controls.pasteAtCursor ? QCoreApplication::translate("SlopStudioLevelControls", "Cursor") :
+			QCoreApplication::translate("SlopStudioLevelControls", "Original position"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Duplicate placement"),
+		controls.nudgeAfterDuplicate ? QCoreApplication::translate("SlopStudioLevelControls", "One grid step right and down in the active plan")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Original position"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Duplicate selection mode"),
+		controls.duplicateRequiresObjectMode ? QCoreApplication::translate("SlopStudioLevelControls", "Object mode only")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Selected objects, including while editing their components"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Entity connections"),
 		controls.entityConnectionMode == LevelEntityConnectionMode::RadiantTarget
-			? QCoreApplication::translate("VibeStudioLevelControls", "Two objects, source name first; KillConnect uses the active game")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Multiple sources, destination name first"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Copy selection"),
-		controls.copyFaceAttributes ? QCoreApplication::translate("VibeStudioLevelControls", "Picked face attributes, otherwise objects") :
-			QCoreApplication::translate("VibeStudioLevelControls", "Objects; use Copy Surface for face attributes"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Delete in component mode"),
-		controls.deleteObjectsWithoutComponents ? QCoreApplication::translate("VibeStudioLevelControls", "Picked brush components; objects when no components are picked")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Picked brush components; no object fallback"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Patch points during deletion"),
-		controls.deleteIgnoresPatchPoints ? QCoreApplication::translate("VibeStudioLevelControls", "Keep patch points and remove picked brush components")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Deselect patch points before removing brush components"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Delete command in clip mode"),
-		controls.deleteRemovesClipPoint ? QCoreApplication::translate("VibeStudioLevelControls", "Remove the last clip point")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Finish clipping before deleting map objects"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Object selection history"),
-		controls.undoObjectSelection ? QCoreApplication::translate("VibeStudioLevelControls", "Undo and redo object picks and group navigation without changing map contents")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Selection and group navigation stay outside undo history"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Temporary visibility"),
-		controls.undoObjectSelection ? QCoreApplication::translate("VibeStudioLevelControls", "Hide, Show All, Isolate and object-list reveal are non-content undo steps")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Hide, Show All and Isolate stay outside undo history"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "New and duplicated objects"),
+			? QCoreApplication::translate("SlopStudioLevelControls", "Two objects, source name first; KillConnect uses the active game")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Multiple sources, destination name first"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Copy selection"),
+		controls.copyFaceAttributes ? QCoreApplication::translate("SlopStudioLevelControls", "Picked face attributes, otherwise objects") :
+			QCoreApplication::translate("SlopStudioLevelControls", "Objects; use Copy Surface for face attributes"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Delete in component mode"),
+		controls.deleteObjectsWithoutComponents ? QCoreApplication::translate("SlopStudioLevelControls", "Picked brush components; objects when no components are picked")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Picked brush components; no object fallback"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Patch points during deletion"),
+		controls.deleteIgnoresPatchPoints ? QCoreApplication::translate("SlopStudioLevelControls", "Keep patch points and remove picked brush components")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Deselect patch points before removing brush components"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Delete command in clip mode"),
+		controls.deleteRemovesClipPoint ? QCoreApplication::translate("SlopStudioLevelControls", "Remove the last clip point")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Finish clipping before deleting map objects"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Object selection history"),
+		controls.undoObjectSelection ? QCoreApplication::translate("SlopStudioLevelControls", "Undo and redo object picks and group navigation without changing map contents")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Selection and group navigation stay outside undo history"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Temporary visibility"),
+		controls.undoObjectSelection ? QCoreApplication::translate("SlopStudioLevelControls", "Hide, Show All, Isolate and object-list reveal are non-content undo steps")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Hide, Show All and Isolate stay outside undo history"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "New and duplicated objects"),
 		controls.insertionVisibility == LevelInsertionVisibility::FreshInherited
-			? QCoreApplication::translate("VibeStudioLevelControls", "Fresh temporary visibility; hidden parents still hide new objects")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Reveal inserted roots; copies retain independently hidden descendants"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Select by region"),
+			? QCoreApplication::translate("SlopStudioLevelControls", "Fresh temporary visibility; hidden parents still hide new objects")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Reveal inserted roots; copies retain independently hidden descendants"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Select by region"),
 		controls.regionSelection == LevelRegionSelectionPolicy::TrenchBroom
-			? QCoreApplication::translate("VibeStudioLevelControls", "Each brush's volume; removes selection brushes in one undo step")
+			? QCoreApplication::translate("SlopStudioLevelControls", "Each brush's volume; removes selection brushes in one undo step")
 			: controls.regionSelection == LevelRegionSelectionPolicy::Radiant
-				? QCoreApplication::translate("VibeStudioLevelControls", "Each brush's bounds; Inside removes selected objects, Touching adds matches")
-				: QCoreApplication::translate("VibeStudioLevelControls", "Combined selection bounds; keeps geometry"));
-	row(layout, QCoreApplication::translate("VibeStudioLevelControls", "Make Structural"),
+				? QCoreApplication::translate("SlopStudioLevelControls", "Each brush's bounds; Inside removes selected objects, Touching adds matches")
+				: QCoreApplication::translate("SlopStudioLevelControls", "Combined selection bounds; keeps geometry"));
+	row(layout, QCoreApplication::translate("SlopStudioLevelControls", "Make Structural"),
 		controls.makeStructuralLeavesEntities
-			? QCoreApplication::translate("VibeStudioLevelControls", "Clear detail and move the brushes out of brush entities to the world or current group")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Clear detail; brushes of other brush entities stay in them"));
+			? QCoreApplication::translate("SlopStudioLevelControls", "Clear detail and move the brushes out of brush entities to the world or current group")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Clear detail; brushes of other brush entities stay in them"));
 
 	const PlanViewControls& p = controls.plan;
-	row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Pan"), buttonsText(p.panButtons, Qt::NoModifier, drag));
-	QString zoom = QCoreApplication::translate("VibeStudioLevelControls", "Wheel");
+	row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Pan"), buttonsText(p.panButtons, Qt::NoModifier, drag));
+	QString zoom = QCoreApplication::translate("SlopStudioLevelControls", "Wheel");
 	if (p.zoomDragButton != Qt::NoButton) {
 		zoom += QStringLiteral(", ") + mouseGestureText(p.zoomDragButton, p.zoomDragModifiers, drag);
 	}
-	row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Zoom"), zoom);
+	row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Zoom"), zoom);
 	if (p.plainClickSelects) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Select"), p.clickCyclesStack
-				? QCoreApplication::translate("VibeStudioLevelControls", "Left click; again to pick the next object under the pointer")
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Select"), p.clickCyclesStack
+				? QCoreApplication::translate("SlopStudioLevelControls", "Left click; again to pick the next object under the pointer")
 				: mouseGestureText(Qt::LeftButton, Qt::NoModifier, click));
 		if (p.toggleModifiers != Qt::NoModifier) {
-			row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Add or remove one"), mouseGestureText(Qt::LeftButton, p.toggleModifiers, click));
+			row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Add or remove one"), mouseGestureText(Qt::LeftButton, p.toggleModifiers, click));
 		}
 	} else {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Select or deselect one"),
-			QCoreApplication::translate("VibeStudioLevelControls", "%1 (a plain click selects nothing)").arg(mouseGestureText(Qt::LeftButton, p.toggleModifiers, click)));
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Select or deselect one"),
+			QCoreApplication::translate("SlopStudioLevelControls", "%1 (a plain click selects nothing)").arg(mouseGestureText(Qt::LeftButton, p.toggleModifiers, click)));
 	}
 	if (p.cycleModifiers != Qt::NoModifier) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Pick the next object under the pointer"), mouseGestureText(Qt::LeftButton, p.cycleModifiers, click));
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Pick the next object under the pointer"), mouseGestureText(Qt::LeftButton, p.cycleModifiers, click));
 	}
 	if (p.addModifiers != Qt::NoModifier) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Add one"), mouseGestureText(Qt::LeftButton, p.addModifiers, click));
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Add one"), mouseGestureText(Qt::LeftButton, p.addModifiers, click));
 	}
-	const QString emptyDrag = QCoreApplication::translate("VibeStudioLevelControls", "Left drag over empty space");
+	const QString emptyDrag = QCoreApplication::translate("SlopStudioLevelControls", "Left drag over empty space");
 	if (p.bandModifiers != Qt::NoModifier) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Select by area"), mouseGestureText(Qt::LeftButton, p.bandModifiers, drag));
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Select by area"), mouseGestureText(Qt::LeftButton, p.bandModifiers, drag));
 	} else if (p.emptyDrag == PlanEmptyDrag::BoxSelect) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Select by area"), emptyDrag);
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Select by area"), emptyDrag);
 	}
 	if (p.emptyDrag == PlanEmptyDrag::DrawBrush) {
-		const QString when = p.emptyDragWithSelection == PlanEmptyDrag::DrawBrush ? emptyDrag : QCoreApplication::translate("VibeStudioLevelControls", "Left drag over empty space, nothing selected");
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Draw a brush"), p.squareModifiers == Qt::NoModifier || p.cubeModifiers == Qt::NoModifier ? when
-			: QCoreApplication::translate("VibeStudioLevelControls", "%1 (%2 square, %3 cube)").arg(when, modifierPrefix(p.squareModifiers).chopped(1), modifierPrefix(p.cubeModifiers).chopped(1)));
+		const QString when = p.emptyDragWithSelection == PlanEmptyDrag::DrawBrush ? emptyDrag : QCoreApplication::translate("SlopStudioLevelControls", "Left drag over empty space, nothing selected");
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Draw a brush"), p.squareModifiers == Qt::NoModifier || p.cubeModifiers == Qt::NoModifier ? when
+			: QCoreApplication::translate("SlopStudioLevelControls", "%1 (%2 square, %3 cube)").arg(when, modifierPrefix(p.squareModifiers).chopped(1), modifierPrefix(p.cubeModifiers).chopped(1)));
 	}
-	row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Move the selection"), QCoreApplication::translate("VibeStudioLevelControls", "Left drag the selection"));
-	row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Resize the selection"), p.emptyDragWithSelection == PlanEmptyDrag::ResizeSelection
-			? QCoreApplication::translate("VibeStudioLevelControls", "Left drag its handles, or over empty space beside it")
-			: QCoreApplication::translate("VibeStudioLevelControls", "Left drag its handles"));
+	row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Move the selection"), QCoreApplication::translate("SlopStudioLevelControls", "Left drag the selection"));
+	row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Resize the selection"), p.emptyDragWithSelection == PlanEmptyDrag::ResizeSelection
+			? QCoreApplication::translate("SlopStudioLevelControls", "Left drag its handles, or over empty space beside it")
+			: QCoreApplication::translate("SlopStudioLevelControls", "Left drag its handles"));
 	if (p.emptyDragWithSelection == PlanEmptyDrag::DragPlanes) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Drag the brush planes facing the pointer"),
-			QCoreApplication::translate("VibeStudioLevelControls", "Left drag over empty space beside the selection"));
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Drag the brush planes facing the pointer"),
+			QCoreApplication::translate("SlopStudioLevelControls", "Left drag over empty space beside the selection"));
 	}
 	if (p.vertexDragModifiers != Qt::NoModifier) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Drag the selection's vertices under the pointer, or the corners of the plane under it"),
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Drag the selection's vertices under the pointer, or the corners of the plane under it"),
 			mouseGestureText(Qt::LeftButton, p.vertexDragModifiers, drag));
 	}
 	if (p.extrudeDragModifiers != Qt::NoModifier) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Extrude the faces on the plane under the pointer"),
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Extrude the faces on the plane under the pointer"),
 			mouseGestureText(Qt::LeftButton, p.extrudeDragModifiers, drag));
 	}
 	if (p.middleButtonDrivesCamera) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Aim the 3D camera here"), mouseGestureText(Qt::MiddleButton, Qt::NoModifier, click));
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Move the 3D camera here"), mouseGestureText(Qt::MiddleButton, Qt::ControlModifier, click));
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Aim the 3D camera here"), mouseGestureText(Qt::MiddleButton, Qt::NoModifier, click));
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Move the 3D camera here"), mouseGestureText(Qt::MiddleButton, Qt::ControlModifier, click));
 	}
-	row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Nudge the selection"), p.arrowsDriveCamera ? QCoreApplication::translate("VibeStudioLevelControls", "Alt+Arrow keys") : QCoreApplication::translate("VibeStudioLevelControls", "Arrow keys"));
+	row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Nudge the selection"), p.arrowsDriveCamera ? QCoreApplication::translate("SlopStudioLevelControls", "Alt+Arrow keys") : QCoreApplication::translate("SlopStudioLevelControls", "Arrow keys"));
 	if (p.arrowsDriveCamera) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Drive the 3D camera"), QCoreApplication::translate("VibeStudioLevelControls", "Arrow keys"));
-		if (p.fixedCameraSteps) { row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Camera step"), QCoreApplication::translate("VibeStudioLevelControls", "32 units / 22.5 degrees on the ground plane")); }
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Drive the 3D camera"), QCoreApplication::translate("SlopStudioLevelControls", "Arrow keys"));
+		if (p.fixedCameraSteps) { row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Camera step"), QCoreApplication::translate("SlopStudioLevelControls", "32 units / 22.5 degrees on the ground plane")); }
 	}
 	if (const CameraFlyKeys routed = planRoutedCameraDriveKeys(controls); !routed.isEmpty()) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Camera drive keys"),
-			QCoreApplication::translate("VibeStudioLevelControls", "%1, while no command here uses the key").arg(keysText(routed)));
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Camera drive keys"),
+			QCoreApplication::translate("SlopStudioLevelControls", "%1, while no command here uses the key").arg(keysText(routed)));
 	}
-	row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Map actions menu"), mouseGestureText(Qt::RightButton, Qt::NoModifier, click));
-	row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Frame Selection"), p.radiantFraming
-			? QCoreApplication::translate("VibeStudioLevelControls", "The 2D views only: the selection fills two-thirds of each, or the camera's surroundings when nothing is selected; the camera stays")
-			: QCoreApplication::translate("VibeStudioLevelControls", "The 2D views fit the selection, and the 3D camera turns to it"));
+	row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Map actions menu"), mouseGestureText(Qt::RightButton, Qt::NoModifier, click));
+	row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Frame Selection"), p.radiantFraming
+			? QCoreApplication::translate("SlopStudioLevelControls", "The 2D views only: the selection fills two-thirds of each, or the camera's surroundings when nothing is selected; the camera stays")
+			: QCoreApplication::translate("SlopStudioLevelControls", "The 2D views fit the selection, and the 3D camera turns to it"));
 
 	const CameraViewControls& c = controls.camera;
 	if (!p.panHoldKey.isEmpty()) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Temporary pan"),
-			QCoreApplication::translate("VibeStudioLevelControls", "Hold %1 and move the pointer; release to stop").arg(p.panHoldKey));
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Temporary pan"),
+			QCoreApplication::translate("SlopStudioLevelControls", "Hold %1 and move the pointer; release to stop").arg(p.panHoldKey));
 	}
 	if (p.panArrowModifiers != Qt::NoModifier) {
-		row(plan, QCoreApplication::translate("VibeStudioLevelControls", "Pan a quarter of the view"),
-			QCoreApplication::translate("VibeStudioLevelControls", "%1Arrow keys").arg(modifierPrefix(p.panArrowModifiers)));
+		row(plan, QCoreApplication::translate("SlopStudioLevelControls", "Pan a quarter of the view"),
+			QCoreApplication::translate("SlopStudioLevelControls", "%1Arrow keys").arg(modifierPrefix(p.panArrowModifiers)));
 	}
-	row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Camera"), c.perspective
-			? QCoreApplication::translate("VibeStudioLevelControls", "First-person, %1 degree field of view").arg(c.fieldOfViewDegrees, 0, 'g', 4)
-			: QCoreApplication::translate("VibeStudioLevelControls", "Orthographic, orbiting the map"));
-	row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Resize the selection"),
-		QCoreApplication::translate("VibeStudioLevelControls", "Left drag an axis handle or its label; Escape cancels. Resize Selection opens numeric editing."));
+	row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Camera"), c.perspective
+			? QCoreApplication::translate("SlopStudioLevelControls", "First-person, %1 degree field of view").arg(c.fieldOfViewDegrees, 0, 'g', 4)
+			: QCoreApplication::translate("SlopStudioLevelControls", "Orthographic, orbiting the map"));
+	row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Resize the selection"),
+		QCoreApplication::translate("SlopStudioLevelControls", "Left drag an axis handle or its label; Escape cancels. Resize Selection opens numeric editing."));
 	if (c.materialSampleButton != Qt::NoButton) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Sample material and copy surface"),
-			QCoreApplication::translate("VibeStudioLevelControls", "%1 while navigation is idle; brush faces also copy mapping and flags for surface paste").arg(mouseGestureText(c.materialSampleButton, c.materialSampleModifiers, click)));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Sample material and copy surface"),
+			QCoreApplication::translate("SlopStudioLevelControls", "%1 while navigation is idle; brush faces also copy mapping and flags for surface paste").arg(mouseGestureText(c.materialSampleButton, c.materialSampleModifiers, click)));
 	}
 	if (c.materialPaintButton != Qt::NoButton) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Paint material on one surface"),
-			QCoreApplication::translate("VibeStudioLevelControls", "%1 while navigation is idle; applies on press, preserves alignment and selection, and supports Undo").arg(mouseGestureText(c.materialPaintButton, c.materialPaintModifiers, click)));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Paint material on one surface"),
+			QCoreApplication::translate("SlopStudioLevelControls", "%1 while navigation is idle; applies on press, preserves alignment and selection, and supports Undo").arg(mouseGestureText(c.materialPaintButton, c.materialPaintModifiers, click)));
 	}
 	if (c.surfacePasteFaceButton != Qt::NoButton) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Paste copied surface on one face"),
-			QCoreApplication::translate("VibeStudioLevelControls", "%1; pastes material, matching-format mapping and flags as one undo step").arg(mouseGestureText(c.surfacePasteFaceButton, c.surfacePasteFaceModifiers, click)));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Paste copied surface on one face"),
+			QCoreApplication::translate("SlopStudioLevelControls", "%1; pastes material, matching-format mapping and flags as one undo step").arg(mouseGestureText(c.surfacePasteFaceButton, c.surfacePasteFaceModifiers, click)));
 	}
 	if (c.surfacePasteBrushButton != Qt::NoButton) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Paste copied surface on a whole brush"),
-			QCoreApplication::translate("VibeStudioLevelControls", "%1; targets the hit brush and keeps the scene selection").arg(mouseGestureText(c.surfacePasteBrushButton, c.surfacePasteBrushModifiers, click)));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Paste copied surface on a whole brush"),
+			QCoreApplication::translate("SlopStudioLevelControls", "%1; targets the hit brush and keeps the scene selection").arg(mouseGestureText(c.surfacePasteBrushButton, c.surfacePasteBrushModifiers, click)));
 	}
 	if (c.surfaceWrapFaceButton != Qt::NoButton) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Wrap copied surface onto one face"),
-			QCoreApplication::translate("VibeStudioLevelControls", "%1; seamless brush mapping on press, then the pasted face becomes the next source. Map-wide conversion requires consent in Surfaces.").arg(mouseGestureText(c.surfaceWrapFaceButton, c.surfaceWrapFaceModifiers, click)));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Wrap copied surface onto one face"),
+			QCoreApplication::translate("SlopStudioLevelControls", "%1; seamless brush mapping on press, then the pasted face becomes the next source. Map-wide conversion requires consent in Surfaces.").arg(mouseGestureText(c.surfaceWrapFaceButton, c.surfaceWrapFaceModifiers, click)));
 	}
-	for (const auto& item : {std::tuple{c.surfaceValuesButton, c.surfaceValuesModifiers, QCoreApplication::translate("VibeStudioLevelControls", "Paste Radiant values onto hit and selection")},
-		std::tuple{c.surfaceValuesOnlyButton, c.surfaceValuesOnlyModifiers, QCoreApplication::translate("VibeStudioLevelControls", "Paste mapping values onto hit and selection")},
-		std::tuple{c.surfaceWrapOnlyButton, c.surfaceWrapOnlyModifiers, QCoreApplication::translate("VibeStudioLevelControls", "Wrap mapping only onto one face")},
-		std::tuple{c.surfaceProjectButton, c.surfaceProjectModifiers, QCoreApplication::translate("VibeStudioLevelControls", "Project copied surface onto hit and selection")},
-		std::tuple{c.surfaceProjectOnlyButton, c.surfaceProjectOnlyModifiers, QCoreApplication::translate("VibeStudioLevelControls", "Project mapping only onto hit and selection")}}) {
+	for (const auto& item : {std::tuple{c.surfaceValuesButton, c.surfaceValuesModifiers, QCoreApplication::translate("SlopStudioLevelControls", "Paste Radiant values onto hit and selection")},
+		std::tuple{c.surfaceValuesOnlyButton, c.surfaceValuesOnlyModifiers, QCoreApplication::translate("SlopStudioLevelControls", "Paste mapping values onto hit and selection")},
+		std::tuple{c.surfaceWrapOnlyButton, c.surfaceWrapOnlyModifiers, QCoreApplication::translate("SlopStudioLevelControls", "Wrap mapping only onto one face")},
+		std::tuple{c.surfaceProjectButton, c.surfaceProjectModifiers, QCoreApplication::translate("SlopStudioLevelControls", "Project copied surface onto hit and selection")},
+		std::tuple{c.surfaceProjectOnlyButton, c.surfaceProjectOnlyModifiers, QCoreApplication::translate("SlopStudioLevelControls", "Project mapping only onto hit and selection")}}) {
 		const auto& [button, modifiers, action] = item;
 		if (button != Qt::NoButton) { row(camera, action, mouseGestureText(button, modifiers, click)); }
 	}
-	row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Draw a brush"),
-		QCoreApplication::translate("VibeStudioLevelControls", "Choose Draw Brush; left-drag on the construction plane, wheel adjusts depth, release creates. Plan square/cube modifiers apply. Escape cancels; Add Brush opens numeric creation."));
+	row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Draw a brush"),
+		QCoreApplication::translate("SlopStudioLevelControls", "Choose Draw Brush; left-drag on the construction plane, wheel adjusts depth, release creates. Plan square/cube modifiers apply. Escape cancels; Add Brush opens numeric creation."));
 	if (c.lookButton != Qt::NoButton) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Look around"), c.lookClickToggles
-				? QCoreApplication::translate("VibeStudioLevelControls", "%1 to start or stop, then move the mouse").arg(mouseGestureText(c.lookButton, c.lookModifiers, click))
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Look around"), c.lookClickToggles
+				? QCoreApplication::translate("SlopStudioLevelControls", "%1 to start or stop, then move the mouse").arg(mouseGestureText(c.lookButton, c.lookModifiers, click))
 				: mouseGestureText(c.lookButton, c.lookModifiers, drag));
 	}
 	if (c.driveButton != Qt::NoButton) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Position steering"),
-			QCoreApplication::translate("VibeStudioLevelControls", "%1: above/below centre moves forward/back; left/right steers. Centre stops. Release or Escape ends steering.").arg(mouseGestureText(c.driveButton, c.driveModifiers, QCoreApplication::translate("VibeStudioLevelControls", "hold"))));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Position steering"),
+			QCoreApplication::translate("SlopStudioLevelControls", "%1: above/below centre moves forward/back; left/right steers. Centre stops. Release or Escape ends steering.").arg(mouseGestureText(c.driveButton, c.driveModifiers, QCoreApplication::translate("SlopStudioLevelControls", "hold"))));
 	}
 	if (!c.lookToggleKey.isEmpty()) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Toggle mouse look"), c.lookToggleKey);
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Toggle mouse look"), c.lookToggleKey);
 	}
 	if (!c.lookHoldKey.isEmpty()) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Temporary mouse look"),
-			QCoreApplication::translate("VibeStudioLevelControls", "Hold %1 and move the pointer; release to restore the previous mode").arg(c.lookHoldKey));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Temporary mouse look"),
+			QCoreApplication::translate("SlopStudioLevelControls", "Hold %1 and move the pointer; release to restore the previous mode").arg(c.lookHoldKey));
 	}
 	if (c.perspective && !c.focusHoldKey.isEmpty()) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Keep the selection in view"),
-			QCoreApplication::translate("VibeStudioLevelControls", "Hold %1 during mouse look; the wheel moves nearer or farther").arg(c.focusHoldKey));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Keep the selection in view"),
+			QCoreApplication::translate("SlopStudioLevelControls", "Hold %1 during mouse look; the wheel moves nearer or farther").arg(c.focusHoldKey));
 	}
 	if (c.lookPanUsesButtons) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Navigate during mouse look"),
-			QCoreApplication::translate("VibeStudioLevelControls", "Right mouse pans; left+right moves along the view"));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Navigate during mouse look"),
+			QCoreApplication::translate("SlopStudioLevelControls", "Right mouse pans; left+right moves along the view"));
 	}
 	if (c.orbitButton != Qt::NoButton) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Orbit"), mouseGestureText(c.orbitButton, c.orbitModifiers, drag));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Orbit"), mouseGestureText(c.orbitButton, c.orbitModifiers, drag));
 	}
 	QString pan = buttonsText(c.panButtons, c.panModifiers, drag);
 	if (c.leftPanModifiers != Qt::NoModifier) {
@@ -1317,78 +1317,78 @@ QVector<LevelEditorControlRow> levelEditorControlRows(const LevelEditorControls&
 		}
 		pan += (pan.isEmpty() ? QString() : QStringLiteral(", ")) + modifiers.join(QStringLiteral(", "));
 	}
-	row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Pan"), pan);
+	row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Pan"), pan);
 	switch (c.wheel) {
 	case CameraWheel::Zoom:
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Zoom"), QCoreApplication::translate("VibeStudioLevelControls", "Wheel"));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Zoom"), QCoreApplication::translate("SlopStudioLevelControls", "Wheel"));
 		break;
 	case CameraWheel::Dolly:
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Move forward and back"), QCoreApplication::translate("VibeStudioLevelControls", "Wheel"));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Move forward and back"), QCoreApplication::translate("SlopStudioLevelControls", "Wheel"));
 		break;
 	case CameraWheel::DollyToPointer:
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Move toward the pointer"), QCoreApplication::translate("VibeStudioLevelControls", "Wheel"));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Move toward the pointer"), QCoreApplication::translate("SlopStudioLevelControls", "Wheel"));
 		break;
 	}
 	if (c.fieldOfViewWheelModifiers != Qt::NoModifier) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Zoom the field of view"), QCoreApplication::translate("VibeStudioLevelControls", "%1Wheel").arg(modifierPrefix(c.fieldOfViewWheelModifiers)));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Zoom the field of view"), QCoreApplication::translate("SlopStudioLevelControls", "%1Wheel").arg(modifierPrefix(c.fieldOfViewWheelModifiers)));
 	}
 	if (!c.flyKeys.isEmpty()) {
 		QStringList speedNotes;
 		if (c.fastModifiers != Qt::NoModifier) {
-			speedNotes << QCoreApplication::translate("VibeStudioLevelControls", "%1 faster").arg(modifierPrefix(c.fastModifiers).chopped(1));
+			speedNotes << QCoreApplication::translate("SlopStudioLevelControls", "%1 faster").arg(modifierPrefix(c.fastModifiers).chopped(1));
 		}
 		if (c.slowModifiers != Qt::NoModifier) {
-			speedNotes << QCoreApplication::translate("VibeStudioLevelControls", "%1 slower").arg(modifierPrefix(c.slowModifiers).chopped(1));
+			speedNotes << QCoreApplication::translate("SlopStudioLevelControls", "%1 slower").arg(modifierPrefix(c.slowModifiers).chopped(1));
 		}
-		row(camera, c.flyNeedsLook ? QCoreApplication::translate("VibeStudioLevelControls", "Fly while looking") : QCoreApplication::translate("VibeStudioLevelControls", "Fly"),
-			speedNotes.isEmpty() ? keysText(c.flyKeys) : QCoreApplication::translate("VibeStudioLevelControls", "%1 (%2)").arg(keysText(c.flyKeys), speedNotes.join(QStringLiteral(", "))));
+		row(camera, c.flyNeedsLook ? QCoreApplication::translate("SlopStudioLevelControls", "Fly while looking") : QCoreApplication::translate("SlopStudioLevelControls", "Fly"),
+			speedNotes.isEmpty() ? keysText(c.flyKeys) : QCoreApplication::translate("SlopStudioLevelControls", "%1 (%2)").arg(keysText(c.flyKeys), speedNotes.join(QStringLiteral(", "))));
 	}
 	if (!c.driveKeys.isEmpty()) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Drive"), keysText(c.driveKeys));
-		if (c.discreteDriveKeys) { row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Drive key movement"), QCoreApplication::translate("VibeStudioLevelControls", "Each press/repeat steps 32 units or 22.5 degrees; movement stays on the ground plane")); }
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Drive"), keysText(c.driveKeys));
+		if (c.discreteDriveKeys) { row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Drive key movement"), QCoreApplication::translate("SlopStudioLevelControls", "Each press/repeat steps 32 units or 22.5 degrees; movement stays on the ground plane")); }
 	}
 	// The speed of held keys; fixed drive steps do not use it.
 	if (c.perspective && (!c.flyKeys.isEmpty() || (!c.discreteDriveKeys && !c.driveKeys.isEmpty()))) {
 		const int speed = c.moveSpeed;
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Camera speed"), speed > 0
-				? QCoreApplication::translate("VibeStudioLevelControls", "%n unit(s) per second; Increase and Decrease Camera Speed change it", nullptr, speed)
-				: QCoreApplication::translate("VibeStudioLevelControls", "Scales with the size of the map; Increase and Decrease Camera Speed set it"));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Camera speed"), speed > 0
+				? QCoreApplication::translate("SlopStudioLevelControls", "%n unit(s) per second; Increase and Decrease Camera Speed change it", nullptr, speed)
+				: QCoreApplication::translate("SlopStudioLevelControls", "Scales with the size of the map; Increase and Decrease Camera Speed set it"));
 	}
 	if (c.turnKeysPanModifiers != Qt::NoModifier) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Translate with turn / look keys"),
-			QCoreApplication::translate("VibeStudioLevelControls", "%1turn keys strafe; %1look keys move vertically").arg(modifierPrefix(c.turnKeysPanModifiers)));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Translate with turn / look keys"),
+			QCoreApplication::translate("SlopStudioLevelControls", "%1turn keys strafe; %1look keys move vertically").arg(modifierPrefix(c.turnKeysPanModifiers)));
 	}
 	if (!c.flyKeys.turnLeft.isEmpty() || !c.flyKeys.turnRight.isEmpty() || !c.driveKeys.turnLeft.isEmpty() || !c.driveKeys.turnRight.isEmpty()) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Turn keys during mouse look"), c.turnKeysStrafeInLook
-			? QCoreApplication::translate("VibeStudioLevelControls", "Strafe") : QCoreApplication::translate("VibeStudioLevelControls", "Turn"));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Turn keys during mouse look"), c.turnKeysStrafeInLook
+			? QCoreApplication::translate("SlopStudioLevelControls", "Strafe") : QCoreApplication::translate("SlopStudioLevelControls", "Turn"));
 	}
 	if (c.speedModifiersRequireLook) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Flight speed modifiers"),
-			QCoreApplication::translate("VibeStudioLevelControls", "Active only during mouse look"));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Flight speed modifiers"),
+			QCoreApplication::translate("SlopStudioLevelControls", "Active only during mouse look"));
 	}
 	if (c.plainClickSelects) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Select"), mouseGestureText(Qt::LeftButton, Qt::NoModifier, click));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Select"), mouseGestureText(Qt::LeftButton, Qt::NoModifier, click));
 		if (c.toggleModifiers != Qt::NoModifier) {
-			row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Add or remove one"), mouseGestureText(Qt::LeftButton, c.toggleModifiers, click));
+			row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Add or remove one"), mouseGestureText(Qt::LeftButton, c.toggleModifiers, click));
 		}
 	} else {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Select or deselect one"),
-			QCoreApplication::translate("VibeStudioLevelControls", "%1 (a plain click selects nothing)").arg(mouseGestureText(Qt::LeftButton, c.toggleModifiers, click)));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Select or deselect one"),
+			QCoreApplication::translate("SlopStudioLevelControls", "%1 (a plain click selects nothing)").arg(mouseGestureText(Qt::LeftButton, c.toggleModifiers, click)));
 	}
 	if (c.faceModifiers != Qt::NoModifier) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Pick a face"), mouseGestureText(Qt::LeftButton, c.faceModifiers, click));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Pick a face"), mouseGestureText(Qt::LeftButton, c.faceModifiers, click));
 	}
 	if (c.dragMovesSelection) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Move the selection"), c.planeDragModifiers.testFlag(Qt::AltModifier)
-				? QCoreApplication::translate("VibeStudioLevelControls", "Left drag the selection; press Alt during the drag for up and down")
-				: QCoreApplication::translate("VibeStudioLevelControls", "Left drag the selection; with Alt, up and down"));
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Move the selection"), c.planeDragModifiers.testFlag(Qt::AltModifier)
+				? QCoreApplication::translate("SlopStudioLevelControls", "Left drag the selection; press Alt during the drag for up and down")
+				: QCoreApplication::translate("SlopStudioLevelControls", "Left drag the selection; with Alt, up and down"));
 	}
 	if (c.planeDragModifiers != Qt::NoModifier) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Drag the selected brushes' plane under the pointer"),
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Drag the selected brushes' plane under the pointer"),
 			mouseGestureText(Qt::LeftButton, c.planeDragModifiers, drag));
 	}
 	if (c.extrudeDragModifiers != Qt::NoModifier) {
-		row(camera, QCoreApplication::translate("VibeStudioLevelControls", "Extrude the faces on the plane under the pointer"),
+		row(camera, QCoreApplication::translate("SlopStudioLevelControls", "Extrude the faces on the plane under the pointer"),
 			mouseGestureText(Qt::LeftButton, c.extrudeDragModifiers, drag));
 	}
 
@@ -1399,7 +1399,7 @@ QVector<LevelEditorControlRow> levelEditorControlRows(const LevelEditorControls&
 	for (const LevelEditorKeyBinding& binding : controls.keys) {
 		// Named as the menus and the command palette name the command.
 		const QString label = labels.value(commandKey(binding.commandId), binding.commandId);
-		row(keyboard, label, binding.keys.isEmpty() ? QCoreApplication::translate("VibeStudioLevelControls", "(none: the key does something else here)") : binding.keys.join(QStringLiteral(", ")));
+		row(keyboard, label, binding.keys.isEmpty() ? QCoreApplication::translate("SlopStudioLevelControls", "(none: the key does something else here)") : binding.keys.join(QStringLiteral(", ")));
 	}
 	return rows;
 }
@@ -1408,38 +1408,38 @@ QStringList levelEditorControlProblems(const LevelEditorControls& controls)
 {
 	QStringList problems;
 	if (!levelEditorGridSizeSupported(controls.defaultGridUnits)) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "The default grid must be a listed size from 0.125 to 1024 units.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "The default grid must be a listed size from 0.125 to 1024 units.");
 	}
 	if (!std::isfinite(controls.camera.fieldOfViewDegrees) || controls.camera.fieldOfViewDegrees < 15 || controls.camera.fieldOfViewDegrees > 150) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "The field of view must be between 15 and 150 degrees.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "The field of view must be between 15 and 150 degrees.");
 	}
 	const PlanViewControls& plan = controls.plan;
 	if (plan.panButtons.contains(Qt::LeftButton)) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "The left button selects in the 2D view, so it cannot pan there too.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "The left button selects in the 2D view, so it cannot pan there too.");
 	}
 	if (plan.toggleModifiers != Qt::NoModifier && plan.toggleModifiers == plan.addModifiers) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "One set of keys both toggles and adds in the 2D view.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "One set of keys both toggles and adds in the 2D view.");
 	}
 	if (plan.zoomDragButton != Qt::NoButton && plan.zoomDragModifiers == Qt::NoModifier && plan.panButtons.contains(plan.zoomDragButton)) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "One 2D drag both pans and zooms.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "One 2D drag both pans and zooms.");
 	}
 	// The plane drags take a left press with their keys before anything else.
 	for (const Qt::KeyboardModifiers drag : {plan.vertexDragModifiers, plan.extrudeDragModifiers}) {
 		if (drag != Qt::NoModifier && (drag == plan.bandModifiers || drag == plan.cycleModifiers || drag == plan.toggleModifiers
 				|| drag == plan.addModifiers || drag == plan.quickClipModifiers
 				|| (plan.zoomDragButton == Qt::LeftButton && drag == plan.zoomDragModifiers))) {
-			problems << QCoreApplication::translate("VibeStudioLevelControls", "A 2D vertex or extrude drag uses the keys of another left-button gesture.");
+			problems << QCoreApplication::translate("SlopStudioLevelControls", "A 2D vertex or extrude drag uses the keys of another left-button gesture.");
 		}
 	}
 	if (plan.vertexDragModifiers != Qt::NoModifier && plan.vertexDragModifiers == plan.extrudeDragModifiers) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "One 2D drag both drags vertices and extrudes.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "One 2D drag both drags vertices and extrudes.");
 	}
 	const CameraViewControls& camera = controls.camera;
 	if (camera.moveSpeed != 0 && !levelCameraMoveSpeeds().contains(camera.moveSpeed)) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "The camera speed must be automatic or a listed speed from 50 to 9999 units per second.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "The camera speed must be automatic or a listed speed from 50 to 9999 units per second.");
 	}
 	if (!std::isfinite(camera.drivePitchLimitDegrees) || camera.drivePitchLimitDegrees <= 0.0 || camera.drivePitchLimitDegrees > 90.0) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "The drive-key pitch limit must be above 0 and at most 90 degrees.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "The drive-key pitch limit must be above 0 and at most 90 degrees.");
 	}
 	const QVector<QPair<Qt::MouseButton, Qt::KeyboardModifiers>> materialGestures{
 		{camera.materialSampleButton, camera.materialSampleModifiers}, {camera.materialPaintButton, camera.materialPaintModifiers},
@@ -1450,11 +1450,11 @@ QStringList levelEditorControlProblems(const LevelEditorControls& controls)
 	for (int i = 0; i < materialGestures.size(); ++i) {
 		const auto [button, modifiers] = materialGestures[i];
 		if (cameraMaterialGestureConflicts(camera, button, modifiers)) {
-			problems << QCoreApplication::translate("VibeStudioLevelControls", "Material actions need a right or middle button gesture separate from camera navigation.");
+			problems << QCoreApplication::translate("SlopStudioLevelControls", "Material actions need a right or middle button gesture separate from camera navigation.");
 		}
 		for (int j = 0; j < i; ++j) {
 			if (button != Qt::NoButton && materialGestures[j] == materialGestures[i]) {
-				problems << QCoreApplication::translate("VibeStudioLevelControls", "Sampling, material painting and surface pasting must use different gestures.");
+				problems << QCoreApplication::translate("SlopStudioLevelControls", "Sampling, material painting and surface pasting must use different gestures.");
 			}
 		}
 	}
@@ -1466,33 +1466,33 @@ QStringList levelEditorControlProblems(const LevelEditorControls& controls)
 		|| (camera.driveButton == camera.orbitButton && camera.driveModifiers == camera.orbitModifiers)
 		|| (camera.panButtons.contains(camera.driveButton) && camera.driveModifiers == camera.panModifiers)
 		|| (camera.driveButton == Qt::LeftButton))) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "Position steering must use a separate right or middle button gesture from look, orbit and pan.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "Position steering must use a separate right or middle button gesture from look, orbit and pan.");
 	}
 	if (lookDrags && camera.lookButton == camera.orbitButton && camera.lookModifiers == camera.orbitModifiers) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "One 3D drag both looks and orbits.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "One 3D drag both looks and orbits.");
 	}
 	if (lookDrags && camera.panButtons.contains(camera.lookButton) && camera.lookModifiers == camera.panModifiers) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "One 3D drag both looks and pans.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "One 3D drag both looks and pans.");
 	}
 	if (camera.orbitButton != Qt::NoButton && camera.orbitModifiers == camera.panModifiers && camera.panButtons.contains(camera.orbitButton)) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "One 3D drag both orbits and pans.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "One 3D drag both orbits and pans.");
 	}
 	if (camera.toggleModifiers != Qt::NoModifier && camera.toggleModifiers == camera.faceModifiers) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "One set of keys both toggles and picks faces in the 3D view.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "One set of keys both toggles and picks faces in the 3D view.");
 	}
 	if (camera.toggleModifiers != Qt::NoModifier && camera.leftPanModifiers.testAnyFlags(camera.toggleModifiers)) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "A 3D click that toggles would pan instead.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "A 3D click that toggles would pan instead.");
 	}
 	for (const Qt::KeyboardModifiers drag : {camera.planeDragModifiers, camera.extrudeDragModifiers}) {
 		if (drag != Qt::NoModifier && (drag == camera.toggleModifiers || drag == camera.faceModifiers || camera.leftPanModifiers.testAnyFlags(drag)
 				|| (camera.orbitButton == Qt::LeftButton && drag == camera.orbitModifiers)
 				|| (camera.lookButton == Qt::LeftButton && drag == camera.lookModifiers)
 				|| cameraMaterialGesture(camera, Qt::LeftButton, drag) != CameraMaterialGesture::None)) {
-			problems << QCoreApplication::translate("VibeStudioLevelControls", "A 3D plane or extrude drag uses the keys of another left-button gesture.");
+			problems << QCoreApplication::translate("SlopStudioLevelControls", "A 3D plane or extrude drag uses the keys of another left-button gesture.");
 		}
 	}
 	if (camera.planeDragModifiers != Qt::NoModifier && camera.planeDragModifiers == camera.extrudeDragModifiers) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "One 3D drag both drags a plane and extrudes.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "One 3D drag both drags a plane and extrudes.");
 	}
 	// No key may belong to two commands. The camera's texture moves and flips
 	// are apart: they take their keys only while faces are picked there, and
@@ -1503,13 +1503,13 @@ QStringList levelEditorControlProblems(const LevelEditorControls& controls)
 		for (const QString& key : binding.keys) {
 			const auto sequence = QKeySequence::fromString(key, QKeySequence::PortableText);
 			if (sequence.isEmpty() || sequence[0].key() == Qt::Key_unknown) {
-				problems << QCoreApplication::translate("VibeStudioLevelControls", "Invalid shortcut: %1.").arg(key);
+				problems << QCoreApplication::translate("SlopStudioLevelControls", "Invalid shortcut: %1.").arg(key);
 				continue;
 			}
 			const QString normalized = sequence.toString(QKeySequence::PortableText).toLower();
 			const auto owner = keyOwners.constFind(normalized);
 			if (owner != keyOwners.constEnd() && owner.value() != binding.commandId) {
-				problems << QCoreApplication::translate("VibeStudioLevelControls", "%1 is bound to both %2 and %3.").arg(key, owner.value(), binding.commandId);
+				problems << QCoreApplication::translate("SlopStudioLevelControls", "%1 is bound to both %2 and %3.").arg(key, owner.value(), binding.commandId);
 				continue;
 			}
 			keyOwners.insert(normalized, binding.commandId);
@@ -1524,22 +1524,22 @@ QStringList levelEditorControlProblems(const LevelEditorControls& controls)
 		if (lookKey.isEmpty()) { continue; }
 		const auto toggle = QKeySequence::fromString(lookKey, QKeySequence::PortableText);
 		if (!camera.perspective || toggle.count() != 1 || toggle[0].key() == Qt::Key_unknown) {
-			problems << QCoreApplication::translate("VibeStudioLevelControls", "Mouse look needs a perspective camera and one valid activation key.");
+			problems << QCoreApplication::translate("SlopStudioLevelControls", "Mouse look needs a perspective camera and one valid activation key.");
 		}
 		if (owners.contains(toggle.toString(QKeySequence::PortableText).toLower())) {
-			problems << QCoreApplication::translate("VibeStudioLevelControls", "The mouse-look activation key also belongs to a command.");
+			problems << QCoreApplication::translate("SlopStudioLevelControls", "The mouse-look activation key also belongs to a command.");
 		}
 	}
 	if (!plan.panHoldKey.isEmpty() && owners.contains(QKeySequence::fromString(plan.panHoldKey, QKeySequence::PortableText).toString(QKeySequence::PortableText).toLower())) {
-		problems << QCoreApplication::translate("VibeStudioLevelControls", "The temporary plan-pan key also belongs to a command.");
+		problems << QCoreApplication::translate("SlopStudioLevelControls", "The temporary plan-pan key also belongs to a command.");
 	}
 	if (!camera.focusHoldKey.isEmpty()) {
 		const auto focus = QKeySequence::fromString(camera.focusHoldKey, QKeySequence::PortableText);
 		if (!camera.perspective || focus.count() != 1 || focus[0].key() == Qt::Key_unknown || focus[0].keyboardModifiers() != Qt::NoModifier) {
-			problems << QCoreApplication::translate("VibeStudioLevelControls", "The camera focus key needs a perspective camera and one unmodified key.");
+			problems << QCoreApplication::translate("SlopStudioLevelControls", "The camera focus key needs a perspective camera and one unmodified key.");
 		}
 		if (owners.contains(focus.toString(QKeySequence::PortableText).toLower())) {
-			problems << QCoreApplication::translate("VibeStudioLevelControls", "The camera focus key also belongs to a command.");
+			problems << QCoreApplication::translate("SlopStudioLevelControls", "The camera focus key also belongs to a command.");
 		}
 	}
 	for (const auto& keys : {camera.flyKeys, camera.driveKeys}) {
@@ -1548,7 +1548,7 @@ QStringList levelEditorControlProblems(const LevelEditorControls& controls)
 			const auto sequence = QKeySequence::fromString(name, QKeySequence::PortableText);
 			const auto normalized = sequence.toString(QKeySequence::PortableText).toLower();
 			if (sequence.count() != 1 || sequence[0].key() == Qt::Key_unknown || sequence[0].keyboardModifiers() != Qt::NoModifier || directions.contains(normalized)) {
-				problems << QCoreApplication::translate("VibeStudioLevelControls", "Camera directions need distinct, unmodified single keys: %1.").arg(name);
+				problems << QCoreApplication::translate("SlopStudioLevelControls", "Camera directions need distinct, unmodified single keys: %1.").arg(name);
 			}
 			directions.insert(normalized);
 		}
@@ -1556,4 +1556,4 @@ QStringList levelEditorControlProblems(const LevelEditorControls& controls)
 	return problems;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

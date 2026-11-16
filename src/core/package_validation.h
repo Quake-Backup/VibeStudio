@@ -4,7 +4,7 @@
 
 #include <QJsonObject>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct PackageValidationRequest {
 	// Zero means unlimited. Streaming keeps payload memory bounded regardless
@@ -47,4 +47,4 @@ PackageValidationReport validatePackage(const PackageArchive& archive, const Pac
 QJsonObject packageValidationJson(const PackageValidationReport& report);
 QString packageValidationText(const PackageValidationReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

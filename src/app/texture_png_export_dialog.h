@@ -7,7 +7,7 @@
 class QDialog;
 class QWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct TexturePngExportResult {
 	QString path;
@@ -22,4 +22,4 @@ struct TexturePngExportResult {
 QDialog* runTexturePngExportDialog(QWidget* parent, const QImage& image, const QString& path, bool overwrite,
 	std::function<void(const TexturePngExportResult&)> completed = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

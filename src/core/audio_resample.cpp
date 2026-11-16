@@ -3,7 +3,7 @@
 // Sample rate converter designed by Aleksey Vaneev of Voxengo.
 // r8brain-free-src 7.5, cb2abb9977efe2471979b380ed95daa56ab4fdb9 (MIT),
 // with Takuya Ooura's permissively licensed FFT. See docs/CREDITS.md and
-// external/audio/r8brain-free-src/VIBESTUDIO.md. Upstream headers are unchanged.
+// external/audio/r8brain-free-src/SLOPSTUDIO.md. Upstream headers are unchanged.
 #define R8B_FILTER_CACHE_MAX 8
 #define R8B_FRACBANK_CACHE_MAX 2
 #include <CDSPResampler.h>
@@ -16,7 +16,7 @@
 #include <new>
 #include <vector>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 qint64 audioFrameAtSampleRate(qint64 frame, int sourceRate, int targetRate)
@@ -47,7 +47,7 @@ AudioClipResult resampleAudioClip(const AudioClip& clip, int targetRate, const A
 		return result;
 	}
 	if (targetRate < 1 || targetRate > 384000) {
-		result.error = QCoreApplication::translate("VibeStudioAudio", "Choose a sample rate between 1 and 384000 Hz.");
+		result.error = QCoreApplication::translate("SlopStudioAudio", "Choose a sample rate between 1 and 384000 Hz.");
 		return result;
 	}
 	if (targetRate == clip.sampleRate || clip.samples.isEmpty()) {
@@ -60,7 +60,7 @@ AudioClipResult resampleAudioClip(const AudioClip& clip, int targetRate, const A
 	    std::max<qint64>(1, audioFrameAtSampleRate(clip.frameCount(), clip.sampleRate, targetRate));
 	if (outputFrames > AudioSampleLimit / clip.channels) {
 		result.error =
-		    QCoreApplication::translate("VibeStudioAudio", "Resampling would exceed the 16777216-sample limit.");
+		    QCoreApplication::translate("SlopStudioAudio", "Resampling would exceed the 16777216-sample limit.");
 		return result;
 	}
 	try {
@@ -74,7 +74,7 @@ AudioClipResult resampleAudioClip(const AudioClip& clip, int targetRate, const A
 		// work across channels as well as the stored output, before allocating it.
 		if (requiredInput <= 0 || requiredInput > 4 * AudioSampleLimit / clip.channels) {
 			result.error = QCoreApplication::translate(
-			    "VibeStudioAudio", "This rate conversion exceeds the processing limit. Choose a closer sample rate.");
+			    "SlopStudioAudio", "This rate conversion exceeds the processing limit. Choose a closer sample rate.");
 			return result;
 		}
 		result.clip = {clip.channels, targetRate, QVector<float>(outputFrames * clip.channels)};
@@ -94,7 +94,7 @@ AudioClipResult resampleAudioClip(const AudioClip& clip, int targetRate, const A
 				if (count <= 0) {
 					result.clip = {};
 					result.error = QCoreApplication::translate(
-					    "VibeStudioAudio", "Sample rate conversion ended before the required frame count.");
+					    "SlopStudioAudio", "Sample rate conversion ended before the required frame count.");
 					return result;
 				}
 				for (int index = 0; index < count; ++index) {
@@ -109,7 +109,7 @@ AudioClipResult resampleAudioClip(const AudioClip& clip, int targetRate, const A
 					if (!std::isfinite(value) || std::abs(value) > std::numeric_limits<float>::max()) {
 						result.clip = {};
 						result.error = QCoreApplication::translate(
-						    "VibeStudioAudio", "Resampled audio exceeds floating-point headroom. Reduce gain first.");
+						    "SlopStudioAudio", "Resampled audio exceeds floating-point headroom. Reduce gain first.");
 						return result;
 					}
 					destination[(outputPosition + index) * clip.channels + channel] = static_cast<float>(value);
@@ -121,9 +121,9 @@ AudioClipResult resampleAudioClip(const AudioClip& clip, int targetRate, const A
 		cancelled();
 	} catch (const std::bad_alloc&) {
 		result.clip = {};
-		result.error = QCoreApplication::translate("VibeStudioAudio", "Not enough memory to resample this sound.");
+		result.error = QCoreApplication::translate("SlopStudioAudio", "Not enough memory to resample this sound.");
 	}
 	return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

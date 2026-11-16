@@ -2,7 +2,7 @@
 #include <QProcess>
 #include <QTemporaryDir>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* why) { if (!condition) { std::cerr << why << '\n'; } return condition; }
 bool wait(const std::function<bool()>& ready, int ms = 4000)

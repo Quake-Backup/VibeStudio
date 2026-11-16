@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::connectLevelCameraResize()
 {
@@ -105,4 +105,4 @@ void ApplicationShell::refreshLevelCameraResize()
 		m_levelMapDocument.format == LevelMapFormat::DoomWad ? 3 : 7);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

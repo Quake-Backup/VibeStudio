@@ -23,7 +23,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const char* message)
@@ -49,7 +49,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		return expanded && QByteArray(context) == "VibeStudioPackagePaths"
+		return expanded && QByteArray(context) == "SlopStudioPackagePaths"
 			? QStringLiteral("[%1 — expanded]").arg(QString::fromUtf8(source)) : QString();
 	}
 };
@@ -126,7 +126,7 @@ int main(int argc, char** argv)
 			ok &= expect(!extract->isEnabled(), "file and required directory collisions block acceptance");
 			second->setText(1, QStringLiteral("map-two/THINGS"));
 			ok &= expect(extract->isEnabled() && dialog->layoutDirection() == app.layoutDirection(), "valid mapping can be accepted in either layout direction");
-			const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!captures.isEmpty()) {
 				dialog->ensurePolished(); app.processEvents();
 				QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image);
@@ -192,7 +192,7 @@ int main(int argc, char** argv)
 	cli(extraction + QStringList{"--entry-index", "999"}, 1);
 	cli(extraction + QStringList{"--entry-index", secondIndex, "--as", "../escape"}, 1);
 	ok &= expect(!QFileInfo::exists(rejectedPath), "invalid indexed selections never broaden into extract-all");
-	const QString draft = root.filePath(QStringLiteral("edited.vibepackage"));
+	const QString draft = root.filePath(QStringLiteral("edited.sloppackage"));
 	cli({"draft-save", sourcePath, draft, "--replace-ordinal", "3", "--replace-file", replacementPath, "--rename-ordinal", "1", "--to", "ACTORS"});
 	PackageStagingModel restored;
 	ok &= expect(PackageDraft::load(draft, &restored, &error) && restored.operations().size() == 2
@@ -209,7 +209,7 @@ int main(int argc, char** argv)
 	cli({"save-as", sourcePath, rejectedOutput, "--delete-ordinal="}, 2);
 	cli({"save-as", sourcePath, rejectedOutput, "--delete-ordinal"}, 2);
 	ok &= expect(!QFileInfo::exists(rejectedOutput), "missing selectors cannot silently save an unchanged archive");
-	const QString rejectedDraft = root.filePath(QStringLiteral("bad.vibepackage"));
+	const QString rejectedDraft = root.filePath(QStringLiteral("bad.sloppackage"));
 	cli({"draft-save", sourcePath, rejectedDraft, "--replace-ordinal", "3"}, 2);
 	cli({"draft-save", sourcePath, rejectedDraft, "--replace-ordinal", "3", "--replace-entry", "THINGS", "--replace-file", replacementPath}, 2);
 	cli({"draft-save", sourcePath, rejectedDraft, "--rename-ordinal", "1", "--rename", "THINGS", "--to", "ACTORS"}, 2);

@@ -20,11 +20,11 @@
 #include <cmath>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelPatchConvert)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelPatchConvert)
 };
 
 LevelMapVec3 add(const LevelMapVec3& a, const LevelMapVec3& b) { return {a.x + b.x, a.y + b.y, a.z + b.z, true}; }
@@ -329,4 +329,4 @@ bool convertLevelMapFacesToPatches(LevelMapDocument* document, const QVector<Lev
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

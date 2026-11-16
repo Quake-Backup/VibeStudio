@@ -12,7 +12,7 @@
 
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 [[nodiscard]] QJsonObject modelWeightStrokeRecipeJson(const QVector<ModelWeightStroke> &strokes);
@@ -20,4 +20,4 @@ namespace vibestudio
 // strokes or modelWeightMaxSamples samples; `strokes` is left unchanged then.
 bool parseModelWeightStrokeRecipe(const QJsonObject &root, QVector<ModelWeightStroke> *strokes, QString *error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

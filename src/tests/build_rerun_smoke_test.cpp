@@ -25,7 +25,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool ok = true;
@@ -46,7 +46,7 @@ bool writeFile(const QString& path, const QByteArray& bytes)
 	return file.open(QIODevice::WriteOnly | QIODevice::Truncate) && file.write(bytes) == bytes.size();
 }
 
-// A stand-in for vibemap2-bsp: writes a minimal Quake BSP (version 29 and an
+// A stand-in for slopmap2-bsp: writes a minimal Quake BSP (version 29 and an
 // empty lump directory) to the .bsp it is given, or beside the .map.
 int fakeCompiler(const QStringList& arguments)
 {
@@ -77,11 +77,11 @@ QByteArray mapText()
 CompilerRunResult compileOnce(const QString& root, const QString& mapPath)
 {
 	CompilerRunRequest request;
-	request.command.profileId = QStringLiteral("vibemap2-bsp");
+	request.command.profileId = QStringLiteral("slopmap2-bsp");
 	request.command.inputPath = mapPath;
 	request.command.workingDirectory = QFileInfo(mapPath).absolutePath();
 	request.command.extraArguments = {QStringLiteral("--fake-compiler")};
-	request.command.executableOverrides.push_back({QStringLiteral("vibemap2-bsp"), QCoreApplication::applicationFilePath()});
+	request.command.executableOverrides.push_back({QStringLiteral("slopmap2-bsp"), QCoreApplication::applicationFilePath()});
 	request.manifestPath = newCompilerRunManifestPath(root, request.command.profileId);
 	request.timeoutMs = 60000;
 	return runCompilerCommand(request);
@@ -101,7 +101,7 @@ void manifestTests(const QString& folder)
 	const QString start = QDir(root).filePath(QStringLiteral("maps/start.map"));
 	const QString other = QDir(root).filePath(QStringLiteral("maps/other.map"));
 	expect(writeFile(start, mapText()) && writeFile(other, mapText()), "maps written");
-	expect(compilerRunManifestDirectory(root) == QDir::cleanPath(QDir(root).filePath(QStringLiteral(".vibestudio/compiler-runs"))), "runs folder");
+	expect(compilerRunManifestDirectory(root) == QDir::cleanPath(QDir(root).filePath(QStringLiteral(".slopstudio/compiler-runs"))), "runs folder");
 	expect(compilerRunManifestDirectory(QString()).isEmpty() && newCompilerRunManifestPath(QString(), QStringLiteral("x")).isEmpty(), "no root, no folder");
 	CompilerRunManifestMatch match;
 	expect(!findNewestCompilerRunManifest({root}, start, &match), "nothing saved yet");
@@ -118,7 +118,7 @@ void manifestTests(const QString& folder)
 	expect(writeFile(QDir(compilerRunManifestDirectory(root)).filePath(QStringLiteral("zz-broken.json")), "{ not json"), "broken file");
 
 	expect(findNewestCompilerRunManifest({root}, start, &match) && QFileInfo(match.path) == QFileInfo(third.manifestPath)
-			&& match.manifest.profileId == QStringLiteral("vibemap2-bsp"),
+			&& match.manifest.profileId == QStringLiteral("slopmap2-bsp"),
 		"the newest run of start.map", match.path);
 	expect(findNewestCompilerRunManifest({root}, QString(), &match) && QFileInfo(match.path) == QFileInfo(second.manifestPath), "the newest run of any map",
 		match.path);
@@ -247,15 +247,15 @@ void settingsTests(const QString& folder)
 		record.inputPath = QStringLiteral("C:/maps/start.map");
 		settings.setLastBuildRun(QDir(folder).filePath(QStringLiteral("projectA")), record);
 		record.kind = QStringLiteral("profile");
-		record.id = QStringLiteral("vibemap2-bsp");
+		record.id = QStringLiteral("slopmap2-bsp");
 		record.launch = false;
 		settings.setLastBuildRun(QString(), record);
 		StudioBuildRunRecord invalid;
 		invalid.kind = QStringLiteral("other");
 		invalid.id = QStringLiteral("x");
 		settings.setLastBuildRun(QDir(folder).filePath(QStringLiteral("projectB")), invalid);
-		settings.setLevelCompilerProfile(QStringLiteral("quake2"), QStringLiteral("vibemap2-bsp"));
-		settings.setLevelCompilerProfile(QStringLiteral("quake"), QStringLiteral("vibemap2-light"));
+		settings.setLevelCompilerProfile(QStringLiteral("quake2"), QStringLiteral("slopmap2-bsp"));
+		settings.setLevelCompilerProfile(QStringLiteral("quake"), QStringLiteral("slopmap2-light"));
 		settings.setLevelCompilerProfile(QStringLiteral("quake"), QString());
 		settings.sync();
 	}
@@ -273,9 +273,9 @@ void settingsTests(const QString& folder)
 		"the last build of a project");
 	expect(reloaded.lastBuildRun(QDir(folder).filePath(QStringLiteral("projectA/../projectA"))).id == QStringLiteral("quake-full"), "the same project, spelt another way");
 	const StudioBuildRunRecord none = reloaded.lastBuildRun(QString());
-	expect(none.kind == QStringLiteral("profile") && none.id == QStringLiteral("vibemap2-bsp") && !none.launch, "the last build with no project");
+	expect(none.kind == QStringLiteral("profile") && none.id == QStringLiteral("slopmap2-bsp") && !none.launch, "the last build with no project");
 	expect(!reloaded.lastBuildRun(QDir(folder).filePath(QStringLiteral("projectB"))).isValid(), "an invalid record is not kept");
-	expect(reloaded.levelCompilerProfile(QStringLiteral("QUAKE2")) == QStringLiteral("vibemap2-bsp") && reloaded.levelCompilerProfile(QStringLiteral("quake")).isEmpty(),
+	expect(reloaded.levelCompilerProfile(QStringLiteral("QUAKE2")) == QStringLiteral("slopmap2-bsp") && reloaded.levelCompilerProfile(QStringLiteral("quake")).isEmpty(),
 		"the Levels profile per game");
 }
 
@@ -304,7 +304,7 @@ void keyTests()
 		expect(keysOf(profile, "build.runAndLaunch", &cleared).isEmpty() && cleared, "Build and Launch gives F5 up", QString::fromLatin1(profile));
 		expect(keysOf(profile, "map.mapInfo") == QStringList {QStringLiteral("M")}, "M opens Map Info", QString::fromLatin1(profile));
 	}
-	for (const char* profile : {"trenchbroom", "vibestudio-default", "gtkradiant-1-6", "quark"}) {
+	for (const char* profile : {"trenchbroom", "slopstudio-default", "gtkradiant-1-6", "quark"}) {
 		bool bound = true;
 		keysOf(profile, "build.runLast", &bound);
 		expect(!bound, "no key for Run Last Build", QString::fromLatin1(profile));
@@ -412,7 +412,7 @@ void cliTests(const QString& executable, const QString& folder)
 	result = run({"compiler", "rerun", "--last", start, "--workspace-root", project});
 	expect(result["run"].toObject()["started"].toBool() && runCount() == after + 1, "trusted for the project, it replays without asking");
 	// A configured compiler needs no trust.
-	run({"compiler", "set-path", "vibemap2-bsp", "--executable", QCoreApplication::applicationFilePath()});
+	run({"compiler", "set-path", "slopmap2-bsp", "--executable", QCoreApplication::applicationFilePath()});
 	result = run({"compiler", "rerun", newest.path});
 	expect(result["run"].toObject()["started"].toBool(), "a Toolchain path replays without asking");
 	run({"compiler", "rerun", "--last", QDir(project).filePath(QStringLiteral("maps/missing.map"))}, 3);

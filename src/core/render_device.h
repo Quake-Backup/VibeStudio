@@ -43,7 +43,7 @@
 #include <functional>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class RenderBackend {
 	OpenGL,
@@ -357,7 +357,7 @@ std::shared_ptr<RenderDevice> renderDevice(RenderBackend backend);
 std::shared_ptr<RenderDevice> activeRenderDevice(RenderDeviceInfo* failure = nullptr);
 
 // The choice applies to frames started afterwards. The environment variable
-// VIBESTUDIO_RENDER_BACKEND (automatic, opengl or vulkan) overrides it, for
+// SLOPSTUDIO_RENDER_BACKEND (automatic, opengl or vulkan) overrides it, for
 // tests and diagnosis, and setRenderBackendChoiceOverride() overrides both.
 void setRenderBackendChoice(RenderBackendChoice choice);
 RenderBackendChoice renderBackendChoice();
@@ -388,7 +388,7 @@ void shutdownRenderBackends();
 QString renderDeviceSummary(const RenderDeviceInfo& info);
 
 // Where the effective choice comes from: "preference" (the saved setting),
-// "environment" (VIBESTUDIO_RENDER_BACKEND) or "command-line" (an override
+// "environment" (SLOPSTUDIO_RENDER_BACKEND) or "command-line" (an override
 // for this run, such as the CLI's --renderer).
 QString renderBackendChoiceSource();
 // Overrides the choice for this run ahead of the environment variable,
@@ -409,4 +409,4 @@ struct RenderSelfTestResult {
 // than in a view.
 RenderSelfTestResult runRenderSelfTest(RenderDevice& device);
 
-} // namespace vibestudio
+} // namespace slopstudio

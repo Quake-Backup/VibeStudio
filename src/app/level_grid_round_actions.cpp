@@ -16,7 +16,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::applyLevelComponentUvSettings(LevelComponentTransformRequest* request) const
 {
@@ -129,4 +129,4 @@ void ApplicationShell::roundLevelMapSelectionToGridFromUi()
 		6000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

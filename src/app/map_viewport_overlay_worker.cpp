@@ -3,7 +3,7 @@
 #include <QTimer>
 #include <new>
 
-namespace vibestudio {
+namespace slopstudio {
 struct MapViewportOverlayWorker::Work {
 	MapViewportOverlayRequest request;
 	MapViewportOverlayResult result;
@@ -54,4 +54,4 @@ void MapViewportOverlayWorker::startNext()
 	});
 	m_thread->start();
 }
-} // namespace vibestudio
+} // namespace slopstudio

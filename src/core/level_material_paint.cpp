@@ -3,7 +3,7 @@
 #include <QCoreApplication>
 #include <QRegularExpression>
 
-namespace vibestudio {
+namespace slopstudio {
 
 QString levelMaterialTargetId(const LevelMaterialTarget& target)
 {
@@ -84,4 +84,4 @@ bool sampleLevelMaterial(const LevelMapDocument& document, const LevelMaterialTa
 	return false;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

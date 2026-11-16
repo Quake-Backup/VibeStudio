@@ -10,7 +10,7 @@
 #include <QSet>
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -190,4 +190,4 @@ ModelToolsCliResult runModelUvHealth(const QStringList &args)
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

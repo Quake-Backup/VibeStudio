@@ -6,7 +6,7 @@
 #include <QStatusBar>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool ApplicationShell::applyLevelBrushPrimitive(const LevelBrushPrimitiveRequest &request, QString *error)
 {
@@ -79,4 +79,4 @@ void ApplicationShell::addLevelMapBrushFromUi(const QPointF &viewPoint)
 	});
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

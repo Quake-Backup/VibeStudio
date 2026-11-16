@@ -3,7 +3,7 @@
 #include "core/level_map.h"
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct LevelLinkedExtractionReport {
 	QString sourceGroup, extractedGroup;
@@ -27,4 +27,4 @@ bool canExtractLevelLinkedGroups(const LevelMapDocument& document, QString* erro
 // Failure leaves the document and caller report unchanged.
 bool extractLevelLinkedGroups(LevelMapDocument* document, LevelLinkedExtractionReport* report = nullptr, QString* error = nullptr);
 QJsonObject levelLinkedExtractionReportJson(const LevelLinkedExtractionReport& report);
-} // namespace vibestudio
+} // namespace slopstudio

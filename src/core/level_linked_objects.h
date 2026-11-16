@@ -2,7 +2,7 @@
 
 #include "core/level_map.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Native records acted on by a linked group, including brushes and patches
@@ -21,4 +21,4 @@ namespace vibestudio
 void reconcileLevelLinkedObjects(const LevelMapDocument& document, LevelSceneState* state, const QHash<QString, QString>& remap = {});
 bool validateLevelLinkedObjects(const LevelMapDocument& document, const LevelSceneState& state, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

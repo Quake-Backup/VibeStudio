@@ -41,7 +41,7 @@
 #include <crtdbg.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool ok = true;
@@ -61,7 +61,7 @@ class Expansion final : public QTranslator
 	bool isEmpty() const override { return false; }
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelEditor")
+		if (QByteArray(context) != "SlopStudioModelEditor")
 			return {};
 		const auto value = QString::fromUtf8(text);
 		return QStringLiteral("[%1%2]").arg(value, QString(value.size() / 2, '~'));
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath("frame-tools-ui-XXXXXX"));
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
 			QImage ghosted(preview->size(), QImage::Format_ARGB32_Premultiplied);
 			preview->render(&ghosted);
 			expect(panel->onionFrames() == QVector<int>({2, 4}) && plain != ghosted, QStringLiteral("the onion skin draws frames 2 and 4"));
-			if (const auto folder = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE"); !folder.isEmpty())
+			if (const auto folder = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE"); !folder.isEmpty())
 				ghosted.save(QDir(folder).filePath(QString("mesh-onion-%1.png").arg(scenario)));
 			onion->setChecked(false);
 		}
@@ -328,7 +328,7 @@ int main(int argc, char **argv)
 					   QStringLiteral("%1 is reachable inside the inspector (scenario %2)").arg(control->objectName()).arg(scenario));
 			}
 		}
-		const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+		const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 		if (!evidence.isEmpty() && inspector)
 		{
 			inspector->ensureWidgetVisible(move);

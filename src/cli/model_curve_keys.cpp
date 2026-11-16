@@ -5,7 +5,7 @@
 #include <QJsonDocument>
 #include <algorithm>
 #include <cmath>
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -221,4 +221,4 @@ ModelToolsCliResult runModelCurveKeys(const QStringList &args)
 	result.lines << Text::tr("Key operation %1 validated across %2 channels.").arg(action).arg(report.channels.size());
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

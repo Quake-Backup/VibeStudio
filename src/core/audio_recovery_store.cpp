@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -214,7 +214,7 @@ QString audioRecoveryDirectory()
 	const QString profile = StudioSettings::overrideFilePath();
 	const QString root = profile.isEmpty() ? QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)
 	                                       : QFileInfo(profile).absolutePath();
-	return qEnvironmentVariable("VIBESTUDIO_AUDIO_RECOVERY_ROOT",
+	return qEnvironmentVariable("SLOPSTUDIO_AUDIO_RECOVERY_ROOT",
 	                            QDir(root).filePath(QStringLiteral("audio-recovery")));
 }
 
@@ -574,4 +574,4 @@ QJsonObject audioRecoveryInventoryJson(const AudioRecoveryInventory &inventory)
 	        {QStringLiteral("cancelled"), inventory.cancelled},
 	        {QStringLiteral("error"), inventory.error}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

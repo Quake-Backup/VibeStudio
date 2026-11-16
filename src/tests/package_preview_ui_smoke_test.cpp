@@ -33,7 +33,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 bool until(const std::function<bool()>& ready)
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 	// Header-only fixtures; metadata does not establish that codec packets decode.
 	plan.addBytes(QByteArray::fromHex("4f67675300020000000000000000110000000000000000000000011e01766f72626973000000000244ac0000000000000000000000000000b8014f676753000444ac0000000000001100000001000000000000000100"), QStringLiteral("estimate.ogg"));
 	plan.addBytes(QByteArray::fromHex("4f67675300020000000000000000110000000000000000000000011e01766f72626973000000000244ac0000000000000000000000000000b8014f676753000400000000000000801100000001000000000000000100"), QStringLiteral("range.ogg"));
-	const QString fixture = temporary.filePath(QStringLiteral("fixture.vibepackage")); QString error;
+	const QString fixture = temporary.filePath(QStringLiteral("fixture.sloppackage")); QString error;
 	if (!expect(PackageDraft::save(fixture, &plan, false, &error), "save owned planned fixture")) { return 1; }
 	const quint64 hugeSize = std::numeric_limits<quint64>::max();
 	const QString hugeFixture = temporary.filePath(QStringLiteral("huge-declarations.zip"));
@@ -126,7 +126,7 @@ int main(int argc, char** argv)
 				ok &= expect(inspector->rect().contains(QRect(action->mapTo(inspector, QPoint()), action->size()))
 					&& action->width() >= action->sizeHint().width(), "visible expanded preview action fits after pending layout");
 			}
-			const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (captures.isEmpty()) { return true; }
 			QImage image(inspector->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); inspector->render(&image);
 			return image.save(QDir(captures).filePath(QStringLiteral("package-preview-%1-%2.png").arg(state).arg(scale)));

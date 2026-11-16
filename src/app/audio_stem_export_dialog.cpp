@@ -16,7 +16,7 @@
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <algorithm>
-namespace vibestudio
+namespace slopstudio
 {
 AudioStemExportDialog::AudioStemExportDialog(const AudioSession &session, qint64 first, qint64 end, QWidget *parent)
     : QDialog(parent), m_session(session)
@@ -204,4 +204,4 @@ void AudioStemExportDialog::refresh()
 	                      : error);
 	m_buttons->button(QDialogButtonBox::Save)->setEnabled(error.isEmpty());
 }
-} // namespace vibestudio
+} // namespace slopstudio

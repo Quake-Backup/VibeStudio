@@ -11,7 +11,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct AdvancedStudioIssue {
 	QString severity = QStringLiteral("warning");
@@ -299,4 +299,4 @@ AiWorkflowResult promptToPackageValidationPlanAiExperiment(const QString& prompt
 AiWorkflowResult promptToBatchConversionRecipeAiExperiment(const QString& prompt, const AiAutomationPreferences& preferences, const QString& providerId = QString(), const QString& modelId = QString());
 QString aiProposalReviewSurfaceText(const AiWorkflowResult& result);
 
-} // namespace vibestudio
+} // namespace slopstudio

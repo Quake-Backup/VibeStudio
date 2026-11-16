@@ -6,9 +6,9 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
-// How much confidence VibeStudio has in the version text it recorded for a tool.
+// How much confidence SlopStudio has in the version text it recorded for a tool.
 enum class CompilerVersionProbeOutcome {
 	// The probe was not run (disabled, no executable, or unsafe to launch).
 	NotAttempted,
@@ -30,7 +30,7 @@ struct CompilerToolDescriptor {
 	QStringList executableNames;
 	QStringList candidateRelativePaths;
 	// Arguments the probe passes. An empty list still runs the tool with no arguments when
-	// versionProbeSupported is true: VibeMap2 (like ericw-tools) has no --version and treats an unknown option as a
+	// versionProbeSupported is true: SlopMap2 (like ericw-tools) has no --version and treats an unknown option as a
 	// parse error, while running with no arguments prints the banner and usage.
 	QStringList versionProbeArguments;
 	QStringList capabilityFlags;
@@ -89,7 +89,7 @@ QString compilerVersionProbeOutcomeText(CompilerVersionProbeOutcome outcome);
 QVector<CompilerToolDescriptor> compilerToolDescriptors();
 bool compilerToolDescriptorForId(const QString& id, CompilerToolDescriptor* out = nullptr);
 // The current tool or profile id for one retired by the move from ericw-tools and q3map2 to
-// VibeMap2 and VibeMap3 (for example "ericw-qbsp" -> "vibemap2-bsp"), or an empty string.
+// SlopMap2 and SlopMap3 (for example "ericw-qbsp" -> "slopmap2-bsp"), or an empty string.
 // Retired ids are never resolved silently; callers use this to explain the rename.
 QString renamedCompilerId(const QString& retiredId);
 // "Unknown compiler tool id: <id>", plus the rename when the id was retired.
@@ -98,4 +98,4 @@ CompilerRegistrySummary discoverCompilerTools(const QString& workspaceRootPath =
 CompilerRegistrySummary discoverCompilerTools(const CompilerRegistryOptions& options);
 QString compilerRegistrySummaryText(const CompilerRegistrySummary& summary);
 
-} // namespace vibestudio
+} // namespace slopstudio

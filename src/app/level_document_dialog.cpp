@@ -18,7 +18,7 @@
 #include <QUuid>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 NewLevelMapDialog::NewLevelMapDialog(QWidget* parent) : QDialog(parent)
@@ -230,14 +230,14 @@ QString levelMapRecoveryDirectory()
 QString chooseLevelMapRecovery(QWidget* parent, const QString& directory)
 {
 	QDialog dialog(parent);
-	dialog.setWindowTitle(QCoreApplication::translate("VibeStudioLevelRecovery", "Recover Maps"));
+	dialog.setWindowTitle(QCoreApplication::translate("SlopStudioLevelRecovery", "Recover Maps"));
 	dialog.resize(680, 420);
 	dialog.setAccessibleName(dialog.windowTitle());
 	auto* layout = new QVBoxLayout(&dialog);
-	auto* automatic = new QCheckBox(QCoreApplication::translate("VibeStudioLevelRecovery", "Save recovery checkpoints every minute"));
+	auto* automatic = new QCheckBox(QCoreApplication::translate("SlopStudioLevelRecovery", "Save recovery checkpoints every minute"));
 	automatic->setAccessibleName(automatic->text());
 	automatic->setToolTip(QCoreApplication::translate(
-		"VibeStudioLevelRecovery", "Writes local recovery copies of modified maps. Use Save to update the actual map file."));
+		"SlopStudioLevelRecovery", "Writes local recovery copies of modified maps. Use Save to update the actual map file."));
 	automatic->setChecked(StudioSettings().levelRecoveryEnabled());
 	QObject::connect(automatic, &QCheckBox::toggled, &dialog, [](bool enabled) {
 		StudioSettings settings;
@@ -253,13 +253,13 @@ QString chooseLevelMapRecovery(QWidget* parent, const QString& directory)
 	auto* detail = new QLabel;
 	detail->setWordWrap(true);
 	detail->setTextInteractionFlags(Qt::TextSelectableByKeyboard | Qt::TextSelectableByMouse);
-	detail->setAccessibleName(QCoreApplication::translate("VibeStudioLevelRecovery", "Recovery details"));
+	detail->setAccessibleName(QCoreApplication::translate("SlopStudioLevelRecovery", "Recovery details"));
 	layout->addWidget(detail);
 	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Open | QDialogButtonBox::Cancel);
 	auto* restore = buttons->button(QDialogButtonBox::Open);
-	restore->setText(QCoreApplication::translate("VibeStudioLevelRecovery", "Restore"));
+	restore->setText(QCoreApplication::translate("SlopStudioLevelRecovery", "Restore"));
 	auto* remove =
-		buttons->addButton(QCoreApplication::translate("VibeStudioLevelRecovery", "Delete Checkpoint"), QDialogButtonBox::ActionRole);
+		buttons->addButton(QCoreApplication::translate("SlopStudioLevelRecovery", "Delete Checkpoint"), QDialogButtonBox::ActionRole);
 	const auto refresh = [&]() {
 		list->clear();
 		for (const auto& record : listLevelMapRecoveries(directory)) {
@@ -267,14 +267,14 @@ QString chooseLevelMapRecovery(QWidget* parent, const QString& directory)
 												 .arg(record.mapName.isEmpty() ? QFileInfo(record.path).fileName() : record.mapName,
 													  record.writtenUtc.toLocalTime().toString(Qt::ISODate),
 													  record.sourcePath.isEmpty()
-														  ? QCoreApplication::translate("VibeStudioLevelRecovery", "Unsaved map")
+														  ? QCoreApplication::translate("SlopStudioLevelRecovery", "Unsaved map")
 														  : QDir::toNativeSeparators(record.sourcePath)),
 											 list);
 			item->setData(Qt::UserRole, record.path);
 			item->setData(Qt::UserRole + 1, record.isValid());
 			item->setData(Qt::UserRole + 2, record.isValid()
 												? QCoreApplication::translate(
-													  "VibeStudioLevelRecovery",
+													  "SlopStudioLevelRecovery",
 													  "%1 bytes. Restoring opens unsaved edits; it does not replace the original file.")
 													  .arg(record.payloadBytes)
 												: record.error);
@@ -282,7 +282,7 @@ QString chooseLevelMapRecovery(QWidget* parent, const QString& directory)
 		if (list->count()) {
 			list->setCurrentRow(0);
 		} else {
-			detail->setText(QCoreApplication::translate("VibeStudioLevelRecovery", "No recovery checkpoints are available."));
+			detail->setText(QCoreApplication::translate("SlopStudioLevelRecovery", "No recovery checkpoints are available."));
 		}
 	};
 	QObject::connect(list, &QListWidget::currentItemChanged, &dialog, [&](QListWidgetItem* item) {
@@ -303,7 +303,7 @@ QString chooseLevelMapRecovery(QWidget* parent, const QString& directory)
 		}
 		if (QMessageBox::question(
 				&dialog, dialog.windowTitle(),
-				QCoreApplication::translate("VibeStudioLevelRecovery",
+				QCoreApplication::translate("SlopStudioLevelRecovery",
 											"Delete this recovery checkpoint? The original map file will remain unchanged."),
 				QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes) {
 			return;
@@ -320,4 +320,4 @@ QString chooseLevelMapRecovery(QWidget* parent, const QString& directory)
 	return dialog.exec() == QDialog::Accepted && list->currentItem() ? list->currentItem()->data(Qt::UserRole).toString() : QString();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

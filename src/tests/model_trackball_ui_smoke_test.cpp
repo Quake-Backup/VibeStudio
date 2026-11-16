@@ -27,7 +27,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -48,7 +48,7 @@ QByteArray bytes(const ModelMesh &mesh)
 }
 bool capture(QWidget &widget, const QString &name)
 {
-	const auto root = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (root.isEmpty())
 		return true;
 	QImage image(widget.size() * widget.devicePixelRatioF(), QImage::Format_ARGB32_Premultiplied);
@@ -66,7 +66,7 @@ class Expansion final : public QTranslator
 	}
 	QString translate(const char *context, const char *source, const char *, int) const override
 	{
-		if (!QByteArray(context).startsWith("VibeStudioModel") && !QByteArray(context).endsWith("ModelViewport"))
+		if (!QByteArray(context).startsWith("SlopStudioModel") && !QByteArray(context).endsWith("ModelViewport"))
 			return {};
 		const auto value = QString::fromUtf8(source);
 		return QStringLiteral("[%1%2]").arg(value, QString(value.size() / 2, '~'));
@@ -413,7 +413,7 @@ bool maximum(QApplication &app)
 	app.processEvents();
 	maximumGap = std::max(maximumGap, elapsed.nsecsElapsed() - last);
 	tick.stop();
-	const double gapMs = maximumGap / 1e6, budget = qEnvironmentVariable("VIBESTUDIO_MODELLER_MAX_AUTHORING_GAP_MS").toDouble();
+	const double gapMs = maximumGap / 1e6, budget = qEnvironmentVariable("SLOPSTUDIO_MODELLER_MAX_AUTHORING_GAP_MS").toDouble();
 	ok &= expect(events >= 2 && (budget <= 0 || gapMs <= budget), "maximum free authoring remains within GUI event-gap budget");
 	std::cout << "Maximum trackball: 65536 vertices, 130050 faces, 16 poses; elapsed ms=" << elapsed.elapsed() << "; events=" << events
 			  << "; max gap ms=" << gapMs << '\n';
@@ -432,7 +432,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("trackball-ui-XXXXXX"));

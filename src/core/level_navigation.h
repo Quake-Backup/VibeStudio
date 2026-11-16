@@ -9,7 +9,7 @@
 #include <QVector>
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Navigation is editor metadata: it never changes geometry, selection or undo.
 struct PlanViewState {
@@ -110,4 +110,4 @@ bool readLevelBookmarks(const QString& path, LevelViewBookmarks* bookmarks, QByt
 bool writeLevelBookmarks(const QString& path, const LevelViewBookmarks& bookmarks, const QByteArray& expectedRevision,
 	QByteArray* newRevision = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

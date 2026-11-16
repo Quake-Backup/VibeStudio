@@ -11,7 +11,7 @@
 
 class QWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // The suffixes the Mesh Editor can open or import, as "*.mesh.json *.obj ..."
@@ -24,4 +24,4 @@ QString modelEditorOpenPatterns();
 // True when the user accepts the omissions; false when they cancel.
 bool reviewModelImportIssues(QWidget *parent, const QString &fileName, const QVector<ModelDecodeIssue> &issues);
 
-} // namespace vibestudio
+} // namespace slopstudio

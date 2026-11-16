@@ -19,13 +19,13 @@
 #include <QSignalBlocker>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelEditor)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelEditor)
 };
 
 // The fixes Prepare for Target can make for a format, in review order.
@@ -316,4 +316,4 @@ bool ModelEditorDialog::prepareForTarget(const QString &format, bool review, QSt
 									  .arg(profile.label));
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

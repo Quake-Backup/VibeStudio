@@ -4,7 +4,7 @@
 
 #include <QJsonObject>
 
-namespace vibestudio {
+namespace slopstudio {
 
 inline constexpr qint64 textureProjectFileLimit = 192ll * 1024 * 1024;
 
@@ -46,7 +46,7 @@ struct TextureProjectPreparedSave {
 	bool existed = false;
 };
 
-// VibeStudio-owned format: magic, LE version and metadata length, bounded JSON,
+// SlopStudio-owned format: magic, LE version and metadata length, bounded JSON,
 // one lossless PNG payload per layer, then SHA-256 over all preceding bytes.
 // Layer identity/order/properties and arbitrary bounded export metadata survive.
 QByteArray encodeTextureProject(const TextureDocument& document, const QJsonObject& metadata = {}, QString* error = nullptr, const TextureProgress& progress = {});
@@ -61,4 +61,4 @@ TextureProjectSaveReport writeTextureProject(const TextureDocument& document, co
 QJsonObject texturePaletteMetadata(const IdTechPaletteResolution& resolution);
 bool texturePaletteFromMetadata(const QJsonObject& metadata, IdTechPaletteResolution* resolution, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -15,7 +15,7 @@
 #include <iostream>
 #include <numbers>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool condition, const char *message)
@@ -388,7 +388,7 @@ int main(int argc, char **argv)
 				 "larger curved atlas preserves all animated face corners");
 	std::cout << "Larger atlas: " << larger.triangleCount << " triangles, " << timer.elapsed() << " ms\n";
 
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;

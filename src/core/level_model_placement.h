@@ -3,7 +3,7 @@
 // Placing a model in a level, shared by the Levels page Models tab, the Mesh
 // Editor's and Design Prop's Stage and Place, and `map place-model`.
 //
-// A Quake III map names models for VibeMap3 (q3map2's picomodel loader) to bake
+// A Quake III map names models for SlopMap3 (q3map2's picomodel loader) to bake
 // into the BSP, as misc_model: MD3, MDC, MD2, ASE, OBJ, LWO and FM load. A Quake
 // or Quake II map places a runtime entity whose class the game or mod defines;
 // MDL and MD2 load in the original engines, and other formats only in source
@@ -20,7 +20,7 @@
 
 #include <QStringList>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 struct LevelModelPlacementRequest
@@ -59,4 +59,4 @@ bool placeLevelModelEntity(LevelMapDocument *document, const LevelModelPlacement
 // ("*1") are not files.
 [[nodiscard]] QString levelEntityModelPath(const LevelMapEntity &entity);
 
-} // namespace vibestudio
+} // namespace slopstudio

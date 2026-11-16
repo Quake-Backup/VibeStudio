@@ -18,7 +18,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -591,14 +591,14 @@ bool modelSkinPaintOrbitProjection(const ModelMesh& mesh, int frame, const Model
 {
 	if (!projection || !validSize(camera.size) || !std::isfinite(camera.yaw) || !std::isfinite(camera.pitch) || !std::isfinite(camera.zoom)
 		|| camera.zoom <= 0.0) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "The paint view needs a size of 16 to 4096 pixels and a positive zoom."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "The paint view needs a size of 16 to 4096 pixels and a positive zoom."));
 	}
 	if (frame < 0 || frame >= mesh.frames.size()) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "Frame %1 does not exist.").arg(frame));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "Frame %1 does not exist.").arg(frame));
 	}
 	Bounds bounds;
 	if (!frameBounds(mesh, frame, &bounds)) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "The model has no geometry in frame %1.").arg(frame));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "The model has no geometry in frame %1.").arg(frame));
 	}
 	const Vec centre = bounds.centre;
 	const double yaw = camera.yaw * kPi / 180.0, pitch = camera.pitch * kPi / 180.0;
@@ -634,14 +634,14 @@ bool buildModelSkinPaintView(const ModelMesh& mesh, int frame, const ModelSkinPa
 		finite = finite && std::isfinite(value);
 	}
 	if (!view || !validSize(projection.size) || !finite) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "The paint view needs a size of 16 to 4096 pixels and a finite projection."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "The paint view needs a size of 16 to 4096 pixels and a finite projection."));
 	}
 	if (frame < 0 || frame >= mesh.frames.size()) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "Frame %1 does not exist.").arg(frame));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "Frame %1 does not exist.").arg(frame));
 	}
 	Bounds bounds;
 	if (!frameBounds(mesh, frame, &bounds)) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "The model has no geometry in frame %1.").arg(frame));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "The model has no geometry in frame %1.").arg(frame));
 	}
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
 	const int width = projection.size.width(), height = projection.size.height();
@@ -736,7 +736,7 @@ ModelSkinPaintResult ModelSkinPaintSession::result() const
 bool ModelSkinPaintSession::extend(const QVector<QPointF>& samples, QString* error, const ModelWorkControl& control)
 {
 	if (!m_state) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "No stroke is being painted."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "No stroke is being painted."));
 	}
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
 	State& state = *m_state;
@@ -756,20 +756,20 @@ bool ModelSkinPaintSession::begin(const ModelMesh& mesh, int surfaceIndex, int f
 {
 	m_state.reset();
 	if (skin.isNull()) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "Painting needs a skin image."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "Painting needs a skin image."));
 	}
 	if (surfaceIndex < 0 || surfaceIndex >= mesh.surfaces.size() || frame < 0 || frame >= mesh.surfaces.at(surfaceIndex).frames.size()) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "Surface %1 has no frame %2 to paint.").arg(surfaceIndex).arg(frame));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "Surface %1 has no frame %2 to paint.").arg(surfaceIndex).arg(frame));
 	}
 	const ModelSkinBrush& brush = stroke.brush;
 	if (!std::isfinite(brush.radius) || brush.radius <= 0.0 || brush.radius > 4096.0 || !std::isfinite(brush.opacity) || brush.opacity < 0.0
 		|| brush.opacity > 1.0 || brush.mirrorAxis < -1 || brush.mirrorAxis > 2 || brush.padding < 0 || brush.padding > 16
 		|| view.ids.size() != qsizetype(view.size.width()) * view.size.height()) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint",
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint",
 			"A brush needs a radius of up to 4096 pixels, an opacity of 0 to 1, a mirror axis of none, X, Y or Z and up to 16 texels of padding."));
 	}
 	if (!brush.stamp.isNull() && (brush.stamp.width() > kMaxStampDimension || brush.stamp.height() > kMaxStampDimension)) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "A stamp image may be up to %1 pixels on a side.").arg(kMaxStampDimension));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "A stamp image may be up to %1 pixels on a side.").arg(kMaxStampDimension));
 	}
 	ModelWorkProgress work(control, ModelWorkPhase::Editing, error);
 	if (!work.check()) {
@@ -780,7 +780,7 @@ bool ModelSkinPaintSession::begin(const ModelMesh& mesh, int surfaceIndex, int f
 	s.indexed = skin.format() == QImage::Format_Indexed8;
 	s.before = s.indexed ? skin : skin.convertToFormat(QImage::Format_ARGB32);
 	if (s.indexed && s.before.colorCount() == 0) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "The indexed skin has no palette."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "The indexed skin has no palette."));
 	}
 	s.brush = brush;
 	s.table = s.indexed ? s.before.colorTable() : QVector<QRgb>();
@@ -956,7 +956,7 @@ bool paintModelSkinStroke(const ModelMesh& mesh, int surfaceIndex, int frame, co
 	QImage* skin, ModelSkinPaintResult* result, QString* error, const ModelWorkControl& control)
 {
 	if (!skin || skin->isNull()) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "Painting needs a skin image."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "Painting needs a skin image."));
 	}
 	ModelSkinPaintSession session;
 	if (!session.begin(mesh, surfaceIndex, frame, view, stroke, *skin, error, control)) {
@@ -1003,11 +1003,11 @@ bool modelSkinPaintMdlEdit(const ModelMesh& mesh, int surface, const QImage& ski
 {
 	const int slot = modelSkinPaintMdlSlot(mesh, surface);
 	if (!edit || slot < 0) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "The surface has no MDL skin to replace; save the painted skin instead."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "The surface has no MDL skin to replace; save the painted skin instead."));
 	}
 	const QImage own = modelSurfaceIndexedSkin(mesh, surface);
 	if (skin.format() != QImage::Format_Indexed8 || skin.size() != mesh.mdl.skinSize || skin.colorTable() != own.colorTable()) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint",
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint",
 			"The painted skin no longer matches the model's skin size and palette, so it cannot replace it."));
 	}
 	ModelEdit result;
@@ -1028,7 +1028,7 @@ bool modelSkinPaintMdlEdit(const ModelMesh& mesh, int surface, const QImage& ski
 bool encodeModelPaintedSkin(const QImage& skin, const QString& path, QByteArray* bytes, QString* error)
 {
 	if (!bytes || skin.isNull()) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "There is no painted skin to write."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "There is no painted skin to write."));
 	}
 	const QString suffix = QFileInfo(path).suffix().toLower();
 	if (suffix == QStringLiteral("png") || suffix == QStringLiteral("jpg") || suffix == QStringLiteral("jpeg")) {
@@ -1040,7 +1040,7 @@ bool encodeModelPaintedSkin(const QImage& skin, const QString& path, QByteArray*
 		}
 		const QImage image = suffix == QStringLiteral("png") ? skin : skin.convertToFormat(QImage::Format_RGB32);
 		if (!writer.write(image)) {
-			return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "The painted skin could not be encoded as %1: %2").arg(suffix, writer.errorString()));
+			return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "The painted skin could not be encoded as %1: %2").arg(suffix, writer.errorString()));
 		}
 		return true;
 	}
@@ -1050,7 +1050,7 @@ bool encodeModelPaintedSkin(const QImage& skin, const QString& path, QByteArray*
 		options.format = TextureExportFormat::Targa;
 	} else if (suffix == QStringLiteral("pcx")) {
 		if (skin.format() != QImage::Format_Indexed8) {
-			return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "A PCX skin is written from an indexed skin; this one holds colours."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "A PCX skin is written from an indexed skin; this one holds colours."));
 		}
 		options.format = TextureExportFormat::Pcx;
 		palette.palette.id = QStringLiteral("painted");
@@ -1060,7 +1060,7 @@ bool encodeModelPaintedSkin(const QImage& skin, const QString& path, QByteArray*
 			palette.palette.colors.append(qRgb(0, 0, 0));
 		}
 	} else {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "Painted skins are written as PNG, TGA, JPEG or PCX, not .%1.").arg(suffix));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "Painted skins are written as PNG, TGA, JPEG or PCX, not .%1.").arg(suffix));
 	}
 	const TextureExportResult encoded = encodeTextureExport(options.format == TextureExportFormat::Pcx ? skin : skin.convertToFormat(QImage::Format_ARGB32), options, palette);
 	if (!encoded.succeeded) {
@@ -1073,11 +1073,11 @@ bool encodeModelPaintedSkin(const QImage& skin, const QString& path, QByteArray*
 bool stageModelPaintedSkin(const QByteArray& bytes, const QString& virtualPath, PackageStagingModel* staging, QString* error)
 {
 	if (!staging || !staging->isLoaded() || staging->sourceFormat() == PackageArchiveFormat::Wad) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "Open a folder, PAK, ZIP or PK3 package before staging a painted skin."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "Open a folder, PAK, ZIP or PK3 package before staging a painted skin."));
 	}
 	const auto normalized = normalizePackageVirtualPath(virtualPath, false);
 	if (bytes.isEmpty() || !normalized.isSafe() || normalized.normalizedPath.isEmpty()) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "The painted skin needs a safe package path."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "The painted skin needs a safe package path."));
 	}
 	auto staged = *staging;
 	if (!staged.addBytes(bytes, normalized.normalizedPath, error, PackageStageConflictResolution::ReplaceExisting)) {
@@ -1198,7 +1198,7 @@ bool parseModelSkinPaintStrokes(const QJsonObject& object, ModelSkinPaintCamera*
 	const QString& baseDirectory)
 {
 	const auto malformed = [error](const QString& detail) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "The strokes file is malformed: %1").arg(detail));
+		return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "The strokes file is malformed: %1").arg(detail));
 	};
 	const QJsonObject view = object.value(QStringLiteral("camera")).toObject();
 	ModelSkinPaintCamera parsedCamera;
@@ -1247,7 +1247,7 @@ bool parseModelSkinPaintStrokes(const QJsonObject& object, ModelSkinPaintCamera*
 			const QString path = entry.value(QStringLiteral("stamp")).toString();
 			const QString resolved = QFileInfo(path).isAbsolute() || baseDirectory.isEmpty() ? path : QDir(baseDirectory).filePath(path);
 			if (path.isEmpty() || !brush.stamp.load(resolved)) {
-				return fail(error, QCoreApplication::translate("VibeStudioModelSkinPaint", "The stamp image cannot be read: %1").arg(QDir::toNativeSeparators(resolved)));
+				return fail(error, QCoreApplication::translate("SlopStudioModelSkinPaint", "The stamp image cannot be read: %1").arg(QDir::toNativeSeparators(resolved)));
 			}
 		}
 		if (!brush.stamp.isNull() && (brush.stamp.width() > kMaxStampDimension || brush.stamp.height() > kMaxStampDimension)) {
@@ -1343,4 +1343,4 @@ QJsonObject modelSkinPaintStrokesJson(const ModelSkinPaintCamera& camera, const 
 		{QStringLiteral("strokes"), list}};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -5,7 +5,7 @@
 #include <QHash>
 #include <optional>
 
-namespace vibestudio
+namespace slopstudio
 {
 // View state, not authored bindings. Model/material files and slot order are
 // never changed. Package entry indexes belong to the caller's immutable reader.
@@ -31,4 +31,4 @@ QJsonObject modelAppearanceJson(const ModelAppearance &appearance);
 bool prepareModelAppearance(const ModelMesh &mesh, const ModelAppearance &appearance,
 							const PackageArchiveReader *archive, ModelAppearanceSnapshot *output,
 							QString *error = nullptr, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

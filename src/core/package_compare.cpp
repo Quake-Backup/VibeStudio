@@ -11,7 +11,7 @@
 #include <functional>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -101,7 +101,7 @@ bool hashEntryStream(const CompareSideEntry& entry, const CompareStreamer& read,
 		return !cancelled();
 	});
 	if (wrongSize || (succeeded && received != entry.sizeBytes)) {
-		if (error) *error = QCoreApplication::translate("VibeStudioPackageCompare", "Entry size changed while comparing it.");
+		if (error) *error = QCoreApplication::translate("SlopStudioPackageCompare", "Entry size changed while comparing it.");
 		return false;
 	}
 	if (!succeeded || cancelled()) return false;
@@ -197,7 +197,7 @@ CompareSide sideFromPlan(const PackageStagingModel& plan, bool includeDirectorie
 
 	side.hash = [&plan, kept](const CompareSideEntry& entry, QString* digest, QString* error, const PackageReadControl& control) {
 		if (entry.index < 0 || entry.index >= kept.size()) {
-			if (error) *error = QCoreApplication::translate("VibeStudioPackageCompare", "Planned entry is out of range.");
+			if (error) *error = QCoreApplication::translate("SlopStudioPackageCompare", "Planned entry is out of range.");
 			return false;
 		}
 		return hashEntryStream(entry, [&](const auto& consume) {
@@ -253,14 +253,14 @@ ContentOutcome compareContent(const CompareSide& left, const CompareSideEntry& l
 	QString leftError;
 	if (!left.hash || !left.hash(leftEntry, &outcome.leftHash, &leftError, control)) {
 		outcome.noteId = QStringLiteral("unreadable-left");
-		outcome.warning = QCoreApplication::translate("VibeStudioPackageCompare", "Unable to read %1 from the left package: %2").arg(leftEntry.path, leftError.isEmpty() ? QCoreApplication::translate("VibeStudioPackageCompare", "unknown error") : leftError);
+		outcome.warning = QCoreApplication::translate("SlopStudioPackageCompare", "Unable to read %1 from the left package: %2").arg(leftEntry.path, leftError.isEmpty() ? QCoreApplication::translate("SlopStudioPackageCompare", "unknown error") : leftError);
 		return outcome;
 	}
 	control.progress = progress(PackageCompareSource::Right);
 	QString rightError;
 	if (!right.hash || !right.hash(rightEntry, &outcome.rightHash, &rightError, control)) {
 		outcome.noteId = QStringLiteral("unreadable-right");
-		outcome.warning = QCoreApplication::translate("VibeStudioPackageCompare", "Unable to read %1 from the right package: %2").arg(rightEntry.path, rightError.isEmpty() ? QCoreApplication::translate("VibeStudioPackageCompare", "unknown error") : rightError);
+		outcome.warning = QCoreApplication::translate("SlopStudioPackageCompare", "Unable to read %1 from the right package: %2").arg(rightEntry.path, rightError.isEmpty() ? QCoreApplication::translate("SlopStudioPackageCompare", "unknown error") : rightError);
 		return outcome;
 	}
 
@@ -483,19 +483,19 @@ QString packageCompareStatusDisplayName(PackageCompareStatus status)
 {
 	switch (status) {
 	case PackageCompareStatus::Identical:
-		return QCoreApplication::translate("VibeStudioPackageCompare", "Identical");
+		return QCoreApplication::translate("SlopStudioPackageCompare", "Identical");
 	case PackageCompareStatus::Added:
-		return QCoreApplication::translate("VibeStudioPackageCompare", "Added");
+		return QCoreApplication::translate("SlopStudioPackageCompare", "Added");
 	case PackageCompareStatus::Removed:
-		return QCoreApplication::translate("VibeStudioPackageCompare", "Removed");
+		return QCoreApplication::translate("SlopStudioPackageCompare", "Removed");
 	case PackageCompareStatus::Changed:
-		return QCoreApplication::translate("VibeStudioPackageCompare", "Changed");
+		return QCoreApplication::translate("SlopStudioPackageCompare", "Changed");
 	case PackageCompareStatus::CaseOnly:
-		return QCoreApplication::translate("VibeStudioPackageCompare", "Case-only path difference");
+		return QCoreApplication::translate("SlopStudioPackageCompare", "Case-only path difference");
 	case PackageCompareStatus::Uncompared:
-		return QCoreApplication::translate("VibeStudioPackageCompare", "Not compared");
+		return QCoreApplication::translate("SlopStudioPackageCompare", "Not compared");
 	}
-	return QCoreApplication::translate("VibeStudioPackageCompare", "Identical");
+	return QCoreApplication::translate("SlopStudioPackageCompare", "Identical");
 }
 
 PackageCompareStatus packageCompareStatusFromId(const QString& id)
@@ -536,15 +536,15 @@ QString packageCompareContentDisplayName(PackageCompareContent content)
 {
 	switch (content) {
 	case PackageCompareContent::NotCompared:
-		return QCoreApplication::translate("VibeStudioPackageCompare", "Not compared");
+		return QCoreApplication::translate("SlopStudioPackageCompare", "Not compared");
 	case PackageCompareContent::SizeOnly:
-		return QCoreApplication::translate("VibeStudioPackageCompare", "Size");
+		return QCoreApplication::translate("SlopStudioPackageCompare", "Size");
 	case PackageCompareContent::Crc32:
-		return QCoreApplication::translate("VibeStudioPackageCompare", "Stored CRC-32");
+		return QCoreApplication::translate("SlopStudioPackageCompare", "Stored CRC-32");
 	case PackageCompareContent::Sha256:
-		return QCoreApplication::translate("VibeStudioPackageCompare", "SHA-256 of contents");
+		return QCoreApplication::translate("SlopStudioPackageCompare", "SHA-256 of contents");
 	}
-	return QCoreApplication::translate("VibeStudioPackageCompare", "Not compared");
+	return QCoreApplication::translate("SlopStudioPackageCompare", "Not compared");
 }
 
 PackageCompareResult comparePackages(const PackageArchiveReader& left, const PackageArchiveReader& right, const PackageCompareRequest& request)
@@ -556,7 +556,7 @@ PackageCompareResult comparePackages(const PackageArchiveReader& left, const Pac
 		result.leftLabel = request.leftLabel.trimmed().isEmpty() ? QStringLiteral("left") : request.leftLabel.trimmed();
 		result.rightLabel = request.rightLabel.trimmed().isEmpty() ? QStringLiteral("right") : request.rightLabel.trimmed();
 		result.metadataOnly = request.metadataOnly;
-		result.warnings.push_back(QCoreApplication::translate("VibeStudioPackageCompare", "Both packages must be open to compare them."));
+		result.warnings.push_back(QCoreApplication::translate("SlopStudioPackageCompare", "Both packages must be open to compare them."));
 		for (const auto* reader : {&left, &right}) { if (!reader->isOpen() && !reader->errorString().isEmpty()) { result.warnings << reader->errorString(); } }
 		return result;
 	}
@@ -577,7 +577,7 @@ PackageCompareResult comparePackageToPlan(const PackageArchiveReader& left, cons
 		result.leftLabel = request.leftLabel.trimmed().isEmpty() ? QStringLiteral("left") : request.leftLabel.trimmed();
 		result.rightLabel = request.rightLabel.trimmed().isEmpty() ? QStringLiteral("right") : request.rightLabel.trimmed();
 		result.metadataOnly = request.metadataOnly;
-		result.warnings.push_back(QCoreApplication::translate("VibeStudioPackageCompare", "The package must be open and the plan must be loaded to compare them."));
+		result.warnings.push_back(QCoreApplication::translate("SlopStudioPackageCompare", "The package must be open and the plan must be loaded to compare them."));
 		if (!left.isOpen() && !left.errorString().isEmpty()) { result.warnings << left.errorString(); }
 		return result;
 	}
@@ -597,24 +597,24 @@ PackageCompareResult comparePackageToPlan(const PackageArchiveReader& left, cons
 QStringList packageCompareLines(const PackageCompareResult& result)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioPackageCompare", "Package compare");
+	lines << QCoreApplication::translate("SlopStudioPackageCompare", "Package compare");
 	if (!result.completed) {
-		lines << (result.cancelled ? QCoreApplication::translate("VibeStudioPackageCompare", "Comparison cancelled; results are incomplete.")
-			: QCoreApplication::translate("VibeStudioPackageCompare", "Comparison could not be completed."));
+		lines << (result.cancelled ? QCoreApplication::translate("SlopStudioPackageCompare", "Comparison cancelled; results are incomplete.")
+			: QCoreApplication::translate("SlopStudioPackageCompare", "Comparison could not be completed."));
 	}
-	lines << QCoreApplication::translate("VibeStudioPackageCompare", "%1: %2").arg(result.leftLabel, result.leftSource.isEmpty() ? QCoreApplication::translate("VibeStudioPackageCompare", "not available") : result.leftSource);
-	lines << QCoreApplication::translate("VibeStudioPackageCompare", "%1: %2").arg(result.rightLabel, result.rightSource.isEmpty() ? QCoreApplication::translate("VibeStudioPackageCompare", "not available") : result.rightSource);
-	lines << QCoreApplication::translate("VibeStudioPackageCompare", "Mode: %1").arg(result.metadataOnly ? QCoreApplication::translate("VibeStudioPackageCompare", "metadata only") : QCoreApplication::translate("VibeStudioPackageCompare", "contents"));
-	lines << QCoreApplication::translate("VibeStudioPackageCompare", "Entries: %1 -> %2").arg(result.summary.leftCount).arg(result.summary.rightCount);
-	lines << QCoreApplication::translate("VibeStudioPackageCompare", "Added: %1").arg(result.summary.addedCount);
-	lines << QCoreApplication::translate("VibeStudioPackageCompare", "Removed: %1").arg(result.summary.removedCount);
-	lines << QCoreApplication::translate("VibeStudioPackageCompare", "Changed: %1").arg(result.summary.changedCount);
-	lines << QCoreApplication::translate("VibeStudioPackageCompare", "Case-only path differences: %1").arg(result.summary.caseOnlyCount);
-	lines << QCoreApplication::translate("VibeStudioPackageCompare", "Identical: %1").arg(result.summary.identicalCount);
+	lines << QCoreApplication::translate("SlopStudioPackageCompare", "%1: %2").arg(result.leftLabel, result.leftSource.isEmpty() ? QCoreApplication::translate("SlopStudioPackageCompare", "not available") : result.leftSource);
+	lines << QCoreApplication::translate("SlopStudioPackageCompare", "%1: %2").arg(result.rightLabel, result.rightSource.isEmpty() ? QCoreApplication::translate("SlopStudioPackageCompare", "not available") : result.rightSource);
+	lines << QCoreApplication::translate("SlopStudioPackageCompare", "Mode: %1").arg(result.metadataOnly ? QCoreApplication::translate("SlopStudioPackageCompare", "metadata only") : QCoreApplication::translate("SlopStudioPackageCompare", "contents"));
+	lines << QCoreApplication::translate("SlopStudioPackageCompare", "Entries: %1 -> %2").arg(result.summary.leftCount).arg(result.summary.rightCount);
+	lines << QCoreApplication::translate("SlopStudioPackageCompare", "Added: %1").arg(result.summary.addedCount);
+	lines << QCoreApplication::translate("SlopStudioPackageCompare", "Removed: %1").arg(result.summary.removedCount);
+	lines << QCoreApplication::translate("SlopStudioPackageCompare", "Changed: %1").arg(result.summary.changedCount);
+	lines << QCoreApplication::translate("SlopStudioPackageCompare", "Case-only path differences: %1").arg(result.summary.caseOnlyCount);
+	lines << QCoreApplication::translate("SlopStudioPackageCompare", "Identical: %1").arg(result.summary.identicalCount);
 	if (result.summary.uncomparedCount > 0) {
-		lines << QCoreApplication::translate("VibeStudioPackageCompare", "Contents not compared: %1").arg(result.summary.uncomparedCount);
+		lines << QCoreApplication::translate("SlopStudioPackageCompare", "Contents not compared: %1").arg(result.summary.uncomparedCount);
 	}
-	lines << QCoreApplication::translate("VibeStudioPackageCompare", "Size delta: %1").arg(result.summary.sizeDelta);
+	lines << QCoreApplication::translate("SlopStudioPackageCompare", "Size delta: %1").arg(result.summary.sizeDelta);
 
 	for (const PackageCompareEntry& entry : result.entries) {
 		if (entry.status == PackageCompareStatus::Identical) {
@@ -632,7 +632,7 @@ QStringList packageCompareLines(const PackageCompareResult& result)
 		lines << line;
 	}
 	if (!result.warnings.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioPackageCompare", "Warnings:");
+		lines << QCoreApplication::translate("SlopStudioPackageCompare", "Warnings:");
 		for (const QString& warning : result.warnings) {
 			lines << QStringLiteral("- %1").arg(warning);
 		}
@@ -698,4 +698,4 @@ QByteArray packageCompareJsonBytes(const PackageCompareResult& result)
 	return QJsonDocument(packageCompareJson(result)).toJson(QJsonDocument::Indented);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

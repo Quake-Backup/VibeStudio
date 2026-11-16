@@ -11,7 +11,7 @@
 class QThread;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackageEntryModel;
 QString packageEntryIconName(const PackageEntry& entry);
@@ -74,4 +74,4 @@ private:
 	void restoreSelection();
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -10,7 +10,7 @@
 #include <QJsonArray>
 #include <QSet>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -70,7 +70,7 @@ ModelAppearanceCliResult runModelAppearance(const QStringList &arguments)
 	PackageArchive archive;
 	if (!readModelFile(path, &bytes, &error)) { return fail(1, error); }
 	const auto package = values.value("--package");
-	if (package.endsWith(".vibepackage", Qt::CaseInsensitive)) {
+	if (package.endsWith(".sloppackage", Qt::CaseInsensitive)) {
 		PackageStagingModel staging;
 		if (!PackageDraft::load(package, &staging, &error)) { return fail(3, error); }
 		archive = packagePlannedArchive(staging, &error);
@@ -103,4 +103,4 @@ ModelAppearanceCliResult runModelAppearance(const QStringList &arguments)
 	result.text += levelPreviewAssetsText(report);
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

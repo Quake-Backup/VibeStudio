@@ -17,7 +17,7 @@
 
 class QCoreApplication;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct TranslationLoadResult {
 	bool installed = false;
@@ -40,7 +40,7 @@ struct TranslationLoadResult {
 void configureHighDpiBehavior();
 
 // Resolves and installs the .qm catalog for `localeName`, replacing any
-// previously installed VibeStudio translator. An empty or unknown locale falls
+// previously installed SlopStudio translator. An empty or unknown locale falls
 // back to the source language without reporting failure; "system" follows the
 // operating system's language.
 TranslationLoadResult installStudioTranslations(QCoreApplication& app, const QString& localeName);
@@ -212,4 +212,4 @@ QStringList crashReportSummaryLines(const CrashReportInfo& info);
 QString crashReportSummaryText(const CrashReportInfo& info);
 QJsonObject crashReportJson(const CrashReportInfo& info);
 
-} // namespace vibestudio
+} // namespace slopstudio

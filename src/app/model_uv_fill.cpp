@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -195,4 +195,4 @@ bool buildModelUvSelectionPath(const ModelSurface &surface, const QSet<int> &fac
 	*result = std::move(candidate);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

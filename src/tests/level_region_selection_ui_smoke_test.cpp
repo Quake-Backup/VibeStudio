@@ -19,7 +19,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& detail = {}) {
@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
 	const auto original = serializeLevelMap(map).bytes; const auto path = temp.filePath("region.map");
 	QFile file(path); if (!file.open(QIODevice::WriteOnly) || file.write(original) != original.size()) { return 1; } file.close();
 	const QVector<LevelMapSelectionRef> source{{LevelMapSelectionKind::QuakeBrush,0}}, target{{LevelMapSelectionKind::QuakeBrush,1}};
-	for (const auto& profile : {QStringLiteral("trenchbroom"),QStringLiteral("netradiant-custom"),QStringLiteral("vibestudio-default")}) {
+	for (const auto& profile : {QStringLiteral("trenchbroom"),QStringLiteral("netradiant-custom"),QStringLiteral("slopstudio-default")}) {
 		std::cout << "Region UI " << profile.toStdString() << std::endl;
 		settings.setSelectedEditorProfileId(profile); settings.sync(); ApplicationShell shell; shell.resize(1600,1000); shell.show(); shell.openPathFromCommandLine(path);
 		const auto action = [&](const char* id) { return shell.findChild<QAction*>(QLatin1String(id)); };
@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
 		const auto beforeInside = shell.levelDocument().undoStack.size();
 		action("map.selectInside")->trigger();
 		expect(shell.levelDocument().selection == target,"GUI inside matches core",shell.statusBar()->currentMessage());
-		const bool native = profile != "vibestudio-default";
+		const bool native = profile != "slopstudio-default";
 		if (native) {
 			expect(shell.levelDocument().brushes.size() == 2 && shell.levelDocument().undoStack.size() == beforeInside + 1,"inside consumes volumes once",shell.statusBar()->currentMessage());
 			const auto changed = bytes(); action("map.undo")->trigger(); expect(bytes() == original && shell.levelDocument().selection == source,"GUI undo restores volumes and selection");
@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
 				auto* bar = dialog->findChild<QProgressBar*>("levelPlacementTaskProgress"); auto* cancel = dialog->findChild<QPushButton*>("levelPlacementTaskCancel");
 				expect(dialog->accessibleName() == dialog->windowTitle() && bar && bar->maximum() == 1000 && QAccessible::queryAccessibleInterface(bar)->role() == QAccessible::ProgressBar
 					&& cancel && cancel->focusPolicy() != Qt::NoFocus && !cancel->accessibleDescription().isEmpty(),"region worker accessibility");
-				const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+				const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 				if (!capture.isEmpty()) { QDir().mkpath(capture); QImage image(dialog->size(),QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image);
 					expect(image.save(QDir(capture).filePath(QStringLiteral("region-%1.png").arg(scale))),"render owned region progress widget"); }
 				cancel->click(); break;

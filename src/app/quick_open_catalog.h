@@ -10,7 +10,7 @@
 class QThread;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Keys are absolute file paths, or "package:" followed by a virtual path.
 struct QuickOpenEntry {
@@ -60,4 +60,4 @@ private:
 	quint64 m_serial = 0;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

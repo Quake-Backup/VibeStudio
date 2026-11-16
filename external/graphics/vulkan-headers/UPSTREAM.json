@@ -3,7 +3,7 @@
   "revision": "409c16be502e39fe70dd6fe2d9ad4842ef2c9a53",
   "version": "v1.4.313",
   "reviewed": "2026-10-08",
-  "licenseReview": "Every vendored header is Apache-2.0 (SPDX lines unchanged); the repository's LICENSE.md also names MIT, which covers files not vendored here. Headers only, compiled into VibeStudio; Apache-2.0 is compatible with GPLv3. LICENSE.md and both licence texts are kept unchanged.",
+  "licenseReview": "Every vendored header is Apache-2.0 (SPDX lines unchanged); the repository's LICENSE.md also names MIT, which covers files not vendored here. Headers only, compiled into SlopStudio; Apache-2.0 is compatible with GPLv3. LICENSE.md and both licence texts are kept unchanged.",
   "files": {
     "include/vk_video/vulkan_video_codec_av1std.h": "76c408eb8dce6e1f068594eb3239e75a05e3395f2ce10fef512599bd916fe879",
     "include/vk_video/vulkan_video_codec_av1std_decode.h": "2b912389d39d6627ee8af01e052e9557d213b27c0b79a0e25f5366cfe1942f1a",

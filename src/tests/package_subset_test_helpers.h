@@ -6,7 +6,7 @@
 #include <QFile>
 #include <QPair>
 
-namespace vibestudio::subset_test {
+namespace slopstudio::subset_test {
 using Lump = QPair<QByteArray, QByteArray>;
 inline void u32(QByteArray& bytes, quint32 value)
 {
@@ -93,4 +93,4 @@ inline qsizetype index(const PackageArchiveReader& archive, const QString& name,
 	}
 	return -1;
 }
-} // namespace vibestudio::subset_test
+} // namespace slopstudio::subset_test

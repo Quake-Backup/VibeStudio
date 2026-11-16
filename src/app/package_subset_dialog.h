@@ -14,7 +14,7 @@ class QPushButton;
 class QTableWidget;
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 class PackageSubsetDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(PackageSubsetDialog)
 public:
@@ -46,4 +46,4 @@ private:
 	QPushButton* m_export = nullptr;
 	QPushButton* m_cancel = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

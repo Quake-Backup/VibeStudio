@@ -15,7 +15,7 @@ class QTabWidget;
 class QThread;
 class QTreeWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class AudioWaveformView;
 struct AudioMediaReview;
@@ -58,4 +58,4 @@ class AudioMediaDialog final : public QDialog {
 	QTabWidget *m_waves = nullptr;
 	AudioWaveformView *m_before = nullptr, *m_after = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -46,7 +46,7 @@ Playback uses Qt Multimedia. Windows and macOS release builds include it; Linux
 release builds do not yet, so the playback controls stay disabled there and the
 **Volume** tooltip says the build has no audio playback. Everything else on
 this page, including editing and export, works without it. If no output device
-is available, VibeStudio reports a retryable error: choose an output in your
+is available, SlopStudio reports a retryable error: choose an output in your
 system's sound settings and press Play again.
 
 ## Edit a sound
@@ -171,10 +171,10 @@ and delivered in the game's format; play them, then choose **Save to Project**,
 ## Command-line equivalents
 
 ```sh
-vibestudio --cli asset audio-wav ./pak0.pk3 sound/items/pickup.wav --output ./pickup.wav --dry-run
-vibestudio --cli asset audio-edit ./sound.wav --operation normalize --db -1 --output ./normalized.wav --dry-run --json
-vibestudio --cli asset audio-export ./sound.vsaudio --preset doom --output ./DSWIND.dmx --dry-run --json
-vibestudio --cli asset audio-analyze ./sound.vsaudio --json
+slopstudio --cli asset audio-wav ./pak0.pk3 sound/items/pickup.wav --output ./pickup.wav --dry-run
+slopstudio --cli asset audio-edit ./sound.wav --operation normalize --db -1 --output ./normalized.wav --dry-run --json
+slopstudio --cli asset audio-export ./sound.vsaudio --preset doom --output ./DSWIND.dmx --dry-run --json
+slopstudio --cli asset audio-analyze ./sound.vsaudio --json
 ```
 
 <details>

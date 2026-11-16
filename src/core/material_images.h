@@ -36,7 +36,7 @@
 #include <functional>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct MaterialTexture {
 	int width = 0;
@@ -226,4 +226,4 @@ QImage doom3SmoothNormalMap(const QImage& normalMap);
 // Decodes a Doom picture (patch) into palette indices, with -1 for holes.
 bool decodeDoomPatchIndices(const QByteArray& bytes, QVector<int>* indices, QSize* size, QPoint* offset = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

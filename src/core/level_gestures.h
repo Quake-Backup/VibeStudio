@@ -3,7 +3,7 @@
 #include "core/level_editor_controls.h"
 #include <QJsonObject>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelGestureOption { QString id; QString label; int value = 0; };
 enum class LevelGestureFieldKind { Choice, MotionKey, ToggleKey, HoldKey };
 struct LevelGestureField {
@@ -24,4 +24,4 @@ bool parseLevelGestures(const QByteArray& bytes, QString* profile, QJsonObject* 
 bool readLevelGestures(const QString& path, QString* profile, QJsonObject* overrides, QString* error = nullptr);
 bool writeLevelGestures(const QString& path, const QString& profile, const QJsonObject& overrides,
 	bool overwrite, QString* error = nullptr, const QString& settingsPath = {});
-} // namespace vibestudio
+} // namespace slopstudio

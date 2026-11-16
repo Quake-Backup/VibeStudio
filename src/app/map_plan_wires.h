@@ -6,7 +6,7 @@
 #include <functional>
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class MapPlanWireStyle { World, Entity, Invalid, Selection };
 
@@ -73,4 +73,4 @@ MapPlanWires buildMapPlanSelectionWires(const LevelMapDocument& document, const 
 	const MapViewportSceneIndex& index, MapViewportProjection projection, const QVector<LevelMapSelectionRef>& selection,
 	const MapPlanWireLimits& limits = {}, const std::atomic_bool* cancelled = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

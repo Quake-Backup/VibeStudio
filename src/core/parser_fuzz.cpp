@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -285,4 +285,4 @@ quint64 parserFuzzSeed(const char* environmentVariable, quint64 fallbackSeed)
 	return value;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

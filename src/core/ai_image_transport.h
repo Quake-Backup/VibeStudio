@@ -35,7 +35,7 @@
 
 class QNetworkAccessManager;
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class AiImageApi {
 	None,
@@ -200,4 +200,4 @@ private:
 	std::unique_ptr<State> m_state;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

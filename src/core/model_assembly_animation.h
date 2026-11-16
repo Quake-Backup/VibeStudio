@@ -2,7 +2,7 @@
 
 #include "core/model_assembly.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelAssemblyAnimationOptions
 {
@@ -29,4 +29,4 @@ bool exportModelAssemblyAnimation(const ModelAssembly &assembly, const ModelAsse
 								  const ModelAssemblyAnimationOptions &options, const QString &path, const QString &sourcePath,
 								  bool overwrite, bool dryRun, QString *error = nullptr, const ModelWorkControl &control = {},
 								  ModelExportReport *report = nullptr, const std::shared_ptr<const PackageArchiveReader> &archive = {});
-} // namespace vibestudio
+} // namespace slopstudio

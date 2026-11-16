@@ -24,7 +24,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Node sizes in scene units (pixels at zoom 1 with text at 100%). The graph's
 // automatic layout and the view that draws it use the same sizes, so laid-out
@@ -240,4 +240,4 @@ QJsonObject materialGraphJson(const MaterialGraph& graph);
 // "property": "blend", "value": "add"}, ...].
 bool parseMaterialGraphEditsJson(const QByteArray& json, QVector<MaterialGraphEdit>* edits, QString* error);
 
-} // namespace vibestudio
+} // namespace slopstudio

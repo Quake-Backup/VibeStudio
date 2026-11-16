@@ -10,11 +10,11 @@
 #include <QJsonDocument>
 #include <QSet>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 WorkspaceCliResult runWorkspaceCommand(const QStringList& arguments)
 {
 	const auto fail = [](int code, const char* text) {
-		return WorkspaceCliResult{code, QCoreApplication::translate("VibeStudioWorkspaceCli", text), {}, {}};
+		return WorkspaceCliResult{code, QCoreApplication::translate("SlopStudioWorkspaceCli", text), {}, {}};
 	};
 	const QSet<QString> globals {"--settings-file", "--locale", "--catalog-root"};
 	const QSet<QString> flags {"--cli", "--json", "--quiet", "--verbose", "--overwrite", "--dry-run", "--from-session"};
@@ -24,14 +24,14 @@ WorkspaceCliResult runWorkspaceCommand(const QStringList& arguments)
 		const auto arg = arguments[i];
 		if (!arg.startsWith('-')) { positional << arg; continue; }
 		const auto equal = arg.indexOf('='); const auto key = equal < 0 ? arg : arg.left(equal);
-		if (seen.contains(key) && key != QStringLiteral("--code") && key != QStringLiteral("--model")) { return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "Repeated workspace or format option.")); }
+		if (seen.contains(key) && key != QStringLiteral("--code") && key != QStringLiteral("--model")) { return fail(2, QT_TRANSLATE_NOOP("SlopStudioWorkspaceCli", "Repeated workspace or format option.")); }
 		seen.insert(key);
 		if (flags.contains(key) && equal < 0) { continue; }
-		if (!options.contains(key) && !globals.contains(key)) { return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "Unknown workspace or format option.")); }
+		if (!options.contains(key) && !globals.contains(key)) { return fail(2, QT_TRANSLATE_NOOP("SlopStudioWorkspaceCli", "Unknown workspace or format option.")); }
 		QString value;
 		if (equal >= 0) { value = arg.mid(equal + 1); }
 		else if (i + 1 < arguments.size() && !arguments[i + 1].startsWith('-')) { value = arguments[++i]; }
-		if (value.isEmpty()) { return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "Missing workspace or format option value.")); }
+		if (value.isEmpty()) { return fail(2, QT_TRANSLATE_NOOP("SlopStudioWorkspaceCli", "Missing workspace or format option value.")); }
 		if (key == QStringLiteral("--code")) { codeFiles << value; } else if (key == QStringLiteral("--model")) { modelSources << value; } else { values.insert(key, value); }
 	}
 	const auto family = positional.value(0), action = positional.value(1);
@@ -40,17 +40,17 @@ WorkspaceCliResult runWorkspaceCommand(const QStringList& arguments)
 	const bool create = family == QStringLiteral("workspace") && action == QStringLiteral("create");
 	const bool inspect = family == QStringLiteral("workspace") && action == QStringLiteral("inspect");
 	if ((!catalog && !route && !create && !inspect) || positional.size() != (catalog ? 2 : 3)) {
-		return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "Expected workspace create|inspect <file>, asset formats, or asset route <path>."));
+		return fail(2, QT_TRANSLATE_NOOP("SlopStudioWorkspaceCli", "Expected workspace create|inspect <file>, asset formats, or asset route <path>."));
 	}
 	for (const auto& key : seen) {
 		if (globals.contains(key) || QStringList{"--cli", "--json", "--quiet", "--verbose"}.contains(key)) { continue; }
 		if ((catalog && key == QStringLiteral("--module")) || (create && key != QStringLiteral("--module"))) { continue; }
-		return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "This option does not apply to the selected operation."));
+		return fail(2, QT_TRANSLATE_NOOP("SlopStudioWorkspaceCli", "This option does not apply to the selected operation."));
 	}
 	WorkspaceCliResult result;
 	if (catalog) {
 		const auto module = values.value(QStringLiteral("--module"));
-		if (!module.isEmpty() && !workspaceModuleIds().contains(module)) { return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "Unknown module identifier.")); }
+		if (!module.isEmpty() && !workspaceModuleIds().contains(module)) { return fail(2, QT_TRANSLATE_NOOP("SlopStudioWorkspaceCli", "Unknown module identifier.")); }
 		QJsonArray formats;
 		for (const auto& format : assetFormats()) {
 			if (!module.isEmpty() && format.module != module) { continue; }
@@ -71,7 +71,7 @@ WorkspaceCliResult runWorkspaceCommand(const QStringList& arguments)
 	const auto path = QFileInfo(positional[2]).absoluteFilePath();
 	WorkspaceDocument document; QByteArray revision; QString error;
 	if (inspect) {
-		if (!QFileInfo::exists(path)) { return fail(3, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "Workspace file not found.")); }
+		if (!QFileInfo::exists(path)) { return fail(3, QT_TRANSLATE_NOOP("SlopStudioWorkspaceCli", "Workspace file not found.")); }
 		if (!readWorkspaceDocument(path, &document, &revision, &error)) { return {4, error, {}, {}}; }
 	} else {
 		if (seen.contains(QStringLiteral("--from-session"))) {
@@ -87,22 +87,22 @@ WorkspaceCliResult runWorkspaceCommand(const QStringList& arguments)
 		// Editable model sources the modeller reopens with the workspace.
 		for (const auto& model : modelSources) { const auto file = QFileInfo(model).absoluteFilePath(); if (!document.modelSources.contains(file)) { document.modelSources << file; } }
 		if (QFileInfo::exists(path)) {
-			if (!seen.contains(QStringLiteral("--overwrite"))) { return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "The workspace exists. Use --overwrite after reviewing it.")); }
+			if (!seen.contains(QStringLiteral("--overwrite"))) { return fail(2, QT_TRANSLATE_NOOP("SlopStudioWorkspaceCli", "The workspace exists. Use --overwrite after reviewing it.")); }
 			WorkspaceDocument existing;
 			if (!readWorkspaceDocument(path, &existing, &revision, &error)) { return {4, error, {}, {}}; }
 			document.extensions = existing.extensions;
 		}
 		WorkspaceDocument checked;
 		if (!parseWorkspaceDocument(QJsonDocument(workspaceDocumentJson(document, path)).toJson(), path, &checked, &error)) { return {2, error, {}, {}}; }
-		if (QFileInfo(path).suffix().compare(QStringLiteral("vibeworkspace"), Qt::CaseInsensitive) != 0 || !QDir(QFileInfo(path).absolutePath()).exists() || QFileInfo(path).isSymLink()) {
-			return fail(2, QT_TRANSLATE_NOOP("VibeStudioWorkspaceCli", "Choose a .vibeworkspace file in an existing folder, with no symbolic-link destination."));
+		if (QFileInfo(path).suffix().compare(QStringLiteral("slopworkspace"), Qt::CaseInsensitive) != 0 || !QDir(QFileInfo(path).absolutePath()).exists() || QFileInfo(path).isSymLink()) {
+			return fail(2, QT_TRANSLATE_NOOP("SlopStudioWorkspaceCli", "Choose a .slopworkspace file in an existing folder, with no symbolic-link destination."));
 		}
 		if (!seen.contains(QStringLiteral("--dry-run")) && !writeWorkspaceDocument(path, document, revision, &revision, &error)) { return {4, error, {}, {}}; }
 	}
 	result.payload = {{"path", path}, {"workspace", workspaceDocumentJson(document, path)}, {"missingReferences", QJsonArray::fromStringList(workspaceMissingReferences(document))},
 		{"revision", QString::fromLatin1(revision.toHex())}, {"dryRun", seen.contains(QStringLiteral("--dry-run"))}};
-	result.lines << path << QCoreApplication::translate("VibeStudioWorkspaceCli", "Active module: %1").arg(document.activeModule);
-	for (const auto& missing : workspaceMissingReferences(document)) { result.lines << QCoreApplication::translate("VibeStudioWorkspaceCli", "Missing: %1").arg(missing); }
+	result.lines << path << QCoreApplication::translate("SlopStudioWorkspaceCli", "Active module: %1").arg(document.activeModule);
+	for (const auto& missing : workspaceMissingReferences(document)) { result.lines << QCoreApplication::translate("SlopStudioWorkspaceCli", "Missing: %1").arg(missing); }
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

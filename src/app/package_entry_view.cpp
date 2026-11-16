@@ -15,7 +15,7 @@
 #include <new>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 QString packageEntryIconName(const PackageEntry& entry)
 {
@@ -36,7 +36,7 @@ QString packageEntryIconName(const PackageEntry& entry)
 }
 
 class PackageEntryModel final : public QAbstractListModel {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioPackageBrowser)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioPackageBrowser)
 public:
 	explicit PackageEntryModel(QObject* parent) : QAbstractListModel(parent) {}
 	std::shared_ptr<const PackageBrowserIndex> snapshot;
@@ -279,4 +279,4 @@ QVector<qsizetype> PackageEntryView::selectedEntryIndexes() const
 void PackageEntryView::refreshPresentation() { viewport()->update(); }
 void PackageEntryView::startDrag(Qt::DropActions supportedActions) { QListView::startDrag(supportedActions & Qt::CopyAction); }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -19,7 +19,7 @@
 #include <QGuiApplication>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 // The last typed points survive closing the dialog, up to this much text.
@@ -157,4 +157,4 @@ void ApplicationShell::createLevelBrushFromPointsFromUi()
 		m_settings.setShellLayoutState(QStringLiteral("levelBrushPoints"), typed.toUtf8());
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

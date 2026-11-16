@@ -3,7 +3,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr qint64 AudioAutomationFrameLimit = 384000LL * 60 * 60 * 24;
 inline constexpr int AudioAutomationPointLimit = 4096;
@@ -36,4 +36,4 @@ AudioAutomationPoint audioAutomationBoundary(const QVector<AudioAutomationPoint>
 QJsonArray audioAutomationToJson(const QVector<AudioAutomationPoint> &points);
 bool audioAutomationFromJson(const QJsonValue &value, QVector<AudioAutomationPoint> *points, double low, double high,
                              bool legacyLinear = false, bool legacyShape = false);
-} // namespace vibestudio
+} // namespace slopstudio

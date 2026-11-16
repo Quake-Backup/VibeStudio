@@ -17,7 +17,7 @@
 #include <limits>
 #include <numbers>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -138,7 +138,7 @@ int main(int argc, char** argv)
 	                 QJsonDocument::fromJson(QJsonDocument(json).toJson()).object() == json,
 	             "the stable JSON report round-trips all finite statistics and positions");
 	if (argc > 1) {
-		const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+		const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 		QDir().mkpath(root);
 		QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-analysis-XXXXXX")));
 		if (!temporary.isValid()) {

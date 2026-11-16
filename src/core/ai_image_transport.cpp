@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -111,7 +111,7 @@ class MultipartBody {
 public:
 	explicit MultipartBody(const QByteArray& seed)
 	{
-		m_boundary = QByteArrayLiteral("VibeStudioBoundary") + QCryptographicHash::hash(seed, QCryptographicHash::Sha1).toHex().left(24);
+		m_boundary = QByteArrayLiteral("SlopStudioBoundary") + QCryptographicHash::hash(seed, QCryptographicHash::Sha1).toHex().left(24);
 	}
 
 	void addText(const QByteArray& name, const QString& value)
@@ -198,8 +198,8 @@ void parseGeminiImages(const QJsonObject& root, AiImageResponse* response)
 	if (candidates.isEmpty()) {
 		const QString blocked = root.value(QStringLiteral("promptFeedback")).toObject().value(QStringLiteral("blockReason")).toString();
 		response->failure = blocked.isEmpty() ? AiChatFailure::BadResponse : AiChatFailure::Refused;
-		response->errorMessage = blocked.isEmpty() ? QCoreApplication::translate("VibeStudioAiImageTransport", "The provider's answer had no candidates in it.")
-												   : QCoreApplication::translate("VibeStudioAiImageTransport", "The provider blocked the prompt (%1).").arg(blocked);
+		response->errorMessage = blocked.isEmpty() ? QCoreApplication::translate("SlopStudioAiImageTransport", "The provider's answer had no candidates in it.")
+												   : QCoreApplication::translate("SlopStudioAiImageTransport", "The provider blocked the prompt (%1).").arg(blocked);
 		return;
 	}
 	const QJsonObject candidate = candidates.first().toObject();
@@ -242,7 +242,7 @@ void parseGeminiImages(const QJsonObject& root, AiImageResponse* response)
 	};
 	if (refusals.contains(finish) && response->images.isEmpty()) {
 		response->failure = AiChatFailure::Refused;
-		response->errorMessage = QCoreApplication::translate("VibeStudioAiImageTransport", "The provider stopped the picture (%1).").arg(finish);
+		response->errorMessage = QCoreApplication::translate("SlopStudioAiImageTransport", "The provider stopped the picture (%1).").arg(finish);
 	}
 }
 
@@ -400,26 +400,26 @@ bool buildAiImageHttpRequest(const AiImageRequest& request, const QString& apiKe
 		return false;
 	};
 	if (!out) {
-		return fail(QCoreApplication::translate("VibeStudioAiImageTransport", "No request to fill."));
+		return fail(QCoreApplication::translate("SlopStudioAiImageTransport", "No request to fill."));
 	}
 	const QString base = trimmedBase(aiEffectiveImageEndpoint(request.connectorId, request.endpoint));
 	const AiImageApi api = aiImageApiFor(request.connectorId, base);
 	if (api == AiImageApi::None) {
-		return fail(QCoreApplication::translate("VibeStudioAiImageTransport", "The %1 connector does not make images.").arg(request.connectorId));
+		return fail(QCoreApplication::translate("SlopStudioAiImageTransport", "The %1 connector does not make images.").arg(request.connectorId));
 	}
 	if (base.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioAiImageTransport", "No image endpoint is set for this connector."));
+		return fail(QCoreApplication::translate("SlopStudioAiImageTransport", "No image endpoint is set for this connector."));
 	}
 	const QUrl baseUrl(base);
 	if (!baseUrl.isValid() || (baseUrl.scheme() != QStringLiteral("http") && baseUrl.scheme() != QStringLiteral("https"))) {
-		return fail(QCoreApplication::translate("VibeStudioAiImageTransport", "The endpoint must be an http:// or https:// address."));
+		return fail(QCoreApplication::translate("SlopStudioAiImageTransport", "The endpoint must be an http:// or https:// address."));
 	}
 	const QString model = request.model.trimmed();
 	if (model.isEmpty() && api != AiImageApi::StableDiffusionWebUi) {
-		return fail(QCoreApplication::translate("VibeStudioAiImageTransport", "No image model is set for this connector."));
+		return fail(QCoreApplication::translate("SlopStudioAiImageTransport", "No image model is set for this connector."));
 	}
 	if (request.prompt.trimmed().isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioAiImageTransport", "There is no prompt to draw from."));
+		return fail(QCoreApplication::translate("SlopStudioAiImageTransport", "There is no prompt to draw from."));
 	}
 	const int count = std::clamp(request.count, 1, 8);
 	const QSize size = aiImageRequestSize(api, base, model, request.size);
@@ -543,7 +543,7 @@ bool buildAiImageHttpRequest(const AiImageRequest& request, const QString& apiKe
 		http.body = QJsonDocument(body).toJson(QJsonDocument::Compact);
 	}
 	if (!http.url.isValid()) {
-		return fail(QCoreApplication::translate("VibeStudioAiImageTransport", "The endpoint does not make a valid address."));
+		return fail(QCoreApplication::translate("SlopStudioAiImageTransport", "The endpoint does not make a valid address."));
 	}
 	*out = http;
 	return true;
@@ -560,7 +560,7 @@ AiImageResponse parseAiImageResponse(AiImageApi api, int httpStatus, const QByte
 		response.failure = failureForStatus(httpStatus);
 		QString message = root.isEmpty() ? QString::fromUtf8(body.left(400)).trimmed() : jsonErrorMessage(root);
 		if (message.isEmpty()) {
-			message = QCoreApplication::translate("VibeStudioAiImageTransport", "The provider answered HTTP %1.").arg(httpStatus);
+			message = QCoreApplication::translate("SlopStudioAiImageTransport", "The provider answered HTTP %1.").arg(httpStatus);
 		}
 		// OpenAI's moderation refusal arrives as a 400 with this code.
 		if (root.value(QStringLiteral("error")).toObject().value(QStringLiteral("code")).toString() == QStringLiteral("moderation_blocked")) {
@@ -571,7 +571,7 @@ AiImageResponse parseAiImageResponse(AiImageApi api, int httpStatus, const QByte
 	}
 	if (root.isEmpty()) {
 		response.failure = AiChatFailure::BadResponse;
-		response.errorMessage = QCoreApplication::translate("VibeStudioAiImageTransport", "The provider's answer was not JSON: %1").arg(parseError.errorString());
+		response.errorMessage = QCoreApplication::translate("SlopStudioAiImageTransport", "The provider's answer was not JSON: %1").arg(parseError.errorString());
 		return response;
 	}
 	switch (api) {
@@ -586,13 +586,13 @@ AiImageResponse parseAiImageResponse(AiImageApi api, int httpStatus, const QByte
 		break;
 	case AiImageApi::None:
 		response.failure = AiChatFailure::NotConfigured;
-		response.errorMessage = QCoreApplication::translate("VibeStudioAiImageTransport", "This connector does not make images.");
+		response.errorMessage = QCoreApplication::translate("SlopStudioAiImageTransport", "This connector does not make images.");
 		return response;
 	}
 	if (response.failure == AiChatFailure::None && response.images.isEmpty() && response.pendingUrls.isEmpty()) {
 		response.failure = AiChatFailure::BadResponse;
-		response.errorMessage = response.text.isEmpty() ? QCoreApplication::translate("VibeStudioAiImageTransport", "The provider's answer had no picture in it.")
-														: QCoreApplication::translate("VibeStudioAiImageTransport", "The provider answered without a picture: %1").arg(response.text.left(300));
+		response.errorMessage = response.text.isEmpty() ? QCoreApplication::translate("SlopStudioAiImageTransport", "The provider's answer had no picture in it.")
+														: QCoreApplication::translate("SlopStudioAiImageTransport", "The provider answered without a picture: %1").arg(response.text.left(300));
 	}
 	response.ok = response.failure == AiChatFailure::None;
 	return response;
@@ -709,28 +709,28 @@ QString aiImageConnectionBlockText(const AiImageConnection& connection)
 {
 	switch (connection.block) {
 	case AiImageConnectionBlock::None: {
-		const QString model = connection.model.isEmpty() ? QCoreApplication::translate("VibeStudioAiImageTransport", "the loaded checkpoint") : connection.model;
+		const QString model = connection.model.isEmpty() ? QCoreApplication::translate("SlopStudioAiImageTransport", "the loaded checkpoint") : connection.model;
 		return connection.local
-			? QCoreApplication::translate("VibeStudioAiImageTransport", "Ready: %1 draws with %2, on this machine.").arg(connection.displayName, model)
-			: QCoreApplication::translate("VibeStudioAiImageTransport", "Ready: %1 draws with %2, at %3.").arg(connection.displayName, model, QUrl(connection.endpoint).host());
+			? QCoreApplication::translate("SlopStudioAiImageTransport", "Ready: %1 draws with %2, on this machine.").arg(connection.displayName, model)
+			: QCoreApplication::translate("SlopStudioAiImageTransport", "Ready: %1 draws with %2, at %3.").arg(connection.displayName, model, QUrl(connection.endpoint).host());
 	}
 	case AiImageConnectionBlock::AiFreeMode:
-		return QCoreApplication::translate("VibeStudioAiImageTransport", "AI-free mode is on. Turn it off in Settings > AI and Automation to generate images.");
+		return QCoreApplication::translate("SlopStudioAiImageTransport", "AI-free mode is on. Turn it off in Settings > AI and Automation to generate images.");
 	case AiImageConnectionBlock::ProjectAiFree:
 		return aiProjectAiFreeText();
 	case AiImageConnectionBlock::NoConnector:
-		return QCoreApplication::translate("VibeStudioAiImageTransport", "No image connector is chosen. Pick an Image or Local connector in Settings > AI and Automation.");
+		return QCoreApplication::translate("SlopStudioAiImageTransport", "No image connector is chosen. Pick an Image or Local connector in Settings > AI and Automation.");
 	case AiImageConnectionBlock::NoImageTransport:
-		return QCoreApplication::translate("VibeStudioAiImageTransport", "%1 does not make images. Pick OpenAI, Gemini, a local Stable Diffusion web UI, or a custom endpoint.").arg(connection.displayName);
+		return QCoreApplication::translate("SlopStudioAiImageTransport", "%1 does not make images. Pick OpenAI, Gemini, a local Stable Diffusion web UI, or a custom endpoint.").arg(connection.displayName);
 	case AiImageConnectionBlock::NoEndpoint:
-		return QCoreApplication::translate("VibeStudioAiImageTransport", "%1 has no image endpoint. Set one in Settings > AI and Automation.").arg(connection.displayName);
+		return QCoreApplication::translate("SlopStudioAiImageTransport", "%1 has no image endpoint. Set one in Settings > AI and Automation.").arg(connection.displayName);
 	case AiImageConnectionBlock::CloudNotAllowed:
-		return QCoreApplication::translate("VibeStudioAiImageTransport", "%1 sends to %2, off this machine, and cloud connectors are not allowed. Allow them in Settings > AI and Automation, or use a local Stable Diffusion web UI.")
+		return QCoreApplication::translate("SlopStudioAiImageTransport", "%1 sends to %2, off this machine, and cloud connectors are not allowed. Allow them in Settings > AI and Automation, or use a local Stable Diffusion web UI.")
 			.arg(connection.displayName, QUrl(connection.endpoint).host());
 	case AiImageConnectionBlock::NoModel:
-		return QCoreApplication::translate("VibeStudioAiImageTransport", "No image model is set for %1. Name one in Settings > AI and Automation.").arg(connection.displayName);
+		return QCoreApplication::translate("SlopStudioAiImageTransport", "No image model is set for %1. Name one in Settings > AI and Automation.").arg(connection.displayName);
 	case AiImageConnectionBlock::NoCredential:
-		return QCoreApplication::translate("VibeStudioAiImageTransport", "%1 needs an API key in the %2 environment variable, which is not set.").arg(connection.displayName, connection.credentialVariable);
+		return QCoreApplication::translate("SlopStudioAiImageTransport", "%1 needs an API key in the %2 environment variable, which is not set.").arg(connection.displayName, connection.credentialVariable);
 	}
 	return {};
 }
@@ -795,7 +795,7 @@ bool AiImageClient::send(const AiImageRequest& request, const QString& apiKey, C
 {
 	if (busy()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioAiImageTransport", "A request is already running.");
+			*error = QCoreApplication::translate("SlopStudioAiImageTransport", "A request is already running.");
 		}
 		return false;
 	}
@@ -858,7 +858,7 @@ bool AiImageClient::send(const AiImageRequest& request, const QString& apiKey, C
 			if (state.cancelled || state.timedOut) {
 				failed.failure = state.cancelled ? AiChatFailure::Cancelled : AiChatFailure::Timeout;
 				failed.errorMessage = state.cancelled ? aiChatFailureText(AiChatFailure::Cancelled)
-													  : QCoreApplication::translate("VibeStudioAiImageTransport", "No picture after %1 seconds.").arg(state.timeoutMsecs / 1000);
+													  : QCoreApplication::translate("SlopStudioAiImageTransport", "No picture after %1 seconds.").arg(state.timeoutMsecs / 1000);
 				finish(failed);
 				return;
 			}
@@ -871,7 +871,7 @@ bool AiImageClient::send(const AiImageRequest& request, const QString& apiKey, C
 			if (download) {
 				if (status < 200 || status >= 300 || body.isEmpty()) {
 					failed.failure = AiChatFailure::Provider;
-					failed.errorMessage = QCoreApplication::translate("VibeStudioAiImageTransport", "The picture's link answered HTTP %1.").arg(status);
+					failed.errorMessage = QCoreApplication::translate("SlopStudioAiImageTransport", "The picture's link answered HTTP %1.").arg(status);
 					finish(failed);
 					return;
 				}
@@ -914,7 +914,7 @@ bool AiImageClient::send(const AiImageRequest& request, const QString& apiKey, C
 				if (next.url.scheme() != QStringLiteral("https") && next.url.scheme() != QStringLiteral("http")) {
 					failed = state.gathered;
 					failed.failure = AiChatFailure::BadResponse;
-					failed.errorMessage = QCoreApplication::translate("VibeStudioAiImageTransport", "The provider linked the picture at an address that is not http or https.");
+					failed.errorMessage = QCoreApplication::translate("SlopStudioAiImageTransport", "The provider linked the picture at an address that is not http or https.");
 					finish(failed);
 					return;
 				}
@@ -938,7 +938,7 @@ bool AiImageClient::send(const AiImageRequest& request, const QString& apiKey, C
 			response.ok = !response.images.isEmpty();
 			if (!response.ok) {
 				response.failure = AiChatFailure::BadResponse;
-				response.errorMessage = QCoreApplication::translate("VibeStudioAiImageTransport", "The provider's answer had no picture in it.");
+				response.errorMessage = QCoreApplication::translate("SlopStudioAiImageTransport", "The provider's answer had no picture in it.");
 			}
 			finish(response);
 		});
@@ -970,4 +970,4 @@ int AiImageClient::timeoutMsecs() const
 	return m_state->timeoutMsecs;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -3,7 +3,7 @@
 #include "app/level_object_list.h"
 #include <QItemSelectionModel>
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 inline QModelIndex objectIndex(const LevelObjectList* list, int row)
 {
 	return list ? list->model()->index(row, 0) : QModelIndex();
@@ -17,4 +17,4 @@ inline void setObjectSelected(LevelObjectList* list, int row, bool selected)
 {
 	list->selectionModel()->select(objectIndex(list, row), selected ? QItemSelectionModel::Select : QItemSelectionModel::Deselect);
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

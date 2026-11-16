@@ -30,7 +30,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool ok = true;
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
 			"Doom scale keeps Z at 1");
 	}
 
-	for (const auto* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const auto* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		for (int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);
 			std::cout << "Arbitrary transform UI " << profile << ' ' << scale << '%' << std::endl;
@@ -333,7 +333,7 @@ int main(int argc, char** argv)
 					&& std::abs(scaled.mins.x - 64) < 1e-6 && shell.levelDocument().undoStack.size() == scaleDepth + 1, "Apply scales and mirrors",
 					QStringLiteral("%1 .. %2, %3 .. %4: ").arg(scaled.mins.x).arg(scaled.maxs.x).arg(scaled.mins.y).arg(scaled.maxs.y)
 						+ shell.statusBar()->currentMessage() + QLatin1Char(' ') + status(scaleWindow));
-				const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+				const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 				if (!captures.isEmpty() && until([&] { return settled(scaleWindow, shell); })) {
 					QDir().mkpath(captures);
 					QImage image(scaleWindow->size(), QImage::Format_ARGB32_Premultiplied);

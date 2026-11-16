@@ -5,7 +5,7 @@
 #include <QDateTime>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 struct ModelRecoverySnapshot
@@ -53,4 +53,4 @@ ModelRecoveryRecord inspectModelRecovery(const QString &path, ModelRecoverySnaps
 ModelRecoveryScan listModelRecoveries(const QString &directory, const std::function<bool()> &cancelled = {});
 bool removeModelRecovery(const QString &directory, const QString &id, QString *error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

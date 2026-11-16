@@ -4,7 +4,7 @@
 #include <QJsonObject>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class LevelPatchBoundary { FirstRow, LastRow, FirstColumn, LastColumn };
 enum class LevelPatchStitchOrder { Automatic, Forward, Reversed };
@@ -42,4 +42,4 @@ bool prepareLevelPatchStitch(const LevelMapPatch &first, const LevelMapPatch &se
 bool stitchLevelMapPatches(LevelMapDocument *document, int firstId, int secondId, const LevelPatchStitchRequest &request,
 						   LevelPatchStitchResult *result = nullptr, QString *error = nullptr);
 QJsonObject levelPatchStitchReportJson(const LevelPatchStitchResult &result);
-} // namespace vibestudio
+} // namespace slopstudio

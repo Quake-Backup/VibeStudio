@@ -24,12 +24,12 @@ is published.
 The equivalent CLI workflow is:
 
 ```sh
-vibestudio --cli map edit ./maps/room.map --engine idTech3 --entity 3 --set _skin=blue --set '_remap0=trim;models/prop/metal' --output ./maps/room-blue.map
-vibestudio --cli map materials ./maps/room-blue.map --package ./assets.vibepackage --engine idTech3 --geometry --json
-vibestudio --cli map dependencies ./maps/room-blue.map --package ./assets.vibepackage --engine idTech3 --json
+slopstudio --cli map edit ./maps/room.map --engine idTech3 --entity 3 --set _skin=blue --set '_remap0=trim;models/prop/metal' --output ./maps/room-blue.map
+slopstudio --cli map materials ./maps/room-blue.map --package ./assets.sloppackage --engine idTech3 --geometry --json
+slopstudio --cli map dependencies ./maps/room-blue.map --package ./assets.sloppackage --engine idTech3 --json
 ```
 
-`map materials` accepts asset folders, archives and portable `.vibepackage`
+`map materials` accepts asset folders, archives and portable `.sloppackage`
 drafts. Its JSON `materials.modelAppearances` array carries the appearance
 receipts. Dependency JSON includes the same receipts and `model-skin` rows for
 explicit and implicit skin inputs. Failed appearance validation returns exit
@@ -41,8 +41,8 @@ run material/dependency review before packaging or building.
 The contract follows the pinned NetRadiant Custom q3map2 importer, reviewed in
 [Credits](CREDITS.md#placed-model-compiler-appearances). It is separate from the
 [native player skin workflow](MODEL_MESH.md#quake-iii-skin-assignments). It was
-verified against NetRadiant Custom q3map2 before VibeStudio moved to its own
-VibeMap3 compiler, and has not been rechecked with VibeMap3 yet.
+verified against NetRadiant Custom q3map2 before SlopStudio moved to its own
+SlopMap3 compiler, and has not been rechecked with SlopMap3 yet.
 
 | Entity value for `models/prop.md3` | Compiler file |
 | --- | --- |
@@ -94,15 +94,15 @@ at 128 variants.
 
 The pinned Assimp MD3 importer validates `_frame`/`frame` but reads vertex data
 from frame zero. This was independently reproduced with a real NetRadiant
-Custom BSP. VibeStudio refuses nonzero frame requests rather than displaying a
+Custom BSP. SlopStudio refuses nonzero frame requests rather than displaying a
 pose that this compiler will not produce. A nonempty `_frame` wins over `frame`.
 
 Bake the desired pose to a separate static MD3 through **Models > Assemblies**,
 then place that derivative at frame zero. The CLI path is:
 
 ```sh
-vibestudio --cli model assembly --new --part prop --model ./assets/models/prop.md3 --first-frame 1 --last-frame 1 --output ./prop-pose.assembly.json
-vibestudio --cli model assembly ./prop-pose.assembly.json --operation bake --time 0 --output ./assets/models/prop-pose.md3
+slopstudio --cli model assembly --new --part prop --model ./assets/models/prop.md3 --first-frame 1 --last-frame 1 --output ./prop-pose.assembly.json
+slopstudio --cli model assembly ./prop-pose.assembly.json --operation bake --time 0 --output ./assets/models/prop-pose.md3
 ```
 
 The compiler acceptance fixture verifies this bake and its resulting BSP
@@ -130,10 +130,10 @@ high contrast, RTL and translation expansion. It uses owned Qt APIs and
 The optional real compiler proof uses synthetic assets and inspects BSP data:
 
 ```sh
-python src/tests/level_model_appearance_compiler_workflow.py --binary builddir/src/vibestudio --compiler /path/to/vibemap3 --output-root .agents/tmp/model-appearance-proof
+python src/tests/level_model_appearance_compiler_workflow.py --binary builddir/src/slopstudio --compiler /path/to/slopmap3 --output-root .agents/tmp/model-appearance-proof
 ```
 
 The accepted local executable and source revision are recorded in the scoped
 milestone evidence; they are NetRadiant Custom q3map2 builds, and the proof has
-not been rerun with VibeMap3. This is a Windows compiler/UI check, not
+not been rerun with SlopMap3. This is a Windows compiler/UI check, not
 cross-platform release approval.

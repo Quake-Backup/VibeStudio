@@ -17,7 +17,7 @@
 // the Map File", https://trenchbroom.github.io/manual/latest/) and the maps it
 // writes. TrenchBroom is GPL-3.0-or-later; none of its code is used. See
 // docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 constexpr QLatin1String kType("_tb_type");
@@ -279,7 +279,7 @@ QString sceneName(const QString& name, LevelSceneNodeKind kind)
 											 : QCoreApplication::translate("LevelTrenchBroom", "Group");
 }
 
-// The name to write for a node: the name TrenchBroom gave it while VibeStudio
+// The name to write for a node: the name TrenchBroom gave it while SlopStudio
 // only numbered it to tell siblings apart, else its own. Map strings cannot
 // hold double quotes.
 QString writtenName(const LevelSceneNode& node)
@@ -318,17 +318,17 @@ QString selector(const char* kind, int id)
 
 QString levelSceneStorageId(LevelSceneStorage storage)
 {
-	return storage == LevelSceneStorage::TrenchBroom ? QStringLiteral("trenchbroom") : QStringLiteral("vibestudio");
+	return storage == LevelSceneStorage::TrenchBroom ? QStringLiteral("trenchbroom") : QStringLiteral("slopstudio");
 }
 
 bool levelSceneStorageFromId(const QString& id, LevelSceneStorage* storage)
 {
 	const QString folded = id.trimmed().toLower();
-	if (folded != QLatin1String("trenchbroom") && folded != QLatin1String("vibestudio")) {
+	if (folded != QLatin1String("trenchbroom") && folded != QLatin1String("slopstudio")) {
 		return false;
 	}
 	if (storage) {
-		*storage = folded == QLatin1String("trenchbroom") ? LevelSceneStorage::TrenchBroom : LevelSceneStorage::VibeStudio;
+		*storage = folded == QLatin1String("trenchbroom") ? LevelSceneStorage::TrenchBroom : LevelSceneStorage::SlopStudio;
 	}
 	return true;
 }
@@ -1061,7 +1061,7 @@ LevelTrenchBroomExport writeLevelTrenchBroomScene(const LevelMapDocument& source
 				wrappers << pairLine(kLink, QLatin1Char('{') + node->linkId + QLatin1Char('}')) << pairLine(kTransformation, frameText(node->linkFrame));
 			}
 		}
-		// The keys VibeStudio does not edit, such as a layer's colour.
+		// The keys SlopStudio does not edit, such as a layer's colour.
 		static const QSet<QString> written {QStringLiteral("classname"), kType, kId, kName, kSortIndex, kHidden, kLocked, kGroup, kLayer, kLink,
 			kTransformation};
 		for (auto it = node->trenchBroomProperties.cbegin(); it != node->trenchBroomProperties.cend(); ++it) {
@@ -1131,4 +1131,4 @@ LevelTrenchBroomExport writeLevelTrenchBroomScene(const LevelMapDocument& source
 	return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

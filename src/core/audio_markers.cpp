@@ -8,7 +8,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -501,4 +501,4 @@ bool decodeWavAudioMarkers(const QByteArray& wav, qint64 frames, AudioMarkers* m
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

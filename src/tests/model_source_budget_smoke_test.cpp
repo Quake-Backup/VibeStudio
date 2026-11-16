@@ -5,7 +5,7 @@
 // bit-exactly, refusing an edit that would make a source unsaveable while
 // allowing edits that shrink one, and the CLI writing the same bytes.
 //
-// VIBESTUDIO_EXHAUSTIVE_FLOAT_ROUND_TRIP=1 also checks all 2^32 float bit
+// SLOPSTUDIO_EXHAUSTIVE_FLOAT_ROUND_TRIP=1 also checks all 2^32 float bit
 // patterns through the JSON number writer and reader (minutes on 8 threads).
 #include "core/model_document.h"
 #include "core/model_fingerprint.h"
@@ -38,8 +38,8 @@
 #include <thread>
 #include <vector>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 
 namespace
 {
@@ -276,7 +276,7 @@ bool numbers()
 		}
 	std::cout << "numbers: shortest " << shortest << " characters, widened doubles " << widenedLength << std::endl;
 	ok &= expect(shortest * 10 < widenedLength * 6, "realistic coordinates and normals print in under 60% of the old length");
-	if (qEnvironmentVariable("VIBESTUDIO_EXHAUSTIVE_FLOAT_ROUND_TRIP") == QStringLiteral("1"))
+	if (qEnvironmentVariable("SLOPSTUDIO_EXHAUSTIVE_FLOAT_ROUND_TRIP") == QStringLiteral("1"))
 	{
 		// The writer prints QByteArray::number(d, 'g', FloatingPointShortest)
 		// and the reader parses with QByteArray::toDouble, as QJsonDocument does.
@@ -680,7 +680,7 @@ bool cliParity(const QDir &dir, const QString &program)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("source-budget-XXXXXX")));

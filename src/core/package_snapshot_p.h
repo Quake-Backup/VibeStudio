@@ -2,7 +2,7 @@
 
 #include "core/package_archive.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Admit an immutable listing without reordering its physical entry indexes.
 // Missing parent folders count even when the adapter does not expose them.
@@ -12,4 +12,4 @@ bool admitPackageSnapshot(const QString& source, const QVector<PackageEntry>& en
 	const PackageReadControl& control, PackageIndexUsage* usage,
 	QVector<PackageEntry>* impliedDirectories, QString* error);
 
-} // namespace vibestudio
+} // namespace slopstudio

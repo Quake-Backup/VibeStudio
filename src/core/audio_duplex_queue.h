@@ -2,7 +2,7 @@
 #include "core/audio_duplex.h"
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Single callback producer, single disk consumer. Capacity is measured in
 // frames rather than callback blocks, so small device buffers do not shorten
@@ -30,4 +30,4 @@ class AudioDuplexCaptureQueue final : public AudioDuplexCaptureSink {
 	std::array<size_t, AudioDuplexArmLimit> m_offsets{};
 	std::vector<float> m_audio;
 };
-} // namespace vibestudio
+} // namespace slopstudio

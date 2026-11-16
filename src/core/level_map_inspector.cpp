@@ -14,12 +14,12 @@
 
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelMapInspector)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelMapInspector)
 };
 
 bool textMap(const LevelMapDocument& document)
@@ -91,8 +91,8 @@ QString cornersText(const LevelMapSoftBounds& bounds)
 void nameStep(LevelMapDocument* document, quint64 revision, const char* description, const char* undoDescription)
 {
 	if (document->revision != revision && !document->undoStack.isEmpty()) {
-		document->undoStack.last().description = QCoreApplication::translate("VibeStudioLevelMapInspector", description);
-		document->undoStack.last().undoDescription = QCoreApplication::translate("VibeStudioLevelMapInspector", undoDescription);
+		document->undoStack.last().description = QCoreApplication::translate("SlopStudioLevelMapInspector", description);
+		document->undoStack.last().undoDescription = QCoreApplication::translate("SlopStudioLevelMapInspector", undoDescription);
 	}
 }
 
@@ -149,7 +149,7 @@ LevelMapSoftBounds levelMapGameSoftBounds(const LevelMapDocument& document)
 		return bounds;
 	}
 	// Quake III: q3map2's MIN_WORLD_COORD and MAX_WORLD_COORD
-	// (external/compilers/vibemap3/tools/quake3/common/maxworld.h). Quake
+	// (external/compilers/slopmap3/tools/quake3/common/maxworld.h). Quake
 	// and Quake II send coordinates as shorts of 1/8 unit.
 	const double extent = document.format == LevelMapFormat::Quake3Map ? 65536.0 : 4096.0;
 	bounds.valid = true;
@@ -275,8 +275,8 @@ bool setLevelMapSoftBounds(LevelMapDocument* document, const LevelMapSoftBoundsC
 	if (!writeWorldKey(document, kLevelMapSoftBoundsKey, value, change.mode == LevelMapSoftBoundsMode::Game, error)) {
 		return false;
 	}
-	nameStep(document, revision, QT_TRANSLATE_NOOP("VibeStudioLevelMapInspector", "Set soft map bounds"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelMapInspector", "Restore soft map bounds"));
+	nameStep(document, revision, QT_TRANSLATE_NOOP("SlopStudioLevelMapInspector", "Set soft map bounds"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelMapInspector", "Restore soft map bounds"));
 	return true;
 }
 
@@ -383,8 +383,8 @@ bool setLevelMapEnabledMods(LevelMapDocument* document, const QStringList& mods,
 	if (!writeWorldKey(document, kLevelMapModsKey, names.join(QLatin1Char(';')), names.isEmpty(), error)) {
 		return false;
 	}
-	nameStep(document, revision, QT_TRANSLATE_NOOP("VibeStudioLevelMapInspector", "Set enabled mods"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelMapInspector", "Restore enabled mods"));
+	nameStep(document, revision, QT_TRANSLATE_NOOP("SlopStudioLevelMapInspector", "Set enabled mods"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelMapInspector", "Restore enabled mods"));
 	return true;
 }
 
@@ -565,4 +565,4 @@ QStringList levelMapInspectorLines(const LevelMapDocument& document)
 	return lines;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

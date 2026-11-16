@@ -15,7 +15,7 @@
 #include <iostream>
 #include <filesystem>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 
 bool expect(bool condition, const char* message)

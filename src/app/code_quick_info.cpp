@@ -21,7 +21,7 @@
 #include <QToolTip>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString infoStatus(const LanguageHover& report, const QString& provider, const QString& location)
 {
@@ -132,4 +132,4 @@ bool ApplicationShell::requestCodeQuickInfo(int offset, bool persistent, const Q
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

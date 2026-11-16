@@ -1,26 +1,26 @@
-# VibeStudio Samples
+# SlopStudio Samples
 
 The `*-minimal` sample projects are intentionally tiny, license-clean workspaces
 for CI and manual smoke testing. They contain placeholder text assets only.
 No sample includes commercial game data, SDK assets or proprietary content.
 
 Each minimal sample includes:
-- `.vibestudio/project.json` for the project manifest service.
+- `.slopstudio/project.json` for the project manifest service.
 - `maps/` with a tiny placeholder map or build input.
 - `packages/` with folder-package content for read-only package browsing.
-- `out/` and `.vibestudio/cache/` folders so health checks can exercise output
+- `out/` and `.slopstudio/cache/` folders so health checks can exercise output
   and temporary paths without creating files.
 
-Run the smoke checks with a built VibeStudio CLI:
+Run the smoke checks with a built SlopStudio CLI:
 
 ```sh
-python scripts/validate_samples.py --binary builddir/src/vibestudio
+python scripts/validate_samples.py --binary builddir/src/slopstudio
 ```
 
 [Hingeworks](projects/quake2-hingeworks/README.md) is a larger Quake II rerelease
 (Q2RE) deathmatch map authoring experiment, currently an **unreleased Alpha 5 development build** (Alpha 4 is the latest approved release). It keeps editable map sources,
 the design reference, authoring script and release records in a persistent
-VibeStudio project. Its textures, sounds and music require a separately owned
+SlopStudio project. Its textures, sounds and music require a separately owned
 Quake II rerelease installation. It is not part of the installation-free minimal smoke
 checks; human multiplayer balance testing remains outstanding.
 

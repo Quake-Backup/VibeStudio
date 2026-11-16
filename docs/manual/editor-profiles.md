@@ -15,7 +15,7 @@ profiles, then adjust its gestures and keys to suit you.
 - **2D views:** which buttons pan and zoom; how a click selects, adds or toggles; what a drag over empty space does
   (select an area, draw a brush or resize the selection); and, in the Radiant-style profiles, middle-click and arrow-key
   control of the 3D camera, and its other drive keys while no command uses the key.
-- **3D camera:** an orthographic view that orbits the map (VibeStudio Default) or a first-person camera with its own
+- **3D camera:** an orthographic view that orbits the map (SlopStudio Default) or a first-person camera with its own
   field of view; the look, orbit and pan drags; what the wheel does; and the keys that fly or drive the camera.
 - **Material clicks:** Q3Radiant, GtkRadiant and both NetRadiant profiles sample, paint and paste materials with the
   middle button in the 3D view.
@@ -49,7 +49,7 @@ profiles, then adjust its gestures and keys to suit you.
 ## Choose a profile
 
 1. On the **Levels** page, choose **Controls** on the view toolbar. The button shows the current profile, such as
-   **VibeStudio** or **TrenchBroom**.
+   **SlopStudio** or **TrenchBroom**.
 2. Choose **Browse Editor Profiles…** to search by name, aliases such as NRC or TB, or engine family.
 3. Review the default layout, gestures, command shortcuts and workflow differences, then choose **Use Profile**.
    Browsing does not change your settings. The **Controls like** menu still offers an immediate selection.
@@ -59,7 +59,7 @@ The same choice is **Editor profile** in **Settings** > **Appearance and Languag
 
 | Profile | ID | Starting views | Grid |
 | --- | --- | --- | --- |
-| VibeStudio Default | `vibestudio-default` | One view, 2D first | 64 units |
+| SlopStudio Default | `slopstudio-default` | One view, 2D first | 64 units |
 | TrenchBroom Style | `trenchbroom` | One view, 3D first | 16 units |
 | NetRadiant Custom Style | `netradiant-custom` | 3D camera beside a 2D view | 16 units |
 | NetRadiant Style | `netradiant` | 3D camera beside a 2D view | 8 units |
@@ -126,14 +126,14 @@ camera's drive keys on, as Radiant's camera keys do; it is on in the Radiant pro
 `camera.moveSpeed=750` (or `auto`) and `plan.cameraDriveKeys=off` set them; see
 [Look around the map](levels.md#look-around-the-map).
 
-**Export…** saves your changes to a VibeStudio `.json` file, and **Import…** loads one into the window for you to
+**Export…** saves your changes to a SlopStudio `.json` file, and **Import…** loads one into the window for you to
 apply. A file only imports into the profile it was made for.
 
 The same duplicate preference is available to automation:
 
 ```sh
-vibestudio --cli editor gestures netradiant-custom --set editing.nudgeAfterDuplicate=on --json
-vibestudio --cli editor gestures netradiant-custom --set editing.nudgeAfterDuplicate=default --json
+slopstudio --cli editor gestures netradiant-custom --set editing.nudgeAfterDuplicate=on --json
+slopstudio --cli editor gestures netradiant-custom --set editing.nudgeAfterDuplicate=default --json
 ```
 
 The **Editing** tab also has **Choosing or stepping the grid turns Snap on**, which is on in the NetRadiant Custom
@@ -244,11 +244,11 @@ The `editor` commands read and change the same settings as the studio. Profile I
 next time the studio loads its settings; it does not control a studio that is already running.
 
 ```sh
-vibestudio --cli editor profiles
-vibestudio --cli editor controls trenchbroom
-vibestudio --cli editor select netradiant-custom
-vibestudio --cli editor gestures hammer --set camera.flyKeys.forward=I --dry-run --json
-vibestudio --cli editor gestures trenchbroom --set plan.componentCycleWheelModifiers=ctrl+alt --set camera.componentCycleWheelModifiers=none
+slopstudio --cli editor profiles
+slopstudio --cli editor controls trenchbroom
+slopstudio --cli editor select netradiant-custom
+slopstudio --cli editor gestures hammer --set camera.flyKeys.forward=I --dry-run --json
+slopstudio --cli editor gestures trenchbroom --set plan.componentCycleWheelModifiers=ctrl+alt --set camera.componentCycleWheelModifiers=none
 ```
 
 | Command | What it does |
@@ -285,15 +285,15 @@ dry-run, import/export and atomic preference application.
 
 ## Profile reference
 
-Each block lists the profile's mouse gestures and the keys that differ from the VibeStudio defaults, which are listed
+Each block lists the profile's mouse gestures and the keys that differ from the SlopStudio defaults, which are listed
 in [Level editing](levels.md#work-from-the-keyboard). Rows that every profile shares are described under
 [Behaviour every profile shares](#behaviour-every-profile-shares). On macOS, <kbd>Ctrl</kbd> means <kbd>Cmd</kbd>, for
 keys and clicks alike.
 
 <details>
-<summary>VibeStudio Default</summary>
+<summary>SlopStudio Default</summary>
 
-ID `vibestudio-default`. One view, 2D first, 64-unit grid. 3D camera: orthographic, orbiting the map.
+ID `slopstudio-default`. One view, 2D first, 64-unit grid. 3D camera: orthographic, orbiting the map.
 
 | Action | 2D view | 3D view |
 | --- | --- | --- |
@@ -383,7 +383,7 @@ toggles enclosed handles, while <kbd>Ctrl</kbd> adds them, in both plan and came
 The component lasso policy is configurable in **Customize Editor Gestures…**.
 All profiles share complete-boundary conversion when switching component modes,
 plus touching conversion, Grow, Shrink and Connected commands under
-**Component Selection**. These are VibeStudio's common topology-selection rules;
+**Component Selection**. These are SlopStudio's common topology-selection rules;
 they do not establish native shortcut parity with another editor.
 For automation, use `editor gestures trenchbroom --set plan.componentBandToggles=off --set camera.componentBandToggles=off`;
 `--reset` restores this profile's plain-toggle/Ctrl-add behaviour.
@@ -639,7 +639,7 @@ Q3-specific patch, hide/show, select-similar and texture-lock keys are unassigne
 <kbd>Ctrl</kbd>+<kbd>\\</kbd> for **Far Clip in Camera**, which the manual gives to Q3Radiant only. Page Up and
 Page Down step the camera between floors, and <kbd>Ctrl</kbd>+<kbd>]</kbd> and <kbd>Ctrl</kbd>+<kbd>[</kbd> shorten
 and lengthen the draw distance, as the manual lists them. Those
-VibeStudio commands remain available in menus and command search. Whole-entity selection mode,
+SlopStudio commands remain available in menus and command search. Whole-entity selection mode,
 animated entity previews, Alt+right texture dragging and Z-checker are not reproduced.
 Middle-button sampling and surface paste follow the shared studio clipboard rules; sampling
 does not automatically repaint the selected objects.
@@ -1021,7 +1021,7 @@ ID `unreal`, also `unreal-editor`, `ue4`, `ue5`. One view, 3D first, 16-unit gri
 | Frame Selection | <kbd>F</kbd> |
 | Show All Hidden | <kbd>Ctrl</kbd>+<kbd>H</kbd> |
 
-**3D Wireframe** and **Draw Sector** have no key. Moving and resizing use VibeStudio's handles and numeric tools. Gizmo modes, left-button camera driving, wheel flight-speed changes and Unreal assets are not reproduced.
+**3D Wireframe** and **Draw Sector** have no key. Moving and resizing use SlopStudio's handles and numeric tools. Gizmo modes, left-button camera driving, wheel flight-speed changes and Unreal assets are not reproduced.
 
 </details>
 
@@ -1112,7 +1112,7 @@ middle-drag mouse look, Shift+middle panning and right-click material sampling.
 WASD moves, R/F rises or sinks, and Q/E turns. Ctrl+Space duplicates, Ctrl+X or
 keypad minus deletes, backtick selects all, Z opens Surface Alignment and Alt+S
 snaps to the grid. Shift selects in plans; a bare drag draws or resizes. The
-adapted VibeStudio workspace starts with four views and a 16-unit grid. Native
+adapted SlopStudio workspace starts with four views and a 16-unit grid. Native
 selection cycling, texture drags, region tools and configuration import are not
 reproduced.
 

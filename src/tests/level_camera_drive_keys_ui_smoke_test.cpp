@@ -34,7 +34,7 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
@@ -44,7 +44,7 @@
 #include <iostream>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -377,7 +377,7 @@ int main(int argc, char** argv)
 					&& serializeLevelMap(shell.levelDocument()).bytes == bytes,
 				"speed steps and drive keys never change the map or its undo history");
 
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 			if (nrc) {
 				// Real key presses through the shortcut map.
 				shell.activateWindow();
@@ -417,7 +417,7 @@ int main(int argc, char** argv)
 		settings.sync();
 	}
 
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 	// A Doom map under NetRadiant Custom: Draw Sector keeps D in a 2D view,
 	// where it can act, while A still strafes.
 	phase = QStringLiteral("netradiant-custom Doom");

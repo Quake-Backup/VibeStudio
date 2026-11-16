@@ -15,7 +15,7 @@
 #include <cstring>
 #include <type_traits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -517,4 +517,4 @@ qint64 modelSourcePackedSurfaceLength(const ModelSurface &surface)
 	return length + std::max<qint64>(0, surface.frames.size() - 1);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

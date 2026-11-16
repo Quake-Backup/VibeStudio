@@ -7,7 +7,7 @@
 #include <QVector>
 #include <utility>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Classic and Valve coordinates are in texels; brush primitives store repeats.
@@ -79,4 +79,4 @@ LevelMapVec3 rotateLevelAngles(const LevelMapVec3 &pitchYawRoll, int axis, doubl
 bool lockRotatedLevelTexture(const LevelMapBrushFace &before, LevelMapBrushFace *after, int axis, double degrees, const LevelMapVec3 &pivot,
 							 bool allowValve220, QString *error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

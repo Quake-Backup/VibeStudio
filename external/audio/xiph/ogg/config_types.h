@@ -1,6 +1,6 @@
-/* VibeStudio's portable libogg type configuration; upstream sources unchanged. */
-#ifndef VIBESTUDIO_OGG_CONFIG_TYPES_H
-#define VIBESTUDIO_OGG_CONFIG_TYPES_H
+/* SlopStudio's portable libogg type configuration; upstream sources unchanged. */
+#ifndef SLOPSTUDIO_OGG_CONFIG_TYPES_H
+#define SLOPSTUDIO_OGG_CONFIG_TYPES_H
 #include <stdint.h>
 typedef int16_t ogg_int16_t;
 typedef uint16_t ogg_uint16_t;

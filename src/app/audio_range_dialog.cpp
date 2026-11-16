@@ -10,7 +10,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 AudioRangeDialog::AudioRangeDialog(const AudioSession &session, const QStringList &tracks, qint64 first, qint64 end,
                                    QWidget *parent)
@@ -161,4 +161,4 @@ void AudioRangeDialog::accept()
 		m_error->setText(tr("Insufficient memory for the edit. The session is unchanged."));
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

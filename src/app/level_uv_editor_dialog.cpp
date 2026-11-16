@@ -39,7 +39,7 @@
 #include <cmath>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 QString materialKey(QString name)
@@ -607,4 +607,4 @@ void LevelUvEditorDialog::accept()
 	QDialog::accept();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

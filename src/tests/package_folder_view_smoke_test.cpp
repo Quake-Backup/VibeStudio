@@ -15,7 +15,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* message) { if (!condition) { std::cerr << message << '\n'; } return condition; }
 template<class Predicate> bool until(Predicate predicate) {
@@ -106,7 +106,7 @@ int main(int argc, char** argv)
 			const auto rectangle = tree.visualRect(last);
 			return rectangle.isValid() && tree.viewport()->rect().intersects(rectangle) && tree.indexAt(rectangle.center()) == last;
 		}), "last of 50,000 folders is visible before accepting its render");
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			QImage image(tree.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); tree.render(&image);
 			ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("package-folder-large-%1.png").arg(scale))), "save native folder view render");

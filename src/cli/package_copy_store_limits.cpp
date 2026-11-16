@@ -6,7 +6,7 @@
 #include <QRegularExpression>
 #include <QSet>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 PackageCopyLimitsCliResult runPackageCopyStoreLimits(const QStringList& arguments)
 {
 	const auto failure = [](int code, const QString& error) { return PackageCopyLimitsCliResult{code, error, {}, {}}; };
@@ -76,4 +76,4 @@ PackageCopyLimitsCliResult runPackageCopyStoreLimits(const QStringList& argument
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

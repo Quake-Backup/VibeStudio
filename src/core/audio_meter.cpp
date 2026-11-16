@@ -6,7 +6,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 static_assert(AudioMeterStripLimit == AudioSessionTrackLimit + 1);
 namespace
@@ -231,4 +231,4 @@ QJsonObject audioMeterReportToJson(const AudioSession &session, const AudioMeter
 	        {"rmsTimeConstantSeconds", AudioMeterRmsSeconds},
 	        {"strips", strips}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

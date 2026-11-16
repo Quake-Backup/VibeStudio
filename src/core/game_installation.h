@@ -5,7 +5,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class GameEngineFamily {
 	Unknown,
@@ -91,4 +91,4 @@ QVector<GameInstallationDetectionCandidate> detectSteamGameInstallations(const Q
 QVector<GameInstallationDetectionCandidate> detectGogGameInstallations(const QStringList& additionalRoots = {});
 QVector<GameInstallationDetectionCandidate> detectGameInstallations(const QStringList& additionalSteamRoots = {}, const QStringList& additionalGogRoots = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

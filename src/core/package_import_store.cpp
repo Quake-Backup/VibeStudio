@@ -25,7 +25,7 @@
 #include <limits>
 #include <map>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr qint64 metadataLimit = 65536;
 const QString suffix = QStringLiteral(".working");
@@ -69,7 +69,7 @@ bool readCounter(const QString& session, Counter* result, QString* error)
 	bool byteCountOk = false; const auto text = object.value(QStringLiteral("reservedBytes")).toString();
 	value.bytes = text.toLongLong(&byteCountOk); value.files = object.value(QStringLiteral("reservedFiles")).toInt(-1);
 	if (file.error() != QFileDevice::NoError || bytes.size() > metadataLimit || parse.error != QJsonParseError::NoError
-		|| object.value(QStringLiteral("type")) != QStringLiteral("vibestudio-package-working")
+		|| object.value(QStringLiteral("type")) != QStringLiteral("slopstudio-package-working")
 		|| object.value(QStringLiteral("version")).toInt() != 1 || object.value(QStringLiteral("sha256")).toString() != expectedHash || !validId(value.id)
 		|| QFileInfo(session).fileName() != value.id + suffix || !value.created.isValid()
 		|| !byteCountOk || value.bytes < 0 || QString::number(value.bytes) != text || value.files < 0 || value.files > PackageImportFileLimit
@@ -84,7 +84,7 @@ bool writeCounter(const QString& session, const Counter& counter, QString* error
 	const QString path = manifestPath(session);
 	if (!safePackageStoragePath(path, error)) { return false; }
 	QJsonObject object{
-		{QStringLiteral("type"), QStringLiteral("vibestudio-package-working")}, {QStringLiteral("version"), 1},
+		{QStringLiteral("type"), QStringLiteral("slopstudio-package-working")}, {QStringLiteral("version"), 1},
 		{QStringLiteral("id"), counter.id}, {QStringLiteral("createdUtc"), counter.created.toUTC().toString(Qt::ISODateWithMs)},
 		{QStringLiteral("reservedBytes"), QString::number(counter.bytes)}, {QStringLiteral("reservedFiles"), counter.files}
 	};
@@ -368,7 +368,7 @@ QString packageImportDirectory()
 	const auto resolved = std::filesystem::canonical(std::filesystem::path(QDir::tempPath().toStdU16String()), error);
 	if (error) { return {}; }
 	const QString root = QString::fromStdU16String(resolved.generic_u16string());
-	return QFileInfo(root).isDir() ? QDir(root).filePath(QStringLiteral("vibestudio-package-imports")) : QString();
+	return QFileInfo(root).isDir() ? QDir(root).filePath(QStringLiteral("slopstudio-package-imports")) : QString();
 }
 
 void waitForPackageImportCleanup() { cleanupPool().waitForDone(); }
@@ -508,4 +508,4 @@ bool discardPackageImports(const QString& directory, const QString& id, const QB
 	return safePackageStoragePath(path, error) && (QDir().rmdir(path) || fail(error, message(QT_TRANSLATE_NOOP("PackageImportStore", "Working import session directory could not be removed."))));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

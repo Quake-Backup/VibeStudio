@@ -18,7 +18,7 @@
 
 #include <iostream>
 
-namespace fixtures = vibestudio::tests::release;
+namespace fixtures = slopstudio::tests::release;
 
 namespace {
 
@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
 	if (argc < 2) {
-		std::cerr << "usage: release_cli_smoke_test <vibestudio>\n";
+		std::cerr << "usage: release_cli_smoke_test <slopstudio>\n";
 		return 2;
 	}
 	binary = QString::fromLocal8Bit(argv[1]);
@@ -236,7 +236,7 @@ int main(int argc, char** argv)
 	Run mixed = run({QStringLiteral("release"), QStringLiteral("plan"), project, QStringLiteral("--map"), QStringLiteral("a.map"), QStringLiteral("--model"), QStringLiteral("b.md3")});
 	expect(mixed.exitCode == 2, "two kinds of items are refused", describe(mixed));
 	Run unknown = run({QStringLiteral("release"), QStringLiteral("frob"), project});
-	expect(unknown.exitCode == 2 && !unknown.err.contains(QStringLiteral("Unknown VibeStudio CLI subcommand")), "an unknown release action is a usage error", describe(unknown));
+	expect(unknown.exitCode == 2 && !unknown.err.contains(QStringLiteral("Unknown SlopStudio CLI subcommand")), "an unknown release action is a usage error", describe(unknown));
 	Run noProject = run({QStringLiteral("release"), QStringLiteral("plan")});
 	expect(noProject.exitCode == 3, "a working folder without a manifest is not scanned", describe(noProject));
 	Run noItems = run({QStringLiteral("release"), QStringLiteral("plan"), project, QStringLiteral("--scope"), QStringLiteral("maps")});

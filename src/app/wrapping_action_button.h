@@ -4,7 +4,7 @@
 #include <QPainter>
 #include <QStyleOptionButton>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Retain Qt's push-button accessibility, focus and activation while allowing
 // translated captions to wrap when text scaling leaves little horizontal room.
@@ -47,4 +47,4 @@ private:
 };
 
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -8,7 +8,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr qsizetype editLimit = 10000;
 QByteArray hash(const QString& text) { return QCryptographicHash::hash(text.toUtf8(), QCryptographicHash::Sha256); }
@@ -116,4 +116,4 @@ int languageFormattedOffset(const LanguageFormatting& report, const QString& for
 	if (!boundary(formatted, result)) { --result; } return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -5,7 +5,7 @@
 #include <QString>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Capture before encoding, then publish against the same observed destination.
 // This identity is process-local state, never trusted project/recovery metadata.
@@ -25,4 +25,4 @@ bool inspectTextureOutputTarget(const QString& path, bool overwrite, TextureOutp
 	const std::function<bool()>& isCancelled = {});
 bool writeTextureOutput(const TextureOutputTarget& target, const QByteArray& bytes, bool dryRun, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

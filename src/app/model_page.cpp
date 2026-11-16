@@ -18,7 +18,7 @@
 #include <QTreeWidget>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::buildModelSidebars(QSplitter* workbench, QWidget* browser, QWidget* centre, QWidget* appearance)
 {
@@ -147,4 +147,4 @@ void ApplicationShell::refreshModelSkeletonPanel()
 	clips->setExpanded(true);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

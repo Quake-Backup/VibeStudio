@@ -10,11 +10,11 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 QString suffixOf(const QString& path)
@@ -1016,4 +1016,4 @@ QStringList materialLibrarySummaryLines(const MaterialLibrary& library)
 	return lines;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

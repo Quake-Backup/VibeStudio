@@ -17,7 +17,7 @@
 
 #include <cmath>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 using SkinWeights = QMap<int, double>;
 
@@ -266,4 +266,4 @@ inline bool posesFollowSkeleton(const ModelMesh &mesh, QString *error)
 			return false;
 	return true;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

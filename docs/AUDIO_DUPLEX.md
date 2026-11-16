@@ -167,7 +167,7 @@ are 8–384 kHz, 1–32 input channels and a 64–16,384-frame buffer hint; the 
 offers 128–16,384. Unsupported combinations fail rather than silently changing
 the rate or channel map. CoreAudio additionally requires a single duplex
 device already configured at the session rate and avoids implicit conversion.
-ALSA plugin configurations can perform conversion outside VibeStudio.
+ALSA plugin configurations can perform conversion outside SlopStudio.
 
 WASAPI patches preserve input packet QPC timestamps, detect discontinuous
 packet positions, preserve silent input as zero samples and handle variable
@@ -295,10 +295,10 @@ verification and an `importPlan` JSON object. Copy that object alone into the
 CLI review file:
 
 ```sh
-vibestudio --cli asset audio-recording import ./music.vssession --review ./review.json --output ./recorded.vssession --dry-run --json
+slopstudio --cli asset audio-recording import ./music.vssession --review ./review.json --output ./recorded.vssession --dry-run --json
 ```
 
-Review JSON uses format `VibeStudioRecordingImport`, version 1, `directory`,
+Review JSON uses format `SlopStudioRecordingImport`, version 1, `directory`,
 `planSha256`, `receiptSha256` (empty for an absent receipt), `allowInterrupted`,
 `groupRegions` and `selections`. Each selection contains one-based `arm`,
 `prefixSha256`, `first`, `end`, one-based stored `channels`, `trackId`, `position`
@@ -439,7 +439,7 @@ playback snapshot; source journals are retained.
 The device-free CLI equivalent is:
 
 ```sh
-vibestudio --cli asset audio-recording preview ./music.vssession --review ./review.json --output ./preview.wav --isolated --dry-run --json
+slopstudio --cli asset audio-recording preview ./music.vssession --review ./review.json --output ./preview.wav --isolated --dry-run --json
 ```
 
 Omit `--isolated` to include backing. Preview accepts the same review versions,

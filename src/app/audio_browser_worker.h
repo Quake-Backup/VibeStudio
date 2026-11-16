@@ -10,7 +10,7 @@
 class QThread;
 class QTimer;
 
-namespace vibestudio
+namespace slopstudio
 {
 
 struct AudioBrowserRequest {
@@ -55,4 +55,4 @@ private:
 	QTimer* m_timer = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

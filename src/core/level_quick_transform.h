@@ -28,7 +28,7 @@
 // (grid reference point) at 4c756be1 (GPL-3.0-or-later). Original
 // implementation; see docs/CREDITS.md.
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelAxisTransform {
 	// The shell's action id, such as map.flipX.
@@ -48,7 +48,7 @@ bool levelAxisTransformForCommand(const QString& commandId, LevelAxisTransform* 
 
 // The centre of the box from `mins` to `maxs`, rounded to the nearest multiple
 // of `grid` on each axis with snapLevelMapPosition() (ties away from zero, as
-// every VibeStudio grid snap rounds). A non-positive or non-finite grid keeps
+// every SlopStudio grid snap rounds). A non-positive or non-finite grid keeps
 // the exact centre.
 [[nodiscard]] LevelMapVec3 levelQuickTurnPivot(const LevelMapVec3& mins, const LevelMapVec3& maxs, double grid);
 // The same pivot for the document's selection, from levelMapSelectionBounds():
@@ -129,4 +129,4 @@ bool levelCameraViewTransform(double yawDegrees, double pitchDegrees, const Leve
 // nothing selected has a position.
 bool levelMapFlipPivot(const LevelMapDocument& document, double grid, LevelMapVec3* pivot, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -19,7 +19,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -205,7 +205,7 @@ bool inspectLevelPrefab(const LevelPrefab &prefab, LevelMapDocument *definition,
 	if (!boundedText(prefab.mapText, error, cancelled)) {
 		return false;
 	}
-	const auto marker = QStringLiteral("\n// VibeStudioScene: ");
+	const auto marker = QStringLiteral("\n// SlopStudioScene: ");
 	const auto trailer = prefab.mapText.lastIndexOf(marker);
 	if (trailer >= 0) {
 		auto tail = prefab.mapText.mid(trailer+marker.size());
@@ -408,7 +408,7 @@ QByteArray serializeLevelPrefab(const LevelPrefab &prefab, QString *error, Level
 	if (!inspectLevelPrefab(prefab, nullptr, &report, error, cancelled)) {
 		return {};
 	}
-	const QJsonObject object{{QStringLiteral("format"), QStringLiteral("VibeStudioPrefab")},
+	const QJsonObject object{{QStringLiteral("format"), QStringLiteral("SlopStudioPrefab")},
 							 {QStringLiteral("version"), report.groups > 0 ? 2 : 1},
 							 {QStringLiteral("name"), prefab.name},
 							 {QStringLiteral("description"), prefab.description},
@@ -434,9 +434,9 @@ bool parseLevelPrefab(const QByteArray &bytes, LevelPrefab *prefab, QString *err
 	const auto json = QJsonDocument::fromJson(bytes, &parse);
 	const auto object = json.object();
 	if (parse.error != QJsonParseError::NoError || !json.isObject() ||
-		object.value(QStringLiteral("format")).toString() != QStringLiteral("VibeStudioPrefab") ||
+		object.value(QStringLiteral("format")).toString() != QStringLiteral("SlopStudioPrefab") ||
 		(object.value(QStringLiteral("version")).toDouble() != 1 && object.value(QStringLiteral("version")).toDouble() != 2)) {
-		return fail(error, QCoreApplication::translate("LevelPrefab", "Unsupported or invalid VibeStudio prefab file."));
+		return fail(error, QCoreApplication::translate("LevelPrefab", "Unsupported or invalid SlopStudio prefab file."));
 	}
 	LevelPrefab result;
 	for (const auto &key : {QStringLiteral("name"), QStringLiteral("description"), QStringLiteral("engineFamily"), QStringLiteral("map")}) {
@@ -777,4 +777,4 @@ QJsonObject levelPrefabReportJson(const LevelPrefabReport &report)
 			{QStringLiteral("warnings"), QJsonArray::fromStringList(report.warnings)},
 			{QStringLiteral("inserted"), objects}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

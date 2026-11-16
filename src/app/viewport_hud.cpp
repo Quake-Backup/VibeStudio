@@ -6,7 +6,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr qreal margin = 8.0;
 constexpr qreal padX = 7.0;
@@ -176,4 +176,4 @@ void paintViewportLabel(QPainter& painter, const ViewportLabelLayout& label, Qt:
 	painter.drawText(label.bounds.adjusted(4,2,-4,-2),flags,label.text); painter.restore();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

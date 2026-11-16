@@ -5,7 +5,7 @@
 #include <QVector>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct QuakeMapPreflightIssue {
 	QString issueId;
@@ -67,4 +67,4 @@ QuakeMapPreflightResult validateQuakeMapPreflightFile(const QString& mapPath, co
 QuakeMapPreflightReport inspectQuakeMapPreflightText(const QString& mapText, const QString& mapPath = QString());
 QuakeMapPreflightReport inspectQuakeMapPreflightFile(const QString& mapPath, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -9,7 +9,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct AssetTextMatch {
 	QString filePath;
@@ -119,4 +119,4 @@ AssetTextSearchReport applyProjectTextReplacements(const AssetTextSearchReport& 
 QByteArray assetTextSnapshotHash(const QString& text);
 QString assetTextSearchReportText(const AssetTextSearchReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

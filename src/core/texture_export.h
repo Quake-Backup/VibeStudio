@@ -4,7 +4,7 @@
 
 #include <QJsonObject>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // New formats are appended so stored ordinals and profile order stay stable.
 enum class TextureExportFormat { Png, IndexedPng, Targa, Dds, Ftx, Pcx, QuakeMiptex, QuakeWad2, Quake2Wal, DoomFlat, DoomPatch,
@@ -112,4 +112,4 @@ bool stageTextureExport(const TextureExportResult& result, const TextureExportOp
 	PackageStagingModel* staging, bool replaceExisting, QString* error = nullptr);
 bool textureExportSupportsQuake3Map(TextureExportFormat format);
 
-} // namespace vibestudio
+} // namespace slopstudio

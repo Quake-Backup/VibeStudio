@@ -15,7 +15,7 @@
 
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct SpeechVoice {
 	// Stable for the engine: what the voice preference stores.
@@ -86,9 +86,9 @@ private:
 // The sentence Settings, setup, and `accessibility speak --test` say.
 [[nodiscard]] QString speechTestPhrase();
 
-// What the silent "log" engine (VIBESTUDIO_SPEECH_ENGINE=log) was asked to
+// What the silent "log" engine (SLOPSTUDIO_SPEECH_ENGINE=log) was asked to
 // say, oldest first. Tests listen through these; no other engine records.
 [[nodiscard]] QStringList loggedSpeechForTesting();
 void clearLoggedSpeechForTesting();
 
-} // namespace vibestudio
+} // namespace slopstudio

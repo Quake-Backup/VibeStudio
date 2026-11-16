@@ -28,7 +28,7 @@
 #include <memory>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 
@@ -58,15 +58,15 @@ void ownWorker(QThread* worker, QDialog* dialog, const std::shared_ptr<WorkState
 
 QString kindName(const QString& kind)
 {
-	if (kind == QStringLiteral("texture")) { return QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Texture / shader"); }
-	if (kind == QStringLiteral("shader-image")) { return QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Shader image"); }
-	if (kind == QStringLiteral("model")) { return QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Model"); }
-	if (kind == QStringLiteral("model-material")) { return QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Model material"); }
-	if (kind == QStringLiteral("model-lod")) { return QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Model detail level"); }
-	if (kind == QStringLiteral("sound")) { return QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Sound / music"); }
-	if (kind == QStringLiteral("doom-wall")) { return QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Doom wall"); }
-	if (kind == QStringLiteral("doom-flat")) { return QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Doom flat"); }
-	if (kind == QStringLiteral("doom-input")) { return QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Doom material input"); }
+	if (kind == QStringLiteral("texture")) { return QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Texture / shader"); }
+	if (kind == QStringLiteral("shader-image")) { return QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Shader image"); }
+	if (kind == QStringLiteral("model")) { return QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Model"); }
+	if (kind == QStringLiteral("model-material")) { return QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Model material"); }
+	if (kind == QStringLiteral("model-lod")) { return QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Model detail level"); }
+	if (kind == QStringLiteral("sound")) { return QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Sound / music"); }
+	if (kind == QStringLiteral("doom-wall")) { return QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Doom wall"); }
+	if (kind == QStringLiteral("doom-flat")) { return QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Doom flat"); }
+	if (kind == QStringLiteral("doom-input")) { return QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Doom material input"); }
 	return kind;
 }
 
@@ -85,46 +85,46 @@ QDialog* showLevelDependencyDialog(QWidget* parent, const LevelMapDocument& docu
 	auto* dialog = new QDialog(parent);
 	dialog->setAttribute(Qt::WA_DeleteOnClose);
 	dialog->setObjectName(QStringLiteral("levelDependencyDialog"));
-	dialog->setWindowTitle(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Level Dependencies"));
-	dialog->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Level dependencies"));
+	dialog->setWindowTitle(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Level Dependencies"));
+	dialog->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Level dependencies"));
 	dialog->resize(1000, 650);
 	auto* layout = new QVBoxLayout(dialog);
 	const QString assets = archive ? QFileInfo(archive->sourcePath()).fileName() : options.sourceLabel;
 	auto* context = new QLabel(options.stockFactory
-			? QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Map: %1 · Assets: %2 and the game's own files").arg(document.mapName, assets)
-			: QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Map: %1 · Assets: %2").arg(document.mapName, assets));
+			? QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Map: %1 · Assets: %2 and the game's own files").arg(document.mapName, assets)
+			: QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Map: %1 · Assets: %2").arg(document.mapName, assets));
 	context->setTextFormat(Qt::PlainText);
 	context->setWordWrap(true);
 	context->setToolTip(archive ? archive->sourcePath() : options.sourceLabel);
-	context->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Dependency scan sources"));
+	context->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Dependency scan sources"));
 	layout->addWidget(context);
-	auto* summary = new QLabel(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Checking dependencies for %1…").arg(document.mapName));
+	auto* summary = new QLabel(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Checking dependencies for %1…").arg(document.mapName));
 	summary->setObjectName(QStringLiteral("dependencySummary"));
 	summary->setTextFormat(Qt::PlainText);
 	summary->setWordWrap(true);
-	summary->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Dependency scan status"));
+	summary->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Dependency scan status"));
 	layout->addWidget(summary);
 	auto* progress = new QProgressBar;
-	progress->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Dependency scan progress"));
+	progress->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Dependency scan progress"));
 	progress->setRange(0, 0);
 	layout->addWidget(progress);
 	auto* filterRow = new QHBoxLayout;
 	auto* filter = new QLineEdit;
 	filter->setObjectName(QStringLiteral("dependencyFilter"));
-	filter->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Filter dependencies"));
-	filter->setPlaceholderText(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Filter by reference, file, or map object"));
+	filter->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Filter dependencies"));
+	filter->setPlaceholderText(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Filter by reference, file, or map object"));
 	filter->setClearButtonEnabled(true);
-	auto* problemsOnly = new QCheckBox(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Problems only"));
+	auto* problemsOnly = new QCheckBox(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Problems only"));
 	problemsOnly->setObjectName(QStringLiteral("dependencyProblemsOnly"));
-	problemsOnly->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Show only dependency problems"));
+	problemsOnly->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Show only dependency problems"));
 	filterRow->addWidget(filter, 1);
 	filterRow->addWidget(problemsOnly);
 	layout->addLayout(filterRow);
 	auto* tree = new QTreeWidget;
 	tree->setObjectName(QStringLiteral("levelDependencies"));
-	tree->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Level dependency results"));
-	tree->setAccessibleDescription(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Select a dependency to inspect its searched paths and map objects. Activate a row to select its objects in the map."));
-	tree->setHeaderLabels({QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Reference"), QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Kind"), QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Status"), QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Provided by")});
+	tree->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Level dependency results"));
+	tree->setAccessibleDescription(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Select a dependency to inspect its searched paths and map objects. Activate a row to select its objects in the map."));
+	tree->setHeaderLabels({QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Reference"), QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Kind"), QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Status"), QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Provided by")});
 	tree->setRootIsDecorated(false);
 	tree->setAlternatingRowColors(true);
 	tree->header()->setSectionResizeMode(QHeaderView::Interactive);
@@ -135,30 +135,30 @@ QDialog* showLevelDependencyDialog(QWidget* parent, const LevelMapDocument& docu
 	layout->addWidget(tree, 1);
 	auto* details = new QPlainTextEdit;
 	details->setReadOnly(true);
-	details->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Dependency details and scan coverage"));
+	details->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Dependency details and scan coverage"));
 	details->setMaximumHeight(dialog->fontMetrics().lineSpacing() * 9 + 16);
 	layout->addWidget(details);
 	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close);
-	auto* selectButton = buttons->addButton(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Select in Map"), QDialogButtonBox::ActionRole);
-	selectButton->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Select dependency users in the map"));
+	auto* selectButton = buttons->addButton(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Select in Map"), QDialogButtonBox::ActionRole);
+	selectButton->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Select dependency users in the map"));
 	selectButton->setEnabled(false);
-	auto* copyButton = buttons->addButton(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Copy JSON"), QDialogButtonBox::ActionRole);
-	copyButton->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Copy dependency report as JSON"));
+	auto* copyButton = buttons->addButton(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Copy JSON"), QDialogButtonBox::ActionRole);
+	copyButton->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Copy dependency report as JSON"));
 	copyButton->setEnabled(false);
-	auto* exportButton = buttons->addButton(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Export Assets…"), QDialogButtonBox::ActionRole);
+	auto* exportButton = buttons->addButton(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Export Assets…"), QDialogButtonBox::ActionRole);
 	exportButton->setObjectName(QStringLiteral("exportLevelAssets"));
-	exportButton->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Export resolved level assets"));
-	exportButton->setToolTip(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Review the resolved files and export them as a new asset package. The map and BSP are not included."));
+	exportButton->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Export resolved level assets"));
+	exportButton->setToolTip(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Review the resolved files and export them as a new asset package. The map and BSP are not included."));
 	if (options.packageMap) {
 		// Assets read from the project ship through a release, with the build.
-		exportButton->setText(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Package Map…"));
+		exportButton->setText(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Package Map…"));
 		exportButton->setObjectName(QStringLiteral("packageLevelMapFromDependencies"));
-		exportButton->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Package and release this map"));
-		exportButton->setToolTip(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Release the map with its build and every custom asset it uses, leaving the game's own files out."));
+		exportButton->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Package and release this map"));
+		exportButton->setToolTip(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Release the map with its build and every custom asset it uses, leaving the game's own files out."));
 	}
 	exportButton->setEnabled(false);
-	auto* cancelButton = buttons->addButton(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Cancel Scan"), QDialogButtonBox::ActionRole);
-	cancelButton->setAccessibleName(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Cancel dependency scan"));
+	auto* cancelButton = buttons->addButton(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Cancel Scan"), QDialogButtonBox::ActionRole);
+	cancelButton->setAccessibleName(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Cancel dependency scan"));
 	layout->addWidget(buttons);
 	QObject::connect(buttons, &QDialogButtonBox::rejected, dialog, &QDialog::close);
 	auto state = std::make_shared<WorkState>();
@@ -176,7 +176,7 @@ QDialog* showLevelDependencyDialog(QWidget* parent, const LevelMapDocument& docu
 		const int index = item->data(0, Qt::UserRole).toInt();
 		const LevelDependency& dependency = state->dependencies.dependencies.at(index);
 		selectButton->setEnabled(!dependency.selectors.isEmpty());
-		details->setPlainText(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Map objects: %1\nRequired by: %2\nSearched: %3\n%4")
+		details->setPlainText(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Map objects: %1\nRequired by: %2\nSearched: %3\n%4")
 			.arg(dependency.selectors.join(QStringLiteral(", ")), dependency.requiredBy.join(QStringLiteral(", ")),
 				dependency.candidates.join(QStringLiteral(", ")), dependency.note) + QLatin1Char('\n') + state->dependencies.limitations.join(QLatin1Char('\n')));
 	});
@@ -201,7 +201,7 @@ QDialog* showLevelDependencyDialog(QWidget* parent, const LevelMapDocument& docu
 	QObject::connect(cancelButton, &QPushButton::clicked, dialog, [=]() {
 		state->cancel = true;
 		cancelButton->setEnabled(false);
-		summary->setText(QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Cancelling dependency scan…"));
+		summary->setText(QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Cancelling dependency scan…"));
 	});
 	auto* timer = new QTimer(dialog);
 	timer->setInterval(100);
@@ -220,7 +220,7 @@ QDialog* showLevelDependencyDialog(QWidget* parent, const LevelMapDocument& docu
 		if (!state->archive) {
 			state->dependencies.complete = false;
 			state->dependencies.warnings << (state->error.isEmpty()
-				? QCoreApplication::translate("VibeStudioLevelDependencyDialog", "No assets were available to check against.") : state->error);
+				? QCoreApplication::translate("SlopStudioLevelDependencyDialog", "No assets were available to check against.") : state->error);
 			return;
 		}
 		LevelDependencyOptions inspect;
@@ -239,11 +239,11 @@ QDialog* showLevelDependencyDialog(QWidget* parent, const LevelMapDocument& docu
 		progress->setRange(0, 1);
 		progress->setValue(state->dependencies.complete ? 1 : 0);
 		const LevelDependencyReport& report = state->dependencies;
-		summary->setText(report.cancelled ? QCoreApplication::translate("VibeStudioLevelDependencyDialog", "Dependency scan cancelled.")
-			: QCoreApplication::translate("VibeStudioLevelDependencyDialog", "References: %1 · Files: %2 · Bytes: %3 · Problems: %4%5").arg(report.dependencies.size())
+		summary->setText(report.cancelled ? QCoreApplication::translate("SlopStudioLevelDependencyDialog", "Dependency scan cancelled.")
+			: QCoreApplication::translate("SlopStudioLevelDependencyDialog", "References: %1 · Files: %2 · Bytes: %3 · Problems: %4%5").arg(report.dependencies.size())
 				.arg(report.resolvedPaths.size()).arg(report.totalBytes).arg(report.problemCount)
-				.arg((report.stockCount > 0 ? QCoreApplication::translate("VibeStudioLevelDependencyDialog", " · From the game: %1").arg(report.stockCount) : QString())
-					+ (report.complete ? QString() : QCoreApplication::translate("VibeStudioLevelDependencyDialog", " · Incomplete scan"))));
+				.arg((report.stockCount > 0 ? QCoreApplication::translate("SlopStudioLevelDependencyDialog", " · From the game: %1").arg(report.stockCount) : QString())
+					+ (report.complete ? QString() : QCoreApplication::translate("SlopStudioLevelDependencyDialog", " · Incomplete scan"))));
 		for (int i = 0; i < report.dependencies.size(); ++i) {
 			const LevelDependency& dependency = report.dependencies.at(i);
 			auto* item = new QTreeWidgetItem({dependency.reference, kindName(dependency.kind), levelDependencyStatusName(dependency.status), dependency.resolvedPath});
@@ -267,4 +267,4 @@ QDialog* showLevelDependencyDialog(QWidget* parent, const LevelMapDocument& docu
 	return dialog;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

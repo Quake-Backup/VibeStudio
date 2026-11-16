@@ -17,7 +17,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -181,4 +181,4 @@ void ModelPrimitiveBindingDialog::refreshState()
 								   : Text::tr("Each new vertex follows the bones nearest to it. The status line counts the bound vertices."));
 	m_apply->setEnabled(ready);
 }
-} // namespace vibestudio
+} // namespace slopstudio

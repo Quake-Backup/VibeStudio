@@ -8,7 +8,7 @@
 #include <QRegularExpression>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 // Private access keeps batch application linear in the number of operations
 // and binds reviews to the already captured source/draft content identities.
 class PackageWadGroupEditor final {
@@ -25,11 +25,11 @@ struct Group {
 	qsizetype first = -1, last = -1;
 	QString name, kind, error;
 };
-QString message(const char* source) { return QCoreApplication::translate("VibeStudioPackageSubset", source); }
+QString message(const char* source) { return QCoreApplication::translate("SlopStudioPackageSubset", source); }
 bool stopped(const PackageReadControl& control, QString* error)
 {
 	if (!control.isCancelled || !control.isCancelled()) { return false; }
-	*error = message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "WAD group analysis cancelled.")); return true;
+	*error = message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "WAD group analysis cancelled.")); return true;
 }
 bool conventionalMap(const QString& name)
 {
@@ -103,7 +103,7 @@ bool scan(const QStringList& sourceNames, Layout* layout, QString* error, const 
 		const QStringList required = gl ? QStringList{QStringLiteral("GL_VERT"), QStringLiteral("GL_SEGS"), QStringLiteral("GL_SSECT"), QStringLiteral("GL_NODES")}
 			: udmf ? QStringList{QStringLiteral("ENDMAP")} : QStringList{QStringLiteral("THINGS"), QStringLiteral("LINEDEFS"), QStringLiteral("SIDEDEFS"), QStringLiteral("VERTEXES"), QStringLiteral("SECTORS")};
 		if (duplicate || std::any_of(required.cbegin(), required.cend(), [&](const auto& name) { return !found.contains(name); })) {
-			group.error = message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "Map group %1 is incomplete or repeats a required member. Review the original WAD before editing or exporting this group.")).arg(group.name);
+			group.error = message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "Map group %1 is incomplete or repeats a required member. Review the original WAD before editing or exporting this group.")).arg(group.name);
 		}
 		const qsizetype owner = maps.size(); maps << group;
 		for (qsizetype scan = group.first; scan <= group.last; ++scan) { if (stopped(control, error)) { return false; } owners[scan] = owner; }
@@ -116,10 +116,10 @@ bool scan(const QStringList& sourceNames, Layout* layout, QString* error, const 
 		if (owners.at(at) >= 0) { continue; }
 		bool opens = false; const QString family = doomNamespaceMarker(names.at(at), &opens);
 		if (family.isEmpty()) { continue; }
-		if (opens) { namespaces.append({at, names.size() - 1, names.at(at), family, message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "Namespace %1 is not closed.")).arg(names.at(at))}); stack << namespaces.size() - 1; }
+		if (opens) { namespaces.append({at, names.size() - 1, names.at(at), family, message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "Namespace %1 is not closed.")).arg(names.at(at))}); stack << namespaces.size() - 1; }
 		else if (!stack.isEmpty() && namespaces.at(stack.last()).kind == family) {
 			auto& group = namespaces[stack.takeLast()]; group.last = at; group.error.clear();
-		} else { namespaces.append({at, at, names.at(at), family, message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "Namespace end marker %1 has no matching open region.")).arg(names.at(at))}); }
+		} else { namespaces.append({at, at, names.at(at), family, message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "Namespace end marker %1 has no matching open region.")).arg(names.at(at))}); }
 	}
 	return !stopped(control, error);
 }
@@ -136,7 +136,7 @@ bool expand(const Layout& layout, const QSet<qsizetype>& requested, QSet<qsizety
 			if (!group.error.isEmpty()) { *error = group.error; return false; }
 			for (qsizetype at = group.first; at <= group.last; ++at) {
 				if (stopped(control, error)) { return false; }
-				add(at, message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "Namespace %1")).arg(group.name));
+				add(at, message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "Namespace %1")).arg(group.name));
 			}
 		}
 	}
@@ -144,7 +144,7 @@ bool expand(const Layout& layout, const QSet<qsizetype>& requested, QSet<qsizety
 	for (const qsizetype at : std::as_const(*included)) {
 		if (owners.at(at) >= 0) { selectedMaps.insert(owners.at(at)); }
 		else if (!namespaceMembers.contains(at) && (binaryMapLump(names.at(at)) || glLump(names.at(at)) || names.at(at) == QStringLiteral("TEXTMAP") || names.at(at) == QStringLiteral("ENDMAP"))) {
-			*error = message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "The selected lump %1 has no complete map group.")).arg(names.at(at)); return false;
+			*error = message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "The selected lump %1 has no complete map group.")).arg(names.at(at)); return false;
 		}
 	}
 	// A separately stored GL run with the same map label belongs with that map.
@@ -160,7 +160,7 @@ bool expand(const Layout& layout, const QSet<qsizetype>& requested, QSet<qsizety
 			if (maps.at(probe).name == selected.name) { ++sameLabel; }
 		}
 		if (matches.size() > 1 || (!matches.isEmpty() && (sameLabel > 1 || peerLabelCount > 1))) {
-			*error = message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "Map label %1 has ambiguous companion groups.")).arg(selected.name); return false;
+			*error = message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "Map label %1 has ambiguous companion groups.")).arg(selected.name); return false;
 		}
 		if (!matches.isEmpty()) { selectedMaps.insert(matches.first()); }
 	}
@@ -168,7 +168,7 @@ bool expand(const Layout& layout, const QSet<qsizetype>& requested, QSet<qsizety
 		const auto& group = maps.at(index); if (!group.error.isEmpty()) { *error = group.error; return false; }
 		for (qsizetype at = group.first; at <= group.last; ++at) {
 			if (stopped(control, error)) { return false; }
-			add(at, message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "Map %1")).arg(group.name));
+			add(at, message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "Map %1")).arg(group.name));
 		}
 	}
 	// Texture directory indices are relative to PNAMES. Keep local tables
@@ -182,8 +182,8 @@ bool expand(const Layout& layout, const QSet<qsizetype>& requested, QSet<qsizety
 		}
 	}
 	if (selectedTable) {
-		for (const qsizetype at : textureTables) { add(at, message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "Texture name tables"))); }
-		if (!pnames) { *warnings << message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "No local PNAMES table was found; texture definitions require the appropriate base-game table.")); }
+		for (const qsizetype at : textureTables) { add(at, message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "Texture name tables"))); }
+		if (!pnames) { *warnings << message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "No local PNAMES table was found; texture definitions require the appropriate base-game table.")); }
 	}
 	for (const auto& group : namespaces) {
 		bool touched = false;
@@ -193,7 +193,7 @@ bool expand(const Layout& layout, const QSet<qsizetype>& requested, QSet<qsizety
 		}
 		if (!touched) { continue; }
 		if (!group.error.isEmpty()) { *error = group.error; return false; }
-		add(group.first, message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "Namespace %1")).arg(group.name)); add(group.last, message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "Namespace %1")).arg(group.name));
+		add(group.first, message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "Namespace %1")).arg(group.name)); add(group.last, message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "Namespace %1")).arg(group.name));
 	}
 	return !stopped(control, error);
 }
@@ -238,7 +238,7 @@ bool orderNewPackageDoomLumps(const QStringList& names, QVector<qsizetype>* orde
 	const auto attach = [&](const QVector<qsizetype>& loose, const QVector<qsizetype>& candidates) {
 		if (loose.isEmpty()) { return true; }
 		if (candidates.size() != 1) {
-			*error = QCoreApplication::translate("VibeStudioPackageWadGroups", "The new WAD has ambiguous or missing map ownership for %1. Add a unique map marker or review the lump order.").arg(names.at(loose.first()));
+			*error = QCoreApplication::translate("SlopStudioPackageWadGroups", "The new WAD has ambiguous or missing map ownership for %1. Add a unique map marker or review the lump order.").arg(names.at(loose.first()));
 			return false;
 		}
 		for (const auto member : loose) {
@@ -255,7 +255,7 @@ bool orderNewPackageDoomLumps(const QStringList& names, QVector<qsizetype>* orde
 		for (const auto member : run.members) {
 			if (stopped(control, error)) { return false; }
 			if (seen.contains(layout.names.at(member))) {
-				*error = QCoreApplication::translate("VibeStudioPackageStaging", "One map cannot hold the lump %1 twice.").arg(layout.names.at(member)); return false;
+				*error = QCoreApplication::translate("SlopStudioPackageStaging", "One map cannot hold the lump %1 twice.").arg(layout.names.at(member)); return false;
 			}
 			seen.insert(layout.names.at(member)); owners[member] = at; first = qMin(first, member);
 		}
@@ -278,7 +278,7 @@ bool orderNewPackageDoomLumps(const QStringList& names, QVector<qsizetype>* orde
 }
 
 namespace {
-QString editMessage(const char* source) { return QCoreApplication::translate("VibeStudioPackageWadGroups", source); }
+QString editMessage(const char* source) { return QCoreApplication::translate("SlopStudioPackageWadGroups", source); }
 QString groupId(const QString& kind, const PackageStagedEntry& entry)
 {
 	return kind + QLatin1Char(':') + (entry.sourceOrdinal >= 0 ? QString::number(entry.sourceOrdinal) : QStringLiteral("new:") + entry.operationId);
@@ -314,7 +314,7 @@ PackageWadGroupInventory inspectPackageWadGroups(const PackageStagingModel& mode
 	if (stopped(control, &result.error)) { return result; }
 	if (!model.isLoaded() || model.sourceFormat() != PackageArchiveFormat::Wad
 		|| (model.sourceWadMagic() != QStringLiteral("PWAD") && model.sourceWadMagic() != QStringLiteral("IWAD"))) {
-		result.error = editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "Map and namespace groups are available in Doom PWAD and IWAD packages.")); return result;
+		result.error = editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "Map and namespace groups are available in Doom PWAD and IWAD packages.")); return result;
 	}
 	if (!model.preparePlan(&result.error, control)) { return result; }
 	if (!model.summary().canSave) { result.error = model.summary().blockedMessages.join(QLatin1Char('\n')); return result; }
@@ -332,7 +332,7 @@ PackageWadGroupInventory inspectPackageWadGroups(const PackageStagingModel& mode
 		QVector<qsizetype> peers;
 		for (const auto at : labels.value(peerName)) { if (layout.maps.at(at).kind != map.kind) { peers << at; } }
 		if (peers.size() > 1 || (!peers.isEmpty() && (labels.value(map.name).size() > 1 || labels.value(peerName).size() > 1))) {
-			group.error = editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "Map label %1 has ambiguous companion groups.")).arg(map.name);
+			group.error = editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "Map label %1 has ambiguous companion groups.")).arg(map.name);
 		} else if (!peers.isEmpty()) {
 			const auto& peer = layout.maps.at(peers.first()); group.ranges.append({peer.first, peer.last});
 			if (!peer.error.isEmpty()) { group.error = peer.error; }
@@ -388,53 +388,53 @@ bool stagePackageWadGroupEdit(PackageStagingModel* model, const PackageWadGroupE
 	const auto inventory = inspectPackageWadGroups(*model, control);
 	if (!inventory.succeeded()) { return fail(inventory.error); }
 	if (request.expectedFingerprint.isEmpty() || request.expectedFingerprint != inventory.fingerprint) {
-		return fail(editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "The package plan changed. Review its groups again before editing.")));
+		return fail(editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "The package plan changed. Review its groups again before editing.")));
 	}
 	const auto found = std::find_if(inventory.groups.cbegin(), inventory.groups.cend(), [&](const auto& group) { return group.id == request.groupId; });
-	if (found == inventory.groups.cend()) { return fail(editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "The selected WAD group is unavailable."))); }
+	if (found == inventory.groups.cend()) { return fail(editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "The selected WAD group is unavailable."))); }
 	const auto& group = *found; if (!group.error.isEmpty()) { return fail(group.error); }
 	const auto entries = model->plannedEntries(); QHash<qsizetype, QString> targets;
 	if (request.remove) {
-		if (!request.targetName.isEmpty()) { return fail(editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "A group deletion cannot also rename its members."))); }
+		if (!request.targetName.isEmpty()) { return fail(editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "A group deletion cannot also rename its members."))); }
 		for (const auto& range : group.ranges) {
 			for (qsizetype at = range.first; at <= range.last; ++at) { if (stopped(control, error)) { return false; } targets.insert(at, {}); }
 		}
 	} else {
-		if (!group.canRename) { return fail(editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "Only map groups can be renamed. Namespace and texture table names define their meaning."))); }
+		if (!group.canRename) { return fail(editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "Only map groups can be renamed. Namespace and texture table names define their meaning."))); }
 		const auto target = request.targetName.toUpper();
 		static const QRegularExpression label(QStringLiteral("^[A-Z0-9_][A-Z0-9_-]{0,7}$"));
 		if (!label.match(target).hasMatch() || target.startsWith(QStringLiteral("GL_")) || binaryMapLump(target) || glLump(target)
 			|| target == QStringLiteral("TEXTMAP") || target == QStringLiteral("ENDMAP") || !doomNamespaceMarker(target).isEmpty()
 			|| QStringList{QStringLiteral("PNAMES"), QStringLiteral("TEXTURE1"), QStringLiteral("TEXTURE2")}.contains(target)) {
-			return fail(editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "Choose a non-reserved map label of 1–8 ASCII letters, digits, underscores or hyphens.")));
+			return fail(editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "Choose a non-reserved map label of 1–8 ASCII letters, digits, underscores or hyphens.")));
 		}
 		for (const auto& range : group.ranges) {
 			const bool gl = range.first == group.ranges.first().first ? group.kind == QStringLiteral("gl") : group.kind != QStringLiteral("gl");
 			const auto name = gl ? QStringLiteral("GL_") + target : target;
-			if (name.size() > 8) { return fail(editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "A map with GL nodes needs a label of at most five characters."))); }
+			if (name.size() > 8) { return fail(editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "A map with GL nodes needs a label of at most five characters."))); }
 			targets.insert(range.first, name);
 		}
 		for (auto it = targets.cbegin(); it != targets.cend(); ++it) {
 			for (qsizetype at = 0; at < entries.size(); ++at) {
 				if (stopped(control, error)) { return false; }
 				if (at != it.key() && entries.at(at).virtualPath.compare(it.value(), Qt::CaseInsensitive) == 0) {
-					return fail(editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "The map label already exists: %1")).arg(it.value()));
+					return fail(editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "The map label already exists: %1")).arg(it.value()));
 				}
 			}
 		}
 	}
 	PackageWadGroupEditReview prepared{group.id, group.name, request.remove, {}, {}};
-	prepared.warnings << editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "Map metadata, scripts and asset references are not rewritten. Review dependent content before saving."));
+	prepared.warnings << editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "Map metadata, scripts and asset references are not rewritten. Review dependent content before saving."));
 	auto candidate = *model; if (!candidate.beginOperationGroup(request.remove
-		? editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "Delete WAD group %1")).arg(group.name)
-		: editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "Rename WAD map %1")).arg(group.name), error)) { return false; }
+		? editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "Delete WAD group %1")).arg(group.name)
+		: editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "Rename WAD map %1")).arg(group.name), error)) { return false; }
 	QHash<QString, int> occurrences; for (const auto& entry : entries) { ++occurrences[entry.virtualPath.toCaseFolded()]; }
 	for (qsizetype at = 0; at < entries.size(); ++at) {
 		if (stopped(control, error)) { return false; } if (!targets.contains(at)) { continue; }
 		const auto& entry = entries.at(at); const auto target = targets.value(at);
 		if (!request.remove && target == entry.virtualPath) { continue; }
 		if (entry.sourceOrdinal < 0 && occurrences.value(entry.virtualPath.toCaseFolded()) != 1) {
-			return fail(editMessage(QT_TRANSLATE_NOOP("VibeStudioPackageWadGroups", "A newly staged group member is ambiguous: %1")).arg(entry.virtualPath));
+			return fail(editMessage(QT_TRANSLATE_NOOP("SlopStudioPackageWadGroups", "A newly staged group member is ambiguous: %1")).arg(entry.virtualPath));
 		}
 		PackageStageOperation operation; operation.type = request.remove ? PackageStageOperationType::Delete : PackageStageOperationType::Rename;
 		operation.sourceOrdinal = entry.sourceOrdinal; operation.virtualPath = entry.virtualPath; operation.targetVirtualPath = target;
@@ -448,4 +448,4 @@ bool stagePackageWadGroupEdit(PackageStagingModel* model, const PackageWadGroupE
 	*model = std::move(candidate); if (review) { *review = std::move(prepared); } return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

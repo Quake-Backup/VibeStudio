@@ -18,13 +18,13 @@
 // implementation. The importer mirrors core/model_player_bundle.cpp, which
 // writes the same layout.
 // https://github.com/id-Software/Quake-III-Arena/blob/master/code/cgame/cg_players.c
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelPlayerImport)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelPlayerImport)
 };
 bool fail(QString *error, const QString &message)
 {
@@ -514,4 +514,4 @@ QStringList modelPlayerBundleArguments(const ModelPlayerBundleOptions &options)
 		arguments << QStringLiteral("--sound") << QStringLiteral("%1=%2").arg(sound.name, modelPlayerReferenceText(sound.source));
 	return arguments;
 }
-} // namespace vibestudio
+} // namespace slopstudio

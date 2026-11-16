@@ -2,7 +2,7 @@
 
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 
 int run(const QStringList& args);
 
@@ -11,4 +11,4 @@ int run(const QStringList& args);
 // because Qt offers OpenGL only to one.
 bool commandUsesRenderer(const QStringList& args);
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

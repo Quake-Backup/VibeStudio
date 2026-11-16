@@ -2,7 +2,7 @@
 
 // External change detection for the files the studio holds open.
 //
-// Nothing in VibeStudio noticed when a file it had open changed underneath it.
+// Nothing in SlopStudio noticed when a file it had open changed underneath it.
 // That is not only a missing convenience: the Doom WAD save path re-reads the
 // source file at save time, so a WAD edited by another tool between load and
 // save silently produced an archive built from content the user never saw.
@@ -49,7 +49,7 @@
 
 class QFileSystemWatcher;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // What the studio is holding a path open as. A path may be registered under one
 // role at a time; registering it again replaces the role and the baseline.
@@ -294,4 +294,4 @@ private:
 	bool m_notificationsRequested = true;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

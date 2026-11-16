@@ -21,14 +21,14 @@ available without a server or AI connector.
 
 Connect starts the selected executable with your account's permissions, using
 the project directory as its working directory. Only choose a tool you trust.
-VibeStudio shares the root path and matching named, editable Code documents,
+SlopStudio shares the root path and matching named, editable Code documents,
 including unsaved text in inactive tabs. Untitled documents, package copies,
 outside-project files and linked source paths are excluded or rejected. The
 server can independently read project files and write its own indexes or caches;
 the protocol connection does not sandbox the executable.
 
 The executable and arguments are remembered as inert preferences. Opening a
-project, restoring a session or starting VibeStudio never starts a server.
+project, restoring a session or starting SlopStudio never starts a server.
 Changing projects stops the connection; choose Connect again for the new root.
 There is one connection with one language/extension configuration at a time.
 
@@ -36,7 +36,7 @@ For C/C++, clangd needs the project's compiler flags and include paths for usefu
 analysis. Supply the appropriate `compile_commands.json`, or a literal argument
 such as `--compile-commands-dir=/absolute/build/directory`. See the official
 [clangd project setup guide](https://clangd.llvm.org/installation.html#project-setup).
-VibeStudio does not install servers, generate a compilation database here, or
+SlopStudio does not install servers, generate a compilation database here, or
 change the game's compiler configuration.
 
 ## Diagnostics And Navigation
@@ -347,15 +347,15 @@ requests and dynamic registrations are not executed.
 The CLI uses the same client against one saved source file:
 
 ```sh
-vibestudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --language cpp --line 12 --column 8 --timeout-ms 15000 --json
-vibestudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --completion --line 12 --column 8 --json
-vibestudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --references --line 12 --column 8 --json
-vibestudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --hover --line 12 --column 8 --json
-vibestudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --signature-help --line 12 --column 8 --json
-vibestudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --format-document --json
-vibestudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --format-range --line 3 --column 1 --end-line 6 --end-column 2 --tab-size 4 --insert-spaces --json
-vibestudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --code-actions --line 12 --column 8 --json
-vibestudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --code-actions --line 12 --column 8 --action-index 1 --json
+slopstudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --language cpp --line 12 --column 8 --timeout-ms 15000 --json
+slopstudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --completion --line 12 --column 8 --json
+slopstudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --references --line 12 --column 8 --json
+slopstudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --hover --line 12 --column 8 --json
+slopstudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --signature-help --line 12 --column 8 --json
+slopstudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --format-document --json
+slopstudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --format-range --line 3 --column 1 --end-line 6 --end-column 2 --tab-size 4 --insert-spaces --json
+slopstudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --code-actions --line 12 --column 8 --json
+slopstudio --cli code language-server ./src/main.cpp --server /absolute/path/to/clangd --root . --code-actions --line 12 --column 8 --action-index 1 --json
 ```
 
 `--line` requests a definition at a one-based line. `--column` defaults to 1
@@ -606,7 +606,7 @@ labels. These also call Qt/service methods directly, without OS input injection.
 Ruff 0.16.4 document pulls returned an undefined-name diagnostic at the expected
 UTF-16 range and exit 4, then an explicit empty report and exit 0 for clean code.
 Both UTF-16LE BOM/CRLF files remained byte-identical. Ruff ran as a separate
-MIT-licensed test process; it is not a VibeStudio dependency. Controlled fixtures
+MIT-licensed test process; it is not a SlopStudio dependency. Controlled fixtures
 cover successful-save ordering, cached results, refresh, retries and failures.
 
 Windows verification also exercised installed clangd 20.1.7 through the CLI:

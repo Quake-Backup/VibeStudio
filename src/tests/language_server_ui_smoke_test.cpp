@@ -25,7 +25,7 @@
 #include <QToolButton>
 #include <QTranslator>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* text) { if (!condition) { std::cerr << text << '\n'; } return condition; }
 bool wait(const std::function<bool()>& ready, int ms = 10000)
@@ -46,7 +46,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "vibestudio::CodeLanguagePanel" && QByteArray(context) != "LanguageServer") { return {}; }
+		if (QByteArray(context) != "slopstudio::CodeLanguagePanel" && QByteArray(context) != "LanguageServer") { return {}; }
 		const auto text = QString::fromUtf8(source); return text + QStringLiteral(" ~").repeated(text.size() / 6);
 	}
 };
@@ -74,7 +74,7 @@ int main(int argc, char** argv)
 		for (const auto& name : {QStringLiteral("languageServerProgram"), QStringLiteral("languageServerLanguage"), QStringLiteral("languageServerExtensions"), QStringLiteral("languageServerConnect")}) {
 			auto* field = panel.findChild<QWidget*>(name); ok &= expect(field && !field->accessibleName().isEmpty() && field->focusPolicy() != Qt::NoFocus, "server controls must be named and keyboard focusable");
 		}
-		const auto evidence = qEnvironmentVariable("VIBESTUDIO_LANGUAGE_TEST_EVIDENCE");
+		const auto evidence = qEnvironmentVariable("SLOPSTUDIO_LANGUAGE_TEST_EVIDENCE");
 		if (!evidence.isEmpty()) { QImage image(panel.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); panel.render(&image); ok &= expect(image.save(QDir(evidence).filePath(QStringLiteral("language-server-%1.png").arg(scale))), "render scaled language configuration"); }
 		if (scale == 200) { app.removeTranslator(&translator); }
 	}

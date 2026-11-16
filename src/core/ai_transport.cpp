@@ -31,7 +31,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -119,7 +119,7 @@ void parseOpenAiChat(const QJsonObject& root, AiChatResponse* response)
 	const QJsonArray choices = root.value(QStringLiteral("choices")).toArray();
 	if (choices.isEmpty()) {
 		response->failure = AiChatFailure::BadResponse;
-		response->errorMessage = QCoreApplication::translate("VibeStudioAiTransport", "The provider's answer had no choices in it.");
+		response->errorMessage = QCoreApplication::translate("SlopStudioAiTransport", "The provider's answer had no choices in it.");
 		return;
 	}
 	const QJsonObject choice = choices.first().toObject();
@@ -134,7 +134,7 @@ void parseOpenAiChat(const QJsonObject& root, AiChatResponse* response)
 	if (response->finishReason == QStringLiteral("content_filter")) {
 		response->failure = AiChatFailure::Refused;
 		const QString refusal = message.value(QStringLiteral("refusal")).toString();
-		response->errorMessage = refusal.isEmpty() ? QCoreApplication::translate("VibeStudioAiTransport", "The provider's content filter stopped the answer.") : refusal;
+		response->errorMessage = refusal.isEmpty() ? QCoreApplication::translate("SlopStudioAiTransport", "The provider's content filter stopped the answer.") : refusal;
 		return;
 	}
 	if (const QString refusal = message.value(QStringLiteral("refusal")).toString(); !refusal.isEmpty() && response->text.isEmpty()) {
@@ -167,8 +167,8 @@ void parseAnthropicMessages(const QJsonObject& root, AiChatResponse* response)
 		QString explanation = details.value(QStringLiteral("explanation")).toString();
 		const QString category = details.value(QStringLiteral("category")).toString();
 		if (explanation.isEmpty()) {
-			explanation = category.isEmpty() ? QCoreApplication::translate("VibeStudioAiTransport", "The model declined to answer.")
-											 : QCoreApplication::translate("VibeStudioAiTransport", "The model declined to answer (%1).").arg(category);
+			explanation = category.isEmpty() ? QCoreApplication::translate("SlopStudioAiTransport", "The model declined to answer.")
+											 : QCoreApplication::translate("SlopStudioAiTransport", "The model declined to answer (%1).").arg(category);
 		}
 		response->errorMessage = explanation;
 	}
@@ -184,8 +184,8 @@ void parseGeminiGenerate(const QJsonObject& root, AiChatResponse* response)
 	if (candidates.isEmpty()) {
 		const QString blocked = root.value(QStringLiteral("promptFeedback")).toObject().value(QStringLiteral("blockReason")).toString();
 		response->failure = blocked.isEmpty() ? AiChatFailure::BadResponse : AiChatFailure::Refused;
-		response->errorMessage = blocked.isEmpty() ? QCoreApplication::translate("VibeStudioAiTransport", "The provider's answer had no candidates in it.")
-												   : QCoreApplication::translate("VibeStudioAiTransport", "The provider blocked the prompt (%1).").arg(blocked);
+		response->errorMessage = blocked.isEmpty() ? QCoreApplication::translate("SlopStudioAiTransport", "The provider's answer had no candidates in it.")
+												   : QCoreApplication::translate("SlopStudioAiTransport", "The provider blocked the prompt (%1).").arg(blocked);
 		return;
 	}
 	const QJsonObject candidate = candidates.first().toObject();
@@ -209,7 +209,7 @@ void parseGeminiGenerate(const QJsonObject& root, AiChatResponse* response)
 	};
 	if (refusals.contains(response->finishReason)) {
 		response->failure = AiChatFailure::Refused;
-		response->errorMessage = QCoreApplication::translate("VibeStudioAiTransport", "The provider stopped the answer (%1).").arg(response->finishReason);
+		response->errorMessage = QCoreApplication::translate("SlopStudioAiTransport", "The provider stopped the answer (%1).").arg(response->finishReason);
 	}
 }
 
@@ -362,7 +362,7 @@ QJsonValue elidedPayloads(const QJsonValue& value)
 		// call send lupdate's parser into a minutes-long backtrack.
 		const qsizetype bytes = value.toString().size() * 3 / 4;
 		const int count = static_cast<int>(std::min<qsizetype>(bytes, std::numeric_limits<int>::max()));
-		return QCoreApplication::translate("VibeStudioAiTransport", "<%n bytes of base64 data>", nullptr, count);
+		return QCoreApplication::translate("SlopStudioAiTransport", "<%n bytes of base64 data>", nullptr, count);
 	}
 	if (value.isArray()) {
 		QJsonArray array;
@@ -445,7 +445,7 @@ QStringList multipartSummary(const QByteArray& contentType, const QByteArray& bo
 			const int size = int(content.size());
 			lines << QStringLiteral("%1: %2 (%3, %4)")
 						 .arg(name, file.captured(1), typeField.match(headerText).captured(1).trimmed(),
-							 QCoreApplication::translate("VibeStudioAiTransport", "%n byte(s)", nullptr, size));
+							 QCoreApplication::translate("SlopStudioAiTransport", "%n byte(s)", nullptr, size));
 		} else {
 			lines << QStringLiteral("%1: %2").arg(name, QString::fromUtf8(content));
 		}
@@ -539,7 +539,7 @@ bool buildAiHttpRequest(const AiChatRequest& request, const QString& apiKey, AiH
 		return false;
 	};
 	if (!out) {
-		return fail(QCoreApplication::translate("VibeStudioAiTransport", "No request to fill."));
+		return fail(QCoreApplication::translate("SlopStudioAiTransport", "No request to fill."));
 	}
 	const AiTextTransport transport = aiTextTransport(request.connectorId);
 	if (transport == AiTextTransport::Harness) {
@@ -554,7 +554,7 @@ bool buildAiHttpRequest(const AiChatRequest& request, const QString& apiKey, AiH
 	}
 	if (transport == AiTextTransport::Gguf) {
 		if (request.messages.isEmpty()) {
-			return fail(QCoreApplication::translate("VibeStudioAiTransport", "There is nothing to ask."));
+			return fail(QCoreApplication::translate("SlopStudioAiTransport", "There is nothing to ask."));
 		}
 		if (const QString problem = aiGgufModelProblem(request.model); !problem.isEmpty()) {
 			return fail(problem);
@@ -587,22 +587,22 @@ bool buildAiHttpRequest(const AiChatRequest& request, const QString& apiKey, AiH
 	}
 	const WireFormat format = wireFormatFor(request.connectorId);
 	if (format == WireFormat::None) {
-		return fail(QCoreApplication::translate("VibeStudioAiTransport", "The %1 connector does not answer text requests.").arg(request.connectorId));
+		return fail(QCoreApplication::translate("SlopStudioAiTransport", "The %1 connector does not answer text requests.").arg(request.connectorId));
 	}
 	const QString model = request.model.trimmed();
 	if (model.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioAiTransport", "No model is set for this connector."));
+		return fail(QCoreApplication::translate("SlopStudioAiTransport", "No model is set for this connector."));
 	}
 	const QString base = trimmedBase(aiEffectiveEndpoint(request.connectorId, request.endpoint));
 	if (base.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioAiTransport", "No endpoint is set for this connector."));
+		return fail(QCoreApplication::translate("SlopStudioAiTransport", "No endpoint is set for this connector."));
 	}
 	const QUrl baseUrl(base);
 	if (!baseUrl.isValid() || (baseUrl.scheme() != QStringLiteral("http") && baseUrl.scheme() != QStringLiteral("https"))) {
-		return fail(QCoreApplication::translate("VibeStudioAiTransport", "The endpoint must be an http:// or https:// address."));
+		return fail(QCoreApplication::translate("SlopStudioAiTransport", "The endpoint must be an http:// or https:// address."));
 	}
 	if (request.messages.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioAiTransport", "There is nothing to ask."));
+		return fail(QCoreApplication::translate("SlopStudioAiTransport", "There is nothing to ask."));
 	}
 	const int maxTokens = std::clamp(request.maxOutputTokens, 16, 128000);
 
@@ -696,7 +696,7 @@ bool buildAiHttpRequest(const AiChatRequest& request, const QString& apiKey, AiH
 		body.insert(QStringLiteral("generationConfig"), generationConfig);
 	}
 	if (!http.url.isValid()) {
-		return fail(QCoreApplication::translate("VibeStudioAiTransport", "The endpoint does not make a valid address."));
+		return fail(QCoreApplication::translate("SlopStudioAiTransport", "The endpoint does not make a valid address."));
 	}
 	http.body = QJsonDocument(body).toJson(QJsonDocument::Compact);
 	*out = http;
@@ -714,14 +714,14 @@ AiChatResponse parseAiChatResponse(const QString& connectorId, int httpStatus, c
 		response.failure = failureForStatus(httpStatus);
 		QString message = root.isEmpty() ? QString::fromUtf8(body.left(400)).trimmed() : jsonErrorMessage(root);
 		if (message.isEmpty()) {
-			message = QCoreApplication::translate("VibeStudioAiTransport", "The provider answered HTTP %1.").arg(httpStatus);
+			message = QCoreApplication::translate("SlopStudioAiTransport", "The provider answered HTTP %1.").arg(httpStatus);
 		}
 		response.errorMessage = redactAiText(message);
 		return response;
 	}
 	if (root.isEmpty()) {
 		response.failure = AiChatFailure::BadResponse;
-		response.errorMessage = QCoreApplication::translate("VibeStudioAiTransport", "The provider's answer was not JSON: %1").arg(parseError.errorString());
+		response.errorMessage = QCoreApplication::translate("SlopStudioAiTransport", "The provider's answer was not JSON: %1").arg(parseError.errorString());
 		return response;
 	}
 	switch (wireFormatFor(connectorId)) {
@@ -736,13 +736,13 @@ AiChatResponse parseAiChatResponse(const QString& connectorId, int httpStatus, c
 		break;
 	case WireFormat::None:
 		response.failure = AiChatFailure::NotConfigured;
-		response.errorMessage = QCoreApplication::translate("VibeStudioAiTransport", "The %1 connector does not answer text requests.").arg(connectorId);
+		response.errorMessage = QCoreApplication::translate("SlopStudioAiTransport", "The %1 connector does not answer text requests.").arg(connectorId);
 		return response;
 	}
 	if (response.failure == AiChatFailure::None && response.text.trimmed().isEmpty()) {
 		response.failure = AiChatFailure::BadResponse;
-		response.errorMessage = response.truncated ? QCoreApplication::translate("VibeStudioAiTransport", "The answer hit the output limit before any text came.")
-												   : QCoreApplication::translate("VibeStudioAiTransport", "The provider's answer had no text in it.");
+		response.errorMessage = response.truncated ? QCoreApplication::translate("SlopStudioAiTransport", "The answer hit the output limit before any text came.")
+												   : QCoreApplication::translate("SlopStudioAiTransport", "The provider's answer had no text in it.");
 	}
 	response.ok = response.failure == AiChatFailure::None;
 	return response;
@@ -766,7 +766,7 @@ bool extractAiJsonObject(const QString& text, QJsonObject* out, QString* error)
 			return true;
 		}
 		if (firstProblem.isEmpty()) {
-			firstProblem = document.isNull() ? parseError.errorString() : QCoreApplication::translate("VibeStudioAiTransport", "the JSON is not an object");
+			firstProblem = document.isNull() ? parseError.errorString() : QCoreApplication::translate("SlopStudioAiTransport", "the JSON is not an object");
 		}
 		return false;
 	};
@@ -812,8 +812,8 @@ bool extractAiJsonObject(const QString& text, QJsonObject* out, QString* error)
 		}
 	}
 	if (error) {
-		*error = firstProblem.isEmpty() ? QCoreApplication::translate("VibeStudioAiTransport", "The answer held no JSON object.")
-										: QCoreApplication::translate("VibeStudioAiTransport", "The answer held no JSON object (%1).").arg(firstProblem);
+		*error = firstProblem.isEmpty() ? QCoreApplication::translate("SlopStudioAiTransport", "The answer held no JSON object.")
+										: QCoreApplication::translate("SlopStudioAiTransport", "The answer held no JSON object (%1).").arg(firstProblem);
 	}
 	return false;
 }
@@ -827,7 +827,7 @@ QStringList aiJsonSchemaProblems(const QJsonValue& value, const QJsonObject& sch
 				return {};
 			}
 		}
-		problems << QCoreApplication::translate("VibeStudioAiTransport", "%1 matches none of the allowed shapes.").arg(path);
+		problems << QCoreApplication::translate("SlopStudioAiTransport", "%1 matches none of the allowed shapes.").arg(path);
 		return problems;
 	}
 	QStringList types;
@@ -848,7 +848,7 @@ QStringList aiJsonSchemaProblems(const QJsonValue& value, const QJsonObject& sch
 				|| (name == QStringLiteral("integer") && value.isDouble() && std::floor(value.toDouble()) == value.toDouble());
 		}
 		if (!typed) {
-			problems << QCoreApplication::translate("VibeStudioAiTransport", "%1 should be %2.").arg(path, types.join(QStringLiteral(" or ")));
+			problems << QCoreApplication::translate("SlopStudioAiTransport", "%1 should be %2.").arg(path, types.join(QStringLiteral(" or ")));
 			return problems;
 		}
 	}
@@ -857,7 +857,7 @@ QStringList aiJsonSchemaProblems(const QJsonValue& value, const QJsonObject& sch
 		return entry.isString() ? QStringLiteral("\"%1\"").arg(entry.toString()) : settingText(entry);
 	};
 	if (schema.contains(QStringLiteral("const")) && value != schema.value(QStringLiteral("const"))) {
-		problems << QCoreApplication::translate("VibeStudioAiTransport", "%1 should be %2.").arg(path, literal(schema.value(QStringLiteral("const"))));
+		problems << QCoreApplication::translate("SlopStudioAiTransport", "%1 should be %2.").arg(path, literal(schema.value(QStringLiteral("const"))));
 	}
 	if (schema.value(QStringLiteral("enum")).isArray()) {
 		const QJsonArray allowed = schema.value(QStringLiteral("enum")).toArray();
@@ -866,33 +866,33 @@ QStringList aiJsonSchemaProblems(const QJsonValue& value, const QJsonObject& sch
 			for (const QJsonValue& entry : allowed) {
 				names << literal(entry);
 			}
-			problems << QCoreApplication::translate("VibeStudioAiTransport", "%1 is %2, not one of: %3.").arg(path, literal(value), names.join(QStringLiteral(", ")));
+			problems << QCoreApplication::translate("SlopStudioAiTransport", "%1 is %2, not one of: %3.").arg(path, literal(value), names.join(QStringLiteral(", ")));
 		}
 	}
 	if (value.isString()) {
 		const qsizetype length = value.toString().size();
 		if (schema.contains(QStringLiteral("minLength")) && length < schema.value(QStringLiteral("minLength")).toInt()) {
-			problems << QCoreApplication::translate("VibeStudioAiTransport", "%1 is shorter than %2 characters.").arg(path).arg(schema.value(QStringLiteral("minLength")).toInt());
+			problems << QCoreApplication::translate("SlopStudioAiTransport", "%1 is shorter than %2 characters.").arg(path).arg(schema.value(QStringLiteral("minLength")).toInt());
 		}
 		if (schema.contains(QStringLiteral("maxLength")) && length > schema.value(QStringLiteral("maxLength")).toInt()) {
-			problems << QCoreApplication::translate("VibeStudioAiTransport", "%1 is longer than %2 characters.").arg(path).arg(schema.value(QStringLiteral("maxLength")).toInt());
+			problems << QCoreApplication::translate("SlopStudioAiTransport", "%1 is longer than %2 characters.").arg(path).arg(schema.value(QStringLiteral("maxLength")).toInt());
 		}
 	}
 	if (value.isDouble()) {
 		if (schema.contains(QStringLiteral("minimum")) && value.toDouble() < schema.value(QStringLiteral("minimum")).toDouble()) {
-			problems << QCoreApplication::translate("VibeStudioAiTransport", "%1 is below %2.").arg(path, settingText(schema.value(QStringLiteral("minimum"))));
+			problems << QCoreApplication::translate("SlopStudioAiTransport", "%1 is below %2.").arg(path, settingText(schema.value(QStringLiteral("minimum"))));
 		}
 		if (schema.contains(QStringLiteral("maximum")) && value.toDouble() > schema.value(QStringLiteral("maximum")).toDouble()) {
-			problems << QCoreApplication::translate("VibeStudioAiTransport", "%1 is above %2.").arg(path, settingText(schema.value(QStringLiteral("maximum"))));
+			problems << QCoreApplication::translate("SlopStudioAiTransport", "%1 is above %2.").arg(path, settingText(schema.value(QStringLiteral("maximum"))));
 		}
 	}
 	if (value.isArray()) {
 		const QJsonArray array = value.toArray();
 		if (schema.contains(QStringLiteral("minItems")) && array.size() < schema.value(QStringLiteral("minItems")).toInt()) {
-			problems << QCoreApplication::translate("VibeStudioAiTransport", "%1 has fewer than %2 entries.").arg(path).arg(schema.value(QStringLiteral("minItems")).toInt());
+			problems << QCoreApplication::translate("SlopStudioAiTransport", "%1 has fewer than %2 entries.").arg(path).arg(schema.value(QStringLiteral("minItems")).toInt());
 		}
 		if (schema.contains(QStringLiteral("maxItems")) && array.size() > schema.value(QStringLiteral("maxItems")).toInt()) {
-			problems << QCoreApplication::translate("VibeStudioAiTransport", "%1 has more than %2 entries.").arg(path).arg(schema.value(QStringLiteral("maxItems")).toInt());
+			problems << QCoreApplication::translate("SlopStudioAiTransport", "%1 has more than %2 entries.").arg(path).arg(schema.value(QStringLiteral("maxItems")).toInt());
 		}
 		if (schema.value(QStringLiteral("items")).isObject()) {
 			const QJsonObject items = schema.value(QStringLiteral("items")).toObject();
@@ -906,7 +906,7 @@ QStringList aiJsonSchemaProblems(const QJsonValue& value, const QJsonObject& sch
 		const QJsonObject properties = schema.value(QStringLiteral("properties")).toObject();
 		for (const QJsonValue& required : schema.value(QStringLiteral("required")).toArray()) {
 			if (!object.contains(required.toString())) {
-				problems << QCoreApplication::translate("VibeStudioAiTransport", "%1.%2 is missing.").arg(path, required.toString());
+				problems << QCoreApplication::translate("SlopStudioAiTransport", "%1.%2 is missing.").arg(path, required.toString());
 			}
 		}
 		const bool closed = schema.value(QStringLiteral("additionalProperties")) == QJsonValue(false);
@@ -915,7 +915,7 @@ QStringList aiJsonSchemaProblems(const QJsonValue& value, const QJsonObject& sch
 			if (properties.contains(it.key())) {
 				problems << aiJsonSchemaProblems(it.value(), properties.value(it.key()).toObject(), childPath);
 			} else if (closed) {
-				problems << QCoreApplication::translate("VibeStudioAiTransport", "%1 is not expected.").arg(childPath);
+				problems << QCoreApplication::translate("SlopStudioAiTransport", "%1 is not expected.").arg(childPath);
 			}
 		}
 	}
@@ -953,25 +953,25 @@ QString aiChatFailureText(AiChatFailure failure)
 {
 	switch (failure) {
 	case AiChatFailure::None:
-		return QCoreApplication::translate("VibeStudioAiTransport", "Answered.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "Answered.");
 	case AiChatFailure::NotConfigured:
-		return QCoreApplication::translate("VibeStudioAiTransport", "The connector is not set up.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "The connector is not set up.");
 	case AiChatFailure::Credential:
-		return QCoreApplication::translate("VibeStudioAiTransport", "The provider did not accept the credential.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "The provider did not accept the credential.");
 	case AiChatFailure::RateLimited:
-		return QCoreApplication::translate("VibeStudioAiTransport", "The provider is busy or rate-limited; try again shortly.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "The provider is busy or rate-limited; try again shortly.");
 	case AiChatFailure::Refused:
-		return QCoreApplication::translate("VibeStudioAiTransport", "The model declined to answer.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "The model declined to answer.");
 	case AiChatFailure::Network:
-		return QCoreApplication::translate("VibeStudioAiTransport", "The endpoint could not be reached.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "The endpoint could not be reached.");
 	case AiChatFailure::Timeout:
-		return QCoreApplication::translate("VibeStudioAiTransport", "The provider took too long to answer.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "The provider took too long to answer.");
 	case AiChatFailure::Cancelled:
-		return QCoreApplication::translate("VibeStudioAiTransport", "Cancelled.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "Cancelled.");
 	case AiChatFailure::Provider:
-		return QCoreApplication::translate("VibeStudioAiTransport", "The provider reported an error.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "The provider reported an error.");
 	case AiChatFailure::BadResponse:
-		return QCoreApplication::translate("VibeStudioAiTransport", "The provider's answer could not be read.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "The provider's answer could not be read.");
 	}
 	return {};
 }
@@ -1030,19 +1030,19 @@ QString describeAiHttpRequest(const AiHttpRequest& request, AiRequestView view)
 			words << (view == AiRequestView::Readable && shown.size() > 160 ? shown.left(157) + QStringLiteral("...") : shown);
 		}
 		lines << QStringLiteral("RUN %1").arg(words.join(QLatin1Char(' ')).replace(QStringLiteral("{dir}"), QStringLiteral("<run folder>")));
-		lines << QCoreApplication::translate("VibeStudioAiTransport", "Runs in a new, empty folder that is removed afterwards.");
+		lines << QCoreApplication::translate("SlopStudioAiTransport", "Runs in a new, empty folder that is removed afterwards.");
 		if (!request.removedEnvironment.isEmpty()) {
-			lines << QCoreApplication::translate("VibeStudioAiTransport", "Not passed on: %1.").arg(request.removedEnvironment.join(QStringLiteral(", ")));
+			lines << QCoreApplication::translate("SlopStudioAiTransport", "Not passed on: %1.").arg(request.removedEnvironment.join(QStringLiteral(", ")));
 		}
 		for (const auto& file : request.files) {
 			lines << QString() << QStringLiteral("=== %1 ===").arg(file.first) << QString::fromUtf8(file.second);
 		}
-		lines << QString() << QStringLiteral("=== %1 ===").arg(QCoreApplication::translate("VibeStudioAiTransport", "standard input")) << QString::fromUtf8(request.body);
+		lines << QString() << QStringLiteral("=== %1 ===").arg(QCoreApplication::translate("SlopStudioAiTransport", "standard input")) << QString::fromUtf8(request.body);
 		return lines.join(QLatin1Char('\n'));
 	}
 	if (!request.modelFile.isEmpty()) {
 		lines << QStringLiteral("RUN %1 %2").arg(aiGgufRuntimeVersion().isEmpty() ? QStringLiteral("llama.cpp") : aiGgufRuntimeVersion(), QDir::toNativeSeparators(request.modelFile));
-		lines << QCoreApplication::translate("VibeStudioAiTransport", "Runs inside VibeStudio; nothing leaves this machine.");
+		lines << QCoreApplication::translate("SlopStudioAiTransport", "Runs inside SlopStudio; nothing leaves this machine.");
 	} else {
 		lines << QStringLiteral("POST %1").arg(request.url.toString(QUrl::RemoveUserInfo));
 	}
@@ -1104,7 +1104,7 @@ QString describeAiHttpRequest(const AiHttpRequest& request, AiRequestView view)
 		} else if (key == QStringLiteral("system") || key == QStringLiteral("systemInstruction")) {
 			system << QStringLiteral("=== system ===\n%1").arg(textOf(value));
 		} else if (key == QStringLiteral("grammar") && view == AiRequestView::Readable) {
-			settings << QCoreApplication::translate("VibeStudioAiTransport", "grammar: %n line(s) of GBNF", nullptr, int(value.toString().count(QLatin1Char('\n'))));
+			settings << QCoreApplication::translate("SlopStudioAiTransport", "grammar: %n line(s) of GBNF", nullptr, int(value.toString().count(QLatin1Char('\n'))));
 		} else if (value.isObject()) {
 			const QJsonObject group = value.toObject();
 			for (auto inner = group.constBegin(); inner != group.constEnd(); ++inner) {
@@ -1241,8 +1241,8 @@ QString aiTextConnectionBlockId(AiTextConnectionBlock block)
 
 QString aiProjectAiFreeText()
 {
-	return QCoreApplication::translate("VibeStudioAiTransport",
-		"This project turns AI off in its manifest. To allow AI here, run: vibestudio --cli project init <project folder> --project-ai-free off");
+	return QCoreApplication::translate("SlopStudioAiTransport",
+		"This project turns AI off in its manifest. To allow AI here, run: slopstudio --cli project init <project folder> --project-ai-free off");
 }
 
 QString aiTextConnectionBlockText(const AiTextConnection& connection)
@@ -1250,48 +1250,48 @@ QString aiTextConnectionBlockText(const AiTextConnection& connection)
 	switch (connection.block) {
 	case AiTextConnectionBlock::None:
 		if (aiTextTransport(connection.connectorId) == AiTextTransport::Gguf) {
-			return QCoreApplication::translate("VibeStudioAiTransport", "Ready: %1, %2, run inside VibeStudio.").arg(connection.displayName, QFileInfo(connection.model).fileName());
+			return QCoreApplication::translate("SlopStudioAiTransport", "Ready: %1, %2, run inside SlopStudio.").arg(connection.displayName, QFileInfo(connection.model).fileName());
 		}
 		if (aiTextTransport(connection.connectorId) == AiTextTransport::Harness) {
 			return connection.model.isEmpty()
-				? QCoreApplication::translate("VibeStudioAiTransport", "Ready: %1 with its own default model; requests go to %2.").arg(connection.displayName, aiTextConnectionDestinationText(connection))
-				: QCoreApplication::translate("VibeStudioAiTransport", "Ready: %1, model %2; requests go to %3.").arg(connection.displayName, connection.model, aiTextConnectionDestinationText(connection));
+				? QCoreApplication::translate("SlopStudioAiTransport", "Ready: %1 with its own default model; requests go to %2.").arg(connection.displayName, aiTextConnectionDestinationText(connection))
+				: QCoreApplication::translate("SlopStudioAiTransport", "Ready: %1, model %2; requests go to %3.").arg(connection.displayName, connection.model, aiTextConnectionDestinationText(connection));
 		}
 		return connection.local
-			? QCoreApplication::translate("VibeStudioAiTransport", "Ready: %1, model %2, on this machine.").arg(connection.displayName, connection.model)
-			: QCoreApplication::translate("VibeStudioAiTransport", "Ready: %1, model %2, at %3.").arg(connection.displayName, connection.model, QUrl(connection.endpoint).host());
+			? QCoreApplication::translate("SlopStudioAiTransport", "Ready: %1, model %2, on this machine.").arg(connection.displayName, connection.model)
+			: QCoreApplication::translate("SlopStudioAiTransport", "Ready: %1, model %2, at %3.").arg(connection.displayName, connection.model, QUrl(connection.endpoint).host());
 	case AiTextConnectionBlock::AiFreeMode:
-		return QCoreApplication::translate("VibeStudioAiTransport", "AI-free mode is on. Turn it off in Settings > AI and Automation to ask a model.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "AI-free mode is on. Turn it off in Settings > AI and Automation to ask a model.");
 	case AiTextConnectionBlock::ProjectAiFree:
 		return aiProjectAiFreeText();
 	case AiTextConnectionBlock::NoConnector:
-		return QCoreApplication::translate("VibeStudioAiTransport", "No connector is chosen. Pick a Reasoning or Local connector in Settings > AI and Automation.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "No connector is chosen. Pick a Reasoning or Local connector in Settings > AI and Automation.");
 	case AiTextConnectionBlock::NoTextTransport:
-		return QCoreApplication::translate("VibeStudioAiTransport",
+		return QCoreApplication::translate("SlopStudioAiTransport",
 			"%1 does not answer text questions. Pick a connector listed under Text Model: a provider, Claude Code or Codex with your own login, a local runtime, or a GGUF model.")
 			.arg(connection.displayName);
 	case AiTextConnectionBlock::NoEndpoint:
-		return QCoreApplication::translate("VibeStudioAiTransport", "%1 has no endpoint. Set one in Settings > AI and Automation.").arg(connection.displayName);
+		return QCoreApplication::translate("SlopStudioAiTransport", "%1 has no endpoint. Set one in Settings > AI and Automation.").arg(connection.displayName);
 	case AiTextConnectionBlock::CloudNotAllowed:
-		return QCoreApplication::translate("VibeStudioAiTransport", "%1 sends to %2, off this machine, and cloud connectors are not allowed. Allow them in Settings > AI and Automation, or use a local runtime.")
+		return QCoreApplication::translate("SlopStudioAiTransport", "%1 sends to %2, off this machine, and cloud connectors are not allowed. Allow them in Settings > AI and Automation, or use a local runtime.")
 			.arg(connection.displayName, aiTextConnectionDestinationText(connection));
 	case AiTextConnectionBlock::NoModel:
 		if (aiTextTransport(connection.connectorId) == AiTextTransport::Gguf) {
 			return aiGgufModelProblem(connection.model);
 		}
-		return QCoreApplication::translate("VibeStudioAiTransport", "No model is set for %1. Name one in Settings > AI and Automation.").arg(connection.displayName);
+		return QCoreApplication::translate("SlopStudioAiTransport", "No model is set for %1. Name one in Settings > AI and Automation.").arg(connection.displayName);
 	case AiTextConnectionBlock::NoProgram:
 		if (aiHarnessKind(connection.connectorId) == AiHarnessKind::CustomCommand) {
 			return connection.endpoint.trimmed().isEmpty()
-				? QCoreApplication::translate("VibeStudioAiTransport", "No command is set for %1. %2").arg(connection.displayName, aiHarnessSetupHint(connection.connectorId))
-				: QCoreApplication::translate("VibeStudioAiTransport", "The program of %1's command line was not found: %2").arg(connection.displayName, connection.endpoint);
+				? QCoreApplication::translate("SlopStudioAiTransport", "No command is set for %1. %2").arg(connection.displayName, aiHarnessSetupHint(connection.connectorId))
+				: QCoreApplication::translate("SlopStudioAiTransport", "The program of %1's command line was not found: %2").arg(connection.displayName, connection.endpoint);
 		}
-		return QCoreApplication::translate("VibeStudioAiTransport", "%1 was not found (looked in: %2). %3")
+		return QCoreApplication::translate("SlopStudioAiTransport", "%1 was not found (looked in: %2). %3")
 			.arg(aiHarnessToolName(connection.connectorId), aiHarnessSearchLocations(connection.connectorId).join(QStringLiteral(", ")), aiHarnessSetupHint(connection.connectorId));
 	case AiTextConnectionBlock::NoRuntime:
 		return aiGgufRuntimeMissingText();
 	case AiTextConnectionBlock::NoCredential:
-		return QCoreApplication::translate("VibeStudioAiTransport", "%1 needs an API key in the %2 environment variable, which is not set.").arg(connection.displayName, connection.credentialVariable);
+		return QCoreApplication::translate("SlopStudioAiTransport", "%1 needs an API key in the %2 environment variable, which is not set.").arg(connection.displayName, connection.credentialVariable);
 	}
 	return {};
 }
@@ -1300,7 +1300,7 @@ QString aiTextConnectionDestinationText(const AiTextConnection& connection)
 {
 	switch (aiTextTransport(connection.connectorId)) {
 	case AiTextTransport::Gguf:
-		return QCoreApplication::translate("VibeStudioAiTransport", "this machine");
+		return QCoreApplication::translate("SlopStudioAiTransport", "this machine");
 	case AiTextTransport::Harness:
 		// The provider the tool's own login reaches, or the custom command's program; never
 		// translated, so a remembered consent survives a change of language.
@@ -1312,7 +1312,7 @@ QString aiTextConnectionDestinationText(const AiTextConnection& connection)
 	case AiTextTransport::None:
 		break;
 	}
-	return connection.local ? QCoreApplication::translate("VibeStudioAiTransport", "this machine") : QUrl(connection.endpoint).host();
+	return connection.local ? QCoreApplication::translate("SlopStudioAiTransport", "this machine") : QUrl(connection.endpoint).host();
 }
 
 QString aiTextConnectionLabel(const AiTextConnection& connection)
@@ -1321,7 +1321,7 @@ QString aiTextConnectionLabel(const AiTextConnection& connection)
 		return connection.displayName;
 	}
 	if (aiTextTransport(connection.connectorId) == AiTextTransport::Gguf) {
-		return QCoreApplication::translate("VibeStudioAiTransport", "%1 with %2").arg(connection.displayName, QFileInfo(connection.model).fileName());
+		return QCoreApplication::translate("SlopStudioAiTransport", "%1 with %2").arg(connection.displayName, QFileInfo(connection.model).fileName());
 	}
 	return QStringLiteral("%1 (%2)").arg(connection.displayName, connection.model);
 }
@@ -1330,15 +1330,15 @@ QString aiTextRequestPreviewNote(const AiTextConnection& connection, const QStri
 {
 	switch (aiTextTransport(connection.connectorId)) {
 	case AiTextTransport::Harness:
-		return QCoreApplication::translate("VibeStudioAiTransport", "Nothing has been run. This is the command %1 would run, with the files and input it would get; %2 signs in with its own login.")
+		return QCoreApplication::translate("SlopStudioAiTransport", "Nothing has been run. This is the command %1 would run, with the files and input it would get; %2 signs in with its own login.")
 			.arg(action, aiHarnessToolName(connection.connectorId));
 	case AiTextTransport::Gguf:
-		return QCoreApplication::translate("VibeStudioAiTransport", "Nothing has been run. This is what %1 would give the model on this machine.").arg(action);
+		return QCoreApplication::translate("SlopStudioAiTransport", "Nothing has been run. This is what %1 would give the model on this machine.").arg(action);
 	case AiTextTransport::Http:
 	case AiTextTransport::None:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioAiTransport", "Nothing has been sent. This is the request %1 would send, without your API key.").arg(action);
+	return QCoreApplication::translate("SlopStudioAiTransport", "Nothing has been sent. This is the request %1 would send, without your API key.").arg(action);
 }
 
 bool aiTextConnectorRunsLocally(const QString& connectorId, const AiAutomationPreferences& preferences)
@@ -1358,13 +1358,13 @@ bool aiTextConnectorRunsLocally(const QString& connectorId, const AiAutomationPr
 QString aiTextConnectorUnavailableReason(const QString& connectorId, const AiAutomationPreferences& preferences)
 {
 	if (preferences.aiFreeMode) {
-		return QCoreApplication::translate("VibeStudioAiTransport", "AI-free mode is on.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "AI-free mode is on.");
 	}
 	if (aiTextTransport(connectorId) == AiTextTransport::Gguf && !aiGgufRuntimeAvailable()) {
-		return QCoreApplication::translate("VibeStudioAiTransport", "Not in this build: it needs -Dggml=enabled. Local/Offline Runtime can reach llama.cpp's own server instead.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "Not in this build: it needs -Dggml=enabled. Local/Offline Runtime can reach llama.cpp's own server instead.");
 	}
 	if (!preferences.cloudConnectorsEnabled && !aiTextConnectorRunsLocally(connectorId, preferences)) {
-		return QCoreApplication::translate("VibeStudioAiTransport", "It leaves this machine; tick Allow cloud AI connectors first.");
+		return QCoreApplication::translate("SlopStudioAiTransport", "It leaves this machine; tick Allow cloud AI connectors first.");
 	}
 	return {};
 }
@@ -1396,7 +1396,7 @@ AiContextItem makeAiContextItem(const QString& id, const QString& label, const Q
 	}
 	item.text = kept.join(QLatin1Char('\n'));
 	if (kept.size() < totalLines) {
-		item.omittedNote = QCoreApplication::translate("VibeStudioAiTransport", "The first %1 of %2 lines; the rest was not sent.").arg(kept.size()).arg(totalLines);
+		item.omittedNote = QCoreApplication::translate("SlopStudioAiTransport", "The first %1 of %2 lines; the rest was not sent.").arg(kept.size()).arg(totalLines);
 	}
 	return item;
 }
@@ -1428,9 +1428,9 @@ QString studioAssistantSystemPrompt()
 	// Kept in English: it instructs the model, and the user sees it in the
 	// request preview as it is sent.
 	return QStringLiteral(
-		"You are the assistant inside VibeStudio, an integrated development environment for idTech1, idTech2, and idTech3 games "
+		"You are the assistant inside SlopStudio, an integrated development environment for idTech1, idTech2, and idTech3 games "
 		"(Doom, Quake, Quake II, Quake III Arena, and their source ports). The user makes maps, models, textures, sounds, "
-		"packages, QuakeC and other game code, shaders, and compiles them with VibeStudio's VibeMap2 (Quake, Quake II) and VibeMap3 (Quake III) compilers and the ZDBSP and ZokumBSP node builders.\n"
+		"packages, QuakeC and other game code, shaders, and compiles them with SlopStudio's SlopMap2 (Quake, Quake II) and SlopMap3 (Quake III) compilers and the ZDBSP and ZokumBSP node builders.\n"
 		"Answer the user's question, using the project context they chose to include. Be concise and practical: name the files, "
 		"entities, keys, compiler options, and exact steps involved. When you suggest code, map, or shader changes, give them as "
 		"snippets the user can review and apply; you cannot change their files yourself, so never claim to have done so. "
@@ -1514,7 +1514,7 @@ bool AiChatClient::send(const AiChatRequest& request, const QString& apiKey, Cal
 {
 	if (busy()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioAiTransport", "A request is already running.");
+			*error = QCoreApplication::translate("SlopStudioAiTransport", "A request is already running.");
 		}
 		return false;
 	}
@@ -1561,7 +1561,7 @@ bool AiChatClient::send(const AiChatRequest& request, const QString& apiKey, Cal
 			response.errorMessage = aiChatFailureText(AiChatFailure::Cancelled);
 		} else if (m_state->timedOut) {
 			response.failure = AiChatFailure::Timeout;
-			response.errorMessage = QCoreApplication::translate("VibeStudioAiTransport", "No answer after %1 seconds.").arg(m_state->timeoutMsecs / 1000);
+			response.errorMessage = QCoreApplication::translate("SlopStudioAiTransport", "No answer after %1 seconds.").arg(m_state->timeoutMsecs / 1000);
 		} else if (status > 0) {
 			// An HTTP error still carries the provider's explanation.
 			response = parseAiChatResponse(m_state->connectorId, status, reply->readAll());
@@ -1583,10 +1583,10 @@ bool AiChatClient::sendHarness(const AiChatRequest& request, Callback done, QStr
 	if (!buildAiHarnessInvocation(request, program, &invocation, error)) {
 		return false;
 	}
-	auto folder = std::make_unique<QTemporaryDir>(QDir(QDir::tempPath()).filePath(QStringLiteral("vibestudio-harness-XXXXXX")));
+	auto folder = std::make_unique<QTemporaryDir>(QDir(QDir::tempPath()).filePath(QStringLiteral("slopstudio-harness-XXXXXX")));
 	if (!folder->isValid()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioAiTransport", "Could not make a folder for %1 to run in.").arg(request.connectorId);
+			*error = QCoreApplication::translate("SlopStudioAiTransport", "Could not make a folder for %1 to run in.").arg(request.connectorId);
 		}
 		return false;
 	}
@@ -1595,7 +1595,7 @@ bool AiChatClient::sendHarness(const AiChatRequest& request, Callback done, QStr
 		QFile out(QDir(folder->path()).filePath(file.first));
 		if (!out.open(QIODevice::WriteOnly) || out.write(file.second) != file.second.size()) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioAiTransport", "Could not write %1 for %2.").arg(file.first, request.connectorId);
+				*error = QCoreApplication::translate("SlopStudioAiTransport", "Could not write %1 for %2.").arg(file.first, request.connectorId);
 			}
 			return false;
 		}
@@ -1642,7 +1642,7 @@ bool AiChatClient::sendHarness(const AiChatRequest& request, Callback done, QStr
 			response.errorMessage = aiChatFailureText(AiChatFailure::Cancelled);
 		} else if (m_state->timedOut) {
 			response.failure = AiChatFailure::Timeout;
-			response.errorMessage = QCoreApplication::translate("VibeStudioAiTransport", "No answer after %1 seconds.").arg(m_state->timeoutMsecs / 1000);
+			response.errorMessage = QCoreApplication::translate("SlopStudioAiTransport", "No answer after %1 seconds.").arg(m_state->timeoutMsecs / 1000);
 		} else if (!startError.isEmpty()) {
 			response.failure = AiChatFailure::NotConfigured;
 			response.errorMessage = startError;
@@ -1669,7 +1669,7 @@ bool AiChatClient::sendHarness(const AiChatRequest& request, Callback done, QStr
 	QObject::connect(process, &QProcess::errorOccurred, process, [conclude, process](QProcess::ProcessError failure) {
 		if (failure == QProcess::FailedToStart) {
 			// Later, so a failure inside start() still answers after send() returns.
-			const QString message = QCoreApplication::translate("VibeStudioAiTransport", "Could not start %1: %2").arg(QDir::toNativeSeparators(process->program()), process->errorString());
+			const QString message = QCoreApplication::translate("SlopStudioAiTransport", "Could not start %1: %2").arg(QDir::toNativeSeparators(process->program()), process->errorString());
 			QMetaObject::invokeMethod(process, [conclude, message]() { conclude(-1, false, message); }, Qt::QueuedConnection);
 		}
 	});
@@ -1728,7 +1728,7 @@ bool AiChatClient::sendGguf(const AiChatRequest& request, Callback done, QString
 			response.errorMessage = aiChatFailureText(AiChatFailure::Cancelled);
 		} else if (m_state->timedOut) {
 			response.failure = AiChatFailure::Timeout;
-			response.errorMessage = QCoreApplication::translate("VibeStudioAiTransport", "No answer after %1 seconds.").arg(m_state->timeoutMsecs / 1000);
+			response.errorMessage = QCoreApplication::translate("SlopStudioAiTransport", "No answer after %1 seconds.").arg(m_state->timeoutMsecs / 1000);
 		} else if (!result->ok) {
 			response.failure = AiChatFailure::Provider;
 			response.errorMessage = result->error;
@@ -1787,4 +1787,4 @@ int AiChatClient::timeoutMsecs() const
 	return m_state->timeoutMsecs;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

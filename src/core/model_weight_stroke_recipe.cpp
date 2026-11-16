@@ -5,7 +5,7 @@
 #include <QJsonArray>
 #include <QSet>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -109,4 +109,4 @@ bool parseModelWeightStrokeRecipe(const QJsonObject &root, QVector<ModelWeightSt
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

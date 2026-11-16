@@ -4,7 +4,7 @@
 #include <QCoreApplication>
 #include <QRegularExpression>
 #include <QSet>
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 LevelBuildCliResult runLevelBuildArtifactsCommand(const QStringList& arguments) {
 	const auto fail = [](int code, const QString& error) { return LevelBuildCliResult{code, error, {}, {}}; };
 	const QSet<QString> common{"--cli", "--json", "--quiet", "--verbose"}, globalValues{"--settings-file", "--locale", "--catalog-root"};
@@ -93,4 +93,4 @@ LevelBuildCliResult runLevelBuildArtifactsCommand(const QStringList& arguments) 
 	return {
 		result.succeeded() ? 0 : 4, result.error, {{"publication", levelBuildPackageJson(result)}}, {packageWriteReportText(result.write)}};
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

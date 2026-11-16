@@ -1,7 +1,7 @@
 // Offscreen checks of the entity ownership commands in the Levels page: Move
 // Primitives to Entity (last and first), Move Selected to World, Explode
 // Entity and Make Structural's profile policy. Each runs under the NetRadiant
-// Custom, TrenchBroom and VibeStudio profiles at 100% and at 200% text with
+// Custom, TrenchBroom and SlopStudio profiles at 100% and at 200% text with
 // the high-visibility theme, an expanding translator and right-to-left
 // layout; each is one undo step back to the exact bytes, keys follow each
 // profile, tool rows are keyboard-reachable and accessible, and a locked
@@ -33,7 +33,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 	}
 	const QStringList commands {QStringLiteral("map.movePrimitivesToEntity"), QStringLiteral("map.movePrimitivesToFirstEntity"),
 		QStringLiteral("map.moveSelectedToWorld"), QStringLiteral("map.explodeEntity"), QStringLiteral("map.explodeEntityUnique")};
-	for (const char* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const char* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		for (const int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);
 			std::cout << "Entity ownership UI " << phase.toStdString() << std::endl;

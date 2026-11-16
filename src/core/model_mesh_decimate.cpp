@@ -11,7 +11,7 @@
 // half-edge collapses (u moves onto v) so every animation pose keeps stored
 // positions, and quadrics sum sampled poses so animated shape is respected.
 
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -322,4 +322,4 @@ bool decimate(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection,
 	}
 	return refreshNormals(&surface, refresh, work);
 }
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

@@ -3,7 +3,7 @@
 #include "core/level_surface.h"
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 inline constexpr qsizetype kLevelTexturedSelectionLimit = 16384;
 struct LevelTexturedSelectionRequest {
 	QString material;
@@ -74,4 +74,4 @@ bool levelSurfaceFaceComponentSets(const LevelMapDocument& document, const Level
 bool transformLevelMapSurfaceFaces(LevelMapDocument* document, const LevelSurfaceFacePicks& picks,
 	const QVector<LevelMapComponentSet>& components, const LevelComponentTransformRequest& request,
 	LevelSurfaceFaceTransformReport* report = nullptr, QString* error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

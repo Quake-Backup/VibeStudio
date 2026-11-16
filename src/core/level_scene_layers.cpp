@@ -14,9 +14,9 @@
 // Workflow reference: NRC radiant/layerswindow.cpp Scene_ExpandSelectionToLayers,
 // context_moveto_menu and Layers_registerCommands at 449778b3 (GPL-2.0-or-later),
 // and TB MapViewBase's Move to Layer menu at 4c756be1 (GPL-3.0-or-later).
-// Original Qt implementation over VibeStudio's scene tree; see docs/CREDITS.md.
+// Original Qt implementation over SlopStudio's scene tree; see docs/CREDITS.md.
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(LevelSceneLayers)
@@ -464,4 +464,4 @@ bool moveLevelMapSelectionToLayer(LevelMapDocument* document, const QString& lay
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

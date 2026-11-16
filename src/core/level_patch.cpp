@@ -9,12 +9,12 @@
 #include <cmath>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool fail(QString* error, const char* message)
 {
 	if (error) {
-		*error = QCoreApplication::translate("VibeStudioLevelPatch", message);
+		*error = QCoreApplication::translate("SlopStudioLevelPatch", message);
 	}
 	return false;
 }
@@ -79,41 +79,41 @@ bool validateLevelPatch(const LevelMapPatch& patch, QString* error)
 		error->clear();
 	}
 	if (!patch.controlGridNormalized || !dimension(patch.width) || !dimension(patch.height)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch",
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch",
 		                                     "A patch needs an odd, rectangular control grid of 3 to 31 points on each axis."));
 	}
 	const int count = patch.width * patch.height;
 	if (patch.controlPoints.size() != count || patch.controlU.size() != count || patch.controlV.size() != count) {
 		return fail(error,
-		            QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Every patch control point needs a position and two texture coordinates."));
+		            QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Every patch control point needs a position and two texture coordinates."));
 	}
 	for (int i = 0; i < count; ++i) {
 		if (!finitePoint(patch.controlPoints.at(i)) || !std::isfinite(patch.controlU.at(i)) || !std::isfinite(patch.controlV.at(i)) ||
 		    std::abs(patch.controlU.at(i)) > 1048576 || std::abs(patch.controlV.at(i)) > 1048576) {
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch",
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch",
 			                                     "Patch positions and texture coordinates must be finite and within ±1048576."));
 		}
 	}
 	if (patch.textureName.isEmpty() || patch.textureName.size() > 1024 || patch.textureName.contains(QStringLiteral("//")) ||
 	    patch.textureName.contains(QStringLiteral("/*"))) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "A patch needs a valid shader or texture name."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "A patch needs a valid shader or texture name."));
 	}
 	for (QChar ch : patch.textureName) {
 		if (ch.isSpace() || !ch.isPrint() || QStringLiteral("\"{}()[]\\").contains(ch)) {
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch",
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch",
 			                                     "A patch texture name cannot contain whitespace, quotes, delimiters or backslashes."));
 		}
 	}
 	if (patch.fixedSubdivisions &&
 	    (patch.subdivisionsX < 1 || patch.subdivisionsX > 64 || patch.subdivisionsY < 1 || patch.subdivisionsY > 64)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Fixed patch subdivision counts must be between 1 and 64."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Fixed patch subdivision counts must be between 1 and 64."));
 	}
 	if (patch.headerTail.size() > 16) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch header has too many extension fields."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "The patch header has too many extension fields."));
 	}
 	for (double field : patch.headerTail) {
 		if (!std::isfinite(field)) {
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Patch header fields must be finite."));
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Patch header fields must be finite."));
 		}
 	}
 	return true;
@@ -229,33 +229,33 @@ QVector<QPointF> circleControls(int segments, int start, int steps)
 bool createLevelPatch(const LevelPatchCreateRequest& request, LevelMapPatch* patch, QString* error)
 {
 	if (!patch) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Missing patch destination."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Missing patch destination."));
 	}
 	if (!finitePoint(request.center) || !finitePoint(request.size) || request.size.x < 1 || request.size.y < 1 || request.size.z < 1) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch",
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch",
 		                                     "Patch sizes must be positive and the center must contain finite coordinates."));
 	}
 	const QString& shape = request.shape;
 	if (!levelPatchShapeIds().contains(shape)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch",
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch",
 			"Patch shape must be plane, cylinder, square-cylinder, cone, classic-cone, sphere, bevel or endcap."));
 	}
 	if (!std::isfinite(request.textureScale) || request.textureScale <= 0 || request.textureScale > 1024) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch texture scale must be a positive number of map units per texel, up to 1024."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "The patch texture scale must be a positive number of map units per texel, up to 1024."));
 	}
 	if (request.plane != QStringLiteral("xy") && request.plane != QStringLiteral("xz") && request.plane != QStringLiteral("yz")) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Patch plane must be xy, xz or yz."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Patch plane must be xy, xz or yz."));
 	}
 	if (request.axis < 0 || request.axis > 2) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "The patch axis must be x, y or z."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "The patch axis must be x, y or z."));
 	}
 	const bool classicCone = shape == QStringLiteral("classic-cone");
 	const bool round = shape == QStringLiteral("cylinder") || shape == QStringLiteral("cone") || classicCone || shape == QStringLiteral("sphere");
 	if (round && (request.segments < 3 || request.segments > (kLevelPatchMaxDimension - 1) / 2)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "A round patch needs 3 to 15 segments around it."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "A round patch needs 3 to 15 segments around it."));
 	}
 	if (shape == QStringLiteral("sphere") && (request.bands < 2 || request.bands > (kLevelPatchMaxDimension - 1) / 2)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "A sphere needs 2 to 15 bands from pole to pole."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "A sphere needs 2 to 15 bands from pole to pole."));
 	}
 	LevelMapPatch built;
 	if (shape == QStringLiteral("plane")) {
@@ -272,7 +272,7 @@ bool createLevelPatch(const LevelPatchCreateRequest& request, LevelMapPatch* pat
 	built.controlGridNormalized = true;
 	built.definitionDirty = true;
 	if (!dimension(built.width) || !dimension(built.height)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Patch grid dimensions must be odd numbers from 3 to 31."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Patch grid dimensions must be odd numbers from 3 to 31."));
 	}
 	// The profile across the axis, in units of the half size, one point per
 	// column. Bevel, end cap and square cylinder follow Radiant's prefabs.
@@ -420,14 +420,14 @@ bool moveLevelPatchPoints(LevelMapPatch* patch, const QVector<int>& points, cons
 		return false;
 	}
 	if (points.isEmpty() || !finitePoint(delta) || !std::isfinite(grid) || grid < 0) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch",
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch",
 		                                     "Select control points and enter a finite movement and non-negative grid size."));
 	}
 	LevelMapPatch result = *patch;
 	QSet<int> moved;
 	for (int i : points) {
 		if (i < 0 || i >= result.controlPoints.size()) {
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "A selected patch control point does not exist."));
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "A selected patch control point does not exist."));
 		}
 		if (moved.contains(i)) {
 			continue;
@@ -452,7 +452,7 @@ bool subdivideLevelPatch(LevelMapPatch* patch, bool columns, QString* error)
 	}
 	const int length = columns ? patch->width : patch->height;
 	if (length * 2 - 1 > kLevelPatchMaxDimension) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelPatch", "Subdividing this axis would exceed 31 control points."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelPatch", "Subdividing this axis would exceed 31 control points."));
 	}
 	LevelMapPatch result = *patch;
 	result.width = columns ? length * 2 - 1 : patch->width;
@@ -509,4 +509,4 @@ bool invertLevelPatch(LevelMapPatch* patch, QString* error)
 	patch->definitionDirty = patch->geometryDirty = true;
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

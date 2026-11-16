@@ -25,7 +25,7 @@
 
 class QNetworkAccessManager;
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class AiSoundApi {
 	None,
@@ -47,7 +47,7 @@ struct AiSoundRequest {
 	double promptInfluence = -1.0;
 	bool loop = false;
 	// The provider's name for the encoding. MP3 is offered on every plan and
-	// decodes wherever VibeStudio runs.
+	// decodes wherever SlopStudio runs.
 	QString outputFormat = QStringLiteral("mp3_44100_128");
 };
 
@@ -141,4 +141,4 @@ private:
 	std::unique_ptr<State> m_state;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

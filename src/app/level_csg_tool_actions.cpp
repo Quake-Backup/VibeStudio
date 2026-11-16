@@ -35,7 +35,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -381,4 +381,4 @@ void ApplicationShell::runLevelCsgToolCommandFromUi(const QString& commandId)
 	statusBar()->showMessage(message + levelMapSkippedNote(report.skipped), 8000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

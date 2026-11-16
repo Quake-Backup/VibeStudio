@@ -16,7 +16,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -47,8 +47,8 @@ bool matchesFresh(MapViewport& view, bool highContrast = false, int scale = 1,
 	fresh.setSelectionSet(view.selectionSet()); fresh.restoreNavigationState(view.navigationState());
 	auto actual = imageFor(view,scale), expected = imageFor(fresh,scale);
 	if (!tests::settleMapViewport(view,&actual) || !tests::settleMapViewport(fresh,&expected)) { return expect(false,"viewport render timed out"); }
-	if (actual != expected && !qEnvironmentVariableIsEmpty("VIBESTUDIO_TEST_CAPTURE_DIR")) {
-		const QDir output(qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR"));
+	if (actual != expected && !qEnvironmentVariableIsEmpty("SLOPSTUDIO_TEST_CAPTURE_DIR")) {
+		const QDir output(qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR"));
 		actual.save(output.filePath("worker-mismatch-actual.png")); expected.save(output.filePath("worker-mismatch-fresh.png"));
 	}
 	return expect(actual == expected,"current background frame must match a freshly constructed viewport");
@@ -69,7 +69,7 @@ int main(int argc, char** argv)
 #endif
 	QApplication app(argc,argv); QApplication::setFont(QFont(QStringLiteral("Segoe UI")));
 	applyStudioTheme(app,studioThemeTokens(StudioTheme::Dark,UiDensity::Standard,100));
-	const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (!capture.isEmpty()) { QDir().mkpath(capture); }
 	bool ok = true; QString error;
 	LevelMapDocument document;

@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <filesystem>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -76,7 +76,7 @@ bool writeBlocks(QFileDevice &file, const QByteArray &bytes, QString *error, con
 		const auto count = std::min(blockSize, bytes.size() - offset);
 		if (file.write(bytes.constData() + offset, count) != count)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "The model output could not be written: %1")
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "The model output could not be written: %1")
 								   .arg(file.errorString()));
 		}
 		offset += count;
@@ -120,7 +120,7 @@ bool readModelFile(const QString &path, QByteArray *bytes, QString *error, const
 	QFile file(path);
 	if (!QFileInfo(path).isFile() || !file.open(QIODevice::ReadOnly) || file.size() > modelFileByteLimit)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "The model source cannot be read or exceeds 64 MiB."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "The model source cannot be read or exceeds 64 MiB."));
 	}
 	QByteArray result;
 	const auto expected = file.size();
@@ -133,7 +133,7 @@ bool readModelFile(const QString &path, QByteArray *bytes, QString *error, const
 		const auto part = file.read(std::min(blockSize, modelFileByteLimit + 1 - result.size()));
 		if (part.isEmpty() || part.size() + result.size() > modelFileByteLimit || file.error() != QFileDevice::NoError)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "The model source changed or failed while reading."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "The model source changed or failed while reading."));
 		}
 		result += part;
 	}
@@ -141,7 +141,7 @@ bool readModelFile(const QString &path, QByteArray *bytes, QString *error, const
 	{
 		if (result.size() != expected)
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "The model source changed or failed while reading."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "The model source changed or failed while reading."));
 		}
 		return false;
 	}
@@ -158,7 +158,7 @@ ModelWriteTarget inspectModelWriteTarget(const QString &path, const ModelWorkCon
 	}
 	if (path.trimmed().isEmpty())
 	{
-		target.error = QCoreApplication::translate("VibeStudioModelDocument", "Choose a model output path.");
+		target.error = QCoreApplication::translate("SlopStudioModelDocument", "Choose a model output path.");
 		return target;
 	}
 	const QFileInfo info(path);
@@ -167,13 +167,13 @@ ModelWriteTarget inspectModelWriteTarget(const QString &path, const ModelWorkCon
 	if (info.isSymLink() || info.isJunction() || (target.existed && !info.isFile()))
 	{
 		target.error =
-			QCoreApplication::translate("VibeStudioModelDocument", "Model output must be a regular file, not a link or directory.");
+			QCoreApplication::translate("SlopStudioModelDocument", "Model output must be a regular file, not a link or directory.");
 		return target;
 	}
 	target.resolvedPath = resolvedDestination(target.path);
 	if (target.resolvedPath.isEmpty())
 	{
-		target.error = QCoreApplication::translate("VibeStudioModelDocument", "The model output folder cannot be resolved.");
+		target.error = QCoreApplication::translate("SlopStudioModelDocument", "The model output folder cannot be resolved.");
 		return target;
 	}
 	if (target.existed)
@@ -205,7 +205,7 @@ bool validateModelWriteTarget(const ModelWriteTarget &target, QString *error, co
 	}
 	if (current.existed != target.existed || current.sha256 != target.sha256 || !sameResolved(current.resolvedPath, target.resolvedPath))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 													 "The model destination changed after it was reviewed. No output was committed."));
 	}
 	return true;
@@ -213,10 +213,10 @@ bool validateModelWriteTarget(const ModelWriteTarget &target, QString *error, co
 
 int removeStaleModelStagingFiles(const QString &directory, qint64 olderThanSeconds)
 {
-	static const QRegularExpression pattern(QStringLiteral("^\\.vibestudio-model-[A-Za-z0-9]{6}\\.tmp$"));
+	static const QRegularExpression pattern(QStringLiteral("^\\.slopstudio-model-[A-Za-z0-9]{6}\\.tmp$"));
 	const QDateTime cutoff = QDateTime::currentDateTime().addSecs(-olderThanSeconds);
 	int removed = 0;
-	const auto entries = QDir(directory).entryInfoList({QStringLiteral(".vibestudio-model-*.tmp")}, QDir::Files | QDir::Hidden | QDir::System);
+	const auto entries = QDir(directory).entryInfoList({QStringLiteral(".slopstudio-model-*.tmp")}, QDir::Files | QDir::Hidden | QDir::System);
 	for (const auto &entry : entries)
 	{
 		if (!entry.isSymLink() && pattern.match(entry.fileName()).hasMatch() && entry.lastModified() < cutoff && QFile::remove(entry.absoluteFilePath()))
@@ -235,7 +235,7 @@ bool writeModelFile(const ModelWriteTarget &target, const QByteArray &bytes, QSt
 	{
 		return fail(
 			error, target.error.isEmpty()
-					   ? QCoreApplication::translate("VibeStudioModelDocument",
+					   ? QCoreApplication::translate("SlopStudioModelDocument",
 													 "A reviewed destination and nonempty model output no larger than 64 MiB are required.")
 					   : target.error);
 	}
@@ -247,12 +247,12 @@ bool writeModelFile(const ModelWriteTarget &target, const QByteArray &bytes, QSt
 	const auto directory = QFileInfo(target.resolvedPath).absolutePath();
 	if (!QDir().mkpath(directory))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "The model output folder could not be created."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "The model output folder could not be created."));
 	}
-	QLockFile lock(target.resolvedPath + QStringLiteral(".vibestudio-model.lock"));
+	QLockFile lock(target.resolvedPath + QStringLiteral(".slopstudio-model.lock"));
 	if (!lock.tryLock(0))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 													   "Another model writer is using this destination. Try again after it finishes."));
 	}
 	// What an interrupted write left beside its destination.
@@ -277,13 +277,13 @@ bool writeModelFile(const ModelWriteTarget &target, const QByteArray &bytes, QSt
 		}
 		if (!file.commit())
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument", "The model output could not be committed: %1")
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument", "The model output could not be committed: %1")
 								   .arg(file.errorString()));
 		}
 	}
 	else
 	{
-		QTemporaryFile file(QDir(directory).filePath(QStringLiteral(".vibestudio-model-XXXXXX.tmp")));
+		QTemporaryFile file(QDir(directory).filePath(QStringLiteral(".slopstudio-model-XXXXXX.tmp")));
 		if (!file.open())
 		{
 			return fail(error, file.errorString());
@@ -306,7 +306,7 @@ bool writeModelFile(const ModelWriteTarget &target, const QByteArray &bytes, QSt
 		// https://doc.qt.io/qt-6/qtemporaryfile.html#rename
 		if (!file.rename(target.resolvedPath))
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelDocument",
+			return fail(error, QCoreApplication::translate("SlopStudioModelDocument",
 														   "The new model output could not be published without replacement: %1")
 								   .arg(file.errorString()));
 		}
@@ -320,4 +320,4 @@ bool writeModelFile(const ModelWriteTarget &target, const QByteArray &bytes, QSt
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -14,7 +14,7 @@
 
 #include "core/model_document.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelSelectionMode
 {
@@ -128,4 +128,4 @@ bool selectModelEdgeLoops(const ModelMesh &mesh, const ModelSelection &current, 
 						  ModelEdgeLoopsResult *result, QString *error = nullptr, const ModelWorkControl &control = {});
 // One line per refused seed ("Edge 4:5: reason"), as the editor and the CLI report them.
 QStringList modelEdgeLoopRefusalLines(const ModelEdgeLoopsResult &result);
-} // namespace vibestudio
+} // namespace slopstudio

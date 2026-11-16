@@ -12,7 +12,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -270,4 +270,4 @@ AudioSessionEdit AudioRoutingDialog::edit() const
 	}
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

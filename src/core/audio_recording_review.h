@@ -1,7 +1,7 @@
 #pragma once
 #include "core/audio_recording_import.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr qint64 AudioRecordingReviewByteLimit = 128 * 1024;
 
@@ -32,4 +32,4 @@ AudioProjectSaveReport writeAudioRecordingReview(const AudioSession &session, co
                                                  const AudioProjectSaveRequest &output,
                                                  const AudioWorkControl &control = {},
                                                  const QStringList &protectedPaths = {});
-} // namespace vibestudio
+} // namespace slopstudio

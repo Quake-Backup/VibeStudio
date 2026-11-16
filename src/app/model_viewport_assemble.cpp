@@ -18,7 +18,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 enum AssembleGesture { None = 0, Face = 1, Extrude = 2 };
 constexpr double kAssembleDragThreshold = 4.0;
@@ -421,4 +421,4 @@ void ModelViewport::paintBrushAssemble(QPainter& painter)
 	}
 	painter.restore();
 }
-} // namespace vibestudio
+} // namespace slopstudio

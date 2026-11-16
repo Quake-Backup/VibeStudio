@@ -2,10 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "VibeStudio: debug app (Windows, build first)",
+      "name": "SlopStudio: debug app (Windows, build first)",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}\\builddir\\src\\vibestudio.exe",
+      "program": "${workspaceFolder}\\builddir\\src\\slopstudio.exe",
       "args": [],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
@@ -16,13 +16,13 @@
         }
       ],
       "stopAtEntry": false,
-      "preLaunchTask": "VibeStudio: compile"
+      "preLaunchTask": "SlopStudio: compile"
     },
     {
-      "name": "VibeStudio: debug CLI help (Windows, build first)",
+      "name": "SlopStudio: debug CLI help (Windows, build first)",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}\\builddir\\src\\vibestudio.exe",
+      "program": "${workspaceFolder}\\builddir\\src\\slopstudio.exe",
       "args": [
         "--cli",
         "--help"
@@ -36,13 +36,13 @@
         }
       ],
       "stopAtEntry": false,
-      "preLaunchTask": "VibeStudio: compile"
+      "preLaunchTask": "SlopStudio: compile"
     },
     {
-      "name": "VibeStudio: debug app (Unix, build first)",
+      "name": "SlopStudio: debug app (Unix, build first)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/builddir/src/vibestudio",
+      "program": "${workspaceFolder}/builddir/src/slopstudio",
       "args": [],
       "cwd": "${workspaceFolder}",
       "externalConsole": false,
@@ -53,13 +53,13 @@
       "osx": {
         "MIMode": "lldb"
       },
-      "preLaunchTask": "VibeStudio: compile"
+      "preLaunchTask": "SlopStudio: compile"
     },
     {
-      "name": "VibeStudio: debug CLI help (Unix, build first)",
+      "name": "SlopStudio: debug CLI help (Unix, build first)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/builddir/src/vibestudio",
+      "program": "${workspaceFolder}/builddir/src/slopstudio",
       "args": [
         "--cli",
         "--help"
@@ -73,13 +73,13 @@
       "osx": {
         "MIMode": "lldb"
       },
-      "preLaunchTask": "VibeStudio: compile"
+      "preLaunchTask": "SlopStudio: compile"
     },
     {
-      "name": "VibeStudio: debug app (Windows, no build)",
+      "name": "SlopStudio: debug app (Windows, no build)",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}\\builddir\\src\\vibestudio.exe",
+      "program": "${workspaceFolder}\\builddir\\src\\slopstudio.exe",
       "args": [],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
@@ -92,10 +92,10 @@
       "stopAtEntry": false
     },
     {
-      "name": "VibeStudio: debug CLI help (Windows, no build)",
+      "name": "SlopStudio: debug CLI help (Windows, no build)",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}\\builddir\\src\\vibestudio.exe",
+      "program": "${workspaceFolder}\\builddir\\src\\slopstudio.exe",
       "args": [
         "--cli",
         "--help"
@@ -111,10 +111,10 @@
       "stopAtEntry": false
     },
     {
-      "name": "VibeStudio: debug app (Unix, no build)",
+      "name": "SlopStudio: debug app (Unix, no build)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/builddir/src/vibestudio",
+      "program": "${workspaceFolder}/builddir/src/slopstudio",
       "args": [],
       "cwd": "${workspaceFolder}",
       "externalConsole": false,
@@ -127,10 +127,10 @@
       }
     },
     {
-      "name": "VibeStudio: debug CLI help (Unix, no build)",
+      "name": "SlopStudio: debug CLI help (Unix, no build)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/builddir/src/vibestudio",
+      "program": "${workspaceFolder}/builddir/src/slopstudio",
       "args": [
         "--cli",
         "--help"

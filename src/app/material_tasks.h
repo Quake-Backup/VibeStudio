@@ -11,7 +11,7 @@
 
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Runs one task at a time off the GUI thread and keeps one queued task. A
 // task returns the function that publishes its result; that function runs on
@@ -55,4 +55,4 @@ private:
 	QThread* m_thread = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

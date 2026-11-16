@@ -9,7 +9,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool integer(const QJsonValue& value, int* target)
 {
@@ -80,4 +80,4 @@ LanguageHover parseLanguageHover(const QJsonValue& response, const QString& sour
 	return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

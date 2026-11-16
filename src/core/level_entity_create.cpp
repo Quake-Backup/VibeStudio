@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -209,10 +209,10 @@ bool levelEntityCreateRequestForClass(const EntityDefinitionCatalogue& catalogue
 		return false;
 	};
 	if (!request) {
-		return fail(QCoreApplication::translate("VibeStudioLevelEntityCreate", "Creating an entity needs a request to fill."));
+		return fail(QCoreApplication::translate("SlopStudioLevelEntityCreate", "Creating an entity needs a request to fill."));
 	}
 	if (isWorldspawn(name)) {
-		return fail(QCoreApplication::translate("VibeStudioLevelEntityCreate", "Worldspawn holds the world and is never created. Choose a point or brush class."));
+		return fail(QCoreApplication::translate("SlopStudioLevelEntityCreate", "Worldspawn holds the world and is never created. Choose a point or brush class."));
 	}
 	const QVector<LevelEntityCreateClass> classes = levelEntityCreateClasses(catalogue);
 	const LevelEntityCreateClass* found = nullptr;
@@ -226,7 +226,7 @@ bool levelEntityCreateRequestForClass(const EntityDefinitionCatalogue& catalogue
 		}
 	}
 	if (!found) {
-		return fail(QCoreApplication::translate("VibeStudioLevelEntityCreate",
+		return fail(QCoreApplication::translate("SlopStudioLevelEntityCreate",
 			"The entity definitions have no point or brush class named %1. Load the definitions that describe it, or use Add Entity or Make Brush Entity.")
 				.arg(name));
 	}
@@ -247,28 +247,28 @@ bool levelMapSelectionCanCreateBrushEntity(const LevelMapDocument& document)
 QString levelEntityCreateBlockedReason(const LevelMapDocument& document, const LevelEntityCreateRequest& request)
 {
 	if (!textMap(document)) {
-		return QCoreApplication::translate("VibeStudioLevelEntityCreate", "Entities are created in Quake-family .map files.");
+		return QCoreApplication::translate("SlopStudioLevelEntityCreate", "Entities are created in Quake-family .map files.");
 	}
 	const QString name = request.className.trimmed();
 	if (!levelEntityCreateClassNameUsable(name)) {
 		if (isWorldspawn(name)) {
-			return QCoreApplication::translate("VibeStudioLevelEntityCreate", "Worldspawn holds the world and is never created. Choose a point or brush class.");
+			return QCoreApplication::translate("SlopStudioLevelEntityCreate", "Worldspawn holds the world and is never created. Choose a point or brush class.");
 		}
-		return QCoreApplication::translate("VibeStudioLevelEntityCreate", "A class name needs letters and no spaces, quotes or slashes.");
+		return QCoreApplication::translate("SlopStudioLevelEntityCreate", "A class name needs letters and no spaces, quotes or slashes.");
 	}
 	if (request.kind != EntityClassKind::Point && request.kind != EntityClassKind::Brush) {
-		return QCoreApplication::translate("VibeStudioLevelEntityCreate", "%1 is not a point or brush class of the loaded entity definitions.").arg(name);
+		return QCoreApplication::translate("SlopStudioLevelEntityCreate", "%1 is not a point or brush class of the loaded entity definitions.").arg(name);
 	}
 	// New objects go to the current layer or open group (activeSceneNode).
 	if (!document.activeSceneNode.isEmpty() && levelSceneLockedNodes(document.scene).contains(document.activeSceneNode)) {
-		return QCoreApplication::translate("VibeStudioLevelEntityCreate", "The current layer or group is locked. Unlock it, or make another current, before creating an entity.");
+		return QCoreApplication::translate("SlopStudioLevelEntityCreate", "The current layer or group is locked. Unlock it, or make another current, before creating an entity.");
 	}
 	if (request.kind == EntityClassKind::Point) {
 		return {};
 	}
 	const QVector<LevelMapSelectionRef> primitives = brushEntityPrimitives(document);
 	if (primitives.isEmpty()) {
-		return QCoreApplication::translate("VibeStudioLevelEntityCreate", "Select brushes or patches to make a %1 of.").arg(name);
+		return QCoreApplication::translate("SlopStudioLevelEntityCreate", "Select brushes or patches to make a %1 of.").arg(name);
 	}
 	const QSet<QString> hidden = levelMapHiddenObjects(document);
 	const QSet<QString> locked = levelSceneLockedObjects(document);
@@ -277,16 +277,16 @@ QString levelEntityCreateBlockedReason(const LevelMapDocument& document, const L
 	for (const LevelMapSelectionRef& primitive : primitives) {
 		const QString object = levelMapSelectionRefId(primitive);
 		if (locked.contains(object)) {
-			return QCoreApplication::translate("VibeStudioLevelEntityCreate", "%1 is in a locked layer or group. Unlock it before making a brush entity of it.")
+			return QCoreApplication::translate("SlopStudioLevelEntityCreate", "%1 is in a locked layer or group. Unlock it before making a brush entity of it.")
 				.arg(object);
 		}
 		if (!context.openGroup.isEmpty() && !context.allowedObjects.contains(object)) {
-			return QCoreApplication::translate("VibeStudioLevelEntityCreate", "%1 is outside the open group. Close the group, or select inside it.").arg(object);
+			return QCoreApplication::translate("SlopStudioLevelEntityCreate", "%1 is outside the open group. Close the group, or select inside it.").arg(object);
 		}
 		hiddenCount += hidden.contains(object) ? 1 : 0;
 	}
 	if (hiddenCount > 0) {
-		return QCoreApplication::translate("VibeStudioLevelEntityCreate",
+		return QCoreApplication::translate("SlopStudioLevelEntityCreate",
 			"%n hidden brush(es) or patch(es) would move into the new entity. Show them, or leave their entity out of the selection.", nullptr, hiddenCount);
 	}
 	return {};
@@ -307,7 +307,7 @@ bool createLevelMapEntityOfClass(LevelMapDocument* document, const LevelEntityCr
 		return false;
 	};
 	if (!document) {
-		return fail(QCoreApplication::translate("VibeStudioLevelEntityCreate", "Missing map document."));
+		return fail(QCoreApplication::translate("SlopStudioLevelEntityCreate", "Missing map document."));
 	}
 	if (const QString reason = levelEntityCreateBlockedReason(*document, request); !reason.isEmpty()) {
 		return fail(reason);
@@ -331,7 +331,7 @@ bool createLevelMapEntityOfClass(LevelMapDocument* document, const LevelEntityCr
 			return false;
 		}
 		if (!insideWorld(origin)) {
-			return fail(QCoreApplication::translate("VibeStudioLevelEntityCreate", "The new entity would be outside the editable map range."));
+			return fail(QCoreApplication::translate("SlopStudioLevelEntityCreate", "The new entity would be outside the editable map range."));
 		}
 		int entityId = -1;
 		if (!addLevelMapEntity(document, made.className, origin, request.properties, &entityId, error)) {
@@ -358,4 +358,4 @@ bool createLevelMapEntityOfClass(LevelMapDocument* document, const LevelEntityCr
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

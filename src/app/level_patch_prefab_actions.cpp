@@ -39,7 +39,7 @@
 #include <algorithm>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 QString materialKey(QString name)
@@ -367,4 +367,4 @@ void ApplicationShell::placeLevelPatchShapeFromUi(const LevelShapeRequest& prepa
 	statusBar()->showMessage(message, 8000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

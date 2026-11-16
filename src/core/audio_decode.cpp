@@ -71,7 +71,7 @@ struct XiphMemory {
 };
 } // namespace
 
-extern "C" void* vibestudio_xiph_malloc(size_t size)
+extern "C" void* slopstudio_xiph_malloc(size_t size)
 {
 	auto* owner = activeXiphMemory;
 	if (!owner) {
@@ -93,7 +93,7 @@ extern "C" void* vibestudio_xiph_malloc(size_t size)
 	owner->used += sizeof(XiphAllocation) + size;
 	return block + 1;
 }
-extern "C" void vibestudio_xiph_free(void* data)
+extern "C" void slopstudio_xiph_free(void* data)
 {
 	if (!data) {
 		return;
@@ -111,7 +111,7 @@ extern "C" void vibestudio_xiph_free(void* data)
 	owner->used -= sizeof(XiphAllocation) + block->size;
 	std::free(block);
 }
-extern "C" void* vibestudio_xiph_calloc(size_t count, size_t size)
+extern "C" void* slopstudio_xiph_calloc(size_t count, size_t size)
 {
 	if (size && count > XiphMemory::Limit / size) {
 		if (activeXiphMemory) {
@@ -119,19 +119,19 @@ extern "C" void* vibestudio_xiph_calloc(size_t count, size_t size)
 		}
 		return nullptr;
 	}
-	void* data = vibestudio_xiph_malloc(count * size);
+	void* data = slopstudio_xiph_malloc(count * size);
 	if (data) {
 		std::memset(data, 0, count * size);
 	}
 	return data;
 }
-extern "C" void* vibestudio_xiph_realloc(void* data, size_t size)
+extern "C" void* slopstudio_xiph_realloc(void* data, size_t size)
 {
 	if (!data) {
-		return vibestudio_xiph_malloc(size);
+		return slopstudio_xiph_malloc(size);
 	}
 	if (!size) {
-		vibestudio_xiph_free(data);
+		slopstudio_xiph_free(data);
 		return nullptr;
 	}
 	auto* block = static_cast<XiphAllocation*>(data) - 1;
@@ -157,7 +157,7 @@ extern "C" void* vibestudio_xiph_realloc(void* data, size_t size)
 	return replacement + 1;
 }
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -409,7 +409,7 @@ bool decodeFlac(Decode& work)
 }
 
 // MPEG Layer III header fields and frame lengths: ISO/IEC 11172-3 / 13818-3;
-// same table values as VibeStudio's existing metadata reader in
+// same table values as SlopStudio's existing metadata reader in
 // asset_tools.cpp.
 struct Mp3Info {
 	int channels = 0, rate = 0, samples = 0, size = 0;
@@ -813,4 +813,4 @@ AudioClipResult decodeCompressedAudio(const QByteArray& bytes, const AudioWorkCo
 	}
 	return work.result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

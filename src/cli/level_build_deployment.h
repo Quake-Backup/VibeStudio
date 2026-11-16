@@ -1,5 +1,5 @@
 #pragma once
 #include "cli/level_build_workspace.h"
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 LevelBuildCliResult runLevelBuildDeploymentCommand(const QStringList& arguments);
 }

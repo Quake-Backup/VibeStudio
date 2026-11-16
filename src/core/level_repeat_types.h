@@ -4,7 +4,7 @@
 #include <QtGlobal>
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Session-only, value-based operations. No object IDs, document pointers or
 // native undo snapshots are captured: replay targets the current selection.
@@ -64,4 +64,4 @@ struct LevelRepeatState {
 	quint64 revision = 0;
 	bool operator==(const LevelRepeatState&) const = default;
 };
-} // namespace vibestudio
+} // namespace slopstudio

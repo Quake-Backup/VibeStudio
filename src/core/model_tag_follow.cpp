@@ -14,7 +14,7 @@
 #include <map>
 #include <tuple>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -829,4 +829,4 @@ bool applyModelTagFollowEdit(ModelMesh *candidate, const ModelEdit &edit, QStrin
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -10,7 +10,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 QWidget* ApplicationShell::buildCodeSnippetBar()
 {
@@ -37,4 +37,4 @@ QWidget* ApplicationShell::buildCodeSnippetBar()
 	bar->hide(); return bar;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

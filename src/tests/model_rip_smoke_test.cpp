@@ -12,9 +12,9 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
-using namespace vibestudio::cli;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::cli;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -32,7 +32,7 @@ bool expect(bool ok, const char *message, const QString &error = {})
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("rip-XXXXXX"));
@@ -318,9 +318,9 @@ int main(int argc, char **argv)
 						   "--output",
 						   output,
 						   "--json"};
-	const auto dryRun = runModelTool(QStringList{"vibestudio"} + args + QStringList{"--dry-run", "--fill"});
+	const auto dryRun = runModelTool(QStringList{"slopstudio"} + args + QStringList{"--dry-run", "--fill"});
 	expect(dryRun.exitCode == 0 && !QFile::exists(output), "CLI dry run validates fill without writing", dryRun.error);
-	expect(runModelTool(QStringList{"vibestudio"} + args + QStringList{"--steps", "4"}).exitCode == 2, "CLI rejects unrelated options");
+	expect(runModelTool(QStringList{"slopstudio"} + args + QStringList{"--steps", "4"}).exitCode == 2, "CLI rejects unrelated options");
 	if (argc > 1)
 	{
 		const auto run = [&](QStringList extra, int expected, QStringList command = {})

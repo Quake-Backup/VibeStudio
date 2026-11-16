@@ -14,7 +14,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class MapRenderProjection {
 	TopXY,
@@ -86,4 +86,4 @@ MapRenderReport writeLevelMapSvg(const LevelMapDocument& document, const MapRend
 
 QString mapRenderReportText(const MapRenderReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -12,7 +12,7 @@ class QPushButton;
 class QThread;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // One active immutable map/package snapshot and one replaceable pending request.
 // Results, progress and cancellation stay bound to the requested context.
@@ -52,4 +52,4 @@ private:
 	QPushButton* m_retry = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

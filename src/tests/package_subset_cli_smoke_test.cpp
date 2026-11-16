@@ -10,8 +10,8 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::subset_test;
+using namespace slopstudio;
+using namespace slopstudio::subset_test;
 namespace {
 bool expect(bool value, const char* label) { if (!value) { std::cerr << label << '\n'; } return value; }
 }
@@ -59,7 +59,7 @@ int main(int argc, char** argv)
 		"query includes both map occurrences and their groups");
 	PackageStagingModel plan; ok &= plan.loadBaseArchive(archive, &error); const auto replacement = root.filePath("replacement.bin");
 	ok &= put(replacement, "staged") && plan.replaceOccurrence(12, replacement, &error);
-	const auto draft = root.filePath("work.vibepackage"); ok &= PackageDraft::save(draft, &plan, false, &error);
+	const auto draft = root.filePath("work.sloppackage"); ok &= PackageDraft::save(draft, &plan, false, &error);
 	const auto draftView = packagePlannedArchive(plan); const auto draftIndex = QString::number(index(draftView, "THINGS", 1));
 	cli({"subset", draft, root.filePath("draft.wad"), "--entry-index", draftIndex});
 	ok &= expect(exported.load(root.filePath("draft.wad"), &error) && exported.readEntryBytes("THINGS", &bytes, &error) && bytes == "staged", "CLI subsets read staged draft bytes");

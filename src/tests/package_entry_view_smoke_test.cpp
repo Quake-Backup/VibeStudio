@@ -19,7 +19,7 @@
 #include <iostream>
 #include <mutex>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* message) { if (!condition) { std::cerr << message << '\n'; } return condition; }
 template<class Predicate> bool until(Predicate predicate) {
@@ -31,7 +31,7 @@ class Expanded final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		return QByteArray(context).contains("PackageEntryView") || QByteArray(context) == "VibeStudioPackageBrowser"
+		return QByteArray(context).contains("PackageEntryView") || QByteArray(context) == "SlopStudioPackageBrowser"
 			? QStringLiteral("[%1 — expanded]").arg(QString::fromUtf8(source)) : QString();
 	}
 };
@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 		ok &= expect(until([&] { return reached.load() && view.statusText().contains(QStringLiteral("256")); }) && view.busy()
 			&& !view.readyFor(QStringLiteral("first")) && view.selectedEntryIndexes().isEmpty() && workerOnly,
 			"index work reports progress off the UI thread and cannot expose stale selection");
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		const auto render = [&](const QString& name) {
 			if (captures.isEmpty()) { return true; }
 			QImage image(view.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); view.render(&image);

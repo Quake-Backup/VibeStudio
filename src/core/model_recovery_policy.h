@@ -15,7 +15,7 @@
 
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 enum class ModelRecoverySourceState
@@ -75,4 +75,4 @@ ModelRecoveryPruneReport pruneModelRecoveries(const QString &directory, const Mo
 											  const std::function<bool(qint64)> &ownerRunning,
 											  const std::function<bool()> &cancelled = {}, bool dryRun = false);
 
-} // namespace vibestudio
+} // namespace slopstudio

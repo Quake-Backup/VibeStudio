@@ -40,13 +40,13 @@
 #include <functional>
 #include <set>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelTools)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelTools)
 };
 // Transform Model's numeric dialog: offset, rotation, scale and pivot.
 class TransformModelDialog final : public QDialog
@@ -1180,4 +1180,4 @@ bool ModelEditorTools::refreshSelectPanel()
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

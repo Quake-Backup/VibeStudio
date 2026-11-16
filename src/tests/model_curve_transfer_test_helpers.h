@@ -1,6 +1,6 @@
 #pragma once
 #include "tests/model_curve_keys_test_helpers.h"
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh curveTransferFixture()
 {
@@ -27,4 +27,4 @@ inline ModelEdit curveTransferEdit()
 	edit.curveTransfer = {0, 1, 2, 6, 4, 2, true, {"upper", "lower"}, {1}};
 	return edit;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

@@ -4,7 +4,7 @@
 // mirrors, and swaps a mirror in when the user clicks it.
 #include "app/model_viewport.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ModelViewport::setViewLabel(const QString& label)
 {
@@ -177,4 +177,4 @@ void ModelViewport::mirrorDisplayFrom(const ModelViewport& source)
 	update();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

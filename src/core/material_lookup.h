@@ -15,7 +15,7 @@
 
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The image editors show for a material: qer_editorimage, else a Doom 3
 // diffuse map, else the first stage image, else (classic textures and
@@ -78,4 +78,4 @@ private:
 	quint64 m_generation = 0;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

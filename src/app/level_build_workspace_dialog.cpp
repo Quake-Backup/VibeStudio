@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelBuildWorkspaceDialog::Work {
 	std::atomic_bool cancel{false};
 	QMutex mutex;
@@ -246,4 +246,4 @@ void LevelBuildWorkspaceDialog::reject() {
 	}
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

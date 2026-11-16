@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 QJsonObject paintStages(const MapViewport& view)
 {
@@ -121,7 +121,7 @@ int main(int argc, char** argv)
 		pane.insert("warmSelectedPaintStages",selectedStages);
 		pane.insert("renderSha256", QString::fromLatin1(QCryptographicHash::hash(
 			QByteArrayView(reinterpret_cast<const char*>(image.constBits()), image.sizeInBytes()), QCryptographicHash::Sha256).toHex()));
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!captures.isEmpty()) {
 			QDir().mkpath(captures);
 			if (!image.save(QDir(captures).filePath(QStringLiteral("selection-%1-%2-%3.png").arg(count).arg(sparse).arg(int(view->projection()))))) { return 1; }

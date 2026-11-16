@@ -23,7 +23,7 @@ production readiness.
 4. A WAD with several maps opens its first map. To open another, choose it in the map list beside the path on the
    document bar, or type a name such as `MAP07` or `E2M1` there.
 
-VibeStudio works out the game from the file. If it guesses wrong, change the engine list on the document bar from
+SlopStudio works out the game from the file. If it guesses wrong, change the engine list on the document bar from
 **Auto** to **idTech1**, **idTech2** or **idTech3** and choose **Reload**. The empty page lists **Recent maps**, and
 **File** > **Go to File…** (<kbd>Ctrl</kbd>+<kbd>P</kbd>) finds a map in your project or the open package. A map opened
 from a package is a temporary copy, so its first save asks where to keep it.
@@ -116,7 +116,7 @@ the tools the open map can use are shown, and the material strip below holds the
   selected they frame a 256-unit box round the camera; the status bar says which. In the three-plan layouts, those
   profiles' **Top View**, **Front View**, **Side View** and **Next 2D View** also centre every 2D view on the
   selection or the camera, keeping each view's zoom. Turn this on or off for any profile with **Frame Selection fits
-  the 2D views only…** on the **2D Plan** tab of **Customize Gestures…**, or with `vibestudio --cli editor gestures
+  the 2D views only…** on the **2D Plan** tab of **Customize Gestures…**, or with `slopstudio --cli editor gestures
   <profile> --set plan.radiantFraming=on|off`. **Zoom to Selection** and the map menu's framing item follow the same
   choice.
 - **Line the 2D views up once.** **Reset 2D Views** (in the **Layout** menu, the **View** menu and the **Tools** tab's
@@ -144,7 +144,7 @@ the tools the open map can use are shown, and the material strip below holds the
   NetRadiant profiles, choosing or stepping the grid also turns **Snap** on, as those editors do, and the status bar
   says so; turn this off with **Choosing or stepping the grid turns Snap on** on the **Editing** tab of
   **Customize Gestures…**. Your grid size is kept for the next session.
-- **3D view.** Choose **3D** to show the camera. The VibeStudio Default profile orbits an orthographic view of the map;
+- **3D view.** Choose **3D** to show the camera. The SlopStudio Default profile orbits an orthographic view of the map;
   most other profiles fly a first-person camera. Tick **Textures** above the views to draw package images: open the
   game's package or asset folder on the **Packages** page first. **View** > **3D Wireframe** (<kbd>W</kbd>) shows edges
   only.
@@ -165,7 +165,7 @@ the tools the open map can use are shown, and the material strip below holds the
   or flat colour at full brightness. **Fog in Camera** fades faces towards the camera's background as they get further
   away, as a depth cue for large maps. While it is on, **Fog start** and **Fog end** on the **View** tab set where the
   fading begins and where it is thickest (512 and 4096 units at first); beyond the end, faces keep a fifth of their
-  colour, so distant geometry never disappears. In the orthographic orbit camera of the VibeStudio Default profile, the
+  colour, so distant geometry never disappears. In the orthographic orbit camera of the SlopStudio Default profile, the
   distances count from the front of the map instead of from the camera. **Grid on Camera Faces** draws
   the current grid size on brush faces, lined up with the world axes the face is most nearly square to; lines fade out
   where they would crowd together. Patches and placed models are left plain. **Show Grid** (<kbd>0</kbd> in the
@@ -185,7 +185,7 @@ the tools the open map can use are shown, and the material strip below holds the
   never lands on a brush beyond it. In the orthographic orbit camera, the distance
   counts from the front of the map. With **Fog in Camera** on as well, the fog ends at the draw distance if its own end
   lies further out, so faces fade fully before they are cut off; your fog distances are kept for when the clip is
-  off. The choice and distance are kept for the next session, and `vibestudio --cli editor far-clip` reads or
+  off. The choice and distance are kept for the next session, and `slopstudio --cli editor far-clip` reads or
   changes them. The map is never changed.
 - **Aim the camera.** **View** > **Camera** moves only the 3D camera: the 2D views, the map and its undo history stay
   as they are. **Level Camera** keeps the camera where it stands, takes away its pitch and turns its heading to the
@@ -195,7 +195,7 @@ the tools the open map can use are shown, and the material strip below holds the
   Selection** it leaves the 2D views where they are. With nothing selected it focuses on the last selection you made
   in this map, and hidden objects never count. **Reset Camera Zoom** returns the field of view to your profile's
   after a <kbd>Shift</kbd>+wheel zoom or a saved view's own (<kbd>Ctrl+Alt+Z</kbd> in the TrenchBroom profile). In the
-  VibeStudio Default profile's orbiting view, **Level Camera** levels the orbit and **Focus Camera on Selection** turns
+  SlopStudio Default profile's orbiting view, **Level Camera** levels the orbit and **Focus Camera on Selection** turns
   it about the selection. All three are in the **Tools** tab's **Navigate** group and in command search.
 - **Step between floors.** **View** > **Camera** > **Camera Floor Up** and **Camera Floor Down** (<kbd>Page Up</kbd>
   and <kbd>Page Down</kbd> in the NetRadiant Custom, NetRadiant, GtkRadiant, Q3Radiant, QeRadiant and DoomEdit
@@ -226,7 +226,7 @@ the tools the open map can use are shown, and the material strip below holds the
   (<kbd>Shift</kbd>+<kbd>Keypad +</kbd> and <kbd>Shift</kbd>+<kbd>Keypad -</kbd> in the NetRadiant Custom profile)
   step the speed held camera keys fly and drive at through a fixed list: 50, then 250 to 9750 units per second in steps
   of 250, then 9999. NetRadiant Custom adds or takes 250 within the same limits, so from 50 it goes to 300 and from 9999
-  to 9749 where VibeStudio goes to 250 and 9750. **Speed** beside **Textures** above the views shows it, and the status bar
+  to 9749 where SlopStudio goes to 250 and 9750. **Speed** beside **Textures** above the views shows it, and the status bar
   says each new speed. Each profile keeps its own speed, NetRadiant Custom starting at 500 and the others scaling with
   the size of the map until you change it; **Camera speed for held keys** on the **3D Camera** tab of **Customize
   Gestures…** sets it directly or returns it to **Scale with the map**, and `editor gestures <profile> --set
@@ -271,7 +271,7 @@ the tools the open map can use are shown, and the material strip below holds the
   and 0 to leave an axis unsplit. Without the key the blocks are 1024 units. The older `blocksize` and `chopsize` keys
   are read too, and a value is read exactly as q3map2 reads it, so a lone second number is ignored and the status bar
   says so. The status tag shows the size, and inside a region the lines stay within it. q3map2-family compilers such
-  as VibeMap3 split on these lines; Quake and Quake II compilers such as VibeMap2 do not, so treat the lines as a guide
+  as SlopMap3 split on these lines; Quake and Quake II compilers such as SlopMap2 do not, so treat the lines as a guide
   for Quake III-family builds. **Export Image** and `map render --block-grid` draw the same lines.
 - **Toggle them from anywhere.** **View** > **Show Grid Coordinates** and **Show Block Grid** do the same as the
   **Show** menu, with check marks, and are in command search. Neither has a key, as in NetRadiant Custom; give them
@@ -375,7 +375,7 @@ the tools the open map can use are shown, and the material strip below holds the
   a 2D view, through the whole map's depth; **Set Region to Brush** uses the selected brushes' bounds and removes
   them, as Radiant does (**Undo** brings them back and keeps the region); and **Region Bounds…** takes the corners
   you type. The views shade or hide what lies outside the box, as Radiant's regions and Hammer's cordon do, and
-  **Select Everything in Region** selects what it keeps. VibeStudio remembers each map's region and brings it back
+  **Select Everything in Region** selects what it keeps. SlopStudio remembers each map's region and brings it back
   when you open the map again; **Clear Region** brings the whole map back and forgets it.
   **Compile Region** writes the region beside the map as `<name>-region.map`, unsaved edits included, and compiles
   it with the chosen profile, so `<name>-region` can be loaded in the game to test that area quickly. The region
@@ -459,7 +459,7 @@ Status: Partial. Saved scene visibility still takes precedence over temporary
 shown overrides. Direct empty-group hide/show controls, component-mode hiding,
 native gestures, full saved-layer/filter equivalence and real-project acceptance remain open.
 NRC's automatic hiding of a brush entity after its final child is hidden also
-needs parity work: VibeStudio currently derives the hidden label from its children.
+needs parity work: SlopStudio currently derives the hidden label from its children.
 
 ## Select and inspect objects
 
@@ -519,7 +519,7 @@ Most actions are in the **Edit** menu, the right-click menu of the views and the
 | Create an entity by class | Every point and brush class of your entity definitions has its own **Create** command, such as **Create light** or **Create func_door**, as in TrenchBroom: type the class in command search, or give it keys in **Help** > **Keyboard Shortcuts** (no profile gives them keys, as TrenchBroom does not). A point class goes in at the pointer in the view you used last, or in the middle of that view, its definition box standing on the brush surface or plane there and lined up with the grid, as **Paste at Cursor** places objects. A brush class makes the selected brushes and patches, with those of selected brush entities, into one, so it waits until brushes are selected; the **Brush Entity** menu uses the same commands and shows their keys. **Create Entity…** (**Edit** > **Brush Entities**, the **Create** menu above the views, or the **Tools** tab) lets you type a class instead. The commands follow the loaded definitions, and keys you give a class are kept while a map without it is open. Each is one undo step; a locked or hidden brush, one outside the open group, or a locked current layer refuses it with the reason. |
 | Move brushes between entities | Select the brushes and patches, then an item of the entity that should take them, and choose **Move Primitives to Entity** (<kbd>Ctrl</kbd>+<kbd>M</kbd> in the NetRadiant Custom profile): the entity of the item you picked last takes the others and keeps its keys, as NetRadiant Custom does. **Move Primitives to First Entity** uses the item you picked first. **Move Selected to World** gives only the selected brushes and patches back to the world, while their entities keep the rest and their keys. An entity left empty goes, hidden brushes of a selected entity stay where they are, and locked or linked objects refuse the move. Brushes keep their numbers, groups and visibility; one leaving an entity for the world joins its entity's group, or else the open group or current layer. |
 | Explode an entity | **Explode Entity** gives every brush and patch of the selected brush entities an entity of its own with the same keys, as bobToolz does. The entity keeps its first brush, and the new pieces are selected with it. **Explode Entity, Unique Names** gives each new piece its own `targetname`, so triggers still fire only the original. Worldspawn, locked and linked entities are refused. |
-| Place models and sounds | The **Models** and **Sounds** tabs list the open package's models and sounds, with a preview of the chosen model and a waveform you can play. Drag one onto a view, or choose **Place in View**, for a model entity (the same placement **Stage and Place** and `map place-model` use: MDL and MD2 in Quake maps, MD3, ASE and the other formats VibeMap3 bakes in Quake III maps) or a speaker entity; **Give to Selection** sets the selected entities' `model` or `noise` key instead. Right-click a placed model entity for **Show in Models** and **Edit Source** (its editable source, when one is known). The **Place** section names the class it makes in the open map, and says so when your definitions do not declare it: Quake itself has no model or speaker entity, so a Quake mod must provide them. |
+| Place models and sounds | The **Models** and **Sounds** tabs list the open package's models and sounds, with a preview of the chosen model and a waveform you can play. Drag one onto a view, or choose **Place in View**, for a model entity (the same placement **Stage and Place** and `map place-model` use: MDL and MD2 in Quake maps, MD3, ASE and the other formats SlopMap3 bakes in Quake III maps) or a speaker entity; **Give to Selection** sets the selected entities' `model` or `noise` key instead. Right-click a placed model entity for **Show in Models** and **Edit Source** (its editable source, when one is known). The **Place** section names the class it makes in the open map, and says so when your definitions do not declare it: Quake itself has no model or speaker entity, so a Quake mod must provide them. |
 | Duplicate or delete | **Duplicate Selection** copies objects using your profile's placement; **Duplicate with Offset…** previews an exact offset and a **Copies** count for a linear array. <kbd>Delete</kbd> removes the selection; an entity takes its brushes with it. |
 | Move | Drag the selection, nudge it one grid step with the keys your profile gives the **Nudge** commands (see [Nudge the selection](#nudge-the-selection)), or use **Move Selection…**. |
 | Rotate or flip | **Rotate 90° Left**, **Rotate 90° Right**, **Flip Horizontal** and **Flip Vertical** work as the active view shows the map, the camera included, and **Roll** and **Pitch** turn about the view's other axes; see [Turn and flip from the view](#turn-and-flip-from-the-view). **Flip X**, **Flip Y**, **Flip Z**, **Rotate X**, **Rotate Y** and **Rotate Z** (**Edit** > **Transform**, the **Transform** menu above the views, or the **Tools** tab) use the world axis whatever view is active, as NetRadiant Custom's commands do: Rotate X and Rotate Z turn -90° and Rotate Y +90°, each clockwise as the side, top or front view shows it. Doom maps flip along X or Y and turn about Z only. No profile gives them keys, as NetRadiant Custom does not; add your own in **Help** > **Keyboard Shortcuts**. In the NetRadiant Custom and TrenchBroom profiles, every quick turn pivots on the grid point nearest the selection's centre while **Snap** is on, so a brush whose sides differ by an odd number of grid steps stays on the grid; it may move by up to half a step. Other profiles turn about the exact centre; **Customize Editor Gestures** changes this for any profile, and a custom component pivot always wins. Flips mirror about the exact centre, except in the TrenchBroom profile, which rounds it to half the grid while **Snap** is on. **Rotate Selection…** turns by any X, Y and Z angles about the selection centre, the world origin or your own pivot; see [Rotate and scale by exact values](#rotate-and-scale-by-exact-values). |
@@ -530,7 +530,7 @@ Most actions are in the **Edit** menu, the right-click menu of the views and the
 | Hollow | **Hollow…** turns each selected brush into walls of the thickness you choose, one per face, overlapping at the edges. **Hollow Touching…** makes walls that meet without overlapping, and **Make Room** builds walls one grid step thick around the outside of each brush and removes it, so the brush becomes the room, as NetRadiant Custom does. See [Make a room with caulk and openings](#make-a-room-with-caulk-and-openings). |
 | Carve (CSG subtract) | **Carve** cuts the selected brushes out of every brush they overlap. The carving brushes stay selected, ready to delete; hidden brushes are left alone. |
 | Intersect (CSG) | **Intersect** replaces the selected brushes with the one brush where they all overlap, as TrenchBroom does; each face keeps the texture of the face it came from. |
-| Make detail | **Make Detail** stops brushes sealing the map or splitting its visibility: in Quake II and Quake III maps it sets each face's detail flag, and in Quake maps it moves the brushes into a `func_detail` for VibeMap2, as ericw-tools expects. **Make Structural** undoes it, taking only the selected brushes out of a `func_detail`. In the TrenchBroom profile (<kbd>Alt</kbd>+<kbd>S</kbd>) it also moves the selected brushes out of any brush entity to the world, into the open group or current layer, as TrenchBroom does; other flag-based tags stay as they are. |
+| Make detail | **Make Detail** stops brushes sealing the map or splitting its visibility: in Quake II and Quake III maps it sets each face's detail flag, and in Quake maps it moves the brushes into a `func_detail` for SlopMap2, as ericw-tools expects. **Make Structural** undoes it, taking only the selected brushes out of a `func_detail`. In the TrenchBroom profile (<kbd>Alt</kbd>+<kbd>S</kbd>) it also moves the selected brushes out of any brush entity to the world, into the open group or current layer, as TrenchBroom does; other flag-based tags stay as they are. |
 | Drop to the floor | **Drop to Floor** moves the selected point entities straight down onto the brush or patch below, keeping each class's height above it. |
 | Round to the grid | **Round Selection to Grid** rounds every brush vertex, patch control point and point-entity origin of the selection onto the grid on its own, as Radiant's Snap To Grid does, so off-grid shapes are cleaned up where they stand; brush entities round their brushes and keep their origin key. In **Edit Vertices**, **Edit Edges** or **Edit Faces** it rounds only the picked components. It is one undo step, follows **Lock Component UVs**, and leaves a brush the grid would collapse as it was, saying why. The NetRadiant Custom profile runs it with <kbd>Ctrl</kbd>+<kbd>G</kbd>; **Snap Selection to Grid** instead moves each object whole so its corner or origin lands on the grid. In Doom-format maps it snaps objects as **Snap Selection to Grid** does. |
 | Merge brushes | **Merge Brushes…** previews their convex union and lets you choose where conflicting materials, mappings and flags come from. |
@@ -544,7 +544,7 @@ Most actions are in the **Edit** menu, the right-click menu of the views and the
 | Colour lights and entities | Select lights or other entities, or brushes of a brush entity, and choose **Set Entity Colour…** (**Edit** > **Keys**, the right-click menu, or <kbd>K</kbd> in the NetRadiant Custom and NetRadiant profiles). The picker opens on the colour of the entity you picked last, or on the colour you chose last, and the choice is written to the `_color` key of every one of those entities as one undo step. A key already written as 0-255 stays 0-255; a new one is written as 0-1 fractions. **Normalise Entity Colour** scales the last-picked entity's colour so its brightest channel is 1 (black becomes white) and sets it on all of them, as NetRadiant Custom does. World brushes and hidden entities are left alone, and a locked entity refuses the change. |
 | Reuse a group of objects | **Export Selection as Prefab…** or **Save Selection…** on the **Prefabs** tab saves a `.vprefab` file, and the tab lists it at once with those in the project and the open package. **Insert Prefab…** places one with a preview, or drag one from the tab onto a 2D view to place it where you drop it. **Replace Selection with Prefab…** puts one where the selection stands, its anchor at the selection's bottom centre, and removes the selection, as one undo step. |
 
-TB and NRC duplicate at the original position by default. VibeStudio Default
+TB and NRC duplicate at the original position by default. SlopStudio Default
 moves copies one grid step right and down in the active plan. Change this per
 profile in **Customize Gestures…** > **Editing** > **Nudge duplicated objects one
 grid step right and down**. A command invoked from the camera uses the last active
@@ -617,7 +617,7 @@ support Valve 220.
 <details>
 <summary>Edits the editor refuses to protect your file</summary>
 
-VibeStudio rewrites only the lines you change, so the rest of the file stays byte for byte. It refuses an edit it
+SlopStudio rewrites only the lines you change, so the rest of the file stays byte for byte. It refuses an edit it
 cannot write back safely:
 
 - deleting or copying an object whose brace shares a line with other text;
@@ -853,7 +853,7 @@ The keys come from your editor profile:
   drive the camera: <kbd>Alt</kbd>+arrow keys, and the keypad's <kbd>+</kbd> and <kbd>-</kbd> along world Z. From
   the camera they use the plan view you used last, as NetRadiant Custom does, and they come before **Go Back**,
   **Go Forward** and view zoom while a view has focus.
-- **VibeStudio Default** and the other profiles: the arrow keys in the plan views. The default orbiting camera keeps
+- **SlopStudio Default** and the other profiles: the arrow keys in the plan views. The default orbiting camera keeps
   the arrows for turning and panning, and so does any camera that flies or drives with them.
 
 <kbd>Shift</kbd> with a nudge key moves eight grid steps, unless your profile gives that key another command, such
@@ -1006,7 +1006,7 @@ This workflow is **Partial**, pending wider real-project and native acceptance.
 ### Repeat the last transforms
 
 Use **Repeat Transforms** (**Edit** > **Repeat**, **Tools** > **Transform**, or <kbd>Ctrl</kbd>+<kbd>R</kbd> in the
-NetRadiant Custom profile) to build an array the way NetRadiant Custom does. VibeStudio remembers the last move,
+NetRadiant Custom profile) to build an array the way NetRadiant Custom does. SlopStudio remembers the last move,
 rotation, scale (a resize or mirror) and shear you made, each kept until you make another of its kind, whether on
 whole objects or on picked vertices, edges and faces. With objects selected, **Repeat Transforms** copies them where
 they stand, then scales, shears and turns the copies about their centre and moves them, as one undo step. The copies
@@ -1067,7 +1067,7 @@ nearest the camera view with Alt along its depth axis, and `surface` keeps
 surface-only dragging. Other profiles default to `surface`. This setting is
 independent of the two-point plane policy. Start a drag without modifiers;
 modified initial presses retain the profile's other selection/navigation roles.
-VibeStudio's plain first-point drag can still add a second point; modified
+SlopStudio's plain first-point drag can still add a second point; modified
 movement instead moves the current point. Wider scene-edge/vertex/patch snapping
 remains incomplete. **Clip Selection…** supplies numeric XYZ alternatives.
 Cancelling, changing the view/grid/profile, or replacing the shared plane
@@ -1141,15 +1141,15 @@ screen-reader acceptance remain unverified.
 The CLI uses the same atomic operation:
 
 ```sh
-vibestudio --cli map clip maps/start.map --object brush:12 --axis x --at 64 --keep back --output maps/clipped.map
-vibestudio --cli map clip maps/start.map --object entity:3 --points "0,0,0 64,64,0 0,0,64" --keep both --output maps/split.map
-vibestudio --cli map clip maps/start.map --object brush:12 --axis x --at 64 --cut-texture common/caulk --output maps/caulk-cut.map
-vibestudio --cli editor clipper --set material=custom --set customTexture=common/caulk --set resetSide=on --dry-run --json
-vibestudio --cli map clip maps/start.map --object brush:12 --points "128,0,64" --wrap-merge --wrap-texture stone/wall --output maps/wrapped.map --json
-vibestudio --cli editor clipper --set wrapMerge=on --dry-run --json
-vibestudio --cli editor gestures netradiant-custom --set camera.clipDragStyle=view --dry-run --json
-vibestudio --cli map clip maps/start.map --object brush:12 --points "0,-48,80 0,48,80" --camera-eye "-200,0,120" --camera-forward "1,0,0" --keep both --output maps/camera-split.map --json
-vibestudio --cli map clip maps/start.map --object brush:12 --points "0,-48,80 0,48,80" --view-axis z --view-sign 1 --keep both --output maps/replayed-split.map --json
+slopstudio --cli map clip maps/start.map --object brush:12 --axis x --at 64 --keep back --output maps/clipped.map
+slopstudio --cli map clip maps/start.map --object entity:3 --points "0,0,0 64,64,0 0,0,64" --keep both --output maps/split.map
+slopstudio --cli map clip maps/start.map --object brush:12 --axis x --at 64 --cut-texture common/caulk --output maps/caulk-cut.map
+slopstudio --cli editor clipper --set material=custom --set customTexture=common/caulk --set resetSide=on --dry-run --json
+slopstudio --cli map clip maps/start.map --object brush:12 --points "128,0,64" --wrap-merge --wrap-texture stone/wall --output maps/wrapped.map --json
+slopstudio --cli editor clipper --set wrapMerge=on --dry-run --json
+slopstudio --cli editor gestures netradiant-custom --set camera.clipDragStyle=view --dry-run --json
+slopstudio --cli map clip maps/start.map --object brush:12 --points "0,-48,80 0,48,80" --camera-eye "-200,0,120" --camera-forward "1,0,0" --keep both --output maps/camera-split.map --json
+slopstudio --cli map clip maps/start.map --object brush:12 --points "0,-48,80 0,48,80" --view-axis z --view-sign 1 --keep both --output maps/replayed-split.map --json
 ```
 
 Repeat **--object** for several selections. Choose one plane definition.
@@ -1178,7 +1178,7 @@ result without a camera. The synthetic third point still never joins wrap/merge.
 ### Make a room with caulk and openings
 
 **Status: Partial.** Draw a brush the size of the room you want, select it and choose **Make Room**
-(**Geometry** menu, or the **Brush** section of the **Tools** tab). VibeStudio
+(**Geometry** menu, or the **Brush** section of the **Tools** tab). SlopStudio
 builds a wall one grid step thick outside each face and removes the brush, so
 its volume becomes the room. The walls fill the outer corners, where NetRadiant
 Custom leaves them open. It is one undo step.
@@ -1209,7 +1209,7 @@ prints faces) for each opening. The same options also work with
 `--mode overlap` and `--mode touch`:
 
 ```text
-vibestudio --cli map hollow maps/start.map --object brush:12 --mode room --thickness 16 --caulk --open-face face:12:6 --output maps/start-room.map --json
+slopstudio --cli map hollow maps/start.map --object brush:12 --mode room --thickness 16 --caulk --open-face face:12:6 --output maps/start-room.map --json
 ```
 
 ### Hollow, shrink and expand with the CSG Tool
@@ -1262,8 +1262,8 @@ choose faces as **Faces** does with picked faces, and `--exclude-facing x`,
 `--thickness`:
 
 ```text
-vibestudio --cli map hollow maps/start.map --object brush:12 --mode diagonal --thickness 16 --exclude-facing z --caulk --output maps/start-shaft.map --json
-vibestudio --cli map expand-brushes maps/start.map --object brush:12 --thickness 8 --exclude-face face:12:6 --output maps/start-wide.map --json
+slopstudio --cli map hollow maps/start.map --object brush:12 --mode diagonal --thickness 16 --exclude-facing z --caulk --output maps/start-shaft.map --json
+slopstudio --cli map expand-brushes maps/start.map --object brush:12 --thickness 8 --exclude-face face:12:6 --output maps/start-wide.map --json
 ```
 
 ### Wrap brushes or picked components
@@ -1302,9 +1302,9 @@ Component wrapping accepts up to 256 component sets, 64 source objects and
 a convex brush: concavities and interior points do not become separate geometry.
 
 ```sh
-vibestudio --cli map wrap-merge maps/start.map --object brush:12 --object brush:13 --texture stone/wall --output maps/wrapped.map --json
-vibestudio --cli map wrap-merge maps/start.map --set brush:12/face/4 --point "128,0,192" --texture stone/wall --output maps/component-hull.map --json
-vibestudio --cli map wrap-merge maps/start.map --set patch:2/vertex/0,2,4,6,8 --texture stone/wall --output maps/patch-hull.map --dry-run --json
+slopstudio --cli map wrap-merge maps/start.map --object brush:12 --object brush:13 --texture stone/wall --output maps/wrapped.map --json
+slopstudio --cli map wrap-merge maps/start.map --set brush:12/face/4 --point "128,0,192" --texture stone/wall --output maps/component-hull.map --json
+slopstudio --cli map wrap-merge maps/start.map --set patch:2/vertex/0,2,4,6,8 --texture stone/wall --output maps/patch-hull.map --dry-run --json
 ```
 
 Repeat **--object** or **--set**, but do not mix them. Component selectors are
@@ -1371,7 +1371,7 @@ disables)** changes the chord independently for plans and camera. Plain wheel
 navigation stays available. Fractional wheel motion accumulates to a notch;
 moving to another hit area or changing the view resets it. A truncated handle
 context refuses cycling. Wheel/key cycling waits until an active edit ends;
-the named commands cancel a pending component edit first. These are VibeStudio
+the named commands cancel a pending component edit first. These are SlopStudio
 extensions; exact native TB/NRC input parity remains unverified.
 
 Switching between **Edit Vertices**, **Edit Edges** and **Edit Faces** converts
@@ -1406,9 +1406,9 @@ fewer selected objects.
 The read-only `map select-components` query uses the same rules:
 
 ```sh
-vibestudio --cli map select-components room.map --set brush:6/face/4 --operation convert --to vertex --json
-vibestudio --cli map select-components room.map --set brush:6/vertex/0 --operation convert --to face --coverage touching --json
-vibestudio --cli map select-components room.map --set patch:0/vertex/12 --operation grow --steps 2 --json
+slopstudio --cli map select-components room.map --set brush:6/face/4 --operation convert --to vertex --json
+slopstudio --cli map select-components room.map --set brush:6/vertex/0 --operation convert --to face --coverage touching --json
+slopstudio --cli map select-components room.map --set patch:0/vertex/12 --operation grow --steps 2 --json
 ```
 
 Repeat `--set` for multiple objects. One object must use one source kind;
@@ -1442,7 +1442,7 @@ Handle display is bounded to 128 objects and 16,384 handles; a limit message
 asks you to select fewer objects. The preview is a wire outline over the original
 surface. Numeric and direct rotation, scale and shear controls are described
 below. Arbitrary point insertion gestures and full native profile acceptance
-remain incomplete. VibeStudio is still pre-alpha.
+remain incomplete. SlopStudio is still pre-alpha.
 
 ### Transform picked components
 
@@ -1543,9 +1543,9 @@ control-point IDs are zero-based `row * width + column`. Repeat `--set` once per
 256 objects and 4,096 component IDs per object:
 
 ```sh
-vibestudio --cli map transform-components room.map --set brush:6/vertex/0,1,2,3,4,5,6,7 --operation rotate --axis z --angle 15 --pivot 0,0,0 --uv-lock on --allow-valve220 --output rotated.map
-vibestudio --cli map transform-components room.map --set brush:6/face/4 --set patch:0/vertex/0,1,2 --operation move --delta 0,0,8 --output reshaped.map
-vibestudio --cli map transform-components room.map --set brush:6/vertex/0 --operation snap --target brush:6/vertex/1 --output snapped.map
+slopstudio --cli map transform-components room.map --set brush:6/vertex/0,1,2,3,4,5,6,7 --operation rotate --axis z --angle 15 --pivot 0,0,0 --uv-lock on --allow-valve220 --output rotated.map
+slopstudio --cli map transform-components room.map --set brush:6/face/4 --set patch:0/vertex/0,1,2 --operation move --delta 0,0,8 --output reshaped.map
+slopstudio --cli map transform-components room.map --set brush:6/vertex/0 --operation snap --target brush:6/vertex/1 --output snapped.map
 ```
 
 `move` requires `--delta x,y,z`; `rotate` requires `--axis x|y|z` and `--angle`;
@@ -1598,8 +1598,8 @@ perpendicular.
 From the command line, pass the returned face targets with `--face`:
 
 ```sh
-vibestudio --cli map select-textured room.map --material stone --json
-vibestudio --cli map transform-components room.map --face face:6:5 --operation rotate --axis z --angle 15 --uv-lock on --allow-valve220 --output turned.map
+slopstudio --cli map select-textured room.map --material stone --json
+slopstudio --cli map transform-components room.map --face face:6:5 --operation rotate --axis z --angle 15 --uv-lock on --allow-valve220 --output turned.map
 ```
 
 See [Move, rotate and scale textured faces](cli.md#move-rotate-and-scale-textured-faces)
@@ -1663,7 +1663,7 @@ For automation, repeat `--brush` in `map insert-vertices` to apply the same
 positions to several brushes atomically:
 
 ```sh
-vibestudio --cli map insert-vertices room.map --brush 0 --brush 1 --position -32,8,16 --output reshaped.map
+slopstudio --cli map insert-vertices room.map --brush 0 --brush 1 --position -32,8,16 --output reshaped.map
 ```
 
 Patches use **Patch Rows and Columns** instead. Deformation texture lock for
@@ -1731,7 +1731,7 @@ the edit. Other component moves and transforms use the separate
 For automation, inspect face IDs with `map brush-components`, then run:
 
 ```text
-vibestudio map extrude-faces room.map --face 0:5 --distance 16 --split --output room-extruded.map
+slopstudio map extrude-faces room.map --face 0:5 --distance 16 --split --output room-extruded.map
 ```
 
 Repeat `--face brush:face` for more brushes; the first option supplies the
@@ -1741,7 +1741,7 @@ and overwrite protections apply. JSON reports changed/created counts and active
 faces. An extruded brush keeps its place in the file, but a split adds a new
 brush at the end of its entity, so inspect IDs again after saving and reopening
 a split (see [Save your work](#save-your-work)). These tools are available, but full TB/NRC
-gesture parity and real-project acceptance remain open; VibeStudio is pre-alpha.
+gesture parity and real-project acceptance remain open; SlopStudio is pre-alpha.
 
 ### Sweep selected faces
 
@@ -1819,7 +1819,7 @@ acceptance remain open.
 Inspect face IDs with `map brush-components`, then use the same service through:
 
 ```text
-vibestudio --cli map sweep maps/start.map --set brush:12/face/4 --delta "64,64,32" --axis "0,0,1" --angle 90 --path arc --segments 8 --texture stone/wall --output maps/swept.map --json
+slopstudio --cli map sweep maps/start.map --set brush:12/face/4 --delta "64,64,32" --axis "0,0,1" --angle 90 --path arc --segments 8 --texture stone/wall --output maps/swept.map --json
 ```
 
 Repeat **--set brush:ID/face/IDs** for additional profiles. **--scale x,y,z**,
@@ -1960,9 +1960,9 @@ On the command line, `map add-patch` maps new patches the same way, by `--textur
 patches the same way. For an **Exact** shape, add `--ring-start exact`, and `--square` to tick **Square**:
 
 ```sh
-vibestudio --cli map add-patch base.map --shape classic-cone --axis z --size 128,128,192 --texture textures/base/metal --texture-size 256,256 --output base-cone.map
-vibestudio --cli map add-shape base.map --shape patch-cylinder --object brush:3 --object patch:1 --texture base/pipe --texture-size 128,128 --output base-pipe.map
-vibestudio --cli map add-shape base.map --shape patch-sphere --sides 6 --bands 3 --ring-start exact --square --object brush:3 --texture base/orb --output base-orb.map
+slopstudio --cli map add-patch base.map --shape classic-cone --axis z --size 128,128,192 --texture textures/base/metal --texture-size 256,256 --output base-cone.map
+slopstudio --cli map add-shape base.map --shape patch-cylinder --object brush:3 --object patch:1 --texture base/pipe --texture-size 128,128 --output base-pipe.map
+slopstudio --cli map add-shape base.map --shape patch-sphere --sides 6 --bands 3 --ring-start exact --square --object brush:3 --texture base/orb --output base-orb.map
 ```
 
 ### Cap, convert and deform patches
@@ -2006,9 +2006,9 @@ To roughen patches, select them and choose **Deform Patch…**:
    patches are left alone. The dialog remembers the maximum and axis.
 
 ```sh
-vibestudio --cli map cap-patch base.map --patch 2 --patch 5 --style cylinder --texture base/pipe_cap --output base-capped.map
-vibestudio --cli map convert-patches base.map --object brush:4 --texture-size 256,256 --output base-patches.map
-vibestudio --cli map deform-patch base.map --patch 2 --max 16 --axis z --seed 7 --output base-rough.map
+slopstudio --cli map cap-patch base.map --patch 2 --patch 5 --style cylinder --texture base/pipe_cap --output base-capped.map
+slopstudio --cli map convert-patches base.map --object brush:4 --texture-size 256,256 --output base-patches.map
+slopstudio --cli map deform-patch base.map --patch 2 --max 16 --axis z --seed 7 --output base-rough.map
 ```
 
 ### Rebuild brushes as prisms, cones and spheres
@@ -2215,13 +2215,13 @@ shows where it fits beside its box, clear of the view's readouts and the selecti
 | **Add Protected Property…**, **Clear Protected Properties** | Keep entity keys local to one group, or share them again. |
 
 A group out of sync no longer matches the rest of its set. That happens when one edit changes two members of a set
-in different ways (VibeStudio keeps both edits, where TrenchBroom refuses the edit; values a member protects do
+in different ways (SlopStudio keeps both edits, where TrenchBroom refuses the edit; values a member protects do
 not count), or when an update passes a locked group by. The status bar and **Activity** say so; the **Scene** tree shows **Linked, out of sync**, the 2D
 views and the 3D camera draw the group dash-dotted in the warning colour, and saving lists it. Edit one member again, or select the one
 to keep and choose **Update Linked Groups**. The **Scene** section's **Linked duplicate**, **Separate**, **Update
 linked** and **Select linked** buttons act on the group chosen in its tree.
 
-Linked groups work on Quake-family maps. Links and frames are saved in the map's VibeStudio scene note, a comment at
+Linked groups work on Quake-family maps. Links and frames are saved in the map's SlopStudio scene note, a comment at
 the end of the file that other editors skip, so they see ordinary brushes and entities; maps saved by earlier
 versions, whose frames were quarter turns and a mirror, still open. To keep groups and linked groups in a map you
 also edit in TrenchBroom, see [Share layers and groups with TrenchBroom](#share-layers-and-groups-with-trenchbroom).
@@ -2237,7 +2237,7 @@ correspondence before using extraction or protected properties.
 
 **Status: Partial.** TrenchBroom keeps its layers, groups and linked groups in the map itself, as `func_group`
 entities with keys of its own (`_tb_type`, `_tb_id`, `_tb_name`, `_tb_linked_group_id` and `_tb_transformation`), and
-an entity lists its protected keys in `_tb_protected_properties`. VibeStudio reads and writes the same keys, so a map
+an entity lists its protected keys in `_tb_protected_properties`. SlopStudio reads and writes the same keys, so a map
 can go back and forth between the two editors with its groups intact.
 
 - **Open** a map TrenchBroom saved: its layers, groups and linked groups appear in the **Scene** tree, each group in its
@@ -2247,16 +2247,16 @@ can go back and forth between the two editors with its groups intact.
   Linked groups that no longer match each other open out of sync, and the **Health** tab says which.
 - **Save** a map that opened that way and it keeps TrenchBroom's form, so TrenchBroom opens it with the same layers,
   groups and linked groups. To give any map that form, choose **Level map with TrenchBroom groups (*.map)** as the file
-  type in **Save As**; later saves keep it, and **Level map (*.map)** goes back to VibeStudio's note alone. A layer's
-  colour and **Omit from export**, which VibeStudio does not show, are kept and written back.
+  type in **Save As**; later saves keep it, and **Level map (*.map)** goes back to SlopStudio's note alone. A layer's
+  colour and **Omit from export**, which SlopStudio does not show, are kept and written back.
 - From the CLI, `editor scene save <map> --scene-format trenchbroom --output <file>` writes a map in TrenchBroom's
-  form, and `--scene-format vibestudio` takes it out again; any other `editor scene` change accepts the same option.
+  form, and `--scene-format slopstudio` takes it out again; any other `editor scene` change accepts the same option.
   See [Command line](cli.md).
 
-A map saved with TrenchBroom groups still carries VibeStudio's scene note, after TrenchBroom's keys. While the note
-matches the map, VibeStudio reads the note, because it also holds what TrenchBroom does not keep: hidden and locked
+A map saved with TrenchBroom groups still carries SlopStudio's scene note, after TrenchBroom's keys. While the note
+matches the map, SlopStudio reads the note, because it also holds what TrenchBroom does not keep: hidden and locked
 groups, which linked groups are out of sync and which objects correspond. TrenchBroom drops the note when it saves,
-and VibeStudio then reads TrenchBroom's keys; a note that no longer matches the map is set aside, and the **Health**
+and SlopStudio then reads TrenchBroom's keys; a note that no longer matches the map is set aside, and the **Health**
 tab says so. A map whose TrenchBroom entities share lines with other text opens with them as ordinary `func_group` entities, as
 earlier versions opened it, and the **Health** tab says why.
 
@@ -2295,7 +2295,7 @@ unchanged. Preparation runs in the background with cancellable progress.
 The shared CLI operation is:
 
 ```sh
-vibestudio --cli editor scene extract-linked-groups assembly.map --context <group-UUID> --objects brush:6,entity:4 --output extracted.map --json
+slopstudio --cli editor scene extract-linked-groups assembly.map --context <group-UUID> --objects brush:6,entity:4 --output extracted.map --json
 ```
 
 Use `editor scene list` on the current file to inspect node UUIDs and native
@@ -2341,9 +2341,9 @@ compiler and package workflows receive the actual entity values and asset paths.
 The same services are available through the CLI:
 
 ```text
-vibestudio --cli editor scene set-protected-property arena.map --objects entity:2 --key targetname --value local_relay --output local.map
-vibestudio --cli editor scene protect-properties local.map --objects entity:2 --keys origin,angle --protected true --output protected.map
-vibestudio --cli editor scene clear-protected-properties protected.map --objects entity:2 --output shared.map
+slopstudio --cli editor scene set-protected-property arena.map --objects entity:2 --key targetname --value local_relay --output local.map
+slopstudio --cli editor scene protect-properties local.map --objects entity:2 --keys origin,angle --protected true --output protected.map
+slopstudio --cli editor scene clear-protected-properties protected.map --objects entity:2 --output shared.map
 ```
 
 Use `--protected false` to unprotect selected keys, `--value=` for an explicitly
@@ -2395,7 +2395,7 @@ and creating or copying geometry are not available for UDMF yet.
   selection keeps Redo. NRC and the default profile keep selection and group
   navigation outside history. Face/component picks, visibility and filters do
   not yet have complete TB selection-history behaviour.
-- VibeStudio saves a recovery checkpoint of a changed map every minute. **File** > **Recover Maps…** lists the
+- SlopStudio saves a recovery checkpoint of a changed map every minute. **File** > **Recover Maps…** lists the
   checkpoints; **Restore** opens one as unsaved work and never replaces your map file. The window's check box turns
   checkpoints on or off. Checkpoints stay on your computer.
 
@@ -2416,8 +2416,8 @@ editor profile gives them a key, as in NetRadiant Custom and TrenchBroom.
 
 | To | Do this |
 | --- | --- |
-| Bring another map into this one | Choose **File** > **Import Map…** and pick a `.map`. VibeStudio reads it in the background and shows what it adds: entities, brushes, patches, groups and layers. Names this map already uses, such as a `targetname` of `door`, get the next free number (`door1`), so the imported links keep pointing at each other; clear **Rename entity names the open map already uses** to keep them. **Import** adds everything at its own coordinates as one undo step and selects it. |
-| Import a compiled map | In a Quake III-family map, pick a `.bsp` in **Import Map…**. VibeMap3's convert profile turns it into a `.map` first, in the format of this map's brushes, for the game the file was compiled for (Quake III Arena, Return to Castle Wolfenstein, Enemy Territory, Jedi Knight and others; the project's game decides between games that share a format), with the project's game folder. The window shows the command it ran, and VibeMap3's exit code when it stops without saying why. VibeMap3 must be built or set up in **Compilers**; Quake and Quake II `.bsp` files cannot be converted. |
+| Bring another map into this one | Choose **File** > **Import Map…** and pick a `.map`. SlopStudio reads it in the background and shows what it adds: entities, brushes, patches, groups and layers. Names this map already uses, such as a `targetname` of `door`, get the next free number (`door1`), so the imported links keep pointing at each other; clear **Rename entity names the open map already uses** to keep them. **Import** adds everything at its own coordinates as one undo step and selects it. |
+| Import a compiled map | In a Quake III-family map, pick a `.bsp` in **Import Map…**. SlopMap3's convert profile turns it into a `.map` first, in the format of this map's brushes, for the game the file was compiled for (Quake III Arena, Return to Castle Wolfenstein, Enemy Territory, Jedi Knight and others; the project's game decides between games that share a format), with the project's game folder. The window shows the command it ran, and SlopMap3's exit code when it stops without saying why. SlopMap3 must be built or set up in **Compilers**; Quake and Quake II `.bsp` files cannot be converted. |
 | Save the selection as a map of its own | Choose **File** > **Export Selection as Map…**. The selected world brushes and patches go inside a worldspawn with this map's keys, followed by the selected entities. Choose **Level map without worldspawn keys** as the file type to leave the keys out. |
 | Write a copy without some layers | In the **Scene** section of the **Outliner** tab, choose a layer and tick **Omit from export**; the tree marks it **Omitted from export**. Then choose **File** > **Export Map…**. The copy leaves those layers out, with their groups and objects; the open map keeps its own file and stays as it was. |
 
@@ -2440,7 +2440,7 @@ and packaging still include omitted layers. Doom maps can be exported whole, wit
 
 | To | Do this |
 | --- | --- |
-| Take the whole map into Blender or another modeller | Choose **File** > **Export Map as OBJ…**, check the file name and choose **Export**. VibeStudio writes a Wavefront `.obj` with a `.mtl` material library beside it. Hidden objects and layers marked **Omit from export** are left out. |
+| Take the whole map into Blender or another modeller | Choose **File** > **Export Map as OBJ…**, check the file name and choose **Export**. SlopStudio writes a Wavefront `.obj` with a `.mtl` material library beside it. Hidden objects and layers marked **Omit from export** are left out. |
 | Export only part of the map | Select brushes, patches or brush entities and choose **File** > **Export Selection as OBJ…**. |
 | Keep tool materials out | Leave **Ignored materials** as it is: faces with caulk, clip, trigger, hint, skip, origin, nodraw and the other tool materials are not written. Add a name on its own line to leave out more; **Restore Tool Materials** brings back the list. |
 | Choose how the mesh is split | Set **Group faces** to **By brush and patch**, **By material** or **Into one mesh**. Clear **Write objects (o) instead of groups (g)** for importers that want groups. |
@@ -2456,29 +2456,29 @@ one OBJ unit as one metre, so a 64-unit room arrives 64 m wide. Set the scale wh
 (1/32) or 0.0254 (one unit as one inch). If the file name has spaces, the material library takes the name with
 underscores (`my room.obj` uses `my_room.mtl`), because the OBJ format separates library names with spaces. Materials whose image the open package does not hold are written with
 64 × 64-texel coordinates and a plain colour, and the export lists them. Placed models, point entities and Doom maps
-are not exported. The window remembers its choices until VibeStudio closes, and replacing files keeps the old ones in
-`.vibestudio/map-backups`.
+are not exported. The window remembers its choices until SlopStudio closes, and replacing files keeps the old ones in
+`.slopstudio/map-backups`.
 
 ## Save your work
 
 1. Choose **Save** in the header, or **File** > **Save Map** (<kbd>Ctrl</kbd>+<kbd>S</kbd> while the page has focus).
-   VibeStudio writes the map back to its own file, after copying the old file into `.vibestudio/map-backups` beside it.
+   SlopStudio writes the map back to its own file, after copying the old file into `.slopstudio/map-backups` beside it.
 2. A new map, or one opened from a package, asks for a location first.
 3. To write a separate file instead, choose **File** > **Save Map As…** (<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>S</kbd>).
-   VibeStudio suggests the name with `-edited` added and keeps editing the new file.
+   SlopStudio suggests the name with `-edited` added and keeps editing the new file.
 
 > [!IMPORTANT]
 > **Save** replaces the file you opened, keeping a backup of the old content. Use **Save Map As…** to leave the
 > original untouched, for example for a map inside a game installation.
 
 Saving runs in the background with a **Cancel** button; a cancelled or failed save leaves the destination unchanged.
-If the file changed outside VibeStudio after you opened it, **Save** refuses: use **Save Map As…**, or **Reload** to
+If the file changed outside SlopStudio after you opened it, **Save** refuses: use **Save Map As…**, or **Reload** to
 read the outside version. A map is always saved in the format it was opened in. A WAD is written whole, with its other
-maps and lumps kept. VibeStudio does not convert between Doom and Quake formats or between face formats, apart from the
+maps and lumps kept. SlopStudio does not convert between Doom and Quake formats or between face formats, apart from the
 optional Valve 220 conversion.
 
 A Quake-family map from an older editor can hold accented letters or symbols in an 8-bit code page rather than UTF-8,
-for example in a level name or a message. VibeStudio keeps those bytes as they are when you save. If you add a
+for example in a level name or a message. SlopStudio keeps those bytes as they are when you save. If you add a
 character that no 8-bit page holds, the map is saved as UTF-8 instead and the save report says so.
 
 In Quake-family maps, a brush you reshape keeps its place in the file. Component moves, the brush editor, split
@@ -2506,7 +2506,7 @@ added to worldspawn still shifts the numbers of brushes in later entities.
   NetRadiant Custom's rule. The table lists every class with its count and how many reach the game; choose a heading
   to sort by it, and press <kbd>Enter</kbd> on a class to list its entities in the **Outliner**. On a Doom map it
   counts thing types, in number order. A map saved in TrenchBroom's format keeps each layer and group as a
-  `func_group` entity: VibeStudio counts those as layers and groups, not entities, and lists them on a line of their
+  `func_group` entity: SlopStudio counts those as layers and groups, not entities, and lists them on a line of their
   own (**Layer and group entities**), so its entity and `func_group` totals are lower than NetRadiant Custom's by that
   number. Neither reaches the game.
 - **Layers.** The **Map** tab's **Layers** section lists each layer with its objects and groups, and says in words
@@ -2516,23 +2516,23 @@ added to worldspawn still shifts the numbers of brushes in later entities.
   bounds** (±4096 for Quake and Quake II maps, ±65536 for Quake III Arena maps) or **Custom bounds**, with each corner
   typed as three numbers or one number for all three. The section says how many objects lie outside. The choice is
   saved in worldspawn's `_tb_soft_map_bounds` key, so TrenchBroom reads the same bounds, and each change is one undo
-  step. VibeStudio does not yet draw the bounds in the views or list objects outside them on **Health**.
+  step. SlopStudio does not yet draw the bounds in the views or list objects outside them on **Health**.
 - **Mods.** **Partial.** Open **Mods**, choose one of the game installation's other folders or type a folder name,
   and choose **Enable**; the buttons under the list disable the chosen mod or move it up or down. The list is saved in
-  worldspawn's `_tb_mod` key, which TrenchBroom reads to load the mods' assets. VibeStudio keeps the list with the
+  worldspawn's `_tb_mod` key, which TrenchBroom reads to load the mods' assets. SlopStudio keeps the list with the
   map but does not load assets from it yet. The folders offered follow the installation in use.
 - **Map settings with a group open.** **Map Properties**, **Mods** and the **Worldspawn** keys belong to the whole
   map, so they change while a group is open, as in TrenchBroom, and the group stays open. Other edits outside the
   open group are still refused.
 - **Entity definitions.** On the **Map** tab, give a Radiant `.def`, Valve `.fgd` or Quake III `.ent` file, or a
-  folder of them, under **Entity Definitions** and choose **Load** (**Browse** picks a file). Left empty, VibeStudio
-  looks in the project's `.vibestudio/definitions`, `definitions`, `defs`, `scripts`, `base/scripts` and `entities`
+  folder of them, under **Entity Definitions** and choose **Load** (**Browse** picks a file). Left empty, SlopStudio
+  looks in the project's `.slopstudio/definitions`, `definitions`, `defs`, `scripts`, `base/scripts` and `entities`
   folders. **Project** > **Load Entity Definitions…** does the same. The map is then checked for unknown classes,
   undeclared keys, invalid values, missing required keys, unknown spawnflags, and targets that name nothing. An `.ent`
   file lists placed entities only, so it cannot check key types or spawnflag names.
 - **Built-in classes.** With no definitions found, a Quake-family map is checked against the classes of the stock
   game it looks like: Quake, Quake II or Quake III Arena, taken from id Software's GPL game code, with the
-  Quake compiler classes VibeMap2 inherits from ericw-tools, such as `func_detail`. A mod's own classes read as unknown until you load its
+  Quake compiler classes SlopMap2 inherits from ericw-tools, such as `func_detail`. A mod's own classes read as unknown until you load its
   definitions, and **Health** and the **Checklist** say which classes were used.
 - **Dependencies.** Choose **Dependencies** in the header. The scan reads the package or asset folder open on the
   **Packages** page or, with none open, the project's folders. It lists textures, shader images, models, model
@@ -2551,7 +2551,7 @@ added to worldspawn still shifts the numbers of brushes in later entities.
 ## Build and test the map
 
 - On the document bar, pick a compiler profile and choose **Run Profile** to review and run a compile of the open map.
-  The compiler reads the saved file, so VibeStudio asks you to save first. **Copy CLI** copies the matching command.
+  The compiler reads the saved file, so SlopStudio asks you to save first. **Copy CLI** copies the matching command.
   The profile you run is remembered for that game (Quake, Quake II, Quake III Arena or Doom), and the next map of the
   game opens with it chosen when it can compile that map.
 - **Build** > **Run Last Build** runs again the build you ran last for the project, on the open map: the build
@@ -2560,7 +2560,7 @@ added to worldspawn still shifts the numbers of brushes in later entities.
   replays the open map's newest saved compile exactly as it ran, as TrenchBroom's **Re-run Compilation** does; it is
   available once the map has one. Both run without leaving Levels, and the **Tools** tab's **Region and Build** group
   holds them with **Launch Game**. A saved run, like a project, can come from someone else: when its program is not
-  one of your configured compilers, VibeStudio shows the command line and runs it only if you choose **Trust and
+  one of your configured compilers, SlopStudio shows the command line and runs it only if you choose **Trust and
   Run** (see [Build and launch](build-and-launch.md#when-a-build-asks-before-running-a-program)).
 - **Launch Game** from Levels shows the launch review, with the exact command line, over the map. The launch uses
   the **Launch and Test** settings on the **Build** page, including your own launch profiles and extra arguments;
@@ -2598,11 +2598,11 @@ off by default; see [AI assistant](ai.md).
 
 Every command is also in the menus and in command search. Your [editor profile](editor-profiles.md) can change these
 keys, and your own keys in **Help** > **Keyboard Shortcuts** take priority over both. Every Levels command is also
-listed, with a short description, in the shared command registry that `vibestudio --cli ui semantics --json` prints,
+listed, with a short description, in the shared command registry that `slopstudio --cli ui semantics --json` prints,
 so scripts and editor profiles name each one by the same id, such as `map.vertex-tool` for **Edit Vertices**.
 
 <details>
-<summary>All shortcuts on the Levels page (VibeStudio Default profile)</summary>
+<summary>All shortcuts on the Levels page (SlopStudio Default profile)</summary>
 
 | Action | Shortcut |
 | --- | --- |
@@ -2620,7 +2620,7 @@ so scripts and editor profiles name each one by the same id, such as `map.vertex
 | Frame the selection / the whole map (2D view) | <kbd>F</kbd> / <kbd>Home</kbd> |
 | Zoom in / out (2D view) | <kbd>+</kbd> / <kbd>-</kbd> |
 | Select the next object / add the next or previous (2D view) | <kbd>Tab</kbd> / <kbd>Ctrl</kbd>+<kbd>Tab</kbd>, <kbd>Shift</kbd>+<kbd>Tab</kbd> |
-| Nudge the selection | The profile's **Nudge** keys, one grid step (VibeStudio Default: arrow keys in a 2D view); <kbd>Shift</kbd> moves eight steps where that key is free; see [Nudge the selection](#nudge-the-selection) |
+| Nudge the selection | The profile's **Nudge** keys, one grid step (SlopStudio Default: arrow keys in a 2D view); <kbd>Shift</kbd> moves eight steps where that key is free; see [Nudge the selection](#nudge-the-selection) |
 | Pan (2D view) | Arrow keys with nothing selected, or <kbd>Ctrl</kbd>+arrow keys; <kbd>Space</kbd> turns a pan hand on or off |
 | Cancel a drag, clear the selection, then leave the view | <kbd>Esc</kbd> |
 | Map actions menu | <kbd>Menu</kbd> or <kbd>Shift</kbd>+<kbd>F10</kbd> |
@@ -2640,8 +2640,8 @@ The `map` commands use the same services as the page. Commands that change a map
 `linedef:12` and `sector:4`.
 
 ```sh
-vibestudio --cli map inspect ./maps/start.map --json
-vibestudio --cli map move ./maps/start.map --object brush:12 --delta 16,0,0 --output ./maps/start-moved.map --dry-run
+slopstudio --cli map inspect ./maps/start.map --json
+slopstudio --cli map move ./maps/start.map --object brush:12 --delta 16,0,0 --output ./maps/start-moved.map --dry-run
 ```
 
 <details>
@@ -2695,7 +2695,7 @@ vibestudio --cli map move ./maps/start.map --object brush:12 --delta 16,0,0 --ou
 | `editor scene select` | Resolve group selection without writing; use `--objects` and optional `--context <group UUID>`, `--selection` and `--mode replace\|add\|toggle` |
 | `editor scene translate` | Move closed groups or objects inside `--context` with `--objects`, `--offset x,y,z` and `--output`; supports `--dry-run` and `--overwrite` |
 
-`vibestudio --cli cli commands` lists every command; see [Command line](cli.md).
+`slopstudio --cli cli commands` lists every command; see [Command line](cli.md).
 
 </details>
 
@@ -2799,7 +2799,7 @@ Edits and saves preserve this reference. New or copied objects acquire source
 positions when you save and reopen the map. Use the same map revision as a
 compiler diagnostic, or save and reopen before looking up its new line numbers.
 Deleting an object removes it from these results; Undo restores its source
-identity. Closed groups expand a matching member to the whole group. VibeStudio
+identity. Closed groups expand a matching member to the whole group. SlopStudio
 scene metadata has no group-bracket line, and foreign TB group/layer metadata
 conversion is still incomplete.
 
@@ -2816,9 +2816,9 @@ or face/component selection.
 The CLI prints stable selectors for subsequent authoring commands:
 
 ```sh
-vibestudio --cli map select-siblings maps/start.map --object brush:12 --json
-vibestudio --cli map select-lines maps/start.map --line "42, 57" --line 80 --json
-vibestudio --cli map select-lines maps/start.map --line 42 --context GROUP-ID --exclude brush:4 --json
+slopstudio --cli map select-siblings maps/start.map --object brush:12 --json
+slopstudio --cli map select-lines maps/start.map --line "42, 57" --line 80 --json
+slopstudio --cli map select-lines maps/start.map --line 42 --context GROUP-ID --exclude brush:4 --json
 ```
 
 Repeat **--object**, **--line** or **--exclude** as needed. The two query modes
@@ -2908,8 +2908,8 @@ increments, and **--degrees N --anchor origin** turns about the texture origin
 (**--anchor centre** is the default):
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --scale-step 0,0.5 --output scaled.map --json
-vibestudio --cli map align-textures room.map --object brush:12 --degrees 45 --anchor origin --output turned.map
+slopstudio --cli map align-textures room.map --object brush:12 --scale-step 0,0.5 --output scaled.map --json
+slopstudio --cli map align-textures room.map --object brush:12 --degrees 45 --anchor origin --output turned.map
 ```
 
 ## Move and flip textures from the camera
@@ -2954,7 +2954,7 @@ On the command line, **map align-textures --camera-shift RIGHT,UP** and
 **--camera-yaw** and **--camera-pitch**:
 
 ```sh
-vibestudio --cli map align-textures room.map --face 12:3 --camera-shift 16,0 --camera-yaw 90 --output moved.map --json
+slopstudio --cli map align-textures room.map --face 12:3 --camera-shift 16,0 --camera-yaw 90 --output moved.map --json
 ```
 
 ## Rotate textures by fixed steps
@@ -2995,7 +2995,7 @@ On the command line, **map align-textures --clockwise N** turns N degrees
 clockwise, or counter-clockwise for a negative N:
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --clockwise 15 --output turned.map --json
+slopstudio --cli map align-textures room.map --object brush:12 --clockwise 15 --output turned.map --json
 ```
 
 ## Reset textures
@@ -3057,8 +3057,8 @@ and **--rename**, for the **--object** selection or the **--whole-map**,
 optionally **--only-texture NAME**:
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --radiant-reset 0.5,0.5 --output reset.map --json
-vibestudio --cli map align-textures room.map --whole-map --only-texture base_wall/concrete --rename base_wall/metal --set-rotation 0 --output retextured.map
+slopstudio --cli map align-textures room.map --object brush:12 --radiant-reset 0.5,0.5 --output reset.map --json
+slopstudio --cli map align-textures room.map --whole-map --only-texture base_wall/concrete --rename base_wall/metal --set-rotation 0 --output retextured.map
 ```
 
 ## Fit and project textures
@@ -3120,8 +3120,8 @@ On the command line, **map align-textures --fit U,V --keep-proportions**,
 the same:
 
 ```sh
-vibestudio --cli map align-textures room.map --object brush:12 --fit 1,0 --keep-proportions --package ./assets --output fitted.map
-vibestudio --cli map align-textures room.map --object brush:12 --project z --output projected.map --json
+slopstudio --cli map align-textures room.map --object brush:12 --fit 1,0 --keep-proportions --package ./assets --output fitted.map
+slopstudio --cli map align-textures room.map --object brush:12 --project z --output projected.map --json
 ```
 
 ## Edit texture coordinates in the UV Editor
@@ -3194,9 +3194,9 @@ On the command line, `map edit-uv` lists a face's or patch's points in texels
 and moves or turns them through the same service:
 
 ```sh
-vibestudio --cli map edit-uv base.map --target face:3:1 --json
-vibestudio --cli map edit-uv base.map --target face:3:1 --rotate 15 --anchor 1 --output base-turned.map
-vibestudio --cli map edit-uv curves.map --target patch:0 --move-point 5 --to 32,16 --texture-size 128,128 --output curves-uv.map
+slopstudio --cli map edit-uv base.map --target face:3:1 --json
+slopstudio --cli map edit-uv base.map --target face:3:1 --rotate 15 --anchor 1 --output base-turned.map
+slopstudio --cli map edit-uv curves.map --target patch:0 --move-point 5 --to 32,16 --texture-size 128,128 --output curves-uv.map
 ```
 
 ## Use the Face inspector
@@ -3257,9 +3257,9 @@ On the command line, `map face-attributes` reads and sets the same values
 through the same service:
 
 ```sh
-vibestudio --cli map face-attributes base.map --face 3:1 --json
-vibestudio --cli map face-attributes base.map --object brush:3 --scale-u 0.5 --scale-v 0.5 --output base-fine.map
-vibestudio --cli map face-attributes base.map --face 3:2 --rotation 30 --pivot 0,64,128 --output base-turned.map
+slopstudio --cli map face-attributes base.map --face 3:1 --json
+slopstudio --cli map face-attributes base.map --object brush:3 --scale-u 0.5 --scale-v 0.5 --output base-fine.map
+slopstudio --cli map face-attributes base.map --face 3:2 --rotation 30 --pivot 0,64,128 --output base-turned.map
 ```
 
 ## Drag textures with the UV tool
@@ -3326,9 +3326,9 @@ On the command line, `map edit-uv` stretches and skews about a pivot, and
 moves a patch's rows and columns, through the same service:
 
 ```sh
-vibestudio --cli map edit-uv base.map --target face:3:1 --stretch 2,1 --pivot 0,0 --output base-stretched.map
-vibestudio --cli map edit-uv base.map --target face:3:1 --skew-u 0.5 --allow-valve220 --output base-skewed.map
-vibestudio --cli map edit-uv curves.map --target patch:0 --rows 2 --offset 8,0 --texture-size 128,64 --output curves-row.map
+slopstudio --cli map edit-uv base.map --target face:3:1 --stretch 2,1 --pivot 0,0 --output base-stretched.map
+slopstudio --cli map edit-uv base.map --target face:3:1 --skew-u 0.5 --allow-valve220 --output base-skewed.map
+slopstudio --cli map edit-uv curves.map --target patch:0 --rows 2 --offset 8,0 --texture-size 128,64 --output curves-row.map
 ```
 
 ## Set face flags
@@ -3374,8 +3374,8 @@ says so.
 On the command line, `map face-flags` reads and changes the same flags by name:
 
 ```sh
-vibestudio --cli map face-flags base.map --face 3:1 --json
-vibestudio --cli map face-flags base.map --object brush:3 --set-content playerclip --output base-clip.map
+slopstudio --cli map face-flags base.map --face 3:1 --json
+slopstudio --cli map face-flags base.map --object brush:3 --set-content playerclip --output base-clip.map
 ```
 
 ## Select textured surfaces
@@ -3399,8 +3399,8 @@ changes. Queries return the complete result or fail; they do not truncate
 results beyond 16,384 combined face and matching patch targets.
 
 ```console
-vibestudio --cli map select-textured maps/start.map --material stone --json
-vibestudio --cli map select-textured maps/start.map --material stone --object entity:4 --face face:12:1 --json
+slopstudio --cli map select-textured maps/start.map --material stone --json
+slopstudio --cli map select-textured maps/start.map --material stone --object entity:4 --face face:12:1 --json
 ```
 
 Use the returned `surfaceTargets` with the normal material or surface commands.
@@ -3481,8 +3481,8 @@ tooltip and status tip name two of them. Neither upstream editor gives these
 commands a key; add your own in **Help** > **Keyboard Shortcuts**.
 
 ```console
-vibestudio --cli map replace-texture maps/start.map --from base/wall --to base/metal --face face:3:1 --face face:3:4 --output maps/start-metal.map
-vibestudio --cli map select-textured maps/start.map --material base/wall --object entity:2 --within-selection --json
+slopstudio --cli map replace-texture maps/start.map --from base/wall --to base/metal --face face:3:1 --face face:3:4 --output maps/start-metal.map
+slopstudio --cli map select-textured maps/start.map --material base/wall --object entity:2 --within-selection --json
 ```
 
 **map replace-texture** takes `--object` objects or `--face` picks; its JSON
@@ -3536,9 +3536,9 @@ picks, components, material, filters or history policy discard pending results.
 Native map bytes, asset references and compiler/package inputs stay unchanged.
 
 ```sh
-vibestudio --cli map select-type maps/start.map --object brush:12 --object entity:4 --json
-vibestudio --cli map select-type maps/start.map --material stone --json
-vibestudio --cli map select-type maps/start.map --mode faces --object entity:2 --material stone --json
+slopstudio --cli map select-type maps/start.map --object brush:12 --object entity:4 --json
+slopstudio --cli map select-type maps/start.map --material stone --json
+slopstudio --cli map select-type maps/start.map --mode faces --object entity:2 --material stone --json
 ```
 
 The CLI accepts repeated **--object**, **--exclude** and an optional **--context**
@@ -3585,8 +3585,8 @@ nothing creates no undo step. Saved map contents and compiler/package inputs
 remain unchanged. Doom WAD/UDMF connected geometry uses its separate command.
 
 ```sh
-vibestudio --cli map select-connected maps/start.map --object patch:2 --json
-vibestudio --cli map select-connected maps/start.map --object entity:3 --context GROUP-ID --exclude brush:4 --json
+slopstudio --cli map select-connected maps/start.map --object patch:2 --json
+slopstudio --cli map select-connected maps/start.map --object entity:3 --context GROUP-ID --exclude brush:4 --json
 ```
 
 Repeat **--object** and **--exclude** as needed. The read-only JSON response
@@ -3605,7 +3605,7 @@ The profile determines both the test and what happens to the source selection:
 
 | Profile | Region test | Source objects |
 | --- | --- | --- |
-| VibeStudio default and other profiles | Combined selection bounds | Retained; replaces selection when matches exist |
+| SlopStudio default and other profiles | Combined selection bounds | Retained; replaces selection when matches exist |
 | TrenchBroom | Each selected convex brush independently | Removed by Inside, Touching and Tall; one undo step |
 | NetRadiant Custom | Each selected brush's axis-aligned bounds independently | Inside removes all selected objects; Touching retains them and adds matches |
 
@@ -3620,7 +3620,7 @@ quadratic surface and grid-edge intersection; NRC uses their control-grid bounds
 **Select Tall** in TB projects each brush onto the active 2D view. The default and
 NRC labels are **Select Complete Tall**. **Select Partial Tall** tests overlap of
 the footprint. Both ignore depth; Partial Tall and NRC tall commands are
-VibeStudio extensions. TB tall commands require a 2D view. TB shortcuts are
+SlopStudio extensions. TB tall commands require a 2D view. TB shortcuts are
 **Ctrl+E** (Inside), **Ctrl+T** (Touching) and **Ctrl+Shift+E** (Tall), subject to
 shortcut overrides.
 
@@ -3635,9 +3635,9 @@ Save the edited map before building or packaging it.
 The CLI uses the same service. A query never writes the source map:
 
 ```sh
-vibestudio --cli map select-region maps/start.map --object brush:0 --object brush:4 --policy trenchbroom --mode inside --json
-vibestudio --cli map select-region maps/start.map --object brush:0 --policy radiant --mode touching --json
-vibestudio --cli map select-region maps/start.map --object brush:0 --policy trenchbroom --mode complete-tall --axis z --output maps/selected.map --dry-run --json
+slopstudio --cli map select-region maps/start.map --object brush:0 --object brush:4 --policy trenchbroom --mode inside --json
+slopstudio --cli map select-region maps/start.map --object brush:0 --policy radiant --mode touching --json
+slopstudio --cli map select-region maps/start.map --object brush:0 --policy trenchbroom --mode complete-tall --axis z --output maps/selected.map --dry-run --json
 ```
 
 Remove **--dry-run** to write the result. Use **--overwrite** to replace an existing

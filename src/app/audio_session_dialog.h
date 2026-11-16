@@ -23,7 +23,7 @@ class QThread;
 class QTimer;
 class QTreeWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class AudioSessionTimeline;
 class AudioRecoveryWriter;
@@ -170,4 +170,4 @@ class AudioSessionDialog final : public QDialog {
 	QAction *m_stop = nullptr;
 	QJsonObject m_deliveryReport;
 };
-} // namespace vibestudio
+} // namespace slopstudio

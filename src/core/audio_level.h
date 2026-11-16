@@ -3,7 +3,7 @@
 #include "core/audio_delivery.h"
 #include "core/level_map.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Quake and Quake II share a map grammar. Empty game means the user must
@@ -43,4 +43,4 @@ bool stageLevelSound(PackageStagingModel* staging, LevelMapDocument* document,
                      const LevelSoundRequest& request, const QByteArray& wav, bool replace,
                      int* entityId = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

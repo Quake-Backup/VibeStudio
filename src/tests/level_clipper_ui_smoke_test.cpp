@@ -24,7 +24,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value,const char* message,const QString& detail = {})
 {
@@ -59,7 +59,7 @@ int main(int argc,char** argv)
 	qputenv("QT_QPA_FONTDIR",QDir(qEnvironmentVariable("SystemRoot")).filePath("Fonts").toLocal8Bit());
 #endif
 	QApplication app(argc,argv); QTemporaryDir temp; if (!temp.isValid()) { return 1; }
-	const auto output = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR"); if (!output.isEmpty()) { QDir().mkpath(output); }
+	const auto output = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR"); if (!output.isEmpty()) { QDir().mkpath(output); }
 	LevelMapDocument fixture; QString error; if (!tests::createGeometryFixture(2,&fixture,&error)) { return 1; }
 	bool ok = true;
 	for (int scale : {100,200}) {

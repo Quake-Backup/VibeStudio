@@ -1,7 +1,7 @@
 # Transfer skin weights
 
 **Available:** bind-space weight transfer and mirroring between surfaces in one
-editable skeletal model. VibeStudio remains pre-alpha and largely untested in
+editable skeletal model. SlopStudio remains pre-alpha and largely untested in
 real projects. Implementation does not establish the [production gate](MODELLER_RELEASE.md).
 
 ## Review the transfer
@@ -83,8 +83,8 @@ reviewing changed deformation. Transfer does not publish packages or compile map
 ## Automate the workflow
 
 ```sh
-vibestudio --cli model weight-transfer ./models/player.mesh.json --source-surface 0 --surface 0 --vertices all --mirror x --side positive-to-negative --joint-map ./joints.json --output ./models/mirrored.mesh.json --json
-vibestudio --cli model weight-transfer ./models/player.mesh.json --source-surface 0 --surface 1 --vertices all --method triangle --distance 2 --normal-angle 45 --output ./models/armour.mesh.json --dry-run --json
+slopstudio --cli model weight-transfer ./models/player.mesh.json --source-surface 0 --surface 0 --vertices all --mirror x --side positive-to-negative --joint-map ./joints.json --output ./models/mirrored.mesh.json --json
+slopstudio --cli model weight-transfer ./models/player.mesh.json --source-surface 0 --surface 1 --vertices all --method triangle --distance 2 --normal-angle 45 --output ./models/armour.mesh.json --dry-run --json
 ```
 
 The input is positional or supplied with `--input`. Required options are

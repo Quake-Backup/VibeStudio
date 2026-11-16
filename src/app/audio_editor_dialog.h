@@ -24,7 +24,7 @@ class QScrollBar;
 class QSpinBox;
 class QToolBar;
 
-namespace vibestudio
+namespace slopstudio
 {
 class AudioWaveformView;
 class AudioRecoveryWriter;
@@ -194,4 +194,4 @@ private:
 	QVector<QAction*> m_edits;
 	AudioPlayback* m_playback = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

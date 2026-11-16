@@ -33,7 +33,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *name)
@@ -80,7 +80,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	application.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root)) {
 		return EXIT_FAILURE;
 	}
@@ -256,7 +256,7 @@ int main(int argc, char **argv)
 		                 !accessible->text(QAccessible::Description).isEmpty(),
 		             "custom timeline exposes graphic role and current frame description");
 	}
-	const QString renderRoot = qEnvironmentVariable("VIBESTUDIO_AUDIO_SESSION_RENDER_DIR");
+	const QString renderRoot = qEnvironmentVariable("SLOPSTUDIO_AUDIO_SESSION_RENDER_DIR");
 	if (!renderRoot.isEmpty()) {
 		ok &= expect(QDir().mkpath(renderRoot), "create designated render output");
 	}

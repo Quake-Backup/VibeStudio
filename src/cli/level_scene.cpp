@@ -13,7 +13,7 @@
 #include <cmath>
 #include <algorithm>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 LevelSceneCliResult runLevelScene(const QStringList& arguments) {
 	const auto failure = [](int code, const QString& message) { return LevelSceneCliResult{code, message, {}, {}}; };
 	const QSet<QString> globals{"--settings-file", "--locale", "--catalog-root"};
@@ -135,10 +135,10 @@ LevelSceneCliResult runLevelScene(const QStringList& arguments) {
 	if (wad != values.contains(QStringLiteral("--map-name"))) {
 		return failure(2, QCoreApplication::translate("LevelSceneCli", "WAD files require --map-name; text maps do not accept it."));
 	}
-	LevelSceneStorage storage = LevelSceneStorage::VibeStudio;
+	LevelSceneStorage storage = LevelSceneStorage::SlopStudio;
 	if (values.contains(QStringLiteral("--scene-format"))) {
 		if (!levelSceneStorageFromId(values.value(QStringLiteral("--scene-format")), &storage)) {
-			return failure(2, QCoreApplication::translate("LevelSceneCli", "Scene format must be vibestudio or trenchbroom."));
+			return failure(2, QCoreApplication::translate("LevelSceneCli", "Scene format must be slopstudio or trenchbroom."));
 		}
 		if (wad && storage == LevelSceneStorage::TrenchBroom) {
 			return failure(2, QCoreApplication::translate("LevelSceneCli", "TrenchBroom groups need a Quake-family .map file."));
@@ -427,4 +427,4 @@ LevelSceneCliResult runLevelScene(const QStringList& arguments) {
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

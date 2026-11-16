@@ -11,7 +11,7 @@
 #include <QJsonDocument>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool pass, const char* label, const QString& error = {}) {
 	if (!pass) {
@@ -117,11 +117,11 @@ int main(int argc, char** argv) {
 	ok &= expect(resetLevelScene(&loaded, &error) && loaded.scene.opaqueMetadata.isEmpty() && undoLevelMapEdit(&loaded) &&
 					 loaded.scene == opaque,
 				 "explicit reset is undoable", error);
-	const QByteArray malformed = original + "\n// VibeStudioScene: !invalid!\n";
+	const QByteArray malformed = original + "\n// SlopStudioScene: !invalid!\n";
 	ok &= expect(loadLevelMapBytes({QStringLiteral("invalid.map"), {}, {}}, malformed, &loaded, &error) &&
 					 loaded.scene.opaqueMetadata == QByteArray("!invalid!") && serializeLevelMap(loaded).bytes == malformed,
 				 "malformed carrier preserved", error);
-	const QByteArray emptyCarrier = original + "\n// VibeStudioScene: \n";
+	const QByteArray emptyCarrier = original + "\n// SlopStudioScene: \n";
 	ok &= expect(loadLevelMapBytes({QStringLiteral("empty-scene.map"), {}, {}}, emptyCarrier, &loaded, &error) &&
 					 !loaded.scene.problem.isEmpty() && serializeLevelMap(loaded).bytes == emptyCarrier,
 				 "empty unknown carrier preserved", error);
@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
 		{QStringLiteral("version"), 99},
 		{QStringLiteral("sha256"), QString::fromLatin1(QCryptographicHash::hash(original, QCryptographicHash::Sha256).toHex())},
 		{QStringLiteral("nodes"), QJsonArray()}};
-	const auto newer = original + "\n// VibeStudioScene: " + QJsonDocument(unknown).toJson(QJsonDocument::Compact).toBase64() + '\n';
+	const auto newer = original + "\n// SlopStudioScene: " + QJsonDocument(unknown).toJson(QJsonDocument::Compact).toBase64() + '\n';
 	ok &= expect(loadLevelMapBytes({QStringLiteral("future.map"), {}, {}}, newer, &loaded, &error) && !loaded.scene.problem.isEmpty() &&
 					 serializeLevelMap(loaded).bytes == newer,
 				 "future schema preserved", error);

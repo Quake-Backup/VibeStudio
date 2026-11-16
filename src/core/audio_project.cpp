@@ -14,7 +14,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -34,7 +34,7 @@ bool cancelled(const AudioWorkControl& control, QString* error)
 	if (!control.cancelled || !control.cancelled()) {
 		return false;
 	}
-	fail(error, QCoreApplication::translate("VibeStudioAudioProject", "Audio project operation cancelled."));
+	fail(error, QCoreApplication::translate("SlopStudioAudioProject", "Audio project operation cancelled."));
 	return true;
 }
 
@@ -73,7 +73,7 @@ bool hashFile(const QString& path, QByteArray* digest, QString* error)
 {
 	QFile file(path);
 	if (!file.open(QIODevice::ReadOnly) || file.size() > AudioProjectByteLimit) {
-		return fail(error, QCoreApplication::translate("VibeStudioAudioProject",
+		return fail(error, QCoreApplication::translate("SlopStudioAudioProject",
 		                                               "The audio project is unreadable or exceeds its size limit."));
 	}
 	QCryptographicHash hash(QCryptographicHash::Sha256);
@@ -99,7 +99,7 @@ QByteArray encodeAudioProject(const AudioProject& project, QString* error, const
 	if (project.firstFrame < 0 || project.endFrame < project.firstFrame ||
 	    project.endFrame > project.clip.frameCount() || project.sourceName.size() > 8192 ||
 	    project.sourcePath.size() > 8192) {
-		fail(error, QCoreApplication::translate("VibeStudioAudioProject",
+		fail(error, QCoreApplication::translate("SlopStudioAudioProject",
 		                                        "Audio project selection or source metadata is invalid."));
 		return {};
 	}
@@ -114,7 +114,7 @@ QByteArray encodeAudioProject(const AudioProject& project, QString* error, const
 	}
 	const QByteArray json = QJsonDocument(root).toJson(QJsonDocument::Compact);
 	if (json.size() > metadataLimit) {
-		fail(error, QCoreApplication::translate("VibeStudioAudioProject", "Audio project metadata exceeds 256 KiB."));
+		fail(error, QCoreApplication::translate("SlopStudioAudioProject", "Audio project metadata exceeds 256 KiB."));
 		return {};
 	}
 	QByteArray bytes(16 + json.size() + project.clip.samples.size() * 4, '\0');
@@ -140,11 +140,11 @@ bool decodeAudioProject(const QByteArray& bytes, AudioProject* project, QString*
 	}
 	if (!project || bytes.size() < 52 || bytes.size() > AudioProjectByteLimit || !bytes.startsWith(magic)) {
 		return fail(error,
-		            QCoreApplication::translate("VibeStudioAudioProject", "Not a bounded VibeStudio audio project."));
+		            QCoreApplication::translate("SlopStudioAudioProject", "Not a bounded SlopStudio audio project."));
 	}
 	const quint32 version = qFromLittleEndian<quint32>(bytes.constData() + 8);
 	if (version != 1 && version != 2) {
-		return fail(error, QCoreApplication::translate("VibeStudioAudioProject",
+		return fail(error, QCoreApplication::translate("SlopStudioAudioProject",
 		                                               "This audio project version is not supported."));
 	}
 	const quint32 jsonSize = qFromLittleEndian<quint32>(bytes.constData() + 12);
@@ -152,7 +152,7 @@ bool decodeAudioProject(const QByteArray& bytes, AudioProject* project, QString*
 	if (jsonSize > metadataLimit || jsonSize > payloadEnd - 16 ||
 	    QCryptographicHash::hash(QByteArrayView(bytes.constData(), payloadEnd), QCryptographicHash::Sha256) !=
 	        bytes.last(32)) {
-		return fail(error, QCoreApplication::translate("VibeStudioAudioProject",
+		return fail(error, QCoreApplication::translate("SlopStudioAudioProject",
 		                                               "Audio project length or checksum is invalid."));
 	}
 	const auto json = QJsonDocument::fromJson(bytes.mid(16, jsonSize));
@@ -167,28 +167,28 @@ bool decodeAudioProject(const QByteArray& bytes, AudioProject* project, QString*
 	    !root.value(QStringLiteral("sourceName")).isString() || !root.value(QStringLiteral("sourcePath")).isString() ||
 	    !root.value(QStringLiteral("metadata")).isObject() || payloadEnd - 16 - jsonSize != frames * channels * 4) {
 		return fail(error,
-		            QCoreApplication::translate("VibeStudioAudioProject",
+		            QCoreApplication::translate("SlopStudioAudioProject",
 		                                        "Audio project dimensions, selection, or metadata are invalid."));
 	}
 	next.sourceName = root.value(QStringLiteral("sourceName")).toString();
 	next.sourcePath = root.value(QStringLiteral("sourcePath")).toString();
 	next.metadata = root.value(QStringLiteral("metadata")).toObject();
 	if (version == 1 && root.contains(QStringLiteral("markers"))) {
-		return fail(error, QCoreApplication::translate("VibeStudioAudioProject",
+		return fail(error, QCoreApplication::translate("SlopStudioAudioProject",
 		                                               "Marker metadata requires audio project version 2."));
 	}
 	if (version == 2 &&
 	    (!root.value(QStringLiteral("markers")).isObject() ||
 	     !parseAudioMarkersJson(root.value(QStringLiteral("markers")).toObject(), frames, &next.clip.markers, error))) {
 		if (error && error->isEmpty()) {
-			*error = QCoreApplication::translate("VibeStudioAudioProject",
+			*error = QCoreApplication::translate("SlopStudioAudioProject",
 			                                     "Version 2 audio projects require valid marker metadata.");
 		}
 		return false;
 	}
 	if (next.sourceName.size() > 8192 || next.sourcePath.size() > 8192) {
 		return fail(
-		    error, QCoreApplication::translate("VibeStudioAudioProject", "Audio project source metadata is too long."));
+		    error, QCoreApplication::translate("SlopStudioAudioProject", "Audio project source metadata is too long."));
 	}
 	next.clip.channels = static_cast<int>(channels);
 	next.clip.sampleRate = static_cast<int>(rate);
@@ -217,7 +217,7 @@ bool readAudioProject(const QString& path, AudioProject* project, AudioProjectId
 	QFile file(path);
 	const QString canonical = QFileInfo(path).canonicalFilePath();
 	if (!file.open(QIODevice::ReadOnly) || file.size() > AudioProjectByteLimit) {
-		return fail(error, QCoreApplication::translate("VibeStudioAudioProject",
+		return fail(error, QCoreApplication::translate("SlopStudioAudioProject",
 		                                               "The audio project is unreadable or exceeds its size limit."));
 	}
 	const QByteArray bytes = file.read(AudioProjectByteLimit + 1);
@@ -247,18 +247,18 @@ AudioProjectSaveReport writeAudioProject(const AudioProject& project, const Audi
 	if (request.path.trimmed().isEmpty() ||
 	    destination.suffix().compare(QStringLiteral("vsaudio"), Qt::CaseInsensitive) != 0 ||
 	    !destination.dir().exists() || destination.isSymLink() || destination.isJunction() || destination.isDir()) {
-		return failure(QCoreApplication::translate("VibeStudioAudioProject",
+		return failure(QCoreApplication::translate("SlopStudioAudioProject",
 		                                           "Choose a regular .vsaudio file in an existing folder."));
 	}
 	const QString target = resolvedPath(request.path);
 	if ((!request.protectedPath.isEmpty() && samePath(target, resolvedPath(request.protectedPath))) ||
 	    (!project.sourcePath.isEmpty() && samePath(target, resolvedPath(project.sourcePath)))) {
 		return failure(QCoreApplication::translate(
-		    "VibeStudioAudioProject", "Save the audio project to a different path to preserve its source."));
+		    "SlopStudioAudioProject", "Save the audio project to a different path to preserve its source."));
 	}
 	const bool guarded = !request.expected.sha256.isEmpty();
 	if (guarded && (request.expected.sha256.size() != 32 || !samePath(target, request.expected.canonicalPath))) {
-		return failure(QCoreApplication::translate("VibeStudioAudioProject",
+		return failure(QCoreApplication::translate("SlopStudioAudioProject",
 		                                           "The audio project destination changed. Save a separate copy."),
 		               true);
 	}
@@ -270,7 +270,7 @@ AudioProjectSaveReport writeAudioProject(const AudioProject& project, const Audi
 	QLockFile lock(target + QStringLiteral(".lock"));
 	if (!request.dryRun && !lock.tryLock(0)) {
 		return failure(QCoreApplication::translate(
-		                   "VibeStudioAudioProject",
+		                   "SlopStudioAudioProject",
 		                   "Another process is saving this audio project. Try again or save a separate copy."),
 		               true);
 	}
@@ -289,7 +289,7 @@ AudioProjectSaveReport writeAudioProject(const AudioProject& project, const Audi
 	};
 	if (!checkDestination()) {
 		return failure(QCoreApplication::translate(
-		                   "VibeStudioAudioProject",
+		                   "SlopStudioAudioProject",
 		                   "The audio project already exists or changed on disk. Review it and save a separate copy."),
 		               true);
 	}
@@ -303,7 +303,7 @@ AudioProjectSaveReport writeAudioProject(const AudioProject& project, const Audi
 	QSaveFile file(target);
 	file.setDirectWriteFallback(false);
 	if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size()) {
-		return failure(QCoreApplication::translate("VibeStudioAudioProject", "Unable to save audio project: %1")
+		return failure(QCoreApplication::translate("SlopStudioAudioProject", "Unable to save audio project: %1")
 		                   .arg(file.errorString()));
 	}
 	if (cancelled(control, &report.error)) {
@@ -313,12 +313,12 @@ AudioProjectSaveReport writeAudioProject(const AudioProject& project, const Audi
 	if (!checkDestination()) {
 		file.cancelWriting();
 		return failure(
-		    QCoreApplication::translate("VibeStudioAudioProject",
+		    QCoreApplication::translate("SlopStudioAudioProject",
 		                                "The audio project changed during saving. The external file is preserved."),
 		    true);
 	}
 	if (!file.commit()) {
-		return failure(QCoreApplication::translate("VibeStudioAudioProject", "Unable to save audio project: %1")
+		return failure(QCoreApplication::translate("SlopStudioAudioProject", "Unable to save audio project: %1")
 		                   .arg(file.errorString()));
 	}
 	report.succeeded = report.written = true;
@@ -327,4 +327,4 @@ AudioProjectSaveReport writeAudioProject(const AudioProject& project, const Audi
 	return report;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

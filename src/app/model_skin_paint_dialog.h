@@ -23,7 +23,7 @@ class QLabel;
 class QPushButton;
 class QSpinBox;
 
-namespace vibestudio
+namespace slopstudio
 {
 
 class ModelSkinPaintCanvas;
@@ -117,4 +117,4 @@ class ModelSkinPaintDialog final : public QDialog
 	QLabel *m_status = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

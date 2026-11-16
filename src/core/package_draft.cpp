@@ -22,7 +22,7 @@
 
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 constexpr qint64 maximumManifestBytes = 32 * 1024 * 1024;
@@ -32,7 +32,7 @@ bool fail(QString* error, const QString& message) { if (error) { *error = messag
 bool cancelled(const PackageReadControl& control, QString* error)
 {
 	if (!control.isCancelled || !control.isCancelled()) { return false; }
-	fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Package draft operation cancelled."));
+	fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Package draft operation cancelled."));
 	return true;
 }
 
@@ -40,7 +40,7 @@ bool noLinks(const QString& path, QString* error)
 {
 	QFileInfo info(QFileInfo(path).absoluteFilePath());
 	for (;;) {
-		if (info.isSymbolicLink() || info.isJunction()) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Package drafts cannot use symbolic links or junctions: %1").arg(info.absoluteFilePath())); }
+		if (info.isSymbolicLink() || info.isJunction()) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Package drafts cannot use symbolic links or junctions: %1").arg(info.absoluteFilePath())); }
 		const QString parent = info.absolutePath();
 		if (parent == info.absoluteFilePath()) { break; }
 		info.setFile(parent);
@@ -50,10 +50,10 @@ bool noLinks(const QString& path, QString* error)
 
 bool draftDirectory(const QString& input, QString* absolute, QString* error)
 {
-	if (input.trimmed().isEmpty()) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Choose a .vibepackage draft directory.")); }
+	if (input.trimmed().isEmpty()) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Choose a .sloppackage draft directory.")); }
 	*absolute = QDir::cleanPath(QFileInfo(input).absoluteFilePath());
-	if (!absolute->endsWith(QStringLiteral(".vibepackage"), Qt::CaseInsensitive)) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "A package draft directory must end in .vibepackage."));
+	if (!absolute->endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) {
+		return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "A package draft directory must end in .sloppackage."));
 	}
 	return noLinks(*absolute, error);
 }
@@ -103,14 +103,14 @@ public:
 	PackageFileIdentityPtr read(const QString& name)
 	{
 		if (cancelled(m_control, m_error)) { return {}; }
-		if (!validObjectName(name)) { fail(m_error, QCoreApplication::translate("VibeStudioPackageDraft", "The package draft contains an invalid object identity.")); return {}; }
+		if (!validObjectName(name)) { fail(m_error, QCoreApplication::translate("SlopStudioPackageDraft", "The package draft contains an invalid object identity.")); return {}; }
 		if (m_verified.contains(name)) { return m_verified.value(name); }
 		const QString path = QDir(m_root).filePath(QStringLiteral("objects/") + name);
 		if (!noLinks(path, m_error)) { return {}; }
 		auto identity = capturePackageFileIdentity(path, m_error, m_control, m_remainingFingerprintBytes);
 		if (!identity) { return {}; }
 		if (QString::fromLatin1(identity->sha256.toHex()) != name) {
-			fail(m_error, QCoreApplication::translate("VibeStudioPackageDraft", "Package draft object failed its content check: %1").arg(name)); return {};
+			fail(m_error, QCoreApplication::translate("SlopStudioPackageDraft", "Package draft object failed its content check: %1").arg(name)); return {};
 		}
 		identity = protectDraftIdentity(identity, m_access, m_root);
 		m_remainingFingerprintBytes -= identity->chunkHashes.size();
@@ -126,7 +126,7 @@ public:
 		const QString objects = QDir(m_root).filePath(QStringLiteral("objects"));
 		if (!noLinks(objects, m_error) || (!m_dryRun && !QDir().mkpath(objects)) || !noLinks(objects, m_error)
 			|| (QFileInfo::exists(objects) && !QFileInfo(objects).isDir())) {
-			fail(m_error, QCoreApplication::translate("VibeStudioPackageDraft", "Unable to create the package draft object directory.")); return {};
+			fail(m_error, QCoreApplication::translate("SlopStudioPackageDraft", "Unable to create the package draft object directory.")); return {};
 		}
 		// When a new object cannot fit, hash without creating a temporary file:
 		// an identical stored object can still be reused within the limit.
@@ -141,11 +141,11 @@ public:
 		const bool ok = producer([&](QByteArrayView bytes) {
 			if (cancelled(m_control, m_error)) { return false; }
 			if (bytes.size() > size - written) {
-				return fail(m_error, QCoreApplication::translate("VibeStudioPackageDraft", "Incomplete package draft object: %1").arg(label));
+				return fail(m_error, QCoreApplication::translate("SlopStudioPackageDraft", "Incomplete package draft object: %1").arg(label));
 			}
 			if (!hashOnly && temporary.write(bytes.data(), bytes.size()) != bytes.size()) {
 				outputFailed = true;
-				return fail(m_error, QCoreApplication::translate("VibeStudioPackageDraft", "Unable to write complete package draft content: %1").arg(label));
+				return fail(m_error, QCoreApplication::translate("SlopStudioPackageDraft", "Unable to write complete package draft content: %1").arg(label));
 			}
 			hash.addData(bytes); written += bytes.size();
 			if (m_control.progress) { m_control.progress(label, written, size); }
@@ -155,7 +155,7 @@ public:
 		if (!ok) { if (sourceUnavailable) { *sourceUnavailable = !outputFailed; } return {}; }
 		if (written != size) {
 			if (sourceUnavailable) { *sourceUnavailable = true; }
-			fail(m_error, QCoreApplication::translate("VibeStudioPackageDraft", "Incomplete package draft object: %1").arg(label)); return {};
+			fail(m_error, QCoreApplication::translate("SlopStudioPackageDraft", "Incomplete package draft object: %1").arg(label)); return {};
 		}
 		if (!hashOnly && !temporary.flush()) { fail(m_error, temporary.errorString()); return {}; }
 		const QString name = QString::fromLatin1(hash.result().toHex());
@@ -164,10 +164,10 @@ public:
 		if (QFileInfo::exists(destination)) { return read(name); }
 		if (m_projected.contains(name)) { return m_verified.value(name); }
 		if (fingerprints > m_remainingFingerprintBytes) {
-			fail(m_error, QCoreApplication::translate("VibeStudioPackageDraft", "Draft payload fingerprints exceed the document content limit. Save a smaller package and reopen it; the committed draft is unchanged.")); return {};
+			fail(m_error, QCoreApplication::translate("SlopStudioPackageDraft", "Draft payload fingerprints exceed the document content limit. Save a smaller package and reopen it; the committed draft is unchanged.")); return {};
 		}
 		if ((m_remainingBytes && size > *m_remainingBytes) || (m_remainingFiles && *m_remainingFiles < 1)) {
-			fail(m_error, QCoreApplication::translate("VibeStudioPackageDraft", "The package storage byte or file limit would be exceeded. Review storage or increase the limit; the committed document is unchanged.")); return {};
+			fail(m_error, QCoreApplication::translate("SlopStudioPackageDraft", "The package storage byte or file limit would be exceeded. Review storage or increase the limit; the committed document is unchanged.")); return {};
 		}
 		if (m_dryRun) {
 			auto identity = std::make_shared<PackageFileIdentity>();
@@ -181,7 +181,7 @@ public:
 		// QTemporaryFile's rename is atomic-only, with no copy/delete fallback.
 		if (!temporary.rename(destination)) {
 			if (QFileInfo::exists(destination)) { return read(name); }
-			fail(m_error, QCoreApplication::translate("VibeStudioPackageDraft", "Unable to publish a package draft object: %1").arg(temporary.errorString())); return {};
+			fail(m_error, QCoreApplication::translate("SlopStudioPackageDraft", "Unable to publish a package draft object: %1").arg(temporary.errorString())); return {};
 		}
 		temporary.setAutoRemove(false);
 		if (m_remainingBytes) { *m_remainingBytes -= size; } if (m_remainingFiles) { --*m_remainingFiles; }
@@ -299,12 +299,12 @@ bool PackageDraft::saveWithRecovery(const QString& directory, PackageStagingMode
 	qint64 maximumAdditionalBytes, bool preflightForWrite)
 {
 	if (error) { error->clear(); }
-	if (!staging || !staging->m_loaded || staging->m_groupDepth != 0) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Finish the current package edit before saving a draft.")); }
+	if (!staging || !staging->m_loaded || staging->m_groupDepth != 0) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Finish the current package edit before saving a draft.")); }
 	PackageStagingContentUsage retained;
 	PackageStagingMetadataUsage metadata;
 	if (!staging->contentUsage(&retained, error, control) || !staging->metadataUsage(&metadata, error, control)) { return false; }
 	for (const auto& conflict : staging->m_baseConflicts) {
-		if (conflict.blocking) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "The source contains unreadable or skipped records and cannot be preserved completely in a draft: %1").arg(conflict.message)); }
+		if (conflict.blocking) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "The source contains unreadable or skipped records and cannot be preserved completely in a draft: %1").arg(conflict.message)); }
 	}
 	QString root;
 	if (!draftDirectory(directory, &root, error) || cancelled(control, error)) { return false; }
@@ -319,20 +319,20 @@ bool PackageDraft::saveWithRecovery(const QString& directory, PackageStagingMode
 		for (const auto& input : protectedSource.m_protectedInputPaths) {
 			if (cancelled(control, error)) { return false; }
 			if (packagePathIsInsideDirectory(root, input)) {
-				return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Save the package draft outside its source package, folder and imported files."));
+				return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Save the package draft outside its source package, folder and imported files."));
 			}
 		}
 	}
 	if (!sameDraft && (staging->protectsInputPath(root) || staging->protectsInputPath(manifestPath))) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Save the package draft outside its source package, folder and imported files."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Save the package draft outside its source package, folder and imported files."));
 	}
-	if (QFileInfo::exists(root) && !QFileInfo(root).isDir()) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "The package draft destination is not a directory.")); }
+	if (QFileInfo::exists(root) && !QFileInfo(root).isDir()) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "The package draft destination is not a directory.")); }
 	QFileInfo parent(QFileInfo(root).absolutePath());
 	while (!parent.exists() && parent.absolutePath() != parent.absoluteFilePath()) { parent.setFile(parent.absolutePath()); }
-	if (!parent.isDir()) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "A file occupies a required draft directory.")); }
+	if (!parent.isDir()) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "A file occupies a required draft directory.")); }
 	if (!admitMetadata(root, protectedSource, error, control)) { return false; }
 	if (!noLinks(manifestPath, error) || !noLinks(lockPath, error) || (!dryRun && !QDir().mkpath(root)) || !noLinks(root, error)) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Unable to prepare the package draft directory."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Unable to prepare the package draft directory."));
 	}
 	std::shared_ptr<const PackageDraftAccess> access;
 	if (QFileInfo::exists(root)) {
@@ -344,7 +344,7 @@ bool PackageDraft::saveWithRecovery(const QString& directory, PackageStagingMode
 	// A real save's preflight leaves even stale lock files untouched. The write
 	// pass then lets QLockFile recover a crashed owner, or refuses a live writer.
 	// Explicit previews remain conservative and never acquire/clear that lock.
-	if (dryRun ? (!preflightForWrite && QFileInfo::exists(lockPath)) : !lock.tryLock()) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Another process is saving this package draft.")); }
+	if (dryRun ? (!preflightForWrite && QFileInfo::exists(lockPath)) : !lock.tryLock()) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Another process is saving this package draft.")); }
 	PackageStorageSnapshot usage;
 	if (QFileInfo::exists(root)) {
 		usage = inspectPackageStorage(root, control);
@@ -354,21 +354,21 @@ bool PackageDraft::saveWithRecovery(const QString& directory, PackageStagingMode
 	if (recovery.isEmpty()) {
 		const auto limits = control.draftLimits ? *control.draftLimits : PackageDraftSaveLimits();
 		if (limits.maximumBytes < 0 || limits.maximumFiles < 1 || limits.maximumFiles > PackageStorageEntryLimit) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Package draft storage limits are invalid."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Package draft storage limits are invalid."));
 		}
 		maximumAdditionalBytes = qMax<qint64>(0, limits.maximumBytes - usage.bytes);
 		remainingFiles = qMax(0, limits.maximumFiles - static_cast<int>(usage.files.size()));
 	}
 	const bool exists = QFileInfo::exists(manifestPath);
-	if (!expectedManifestSha256.isEmpty() && !exists) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "The draft changed on disk. Reopen it or save to another directory.")); }
-	if (exists && !overwrite) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "The package draft already exists. Enable overwrite explicitly.")); }
+	if (!expectedManifestSha256.isEmpty() && !exists) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "The draft changed on disk. Reopen it or save to another directory.")); }
+	if (exists && !overwrite) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "The package draft already exists. Enable overwrite explicitly.")); }
 	PackageFileIdentityPtr original;
 	if (exists) {
 		original = capturePackageFileIdentity(manifestPath, error, control, (maximumManifestBytes / PackageFileIdentity::chunkBytes) * 32);
 		if (!original) { return false; }
 		if ((!expectedManifestSha256.isEmpty() && original->sha256 != expectedManifestSha256)
 			|| (sameDraft && staging->m_draftIdentity && original->sha256 != staging->m_draftIdentity->sha256)) {
-			return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "The draft changed on disk. Reopen it or save to another directory."));
+			return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "The draft changed on disk. Reopen it or save to another directory."));
 		}
 	}
 
@@ -416,7 +416,7 @@ bool PackageDraft::saveWithRecovery(const QString& directory, PackageStagingMode
 			});
 		} else {
 			const qsizetype index = readerSlots.value(entry.sourceReaderIndex, -1);
-			if (index < 0) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Invalid base entry in the package draft.")); }
+			if (index < 0) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Invalid base entry in the package draft.")); }
 			bool unavailable = entry.sizeBytes > static_cast<quint64>(std::numeric_limits<qint64>::max());
 			QString sourceError;
 			if (!unavailable) {
@@ -427,16 +427,16 @@ bool PackageDraft::saveWithRecovery(const QString& directory, PackageStagingMode
 			}
 			if (!identity && unavailable && knowCurrent && !currentOriginals.contains(entry.sourceReaderIndex) && !cancelled(control, error)) {
 				entry.unavailableReason = sourceError.isEmpty()
-					? QCoreApplication::translate("VibeStudioPackageDraft", "The original entry could not be read completely within the supported limits.") : sourceError.left(4096);
+					? QCoreApplication::translate("SlopStudioPackageDraft", "The original entry could not be read completely within the supported limits.") : sourceError.left(4096);
 				if (!entry.unavailableReason.isEmpty() && entry.unavailableReason.back().isHighSurrogate()) { entry.unavailableReason.chop(1); }
 				additionalUnavailableText += entry.unavailableReason.size() * qint64(2);
 				if (additionalUnavailableText > saved.m_metadataLimits.maximumMetadataBytes - metadata.metadataBytes) {
-					return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Unavailable original-content diagnostics exceed the document metadata limit."));
+					return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Unavailable original-content diagnostics exceed the document metadata limit."));
 				}
 				if (error) { error->clear(); }
 			}
 			if (!identity && entry.unavailableReason.isEmpty() && error && error->isEmpty()) {
-				*error = sourceError.isEmpty() ? QCoreApplication::translate("VibeStudioPackageDraft", "Invalid base entry in the package draft.") : sourceError;
+				*error = sourceError.isEmpty() ? QCoreApplication::translate("SlopStudioPackageDraft", "Invalid base entry in the package draft.") : sourceError;
 			}
 		}
 		if (!identity && entry.unavailableReason.isEmpty()) { return false; }
@@ -504,7 +504,7 @@ bool PackageDraft::saveWithRecovery(const QString& directory, PackageStagingMode
 	}
 	QJsonArray protectedInputs;
 	for (const auto& input : saved.m_protectedInputPaths) { protectedInputs.append(input); }
-	QJsonObject document{{QStringLiteral("type"), QStringLiteral("vibestudio-package-draft")}, {QStringLiteral("version"), 4},
+	QJsonObject document{{QStringLiteral("type"), QStringLiteral("slopstudio-package-draft")}, {QStringLiteral("version"), 4},
 		{QStringLiteral("protectedInputs"), protectedInputs},
 		{QStringLiteral("source"), saved.m_sourcePath}, {QStringLiteral("format"), packageArchiveFormatId(saved.m_sourceFormat)},
 		{QStringLiteral("wadMagic"), saved.m_sourceWadMagic}, {QStringLiteral("base"), entries}, {QStringLiteral("directories"), directories},
@@ -517,12 +517,12 @@ bool PackageDraft::saveWithRecovery(const QString& directory, PackageStagingMode
 	qsizetype recordCount = protectedInputs.size() + entries.size() + directories.size() + conflicts.size() + lumps.size() + operations.size() + currentIds.size() + history.size();
 	for (const auto& step : saved.m_history) { recordCount += step.changes.size(); }
 	if (json.size() > maximumManifestBytes || recordCount > maximumRecords) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "The package draft exceeds its document metadata limit."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "The package draft exceeds its document metadata limit."));
 	}
 	const auto committedSha256 = QCryptographicHash::hash(json, QCryptographicHash::Sha256);
 	const bool unchanged = original && original->sha256 == committedSha256;
 	if (!unchanged && ((maximumAdditionalBytes >= 0 && json.size() > maximumAdditionalBytes) || remainingFiles == 0)) {
-		return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "The package storage limit leaves insufficient space to commit the manifest. The committed document is unchanged."));
+		return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "The package storage limit leaves insufficient space to commit the manifest. The committed document is unchanged."));
 	}
 	// Recheck source membership as well as all captured bytes before commit.
 	if (staging->m_baseReader && !staging->m_baseReader->verifySourceIdentity(error, control)) { return false; }
@@ -546,10 +546,10 @@ bool PackageDraft::saveWithRecovery(const QString& directory, PackageStagingMode
 		// file or additional bytes, including after a limit has been lowered.
 	} else if (exists) {
 		QSaveFile file(manifestPath); file.setDirectWriteFallback(false);
-		if (!file.open(QIODevice::WriteOnly) || file.write(json) != json.size() || !file.commit()) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Unable to commit the package draft: %1").arg(file.errorString())); }
+		if (!file.open(QIODevice::WriteOnly) || file.write(json) != json.size() || !file.commit()) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Unable to commit the package draft: %1").arg(file.errorString())); }
 	} else {
 		QTemporaryFile file(QDir(root).filePath(QStringLiteral(".document-XXXXXX")));
-		if (!file.open() || file.write(json) != json.size() || !file.flush() || !file.rename(manifestPath)) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Unable to create the package draft: %1").arg(file.errorString())); }
+		if (!file.open() || file.write(json) != json.size() || !file.flush() || !file.rename(manifestPath)) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Unable to create the package draft: %1").arg(file.errorString())); }
 		file.setAutoRemove(false);
 	}
 	// The committed state reads only independent blobs. Source labels remain
@@ -562,7 +562,7 @@ bool PackageDraft::saveWithRecovery(const QString& directory, PackageStagingMode
 bool PackageDraft::load(const QString& directory, PackageStagingModel* staging, QString* error, const PackageReadControl& control)
 {
 	if (error) { error->clear(); }
-	if (!staging) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "A package staging model is required.")); }
+	if (!staging) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "A package staging model is required.")); }
 	PackageStagingModel loaded(staging->m_contentLimits, staging->m_metadataLimits, staging->m_planLimits, staging->m_viewLimits);
 	PackageStagingContentUsage retained;
 	PackageStagingMetadataUsage metadata;
@@ -575,7 +575,7 @@ bool PackageDraft::load(const QString& directory, PackageStagingModel* staging, 
 	QString root;
 	if (!draftDirectory(directory, &root, error) || cancelled(control, error)) { return false; }
 	const QString manifestPath = QDir(root).filePath(QStringLiteral("document.json"));
-	if (!noLinks(manifestPath, error) || QFileInfo(manifestPath).size() > maximumManifestBytes) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "The package draft metadata is unsafe or too large.")); }
+	if (!noLinks(manifestPath, error) || QFileInfo(manifestPath).size() > maximumManifestBytes) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "The package draft metadata is unsafe or too large.")); }
 	const auto access = PackageDraftAccess::acquire(root, PackageDraftAccess::Mode::Read, error);
 	if (!access) { return false; }
 	const auto identity = protectDraftIdentity(capturePackageFileIdentity(manifestPath, error, control, (maximumManifestBytes / PackageFileIdentity::chunkBytes) * 32), access, root);
@@ -583,13 +583,13 @@ bool PackageDraft::load(const QString& directory, PackageStagingModel* staging, 
 	PackageContentDevice file(identity);
 	if (!file.open()) { return fail(error, file.errorString()); }
 	const QByteArray bytes = file.readAll();
-	if (file.failed() || bytes.size() != identity->size) { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Unable to read the complete package draft.")); }
+	if (file.failed() || bytes.size() != identity->size) { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Unable to read the complete package draft.")); }
 	QJsonParseError parseError;
 	const auto json = QJsonDocument::fromJson(bytes, &parseError);
 	const QJsonObject document = json.object();
-	const auto invalid = [&]() { return fail(error, QCoreApplication::translate("VibeStudioPackageDraft", "Invalid package draft metadata or undo history.")); };
+	const auto invalid = [&]() { return fail(error, QCoreApplication::translate("SlopStudioPackageDraft", "Invalid package draft metadata or undo history.")); };
 	const int version = document.value(QStringLiteral("version")).toInt(-1);
-	if (parseError.error != QJsonParseError::NoError || !json.isObject() || document.value(QStringLiteral("type")) != QStringLiteral("vibestudio-package-draft")
+	if (parseError.error != QJsonParseError::NoError || !json.isObject() || document.value(QStringLiteral("type")) != QStringLiteral("slopstudio-package-draft")
 		|| (version != 1 && version != 2 && version != 3 && version != 4)) { return invalid(); }
 	qsizetype recordCount = 0;
 	for (const char* field : {"base", "directories", "conflicts", "wadLumps", "operations", "current", "history"}) {
@@ -818,4 +818,4 @@ bool PackageDraft::load(const QString& directory, PackageStagingModel* staging, 
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

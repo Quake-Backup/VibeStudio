@@ -6,7 +6,7 @@
  *
  * Copyright (C) 1999-2007 id Software, Inc. and contributors.
  * For a list of contributors, see the accompanying CONTRIBUTORS file in
- * external/compilers/vibemap3.
+ * external/compilers/slopmap3.
  *
  * This file is part of GtkRadiant.
  *
@@ -24,7 +24,7 @@
  * along with GtkRadiant; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  *
- * VibeStudio's double-precision rotation and inverse mapping solver below
+ * SlopStudio's double-precision rotation and inverse mapping solver below
  * are original implementations. The notice above covers the conventions.
  */
 #include "core/level_texture_mapping.h"
@@ -34,7 +34,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -418,7 +418,7 @@ bool lockTransformedLevelTexture(const LevelMapBrushFace &before, LevelMapBrushF
 		return false;
 	};
 	if (!after) {
-		return fail(QCoreApplication::translate("VibeStudioLevelMap", "Missing face to texture-lock."));
+		return fail(QCoreApplication::translate("SlopStudioLevelMap", "Missing face to texture-lock."));
 	}
 	const auto cross = [](const LevelMapVec3 &a, const LevelMapVec3 &b) {
 		return LevelMapVec3{a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x, true};
@@ -429,7 +429,7 @@ bool lockTransformedLevelTexture(const LevelMapBrushFace &before, LevelMapBrushF
 	const double magnitude = std::sqrt(dot(a, a)) * std::sqrt(dot(b, b)) * std::sqrt(dot(c, c));
 	if (!finite(a) || !finite(b) || !finite(c) || !finite(transform.translation) || !std::isfinite(magnitude) ||
 		!std::isfinite(determinant) || magnitude == 0 || std::abs(determinant) <= 1e-12 * magnitude) {
-		return fail(QCoreApplication::translate("VibeStudioLevelMap", "The texture transform is non-finite or collapses an axis."));
+		return fail(QCoreApplication::translate("SlopStudioLevelMap", "The texture transform is non-finite or collapses an axis."));
 	}
 	const auto covector = [&](const LevelMapVec3 &value) {
 		return scale(add(add(scale(x, value.x), scale(y, value.y)), scale(z, value.z)), 1 / determinant);
@@ -437,7 +437,7 @@ bool lockTransformedLevelTexture(const LevelMapBrushFace &before, LevelMapBrushF
 	const auto original = levelTextureProjection(before);
 	const auto p = plane(*after);
 	if (!original.valid || !p.valid) {
-		return fail(QCoreApplication::translate("VibeStudioLevelMap", "The face has an invalid plane or texture projection."));
+		return fail(QCoreApplication::translate("SlopStudioLevelMap", "The face has an invalid plane or texture projection."));
 	}
 	LevelTextureProjection locked = original;
 	locked.u = covector(original.u);
@@ -462,7 +462,7 @@ bool lockTransformedLevelTexture(const LevelMapBrushFace &before, LevelMapBrushF
 	} else {
 		if (!before.explicitTextureAxes && !allowValve220) {
 			return fail(QCoreApplication::translate(
-				"VibeStudioLevelMap", "This transform needs explicit texture axes. Enable Valve 220 conversion or turn texture lock off."));
+				"SlopStudioLevelMap", "This transform needs explicit texture axes. Enable Valve 220 conversion or turn texture lock off."));
 		}
 		result.explicitTextureAxes = true;
 		result.uAxis = locked.u;
@@ -475,7 +475,7 @@ bool lockTransformedLevelTexture(const LevelMapBrushFace &before, LevelMapBrushF
 	}
 	const auto check = levelTextureProjection(result);
 	if (!check.valid) {
-		return fail(QCoreApplication::translate("VibeStudioLevelMap", "The transformed texture projection is not finite."));
+		return fail(QCoreApplication::translate("SlopStudioLevelMap", "The transformed texture projection is not finite."));
 	}
 	result.textureParametersDirty = true;
 	*after = result;
@@ -492,4 +492,4 @@ bool lockRotatedLevelTexture(const LevelMapBrushFace &before, LevelMapBrushFace 
 	transform.translation = rotateLevelPoint({0, 0, 0, true}, pivot, axis, degrees);
 	return lockTransformedLevelTexture(before, after, transform, allowValve220, error);
 }
-} // namespace vibestudio
+} // namespace slopstudio

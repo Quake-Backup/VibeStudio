@@ -8,7 +8,7 @@
 #include <set>
 #include <tuple>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -475,4 +475,4 @@ bool mirrorFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selecti
 	return work.check();
 }
 } // namespace model_tools
-} // namespace vibestudio
+} // namespace slopstudio

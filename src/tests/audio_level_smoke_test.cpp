@@ -16,7 +16,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message, const QString& detail = {})
@@ -50,7 +50,7 @@ QString property(const LevelMapEntity& entity, const QString& key)
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-level-XXXXXX")));
 	if (!temporary.isValid() || argc < 2) {
@@ -190,7 +190,7 @@ int main(int argc, char** argv)
 	header.format = LevelMapFormat::QuakeMap;
 	header.originalText = QString::fromLatin1(kQuake2MapTargetHeader).replace(QStringLiteral("\n"), QStringLiteral("\r\n"));
 	ok &= expect(levelSoundTarget(header).game == QStringLiteral("quake2"), "CRLF target comment is recognized");
-	header.originalText = QStringLiteral("// VibeStudio target: quake2") + QString(4096, QLatin1Char(' ')) + QStringLiteral("other\n");
+	header.originalText = QStringLiteral("// SlopStudio target: quake2") + QString(4096, QLatin1Char(' ')) + QStringLiteral("other\n");
 	ok &= expect(levelSoundTarget(header).game.isEmpty(), "bounded header recognition cannot accept a truncated marker");
 	for (const QString& path :
 	     {QStringLiteral("sound/../hum.wav"), QStringLiteral("sound/./hum.wav"),
@@ -296,7 +296,7 @@ int main(int argc, char** argv)
 	ok &= run(wrongCase + QStringList{QStringLiteral("--dry-run")}, 4);
 	// A native draft's inline sound is eligible before package publication.
 	PackageStagingModel draft;
-	const QString draftPath = dir.filePath(QStringLiteral("sounds.vibepackage"));
+	const QString draftPath = dir.filePath(QStringLiteral("sounds.sloppackage"));
 	ok &= expect(draft.createEmpty(PackageArchiveFormat::Pk3, {}, &error) &&
 	                 draft.addBytes(wav, request.virtualPath, &error) && PackageDraft::save(draftPath, &draft, false, &error),
 	             "save native package draft", error);

@@ -26,7 +26,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 	QFile file(path);
 	if (!expect(file.open(QIODevice::WriteOnly) && file.write(source) == source.size(), "fixture")) { return 1; }
 	file.close();
-	for (const auto* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const auto* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		for (int scale : {100, 200}) {
 			std::cout << "Material find UI " << profile << ' ' << scale << '%' << std::endl;
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);
@@ -200,7 +200,7 @@ int main(int argc, char** argv)
 				expect(bytes() == baseline, "whole-map undo");
 
 				if (QLatin1String(profile) == QLatin1String("netradiant-custom") && scale == 200) {
-					const auto capture = qEnvironmentVariable("VIBESTUDIO_MATERIAL_FIND_CAPTURE");
+					const auto capture = qEnvironmentVariable("SLOPSTUDIO_MATERIAL_FIND_CAPTURE");
 					if (!capture.isEmpty()) {
 						QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied); dialog->render(&image); expect(image.save(capture), "owned dialog capture");
 					}

@@ -15,7 +15,7 @@
 #include <cmath>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -571,4 +571,4 @@ bool MaterialLibraryFilter::lessThan(const QModelIndex& left, const QModelIndex&
 	return false;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

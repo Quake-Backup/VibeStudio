@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -185,4 +185,4 @@ void ModelAssemblyDialog::choosePlayer()
 		return;
 	openPlayer(name, chosen, &error);
 }
-} // namespace vibestudio
+} // namespace slopstudio

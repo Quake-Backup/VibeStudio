@@ -9,7 +9,7 @@
 #include "app/studio_icons.h"
 #include "core/audio_resample.h"
 #include "core/studio_settings.h"
-#include "vibestudio_config.h"
+#include "slopstudio_config.h"
 
 #include <QAction>
 #include <QApplication>
@@ -56,7 +56,7 @@
 #include <exception>
 #include <new>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -245,7 +245,7 @@ AudioEditorDialog::AudioEditorDialog(QWidget* parent, std::unique_ptr<AudioPlayb
 	                [this]() { copySelection(); });
 	m_paste = action(edits, tr("Paste"), QStringLiteral("audioEditorPaste"), QStringLiteral("paste"), {},
 	                 [this]() { pasteSelection(); });
-	m_copy->setToolTip(tr("Copy selected float samples to the shared VibeStudio audio clipboard."));
+	m_copy->setToolTip(tr("Copy selected float samples to the shared SlopStudio audio clipboard."));
 	m_paste->setToolTip(tr("Replace the selection, or insert at the cursor. Rate "
 	                       "and channel count must match."));
 	edits->addSeparator();
@@ -483,7 +483,7 @@ AudioEditorDialog::AudioEditorDialog(QWidget* parent, std::unique_ptr<AudioPlayb
 	};
 	connect(m_seek, &QSlider::valueChanged, this, seekFrame);
 	connect(m_seekFrame, &QSpinBox::valueChanged, this, seekFrame);
-#if !VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if !SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 	m_volume->setEnabled(false);
 	m_loop->setEnabled(false);
 	m_play->setToolTip(tr("Playback requires a build with Qt Multimedia. Editing "
@@ -928,7 +928,7 @@ bool AudioEditorDialog::chooseProjectSave(bool saveAs)
 		path = QFileDialog::getSaveFileName(
 		    this, tr("Save Audio Project"),
 		    path.isEmpty() ? QFileInfo(m_sourceName).completeBaseName() + QStringLiteral(".vsaudio") : path,
-		    tr("VibeStudio audio project (*.vsaudio)"));
+		    tr("SlopStudio audio project (*.vsaudio)"));
 	}
 	return !path.isEmpty() && saveProjectTo(path, true);
 }
@@ -1151,7 +1151,7 @@ void AudioEditorDialog::copySelection(bool cut)
 			    commitEdit(previous, work, tr("Cut"), previous.first, previous.first);
 		    } else {
 			    showStatus(
-			        tr("Copied %1 frames to the VibeStudio audio clipboard.").arg(copiedAudio.frameCount()));
+			        tr("Copied %1 frames to the SlopStudio audio clipboard.").arg(copiedAudio.frameCount()));
 		    }
 		    for (QWidget* widget : QApplication::allWidgets()) {
 			    if (auto* editor = qobject_cast<AudioEditorDialog*>(widget)) {
@@ -1813,7 +1813,7 @@ void AudioEditorDialog::changeEvent(QEvent* event)
 
 void AudioEditorDialog::play()
 {
-#if VIBESTUDIO_HAVE_AUDIO_PLAYBACK
+#if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 	if (playbackAllowed && !playbackAllowed()) {
 		showStatus(tr("Finish recording and take review before starting another audition."));
 		return;
@@ -1898,17 +1898,17 @@ void AudioEditorDialog::refreshPlayback()
 	                        : (m_state.end > m_state.first ? tr("Play Selection")
 	                           : m_state.first > 0         ? tr("Play From Cursor") : tr("Play Sound")));
 	m_play->setIcon(studioIcon(playing ? QStringLiteral("pause") : QStringLiteral("play")));
-	m_play->setEnabled(VIBESTUDIO_HAVE_AUDIO_PLAYBACK && m_playback->available() && !isBusy() &&
+	m_play->setEnabled(SLOPSTUDIO_HAVE_AUDIO_PLAYBACK && m_playback->available() && !isBusy() &&
 	                   m_state.first < m_state.clip.frameCount() && !loading);
 	m_stop->setEnabled((active && !isBusy()) || (preparing && !m_work->cancel));
-	m_loop->setEnabled(VIBESTUDIO_HAVE_AUDIO_PLAYBACK && (!isBusy() || preparing));
-	m_volume->setEnabled(VIBESTUDIO_HAVE_AUDIO_PLAYBACK);
+	m_loop->setEnabled(SLOPSTUDIO_HAVE_AUDIO_PLAYBACK && (!isBusy() || preparing));
+	m_volume->setEnabled(SLOPSTUDIO_HAVE_AUDIO_PLAYBACK);
 	const qint64 frame = m_waveform->playheadFrame();
 	const int rate = std::max(1, m_state.clip.sampleRate);
 	const QString status = preparing ? tr("Preparing playback") : loading ? tr("Loading playback")
 	                       : paused ? tr("Paused") : m_playback->stalled() ? tr("Buffering audio")
 	                       : playing ? tr("Playing") : state == AudioPlayback::State::Error ? tr("Playback failed")
-	                       : !VIBESTUDIO_HAVE_AUDIO_PLAYBACK ? tr("Playback unavailable") : tr("Stopped");
+	                       : !SLOPSTUDIO_HAVE_AUDIO_PLAYBACK ? tr("Playback unavailable") : tr("Stopped");
 	m_clock->setText(tr("%1 · %2 s · Frame %3").arg(status).arg(frame / double(rate), 0, 'f', 3).arg(frame));
 	m_clock->setAccessibleDescription(status);
 	const QSignalBlocker seekBlock(m_seek), frameBlock(m_seekFrame);
@@ -1920,8 +1920,8 @@ void AudioEditorDialog::refreshPlayback()
 	m_seek->setPageStep(std::min(end - first, rate));
 	if (!m_seek->isSliderDown()) { m_seek->setValue(static_cast<int>(frame)); }
 	if (!m_seekFrame->hasFocus()) { m_seekFrame->setValue(static_cast<int>(frame)); }
-	const bool seekable = VIBESTUDIO_HAVE_AUDIO_PLAYBACK && !isBusy() && m_playback->canSeek();
+	const bool seekable = SLOPSTUDIO_HAVE_AUDIO_PLAYBACK && !isBusy() && m_playback->canSeek();
 	m_seek->setEnabled(seekable);
 	m_seekFrame->setEnabled(seekable);
 }
-} // namespace vibestudio
+} // namespace slopstudio

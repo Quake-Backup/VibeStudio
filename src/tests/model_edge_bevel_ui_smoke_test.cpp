@@ -21,8 +21,8 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -45,7 +45,7 @@ class Expansion final : public QTranslator
 	}
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelTools")
+		if (QByteArray(context) != "SlopStudioModelTools")
 			return {};
 		const auto s = QString::fromUtf8(text);
 		return QString("[%1 %2]").arg(s, QString("~~ ").repeated(s.size() / 6));
@@ -53,7 +53,7 @@ class Expansion final : public QTranslator
 };
 bool render(QWidget &widget, const QString &name)
 {
-	const auto root = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (root.isEmpty())
 		return true;
 	QImage image(widget.size() * widget.devicePixelRatioF(), QImage::Format_ARGB32_Premultiplied);
@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temp(QDir(root).filePath("edge-bevel-ui-XXXXXX"));

@@ -26,7 +26,7 @@
 #include <iostream>
 #include <atomic>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message, const QString& error = {})
 {
@@ -200,7 +200,7 @@ int main(int argc, char** argv)
 					&& QAccessible::queryAccessibleInterface(step)->role() == QAccessible::SpinBox, "accessible numeric controls");
 			}
 			for (auto* button : panel->findChildren<QToolButton*>()) { ok &= expect(!button->accessibleName().isEmpty() && button->focusPolicy() != Qt::NoFocus, "accessible buttons"); }
-			const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+			const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 			if (!captures.isEmpty()) {
 				QDir().mkpath(captures); QImage image(panel->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); panel->render(&image);
 				ok &= image.save(QDir(captures).filePath(QStringLiteral("quick-surfaces-%1.png").arg(scale)));

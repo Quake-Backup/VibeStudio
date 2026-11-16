@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 ViewportImageDevice viewportImageDevice(const QTransform& transform)
 {
@@ -23,4 +23,4 @@ QSize viewportImageSize(QSize viewport, double pixelRatio, QPointF pixelPhase)
 	return QSize(int(width),int(height));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

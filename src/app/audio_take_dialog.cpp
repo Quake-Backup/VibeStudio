@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioTakeDialogWork {
 	std::atomic_bool cancel{false};
@@ -511,4 +511,4 @@ void AudioTakeDialog::importTake()
 	    },
 	    true);
 }
-} // namespace vibestudio
+} // namespace slopstudio

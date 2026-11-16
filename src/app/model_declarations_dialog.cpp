@@ -22,7 +22,7 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -394,4 +394,4 @@ void ModelDeclarationsDialog::reject()
 	}
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

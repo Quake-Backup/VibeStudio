@@ -11,11 +11,11 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 constexpr qint64 kMapReadLimit = 64LL * 1024 * 1024;
@@ -715,4 +715,4 @@ QJsonObject materialUsageJson(const MaterialUsageIndex& index, const QString& ma
 	return object;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -30,7 +30,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label)
 {
@@ -70,14 +70,14 @@ int main(int argc, char** argv)
 	for (const char* name : {"TEMP", "TMP", "TMPDIR"}) { qputenv(name, root.path().toLocal8Bit()); }
 	StudioSettings::setOverrideFilePath(root.filePath(QStringLiteral("settings.ini"))); ExpandedTranslator translator;
 	QTranslator english;
-	if (english.load(QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("../i18n/vibestudio_en.qm")))) { app.installTranslator(&english); }
+	if (english.load(QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("../i18n/slopstudio_en.qm")))) { app.installTranslator(&english); }
 	for (const int scale : {100, 200}) {
 		applyStudioTheme(app, studioThemeTokens(scale == 100 ? StudioTheme::Dark : StudioTheme::HighContrastLight, UiDensity::Standard, scale));
 		if (scale == 200) { app.installTranslator(&translator); }
 		PackageStagingModel plan; plan.createEmpty(PackageArchiveFormat::Pk3);
 		ok &= plan.addBytes("retained", QStringLiteral("one.txt"), &error);
 		ok &= plan.addBytes("redo", QStringLiteral("two.txt"), &error); ok &= plan.undo();
-		const QString draft = root.filePath(QStringLiteral("saved-%1.vibepackage").arg(scale));
+		const QString draft = root.filePath(QStringLiteral("saved-%1.sloppackage").arg(scale));
 		ok &= expect(PackageDraft::save(draft, &plan, false, &error), "prepare UI draft fixture");
 		if (!ok) { std::cerr << error.toStdString(); return 1; }
 		const QByteArray unused("unused");
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
 		bytes->setValue(256); files->setValue(1);
 		ok &= expect(StudioSettings().packageDraftMaximumMiB() == 256 && StudioSettings().packageDraftMaximumFiles() == 1, "quota controls persist preferences");
 		{
-			const QString rejected = root.filePath(QStringLiteral("over-limit-%1.vibepackage").arg(scale));
+			const QString rejected = root.filePath(QStringLiteral("over-limit-%1.sloppackage").arg(scale));
 			const auto result = runPackageDraftSaveDialog(nullptr, plan, rejected, false);
 			ok &= expect(!result.ready() && !result.error.isEmpty() && !QFileInfo::exists(rejected), "GUI draft save enforces configured limits without creating an output");
 		}
@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 		auto* close = dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Close);
 		ok &= expect(close->isVisible() && dialog.rect().contains(QRect(close->mapTo(&dialog, QPoint()), close->size()))
 			&& close->focusPolicy() != Qt::NoFocus, "Close remains visible and focusable at each text scale");
-		const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			ok &= QDir().mkpath(captures); auto* scroll = dialog.findChild<QScrollArea*>(); scroll->verticalScrollBar()->setValue(0); QApplication::processEvents();
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog.render(&image);

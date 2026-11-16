@@ -520,19 +520,19 @@ require `--output`; `--dry-run` validates/prepares without creating a file, and
 the digest captured when reading. Unknown, repeated and inapplicable flags fail.
 
 ```sh
-vibestudio --cli asset audio-session new --sample-rate 48000 --tempo 120 --output ./scene.vssession --json
-vibestudio --cli asset audio-session tempo-map ./scene.vssession --tempo-points 3840:90 --meter-points 5:7/8 --output ./scene.vssession --overwrite --json
-vibestudio --cli asset audio-session position ./scene.vssession --at-position 5.1.0 --snap bar --json
-vibestudio --cli asset audio-session import ./scene.vssession --input ./wind.wav --resample --at-frame 48000 --output ./scene.vssession --overwrite --json
-vibestudio --cli asset audio-session inspect ./scene.vssession --json
-vibestudio --cli asset audio-session edit ./scene.vssession --operation track --track TRACK_ID --db -6 --pan -1 --output ./scene.vssession --overwrite
-vibestudio --cli asset audio-session edit ./scene.vssession --operation add-bus --name Dialogue --output ./scene.vssession --overwrite --json
-vibestudio --cli asset audio-session edit ./scene.vssession --operation routing --track TRACK_ID --output-bus BUS_ID --output ./scene.vssession --overwrite
-vibestudio --cli asset audio-session edit ./scene.vssession --operation send --track TRACK_ID --target-bus BUS_ID --db -12 --pre-fader true --output ./scene.vssession --overwrite
-vibestudio --cli asset audio-session automation ./scene.vssession --track TRACK_ID --gain-points 0:-12,48000:0 --pan-points 0:-1,96000:1 --output ./scene.vssession --overwrite
-vibestudio --cli asset audio-session mixdown ./scene.vssession --start-frame 0 --end-frame 96000 --wav-format float32 --output ./scene-mix.wav --dry-run --json
-vibestudio --cli asset audio-recoveries --json
-vibestudio --cli asset audio-session recover ./UUID.vssession-recovery --expected-sha256 REVIEWED_SHA256 --output ./restored.vssession --dry-run --json
+slopstudio --cli asset audio-session new --sample-rate 48000 --tempo 120 --output ./scene.vssession --json
+slopstudio --cli asset audio-session tempo-map ./scene.vssession --tempo-points 3840:90 --meter-points 5:7/8 --output ./scene.vssession --overwrite --json
+slopstudio --cli asset audio-session position ./scene.vssession --at-position 5.1.0 --snap bar --json
+slopstudio --cli asset audio-session import ./scene.vssession --input ./wind.wav --resample --at-frame 48000 --output ./scene.vssession --overwrite --json
+slopstudio --cli asset audio-session inspect ./scene.vssession --json
+slopstudio --cli asset audio-session edit ./scene.vssession --operation track --track TRACK_ID --db -6 --pan -1 --output ./scene.vssession --overwrite
+slopstudio --cli asset audio-session edit ./scene.vssession --operation add-bus --name Dialogue --output ./scene.vssession --overwrite --json
+slopstudio --cli asset audio-session edit ./scene.vssession --operation routing --track TRACK_ID --output-bus BUS_ID --output ./scene.vssession --overwrite
+slopstudio --cli asset audio-session edit ./scene.vssession --operation send --track TRACK_ID --target-bus BUS_ID --db -12 --pre-fader true --output ./scene.vssession --overwrite
+slopstudio --cli asset audio-session automation ./scene.vssession --track TRACK_ID --gain-points 0:-12,48000:0 --pan-points 0:-1,96000:1 --output ./scene.vssession --overwrite
+slopstudio --cli asset audio-session mixdown ./scene.vssession --start-frame 0 --end-frame 96000 --wav-format float32 --output ./scene-mix.wav --dry-run --json
+slopstudio --cli asset audio-recoveries --json
+slopstudio --cli asset audio-session recover ./UUID.vssession-recovery --expected-sha256 REVIEWED_SHA256 --output ./restored.vssession --dry-run --json
 ```
 
 Edits include `add-track`/`remove-track`, `track`, `region`, `remove-region`,
@@ -584,7 +584,7 @@ for each channel. The overview outlines the visible window, and the range label
 reports frames and milliseconds. Zoom shortcuts apply only at the waveform.
 
 - **Copy**, **Cut**, and **Paste** share exact floating-point samples between
-  VibeStudio audio editors. Paste replaces the selection, or inserts at an empty
+  SlopStudio audio editors. Paste replaces the selection, or inserts at an empty
   selection. The application audio clipboard is separate from the system
   clipboard; it lasts until replaced or the application exits. Ctrl+C/X/V apply
   to audio while the waveform has focus and retain normal text behavior elsewhere.
@@ -787,7 +787,7 @@ an already open editor. Accepted edits and subsequent selection changes checkpoi
 one background writer; at most one newer snapshot waits behind an in-flight write.
 Copies live in the application's `audio-recovery` data folder, or beside an
 explicit `--settings-file` profile in its own `audio-recovery` folder. The
-`VIBESTUDIO_AUDIO_RECOVERY_ROOT` override takes precedence. Copies contain audio
+`SLOPSTUDIO_AUDIO_RECOVERY_ROOT` override takes precedence. Copies contain audio
 and source paths and stay on the local device. Settings shows the folder;
 the editor status tooltip shows the last
 written path. Turning recovery off retains existing copies. A successful project
@@ -989,12 +989,12 @@ Dependencies**, save both surfaces, then compile/package/test through the normal
 project workflow. Handoff never marks the native audio project saved.
 
 `map place-sound` performs the same validation and entity edit using a sound
-already in an archive, folder or `.vibepackage` draft. It writes a separate `.map`
+already in an archive, folder or `.sloppackage` draft. It writes a separate `.map`
 and never modifies its package input. It requires a complete mono 22050 Hz PCM16
 WAV; use `asset audio-export --preset quake2|quake3` first for other source formats.
 
 ```sh
-vibestudio --cli map place-sound ./maps/start.map --package ./assets --sound sound/world/hum.wav --game quake3 --origin 64,0,96 --output ./maps/start-sound.map --dry-run --json
+slopstudio --cli map place-sound ./maps/start.map --package ./assets --sound sound/world/hum.wav --game quake3 --origin 64,0,96 --output ./maps/start-sound.map --dry-run --json
 ```
 
 `--game` may be omitted for a known target. `--mode loop-on|loop-off|triggered`
@@ -1141,8 +1141,8 @@ options use exit 2; marker/output validation failures use 4; unreadable inputs
 use 1. Inspection and dry runs create no files or locks.
 
 ```sh
-vibestudio --cli asset audio-markers ./wind.vsaudio --json
-vibestudio --cli asset audio-markers ./wind.wav --markers ./markers.json --output ./wind-marked.vsaudio --dry-run --json
+slopstudio --cli asset audio-markers ./wind.vsaudio --json
+slopstudio --cli asset audio-markers ./wind.wav --markers ./markers.json --output ./wind-marked.vsaudio --dry-run --json
 ```
 
 `asset audio-analyze` reads WAV, DMX, or `.vsaudio`, with optional `--entry` for a
@@ -1166,10 +1166,10 @@ unreadable sources exit 1. Analysis creates no output or lock files and rejects
 delivery/edit options such as `--output` and `--operation`.
 
 ```sh
-vibestudio --cli asset audio-analyze ./wind.vsaudio --json
-vibestudio --cli asset audio-analyze ./surround.wav --channel-map L,R,C,LFE,Ls,Rs --json
-vibestudio --cli asset audio-analyze ./sound.wav --no-loudness --json
-vibestudio --cli asset audio-analyze ./sounds.wad --entry DSWIND --start-frame 0 --end-frame 11025 --json
+slopstudio --cli asset audio-analyze ./wind.vsaudio --json
+slopstudio --cli asset audio-analyze ./surround.wav --channel-map L,R,C,LFE,Ls,Rs --json
+slopstudio --cli asset audio-analyze ./sound.wav --no-loudness --json
+slopstudio --cli asset audio-analyze ./sounds.wad --entry DSWIND --start-frame 0 --end-frame 11025 --json
 ```
 
 `asset audio-export` renders a separate delivery without changing an editable
@@ -1186,26 +1186,26 @@ Marker fields are `inputMarkers`, `outputCues` (authored cues, excluding the
 legacy loop sentinel), `outputLoop`, and `markerSummary`.
 
 ```sh
-vibestudio --cli asset audio-export ./wind.vsaudio --preset doom --output ./DSWIND.dmx --dither tpdf --dry-run --json
-vibestudio --cli asset audio-export ./wind.wav --preset quake3 --output ./wind-game.wav
-vibestudio --cli asset audio-export ./sounds.wad --entry DSWIND --output ./wind-float.wav --wav-format float32
-vibestudio --cli package save-as ./sounds.wad --output ./sounds-edited.wad --add-file ./DSWIND.dmx --as DSWIND --dry-run
+slopstudio --cli asset audio-export ./wind.vsaudio --preset doom --output ./DSWIND.dmx --dither tpdf --dry-run --json
+slopstudio --cli asset audio-export ./wind.wav --preset quake3 --output ./wind-game.wav
+slopstudio --cli asset audio-export ./sounds.wad --entry DSWIND --output ./wind-float.wav --wav-format float32
+slopstudio --cli package save-as ./sounds.wad --output ./sounds-edited.wad --add-file ./DSWIND.dmx --as DSWIND --dry-run
 ```
 
 `asset audio-edit` uses the same decoder, processing, and writer as the editor:
 
 ```sh
-vibestudio --cli asset audio-edit ./wind.wav --operation normalize --db -1 --output ./wind-normalized.wav --dry-run --json
-vibestudio --cli asset audio-edit ./wind.wav --operation trim --start-frame 2205 --end-frame 22050 --output ./wind-trimmed.wav
-vibestudio --cli asset audio-edit ./mod.pk3 --entry sound/ambience/wind.wav --operation fade-out --start-frame 11025 --end-frame 22050 --output ./wind-faded.wav
-vibestudio --cli asset audio-edit ./wind.vsaudio --operation gain --db 2 --output ./wind-louder.vsaudio
-vibestudio --cli asset audio-edit ./wind.vsaudio --operation resample --sample-rate 22050 --output ./wind-22050.vsaudio --json
-vibestudio --cli asset audio-project ./wind.vsaudio --output ./wind-float.wav --wav-format float32
-vibestudio --cli asset audio-edit ./wind.vsaudio --operation normalize --db -1 --output ./wind-final.wav --wav-format pcm16 --dither tpdf --dither-seed 42 --json
-vibestudio --cli asset audio-new --sample-rate 44100 --channels 1 --output ./new-sound.vsaudio
-vibestudio --cli asset audio-edit ./new-sound.vsaudio --operation paste --paste-input ./wind.wav --output ./assembled.vsaudio
-vibestudio --cli asset audio-edit ./assembled.vsaudio --operation insert-silence --start-frame 0 --frames 4410 --output ./delayed.vsaudio
-vibestudio --cli asset audio-edit ./wind.wav --operation mix --paste-input ./rain.wav --start-frame 11025 --output ./weather.vsaudio
+slopstudio --cli asset audio-edit ./wind.wav --operation normalize --db -1 --output ./wind-normalized.wav --dry-run --json
+slopstudio --cli asset audio-edit ./wind.wav --operation trim --start-frame 2205 --end-frame 22050 --output ./wind-trimmed.wav
+slopstudio --cli asset audio-edit ./mod.pk3 --entry sound/ambience/wind.wav --operation fade-out --start-frame 11025 --end-frame 22050 --output ./wind-faded.wav
+slopstudio --cli asset audio-edit ./wind.vsaudio --operation gain --db 2 --output ./wind-louder.vsaudio
+slopstudio --cli asset audio-edit ./wind.vsaudio --operation resample --sample-rate 22050 --output ./wind-22050.vsaudio --json
+slopstudio --cli asset audio-project ./wind.vsaudio --output ./wind-float.wav --wav-format float32
+slopstudio --cli asset audio-edit ./wind.vsaudio --operation normalize --db -1 --output ./wind-final.wav --wav-format pcm16 --dither tpdf --dither-seed 42 --json
+slopstudio --cli asset audio-new --sample-rate 44100 --channels 1 --output ./new-sound.vsaudio
+slopstudio --cli asset audio-edit ./new-sound.vsaudio --operation paste --paste-input ./wind.wav --output ./assembled.vsaudio
+slopstudio --cli asset audio-edit ./assembled.vsaudio --operation insert-silence --start-frame 0 --frames 4410 --output ./delayed.vsaudio
+slopstudio --cli asset audio-edit ./wind.wav --operation mix --paste-input ./rain.wav --start-frame 11025 --output ./weather.vsaudio
 ```
 
 Operations are `trim`, `delete`, `silence`, `reverse`, `fade-in`, `fade-out`,
@@ -1403,12 +1403,12 @@ selection clearing, same-path staged replacement and package undo. Browser
 renders cover 100/200% high contrast, expanded labels and RTL. These checks make
 no claim about physical audio output or manual assistive-technology acceptance.
 
-Set `VIBESTUDIO_AUDIO_BENCHMARK=1` when running the UI smoke test to include a
+Set `SLOPSTUDIO_AUDIO_BENCHMARK=1` when running the UI smoke test to include a
 16,777,216-sample workload. It reports worker load time, GUI timer activity during
 loading, and full/detail waveform render time. These are measurements of the
 current build/machine, not a guarantee about every device or release build.
 
-`map dependencies --package <draft.vibepackage>` reviews the same planned
+`map dependencies --package <draft.sloppackage>` reviews the same planned
 contents used by sound placement. Staged deletion appears as a missing reference;
 undo restores it. Corrupt drafts fail to load, and review does not modify them.
 `audio-level-smoke` verifies these CLI boundaries alongside sound placement.
@@ -1561,9 +1561,9 @@ Recorded paths are not automatically scanned at startup; reopen the chosen file.
 The device-free CLI uses the same scanner and range reader:
 
 ```sh
-vibestudio --cli asset audio-take inspect ./voice.vstake --json
-vibestudio --cli asset audio-take export ./voice.vstake --expected-prefix-sha256 <reviewed-hash> --start-frame 0 --end-frame 48000 --channels 1,2 --output ./voice.vsaudio --allow-incomplete --dry-run
-vibestudio --cli asset audio-take export ./voice.vstake --expected-prefix-sha256 <reviewed-hash> --start-frame 0 --end-frame 48000 --channels 1 --format wav --output ./voice.wav --allow-incomplete
+slopstudio --cli asset audio-take inspect ./voice.vstake --json
+slopstudio --cli asset audio-take export ./voice.vstake --expected-prefix-sha256 <reviewed-hash> --start-frame 0 --end-frame 48000 --channels 1,2 --output ./voice.vsaudio --allow-incomplete --dry-run
+slopstudio --cli asset audio-take export ./voice.vstake --expected-prefix-sha256 <reviewed-hash> --start-frame 0 --end-frame 48000 --channels 1 --format wav --output ./voice.wav --allow-incomplete
 ```
 
 `--format project` is the default and retains placement/provenance metadata.

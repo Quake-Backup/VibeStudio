@@ -11,7 +11,7 @@ class QLineEdit;
 class QPushButton;
 class QSpinBox;
 
-namespace vibestudio
+namespace slopstudio
 {
 // What Export UV Layout… writes: a skin template of some surfaces' UVs.
 struct ModelUvLayoutRequest
@@ -51,4 +51,4 @@ class ModelUvLayoutDialog final : public QDialog
 	void browse();
 	[[nodiscard]] QString problem() const;
 };
-} // namespace vibestudio
+} // namespace slopstudio

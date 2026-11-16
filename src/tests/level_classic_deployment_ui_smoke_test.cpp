@@ -20,7 +20,7 @@
 #include <QTimer>
 #include <QTranslator>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool pass, const char* label, const QString& error = {}) {
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
 		const auto workspace = prepareLevelBuildWorkspace(map, assets, prepare);
 		BuildPipelineRequest build;
 		build.pipelineId = workspace.defaultPipeline();
-		for (const auto& tool : QStringList{"vibemap2-bsp", "vibemap2-vis", "vibemap2-light"}) {
+		for (const auto& tool : QStringList{"slopmap2-bsp", "slopmap2-vis", "slopmap2-light"}) {
 			build.executableOverrides.append({tool, QString::fromLocal8Bit(argv[1])});
 		}
 		const auto compiled = runLevelBuildWorkspace(workspace, build);
@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
 			expect(!dialog.reviewReady() && !deploy->isEnabled(), "slot change invalidates review");
 			review->click();
 			expect(until([&] { return dialog.reviewReady(); }), "explicit slot re-review", status->text());
-			const auto captures = qEnvironmentVariable("VIBESTUDIO_CAPTURE_DIR");
+			const auto captures = qEnvironmentVariable("SLOPSTUDIO_CAPTURE_DIR");
 			if (!captures.isEmpty()) {
 				QDir().mkpath(captures);
 				QPixmap pixels(dialog.size());

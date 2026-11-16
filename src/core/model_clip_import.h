@@ -20,7 +20,7 @@
 #include "core/model_mesh.h"
 #include "core/model_work.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 
@@ -51,4 +51,4 @@ struct ModelClipImportPlan
 bool planModelClipImport(const ModelMesh &mesh, const ModelClipImportOptions &options, ModelClipImportPlan *plan, QString *error = nullptr);
 // Candidate-only: use applyModelEdit/ModelDocument for transactional publication.
 bool applyModelClipImport(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

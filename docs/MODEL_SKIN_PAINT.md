@@ -12,7 +12,7 @@ The service is `src/core/model_skin_paint.*`, the dialog
 `src/app/model_skin_paint_dialog.*`, the editor's side
 `src/app/model_editor_skin_paint.cpp` with the viewport hook
 `src/app/model_viewport_skin_paint.cpp`, and the command
-`src/cli/model_skin_paint.*`. All of it is original VibeStudio code.
+`src/cli/model_skin_paint.*`. All of it is original SlopStudio code.
 
 ## How a stroke paints
 
@@ -87,8 +87,8 @@ fullbright and player-colour ranges included.
 ## Command line
 
 ```sh
-vibestudio --cli model paint-skin ./progs/ogre.mdl --strokes ./strokes.json --output ./out/ogre_skin.png --json
-vibestudio --cli model paint-skin ./ogre.mesh.json --strokes ./strokes.json --output ./out/ogre_skin.png --model-output ./out/ogre_painted.mesh.json
+slopstudio --cli model paint-skin ./progs/ogre.mdl --strokes ./strokes.json --output ./out/ogre_skin.png --json
+slopstudio --cli model paint-skin ./ogre.mesh.json --strokes ./strokes.json --output ./out/ogre_skin.png --model-output ./out/ogre_painted.mesh.json
 ```
 
 The strokes file holds the view and each stroke:

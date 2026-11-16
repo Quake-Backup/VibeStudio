@@ -48,7 +48,7 @@
 #include <mutex>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const char* message)
@@ -96,8 +96,8 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioPackageDialog"
-			&& !(QByteArray(context) == "VibeStudioPackageStaging" && (QByteArray(source).startsWith("Package plan exceeds")
+		if (QByteArray(context) != "SlopStudioPackageDialog"
+			&& !(QByteArray(context) == "SlopStudioPackageStaging" && (QByteArray(source).startsWith("Package plan exceeds")
 				|| QByteArray(source) == "Retaining package source protections"))) { return {}; }
 		return QStringLiteral("[%1 — expanded]").arg(QString::fromUtf8(source));
 	}
@@ -269,7 +269,7 @@ int main(int argc, char** argv)
 					progressVisible = progress->format().contains("Records checked:") && progress->accessibleDescription().contains("Records checked:")
 						&& summary->height() >= 2 * summary->fontMetrics().height()
 						&& cancel && cancel->isEnabled() && cancel->focusPolicy() != Qt::NoFocus && !cancel->accessibleName().isEmpty();
-					const auto captureRoot = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+					const auto captureRoot = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 					if (!captureRoot.isEmpty()) {
 						QImage image(window->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); window->render(&image);
 						ok &= expect(image.save(QDir(captureRoot).filePath(QStringLiteral("package-stage-admission-%1.png").arg(stageScale))),
@@ -321,7 +321,7 @@ int main(int argc, char** argv)
 		ok &= expect(grouped.undo() && grouped.operations().size() == plan.operations().size() && grouped.redo(), "file staging batch is one undo group");
 		uiTick = false; readOnWorker = false;
 		QTimer::singleShot(0, [&]() { { std::lock_guard lock(readMutex); uiTick = true; } readGate.notify_all(); });
-		const QString draftPath = root.filePath(QStringLiteral("worker.vibepackage"));
+		const QString draftPath = root.filePath(QStringLiteral("worker.sloppackage"));
 		const auto draftSaved = runPackageDraftSaveDialog(nullptr, staged.staging, draftPath, false, control);
 		ok &= expect(draftSaved.ready() && uiTick && readOnWorker && !draftSaved.staging.isModified(), "draft save streams on a worker while dispatching UI events");
 		const auto draftLoaded = runPackageLoadDialog(nullptr, draftPath, control);
@@ -417,7 +417,7 @@ int main(int argc, char** argv)
 					&& progress && progress->accessibleDescription().contains("Records checked:")
 					&& cancel && cancel->isEnabled() && cancel->focusPolicy() != Qt::NoFocus && !cancel->accessibleName().isEmpty()
 					&& dialog->layoutDirection() == application.layoutDirection(), "Package edits show accessible metadata progress while the UI remains responsive.");
-				const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+				const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 				if (!captures.isEmpty()) {
 					QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image);
 					ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("package-edit-worker-%1.png").arg(scale))), "render edit worker progress");
@@ -465,7 +465,7 @@ int main(int argc, char** argv)
 			[&](auto&, QString*, const auto&) { invoked = true; return true; }, singleSignal);
 		ok &= expect(preCancelled.cancelled && !invoked && preCancelled.staging.revision() == originalRevision && preCancelled.staging.canRedo(),
 			"A one-shot cancellation remains latched before the edit callback starts.");
-		const auto legacyPath = root.filePath(QStringLiteral("edit-history.vibepackage"));
+		const auto legacyPath = root.filePath(QStringLiteral("edit-history.sloppackage"));
 		PackageStagingModel legacy;
 		ok &= expect(tests::saveLegacyDeepPackageDraft(legacyPath, &error) && PackageDraft::load(legacyPath, &legacy, &error) && legacy.undo(), "load legacy history for worker recovery");
 		const auto legacyRedo = runPackageEditDialog(nullptr, legacy, QStringLiteral("Redo"), [](auto& candidate, QString*, const auto&) { return candidate.redo(); });
@@ -514,7 +514,7 @@ int main(int argc, char** argv)
 		for (int i = 0; i < tree->topLevelItemCount(); ++i) { visible += !tree->topLevelItem(i)->isHidden(); }
 		ok &= expect(visible == 0, "changes filter should hide known identical contents");
 		filter->clear();
-		const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied);
 			image.fill(Qt::transparent);
@@ -620,7 +620,7 @@ int main(int argc, char** argv)
 			{ std::lock_guard lock(loadMutex); releaseLoad = true; }
 			loadGate.notify_all();
 		});
-		const QString cancelledDraft = root.filePath(QStringLiteral("cancel-%1.vibepackage").arg(scale));
+		const QString cancelledDraft = root.filePath(QStringLiteral("cancel-%1.sloppackage").arg(scale));
 		const auto closedDraft = runPackageDraftSaveDialog(nullptr, plan, cancelledDraft, false, loadControl);
 		ok &= expect(closedDraft.cancelled && !closedDraft.ready() && !QFileInfo::exists(QDir(cancelledDraft).filePath(QStringLiteral("document.json"))), "cancelled draft save never commits a partial manifest");
 		{
@@ -654,7 +654,7 @@ int main(int argc, char** argv)
 				{ std::lock_guard lock(mutex); release = true; } gate.notify_all();
 			});
 			timer.start(5);
-			const auto path = root.filePath(QStringLiteral("protected-cancel-%1.vibepackage").arg(scale));
+			const auto path = root.filePath(QStringLiteral("protected-cancel-%1.sloppackage").arg(scale));
 			const auto result = runPackageDraftSaveDialog(nullptr, plan, path, false, protectionControl);
 			ok &= expect(checked && result.cancelled && !result.ready() && !QFileInfo::exists(path),
 				"cancelling protection preparation keeps the modal loop responsive and creates no draft directory");
@@ -762,7 +762,7 @@ int main(int argc, char** argv)
 		PackageStagingPlanLimits replayLimits; replayLimits.maximumRecords = 1;
 		PackageStagingModel legacyPlan; legacyPlan.createEmpty(PackageArchiveFormat::Zip);
 		PackageStagingModel refusedPlan({}, {}, replayLimits);
-		const auto legacyDraft = root.filePath(QStringLiteral("plan-legacy-%1.vibepackage").arg(scale));
+		const auto legacyDraft = root.filePath(QStringLiteral("plan-legacy-%1.sloppackage").arg(scale));
 		ok &= expect(legacyPlan.addBytes({}, "a") && legacyPlan.addBytes({}, "b")
 			&& PackageDraft::save(legacyDraft, &legacyPlan, false, &error) && PackageDraft::load(legacyDraft, &refusedPlan, &error),
 			"prepare worker plan-limit refusal from legacy history");
@@ -1022,7 +1022,7 @@ int main(int argc, char** argv)
 
 	// Exercise the public CLI against the same real fixture, without a GUI.
 	if (argc > 1) {
-		const QString draftPath = root.filePath(QStringLiteral("cli.vibepackage"));
+		const QString draftPath = root.filePath(QStringLiteral("cli.sloppackage"));
 		const auto draft = [&](const QStringList& args, int expectedExit) {
 			QProcess process;
 			process.start(QString::fromLocal8Bit(argv[1]), QStringList{QStringLiteral("--cli"), QStringLiteral("--settings-file"), root.filePath(QStringLiteral("draft-settings.ini")), QStringLiteral("package")} + args + QStringList{QStringLiteral("--json")});
@@ -1039,10 +1039,10 @@ int main(int argc, char** argv)
 		ok &= expect(readFile(QDir(draftPath).filePath(QStringLiteral("document.json"))) == draftManifest, "draft inspection is read-only");
 		draft({QStringLiteral("draft-info"), draftPath, QStringLiteral("--overwrite")}, 2);
 		draft({QStringLiteral("draft-undo"), draftPath, QStringLiteral("extra")}, 2);
-		draft({QStringLiteral("draft-save"), second.destinationPath, root.filePath(QStringLiteral("bad.vibepackage")), QStringLiteral("--delete=")}, 2);
-		draft({QStringLiteral("draft-save"), second.destinationPath, root.filePath(QStringLiteral("bad.vibepackage")), QStringLiteral("--mystery")}, 2);
-		draft({QStringLiteral("draft-save"), second.destinationPath, root.filePath(QStringLiteral("bad.vibepackage")), QStringLiteral("--as"), QStringLiteral("orphan")}, 2);
-		ok &= expect(!QFileInfo::exists(root.filePath(QStringLiteral("bad.vibepackage"))), "invalid draft CLI options create no output");
+		draft({QStringLiteral("draft-save"), second.destinationPath, root.filePath(QStringLiteral("bad.sloppackage")), QStringLiteral("--delete=")}, 2);
+		draft({QStringLiteral("draft-save"), second.destinationPath, root.filePath(QStringLiteral("bad.sloppackage")), QStringLiteral("--mystery")}, 2);
+		draft({QStringLiteral("draft-save"), second.destinationPath, root.filePath(QStringLiteral("bad.sloppackage")), QStringLiteral("--as"), QStringLiteral("orphan")}, 2);
+		ok &= expect(!QFileInfo::exists(root.filePath(QStringLiteral("bad.sloppackage"))), "invalid draft CLI options create no output");
 		const auto undoneDraft = draft({QStringLiteral("draft-undo"), draftPath}, 0);
 		ok &= expect(undoneDraft.value(QStringLiteral("operationCount")).toInt(-1) == 0 && undoneDraft.value(QStringLiteral("canRedo")).toBool(), "one CLI undo reverses the full staged command");
 		const auto redoneDraft = draft({QStringLiteral("draft-redo"), draftPath}, 0);
@@ -1222,10 +1222,10 @@ int main(int argc, char** argv)
 		application.processEvents();
 		auto browserPlan = savedAgain.staging;
 		browserPlan.addBytes("draft browser text", QStringLiteral("nested/deep/generated.txt"));
-		const auto savedDraft = runPackageDraftSaveDialog(nullptr, browserPlan, root.filePath(QStringLiteral("shell.vibepackage")), false);
+		const auto savedDraft = runPackageDraftSaveDialog(nullptr, browserPlan, root.filePath(QStringLiteral("shell.sloppackage")), false);
 		ok &= expect(savedDraft.ready(), "prepare a persistent shell document");
 		shell = new ApplicationShell;
-		shell->openPathFromCommandLine(root.filePath(QStringLiteral("shell.vibepackage")));
+		shell->openPathFromCommandLine(root.filePath(QStringLiteral("shell.sloppackage")));
 		entries = tests::PackageRows(shell->findChild<PackageEntryView*>(QStringLiteral("packageEntries")));
 		ok &= expect(entries && entries->count() >= 3, "normal shell opening recognizes a draft directory");
 		auto* filter = shell->findChild<QLineEdit*>(QStringLiteral("packageFilter"));

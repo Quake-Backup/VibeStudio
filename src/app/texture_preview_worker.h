@@ -12,7 +12,7 @@
 class QThread;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct TexturePreviewSource {
 	std::shared_ptr<const PackageArchiveReader> archive;
@@ -77,4 +77,4 @@ private:
 	void startNext();
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

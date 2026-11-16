@@ -3,7 +3,7 @@
 #include <QCoreApplication>
 #include <QThread>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 ModelRecoveryWriter::ModelRecoveryWriter(QString directory, QObject *parent) : QObject(parent), m_directory(std::move(directory)) {}
@@ -130,7 +130,7 @@ void ModelRecoveryWriter::startNext()
 			}
 			catch (const std::bad_alloc &)
 			{
-				result->error = QCoreApplication::translate("VibeStudioModelRecovery", "Not enough memory to write the recovery copy.");
+				result->error = QCoreApplication::translate("SlopStudioModelRecovery", "Not enough memory to write the recovery copy.");
 			}
 		});
 	m_thread->setParent(this);
@@ -156,4 +156,4 @@ void ModelRecoveryWriter::startNext()
 	m_thread->start();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

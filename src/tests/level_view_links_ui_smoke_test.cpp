@@ -17,7 +17,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label, const QString& detail = {})
 {
@@ -161,7 +161,7 @@ int main(int argc, char** argv)
 			&& shell.levelDocument().undoStack.size() == history && shell.levelDocument().selection == selected,
 			"all navigation leaves map content, history and selection intact");
 		ok &= tests::settleModelViewport(*camera);
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!captures.isEmpty()) {
 			QImage image(shell.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); shell.render(&image);
 			ok &= image.save(QDir(captures).filePath(QStringLiteral("linked-views-%1.png").arg(scale)));

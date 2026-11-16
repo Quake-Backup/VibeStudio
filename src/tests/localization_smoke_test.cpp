@@ -43,7 +43,7 @@ QByteArray catalogFixture(const QString& language, bool complete)
 	QByteArray bytes;
 	bytes += "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<!DOCTYPE TS>\n";
 	bytes += "<TS version=\"2.1\" language=\"" + language.toUtf8() + "\">\n";
-	bytes += "<context>\n\t<name>VibeStudioLocalization</name>\n";
+	bytes += "<context>\n\t<name>SlopStudioLocalization</name>\n";
 	bytes += "\t<message>\n\t\t<source>Package</source>\n\t\t<translation>Package</translation>\n\t</message>\n";
 	if (complete) {
 		bytes += "\t<message>\n\t\t<source>Compiler</source>\n\t\t<translation>Compiler</translation>\n\t</message>\n";
@@ -64,7 +64,7 @@ public:
 	QString translate(const char* context, const char* sourceText, const char* disambiguation = nullptr, int n = -1) const override
 	{
 		Q_UNUSED(disambiguation);
-		if (qstrcmp(context, "VibeStudioLocalization") != 0 || qstrcmp(sourceText, "%n package(s) ready") != 0 || n < 0) {
+		if (qstrcmp(context, "SlopStudioLocalization") != 0 || qstrcmp(sourceText, "%n package(s) ready") != 0 || n < 0) {
 			return {};
 		}
 		return QStringLiteral("%n Pakete bereit");
@@ -74,12 +74,12 @@ public:
 bool runTargetSmoke()
 {
 	bool ok = true;
-	const QVector<vibestudio::LocalizationTarget> targets = vibestudio::localizationTargets();
-	ok &= expect(targets.size() == 47 && vibestudio::localizationTargetIds() == vibestudio::supportedLocaleNames(),
+	const QVector<slopstudio::LocalizationTarget> targets = slopstudio::localizationTargets();
+	ok &= expect(targets.size() == 47 && slopstudio::localizationTargetIds() == slopstudio::supportedLocaleNames(),
 		"Expected the documented 47-language localization target set to drive settings.");
-	ok &= expect(vibestudio::normalizedLocalizationTargetId(QStringLiteral("pt_BR")) == QStringLiteral("pt-BR") && vibestudio::normalizedLocalizationTargetId(QStringLiteral("missing")) == QStringLiteral("en"),
+	ok &= expect(slopstudio::normalizedLocalizationTargetId(QStringLiteral("pt_BR")) == QStringLiteral("pt-BR") && slopstudio::normalizedLocalizationTargetId(QStringLiteral("missing")) == QStringLiteral("en"),
 		"Expected locale target normalization.");
-	for (const vibestudio::LocalizationTarget& target : targets) {
+	for (const slopstudio::LocalizationTarget& target : targets) {
 		ok &= expect(!target.englishName.isEmpty() && !target.nativeName.isEmpty() && target.script.size() == 4,
 			"Expected every target to carry an English name, a native name, and a script code.");
 	}
@@ -114,74 +114,74 @@ bool runTargetSmoke()
 		{QStringLiteral("sw-KE"), QStringLiteral("sw")},
 	};
 	for (const auto& [requested, expected] : resolutions) {
-		const QString resolved = vibestudio::normalizedLocalizationTargetId(requested);
+		const QString resolved = slopstudio::normalizedLocalizationTargetId(requested);
 		if (resolved != expected) {
 			std::cerr << qPrintable(requested) << " resolved to " << qPrintable(resolved) << ", not " << qPrintable(expected) << "\n";
 			ok = false;
 		}
 	}
 	// Punjabi in the Shahmukhi script is not read in Gurmukhi: no target.
-	ok &= expect(!vibestudio::localizationTargetForId(QStringLiteral("pa-Arab-PK")), "Expected a script the target is not written in to match nothing.");
-	ok &= expect(vibestudio::preferredLocalizationTargetId({QStringLiteral("yo-NG"), QStringLiteral("fr-BE"), QStringLiteral("en")}) == QStringLiteral("fr"),
+	ok &= expect(!slopstudio::localizationTargetForId(QStringLiteral("pa-Arab-PK")), "Expected a script the target is not written in to match nothing.");
+	ok &= expect(slopstudio::preferredLocalizationTargetId({QStringLiteral("yo-NG"), QStringLiteral("fr-BE"), QStringLiteral("en")}) == QStringLiteral("fr"),
 		"Expected the first system language with a target to win.");
-	ok &= expect(vibestudio::preferredLocalizationTargetId({QStringLiteral("yo-NG")}) == QStringLiteral("en"), "Expected English when no system language has a target.");
-	qputenv("VIBESTUDIO_SYSTEM_LANGUAGES", "pt-AO,en-US");
-	ok &= expect(vibestudio::systemLocalizationTargetId() == QStringLiteral("pt-PT") && vibestudio::normalizedLocalizationTargetId(QStringLiteral("system")) == QStringLiteral("pt-PT"),
+	ok &= expect(slopstudio::preferredLocalizationTargetId({QStringLiteral("yo-NG")}) == QStringLiteral("en"), "Expected English when no system language has a target.");
+	qputenv("SLOPSTUDIO_SYSTEM_LANGUAGES", "pt-AO,en-US");
+	ok &= expect(slopstudio::systemLocalizationTargetId() == QStringLiteral("pt-PT") && slopstudio::normalizedLocalizationTargetId(QStringLiteral("system")) == QStringLiteral("pt-PT"),
 		"Expected the system preference to follow the system language list.");
-	ok &= expect(vibestudio::normalizedLocaleName(QStringLiteral("system")) == QStringLiteral("system") && vibestudio::normalizedLocaleName(QString()) == QStringLiteral("system"),
+	ok &= expect(slopstudio::normalizedLocaleName(QStringLiteral("system")) == QStringLiteral("system") && slopstudio::normalizedLocaleName(QString()) == QStringLiteral("system"),
 		"Expected the stored preference to keep system.");
-	qunsetenv("VIBESTUDIO_SYSTEM_LANGUAGES");
+	qunsetenv("SLOPSTUDIO_SYSTEM_LANGUAGES");
 
 	// Region formats are chosen apart from the language.
-	ok &= expect(vibestudio::normalizedRegionFormatId(QStringLiteral("de_CH")) == QStringLiteral("de-CH")
-			&& vibestudio::normalizedRegionFormatId(QStringLiteral("language")) == QStringLiteral("language")
-			&& vibestudio::normalizedRegionFormatId(QStringLiteral("xx-unknown")) == QStringLiteral("system")
-			&& vibestudio::normalizedRegionFormatId(QString()) == QStringLiteral("system"),
+	ok &= expect(slopstudio::normalizedRegionFormatId(QStringLiteral("de_CH")) == QStringLiteral("de-CH")
+			&& slopstudio::normalizedRegionFormatId(QStringLiteral("language")) == QStringLiteral("language")
+			&& slopstudio::normalizedRegionFormatId(QStringLiteral("xx-unknown")) == QStringLiteral("system")
+			&& slopstudio::normalizedRegionFormatId(QString()) == QStringLiteral("system"),
 		"Expected region format preferences to normalize.");
-	ok &= expect(vibestudio::regionFormatLocale(QStringLiteral("de-DE"), QStringLiteral("en")).toString(1234.5, 'f', 1) == QStringLiteral("1.234,5"),
+	ok &= expect(slopstudio::regionFormatLocale(QStringLiteral("de-DE"), QStringLiteral("en")).toString(1234.5, 'f', 1) == QStringLiteral("1.234,5"),
 		"Expected an explicit region format to decide number formatting.");
-	ok &= expect(vibestudio::regionFormatLocale(QStringLiteral("language"), QStringLiteral("es-419")).territory() != QLocale::Spain,
+	ok &= expect(slopstudio::regionFormatLocale(QStringLiteral("language"), QStringLiteral("es-419")).territory() != QLocale::Spain,
 		"Expected language-matched formats to follow the Latin American standard.");
-	const QVector<vibestudio::RegionFormatChoice> regions = vibestudio::regionFormatChoices();
+	const QVector<slopstudio::RegionFormatChoice> regions = slopstudio::regionFormatChoices();
 	bool hasSwissGerman = false;
-	for (const vibestudio::RegionFormatChoice& region : regions) {
+	for (const slopstudio::RegionFormatChoice& region : regions) {
 		hasSwissGerman |= region.localeName == QStringLiteral("de-CH");
 	}
 	ok &= expect(regions.size() > 200 && hasSwissGerman, "Expected every regional locale Qt knows among the region format choices.");
-	ok &= expect(!vibestudio::regionFormatSample(QLocale(QStringLiteral("en-GB"))).isEmpty(), "Expected a region format sample.");
+	ok &= expect(!slopstudio::regionFormatSample(QLocale(QStringLiteral("en-GB"))).isEmpty(), "Expected a region format sample.");
 
 	// Shipped RTL targets plus the general right-to-left script set.
 	for (const QString& rtl : {QStringLiteral("ar"), QStringLiteral("ur"), QStringLiteral("ur-PK"), QStringLiteral("he"), QStringLiteral("fa"), QStringLiteral("ps"), QStringLiteral("sd"), QStringLiteral("ug"), QStringLiteral("dv"), QStringLiteral("ckb"), QStringLiteral("yi")}) {
-		ok &= expect(vibestudio::isRightToLeftLocale(rtl), "Expected right-to-left detection for a right-to-left locale.");
-		ok &= expect(vibestudio::localeLayoutDirection(rtl) == Qt::RightToLeft, "Expected a right-to-left layout direction.");
+		ok &= expect(slopstudio::isRightToLeftLocale(rtl), "Expected right-to-left detection for a right-to-left locale.");
+		ok &= expect(slopstudio::localeLayoutDirection(rtl) == Qt::RightToLeft, "Expected a right-to-left layout direction.");
 	}
 	for (const QString& ltr : {QStringLiteral("en"), QStringLiteral("de"), QStringLiteral("pt-BR"), QStringLiteral("ja"), QStringLiteral("not-a-locale")}) {
-		ok &= expect(!vibestudio::isRightToLeftLocale(ltr), "Expected left-to-right detection for a left-to-right locale.");
-		ok &= expect(vibestudio::localeLayoutDirection(ltr) == Qt::LeftToRight, "Expected a left-to-right layout direction.");
+		ok &= expect(!slopstudio::isRightToLeftLocale(ltr), "Expected left-to-right detection for a left-to-right locale.");
+		ok &= expect(slopstudio::localeLayoutDirection(ltr) == Qt::LeftToRight, "Expected a left-to-right layout direction.");
 	}
-	ok &= expect(vibestudio::rightToLeftLanguageCodes().contains(QStringLiteral("ar")) && vibestudio::rightToLeftLanguageCodes().contains(QStringLiteral("ur")),
+	ok &= expect(slopstudio::rightToLeftLanguageCodes().contains(QStringLiteral("ar")) && slopstudio::rightToLeftLanguageCodes().contains(QStringLiteral("ur")),
 		"Expected Arabic and Urdu in the right-to-left language set.");
 	int rightToLeftTargets = 0;
-	for (const vibestudio::LocalizationTarget& target : targets) {
+	for (const slopstudio::LocalizationTarget& target : targets) {
 		rightToLeftTargets += target.rightToLeft ? 1 : 0;
-		ok &= expect(target.rightToLeft == vibestudio::isRightToLeftLocale(target.localeName), "Expected each target direction to agree with the locale check.");
+		ok &= expect(target.rightToLeft == slopstudio::isRightToLeftLocale(target.localeName), "Expected each target direction to agree with the locale check.");
 	}
 	ok &= expect(rightToLeftTargets == 4, "Expected Arabic, Urdu, Persian, and Hebrew as the right-to-left targets.");
 
-	const QString pseudo = vibestudio::pseudoLocalizeText(QStringLiteral("Compiler finished"));
+	const QString pseudo = slopstudio::pseudoLocalizeText(QStringLiteral("Compiler finished"));
 	ok &= expect(pseudo.startsWith(QStringLiteral("[!! ")) && pseudo.endsWith(QStringLiteral(" !!]")) && pseudo != QStringLiteral("Compiler finished"),
 		"Expected pseudo-localized text expansion.");
-	ok &= expect(vibestudio::translationExpansionText(QStringLiteral("Package")).size() > QStringLiteral("Package").size(),
+	ok &= expect(slopstudio::translationExpansionText(QStringLiteral("Package")).size() > QStringLiteral("Package").size(),
 		"Expected translation expansion sample to grow.");
 
-	const QVector<vibestudio::TranslationExpansionLayoutCheck> layoutChecks = vibestudio::translationExpansionLayoutChecks();
+	const QVector<slopstudio::TranslationExpansionLayoutCheck> layoutChecks = slopstudio::translationExpansionLayoutChecks();
 	ok &= expect(layoutChecks.size() >= 5, "Expected multiple translation expansion layout checks.");
-	for (const vibestudio::TranslationExpansionLayoutCheck& check : layoutChecks) {
+	for (const slopstudio::TranslationExpansionLayoutCheck& check : layoutChecks) {
 		ok &= expect(check.passed && check.expansionRatio >= 1.30 && check.expandedLength > check.sourceLength,
 			"Expected translation expansion layout smoke checks to pass with expanded text.");
 	}
 
-	const vibestudio::LocaleFormattingSample german = vibestudio::localeFormattingSample(QStringLiteral("de"));
+	const slopstudio::LocaleFormattingSample german = slopstudio::localeFormattingSample(QStringLiteral("de"));
 	ok &= expect(!german.decimalNumber.isEmpty() && !german.date.isEmpty() && !german.duration.isEmpty() && german.sortedLabels.size() == 4,
 		"Expected locale formatting samples for numbers, dates, durations, and sorting.");
 	return ok;
@@ -191,10 +191,10 @@ bool runTargetSmoke()
 bool runPluralizationSmoke()
 {
 	bool ok = true;
-	const QVector<vibestudio::PluralizationSmokeSample> plurals = vibestudio::pluralizationSmokeSamples(QStringLiteral("de"));
+	const QVector<slopstudio::PluralizationSmokeSample> plurals = slopstudio::pluralizationSmokeSamples(QStringLiteral("de"));
 	ok &= expect(plurals.size() >= 4 && plurals.at(1).singular && !plurals.at(2).singular,
 		"Expected pluralization smoke samples for zero, one, and many counts.");
-	for (const vibestudio::PluralizationSmokeSample& sample : plurals) {
+	for (const slopstudio::PluralizationSmokeSample& sample : plurals) {
 		ok &= expect(!sample.text.isEmpty(), "Expected the plural call site to return text.");
 		ok &= expect(sample.sourceText == QStringLiteral("%n package(s) ready"), "Expected the untranslated source to be reported.");
 		ok &= expect(sample.usedUntranslatedFallback, "Expected the untranslated fallback with no translator installed.");
@@ -203,7 +203,7 @@ bool runPluralizationSmoke()
 		ok &= expect(sample.countVisible, "Expected the substituted count to be visible.");
 	}
 
-	const vibestudio::LocalizationSmokeReport untranslated = vibestudio::buildLocalizationSmokeReport(QStringLiteral("de"));
+	const slopstudio::LocalizationSmokeReport untranslated = slopstudio::buildLocalizationSmokeReport(QStringLiteral("de"));
 	ok &= expect(untranslated.pluralizationSmokeOk, "Expected the plural call site to be verified.");
 	ok &= expect(!untranslated.pluralFormsFromTranslator, "Expected the report to distinguish a missing translator from verified plural forms.");
 	ok &= expect(untranslated.pluralizationNote.contains(QStringLiteral("No translator")), "Expected the report to say no translator is installed.");
@@ -212,10 +212,10 @@ bool runPluralizationSmoke()
 	if (!QCoreApplication::installTranslator(&translator)) {
 		return expect(false, "Expected the plural translator to install.");
 	}
-	const vibestudio::LocalizationSmokeReport translated = vibestudio::buildLocalizationSmokeReport(QStringLiteral("de"));
+	const slopstudio::LocalizationSmokeReport translated = slopstudio::buildLocalizationSmokeReport(QStringLiteral("de"));
 	ok &= expect(translated.pluralFormsFromTranslator, "Expected translated plural forms to be detected.");
 	ok &= expect(translated.pluralizationNote.contains(QStringLiteral("installed translator")), "Expected the report to credit the installed translator.");
-	for (const vibestudio::PluralizationSmokeSample& sample : translated.pluralization) {
+	for (const slopstudio::PluralizationSmokeSample& sample : translated.pluralization) {
 		ok &= expect(!sample.usedUntranslatedFallback && sample.text.contains(QStringLiteral("Pakete")),
 			"Expected the translated plural form to be reported verbatim.");
 	}
@@ -231,55 +231,55 @@ bool runCatalogRootSmoke(const QDir& root)
 	if (!QDir().mkpath(catalogDir) || !QDir().mkpath(otherDir)) {
 		return expect(false, "Expected catalog fixture directories to be created.");
 	}
-	if (!writeFile(QDir(catalogDir).filePath(QStringLiteral("vibestudio_en.ts")), catalogFixture(QStringLiteral("en"), true))
-		|| !writeFile(QDir(catalogDir).filePath(QStringLiteral("vibestudio_de.ts")), catalogFixture(QStringLiteral("de"), false))
-		|| !writeFile(QDir(catalogDir).filePath(QStringLiteral("vibestudio_de.qm")), QByteArray("not-a-real-qm"))) {
+	if (!writeFile(QDir(catalogDir).filePath(QStringLiteral("slopstudio_en.ts")), catalogFixture(QStringLiteral("en"), true))
+		|| !writeFile(QDir(catalogDir).filePath(QStringLiteral("slopstudio_de.ts")), catalogFixture(QStringLiteral("de"), false))
+		|| !writeFile(QDir(catalogDir).filePath(QStringLiteral("slopstudio_de.qm")), QByteArray("not-a-real-qm"))) {
 		return expect(false, "Expected catalog fixtures to be written.");
 	}
 
-	ok &= expect(vibestudio::translationCatalogRootEnvironmentVariable() == QStringLiteral("VIBESTUDIO_I18N_DIR"),
+	ok &= expect(slopstudio::translationCatalogRootEnvironmentVariable() == QStringLiteral("SLOPSTUDIO_I18N_DIR"),
 		"Expected the documented catalog root environment variable.");
 
 	// No environment override: the resolver still reports every directory it
 	// tried, so an installed binary can explain itself.
-	const vibestudio::CatalogRootResolution defaultResolution = vibestudio::resolveTranslationCatalogRoot();
+	const slopstudio::CatalogRootResolution defaultResolution = slopstudio::resolveTranslationCatalogRoot();
 	ok &= expect(!defaultResolution.rootPath.isEmpty() && !defaultResolution.candidatesTried.isEmpty(),
 		"Expected catalog root resolution to report the directories it tried.");
 
-	qputenv("VIBESTUDIO_I18N_DIR", QDir::toNativeSeparators(catalogDir).toUtf8());
-	const vibestudio::CatalogRootResolution environmentResolution = vibestudio::resolveTranslationCatalogRoot();
+	qputenv("SLOPSTUDIO_I18N_DIR", QDir::toNativeSeparators(catalogDir).toUtf8());
+	const slopstudio::CatalogRootResolution environmentResolution = slopstudio::resolveTranslationCatalogRoot();
 	ok &= expect(environmentResolution.exists && environmentResolution.source == QStringLiteral("environment"),
 		"Expected the environment override to win when no argument is given.");
 	ok &= expect(QDir(environmentResolution.rootPath) == QDir(catalogDir), "Expected the environment override to resolve to its directory.");
 
-	const vibestudio::CatalogRootResolution argumentResolution = vibestudio::resolveTranslationCatalogRoot(otherDir);
+	const slopstudio::CatalogRootResolution argumentResolution = slopstudio::resolveTranslationCatalogRoot(otherDir);
 	ok &= expect(argumentResolution.exists && argumentResolution.source == QStringLiteral("argument") && QDir(argumentResolution.rootPath) == QDir(otherDir),
 		"Expected an explicit argument to win over the environment override.");
 
-	const vibestudio::CatalogRootResolution missingArgument = vibestudio::resolveTranslationCatalogRoot(root.filePath(QStringLiteral("no-such-i18n")));
+	const slopstudio::CatalogRootResolution missingArgument = slopstudio::resolveTranslationCatalogRoot(root.filePath(QStringLiteral("no-such-i18n")));
 	ok &= expect(missingArgument.source == QStringLiteral("environment") && QDir(missingArgument.rootPath) == QDir(catalogDir),
 		"Expected a missing explicit directory to fall through to the next candidate.");
 	ok &= expect(missingArgument.candidatesTried.size() >= 2, "Expected every tried directory to be listed.");
 
 	// Ordered .qm candidates: exact locale, base language, then the fallback.
-	const QStringList candidates = vibestudio::compiledCatalogCandidatePaths(QStringLiteral("pt_BR"));
+	const QStringList candidates = slopstudio::compiledCatalogCandidatePaths(QStringLiteral("pt_BR"));
 	ok &= expect(candidates.size() == 3, "Expected three compiled catalog candidates for a region locale.");
 	if (candidates.size() == 3) {
-		ok &= expect(candidates.at(0).endsWith(QStringLiteral("vibestudio_pt_BR.qm")), "Expected the exact locale catalog first.");
-		ok &= expect(candidates.at(1).endsWith(QStringLiteral("vibestudio_pt.qm")), "Expected the base language catalog second.");
-		ok &= expect(candidates.at(2).endsWith(QStringLiteral("vibestudio_en.qm")), "Expected the fallback catalog last.");
+		ok &= expect(candidates.at(0).endsWith(QStringLiteral("slopstudio_pt_BR.qm")), "Expected the exact locale catalog first.");
+		ok &= expect(candidates.at(1).endsWith(QStringLiteral("slopstudio_pt.qm")), "Expected the base language catalog second.");
+		ok &= expect(candidates.at(2).endsWith(QStringLiteral("slopstudio_en.qm")), "Expected the fallback catalog last.");
 		ok &= expect(QDir(QFileInfo(candidates.at(0)).absolutePath()) == QDir(catalogDir), "Expected candidates to sit in the resolved catalog root.");
 	}
-	const QStringList englishCandidates = vibestudio::compiledCatalogCandidatePaths(QStringLiteral("en"));
-	ok &= expect(englishCandidates.size() == 1 && englishCandidates.at(0).endsWith(QStringLiteral("vibestudio_en.qm")),
+	const QStringList englishCandidates = slopstudio::compiledCatalogCandidatePaths(QStringLiteral("en"));
+	ok &= expect(englishCandidates.size() == 1 && englishCandidates.at(0).endsWith(QStringLiteral("slopstudio_en.qm")),
 		"Expected the fallback locale to produce a single candidate.");
 
 	// Which catalogs exist as .ts and which are compiled to .qm.
-	const QVector<vibestudio::TranslationCatalogAvailability> availability = vibestudio::translationCatalogAvailability();
-	ok &= expect(availability.size() == vibestudio::localizationTargetIds().size(), "Expected availability for every localization target.");
+	const QVector<slopstudio::TranslationCatalogAvailability> availability = slopstudio::translationCatalogAvailability();
+	ok &= expect(availability.size() == slopstudio::localizationTargetIds().size(), "Expected availability for every localization target.");
 	int sourcePresent = 0;
 	int compiledPresent = 0;
-	for (const vibestudio::TranslationCatalogAvailability& entry : availability) {
+	for (const slopstudio::TranslationCatalogAvailability& entry : availability) {
 		if (entry.sourcePresent) {
 			++sourcePresent;
 		}
@@ -298,24 +298,24 @@ bool runCatalogRootSmoke(const QDir& root)
 	commented.replace("<context>", "<!-- <message> kept in a comment -->\n<context>");
 	QByteArray truncated = catalogFixture(QStringLiteral("es"), true);
 	truncated.truncate(truncated.indexOf("</message>"));
-	if (!writeFile(QDir(catalogDir).filePath(QStringLiteral("vibestudio_fr.ts")), commented)
-		|| !writeFile(QDir(catalogDir).filePath(QStringLiteral("vibestudio_es.ts")), truncated)) {
+	if (!writeFile(QDir(catalogDir).filePath(QStringLiteral("slopstudio_fr.ts")), commented)
+		|| !writeFile(QDir(catalogDir).filePath(QStringLiteral("slopstudio_es.ts")), truncated)) {
 		return expect(false, "Expected the parser fixtures to be written.");
 	}
 
-	const vibestudio::LocalizationSmokeReport report = vibestudio::buildLocalizationSmokeReport(QStringLiteral("ar"));
-	const auto catalogFor = [&report](const QString& localeName) -> const vibestudio::TranslationCatalogStatus* {
-		for (const vibestudio::TranslationCatalogStatus& catalog : report.catalogs) {
+	const slopstudio::LocalizationSmokeReport report = slopstudio::buildLocalizationSmokeReport(QStringLiteral("ar"));
+	const auto catalogFor = [&report](const QString& localeName) -> const slopstudio::TranslationCatalogStatus* {
+		for (const slopstudio::TranslationCatalogStatus& catalog : report.catalogs) {
 			if (catalog.localeName == localeName) {
 				return &catalog;
 			}
 		}
 		return nullptr;
 	};
-	const vibestudio::TranslationCatalogStatus* english = catalogFor(QStringLiteral("en"));
-	const vibestudio::TranslationCatalogStatus* german = catalogFor(QStringLiteral("de"));
-	const vibestudio::TranslationCatalogStatus* french = catalogFor(QStringLiteral("fr"));
-	const vibestudio::TranslationCatalogStatus* spanish = catalogFor(QStringLiteral("es"));
+	const slopstudio::TranslationCatalogStatus* english = catalogFor(QStringLiteral("en"));
+	const slopstudio::TranslationCatalogStatus* german = catalogFor(QStringLiteral("de"));
+	const slopstudio::TranslationCatalogStatus* french = catalogFor(QStringLiteral("fr"));
+	const slopstudio::TranslationCatalogStatus* spanish = catalogFor(QStringLiteral("es"));
 	ok &= expect(english && english->status == QStringLiteral("complete") && english->messageCount == 2 && english->translatedCount == 2,
 		"Expected the complete fixture catalog to count two translated messages.");
 	ok &= expect(german && german->status == QStringLiteral("needs-translation") && german->messageCount == 3 && german->unfinishedCount == 2 && german->draftedCount == 1,
@@ -335,13 +335,13 @@ bool runCatalogRootSmoke(const QDir& root)
 	ok &= expect(report.expansionLayoutSmokeOk && report.layoutChecks.size() >= 5, "Expected translation expansion layout smoke coverage.");
 	ok &= expect(report.staleCatalogCount > 0 && report.untranslatedMessageCount > 0, "Expected stale/untranslated translation catalog reporting.");
 	ok &= expect(!report.ok, "Expected a fixture root with missing catalogs to be reported as not ok.");
-	const QString reportText = vibestudio::localizationSmokeReportText(report);
+	const QString reportText = slopstudio::localizationSmokeReportText(report);
 	ok &= expect(reportText.contains(QStringLiteral("Localization smoke report")), "Expected text localization smoke report.");
 	ok &= expect(reportText.contains(QStringLiteral("Catalog root:")), "Expected the report text to name the resolved catalog root.");
 	ok &= expect(reportText.contains(QStringLiteral("Plural call site:")), "Expected the report text to say what the plural smoke verified.");
 
-	qunsetenv("VIBESTUDIO_I18N_DIR");
-	const vibestudio::CatalogRootResolution clearedResolution = vibestudio::resolveTranslationCatalogRoot();
+	qunsetenv("SLOPSTUDIO_I18N_DIR");
+	const slopstudio::CatalogRootResolution clearedResolution = slopstudio::resolveTranslationCatalogRoot();
 	ok &= expect(!clearedResolution.candidatesTried.contains(QDir::cleanPath(QDir(catalogDir).absolutePath())),
 		"Expected the environment override to stop being tried once it is cleared.");
 	return ok;

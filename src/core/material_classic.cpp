@@ -12,11 +12,11 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 constexpr qint64 kLumpLimit = 16 * 1024 * 1024;
@@ -453,7 +453,7 @@ QByteArray boomSwitchesLump(const QVector<DoomSwitchPair>& switches)
 QString swantblsText(const QVector<DoomAnimationRange>& ranges, const QVector<DoomSwitchPair>& switches)
 {
 	QString text = QStringLiteral("# Boom animation and switch tables (SWANTBLS format).\n");
-	text += QStringLiteral("# Compile with VibeStudio or SWANTBLS into ANIMATED and SWITCHES lumps.\n\n");
+	text += QStringLiteral("# Compile with SlopStudio or SWANTBLS into ANIMATED and SWITCHES lumps.\n\n");
 	const auto section = [&](bool texture) {
 		text += texture ? QStringLiteral("[TEXTURES]\n") : QStringLiteral("[FLATS]\n");
 		// Boom's DEFSWANI.DAT columns: speed in tics, last frame, first frame.
@@ -1717,4 +1717,4 @@ bool parseQuake2WalInfoText(const QString& text, Quake2WalInfo* info, QString* e
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

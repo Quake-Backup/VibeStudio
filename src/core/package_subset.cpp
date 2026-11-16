@@ -9,17 +9,17 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct Member {
 	PackageStagedEntry entry;
 	qsizetype readerIndex = -1;
 };
-QString message(const char* source) { return QCoreApplication::translate("VibeStudioPackageSubset", source); }
+QString message(const char* source) { return QCoreApplication::translate("SlopStudioPackageSubset", source); }
 bool stopped(const PackageReadControl& control, QString* error)
 {
 	if (!control.isCancelled || !control.isCancelled()) { return false; }
-	*error = message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "Package subset preparation cancelled.")); return true;
+	*error = message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "Package subset preparation cancelled.")); return true;
 }
 } // namespace
 
@@ -55,7 +55,7 @@ bool PackageStagingModel::loadBaseArchiveSubsetAt(const PackageArchiveReader& ar
 	}
 	QSet<qsizetype> requested, selectedReaders(selection.entryIndexes.cbegin(), selection.entryIndexes.cend());
 	for (qsizetype at = 0; at < entries.size(); ++at) { if (selectedReaders.contains(entries.at(at).readerIndex)) { requested.insert(at); } }
-	if (requested.size() != selectedReaders.size()) { *error = message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "Selected occurrences are unavailable in the source snapshot.")); return false; }
+	if (requested.size() != selectedReaders.size()) { *error = message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "Selected occurrences are unavailable in the source snapshot.")); return false; }
 	QSet<qsizetype> included = requested; QHash<qsizetype, QString> reasons; PackageSubsetReview prepared;
 	if (candidate.m_sourceFormat == PackageArchiveFormat::Wad) {
 		const QString magic = candidate.m_sourceWadMagic;
@@ -63,7 +63,7 @@ bool PackageStagingModel::loadBaseArchiveSubsetAt(const PackageArchiveReader& ar
 			QStringList names; for (const auto& item : entries) { names << item.entry.virtualPath; }
 			if (!expandPackageWadGroups(names, requested, &included, &reasons, &prepared.warnings, error, control)) { return false; }
 		} else if (magic != QStringLiteral("WAD2") && magic != QStringLiteral("WAD3")) {
-			*error = message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "The source WAD layout could not be verified.")); return false;
+			*error = message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "The source WAD layout could not be verified.")); return false;
 		}
 	}
 	QVector<PackageStagedEntry> selected; QSet<QString> paths;
@@ -71,9 +71,9 @@ bool PackageStagingModel::loadBaseArchiveSubsetAt(const PackageArchiveReader& ar
 		if (stopped(control, error)) { return false; } if (!included.contains(at)) { continue; }
 		const auto& item = entries.at(at); const auto& entry = item.entry;
 		if (item.readerIndex < 0 || item.readerIndex >= metadata.size() || !metadata.at(item.readerIndex).readable || !isSafePackageVirtualPath(entry.virtualPath)) {
-			*error = message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "A required subset member is unreadable or unsafe: %1")).arg(entry.virtualPath); return false;
+			*error = message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "A required subset member is unreadable or unsafe: %1")).arg(entry.virtualPath); return false;
 		}
-		if (entry.sizeBytes > std::numeric_limits<quint64>::max() - prepared.totalBytes) { *error = message(QT_TRANSLATE_NOOP("VibeStudioPackageSubset", "Subset sizes exceed the supported total.")); return false; }
+		if (entry.sizeBytes > std::numeric_limits<quint64>::max() - prepared.totalBytes) { *error = message(QT_TRANSLATE_NOOP("SlopStudioPackageSubset", "Subset sizes exceed the supported total.")); return false; }
 		selected << entry; paths.insert(entry.virtualPath.toCaseFolded()); prepared.totalBytes += entry.sizeBytes;
 		prepared.members.append({item.readerIndex, entry.sourceOrdinal, entry.virtualPath, entry.sizeBytes, requested.contains(at), reasons.value(at)});
 	}
@@ -94,4 +94,4 @@ bool PackageStagingModel::loadBaseArchiveSubsetAt(const PackageArchiveReader& ar
 	*this = std::move(candidate); if (review) { *review = std::move(prepared); } return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

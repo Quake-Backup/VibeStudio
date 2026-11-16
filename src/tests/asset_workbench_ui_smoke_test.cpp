@@ -41,7 +41,7 @@
 #include <QtEndian>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const QString& message)
 {
@@ -238,7 +238,7 @@ bool workflow(QApplication& app, const QString& root, int scale)
 	{
 		ApplicationShell shell; if (scale == 200) { shell.setLayoutDirection(Qt::RightToLeft); }
 		shell.resize(1440, 900); shell.show();
-		const auto captureRoot = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const auto captureRoot = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		const auto captures = [&](const QString& phase) { return captureRoot.isEmpty() ? QString() : QDir(captureRoot).filePath(QStringLiteral("%1-%2").arg(scale).arg(phase)); };
 		const auto action = [&](const char* id) { return shell.findChild<QAction*>(QString::fromLatin1(id)); };
 		for (const auto* id : {"texture.editor", "texture.edit", "texture.export", "texture.reveal", "model.editor", "model.design", "model.assembly",
@@ -261,7 +261,7 @@ bool workflow(QApplication& app, const QString& root, int scale)
 		const auto project = QDir(root).filePath("project");
 		WorkspaceDocument document; document.projectPath = project; document.packagePath = project;
 		document.activeModule = QStringLiteral("textures"); document.assetSelections = {{"textures", "wall.png"}};
-		const auto workspace = QDir(root).filePath(QStringLiteral("ui-%1.vibeworkspace").arg(scale)); QString error;
+		const auto workspace = QDir(root).filePath(QStringLiteral("ui-%1.slopworkspace").arg(scale)); QString error;
 		ok &= expect(writeWorkspaceDocument(workspace, document, {}, nullptr, &error) && shell.openWorkspaceFrom(workspace, &error), error);
 		auto* textures = shell.findChild<QListWidget*>("textureEntries");
 		auto* models = shell.findChild<QListWidget*>("modelEntries");
@@ -330,7 +330,7 @@ bool workflow(QApplication& app, const QString& root, int scale)
 		ok &= expect(results->count() == 3 && audioResult, "Palette identifies otherwise identical commands by module");
 		shell.findChild<QDialog*>("commandPalette")->hide();
 		// Compressed streams have header previews rather than PCM waveforms.
-		const auto fixture = qEnvironmentVariable("VIBESTUDIO_AUDIO_FIXTURES");
+		const auto fixture = qEnvironmentVariable("SLOPSTUDIO_AUDIO_FIXTURES");
 		if (!fixture.isEmpty()) {
 			shell.openPathFromCommandLine(fixture); action("shell.mode.audio")->trigger();
 			ok &= expect(select(audio, "mp3-vbr.mp3") && waitUntil([&] { return action("audio.edit")->isEnabled() && action("audio.export")->isEnabled(); }), "Compressed audio remains editable without a waveform");
@@ -360,7 +360,7 @@ int main(int argc, char** argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto temporaryRoot = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath());
+	const auto temporaryRoot = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath());
 	if (!QDir().mkpath(temporaryRoot)) { return 1; }
 	QTemporaryDir temp(QDir(temporaryRoot).filePath("asset-workbench-XXXXXX")); if (!temp.isValid()) { return 1; }
 	const auto project = temp.filePath("project"); QDir().mkpath(project);

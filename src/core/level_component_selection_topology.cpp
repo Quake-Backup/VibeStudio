@@ -3,7 +3,7 @@
 #include <QMap>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 using Lists = QVector<QVector<int>>;
 bool fail(QString* error, const char* message) {
@@ -174,4 +174,4 @@ bool selectLevelMapComponents(const LevelMapDocument& document, const QVector<Le
 	}
 	return queryLevelComponentSelection(topology,input,request,output,error);
 }
-} // namespace vibestudio
+} // namespace slopstudio

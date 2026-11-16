@@ -12,7 +12,7 @@
 #include <array>
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 struct MapGridView {
 	QSize viewport;
 	QPointF center;
@@ -88,4 +88,4 @@ QSize mapGridImageSize(const MapGridView& view);
 // when `lines` is false), then the dashed block grid.
 // Invalid/oversized requests leave the previous frame intact and return false.
 bool renderMapGrid(const MapGridView& view, MapGridFrame* frame, const std::atomic_bool* cancelled = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

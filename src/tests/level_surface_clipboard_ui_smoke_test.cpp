@@ -31,7 +31,7 @@
 #include <atomic>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message, const QString& detail = {})
 {
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 #endif
 	QApplication app(argc, argv); QApplication::setFont(QFont("Segoe UI"));
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("level-surface-clipboard-ui-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("level-surface-clipboard-ui-smoke"); skip >= 0) {
 		return skip;
 	}
 	QTemporaryDir temp; if (!temp.isValid()) { return 1; }
@@ -383,7 +383,7 @@ int main(int argc, char** argv)
 			app.processEvents(QEventLoop::ExcludeUserInputEvents); panel->verticalScrollBar()->setValue(0);
 			{ QEventLoop loop; QTimer::singleShot(75, &loop, &QEventLoop::quit); loop.exec(QEventLoop::ExcludeUserInputEvents); }
 			ok &= expect(panel->horizontalScrollBar()->maximum() == 0, "clipboard controls fit scaled expanded RTL panel");
-			const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+			const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 			if (!captures.isEmpty()) {
 				QDir().mkpath(captures); QImage image(panel->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); panel->render(&image);
 				ok &= image.save(QDir(captures).filePath(QStringLiteral("surface-clipboard-%1.png").arg(scale)));

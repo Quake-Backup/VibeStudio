@@ -25,7 +25,7 @@
 // brush position. Smudge drags the skin along the stroke: each texel under the
 // brush takes the colour shown where the brush was one step earlier.
 //
-// Original VibeStudio code.
+// Original SlopStudio code.
 
 #include "core/model_mesh.h"
 #include "core/model_work.h"
@@ -42,7 +42,7 @@
 #include <array>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ModelEdit;
 class PackageStagingModel;
@@ -227,4 +227,4 @@ bool parseModelSkinPaintStrokes(const QJsonObject& object, ModelSkinPaintCamera*
 	QString* error = nullptr, const QString& baseDirectory = {});
 QJsonObject modelSkinPaintStrokesJson(const ModelSkinPaintCamera& camera, const QVector<ModelSkinPaintStroke>& strokes);
 
-} // namespace vibestudio
+} // namespace slopstudio

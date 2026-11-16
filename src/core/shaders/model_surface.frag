@@ -11,7 +11,7 @@
 
 #include "common.glsl"
 
-VIBE_UNIFORMS {
+SLOP_UNIFORMS {
 	mat4 viewProjection;
 	vec4 cameraEye;
 	vec4 light;
@@ -28,24 +28,24 @@ VIBE_UNIFORMS {
 };
 
 // The surface's skin, premultiplied.
-VIBE_SAMPLER(0) tex0;
+SLOP_SAMPLER(0) tex0;
 // Translucent passes: the opaque pass's depth, and the previous layer's.
-VIBE_SAMPLER(1) tex1;
-VIBE_SAMPLER(2) tex2;
+SLOP_SAMPLER(1) tex1;
+SLOP_SAMPLER(2) tex2;
 // The modeller's Game preview: an unlit layer added after shading (Quake
 // fullbrights, Quake III identity stages); read when params.w is 1.
-VIBE_SAMPLER(3) tex3;
+SLOP_SAMPLER(3) tex3;
 
-VIBE_VARYING_IN(0) vec2 vUv;
-VIBE_VARYING_IN(1) vec3 vBarycentricW;
-VIBE_FLAT_IN(2) vec4 vShade;
-VIBE_FLAT_IN(3) int vTriangle;
-VIBE_FLAT_IN(4) uint vFlags;
-VIBE_VARYING_IN(5) vec3 vWorld;
+SLOP_VARYING_IN(0) vec2 vUv;
+SLOP_VARYING_IN(1) vec3 vBarycentricW;
+SLOP_FLAT_IN(2) vec4 vShade;
+SLOP_FLAT_IN(3) int vTriangle;
+SLOP_FLAT_IN(4) uint vFlags;
+SLOP_VARYING_IN(5) vec3 vWorld;
 
-VIBE_FRAGMENT_OUT(0) vec4 outColor;
-VIBE_FRAGMENT_OUT(1) int outTriangle;
-VIBE_FRAGMENT_OUT(2) float outDepth;
+SLOP_FRAGMENT_OUT(0) vec4 outColor;
+SLOP_FRAGMENT_OUT(1) int outTriangle;
+SLOP_FRAGMENT_OUT(2) float outDepth;
 
 // Mixes an overlay colour (straight, its alpha the amount) into a
 // premultiplied colour without changing its coverage.

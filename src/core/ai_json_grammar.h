@@ -14,9 +14,9 @@
 #include <QJsonObject>
 #include <QString>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Empty, with the reason, when the schema is not an object schema.
 [[nodiscard]] QString aiJsonSchemaGrammar(const QJsonObject& schema, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

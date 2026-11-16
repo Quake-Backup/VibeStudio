@@ -43,7 +43,7 @@
 #include <functional>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // One asset a script names. Kind ids are stable and untranslated: sound,
 // music, model, image, video, sprite, graphic, texture, script, map, file.
@@ -218,4 +218,4 @@ QVector<int> scriptSoundTargets(const ScriptReferenceScan& scan, const QString& 
 // The standard Doom and Doom II class a thing type spawns, or empty.
 QString doomStandardClassForEditorNumber(int number);
 
-} // namespace vibestudio
+} // namespace slopstudio

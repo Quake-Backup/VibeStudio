@@ -4,7 +4,7 @@
 #include <QCoreApplication>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -50,7 +50,7 @@ bool validateModelArchiveOutputs(const PackageArchiveReader *archive, const QStr
 		if (protectedPath)
 		{
 			return fail(error, QCoreApplication::translate(
-				"VibeStudioModelExport", "Write outside the model's input package, folder or draft. Use package staging to change its contents."));
+				"SlopStudioModelExport", "Write outside the model's input package, folder or draft. Use package staging to change its contents."));
 		}
 	}
 	return true;
@@ -94,7 +94,7 @@ bool ModelArchiveReader::readEntryBytes(const QString &path, QByteArray *out, QS
 		if (index >= 0)
 		{
 			return fail(error, QCoreApplication::translate(
-								   "VibeStudioModelMesh",
+								   "SlopStudioModelMesh",
 								   "The package contains repeated asset paths. Rename or remove the ambiguity before loading this model."));
 		}
 		index = i;
@@ -115,13 +115,13 @@ bool ModelArchiveReader::readEntryAt(qsizetype index, QByteArray *out, QString *
 		!m_entries[index].readable || !isSafePackageVirtualPath(m_entries[index].virtualPath))
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelMesh", "The package asset is missing, unreadable or has an unsafe path."));
+					QCoreApplication::translate("SlopStudioModelMesh", "The package asset is missing, unreadable or has an unsafe path."));
 	}
 	const auto &entry = m_entries[index];
 	const auto limit = maxBytes < 0 ? modelFileByteLimit : std::min(maxBytes, modelFileByteLimit);
 	if (!entry.sizeBytes || entry.sizeBytes > quint64(limit) || entry.compressedSizeBytes > quint64(modelFileByteLimit))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelMesh",
+		return fail(error, QCoreApplication::translate("SlopStudioModelMesh",
 													   "The package asset is empty or exceeds the model read limit (at most 64 MiB)."));
 	}
 	const auto size = qint64(entry.sizeBytes);
@@ -133,7 +133,7 @@ bool ModelArchiveReader::readEntryAt(qsizetype index, QByteArray *out, QString *
 		{
 			if (chunk.size() > size - bytes.size())
 			{
-				return fail(&sinkError, QCoreApplication::translate("VibeStudioModelMesh", "The package asset exceeds its recorded size."));
+				return fail(&sinkError, QCoreApplication::translate("SlopStudioModelMesh", "The package asset exceeds its recorded size."));
 			}
 			if (!modelWorkCheckpoint(m_control, ModelWorkPhase::Reading, bytes.size(), size, &sinkError))
 			{
@@ -156,9 +156,9 @@ bool ModelArchiveReader::readEntryAt(qsizetype index, QByteArray *out, QString *
 		return error && !error->isEmpty()
 				   ? false
 				   : fail(error,
-						  QCoreApplication::translate("VibeStudioModelMesh", "Unable to verify the complete package asset payload."));
+						  QCoreApplication::translate("SlopStudioModelMesh", "Unable to verify the complete package asset payload."));
 	}
 	*out = std::move(bytes);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -13,8 +13,8 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -72,7 +72,7 @@ double length(const ModelMesh &mesh, int clip, int frame, int joint)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir tmp(QDir(root).filePath("clip-import-XXXXXX"));
@@ -239,34 +239,34 @@ int main(int argc, char **argv)
 	const auto source = QDir(tmp.path()).filePath("rig.mesh.json"), out = QDir(tmp.path()).filePath("out.mesh.json");
 	ModelDocument cliSource;
 	expect(cliSource.setMesh(mesh, &error) && cliSource.save(source, false, &error), "save the CLI source");
-	auto cli = cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "import", "--source", animPath, "--name", "walk2",
+	auto cli = cli::runModelPose({"slopstudio", "--cli", "model", "pose", source, "--operation", "import", "--source", animPath, "--name", "walk2",
 								  "--output", out, "--json"});
 	expect(cli.exitCode == 0 && cli.payload["name"].toString() == "walk2" && cli.payload["samples"].toInt() == 4 &&
 			   cli.payload["inWorkingSet"].toBool(),
 		   "CLI imports an md5anim clip");
-	expect(cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "import", "--source", saved, "--name", "again",
+	expect(cli::runModelPose({"slopstudio", "--cli", "model", "pose", source, "--operation", "import", "--source", saved, "--name", "again",
 							  "--output", saved, "--overwrite"})
 				   .exitCode == 1,
 		   "CLI refuses to overwrite the source it reads");
-	expect(cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "import", "--source", animPath, "--root-scale", "2",
+	expect(cli::runModelPose({"slopstudio", "--cli", "model", "pose", source, "--operation", "import", "--source", animPath, "--root-scale", "2",
 							  "--output", out, "--overwrite"})
 				   .exitCode == 4,
 		   "CLI refuses root scale without retargeting");
-	cli = cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "import", "--source", saved, "--source-clip",
+	cli = cli::runModelPose({"slopstudio", "--cli", "model", "pose", source, "--operation", "import", "--source", saved, "--source-clip",
 							 "walk_again", "--retarget", "--name", "again", "--output", out, "--overwrite", "--json"});
 	expect(cli.exitCode == 0 && cli.payload["retarget"].toBool() && cli.payload["sourceClip"].toString() == "walk_again",
 		   "CLI retargets a named clip of another editable source");
 	const auto keyedPath = QDir(tmp.path()).filePath("keyed.mesh.json");
 	ModelDocument keyedSave;
 	expect(keyedSave.setMesh(keyed, &error) && keyedSave.save(keyedPath, false, &error), "save the keyed source");
-	cli = cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "import", "--source", keyedPath, "--name", "keyed",
+	cli = cli::runModelPose({"slopstudio", "--cli", "model", "pose", source, "--operation", "import", "--source", keyedPath, "--name", "keyed",
 							 "--output", out, "--overwrite", "--json"});
 	expect(cli.exitCode == 0 && cli.payload["curveJoints"].toInt() == 1 && cli.payload["events"].toInt() == 1 && !cli.payload["curvesCaptured"].toBool(),
 		   "CLI imports the source's curves and events");
-	cli = cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "import", "--source", keyedPath, "--name", "keyed",
+	cli = cli::runModelPose({"slopstudio", "--cli", "model", "pose", source, "--operation", "import", "--source", keyedPath, "--name", "keyed",
 							 "--no-curves", "--no-events", "--output", out, "--overwrite", "--json"});
 	expect(cli.exitCode == 0 && cli.payload["curveJoints"].toInt() == 0 && cli.payload["events"].toInt() == 0, "CLI imports samples alone on request");
-	expect(cli::runModelPose({"vibestudio", "--cli", "model", "pose", source, "--operation", "copy-out", "--clip", "0", "--first", "0", "--no-events",
+	expect(cli::runModelPose({"slopstudio", "--cli", "model", "pose", source, "--operation", "copy-out", "--clip", "0", "--first", "0", "--no-events",
 							  "--output", out, "--overwrite"})
 				   .exitCode == 2,
 		   "CLI refuses --no-events outside import");

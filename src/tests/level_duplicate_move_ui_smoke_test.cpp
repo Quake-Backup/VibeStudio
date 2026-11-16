@@ -5,7 +5,7 @@
 // Raise Ceiling kept on Doom maps); NetRadiant Custom's Ctrl+R and
 // Ctrl+Shift+V; one undo step each; copies selected; locked objects refused;
 // picked components for Repeat Transforms. NetRadiant Custom, TrenchBroom and
-// VibeStudio profiles at 100%, and at 200% with high contrast, expanded
+// SlopStudio profiles at 100%, and at 200% with high contrast, expanded
 // translations and right-to-left layout. Owned offscreen widgets and
 // synthetic Qt Test key events only.
 #include "app/application_shell.h"
@@ -38,7 +38,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 	for (const auto& command : levelDuplicateMoveCommands()) { ids << command.commandId; }
 	ids << QStringLiteral("map.moveToCamera") << QStringLiteral("map.repeatTransforms") << QStringLiteral("map.resetRepeatTransforms");
 
-	for (const auto* profile : {"trenchbroom", "netradiant-custom", "vibestudio-default"}) {
+	for (const auto* profile : {"trenchbroom", "netradiant-custom", "slopstudio-default"}) {
 		const bool tb = QLatin1String(profile) == QLatin1String("trenchbroom");
 		const bool nrc = QLatin1String(profile) == QLatin1String("netradiant-custom");
 		for (int scale : {100, 200}) {

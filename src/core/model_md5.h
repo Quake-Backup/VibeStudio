@@ -17,7 +17,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ModelExportReport;
 
@@ -74,4 +74,4 @@ struct Doom3ModelDecl {
 // after it on that line). Problems go to `warnings` with their line numbers.
 [[nodiscard]] QVector<Doom3ModelDecl> parseDoom3ModelDecls(const QString& text, QStringList* warnings = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

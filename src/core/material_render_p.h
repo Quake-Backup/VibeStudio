@@ -21,7 +21,7 @@
 #include <functional>
 #include <limits>
 
-namespace vibestudio::material_render {
+namespace slopstudio::material_render {
 
 struct Vec3 {
 	double x = 0.0;
@@ -373,4 +373,4 @@ struct Doom3Interaction {
 QVector<Doom3Interaction> doom3PairInteractions(const MaterialDefinition& definition, const QVector<int>& order, const Doom3Registers& registers,
 	const MaterialStage* implicitDiffuse, bool* implicitBump);
 
-} // namespace vibestudio::material_render
+} // namespace slopstudio::material_render

@@ -4,7 +4,7 @@
 #include <QCoreApplication>
 #include <QJsonArray>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace { struct Text { Q_DECLARE_TR_FUNCTIONS(LevelFaceTransformCli) }; }
 bool parseLevelFaceTransformPicks(const QStringList& selectors, const QString& context, LevelMapDocument* document,
 	LevelSurfaceFacePicks* picks, QString* error)
@@ -43,4 +43,4 @@ void addLevelFaceTransformDetails(const LevelSurfaceFaceTransformReport& report,
 	details->insert(QStringLiteral("retiredFaces"),report.retiredFaces);
 	details->insert(QStringLiteral("parentBrushesSelected"),false);
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

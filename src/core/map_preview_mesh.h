@@ -16,7 +16,7 @@
 #include <QSize>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class MapBrushGeometryCache;
 
@@ -66,4 +66,4 @@ struct LevelMapPreviewMesh {
 QString levelModelSurfaceMaterialKey(const QString& modelPath, int surfaceIndex);
 LevelMapPreviewMesh buildLevelMapPreviewMesh(const LevelMapDocument& document, const LevelMapPreviewMeshOptions& options = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -7,7 +7,7 @@ stops short of the editor it is named after. The user-facing guide is the
 [Models manual page](manual/models.md#choose-your-controls).
 
 **Rip** and **Rip and Fill** are available in every profile's Vertex/Edge menus
-and command search. The VibeStudio and Blender profiles bind **V/Alt+V**;
+and command search. The SlopStudio and Blender profiles bind **V/Alt+V**;
 3ds Max and MilkShape retain their existing keys. During a rip, **B** swaps
 sides and **F** toggles filling. See [Rip](MODEL_RIP.md) for the common workflow.
 
@@ -134,7 +134,7 @@ page open), and the chrome from 7.5 to 2.6 text lines; at 100% text, the
 minimum went from up to 1190 by 760 (taller than the page, which scrolled) to
 up to 920 by 460, and the chrome from 9.7 to 3.2 lines.
 
-With `VIBESTUDIO_SNAPSHOT_MESH_EDITOR` set, `vibestudio --ui-snapshot <dir>`
+With `SLOPSTUDIO_SNAPSHOT_MESH_EDITOR` set, `slopstudio --ui-snapshot <dir>`
 also writes `mesh-editor.png`, the studio with the Mesh Editor's tab open, at
 the `--ui-snapshot-size` and the text scale and theme of its
 `--settings-file`.
@@ -163,7 +163,7 @@ sideways and that no shown label, button or check box is cut short.
 
 | Profile | Id | Based on | Transform style |
 | --- | --- | --- | --- |
-| VibeStudio (Blender-style) | `studio` | Blender, plus Alt+left drag orbit and Ctrl+Y redo | Modal: G, R, S start a transform that follows the pointer |
+| SlopStudio (Blender-style) | `studio` | Blender, plus Alt+left drag orbit and Ctrl+Y redo | Modal: G, R, S start a transform that follows the pointer |
 | Blender | `blender` | Blender 4 default keymap | Modal |
 | 3ds Max | `3ds-max` | Autodesk 3ds Max default keyboard shortcuts | Tool: Q, W, E, R pick a tool, then drag |
 | MilkShape 3D | `milkshape-3d` | MilkShape 3D 1.8 default shortcuts | Tool: F1–F4 pick a tool, then drag |
@@ -191,7 +191,7 @@ reads a profile and never branches on its name.
 | Recalculate Outside, Inside | Named commands (Shift+N recalculates vertex normals) | Shift+N, Ctrl+Shift+N | Named commands | Named commands |
 | Texel Density | Named command | Named command | Named command | Named command |
 
-`vibestudio --cli model controls --profile <id>` prints the full reference for
+`slopstudio --cli model controls --profile <id>` prints the full reference for
 any profile, and **Show Every Gesture and Key…** on the **View** page shows the
 same list in the editor. Each profile's tooltip in **Controls like** lists what
 it changes and what it leaves out.
@@ -239,7 +239,7 @@ changes can be shared as a controls file:
 
 ```json
 {
-    "format": "vibestudio.modeller-controls",
+    "format": "slopstudio.modeller-controls",
     "version": 1,
     "profile": "3ds-max",
     "overrides": {
@@ -261,10 +261,10 @@ that does not exist, or with an unknown key, is refused with the reason.
 | `model controls` | Prints a profile's controls. `--profile`, `--section navigation|selection|transform|layout|keys`, `--defaults`, `--check`, `--export <file>` with `--overwrite`, `--import <file>`, `--select`, `--reset`, `--settings-file <ini>`. |
 
 ```sh
-vibestudio --cli model profiles --json
-vibestudio --cli model controls --profile 3ds-max --section keys
-vibestudio --cli model controls --profile blender --check --json
-vibestudio --cli model controls --profile milkshape-3d --export ./milkshape-controls.json
+slopstudio --cli model profiles --json
+slopstudio --cli model controls --profile 3ds-max --section keys
+slopstudio --cli model controls --profile blender --check --json
+slopstudio --cli model controls --profile milkshape-3d --export ./milkshape-controls.json
 ```
 
 ## Coverage Gaps
@@ -297,7 +297,7 @@ Each profile lists its own gaps in `model profiles`. In summary:
   each. Click-to-create primitives, Delete All and the Comments tab
   are not emulated.
 - **Keyboard additions**: **Next View** and **Previous View** (Ctrl+Alt+Page
-  Down and Page Up) are VibeStudio keys in every profile. Alt+L and Alt+R for
+  Down and Page Up) are SlopStudio keys in every profile. Alt+L and Alt+R for
   loops and rings of the selected edges are 3ds Max's keys, also given to the
   studio and Blender profiles; MilkShape 3D keeps those commands in the
   **Select** menu.

@@ -12,7 +12,7 @@
 #include <QJsonArray>
 #include <QJsonValue>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 
@@ -44,4 +44,4 @@ bool validateModelAnimationEvents(const ModelMesh &mesh, QString *error = nullpt
 bool remapModelAnimationEvents(const ModelMesh &before, ModelMesh *after, const ModelEdit &edit, QString *error = nullptr);
 // Candidate-only EditAnimationEvents.
 bool applyModelAnimationEvents(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

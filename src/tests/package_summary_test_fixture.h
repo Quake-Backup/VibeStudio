@@ -4,7 +4,7 @@
 #include <QFile>
 #include <memory>
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 
 inline void summaryU16(QByteArray& bytes, quint16 value)
 {
@@ -59,4 +59,4 @@ public:
 	}
 };
 
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

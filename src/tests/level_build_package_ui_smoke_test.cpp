@@ -20,7 +20,7 @@
 #include <QTimer>
 #include <QTranslator>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool pass, const char* label, const QString& error = {}) {
@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
 	StudioSettings::setOverrideFilePath(temp.filePath("settings.ini"));
 	StudioSettings settings;
 	settings.setReducedMotion(true);
-	settings.upsertCompilerToolPathOverride({"vibemap3", QString::fromLocal8Bit(argv[1])});
+	settings.upsertCompilerToolPathOverride({"slopmap3", QString::fromLocal8Bit(argv[1])});
 	QString error;
 	LevelMapDocument map;
 	if (!expect(tests::createMaterialFixture(temp.path(), &map, &error), "fixture", error)) {
@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
 		expect(until([&] { return !dialog.busy(); }) && dialog.lastResult().succeeded() && subset_test::get(output + ".bak") == before &&
 				   status->text().contains(output + ".bak"),
 			   "replacement exposes preserved backup", status->text());
-		const auto capture = qEnvironmentVariable("VIBESTUDIO_CAPTURE_DIR");
+		const auto capture = qEnvironmentVariable("SLOPSTUDIO_CAPTURE_DIR");
 		if (!capture.isEmpty()) {
 			QDir().mkpath(capture);
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied);

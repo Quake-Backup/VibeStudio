@@ -39,8 +39,8 @@
 #include <cstring>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temp(QDir(root).filePath(QStringLiteral("uv-tools-ui-XXXXXX")));
@@ -396,7 +396,7 @@ int main(int argc, char **argv)
 			opened = path;
 			return true;
 		};
-		expect(editor.editSurfaceSkin(&error) && QFileInfo(opened).absolutePath() == QDir(temp.path()).filePath(QStringLiteral(".vibestudio/model-skins")) &&
+		expect(editor.editSurfaceSkin(&error) && QFileInfo(opened).absolutePath() == QDir(temp.path()).filePath(QStringLiteral(".slopstudio/model-skins")) &&
 				   QFile::exists(opened) && editor.skinRoundTripFiles().size() == 1,
 			   "Edit Skin opens its texture project in Textures", error);
 		auto *offer = editor.findChild<QWidget *>(QStringLiteral("meshSkinOffer"));

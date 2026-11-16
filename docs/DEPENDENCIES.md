@@ -27,9 +27,9 @@ path.
 The optional Panic Protocol campaign sample uses Python 3.11 with NumPy 2.3.0,
 SciPy 1.17.1 and Shapely 2.1.2 for offline map authoring, and ReportLab 5.1.0,
 svglib 2.3.2 and Poppler for design-document rendering and inspection. These
-tools are not linked into VibeStudio or bundled with the playable campaign.
+tools are not linked into SlopStudio or bundled with the playable campaign.
 Build, package and runtime-review scripts otherwise use Python's standard
-library, the existing VibeStudio/VibeMap2 CLI and separately owned game files.
+library, the existing SlopStudio/SlopMap2 CLI and separately owned game files.
 The sample's [requirements](../samples/projects/quake2-panic-protocol/requirements-authoring.txt)
 and [credits](../samples/projects/quake2-panic-protocol/CREDITS.md) record roles,
 versions and licences. Python authoring is portable; the supplied convenience
@@ -37,7 +37,7 @@ launcher and recorded native review environment are Windows-specific.
 
 The optional [model engine acceptance workflow](MODEL_ENGINE_ACCEPTANCE.md)
 accepts supplied FTE dedicated-server and FTEQCC executables, alongside the
-existing VibeMap2/VibeMap3 compilers. FTE remains an external GPL tool; none of
+existing SlopMap2/SlopMap3 compilers. FTE remains an external GPL tool; none of
 its engine or compiler code is linked, vendored into production, downloaded by
 the test, or required for ordinary builds. The Linux server uses `env`/GNU
 `timeout`; Windows can invoke it through a named WSL distribution. Interface
@@ -85,7 +85,7 @@ The optional Windows runtime packaging profile was verified with Qt 6.10.1 and
 its dynamically linked FFmpeg 7.1.2. It preserves Qt's LGPL-3.0 option and the
 vendor's FFmpeg LGPL-2.1-or-later/permissive attribution records, full notices,
 SPDX inventories and exact SDK-copy hashes. No new library is linked into
-VibeStudio. Windows ICU and the compiler runtime are explicit system/install
+SlopStudio. Windows ICU and the compiler runtime are explicit system/install
 prerequisites; unrelated SDK or system DLLs are not redistributed. See
 [runtime packaging](PACKAGING.md#windows-qt-and-audio-runtime) and
 [provenance and licence review](CREDITS.md#runtime-distribution).
@@ -93,7 +93,7 @@ prerequisites; unrelated SDK or system DLLs are not redistributed. See
 The optional release source companion adds unchanged QtTools and QtShaderTools
 6.10.1 source archives for rebuilding Linguist and shader tools. They retain
 their GPL-3.0-with-Qt-exception / LGPL-3.0 alternatives and original notices;
-they are not linked into VibeStudio. Source collection/packaging uses Python's
+they are not linked into SlopStudio. Source collection/packaging uses Python's
 standard library and pinned hashes, with no new installed library dependency.
 See the [source-companion workflow](PACKAGING.md#source-companion).
 
@@ -154,7 +154,7 @@ source-only dependencies.
   is absent; enabled requires it. Device-free builds disable both `audio_duplex`
   and `audio_playback`. No downloads occur during configuration or compilation.
 - Review: immutable upstream hashes, exact checked host patches and limitations
-  are in the [integration record](../external/audio/portaudio/VIBESTUDIO.md).
+  are in the [integration record](../external/audio/portaudio/SLOPSTUDIO.md).
   WASAPI input has packet timestamps; output timing remains estimated. Hardware
   acceptance, recording controls and grouped take review remain open.
 - Packaging: original license, attribution and hash manifest accompany binaries;
@@ -175,7 +175,7 @@ source-only dependencies.
   because this revision initializes process-wide tables. Unscaled loudness
   retains the absolute gate. True peak uses the existing r8brain converter,
   with streamed double-precision output and explicit silence on both sides.
-- Packaging/update: [integration record](../external/audio/libebur128/VIBESTUDIO.md),
+- Packaging/update: [integration record](../external/audio/libebur128/SLOPSTUDIO.md),
   the source hash manifest and all three licence notices ship through Meson and
   portable bundles. Credits validation checks original source bytes.
 - Limits: no certification claim, automatic surround inference, loudness range,
@@ -196,7 +196,7 @@ source-only dependencies.
   Meson uses checked-in headers on Windows, macOS, and Linux.
 - Packaging: both licences, attribution, and the hash manifest ship in portable
   licence bundles and Meson installs. Optional PFFFT/IPP code is not imported.
-- Maintenance: [integration and update procedure](../external/audio/r8brain-free-src/VIBESTUDIO.md).
+- Maintenance: [integration and update procedure](../external/audio/r8brain-free-src/SLOPSTUDIO.md).
 
 ### xatlas
 
@@ -214,7 +214,7 @@ source-only dependencies.
   support independent rectangular atlas limits in a generated header/source.
   Both original upstream files remain hash-verified and unchanged. Rectangular
   atlas proportions and padding are evaluated in texture pixel space.
-- Packaging/update: [integration record](../external/modelling/xatlas/VIBESTUDIO.md),
+- Packaging/update: [integration record](../external/modelling/xatlas/SLOPSTUDIO.md),
   pinned source hashes, and both licences ship with Meson and portable bundles.
 - Verification: animated curved meshes, coplanar seams, partial selection,
   deterministic output, overlap refusal, cancellation, allocation limits,
@@ -233,8 +233,8 @@ source-only dependencies.
 - Platform impact: none at build time. At run time the Vulkan backend opens the
   system's loader (`vulkan-1.dll` on Windows, `libvulkan.so.1` on Linux, the
   loader or MoltenVK on macOS) with `QLibrary`; a machine without it runs and
-  reports Vulkan unavailable. VibeStudio does not ship a loader or driver.
-- Packaging/update: [integration record](../external/graphics/vulkan-headers/VIBESTUDIO.md),
+  reports Vulkan unavailable. SlopStudio does not ship a loader or driver.
+- Packaging/update: [integration record](../external/graphics/vulkan-headers/SLOPSTUDIO.md),
   hash-verified by `credits-validation`; the licence files ship with Meson
   installs and portable bundles.
 
@@ -273,8 +273,8 @@ folder. It needs 7-Zip, which the runner image has.
 
 The script adds the folder to `PATH` and sets `VK_DRIVER_FILES` to lavapipe's
 manifest for the job's later steps, and the workflow checks that
-`vibestudio --cli render backends --json` reports Vulkan before the tests run.
-Nothing is installed system-wide, linked into VibeStudio or shipped with it.
+`slopstudio --cli render backends --json` reports Vulkan before the tests run.
+Nothing is installed system-wide, linked into SlopStudio or shipped with it.
 To move a pin, change the version and hash in the script after checking the new
 file, and update this table and [Credits](CREDITS.md#3d-rendering-opengl-and-vulkan-2026-10-08).
 
@@ -311,7 +311,7 @@ Optional interoperability checks used [Pyright 1.1.414](https://github.com/micro
 under MIT as a separate test process in isolated output. It is not a build or
 runtime dependency and is not included in application packages.
 
-## Required For VibeStudio
+## Required For SlopStudio
 - C++20 compiler and a matching C compiler for the unchanged Xiph decoder sources.
 - [Meson](https://mesonbuild.com/).
 - [Ninja](https://ninja-build.org/).
@@ -323,9 +323,9 @@ runtime dependency and is not included in application packages.
 ### Qt Modules In Use
 
 `meson.build` resolves three Qt dependency sets. `qt6_core_modules` is
-`Core, Gui, Network`, used by the `vibestudio_core` static library and by every
+`Core, Gui, Network`, used by the `slopstudio_core` static library and by every
 core test executable. `qt6_modules` is `Core, Gui, Widgets, Network`, used by the
-`vibestudio_app` static library and the `vibestudio` application binary.
+`slopstudio_app` static library and the `slopstudio` application binary.
 `qt6_test_modules` is `Core, Gui, Widgets, Test`, used only by the
 `shell-interaction-smoke` test; it is resolved with `required: false`, so a Qt
 install without Qt Test builds everything else and skips that test.
@@ -336,7 +336,7 @@ install without Qt Test builds everything else and skips that test.
 | Qt Gui | Core library, application | `QImage`, `QRgb`, `QPainter`, `QIcon`, `QColor`, and `QOpenGLContext`, `QOffscreenSurface` and `QOpenGLExtraFunctions` for the OpenGL renderer. Core needs it because the idTech image decoders return `QImage`, the palette tools render swatches and the 3D renderer lives there; the application needs it for every painted widget. |
 | Qt Widgets | Application only | The whole shell: `QMainWindow`, `QStackedWidget`, dialogs, the command palette, and the custom `QWidget` subclasses for the map viewport, asset views, and charts. |
 | Qt Test | `shell-interaction-smoke` only | `QTest::keyClick`, `QTest::qWaitForWindowActive`, and `QTest::qSleep` to drive the real window in the GUI interaction test. Nothing that ships links it. |
-| Qt Multimedia | Application, **optional** | `QMediaPlayer` and `QAudioOutput` play browser/waveform audio from memory. The multitrack worker uses the Qt 6.4-compatible `QAudioSink` push API for bounded stereo float blocks, explicit output selection and processed-time estimates. No input device is opened. All processing/CLI paths remain device-independent. Found through the `audio_playback` feature option (`auto`: linked when the module is present); `-Daudio_playback=enabled` makes it required, `disabled` leaves it out. Without it `VIBESTUDIO_HAVE_AUDIO_PLAYBACK` is 0 and the transport stays on the page, disabled. It is a Qt add-on module, so CI installs `qtmultimedia` on Windows and macOS; the Linux job builds the no-playback path, which keeps that branch compiling. |
+| Qt Multimedia | Application, **optional** | `QMediaPlayer` and `QAudioOutput` play browser/waveform audio from memory. The multitrack worker uses the Qt 6.4-compatible `QAudioSink` push API for bounded stereo float blocks, explicit output selection and processed-time estimates. No input device is opened. All processing/CLI paths remain device-independent. Found through the `audio_playback` feature option (`auto`: linked when the module is present); `-Daudio_playback=enabled` makes it required, `disabled` leaves it out. Without it `SLOPSTUDIO_HAVE_AUDIO_PLAYBACK` is 0 and the transport stays on the page, disabled. It is a Qt add-on module, so CI installs `qtmultimedia` on Windows and macOS; the Linux job builds the no-playback path, which keeps that branch compiling. |
 | Qt Network | Core library, CLI, application | `QNetworkAccessManager` in `core/ai_transport` sends the opt-in AI text questions (the Assistant panel, `ai ask`, `ai test-connection`) and nothing else; AI-free mode, the default, sends nothing. `QTcpServer` stands in for a provider in `ai-transport-smoke` and the shell interaction test, so those run offline. HTTPS needs one of Qt's TLS backend plugins (`plugins/tls`, such as `qschannelbackend` on Windows or `qopensslbackend`), which `windeployqt` stages with the Network module; a Qt runtime staged any other way must include it, or HTTPS providers fail with a TLS error while local `http://` runtimes still work. |
 
 Required Qt modules should stay minimal in `meson.build` until code uses them.
@@ -348,9 +348,9 @@ alone.
 ## Optional Build-Time Tools
 - **`lrelease`** (Qt Linguist release tool), looked up as `lrelease-qt6`,
   `lrelease6`, or `lrelease`. `i18n/meson.build` uses it to compile each
-  checked-in `i18n/vibestudio_<locale>.ts` catalog into a `.qm` that
+  checked-in `i18n/slopstudio_<locale>.ts` catalog into a `.qm` that
   `QTranslator` loads at run time, installed under
-  `<datadir>/vibestudio/i18n`. It is resolved with `required: false`: when it is
+  `<datadir>/slopstudio/i18n`. It is resolved with `required: false`: when it is
   absent, Meson prints a message, no catalogs are compiled, and the application
   runs in the source language instead of failing to build. This is a build-time
   tool only — nothing links against Qt Linguist, and no run-time behaviour
@@ -370,11 +370,11 @@ alone.
 ## Release Packaging Tools
 
 Used by `.github/workflows/release.yml` and the `scripts/package_*.py` helpers
-([Releasing](RELEASING.md)); none is linked into VibeStudio.
+([Releasing](RELEASING.md)); none is linked into SlopStudio.
 
 | Tool | Platform | Role | Licence |
 | --- | --- | --- | --- |
-| Inno Setup 6 | Windows | Builds `VibeStudio-<v>-windows-x64-setup.exe` from `packaging/windows/vibestudio.iss`; the installer carries Inno's setup runtime | Inno Setup License |
+| Inno Setup 6 | Windows | Builds `SlopStudio-<v>-windows-x64-setup.exe` from `packaging/windows/slopstudio.iss`; the installer carries Inno's setup runtime | Inno Setup License |
 | `windeployqt`, `macdeployqt` | Windows, macOS | Copy the Qt runtime beside the binary or into the app bundle | Qt (GPL-3.0 with exception / LGPL-3.0) |
 | create-dmg | macOS | Lays out the disk image window; plain `hdiutil` is the fallback | MIT |
 | linuxdeploy and linuxdeploy-plugin-qt | Linux | Assemble the AppImage from `meson install`; the AppImage embeds the type 2 runtime | MIT |
@@ -411,7 +411,7 @@ audited and, if it ever stops paying off, reversed knowingly.
 ### Claude Code and Codex (user-installed)
 
 The Claude Code and Codex connectors run tools the user installs and signs in
-to; VibeStudio bundles neither and reads none of their credentials. Their
+to; SlopStudio bundles neither and reads none of their credentials. Their
 documented command-line interfaces are the integration surface
 ([Claude Code CLI reference](https://code.claude.com/docs/en/cli-reference),
 [Codex](https://github.com/openai/codex)). Versions checked: Claude Code
@@ -420,11 +420,11 @@ documented command-line interfaces are the integration surface
 ### Map Generator — `src/mapgen/`
 
 Quake-MapGen's generator library is imported source, not a dependency: it is
-developed in VibeStudio from now on. Its MIT licence is kept in
+developed in SlopStudio from now on. Its MIT licence is kept in
 `src/mapgen/LICENSE` and installed with the application;
 `src/mapgen/UPSTREAM.json` records the imported revision and every file's
 upstream SHA-256. Upstream linked ggml for its layout ranker and llama.cpp for
-optional GGUF planning. By default VibeStudio links neither: the ranker is
+optional GGUF planning. By default SlopStudio links neither: the ranker is
 plain C++ with ggml's accumulation order, and models plan through the studio's
 AI connectors. Builds made with `-Dggml=enabled` link both, for the optional
 ggml ranker and the Local GGUF connector (see
@@ -468,7 +468,7 @@ Scope and limit: the decoder handles stored, fixed-Huffman, and dynamic-Huffman
 blocks, is bounds-checked throughout, never trusts a length or distance taken
 from the stream, caps output growth, and reports malformed input as an error.
 The encoder emits stored and fixed-Huffman blocks only and does not build
-dynamic Huffman tables, so archives VibeStudio writes are larger than the same
+dynamic Huffman tables, so archives SlopStudio writes are larger than the same
 content packed by zlib; entries that would not shrink are stored verbatim.
 Output is deterministic for a given input and level so archives reproduce. If
 archive size becomes a real problem, the fix is a dynamic-Huffman encoder in the
@@ -487,8 +487,8 @@ BMP, TIFF, and WebP.
 ### Application icon and fallback palettes
 
 The application icon is the brand artwork in `assets/branding/icons/png`,
-compiled into the app library as a Qt resource (`assets/branding/vibestudio.qrc`)
-and into `vibestudio.exe` as a Windows icon. Every size is generated by
+compiled into the app library as a Qt resource (`assets/branding/slopstudio.qrc`)
+and into `slopstudio.exe` as a Windows icon. Every size is generated by
 `scripts/generate_branding.py` from one geometry description, so the files are
 reproducible rather than opaque; if the resource is missing, the studio paints
 the same mark at run time. The fallback palettes used before a real game palette
@@ -497,14 +497,14 @@ commercial game data.
 
 ## Imported Compiler Source Dependencies
 The external compiler submodules keep their own build systems and dependency
-requirements. VibeStudio does not build them by default yet. VibeMap2 and
-VibeMap3 are VibeStudio's own compilers, developed as part of the project; they
+requirements. SlopStudio does not build them by default yet. SlopMap2 and
+SlopMap3 are SlopStudio's own compilers, developed as part of the project; they
 replace the stock ericw-tools and NetRadiant Custom q3map2 submodules and add no
-library to VibeStudio itself, because the studio runs them as separate
+library to SlopStudio itself, because the studio runs them as separate
 processes.
 
-- [VibeMap2](https://github.com/themuffinator/VibeyMapTools) (derived from [ericw-tools](https://github.com/ericwa/ericw-tools)): CMake 3.16+, Embree 4 and oneTBB for `vibemap2-light`, Qt6 for the `vibemap2-hub` GUI, and bundled third-party libraries documented in its `BUILDING.md`.
-- [VibeMap3](https://github.com/themuffinator/q3mapx) (continuing q3map2 from [NetRadiant Custom](https://github.com/Garux/netradiant-custom)): CMake 3.25+ presets with Ninja, a C++20 compiler, pkg-config, GLib, libxml2, Assimp, libpng, libjpeg and zlib; Qt 6.4+ for `vibemap3-workbench` (the `cli` preset builds without Qt); OpenCL is loaded at run time when present. See its `docs/DEVELOPMENT.md`.
+- [SlopMap2](https://github.com/themuffinator/VibeyMapTools) (derived from [ericw-tools](https://github.com/ericwa/ericw-tools)): CMake 3.16+, Embree 4 and oneTBB for `slopmap2-light`, Qt6 for the `slopmap2-hub` GUI, and bundled third-party libraries documented in its `BUILDING.md`.
+- [SlopMap3](https://github.com/themuffinator/q3mapx) (continuing q3map2 from [NetRadiant Custom](https://github.com/Garux/netradiant-custom)): CMake 3.25+ presets with Ninja, a C++20 compiler, pkg-config, GLib, libxml2, Assimp, libpng, libjpeg and zlib; Qt 6.4+ for `slopmap3-workbench` (the `cli` preset builds without Qt); OpenCL is loaded at run time when present. See its `docs/DEVELOPMENT.md`.
 - [ZDBSP](https://github.com/rheit/zdbsp): CMake and zlib-oriented source tree as documented upstream.
 - [ZokumBSP](https://github.com/zokum-no/zokumbsp): upstream source/build instructions in its README and `doc` directory.
 
@@ -532,7 +532,7 @@ Likely future additions:
 ## Evaluated And Declined
 - [zlib](https://zlib.net/) and [miniz](https://github.com/richgel999/miniz): evaluated for ZIP/PK3 compression and declined in favour of the in-tree DEFLATE codec documented above. Revisit only if archive size or compression throughput becomes a real user complaint that a dynamic-Huffman encoder in `src/core/deflate.cpp` cannot answer.
 - Qt Graphics View and an early GPU backend for 2D editor surfaces: declined in favour of plain `QPainter` widgets, which need no Qt module beyond Widgets.
-- [bgfx](https://bkaradzic.github.io/bgfx/overview.html) and Qt's QRhi for 3D views (2026-10-08): bgfx adds a large dependency for backends the studio does not need, and QRhi cannot render under the offscreen platform the tests use or in the console-only CLI. VibeStudio's own OpenGL and Vulkan layer replaced the CPU rasterisers instead (see [STACK.md](STACK.md)).
+- [bgfx](https://bkaradzic.github.io/bgfx/overview.html) and Qt's QRhi for 3D views (2026-10-08): bgfx adds a large dependency for backends the studio does not need, and QRhi cannot render under the offscreen platform the tests use or in the console-only CLI. SlopStudio's own OpenGL and Vulkan layer replaced the CPU rasterisers instead (see [STACK.md](STACK.md)).
 - Qt OpenGLWidgets: no longer planned; frames render offscreen and widgets present them with `QPainter`.
 
 Any new dependency must be recorded here with its role, license, platform notes,
@@ -552,13 +552,13 @@ The runtime stack and required dependencies are unchanged.
 
 - [OpenAI API](https://platform.openai.com/docs/quickstart): optional, user-configured integration for prompt-based automation. After opt-in, the OpenAI connector answers text questions through Chat Completions and draws pictures through the Images API over Qt Network, with its key read from an environment variable and redacted everywhere. Core editing, packaging, compiling, and launching work without an API key.
 - [OpenAI Responses API](https://platform.openai.com/docs/api-reference/responses): a possible future surface for tool-using workflows; text questions use Chat Completions today.
-- [OpenAI function calling / tools](https://developers.openai.com/api/docs/guides/tools): the pattern for VibeStudio's safe tool descriptors; models do not call tools yet.
+- [OpenAI function calling / tools](https://developers.openai.com/api/docs/guides/tools): the pattern for SlopStudio's safe tool descriptors; models do not call tools yet.
 - [Claude API](https://platform.claude.com/docs/en/home): optional connector target for reasoning, coding, review, long-context, and agentic planning workflows.
 - [Gemini API](https://ai.google.dev/api): optional connector target for multimodal and large-context workflows.
 - [ElevenLabs API](https://elevenlabs.io/docs/overview/intro): optional, user-configured connector; its [Sound Effects API](https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert) makes sounds for the Sound Generator and `asset audio-generate`, reached through Qt Network with no SDK or new dependency, its MP3 answers decoded by the existing dr_mp3. Voice, speech-to-text, and narration remain targets.
 - [Meshy API](https://docs.meshy.ai/en): optional connector target for prompt/image-to-3D, AI texturing, and rapid placeholder asset workflows.
 - Local/offline model connectors: optional user-configured connectors for AI-free-from-cloud workflows where compatible local runtimes or command-line tools are available.
-- Image generation (OpenAI Images API, Gemini image output, and a local [Stable Diffusion web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API) such as AUTOMATIC1111 or Forge): optional, user-configured HTTP services for the Texture Generator and `ai image`, reached through Qt Network with no SDK or new dependency. The web UI is a separate program the user runs; VibeStudio only speaks its documented API.
+- Image generation (OpenAI Images API, Gemini image output, and a local [Stable Diffusion web UI](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API) such as AUTOMATIC1111 or Forge): optional, user-configured HTTP services for the Texture Generator and `ai image`, reached through Qt Network with no SDK or new dependency. The web UI is a separate program the user runs; SlopStudio only speaks its documented API.
 
 ## Additional image codecs and workspace JSON
 

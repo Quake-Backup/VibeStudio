@@ -10,7 +10,7 @@
 #include <QWheelEvent>
 #include <algorithm>
 #include <cmath>
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -481,4 +481,4 @@ void ModelAnimationCurveView::keyPressEvent(QKeyEvent *event)
 	}
 	QWidget::keyPressEvent(event);
 }
-} // namespace vibestudio
+} // namespace slopstudio

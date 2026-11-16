@@ -48,28 +48,28 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 		return expect(false, "Expected test project directories to be created.");
 	}
 
-	vibestudio::StudioSettings settings(settingsPath);
-	ok &= expect(settings.schemaVersion() == vibestudio::StudioSettings::kSchemaVersion, "Expected default settings schema version.");
+	slopstudio::StudioSettings settings(settingsPath);
+	ok &= expect(settings.schemaVersion() == slopstudio::StudioSettings::kSchemaVersion, "Expected default settings schema version.");
 	ok &= expect(!settings.storedSchemaIsNewer() && !settings.isReadOnly(), "Expected a fresh store to be writable.");
 	ok &= expect(settings.recentProjects().isEmpty(), "Expected no recent projects in a fresh settings file.");
-	const vibestudio::AccessibilityPreferences defaultPreferences = settings.accessibilityPreferences();
-	ok &= expect(defaultPreferences.localeName == QStringLiteral("system") && defaultPreferences.textScalePercent == 100 && defaultPreferences.theme == vibestudio::StudioTheme::Dark && defaultPreferences.density == vibestudio::UiDensity::Standard,
+	const slopstudio::AccessibilityPreferences defaultPreferences = settings.accessibilityPreferences();
+	ok &= expect(defaultPreferences.localeName == QStringLiteral("system") && defaultPreferences.textScalePercent == 100 && defaultPreferences.theme == slopstudio::StudioTheme::Dark && defaultPreferences.density == slopstudio::UiDensity::Standard,
 		"Expected default accessibility and language preferences.");
-	ok &= expect(defaultPreferences.formatLocaleName == QStringLiteral("system") && defaultPreferences.colorVision == vibestudio::ColorVision::Typical
+	ok &= expect(defaultPreferences.formatLocaleName == QStringLiteral("system") && defaultPreferences.colorVision == slopstudio::ColorVision::Typical
 			&& !defaultPreferences.reducedSaturation && !defaultPreferences.thickFocusIndicator && !defaultPreferences.thickTextCursor
 			&& !defaultPreferences.steadyTextCursor && defaultPreferences.uiFontFamily.isEmpty() && !defaultPreferences.wideTextSpacing
-			&& defaultPreferences.messageDuration == vibestudio::MessageDuration::Standard && defaultPreferences.visualAlerts
+			&& defaultPreferences.messageDuration == slopstudio::MessageDuration::Standard && defaultPreferences.visualAlerts
 			&& !defaultPreferences.soundCues && defaultPreferences.soundCueVolume == 60
 			&& defaultPreferences.screenReaderAnnouncements && !defaultPreferences.textToSpeechEnabled
 			&& defaultPreferences.speechEvents == QStringList({QStringLiteral("task-results"), QStringLiteral("task-problems")})
 			&& defaultPreferences.speechVoice.isEmpty() && defaultPreferences.speechRate == 0 && defaultPreferences.speechPitch == 0 && defaultPreferences.speechVolume == 100,
 		"Expected default region, vision, timing, alert, and speech preferences.");
-	ok &= expect(settings.selectedEditorProfileId() == QStringLiteral("vibestudio-default"), "Expected default editor profile selection.");
-	const vibestudio::AiAutomationPreferences defaultAiPreferences = settings.aiAutomationPreferences();
+	ok &= expect(settings.selectedEditorProfileId() == QStringLiteral("slopstudio-default"), "Expected default editor profile selection.");
+	const slopstudio::AiAutomationPreferences defaultAiPreferences = settings.aiAutomationPreferences();
 	ok &= expect(defaultAiPreferences.aiFreeMode && !defaultAiPreferences.cloudConnectorsEnabled && !defaultAiPreferences.agenticWorkflowsEnabled,
 		"Expected AI automation to be disabled by default.");
-	const vibestudio::SetupProgress defaultSetup = settings.setupProgress();
-	ok &= expect(!defaultSetup.started && !defaultSetup.skipped && !defaultSetup.completed && defaultSetup.currentStep == vibestudio::SetupStep::WelcomeAccess,
+	const slopstudio::SetupProgress defaultSetup = settings.setupProgress();
+	ok &= expect(!defaultSetup.started && !defaultSetup.skipped && !defaultSetup.completed && defaultSetup.currentStep == slopstudio::SetupStep::WelcomeAccess,
 		"Expected default setup state.");
 	ok &= expect(settings.setupSummary().status == QStringLiteral("not-started"), "Expected default setup summary status.");
 
@@ -94,7 +94,7 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 	ok &= expect(settings.renderBackendPreference() == QStringLiteral("automatic"), "Expected an unknown 3D renderer to fall back to automatic.");
 	settings.setRenderBackendPreference(QStringLiteral("opengl"));
 	settings.sync();
-	ok &= expect(vibestudio::StudioSettings(settingsPath).renderBackendPreference() == QStringLiteral("opengl"), "Expected the 3D renderer preference to persist.");
+	ok &= expect(slopstudio::StudioSettings(settingsPath).renderBackendPreference() == QStringLiteral("opengl"), "Expected the 3D renderer preference to persist.");
 	ok &= expect(settings.codeRecoveryEnabled(), "Expected local Code recovery to be enabled by default.");
 	settings.setCodeRecoveryEnabled(false);
 	ok &= expect(settings.audioRecoveryEnabled() && settings.audioRecoveryNotifyAtStartup(),
@@ -102,7 +102,7 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 	settings.setAudioRecoveryEnabled(false);
 	settings.setAudioRecoveryNotifyAtStartup(false);
 	settings.sync();
-	vibestudio::StudioSettings audioReloaded(settingsPath);
+	slopstudio::StudioSettings audioReloaded(settingsPath);
 	ok &= expect(!audioReloaded.audioRecoveryEnabled() && !audioReloaded.audioRecoveryNotifyAtStartup(),
 		"Audio checkpoint and notification preferences persist independently.");
 	settings.setAudioRecoveryNotifyAtStartup(true);
@@ -116,7 +116,7 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 	ok &= expect(settings.textureRecoveryIntervalSeconds() == 600, "Texture recovery interval has an upper bound.");
 	settings.setTextureRecoveryEnabled(true); settings.setTextureRecoveryIntervalSeconds(30);
 	settings.sync();
-	ok &= expect(!vibestudio::StudioSettings(settingsPath).codeRecoveryEnabled(), "Expected the Code recovery preference to persist across settings instances.");
+	ok &= expect(!slopstudio::StudioSettings(settingsPath).codeRecoveryEnabled(), "Expected the Code recovery preference to persist across settings instances.");
 	settings.setCodeRecoveryEnabled(true);
 	ok &= expect(settings.codeZoomPercent() == 100, "Expected the code editor to start at 100% zoom.");
 	ok &= expect(settings.userShortcuts().isEmpty(), "Expected no keys of the user's own at first.");
@@ -142,13 +142,13 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 	settings.setCodeStickyHeaders(false);
 	ok &= expect(!settings.codeStickyHeaders(), "Expected sticky headers to turn off.");
 	settings.setCodeStickyHeaders(true);
-	vibestudio::StudioSession left;
+	slopstudio::StudioSession left;
 	left.codeFiles = {QStringLiteral("a.cfg")};
-	vibestudio::StudioSession right = left;
+	slopstudio::StudioSession right = left;
 	ok &= expect(left == right, "Expected equal sessions to compare equal.");
 	right.currentCodeFile = QStringLiteral("a.cfg");
 	ok &= expect(!(left == right), "Expected sessions differing in the file in front to differ.");
-	vibestudio::StudioSession session;
+	slopstudio::StudioSession session;
 	session.packagePath = QStringLiteral("C:/games/quake/id1/pak0.pak");
 	session.mapPath = QStringLiteral("C:/maps/rooms.wad");
 	session.mapName = QStringLiteral("MAP02");
@@ -158,7 +158,7 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 	settings.setRestoreSession(false);
 	settings.setShellLayoutState(QStringLiteral("levelsWorkbench"), QByteArray("splitter-bytes"));
 	settings.setShellLayoutState(QStringLiteral("  "), QByteArray("ignored"));
-	for (int index = 0; index < vibestudio::StudioSettings::kMaximumRecentFiles + 3; ++index) {
+	for (int index = 0; index < slopstudio::StudioSettings::kMaximumRecentFiles + 3; ++index) {
 		settings.recordRecentFile(QStringLiteral("map"), QStringLiteral("C:/maps/map%1.map").arg(index));
 	}
 	settings.recordRecentFile(QStringLiteral("map"), QStringLiteral("C:/maps/map5.map"));
@@ -173,18 +173,18 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 	settings.setLaunchGameDirectory(QStringLiteral("quake3-5678"), QStringLiteral("baseq3"));
 	settings.setLaunchGameDirectory(QStringLiteral("quake3-5678"), QString());
 	settings.setLaunchGameDirectory(QStringLiteral("  "), QStringLiteral("ignored"));
-	for (int index = 0; index < vibestudio::StudioSettings::kMaximumRecentCommands + 2; ++index) {
+	for (int index = 0; index < slopstudio::StudioSettings::kMaximumRecentCommands + 2; ++index) {
 		settings.recordRecentCommand(QStringLiteral("command.%1").arg(index));
 	}
 	settings.recordRecentCommand(QStringLiteral("command.3"));
 	settings.recordRecentCommand(QStringLiteral("  "));
 
-	vibestudio::RecentActivityTask compilerActivity;
-	compilerActivity.id = QStringLiteral("compiler-vibemap2-bsp");
+	slopstudio::RecentActivityTask compilerActivity;
+	compilerActivity.id = QStringLiteral("compiler-slopmap2-bsp");
 	compilerActivity.title = QStringLiteral("Compiler Run");
 	compilerActivity.detail = QStringLiteral("maps/start.map");
 	compilerActivity.source = QStringLiteral("compiler");
-	compilerActivity.state = vibestudio::OperationState::Completed;
+	compilerActivity.state = slopstudio::OperationState::Completed;
 	compilerActivity.resultSummary = QStringLiteral("Completed in 42 ms / outputs: 1");
 	compilerActivity.warnings = {QStringLiteral("Fixture compiler emitted a benign note.")};
 	compilerActivity.createdUtc = QDateTime::fromString(QStringLiteral("2026-04-29T10:05:00Z"), Qt::ISODate);
@@ -193,37 +193,37 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 	compilerActivity.cancellable = true;
 	compilerActivity.durationMs = 4242;
 	compilerActivity.progress = {3, 7};
-	compilerActivity.transitions.push_back({compilerActivity.createdUtc, vibestudio::OperationState::Running, 0, QStringLiteral("started")});
-	compilerActivity.transitions.push_back({compilerActivity.updatedUtc, vibestudio::OperationState::Completed, 4242, QStringLiteral("finished")});
-	compilerActivity.log.push_back({compilerActivity.createdUtc, vibestudio::OperationState::Running, QStringLiteral("qbsp: reading maps/start.map")});
-	compilerActivity.log.push_back({compilerActivity.updatedUtc, vibestudio::OperationState::Completed, QStringLiteral("qbsp: wrote maps/start.bsp")});
+	compilerActivity.transitions.push_back({compilerActivity.createdUtc, slopstudio::OperationState::Running, 0, QStringLiteral("started")});
+	compilerActivity.transitions.push_back({compilerActivity.updatedUtc, slopstudio::OperationState::Completed, 4242, QStringLiteral("finished")});
+	compilerActivity.log.push_back({compilerActivity.createdUtc, slopstudio::OperationState::Running, QStringLiteral("qbsp: reading maps/start.map")});
+	compilerActivity.log.push_back({compilerActivity.updatedUtc, slopstudio::OperationState::Completed, QStringLiteral("qbsp: wrote maps/start.bsp")});
 	settings.recordRecentActivityTask(compilerActivity);
 
-	vibestudio::GameInstallationProfile quakeProfile;
+	slopstudio::GameInstallationProfile quakeProfile;
 	quakeProfile.rootPath = quakeInstall;
 	quakeProfile.gameKey = QStringLiteral("quake");
 	quakeProfile.displayName = QStringLiteral("Quake Test");
 	settings.upsertGameInstallation(quakeProfile);
-	settings.startOrResumeSetup(vibestudio::SetupStep::WorkspaceProfile);
+	settings.startOrResumeSetup(slopstudio::SetupStep::WorkspaceProfile);
 	settings.advanceSetup();
 	settings.skipSetup();
 
-	vibestudio::AccessibilityPreferences preferences;
+	slopstudio::AccessibilityPreferences preferences;
 	preferences.localeName = QStringLiteral("pt_BR");
 	preferences.textScalePercent = 175;
-	preferences.theme = vibestudio::StudioTheme::HighContrastLight;
-	preferences.density = vibestudio::UiDensity::Compact;
+	preferences.theme = slopstudio::StudioTheme::HighContrastLight;
+	preferences.density = slopstudio::UiDensity::Compact;
 	preferences.reducedMotion = true;
 	preferences.textToSpeechEnabled = true;
 	preferences.formatLocaleName = QStringLiteral("de_CH");
-	preferences.colorVision = vibestudio::colorVisionFromId(QStringLiteral("deuteranopia"));
+	preferences.colorVision = slopstudio::colorVisionFromId(QStringLiteral("deuteranopia"));
 	preferences.reducedSaturation = true;
 	preferences.thickFocusIndicator = true;
 	preferences.thickTextCursor = true;
 	preferences.steadyTextCursor = true;
 	preferences.uiFontFamily = QStringLiteral("  Atkinson Hyperlegible ");
 	preferences.wideTextSpacing = true;
-	preferences.messageDuration = vibestudio::messageDurationFromId(QStringLiteral("until_replaced"));
+	preferences.messageDuration = slopstudio::messageDurationFromId(QStringLiteral("until_replaced"));
 	preferences.visualAlerts = false;
 	preferences.soundCues = true;
 	preferences.soundCueVolume = 140;
@@ -235,15 +235,15 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 	preferences.speechVolume = 60;
 	settings.setAccessibilityPreferences(preferences);
 	settings.setSelectedEditorProfileId(QStringLiteral("TrenchBroom"));
-	settings.upsertCompilerToolPathOverride({QStringLiteral("vibemap2-bsp"), root.filePath(QStringLiteral("qbsp-test"))});
-	vibestudio::AiAutomationPreferences aiPreferences;
+	settings.upsertCompilerToolPathOverride({QStringLiteral("slopmap2-bsp"), root.filePath(QStringLiteral("qbsp-test"))});
+	slopstudio::AiAutomationPreferences aiPreferences;
 	aiPreferences.aiFreeMode = false;
 	aiPreferences.cloudConnectorsEnabled = true;
 	aiPreferences.agenticWorkflowsEnabled = true;
 	aiPreferences.preferredReasoningConnectorId = QStringLiteral("openai");
 	aiPreferences.preferredLocalConnectorId = QStringLiteral("local-offline");
 	aiPreferences.preferredTextModelId = QStringLiteral("openai-text-default");
-	aiPreferences.meshyCredentialEnvironmentVariable = QStringLiteral("VIBESTUDIO_TEST_MESHY_KEY");
+	aiPreferences.meshyCredentialEnvironmentVariable = QStringLiteral("SLOPSTUDIO_TEST_MESHY_KEY");
 	aiPreferences.connectorModels.insert(QStringLiteral("Local-Offline"), QStringLiteral(" llama-test "));
 	aiPreferences.connectorEndpoints.insert(QStringLiteral("local-offline"), QStringLiteral("http://localhost:1234/v1"));
 	aiPreferences.connectorModels.insert(QStringLiteral("no-such-connector"), QStringLiteral("x"));
@@ -253,8 +253,8 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 	settings.setAiContextConsentGiven(alphaProject, QStringLiteral("gemini@generativelanguage.googleapis.com"), false);
 	settings.sync();
 
-	vibestudio::StudioSettings reloaded(settingsPath);
-	const QVector<vibestudio::RecentProject> projects = reloaded.recentProjects();
+	slopstudio::StudioSettings reloaded(settingsPath);
+	const QVector<slopstudio::RecentProject> projects = reloaded.recentProjects();
 	ok &= expect(projects.size() == 2, "Expected duplicate recent project records to collapse.");
 	if (projects.size() == 2) {
 		ok &= expect(projects[0].displayName == QStringLiteral("Alpha Renamed"), "Expected most recently opened project first.");
@@ -269,7 +269,7 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 	ok &= expect(reloaded.shellModeRailBehaviour() == QStringLiteral("automatic"), "Expected an unknown rail behaviour to read back as automatic.");
 	reloaded.setShellModeRailBehaviour(QStringLiteral("expanded"));
 	{
-		const vibestudio::StudioSession restored = reloaded.lastSession();
+		const slopstudio::StudioSession restored = reloaded.lastSession();
 		ok &= expect(!reloaded.restoreSession() && restored.packagePath == QStringLiteral("C:/games/quake/id1/pak0.pak")
 				&& restored.mapPath == QStringLiteral("C:/maps/rooms.wad") && restored.mapName == QStringLiteral("MAP02")
 				&& restored.codeFiles == QStringList {QStringLiteral("C:/src/a.qc"), QStringLiteral("C:/src/b.cfg")}
@@ -282,7 +282,7 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 		"Expected an unknown layout key to read back empty.");
 	ok &= expect(reloaded.shellLayoutState(QStringLiteral("  ")).isEmpty(), "Expected a blank layout key to be ignored.");
 	const QStringList recentMaps = reloaded.recentFiles(QStringLiteral("map"));
-	ok &= expect(recentMaps.size() == vibestudio::StudioSettings::kMaximumRecentFiles, "Expected recent maps to stop at the limit.");
+	ok &= expect(recentMaps.size() == slopstudio::StudioSettings::kMaximumRecentFiles, "Expected recent maps to stop at the limit.");
 	ok &= expect(!recentMaps.isEmpty() && recentMaps.first().endsWith(QStringLiteral("map5.map")), "Expected a reopened map to move to the top.");
 	ok &= expect(recentMaps.filter(QStringLiteral("map5.map")).size() == 1, "Expected a reopened map to appear once.");
 	ok &= expect(reloaded.recentFiles(QStringLiteral("package")).size() == 1, "Expected recent packages to persist separately.");
@@ -292,47 +292,47 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 	ok &= expect(reloaded.launchGameDirectory(QStringLiteral("quake3-5678")).isEmpty(), "Expected clearing a launch game folder to forget it.");
 	ok &= expect(reloaded.launchGameDirectory(QStringLiteral("  ")).isEmpty(), "Expected a blank installation id to be ignored.");
 	const QStringList recentCommands = reloaded.recentCommands();
-	ok &= expect(recentCommands.size() == vibestudio::StudioSettings::kMaximumRecentCommands, "Expected recent commands to stop at the limit.");
+	ok &= expect(recentCommands.size() == slopstudio::StudioSettings::kMaximumRecentCommands, "Expected recent commands to stop at the limit.");
 	ok &= expect(recentCommands.value(0) == QStringLiteral("command.3") && recentCommands.count(QStringLiteral("command.3")) == 1,
 		"Expected a command run again to move to the front once.");
 	reloaded.clearRecentFiles();
 	ok &= expect(reloaded.recentFiles(QStringLiteral("map")).isEmpty() && reloaded.recentFiles(QStringLiteral("package")).isEmpty(),
 		"Expected clearing recent files to clear every kind.");
 
-	const QVector<vibestudio::RecentActivityTask> activities = reloaded.recentActivityTasks();
+	const QVector<slopstudio::RecentActivityTask> activities = reloaded.recentActivityTasks();
 	ok &= expect(activities.size() == 1, "Expected recent activity task history to persist.");
 	if (!activities.isEmpty()) {
-		const vibestudio::RecentActivityTask& task = activities.front();
-		ok &= expect(task.id == QStringLiteral("compiler-vibemap2-bsp") && task.source == QStringLiteral("compiler") && task.state == vibestudio::OperationState::Completed && task.warnings.size() == 1,
+		const slopstudio::RecentActivityTask& task = activities.front();
+		ok &= expect(task.id == QStringLiteral("compiler-slopmap2-bsp") && task.source == QStringLiteral("compiler") && task.state == slopstudio::OperationState::Completed && task.warnings.size() == 1,
 			"Expected recent activity task headline fields to persist.");
 		// The detail behind the headline must survive too.
 		ok &= expect(task.durationMs == 4242, "Expected task duration to persist.");
 		ok &= expect(task.cancellable, "Expected task cancellability to persist.");
 		ok &= expect(task.progress.current == 3 && task.progress.total == 7, "Expected task progress to persist.");
-		ok &= expect(task.transitions.size() == 2 && task.transitions.last().state == vibestudio::OperationState::Completed && task.transitions.last().elapsedMs == 4242,
+		ok &= expect(task.transitions.size() == 2 && task.transitions.last().state == slopstudio::OperationState::Completed && task.transitions.last().elapsedMs == 4242,
 			"Expected the task transition timeline to persist.");
 		ok &= expect(task.log.size() == 2 && task.log.last().message.contains(QStringLiteral("start.bsp")),
 			"Expected captured compiler output to persist.");
 		ok &= expect(!task.logTruncated && task.droppedLogEntryCount == 0, "Expected a short log to persist untruncated.");
 	}
 
-	QVector<vibestudio::GameInstallationProfile> installations = reloaded.gameInstallations();
-	ok &= expect(installations.size() == 1 && installations.front().displayName == QStringLiteral("Quake Test") && installations.front().engineFamily == vibestudio::GameEngineFamily::IdTech2,
+	QVector<slopstudio::GameInstallationProfile> installations = reloaded.gameInstallations();
+	ok &= expect(installations.size() == 1 && installations.front().displayName == QStringLiteral("Quake Test") && installations.front().engineFamily == slopstudio::GameEngineFamily::IdTech2,
 		"Expected manual game installation to persist.");
 	if (installations.isEmpty()) {
 		return ok;
 	}
 	ok &= expect(reloaded.selectedGameInstallationId() == installations.front().id, "Expected first installation to become selected.");
 	ok &= expect(reloaded.selectedEditorProfileId() == QStringLiteral("trenchbroom"), "Expected selected editor profile to persist with normalized id.");
-	ok &= expect(reloaded.compilerToolPathOverrides().size() == 1 && reloaded.compilerToolPathOverrides().front().toolId == QStringLiteral("vibemap2-bsp"),
+	ok &= expect(reloaded.compilerToolPathOverrides().size() == 1 && reloaded.compilerToolPathOverrides().front().toolId == QStringLiteral("slopmap2-bsp"),
 		"Expected compiler executable override to persist.");
 
-	const vibestudio::AiAutomationPreferences reloadedAiPreferences = reloaded.aiAutomationPreferences();
+	const slopstudio::AiAutomationPreferences reloadedAiPreferences = reloaded.aiAutomationPreferences();
 	ok &= expect(!reloadedAiPreferences.aiFreeMode && reloadedAiPreferences.cloudConnectorsEnabled && reloadedAiPreferences.agenticWorkflowsEnabled
 			&& reloadedAiPreferences.preferredReasoningConnectorId == QStringLiteral("openai")
 			&& reloadedAiPreferences.preferredLocalConnectorId == QStringLiteral("local-offline")
 			&& reloadedAiPreferences.preferredTextModelId == QStringLiteral("openai-text-default")
-			&& reloadedAiPreferences.meshyCredentialEnvironmentVariable == QStringLiteral("VIBESTUDIO_TEST_MESHY_KEY"),
+			&& reloadedAiPreferences.meshyCredentialEnvironmentVariable == QStringLiteral("SLOPSTUDIO_TEST_MESHY_KEY"),
 		"Expected AI opt-in preferences to persist.");
 	ok &= expect(reloadedAiPreferences.connectorModels.value(QStringLiteral("local-offline")) == QStringLiteral("llama-test")
 			&& reloadedAiPreferences.connectorEndpoints.value(QStringLiteral("local-offline")) == QStringLiteral("http://localhost:1234/v1")
@@ -343,7 +343,7 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 			&& !reloaded.aiContextConsentGiven(QString(), QStringLiteral("claude@api.anthropic.com")),
 		"Expected consent to send context to persist per project and destination.");
 	{
-		vibestudio::AiAutomationPreferences cleared = reloaded.aiAutomationPreferences();
+		slopstudio::AiAutomationPreferences cleared = reloaded.aiAutomationPreferences();
 		cleared.connectorEndpoints.clear();
 		reloaded.setAiAutomationPreferences(cleared);
 		ok &= expect(reloaded.aiAutomationPreferences().connectorEndpoints.isEmpty() && !reloaded.aiAutomationPreferences().connectorModels.isEmpty(),
@@ -352,37 +352,37 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 		ok &= expect(!reloaded.aiContextConsentGiven(alphaProject, QStringLiteral("claude@api.anthropic.com")), "Expected consent to clear.");
 	}
 
-	vibestudio::SetupProgress reloadedSetup = reloaded.setupProgress();
-	ok &= expect(reloadedSetup.started && reloadedSetup.skipped && !reloadedSetup.completed && reloadedSetup.currentStep == vibestudio::SetupStep::ProjectsPackages,
+	slopstudio::SetupProgress reloadedSetup = reloaded.setupProgress();
+	ok &= expect(reloadedSetup.started && reloadedSetup.skipped && !reloadedSetup.completed && reloadedSetup.currentStep == slopstudio::SetupStep::ProjectsPackages,
 		"Expected setup skip/resume state to persist.");
 	ok &= expect(reloaded.setupSummary().status == QStringLiteral("skipped"), "Expected skipped setup summary.");
 	reloaded.startOrResumeSetup(reloadedSetup.currentStep);
 	reloaded.advanceSetup();
 	reloaded.completeSetup();
 	reloadedSetup = reloaded.setupProgress();
-	ok &= expect(reloadedSetup.started && !reloadedSetup.skipped && reloadedSetup.completed && reloadedSetup.currentStep == vibestudio::SetupStep::ReviewFinish,
+	ok &= expect(reloadedSetup.started && !reloadedSetup.skipped && reloadedSetup.completed && reloadedSetup.currentStep == slopstudio::SetupStep::ReviewFinish,
 		"Expected setup completion state.");
 	ok &= expect(reloaded.setupSummary().status == QStringLiteral("complete"), "Expected complete setup summary.");
 	reloaded.resetSetup();
 	ok &= expect(!reloaded.setupProgress().started && reloaded.setupSummary().status == QStringLiteral("not-started"), "Expected reset setup state.");
-	ok &= expect(vibestudio::setupStepFromId(QStringLiteral("AI_AUTOMATION")) == vibestudio::SetupStep::AiAutomation, "Expected setup step id normalization.");
+	ok &= expect(slopstudio::setupStepFromId(QStringLiteral("AI_AUTOMATION")) == slopstudio::SetupStep::AiAutomation, "Expected setup step id normalization.");
 	// Step names are title case as the Settings pages write it: joining words
 	// stay lower case ("Welcome and Access", not "Welcome And Access").
-	for (vibestudio::SetupStep step : vibestudio::setupSteps()) {
-		const QString name = vibestudio::setupStepDisplayName(step);
+	for (slopstudio::SetupStep step : slopstudio::setupSteps()) {
+		const QString name = slopstudio::setupStepDisplayName(step);
 		ok &= expect(!name.isEmpty() && !name.contains(QStringLiteral(" And ")) && !name.contains(QStringLiteral(" Or ")),
 			"Expected setup step names to keep joining words lower case.");
 	}
-	ok &= expect(vibestudio::setupStepDisplayName(vibestudio::SetupStep::AiAutomation) == QStringLiteral("AI and Automation"),
+	ok &= expect(slopstudio::setupStepDisplayName(slopstudio::SetupStep::AiAutomation) == QStringLiteral("AI and Automation"),
 		"Expected the AI step to read \"AI and Automation\".");
 
-	const vibestudio::AccessibilityPreferences reloadedPreferences = reloaded.accessibilityPreferences();
-	ok &= expect(reloadedPreferences.localeName == QStringLiteral("pt-BR") && reloadedPreferences.textScalePercent == 175 && reloadedPreferences.theme == vibestudio::StudioTheme::HighContrastLight && reloadedPreferences.density == vibestudio::UiDensity::Compact && reloadedPreferences.reducedMotion && reloadedPreferences.textToSpeechEnabled,
+	const slopstudio::AccessibilityPreferences reloadedPreferences = reloaded.accessibilityPreferences();
+	ok &= expect(reloadedPreferences.localeName == QStringLiteral("pt-BR") && reloadedPreferences.textScalePercent == 175 && reloadedPreferences.theme == slopstudio::StudioTheme::HighContrastLight && reloadedPreferences.density == slopstudio::UiDensity::Compact && reloadedPreferences.reducedMotion && reloadedPreferences.textToSpeechEnabled,
 		"Expected accessibility and language preferences to persist.");
-	ok &= expect(reloadedPreferences.formatLocaleName == QStringLiteral("de-CH") && reloadedPreferences.colorVision == vibestudio::ColorVision::RedGreen
+	ok &= expect(reloadedPreferences.formatLocaleName == QStringLiteral("de-CH") && reloadedPreferences.colorVision == slopstudio::ColorVision::RedGreen
 			&& reloadedPreferences.reducedSaturation && reloadedPreferences.thickFocusIndicator && reloadedPreferences.thickTextCursor
 			&& reloadedPreferences.steadyTextCursor && reloadedPreferences.uiFontFamily == QStringLiteral("Atkinson Hyperlegible") && reloadedPreferences.wideTextSpacing
-			&& reloadedPreferences.messageDuration == vibestudio::MessageDuration::UntilReplaced && !reloadedPreferences.visualAlerts
+			&& reloadedPreferences.messageDuration == slopstudio::MessageDuration::UntilReplaced && !reloadedPreferences.visualAlerts
 			&& reloadedPreferences.soundCues && reloadedPreferences.soundCueVolume == 100
 			&& !reloadedPreferences.screenReaderAnnouncements,
 		"Expected region, vision, timing, and alert preferences to persist normalized, the cue volume clamped.");
@@ -392,7 +392,7 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 		"Expected speech preferences to persist with known events only and the rate clamped.");
 	{
 		// Every speech event switched off stays off; it is not the default.
-		vibestudio::AccessibilityPreferences silent = reloadedPreferences;
+		slopstudio::AccessibilityPreferences silent = reloadedPreferences;
 		silent.speechEvents.clear();
 		reloaded.setAccessibilityPreferences(silent);
 		ok &= expect(reloaded.accessibilityPreferences().speechEvents.isEmpty(), "Expected an empty speech event list to persist as empty.");
@@ -401,44 +401,44 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 
 	reloaded.setLocaleName(QStringLiteral("zz"));
 	reloaded.setTextScalePercent(999);
-	reloaded.setTheme(vibestudio::themeFromId(QStringLiteral("high_contrast_dark")));
-	reloaded.setDensity(vibestudio::densityFromId(QStringLiteral("comfortable")));
+	reloaded.setTheme(slopstudio::themeFromId(QStringLiteral("high_contrast_dark")));
+	reloaded.setDensity(slopstudio::densityFromId(QStringLiteral("comfortable")));
 	reloaded.setReducedMotion(false);
 	reloaded.setTextToSpeechEnabled(false);
 	reloaded.setSelectedEditorProfileId(QStringLiteral("missing-profile"));
-	vibestudio::AiAutomationPreferences disabledAiPreferences = reloaded.aiAutomationPreferences();
+	slopstudio::AiAutomationPreferences disabledAiPreferences = reloaded.aiAutomationPreferences();
 	disabledAiPreferences.aiFreeMode = true;
 	disabledAiPreferences.cloudConnectorsEnabled = true;
 	disabledAiPreferences.agenticWorkflowsEnabled = true;
 	disabledAiPreferences.preferredReasoningConnectorId = QStringLiteral("missing");
 	reloaded.setAiAutomationPreferences(disabledAiPreferences);
-	const vibestudio::AccessibilityPreferences normalizedPreferences = reloaded.accessibilityPreferences();
-	ok &= expect(normalizedPreferences.localeName == QStringLiteral("en") && normalizedPreferences.textScalePercent == 200 && normalizedPreferences.theme == vibestudio::StudioTheme::HighContrastDark && normalizedPreferences.density == vibestudio::UiDensity::Comfortable && !normalizedPreferences.reducedMotion && !normalizedPreferences.textToSpeechEnabled,
+	const slopstudio::AccessibilityPreferences normalizedPreferences = reloaded.accessibilityPreferences();
+	ok &= expect(normalizedPreferences.localeName == QStringLiteral("en") && normalizedPreferences.textScalePercent == 200 && normalizedPreferences.theme == slopstudio::StudioTheme::HighContrastDark && normalizedPreferences.density == slopstudio::UiDensity::Comfortable && !normalizedPreferences.reducedMotion && !normalizedPreferences.textToSpeechEnabled,
 		"Expected preference normalization and individual setters.");
-	ok &= expect(reloaded.selectedEditorProfileId() == QStringLiteral("vibestudio-default"), "Expected invalid editor profile selection to fall back to default.");
-	const vibestudio::AiAutomationPreferences normalizedAiPreferences = reloaded.aiAutomationPreferences();
+	ok &= expect(reloaded.selectedEditorProfileId() == QStringLiteral("slopstudio-default"), "Expected invalid editor profile selection to fall back to default.");
+	const slopstudio::AiAutomationPreferences normalizedAiPreferences = reloaded.aiAutomationPreferences();
 	ok &= expect(normalizedAiPreferences.aiFreeMode && !normalizedAiPreferences.cloudConnectorsEnabled && !normalizedAiPreferences.agenticWorkflowsEnabled && normalizedAiPreferences.preferredReasoningConnectorId.isEmpty(),
 		"Expected AI-free mode and invalid connector preferences to normalize.");
 
-	for (int index = 0; index < vibestudio::StudioSettings::kMaximumRecentProjects + 4; ++index) {
+	for (int index = 0; index < slopstudio::StudioSettings::kMaximumRecentProjects + 4; ++index) {
 		reloaded.recordRecentProject(root.filePath(QStringLiteral("Project %1").arg(index)));
 	}
-	ok &= expect(reloaded.recentProjects().size() == vibestudio::StudioSettings::kMaximumRecentProjects, "Expected recent project list to stay bounded.");
-	for (int index = 0; index < vibestudio::StudioSettings::kMaximumRecentActivityTasks + 4; ++index) {
-		vibestudio::RecentActivityTask activity;
+	ok &= expect(reloaded.recentProjects().size() == slopstudio::StudioSettings::kMaximumRecentProjects, "Expected recent project list to stay bounded.");
+	for (int index = 0; index < slopstudio::StudioSettings::kMaximumRecentActivityTasks + 4; ++index) {
+		slopstudio::RecentActivityTask activity;
 		activity.id = QStringLiteral("package-task-%1").arg(index);
 		activity.title = QStringLiteral("Package Task %1").arg(index);
 		activity.detail = root.filePath(QStringLiteral("package-%1.pak").arg(index));
 		activity.source = QStringLiteral("package");
-		activity.state = vibestudio::OperationState::Completed;
+		activity.state = slopstudio::OperationState::Completed;
 		activity.resultSummary = QStringLiteral("Task %1 complete.").arg(index);
 		activity.updatedUtc = QDateTime::fromString(QStringLiteral("2026-04-30T10:%1:00Z").arg(index % 60, 2, 10, QLatin1Char('0')), Qt::ISODate);
 		reloaded.recordRecentActivityTask(activity);
 	}
-	ok &= expect(reloaded.recentActivityTasks().size() == vibestudio::StudioSettings::kMaximumRecentActivityTasks, "Expected recent activity task list to stay bounded.");
+	ok &= expect(reloaded.recentActivityTasks().size() == slopstudio::StudioSettings::kMaximumRecentActivityTasks, "Expected recent activity task list to stay bounded.");
 
 	reloaded.removeRecentProject(alphaProject);
-	for (const vibestudio::RecentProject& project : reloaded.recentProjects()) {
+	for (const slopstudio::RecentProject& project : reloaded.recentProjects()) {
 		ok &= expect(project.displayName != QStringLiteral("Alpha Renamed"), "Expected selected recent project removal.");
 	}
 
@@ -449,7 +449,7 @@ bool runPreferenceAndHistorySmoke(const QDir& root)
 
 	reloaded.removeGameInstallation(installations.front().id);
 	ok &= expect(reloaded.gameInstallations().isEmpty() && reloaded.selectedGameInstallationId().isEmpty(), "Expected game installation removal to clear selection.");
-	reloaded.removeCompilerToolPathOverride(QStringLiteral("vibemap2-bsp"));
+	reloaded.removeCompilerToolPathOverride(QStringLiteral("slopmap2-bsp"));
 	ok &= expect(reloaded.compilerToolPathOverrides().isEmpty(), "Expected compiler executable override removal.");
 	return ok;
 }
@@ -474,20 +474,20 @@ bool runMigrationSmoke(const QDir& root)
 	}
 
 	{
-		vibestudio::StudioSettings migrated(path);
-		ok &= expect(migrated.schemaVersion() == vibestudio::StudioSettings::kSchemaVersion, "Expected a version 1 store to be migrated to the current schema.");
+		slopstudio::StudioSettings migrated(path);
+		ok &= expect(migrated.schemaVersion() == slopstudio::StudioSettings::kSchemaVersion, "Expected a version 1 store to be migrated to the current schema.");
 		ok &= expect(!migrated.storedSchemaIsNewer() && !migrated.isReadOnly(), "Expected a migrated store to stay writable.");
 		ok &= expect(!migrated.migrationNotes().isEmpty(), "Expected the migration to be reported.");
-		const vibestudio::AccessibilityPreferences preferences = migrated.accessibilityPreferences();
+		const slopstudio::AccessibilityPreferences preferences = migrated.accessibilityPreferences();
 		ok &= expect(preferences.localeName == QStringLiteral("pt-BR"), "Expected the stored locale id to be normalized by the migration.");
-		ok &= expect(preferences.theme == vibestudio::StudioTheme::HighContrastDark, "Expected the retired high-contrast flag to fold into the theme.");
-		ok &= expect(preferences.density == vibestudio::UiDensity::Compact, "Expected the stored density id to be normalized.");
+		ok &= expect(preferences.theme == slopstudio::StudioTheme::HighContrastDark, "Expected the retired high-contrast flag to fold into the theme.");
+		ok &= expect(preferences.density == slopstudio::UiDensity::Compact, "Expected the stored density id to be normalized.");
 		ok &= expect(preferences.textScalePercent == 200, "Expected the stored text scale to be clamped by the migration.");
 		migrated.sync();
 	}
 
 	QSettings verify(path, QSettings::IniFormat);
-	ok &= expect(verify.value(QStringLiteral("app/settingsSchemaVersion")).toInt() == vibestudio::StudioSettings::kSchemaVersion,
+	ok &= expect(verify.value(QStringLiteral("app/settingsSchemaVersion")).toInt() == slopstudio::StudioSettings::kSchemaVersion,
 		"Expected the migrated schema version to be written back.");
 	ok &= expect(verify.value(QStringLiteral("preferences/theme")).toString() == QStringLiteral("high-contrast-dark"),
 		"Expected the normalized theme id to be stored.");
@@ -498,8 +498,8 @@ bool runMigrationSmoke(const QDir& root)
 	}
 
 	// Re-opening an already migrated store must be a no-op.
-	vibestudio::StudioSettings again(path);
-	ok &= expect(again.schemaVersion() == vibestudio::StudioSettings::kSchemaVersion && again.migrationNotes().isEmpty(),
+	slopstudio::StudioSettings again(path);
+	ok &= expect(again.schemaVersion() == slopstudio::StudioSettings::kSchemaVersion && again.migrationNotes().isEmpty(),
 		"Expected a second open of a current store to migrate nothing.");
 	return ok;
 }
@@ -511,14 +511,14 @@ bool runNewerStoreGuardSmoke(const QDir& root)
 	const QString path = root.filePath(QStringLiteral("future.ini"));
 	{
 		QSettings future(path, QSettings::IniFormat);
-		future.setValue(QStringLiteral("app/settingsSchemaVersion"), vibestudio::StudioSettings::kSchemaVersion + 97);
+		future.setValue(QStringLiteral("app/settingsSchemaVersion"), slopstudio::StudioSettings::kSchemaVersion + 97);
 		future.setValue(QStringLiteral("preferences/localeName"), QStringLiteral("fr"));
 		future.sync();
 	}
 
 	{
-		vibestudio::StudioSettings guarded(path);
-		ok &= expect(guarded.schemaVersion() == vibestudio::StudioSettings::kSchemaVersion + 97, "Expected the newer stored schema version to be reported as-is.");
+		slopstudio::StudioSettings guarded(path);
+		ok &= expect(guarded.schemaVersion() == slopstudio::StudioSettings::kSchemaVersion + 97, "Expected the newer stored schema version to be reported as-is.");
 		ok &= expect(guarded.storedSchemaIsNewer() && guarded.isReadOnly(), "Expected a newer store to be flagged and opened read-only.");
 		ok &= expect(!guarded.migrationNotes().isEmpty(), "Expected the newer-store refusal to be reported.");
 		guarded.setSelectedMode(7);
@@ -529,7 +529,7 @@ bool runNewerStoreGuardSmoke(const QDir& root)
 	}
 
 	QSettings verify(path, QSettings::IniFormat);
-	ok &= expect(verify.value(QStringLiteral("app/settingsSchemaVersion")).toInt() == vibestudio::StudioSettings::kSchemaVersion + 97,
+	ok &= expect(verify.value(QStringLiteral("app/settingsSchemaVersion")).toInt() == slopstudio::StudioSettings::kSchemaVersion + 97,
 		"Expected the newer schema version to survive untouched.");
 	ok &= expect(verify.value(QStringLiteral("preferences/localeName")).toString() == QStringLiteral("fr"),
 		"Expected a newer store never to be rewritten.");
@@ -542,11 +542,11 @@ bool runSortThenTruncateSmoke(const QDir& root)
 {
 	bool ok = true;
 	const QString path = root.filePath(QStringLiteral("oversized.ini"));
-	const int projectCount = vibestudio::StudioSettings::kMaximumRecentProjects + 6;
-	const int taskCount = vibestudio::StudioSettings::kMaximumRecentActivityTasks + 6;
+	const int projectCount = slopstudio::StudioSettings::kMaximumRecentProjects + 6;
+	const int taskCount = slopstudio::StudioSettings::kMaximumRecentActivityTasks + 6;
 	{
 		QSettings oversized(path, QSettings::IniFormat);
-		oversized.setValue(QStringLiteral("app/settingsSchemaVersion"), vibestudio::StudioSettings::kSchemaVersion);
+		oversized.setValue(QStringLiteral("app/settingsSchemaVersion"), slopstudio::StudioSettings::kSchemaVersion);
 
 		// Oldest first in array order, so a truncate-before-sort read keeps
 		// exactly the wrong entries.
@@ -572,22 +572,22 @@ bool runSortThenTruncateSmoke(const QDir& root)
 		oversized.sync();
 	}
 
-	vibestudio::StudioSettings settings(path);
-	const QVector<vibestudio::RecentProject> projects = settings.recentProjects();
-	ok &= expect(projects.size() == vibestudio::StudioSettings::kMaximumRecentProjects, "Expected an oversized project array to be truncated to the cap.");
+	slopstudio::StudioSettings settings(path);
+	const QVector<slopstudio::RecentProject> projects = settings.recentProjects();
+	ok &= expect(projects.size() == slopstudio::StudioSettings::kMaximumRecentProjects, "Expected an oversized project array to be truncated to the cap.");
 	if (!projects.isEmpty()) {
 		ok &= expect(projects.front().displayName == QStringLiteral("Ordered Project %1").arg(projectCount - 1),
 			"Expected the most recently opened project to survive truncation.");
-		ok &= expect(projects.last().displayName == QStringLiteral("Ordered Project %1").arg(projectCount - vibestudio::StudioSettings::kMaximumRecentProjects),
+		ok &= expect(projects.last().displayName == QStringLiteral("Ordered Project %1").arg(projectCount - slopstudio::StudioSettings::kMaximumRecentProjects),
 			"Expected the oldest projects to be dropped, not the newest.");
 	}
 
-	const QVector<vibestudio::RecentActivityTask> tasks = settings.recentActivityTasks();
-	ok &= expect(tasks.size() == vibestudio::StudioSettings::kMaximumRecentActivityTasks, "Expected an oversized activity array to be truncated to the cap.");
+	const QVector<slopstudio::RecentActivityTask> tasks = settings.recentActivityTasks();
+	ok &= expect(tasks.size() == slopstudio::StudioSettings::kMaximumRecentActivityTasks, "Expected an oversized activity array to be truncated to the cap.");
 	if (!tasks.isEmpty()) {
 		ok &= expect(tasks.front().id == QStringLiteral("ordered-task-%1").arg(taskCount - 1),
 			"Expected the most recently updated task to survive truncation.");
-		ok &= expect(tasks.last().id == QStringLiteral("ordered-task-%1").arg(taskCount - vibestudio::StudioSettings::kMaximumRecentActivityTasks),
+		ok &= expect(tasks.last().id == QStringLiteral("ordered-task-%1").arg(taskCount - slopstudio::StudioSettings::kMaximumRecentActivityTasks),
 			"Expected the oldest tasks to be dropped, not the newest.");
 	}
 
@@ -597,17 +597,17 @@ bool runSortThenTruncateSmoke(const QDir& root)
 	if (!QDir().mkpath(firstInstall) || !QDir().mkpath(secondInstall)) {
 		return expect(false, "Expected installation fixtures to be created.");
 	}
-	vibestudio::GameInstallationProfile first;
+	slopstudio::GameInstallationProfile first;
 	first.rootPath = firstInstall;
 	first.gameKey = QStringLiteral("quake");
 	first.displayName = QStringLiteral("Install One");
 	settings.upsertGameInstallation(first);
-	vibestudio::GameInstallationProfile second;
+	slopstudio::GameInstallationProfile second;
 	second.rootPath = secondInstall;
 	second.gameKey = QStringLiteral("quake2");
 	second.displayName = QStringLiteral("Install Two");
 	settings.upsertGameInstallation(second);
-	const QVector<vibestudio::GameInstallationProfile> installations = settings.gameInstallations();
+	const QVector<slopstudio::GameInstallationProfile> installations = settings.gameInstallations();
 	ok &= expect(installations.size() == 2 && installations.front().displayName == QStringLiteral("Install Two"),
 		"Expected installations to be ordered by update time.");
 	return ok;
@@ -618,20 +618,20 @@ bool runOverrideSmoke(const QDir& root)
 {
 	bool ok = true;
 	const QString overridePath = root.filePath(QStringLiteral("override.ini"));
-	ok &= expect(vibestudio::StudioSettings::overrideFilePath().isEmpty(), "Expected no settings override by default.");
-	vibestudio::StudioSettings::setOverrideFilePath(overridePath);
-	ok &= expect(samePath(vibestudio::StudioSettings::overrideFilePath(), overridePath), "Expected the settings override to be readable back.");
+	ok &= expect(slopstudio::StudioSettings::overrideFilePath().isEmpty(), "Expected no settings override by default.");
+	slopstudio::StudioSettings::setOverrideFilePath(overridePath);
+	ok &= expect(samePath(slopstudio::StudioSettings::overrideFilePath(), overridePath), "Expected the settings override to be readable back.");
 	{
-		vibestudio::StudioSettings overridden;
+		slopstudio::StudioSettings overridden;
 		ok &= expect(samePath(overridden.storageLocation(), overridePath), "Expected the default constructor to honour the override path.");
 		overridden.setSelectedMode(4);
 		overridden.sync();
 	}
-	vibestudio::StudioSettings::setOverrideFilePath(QString());
-	ok &= expect(vibestudio::StudioSettings::overrideFilePath().isEmpty(), "Expected the settings override to be clearable.");
+	slopstudio::StudioSettings::setOverrideFilePath(QString());
+	ok &= expect(slopstudio::StudioSettings::overrideFilePath().isEmpty(), "Expected the settings override to be clearable.");
 	ok &= expect(QFileInfo::exists(overridePath), "Expected the override store to be the file that was written.");
 
-	vibestudio::StudioSettings reopened(overridePath);
+	slopstudio::StudioSettings reopened(overridePath);
 	ok &= expect(reopened.selectedMode() == 4, "Expected the override store to hold the written value.");
 	return ok;
 }
@@ -641,49 +641,49 @@ bool runActivityLogTruncationSmoke(const QDir& root)
 {
 	bool ok = true;
 	const QString path = root.filePath(QStringLiteral("activity.ini"));
-	const int logEntryCount = vibestudio::StudioSettings::kMaximumActivityLogEntries + 120;
-	const int transitionCount = vibestudio::StudioSettings::kMaximumActivityTransitions + 16;
+	const int logEntryCount = slopstudio::StudioSettings::kMaximumActivityLogEntries + 120;
+	const int transitionCount = slopstudio::StudioSettings::kMaximumActivityTransitions + 16;
 
-	vibestudio::RecentActivityTask task;
-	task.id = QStringLiteral("compiler-vibemap3-bsp");
-	task.title = QStringLiteral("VibeMap3 BSP");
+	slopstudio::RecentActivityTask task;
+	task.id = QStringLiteral("compiler-slopmap3-bsp");
+	task.title = QStringLiteral("SlopMap3 BSP");
 	task.source = QStringLiteral("compiler");
-	task.state = vibestudio::OperationState::Completed;
+	task.state = slopstudio::OperationState::Completed;
 	task.createdUtc = QDateTime::fromString(QStringLiteral("2026-05-01T09:00:00Z"), Qt::ISODate);
 	task.updatedUtc = QDateTime::fromString(QStringLiteral("2026-05-01T09:00:30Z"), Qt::ISODate);
 	task.finishedUtc = task.updatedUtc;
 	for (int index = 0; index < logEntryCount; ++index) {
-		task.log.push_back({task.createdUtc, vibestudio::OperationState::Running, QStringLiteral("VibeMap3 line %1").arg(index)});
+		task.log.push_back({task.createdUtc, slopstudio::OperationState::Running, QStringLiteral("SlopMap3 line %1").arg(index)});
 	}
 	for (int index = 0; index < transitionCount; ++index) {
-		task.transitions.push_back({task.createdUtc, vibestudio::OperationState::Running, index, QStringLiteral("step %1").arg(index)});
+		task.transitions.push_back({task.createdUtc, slopstudio::OperationState::Running, index, QStringLiteral("step %1").arg(index)});
 	}
 
-	vibestudio::StudioSettings settings(path);
+	slopstudio::StudioSettings settings(path);
 	settings.recordRecentActivityTask(task);
 	settings.sync();
 
-	vibestudio::StudioSettings reloaded(path);
-	const QVector<vibestudio::RecentActivityTask> tasks = reloaded.recentActivityTasks();
+	slopstudio::StudioSettings reloaded(path);
+	const QVector<slopstudio::RecentActivityTask> tasks = reloaded.recentActivityTasks();
 	ok &= expect(tasks.size() == 1, "Expected the long-running task to persist.");
 	if (tasks.isEmpty()) {
 		return ok;
 	}
-	const vibestudio::RecentActivityTask& stored = tasks.front();
-	ok &= expect(stored.log.size() == vibestudio::StudioSettings::kMaximumActivityLogEntries, "Expected the persisted log to be capped.");
+	const slopstudio::RecentActivityTask& stored = tasks.front();
+	ok &= expect(stored.log.size() == slopstudio::StudioSettings::kMaximumActivityLogEntries, "Expected the persisted log to be capped.");
 	ok &= expect(stored.logTruncated, "Expected truncation to be recorded, not hidden.");
-	ok &= expect(stored.droppedLogEntryCount == logEntryCount - vibestudio::StudioSettings::kMaximumActivityLogEntries,
+	ok &= expect(stored.droppedLogEntryCount == logEntryCount - slopstudio::StudioSettings::kMaximumActivityLogEntries,
 		"Expected the number of dropped log entries to be recorded.");
-	ok &= expect(!stored.log.isEmpty() && stored.log.last().message == QStringLiteral("VibeMap3 line %1").arg(logEntryCount - 1),
+	ok &= expect(!stored.log.isEmpty() && stored.log.last().message == QStringLiteral("SlopMap3 line %1").arg(logEntryCount - 1),
 		"Expected the newest log lines to be the ones kept.");
-	ok &= expect(stored.transitions.size() == vibestudio::StudioSettings::kMaximumActivityTransitions, "Expected the transition timeline to be capped.");
+	ok &= expect(stored.transitions.size() == slopstudio::StudioSettings::kMaximumActivityTransitions, "Expected the transition timeline to be capped.");
 	ok &= expect(stored.durationMs == 30000, "Expected a missing duration to be derived from the task timestamps.");
 	return ok;
 }
 
 bool runReadOnlyInspectionSmoke(const QDir& root)
 {
-	using Settings = vibestudio::StudioSettings;
+	using Settings = slopstudio::StudioSettings;
 	const auto path = root.filePath(QStringLiteral("read-only.ini")); bool ok = true;
 	{
 		Settings inspected(path, Settings::AccessMode::ReadOnly);
@@ -719,34 +719,34 @@ bool runProjectAiPolicySmoke(const QDir& root)
 	bool ok = true;
 	const QString projectPath = root.filePath(QStringLiteral("ai-free-project"));
 	QDir().mkpath(projectPath);
-	vibestudio::ProjectManifest manifest = vibestudio::defaultProjectManifest(projectPath);
+	slopstudio::ProjectManifest manifest = slopstudio::defaultProjectManifest(projectPath);
 	manifest.settingsOverrides.aiFreeModeSet = true;
 	manifest.settingsOverrides.aiFreeMode = true;
 	QString error;
-	ok &= expect(vibestudio::saveProjectManifest(manifest, &error), "Expected the AI-free project manifest to save.");
-	vibestudio::StudioSettings settings(root.filePath(QStringLiteral("project-ai.ini")));
-	vibestudio::AiAutomationPreferences preferences = settings.aiAutomationPreferences();
+	ok &= expect(slopstudio::saveProjectManifest(manifest, &error), "Expected the AI-free project manifest to save.");
+	slopstudio::StudioSettings settings(root.filePath(QStringLiteral("project-ai.ini")));
+	slopstudio::AiAutomationPreferences preferences = settings.aiAutomationPreferences();
 	preferences.aiFreeMode = false;
 	preferences.cloudConnectorsEnabled = true;
 	settings.setAiAutomationPreferences(preferences);
 	ok &= expect(!settings.aiAutomationPreferences().projectAiFree, "Expected no project override with no project open.");
 	settings.setCurrentProjectPath(projectPath);
-	const vibestudio::AiAutomationPreferences effective = settings.aiAutomationPreferences();
+	const slopstudio::AiAutomationPreferences effective = settings.aiAutomationPreferences();
 	ok &= expect(effective.projectAiFree && !effective.aiFreeMode && effective.cloudConnectorsEnabled,
 		"Expected the project's manifest to turn AI off without changing the studio's own AI settings.");
 	settings.setAiAutomationPreferences(effective);
 	settings.setCurrentProjectPath(QString());
-	const vibestudio::AiAutomationPreferences after = settings.aiAutomationPreferences();
+	const slopstudio::AiAutomationPreferences after = settings.aiAutomationPreferences();
 	ok &= expect(!after.aiFreeMode && after.cloudConnectorsEnabled && !after.projectAiFree,
 		"Expected saving while the project is open to leave its override out of the studio settings.");
 
 	// A project that asks for AI does not get it while the studio is AI-free.
 	manifest.settingsOverrides.aiFreeMode = false;
-	ok &= expect(vibestudio::saveProjectManifest(manifest, &error), "Expected the AI-allowing manifest to save.");
+	ok &= expect(slopstudio::saveProjectManifest(manifest, &error), "Expected the AI-allowing manifest to save.");
 	preferences.aiFreeMode = true;
 	settings.setAiAutomationPreferences(preferences);
 	settings.setCurrentProjectPath(projectPath);
-	const vibestudio::AiAutomationPreferences strict = settings.aiAutomationPreferences();
+	const slopstudio::AiAutomationPreferences strict = settings.aiAutomationPreferences();
 	ok &= expect(strict.aiFreeMode && !strict.projectAiFree, "Expected a project never to switch AI on against AI-free mode.");
 	return ok;
 }

@@ -15,7 +15,7 @@
 #include <cstring>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -89,61 +89,61 @@ ModelTargetLimits q2proMd5Limits(bool animation)
 }
 
 const TargetEntry kTargets[] = {
-	{"quake", "mdl", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Quake (id Software)"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "WinQuake, GLQuake and QuakeWorld as released. GLQuake's limits are the stricter ones, so "
+	{"quake", "mdl", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Quake (id Software)"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "WinQuake, GLQuake and QuakeWorld as released. GLQuake's limits are the stricter ones, so "
 												 "they apply: 1,024 vertices, 2,048 triangles, 256 poses and 32 skins of at most 640 by 480 "
 												 "pixels, with a width that is a multiple of four for the software renderer."),
 	 true, limits(1024, 0, 2048, 256, 32, 0, 480, 640 * 480, 4),
 	 "https://github.com/id-Software/Quake (master, reviewed 2026-10-22): WinQuake/gl_model.h MAXALIASVERTS, MAXALIASTRIS, "
 	 "MAXALIASFRAMES, MAX_SKINS; WinQuake/gl_model.c and model.c Mod_LoadAliasModel (MAX_LBM_HEIGHT, skin width multiple of 4); "
 	 "WinQuake/gl_draw.c GL_LoadTexture (640*480 texture buffer)"},
-	{"quakespasm", "mdl", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "QuakeSpasm"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "QuakeSpasm raises the vertex, triangle and pose limits to 2,400, 4,096 and 1,024. A skin "
+	{"quakespasm", "mdl", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "QuakeSpasm"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "QuakeSpasm raises the vertex, triangle and pose limits to 2,400, 4,096 and 1,024. A skin "
 												 "taller than 480 pixels only warns, and the skin width needs no multiple of four."),
 	 false, limits(2400, 0, 4096, 1024, 32, 0, 0, 0, 0),
 	 "https://github.com/sezero/quakespasm (master, reviewed 2026-10-22): Quake/gl_model.h MAXALIASVERTS, MAXALIASTRIS, "
 	 "MAXALIASFRAMES, MAX_SKINS; Quake/gl_model.c Mod_LoadAliasModel and Mod_LoadAllSkins"},
-	{"fte", "mdl", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "FTE QuakeWorld"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "FTE allocates MDL data as it loads, with no fixed count limits. It draws a copy of every "
+	{"fte", "mdl", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "FTE QuakeWorld"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "FTE allocates MDL data as it loads, with no fixed count limits. It draws a copy of every "
 												 "seam vertex, and builds with 16-bit indices hold 65,535 drawn vertices."),
 	 false, limits(0, 65535, 0, 0, 0, 0, 0, 0, 0),
 	 "https://github.com/fte-team/fteqw (master snapshot, reviewed 2026-10-22): engine/common/com_mesh.c Mod_LoadQ1Model "
 	 "(numverts + onseams); engine/client/render.h index_t"},
-	{"darkplaces", "mdl", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "DarkPlaces"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "DarkPlaces refuses vertex, triangle, pose and skin counts and skin sizes of 65,536 or more."),
+	{"darkplaces", "mdl", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "DarkPlaces"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "DarkPlaces refuses vertex, triangle, pose and skin counts and skin sizes of 65,536 or more."),
 	 false, limits(65535, 0, 65535, 65535, 65535, 65535, 65535, 0, 0),
 	 "https://github.com/DarkPlacesEngine/DarkPlaces (master, reviewed 2026-10-22): model_alias.c Mod_IDP0_Load (BOUNDI checks)"},
-	{"quake2", "md2", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Quake II (id Software)"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "The released Quake II renderers; Yamagi Quake II keeps the same limits: 2,048 positions, "
+	{"quake2", "md2", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Quake II (id Software)"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "The released Quake II renderers; Yamagi Quake II keeps the same limits: 2,048 positions, "
 												 "4,096 triangles, 512 frames and 32 skins of at most 640 by 480 pixels."),
 	 true, limits(2048, 0, 4096, 512, 32, 640, 480, 0, 0),
 	 "https://github.com/id-Software/Quake-2 (master, reviewed 2026-10-22): qcommon/qfiles.h MAX_VERTS, MAX_TRIANGLES, MAX_FRAMES, "
 	 "MAX_MD2SKINS; ref_gl/gl_model.c and ref_soft/r_model.c Mod_LoadAliasModel; ref_gl/gl_image.c LoadPCX (width below 640) | "
 	 "https://github.com/yquake2/yquake2 (master, reviewed 2026-10-22): src/common/header/files.h, src/client/refresh/files/models.c"},
-	{"q2pro", "md2", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Q2PRO"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Q2PRO allows 1,024 frames and 6,144 triangles, and builds one drawn vertex for each "
+	{"q2pro", "md2", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Q2PRO"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Q2PRO allows 1,024 frames and 6,144 triangles, and builds one drawn vertex for each "
 												 "distinct position and texel pair, at most 6,144. Builds from before July 2024 hold 4,096 "
 												 "of each."),
 	 false, limits(2048, 6144, 6144, 1024, 32, 640, 480, 0, 0),
 	 "https://github.com/q2pro/q2pro (preserved upstream, 601a8df, 2025-12-11, reviewed 2026-10-22): inc/format/md2.h MD2_MAX_*; "
 	 "src/refresh/models.c MOD_ValidateMD2 and MOD_LoadMD2; src/refresh/gl.h TESS_MAX_VERTICES and TESS_MAX_INDICES (raised from 4096 "
 	 "in 0dc71b8, 2024-07-21)"},
-	{"quake3", "md3", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Quake III Arena (id Software)"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "R_LoadMD3 accepts 1,000 vertices and 2,000 triangles per surface, but RB_CheckOverflow drops "
+	{"quake3", "md3", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Quake III Arena (id Software)"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "R_LoadMD3 accepts 1,000 vertices and 2,000 triangles per surface, but RB_CheckOverflow drops "
 												 "the game when a surface reaches either, so 999 and 1,999 are the working limits. Two detail "
 												 "levels, name_1 and name_2, load beside the model."),
 	 true, quake3Limits(),
 	 "https://github.com/id-Software/Quake-III-Arena (master, reviewed 2026-10-22): code/qcommon/qfiles.h SHADER_MAX_VERTEXES, "
 	 "SHADER_MAX_INDEXES, MD3_MAX_LODS, MD3_MAX_*; code/renderer/tr_model.c R_LoadMD3 and R_RegisterModel; code/renderer/tr_surface.c "
 	 "RB_CheckOverflow and RB_SurfaceMesh"},
-	{"ioquake3", "md3", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "ioquake3 and Quake3e"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "R_LoadMD3 refuses a surface with 1,000 vertices or 2,000 triangles; the limits match the "
+	{"ioquake3", "md3", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "ioquake3 and Quake3e"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "R_LoadMD3 refuses a surface with 1,000 vertices or 2,000 triangles; the limits match the "
 												 "working limits of the original game. Two detail levels load beside the model."),
 	 false, quake3Limits(),
 	 "https://github.com/ioquake/ioq3 (main, reviewed 2026-10-22): code/renderergl1/tr_model.c R_LoadMD3 and R_RegisterMD3 | "
 	 "https://github.com/ec-/Quake3e (master, reviewed 2026-10-22): code/qcommon/qfiles.h, code/renderer/tr_model.c R_LoadMD3"},
-	{"rtcw", "md3", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Return to Castle Wolfenstein (single player)"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "The single-player renderer holds 4,000 vertices and 24,000 indexes per batch and drops "
+	{"rtcw", "md3", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Return to Castle Wolfenstein (single player)"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "The single-player renderer holds 4,000 vertices and 24,000 indexes per batch and drops "
 												 "the game when one surface reaches either, so 3,999 vertices and 7,999 triangles are the "
 												 "working limits. Two detail levels load beside the model. The game loads name.mdc before "
 												 "name.md3 when both exist, so remove a stale MDC."),
@@ -151,16 +151,16 @@ const TargetEntry kTargets[] = {
 	 "https://github.com/id-Software/RTCW-SP (master, reviewed 2026-10-22): src/qcommon/qfiles.h SHADER_MAX_VERTEXES, "
 	 "SHADER_MAX_INDEXES, MD3_MAX_LODS; src/renderer/tr_model.c R_RegisterModel, R_LoadMD3 and R_LoadMDC; src/renderer/tr_surface.c "
 	 "RB_CheckOverflow"},
-	{"rtcw-mp", "md3", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Return to Castle Wolfenstein (multiplayer)"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "The multiplayer renderer keeps Quake III's 1,000-vertex batches, so 999 vertices and 1,999 "
+	{"rtcw-mp", "md3", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Return to Castle Wolfenstein (multiplayer)"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "The multiplayer renderer keeps Quake III's 1,000-vertex batches, so 999 vertices and 1,999 "
 												 "triangles per surface, and loads no detail levels (MD3_MAX_LODS is 1). It loads name.mdc "
 												 "before name.md3 when both exist."),
 	 false, md3Limits(999, 1999, 0),
 	 "https://github.com/id-Software/RTCW-MP (master, reviewed 2026-10-22): src/qcommon/qfiles.h SHADER_MAX_VERTEXES, "
 	 "SHADER_MAX_INDEXES, MD3_MAX_LODS; src/renderer/tr_model.c R_RegisterModel, R_LoadMD3 and R_LoadMDC; src/renderer/tr_surface.c "
 	 "RB_CheckOverflow"},
-	{"et", "md3", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Wolfenstein: Enemy Territory"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Enemy Territory holds 1,025 vertices and 6,150 indexes per batch and drops the game when "
+	{"et", "md3", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Wolfenstein: Enemy Territory"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Enemy Territory holds 1,025 vertices and 6,150 indexes per batch and drops the game when "
 												 "one surface reaches either, so 1,024 vertices and 2,049 triangles are the working limits. "
 												 "Three detail levels, name_1 to name_3, load beside the model, and name.mdc loads before "
 												 "name.md3 when both exist."),
@@ -168,60 +168,60 @@ const TargetEntry kTargets[] = {
 	 "https://github.com/id-Software/Enemy-Territory (master, reviewed 2026-10-22): src/qcommon/qfiles.h SHADER_MAX_VERTEXES, "
 	 "SHADER_MAX_INDEXES, MD3_MAX_LODS; src/renderer/tr_init.c R_Init (tess.maxShaderVerts); src/renderer/tr_model.c R_RegisterModel, "
 	 "R_LoadMD3 and R_LoadMDC; src/renderer/tr_surface.c RB_CheckOverflow"},
-	{"q2pro", "md3", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Q2PRO"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Q2PRO loads MD3 models in place of Quake II's MD2: 6,144 vertices and triangles per "
+	{"q2pro", "md3", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Q2PRO"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Q2PRO loads MD3 models in place of Quake II's MD2: 6,144 vertices and triangles per "
 												 "surface, 32 surfaces and 1,024 frames. It reads no attachment tags and loads no detail "
 												 "levels."),
 	 false, md3Limits(6144, 6144, 0, 0),
 	 "https://github.com/q2pro/q2pro (preserved upstream, 601a8df, 2025-12-11, reviewed 2026-10-22): inc/format/md3.h MD3_MAX_*; "
 	 "src/refresh/models.c MOD_ValidateMD3Mesh, MOD_ValidateMD3 and MOD_LoadMD3; src/refresh/gl.h TESS_MAX_VERTICES"},
-	{"gzdoom", "md3", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "GZDoom (MODELDEF)"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "GZDoom allocates MD3 data as it loads, with no vertex or triangle limit of its own. "
+	{"gzdoom", "md3", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "GZDoom (MODELDEF)"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "GZDoom allocates MD3 data as it loads, with no vertex or triangle limit of its own. "
 												 "MODELDEF's SurfaceSkin addresses surfaces 0 to 31, and MODELDEF maps sprite frames to "
 												 "model frames; the studio does not write MODELDEF. No detail levels load."),
 	 false, md3Limits(0, 0, 0, 0),
 	 "https://github.com/ZDoom/gzdoom (master, c26ce2e, 2026-08-10, reviewed 2026-10-22): src/common/models/models_md3.cpp "
 	 "FMD3Model::Load; src/common/models/model.h MD3_MAX_SURFACES; src/r_data/models.cpp ParseModelDefLump (SurfaceSkin)"},
-	{"iqm", "iqm", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "IQM format (any engine)"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "The format as the writer stores it: one-byte blend indexes, so at most 256 joints. Engines "
+	{"iqm", "iqm", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "IQM format (any engine)"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "The format as the writer stores it: one-byte blend indexes, so at most 256 joints. Engines "
 												 "can set lower limits; choose one of them when you know the game."),
 	 true, skeletalLimits(256, 0, 0, 4), "https://github.com/lsalzman/iqm (master, reviewed 2026-10-22): iqm.txt, iqm.h (IQM_UBYTE blend indexes)"},
-	{"ioquake3", "iqm", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "ioquake3 and Quake3e"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "R_LoadIQM refuses more than 128 joints, and a mesh with 1,000 vertices or 2,000 triangles."),
+	{"ioquake3", "iqm", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "ioquake3 and Quake3e"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "R_LoadIQM refuses more than 128 joints, and a mesh with 1,000 vertices or 2,000 triangles."),
 	 false, skeletalLimits(128, 999, 1999, 4),
 	 "https://github.com/ioquake/ioq3 (main, reviewed 2026-10-22): code/renderercommon/iqm.h IQM_MAX_JOINTS; "
 	 "code/renderergl1/tr_model_iqm.c R_LoadIQM | https://github.com/ec-/Quake3e (master, reviewed 2026-10-22): code/renderer/iqm.h, "
 	 "code/renderer/tr_model_iqm.c R_LoadIQM"},
-	{"fte", "iqm", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "FTE QuakeWorld"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "FTE loads at most 256 joints (MAX_BONES), and builds with 16-bit indices hold 65,535 "
+	{"fte", "iqm", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "FTE QuakeWorld"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "FTE loads at most 256 joints (MAX_BONES), and builds with 16-bit indices hold 65,535 "
 												 "vertices per mesh."),
 	 false, skeletalLimits(256, 65535, 0, 4),
 	 "https://github.com/fte-team/fteqw (master snapshot, reviewed 2026-10-22): engine/gl/gl_model.h MAX_BONES; engine/common/com_mesh.c "
 	 "IQM loader; engine/client/render.h index_t"},
-	{"gzdoom", "iqm", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "GZDoom (MODELDEF)"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "GZDoom reads one-byte blend indexes and weights, so 256 joints and four influences per "
+	{"gzdoom", "iqm", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "GZDoom (MODELDEF)"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "GZDoom reads one-byte blend indexes and weights, so 256 joints and four influences per "
 												 "vertex, and sets no vertex or triangle limit of its own."),
 	 false, skeletalLimits(256, 0, 0, 4),
 	 "https://github.com/ZDoom/gzdoom (master, c26ce2e, 2026-08-10, reviewed 2026-10-22): src/common/models/models_iqm.cpp "
 	 "IQMModel::Load, LoadBlendIndexes and LoadBlendWeights"},
-	{"doom3", "md5mesh", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Doom 3 (id Software)"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "The released Doom 3 loader allocates joints, meshes and weights as it reads them and sets "
+	{"doom3", "md5mesh", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Doom 3 (id Software)"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "The released Doom 3 loader allocates joints, meshes and weights as it reads them and sets "
 												 "no count limits."),
 	 true, ModelTargetLimits{},
 	 "https://github.com/id-Software/DOOM-3 (GPL release, reviewed 2026-10-22): neo/renderer/Model_md5.cpp idRenderModelMD5::LoadModel"},
-	{"q2pro", "md5mesh", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Q2PRO"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Q2PRO draws md5/name.md5mesh with md5/name.md5anim in place of an MD2 or MD3 of the same "
+	{"q2pro", "md5mesh", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Q2PRO"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Q2PRO draws md5/name.md5mesh with md5/name.md5anim in place of an MD2 or MD3 of the same "
 												 "name, when both files exist: at most 256 joints, 32 meshes, and 6,144 vertices, 6,144 "
 												 "triangles and 8,192 weights per mesh. Skins come from the MD2 or MD3, under md5/."),
 	 false, q2proMd5Limits(false),
 	 "https://github.com/q2pro/q2pro (preserved upstream, 601a8df, 2025-12-11, reviewed 2026-10-22): src/refresh/gl.h MD5_MAX_* and "
 	 "TESS_MAX_VERTICES; src/refresh/models.c MD5_ParseMesh, MOD_LoadMD5 and MD5_LoadSkins"},
-	{"doom3", "md5anim", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Doom 3 (id Software)"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "The released Doom 3 loader allocates frames and joints as it reads them and sets no count "
+	{"doom3", "md5anim", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Doom 3 (id Software)"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "The released Doom 3 loader allocates frames and joints as it reads them and sets no count "
 												 "limits."),
 	 true, ModelTargetLimits{}, "https://github.com/id-Software/DOOM-3 (GPL release, reviewed 2026-10-22): neo/game/anim/Anim.cpp idMD5Anim::LoadAnim"},
-	{"q2pro", "md5anim", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Q2PRO"),
-	 QT_TRANSLATE_NOOP("VibeStudioModelTargets", "Q2PRO reads 1 to 1,024 frames and the mesh's joints, at most 256. It warns when the "
+	{"q2pro", "md5anim", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Q2PRO"),
+	 QT_TRANSLATE_NOOP("SlopStudioModelTargets", "Q2PRO reads 1 to 1,024 frames and the mesh's joints, at most 256. It warns when the "
 												 "animation has fewer frames than the MD2 or MD3 it replaces."),
 	 false, q2proMd5Limits(true),
 	 "https://github.com/q2pro/q2pro (preserved upstream, 601a8df, 2025-12-11, reviewed 2026-10-22): src/refresh/gl.h MD5_MAX_FRAMES and "
@@ -233,8 +233,8 @@ ModelTargetProfile profileFrom(const TargetEntry &entry)
 	ModelTargetProfile profile;
 	profile.id = QString::fromLatin1(entry.id);
 	profile.format = QString::fromLatin1(entry.format);
-	profile.label = QCoreApplication::translate("VibeStudioModelTargets", entry.label);
-	profile.description = QCoreApplication::translate("VibeStudioModelTargets", entry.description);
+	profile.label = QCoreApplication::translate("SlopStudioModelTargets", entry.label);
+	profile.description = QCoreApplication::translate("SlopStudioModelTargets", entry.description);
 	profile.isDefault = entry.isDefault;
 	profile.limits = entry.limits;
 	profile.sources = QString::fromLatin1(entry.sources).split(QStringLiteral(" | "), Qt::SkipEmptyParts);
@@ -255,7 +255,7 @@ QString listed(const QStringList &names, int shown = 6)
 		return names.join(QStringLiteral(", "));
 	}
 	const int more = int(names.size()) - shown;
-	return QCoreApplication::translate("VibeStudioModelTargets", "%1 and %n more", nullptr, more).arg(names.mid(0, shown).join(QStringLiteral(", ")));
+	return QCoreApplication::translate("SlopStudioModelTargets", "%1 and %n more", nullptr, more).arg(names.mid(0, shown).join(QStringLiteral(", ")));
 }
 
 // A Mesh Editor sidebar page by its neutral (studio) title, for fixes.
@@ -263,8 +263,8 @@ QString page(const char *id) { return modelSidebarTabTitle(QString::fromLatin1(i
 
 QString formatName(const QString &format)
 {
-	return format == QStringLiteral("md5mesh")	 ? QCoreApplication::translate("VibeStudioModelTargets", "MD5 mesh")
-		   : format == QStringLiteral("md5anim") ? QCoreApplication::translate("VibeStudioModelTargets", "MD5 animation")
+	return format == QStringLiteral("md5mesh")	 ? QCoreApplication::translate("SlopStudioModelTargets", "MD5 mesh")
+		   : format == QStringLiteral("md5anim") ? QCoreApplication::translate("SlopStudioModelTargets", "MD5 animation")
 												 : format.toUpper();
 }
 
@@ -328,7 +328,7 @@ class Assessor
 
 	void skinSize(QSize size)
 	{
-		const auto fix = QCoreApplication::translate("VibeStudioModelTargets", "Resize the skin images to fit.");
+		const auto fix = QCoreApplication::translate("SlopStudioModelTargets", "Resize the skin images to fit.");
 		const int width = size.width(), height = size.height();
 		if (m_limits.skinWidth > 0)
 		{
@@ -336,7 +336,7 @@ class Assessor
 			if (width > m_limits.skinWidth)
 			{
 				issue(QStringLiteral("skin-width"), {}, -1, width, m_limits.skinWidth,
-					  QCoreApplication::translate("VibeStudioModelTargets", "The skin is %1 pixels wide; %2 allows at most %3.")
+					  QCoreApplication::translate("SlopStudioModelTargets", "The skin is %1 pixels wide; %2 allows at most %3.")
 						  .arg(width)
 						  .arg(label())
 						  .arg(m_limits.skinWidth),
@@ -349,7 +349,7 @@ class Assessor
 			if (height > m_limits.skinHeight)
 			{
 				issue(QStringLiteral("skin-height"), {}, -1, height, m_limits.skinHeight,
-					  QCoreApplication::translate("VibeStudioModelTargets", "The skin is %1 pixels tall; %2 allows at most %3.")
+					  QCoreApplication::translate("SlopStudioModelTargets", "The skin is %1 pixels tall; %2 allows at most %3.")
 						  .arg(height)
 						  .arg(label())
 						  .arg(m_limits.skinHeight),
@@ -363,7 +363,7 @@ class Assessor
 			if (pixels > m_limits.skinPixels)
 			{
 				issue(QStringLiteral("skin-pixels"), {}, -1, pixels, m_limits.skinPixels,
-					  QCoreApplication::translate("VibeStudioModelTargets", "The skin has %1 pixels; %2 loads at most %3 per image.")
+					  QCoreApplication::translate("SlopStudioModelTargets", "The skin has %1 pixels; %2 loads at most %3 per image.")
 						  .arg(pixels)
 						  .arg(label())
 						  .arg(m_limits.skinPixels),
@@ -373,7 +373,7 @@ class Assessor
 		if (m_limits.skinWidthMultiple > 1 && width % m_limits.skinWidthMultiple != 0)
 		{
 			issue(QStringLiteral("skin-width-multiple"), {}, -1, width, m_limits.skinWidthMultiple,
-				  QCoreApplication::translate("VibeStudioModelTargets", "The skin is %1 pixels wide; %2 needs a width that is a multiple of %3.")
+				  QCoreApplication::translate("SlopStudioModelTargets", "The skin is %1 pixels wide; %2 needs a width that is a multiple of %3.")
 					  .arg(width)
 					  .arg(label())
 					  .arg(m_limits.skinWidthMultiple),
@@ -395,9 +395,9 @@ class Assessor
 		{
 			const int bad = int(names.size());
 			issue(QStringLiteral("frame-names"), {}, -1, bad, 0,
-				  QCoreApplication::translate("VibeStudioModelTargets", "Frame names that do not fit 15 printable ASCII characters (%n): %1.", nullptr, bad)
+				  QCoreApplication::translate("SlopStudioModelTargets", "Frame names that do not fit 15 printable ASCII characters (%n): %1.", nullptr, bad)
 					  .arg(listed(names)),
-				  QCoreApplication::translate("VibeStudioModelTargets", "Rename the frames with Rename Frame on the %1 page.").arg(page("animation")));
+				  QCoreApplication::translate("SlopStudioModelTargets", "Rename the frames with Rename Frame on the %1 page.").arg(page("animation")));
 		}
 	}
 
@@ -405,11 +405,11 @@ class Assessor
 	{
 		const int frames = int(m_mesh.frames.size());
 		count(QStringLiteral("frames"), frames, m_limits.frames,
-			  QCoreApplication::translate("VibeStudioModelTargets", "The model has %1 frames; %2 allows at most %3.")
+			  QCoreApplication::translate("SlopStudioModelTargets", "The model has %1 frames; %2 allows at most %3.")
 				  .arg(frames)
 				  .arg(label())
 				  .arg(m_limits.frames),
-			  QCoreApplication::translate("VibeStudioModelTargets", "Delete frames with Delete Frame on the %1 page, or split the animation into separate models.").arg(page("animation")));
+			  QCoreApplication::translate("SlopStudioModelTargets", "Delete frames with Delete Frame on the %1 page, or split the animation into separate models.").arg(page("animation")));
 	}
 
 	void singleSurface()
@@ -418,10 +418,10 @@ class Assessor
 		if (surfaces != 1)
 		{
 			issue(QStringLiteral("single-surface"), {}, -1, surfaces, 1,
-				  QCoreApplication::translate("VibeStudioModelTargets", "%1 holds one surface; the model has %2.")
+				  QCoreApplication::translate("SlopStudioModelTargets", "%1 holds one surface; the model has %2.")
 					  .arg(formatName(m_profile.format))
 					  .arg(surfaces),
-				  QCoreApplication::translate("VibeStudioModelTargets", "Join the surfaces with Manage Surfaces… > Join surfaces on the %1 page, or export MD3.").arg(page("surface")));
+				  QCoreApplication::translate("SlopStudioModelTargets", "Join the surfaces with Manage Surfaces… > Join surfaces on the %1 page, or export MD3.").arg(page("surface")));
 		}
 	}
 
@@ -436,9 +436,9 @@ class Assessor
 		{
 			const int tags = int(names.size());
 			issue(QStringLiteral("tags"), {}, -1, tags, 0,
-				  QCoreApplication::translate("VibeStudioModelTargets", "%1 has no attachment tags; the model has %n.", nullptr, tags)
+				  QCoreApplication::translate("SlopStudioModelTargets", "%1 has no attachment tags; the model has %n.", nullptr, tags)
 					  .arg(formatName(m_profile.format)),
-				  QCoreApplication::translate("VibeStudioModelTargets", "Delete the tags under Attachment tags on the %1 page, or export MD3 to keep them.").arg(page("animation")));
+				  QCoreApplication::translate("SlopStudioModelTargets", "Delete the tags under Attachment tags on the %1 page, or export MD3 to keep them.").arg(page("animation")));
 		}
 	}
 
@@ -448,10 +448,10 @@ class Assessor
 		if (skins > 0)
 		{
 			issue(QStringLiteral("embedded-skins"), {}, -1, skins, 0,
-				  QCoreApplication::translate("VibeStudioModelTargets", "%1 names skins by path and cannot embed the model's %n skin image(s).",
+				  QCoreApplication::translate("SlopStudioModelTargets", "%1 names skins by path and cannot embed the model's %n skin image(s).",
 											  nullptr, skins)
 					  .arg(formatName(m_profile.format)),
-				  QCoreApplication::translate("VibeStudioModelTargets",
+				  QCoreApplication::translate("SlopStudioModelTargets",
 											  "Export the skins as textures and assign their paths as materials."));
 		}
 	}
@@ -476,10 +476,10 @@ class Assessor
 		if (outside > 0)
 		{
 			issue(QStringLiteral("uv-range"), surface.name, 0, outside, 0,
-				  QCoreApplication::translate("VibeStudioModelTargets", "UV vertices outside the 0–1 skin tile, which %1 stores as texels: %n.",
+				  QCoreApplication::translate("SlopStudioModelTargets", "UV vertices outside the 0–1 skin tile, which %1 stores as texels: %n.",
 											  nullptr, outside)
 					  .arg(formatName(m_profile.format)),
-				  QCoreApplication::translate("VibeStudioModelTargets", "Move or scale the UVs into the tile."))
+				  QCoreApplication::translate("SlopStudioModelTargets", "Move or scale the UVs into the tile."))
 				.vertices = std::move(vertices);
 		}
 		return true;
@@ -501,7 +501,7 @@ class Assessor
 		if (!upperBound && m_limits.renderVertices > 0 && value > m_limits.renderVertices)
 		{
 			issue(QStringLiteral("render-vertices"), {}, 0, value, m_limits.renderVertices, message,
-				  QCoreApplication::translate("VibeStudioModelTargets", "Reduce the geometry with Mesh > Clean Up > Decimate, or weld UV seams with Weld by Distance."));
+				  QCoreApplication::translate("SlopStudioModelTargets", "Reduce the geometry with Mesh > Clean Up > Decimate, or weld UV seams with Weld by Distance."));
 		}
 	}
 
@@ -512,7 +512,7 @@ class Assessor
 		const auto &surface = m_mesh.surfaces.at(index);
 		const int vertices = surface.vertexCount, triangles = int(surface.triangles.size());
 		const auto fix =
-			QCoreApplication::translate("VibeStudioModelTargets", "Split the surface with Manage Surfaces… > Separate selected faces on the %1 page, or reduce it with Mesh > Clean Up > Decimate. Prepare for Target does either.")
+			QCoreApplication::translate("SlopStudioModelTargets", "Split the surface with Manage Surfaces… > Separate selected faces on the %1 page, or reduce it with Mesh > Clean Up > Decimate. Prepare for Target does either.")
 						 .arg(page("surface"));
 		measure(QStringLiteral("vertices"), surface.name, vertices, m_limits.vertices);
 		const bool overVertices = m_limits.vertices > 0 && vertices > m_limits.vertices;
@@ -539,7 +539,7 @@ class Assessor
 		if (overVertices)
 		{
 			issue(QStringLiteral("vertices"), surface.name, index, vertices, m_limits.vertices,
-				  QCoreApplication::translate("VibeStudioModelTargets", "Surface \"%1\" has %2 vertices; %3 allows at most %4 per surface.")
+				  QCoreApplication::translate("SlopStudioModelTargets", "Surface \"%1\" has %2 vertices; %3 allows at most %4 per surface.")
 					  .arg(surface.name)
 					  .arg(vertices)
 					  .arg(label())
@@ -551,7 +551,7 @@ class Assessor
 		if (overTriangles)
 		{
 			issue(QStringLiteral("triangles"), surface.name, index, triangles, m_limits.triangles,
-				  QCoreApplication::translate("VibeStudioModelTargets", "Surface \"%1\" has %2 triangles; %3 allows at most %4 per surface.")
+				  QCoreApplication::translate("SlopStudioModelTargets", "Surface \"%1\" has %2 triangles; %3 allows at most %4 per surface.")
 					  .arg(surface.name)
 					  .arg(triangles)
 					  .arg(label())
@@ -566,11 +566,11 @@ class Assessor
 	{
 		const int triangles = m_mesh.surfaces.isEmpty() ? 0 : int(m_mesh.surfaces.first().triangles.size());
 		count(QStringLiteral("triangles"), triangles, m_limits.triangles,
-			  QCoreApplication::translate("VibeStudioModelTargets", "The model has %1 triangles; %2 allows at most %3.")
+			  QCoreApplication::translate("SlopStudioModelTargets", "The model has %1 triangles; %2 allows at most %3.")
 				  .arg(triangles)
 				  .arg(label())
 				  .arg(m_limits.triangles),
-			  QCoreApplication::translate("VibeStudioModelTargets", "Reduce the model with Mesh > Clean Up > Decimate."));
+			  QCoreApplication::translate("SlopStudioModelTargets", "Reduce the model with Mesh > Clean Up > Decimate."));
 	}
 
   private:
@@ -586,19 +586,19 @@ bool assessMdl(const ModelMesh &mesh, Assessor &a, ModelTargetDepth depth, QStri
 {
 	if (!mesh.mdl.enabled || mesh.embeddedSkins.isEmpty())
 	{
-		a.issue(QStringLiteral("mdl-skin"), {}, -1, 0, 0, QCoreApplication::translate("VibeStudioModelTargets", "MDL needs an indexed skin and its palette."),
-				QCoreApplication::translate("VibeStudioModelTargets", "Add an indexed skin with Add Skin… on the %1 page.").arg(page("mdl")));
+		a.issue(QStringLiteral("mdl-skin"), {}, -1, 0, 0, QCoreApplication::translate("SlopStudioModelTargets", "MDL needs an indexed skin and its palette."),
+				QCoreApplication::translate("SlopStudioModelTargets", "Add an indexed skin with Add Skin… on the %1 page.").arg(page("mdl")));
 	}
 	a.singleSurface();
 	a.noTags();
 	a.frames();
 	const int skins = int(mesh.embeddedSkins.size());
 	a.count(QStringLiteral("skins"), skins, a.limits().skins,
-			QCoreApplication::translate("VibeStudioModelTargets", "The model has %1 skin images; %2 allows at most %3.")
+			QCoreApplication::translate("SlopStudioModelTargets", "The model has %1 skin images; %2 allows at most %3.")
 				.arg(skins)
 				.arg(a.label())
 				.arg(a.limits().skins),
-			QCoreApplication::translate("VibeStudioModelTargets", "Remove skins with Remove Skin on the %1 page.").arg(page("mdl")));
+			QCoreApplication::translate("SlopStudioModelTargets", "Remove skins with Remove Skin on the %1 page.").arg(page("mdl")));
 	if (mesh.mdl.enabled)
 	{
 		a.skinSize(mesh.mdl.skinSize);
@@ -618,17 +618,17 @@ bool assessMdl(const ModelMesh &mesh, Assessor &a, ModelTargetDepth depth, QStri
 	}
 	const auto vertexMessage = [&](int value)
 	{
-		return QCoreApplication::translate("VibeStudioModelTargets",
+		return QCoreApplication::translate("SlopStudioModelTargets",
 										   "The MDL stores %1 vertices after sharing seams and exact duplicates; %2 allows at most %3.")
 			.arg(value)
 			.arg(a.label())
 			.arg(a.limits().vertices);
 	};
 	const auto vertexFix =
-		QCoreApplication::translate("VibeStudioModelTargets", "Reduce the geometry with Mesh > Clean Up > Decimate, or weld UV seams with Weld by Distance so more vertices are shared.");
+		QCoreApplication::translate("SlopStudioModelTargets", "Reduce the geometry with Mesh > Clean Up > Decimate, or weld UV seams with Weld by Distance so more vertices are shared.");
 	const auto renderMessage = [&](int value)
 	{
-		return QCoreApplication::translate("VibeStudioModelTargets",
+		return QCoreApplication::translate("SlopStudioModelTargets",
 										   "%1 draws %2 vertices for this MDL, counting a copy of every seam vertex; it holds at most %3.")
 			.arg(a.label())
 			.arg(value)
@@ -667,11 +667,11 @@ bool assessMd2(const ModelMesh &mesh, Assessor &a, ModelTargetDepth depth, QStri
 	a.modelTriangles();
 	const int slotCount = int(surface.skinPaths.size());
 	a.count(QStringLiteral("skins"), slotCount, a.limits().skins,
-			QCoreApplication::translate("VibeStudioModelTargets", "The surface has %1 skin slots; %2 allows at most %3.")
+			QCoreApplication::translate("SlopStudioModelTargets", "The surface has %1 skin slots; %2 allows at most %3.")
 				.arg(slotCount)
 				.arg(a.label())
 				.arg(a.limits().skins),
-			QCoreApplication::translate("VibeStudioModelTargets", "Remove material slots with Manage Material Slots… on the %1 page.").arg(page("surface")));
+			QCoreApplication::translate("SlopStudioModelTargets", "Remove material slots with Manage Material Slots… on the %1 page.").arg(page("surface")));
 	QStringList badPaths;
 	for (const auto &path : surface.skinPaths)
 	{
@@ -684,18 +684,18 @@ bool assessMd2(const ModelMesh &mesh, Assessor &a, ModelTargetDepth depth, QStri
 	{
 		const int bad = int(badPaths.size());
 		a.issue(QStringLiteral("skin-paths"), surface.name, 0, bad, 0,
-				QCoreApplication::translate("VibeStudioModelTargets",
+				QCoreApplication::translate("SlopStudioModelTargets",
 											"Skin slots that are not package-relative PCX paths of at most 63 printable ASCII characters (%n): %1.",
 											nullptr, bad)
 					.arg(listed(badPaths)),
-				QCoreApplication::translate("VibeStudioModelTargets", "Assign PCX materials to the slots."));
+				QCoreApplication::translate("SlopStudioModelTargets", "Assign PCX materials to the slots."));
 	}
 	if (surface.vertexCount > 32767)
 	{
 		a.issue(QStringLiteral("texel-vertices"), surface.name, 0, surface.vertexCount, 32767,
-				QCoreApplication::translate("VibeStudioModelTargets", "The surface has %1 UV vertices; MD2 indexes at most 32,767.")
+				QCoreApplication::translate("SlopStudioModelTargets", "The surface has %1 UV vertices; MD2 indexes at most 32,767.")
 					.arg(surface.vertexCount),
-				QCoreApplication::translate("VibeStudioModelTargets", "Reduce the model with Mesh > Clean Up > Decimate."));
+				QCoreApplication::translate("SlopStudioModelTargets", "Reduce the model with Mesh > Clean Up > Decimate."));
 	}
 	const bool uvsInside = std::all_of(surface.texCoords.cbegin(), surface.texCoords.cend(),
 									   [](const ModelTexCoord &uv) { return uv.u >= 0 && uv.u <= 1 && uv.v >= 0 && uv.v <= 1; });
@@ -705,17 +705,17 @@ bool assessMd2(const ModelMesh &mesh, Assessor &a, ModelTargetDepth depth, QStri
 	}
 	const auto positionMessage = [&](int value)
 	{
-		return QCoreApplication::translate("VibeStudioModelTargets",
+		return QCoreApplication::translate("SlopStudioModelTargets",
 										   "The MD2 stores %1 positions after sharing exact duplicates across every frame; %2 allows at most %3.")
 			.arg(value)
 			.arg(a.label())
 			.arg(a.limits().vertices);
 	};
 	const auto positionFix = QCoreApplication::translate(
-		"VibeStudioModelTargets", "Reduce the geometry with Mesh > Clean Up > Decimate, or remove hard-normal splits so more positions are shared.");
+		"SlopStudioModelTargets", "Reduce the geometry with Mesh > Clean Up > Decimate, or remove hard-normal splits so more positions are shared.");
 	const auto renderMessage = [&](int value)
 	{
-		return QCoreApplication::translate("VibeStudioModelTargets",
+		return QCoreApplication::translate("SlopStudioModelTargets",
 										   "%1 builds %2 drawn vertices, one for each distinct position and texel pair; it holds at most %3.")
 			.arg(a.label())
 			.arg(value)
@@ -766,11 +766,11 @@ bool assessMd3(const ModelMesh &mesh, Assessor &a, ModelTargetDepth depth)
 	a.frameNames();
 	const int surfaces = int(mesh.surfaces.size());
 	a.count(QStringLiteral("surfaces"), surfaces, a.limits().surfaces,
-			QCoreApplication::translate("VibeStudioModelTargets", "The model has %1 surfaces; %2 allows at most %3.")
+			QCoreApplication::translate("SlopStudioModelTargets", "The model has %1 surfaces; %2 allows at most %3.")
 				.arg(surfaces)
 				.arg(a.label())
 				.arg(a.limits().surfaces),
-			QCoreApplication::translate("VibeStudioModelTargets", "Join surfaces that share a material with Manage Surfaces… > Join surfaces on the %1 page.").arg(page("surface")));
+			QCoreApplication::translate("SlopStudioModelTargets", "Join surfaces that share a material with Manage Surfaces… > Join surfaces on the %1 page.").arg(page("surface")));
 	// Every frame holds the same tags (validateEditableModel), so frame 0 counts.
 	int tags = 0;
 	QStringList longTags;
@@ -786,18 +786,18 @@ bool assessMd3(const ModelMesh &mesh, Assessor &a, ModelTargetDepth depth)
 		}
 	}
 	a.count(QStringLiteral("tags-per-frame"), tags, a.limits().tagsPerFrame,
-			QCoreApplication::translate("VibeStudioModelTargets", "Each frame has %1 attachment tags; %2 allows at most %3.")
+			QCoreApplication::translate("SlopStudioModelTargets", "Each frame has %1 attachment tags; %2 allows at most %3.")
 				.arg(tags)
 				.arg(a.label())
 				.arg(a.limits().tagsPerFrame),
-			QCoreApplication::translate("VibeStudioModelTargets", "Delete attachment tags under Attachment tags on the %1 page.").arg(page("animation")));
+			QCoreApplication::translate("SlopStudioModelTargets", "Delete attachment tags under Attachment tags on the %1 page.").arg(page("animation")));
 	if (!longTags.isEmpty())
 	{
 		const int bad = int(longTags.size());
 		a.issue(QStringLiteral("tag-names"), {}, -1, bad, 0,
-				QCoreApplication::translate("VibeStudioModelTargets", "Tag names that do not fit 63 printable ASCII characters (%n): %1.", nullptr, bad)
+				QCoreApplication::translate("SlopStudioModelTargets", "Tag names that do not fit 63 printable ASCII characters (%n): %1.", nullptr, bad)
 					.arg(listed(longTags)),
-				QCoreApplication::translate("VibeStudioModelTargets", "Rename the tags with Rename Tag on the %1 page.").arg(page("animation")));
+				QCoreApplication::translate("SlopStudioModelTargets", "Rename the tags with Rename Tag on the %1 page.").arg(page("animation")));
 	}
 	QHash<QString, QString> engineNames;
 	for (int index = 0; index < mesh.surfaces.size(); ++index)
@@ -817,18 +817,18 @@ bool assessMd3(const ModelMesh &mesh, Assessor &a, ModelTargetDepth depth)
 		if (clash != engineNames.cend())
 		{
 			a.issue(QStringLiteral("surface-names"), surface.name, index, 0, 0,
-					QCoreApplication::translate("VibeStudioModelTargets",
+					QCoreApplication::translate("SlopStudioModelTargets",
 												"Surfaces \"%1\" and \"%2\" become the same name after Quake III's case and suffix normalisation.")
 						.arg(clash.value(), surface.name),
-					QCoreApplication::translate("VibeStudioModelTargets", "Rename one of the surfaces on the %1 page.").arg(page("surface")));
+					QCoreApplication::translate("SlopStudioModelTargets", "Rename one of the surfaces on the %1 page.").arg(page("surface")));
 		}
 		engineNames.insert(engineName, surface.name);
 		if (!printableName(surface.name, 64))
 		{
 			a.issue(QStringLiteral("surface-names"), surface.name, index, surface.name.size(), 63,
-					QCoreApplication::translate("VibeStudioModelTargets", "Surface name \"%1\" does not fit 63 printable ASCII characters.")
+					QCoreApplication::translate("SlopStudioModelTargets", "Surface name \"%1\" does not fit 63 printable ASCII characters.")
 						.arg(surface.name),
-					QCoreApplication::translate("VibeStudioModelTargets", "Rename the surface on the %1 page.").arg(page("surface")));
+					QCoreApplication::translate("SlopStudioModelTargets", "Rename the surface on the %1 page.").arg(page("surface")));
 		}
 		QStringList longPaths;
 		for (const auto &material : surface.skinPaths)
@@ -842,10 +842,10 @@ bool assessMd3(const ModelMesh &mesh, Assessor &a, ModelTargetDepth depth)
 		{
 			const int bad = int(longPaths.size());
 			a.issue(QStringLiteral("material-paths"), surface.name, index, bad, 0,
-					QCoreApplication::translate("VibeStudioModelTargets",
+					QCoreApplication::translate("SlopStudioModelTargets",
 												"Material paths on surface \"%1\" that do not fit 63 printable ASCII characters (%n): %2.", nullptr, bad)
 						.arg(surface.name, listed(longPaths)),
-					QCoreApplication::translate("VibeStudioModelTargets", "Assign shorter material paths."));
+					QCoreApplication::translate("SlopStudioModelTargets", "Assign shorter material paths."));
 		}
 		if (!a.surfaceCounts(index))
 		{
@@ -908,22 +908,22 @@ bool assessMd3(const ModelMesh &mesh, Assessor &a, ModelTargetDepth depth)
 		{
 			const int count = int(outside.size());
 			a.issue(QStringLiteral("coordinate-range"), surface.name, index, count, 0,
-					QCoreApplication::translate("VibeStudioModelTargets",
+					QCoreApplication::translate("SlopStudioModelTargets",
 												"Vertices of surface \"%1\" outside MD3's range of -512 to 511.984375 units in some frame: %n.",
 												nullptr, count)
 						.arg(surface.name),
-					QCoreApplication::translate("VibeStudioModelTargets", "Resize or recentre the model; Prepare for Target moves it into range."))
+					QCoreApplication::translate("SlopStudioModelTargets", "Resize or recentre the model; Prepare for Target moves it into range."))
 				.vertices = std::move(outside);
 		}
 		if (!collapsed.isEmpty())
 		{
 			const int count = int(collapsed.size());
 			a.issue(QStringLiteral("precision"), surface.name, index, count, 0,
-					QCoreApplication::translate("VibeStudioModelTargets",
+					QCoreApplication::translate("SlopStudioModelTargets",
 												"Triangles of surface \"%1\" that collapse at MD3's 1/64-unit precision in some frame: %n.", nullptr,
 												count)
 						.arg(surface.name),
-					QCoreApplication::translate("VibeStudioModelTargets", "Enlarge small features, or scale the model up."))
+					QCoreApplication::translate("SlopStudioModelTargets", "Enlarge small features, or scale the model up."))
 				.faces = std::move(collapsed);
 		}
 	}
@@ -934,11 +934,11 @@ bool assessSkeletal(const ModelMesh &mesh, Assessor &a, bool animation)
 {
 	const int joints = int(mesh.skeleton.joints.size());
 	a.count(QStringLiteral("joints"), joints, a.limits().joints,
-			QCoreApplication::translate("VibeStudioModelTargets", "The skeleton has %1 joints; %2 allows at most %3.")
+			QCoreApplication::translate("SlopStudioModelTargets", "The skeleton has %1 joints; %2 allows at most %3.")
 				.arg(joints)
 				.arg(a.label())
 				.arg(a.limits().joints),
-			QCoreApplication::translate("VibeStudioModelTargets", "Rig the model with fewer joints, or choose a delivery target that loads more."));
+			QCoreApplication::translate("SlopStudioModelTargets", "Rig the model with fewer joints, or choose a delivery target that loads more."));
 	if (animation)
 	{
 		// Any clip can be written as an md5anim, so each is checked.
@@ -949,12 +949,12 @@ bool assessSkeletal(const ModelMesh &mesh, Assessor &a, bool animation)
 			if (a.limits().frames > 0 && frames > a.limits().frames)
 			{
 				a.issue(QStringLiteral("frames"), clip.name, -1, frames, a.limits().frames,
-						QCoreApplication::translate("VibeStudioModelTargets", "Skeletal clip \"%1\" has %2 frames; %3 allows at most %4.")
+						QCoreApplication::translate("SlopStudioModelTargets", "Skeletal clip \"%1\" has %2 frames; %3 allows at most %4.")
 							.arg(clip.name)
 							.arg(frames)
 							.arg(a.label())
 							.arg(a.limits().frames),
-						QCoreApplication::translate("VibeStudioModelTargets", "Shorten the clip, or split it into several clips, on the %1 page.")
+						QCoreApplication::translate("SlopStudioModelTargets", "Shorten the clip, or split it into several clips, on the %1 page.")
 							.arg(page("animation")));
 			}
 		}
@@ -967,11 +967,11 @@ bool assessSkeletal(const ModelMesh &mesh, Assessor &a, bool animation)
 		meshes += surface.vertexCount > 0;
 	}
 	a.count(QStringLiteral("surfaces"), meshes, a.limits().surfaces,
-			QCoreApplication::translate("VibeStudioModelTargets", "The model has %1 meshes; %2 allows at most %3.")
+			QCoreApplication::translate("SlopStudioModelTargets", "The model has %1 meshes; %2 allows at most %3.")
 				.arg(meshes)
 				.arg(a.label())
 				.arg(a.limits().surfaces),
-			QCoreApplication::translate("VibeStudioModelTargets", "Join surfaces that share a material with Manage Surfaces… > Join surfaces on the %1 page.").arg(page("surface")));
+			QCoreApplication::translate("SlopStudioModelTargets", "Join surfaces that share a material with Manage Surfaces… > Join surfaces on the %1 page.").arg(page("surface")));
 	for (int index = 0; index < mesh.surfaces.size(); ++index)
 	{
 		const auto &surface = mesh.surfaces.at(index);
@@ -1002,12 +1002,12 @@ bool assessSkeletal(const ModelMesh &mesh, Assessor &a, bool animation)
 		if (a.limits().weights > 0 && weights > a.limits().weights)
 		{
 			a.issue(QStringLiteral("weights"), surface.name, index, weights, a.limits().weights,
-					QCoreApplication::translate("VibeStudioModelTargets", "Surface \"%1\" stores %2 joint weights; %3 allows at most %4 per mesh.")
+					QCoreApplication::translate("SlopStudioModelTargets", "Surface \"%1\" stores %2 joint weights; %3 allows at most %4 per mesh.")
 						.arg(surface.name)
 						.arg(weights)
 						.arg(a.label())
 						.arg(a.limits().weights),
-					QCoreApplication::translate("VibeStudioModelTargets", "Reduce the influences per vertex with Skin Weights and Binding… > Reduce and normalise weights on the %1 page, or split the surface.")
+					QCoreApplication::translate("SlopStudioModelTargets", "Reduce the influences per vertex with Skin Weights and Binding… > Reduce and normalise weights on the %1 page, or split the surface.")
 						.arg(page("skeleton")))
 				.vertices = crowded;
 		}
@@ -1216,7 +1216,7 @@ bool modelTargetSurfaceParts(const ModelSurface &surface, int vertices, int tria
 			}
 			if (error)
 			{
-				*error = QCoreApplication::translate("VibeStudioModelTargets", "A face of surface \"%1\" does not fit a part of %2 vertices.")
+				*error = QCoreApplication::translate("SlopStudioModelTargets", "A face of surface \"%1\" does not fit a part of %2 vertices.")
 							 .arg(surface.name)
 							 .arg(vertices);
 			}
@@ -1315,7 +1315,7 @@ QStringList modelTargetIssueLines(const ModelTargetReport &report)
 	QStringList lines;
 	for (const auto &issue : report.issues)
 	{
-		lines << (issue.fix.isEmpty() ? issue.message : QCoreApplication::translate("VibeStudioModelTargets", "%1 %2").arg(issue.message, issue.fix));
+		lines << (issue.fix.isEmpty() ? issue.message : QCoreApplication::translate("SlopStudioModelTargets", "%1 %2").arg(issue.message, issue.fix));
 	}
 	return lines;
 }
@@ -1327,27 +1327,27 @@ QString modelTargetLimitName(const QString &limit)
 		const char *id;
 		const char *name;
 	} names[] = {
-		{"surfaces", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "surfaces")},
-		{"vertices", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "vertices")},
-		{"render-vertices", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "drawn vertices")},
-		{"triangles", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "triangles")},
-		{"frames", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "frames")},
-		{"skins", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "skins")},
-		{"skin-width", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "skin width")},
-		{"skin-height", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "skin height")},
-		{"skin-pixels", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "skin pixels")},
-		{"joints", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "joints")},
-		{"influences", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "influences per vertex")},
-		{"weights", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "joint weights")},
-		{"tags-per-frame", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "tags per frame")},
-		{"coordinate-range", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "coordinate range")},
-		{"precision", QT_TRANSLATE_NOOP("VibeStudioModelTargets", "1/64-unit precision")},
+		{"surfaces", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "surfaces")},
+		{"vertices", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "vertices")},
+		{"render-vertices", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "drawn vertices")},
+		{"triangles", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "triangles")},
+		{"frames", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "frames")},
+		{"skins", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "skins")},
+		{"skin-width", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "skin width")},
+		{"skin-height", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "skin height")},
+		{"skin-pixels", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "skin pixels")},
+		{"joints", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "joints")},
+		{"influences", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "influences per vertex")},
+		{"weights", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "joint weights")},
+		{"tags-per-frame", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "tags per frame")},
+		{"coordinate-range", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "coordinate range")},
+		{"precision", QT_TRANSLATE_NOOP("SlopStudioModelTargets", "1/64-unit precision")},
 	};
 	for (const auto &entry : names)
 	{
 		if (limit == QLatin1String(entry.id))
 		{
-			return QCoreApplication::translate("VibeStudioModelTargets", entry.name);
+			return QCoreApplication::translate("SlopStudioModelTargets", entry.name);
 		}
 	}
 	return limit;
@@ -1358,17 +1358,17 @@ QStringList modelTargetMeasureLines(const ModelTargetReport &report)
 	QStringList lines;
 	for (const auto &measure : report.measures)
 	{
-		auto line = QCoreApplication::translate("VibeStudioModelTargets", "%1 %2 of %3")
+		auto line = QCoreApplication::translate("SlopStudioModelTargets", "%1 %2 of %3")
 						.arg(modelTargetLimitName(measure.limit))
 						.arg(measure.value)
 						.arg(measure.maximum);
 		if (!measure.element.isEmpty())
 		{
-			line = QCoreApplication::translate("VibeStudioModelTargets", "%1 (%2)").arg(line, measure.element);
+			line = QCoreApplication::translate("SlopStudioModelTargets", "%1 (%2)").arg(line, measure.element);
 		}
 		if (measure.upperBound)
 		{
-			line = QCoreApplication::translate("VibeStudioModelTargets", "%1, at most, before the writer shares vertices").arg(line);
+			line = QCoreApplication::translate("SlopStudioModelTargets", "%1, at most, before the writer shares vertices").arg(line);
 		}
 		lines << line;
 	}
@@ -1479,4 +1479,4 @@ QJsonObject modelTargetReportJson(const ModelTargetReport &report)
 	}
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

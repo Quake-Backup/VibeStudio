@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelUvEditCliResult {
 	int exitCode = 0;
 	QString error;
@@ -15,4 +15,4 @@ struct LevelUvEditCliResult {
 // a pivot, or moves a patch's rows and columns, through the camera UV tool's
 // (core/level_uv_tool.h).
 LevelUvEditCliResult runLevelUvEdit(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

@@ -20,7 +20,7 @@
 #include <numbers>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 using namespace model_tools;
 namespace
@@ -663,4 +663,4 @@ bool limitedDissolveModel(ModelMesh *candidate, const ModelEdit &edit, ModelSele
 							   .arg(edit.tool.topology.dissolveAngle));
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

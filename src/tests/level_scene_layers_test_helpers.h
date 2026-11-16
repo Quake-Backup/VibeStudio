@@ -6,7 +6,7 @@
 
 #include <QStringList>
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 
 // The map the layer command checks start from, built through the editor's own
 // services and saved as text:
@@ -101,4 +101,4 @@ inline QString sceneLayersNode(const LevelMapDocument& document, const QString& 
 	return {};
 }
 
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

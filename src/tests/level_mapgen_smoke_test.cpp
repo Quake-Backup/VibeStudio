@@ -18,7 +18,7 @@
 #include <iostream>
 #include <string>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -57,7 +57,7 @@ void checkSpecs()
 			&& levelMapgenFormatIds(QStringLiteral("quake")) == QStringList({QStringLiteral("q1-valve220")}),
 		"Each game lists its own map formats, its default first.");
 	expect(levelMapgenSwitchNames().contains(QStringLiteral("r1s.q1_intermission")), "The stage switches are listed by name.");
-	expect(levelMapgenVersion().contains(QStringLiteral("vibestudio")), "The version says it is VibeStudio's build of the generator.");
+	expect(levelMapgenVersion().contains(QStringLiteral("slopstudio")), "The version says it is SlopStudio's build of the generator.");
 
 	LevelGenerationSpec doom = promptSpec(QStringLiteral("a techbase"));
 	doom.game = QStringLiteral("doom");
@@ -133,7 +133,7 @@ void checkGeneration()
 		"The plan lists the rooms and names the rules planner.");
 	expect(!result.analysis.isEmpty() && result.analysis.first().startsWith(QStringLiteral("Analysis")), "The analysis opens with the quality verdict.");
 	const QJsonObject report = reportOf(result);
-	expect(report.value(QStringLiteral("schema_version")).toInt() == 4 && report.value(QStringLiteral("ggml_backend")).toString() == QStringLiteral("vibestudio/scalar-linear-layout-ranker"),
+	expect(report.value(QStringLiteral("schema_version")).toInt() == 4 && report.value(QStringLiteral("ggml_backend")).toString() == QStringLiteral("slopstudio/scalar-linear-layout-ranker"),
 		"The report is schema v4 from the scalar ranker.");
 	expect(report.value(QStringLiteral("game")).toString() == QStringLiteral("quake2") && report.value(QStringLiteral("request_seed")).toString() == QStringLiteral("42"),
 		"The report records the request.");
@@ -221,12 +221,12 @@ void checkAiPlanning()
 	expect(planned.ok && model.requests == 1 && model.inputTokens == 42 && model.outputTokens == 7, "The model plans in one request and its usage is counted.");
 	const QJsonObject planner = reportOf(planned).value(QStringLiteral("planner")).toObject();
 	expect(planner.value(QStringLiteral("requested_backend")).toString() == QStringLiteral("connector")
-			&& planner.value(QStringLiteral("used_backend")).toString() == QStringLiteral("vibestudio/local-offline")
+			&& planner.value(QStringLiteral("used_backend")).toString() == QStringLiteral("slopstudio/local-offline")
 			&& planner.value(QStringLiteral("model")).toObject().value(QStringLiteral("provenance")).toString() == QStringLiteral("named_service")
 			&& planner.value(QStringLiteral("model")).toObject().value(QStringLiteral("model_sha256")).toString().isEmpty(),
 		"The report names the connector and claims no weight digests.");
 	expect(reportOf(planned).value(QStringLiteral("semantic_plan")).toObject().value(QStringLiteral("lighting_style")).toString() == QStringLiteral("high_contrast")
-			&& planned.plan.planner == QStringLiteral("quake-mapgen:vibestudio/local-offline"),
+			&& planned.plan.planner == QStringLiteral("quake-mapgen:slopstudio/local-offline"),
 		"The model's plan is the one built.");
 	const QJsonObject sent = QJsonDocument::fromJson(provider.exchanges().value(0).body).object();
 	expect(sent.value(QStringLiteral("response_format")).toObject().value(QStringLiteral("type")).toString() == QStringLiteral("json_schema"),

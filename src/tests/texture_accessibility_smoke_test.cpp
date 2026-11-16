@@ -23,7 +23,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const QString& message)
@@ -46,7 +46,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (!QByteArray(context).startsWith("VibeStudioTexture")) { return {}; }
+		if (!QByteArray(context).startsWith("SlopStudioTexture")) { return {}; }
 		return QStringLiteral("[%1 expanded]").arg(QString::fromUtf8(source));
 	}
 };

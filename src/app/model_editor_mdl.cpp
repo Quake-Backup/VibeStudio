@@ -21,7 +21,7 @@
 #include <limits>
 #include <tuple>
 
-namespace vibestudio
+namespace slopstudio
 {
 void ModelEditorDialog::addMdlControls(QFormLayout *page)
 {
@@ -71,10 +71,10 @@ void ModelEditorDialog::addMdlControls(QFormLayout *page)
 		value->setRange(.000001, 3600);
 		value->setValue(.1);
 		value->setSingleStep(.01);
-		value->setSuffix(QCoreApplication::translate("VibeStudioModelEditor", " s"));
+		value->setSuffix(QCoreApplication::translate("SlopStudioModelEditor", " s"));
 		field(form, value, id, title,
 			  QCoreApplication::translate(
-				  "VibeStudioModelEditor",
+				  "SlopStudioModelEditor",
 				  "Hold duration in seconds. Applying changes the selected member and shifts later cumulative end times."));
 		return value;
 	};
@@ -85,28 +85,28 @@ void ModelEditorDialog::addMdlControls(QFormLayout *page)
 	m_mdlSummary->setMinimumWidth(0);
 	m_mdlSummary->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	page->addRow(m_mdlSummary);
-	auto *skins = group(QCoreApplication::translate("VibeStudioModelEditor", "Indexed skins"));
+	auto *skins = group(QCoreApplication::translate("SlopStudioModelEditor", "Indexed skins"));
 	m_mdlSkin = new QComboBox;
 	m_mdlMember = new QComboBox;
-	field(skins, m_mdlSkin, "meshMdlSkin", QCoreApplication::translate("VibeStudioModelEditor", "Skin slot"),
-		  QCoreApplication::translate("VibeStudioModelEditor",
+	field(skins, m_mdlSkin, "meshMdlSkin", QCoreApplication::translate("SlopStudioModelEditor", "Skin slot"),
+		  QCoreApplication::translate("SlopStudioModelEditor",
 									  "Native skin number used by the game. Removing a slot shifts later skin numbers."));
-	field(skins, m_mdlMember, "meshMdlMember", QCoreApplication::translate("VibeStudioModelEditor", "Skin member"),
-		  QCoreApplication::translate("VibeStudioModelEditor",
+	field(skins, m_mdlMember, "meshMdlMember", QCoreApplication::translate("SlopStudioModelEditor", "Skin member"),
+		  QCoreApplication::translate("SlopStudioModelEditor",
 									  "One indexed image inside the selected skin. Preview Member displays it on the model and UV view."));
-	m_mdlSkinDuration = duration(skins, "meshMdlSkinDuration", QCoreApplication::translate("VibeStudioModelEditor", "Member duration"));
+	m_mdlSkinDuration = duration(skins, "meshMdlSkinDuration", QCoreApplication::translate("SlopStudioModelEditor", "Member duration"));
 	const auto import = [&](const char *id, const QString &title, ModelEditKind kind)
 	{
 		return button(
 			skins, id, title,
-			QCoreApplication::translate("VibeStudioModelEditor",
+			QCoreApplication::translate("SlopStudioModelEditor",
 										"Import an opaque 256-colour indexed PNG, PCX, LMP, miptexture, WAL or M8. Existing skins require matching dimensions "
 										"and palette. Appending to a single image gives both members the chosen duration."),
 			[this, kind]
 			{
 				const auto path =
-					QFileDialog::getOpenFileName(this, QCoreApplication::translate("VibeStudioModelEditor", "Import Indexed Skin"), {},
-												 QCoreApplication::translate("VibeStudioModelEditor", "Indexed skins (*.png *.pcx *.lmp *.mip *.miptex *.wal *.m8)"));
+					QFileDialog::getOpenFileName(this, QCoreApplication::translate("SlopStudioModelEditor", "Import Indexed Skin"), {},
+												 QCoreApplication::translate("SlopStudioModelEditor", "Indexed skins (*.png *.pcx *.lmp *.mip *.miptex *.wal *.m8)"));
 				if (path.isEmpty())
 				{
 					return;
@@ -118,13 +118,13 @@ void ModelEditorDialog::addMdlControls(QFormLayout *page)
 				}
 			});
 	};
-	import("addMeshMdlSkin", QCoreApplication::translate("VibeStudioModelEditor", "Add Skin…"), ModelEditKind::AddMdlSkin);
-	m_mdlPackageSkin = button(skins, "importMeshPackageSkin", QCoreApplication::translate("VibeStudioModelEditor", "Import Package Texture…"),
-		QCoreApplication::translate("VibeStudioModelEditor", "Copy an indexed texture from the current package, including staged texture edits. Choose an exact entry, then add, replace or append a skin member."),
+	import("addMeshMdlSkin", QCoreApplication::translate("SlopStudioModelEditor", "Add Skin…"), ModelEditKind::AddMdlSkin);
+	m_mdlPackageSkin = button(skins, "importMeshPackageSkin", QCoreApplication::translate("SlopStudioModelEditor", "Import Package Texture…"),
+		QCoreApplication::translate("SlopStudioModelEditor", "Copy an indexed texture from the current package, including staged texture edits. Choose an exact entry, then add, replace or append a skin member."),
 		[this] { chooseMdlPackageSkin(); });
-	m_mdlSkinButtons << import("replaceMeshMdlMember", QCoreApplication::translate("VibeStudioModelEditor", "Replace Member…"),
+	m_mdlSkinButtons << import("replaceMeshMdlMember", QCoreApplication::translate("SlopStudioModelEditor", "Replace Member…"),
 							   ModelEditKind::ReplaceMdlSkinMember);
-	m_mdlSkinButtons << import("appendMeshMdlMember", QCoreApplication::translate("VibeStudioModelEditor", "Append Member…"),
+	m_mdlSkinButtons << import("appendMeshMdlMember", QCoreApplication::translate("SlopStudioModelEditor", "Append Member…"),
 							   ModelEditKind::AppendMdlSkinMember);
 	// Skin round trips (model_editor_skin.cpp): export a member with its exact
 	// indices, or bring any edited image back mapped to the palette.
@@ -162,32 +162,32 @@ void ModelEditorDialog::addMdlControls(QFormLayout *page)
 												  "+X; the status line gives the vertices the MDL would store against its limit."),
 		[this] { layoutQuakeFrontBack(0); });
 	for (const auto &entry :
-		 {std::tuple{"removeMeshMdlSkin", QCoreApplication::translate("VibeStudioModelEditor", "Remove Skin"),
+		 {std::tuple{"removeMeshMdlSkin", QCoreApplication::translate("SlopStudioModelEditor", "Remove Skin"),
 					 ModelEditKind::RemoveMdlSkin},
-		  std::tuple{"removeMeshMdlMember", QCoreApplication::translate("VibeStudioModelEditor", "Remove Member"),
+		  std::tuple{"removeMeshMdlMember", QCoreApplication::translate("SlopStudioModelEditor", "Remove Member"),
 					 ModelEditKind::RemoveMdlSkinMember},
-		  std::tuple{"applyMeshMdlSkinDuration", QCoreApplication::translate("VibeStudioModelEditor", "Apply Member Duration"),
+		  std::tuple{"applyMeshMdlSkinDuration", QCoreApplication::translate("SlopStudioModelEditor", "Apply Member Duration"),
 					 ModelEditKind::SetMdlSkinDuration}})
 	{
 		m_mdlSkinButtons << button(skins, std::get<0>(entry), std::get<1>(entry), std::get<1>(entry),
 								   [this, kind = std::get<2>(entry)] { executeMdl(kind); });
 	}
 	m_mdlSkinButtons << button(
-		skins, "previewMeshMdlMember", QCoreApplication::translate("VibeStudioModelEditor", "Preview Member"),
+		skins, "previewMeshMdlMember", QCoreApplication::translate("SlopStudioModelEditor", "Preview Member"),
 		QCoreApplication::translate(
-			"VibeStudioModelEditor",
+			"SlopStudioModelEditor",
 			"Use this skin member for the model and UV preview until the source or skin selection changes. This does not alter the model."),
 		[this] { previewMdlSkin(); });
 	m_mdlEnabledButtons << button(
-		skins, "loadMeshMdlPalette", QCoreApplication::translate("VibeStudioModelEditor", "Load Palette…"),
+		skins, "loadMeshMdlPalette", QCoreApplication::translate("SlopStudioModelEditor", "Load Palette…"),
 		QCoreApplication::translate(
-			"VibeStudioModelEditor",
+			"SlopStudioModelEditor",
 			"Load exactly 768 RGB bytes. Pixel indices remain unchanged; MDL uses the target game's external palette."),
 		[this]
 		{
 			const auto path = QFileDialog::getOpenFileName(
-				this, QCoreApplication::translate("VibeStudioModelEditor", "Load MDL Palette"), {},
-				QCoreApplication::translate("VibeStudioModelEditor", "RGB palettes (*.lmp *.pal);;All files (*)"));
+				this, QCoreApplication::translate("SlopStudioModelEditor", "Load MDL Palette"), {},
+				QCoreApplication::translate("SlopStudioModelEditor", "RGB palettes (*.lmp *.pal);;All files (*)"));
 			if (path.isEmpty())
 			{
 				return;
@@ -198,18 +198,18 @@ void ModelEditorDialog::addMdlControls(QFormLayout *page)
 				m_status->setText(error);
 			}
 		});
-	auto *frames = group(QCoreApplication::translate("VibeStudioModelEditor", "Native frames"));
+	auto *frames = group(QCoreApplication::translate("SlopStudioModelEditor", "Native frames"));
 	m_mdlGroup = new QComboBox;
-	field(frames, m_mdlGroup, "meshMdlGroup", QCoreApplication::translate("VibeStudioModelEditor", "Native frame"),
-		  QCoreApplication::translate("VibeStudioModelEditor", "One native frame may contain several timed poses. Changing groups shifts "
+	field(frames, m_mdlGroup, "meshMdlGroup", QCoreApplication::translate("SlopStudioModelEditor", "Native frame"),
+		  QCoreApplication::translate("SlopStudioModelEditor", "One native frame may contain several timed poses. Changing groups shifts "
 															   "native frame numbers used by game code; editor clips remain separate."));
 	m_mdlFirst = new QSpinBox;
 	m_mdlLast = new QSpinBox;
-	field(frames, m_mdlFirst, "meshMdlFirst", QCoreApplication::translate("VibeStudioModelEditor", "First pose"),
-		  QCoreApplication::translate("VibeStudioModelEditor", "First pose in the inclusive grouping range."));
-	field(frames, m_mdlLast, "meshMdlLast", QCoreApplication::translate("VibeStudioModelEditor", "Last pose"),
-		  QCoreApplication::translate("VibeStudioModelEditor", "Last pose in the inclusive grouping range."));
-	m_mdlPoseDuration = duration(frames, "meshMdlPoseDuration", QCoreApplication::translate("VibeStudioModelEditor", "Pose duration"));
+	field(frames, m_mdlFirst, "meshMdlFirst", QCoreApplication::translate("SlopStudioModelEditor", "First pose"),
+		  QCoreApplication::translate("SlopStudioModelEditor", "First pose in the inclusive grouping range."));
+	field(frames, m_mdlLast, "meshMdlLast", QCoreApplication::translate("SlopStudioModelEditor", "Last pose"),
+		  QCoreApplication::translate("SlopStudioModelEditor", "Last pose in the inclusive grouping range."));
+	m_mdlPoseDuration = duration(frames, "meshMdlPoseDuration", QCoreApplication::translate("SlopStudioModelEditor", "Pose duration"));
 	m_mdlTiming = new QLabel;
 	m_mdlTiming->setObjectName(QStringLiteral("meshMdlTiming"));
 	m_mdlTiming->setWordWrap(true);
@@ -218,61 +218,61 @@ void ModelEditorDialog::addMdlControls(QFormLayout *page)
 	m_mdlTiming->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	frames->addRow(m_mdlTiming);
 	for (const auto &entry :
-		 {std::tuple{"groupMeshMdlFrames", QCoreApplication::translate("VibeStudioModelEditor", "Group Range"),
+		 {std::tuple{"groupMeshMdlFrames", QCoreApplication::translate("SlopStudioModelEditor", "Group Range"),
 					 ModelEditKind::GroupMdlFrames},
-		  std::tuple{"ungroupMeshMdlFrames", QCoreApplication::translate("VibeStudioModelEditor", "Ungroup Range"),
+		  std::tuple{"ungroupMeshMdlFrames", QCoreApplication::translate("SlopStudioModelEditor", "Ungroup Range"),
 					 ModelEditKind::UngroupMdlFrames},
-		  std::tuple{"applyMeshMdlPoseDuration", QCoreApplication::translate("VibeStudioModelEditor", "Apply Current Pose Duration"),
+		  std::tuple{"applyMeshMdlPoseDuration", QCoreApplication::translate("SlopStudioModelEditor", "Apply Current Pose Duration"),
 					 ModelEditKind::SetMdlFrameDuration}})
 	{
 		m_mdlEnabledButtons << button(
 			frames, std::get<0>(entry), std::get<1>(entry),
 			QCoreApplication::translate(
-				"VibeStudioModelEditor",
+				"SlopStudioModelEditor",
 				"Group Range assigns the chosen duration to every pose in the range. Ungroup Range creates separate native frames. Apply "
 				"Current Pose Duration changes the pose selected above the viewport."),
 			[this, kind = std::get<2>(entry)] { executeMdl(kind); });
 	}
-	auto *preview = group(QCoreApplication::translate("VibeStudioModelEditor", "Native preview"));
+	auto *preview = group(QCoreApplication::translate("SlopStudioModelEditor", "Native preview"));
 	m_mdlPlaybackTiming = new QComboBox;
 	m_mdlPlaybackTiming->setMinimumContentsLength(12);
 	m_mdlPlaybackTiming->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-	m_mdlPlaybackTiming->addItems({QCoreApplication::translate("VibeStudioModelEditor", "Stored timing (software Quake)"),
-								   QCoreApplication::translate("VibeStudioModelEditor", "Original GLQuake timing")});
-	field(preview, m_mdlPlaybackTiming, "meshMdlPlaybackTiming", QCoreApplication::translate("VibeStudioModelEditor", "Timing"),
-		  QCoreApplication::translate("VibeStudioModelEditor",
+	m_mdlPlaybackTiming->addItems({QCoreApplication::translate("SlopStudioModelEditor", "Stored timing (software Quake)"),
+								   QCoreApplication::translate("SlopStudioModelEditor", "Original GLQuake timing")});
+	field(preview, m_mdlPlaybackTiming, "meshMdlPlaybackTiming", QCoreApplication::translate("SlopStudioModelEditor", "Timing"),
+		  QCoreApplication::translate("SlopStudioModelEditor",
 									  "Stored timing uses cumulative group ends. Original GLQuake uses the first pose interval and four "
 									  "skin slots at 10 Hz. Native preview always uses exact poses."));
 	m_mdlPlaybackTime = new QDoubleSpinBox;
 	m_mdlPlaybackTime->setDecimals(6);
 	m_mdlPlaybackTime->setRange(0, 86400);
 	m_mdlPlaybackTime->setSingleStep(.01);
-	field(preview, m_mdlPlaybackTime, "meshMdlPlaybackTime", QCoreApplication::translate("VibeStudioModelEditor", "Seek time (seconds)"),
-		  QCoreApplication::translate("VibeStudioModelEditor", "Time from preview start. Seek Time displays an exact pose and skin member "
+	field(preview, m_mdlPlaybackTime, "meshMdlPlaybackTime", QCoreApplication::translate("SlopStudioModelEditor", "Seek time (seconds)"),
+		  QCoreApplication::translate("SlopStudioModelEditor", "Time from preview start. Seek Time displays an exact pose and skin member "
 															   "without starting playback, including with reduced motion enabled."));
 	m_mdlSyncPhase = new QDoubleSpinBox;
 	m_mdlSyncPhase->setDecimals(6);
 	m_mdlSyncPhase->setRange(0, 1);
 	m_mdlSyncPhase->setSingleStep(.01);
-	field(preview, m_mdlSyncPhase, "meshMdlSyncPhase", QCoreApplication::translate("VibeStudioModelEditor", "Entity phase (seconds)"),
-		  QCoreApplication::translate("VibeStudioModelEditor",
+	field(preview, m_mdlSyncPhase, "meshMdlSyncPhase", QCoreApplication::translate("SlopStudioModelEditor", "Entity phase (seconds)"),
+		  QCoreApplication::translate("SlopStudioModelEditor",
 									  "Deterministic phase for random-sync models in software Quake. Synchronized models and original "
 									  "GLQuake ignore it. This value is not saved in the model."));
 	m_mdlSkinButtons << button(
-		preview, "previewMeshMdlTiming", QCoreApplication::translate("VibeStudioModelEditor", "Preview Native Timing"),
-		QCoreApplication::translate("VibeStudioModelEditor",
+		preview, "previewMeshMdlTiming", QCoreApplication::translate("SlopStudioModelEditor", "Preview Native Timing"),
+		QCoreApplication::translate("SlopStudioModelEditor",
 									"Prepare the selected skin and native frame, then play from the seek time. Reduced motion keeps the "
 									"preview paused. Play / Pause controls this native schedule until a pose or clip is selected."),
 		[this] { previewMdlAnimation(true); });
 	m_mdlSkinButtons << button(
-		preview, "seekMeshMdlTiming", QCoreApplication::translate("VibeStudioModelEditor", "Seek Time"),
+		preview, "seekMeshMdlTiming", QCoreApplication::translate("SlopStudioModelEditor", "Seek Time"),
 		QCoreApplication::translate(
-			"VibeStudioModelEditor",
+			"SlopStudioModelEditor",
 			"Inspect the selected native frame and skin at the chosen time and phase without changing source, history or recovery."),
 		[this] { previewMdlAnimation(false); });
 	m_mdlEnabledButtons << button(
-		preview, "clearMeshMdlTiming", QCoreApplication::translate("VibeStudioModelEditor", "Use Clip Timing"),
-		QCoreApplication::translate("VibeStudioModelEditor",
+		preview, "clearMeshMdlTiming", QCoreApplication::translate("SlopStudioModelEditor", "Use Clip Timing"),
+		QCoreApplication::translate("SlopStudioModelEditor",
 									"Return to the ordinary frame transport, preview FPS and smooth interpolation."),
 		[this]
 		{
@@ -300,7 +300,7 @@ void ModelEditorDialog::addMdlControls(QFormLayout *page)
 					refreshAnimationControls();
 				}
 			});
-	auto *header = group(QCoreApplication::translate("VibeStudioModelEditor", "Model header"));
+	auto *header = group(QCoreApplication::translate("SlopStudioModelEditor", "Model header"));
 	m_mdlFlags = new QLineEdit;
 	m_mdlEye = new QLineEdit;
 	m_mdlSize = new QLineEdit;
@@ -310,23 +310,23 @@ void ModelEditorDialog::addMdlControls(QFormLayout *page)
 		value->setLayoutDirection(Qt::LeftToRight);
 		value->setMaxLength(128);
 	}
-	field(header, m_mdlFlags, "meshMdlFlags", QCoreApplication::translate("VibeStudioModelEditor", "Flags"),
+	field(header, m_mdlFlags, "meshMdlFlags", QCoreApplication::translate("SlopStudioModelEditor", "Flags"),
 		  QCoreApplication::translate(
-			  "VibeStudioModelEditor",
+			  "SlopStudioModelEditor",
 			  "Unsigned 32-bit flags, in decimal or 0x hexadecimal. Interpret these using the target game's model effects."));
-	field(header, m_mdlEye, "meshMdlEye", QCoreApplication::translate("VibeStudioModelEditor", "Eye position"),
-		  QCoreApplication::translate("VibeStudioModelEditor", "Native eye position as x,y,z, using a dot for decimals."));
-	field(header, m_mdlSize, "meshMdlSize", QCoreApplication::translate("VibeStudioModelEditor", "Size hint"),
+	field(header, m_mdlEye, "meshMdlEye", QCoreApplication::translate("SlopStudioModelEditor", "Eye position"),
+		  QCoreApplication::translate("SlopStudioModelEditor", "Native eye position as x,y,z, using a dot for decimals."));
+	field(header, m_mdlSize, "meshMdlSize", QCoreApplication::translate("SlopStudioModelEditor", "Size hint"),
 		  QCoreApplication::translate(
-			  "VibeStudioModelEditor",
+			  "SlopStudioModelEditor",
 			  "Nonnegative native model size hint, using a dot for decimals. Geometry bounds are calculated during export."));
-	m_mdlSync->addItems({QCoreApplication::translate("VibeStudioModelEditor", "Synchronized"),
-						 QCoreApplication::translate("VibeStudioModelEditor", "Random phase")});
-	field(header, m_mdlSync, "meshMdlSync", QCoreApplication::translate("VibeStudioModelEditor", "Animation sync"),
-		  QCoreApplication::translate("VibeStudioModelEditor", "Native sync type, 0 synchronized or 1 random phase."));
+	m_mdlSync->addItems({QCoreApplication::translate("SlopStudioModelEditor", "Synchronized"),
+						 QCoreApplication::translate("SlopStudioModelEditor", "Random phase")});
+	field(header, m_mdlSync, "meshMdlSync", QCoreApplication::translate("SlopStudioModelEditor", "Animation sync"),
+		  QCoreApplication::translate("SlopStudioModelEditor", "Native sync type, 0 synchronized or 1 random phase."));
 	m_mdlEnabledButtons << button(
-		header, "applyMeshMdlHeader", QCoreApplication::translate("VibeStudioModelEditor", "Apply Header"),
-		QCoreApplication::translate("VibeStudioModelEditor",
+		header, "applyMeshMdlHeader", QCoreApplication::translate("SlopStudioModelEditor", "Apply Header"),
+		QCoreApplication::translate("SlopStudioModelEditor",
 									"Save flags, eye position, size hint and synchronization without changing geometry or groups."),
 		[this] { executeMdl(ModelEditKind::SetMdlHeader); });
 	for (auto *combo : {m_mdlSkin, m_mdlMember, m_mdlGroup, m_mdlPlaybackTiming})
@@ -381,7 +381,7 @@ void ModelEditorDialog::refreshMdlControls()
 		for (int i = 0; i < mesh.mdl.frameGroups.size(); ++i)
 		{
 			const auto &native = mesh.mdl.frameGroups[i];
-			m_mdlGroup->addItem(QCoreApplication::translate("VibeStudioModelEditor", "%1 · poses %2–%3")
+			m_mdlGroup->addItem(QCoreApplication::translate("SlopStudioModelEditor", "%1 · poses %2–%3")
 									.arg(i)
 									.arg(native.firstFrame)
 									.arg(native.firstFrame + native.frameCount() - 1));
@@ -471,9 +471,9 @@ void ModelEditorDialog::refreshMdlControls()
 		}
 		m_mdlTiming->setText(
 			native.intervals.isEmpty()
-				? QCoreApplication::translate("VibeStudioModelEditor", "Single native frame; game code controls its timing.")
+				? QCoreApplication::translate("SlopStudioModelEditor", "Single native frame; game code controls its timing.")
 				: QCoreApplication::translate(
-					  "VibeStudioModelEditor",
+					  "SlopStudioModelEditor",
 					  "Cumulative ends: %1 s. Original GLQuake uses the first interval; software Quake uses the stored times.")
 					  .arg(ends.join(localeNumberSeparator())));
 	}
@@ -499,14 +499,14 @@ void ModelEditorDialog::refreshMdlControls()
 		}
 	}
 	m_mdlSummary->setText(
-		enabled ? QCoreApplication::translate("VibeStudioModelEditor", "%L1 × %L2 · %3 · %4 · %5")
+		enabled ? QCoreApplication::translate("SlopStudioModelEditor", "%L1 × %L2 · %3 · %4 · %5")
 					  .arg(mesh.mdl.skinSize.width())
 					  .arg(mesh.mdl.skinSize.height())
-					  .arg(QCoreApplication::translate("VibeStudioModelEditor", "%Ln skin(s)", nullptr, int(mesh.embeddedSkins.size())),
-						   QCoreApplication::translate("VibeStudioModelEditor", "%Ln native frame(s)", nullptr, int(mesh.mdl.frameGroups.size())))
-					  .arg(mesh.mdl.paletteGenerated ? QCoreApplication::translate("VibeStudioModelEditor", "Generated palette")
-													 : QCoreApplication::translate("VibeStudioModelEditor", "Imported palette"))
-				: QCoreApplication::translate("VibeStudioModelEditor", "MDL settings are created when the first indexed skin is added."));
+					  .arg(QCoreApplication::translate("SlopStudioModelEditor", "%Ln skin(s)", nullptr, int(mesh.embeddedSkins.size())),
+						   QCoreApplication::translate("SlopStudioModelEditor", "%Ln native frame(s)", nullptr, int(mesh.mdl.frameGroups.size())))
+					  .arg(mesh.mdl.paletteGenerated ? QCoreApplication::translate("SlopStudioModelEditor", "Generated palette")
+													 : QCoreApplication::translate("SlopStudioModelEditor", "Imported palette"))
+				: QCoreApplication::translate("SlopStudioModelEditor", "MDL settings are created when the first indexed skin is added."));
 	m_mdlSummary->setAccessibleName(m_mdlSummary->text());
 	refreshMdlPlayback();
 }
@@ -549,7 +549,7 @@ void ModelEditorDialog::executeMdl(ModelEditKind kind)
 			// These fields hold the file's own values, so they keep a full stop
 			// for decimals whatever the region format (the commas separate x, y
 			// and z); the refusal says so.
-			m_status->setText(QCoreApplication::translate("VibeStudioModelEditor",
+			m_status->setText(QCoreApplication::translate("SlopStudioModelEditor",
 														  "Use unsigned 32-bit flags, an eye position as x,y,z and a nonnegative "
 														  "size hint, with a full stop for decimals (0.5)."),
 							  LiveStatus::Problem);
@@ -569,7 +569,7 @@ bool ModelEditorDialog::importMdlSkin(const QString &path, ModelEditKind kind, Q
 	{
 		if (error)
 		{
-			*error = QCoreApplication::translate("VibeStudioModelEditor", "Choose a skin import operation.");
+			*error = QCoreApplication::translate("SlopStudioModelEditor", "Choose a skin import operation.");
 		}
 		return false;
 	}
@@ -580,7 +580,7 @@ bool ModelEditorDialog::importMdlSkin(const QString &path, ModelEditKind kind, Q
 	edit.mdlSkinMember = m_mdlMember->currentIndex();
 	edit.mdlDuration = m_mdlSkinDuration->value();
 	if (!performWork(
-			QCoreApplication::translate("VibeStudioModelEditor", "Import Indexed Skin"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Import Indexed Skin"),
 			[path, edit](ModelDocument &candidate, QString *failure, const ModelWorkControl &control) mutable
 			{
 				QByteArray bytes;
@@ -606,7 +606,7 @@ bool ModelEditorDialog::importMdlSkin(const QString &path, ModelEditKind kind, Q
 bool ModelEditorDialog::importMdlPalette(const QString &path, QString *error)
 {
 	if (!performWork(
-			QCoreApplication::translate("VibeStudioModelEditor", "Load MDL Palette"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Load MDL Palette"),
 			[path](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
 			{
 				ModelEdit edit;
@@ -627,7 +627,7 @@ void ModelEditorDialog::previewMdlSkin()
 	QImage image;
 	QString error;
 	if (!performWork(
-			QCoreApplication::translate("VibeStudioModelEditor", "Preview Indexed Skin"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Preview Indexed Skin"),
 			[slot, member, &image](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
 			{
 				const auto &mesh = candidate.mesh();
@@ -652,7 +652,7 @@ void ModelEditorDialog::previewMdlSkin()
 	refreshAnimationControls();
 	m_renderMode->setCurrentIndex(3);
 	applyMaterialImages();
-	m_status->setText(QCoreApplication::translate("VibeStudioModelEditor", "Previewing skin %1, member %2. The saved source is unchanged.")
+	m_status->setText(QCoreApplication::translate("SlopStudioModelEditor", "Previewing skin %1, member %2. The saved source is unchanged.")
 						  .arg(slot)
 						  .arg(member));
 }
@@ -672,7 +672,7 @@ void ModelEditorDialog::previewMdlAnimation(bool play)
 		skins = m_preview->mdlPlaybackSkins();
 	}
 	else if (!performWork(
-				 QCoreApplication::translate("VibeStudioModelEditor", "Prepare Native MDL Preview"),
+				 QCoreApplication::translate("SlopStudioModelEditor", "Prepare Native MDL Preview"),
 				 [&skins, request](ModelDocument &candidate, QString *failure, const ModelWorkControl &control)
 				 {
 					 ModelMdlPlaybackSample sample;
@@ -706,7 +706,7 @@ void ModelEditorDialog::previewMdlAnimation(bool play)
 	applyMaterialImages();
 	refreshMdlPlayback();
 	refreshAnimationControls();
-	m_status->setText(QCoreApplication::translate("VibeStudioModelEditor", "Native timing preview. The saved source is unchanged."));
+	m_status->setText(QCoreApplication::translate("SlopStudioModelEditor", "Native timing preview. The saved source is unchanged."));
 }
 
 void ModelEditorDialog::refreshMdlPlayback()
@@ -717,11 +717,11 @@ void ModelEditorDialog::refreshMdlPlayback()
 	}
 	m_mdlPlaybackStatus->setText(m_preview->mdlPlaybackActive()
 									 ? m_preview->playbackSummary()
-									 : QCoreApplication::translate("VibeStudioModelEditor", "Native timing preview inactive."));
+									 : QCoreApplication::translate("SlopStudioModelEditor", "Native timing preview inactive."));
 	m_mdlPlaybackStatus->setAccessibleName(m_mdlPlaybackStatus->text());
 	if (m_preview->mdlPlaybackActive() && m_renderMode->currentIndex() == 3)
 	{
 		m_uv->setPlaybackTexture(m_preview->mdlPlaybackSkin());
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

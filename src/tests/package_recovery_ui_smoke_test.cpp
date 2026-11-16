@@ -34,7 +34,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label, const QString& error = {})
 {
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 			ok &= expect(table && table->rowCount() == 1 && enabled && interval && restore && restore->isEnabled(), "chooser exposes metadata, restore and preferences");
 			ok &= expect(dialog->layoutDirection() == app.layoutDirection() && table->focusPolicy() != Qt::NoFocus
 				&& !table->accessibleName().isEmpty() && !interval->accessibleName().isEmpty() && !restore->accessibleName().isEmpty(), "RTL and accessible keyboard targets");
-			const QString captures = qEnvironmentVariable("VIBESTUDIO_PACKAGE_UI_CAPTURES");
+			const QString captures = qEnvironmentVariable("SLOPSTUDIO_PACKAGE_UI_CAPTURES");
 			const auto render = [&](const QString& suffix) {
 				auto* dismiss = dialog->findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Close);
 				ok &= expect(dismiss && dismiss->isVisible() && dismiss->focusPolicy() != Qt::NoFocus
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
 		QTimer::singleShot(0, [&]() { if (auto* box = qobject_cast<QMessageBox*>(app.activeModalWidget())) { cancelPrompt = true; box->done(QMessageBox::Cancel); } });
 		close->trigger();
 		ok &= expect(cancelPrompt && save->isEnabled() && !listPackageRecoveries(packageRecoveryDirectory()).records.isEmpty(), "cancelled close keeps live package and checkpoint");
-		const QString saved = root.filePath(QStringLiteral("saved.vibepackage"));
+		const QString saved = root.filePath(QStringLiteral("saved.sloppackage"));
 		QTimer::singleShot(0, [&]() { if (auto* picker = qobject_cast<QFileDialog*>(app.activeModalWidget())) { picker->selectFile(saved); QMetaObject::invokeMethod(picker, "accept", Qt::QueuedConnection); } });
 		save->trigger();
 		ok &= expect(waitFor([&] { return !writer->busy(); }) && listPackageRecoveries(packageRecoveryDirectory()).records.isEmpty(), "successful draft save retires its checkpoint");
@@ -182,7 +182,7 @@ int main(int argc, char** argv)
 			dialog->resize(1300, 1000); app.processEvents();
 			if (damagedStatus) {
 				damagedTable->scrollToItem(damagedStatus); app.processEvents();
-				const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+				const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 				if (!captures.isEmpty()) {
 					QImage image(damagedTable->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); damagedTable->render(&image);
 					ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("package-recovery-damaged-list-%1.png").arg(scale))), "render visible historical-content status");
@@ -190,14 +190,14 @@ int main(int argc, char** argv)
 			}
 			if (damagedDetails) {
 				damagedDetails->verticalScrollBar()->setValue(damagedDetails->verticalScrollBar()->maximum()); app.processEvents();
-				const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+				const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 				if (!captures.isEmpty()) {
 					QImage image(damagedDetails->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); damagedDetails->render(&image);
 					ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("package-recovery-damaged-%1.png").arg(scale))), "render readable historical-content warning");
 				}
 			}
 		}
-		const QString restored = root.filePath(QStringLiteral("recovered.vibepackage")); bool destinationChosen = false;
+		const QString restored = root.filePath(QStringLiteral("recovered.sloppackage")); bool destinationChosen = false;
 		QTimer::singleShot(0, [&]() {
 			if (auto* picker = qobject_cast<QFileDialog*>(app.activeModalWidget())) { destinationChosen = true; picker->selectFile(restored); QMetaObject::invokeMethod(picker, "accept", Qt::QueuedConnection); }
 		});

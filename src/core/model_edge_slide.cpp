@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -216,4 +216,4 @@ bool slideEdges(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 	return work.check();
 }
 } // namespace model_tools
-} // namespace vibestudio
+} // namespace slopstudio

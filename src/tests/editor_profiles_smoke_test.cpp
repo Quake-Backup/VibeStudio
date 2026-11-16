@@ -31,7 +31,7 @@ bool expect(bool condition, const char* message)
 }
 
 const QSet<QString> kProfilesWithControls = {
-	QStringLiteral("vibestudio-default"),
+	QStringLiteral("slopstudio-default"),
 	QStringLiteral("trenchbroom"),
 	QStringLiteral("netradiant-custom"),
 	QStringLiteral("netradiant"), QStringLiteral("sledge"),
@@ -47,11 +47,11 @@ const QSet<QString> kProfilesWithControls = {
 bool runRegistrySmoke(QSet<QString>* ids)
 {
 	bool ok = true;
-	const QVector<vibestudio::EditorProfileDescriptor> profiles = vibestudio::editorProfileDescriptors();
+	const QVector<slopstudio::EditorProfileDescriptor> profiles = slopstudio::editorProfileDescriptors();
 	ok &= expect(profiles.size() >= 24, "Expected versioned Radiant, BSP, brush, Doom and modern scene-editor families to be registered.");
-	ok &= expect(vibestudio::defaultEditorProfileId() == QStringLiteral("vibestudio-default"), "Expected stable default editor profile id.");
+	ok &= expect(slopstudio::defaultEditorProfileId() == QStringLiteral("slopstudio-default"), "Expected stable default editor profile id.");
 
-	for (const vibestudio::EditorProfileDescriptor& profile : profiles) {
+	for (const slopstudio::EditorProfileDescriptor& profile : profiles) {
 		ok &= expect(!profile.id.isEmpty() && !profile.displayName.isEmpty() && !profile.description.isEmpty(),
 			"Expected every editor profile to have identity and copy.");
 		ok &= expect(!ids->contains(profile.id), "Expected editor profile ids to be unique.");
@@ -60,7 +60,7 @@ bool runRegistrySmoke(QSet<QString>* ids)
 			"Expected every editor profile to declare schema preset ids.");
 
 		// Honest placeholder reporting: a profile with its own level editor
-		// controls resolves every preset; the others use the VibeStudio
+		// controls resolves every preset; the others use the SlopStudio
 		// controls and must say their presets are still data.
 		const bool hasControls = kProfilesWithControls.contains(profile.id);
 		ok &= expect(profile.placeholder == !hasControls, "Expected exactly the profiles without their own controls to be placeholders.");
@@ -71,33 +71,33 @@ bool runRegistrySmoke(QSet<QString>* ids)
 				ok &= expect(profile.unresolvedPresets.contains(preset), "Expected the unresolved preset list to name every unrouted preset kind.");
 			}
 		}
-		const QStringList problems = vibestudio::levelEditorControlProblems(profile.controls);
+		const QStringList problems = slopstudio::levelEditorControlProblems(profile.controls);
 		for (const QString& problem : problems) {
 			std::cerr << qPrintable(profile.id) << ": " << qPrintable(problem) << "\n";
 		}
 		ok &= expect(problems.isEmpty(), "Expected every profile's controls to hold together.");
-		ok &= expect(!vibestudio::levelEditorControlRows(profile.controls).isEmpty(), "Expected every profile's controls to read as a reference.");
+		ok &= expect(!slopstudio::levelEditorControlRows(profile.controls).isEmpty(), "Expected every profile's controls to read as a reference.");
 
 		ok &= expect(!profile.supportedEngineFamilies.isEmpty() && !profile.defaultPanels.isEmpty() && !profile.workflowNotes.isEmpty() && !profile.bindings.isEmpty(),
 			"Expected every editor profile to carry routed workflow data.");
 
 		QString conflict;
-		if (vibestudio::editorProfileHasShortcutConflict(profile, &conflict)) {
+		if (slopstudio::editorProfileHasShortcutConflict(profile, &conflict)) {
 			std::cerr << qPrintable(conflict) << "\n";
 			ok &= expect(false, "Expected editor profile shortcuts to avoid surface-local conflicts.");
 		}
 
 		int implementedCount = 0;
 		int unimplementedCount = 0;
-		for (const vibestudio::EditorProfileBinding& binding : profile.bindings) {
+		for (const slopstudio::EditorProfileBinding& binding : profile.bindings) {
 			ok &= expect(!binding.actionId.isEmpty() && !binding.displayName.isEmpty() && !binding.context.isEmpty() && !binding.commandId.isEmpty() && !binding.surfaceId.isEmpty(),
 				"Expected routed bindings to be inspectable.");
 			// `implemented` is computed from the shell registry, never asserted.
-			ok &= expect(binding.implemented == vibestudio::shellCommandIdExists(binding.commandId),
+			ok &= expect(binding.implemented == slopstudio::shellCommandIdExists(binding.commandId),
 				"Expected binding.implemented to mirror the shell command registry.");
 			if (binding.implemented) {
 				++implementedCount;
-				ok &= expect(vibestudio::shortcutForCommandId(binding.commandId) || vibestudio::commandPaletteEntryForCommandId(binding.commandId),
+				ok &= expect(slopstudio::shortcutForCommandId(binding.commandId) || slopstudio::commandPaletteEntryForCommandId(binding.commandId),
 					"Expected an implemented binding to resolve in the shell registry.");
 				ok &= expect(!binding.shortcut.trimmed().isEmpty() || binding.clearsKeys,
 					"Expected a remapped shell command to declare its keys, or to take them away.");
@@ -106,19 +106,19 @@ bool runRegistrySmoke(QSet<QString>* ids)
 				ok &= expect(binding.commandId.startsWith(QStringLiteral("editor-command.")),
 					"Expected unimplemented bindings to use the editor-command namespace.");
 			}
-			vibestudio::EditorProfileBinding routedBinding;
-			ok &= expect(vibestudio::editorProfileBindingForAction(profile, binding.actionId, &routedBinding) && routedBinding.commandId == binding.commandId,
+			slopstudio::EditorProfileBinding routedBinding;
+			ok &= expect(slopstudio::editorProfileBindingForAction(profile, binding.actionId, &routedBinding) && routedBinding.commandId == binding.commandId,
 				"Expected action lookups to resolve stable command routes.");
 		}
 		ok &= expect(implementedCount > 0, "Expected every profile to remap at least one real shell command.");
 		ok &= expect(implementedCount + unimplementedCount == profile.bindings.size(), "Expected every binding to have a reported implementation state.");
 		for (const auto& alias : profile.aliases) {
-			vibestudio::EditorProfileDescriptor resolved;
-			ok &= expect(vibestudio::editorProfileForId(alias, &resolved) && resolved.id == profile.id, "Expected aliases to resolve to their canonical profile.");
+			slopstudio::EditorProfileDescriptor resolved;
+			ok &= expect(slopstudio::editorProfileForId(alias, &resolved) && resolved.id == profile.id, "Expected aliases to resolve to their canonical profile.");
 		}
-		ok &= expect(vibestudio::editorProfileImplementedBindings(profile).size() == implementedCount,
+		ok &= expect(slopstudio::editorProfileImplementedBindings(profile).size() == implementedCount,
 			"Expected the implemented-binding helper to agree with the binding data.");
-		ok &= expect(!vibestudio::editorProfileRemappedShellCommandIds(profile).isEmpty(),
+		ok &= expect(!slopstudio::editorProfileRemappedShellCommandIds(profile).isEmpty(),
 			"Expected every profile to expose the shell command ids it remaps.");
 	}
 	return ok;
@@ -128,7 +128,7 @@ bool runLookupSmoke(const QSet<QString>& ids)
 {
 	bool ok = true;
 	const QStringList requiredIds = {
-		QStringLiteral("vibestudio-default"),
+		QStringLiteral("slopstudio-default"),
 		QStringLiteral("gtkradiant-1-6"),
 		QStringLiteral("netradiant-custom"),
 		QStringLiteral("trenchbroom"),
@@ -138,52 +138,52 @@ bool runLookupSmoke(const QSet<QString>& ids)
 		ok &= expect(ids.contains(id), "Expected named editor profile preset.");
 	}
 
-	vibestudio::EditorProfileDescriptor radiant;
-	ok &= expect(vibestudio::editorProfileForId(QStringLiteral("GtkRadiant_1_6"), &radiant) && radiant.id == QStringLiteral("gtkradiant-1-6"),
+	slopstudio::EditorProfileDescriptor radiant;
+	ok &= expect(slopstudio::editorProfileForId(QStringLiteral("GtkRadiant_1_6"), &radiant) && radiant.id == QStringLiteral("gtkradiant-1-6"),
 		"Expected editor profile lookup to normalize ids.");
-	ok &= expect(!vibestudio::editorProfileForId(QStringLiteral("missing-profile")), "Expected missing editor profile lookup to fail.");
-	vibestudio::EditorProfileDescriptor quark;
-	ok &= expect(vibestudio::editorProfileForId(QStringLiteral("quark"), &quark), "Expected the QuArK profile to resolve.");
-	const QString summary = vibestudio::editorProfileSummaryText(quark);
+	ok &= expect(!slopstudio::editorProfileForId(QStringLiteral("missing-profile")), "Expected missing editor profile lookup to fail.");
+	slopstudio::EditorProfileDescriptor quark;
+	ok &= expect(slopstudio::editorProfileForId(QStringLiteral("quark"), &quark), "Expected the QuArK profile to resolve.");
+	const QString summary = slopstudio::editorProfileSummaryText(quark);
 	ok &= expect(summary.contains(QStringLiteral("four-views")), "Expected QuArK to use the shared four-view workspace.");
 	ok &= expect(summary.contains(QStringLiteral("Command bindings:")), "Expected editor profile summary to expose routed command bindings.");
 	ok &= expect(!quark.placeholder && !quark.adaptations.isEmpty() && summary.contains(QStringLiteral("Adaptation:")), "Expected live QuArK controls with explicit differences.");
-	ok &= expect(vibestudio::editorProfileSummaryText(radiant).contains(QStringLiteral("not implemented yet")),
+	ok &= expect(slopstudio::editorProfileSummaryText(radiant).contains(QStringLiteral("not implemented yet")),
 		"Expected the summary to flag unimplemented bindings.");
-	ok &= expect(vibestudio::editorProfileDisplayNameForId(QStringLiteral("trenchbroom")).contains(QStringLiteral("TrenchBroom")),
+	ok &= expect(slopstudio::editorProfileDisplayNameForId(QStringLiteral("trenchbroom")).contains(QStringLiteral("TrenchBroom")),
 		"Expected editor profile display-name lookup.");
 
 	// A profile genuinely changes a shortcut: Radiant opens maps with Ctrl+O,
 	// while the shell default for map.open is Ctrl+M.
-	vibestudio::EditorProfileBinding mapOpen;
-	ok &= expect(vibestudio::editorProfileBindingForAction(radiant, QStringLiteral("map.open"), &mapOpen) && mapOpen.implemented,
+	slopstudio::EditorProfileBinding mapOpen;
+	ok &= expect(slopstudio::editorProfileBindingForAction(radiant, QStringLiteral("map.open"), &mapOpen) && mapOpen.implemented,
 		"Expected the Radiant profile to remap the shell map.open command.");
-	vibestudio::ShortcutDescriptor shellMapOpen;
-	ok &= expect(vibestudio::shortcutForCommandId(QStringLiteral("map.open"), &shellMapOpen), "Expected a shell shortcut for map.open.");
+	slopstudio::ShortcutDescriptor shellMapOpen;
+	ok &= expect(slopstudio::shortcutForCommandId(QStringLiteral("map.open"), &shellMapOpen), "Expected a shell shortcut for map.open.");
 	ok &= expect(mapOpen.shortcut == QStringLiteral("Ctrl+O") && mapOpen.shortcut != shellMapOpen.defaultSequence,
 		"Expected the Radiant profile to override the shell default sequence.");
 
 	// Editor profiles never declare a competing command palette sequence.
-	vibestudio::EditorProfileDescriptor defaultProfile;
-	ok &= expect(vibestudio::editorProfileForId(vibestudio::defaultEditorProfileId(), &defaultProfile), "Expected the default profile to resolve.");
-	vibestudio::EditorProfileBinding paletteBinding;
-	ok &= expect(vibestudio::editorProfileBindingForAction(defaultProfile, QStringLiteral("shell.command-palette"), &paletteBinding),
+	slopstudio::EditorProfileDescriptor defaultProfile;
+	ok &= expect(slopstudio::editorProfileForId(slopstudio::defaultEditorProfileId(), &defaultProfile), "Expected the default profile to resolve.");
+	slopstudio::EditorProfileBinding paletteBinding;
+	ok &= expect(slopstudio::editorProfileBindingForAction(defaultProfile, QStringLiteral("shell.command-palette"), &paletteBinding),
 		"Expected the default profile to reference the shell command palette command id.");
-	vibestudio::ShortcutDescriptor paletteShortcut;
-	ok &= expect(vibestudio::shortcutForCommandId(QStringLiteral("shell.command-palette"), &paletteShortcut), "Expected the registry palette shortcut.");
+	slopstudio::ShortcutDescriptor paletteShortcut;
+	ok &= expect(slopstudio::shortcutForCommandId(QStringLiteral("shell.command-palette"), &paletteShortcut), "Expected the registry palette shortcut.");
 	ok &= expect(paletteBinding.shortcut == paletteShortcut.defaultSequence,
 		"Expected the default profile to keep the documented command palette sequence.");
 
 	const QMap<QString, QPair<QString, QString>> expectedCameraSelection = {
-		{QStringLiteral("vibestudio-default"), {QStringLiteral("hybrid-orbit-and-fly"), QStringLiteral("explicit-object-and-component")}},
+		{QStringLiteral("slopstudio-default"), {QStringLiteral("hybrid-orbit-and-fly"), QStringLiteral("explicit-object-and-component")}},
 		{QStringLiteral("gtkradiant-1-6"), {QStringLiteral("radiant-camera"), QStringLiteral("radiant-brush-entity")}},
 		{QStringLiteral("netradiant-custom"), {QStringLiteral("radiant-enhanced-camera"), QStringLiteral("radiant-fast-manipulation")}},
 		{QStringLiteral("trenchbroom"), {QStringLiteral("trenchbroom-fly-camera"), QStringLiteral("component-face-edge-vertex")}},
 		{QStringLiteral("quark"), {QStringLiteral("quark-linked-views"), QStringLiteral("object-tree-property")}},
 	};
 	for (auto it = expectedCameraSelection.cbegin(); it != expectedCameraSelection.cend(); ++it) {
-		vibestudio::EditorProfileDescriptor profile;
-		if (!vibestudio::editorProfileForId(it.key(), &profile)) {
+		slopstudio::EditorProfileDescriptor profile;
+		if (!slopstudio::editorProfileForId(it.key(), &profile)) {
 			ok &= expect(false, "Expected editor profile lookup for camera/selection smoke.");
 			continue;
 		}
@@ -199,11 +199,11 @@ bool runLookupSmoke(const QSet<QString>& ids)
 bool runControlsSmoke()
 {
 	bool ok = true;
-	using namespace vibestudio;
-	const LevelEditorControls standard = levelEditorControlsForProfile(QStringLiteral("vibestudio-default"));
+	using namespace slopstudio;
+	const LevelEditorControls standard = levelEditorControlsForProfile(QStringLiteral("slopstudio-default"));
 	ok &= expect(standard.layout == LevelViewLayout::Single2D && !standard.camera.perspective && standard.plan.emptyDrag == PlanEmptyDrag::BoxSelect
 			&& standard.plan.panButtons == QVector<Qt::MouseButton> {Qt::MiddleButton} && standard.defaultGridUnits == 64,
-		"Expected the VibeStudio plan and camera defaults to remain familiar.");
+		"Expected the SlopStudio plan and camera defaults to remain familiar.");
 	// Besides Ctrl+Space, the default profile names only its plan-view nudge
 	// arrows (core/level_nudge.h).
 	const QHash<QString, QStringList> standardKeys {{QStringLiteral("map.maximizeView"), {QStringLiteral("Ctrl+Space")}},
@@ -308,7 +308,7 @@ bool runControlsSmoke()
 
 bool runFamiliarNavigationSmoke()
 {
-	using namespace vibestudio;
+	using namespace slopstudio;
 	bool ok = true;
 	const auto hammer = levelEditorControlsForProfile(QStringLiteral("Worldcraft"));
 	ok &= expect(hammer.layout == LevelViewLayout::FourViews && hammer.camera.lookToggleKey == QStringLiteral("Z"), "Hammer has four views and its Z toggle.");
@@ -372,7 +372,7 @@ bool runFamiliarNavigationSmoke()
 	ok &= expect(!levelEditorControlProblems(bad).isEmpty(), "Duplicate motion keys are rejected.");
 	bad = familiarLevelControls(QStringLiteral("hammer")); bad.keys.push_back({QStringLiteral("map.clipTool"), {QStringLiteral("Z")}});
 	ok &= expect(!levelEditorControlProblems(bad).isEmpty(), "Mouse-look toggles cannot double as command shortcuts.");
-	bad = vibeStudioLevelControls(); bad.defaultGridUnits = 3;
+	bad = slopStudioLevelControls(); bad.defaultGridUnits = 3;
 	ok &= expect(!levelEditorControlProblems(bad).isEmpty(), "Unsupported default grid values are rejected.");
 	QElapsedTimer timer; timer.start();
 	for (int i = 0; i < 100; ++i) { EditorProfileDescriptor profile; ok &= editorProfileForId(QStringLiteral("hammer++"), &profile); }
@@ -392,7 +392,7 @@ bool runFamiliarNavigationSmoke()
 
 bool runRadiantVersionsSmoke()
 {
-	using namespace vibestudio;
+	using namespace slopstudio;
 	bool ok = true;
 	const auto bound = [](const LevelEditorControls& controls, const char* command) {
 		for (const auto& binding : controls.keys) {
@@ -451,7 +451,7 @@ bool runRadiantVersionsSmoke()
 
 bool runDoomEditAndBspSmoke()
 {
-	using namespace vibestudio;
+	using namespace slopstudio;
 	bool ok = true;
 	const auto bound = [](const LevelEditorControls& controls, const char* command) {
 		for (const auto& binding : controls.keys) { if (binding.commandId == QLatin1String(command)) { return binding.keys; } }

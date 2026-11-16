@@ -21,11 +21,11 @@
 #include <algorithm>
 #include <utility>
 
-namespace vibestudio
+namespace slopstudio
 {
 void ModelEditorDialog::addAnimationControls(QFormLayout *animation)
 {
-	auto *group = new QGroupBox(QCoreApplication::translate("VibeStudioModelEditor", "Animation clips"));
+	auto *group = new QGroupBox(QCoreApplication::translate("SlopStudioModelEditor", "Animation clips"));
 	group->setObjectName(QStringLiteral("meshAnimationClips"));
 	auto *form = new QFormLayout(group);
 	form->setContentsMargins(4, 6, 4, 6);
@@ -72,20 +72,20 @@ void ModelEditorDialog::addAnimationControls(QFormLayout *animation)
 	m_animationClip->setObjectName(QStringLiteral("meshAnimationClip"));
 	m_animationClip->setMinimumContentsLength(12);
 	m_animationClip->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-	m_animationClip->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Animation clip"));
-	m_animationClip->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
+	m_animationClip->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Animation clip"));
+	m_animationClip->setToolTip(QCoreApplication::translate("SlopStudioModelEditor",
 															"Choose a saved frame range for editing and preview. Indices distinguish "
 															"imported clips with the same name; All frames previews the whole model."));
 	m_animationClip->setAccessibleDescription(m_animationClip->toolTip());
-	m_animationClip->addItem(QCoreApplication::translate("VibeStudioModelEditor", "All frames"), -1);
-	form->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Clip"), m_animationClip);
+	m_animationClip->addItem(QCoreApplication::translate("SlopStudioModelEditor", "All frames"), -1);
+	form->addRow(QCoreApplication::translate("SlopStudioModelEditor", "Clip"), m_animationClip);
 	m_animationSummary = new QLabel;
 	m_animationSummary->setObjectName(QStringLiteral("meshAnimationSummary"));
 	m_animationSummary->setTextFormat(Qt::PlainText);
 	m_animationSummary->setWordWrap(true);
 	m_animationSummary->setMinimumWidth(0);
 	m_animationSummary->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
-	m_animationSummary->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Animation preview status"));
+	m_animationSummary->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Animation preview status"));
 	form->addRow(m_animationSummary);
 	const auto rate = [&](const char *id, const QString &label, const QString &description, double minimum)
 	{
@@ -103,16 +103,16 @@ void ModelEditorDialog::addAnimationControls(QFormLayout *animation)
 		form->addRow(label, field);
 		return field;
 	};
-	m_animationRate = rate("meshAnimationRate", QCoreApplication::translate("VibeStudioModelEditor", "Preview FPS"),
-		QCoreApplication::translate("VibeStudioModelEditor",
+	m_animationRate = rate("meshAnimationRate", QCoreApplication::translate("SlopStudioModelEditor", "Preview FPS"),
+		QCoreApplication::translate("SlopStudioModelEditor",
 			"Session preview speed. Selecting a clip uses its saved FPS when specified. Apply Clip FPS to save timing; game exports require separate animation configuration. Reduced motion disables automatic playback."), .001);
 	m_animationRate->setValue(m_preview->framesPerSecond());
-	auto *smooth = new WrappingCheckBox(QCoreApplication::translate("VibeStudioModelEditor", "Smooth preview"));
+	auto *smooth = new WrappingCheckBox(QCoreApplication::translate("SlopStudioModelEditor", "Smooth preview"));
 	smooth->setObjectName(QStringLiteral("meshAnimationSmooth"));
 	m_animationSmooth = smooth;
 	smooth->setAccessibleName(smooth->text());
 	smooth->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor",
+		"SlopStudioModelEditor",
 		"Blend positions, normal directions and rigid attachments between stored frames, including the end-to-start loop. "
 		"Pause to return to the current stored pose for editing. This session-only preview does not insert or export poses."));
 	smooth->setAccessibleDescription(smooth->toolTip());
@@ -125,67 +125,67 @@ void ModelEditorDialog::addAnimationControls(QFormLayout *animation)
 				m_preview->setAnimationInterpolation(enabled);
 				refreshAnimationControls();
 			});
-	m_animationName = text("meshAnimationName", QCoreApplication::translate("VibeStudioModelEditor", "Clip name"),
-						   QCoreApplication::translate("VibeStudioModelEditor",
+	m_animationName = text("meshAnimationName", QCoreApplication::translate("SlopStudioModelEditor", "Clip name"),
+						   QCoreApplication::translate("SlopStudioModelEditor",
 													   "A unique name for a new or renamed clip. Clip names and ranges are saved in the "
 													   "editable source; game exports require their own animation configuration."),
 						   128);
 	m_animationFirst =
-		spin("meshAnimationFirst", QCoreApplication::translate("VibeStudioModelEditor", "First frame"),
-			 QCoreApplication::translate("VibeStudioModelEditor", "First included frame, using the transport's zero-based frame index."), 0,
+		spin("meshAnimationFirst", QCoreApplication::translate("SlopStudioModelEditor", "First frame"),
+			 QCoreApplication::translate("SlopStudioModelEditor", "First included frame, using the transport's zero-based frame index."), 0,
 			 1023);
 	m_animationLast =
-		spin("meshAnimationLast", QCoreApplication::translate("VibeStudioModelEditor", "Last frame"),
-			 QCoreApplication::translate("VibeStudioModelEditor", "Last included frame. Clips may overlap and may contain a single pose."),
+		spin("meshAnimationLast", QCoreApplication::translate("SlopStudioModelEditor", "Last frame"),
+			 QCoreApplication::translate("SlopStudioModelEditor", "Last included frame. Clips may overlap and may contain a single pose."),
 			 0, 1023);
-	m_clipRate = rate("meshClipRate", QCoreApplication::translate("VibeStudioModelEditor", "Saved clip FPS"),
-		QCoreApplication::translate("VibeStudioModelEditor", "Playback rate saved in the editable source. Zero leaves timing unspecified. Native MDL groups retain their independent timing."), 0);
-	m_clipRate->setSpecialValueText(QCoreApplication::translate("VibeStudioModelEditor", "Unspecified"));
+	m_clipRate = rate("meshClipRate", QCoreApplication::translate("SlopStudioModelEditor", "Saved clip FPS"),
+		QCoreApplication::translate("SlopStudioModelEditor", "Playback rate saved in the editable source. Zero leaves timing unspecified. Native MDL groups retain their independent timing."), 0);
+	m_clipRate->setSpecialValueText(QCoreApplication::translate("SlopStudioModelEditor", "Unspecified"));
 	m_addAnimation =
-		button("addMeshAnimation", QCoreApplication::translate("VibeStudioModelEditor", "Add Clip"),
-			   QCoreApplication::translate("VibeStudioModelEditor", "Save a named range without copying or changing any poses."),
+		button("addMeshAnimation", QCoreApplication::translate("SlopStudioModelEditor", "Add Clip"),
+			   QCoreApplication::translate("SlopStudioModelEditor", "Save a named range without copying or changing any poses."),
 			   ModelEditKind::AddAnimation);
-	m_animationSelectionButtons << button("setMeshAnimationRate", QCoreApplication::translate("VibeStudioModelEditor", "Apply Clip FPS"),
-		QCoreApplication::translate("VibeStudioModelEditor", "Save the selected clip's playback rate in one undo step without resampling any poses."), ModelEditKind::SetAnimationRate);
+	m_animationSelectionButtons << button("setMeshAnimationRate", QCoreApplication::translate("SlopStudioModelEditor", "Apply Clip FPS"),
+		QCoreApplication::translate("SlopStudioModelEditor", "Save the selected clip's playback rate in one undo step without resampling any poses."), ModelEditKind::SetAnimationRate);
 	m_animationSelectionButtons << button(
-		"setMeshAnimationRange", QCoreApplication::translate("VibeStudioModelEditor", "Apply Clip Range"),
-		QCoreApplication::translate("VibeStudioModelEditor", "Replace the selected clip's inclusive frame bounds in one undo step."),
+		"setMeshAnimationRange", QCoreApplication::translate("SlopStudioModelEditor", "Apply Clip Range"),
+		QCoreApplication::translate("SlopStudioModelEditor", "Replace the selected clip's inclusive frame bounds in one undo step."),
 		ModelEditKind::SetAnimationRange);
 	m_animationSelectionButtons << button(
-		"renameMeshAnimation", QCoreApplication::translate("VibeStudioModelEditor", "Rename Clip"),
-		QCoreApplication::translate("VibeStudioModelEditor", "Rename the selected clip without renaming its frames."),
+		"renameMeshAnimation", QCoreApplication::translate("SlopStudioModelEditor", "Rename Clip"),
+		QCoreApplication::translate("SlopStudioModelEditor", "Rename the selected clip without renaming its frames."),
 		ModelEditKind::RenameAnimation);
 	m_animationSelectionButtons << button(
-		"deleteMeshAnimation", QCoreApplication::translate("VibeStudioModelEditor", "Delete Clip"),
-		QCoreApplication::translate("VibeStudioModelEditor",
+		"deleteMeshAnimation", QCoreApplication::translate("SlopStudioModelEditor", "Delete Clip"),
+		QCoreApplication::translate("SlopStudioModelEditor",
 									"Remove only the selected clip's name and range. All poses remain in the model."),
 		ModelEditKind::DeleteAnimation);
 	m_copyPoseSource =
-		spin("meshCopyPoseSource", QCoreApplication::translate("VibeStudioModelEditor", "Copy from frame"),
-			 QCoreApplication::translate("VibeStudioModelEditor",
+		spin("meshCopyPoseSource", QCoreApplication::translate("SlopStudioModelEditor", "Copy from frame"),
+			 QCoreApplication::translate("SlopStudioModelEditor",
 										 "Source pose to copy into the displayed frame, across every surface and attachment."),
 			 0, 1023);
-	m_copyFramePose = button("copyMeshFramePose", QCoreApplication::translate("VibeStudioModelEditor", "Copy Full Pose"),
-							 QCoreApplication::translate("VibeStudioModelEditor",
+	m_copyFramePose = button("copyMeshFramePose", QCoreApplication::translate("SlopStudioModelEditor", "Copy Full Pose"),
+							 QCoreApplication::translate("SlopStudioModelEditor",
 														 "Replace the displayed pose's geometry, normals, origin and attachments. Keep "
 														 "its frame name, UVs, materials, clip ranges and other poses."),
 							 ModelEditKind::CopyFramePose);
 	m_inbetweenCount =
-		spin("meshInbetweenCount", QCoreApplication::translate("VibeStudioModelEditor", "Frames to insert"),
-			 QCoreApplication::translate("VibeStudioModelEditor", "Generate evenly spaced poses between the displayed frame and its next "
+		spin("meshInbetweenCount", QCoreApplication::translate("SlopStudioModelEditor", "Frames to insert"),
+			 QCoreApplication::translate("SlopStudioModelEditor", "Generate evenly spaced poses between the displayed frame and its next "
 																  "frame. Clips expand only when they contain both endpoints."),
 			 1, 1022);
 	m_inbetweenPrefix = text(
-		"meshInbetweenPrefix", QCoreApplication::translate("VibeStudioModelEditor", "Frame-name prefix"),
-		QCoreApplication::translate("VibeStudioModelEditor",
+		"meshInbetweenPrefix", QCoreApplication::translate("SlopStudioModelEditor", "Frame-name prefix"),
+		QCoreApplication::translate("SlopStudioModelEditor",
 									"Generated names add _001, _002 and so on. Left empty, frames between two frames that share a name stem "
 									"(walk1, walk2) take that stem, so MDL, MD2 and MD3 files keep them in the clip; otherwise blend. Game "
 									"formats enforce their shorter name limits at export."),
 		123);
-	m_inbetweenPrefix->setPlaceholderText(QCoreApplication::translate("VibeStudioModelEditor", "Frame stem or blend"));
+	m_inbetweenPrefix->setPlaceholderText(QCoreApplication::translate("SlopStudioModelEditor", "Frame stem or blend"));
 	m_insertInbetweens = button(
-		"insertMeshInbetweens", QCoreApplication::translate("VibeStudioModelEditor", "Insert In-between Frames"),
-		QCoreApplication::translate("VibeStudioModelEditor",
+		"insertMeshInbetweens", QCoreApplication::translate("SlopStudioModelEditor", "Insert In-between Frames"),
+		QCoreApplication::translate("SlopStudioModelEditor",
 									"Blend geometry, normals and rigid attachment orientations across every surface. Existing poses stay "
 									"exact. Invalid generated geometry or incompatible tag handedness rejects the complete operation."),
 		ModelEditKind::InsertInbetweens);
@@ -234,11 +234,11 @@ void ModelEditorDialog::refreshAnimationControls()
 	{
 		const int wanted = m_animationClip->currentData().toInt();
 		m_animationClip->clear();
-		m_animationClip->addItem(QCoreApplication::translate("VibeStudioModelEditor", "All frames"), -1);
+		m_animationClip->addItem(QCoreApplication::translate("SlopStudioModelEditor", "All frames"), -1);
 		for (int i = 0; i < mesh.animations.size(); ++i)
 		{
 			const auto &clip = mesh.animations[i];
-			m_animationClip->addItem(QCoreApplication::translate("VibeStudioModelEditor", "%1 · %2 (%3–%4)")
+			m_animationClip->addItem(QCoreApplication::translate("SlopStudioModelEditor", "%1 · %2 (%3–%4)")
 										 .arg(i)
 										 .arg(clip.name)
 										 .arg(clip.firstFrame)
@@ -421,4 +421,4 @@ void ModelEditorDialog::executeAnimation(ModelEditKind kind)
 		m_frame->setCurrentIndex(frame + 1);
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

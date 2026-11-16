@@ -5,7 +5,7 @@
 #include <QJsonObject>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 inline constexpr int PackageCopyStoreSessionLimit = 128;
 inline constexpr int PackageCopyStoreEntryLimit = 250000;
@@ -51,7 +51,7 @@ struct PackageCopyInventory {
 };
 
 // Resolves the OS temporary root without creating the store. Old unregistered
-// vibestudio-copies-* directories are outside this managed store.
+// slopstudio-copies-* directories are outside this managed store.
 QString packageCopyDirectory();
 PackageCopyInventory listPackageCopies(const QString& directory, const PackageReadControl& control = {});
 QJsonObject packageCopyInventoryJson(const PackageCopyInventory& inventory);
@@ -100,4 +100,4 @@ private:
 // teardown. Normal cleanup keeps the native owner lease until it finishes.
 void waitForPackageCopyCleanup();
 
-} // namespace vibestudio
+} // namespace slopstudio

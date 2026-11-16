@@ -19,7 +19,7 @@ class QPushButton;
 class QSpinBox;
 class QWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class LiveStatusLabel;
 class ModelEditorDialog;
@@ -126,4 +126,4 @@ class ModelEditorAnimationPanel final : public QObject
 	// Unique edges per surface for the onion skin, rebuilt per revision.
 	QVector<QVector<QPair<int, int>>> m_edges;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -16,7 +16,7 @@
 #include <memory>
 #include <mutex>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace model_formats {
 
@@ -69,13 +69,13 @@ bool Companions::exhausted() const
 bool Companions::read(const QString& path, QByteArray* bytes, QString* error)
 {
 	if (!m_source || !m_source->read) {
-		if (error) { *error = QCoreApplication::translate("VibeStudioModelMesh", "Companion files cannot be read here."); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioModelMesh", "Companion files cannot be read here."); }
 		return false;
 	}
 	if (m_exhausted || m_files >= m_source->maxFiles) {
 		m_exhausted = true;
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "The model reads more than %1 companion file(s); the rest were left out.")
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "The model reads more than %1 companion file(s); the rest were left out.")
 				.arg(m_source->maxFiles);
 		}
 		return false;
@@ -89,7 +89,7 @@ bool Companions::read(const QString& path, QByteArray* bytes, QString* error)
 	if (qint64(data.size()) > m_source->maxBytes - m_bytes) {
 		m_exhausted = true;
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "The model's companion files pass %1 MiB; the rest were left out.")
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "The model's companion files pass %1 MiB; the rest were left out.")
 				.arg(m_source->maxBytes / (1024 * 1024));
 		}
 		return false;
@@ -255,7 +255,7 @@ ModelCompanionSource modelCompanionsFromFileSystem(const QString& modelPath)
 	source.read = [modelDirectory, state, maxBytes](const QString& path, QByteArray* bytes, QString* error) {
 		const auto refuse = [error, &path] {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioModelMesh", "The companion file name %1 points outside the model's folders and was not read.").arg(path);
+				*error = QCoreApplication::translate("SlopStudioModelMesh", "The companion file name %1 points outside the model's folders and was not read.").arg(path);
 			}
 			return false;
 		};
@@ -276,7 +276,7 @@ ModelCompanionSource modelCompanionsFromFileSystem(const QString& modelPath)
 			}
 			if (info.size() > remaining) {
 				if (error) {
-					*error = QCoreApplication::translate("VibeStudioModelMesh", "The companion file %1 is larger than the %2 MiB left for companion files and was not read.")
+					*error = QCoreApplication::translate("SlopStudioModelMesh", "The companion file %1 is larger than the %2 MiB left for companion files and was not read.")
 						.arg(file, QString::number(std::max<qint64>(0, remaining) / (1024 * 1024)));
 				}
 				return 2;
@@ -285,7 +285,7 @@ ModelCompanionSource modelCompanionsFromFileSystem(const QString& modelPath)
 			QString problem;
 			if (!readModelFile(file, &data, &problem)) {
 				if (error) {
-					*error = QCoreApplication::translate("VibeStudioModelMesh", "The companion file %1 could not be read.").arg(file);
+					*error = QCoreApplication::translate("SlopStudioModelMesh", "The companion file %1 could not be read.").arg(file);
 				}
 				return 2;
 			}
@@ -293,7 +293,7 @@ ModelCompanionSource modelCompanionsFromFileSystem(const QString& modelPath)
 				const std::lock_guard<std::mutex> lock(state->mutex);
 				if (qint64(data.size()) > maxBytes - state->bytesRead) {
 					if (error) {
-						*error = QCoreApplication::translate("VibeStudioModelMesh", "The model's companion files pass %1 MiB; the rest were left out.")
+						*error = QCoreApplication::translate("SlopStudioModelMesh", "The model's companion files pass %1 MiB; the rest were left out.")
 							.arg(maxBytes / (1024 * 1024));
 					}
 					return 2;
@@ -333,7 +333,7 @@ ModelCompanionSource modelCompanionsFromFileSystem(const QString& modelPath)
 				}
 			}
 		}
-		if (error) { *error = QCoreApplication::translate("VibeStudioModelMesh", "Companion file not found: %1").arg(path); }
+		if (error) { *error = QCoreApplication::translate("SlopStudioModelMesh", "Companion file not found: %1").arg(path); }
 		return false;
 	};
 	source.list = [modelDirectory, state](const QString& directory, const QStringList& suffixes) {
@@ -379,4 +379,4 @@ ModelCompanionSource modelCompanionsFromFileSystem(const QString& modelPath)
 	return source;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

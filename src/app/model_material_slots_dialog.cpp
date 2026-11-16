@@ -13,7 +13,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -181,4 +181,4 @@ void ModelMaterialSlotsDialog::refresh()
 				: Text::tr("%Ln material slot(s) · Primary: %1", nullptr, int(m_materials.size())).arg(m_materials.value(0, Text::tr("Unassigned"))));
 	m_summary->setAccessibleDescription(m_summary->text());
 }
-} // namespace vibestudio
+} // namespace slopstudio

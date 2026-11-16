@@ -6,7 +6,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class OperationState {
 	Idle,
@@ -93,4 +93,4 @@ int operationProgressPercent(const OperationProgress& progress);
 qint64 operationTaskElapsedMs(const OperationTask& task, const QDateTime& atUtc = QDateTime());
 QString operationTaskTimelineText(const OperationTask& task);
 
-} // namespace vibestudio
+} // namespace slopstudio

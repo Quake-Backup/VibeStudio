@@ -3,7 +3,7 @@
 // DEFLATE codec.
 //
 // Implemented from the public IETF specifications rather than adapted from an
-// existing library, so VibeStudio keeps a dependency-free, deterministic,
+// existing library, so SlopStudio keeps a dependency-free, deterministic,
 // fixture-testable path for ZIP/PK3 content:
 // - RFC 1951, DEFLATE Compressed Data Format Specification version 1.3
 // - RFC 1950, ZLIB Compressed Data Format Specification version 3.3
@@ -25,7 +25,7 @@
 
 class QIODevice;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct InflateResult {
 	bool ok = false;
@@ -110,4 +110,4 @@ quint32 adler32Bytes(const QByteArray& bytes, quint32 seed = 1);
 QString deflateLevelId(DeflateLevel level);
 bool deflateLevelFromId(const QString& id, DeflateLevel* out = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

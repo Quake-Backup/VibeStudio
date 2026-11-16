@@ -22,7 +22,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Zero (or -1 for detailLevels) means the target sets no limit of its own;
 // the editable source's limits (core/model_document.h) still apply.
@@ -172,4 +172,4 @@ bool modelTargetSurfaceParts(const ModelSurface &surface, int vertices, int tria
 // per stored vertex. False only on cancellation.
 bool modelMd2PositionIndex(const ModelMesh &mesh, QVector<int> *positionIndex, QVector<int> *representative, QString *error = nullptr,
 						   const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

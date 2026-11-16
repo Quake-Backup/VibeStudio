@@ -25,7 +25,7 @@
 // modelOutputRecordLimit are kept, the oldest dropped first.
 //
 // Game folders never get receipts. A Quake III player package also embeds its
-// own (vibestudio/player-bundle.json); readModelPackageReceipt reads it back.
+// own (slopstudio/player-bundle.json); readModelPackageReceipt reads it back.
 
 #include "core/model_document.h"
 #include "core/model_work.h"
@@ -38,7 +38,7 @@
 
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 class PackageArchiveReader;
 
@@ -173,7 +173,7 @@ struct ModelOutputRefresh
 [[nodiscard]] ModelOutputRefresh refreshModelOutput(const ModelOutputRecord &record, bool dryRun,
 													const ModelWorkControl &control = {});
 
-// The receipt a Quake III player package embeds (vibestudio/player-bundle.json),
+// The receipt a Quake III player package embeds (slopstudio/player-bundle.json),
 // as a record of kind player-package: each packaged file with its SHA-256,
 // and the parts' source SHA-256s as inputs named by part id. `status` says
 // whether the package's files still match it (OutputChanged when not); with an
@@ -185,4 +185,4 @@ bool readModelPackageReceipt(const QString &packagePath, ModelOutputRecord *reco
 [[nodiscard]] QJsonObject modelOutputStatusJson(const ModelOutputRecord &record, const ModelOutputStatus &status, const QString &projectRoot);
 [[nodiscard]] QString modelOutputStatusLine(const ModelOutputRecord &record, const ModelOutputStatus &status);
 
-} // namespace vibestudio
+} // namespace slopstudio

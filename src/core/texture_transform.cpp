@@ -5,17 +5,17 @@
 #include <algorithm>
 #include <cstring>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool report(const TextureProgress& progress, qint64 done, qint64 total, QString* error)
 {
 	if (!progress || progress(done, total)) { return true; }
-	if (error) { *error = QCoreApplication::translate("VibeStudioTexture", "Texture operation cancelled."); }
+	if (error) { *error = QCoreApplication::translate("SlopStudioTexture", "Texture operation cancelled."); }
 	return false;
 }
 QImage allocationFailure(QString* error)
 {
-	if (error) { *error = QCoreApplication::translate("VibeStudioTexture", "Unable to allocate transformed pixels."); }
+	if (error) { *error = QCoreApplication::translate("SlopStudioTexture", "Unable to allocate transformed pixels."); }
 	return {};
 }
 bool validImage(const QImage& image)
@@ -185,4 +185,4 @@ QImage replaceTexturePixels(const QImage& source, QRect clearArea, const QImage&
 	return report(progress, total, total, error) ? next : QImage();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

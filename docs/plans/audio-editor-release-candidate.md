@@ -1,7 +1,7 @@
 # Audio editor release-candidate gates
 
 Objective: achieve a release-candidate, professional-grade audio editor for
-VibeStudio's idTech game workflows. The initial PCM editor is a foundation;
+SlopStudio's idTech game workflows. The initial PCM editor is a foundation;
 passing its smoke tests alone does not establish release readiness.
 
 These gates follow the project rules, the Audio roadmap, the shared-service

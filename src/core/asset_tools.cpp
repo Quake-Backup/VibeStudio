@@ -29,7 +29,7 @@
 #include <cstring>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -141,24 +141,24 @@ QString decodeUtf8(const QByteArray& bytes, bool* ok)
 QString sizeText(quint64 bytes)
 {
 	if (bytes > (quint64(1) << 53)) {
-		return QCoreApplication::translate("VibeStudioAssetTools", "%1 B").arg(bytes);
+		return QCoreApplication::translate("SlopStudioAssetTools", "%1 B").arg(bytes);
 	}
 	if (bytes >= 1024ll * 1024ll) {
-		return QCoreApplication::translate("VibeStudioAssetTools", "%1 MiB").arg(static_cast<double>(bytes) / (1024.0 * 1024.0), 0, 'f', 2);
+		return QCoreApplication::translate("SlopStudioAssetTools", "%1 MiB").arg(static_cast<double>(bytes) / (1024.0 * 1024.0), 0, 'f', 2);
 	}
 	if (bytes >= 1024ll) {
-		return QCoreApplication::translate("VibeStudioAssetTools", "%1 KiB").arg(static_cast<double>(bytes) / 1024.0, 0, 'f', 2);
+		return QCoreApplication::translate("SlopStudioAssetTools", "%1 KiB").arg(static_cast<double>(bytes) / 1024.0, 0, 'f', 2);
 	}
-	return QCoreApplication::translate("VibeStudioAssetTools", "%1 B").arg(bytes);
+	return QCoreApplication::translate("SlopStudioAssetTools", "%1 B").arg(bytes);
 }
 
 QString durationText(qint64 durationMs)
 {
 	if (durationMs <= 0) {
-		return QCoreApplication::translate("VibeStudioAssetTools", "unknown");
+		return QCoreApplication::translate("SlopStudioAssetTools", "unknown");
 	}
 	const double seconds = static_cast<double>(durationMs) / 1000.0;
-	return QCoreApplication::translate("VibeStudioAssetTools", "%1 s").arg(seconds, 0, 'f', 2);
+	return QCoreApplication::translate("SlopStudioAssetTools", "%1 s").arg(seconds, 0, 'f', 2);
 }
 
 QString outputFileNameForEntry(const QString& virtualPath, const QString& outputFormat)
@@ -195,7 +195,7 @@ QStringList paletteSampleLines(const QVector<QRgb>& colors)
 				.arg(color.blue());
 	}
 	if (colors.size() > count) {
-		lines << QCoreApplication::translate("VibeStudioAssetTools", "... %1 more palette colors").arg(colors.size() - count);
+		lines << QCoreApplication::translate("SlopStudioAssetTools", "... %1 more palette colors").arg(colors.size() - count);
 	}
 	return lines;
 }
@@ -226,7 +226,7 @@ AssetAnalysis analyzeQtImage(const QString& virtualPath, const QByteArray& bytes
 	AssetAnalysis analysis;
 	analysis.kind = AssetPreviewKind::Image;
 	analysis.kindId = assetPreviewKindId(analysis.kind);
-	analysis.title = QCoreApplication::translate("VibeStudioAssetTools", "Texture and image preview");
+	analysis.title = QCoreApplication::translate("SlopStudioAssetTools", "Texture and image preview");
 	analysis.imageFormat = QString::fromLatin1(format).toUpper();
 	analysis.imageFormatId = QString::fromLatin1(format).toLower();
 	analysis.imageIdTechFormat = false;
@@ -246,48 +246,48 @@ AssetAnalysis analyzeQtImage(const QString& virtualPath, const QByteArray& bytes
 void appendImageDetailLines(AssetAnalysis* analysis, quint64 totalBytes)
 {
 	analysis->summary = analysis->imageSize.isValid()
-		? QCoreApplication::translate("VibeStudioAssetTools", "%1 image, %2 x %3").arg(analysis->imageFormat.isEmpty() ? QCoreApplication::translate("VibeStudioAssetTools", "image") : analysis->imageFormat).arg(analysis->imageSize.width()).arg(analysis->imageSize.height())
-		: QCoreApplication::translate("VibeStudioAssetTools", "%1 image").arg(analysis->imageFormat.isEmpty() ? QCoreApplication::translate("VibeStudioAssetTools", "image") : analysis->imageFormat);
+		? QCoreApplication::translate("SlopStudioAssetTools", "%1 image, %2 x %3").arg(analysis->imageFormat.isEmpty() ? QCoreApplication::translate("SlopStudioAssetTools", "image") : analysis->imageFormat).arg(analysis->imageSize.width()).arg(analysis->imageSize.height())
+		: QCoreApplication::translate("SlopStudioAssetTools", "%1 image").arg(analysis->imageFormat.isEmpty() ? QCoreApplication::translate("SlopStudioAssetTools", "image") : analysis->imageFormat);
 	analysis->body = analysis->summary;
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Image format: %1").arg(analysis->imageFormat.isEmpty() ? QCoreApplication::translate("VibeStudioAssetTools", "unknown") : analysis->imageFormat);
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Dimensions: %1").arg(analysis->imageSize.isValid() ? QCoreApplication::translate("VibeStudioAssetTools", "%1 x %2 px").arg(analysis->imageSize.width()).arg(analysis->imageSize.height()) : QCoreApplication::translate("VibeStudioAssetTools", "unknown"));
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Depth: %1").arg(analysis->imageDepth > 0 ? QCoreApplication::translate("VibeStudioAssetTools", "%1 bpp").arg(analysis->imageDepth) : QCoreApplication::translate("VibeStudioAssetTools", "unknown"));
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Alpha channel: %1").arg(analysis->imageHasAlpha ? QCoreApplication::translate("VibeStudioAssetTools", "yes") : QCoreApplication::translate("VibeStudioAssetTools", "no"));
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Transparency: %1").arg(analysis->imageHasAlpha ? QCoreApplication::translate("VibeStudioAssetTools", "yes") : QCoreApplication::translate("VibeStudioAssetTools", "no"));
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Palette-aware: %1").arg(analysis->imagePaletteAware ? QCoreApplication::translate("VibeStudioAssetTools", "yes") : QCoreApplication::translate("VibeStudioAssetTools", "no"));
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Palette colors: %1").arg(analysis->imageColorCount);
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Image format: %1").arg(analysis->imageFormat.isEmpty() ? QCoreApplication::translate("SlopStudioAssetTools", "unknown") : analysis->imageFormat);
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Dimensions: %1").arg(analysis->imageSize.isValid() ? QCoreApplication::translate("SlopStudioAssetTools", "%1 x %2 px").arg(analysis->imageSize.width()).arg(analysis->imageSize.height()) : QCoreApplication::translate("SlopStudioAssetTools", "unknown"));
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Depth: %1").arg(analysis->imageDepth > 0 ? QCoreApplication::translate("SlopStudioAssetTools", "%1 bpp").arg(analysis->imageDepth) : QCoreApplication::translate("SlopStudioAssetTools", "unknown"));
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Alpha channel: %1").arg(analysis->imageHasAlpha ? QCoreApplication::translate("SlopStudioAssetTools", "yes") : QCoreApplication::translate("SlopStudioAssetTools", "no"));
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Transparency: %1").arg(analysis->imageHasAlpha ? QCoreApplication::translate("SlopStudioAssetTools", "yes") : QCoreApplication::translate("SlopStudioAssetTools", "no"));
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Palette-aware: %1").arg(analysis->imagePaletteAware ? QCoreApplication::translate("SlopStudioAssetTools", "yes") : QCoreApplication::translate("SlopStudioAssetTools", "no"));
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Palette colors: %1").arg(analysis->imageColorCount);
 	if (!analysis->imagePaletteId.isEmpty()) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Palette: %1").arg(analysis->imagePaletteId);
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Palette source: %1").arg(analysis->imagePaletteGenerated
-			? QCoreApplication::translate("VibeStudioAssetTools", "generated fallback (no game palette available)")
-			: (analysis->imagePaletteSourceVirtualPath.isEmpty() ? QCoreApplication::translate("VibeStudioAssetTools", "package") : analysis->imagePaletteSourceVirtualPath));
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Palette: %1").arg(analysis->imagePaletteId);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Palette source: %1").arg(analysis->imagePaletteGenerated
+			? QCoreApplication::translate("SlopStudioAssetTools", "generated fallback (no game palette available)")
+			: (analysis->imagePaletteSourceVirtualPath.isEmpty() ? QCoreApplication::translate("SlopStudioAssetTools", "package") : analysis->imagePaletteSourceVirtualPath));
 	}
 	if (analysis->imageMipLevelCount > 0) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Mip levels: %1").arg(analysis->imageMipLevelCount);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Mip levels: %1").arg(analysis->imageMipLevelCount);
 	}
 	if (analysis->imageFrameCount > 1) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Frames: %1").arg(analysis->imageFrameCount);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Frames: %1").arg(analysis->imageFrameCount);
 	}
 	if (analysis->imageLeftOffset != 0 || analysis->imageTopOffset != 0) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Origin offset: %1, %2").arg(analysis->imageLeftOffset).arg(analysis->imageTopOffset);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Origin offset: %1, %2").arg(analysis->imageLeftOffset).arg(analysis->imageTopOffset);
 	}
 	if (!analysis->imageTextureName.isEmpty()) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Texture name: %1").arg(analysis->imageTextureName);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Texture name: %1").arg(analysis->imageTextureName);
 	}
 	if (!analysis->imageAnimationNextName.isEmpty()) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Animation next: %1").arg(analysis->imageAnimationNextName);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Animation next: %1").arg(analysis->imageAnimationNextName);
 	}
 	if (analysis->imageSurfaceFlags != 0 || analysis->imageContentFlags != 0 || analysis->imageSurfaceValue != 0) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Surface flags: 0x%1").arg(analysis->imageSurfaceFlags, 8, 16, QLatin1Char('0'));
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Content flags: 0x%1").arg(analysis->imageContentFlags, 8, 16, QLatin1Char('0'));
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Surface value: %1").arg(analysis->imageSurfaceValue);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Surface flags: 0x%1").arg(analysis->imageSurfaceFlags, 8, 16, QLatin1Char('0'));
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Content flags: 0x%1").arg(analysis->imageContentFlags, 8, 16, QLatin1Char('0'));
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Surface value: %1").arg(analysis->imageSurfaceValue);
 	}
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Conversion: crop, resize, palette conversion, and format export available through asset convert.");
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Conversion: crop, resize, palette conversion, and format export available through asset convert.");
 	if (!analysis->imagePaletteLines.isEmpty()) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Palette sample:");
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Palette sample:");
 		analysis->detailLines << analysis->imagePaletteLines;
 	}
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Bytes: %1").arg(sizeText(totalBytes));
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Bytes: %1").arg(sizeText(totalBytes));
 	analysis->rawLines = analysis->detailLines;
 }
 
@@ -314,7 +314,7 @@ AssetAnalysis analyzeImage(const QString& virtualPath, const QByteArray& bytes, 
 			AssetAnalysis analysis;
 			analysis.kind = AssetPreviewKind::Image;
 			analysis.kindId = assetPreviewKindId(analysis.kind);
-			analysis.title = QCoreApplication::translate("VibeStudioAssetTools", "Texture and image preview");
+			analysis.title = QCoreApplication::translate("SlopStudioAssetTools", "Texture and image preview");
 			analysis.imageFormat = decoded.formatName.isEmpty() ? idTechImageFormatDisplayName(decoded.format) : decoded.formatName;
 			analysis.imageFormatId = decoded.formatId.isEmpty() ? idTechImageFormatId(decoded.format) : decoded.formatId;
 			analysis.imageIdTechFormat = true;
@@ -348,11 +348,11 @@ AssetAnalysis analyzeImage(const QString& virtualPath, const QByteArray& bytes, 
 			}
 			appendImageDetailLines(&analysis, totalBytes);
 			if (!decoded.detailLines.isEmpty()) {
-				analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Format details:");
+				analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Format details:");
 				analysis.detailLines << decoded.detailLines;
 			}
 			for (const QString& warning : decoded.warnings) {
-				analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Warning: %1").arg(warning);
+				analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Warning: %1").arg(warning);
 			}
 			analysis.rawLines = analysis.detailLines;
 			return analysis;
@@ -519,17 +519,17 @@ QString waveFormatTagName(quint16 tag)
 {
 	switch (tag) {
 	case kWaveFormatPcm:
-		return QCoreApplication::translate("VibeStudioAssetTools", "PCM");
+		return QCoreApplication::translate("SlopStudioAssetTools", "PCM");
 	case kWaveFormatIeeeFloat:
-		return QCoreApplication::translate("VibeStudioAssetTools", "IEEE float");
+		return QCoreApplication::translate("SlopStudioAssetTools", "IEEE float");
 	case kWaveFormatAlaw:
-		return QCoreApplication::translate("VibeStudioAssetTools", "A-law");
+		return QCoreApplication::translate("SlopStudioAssetTools", "A-law");
 	case kWaveFormatMulaw:
-		return QCoreApplication::translate("VibeStudioAssetTools", "mu-law");
+		return QCoreApplication::translate("SlopStudioAssetTools", "mu-law");
 	case kWaveFormatExtensible:
-		return QCoreApplication::translate("VibeStudioAssetTools", "extensible");
+		return QCoreApplication::translate("SlopStudioAssetTools", "extensible");
 	default:
-		return QCoreApplication::translate("VibeStudioAssetTools", "tag %1").arg(tag);
+		return QCoreApplication::translate("SlopStudioAssetTools", "tag %1").arg(tag);
 	}
 }
 
@@ -724,13 +724,13 @@ QString mpegChannelModeName(int modeIndex)
 {
 	switch (modeIndex) {
 	case 0:
-		return QCoreApplication::translate("VibeStudioAssetTools", "stereo");
+		return QCoreApplication::translate("SlopStudioAssetTools", "stereo");
 	case 1:
-		return QCoreApplication::translate("VibeStudioAssetTools", "joint stereo");
+		return QCoreApplication::translate("SlopStudioAssetTools", "joint stereo");
 	case 2:
-		return QCoreApplication::translate("VibeStudioAssetTools", "dual channel");
+		return QCoreApplication::translate("SlopStudioAssetTools", "dual channel");
 	default:
-		return QCoreApplication::translate("VibeStudioAssetTools", "mono");
+		return QCoreApplication::translate("SlopStudioAssetTools", "mono");
 	}
 }
 
@@ -771,7 +771,7 @@ AssetAnalysis analyzeWav(const QString& virtualPath, const QByteArray& bytes, qu
 	AssetAnalysis analysis;
 	analysis.kind = AssetPreviewKind::Audio;
 	analysis.kindId = assetPreviewKindId(analysis.kind);
-	analysis.title = QCoreApplication::translate("VibeStudioAssetTools", "Audio metadata");
+	analysis.title = QCoreApplication::translate("SlopStudioAssetTools", "Audio metadata");
 	analysis.audioFormat = QStringLiteral("WAV");
 	analysis.audioCodec = waveFormatTagName(info.effectiveFormatTag);
 	analysis.audioChannels = info.channels;
@@ -784,36 +784,36 @@ AssetAnalysis analyzeWav(const QString& virtualPath, const QByteArray& bytes, qu
 	analysis.audioQtPlaybackCandidate = supported;
 	analysis.audioWavExportSupported = supported;
 	analysis.audioWavExportNeedsConversion = supported && !(info.effectiveFormatTag == kWaveFormatPcm && info.bitsPerSample == 16);
-	analysis.summary = QCoreApplication::translate("VibeStudioAssetTools", "WAV audio, %1 Hz, %2 channel(s)").arg(info.sampleRate).arg(info.channels);
+	analysis.summary = QCoreApplication::translate("SlopStudioAssetTools", "WAV audio, %1 Hz, %2 channel(s)").arg(info.sampleRate).arg(info.channels);
 	analysis.body = analysis.summary;
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Audio format: WAV");
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Codec tag: %1").arg(info.extensible
-		? QCoreApplication::translate("VibeStudioAssetTools", "%1 (WAVE_FORMAT_EXTENSIBLE)").arg(waveFormatTagName(info.effectiveFormatTag))
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Audio format: WAV");
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Codec tag: %1").arg(info.extensible
+		? QCoreApplication::translate("SlopStudioAssetTools", "%1 (WAVE_FORMAT_EXTENSIBLE)").arg(waveFormatTagName(info.effectiveFormatTag))
 		: waveFormatTagName(info.formatTag));
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Channels: %1").arg(info.channels);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Sample rate: %1 Hz").arg(info.sampleRate);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Bits per sample: %1").arg(info.bitsPerSample);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Frames: %1").arg(analysis.audioFrameCount);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Duration: %1").arg(durationText(durationMs));
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Channels: %1").arg(info.channels);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Sample rate: %1 Hz").arg(info.sampleRate);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Bits per sample: %1").arg(info.bitsPerSample);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Frames: %1").arg(analysis.audioFrameCount);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Duration: %1").arg(durationText(durationMs));
 	analysis.detailLines << (supported
-		? QCoreApplication::translate("VibeStudioAssetTools", "Playback state: decodable PCM; Qt playback still depends on the host audio backend.")
-		: QCoreApplication::translate("VibeStudioAssetTools", "Playback state: unsupported WAV codec; VibeStudio cannot decode it without a codec backend."));
+		? QCoreApplication::translate("SlopStudioAssetTools", "Playback state: decodable PCM; Qt playback still depends on the host audio backend.")
+		: QCoreApplication::translate("SlopStudioAssetTools", "Playback state: unsupported WAV codec; SlopStudio cannot decode it without a codec backend."));
 	if (info.dataTruncated) {
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Warning: the data chunk is shorter than declared in this sample; the envelope covers the available bytes only.");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Warning: the data chunk is shorter than declared in this sample; the envelope covers the available bytes only.");
 	}
 	if (supported) {
 		analysis.detailLines << (analysis.audioWavExportNeedsConversion
-			? QCoreApplication::translate("VibeStudioAssetTools", "WAV export: supported, re-encoded to canonical 16-bit PCM")
-			: QCoreApplication::translate("VibeStudioAssetTools", "WAV export: supported, copied without re-encoding"));
+			? QCoreApplication::translate("SlopStudioAssetTools", "WAV export: supported, re-encoded to canonical 16-bit PCM")
+			: QCoreApplication::translate("SlopStudioAssetTools", "WAV export: supported, copied without re-encoding"));
 		analysis.audioPeaks = extractWavePeaks(bytes, 512);
 		analysis.audioWaveformLines = assetWaveformLines(analysis.audioPeaks, 32, 12);
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Waveform preview:");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Waveform preview:");
 		analysis.detailLines << analysis.audioWaveformLines;
 	} else {
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "WAV export: unavailable for this codec without a decoder backend.");
-		analysis.audioWaveformLines << QCoreApplication::translate("VibeStudioAssetTools", "Waveform unavailable for this codec or bit depth.");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "WAV export: unavailable for this codec without a decoder backend.");
+		analysis.audioWaveformLines << QCoreApplication::translate("SlopStudioAssetTools", "Waveform unavailable for this codec or bit depth.");
 	}
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Bytes: %1").arg(sizeText(totalBytes));
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Bytes: %1").arg(sizeText(totalBytes));
 	analysis.rawLines = analysis.detailLines;
 	Q_UNUSED(virtualPath);
 	return analysis;
@@ -841,9 +841,9 @@ bool analyzeOgg(const QByteArray& bytes, quint64 totalBytes, AssetAnalysis* anal
 		return false;
 	}
 	analysis->audioFormat = QStringLiteral("OGG");
-	analysis->audioCodec = QCoreApplication::translate("VibeStudioAssetTools", "unknown Ogg codec");
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Container: Ogg bitstream (RFC 3533)");
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Stream serial: %1").arg(first.serialNumber);
+	analysis->audioCodec = QCoreApplication::translate("SlopStudioAssetTools", "unknown Ogg codec");
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Container: Ogg bitstream (RFC 3533)");
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Stream serial: %1").arg(first.serialNumber);
 
 	const QByteArray packet = bytes.mid(static_cast<int>(first.payloadOffset), static_cast<int>(std::min<qint64>(first.payloadSize, 128)));
 	int sampleRate = 0;
@@ -858,7 +858,7 @@ bool analyzeOgg(const QByteArray& bytes, quint64 totalBytes, AssetAnalysis* anal
 		if (first.segmentCount != 1 || first.payloadSize != 30 || version != 0 || channels == 0 || rate == 0
 			|| rate > static_cast<quint32>(std::numeric_limits<int>::max()) || smallBlock < 6 || largeBlock > 13
 			|| smallBlock > largeBlock || !(static_cast<quint8>(packet.at(29)) & 1)) {
-			analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Vorbis identification header is invalid or its sample rate exceeds the supported range.");
+			analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Vorbis identification header is invalid or its sample rate exceeds the supported range.");
 			return false;
 		}
 		const qint32 bitrateMaximum = readLe32Signed(packet, 16);
@@ -869,11 +869,11 @@ bool analyzeOgg(const QByteArray& bytes, quint64 totalBytes, AssetAnalysis* anal
 		analysis->audioChannels = channels;
 		analysis->audioSampleRate = sampleRate;
 		analysis->audioBitrateBitsPerSecond = bitrateNominal > 0 ? bitrateNominal : std::max(0, bitrateMaximum);
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Codec: Vorbis I");
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Channels: %1").arg(channels);
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Sample rate: %1 Hz").arg(sampleRate);
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Bitrate (nominal): %1").arg(bitrateNominal > 0 ? QCoreApplication::translate("VibeStudioAssetTools", "%1 kbps").arg(bitrateNominal / 1000) : QCoreApplication::translate("VibeStudioAssetTools", "unspecified"));
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Bitrate (minimum/maximum): %1 / %2").arg(bitrateMinimum / 1000).arg(bitrateMaximum / 1000);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Codec: Vorbis I");
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Channels: %1").arg(channels);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Sample rate: %1 Hz").arg(sampleRate);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Bitrate (nominal): %1").arg(bitrateNominal > 0 ? QCoreApplication::translate("SlopStudioAssetTools", "%1 kbps").arg(bitrateNominal / 1000) : QCoreApplication::translate("SlopStudioAssetTools", "unspecified"));
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Bitrate (minimum/maximum): %1 / %2").arg(bitrateMinimum / 1000).arg(bitrateMaximum / 1000);
 	} else if (packet.size() >= 19 && packet.mid(0, 8) == "OpusHead") {
 		// RFC 7845 section 5.1: Opus always decodes at 48 kHz.
 		const int channels = static_cast<quint8>(packet.at(9));
@@ -883,15 +883,15 @@ bool analyzeOgg(const QByteArray& bytes, quint64 totalBytes, AssetAnalysis* anal
 		analysis->audioCodec = QStringLiteral("Opus");
 		analysis->audioChannels = channels;
 		analysis->audioSampleRate = sampleRate;
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Codec: Opus (RFC 7845)");
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Channels: %1").arg(channels);
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Decoded sample rate: 48000 Hz");
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Original input rate: %1 Hz").arg(inputRate);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Codec: Opus (RFC 7845)");
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Channels: %1").arg(channels);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Decoded sample rate: 48000 Hz");
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Original input rate: %1 Hz").arg(inputRate);
 	} else if (packet.size() >= 9 && static_cast<quint8>(packet.at(0)) == 0x7f && packet.mid(1, 4) == "FLAC") {
 		analysis->audioCodec = QStringLiteral("FLAC-in-Ogg");
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Codec: FLAC mapped into Ogg");
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Codec: FLAC mapped into Ogg");
 	} else {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Codec: unrecognized Ogg logical stream.");
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Codec: unrecognized Ogg logical stream.");
 	}
 
 	// Previews hand this analyser a leading sample rather than the whole entry, so
@@ -904,30 +904,30 @@ bool analyzeOgg(const QByteArray& bytes, quint64 totalBytes, AssetAnalysis* anal
 	qint64 granuleMs = 0;
 	const bool durationFits = !haveLast || scaledSignedCount(pages.position, 1000, static_cast<quint64>(sampleRate), &granuleMs);
 	if (pages.outOfRange || !durationFits) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Duration: unknown; the Ogg sample position or duration exceeds the supported range.");
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Duration: unknown; the Ogg sample position or duration exceeds the supported range.");
 	} else if (pages.inconsistent || (pages.incomplete && !sampleTruncated) || totalBytes < static_cast<quint64>(bytes.size())) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Duration: unknown; Ogg pages are incomplete, inconsistent, or contain more than one logical stream.");
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Duration: unknown; Ogg pages are incomplete, inconsistent, or contain more than one logical stream.");
 	} else if (pages.finished && pages.finalPosition == std::numeric_limits<quint64>::max()) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Duration: unknown; the final Ogg page does not declare a sample position.");
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Duration: unknown; the final Ogg page does not declare a sample position.");
 	} else if (pages.finished && !pages.incomplete && !sampleTruncated && haveLast) {
 		// RFC 3533: EOS belongs to one logical stream. Only a sequential walk
 		// ending exactly at the end of a full sample may publish an estimate.
 		// Codec pre-skip/trimming and nonzero initial offsets need packet timing.
 		analysis->audioFrameCount = static_cast<qint64>(pages.position);
 		analysis->audioDurationMs = granuleMs;
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Duration estimate: %1 (from the end-of-stream page granule position)").arg(durationText(granuleMs));
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Duration estimate: %1 (from the end-of-stream page granule position)").arg(durationText(granuleMs));
 	} else if (haveLast) {
 		// Keep totals unknown. A complete page before a sample cutoff carries
 		// only a lower bound, including when the next page is partially sampled.
 		analysis->detailLines << (sampleTruncated
-			? QCoreApplication::translate("VibeStudioAssetTools", "Duration: unknown; only the first %1 was sampled. The last complete page gives a stream-position lower bound of %2.")
+			? QCoreApplication::translate("SlopStudioAssetTools", "Duration: unknown; only the first %1 was sampled. The last complete page gives a stream-position lower bound of %2.")
 				.arg(sizeText(bytes.size()), durationText(granuleMs))
-			: QCoreApplication::translate("VibeStudioAssetTools", "Duration: unknown; no end-of-stream page was found. The last complete page gives a stream-position lower bound of %1.")
+			: QCoreApplication::translate("SlopStudioAssetTools", "Duration: unknown; no end-of-stream page was found. The last complete page gives a stream-position lower bound of %1.")
 				.arg(durationText(granuleMs)));
 	} else {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Duration: unknown; the final Ogg page is not inside the sampled bytes.");
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Duration: unknown; the final Ogg page is not inside the sampled bytes.");
 	}
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Header metadata only; codec trimming and stream offsets can change the playable length.");
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Header metadata only; codec trimming and stream offsets can change the playable length.");
 	return true;
 }
 
@@ -962,20 +962,20 @@ bool analyzeMp3(const QByteArray& bytes, quint64 totalBytes, AssetAnalysis* anal
 	}
 
 	analysis->audioFormat = QStringLiteral("MP3");
-	analysis->audioCodec = QCoreApplication::translate("VibeStudioAssetTools", "%1 Layer %2").arg(mpegVersionName(frame.versionIndex)).arg(frame.layer);
+	analysis->audioCodec = QCoreApplication::translate("SlopStudioAssetTools", "%1 Layer %2").arg(mpegVersionName(frame.versionIndex)).arg(frame.layer);
 	analysis->audioChannels = frame.channels;
 	analysis->audioSampleRate = frame.sampleRate;
 	analysis->audioBitrateBitsPerSecond = static_cast<qint64>(frame.bitrateKbps) * 1000;
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Container: MPEG audio elementary stream");
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Container: MPEG audio elementary stream");
 	if (tagLength > 0) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "ID3v2 tag: %1 skipped").arg(sizeText(tagLength));
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "ID3v2 tag: %1 skipped").arg(sizeText(tagLength));
 	}
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Codec: %1").arg(analysis->audioCodec);
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Sample rate: %1 Hz").arg(frame.sampleRate);
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Channel mode: %1").arg(mpegChannelModeName(frame.channelModeIndex));
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Channels: %1").arg(frame.channels);
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Frame bitrate: %1 kbps").arg(frame.bitrateKbps);
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "First frame offset: %1").arg(frame.offset);
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Codec: %1").arg(analysis->audioCodec);
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Sample rate: %1 Hz").arg(frame.sampleRate);
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Channel mode: %1").arg(mpegChannelModeName(frame.channelModeIndex));
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Channels: %1").arg(frame.channels);
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Frame bitrate: %1 kbps").arg(frame.bitrateKbps);
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "First frame offset: %1").arg(frame.offset);
 
 	// Xing/Info sits after the side information of the first frame; VBRI sits at
 	// a fixed 32-byte offset (Fraunhofer encoders).
@@ -1009,15 +1009,15 @@ bool analyzeMp3(const QByteArray& bytes, quint64 totalBytes, AssetAnalysis* anal
 	if (vbrFrames > 0 && frame.sampleRate > 0) {
 		analysis->audioFrameCount = vbrFrames * frame.samplesPerFrame;
 		analysis->audioDurationMs = analysis->audioFrameCount * 1000 / frame.sampleRate;
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "VBR header: %1, %2 frames").arg(vbrTag).arg(vbrFrames);
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Duration: %1 (from the VBR header)").arg(durationText(analysis->audioDurationMs));
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "VBR header: %1, %2 frames").arg(vbrTag).arg(vbrFrames);
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Duration: %1 (from the VBR header)").arg(durationText(analysis->audioDurationMs));
 	} else if (streamBytes > 0 && frame.bitrateKbps > 0
 		&& scaledSignedCount(streamBytes, 8, static_cast<quint64>(frame.bitrateKbps), &analysis->audioDurationMs)) {
 		// A duration can fit while its derived PCM frame count does not.
 		scaledSignedCount(static_cast<quint64>(analysis->audioDurationMs), static_cast<quint64>(frame.sampleRate), 1000, &analysis->audioFrameCount);
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Duration: %1 (estimated from size and the first frame bitrate)").arg(durationText(analysis->audioDurationMs));
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Duration: %1 (estimated from size and the first frame bitrate)").arg(durationText(analysis->audioDurationMs));
 	} else {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Duration: unknown");
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Duration: unknown");
 	}
 	return true;
 }
@@ -1029,7 +1029,7 @@ bool analyzeFlac(const QByteArray& bytes, AssetAnalysis* analysis)
 	}
 	analysis->audioFormat = QStringLiteral("FLAC");
 	analysis->audioCodec = QStringLiteral("FLAC");
-	analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Container: native FLAC stream");
+	analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Container: native FLAC stream");
 
 	// FLAC metadata block header and STREAMINFO layout: https://xiph.org/flac/format.html
 	qsizetype offset = 4;
@@ -1059,14 +1059,14 @@ bool analyzeFlac(const QByteArray& bytes, AssetAnalysis* analysis)
 			analysis->audioBitsPerSample = bitsPerSample;
 			analysis->audioFrameCount = static_cast<qint64>(totalSamples);
 			analysis->audioDurationMs = sampleRate > 0 ? static_cast<qint64>(totalSamples) * 1000 / sampleRate : 0;
-			analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Channels: %1").arg(channels);
-			analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Sample rate: %1 Hz").arg(sampleRate);
-			analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Bits per sample: %1").arg(bitsPerSample);
-			analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Block size range: %1 - %2").arg(minBlockSize).arg(maxBlockSize);
-			analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Total samples: %1").arg(analysis->audioFrameCount);
+			analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Channels: %1").arg(channels);
+			analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Sample rate: %1 Hz").arg(sampleRate);
+			analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Bits per sample: %1").arg(bitsPerSample);
+			analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Block size range: %1 - %2").arg(minBlockSize).arg(maxBlockSize);
+			analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Total samples: %1").arg(analysis->audioFrameCount);
 			analysis->detailLines << (totalSamples > 0
-				? QCoreApplication::translate("VibeStudioAssetTools", "Duration: %1 (from STREAMINFO)").arg(durationText(analysis->audioDurationMs))
-				: QCoreApplication::translate("VibeStudioAssetTools", "Duration: unknown; STREAMINFO does not declare a total sample count."));
+				? QCoreApplication::translate("SlopStudioAssetTools", "Duration: %1 (from STREAMINFO)").arg(durationText(analysis->audioDurationMs))
+				: QCoreApplication::translate("SlopStudioAssetTools", "Duration: unknown; STREAMINFO does not declare a total sample count."));
 			streamInfo = true;
 		}
 		++blocks;
@@ -1076,7 +1076,7 @@ bool analyzeFlac(const QByteArray& bytes, AssetAnalysis* analysis)
 		offset = payload + static_cast<qsizetype>(blockLength);
 	}
 	if (!streamInfo) {
-		analysis->detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Warning: the STREAMINFO block is not inside the sampled bytes.");
+		analysis->detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Warning: the STREAMINFO block is not inside the sampled bytes.");
 	}
 	return true;
 }
@@ -1092,7 +1092,7 @@ AssetAnalysis analyzeCompressedAudio(const QString& virtualPath, const QByteArra
 	AssetAnalysis analysis;
 	analysis.kind = AssetPreviewKind::Audio;
 	analysis.kindId = assetPreviewKindId(analysis.kind);
-	analysis.title = QCoreApplication::translate("VibeStudioAssetTools", "Audio metadata");
+	analysis.title = QCoreApplication::translate("SlopStudioAssetTools", "Audio metadata");
 
 	bool parsed = false;
 	if (bytes.startsWith("OggS")) {
@@ -1111,35 +1111,35 @@ AssetAnalysis analyzeCompressedAudio(const QString& virtualPath, const QByteArra
 			return {};
 		}
 		analysis.audioFormat = normalizedExtension(virtualPath).toUpper();
-		analysis.audioCodec = QCoreApplication::translate("VibeStudioAssetTools", "unparsed");
+		analysis.audioCodec = QCoreApplication::translate("SlopStudioAssetTools", "unparsed");
 		analysis.audioQtPlaybackCandidate = false;
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Audio format: %1").arg(analysis.audioFormat);
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Header parse: failed; no valid container header was found in the sampled bytes.");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Audio format: %1").arg(analysis.audioFormat);
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Header parse: failed; no valid container header was found in the sampled bytes.");
 	} else {
 		analysis.audioQtPlaybackCandidate = true;
-		analysis.detailLines.prepend(QCoreApplication::translate("VibeStudioAssetTools", "Audio format: %1").arg(analysis.audioFormat));
+		analysis.detailLines.prepend(QCoreApplication::translate("SlopStudioAssetTools", "Audio format: %1").arg(analysis.audioFormat));
 	}
 
 	analysis.summary = analysis.audioSampleRate > 0
-		? QCoreApplication::translate("VibeStudioAssetTools", "%1 audio, %2 Hz, %3 channel(s)").arg(analysis.audioFormat).arg(analysis.audioSampleRate).arg(analysis.audioChannels)
-		: QCoreApplication::translate("VibeStudioAssetTools", "%1 audio, header metadata only").arg(analysis.audioFormat);
+		? QCoreApplication::translate("SlopStudioAssetTools", "%1 audio, %2 Hz, %3 channel(s)").arg(analysis.audioFormat).arg(analysis.audioSampleRate).arg(analysis.audioChannels)
+		: QCoreApplication::translate("SlopStudioAssetTools", "%1 audio, header metadata only").arg(analysis.audioFormat);
 	analysis.body = analysis.summary;
 	analysis.detailLines << (analysis.audioQtPlaybackCandidate
-		? QCoreApplication::translate("VibeStudioAssetTools", "Playback state: container header is valid; Qt playback depends on a host codec for this format.")
-		: QCoreApplication::translate("VibeStudioAssetTools", "Playback state: no usable header, so playback is not offered."));
+		? QCoreApplication::translate("SlopStudioAssetTools", "Playback state: container header is valid; Qt playback depends on a host codec for this format.")
+		: QCoreApplication::translate("SlopStudioAssetTools", "Playback state: no usable header, so playback is not offered."));
 	const auto editableFormat = compressedAudioFormat(bytes);
 	analysis.audioWavExportSupported = parsed && (editableFormat == QLatin1String("mp3") || editableFormat == QLatin1String("flac") || editableFormat == QLatin1String("vorbis"));
 	analysis.audioWavExportNeedsConversion = analysis.audioWavExportSupported;
 	analysis.detailLines << (analysis.audioWavExportSupported
-		? QCoreApplication::translate("VibeStudioAssetTools", "Editing and WAV export: available after complete-stream validation within the audio editor limits.")
-		: QCoreApplication::translate("VibeStudioAssetTools", "Editing and WAV export: this codec is unsupported."));
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "This browser preview reads header metadata. Open the sound in the audio editor to decode its waveform.");
-	analysis.audioWaveformLines << QCoreApplication::translate("VibeStudioAssetTools", "Open in the audio editor for a decoded waveform.");
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Bytes: %1").arg(sizeText(totalBytes));
+		? QCoreApplication::translate("SlopStudioAssetTools", "Editing and WAV export: available after complete-stream validation within the audio editor limits.")
+		: QCoreApplication::translate("SlopStudioAssetTools", "Editing and WAV export: this codec is unsupported."));
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "This browser preview reads header metadata. Open the sound in the audio editor to decode its waveform.");
+	analysis.audioWaveformLines << QCoreApplication::translate("SlopStudioAssetTools", "Open in the audio editor for a decoded waveform.");
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Bytes: %1").arg(sizeText(totalBytes));
 	if (totalBytes > static_cast<quint64>(bytes.size())) {
 		// These lines are the ones the audio surface renders, so the sampling limit
 		// has to be stated here and not only on the generic preview detail list.
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Sampled: the first %1 of %2; anything past that point was not read.")
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Sampled: the first %1 of %2; anything past that point was not read.")
 			.arg(sizeText(bytes.size()), sizeText(totalBytes));
 	}
 	analysis.rawLines = analysis.detailLines;
@@ -1157,14 +1157,14 @@ AssetAnalysis analyzeModel(const QString& virtualPath, const QByteArray& bytes, 
 	AssetAnalysis analysis;
 	analysis.kind = AssetPreviewKind::Model;
 	analysis.kindId = assetPreviewKindId(analysis.kind);
-	analysis.title = QCoreApplication::translate("VibeStudioAssetTools", "Model metadata");
+	analysis.title = QCoreApplication::translate("SlopStudioAssetTools", "Model metadata");
 	if (ext == QStringLiteral("obj")) {
 		analysis.modelFormat = QStringLiteral("OBJ");
 		analysis.modelFamily = QStringLiteral("Wavefront OBJ");
 		analysis.modelCountsPartial = true;
-		analysis.summary = QCoreApplication::translate("VibeStudioAssetTools", "Wavefront OBJ polygon model");
+		analysis.summary = QCoreApplication::translate("SlopStudioAssetTools", "Wavefront OBJ polygon model");
 		analysis.body = analysis.summary;
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Geometry counts require the complete OBJ file. Open Models to decode and validate polygons, UVs, normals and material assignments.");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Geometry counts require the complete OBJ file. Open Models to decode and validate polygons, UVs, normals and material assignments.");
 		analysis.modelViewportLines = analysis.detailLines;
 		return analysis;
 	}
@@ -1177,7 +1177,7 @@ AssetAnalysis analyzeModel(const QString& virtualPath, const QByteArray& bytes, 
 		analysis.modelVertexCount = readLe32Signed(bytes, 60);
 		analysis.modelTriangleCount = readLe32Signed(bytes, 64);
 		analysis.modelFrameCount = readLe32Signed(bytes, 68);
-		analysis.modelMaterialLines << QCoreApplication::translate("VibeStudioAssetTools", "Skin size: %1 x %2").arg(skinWidth).arg(skinHeight);
+		analysis.modelMaterialLines << QCoreApplication::translate("SlopStudioAssetTools", "Skin size: %1 x %2").arg(skinWidth).arg(skinHeight);
 	} else if (bytes.size() >= 68 && bytes.mid(0, 4) == "IDP2") {
 		analysis.modelFormat = QStringLiteral("MD2");
 		analysis.modelFamily = QStringLiteral("Quake II MD2");
@@ -1190,7 +1190,7 @@ AssetAnalysis analyzeModel(const QString& virtualPath, const QByteArray& bytes, 
 		analysis.modelFrameCount = readLe32Signed(bytes, 40);
 		const int skinOffset = readLe32Signed(bytes, 44);
 		const int frameOffset = readLe32Signed(bytes, 56);
-		analysis.modelMaterialLines << QCoreApplication::translate("VibeStudioAssetTools", "Skin size: %1 x %2").arg(skinWidth).arg(skinHeight);
+		analysis.modelMaterialLines << QCoreApplication::translate("SlopStudioAssetTools", "Skin size: %1 x %2").arg(skinWidth).arg(skinHeight);
 		for (int index = 0; index < std::min(analysis.modelSkinCount, 8); ++index) {
 			const QString skin = fixedLatin1(bytes, skinOffset + index * 64, 64);
 			if (!skin.isEmpty()) {
@@ -1236,7 +1236,7 @@ AssetAnalysis analyzeModel(const QString& virtualPath, const QByteArray& bytes, 
 			analysis.modelVertexCount += std::max(0, vertexCount);
 			analysis.modelTriangleCount += std::max(0, triangleCount);
 			if (analysis.modelMaterialLines.size() < 16) {
-				analysis.modelMaterialLines << QCoreApplication::translate("VibeStudioAssetTools", "Surface %1: %2 shaders, %3 vertices, %4 triangles").arg(name.isEmpty() ? QString::number(walked + 1) : name).arg(shaderCount).arg(vertexCount).arg(triangleCount);
+				analysis.modelMaterialLines << QCoreApplication::translate("SlopStudioAssetTools", "Surface %1: %2 shaders, %3 vertices, %4 triangles").arg(name.isEmpty() ? QString::number(walked + 1) : name).arg(shaderCount).arg(vertexCount).arg(triangleCount);
 			}
 			++walked;
 			if (nextOffset <= 0) {
@@ -1250,8 +1250,8 @@ AssetAnalysis analyzeModel(const QString& virtualPath, const QByteArray& bytes, 
 		if (walkTruncated) {
 			analysis.modelCountsPartial = true;
 			analysis.modelMaterialLines << (sampleTruncated
-				? QCoreApplication::translate("VibeStudioAssetTools", "Surface walk incomplete: %1 of %2 surfaces are inside the sampled %3.").arg(walked).arg(analysis.modelSurfaceCount).arg(sizeText(bytes.size()))
-				: QCoreApplication::translate("VibeStudioAssetTools", "Surface walk incomplete: only %1 of %2 surfaces could be read.").arg(walked).arg(analysis.modelSurfaceCount));
+				? QCoreApplication::translate("SlopStudioAssetTools", "Surface walk incomplete: %1 of %2 surfaces are inside the sampled %3.").arg(walked).arg(analysis.modelSurfaceCount).arg(sizeText(bytes.size()))
+				: QCoreApplication::translate("SlopStudioAssetTools", "Surface walk incomplete: only %1 of %2 surfaces could be read.").arg(walked).arg(analysis.modelSurfaceCount));
 		}
 	} else if (!QStringList {QStringLiteral("mdl"), QStringLiteral("md2"), QStringLiteral("md3"), QStringLiteral("mdc"), QStringLiteral("mdr"), QStringLiteral("iqm"),
 			QStringLiteral("md5mesh"), QStringLiteral("md5anim"), QStringLiteral("mds"), QStringLiteral("mdm"), QStringLiteral("mdx"), QStringLiteral("glm"),
@@ -1259,44 +1259,44 @@ AssetAnalysis analyzeModel(const QString& virtualPath, const QByteArray& bytes, 
 		return {};
 	} else {
 		analysis.modelFormat = ext.toUpper();
-		analysis.modelFamily = QCoreApplication::translate("VibeStudioAssetTools", "Native idTech model boundary");
+		analysis.modelFamily = QCoreApplication::translate("SlopStudioAssetTools", "Native idTech model boundary");
 	}
-	analysis.summary = QCoreApplication::translate("VibeStudioAssetTools", "%1 model, %2 frame(s)").arg(analysis.modelFormat.isEmpty() ? ext.toUpper() : analysis.modelFormat).arg(std::max(0, analysis.modelFrameCount));
+	analysis.summary = QCoreApplication::translate("SlopStudioAssetTools", "%1 model, %2 frame(s)").arg(analysis.modelFormat.isEmpty() ? ext.toUpper() : analysis.modelFormat).arg(std::max(0, analysis.modelFrameCount));
 	analysis.body = analysis.summary;
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Model format: %1").arg(analysis.modelFormat.isEmpty() ? QCoreApplication::translate("VibeStudioAssetTools", "unknown") : analysis.modelFormat);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Native loader boundary: MDL, MD2, MD3 metadata first; Assimp remains optional future import/export.");
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Frames: %1").arg(analysis.modelFrameCount);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Skins/materials: %1").arg(analysis.modelSkinCount);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Surfaces: %1").arg(analysis.modelSurfaceCount);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Tags: %1").arg(analysis.modelTagCount);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Model format: %1").arg(analysis.modelFormat.isEmpty() ? QCoreApplication::translate("SlopStudioAssetTools", "unknown") : analysis.modelFormat);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Native loader boundary: MDL, MD2, MD3 metadata first; Assimp remains optional future import/export.");
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Frames: %1").arg(analysis.modelFrameCount);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Skins/materials: %1").arg(analysis.modelSkinCount);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Surfaces: %1").arg(analysis.modelSurfaceCount);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Tags: %1").arg(analysis.modelTagCount);
 	if (analysis.modelCountsPartial) {
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Vertices (partial): %1").arg(analysis.modelVertexCount);
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Triangles (partial): %1").arg(analysis.modelTriangleCount);
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Counts are partial: the surface list runs past the bytes available to this preview.");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Vertices (partial): %1").arg(analysis.modelVertexCount);
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Triangles (partial): %1").arg(analysis.modelTriangleCount);
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Counts are partial: the surface list runs past the bytes available to this preview.");
 	} else {
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Vertices: %1").arg(analysis.modelVertexCount);
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Triangles: %1").arg(analysis.modelTriangleCount);
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Vertices: %1").arg(analysis.modelVertexCount);
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Triangles: %1").arg(analysis.modelTriangleCount);
 	}
 	analysis.modelViewportLines << QStringLiteral("[model viewport]");
-	analysis.modelViewportLines << QCoreApplication::translate("VibeStudioAssetTools", "Format: %1").arg(analysis.modelFormat);
-	analysis.modelViewportLines << QCoreApplication::translate("VibeStudioAssetTools", "Frames: %1 / Surfaces: %2").arg(analysis.modelFrameCount).arg(analysis.modelSurfaceCount);
+	analysis.modelViewportLines << QCoreApplication::translate("SlopStudioAssetTools", "Format: %1").arg(analysis.modelFormat);
+	analysis.modelViewportLines << QCoreApplication::translate("SlopStudioAssetTools", "Frames: %1 / Surfaces: %2").arg(analysis.modelFrameCount).arg(analysis.modelSurfaceCount);
 	analysis.modelViewportLines << (analysis.modelCountsPartial
-		? QCoreApplication::translate("VibeStudioAssetTools", "Verts: %1 / Tris: %2 (partial)").arg(analysis.modelVertexCount).arg(analysis.modelTriangleCount)
-		: QCoreApplication::translate("VibeStudioAssetTools", "Verts: %1 / Tris: %2").arg(analysis.modelVertexCount).arg(analysis.modelTriangleCount));
+		? QCoreApplication::translate("SlopStudioAssetTools", "Verts: %1 / Tris: %2 (partial)").arg(analysis.modelVertexCount).arg(analysis.modelTriangleCount)
+		: QCoreApplication::translate("SlopStudioAssetTools", "Verts: %1 / Tris: %2").arg(analysis.modelVertexCount).arg(analysis.modelTriangleCount));
 	if (!analysis.modelViewportLines.isEmpty()) {
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Viewport summary:");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Viewport summary:");
 		analysis.detailLines << analysis.modelViewportLines;
 	}
 	if (!analysis.modelSkinPaths.isEmpty()) {
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Skin paths:");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Skin paths:");
 		analysis.detailLines << analysis.modelSkinPaths;
 	}
 	if (!analysis.modelAnimationNames.isEmpty()) {
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Animation/frame names:");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Animation/frame names:");
 		analysis.detailLines << analysis.modelAnimationNames;
 	}
 	if (!analysis.modelMaterialLines.isEmpty()) {
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Skin/material dependencies:");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Skin/material dependencies:");
 		analysis.detailLines << analysis.modelMaterialLines;
 	}
 	analysis.rawLines = analysis.detailLines;
@@ -1328,18 +1328,18 @@ QString languageIdForPath(const QString& virtualPath)
 QString languageName(const QString& languageId)
 {
 	if (languageId == QStringLiteral("cfg")) {
-		return QCoreApplication::translate("VibeStudioAssetTools", "CFG script");
+		return QCoreApplication::translate("SlopStudioAssetTools", "CFG script");
 	}
 	if (languageId == QStringLiteral("shader")) {
-		return QCoreApplication::translate("VibeStudioAssetTools", "idTech3 shader script");
+		return QCoreApplication::translate("SlopStudioAssetTools", "idTech3 shader script");
 	}
 	if (languageId == QStringLiteral("quakec")) {
-		return QCoreApplication::translate("VibeStudioAssetTools", "QuakeC");
+		return QCoreApplication::translate("SlopStudioAssetTools", "QuakeC");
 	}
 	if (languageId == QStringLiteral("idtech-text")) {
-		return QCoreApplication::translate("VibeStudioAssetTools", "idTech text asset");
+		return QCoreApplication::translate("SlopStudioAssetTools", "idTech text asset");
 	}
-	return QCoreApplication::translate("VibeStudioAssetTools", "Plain text");
+	return QCoreApplication::translate("SlopStudioAssetTools", "Plain text");
 }
 
 // Console command and cvar-management keywords shared by the Quake, Quake II
@@ -1510,25 +1510,25 @@ QStringList syntaxHighlights(const QString& languageId, const QString& text)
 			continue;
 		}
 		if (trimmed.startsWith(QStringLiteral("//")) || trimmed.startsWith(QLatin1Char('#')) || trimmed.startsWith(QStringLiteral("/*"))) {
-			highlights << QCoreApplication::translate("VibeStudioAssetTools", "line %1: comment").arg(lineIndex + 1);
+			highlights << QCoreApplication::translate("SlopStudioAssetTools", "line %1: comment").arg(lineIndex + 1);
 			continue;
 		}
 		if (isShader) {
 			const QRegularExpressionMatch q3map = q3mapDirectiveExpression().match(trimmed);
 			if (q3map.hasMatch()) {
-				highlights << QCoreApplication::translate("VibeStudioAssetTools", "line %1: q3map directive %2").arg(lineIndex + 1).arg(q3map.captured(0));
+				highlights << QCoreApplication::translate("SlopStudioAssetTools", "line %1: q3map directive %2").arg(lineIndex + 1).arg(q3map.captured(0));
 				continue;
 			}
 		}
 		if (keywordExpression) {
 			const QRegularExpressionMatch match = keywordExpression->match(trimmed);
 			if (match.hasMatch()) {
-				highlights << QCoreApplication::translate("VibeStudioAssetTools", "line %1: keyword %2").arg(lineIndex + 1).arg(match.captured(1));
+				highlights << QCoreApplication::translate("SlopStudioAssetTools", "line %1: keyword %2").arg(lineIndex + 1).arg(match.captured(1));
 				continue;
 			}
 		}
 		if (isShader && trimmed.endsWith(QLatin1Char('{'))) {
-			highlights << QCoreApplication::translate("VibeStudioAssetTools", "line %1: shader block").arg(lineIndex + 1);
+			highlights << QCoreApplication::translate("SlopStudioAssetTools", "line %1: shader block").arg(lineIndex + 1);
 		}
 	}
 	return highlights;
@@ -1597,10 +1597,10 @@ QStringList textDiagnostics(const QString& languageId, const QString& text)
 	for (int index = 0; index < lines.size() && diagnostics.size() < kMaxDiagnosticLines; ++index) {
 		const QString& rawLine = lines[index];
 		if (rawLine.size() > 160) {
-			diagnostics << QCoreApplication::translate("VibeStudioAssetTools", "line %1: long line may wrap in compact editors").arg(index + 1);
+			diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "line %1: long line may wrap in compact editors").arg(index + 1);
 		}
 		if (rawLine.contains(QStringLiteral("ERROR"), Qt::CaseInsensitive) || rawLine.contains(QStringLiteral("WARNING"), Qt::CaseInsensitive)) {
-			diagnostics << QCoreApplication::translate("VibeStudioAssetTools", "line %1: compiler-style diagnostic marker").arg(index + 1);
+			diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "line %1: compiler-style diagnostic marker").arg(index + 1);
 		}
 		QString line = rawLine;
 		if (inBlockComment) {
@@ -1627,7 +1627,7 @@ QStringList textDiagnostics(const QString& languageId, const QString& text)
 			continue;
 		}
 		if (unescapedQuoteCount(line) % 2 != 0) {
-			diagnostics << QCoreApplication::translate("VibeStudioAssetTools", "line %1: unterminated quoted string").arg(index + 1);
+			diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "line %1: unterminated quoted string").arg(index + 1);
 		}
 		const int opens = static_cast<int>(line.count(QLatin1Char('{')));
 		const int closes = static_cast<int>(line.count(QLatin1Char('}')));
@@ -1637,7 +1637,7 @@ QStringList textDiagnostics(const QString& languageId, const QString& text)
 			firstUnbalancedLine = index + 1;
 		}
 		if (braceBalance < 0) {
-			diagnostics << QCoreApplication::translate("VibeStudioAssetTools", "line %1: unexpected closing brace").arg(index + 1);
+			diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "line %1: unexpected closing brace").arg(index + 1);
 			braceBalance = 0;
 			firstUnbalancedLine = 0;
 		}
@@ -1648,23 +1648,23 @@ QStringList textDiagnostics(const QString& languageId, const QString& text)
 			}
 			const QString token = trimmed.left(tokenEnd).toLower();
 			if (!token.isEmpty() && !token.startsWith(QStringLiteral("q3map_")) && !shaderKnownDirectiveSet().contains(token)) {
-				diagnostics << QCoreApplication::translate("VibeStudioAssetTools", "line %1: unknown shader directive '%2'").arg(index + 1).arg(token);
+				diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "line %1: unknown shader directive '%2'").arg(index + 1).arg(token);
 			}
 		}
 		if (isKeyValue && looksMalformedKeyValue(trimmed)) {
-			diagnostics << QCoreApplication::translate("VibeStudioAssetTools", "line %1: malformed key/value pair").arg(index + 1);
+			diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "line %1: malformed key/value pair").arg(index + 1);
 		}
 	}
 	if (braceBalance > 0) {
 		diagnostics << (firstUnbalancedLine > 0
-			? QCoreApplication::translate("VibeStudioAssetTools", "line %1: block opened here is never closed (brace balance %2)").arg(firstUnbalancedLine).arg(braceBalance)
-			: QCoreApplication::translate("VibeStudioAssetTools", "brace balance: %1").arg(braceBalance));
+			? QCoreApplication::translate("SlopStudioAssetTools", "line %1: block opened here is never closed (brace balance %2)").arg(firstUnbalancedLine).arg(braceBalance)
+			: QCoreApplication::translate("SlopStudioAssetTools", "brace balance: %1").arg(braceBalance));
 	}
 	if (inBlockComment) {
-		diagnostics << QCoreApplication::translate("VibeStudioAssetTools", "unterminated block comment reaches the end of the sample");
+		diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "unterminated block comment reaches the end of the sample");
 	}
 	if (diagnostics.isEmpty()) {
-		diagnostics << QCoreApplication::translate("VibeStudioAssetTools", "No local text diagnostics.");
+		diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "No local text diagnostics.");
 	}
 	return diagnostics;
 }
@@ -1680,26 +1680,26 @@ AssetAnalysis analyzeText(const QString& virtualPath, const QByteArray& bytes, q
 	AssetAnalysis analysis;
 	analysis.kind = AssetPreviewKind::Text;
 	analysis.kindId = assetPreviewKindId(analysis.kind);
-	analysis.title = QCoreApplication::translate("VibeStudioAssetTools", "Text and script preview");
-	analysis.summary = QCoreApplication::translate("VibeStudioAssetTools", "%1 preview").arg(languageName(languageId));
+	analysis.title = QCoreApplication::translate("SlopStudioAssetTools", "Text and script preview");
+	analysis.summary = QCoreApplication::translate("SlopStudioAssetTools", "%1 preview").arg(languageName(languageId));
 	analysis.body = decoded;
 	analysis.textLanguageId = languageId;
 	analysis.textLanguageName = languageName(languageId);
-	analysis.textSyntaxEngine = QCoreApplication::translate("VibeStudioAssetTools", "VibeStudio local script analysis");
-	analysis.textSaveState = QCoreApplication::translate("VibeStudioAssetTools", "clean read-only preview");
+	analysis.textSyntaxEngine = QCoreApplication::translate("SlopStudioAssetTools", "SlopStudio local script analysis");
+	analysis.textSaveState = QCoreApplication::translate("SlopStudioAssetTools", "clean read-only preview");
 	analysis.textHighlightLines = syntaxHighlights(languageId, decoded);
 	analysis.textDiagnosticLines = textDiagnostics(languageId, decoded);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Language: %1").arg(analysis.textLanguageName);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Syntax engine: %1").arg(analysis.textSyntaxEngine);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Encoding: UTF-8");
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Save state: %1").arg(analysis.textSaveState);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Bytes: %1").arg(sizeText(totalBytes));
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Highlights:");
-	analysis.detailLines << (analysis.textHighlightLines.isEmpty() ? QStringList {QCoreApplication::translate("VibeStudioAssetTools", "No syntax highlights in preview sample.")} : analysis.textHighlightLines);
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Diagnostics:");
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Language: %1").arg(analysis.textLanguageName);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Syntax engine: %1").arg(analysis.textSyntaxEngine);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Encoding: UTF-8");
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Save state: %1").arg(analysis.textSaveState);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Bytes: %1").arg(sizeText(totalBytes));
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Highlights:");
+	analysis.detailLines << (analysis.textHighlightLines.isEmpty() ? QStringList {QCoreApplication::translate("SlopStudioAssetTools", "No syntax highlights in preview sample.")} : analysis.textHighlightLines);
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Diagnostics:");
 	analysis.detailLines << analysis.textDiagnosticLines;
 	analysis.rawLines = analysis.detailLines;
-	analysis.rawLines << QCoreApplication::translate("VibeStudioAssetTools", "Preview text follows:");
+	analysis.rawLines << QCoreApplication::translate("SlopStudioAssetTools", "Preview text follows:");
 	analysis.rawLines << decoded;
 	return analysis;
 }
@@ -1870,7 +1870,7 @@ AssetAudioPeaks unsignedPcm8Peaks(const uchar* samples, qint64 count, int sample
 	peaks.frameCount = std::max<qint64>(0, count);
 	peaks.durationMs = sampleRate > 0 ? peaks.frameCount * 1000 / sampleRate : 0;
 	if (count <= 0) {
-		peaks.error = QCoreApplication::translate("VibeStudioAssetTools", "The sound holds no samples.");
+		peaks.error = QCoreApplication::translate("SlopStudioAssetTools", "The sound holds no samples.");
 		return peaks;
 	}
 	const int buckets = std::clamp(bucketCount, 1, 8192);
@@ -1929,21 +1929,21 @@ AssetAnalysis analyzeDmxSound(const QString& virtualPath, const QByteArray& byte
 	AssetAnalysis analysis;
 	analysis.kind = AssetPreviewKind::Audio;
 	analysis.kindId = assetPreviewKindId(analysis.kind);
-	analysis.title = QCoreApplication::translate("VibeStudioAssetTools", "Audio metadata");
+	analysis.title = QCoreApplication::translate("SlopStudioAssetTools", "Audio metadata");
 	analysis.audioFormat = QStringLiteral("DMX");
 	if (info.pcSpeaker) {
-		analysis.audioCodec = QCoreApplication::translate("VibeStudioAssetTools", "PC speaker tones");
+		analysis.audioCodec = QCoreApplication::translate("SlopStudioAssetTools", "PC speaker tones");
 		analysis.audioDurationMs = static_cast<qint64>(info.toneCount) * 1000 / kPcSpeakerTonesPerSecond;
-		analysis.summary = QCoreApplication::translate("VibeStudioAssetTools", "Doom PC speaker sound, %1 tones").arg(info.toneCount);
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Audio format: Doom PC speaker sound (DMX format 0)");
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Tones: %1, each held for 1/140 s").arg(info.toneCount);
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Duration: %1").arg(durationText(analysis.audioDurationMs));
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Playback state: a PC speaker sound is a tone sequence with no samples to play.");
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "WAV export: unavailable; a PC speaker sound has no samples.");
-		analysis.audioWaveformLines << QCoreApplication::translate("VibeStudioAssetTools", "PC speaker sounds are tone sequences, not samples.");
+		analysis.summary = QCoreApplication::translate("SlopStudioAssetTools", "Doom PC speaker sound, %1 tones").arg(info.toneCount);
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Audio format: Doom PC speaker sound (DMX format 0)");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Tones: %1, each held for 1/140 s").arg(info.toneCount);
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Duration: %1").arg(durationText(analysis.audioDurationMs));
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Playback state: a PC speaker sound is a tone sequence with no samples to play.");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "WAV export: unavailable; a PC speaker sound has no samples.");
+		analysis.audioWaveformLines << QCoreApplication::translate("SlopStudioAssetTools", "PC speaker sounds are tone sequences, not samples.");
 	} else {
 		const qint64 available = availableDmxSamples(bytes, info);
-		analysis.audioCodec = QCoreApplication::translate("VibeStudioAssetTools", "8-bit unsigned PCM");
+		analysis.audioCodec = QCoreApplication::translate("SlopStudioAssetTools", "8-bit unsigned PCM");
 		analysis.audioChannels = 1;
 		analysis.audioSampleRate = info.sampleRate;
 		analysis.audioBitsPerSample = 8;
@@ -1953,32 +1953,32 @@ AssetAnalysis analyzeDmxSound(const QString& virtualPath, const QByteArray& byte
 		analysis.audioQtPlaybackCandidate = true;
 		analysis.audioWavExportSupported = true;
 		analysis.audioWavExportNeedsConversion = true;
-		analysis.summary = QCoreApplication::translate("VibeStudioAssetTools", "Doom sound, %1 Hz, mono").arg(info.sampleRate);
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Audio format: Doom DMX sound (format 3)");
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Codec: 8-bit unsigned PCM, mono");
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Sample rate: %1 Hz").arg(info.sampleRate);
+		analysis.summary = QCoreApplication::translate("SlopStudioAssetTools", "Doom sound, %1 Hz, mono").arg(info.sampleRate);
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Audio format: Doom DMX sound (format 3)");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Codec: 8-bit unsigned PCM, mono");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Sample rate: %1 Hz").arg(info.sampleRate);
 		analysis.detailLines << (info.padded
-			? QCoreApplication::translate("VibeStudioAssetTools", "Samples: %1; the header counts %2 with the 16 pad bytes at each end").arg(info.sampleCount).arg(info.declaredSamples)
-			: QCoreApplication::translate("VibeStudioAssetTools", "Samples: %1; too few to hold the usual pad bytes").arg(info.sampleCount));
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Duration: %1").arg(durationText(analysis.audioDurationMs));
+			? QCoreApplication::translate("SlopStudioAssetTools", "Samples: %1; the header counts %2 with the 16 pad bytes at each end").arg(info.sampleCount).arg(info.declaredSamples)
+			: QCoreApplication::translate("SlopStudioAssetTools", "Samples: %1; too few to hold the usual pad bytes").arg(info.sampleCount));
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Duration: %1").arg(durationText(analysis.audioDurationMs));
 		if (info.declaredSamples <= 48) {
-			analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Warning: the DMX library does not play a sound of 48 samples or fewer, and neither do ports that follow it.");
+			analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Warning: the DMX library does not play a sound of 48 samples or fewer, and neither do ports that follow it.");
 		}
 		if (info.trailingBytes > 0) {
-			analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Trailing bytes: %1 after the samples, ignored.").arg(info.trailingBytes);
+			analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Trailing bytes: %1 after the samples, ignored.").arg(info.trailingBytes);
 		}
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Playback state: decodable PCM, played as a converted WAV.");
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "WAV export: supported, re-encoded to canonical 16-bit PCM without the pad bytes");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Playback state: decodable PCM, played as a converted WAV.");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "WAV export: supported, re-encoded to canonical 16-bit PCM without the pad bytes");
 		analysis.audioPeaks = unsignedPcm8Peaks(reinterpret_cast<const uchar*>(bytes.constData()) + std::min<qint64>(info.sampleOffset, bytes.size()),
 			available, info.sampleRate, 512);
 		analysis.audioWaveformLines = assetWaveformLines(analysis.audioPeaks, 32, 12);
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Waveform preview:");
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Waveform preview:");
 		analysis.detailLines << analysis.audioWaveformLines;
 	}
 	analysis.body = analysis.summary;
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Bytes: %1").arg(sizeText(totalBytes));
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Bytes: %1").arg(sizeText(totalBytes));
 	if (totalBytes > static_cast<quint64>(bytes.size())) {
-		analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Sampled: the first %1 of %2; anything past that point was not read.")
+		analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Sampled: the first %1 of %2; anything past that point was not read.")
 			.arg(sizeText(bytes.size()), sizeText(totalBytes));
 	}
 	analysis.rawLines = analysis.detailLines;
@@ -2067,7 +2067,7 @@ AssetAudioPlaybackSource assetAudioPlaybackSource(const QString& virtualPath, co
 {
 	AssetAudioPlaybackSource source;
 	if (maxBytes < 1 || bytes.size() > maxBytes) {
-		source.error = QCoreApplication::translate("VibeStudioAssetTools", "The sound exceeds the audition byte limit."); return source;
+		source.error = QCoreApplication::translate("SlopStudioAssetTools", "The sound exceeds the audition byte limit."); return source;
 	}
 	const QString baseName = QFileInfo(virtualPath).completeBaseName().isEmpty() ? QStringLiteral("sound") : QFileInfo(virtualPath).completeBaseName();
 	WaveFormatInfo wave;
@@ -2083,11 +2083,11 @@ AssetAudioPlaybackSource assetAudioPlaybackSource(const QString& virtualPath, co
 	if (parseDmxSound(bytes, virtualPath, bytes.size(), &dmx)) {
 		source.format = QStringLiteral("DMX");
 		if (dmx.pcSpeaker) {
-			source.error = QCoreApplication::translate("VibeStudioAssetTools", "A PC speaker sound is a tone sequence with no samples to play.");
+			source.error = QCoreApplication::translate("SlopStudioAssetTools", "A PC speaker sound is a tone sequence with no samples to play.");
 			return source;
 		}
 		if (maxBytes < 44 || availableDmxSamples(bytes, dmx) > (maxBytes - 44) / 2) {
-			source.error = QCoreApplication::translate("VibeStudioAssetTools", "The converted sound exceeds the audition byte limit."); return source;
+			source.error = QCoreApplication::translate("SlopStudioAssetTools", "The converted sound exceeds the audition byte limit."); return source;
 		}
 		source.fileName = baseName + QStringLiteral(".wav");
 		source.bytes = dmxSoundToPcm16Wav(bytes, dmx);
@@ -2102,7 +2102,7 @@ AssetAudioPlaybackSource assetAudioPlaybackSource(const QString& virtualPath, co
 		source.bytes = bytes;
 		return source;
 	}
-	source.error = QCoreApplication::translate("VibeStudioAssetTools", "This entry is not audio VibeStudio can play.");
+	source.error = QCoreApplication::translate("SlopStudioAssetTools", "This entry is not audio SlopStudio can play.");
 	return source;
 }
 
@@ -2141,10 +2141,10 @@ AssetAnalysis analyzeAssetSample(const QString& virtualPath, const QByteArray& b
 	}
 	analysis.kind = AssetPreviewKind::Binary;
 	analysis.kindId = assetPreviewKindId(analysis.kind);
-	analysis.title = QCoreApplication::translate("VibeStudioAssetTools", "Binary asset");
-	analysis.summary = QCoreApplication::translate("VibeStudioAssetTools", "Binary asset, %1 sampled.").arg(sizeText(bytes.size()));
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Asset kind: binary");
-	analysis.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Bytes: %1").arg(sizeText(totalBytes));
+	analysis.title = QCoreApplication::translate("SlopStudioAssetTools", "Binary asset");
+	analysis.summary = QCoreApplication::translate("SlopStudioAssetTools", "Binary asset, %1 sampled.").arg(sizeText(bytes.size()));
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Asset kind: binary");
+	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Bytes: %1").arg(sizeText(totalBytes));
 	analysis.rawLines = analysis.detailLines;
 	return analysis;
 }
@@ -2154,30 +2154,30 @@ AssetAudioPeaks extractWavePeaks(const QByteArray& bytes, int bucketCount)
 	AssetAudioPeaks peaks;
 	WaveFormatInfo info;
 	if (!parseWaveFormat(bytes, &info)) {
-		peaks.error = QCoreApplication::translate("VibeStudioAssetTools", "Not a readable RIFF/WAVE payload.");
+		peaks.error = QCoreApplication::translate("SlopStudioAssetTools", "Not a readable RIFF/WAVE payload.");
 		return peaks;
 	}
 	peaks.channels = info.channels;
 	peaks.sampleRate = static_cast<int>(info.sampleRate);
 	peaks.bitsPerSample = info.bitsPerSample;
 	if (!waveSampleFormatSupported(info)) {
-		peaks.error = QCoreApplication::translate("VibeStudioAssetTools", "Unsupported WAV sample format (%1, %2-bit).").arg(waveFormatTagName(info.effectiveFormatTag)).arg(info.bitsPerSample);
+		peaks.error = QCoreApplication::translate("SlopStudioAssetTools", "Unsupported WAV sample format (%1, %2-bit).").arg(waveFormatTagName(info.effectiveFormatTag)).arg(info.bitsPerSample);
 		return peaks;
 	}
 	if (info.dataOffset < 0 || info.availableDataBytes <= 0 || info.blockAlign == 0) {
-		peaks.error = QCoreApplication::translate("VibeStudioAssetTools", "The WAV data chunk is empty or missing.");
+		peaks.error = QCoreApplication::translate("SlopStudioAssetTools", "The WAV data chunk is empty or missing.");
 		return peaks;
 	}
 	const int bytesPerSample = info.bitsPerSample / 8;
 	if (info.blockAlign < bytesPerSample * info.channels) {
-		peaks.error = QCoreApplication::translate("VibeStudioAssetTools", "The WAV block alignment does not match the declared sample format.");
+		peaks.error = QCoreApplication::translate("SlopStudioAssetTools", "The WAV block alignment does not match the declared sample format.");
 		return peaks;
 	}
 	const qint64 frameCount = info.availableDataBytes / info.blockAlign;
 	peaks.frameCount = frameCount;
 	peaks.durationMs = info.sampleRate > 0 ? frameCount * 1000 / info.sampleRate : 0;
 	if (frameCount <= 0) {
-		peaks.error = QCoreApplication::translate("VibeStudioAssetTools", "The WAV data chunk holds no complete frames.");
+		peaks.error = QCoreApplication::translate("SlopStudioAssetTools", "The WAV data chunk holds no complete frames.");
 		return peaks;
 	}
 	const int buckets = std::clamp(bucketCount, 1, 8192);
@@ -2215,10 +2215,10 @@ AudioClipResult decodeAudioClip(const QString& sourceName, const QByteArray& byt
 {
 	AudioClipResult result;
 	const auto reject = [&](const char* message) {
-		result.error = QCoreApplication::translate("VibeStudioAudio", message);
+		result.error = QCoreApplication::translate("SlopStudioAudio", message);
 		return result;
 	};
-	if (bytes.size() > AudioInputByteLimit) { return reject(QT_TRANSLATE_NOOP("VibeStudioAudio", "The audio input exceeds the 128 MiB editing limit.")); }
+	if (bytes.size() > AudioInputByteLimit) { return reject(QT_TRANSLATE_NOOP("SlopStudioAudio", "The audio input exceeds the 128 MiB editing limit.")); }
 	WaveFormatInfo wave;
 	DmxSoundInfo dmx;
 	qint64 offset = 0, frames = 0;
@@ -2229,19 +2229,19 @@ AudioClipResult decodeAudioClip(const QString& sourceName, const QByteArray& byt
 		// turn a truncated preview into an apparently complete saved sound.
 		quint32 riffSize = 0;
 		if (!readLe32(bytes, 4, &riffSize) || riffSize < 4 || qint64(riffSize) + 8 > bytes.size()) {
-			return reject(QT_TRANSLATE_NOOP("VibeStudioAudio", "The WAV container is truncated or has an invalid RIFF size."));
+			return reject(QT_TRANSLATE_NOOP("SlopStudioAudio", "The WAV container is truncated or has an invalid RIFF size."));
 		}
 		const qint64 riffEnd = qint64(riffSize) + 8;
 		int formats = 0, dataChunks = 0;
 		for (qint64 chunk = 12; chunk < riffEnd;) {
 			quint32 size = 0;
 			if (chunk + 8 > riffEnd || !readLe32(bytes, chunk + 4, &size) || chunk + 8 + size > riffEnd) {
-				return reject(QT_TRANSLATE_NOOP("VibeStudioAudio", "The WAV contains an incomplete chunk."));
+				return reject(QT_TRANSLATE_NOOP("SlopStudioAudio", "The WAV contains an incomplete chunk."));
 			}
 			const auto id = bytes.mid(chunk, 4);
 			if (id == "fmt ") {
 				++formats;
-				if (size < 16) { return reject(QT_TRANSLATE_NOOP("VibeStudioAudio", "The WAV format chunk is incomplete.")); }
+				if (size < 16) { return reject(QT_TRANSLATE_NOOP("SlopStudioAudio", "The WAV format chunk is incomplete.")); }
 				quint16 tag = 0;
 				readLe16(bytes, chunk + 8, &tag);
 				if (tag == kWaveFormatExtensible) {
@@ -2251,20 +2251,20 @@ AudioClipResult decodeAudioClip(const QString& sourceName, const QByteArray& byt
 					quint16 extra = 0, validBits = 0, containerBits = 0;
 					readLe16(bytes, chunk + 24, &extra); readLe16(bytes, chunk + 26, &validBits); readLe16(bytes, chunk + 22, &containerBits);
 					if (size < 40 || extra < 22 || quint32(extra) + 18 > size || validBits > containerBits || bytes.mid(chunk + 8 + 26, 14) != tail) {
-						return reject(QT_TRANSLATE_NOOP("VibeStudioAudio", "The extensible WAV subtype is unsupported."));
+						return reject(QT_TRANSLATE_NOOP("SlopStudioAudio", "The extensible WAV subtype is unsupported."));
 					}
 				}
 			} else if (id == "data") { ++dataChunks; }
 			chunk += 8 + qint64(size) + (size % 2);
-			if (chunk > riffEnd) { return reject(QT_TRANSLATE_NOOP("VibeStudioAudio", "The WAV chunk padding is incomplete.")); }
+			if (chunk > riffEnd) { return reject(QT_TRANSLATE_NOOP("SlopStudioAudio", "The WAV chunk padding is incomplete.")); }
 		}
 		if (formats != 1 || dataChunks != 1 || !parseWaveFormat(bytes.left(riffEnd), &wave) || !waveSampleFormatSupported(wave)) {
-			return reject(QT_TRANSLATE_NOOP("VibeStudioAudio", "Editing requires one PCM or floating-point WAV stream, or a digital Doom DMX sound."));
+			return reject(QT_TRANSLATE_NOOP("SlopStudioAudio", "Editing requires one PCM or floating-point WAV stream, or a digital Doom DMX sound."));
 		}
 		sampleBytes = wave.bitsPerSample / 8;
 		if (wave.blockAlign != wave.channels * sampleBytes || wave.blockAlign == 0 || wave.dataTruncated ||
 			wave.declaredDataBytes % wave.blockAlign != 0 || qint64(wave.byteRate) != qint64(wave.sampleRate) * wave.blockAlign) {
-			return reject(QT_TRANSLATE_NOOP("VibeStudioAudio", "The WAV sample data does not contain complete, correctly aligned frames."));
+			return reject(QT_TRANSLATE_NOOP("SlopStudioAudio", "The WAV sample data does not contain complete, correctly aligned frames."));
 		}
 		result.clip.channels = wave.channels;
 		result.clip.sampleRate = static_cast<int>(wave.sampleRate);
@@ -2272,16 +2272,16 @@ AudioClipResult decodeAudioClip(const QString& sourceName, const QByteArray& byt
 		frames = wave.declaredDataBytes / stride;
 		format = wave.effectiveFormatTag; bits = wave.bitsPerSample;
 	} else if (parseDmxSound(bytes, sourceName, bytes.size(), &dmx)) {
-		if (dmx.pcSpeaker) { return reject(QT_TRANSLATE_NOOP("VibeStudioAudio", "A PC speaker sound is a tone sequence with no decoded samples to edit or export.")); }
+		if (dmx.pcSpeaker) { return reject(QT_TRANSLATE_NOOP("SlopStudioAudio", "A PC speaker sound is a tone sequence with no decoded samples to edit or export.")); }
 		result.clip.channels = 1; result.clip.sampleRate = dmx.sampleRate;
 		offset = dmx.sampleOffset; frames = dmx.sampleCount; stride = 1; sampleBytes = 1;
-		if (frames > availableDmxSamples(bytes, dmx)) { return reject(QT_TRANSLATE_NOOP("VibeStudioAudio", "The Doom DMX sample data is truncated.")); }
+		if (frames > availableDmxSamples(bytes, dmx)) { return reject(QT_TRANSLATE_NOOP("SlopStudioAudio", "The Doom DMX sample data is truncated.")); }
 	} else {
 		return decodeCompressedAudio(bytes, control);
 	}
 	if (result.clip.channels < 1 || result.clip.channels > 8 || result.clip.sampleRate < 1 || result.clip.sampleRate > 384000 ||
 		frames <= 0 || frames > AudioSampleLimit / result.clip.channels) {
-		return reject(QT_TRANSLATE_NOOP("VibeStudioAudio", "The sound exceeds the editor's channel, sample rate, or sample count limits, or contains no samples."));
+		return reject(QT_TRANSLATE_NOOP("SlopStudioAudio", "The sound exceeds the editor's channel, sample rate, or sample count limits, or contains no samples."));
 	}
 	result.clip.samples.resize(frames * result.clip.channels);
 	const auto* data = reinterpret_cast<const uchar*>(bytes.constData()) + offset;
@@ -2302,14 +2302,14 @@ QStringList assetWaveformLines(const AssetAudioPeaks& peaks, int buckets, int wi
 {
 	QStringList lines;
 	if (!peaks.valid || peaks.bucketCount <= 0 || peaks.channels <= 0) {
-		lines << (peaks.error.isEmpty() ? QCoreApplication::translate("VibeStudioAssetTools", "Waveform unavailable for this codec or bit depth.") : peaks.error);
+		lines << (peaks.error.isEmpty() ? QCoreApplication::translate("SlopStudioAssetTools", "Waveform unavailable for this codec or bit depth.") : peaks.error);
 		return lines;
 	}
 	const int outputBuckets = std::clamp(buckets, 1, peaks.bucketCount);
 	const int barWidth = std::clamp(width, 4, 64);
 	for (int channel = 0; channel < peaks.channels; ++channel) {
 		if (peaks.channels > 1) {
-			lines << QCoreApplication::translate("VibeStudioAssetTools", "Channel %1:").arg(channel + 1);
+			lines << QCoreApplication::translate("SlopStudioAssetTools", "Channel %1:").arg(channel + 1);
 		}
 		for (int bucket = 0; bucket < outputBuckets; ++bucket) {
 			const int sourceStart = peaks.bucketCount * bucket / outputBuckets;
@@ -2341,12 +2341,12 @@ AssetImageConversionReport convertPackageImages(const PackageArchive& archive, c
 	report.outputDirectory = QFileInfo(request.outputDirectory).absoluteFilePath();
 	report.dryRun = request.dryRun;
 	if (!archive.isOpen()) {
-		report.warnings << QCoreApplication::translate("VibeStudioAssetTools", "No package is open.");
+		report.warnings << QCoreApplication::translate("SlopStudioAssetTools", "No package is open.");
 		report.errorCount = 1;
 		return report;
 	}
 	if (request.outputDirectory.trimmed().isEmpty()) {
-		report.warnings << QCoreApplication::translate("VibeStudioAssetTools", "Output directory is required.");
+		report.warnings << QCoreApplication::translate("SlopStudioAssetTools", "Output directory is required.");
 		report.errorCount = 1;
 		return report;
 	}
@@ -2362,7 +2362,7 @@ AssetImageConversionReport convertPackageImages(const PackageArchive& archive, c
 			quantizeMode = true;
 			quantizePaletteId = paletteMode;
 		} else {
-			report.warnings << QCoreApplication::translate("VibeStudioAssetTools", "Unknown palette mode '%1'. Use grayscale, rgb, indexed, or one of: %2.").arg(paletteMode, idTechPaletteIds().join(QStringLiteral(", ")));
+			report.warnings << QCoreApplication::translate("SlopStudioAssetTools", "Unknown palette mode '%1'. Use grayscale, rgb, indexed, or one of: %2.").arg(paletteMode, idTechPaletteIds().join(QStringLiteral(", ")));
 			report.errorCount = 1;
 			return report;
 		}
@@ -2378,7 +2378,7 @@ AssetImageConversionReport convertPackageImages(const PackageArchive& archive, c
 	}
 	report.requestedCount = requestedPaths.size();
 	if (!request.dryRun && !QDir().mkpath(report.outputDirectory)) {
-		report.warnings << QCoreApplication::translate("VibeStudioAssetTools", "Unable to create output directory.");
+		report.warnings << QCoreApplication::translate("SlopStudioAssetTools", "Unable to create output directory.");
 		report.errorCount = std::max(1, report.requestedCount);
 		return report;
 	}
@@ -2403,7 +2403,7 @@ AssetImageConversionReport convertPackageImages(const PackageArchive& archive, c
 		QByteArray bytes;
 		QString readError;
 		if (result.error.isEmpty() && !archive.readEntryBytes(virtualPath, &bytes, &readError)) {
-			result.error = readError.isEmpty() ? QCoreApplication::translate("VibeStudioAssetTools", "Unable to read package entry.") : readError;
+			result.error = readError.isEmpty() ? QCoreApplication::translate("SlopStudioAssetTools", "Unable to read package entry.") : readError;
 		}
 		result.inputBytes = bytes.size();
 
@@ -2433,7 +2433,7 @@ AssetImageConversionReport convertPackageImages(const PackageArchive& archive, c
 			if (image.isNull() && result.error.isEmpty()) {
 				image.loadFromData(bytes);
 				if (image.isNull()) {
-					result.error = QCoreApplication::translate("VibeStudioAssetTools", "Entry is not a decodable idTech or Qt image.");
+					result.error = QCoreApplication::translate("SlopStudioAssetTools", "Entry is not a decodable idTech or Qt image.");
 				}
 			}
 		}
@@ -2449,7 +2449,7 @@ AssetImageConversionReport convertPackageImages(const PackageArchive& archive, c
 			}
 			if (grayscaleMode) {
 				output = output.convertToFormat(QImage::Format_Grayscale8);
-				result.previewLines << QCoreApplication::translate("VibeStudioAssetTools", "Palette mode: grayscale");
+				result.previewLines << QCoreApplication::translate("SlopStudioAssetTools", "Palette mode: grayscale");
 			} else if (quantizeMode) {
 				QString targetPaletteId = quantizePaletteId;
 				if (targetPaletteId.isEmpty()) {
@@ -2459,14 +2459,14 @@ AssetImageConversionReport convertPackageImages(const PackageArchive& archive, c
 				}
 				const IdTechPaletteResolution resolution = resolvePalette(targetPaletteId);
 				if (!resolution.palette.isValid()) {
-					result.error = QCoreApplication::translate("VibeStudioAssetTools", "Palette '%1' could not be resolved.").arg(targetPaletteId);
+					result.error = QCoreApplication::translate("SlopStudioAssetTools", "Palette '%1' could not be resolved.").arg(targetPaletteId);
 				} else {
 					output = quantizeToIdTechPalette(output, resolution.palette);
 					result.paletteId = resolution.palette.id.isEmpty() ? targetPaletteId : resolution.palette.id;
 					result.paletteFromPackage = resolution.fromPackage;
 					result.paletteGenerated = resolution.palette.generated || !resolution.fromPackage;
 					result.paletteSourceVirtualPath = resolution.sourceVirtualPath;
-					result.previewLines << QCoreApplication::translate("VibeStudioAssetTools", "Palette mode: %1").arg(result.paletteId);
+					result.previewLines << QCoreApplication::translate("SlopStudioAssetTools", "Palette mode: %1").arg(result.paletteId);
 				}
 			}
 			result.afterSize = output.size();
@@ -2483,38 +2483,38 @@ AssetImageConversionReport convertPackageImages(const PackageArchive& archive, c
 					encoded = native.succeeded; outputBytes = native.bytes; result.error = native.error;
 				} else { encoded = writer.write(output); }
 				if (!encoded) {
-					if (result.error.isEmpty()) { result.error = writer.errorString().isEmpty() ? QCoreApplication::translate("VibeStudioAssetTools", "Unable to encode output image.") : writer.errorString(); }
+					if (result.error.isEmpty()) { result.error = writer.errorString().isEmpty() ? QCoreApplication::translate("SlopStudioAssetTools", "Unable to encode output image.") : writer.errorString(); }
 				} else {
 					result.outputBytes = outputBytes.size();
-					result.previewLines << QCoreApplication::translate("VibeStudioAssetTools", "Source format: %1").arg(result.sourceFormatId.isEmpty() ? QCoreApplication::translate("VibeStudioAssetTools", "unknown") : result.sourceFormatId);
-					result.previewLines << QCoreApplication::translate("VibeStudioAssetTools", "Before: %1 x %2").arg(result.beforeSize.width()).arg(result.beforeSize.height());
-					result.previewLines << QCoreApplication::translate("VibeStudioAssetTools", "After: %1 x %2").arg(result.afterSize.width()).arg(result.afterSize.height());
-					result.previewLines << QCoreApplication::translate("VibeStudioAssetTools", "Format: %1").arg(result.outputFormat);
+					result.previewLines << QCoreApplication::translate("SlopStudioAssetTools", "Source format: %1").arg(result.sourceFormatId.isEmpty() ? QCoreApplication::translate("SlopStudioAssetTools", "unknown") : result.sourceFormatId);
+					result.previewLines << QCoreApplication::translate("SlopStudioAssetTools", "Before: %1 x %2").arg(result.beforeSize.width()).arg(result.beforeSize.height());
+					result.previewLines << QCoreApplication::translate("SlopStudioAssetTools", "After: %1 x %2").arg(result.afterSize.width()).arg(result.afterSize.height());
+					result.previewLines << QCoreApplication::translate("SlopStudioAssetTools", "Format: %1").arg(result.outputFormat);
 					if (!result.paletteId.isEmpty()) {
 						result.previewLines << (result.paletteFromPackage
-							? QCoreApplication::translate("VibeStudioAssetTools", "Palette source: package entry %1").arg(result.paletteSourceVirtualPath.isEmpty() ? QCoreApplication::translate("VibeStudioAssetTools", "(unnamed)") : result.paletteSourceVirtualPath)
-							: QCoreApplication::translate("VibeStudioAssetTools", "Palette source: generated fallback (this package has no %1 palette)").arg(result.paletteId));
+							? QCoreApplication::translate("SlopStudioAssetTools", "Palette source: package entry %1").arg(result.paletteSourceVirtualPath.isEmpty() ? QCoreApplication::translate("SlopStudioAssetTools", "(unnamed)") : result.paletteSourceVirtualPath)
+							: QCoreApplication::translate("SlopStudioAssetTools", "Palette source: generated fallback (this package has no %1 palette)").arg(result.paletteId));
 					}
 					if (request.dryRun) {
-						result.message = QFileInfo::exists(result.outputPath) ? QCoreApplication::translate("VibeStudioAssetTools", "Would overwrite converted image.") : QCoreApplication::translate("VibeStudioAssetTools", "Would write converted image.");
+						result.message = QFileInfo::exists(result.outputPath) ? QCoreApplication::translate("SlopStudioAssetTools", "Would overwrite converted image.") : QCoreApplication::translate("SlopStudioAssetTools", "Would write converted image.");
 					} else {
 						const QFileInfo outputInfo(result.outputPath);
 						const bool existedBefore = outputInfo.exists();
 						if (existedBefore && !request.overwriteExisting) {
-							result.error = QCoreApplication::translate("VibeStudioAssetTools", "Output already exists. Use --overwrite to replace it.");
+							result.error = QCoreApplication::translate("SlopStudioAssetTools", "Output already exists. Use --overwrite to replace it.");
 						} else if (!QDir().mkpath(outputInfo.absolutePath())) {
-							result.error = QCoreApplication::translate("VibeStudioAssetTools", "Unable to create output parent directory.");
+							result.error = QCoreApplication::translate("SlopStudioAssetTools", "Unable to create output parent directory.");
 						} else {
 							QSaveFile file(result.outputPath);
 							if (!file.open(QIODevice::WriteOnly)) {
-								result.error = QCoreApplication::translate("VibeStudioAssetTools", "Unable to open output image.");
+								result.error = QCoreApplication::translate("SlopStudioAssetTools", "Unable to open output image.");
 							} else if (file.write(outputBytes) != outputBytes.size()) {
-								result.error = QCoreApplication::translate("VibeStudioAssetTools", "Unable to write output image.");
+								result.error = QCoreApplication::translate("SlopStudioAssetTools", "Unable to write output image.");
 							} else if (!file.commit()) {
-								result.error = QCoreApplication::translate("VibeStudioAssetTools", "Unable to commit output image.");
+								result.error = QCoreApplication::translate("SlopStudioAssetTools", "Unable to commit output image.");
 							} else {
 								result.written = true;
-								result.message = existedBefore ? QCoreApplication::translate("VibeStudioAssetTools", "Overwrote converted image.") : QCoreApplication::translate("VibeStudioAssetTools", "Wrote converted image.");
+								result.message = existedBefore ? QCoreApplication::translate("SlopStudioAssetTools", "Overwrote converted image.") : QCoreApplication::translate("SlopStudioAssetTools", "Wrote converted image.");
 							}
 						}
 					}
@@ -2539,14 +2539,14 @@ AssetImageConversionReport convertPackageImages(const PackageArchive& archive, c
 QString assetImageConversionReportText(const AssetImageConversionReport& report)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Image conversion");
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Source: %1").arg(report.sourcePath);
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Output: %1").arg(report.outputDirectory);
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Mode: %1").arg(report.dryRun ? QCoreApplication::translate("VibeStudioAssetTools", "dry run") : QCoreApplication::translate("VibeStudioAssetTools", "write"));
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Requested: %1").arg(report.requestedCount);
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Processed: %1").arg(report.processedCount);
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Written: %1").arg(report.writtenCount);
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Errors: %1").arg(report.errorCount);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Image conversion");
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Source: %1").arg(report.sourcePath);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Output: %1").arg(report.outputDirectory);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Mode: %1").arg(report.dryRun ? QCoreApplication::translate("SlopStudioAssetTools", "dry run") : QCoreApplication::translate("SlopStudioAssetTools", "write"));
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Requested: %1").arg(report.requestedCount);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Processed: %1").arg(report.processedCount);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Written: %1").arg(report.writtenCount);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Errors: %1").arg(report.errorCount);
 	for (const AssetImageConversionEntryResult& result : report.entries) {
 		lines << QStringLiteral("- %1 -> %2").arg(result.virtualPath, QDir::toNativeSeparators(result.outputPath));
 		lines << QStringLiteral("  %1").arg(result.error.isEmpty() ? result.message : result.error);
@@ -2555,7 +2555,7 @@ QString assetImageConversionReportText(const AssetImageConversionReport& report)
 		}
 	}
 	for (const QString& warning : report.warnings) {
-		lines << QCoreApplication::translate("VibeStudioAssetTools", "Warning: %1").arg(warning);
+		lines << QCoreApplication::translate("SlopStudioAssetTools", "Warning: %1").arg(warning);
 	}
 	return lines.join('\n');
 }
@@ -2570,7 +2570,7 @@ AssetAudioExportReport exportPackageAudioToWav(const PackageArchive& archive, co
 		if (index >= 0) {
 			AssetAudioExportReport report; report.sourcePath = archive.sourcePath(); report.virtualPath = virtualPath;
 			report.outputPath = outputPath; report.dryRun = dryRun;
-			report.error = QCoreApplication::translate("VibeStudioAssetTools", "This audio path occurs more than once. Select a specific entry row to export it.");
+			report.error = QCoreApplication::translate("SlopStudioAssetTools", "This audio path occurs more than once. Select a specific entry row to export it.");
 			return report;
 		}
 		index = row;
@@ -2578,7 +2578,7 @@ AssetAudioExportReport exportPackageAudioToWav(const PackageArchive& archive, co
 	if (index < 0) {
 		AssetAudioExportReport report; report.sourcePath = archive.sourcePath(); report.virtualPath = virtualPath;
 		report.outputPath = outputPath; report.dryRun = dryRun;
-		report.error = QCoreApplication::translate("VibeStudioAssetTools", "Audio entry not found."); return report;
+		report.error = QCoreApplication::translate("SlopStudioAssetTools", "Audio entry not found."); return report;
 	}
 	return exportPackageAudioToWavAt(archive, index, outputPath, dryRun, overwriteExisting, cancelled);
 }
@@ -2593,12 +2593,12 @@ AssetAudioExportReport exportPackageAudioToWavAt(const PackageArchive& archive, 
 	const auto stop = [&]() {
 		if (cancelled && cancelled()) {
 			report.cancelled = true;
-			report.message = QCoreApplication::translate("VibeStudioAssetTools", "Cancelled before writing the WAV output.");
+			report.message = QCoreApplication::translate("SlopStudioAssetTools", "Cancelled before writing the WAV output.");
 		}
 		return report.cancelled;
 	};
 	if (!archive.isOpen() || virtualPath.isEmpty() || outputPath.trimmed().isEmpty()) {
-		report.error = QCoreApplication::translate("VibeStudioAssetTools", "An open package and separate WAV output path are required.");
+		report.error = QCoreApplication::translate("SlopStudioAssetTools", "An open package and separate WAV output path are required.");
 		return report;
 	}
 	QStringList protectedPaths{archive.sourcePath()};
@@ -2606,11 +2606,11 @@ AssetAudioExportReport exportPackageAudioToWavAt(const PackageArchive& archive, 
 	// A new sibling WAV is a valid export from a folder package. Protect
 	// existing package/staged inputs, without banning every new file below it.
 	if (QFileInfo::exists(report.outputPath) && archive.protectsInputPath(report.outputPath)) {
-		report.error = QCoreApplication::translate("VibeStudioAssetTools", "Export to a separate path to preserve the source package and sound."); return report;
+		report.error = QCoreApplication::translate("SlopStudioAssetTools", "Export to a separate path to preserve the source package and sound."); return report;
 	}
 	for (const auto& source : protectedPaths) {
 		if (audioPathsReferToSameFile(source, report.outputPath)) {
-			report.error = QCoreApplication::translate("VibeStudioAssetTools", "Export to a separate path to preserve the source package and sound.");
+			report.error = QCoreApplication::translate("SlopStudioAssetTools", "Export to a separate path to preserve the source package and sound.");
 			return report;
 		}
 	}
@@ -2618,7 +2618,7 @@ AssetAudioExportReport exportPackageAudioToWavAt(const PackageArchive& archive, 
 	QByteArray bytes;
 	const auto& entry = entries.at(entryIndex);
 	if (entry.sizeBytes > AudioInputByteLimit) {
-		report.error = QCoreApplication::translate("VibeStudioAssetTools", "The audio input exceeds the 128 MiB editing limit."); return report;
+		report.error = QCoreApplication::translate("SlopStudioAssetTools", "The audio input exceeds the 128 MiB editing limit."); return report;
 	}
 	const bool read = archive.streamEntryAt(entryIndex, [&](QByteArrayView chunk) {
 		if (chunk.size() > AudioInputByteLimit - bytes.size()) { return false; }
@@ -2626,14 +2626,14 @@ AssetAudioExportReport exportPackageAudioToWavAt(const PackageArchive& archive, 
 	}, &report.error, cancelled);
 	if (stop()) { return report; }
 	if (!read || static_cast<quint64>(bytes.size()) != entry.sizeBytes) {
-		if (report.error.isEmpty()) { report.error = QCoreApplication::translate("VibeStudioAssetTools", "Unable to read and verify the complete audio entry."); }
+		if (report.error.isEmpty()) { report.error = QCoreApplication::translate("SlopStudioAssetTools", "Unable to read and verify the complete audio entry."); }
 		return report;
 	}
 	report.sourceBytes = bytes.size();
 	const auto decoded = decodeAudioClip(virtualPath, bytes, {cancelled});
 	if (decoded.cancelled || stop()) {
 		report.cancelled = true;
-		report.message = QCoreApplication::translate("VibeStudioAssetTools", "Cancelled before writing the WAV output.");
+		report.message = QCoreApplication::translate("SlopStudioAssetTools", "Cancelled before writing the WAV output.");
 		return report;
 	}
 	if (!decoded.succeeded()) { report.error = decoded.error; return report; }
@@ -2642,13 +2642,13 @@ AssetAudioExportReport exportPackageAudioToWavAt(const PackageArchive& archive, 
 	const bool wav = parseWaveFormat(bytes, &wave);
 	report.sourceFormat = wav ? QStringLiteral("WAV") : compressedAudioFormat(bytes).toUpper();
 	if (report.sourceFormat.isEmpty()) { report.sourceFormat = QStringLiteral("DMX"); }
-	report.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Source layout: %1 Hz, %2 channel(s)").arg(decoded.clip.sampleRate).arg(decoded.clip.channels);
+	report.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Source layout: %1 Hz, %2 channel(s)").arg(decoded.clip.sampleRate).arg(decoded.clip.channels);
 	const bool canonical = wav && wave.effectiveFormatTag == kWaveFormatPcm && wave.bitsPerSample == 16 && !wave.extensible;
 	QByteArray outputBytes;
 	if (canonical) {
 		outputBytes = bytes;
 		report.conversionMode = QStringLiteral("copy");
-		report.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Already canonical 16-bit PCM; copied without re-encoding.");
+		report.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Already canonical 16-bit PCM; copied without re-encoding.");
 	} else {
 		AudioWavOptions options;
 		if (wav) {
@@ -2659,8 +2659,8 @@ AssetAudioExportReport exportPackageAudioToWavAt(const PackageArchive& archive, 
 		if (stop()) { return report; }
 		if (!report.error.isEmpty() || outputBytes.isEmpty()) { return report; }
 		report.converted = true; report.conversionMode = QStringLiteral("pcm16");
-		report.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Decoded and converted to 16-bit PCM using the audio editor's shared pipeline.");
-		if (!decoded.clip.markers.empty()) { report.detailLines << QCoreApplication::translate("VibeStudioAssetTools", "Preserved supported cue and loop metadata during PCM conversion."); }
+		report.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Decoded and converted to 16-bit PCM using the audio editor's shared pipeline.");
+		if (!decoded.clip.markers.empty()) { report.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Preserved supported cue and loop metadata during PCM conversion."); }
 	}
 	report.bytes = outputBytes.size();
 	if (stop()) { return report; }
@@ -2668,28 +2668,28 @@ AssetAudioExportReport exportPackageAudioToWavAt(const PackageArchive& archive, 
 	// actual result even if the caller subsequently requests cancellation.
 	if (!writeAudioExportBytes(outputBytes, report.outputPath, {QStringLiteral("wav")}, overwriteExisting, protectedPaths, &report.error, dryRun)) { return report; }
 	report.written = !dryRun;
-	report.message = dryRun ? QCoreApplication::translate("VibeStudioAssetTools", "Would write the separate WAV output.")
-	                       : QCoreApplication::translate("VibeStudioAssetTools", "Wrote the separate WAV output.");
+	report.message = dryRun ? QCoreApplication::translate("SlopStudioAssetTools", "Would write the separate WAV output.")
+	                       : QCoreApplication::translate("SlopStudioAssetTools", "Wrote the separate WAV output.");
 	return report;
 }
 
 QString assetAudioExportReportText(const AssetAudioExportReport& report)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Audio WAV export");
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Source: %1").arg(report.sourcePath);
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Entry: %1").arg(report.virtualPath);
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Output: %1").arg(report.outputPath);
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Mode: %1").arg(report.dryRun ? QCoreApplication::translate("VibeStudioAssetTools", "dry run") : QCoreApplication::translate("VibeStudioAssetTools", "write"));
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Source format: %1").arg(report.sourceFormat.isEmpty() ? QCoreApplication::translate("VibeStudioAssetTools", "unknown") : report.sourceFormat);
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Conversion: %1").arg(report.conversionMode.isEmpty() ? QCoreApplication::translate("VibeStudioAssetTools", "none") : report.conversionMode);
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Source bytes: %1").arg(report.sourceBytes);
-	lines << QCoreApplication::translate("VibeStudioAssetTools", "Bytes: %1").arg(report.bytes);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Audio WAV export");
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Source: %1").arg(report.sourcePath);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Entry: %1").arg(report.virtualPath);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Output: %1").arg(report.outputPath);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Mode: %1").arg(report.dryRun ? QCoreApplication::translate("SlopStudioAssetTools", "dry run") : QCoreApplication::translate("SlopStudioAssetTools", "write"));
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Source format: %1").arg(report.sourceFormat.isEmpty() ? QCoreApplication::translate("SlopStudioAssetTools", "unknown") : report.sourceFormat);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Conversion: %1").arg(report.conversionMode.isEmpty() ? QCoreApplication::translate("SlopStudioAssetTools", "none") : report.conversionMode);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Source bytes: %1").arg(report.sourceBytes);
+	lines << QCoreApplication::translate("SlopStudioAssetTools", "Bytes: %1").arg(report.bytes);
 	for (const QString& detail : report.detailLines) {
 		lines << QStringLiteral("  %1").arg(detail);
 	}
-	lines << (report.error.isEmpty() ? report.message : QCoreApplication::translate("VibeStudioAssetTools", "Error: %1").arg(report.error));
+	lines << (report.error.isEmpty() ? report.message : QCoreApplication::translate("SlopStudioAssetTools", "Error: %1").arg(report.error));
 	return lines.join('\n');
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

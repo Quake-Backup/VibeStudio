@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -1019,4 +1019,4 @@ void MapViewport::setRegionDrawMode(bool enabled)
 	Q_EMIT regionDrawModeChanged(enabled);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

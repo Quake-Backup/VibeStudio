@@ -11,7 +11,7 @@
 #include <QTemporaryDir>
 #include <QThread>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool pass, const char* label, const QString& error = {}) {
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
 		auto workspace = prepareLevelBuildWorkspace(map, assets, preparation);
 		BuildPipelineRequest build;
 		build.pipelineId = workspace.defaultPipeline();
-		for (const auto& tool : QStringList{"vibemap2-bsp", "vibemap2-vis", "vibemap2-light"}) {
+		for (const auto& tool : QStringList{"slopmap2-bsp", "slopmap2-vis", "slopmap2-light"}) {
 			build.executableOverrides.append({tool, QString::fromLocal8Bit(argv[1])});
 		}
 		const auto compiled = runLevelBuildWorkspace(workspace, build);
@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
 			   "CLI guarded dry deployment", QString::fromUtf8(cli.readAllStandardError()));
 		expect(command({"deploy-plan", workspace.directory, "--installation", installation.id, "--pak-slot", "-1"}) != 0,
 			   "CLI invalid slot rejected");
-		QLockFile lock(QDir(mod).filePath(".vibestudio-deployment.lock"));
+		QLockFile lock(QDir(mod).filePath(".slopstudio-deployment.lock"));
 		lock.setStaleLockTime(0);
 		expect(lock.tryLock(), "hold deployment lock");
 		expect(!deployLevelBuild(workspace, plan, options).succeeded() && subset_test::get(plan.packagePath) == stable,
@@ -237,13 +237,13 @@ int main(int argc, char** argv) {
 		const auto currentReceipt = subset_test::get(plan.pakSlot.receiptPath);
 		auto duplicateReceipt = currentReceipt;
 		duplicateReceipt.replace("\"slot\": 0", "\"slot\": 2");
-		subset_test::put(QDir(mod).filePath(".vibestudio-pak2.json"), duplicateReceipt);
+		subset_test::put(QDir(mod).filePath(".slopstudio-pak2.json"), duplicateReceipt);
 		expect(!planLevelBuildDeployment(workspace, installation, "studio").ready, "ambiguous map receipts require explicit slot");
 		expect(planLevelBuildDeployment(workspace, installation, "studio", {}, 0).ready, "explicit slot disambiguates receipts");
 		preparation.directory = QDir(root).filePath("new workspace");
 		workspace = prepareLevelBuildWorkspace(map, assets, preparation);
 		expect(runLevelBuildWorkspace(workspace, build).succeeded(), "fresh workspace compile");
-		QFile::remove(QDir(mod).filePath(".vibestudio-pak2.json"));
+		QFile::remove(QDir(mod).filePath(".slopstudio-pak2.json"));
 		expect(planLevelBuildDeployment(workspace, installation, "studio").pakSlot.number == 0,
 			   "fresh workspace for same map reuses installed slot");
 		subset_test::put(plan.pakSlot.receiptPath, QByteArray(65537, 'x'));
@@ -280,7 +280,7 @@ int main(int argc, char** argv) {
 			   "search inventory change after publication blocks launch");
 		const auto reserved = QDir(installation.rootPath).filePath("reserved");
 		QDir().mkpath(reserved);
-		subset_test::put(QDir(reserved).filePath(".vibestudio-pak0.json"), currentReceipt);
+		subset_test::put(QDir(reserved).filePath(".slopstudio-pak0.json"), currentReceipt);
 		const auto reservedPlan = planLevelBuildPakSlot(reserved, target, "another_map");
 		expect(target == "quake" ? !reservedPlan.ready() : reservedPlan.ready() && reservedPlan.number == 1,
 			   "missing PAK receipt reserves its map slot and respects Quake gaps");

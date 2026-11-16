@@ -45,7 +45,7 @@
 // - Jedi Academy remaps the bone references of 72-bone Jedi Outcast humanoid
 //   meshes onto its own humanoid skeleton with a table in its renderer
 //   (R_LoadMDXM). OpenJK carries that table under GPL-2.0 only, which cannot
-//   be combined with VibeStudio's GPL-3.0, so it is not reproduced: such a mesh
+//   be combined with SlopStudio's GPL-3.0, so it is not reproduced: such a mesh
 //   needs the Jedi Outcast GLA it was built for, and says so when it is absent.
 #include "core/model_decode_issues.h"
 #include "core/model_formats_p.h"
@@ -59,7 +59,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio::model_formats {
+namespace slopstudio::model_formats {
 
 namespace {
 
@@ -221,16 +221,16 @@ struct GlaSkeleton {
 bool parseGla(const QByteArray& bytes, GlaSkeleton* out, QString* error, ModelWorkProgress& work)
 {
 	if (!rangeOk(bytes, 0, kGlaHeaderBytes)) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The GLA header is truncated.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The GLA header is truncated.");
 		return false;
 	}
 	if (bytes.left(4) != QByteArrayLiteral("2LGA")) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The file is not a Ghoul 2 GLA (2LGA) skeleton.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The file is not a Ghoul 2 GLA (2LGA) skeleton.");
 		return false;
 	}
 	out->version = readI32(bytes, 4);
 	if (out->version != 6) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported GLA version %1; only 2LGA version 6 is decoded.").arg(out->version);
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported GLA version %1; only 2LGA version 6 is decoded.").arg(out->version);
 		return false;
 	}
 	out->internalName = readFixedName(bytes, 8, kNameBytes);
@@ -240,26 +240,26 @@ bool parseGla(const QByteArray& bytes, GlaSkeleton* out, QString* error, ModelWo
 	const int boneCount = readI32(bytes, 84);
 	const int poolOffset = readI32(bytes, 88);
 	if (frameCount <= 0 || boneCount <= 0 || boneCount > kMaxJoints) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The GLA header declares counts outside the supported range.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The GLA header declares counts outside the supported range.");
 		return false;
 	}
 	// The renderer finds the skeleton offsets straight after the header
 	// (sizeof(mdxaHeader_t)), each relative to that point.
 	if (!rangeOk(bytes, kGlaHeaderBytes, qint64(boneCount) * 4)) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The GLA skeleton offsets lie outside the file.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The GLA skeleton offsets lie outside the file.");
 		return false;
 	}
 	if (!rangeOk(bytes, frameOffset, qint64(frameCount) * boneCount * kGlaIndexBytes)) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The GLA frame block lies outside the file.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The GLA frame block lies outside the file.");
 		return false;
 	}
 	if (poolOffset < 0 || poolOffset >= bytes.size()) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The GLA compressed bone pool lies outside the file.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The GLA compressed bone pool lies outside the file.");
 		return false;
 	}
 	out->poolEntries = (qint64(bytes.size()) - poolOffset) / kGlaCompBoneBytes;
 	if (out->poolEntries <= 0) {
-		*error = QCoreApplication::translate("VibeStudioModelMesh", "The GLA compressed bone pool lies outside the file.");
+		*error = QCoreApplication::translate("SlopStudioModelMesh", "The GLA compressed bone pool lies outside the file.");
 		return false;
 	}
 
@@ -272,7 +272,7 @@ bool parseGla(const QByteArray& bytes, GlaSkeleton* out, QString* error, ModelWo
 		const qint64 relative = readI32(bytes, kGlaHeaderBytes + qint64(index) * 4);
 		const qint64 base = kGlaHeaderBytes + relative;
 		if (relative < 0 || !rangeOk(bytes, base, kGlaSkelBytes)) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "GLA bone %1 lies outside the file.").arg(index);
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "GLA bone %1 lies outside the file.").arg(index);
 			return false;
 		}
 		ModelJoint joint;
@@ -280,7 +280,7 @@ bool parseGla(const QByteArray& bytes, GlaSkeleton* out, QString* error, ModelWo
 		joint.flags = readU32(bytes, base + 64);
 		joint.parent = readI32(bytes, base + 68);
 		if (joint.parent < -1 || joint.parent >= index) {
-			*error = QCoreApplication::translate("VibeStudioModelMesh", "Bone %1 (%2) of the GLA names a parent that does not come before it.")
+			*error = QCoreApplication::translate("SlopStudioModelMesh", "Bone %1 (%2) of the GLA names a parent that does not come before it.")
 				.arg(index).arg(name);
 			return false;
 		}
@@ -317,7 +317,7 @@ bool parseGla(const QByteArray& bytes, GlaSkeleton* out, QString* error, ModelWo
 			const qint64 at = frameOffset + (qint64(frame) * boneCount + index) * kGlaIndexBytes;
 			const qint64 entry = qint64(readU8(bytes, at)) | (qint64(readU8(bytes, at + 1)) << 8) | (qint64(readU8(bytes, at + 2)) << 16);
 			if (entry >= out->poolEntries) {
-				*error = QCoreApplication::translate("VibeStudioModelMesh", "Frame %1 of the GLA points bone %2 outside the compressed bone pool.")
+				*error = QCoreApplication::translate("SlopStudioModelMesh", "Frame %1 of the GLA points bone %2 outside the compressed bone pool.")
 					.arg(frame).arg(index);
 				return false;
 			}
@@ -339,28 +339,28 @@ void fillGhoul2Skeleton(ModelMesh* mesh, const GlaSkeleton& gla, const QString& 
 	skeleton.clips.append(gla.clip);
 	skeleton.clips.last().sourcePath = sourcePath;
 	if (!gla.internalName.isEmpty()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skeleton name: %1").arg(gla.internalName);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skeleton name: %1").arg(gla.internalName);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skeleton: %1 bone(s), %2 frame(s), %3 compressed bone(s) in the pool")
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skeleton: %1 bone(s), %2 frame(s), %3 compressed bone(s) in the pool")
 		.arg(gla.joints.size()).arg(gla.clip.frames.size()).arg(gla.poolEntries);
 	if (gla.scale != 0.0f) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Scale the skeleton was built with: %1 (not applied by the game)")
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Scale the skeleton was built with: %1 (not applied by the game)")
 			.arg(gla.scale);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh",
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh",
 		"The game turns every Ghoul 2 skeleton a quarter turn about Z at its root; the turn is applied, so the model faces +X.");
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh",
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh",
 		"Frame timing and clip names come from the game's animation.cfg, so every frame is listed as one clip with no rate.");
 	if (gla.declaredFrames > gla.clip.frames.size()) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("ghoul2-frames-capped"), QCoreApplication::translate("VibeStudioModelMesh", "The skeleton declares %1 frames; only the first %2 were kept to bound memory.")
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Omission, QStringLiteral("ghoul2-frames-capped"), QCoreApplication::translate("SlopStudioModelMesh", "The skeleton declares %1 frames; only the first %2 were kept to bound memory.")
 			.arg(gla.declaredFrames).arg(gla.clip.frames.size()));
 	}
 	if (gla.extraRoots > 0) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ghoul2-extra-roots"), QCoreApplication::translate("VibeStudioModelMesh",
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ghoul2-extra-roots"), QCoreApplication::translate("SlopStudioModelMesh",
 			"%1 bone(s) besides the first have no parent; the game expects a single root, and they were rooted like it.").arg(gla.extraRoots));
 	}
 	if (gla.renamed) {
-		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ghoul2-duplicate-bones"), QCoreApplication::translate("VibeStudioModelMesh", "Some bones share a name; the repeats were given a numbered suffix."));
+		noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ghoul2-duplicate-bones"), QCoreApplication::translate("SlopStudioModelMesh", "Some bones share a name; the repeats were given a numbered suffix."));
 	}
 }
 
@@ -417,12 +417,12 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 	ModelWorkProgress work(control, ModelWorkPhase::Validating, &mesh->error);
 	if (!work.check()) { return; }
 	if (!rangeOk(bytes, 0, kGlmHeaderBytes)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The GLM header is truncated.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The GLM header is truncated.");
 		return;
 	}
 	mesh->version = readI32(bytes, 4);
 	if (mesh->version != 6) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "Unsupported GLM version %1; only 2LGM version 6 is decoded.").arg(mesh->version);
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "Unsupported GLM version %1; only 2LGM version 6 is decoded.").arg(mesh->version);
 		return;
 	}
 	const QString internalName = readFixedName(bytes, 8, kNameBytes);
@@ -432,19 +432,19 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 	const int lodOffset = readI32(bytes, 148);
 	const int surfaceCount = readI32(bytes, 152);
 	if (surfaceCount < 0 || surfaceCount > kMaxSurfaces || lodCount < 1 || lodCount > kMaxLods) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The GLM header declares counts outside the supported range.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The GLM header declares counts outside the supported range.");
 		return;
 	}
 	// mdxmHierarchyOffsets_t sits straight after the header, each offset
 	// relative to it, as the renderer reads it.
 	if (!rangeOk(bytes, kGlmHeaderBytes, qint64(surfaceCount) * 4)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The GLM surface hierarchy lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The GLM surface hierarchy lies outside the file.");
 		return;
 	}
 	// LOD 0: mdxmLOD_t, then mdxmLODSurfOffset_t relative to its own start.
 	const qint64 lodSurfaceOffsets = qint64(lodOffset) + 4;
 	if (lodOffset < 0 || !rangeOk(bytes, lodSurfaceOffsets, qint64(surfaceCount) * 4)) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "The GLM level of detail block lies outside the file.");
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "The GLM level of detail block lies outside the file.");
 		return;
 	}
 
@@ -457,7 +457,7 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 		const qint64 hierarchyRelative = readI32(bytes, kGlmHeaderBytes + qint64(index) * 4);
 		const qint64 hierarchy = kGlmHeaderBytes + hierarchyRelative;
 		if (hierarchyRelative < 0 || !rangeOk(bytes, hierarchy, kGlmHierarchyBytes)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "GLM surface %1 has hierarchy data outside the file.").arg(index);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "GLM surface %1 has hierarchy data outside the file.").arg(index);
 			return;
 		}
 		surface.name = readFixedName(bytes, hierarchy, kNameBytes);
@@ -470,14 +470,14 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 		const int childCount = readI32(bytes, hierarchy + 140);
 		if (surface.parent < -1 || surface.parent >= surfaceCount || childCount < 0 || childCount > surfaceCount
 			|| !rangeOk(bytes, hierarchy + kGlmHierarchyBytes, qint64(childCount) * 4)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "GLM surface \"%1\" has a parent or children outside the surface list.")
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "GLM surface \"%1\" has a parent or children outside the surface list.")
 				.arg(surface.name);
 			return;
 		}
 		for (int child = 0; child < childCount; ++child) {
 			const int childIndex = readI32(bytes, hierarchy + kGlmHierarchyBytes + qint64(child) * 4);
 			if (childIndex < 0 || childIndex >= surfaceCount) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "GLM surface \"%1\" has a parent or children outside the surface list.")
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "GLM surface \"%1\" has a parent or children outside the surface list.")
 					.arg(surface.name);
 				return;
 			}
@@ -486,7 +486,7 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 		const qint64 surfaceRelative = readI32(bytes, lodSurfaceOffsets + qint64(index) * 4);
 		const qint64 base = lodSurfaceOffsets + surfaceRelative;
 		if (surfaceRelative < 0 || !rangeOk(bytes, base, kGlmSurfaceBytes)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "GLM surface \"%1\" lies outside the file.").arg(surface.name);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "GLM surface \"%1\" lies outside the file.").arg(surface.name);
 			return;
 		}
 		const int thisIndex = readI32(bytes, base + 4);
@@ -498,7 +498,7 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 		const int referenceOffset = readI32(bytes, base + 32);
 		if (vertexCount < 0 || vertexCount > kMaxSurfaceVertices || triangleCount < 0 || triangleCount > kMaxSurfaceTriangles
 			|| referenceCount < 0 || referenceCount > kMaxJoints) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "GLM surface \"%1\" declares counts outside the supported range.")
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "GLM surface \"%1\" declares counts outside the supported range.")
 				.arg(surface.name);
 			return;
 		}
@@ -508,18 +508,18 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 		// The texture coordinates follow the vertices.
 		if (!blockOk(vertexOffset, qint64(vertexCount) * (kGlmVertexBytes + kGlmTexCoordBytes))
 			|| !blockOk(triangleOffset, qint64(triangleCount) * kGlmTriangleBytes) || !blockOk(referenceOffset, qint64(referenceCount) * 4)) {
-			mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "GLM surface \"%1\" has a data block outside the file.").arg(surface.name);
+			mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "GLM surface \"%1\" has a data block outside the file.").arg(surface.name);
 			return;
 		}
 		if (thisIndex != index) {
-			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ghoul2-surface-index"), QCoreApplication::translate("VibeStudioModelMesh", "GLM surface \"%1\" calls itself surface %2 but is listed as %3.")
+			noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ghoul2-surface-index"), QCoreApplication::translate("SlopStudioModelMesh", "GLM surface \"%1\" calls itself surface %2 but is listed as %3.")
 				.arg(surface.name, QString::number(thisIndex), QString::number(index)));
 		}
 
 		for (int reference = 0; reference < referenceCount; ++reference) {
 			const int bone = readI32(bytes, base + referenceOffset + qint64(reference) * 4);
 			if (bone < 0) {
-				mesh->error = QCoreApplication::translate("VibeStudioModelMesh", "GLM surface \"%1\" refers to a bone outside the skeleton.").arg(surface.name);
+				mesh->error = QCoreApplication::translate("SlopStudioModelMesh", "GLM surface \"%1\" refers to a bone outside the skeleton.").arg(surface.name);
 				return;
 			}
 			surface.boneReferences.append(bone);
@@ -541,7 +541,7 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 			for (int weight = 0; weight < parsed.count; ++weight) {
 				const int reference = int((packed >> (kBoneRefBits * weight)) & ((1u << kBoneRefBits) - 1u));
 				if (reference >= referenceCount) {
-					mesh->error = QCoreApplication::translate("VibeStudioModelMesh",
+					mesh->error = QCoreApplication::translate("SlopStudioModelMesh",
 						"Vertex %1 of GLM surface \"%2\" is weighted to a bone outside the surface's bone references.")
 						.arg(vertex).arg(surface.name);
 					return;
@@ -605,13 +605,13 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 		GlaSkeleton parsed;
 		if (!parseGla(data, &parsed, &problem, work)) {
 			if (mesh->error.isEmpty()) {
-				mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skipped GLA %1: %2").arg(candidate, problem);
+				mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skipped GLA %1: %2").arg(candidate, problem);
 			}
 			return false;
 		}
 		const int skeletonBones = parsed.joints.size();
 		if (highestReference >= skeletonBones) {
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Skipped GLA %1: it has %2 bone(s) and the mesh uses %3.")
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Skipped GLA %1: it has %2 bone(s) and the mesh uses %3.")
 				.arg(candidate, QString::number(skeletonBones), QString::number(highestReference + 1));
 			return false;
 		}
@@ -636,15 +636,15 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 		return;
 	}
 	if (!found && oldHumanoid) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh",
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh",
 			"This GLM was built for the 72-bone Jedi Outcast humanoid, and no GLA with that many bones was found at %1.gla or "
-			"beside the mesh. Jedi Academy remaps such meshes onto its own skeleton; VibeStudio does not, so open it with the "
+			"beside the mesh. Jedi Academy remaps such meshes onto its own skeleton; SlopStudio does not, so open it with the "
 			"Jedi Outcast skeleton.")
 			.arg(animName);
 		return;
 	}
 	if (!found) {
-		mesh->error = QCoreApplication::translate("VibeStudioModelMesh",
+		mesh->error = QCoreApplication::translate("SlopStudioModelMesh",
 			"The GLM needs its GLA for bones and frames, and no usable GLA was found at %1.gla or beside the mesh.")
 			.arg(animName);
 		return;
@@ -652,12 +652,12 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 
 	fillGhoul2Skeleton(mesh, gla, glaPath);
 	if (!internalName.isEmpty()) {
-		mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Internal name: %1").arg(internalName);
+		mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Internal name: %1").arg(internalName);
 	}
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Bones and frames: %1").arg(glaPath);
-	mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Levels of detail: %1; the first is decoded.").arg(lodCount);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Bones and frames: %1").arg(glaPath);
+	mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Levels of detail: %1; the first is decoded.").arg(lodCount);
 	if (meshBones != gla.joints.size()) {
-		mesh->warnings << QCoreApplication::translate("VibeStudioModelMesh", "The GLM was built for %1 bone(s) and its GLA has %2.")
+		mesh->warnings << QCoreApplication::translate("SlopStudioModelMesh", "The GLM was built for %1 bone(s) and its GLA has %2.")
 			.arg(meshBones).arg(gla.joints.size());
 	}
 
@@ -666,16 +666,16 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 	for (GlmSurface& parsed : surfaces) {
 		if (!work.step()) { return; }
 		if (parsed.flags & kSurfaceFlagOff) {
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Surface \"%1\" is off by default (flags 0x%2).")
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Surface \"%1\" is off by default (flags 0x%2).")
 				.arg(parsed.name, QString::number(parsed.flags, 16));
 		}
 		const auto jointOf = [&](const GlmVertex& vertex, int weight) { return parsed.boneReferences.at(vertex.reference[weight]); };
 
 		if (parsed.flags & kSurfaceFlagBolt) {
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Surface \"%1\" is a bolt (tag) surface (flags 0x%2).")
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Surface \"%1\" is a bolt (tag) surface (flags 0x%2).")
 				.arg(parsed.name, QString::number(parsed.flags, 16));
 			if (parsed.vertices.size() < 3) {
-				mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Bolt surface \"%1\" has fewer than three vertices, so no tag was made.")
+				mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Bolt surface \"%1\" has fewer than three vertices, so no tag was made.")
 					.arg(parsed.name);
 				continue;
 			}
@@ -700,7 +700,7 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 			bool inverted = false;
 			const ModelJointMatrix inverseBind = modelJointInverse(gla.joints.at(joint).bind, &inverted);
 			if (!boltFromTriangle(corners, &bolt) || !inverted) {
-				mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "Bolt surface \"%1\" is degenerate, so no tag was made.")
+				mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "Bolt surface \"%1\" is degenerate, so no tag was made.")
 					.arg(parsed.name);
 				continue;
 			}
@@ -710,14 +710,14 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 			tag.offset = modelJointMultiply(inverseBind, modelJointMultiply(root, bolt));
 			mesh->skeleton.tags.append(tag);
 			if (!rigid) {
-				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ghoul2-bolt-weights"), QCoreApplication::translate("VibeStudioModelMesh",
+				noteModelDecodeIssue(mesh, ModelDecodeIssueSeverity::Advisory, QStringLiteral("ghoul2-bolt-weights"), QCoreApplication::translate("SlopStudioModelMesh",
 					"Bolt surface \"%1\" is weighted to several bones; its tag follows \"%2\" alone and matches the game only where that bone dominates.")
 					.arg(parsed.name, gla.joints.at(joint).name));
 			}
 			continue;
 		}
 		if (parsed.vertices.isEmpty()) {
-			mesh->detailLines << QCoreApplication::translate("VibeStudioModelMesh", "GLM surface \"%1\" has no vertices and was left out.").arg(parsed.name);
+			mesh->detailLines << QCoreApplication::translate("SlopStudioModelMesh", "GLM surface \"%1\" has no vertices and was left out.").arg(parsed.name);
 			continue;
 		}
 
@@ -736,7 +736,7 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 			}
 		}
 		if (parsed.droppedTriangles > 0) {
-			surface.warnings << QCoreApplication::translate("VibeStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.")
+			surface.warnings << QCoreApplication::translate("SlopStudioModelMesh", "%1 triangle(s) referenced out-of-range indices and were dropped.")
 				.arg(parsed.droppedTriangles);
 		}
 		QVector<ModelVec3> positions;
@@ -779,4 +779,4 @@ void decodeGlm(const QString& path, const QByteArray& bytes, ModelMesh* mesh, co
 	mesh->geometryAvailable = !mesh->surfaces.isEmpty();
 }
 
-} // namespace vibestudio::model_formats
+} // namespace slopstudio::model_formats

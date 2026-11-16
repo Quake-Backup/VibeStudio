@@ -1,0 +1,14 @@
+#pragma once
+
+#define SLOPSTUDIO_VERSION "@SLOPSTUDIO_VERSION@"
+#define SLOPSTUDIO_GITHUB_REPO "@SLOPSTUDIO_GITHUB_REPO@"
+#define SLOPSTUDIO_UPDATE_CHANNEL "@SLOPSTUDIO_UPDATE_CHANNEL@"
+// 1 when the build links Qt Multimedia and the Audio browser can play sounds.
+#define SLOPSTUDIO_HAVE_AUDIO_PLAYBACK @SLOPSTUDIO_HAVE_AUDIO_PLAYBACK@
+// Native duplex devices are separate from optional Qt playback/capture.
+#define SLOPSTUDIO_HAVE_AUDIO_DUPLEX @SLOPSTUDIO_HAVE_AUDIO_DUPLEX@
+
+// 1 when the build links llama.cpp and ggml (-Dggml=enabled): the Local GGUF connector.
+#define SLOPSTUDIO_HAVE_GGML @SLOPSTUDIO_HAVE_GGML@
+// The pinned llama.cpp revision linked, or empty.
+#define SLOPSTUDIO_GGML_REVISION @SLOPSTUDIO_GGML_REVISION@

@@ -9,7 +9,7 @@
 #include <QTextDocument>
 #include <QTimer>
 
-namespace vibestudio {
+namespace slopstudio {
 void ApplicationShell::showCodeActions()
 {
 	if (!m_codeEditor || !hasCodeDocument() || m_codeEditor->isReadOnly() || m_codeSaveRunning || m_codeProjectReplaceRunning || !m_codeSearchPanel) {
@@ -59,4 +59,4 @@ void ApplicationShell::showCodeActions()
 		});
 	if (*requestId < 0) { finish({}, tr("The language server could not request code actions.")); }
 }
-} // namespace vibestudio
+} // namespace slopstudio

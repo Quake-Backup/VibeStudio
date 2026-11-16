@@ -6,7 +6,7 @@
 #include <QPainter>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -384,4 +384,4 @@ void ModelViewport::paintJointOverlays(QPainter &painter)
 	}
 	painter.restore();
 }
-} // namespace vibestudio
+} // namespace slopstudio

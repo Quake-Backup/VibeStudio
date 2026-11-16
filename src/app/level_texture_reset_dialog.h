@@ -11,7 +11,7 @@ class QLabel;
 class QLineEdit;
 class QPushButton;
 
-namespace vibestudio
+namespace slopstudio
 {
 // Reset Textures: bobToolz's window, for the selection or the whole map. Each
 // ticked value is set absolutely on the targeted faces, which can be limited
@@ -41,4 +41,4 @@ class LevelTextureResetDialog final : public QDialog
 	QLabel *m_status = nullptr;
 	QPushButton *m_apply = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

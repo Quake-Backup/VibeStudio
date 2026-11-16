@@ -12,7 +12,7 @@
 
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 const QVector<LevelAxisTransform>& levelAxisTransforms()
 {
@@ -63,7 +63,7 @@ bool levelMapQuickTurnPivot(const LevelMapDocument& document, double grid, Level
 	LevelMapVec3 maxs;
 	if (!levelMapSelectionBounds(document, &mins, &maxs)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioLevelMap", "Nothing selected has a position to transform about.");
+			*error = QCoreApplication::translate("SlopStudioLevelMap", "Nothing selected has a position to transform about.");
 		}
 		return false;
 	}
@@ -270,7 +270,7 @@ bool levelMapFlipPivot(const LevelMapDocument& document, double grid, LevelMapVe
 	LevelMapVec3 maxs;
 	if (!levelMapSelectionBounds(document, &mins, &maxs)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioLevelMap", "Nothing selected has a position to transform about.");
+			*error = QCoreApplication::translate("SlopStudioLevelMap", "Nothing selected has a position to transform about.");
 		}
 		return false;
 	}
@@ -283,4 +283,4 @@ bool levelMapFlipPivot(const LevelMapDocument& document, double grid, LevelMapVe
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

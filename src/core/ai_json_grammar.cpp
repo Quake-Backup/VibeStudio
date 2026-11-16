@@ -11,7 +11,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -280,11 +280,11 @@ QString aiJsonSchemaGrammar(const QJsonObject& schema, QString* error)
 	const bool objectSchema = schema.value(QStringLiteral("type")).toString() == QStringLiteral("object") || schema.contains(QStringLiteral("properties"));
 	if (!objectSchema) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioAiGguf", "Only a JSON object schema can be turned into a grammar.");
+			*error = QCoreApplication::translate("SlopStudioAiGguf", "Only a JSON object schema can be turned into a grammar.");
 		}
 		return {};
 	}
 	return GrammarBuilder().build(schema);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

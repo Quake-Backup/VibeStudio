@@ -6,7 +6,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -187,4 +187,4 @@ qint64 ModelBvh::memoryBytes() const
 	return qint64(m_triangles.size()) * qint64(sizeof(ModelBvhTriangle)) + qint64(m_order.size()) * 4 + qint64(m_nodes.size()) * qint64(sizeof(Node));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

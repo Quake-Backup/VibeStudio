@@ -1,5 +1,5 @@
 project(
-  'vibestudio',
+  'slopstudio',
   'cpp',
   # Read straight from the VERSION file: shelling out to `python` made configure
   # depend on a program named exactly "python", which does not exist on many
@@ -84,40 +84,40 @@ endif
 install_data(
   'external/audio/r8brain-free-src/LICENSE',
   'external/audio/r8brain-free-src/LICENSE-OOURA.txt',
-  'external/audio/r8brain-free-src/VIBESTUDIO.md',
+  'external/audio/r8brain-free-src/SLOPSTUDIO.md',
   'external/audio/r8brain-free-src/UPSTREAM.json',
-  install_dir: get_option('datadir') / 'vibestudio/licenses/r8brain-free-src',
+  install_dir: get_option('datadir') / 'slopstudio/licenses/r8brain-free-src',
 )
 
 install_data('docs/licenses/UNICODE-LICENSE.txt',
-  install_dir: get_option('datadir') / 'vibestudio/licenses/unicode')
+  install_dir: get_option('datadir') / 'slopstudio/licenses/unicode')
 
 subdir('i18n')
 foreach decoder : ['dr_libs', 'libogg', 'libvorbis']
   install_data(
     'external/audio' / decoder / (decoder == 'dr_libs' ? 'LICENSE' : 'COPYING'),
-    'external/audio' / decoder / 'VIBESTUDIO.md',
+    'external/audio' / decoder / 'SLOPSTUDIO.md',
     'external/audio' / decoder / 'UPSTREAM.json',
-    install_dir: get_option('datadir') / 'vibestudio/licenses' / decoder,
+    install_dir: get_option('datadir') / 'slopstudio/licenses' / decoder,
   )
 endforeach
 subdir('external/audio')
 install_data(
   'external/audio/libebur128/COPYING',
-  'external/audio/libebur128/VIBESTUDIO.md',
+  'external/audio/libebur128/SLOPSTUDIO.md',
   'external/audio/libebur128/UPSTREAM.json',
   'external/audio/libebur128/doc/license/queue.txt',
   'external/audio/libebur128/doc/license/R128Scan.txt',
-  install_dir: get_option('datadir') / 'vibestudio/licenses/libebur128',
+  install_dir: get_option('datadir') / 'slopstudio/licenses/libebur128',
 )
 subdir('external/modelling')
 install_data(
   'external/graphics/vulkan-headers/LICENSE.md',
   'external/graphics/vulkan-headers/LICENSES/Apache-2.0.txt',
   'external/graphics/vulkan-headers/LICENSES/MIT.txt',
-  'external/graphics/vulkan-headers/VIBESTUDIO.md',
+  'external/graphics/vulkan-headers/SLOPSTUDIO.md',
   'external/graphics/vulkan-headers/UPSTREAM.json',
-  install_dir: get_option('datadir') / 'vibestudio/licenses/vulkan-headers',
+  install_dir: get_option('datadir') / 'slopstudio/licenses/vulkan-headers',
 )
 subdir('src')
 subdir('packaging')
@@ -125,15 +125,15 @@ subdir('packaging')
 python_for_tests = find_program('python', 'python3', required: false)
 if python_for_tests.found()
   test('level-region-selection-cli-smoke', python_for_tests,
-    args: [files('src/tests/level_region_selection_workflow.py'), '--binary', vibestudio,
+    args: [files('src/tests/level_region_selection_workflow.py'), '--binary', slopstudio,
            '--output-root', meson.project_source_root() / '.agents/tmp/level-region-selection/cli'],
     timeout: 180, env: ['PYTHONDONTWRITEBYTECODE=1'])
   test('level-paste-cli-smoke', python_for_tests,
-    args: [files('src/tests/level_paste_workflow.py'), '--binary', vibestudio,
+    args: [files('src/tests/level_paste_workflow.py'), '--binary', slopstudio,
            '--output-root', meson.project_source_root() / '.agents/tmp/level-paste/cli'],
     timeout: 120, env: ['PYTHONDONTWRITEBYTECODE=1'])
   test('level-repeat-cli-smoke', python_for_tests,
-    args: [files('src/tests/level_repeat_workflow.py'), '--binary', vibestudio,
+    args: [files('src/tests/level_repeat_workflow.py'), '--binary', slopstudio,
            '--output-root', meson.project_source_root() / '.agents/tmp/level-repeat/cli'],
     timeout: 120, env: ['PYTHONDONTWRITEBYTECODE=1'])
   test('audio-portaudio-patch-smoke', python_for_tests,

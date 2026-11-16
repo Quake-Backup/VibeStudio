@@ -20,7 +20,7 @@ from source_companion_common import file_hashes, read_json, reject_links, sha256
 
 class SourceCompanion(unittest.TestCase):
     def setUp(self):
-        parent = Path(os.environ.get('VIBESTUDIO_TEST_TMP_ROOT', ROOT / '.agents/tmp/source-companion-tests')).resolve()
+        parent = Path(os.environ.get('SLOPSTUDIO_TEST_TMP_ROOT', ROOT / '.agents/tmp/source-companion-tests')).resolve()
         reject_links(parent)
         parent.mkdir(parents=True, exist_ok=True)
         self.temporary = tempfile.TemporaryDirectory(prefix='sources-', dir=parent)
@@ -34,10 +34,10 @@ class SourceCompanion(unittest.TestCase):
         self.addCleanup(cleanup)
         self.source, self.package, self.runtime = (self.root / name for name in ['source', 'binary', 'runtime'])
         for name in ['meson.build', 'meson_options.txt', 'VERSION', 'LICENSE', 'README.md', 'src/meson.build',
-                     'src/core/original.cpp', 'external/audio/meson.build', 'external/modelling/meson.build', 'i18n/vibestudio_en.ts']:
+                     'src/core/original.cpp', 'external/audio/meson.build', 'external/modelling/meson.build', 'i18n/slopstudio_en.ts']:
             self.put(self.source / name, 'fixture\n' if name == 'VERSION' else 'Original source — café\n')
-        self.put(self.package / 'bin/vibestudio.exe', b'opaque application binary fixture')
-        self.put(self.package / 'i18n/vibestudio_en.qm', b'opaque compiled catalog fixture')
+        self.put(self.package / 'bin/slopstudio.exe', b'opaque application binary fixture')
+        self.put(self.package / 'i18n/slopstudio_en.qm', b'opaque compiled catalog fixture')
         self.put(self.package / 'bin/Qt6Core.dll', b'opaque Qt runtime fixture')
         self.put(self.package / 'bin/translations/qtbase_en.qm', b'opaque native Qt catalog fixture')
         self.profile = {'schemaVersion': 1, 'id': 'qt-fixture', 'qtVersion': '6.10.1', 'targetPlatform': 'windows',
@@ -64,10 +64,10 @@ class SourceCompanion(unittest.TestCase):
                 self.put(self.package / f'licenses/qt-runtime/build/config_{module}.{suffix}', 'Original build configuration\n')
         self.write_json(self.package / 'licenses/qt-runtime/inventory.json', {'components': components})
         self.put(self.package / 'licenses/qt-runtime/NOTICES.md', 'Original licence and copyright\n')
-        self.manifest = {'packageName': 'vibestudio-fixture-win64', 'version': 'fixture', 'targetPlatform': 'windows',
+        self.manifest = {'packageName': 'slopstudio-fixture-win64', 'version': 'fixture', 'targetPlatform': 'windows',
                          'targetArchitecture': 'x86_64', 'externalCompilersBundled': False,
-                         'binary': {'stagedPath': 'bin/vibestudio.exe', 'sha256': sha256(self.package / 'bin/vibestudio.exe')},
-                         'compiledLocalization': {'catalogs': ['i18n/vibestudio_en.qm']},
+                         'binary': {'stagedPath': 'bin/slopstudio.exe', 'sha256': sha256(self.package / 'bin/slopstudio.exe')},
+                         'compiledLocalization': {'catalogs': ['i18n/slopstudio_en.qm']},
                          'qtDeployment': {'status': 'staged-with-runtime-notices',
                                           'ffmpeg': {'version': '7.1.2', 'configuration': self.profile['ffmpegConfiguration']},
                                           'files': [{'path': 'bin/Qt6Core.dll', 'sha256': sha256(self.package / 'bin/Qt6Core.dll'), 'spdxDocument': 'qtbase'}],
@@ -77,7 +77,7 @@ class SourceCompanion(unittest.TestCase):
         self.save_package()
         self.build = {'sourceHashes': {name: sha256(path) for name, path in walk_files(self.source).items()},
                       'binarySha256': self.manifest['binary']['sha256'],
-                      'compiledCatalogs': {'vibestudio_en.qm': sha256(self.package / 'i18n/vibestudio_en.qm')},
+                      'compiledCatalogs': {'slopstudio_en.qm': sha256(self.package / 'i18n/slopstudio_en.qm')},
                       'buildType': 'release', 'audioPlayback': 'enabled', 'checks': [
                           {'name': 'configure', 'command': ['meson', 'setup', 'machine-specific-path', '--buildtype=release', '-Daudio_playback=enabled']}],
                       'compilers': {'host': {'cpp': {'id': 'fixture', 'version': '1.0', 'exelist': ['private-user-path']}}}}
@@ -142,7 +142,7 @@ class SourceCompanion(unittest.TestCase):
                     added.unlink()
 
     def test_binary_and_catalog_binding_rejects_even_rechecksummed_packages(self):
-        for name in ['bin/vibestudio.exe', 'i18n/vibestudio_en.qm']:
+        for name in ['bin/slopstudio.exe', 'i18n/slopstudio_en.qm']:
             with self.subTest(name=name):
                 path = self.package / name
                 original = path.read_bytes()
@@ -282,7 +282,7 @@ class SourceCompanion(unittest.TestCase):
         try:
             with self.assertRaisesRegex(ValueError, 'link or reparse'):
                 self.assemble('junction/new-output')
-            self.assertTrue((self.package / 'bin/vibestudio.exe').is_file())
+            self.assertTrue((self.package / 'bin/slopstudio.exe').is_file())
         finally:
             os.rmdir(link)
 

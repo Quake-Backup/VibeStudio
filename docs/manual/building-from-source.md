@@ -1,6 +1,6 @@
 # Build from source
 
-Build VibeStudio yourself to try the latest changes, debug a problem or contribute. You need a C++20
+Build SlopStudio yourself to try the latest changes, debug a problem or contribute. You need a C++20
 compiler, Qt 6, Meson, Ninja and Python 3; this page lists them, then walks through configuring,
 building, testing, running and packaging.
 
@@ -31,8 +31,8 @@ page call `python`; use `python3` where that is its name on your system.
 ## Get the source
 
 ```sh
-git clone --recursive https://github.com/themuffinator/VibeStudio.git
-cd VibeStudio
+git clone --recursive https://github.com/themuffinator/SlopStudio.git
+cd SlopStudio
 ```
 
 If you cloned without `--recursive`, fetch the submodules afterwards:
@@ -41,11 +41,11 @@ If you cloned without `--recursive`, fetch the submodules afterwards:
 git submodule update --init --recursive
 ```
 
-The submodules hold the source of VibeMap2 and VibeMap3, VibeStudio's own compilers (derived from
+The submodules hold the source of SlopMap2 and SlopMap3, SlopStudio's own compilers (derived from
 ericw-tools and from q3map2 in NetRadiant Custom), and of ZDBSP and ZokumBSP, for building the
-compilers yourself and for licence review. The VibeStudio build does not compile them, but one of the
-tests checks that they are present. VibeMap2 and VibeMap3 build with CMake; when you build them in
-place, VibeStudio finds the programs in their build folders.
+compilers yourself and for licence review. The SlopStudio build does not compile them, but one of the
+tests checks that they are present. SlopMap2 and SlopMap3 build with CMake; when you build them in
+place, SlopStudio finds the programs in their build folders.
 
 ## Configure, build and test
 
@@ -57,7 +57,7 @@ meson test -C builddir --print-errorlogs
 
 Meson's default build type is `debug`, which runs noticeably slower. CI configures with
 `--buildtype=debugoptimized`, which you can add to `meson setup` too. Tests that draw in 3D skip their
-drawing checks when neither OpenGL nor Vulkan starts; set `VIBESTUDIO_RENDER_REQUIRE=1` to make that a
+drawing checks when neither OpenGL nor Vulkan starts; set `SLOPSTUDIO_RENDER_REQUIRE=1` to make that a
 failure instead, as CI does on Windows and Linux. Most tests use Qt's offscreen platform, where only Vulkan
 can draw on Windows and macOS. On Windows, Qt's `bin` folder
 must also be on PATH when the tests run, as in
@@ -106,14 +106,14 @@ change it later with `meson configure builddir -Daudio_playback=disabled`.
 | `audio_duplex` | `auto` | The synchronised recording backend: WASAPI, CoreAudio or ALSA. `disabled` builds without it. |
 | `compiler_tools` | `disabled` | Reserved for building the external compilers from their submodules; it has no effect yet. |
 | `update_channel` | `dev` | `stable`, `beta` or `dev`, recorded in the build and shown in its reports. |
-| `github_repo` | `themuffinator/VibeStudio` | The repository, as owner/name, recorded in the build and shown in its reports. |
+| `github_repo` | `themuffinator/SlopStudio` | The repository, as owner/name, recorded in the build and shown in its reports. |
 | `ggml` | `disabled` | Links llama.cpp and ggml for the **Local GGUF Model (ggml)** connector and Quake-MapGen's ggml ranker. Build them first (below). Release packages are built without it. |
 | `ggml_prefix` | empty | Where `scripts/build_ggml.py` installed llama.cpp; empty uses `external/ai/ggml`. |
 
 ### Build with ggml
 
 The `ggml` option needs the pinned llama.cpp, built with CMake for the same
-compiler and C runtime as VibeStudio. The script builds and installs it into
+compiler and C runtime as SlopStudio. The script builds and installs it into
 `external/ai/ggml`, which Git ignores:
 
 ```sh
@@ -128,11 +128,11 @@ to Meson as `-Dggml_prefix`; the script prints the `meson setup` line to use.
 Without `--source`, the script clones llama.cpp at the pinned revision; give
 `--source <folder>` to build an existing clean checkout of that revision.
 
-On Windows, build llama.cpp with the same compiler as VibeStudio: set `CC` and
+On Windows, build llama.cpp with the same compiler as SlopStudio: set `CC` and
 `CXX` to `clang-cl` if that is what `scripts/meson_build.ps1` picked, or run the
 script from the same Developer PowerShell for MSVC.
 
-To test the build with a small chat model, set `VIBESTUDIO_TEST_GGUF` to its
+To test the build with a small chat model, set `SLOPSTUDIO_TEST_GGUF` to its
 `.gguf` path and run `meson test -C builddir-ggml ai-gguf-smoke`; without it,
 that test is skipped. The released packages are built without ggml. Builds
 without it lose nothing else: **Local/Offline Runtime** can still reach
@@ -143,8 +143,8 @@ llama.cpp's own server.
 On Linux and macOS:
 
 ```sh
-./builddir/src/vibestudio
-./builddir/src/vibestudio --cli --help
+./builddir/src/slopstudio
+./builddir/src/slopstudio --cli --help
 ```
 
 On Windows, put Qt's `bin` folder on PATH first, or Windows cannot find the Qt libraries and the
@@ -152,8 +152,8 @@ program exits at once:
 
 ```powershell
 $env:PATH = "C:\Qt\6.10.1\msvc2022_64\bin;$env:PATH"
-.\builddir\src\vibestudio.exe
-.\builddir\src\vibestudio.exe --cli --help
+.\builddir\src\slopstudio.exe
+.\builddir\src\slopstudio.exe --cli --help
 ```
 
 Adjust the path to your Qt version and kit. To keep test runs away from your own settings, add
@@ -169,18 +169,18 @@ script through `pwsh`, so install PowerShell 7 on macOS and Linux too. Run them 
 
 | Task | What it does |
 | --- | --- |
-| **VibeStudio: build and validate** | The default build task: configures, compiles with warnings as errors, runs the tests and runs the validation scripts. |
-| **VibeStudio: compile** | Configures if needed, then compiles only. |
-| **VibeStudio: test** | The default test task: compiles, then runs the Meson tests without the validation scripts. |
-| **VibeStudio: build and launch app** | Compiles, then starts the studio with Qt on PATH. |
-| **VibeStudio: configure** | Configures only. |
-| **VibeStudio: strict warnings build** | Compiles with warnings as errors, without tests. |
-| **VibeStudio: launch app (no build)** | Starts the program you already built. **VibeStudio: launch CLI help (no build)** prints its command-line help. |
-| **VibeStudio: build docs site** | Renders this manual as HTML in `build/docs-site` and reports any broken link. |
-| **VibeStudio: regenerate branding** | Rebuilds the logo, icons and installer art in `assets/branding`. |
-| **VibeStudio: check changelog and version** | Validates `CHANGELOG.md`. |
+| **SlopStudio: build and validate** | The default build task: configures, compiles with warnings as errors, runs the tests and runs the validation scripts. |
+| **SlopStudio: compile** | Configures if needed, then compiles only. |
+| **SlopStudio: test** | The default test task: compiles, then runs the Meson tests without the validation scripts. |
+| **SlopStudio: build and launch app** | Compiles, then starts the studio with Qt on PATH. |
+| **SlopStudio: configure** | Configures only. |
+| **SlopStudio: strict warnings build** | Compiles with warnings as errors, without tests. |
+| **SlopStudio: launch app (no build)** | Starts the program you already built. **SlopStudio: launch CLI help (no build)** prints its command-line help. |
+| **SlopStudio: build docs site** | Renders this manual as HTML in `build/docs-site` and reports any broken link. |
+| **SlopStudio: regenerate branding** | Rebuilds the logo, icons and installer art in `assets/branding`. |
+| **SlopStudio: check changelog and version** | Validates `CHANGELOG.md`. |
 
-The **Run and Debug** view offers **VibeStudio: debug app** and **VibeStudio: debug CLI help**, each
+The **Run and Debug** view offers **SlopStudio: debug app** and **SlopStudio: debug CLI help**, each
 in four versions: Windows or Unix, and build first or no build. The Windows versions use the Visual
 Studio debugger and put `C:\Qt\6.10.1\msvc2022_64\bin` on PATH; edit `.vscode/launch.json` if your
 Qt is elsewhere. The Unix versions use GDB on Linux and LLDB on macOS. Debugging needs Microsoft's
@@ -189,10 +189,10 @@ C/C++ extension.
 ## Make a portable package
 
 ```sh
-python scripts/package_portable.py --binary builddir/src/vibestudio --archive
+python scripts/package_portable.py --binary builddir/src/slopstudio --archive
 ```
 
-On Windows, pass `builddir/src/vibestudio.exe`. The script stages a versioned folder in `dist`, or in
+On Windows, pass `builddir/src/slopstudio.exe`. The script stages a versioned folder in `dist`, or in
 the folder given with `--output`, with the program under `bin`, the documentation including the
 offline user guide, the translation catalogues, the sample projects (leave them out with
 `--no-samples`), the licences, platform notes, `package-manifest.json` and `CHECKSUMS.sha256`.

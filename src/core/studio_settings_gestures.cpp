@@ -3,7 +3,7 @@
 #include "core/level_gestures.h"
 #include <QCoreApplication>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString storageKey(const QString& profile) { return QStringLiteral("editor/gestureOverrides/%1").arg(profile); }
 bool fail(QString* error, const QString& message) { if (error) { *error = message; } return false; }
@@ -56,4 +56,4 @@ bool StudioSettings::setEditorGestureOverrides(const QString& profile, const QJs
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

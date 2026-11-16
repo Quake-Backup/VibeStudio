@@ -1,7 +1,7 @@
 // Export Map as OBJ and Export Selection as OBJ (core/level_map_obj_export)
 // on classic, Valve 220 and brush-primitive maps and Quake III patches, the
 // map export-obj CLI, and the .bsp conversion fixes of Import Map: the game
-// read from the BSP header, the exit code of a silent VibeMap3 failure and the
+// read from the BSP header, the exit code of a silent SlopMap3 failure and the
 // preview's byte count.
 #include "core/compiler_runner.h"
 #include "core/level_document.h"
@@ -32,7 +32,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool pass, const char* label, const QString& detail = {})
@@ -515,7 +515,7 @@ void conversionTests(const QString& folder)
 		"RBSP converts for Jedi Academy or Jedi Outcast");
 	expect(levelMapBspConversionGame(quake2, QStringLiteral("quake2"), &error).isEmpty() && error.contains(QStringLiteral("Quake II")), "Quake II BSPs refused", error);
 	expect(levelMapBspConversionGame(quake, QStringLiteral("quake"), &error).isEmpty() && error.contains(QStringLiteral("Quake BSP")), "Quake BSPs refused", error);
-	expect(levelMapBspConversionGame(unknown, {}, &error).isEmpty() && error.contains(QStringLiteral("VibeMap3")), "unknown headers refused", error);
+	expect(levelMapBspConversionGame(unknown, {}, &error).isEmpty() && error.contains(QStringLiteral("SlopMap3")), "unknown headers refused", error);
 
 	LevelMapBspConversionContext context;
 	context.gameKey = QStringLiteral("quake3");
@@ -649,11 +649,11 @@ void cliTests(const QString& executable, const QString& folder)
 			QString::fromUtf8(QJsonDocument(report).toJson()));
 	}
 
-	// A .bsp import whose VibeMap3 (this test, standing in) exits silently.
+	// A .bsp import whose SlopMap3 (this test, standing in) exits silently.
 	StudioSettings::setOverrideFilePath(settingsPath);
 	{
 		StudioSettings settings;
-		settings.upsertCompilerToolPathOverride({QStringLiteral("vibemap3"), QCoreApplication::applicationFilePath()});
+		settings.upsertCompilerToolPathOverride({QStringLiteral("slopmap3"), QCoreApplication::applicationFilePath()});
 		settings.sync();
 	}
 	const auto destination = QDir(folder).filePath(QStringLiteral("cli-dest.map"));
@@ -664,7 +664,7 @@ void cliTests(const QString& executable, const QString& folder)
 	report = run({"map", "import", destination, "--from", bsp, "--output", QDir(folder).filePath(QStringLiteral("cli-imported.map")), "--game", "et"}, 4);
 	const auto commandLine = report["conversion"].toObject()["commandLine"].toString();
 	expect(report["message"].toString().contains(QStringLiteral("code 3")) && commandLine.contains(QStringLiteral("-game et")),
-		"CLI names VibeMap3's exit code and passes the game", report["message"].toString() + '\n' + commandLine);
+		"CLI names SlopMap3's exit code and passes the game", report["message"].toString() + '\n' + commandLine);
 	report = run({"map", "import", destination, "--from", writeBsp(folder, QStringLiteral("cli-q2.bsp"), "IBSP", 38), "--output",
 					 QDir(folder).filePath(QStringLiteral("cli-q2.map"))}, 4);
 	expect(report["message"].toString().contains(QStringLiteral("Quake II")) && !report.contains(QStringLiteral("conversion")), "CLI refuses a Quake II BSP before running");
@@ -673,7 +673,7 @@ void cliTests(const QString& executable, const QString& folder)
 
 int main(int argc, char** argv)
 {
-	// Standing in for VibeMap3 in cliTests: exit at once, printing nothing.
+	// Standing in for SlopMap3 in cliTests: exit at once, printing nothing.
 	if (argc >= 2 && argv[1][0] == '-') {
 		return 3;
 	}

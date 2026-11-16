@@ -18,7 +18,7 @@
 #include <limits>
 #include <utility>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -175,4 +175,4 @@ void ApplicationShell::refreshAudioTransport()
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

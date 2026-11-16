@@ -4,7 +4,7 @@
 #include <QCoreApplication>
 #include <QRegularExpression>
 #include <QSet>
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 LevelBuildCliResult runLevelBuildDeploymentCommand(const QStringList& arguments) {
 	const auto fail = [](int code, const QString& error) { return LevelBuildCliResult{code, error, {}, {}}; };
 	const QSet<QString> common{"--cli", "--json", "--quiet", "--verbose"}, globalValues{"--settings-file", "--locale", "--catalog-root"};
@@ -136,4 +136,4 @@ LevelBuildCliResult runLevelBuildDeploymentCommand(const QStringList& arguments)
 		{levelBuildDeploymentPlanText(result.plan), packageWriteReportText(result.publication.write),
 		 result.launched ? QCoreApplication::translate("LevelBuildCli", "Game started; process %1.").arg(result.processId) : QString()}};
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

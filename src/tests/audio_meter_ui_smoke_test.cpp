@@ -20,7 +20,7 @@
 #include <QTranslator>
 #include <QTreeWidget>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath("meter-ui-XXXXXX"));
@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 	ok &= expect(finish(session) && dialog->meters().count == 0 && !session.hasChanges(),
 	             "cancel yields no partial range report");
 	const auto report = measureAudioSessionMeters(s, 0, 300);
-	const QString renderRoot = qEnvironmentVariable("VIBESTUDIO_AUDIO_METER_RENDER_DIR");
+	const QString renderRoot = qEnvironmentVariable("SLOPSTUDIO_AUDIO_METER_RENDER_DIR");
 	if (!renderRoot.isEmpty())
 		ok &= QDir().mkpath(renderRoot);
 	Expanded expanded;

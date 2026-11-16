@@ -10,13 +10,13 @@
 #include <QMap>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelImportRepair)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelImportRepair)
 };
 bool fail(QString *error, const QString &message)
 {
@@ -341,4 +341,4 @@ QJsonObject modelImportRepairJson(const ModelImportRepairPlan &plan)
 			{"removedSeams", plan.removedSeams},
 			{"surfaces", surfaces}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

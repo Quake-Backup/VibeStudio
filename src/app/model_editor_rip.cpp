@@ -8,13 +8,13 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelTools)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelTools)
 };
 } // namespace
 
@@ -92,4 +92,4 @@ void ModelEditorTools::setRipOptions(bool opposite, bool fill)
 	m_modal->ripFill = fill;
 	updateModalPreview();
 }
-} // namespace vibestudio
+} // namespace slopstudio

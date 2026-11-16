@@ -10,7 +10,7 @@
 
 #include <cmath>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace { struct Text { Q_DECLARE_TR_FUNCTIONS(LevelHollowCli) }; }
 
 bool levelHollowOptionsFromArgs(const LevelMapDocument& document, bool caulk, bool caulkTextureGiven, const QString& caulkTexture,
@@ -380,4 +380,4 @@ LevelRoomOptionsCliResult runLevelBrushOffset(const QStringList& arguments, bool
 	return result;
 }
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

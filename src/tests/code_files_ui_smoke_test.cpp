@@ -26,7 +26,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* message)
 {
@@ -59,7 +59,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "vibestudio::CodeFilesPanel") { return {}; }
+		if (QByteArray(context) != "slopstudio::CodeFilesPanel") { return {}; }
 		const QString text = QString::fromUtf8(source);
 		return text + QStringLiteral(" ~").repeated(text.size() / 6);
 	}
@@ -171,7 +171,7 @@ int main(int argc, char** argv)
 			QImage image(panel.size(), QImage::Format_ARGB32_Premultiplied);
 			image.fill(Qt::transparent);
 			panel.render(&image);
-			const QString output = qEnvironmentVariable("VIBESTUDIO_TEXT_TEST_EVIDENCE");
+			const QString output = qEnvironmentVariable("SLOPSTUDIO_TEXT_TEST_EVIDENCE");
 			if (!output.isEmpty()) { ok &= expect(image.save(QDir(output).filePath(QStringLiteral("code-files-%1.png").arg(scale))), "save file panel visual evidence"); }
 			if (scale == 200) { app.removeTranslator(&translator); }
 		}

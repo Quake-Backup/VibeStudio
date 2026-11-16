@@ -19,7 +19,7 @@
 #include <functional>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -195,7 +195,7 @@ bool validateModelAssembly(const ModelAssembly &assembly, QString *error, QVecto
 	if (assembly.name.trimmed().isEmpty() || assembly.name.size() > 128 || assembly.name.contains(QChar(0)) ||
 		assembly.parts.size() > modelAssemblyMaxParts)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 													   "An assembly needs a name of at most 128 characters and at most 32 parts."));
 	}
 	const QRegularExpression identifier(QStringLiteral("^[A-Za-z][A-Za-z0-9_-]{0,31}$"));
@@ -209,7 +209,7 @@ bool validateModelAssembly(const ModelAssembly &assembly, QString *error, QVecto
 			part.source.size() > 4096 || part.source.contains(QChar(0)) || part.tag.size() > 63 || part.tag.contains(QChar(0)) ||
 			(part.sourceKind != ModelAssemblySource::File && part.sourceKind != ModelAssemblySource::Package))
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+			return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 														   "Use unique part IDs of 1–32 ASCII letters, digits, underscores or hyphens, "
 														   "starting with a letter, and valid model paths."));
 		}
@@ -218,7 +218,7 @@ bool validateModelAssembly(const ModelAssembly &assembly, QString *error, QVecto
 			 part.source.split('/').contains(QStringLiteral("..")) || QDir::cleanPath(part.source) != part.source))
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelAssembly",
+						QCoreApplication::translate("SlopStudioModelAssembly",
 													"Package model references must use normalized relative paths with forward slashes."));
 		}
 		if (part.skin && !validateModelAssemblySkin(*part.skin, error))
@@ -230,7 +230,7 @@ bool validateModelAssembly(const ModelAssembly &assembly, QString *error, QVecto
 			part.phase < 0 || part.phase > 1000000 || !std::isfinite(part.spinRpm) || std::abs(part.spinRpm) > 10000)
 		{
 			return fail(error, QCoreApplication::translate(
-								   "VibeStudioModelAssembly",
+								   "SlopStudioModelAssembly",
 								   "Part transforms and animation settings must be finite and within their supported ranges."));
 		}
 		if (part.parent.isEmpty())
@@ -238,20 +238,20 @@ bool validateModelAssembly(const ModelAssembly &assembly, QString *error, QVecto
 			++roots;
 			if (!part.tag.isEmpty())
 			{
-				return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "The root part cannot name a parent tag."));
+				return fail(error, QCoreApplication::translate("SlopStudioModelAssembly", "The root part cannot name a parent tag."));
 			}
 		}
 		else if (part.tag.isEmpty())
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelAssembly", "Attached parts need a parent part and an attachment tag."));
+						QCoreApplication::translate("SlopStudioModelAssembly", "Attached parts need a parent part and an attachment tag."));
 		}
 		ids.insert(part.id, i);
 		portableIds.insert(part.id.toCaseFolded());
 	}
 	if (!assembly.parts.isEmpty() && roots != 1)
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "An assembly must have exactly one root part."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly", "An assembly must have exactly one root part."));
 	}
 	if (assembly.q3Animation)
 	{
@@ -260,7 +260,7 @@ bool validateModelAssembly(const ModelAssembly &assembly, QString *error, QVecto
 			!modelQ3AnimationUsesLower(binding.lowerAnimation) || !modelQ3AnimationUsesUpper(binding.upperAnimation))
 			return fail(error,
 						QCoreApplication::translate(
-							"VibeStudioModelAssembly",
+							"SlopStudioModelAssembly",
 							"Native animation needs distinct existing lower and upper parts and matching lower/upper animation slots."));
 		if (!validateModelQ3Animation(binding.config, error))
 			return false;
@@ -289,7 +289,7 @@ bool validateModelAssembly(const ModelAssembly &assembly, QString *error, QVecto
 	{
 		if (!visit(i))
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+			return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 														   "Every parent must exist, and attachment links cannot form a cycle."));
 		}
 	}
@@ -355,7 +355,7 @@ QJsonObject modelAssemblyJson(const ModelAssembly &assembly)
 		parts.append(node);
 	}
 	const int version = modelAssemblySchemaVersion(assembly);
-	QJsonObject result{{"format", "vibestudio-model-assembly"}, {"version", version}, {"name", assembly.name}, {"parts", parts}};
+	QJsonObject result{{"format", "slopstudio-model-assembly"}, {"version", version}, {"name", assembly.name}, {"parts", parts}};
 	if (version >= 4)
 		result.insert("tagInterpolation", modelTagInterpolationId(assembly.tagInterpolation));
 	if (assembly.q3Animation)
@@ -380,7 +380,7 @@ bool parseModelAssembly(const QByteArray &bytes, ModelAssembly *assembly, QStrin
 		error->clear();
 	}
 	const auto malformed = [&] {
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 													   "The assembly source is malformed, unsupported or exceeds 1 MiB."));
 	};
 	if (!assembly || bytes.size() > modelAssemblyMaxSourceBytes)
@@ -393,7 +393,7 @@ bool parseModelAssembly(const QByteArray &bytes, ModelAssembly *assembly, QStrin
 	const auto version = object.value("version").toDouble(-1);
 	if (parse.error != QJsonParseError::NoError || !document.isObject() ||
 		!keys(object, {"format", "version", "name", "parts", "q3Animation", "tagInterpolation"}) ||
-		object.value("format") != QStringLiteral("vibestudio-model-assembly") ||
+		object.value("format") != QStringLiteral("slopstudio-model-assembly") ||
 		(version != 1 && version != 2 && version != 3 && version != 4) ||
 		(version < 4 && object.contains("tagInterpolation")) ||
 		(object.contains("tagInterpolation") && !modelTagInterpolationFromId(object.value("tagInterpolation").toString())) ||
@@ -525,7 +525,7 @@ bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyCont
 	if (assembly.parts.isEmpty())
 	{
 		return fail(error,
-					QCoreApplication::translate("VibeStudioModelAssembly", "Add a root model before previewing or baking an assembly."));
+					QCoreApplication::translate("SlopStudioModelAssembly", "Add a root model before previewing or baking an assembly."));
 	}
 	result.recipeSha256 = modelAssemblyFingerprint(assembly);
 	qint64 readBytes = 0, frameVertices = 0, vertices = 0, triangles = 0, surfaces = 0;
@@ -536,7 +536,7 @@ bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyCont
 			return false;
 		}
 		const auto inputFailure = [&]() {
-			return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "Part %1 (%2): %3")
+			return fail(error, QCoreApplication::translate("SlopStudioModelAssembly", "Part %1 (%2): %3")
 								   .arg(part.id, part.source, error ? *error : QString()));
 		};
 		ModelAssemblyInput input;
@@ -548,14 +548,14 @@ bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyCont
 		{
 			if (!QFileInfo(part.source).isAbsolute() && context.directory.isEmpty())
 			{
-				return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+				return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 															   "Relative model references need an assembly source directory."));
 			}
 			input.source = QDir::cleanPath(QDir(context.directory).absoluteFilePath(part.source));
 			if (QFileInfo(input.source).size() > modelAssemblyMaxInputBytes - readBytes)
 			{
 				return fail(
-					error, QCoreApplication::translate("VibeStudioModelAssembly", "Assembly model inputs exceed the 256 MiB read budget."));
+					error, QCoreApplication::translate("SlopStudioModelAssembly", "Assembly model inputs exceed the 256 MiB read budget."));
 			}
 			if (!readModelFile(input.source, &bytes, error, control))
 			{
@@ -566,7 +566,7 @@ bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyCont
 		{
 			if (!context.archive || !context.archive->isOpen())
 			{
-				return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+				return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 															   "Open the package used by this assembly before loading package parts."));
 			}
 			input.source = part.source;
@@ -584,7 +584,7 @@ bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyCont
 		if (readBytes > modelAssemblyMaxInputBytes)
 		{
 			return fail(error,
-						QCoreApplication::translate("VibeStudioModelAssembly", "Assembly model inputs exceed the 256 MiB read budget."));
+						QCoreApplication::translate("SlopStudioModelAssembly", "Assembly model inputs exceed the 256 MiB read budget."));
 		}
 		input.bytes = bytes.size();
 		input.sha256 = QCryptographicHash::hash(bytes, QCryptographicHash::Sha256);
@@ -595,13 +595,13 @@ bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyCont
 		if (part.skin)
 		{
 			if (!resolveModelAssemblySkin(*part.skin, context, &input, error, control))
-				return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "Part %1 skin (%2): %3")
+				return fail(error, QCoreApplication::translate("SlopStudioModelAssembly", "Part %1 skin (%2): %3")
 									   .arg(part.id, part.skin->source, error ? *error : QString()));
 			readBytes += input.skin->bytes;
 			if (readBytes > modelAssemblyMaxInputBytes)
-				return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+				return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 															   "Assembly model and skin inputs exceed the 256 MiB read budget."));
-			result.notes << QCoreApplication::translate("VibeStudioModelAssembly",
+			result.notes << QCoreApplication::translate("SlopStudioModelAssembly",
 														"Part %1 uses linked skin %2. Baking writes its material assignments into the "
 														"composite; input files stay unchanged.")
 								.arg(part.id, input.skin->source);
@@ -615,13 +615,13 @@ bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyCont
 		{
 			return fail(error,
 						QCoreApplication::translate(
-							"VibeStudioModelAssembly",
+							"SlopStudioModelAssembly",
 							"The assembly exceeds 32 surfaces, 65,536 vertices, 131,072 triangles or 4,194,304 stored frame vertices."));
 		}
 		ModelAnimationSample sample;
 		if (!assemblySample(assembly, part, input.mesh, 0, &sample))
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+			return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 														   "Part %1 refers to animation frames that are not in its model.")
 								   .arg(part.id));
 		}
@@ -632,7 +632,7 @@ bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyCont
 		return false;
 	if (assembly.q3Animation)
 		result.notes << QCoreApplication::translate(
-			"VibeStudioModelAssembly",
+			"SlopStudioModelAssembly",
 			"Quake III clip playback uses native frame offsets, reversed ranges, loop tails and integer millisecond periods. "
 			"Bound parts use the selected native clips instead of their ordinary range, FPS, phase and loop settings. "
 			"Head offset, footsteps, sex and fixed-body flags are preserved for export; game-state transitions, haste and procedural body "
@@ -649,7 +649,7 @@ bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyCont
 			std::find_if(result.inputs.begin(), result.inputs.end(), [&](const auto &input) { return input.part == part.parent; });
 		if (joint != result.inputs.end() && part.tag.startsWith(modelAssemblyJointPrefix()) && !addJointAttachment(&joint->mesh, part.tag))
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+			return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 														   "Parent %1 has no skeletal joint %2 with a pose in every frame. Choose an "
 														   "existing joint, or repair the tag.")
 								   .arg(part.parent, part.tag.mid(modelAssemblyJointPrefix().size())));
@@ -658,7 +658,7 @@ bool resolveModelAssembly(const ModelAssembly &assembly, const ModelAssemblyCont
 			std::find_if(result.inputs.cbegin(), result.inputs.cend(), [&](const auto &input) { return input.part == part.parent; });
 		if (parent == result.inputs.cend() || !findModelTag(parent->mesh, part.tag, 0))
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "Parent %1 has no attachment tag named %2.")
+			return fail(error, QCoreApplication::translate("SlopStudioModelAssembly", "Parent %1 has no attachment tag named %2.")
 								   .arg(part.parent, part.tag));
 		}
 	}
@@ -681,7 +681,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 	if (!std::isfinite(seconds) || seconds < 0 || seconds > 1000000 || assembly.parts.isEmpty() ||
 		resolved.inputs.size() != assembly.parts.size() || resolved.recipeSha256 != modelAssemblyFingerprint(assembly))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 													   "Reload the assembly inputs and choose a time from 0 to 1,000,000 seconds."));
 	}
 	if (!validateModelAssemblyQ3Animation(assembly, resolved, error))
@@ -703,7 +703,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 	result.mesh.geometryAvailable = true;
 	result.mesh.sourcePath = assembly.name;
 	result.mesh.formatId = QStringLiteral("mesh");
-	result.mesh.formatName = QStringLiteral("VibeStudio Mesh");
+	result.mesh.formatName = QStringLiteral("SlopStudio Mesh");
 	ModelFrameInfo frame;
 	frame.name = QStringLiteral("assembly_pose");
 	result.mesh.frames.append(frame);
@@ -715,7 +715,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 		auto &sample = result.samples[index];
 		if (input.part != part.id || !assemblySample(assembly, part, mesh, seconds, &sample))
 		{
-			return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+			return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 														   "The resolved part or its animation range no longer matches the assembly."));
 		}
 		ModelTag basis;
@@ -735,7 +735,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 				if (!first || (parentSample.fraction != 0 && !next) ||
 					!interpolateModelTagQuake3(*first, parentSample.fraction == 0 ? *first : *next, parentSample.fraction, &sampled))
 				{
-					return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+					return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 																   "The parent attachment cannot be interpolated. Repair its stored poses."));
 				}
 			}
@@ -746,7 +746,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 			else if (!first || !next || !interpolateModelTag(*first, *next, parentSample.fraction, &sampled))
 			{
 				return fail(error, QCoreApplication::translate(
-									   "VibeStudioModelAssembly",
+									   "SlopStudioModelAssembly",
 									   "The parent attachment cannot be interpolated. Use stored poses or repair its orientation."));
 			}
 			parentScale = scales[parent];
@@ -788,7 +788,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 		if (!std::isfinite(scales[index]) || scales[index] < .000001 || scales[index] > 1000000 || !finite(transform.origin))
 		{
 			return fail(error, QCoreApplication::translate(
-								   "VibeStudioModelAssembly",
+								   "SlopStudioModelAssembly",
 								   "The accumulated attachment transform exceeds the supported scale or coordinate range."));
 		}
 		if (includeCollision)
@@ -799,23 +799,23 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 			{
 				ModelCollisionBox sampled, composed;
 				if (!sampleModelCollisionBox(volume, sample.frame, sample.nextFrame, sample.fraction, &sampled))
-					return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+					return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 																   "Part %1's collision volume %2 cannot be sampled at this time.")
 										   .arg(part.id, volume.name));
 				sampled.framePoses.clear();
 				if (!composeModelCollisionVolume(sampled, transform, scales[index], &composed, error))
-					return fail(error, QCoreApplication::translate("VibeStudioModelAssembly", "Part %1's collision volume %2: %3")
+					return fail(error, QCoreApplication::translate("SlopStudioModelAssembly", "Part %1's collision volume %2: %3")
 										   .arg(part.id, volume.name, error ? *error : QString()));
 				composed.name = part.id + QLatin1Char('_') + volume.name;
 				if (std::any_of(result.mesh.collisionBoxes.cbegin(), result.mesh.collisionBoxes.cend(),
 								[&](const auto &box) { return box.name == composed.name; }))
-					return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+					return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 																   "Two parts' collision volumes would both be named %1. Rename one.")
 										   .arg(composed.name));
 				result.mesh.collisionBoxes << composed;
 			}
 			if (result.mesh.collisionBoxes.size() > modelCollisionBoxLimit)
-				return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+				return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 															   "The parts hold more than 64 collision volumes together. Remove volumes from "
 															   "the parts, or bake without collision."));
 		}
@@ -826,7 +826,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 			{
 				return fail(
 					error,
-					QCoreApplication::translate("VibeStudioModelAssembly", "Part %1 has inconsistent surface frame counts.").arg(part.id));
+					QCoreApplication::translate("SlopStudioModelAssembly", "Part %1 has inconsistent surface frame counts.").arg(part.id));
 			}
 			ModelSurface surface = original;
 			// Quake III strips a final underscore plus one character from MD3
@@ -841,7 +841,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 				first.normals.size() != original.vertexCount || next.normals.size() != original.vertexCount)
 			{
 				return fail(error,
-							QCoreApplication::translate("VibeStudioModelAssembly", "Part %1 has inconsistent position or normal arrays.")
+							QCoreApplication::translate("SlopStudioModelAssembly", "Part %1 has inconsistent position or normal arrays.")
 								.arg(part.id));
 			}
 			for (int vertex = 0; vertex < original.vertexCount; ++vertex)
@@ -857,7 +857,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 				if (!finite(position) || !interpolateModelNormal(first.normals[vertex], next.normals[vertex], sample.fraction, &normal))
 				{
 					return fail(error, QCoreApplication::translate(
-										   "VibeStudioModelAssembly",
+										   "SlopStudioModelAssembly",
 										   "A composed vertex or normal is invalid. Use stored poses or adjust the part transform."));
 				}
 				geometry.positions.append(position);
@@ -871,7 +871,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 					if (!(magnitude > 1e-6))
 					{
 						return fail(error, QCoreApplication::translate(
-											   "VibeStudioModelAssembly",
+											   "SlopStudioModelAssembly",
 											   "A composed vertex or normal is invalid. Use stored poses or adjust the part transform."));
 					}
 					composedNormal = {float(composedNormal.x / magnitude), float(composedNormal.y / magnitude),
@@ -906,7 +906,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 	result.notes = resolved.notes;
 	if (assembly.tagInterpolation == ModelTagInterpolation::Quake3Renderer)
 	{
-		result.notes << QCoreApplication::translate("VibeStudioModelAssembly",
+		result.notes << QCoreApplication::translate("SlopStudioModelAssembly",
 													"Attachment tags blend as the Quake III renderer does: origin and each axis "
 													"linearly, then each axis normalised on its own. Between stored frames the "
 													"attached basis may be slightly skewed, as in the game.");
@@ -914,7 +914,7 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 	if (includeCollision && !result.mesh.collisionBoxes.isEmpty())
 	{
 		const int volumes = int(result.mesh.collisionBoxes.size());
-		result.notes << QCoreApplication::translate("VibeStudioModelAssembly",
+		result.notes << QCoreApplication::translate("SlopStudioModelAssembly",
 													"Includes %n part collision volume(s), named <part>_<volume>, placed as the parts are. "
 													"Native model formats leave them out; editable sources keep them.",
 													nullptr, volumes);
@@ -922,17 +922,17 @@ bool sampleModelAssembly(const ModelAssembly &assembly, const ModelAssemblyResol
 	else if (std::any_of(resolved.inputs.cbegin(), resolved.inputs.cend(),
 						 [](const auto &input) { return !input.mesh.collisionBoxes.isEmpty(); }))
 	{
-		result.notes << QCoreApplication::translate("VibeStudioModelAssembly",
+		result.notes << QCoreApplication::translate("SlopStudioModelAssembly",
 													"Input collision boxes remain in their model sources. Assembly baking does not compose "
 													"or export them; author collision on the baked pose when needed.");
 	}
-	result.notes << QCoreApplication::translate("VibeStudioModelAssembly",
+	result.notes << QCoreApplication::translate("SlopStudioModelAssembly",
 												"This bake contains one composed pose. Keep the assembly and model sources to retain "
 												"links, animation, attachment tags and native skin metadata.");
 	if (!result.embeddedSkins.isEmpty())
 	{
 		result.notes << QCoreApplication::translate(
-			"VibeStudioModelAssembly",
+			"SlopStudioModelAssembly",
 			"Embedded skins are previewed from their first image; baking does not write those texture images or native skin animation.");
 	}
 	if (!progress.check())
@@ -971,7 +971,7 @@ bool exportModelAssemblyPose(const ModelAssembly &assembly, const ModelAssemblyR
 	}
 	if (protectedInput || (target.existed && !overwrite))
 	{
-		return fail(error, QCoreApplication::translate("VibeStudioModelAssembly",
+		return fail(error, QCoreApplication::translate("SlopStudioModelAssembly",
 													   "Choose a separate output; assembly, model and package inputs are protected, and "
 													   "replacing another output requires explicit overwrite."));
 	}
@@ -996,4 +996,4 @@ bool exportModelAssemblyPose(const ModelAssembly &assembly, const ModelAssemblyR
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

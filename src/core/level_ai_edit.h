@@ -20,7 +20,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelAiEditAction {
 	// add-entity, set-key, remove-key, add-box, set-texture, move, or delete.
@@ -100,4 +100,4 @@ struct LevelAiEditApplyReport {
 // rest go on. The selection is left on the last objects acted on.
 LevelAiEditApplyReport applyLevelAiEditProposal(LevelMapDocument* document, const LevelAiEditProposal& proposal);
 
-} // namespace vibestudio
+} // namespace slopstudio

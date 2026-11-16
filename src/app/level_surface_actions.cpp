@@ -3,7 +3,7 @@
 #include <QStatusBar>
 #include <QTreeWidget>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool ApplicationShell::applyLevelSurfaceEdit(const LevelSurfaceEditPlan &plan, QString *error)
 {
@@ -64,4 +64,4 @@ void ApplicationShell::editLevelMapSurfacesFromUi()
 	});
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

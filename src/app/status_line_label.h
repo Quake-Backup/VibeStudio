@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // One line of status text that elides instead of wrapping or widening its
 // window. A wrapping status line grows a row whenever a long message arrives,
@@ -118,4 +118,4 @@ private:
 	Qt::TextElideMode m_mode = Qt::ElideRight;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

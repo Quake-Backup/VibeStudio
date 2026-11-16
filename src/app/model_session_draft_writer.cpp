@@ -2,7 +2,7 @@
 
 #include <QThread>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 ModelSessionDraftWriter::ModelSessionDraftWriter(QString directory, QObject *parent) : QObject(parent), m_directory(std::move(directory)) {}
@@ -88,4 +88,4 @@ void ModelSessionDraftWriter::startNext()
 	m_thread->start();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

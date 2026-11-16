@@ -11,7 +11,7 @@
 #include <atomic>
 #include <new>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LevelTextureAuditPanel::Work {
 	quint64 serial = 0;
@@ -24,7 +24,7 @@ LevelTextureAuditPanel::LevelTextureAuditPanel(QWidget* parent) : QWidget(parent
 {
 	setObjectName(QStringLiteral("levelTextureAudit"));
 	QSizePolicy policy(QSizePolicy::Preferred, QSizePolicy::Preferred); policy.setHeightForWidth(true); setSizePolicy(policy);
-	setAccessibleName(QCoreApplication::translate("VibeStudioLevelTextureAudit", "Level texture check"));
+	setAccessibleName(QCoreApplication::translate("SlopStudioLevelTextureAudit", "Level texture check"));
 	auto* layout = new QVBoxLayout(this); layout->setContentsMargins(0, 0, 0, 0);
 	auto* row = new QHBoxLayout;
 	m_status = new QLabel; m_status->setWordWrap(true); m_status->setTextFormat(Qt::PlainText);
@@ -33,12 +33,12 @@ LevelTextureAuditPanel::LevelTextureAuditPanel(QWidget* parent) : QWidget(parent
 	// Preserve QLabel's text-derived accessible name and change notifications.
 	m_status->setObjectName(QStringLiteral("levelTextureAuditStatus"));
 	layout->addWidget(m_status);
-	m_cancel = new WrappingActionButton(QCoreApplication::translate("VibeStudioLevelTextureAudit", "Cancel"), 0); m_cancel->setObjectName(QStringLiteral("cancelLevelTextureAudit"));
-	m_cancel->setAccessibleName(QCoreApplication::translate("VibeStudioLevelTextureAudit", "Cancel texture check")); m_cancel->setToolTip(m_cancel->accessibleName());
-	m_retry = new WrappingActionButton(QCoreApplication::translate("VibeStudioLevelTextureAudit", "Retry"), 0); m_retry->setObjectName(QStringLiteral("retryLevelTextureAudit"));
-	m_retry->setAccessibleName(QCoreApplication::translate("VibeStudioLevelTextureAudit", "Retry texture check")); m_retry->setToolTip(m_retry->accessibleName());
+	m_cancel = new WrappingActionButton(QCoreApplication::translate("SlopStudioLevelTextureAudit", "Cancel"), 0); m_cancel->setObjectName(QStringLiteral("cancelLevelTextureAudit"));
+	m_cancel->setAccessibleName(QCoreApplication::translate("SlopStudioLevelTextureAudit", "Cancel texture check")); m_cancel->setToolTip(m_cancel->accessibleName());
+	m_retry = new WrappingActionButton(QCoreApplication::translate("SlopStudioLevelTextureAudit", "Retry"), 0); m_retry->setObjectName(QStringLiteral("retryLevelTextureAudit"));
+	m_retry->setAccessibleName(QCoreApplication::translate("SlopStudioLevelTextureAudit", "Retry texture check")); m_retry->setToolTip(m_retry->accessibleName());
 	row->addWidget(m_cancel); row->addWidget(m_retry); row->addStretch(1); layout->addLayout(row);
-	m_progress = new QProgressBar; m_progress->setTextVisible(false); m_progress->setAccessibleName(QCoreApplication::translate("VibeStudioLevelTextureAudit", "Texture check progress"));
+	m_progress = new QProgressBar; m_progress->setTextVisible(false); m_progress->setAccessibleName(QCoreApplication::translate("SlopStudioLevelTextureAudit", "Texture check progress"));
 	layout->addWidget(m_progress);
 	layout->addStretch(1);
 	connect(m_cancel, &QPushButton::clicked, this, &LevelTextureAuditPanel::cancel);
@@ -66,7 +66,7 @@ void LevelTextureAuditPanel::setSource(const QString& key, const LevelMapDocumen
 		m_state = OperationState::Idle;
 	} else if (!archive->isOpen()) {
 		m_state = OperationState::Failed; m_error = archive->errorString();
-		if (m_error.isEmpty()) { m_error = QCoreApplication::translate("VibeStudioLevelTextureAudit", "The planned package view is unavailable."); }
+		if (m_error.isEmpty()) { m_error = QCoreApplication::translate("SlopStudioLevelTextureAudit", "The planned package view is unavailable."); }
 	} else {
 		m_request = Request{document, std::move(archive)};
 		restart(); return;
@@ -103,7 +103,7 @@ void LevelTextureAuditPanel::startNext()
 			work->result = auditLevelMapTextures(request.document, *request.archive, false, control);
 		} catch (const std::bad_alloc&) {
 			work->result = {}; work->result.complete = false;
-			work->result.warnings << QCoreApplication::translate("VibeStudioLevelTextureAudit", "Not enough memory to check the map's textures.");
+			work->result.warnings << QCoreApplication::translate("SlopStudioLevelTextureAudit", "Not enough memory to check the map's textures.");
 		}
 	});
 	m_thread->setParent(this);
@@ -130,18 +130,18 @@ void LevelTextureAuditPanel::refresh()
 	m_progress->setVisible(running);
 	QString text;
 	if (running) {
-		text = QCoreApplication::translate("VibeStudioLevelTextureAudit", "Checking planned package textures…");
+		text = QCoreApplication::translate("SlopStudioLevelTextureAudit", "Checking planned package textures…");
 		const qint64 total = m_work && m_work->serial == m_serial ? m_work->total.load() : 0;
 		const qint64 bytes = m_work && m_work->serial == m_serial ? m_work->bytes.load() : 0;
 		m_progress->setRange(0, total > 0 ? 1000 : m_reducedMotion ? 1 : 0);
 		m_progress->setValue(total > 0 ? int(qMin(1000.0, 1000.0 * double(bytes) / double(total))) : 0);
-	} else if (m_state == OperationState::Cancelled) { text = QCoreApplication::translate("VibeStudioLevelTextureAudit", "Texture check cancelled."); }
-	else if (m_state == OperationState::Failed) { text = QCoreApplication::translate("VibeStudioLevelTextureAudit", "Texture check incomplete."); }
-	else if (!m_request) { text = QCoreApplication::translate("VibeStudioLevelTextureAudit", "Open a package to check the map's textures."); }
-	else if (m_result && m_result->missingCount) { text = QCoreApplication::translate("VibeStudioLevelTextureAudit", "%n missing texture(s)", nullptr, m_result->missingCount); }
-	else { text = QCoreApplication::translate("VibeStudioLevelTextureAudit", "Texture check complete."); }
+	} else if (m_state == OperationState::Cancelled) { text = QCoreApplication::translate("SlopStudioLevelTextureAudit", "Texture check cancelled."); }
+	else if (m_state == OperationState::Failed) { text = QCoreApplication::translate("SlopStudioLevelTextureAudit", "Texture check incomplete."); }
+	else if (!m_request) { text = QCoreApplication::translate("SlopStudioLevelTextureAudit", "Open a package to check the map's textures."); }
+	else if (m_result && m_result->missingCount) { text = QCoreApplication::translate("SlopStudioLevelTextureAudit", "%n missing texture(s)", nullptr, m_result->missingCount); }
+	else { text = QCoreApplication::translate("SlopStudioLevelTextureAudit", "Texture check complete."); }
 	m_status->setText(text); m_status->setAccessibleDescription(m_error);
 	m_status->setToolTip(m_error); setProperty("auditState", operationStateId(m_state));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool result, const char* message, const QString& detail = {})

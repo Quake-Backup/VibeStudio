@@ -28,8 +28,8 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::test;
+using namespace slopstudio;
+using namespace slopstudio::test;
 namespace
 {
 bool expect(bool value, const char *text)
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	application.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath("take-ui-XXXXXX"));
@@ -154,7 +154,7 @@ int main(int argc, char **argv)
 	ok &= expect(wait([&] { return !recovery.busy(); }) && recovery.result() == QDialog::Accepted &&
 	                 recovery.importedAudio().clip.frameCount() == 3,
 	             "reviewed prefix recovery retains only verified frames");
-	const auto renderRoot = qEnvironmentVariable("VIBESTUDIO_AUDIO_TAKE_RENDER_DIR");
+	const auto renderRoot = qEnvironmentVariable("SLOPSTUDIO_AUDIO_TAKE_RENDER_DIR");
 	if (!renderRoot.isEmpty())
 		ok &= expect(QDir().mkpath(renderRoot), "create task render directory");
 	struct Layout {

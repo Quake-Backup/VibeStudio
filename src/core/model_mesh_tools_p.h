@@ -13,7 +13,7 @@
 #include <QHash>
 #include <QSet>
 
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 using namespace model_geometry;
 
@@ -164,4 +164,4 @@ bool applyModelKnifeCuts(ModelMesh *mesh, const ModelEdit &edit, ModelSelection 
 bool intersectCut(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, const ModelWorkControl &control,
 				  ModelEditReport *report);
 bool projectUvs(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selection, QString *error, ModelWorkProgress &work);
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

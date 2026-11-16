@@ -21,7 +21,7 @@
 #include <QVBoxLayout>
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct AudioMediaReview {
 	std::atomic_bool cancelled{false};
@@ -388,4 +388,4 @@ void AudioMediaDialog::start(bool inspect)
 	refresh();
 	thread->start();
 }
-} // namespace vibestudio
+} // namespace slopstudio

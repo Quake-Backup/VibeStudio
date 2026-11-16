@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct LevelPrimitiveDialog::Work {
 	LevelMapDocument document;
@@ -373,4 +373,4 @@ void LevelPrimitiveDialog::reject()
 	if (m_work) { m_work->cancelled = true; }
 	QDialog::reject();
 }
-} // namespace vibestudio
+} // namespace slopstudio

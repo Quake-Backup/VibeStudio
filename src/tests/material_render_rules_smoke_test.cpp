@@ -29,8 +29,8 @@
 #include <iostream>
 #include <string>
 
-using namespace vibestudio;
-using namespace vibestudio::material_render;
+using namespace slopstudio;
+using namespace slopstudio::material_render;
 
 namespace {
 
@@ -561,7 +561,7 @@ int main(int argc, char** argv)
 	checkUploadKeys();
 	checkCycleSeconds();
 	// Drawing needs OpenGL or Vulkan; every other check runs anywhere.
-	const int renderSkip = vibestudio::test_support::exitCodeWithoutRenderer("material-render-rules-smoke");
+	const int renderSkip = slopstudio::test_support::exitCodeWithoutRenderer("material-render-rules-smoke");
 	QTemporaryDir directory;
 	if (renderSkip == 1) {
 		++failures;

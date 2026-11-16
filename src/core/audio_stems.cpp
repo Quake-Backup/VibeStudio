@@ -11,7 +11,7 @@
 #include <QSet>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -198,7 +198,7 @@ AudioStemExportReport writeAudioSessionStems(const AudioSession &session, const 
 		                           {"muted", track.muted},
 		                           {"solo", track.solo},
 		                           {"routing", audioRoutingToJson(track.routing)}});
-	report.manifest = {{"kind", "vibestudio-audio-stems"},
+	report.manifest = {{"kind", "slopstudio-audio-stems"},
 	                   {"version", 1},
 	                   {"sessionName", session.name},
 	                   {"sampleRate", session.sampleRate},
@@ -307,4 +307,4 @@ AudioStemExportReport writeAudioSessionStems(const AudioSession &session, const 
 	report.succeeded = true;
 	return report;
 }
-} // namespace vibestudio
+} // namespace slopstudio

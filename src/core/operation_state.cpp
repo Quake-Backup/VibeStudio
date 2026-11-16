@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -373,4 +373,4 @@ QString operationTaskTimelineText(const OperationTask& task)
 	return lines.join('\n');
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

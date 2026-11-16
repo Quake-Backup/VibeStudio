@@ -23,7 +23,7 @@
 #include <QSet>
 #include <QTemporaryDir>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(LevelMapTransferCli)
@@ -174,9 +174,9 @@ LevelMapTransferCliResult runLevelMapTransfer(const QStringList& arguments)
 		request.omitLayers = omitLayers;
 		request.includeOmittedLayers = seen.contains("--include-omitted");
 		if (values.contains("--scene-format")) {
-			LevelSceneStorage storage = LevelSceneStorage::VibeStudio;
+			LevelSceneStorage storage = LevelSceneStorage::SlopStudio;
 			if (!levelSceneStorageFromId(values.value("--scene-format"), &storage) || document.format == LevelMapFormat::DoomWad) {
-				return failure(2, Text::tr("--scene-format takes vibestudio or trenchbroom, for Quake-family maps."));
+				return failure(2, Text::tr("--scene-format takes slopstudio or trenchbroom, for Quake-family maps."));
 			}
 			request.save.sceneStorage = storage;
 		}
@@ -234,7 +234,7 @@ LevelMapTransferCliResult runLevelMapTransfer(const QStringList& arguments)
 		result.payload.insert("conversion", QJsonObject{{"commandLine", ran.plan.commandLine}, {"exitCode", ran.exitCode}});
 		const auto problem = levelMapImportConversionProblem(ran, convert.outputPath);
 		if (!problem.isEmpty()) {
-			return failure(4, Text::tr("VibeMap3 could not convert %1 to a map: %2").arg(from, problem));
+			return failure(4, Text::tr("SlopMap3 could not convert %1 to a map: %2").arg(from, problem));
 		}
 		from = convert.outputPath;
 	}
@@ -429,4 +429,4 @@ LevelMapTransferCliResult runLevelMapObjExport(const QStringList& arguments)
 	result.lines += report.warnings;
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

@@ -32,7 +32,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -286,7 +286,7 @@ bool shellWorkflow(QApplication& app, const QString& root, int scale)
 	ok &= expect(fake->lastSeek == 250 && seek->value() == 250 && seek->focusPolicy() != Qt::NoFocus &&
 	             !seek->accessibleName().isEmpty() && QAccessible::queryAccessibleInterface(seek),
 	             "browser exposes a named standard seek control independent of waveform availability");
-	const auto captureRoot = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+	const auto captureRoot = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 	if (!captureRoot.isEmpty()) {
 		QDir().mkpath(captureRoot); QApplication::processEvents();
 		QImage image(shell.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); shell.render(&image);
@@ -387,11 +387,11 @@ int main(int argc, char** argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath()); QDir().mkpath(root);
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath()); QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-browser-XXXXXX")));
 	if (!temporary.isValid()) { return EXIT_FAILURE; }
 	StudioSettings::setOverrideFilePath(temporary.filePath(QStringLiteral("settings.ini")));
-	qputenv("VIBESTUDIO_AUDIO_RECOVERY_ROOT", temporary.filePath(QStringLiteral("recovery")).toUtf8());
+	qputenv("SLOPSTUDIO_AUDIO_RECOVERY_ROOT", temporary.filePath(QStringLiteral("recovery")).toUtf8());
 	StudioSettings().setAudioRecoveryEnabled(false);
 	const bool media = mediaLifecycle(), worker = workers(), ui = shellWorkflow(app, temporary.path(), 100);
 	const bool layout = shellWorkflow(app, temporary.path(), 200);

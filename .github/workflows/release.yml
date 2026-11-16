@@ -125,7 +125,7 @@ jobs:
           python scripts/build_docs_site.py
           --output build/docs-site
           --version "${{ needs.prepare.outputs.label }}"
-          --zip "dist/VibeStudio-${{ needs.prepare.outputs.file_label }}-docs.zip"
+          --zip "dist/SlopStudio-${{ needs.prepare.outputs.file_label }}-docs.zip"
 
       - name: Upload documentation site
         uses: actions/upload-artifact@v4
@@ -213,7 +213,7 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
-          $report = ./builddir/src/vibestudio.exe --settings-file "${{ runner.temp }}/vibestudio-render.ini" --cli render backends --json | Out-String
+          $report = ./builddir/src/slopstudio.exe --settings-file "${{ runner.temp }}/slopstudio-render.ini" --cli render backends --json | Out-String
           $report
           if ($LASTEXITCODE -ne 0 -or ($report | ConvertFrom-Json).active -ne 'vulkan') {
             Write-Output "::error::render backends does not report Vulkan as the active renderer, so the drawing tests cannot draw."
@@ -222,13 +222,13 @@ jobs:
 
       - name: Test
         env:
-          VIBESTUDIO_RENDER_REQUIRE: "1"
+          SLOPSTUDIO_RENDER_REQUIRE: "1"
         run: meson test -C builddir --print-errorlogs
 
       - name: Validate
         shell: pwsh
         run: |
-          $binary = "builddir/src/vibestudio.exe"
+          $binary = "builddir/src/slopstudio.exe"
           python scripts/validate_build.py --binary $binary --expected-version "$((Get-Content VERSION -Raw).Trim())"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python scripts/validate_cli_docs.py --binary $binary
@@ -259,9 +259,9 @@ jobs:
         shell: pwsh
         run: |
           $installer = Get-ChildItem artifacts/windows-installer/*-setup.exe | Select-Object -First 1
-          $target = Join-Path $env:RUNNER_TEMP "vibestudio-install"
+          $target = Join-Path $env:RUNNER_TEMP "slopstudio-install"
           Start-Process -FilePath $installer.FullName -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/CURRENTUSER", "/DIR=$target" -Wait
-          & "$target\bin\vibestudio.exe" --settings-file "$env:RUNNER_TEMP\installed.ini" --cli --version
+          & "$target\bin\slopstudio.exe" --settings-file "$env:RUNNER_TEMP\installed.ini" --cli --version
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           if (-not (Test-Path "$target\docs\html\index.html")) { Write-Error "Installed documentation is missing"; exit 1 }
 
@@ -340,14 +340,14 @@ jobs:
 
       - name: Validate
         run: |
-          python scripts/validate_build.py --binary builddir/src/vibestudio --expected-version "$(cat VERSION)"
-          python scripts/validate_cli_docs.py --binary builddir/src/vibestudio
-          python scripts/validate_packaging.py --binary builddir/src/vibestudio --compiled-translations builddir/i18n
+          python scripts/validate_build.py --binary builddir/src/slopstudio --expected-version "$(cat VERSION)"
+          python scripts/validate_cli_docs.py --binary builddir/src/slopstudio
+          python scripts/validate_packaging.py --binary builddir/src/slopstudio --compiled-translations builddir/i18n
 
       - name: Build app bundle and disk image
         run: >
           python scripts/package_macos_app.py
-          --binary builddir/src/vibestudio
+          --binary builddir/src/slopstudio
           --compiled-translations builddir/i18n
           --docs-site build/docs-site
           --qt-prefix "$QT_ROOT_DIR"
@@ -355,7 +355,7 @@ jobs:
 
       - name: Smoke-test the app bundle
         run: |
-          dist/VibeStudio.app/Contents/MacOS/vibestudio --settings-file "$RUNNER_TEMP/bundle.ini" --cli --version
+          dist/SlopStudio.app/Contents/MacOS/slopstudio --settings-file "$RUNNER_TEMP/bundle.ini" --cli --version
           hdiutil verify dist/*.dmg
 
       - name: Upload macOS download
@@ -420,16 +420,16 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
           # Mesa's lavapipe (installed above) draws the 3D renderer's tests.
-          VIBESTUDIO_RENDER_REQUIRE: "1"
+          SLOPSTUDIO_RENDER_REQUIRE: "1"
         run: meson test -C builddir --print-errorlogs
 
       - name: Validate
         run: |
-          python scripts/validate_build.py --binary builddir/src/vibestudio --expected-version "$(cat VERSION)"
-          python scripts/validate_cli_docs.py --binary builddir/src/vibestudio
-          python scripts/validate_packaging.py --binary builddir/src/vibestudio --compiled-translations builddir/i18n
-          desktop-file-validate packaging/linux/io.github.themuffinator.VibeStudio.desktop
-          appstreamcli validate --no-net --pedantic packaging/linux/io.github.themuffinator.VibeStudio.metainfo.xml || appstreamcli validate --no-net packaging/linux/io.github.themuffinator.VibeStudio.metainfo.xml
+          python scripts/validate_build.py --binary builddir/src/slopstudio --expected-version "$(cat VERSION)"
+          python scripts/validate_cli_docs.py --binary builddir/src/slopstudio
+          python scripts/validate_packaging.py --binary builddir/src/slopstudio --compiled-translations builddir/i18n
+          desktop-file-validate packaging/linux/io.github.themuffinator.SlopStudio.desktop
+          appstreamcli validate --no-net --pedantic packaging/linux/io.github.themuffinator.SlopStudio.metainfo.xml || appstreamcli validate --no-net packaging/linux/io.github.themuffinator.SlopStudio.metainfo.xml
 
       - name: Fetch linuxdeploy
         run: |

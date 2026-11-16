@@ -15,7 +15,7 @@ int fail(const char* message)
 
 int main()
 {
-	const QVector<vibestudio::CompilerKnownIssueDescriptor> issues = vibestudio::compilerKnownIssueDescriptors();
+	const QVector<slopstudio::CompilerKnownIssueDescriptor> issues = slopstudio::compilerKnownIssueDescriptors();
 	const QStringList auditIssueIds = {
 		QStringLiteral("485"),
 		QStringLiteral("484"),
@@ -145,12 +145,12 @@ int main()
 	};
 
 	// Keep the original 125-ID audit as a closed partition: every report is either
-	// retained or explicitly retired against the VibeMap2 3.1.0 audit/changelog.
+	// retained or explicitly retired against the SlopMap2 3.1.0 audit/changelog.
 	// The reasons and pinned source links live in the remaining-bugs resolution matrix.
 	const QStringList retiredIssueIds = {
 		QStringLiteral("167"), // Effective settings/version manifest: same fix as #483.
 		QStringLiteral("173"), // Authored style preserved as oldstyle: same fix as #475.
-		QStringLiteral("335"), // Both vibemap2-* and pre-rename vmt-* names are prefixed.
+		QStringLiteral("335"), // Both slopmap2-* and pre-rename vmt-* names are prefixed.
 		QStringLiteral("400"), // Bounce debug repair: same fix as #416.
 		QStringLiteral("401"), // Saturation preserves brightness.
 		QStringLiteral("416"), // Bounce debug modes repaired.
@@ -164,7 +164,7 @@ int main()
 		QStringLiteral("483"), // Opt-in -embedsettings LIGHTING_SETTINGS manifest.
 		QStringLiteral("485"), // -force_world_units_per_luxel supported.
 	};
-	const QStringList knownIssueIds = vibestudio::compilerKnownIssueIds();
+	const QStringList knownIssueIds = slopstudio::compilerKnownIssueIds();
 	if (issues.size() + retiredIssueIds.size() != auditIssueIds.size()) {
 		return fail("Expected every audited issue to be retained or explicitly retired, with no unreviewed additions.");
 	}
@@ -175,18 +175,18 @@ int main()
 	}
 	for (const QString& issueId : auditIssueIds) {
 		if (!accountedIssueIds.contains(issueId)) {
-			return fail("Expected an explicit VibeMap2 disposition for every original ericw-tools audit ID.");
+			return fail("Expected an explicit SlopMap2 disposition for every original ericw-tools audit ID.");
 		}
 	}
 	for (const QString& issueId : retiredIssueIds) {
-		if (vibestudio::compilerKnownIssueForId(issueId)) {
+		if (slopstudio::compilerKnownIssueForId(issueId)) {
 			return fail("A fixed or inapplicable upstream issue must not re-enter the active catalogue.");
 		}
 	}
 	for (const QString& issueId : {QStringLiteral("425"), QStringLiteral("480"), QStringLiteral("482")}) {
-		vibestudio::CompilerKnownIssueDescriptor note;
-		if (!vibestudio::compilerKnownIssueForId(issueId, &note)
-			|| note.severity != vibestudio::CompilerKnownIssueSeverity::Info || note.highValue || !note.matchKeywords.isEmpty()) {
+		slopstudio::CompilerKnownIssueDescriptor note;
+		if (!slopstudio::compilerKnownIssueForId(issueId, &note)
+			|| note.severity != slopstudio::CompilerKnownIssueSeverity::Info || note.highValue || !note.matchKeywords.isEmpty()) {
 			return fail("Expected partial optimisation and platform constraints to remain informational help-only notes.");
 		}
 	}
@@ -235,36 +235,36 @@ int main()
 		QStringLiteral("87"),
 	};
 	for (const QString& issueId : highIssueIds) {
-		vibestudio::CompilerKnownIssueDescriptor highIssue;
-		if (!vibestudio::compilerKnownIssueForId(issueId, &highIssue) || !highIssue.highValue) {
+		slopstudio::CompilerKnownIssueDescriptor highIssue;
+		if (!slopstudio::compilerKnownIssueForId(issueId, &highIssue) || !highIssue.highValue) {
 			return fail("Expected every High-row audit issue to be present and high-value.");
 		}
 	}
 
-	vibestudio::CompilerKnownIssueDescriptor issue;
-	if (!vibestudio::compilerKnownIssueForId(QStringLiteral("#122"), &issue) || issue.clusterId != QStringLiteral("D02") || !issue.highValue) {
+	slopstudio::CompilerKnownIssueDescriptor issue;
+	if (!slopstudio::compilerKnownIssueForId(QStringLiteral("#122"), &issue) || issue.clusterId != QStringLiteral("D02") || !issue.highValue) {
 		return fail("Expected the unresolved START_OFF issue #122 to remain high-value in D02.");
 	}
 	if (issue.warningText.isEmpty() || issue.actionText.isEmpty() || issue.matchKeywords.isEmpty()) {
 		return fail("Expected issue warning, action, and match keywords.");
 	}
 
-	const QVector<vibestudio::CompilerKnownIssueDescriptor> lightIssues = vibestudio::compilerKnownIssuesForProfile(QStringLiteral("vibemap2-light"));
+	const QVector<slopstudio::CompilerKnownIssueDescriptor> lightIssues = slopstudio::compilerKnownIssuesForProfile(QStringLiteral("slopmap2-light"));
 	if (lightIssues.size() < 15) {
 		return fail("Expected light profile to expose known lighting issues.");
 	}
-	const QVector<vibestudio::CompilerKnownIssueDescriptor> prefabIssues = vibestudio::compilerKnownIssuesForCluster(QStringLiteral("D05"));
+	const QVector<slopstudio::CompilerKnownIssueDescriptor> prefabIssues = slopstudio::compilerKnownIssuesForCluster(QStringLiteral("D05"));
 	if (prefabIssues.size() < 5) {
 		return fail("Expected D05 prefab cluster issues.");
 	}
 
-	const QVector<vibestudio::CompilerKnownIssueMatch> matches = vibestudio::matchCompilerKnownIssues(
+	const QVector<slopstudio::CompilerKnownIssueMatch> matches = slopstudio::matchCompilerKnownIssues(
 		QStringLiteral("warning: _external_map_classname was missing on misc_external_map"),
-		QStringLiteral("vibemap2-bsp"),
-		QStringLiteral("vibemap2-bsp"));
+		QStringLiteral("slopmap2-bsp"),
+		QStringLiteral("slopmap2-bsp"));
 	bool foundExternalMapClassname = false;
 	bool foundPresentationMetaIssue = false;
-	for (const vibestudio::CompilerKnownIssueMatch& match : matches) {
+	for (const slopstudio::CompilerKnownIssueMatch& match : matches) {
 		if (match.issue.issueId == QStringLiteral("194")) {
 			foundExternalMapClassname = true;
 		}
@@ -279,9 +279,9 @@ int main()
 		return fail("Expected the #287 presentation meta-issue never to match compiler output.");
 	}
 
-	// Every VibeMap2 run opens with "---- <program> / VibeMap2 <version> ----", the program
+	// Every SlopMap2 run opens with "---- <program> / SlopMap2 <version> ----", the program
 	// being the executable's own name
-	// (external/compilers/vibemap2/src/common/settings.cc, common_settings::set_parameters), and
+	// (external/compilers/slopmap2/src/common/settings.cc, common_settings::set_parameters), and
 	// ordinary maps produce non-fatal WARNING lines and an "N errors" summary. A catalog keyword must
 	// therefore never be a tool's own program name or a bare status word, or every healthy compile
 	// would be downgraded to Warning with an unrelated upstream issue attached.
@@ -290,65 +290,65 @@ int main()
 		QString output;
 	};
 	const QVector<OrdinaryRun> ordinaryRuns = {
-		{"vibemap2-bsp", QStringLiteral(
-			"---- vibemap2-bsp / VibeMap2 3.1.0 ----\n"
+		{"slopmap2-bsp", QStringLiteral(
+			"---- slopmap2-bsp / SlopMap2 3.1.0 ----\n"
 			"Input file: maps/start.map\n"
 			"Output file: maps/start.bsp\n"
 			"WARNING: 3 microbrushes\n"
 			"0 errors\n"
 			"1.234 seconds elapsed\n")},
-		{"vibemap2-light", QStringLiteral(
-			"---- vibemap2-light / VibeMap2 3.1.0 ----\n"
+		{"slopmap2-light", QStringLiteral(
+			"---- slopmap2-light / SlopMap2 3.1.0 ----\n"
 			"running 8 threads\n"
 			"0 warnings\n")},
-		{"vibemap2-vis", QStringLiteral("---- vibemap2-vis / VibeMap2 3.1.0 ----\nno errors\n")},
-		{"vibemap2-bsputil", QStringLiteral("---- vibemap2-bsputil / VibeMap2 3.1.0 ----\n")},
-		{"vibemap2-hub", QStringLiteral("---- vibemap2-hub / VibeMap2 3.1.0 ----\n")},
-		{"vibemap2-bspinfo", QStringLiteral("---- vibemap2-bspinfo / VibeMap2 3.1.0 ----\n")},
+		{"slopmap2-vis", QStringLiteral("---- slopmap2-vis / SlopMap2 3.1.0 ----\nno errors\n")},
+		{"slopmap2-bsputil", QStringLiteral("---- slopmap2-bsputil / SlopMap2 3.1.0 ----\n")},
+		{"slopmap2-hub", QStringLiteral("---- slopmap2-hub / SlopMap2 3.1.0 ----\n")},
+		{"slopmap2-bspinfo", QStringLiteral("---- slopmap2-bspinfo / SlopMap2 3.1.0 ----\n")},
 	};
 	for (const OrdinaryRun& run : ordinaryRuns) {
 		const QString toolId = QString::fromLatin1(run.toolId);
-		for (const vibestudio::CompilerKnownIssueMatch& match : vibestudio::matchCompilerKnownIssues(run.output, toolId, toolId)) {
+		for (const slopstudio::CompilerKnownIssueMatch& match : slopstudio::matchCompilerKnownIssues(run.output, toolId, toolId)) {
 			if (match.issue.highValue) {
-				return fail("An ordinary VibeMap2 run must not match a high-value known issue.");
+				return fail("An ordinary SlopMap2 run must not match a high-value known issue.");
 			}
 		}
 	}
 
 	// Keywords match whole tokens: "leak" must not fire on the "-leaktest" argument preset, and
 	// "Q2" must not fire inside a map name such as q2dm1.
-	if (!vibestudio::vibemap2KnownIssuePlanWarnings(
-			QStringLiteral("vibemap2-bsp"),
+	if (!slopstudio::slopmap2KnownIssuePlanWarnings(
+			QStringLiteral("slopmap2-bsp"),
 			QStringLiteral("maps/start.map"),
 			{QStringLiteral("-leaktest")}).isEmpty()) {
 		return fail("Expected the -leaktest preset not to raise leak known-issue plan warnings.");
 	}
-	for (const vibestudio::CompilerKnownIssueMatch& match : vibestudio::matchCompilerKnownIssues(
-			QStringLiteral("maps/q2dm1.bsp"), QStringLiteral("vibemap2-light"), QStringLiteral("vibemap2-light"))) {
+	for (const slopstudio::CompilerKnownIssueMatch& match : slopstudio::matchCompilerKnownIssues(
+			QStringLiteral("maps/q2dm1.bsp"), QStringLiteral("slopmap2-light"), QStringLiteral("slopmap2-light"))) {
 		if (match.issue.highValue) {
 			return fail("Expected a map name to stay clear of whole-token known-issue keywords.");
 		}
 	}
 
-	const QString text = vibestudio::compilerKnownIssueText(issue);
+	const QString text = slopstudio::compilerKnownIssueText(issue);
 	if (!text.contains(QStringLiteral("D02")) || !text.contains(QStringLiteral("https://github.com/ericwa/ericw-tools/issues/122"))) {
 		return fail("Expected formatted known-issue text to include cluster and upstream URL.");
 	}
 
-	// Supported VibeMap2 lighting switches no longer raise historical feature warnings.
-	if (!vibestudio::vibemap2KnownIssuePlanWarnings(QStringLiteral("vibemap2-light"),
+	// Supported SlopMap2 lighting switches no longer raise historical feature warnings.
+	if (!slopstudio::slopmap2KnownIssuePlanWarnings(QStringLiteral("slopmap2-light"),
 			QStringLiteral("maps/start.bsp"), {QStringLiteral("-embedsettings"),
 				QStringLiteral("-world_units_per_luxel"), QStringLiteral("32"),
 				QStringLiteral("-force_world_units_per_luxel"), QStringLiteral("-bouncedebug")}).isEmpty()) {
-		return fail("Expected supported VibeMap2 3.1.0 lighting switches to produce no known-issue plan warnings.");
+		return fail("Expected supported SlopMap2 3.1.0 lighting switches to produce no known-issue plan warnings.");
 	}
-	if (!vibestudio::matchCompilerKnownIssues(QStringLiteral("temporary directory overwrite Wayland"),
-			QStringLiteral("vibemap2-hub"), QStringLiteral("vibemap2-hub")).isEmpty()) {
+	if (!slopstudio::matchCompilerKnownIssues(QStringLiteral("temporary directory overwrite Wayland"),
+			QStringLiteral("slopmap2-hub"), QStringLiteral("slopmap2-hub")).isEmpty()) {
 		return fail("Expected isolated Hub previews and platform guidance not to match compiler diagnostics.");
 	}
 
-	const QStringList lightWarnings = vibestudio::vibemap2KnownIssuePlanWarnings(
-		QStringLiteral("vibemap2-light"),
+	const QStringList lightWarnings = slopstudio::slopmap2KnownIssuePlanWarnings(
+		QStringLiteral("slopmap2-light"),
 		QStringLiteral("maps/test.1.bsp"),
 		{QStringLiteral("-bspxhdr"), QStringLiteral("BSPX")});
 	int lightingDirWarningCount = 0;
@@ -365,8 +365,8 @@ int main()
 		return fail("Expected useful deduplicated light known-issue plan warnings.");
 	}
 
-	const QStringList qbspWarnings = vibestudio::vibemap2KnownIssuePlanWarnings(
-		QStringLiteral("vibemap2-bsp"),
+	const QStringList qbspWarnings = slopstudio::slopmap2KnownIssuePlanWarnings(
+		QStringLiteral("slopmap2-bsp"),
 		QStringLiteral("maps/csg_fail.map"),
 		{QStringLiteral("-notex"), QStringLiteral("missing texture")});
 	int noTextureWarningCount = 0;
@@ -382,8 +382,8 @@ int main()
 	if (noTextureWarningCount != 1 || csgWarningCount != 1) {
 		return fail("Expected useful deduplicated qbsp known-issue plan warnings.");
 	}
-	if (!vibestudio::vibemap2KnownIssuePlanWarnings(QStringLiteral("vibemap3-bsp"), QString(), {}).isEmpty()) {
-		return fail("Expected VibeMap2 known-issue plan warnings to stay scoped to VibeMap2 profiles.");
+	if (!slopstudio::slopmap2KnownIssuePlanWarnings(QStringLiteral("slopmap3-bsp"), QString(), {}).isEmpty()) {
+		return fail("Expected SlopMap2 known-issue plan warnings to stay scoped to SlopMap2 profiles.");
 	}
 
 	return EXIT_SUCCESS;

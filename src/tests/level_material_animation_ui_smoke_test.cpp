@@ -32,7 +32,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -154,8 +154,8 @@ int main(int argc, char** argv)
 	expect(animator.animatedMaterials() == QStringList {QStringLiteral("test/scroll")}, "only the scrolling shader animates",
 		animator.animatedMaterials().join(QLatin1Char(',')));
 
-	const int renderSkip = vibestudio::test_support::exitCodeWithoutRenderer("level-material-animation-ui-smoke");
-	expect(renderSkip != 1, "VIBESTUDIO_RENDER_REQUIRE is set, but no 3D renderer starts");
+	const int renderSkip = slopstudio::test_support::exitCodeWithoutRenderer("level-material-animation-ui-smoke");
+	expect(renderSkip != 1, "SLOPSTUDIO_RENDER_REQUIRE is set, but no 3D renderer starts");
 	if (renderSkip < 0) {
 		expect(waitFor([&]() { return animator.framesShown() >= 3; }), "frames keep arriving", QString::number(animator.framesShown()));
 		const QImage animated = view.surfaceSkinImage(mesh.surfaces[0].index);

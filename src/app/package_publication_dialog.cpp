@@ -21,7 +21,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct PackagePublicationDialog::Progress {
 	QMutex mutex;
@@ -237,4 +237,4 @@ void PackagePublicationDialog::finishSelected()
 	});
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

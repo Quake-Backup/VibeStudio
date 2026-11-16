@@ -18,7 +18,7 @@
 #include <array>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label, const QString& error = {})
 {
@@ -82,7 +82,7 @@ int main(int argc, char** argv)
 		ok &= expect(!flattened.writeArchive(request).succeeded(), "flattened planned views retain working-store protection");
 		flattened.clear();
 		auto reader = std::make_unique<PackageStagingArchive>(plan);
-		const QString draft = root.filePath(QStringLiteral("saved.vibepackage"));
+		const QString draft = root.filePath(QStringLiteral("saved.sloppackage"));
 		ok &= expect(PackageDraft::save(draft, &plan, false, &error), "persist owned working content", error);
 		plan.clear(); drain();
 		ok &= expect(listPackageImports(store).files == 2, "older readers keep their file reservations after save and close");
@@ -217,7 +217,7 @@ int main(int argc, char** argv)
 			ok &= expect(discardPackageImports(store, info.id, info.fingerprint, false, &error), "retained blocked-cleanup files remain reviewable for explicit discard", error);
 		}
 	}
-	if (arguments.size() != 2) { std::cerr << "Pass the VibeStudio CLI binary for route tests\n"; return 1; }
+	if (arguments.size() != 2) { std::cerr << "Pass the SlopStudio CLI binary for route tests\n"; return 1; }
 	{
 		const QString profile = root.filePath(QStringLiteral("cli.ini")), cliTemporary = root.filePath(QStringLiteral("cli-temporary"));
 		ok &= QDir().mkpath(cliTemporary);
@@ -260,18 +260,18 @@ int main(int argc, char** argv)
 		const auto removed = cli(discard + QStringList{QStringLiteral("--write")}, 0);
 		ok &= expect(removed.value(QStringLiteral("discarded")).toBool() && removed.value(QStringLiteral("leaseChecked")).toBool()
 			&& !QFileInfo::exists(path), "CLI explicit discard proves the lease and removes the reviewed session");
-		const QString draft = root.filePath(QStringLiteral("limited.vibepackage"));
+		const QString draft = root.filePath(QStringLiteral("limited.sloppackage"));
 		const QStringList create{QStringLiteral("create"), draft, QStringLiteral("--format"), QStringLiteral("pk3"),
 			QStringLiteral("--import-file"), source, QStringLiteral("--as"), QStringLiteral("first.bin"),
 			QStringLiteral("--import-file"), source, QStringLiteral("--as"), QStringLiteral("second.bin")};
 		cli(create + QStringList{QStringLiteral("--dry-run")}, 0);
-		ok &= expect(!QFileInfo::exists(QDir(cliTemporary).filePath(QStringLiteral("vibestudio-package-imports"))), "dry-run imports allocate no working store");
+		ok &= expect(!QFileInfo::exists(QDir(cliTemporary).filePath(QStringLiteral("slopstudio-package-imports"))), "dry-run imports allocate no working store");
 		const auto rejected = cli(create, 2);
 		ok &= expect(!QFileInfo::exists(draft) && !rejected.value(QStringLiteral("ok")).toBool(), "configured file quota blocks the actual CLI import before draft commit");
-		const QString cliStore = QDir(cliTemporary).filePath(QStringLiteral("vibestudio-package-imports"));
+		const QString cliStore = QDir(cliTemporary).filePath(QStringLiteral("slopstudio-package-imports"));
 		ok &= expect(listPackageImports(cliStore).sessions.isEmpty() && listPackageImports(cliStore).locks.isEmpty(), "failed CLI operation drains working payload and lock cleanup before process exit");
 		for (int attempt = 0; attempt < 3; ++attempt) {
-			const QString output = root.filePath(QStringLiteral("normal-exit-%1.vibepackage").arg(attempt));
+			const QString output = root.filePath(QStringLiteral("normal-exit-%1.sloppackage").arg(attempt));
 			cli({QStringLiteral("create"), output, QStringLiteral("--format"), QStringLiteral("pk3"),
 				QStringLiteral("--import-file"), source, QStringLiteral("--as"), QStringLiteral("first.bin")}, 0);
 			const auto afterExit = listPackageImports(cliStore);

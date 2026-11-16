@@ -13,7 +13,7 @@
 #include <numeric>
 #include <utility>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -21,7 +21,7 @@ bool fail(QString *error, const char *message)
 {
 	if (error)
 	{
-		*error = QCoreApplication::translate("VibeStudioModelDocument", message);
+		*error = QCoreApplication::translate("SlopStudioModelDocument", message);
 	}
 	return false;
 }
@@ -157,7 +157,7 @@ bool weldModelSurface(ModelSurface *surface, const QSet<int> &vertices, double d
 	if (!surface || !vertexMap || !faceMap || surface->frames.isEmpty() || vertices.size() < 2 || !std::isfinite(distance) ||
 		distance < 0 || distance > 1000000 || (distance > 0 && distance < 0.000001))
 	{
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelDocument",
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelDocument",
 											 "Welding requires at least two vertices and a distance of zero or 0.000001–1,000,000 units."));
 	}
 	auto chosen = vertices.values().toVector();
@@ -165,7 +165,7 @@ bool weldModelSurface(ModelSurface *surface, const QSet<int> &vertices, double d
 	std::sort(chosen.begin(), chosen.end());
 	if (chosen.first() < 0 || chosen.last() >= surface->vertexCount)
 	{
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelDocument", "A selected weld vertex no longer exists."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelDocument", "A selected weld vertex no longer exists."));
 	}
 	QVector<int> mapping(surface->vertexCount);
 	std::iota(mapping.begin(), mapping.end(), 0);
@@ -247,7 +247,7 @@ bool weldModelSurface(ModelSurface *surface, const QSet<int> &vertices, double d
 								return false;
 							}
 							return fail(error, QT_TRANSLATE_NOOP(
-												   "VibeStudioModelDocument",
+												   "SlopStudioModelDocument",
 												   "Weld search exceeded its comparison budget. Use a smaller selection or distance."));
 						}
 					}
@@ -268,12 +268,12 @@ bool weldModelSurface(ModelSurface *surface, const QSet<int> &vertices, double d
 	{
 		if (weightsDiffer)
 		{
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelDocument",
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelDocument",
 												 "The vertices within this distance have different skin weights. Turn off Preserve Seams (--merge-seams on the command line) to "
 												 "weld them with averaged weights, or paint matching weights first."));
 		}
 		return fail(error,
-					QT_TRANSLATE_NOOP("VibeStudioModelDocument",
+					QT_TRANSLATE_NOOP("SlopStudioModelDocument",
 									  "No vertices can weld within this distance in every frame while respecting the seam setting."));
 	}
 	QVector<ModelTriangle> triangles;
@@ -295,7 +295,7 @@ bool weldModelSurface(ModelSurface *surface, const QSet<int> &vertices, double d
 	}
 	if (triangles.isEmpty())
 	{
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelDocument", "Welding would remove every face of the surface."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelDocument", "Welding would remove every face of the surface."));
 	}
 	Topology before, after;
 	if (!topology(surface->triangles, &before, work) || !topology(triangles, &after, work))
@@ -310,7 +310,7 @@ bool weldModelSurface(ModelSurface *surface, const QSet<int> &vertices, double d
 		}
 		if (count > 1 && count > before.faces[face])
 		{
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelDocument",
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelDocument",
 												 "Welding would introduce duplicate faces. Reduce the selection or distance."));
 		}
 	}
@@ -327,7 +327,7 @@ bool weldModelSurface(ModelSurface *surface, const QSet<int> &vertices, double d
 			return fail(
 				error,
 				QT_TRANSLATE_NOOP(
-					"VibeStudioModelDocument",
+					"SlopStudioModelDocument",
 					"Welding would introduce a nonmanifold edge or inconsistent winding. Reduce the selection or repair the faces first."));
 		}
 	}
@@ -400,4 +400,4 @@ bool weldModelSurface(ModelSurface *surface, const QSet<int> &vertices, double d
 	*faceMap = std::move(faces);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

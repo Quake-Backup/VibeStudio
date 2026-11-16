@@ -3,10 +3,10 @@
 #include "core/level_patch_stitch.h"
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 
-// Radial is VibeStudio's own cap: a planar radial fan from the boundary to a
+// Radial is SlopStudio's own cap: a planar radial fan from the boundary to a
 // centre, closing a loop as a disc and an open arc on its chord. The others
 // are NetRadiant Custom's Cap Selection types (radiant/patch.cpp
 // Patch::ConstructSeam at 449778b3), seams built from the boundary's
@@ -79,4 +79,4 @@ bool capLevelMapPatches(LevelMapDocument *document, const QVector<int> &patchIds
 						LevelPatchCapResult *result = nullptr, QString *error = nullptr);
 QJsonObject levelPatchCapReportJson(const LevelPatchCapResult &result);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -60,7 +60,7 @@ files of skeletal models.
 | Doom 3, Quake 4, Prey, Quake Wars, The Dark Mod | MD5 mesh and animation, LightWave LWO, ASE | MD5 mesh, MD5 animation, ASE |
 | Any modeller | Wavefront OBJ, glTF 2.0 (`.gltf`, `.glb`) | OBJ (one frame); glTF is read only |
 
-Some models need other files to be complete. VibeStudio looks for them in the
+Some models need other files to be complete. SlopStudio looks for them in the
 same package, or in the folder of a loose file and the folders above it:
 
 - An MDM needs its MDX, and a GLM its GLA. Without them the model cannot be
@@ -71,13 +71,13 @@ same package, or in the folder of a loose file and the folders above it:
   for animation. Missing ones are named in a warning.
 
 Jedi Outcast player models on the Jedi Academy skeleton are refused:
-Jedi Academy remaps them with a table VibeStudio cannot include for licensing
+Jedi Academy remaps them with a table SlopStudio cannot include for licensing
 reasons, so open them with the Jedi Outcast `_humanoid.gla`.
 
 <details>
 <summary>Every format, with what it keeps</summary>
 
-Run `vibestudio --cli model formats` for the same list with its notes. The
+Run `slopstudio --cli model formats` for the same list with its notes. The
 [native formats record](../MODEL_FORMATS.md) and the
 [support matrix](../SUPPORT_MATRIX.md) have the detail.
 
@@ -132,7 +132,7 @@ material to be open.
 ## Skeletal models
 
 MD5, IQM, MDS, MDM, MDR, Ghoul 2 and Half-Life models animate through joints.
-VibeStudio poses every skeletal animation into ordinary frames, so you can
+SlopStudio poses every skeletal animation into ordinary frames, so you can
 preview, edit and export them like any other model, and the skeleton is kept
 alongside:
 
@@ -318,7 +318,7 @@ asks you to choose the rest; see [pose clipboard](../MODEL_RIG.md#copy-paste-and
 
 Export **glTF 2.0** from Blender (either **glTF Binary (.glb)** or
 **glTF Separate (.gltf + .bin)**) and open it with **Model > Open / Import…**,
-or run `vibestudio --cli model import model.glb --output model.mesh.json`.
+or run `slopstudio --cli model import model.glb --output model.mesh.json`.
 
 - Armatures come in as a skeleton with every action that moves a bone as a
   clip; shape key animation comes in as vertex frames.
@@ -648,7 +648,7 @@ and keys:
 
 | Profile | Navigation | Transforms | Layout |
 | --- | --- | --- | --- |
-| **VibeStudio (Blender-style)** | Middle-drag orbits, <kbd>Shift</kbd>+middle pans, <kbd>Ctrl</kbd>+middle zooms; <kbd>Alt</kbd>+left drag also orbits | <kbd>G</kbd>, <kbd>R</kbd>, <kbd>S</kbd> start at once | One view |
+| **SlopStudio (Blender-style)** | Middle-drag orbits, <kbd>Shift</kbd>+middle pans, <kbd>Ctrl</kbd>+middle zooms; <kbd>Alt</kbd>+left drag also orbits | <kbd>G</kbd>, <kbd>R</kbd>, <kbd>S</kbd> start at once | One view |
 | **Blender** | As above, without the <kbd>Alt</kbd> drag | As above | One view |
 | **3ds Max** | Middle-drag pans, <kbd>Alt</kbd>+middle orbits, <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+middle zooms | <kbd>Q</kbd>, <kbd>W</kbd>, <kbd>E</kbd>, <kbd>R</kbd> pick a tool, then drag | Four views: Top, Front, Left, Perspective |
 | **MilkShape 3D** | Left drag rotates the 3D view, <kbd>Ctrl</kbd>+left drag pans, <kbd>Shift</kbd>+left drag zooms | <kbd>F1</kbd> to <kbd>F4</kbd> pick a tool, then drag | Four views: Front, Top, Right, Perspective |
@@ -720,7 +720,7 @@ Every profile can be used without a mouse:
   stage and recovery), and the other menus open with their underlined
   letters. <kbd>F3</kbd> also finds every **Model** menu command by name,
   **Keep Local Recovery Copies** included.
-- With the VibeStudio and Blender controls, <kbd>Tab</kbd> switches between
+- With the SlopStudio and Blender controls, <kbd>Tab</kbd> switches between
   whole surfaces and their components, and <kbd>Shift</kbd>+<kbd>Tab</kbd>
   toggles snapping, but only while the view has focus. Everywhere else,
   <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> move between controls as
@@ -896,7 +896,7 @@ Current/all-frame scope, seam copies, undo and CLI use the same service. UVs
 stay attached to the moved vertices. See [edge sliding](../MODEL_EDGE_SLIDE.md)
 for rail direction, selection requirements and limits.
 
-**Edge → Bevel Edges** (**Ctrl+B** in VibeStudio/Blender) creates chamfers or
+**Edge → Bevel Edges** (**Ctrl+B** in SlopStudio/Blender) creates chamfers or
 rounded edge bands. Type a width and change segments with the wheel or
 **Page Up/Down**, then confirm or cancel. **Adjust Last Operation** adds
 roundness, UV tile size and **Clamp width to fit**, which narrows a bevel that
@@ -905,7 +905,7 @@ follow the cut geometry across all retained poses. Original face UVs stay
 separate, while new bands/caps need atlas packing where appropriate. See
 [edge bevel](../MODEL_EDGE_BEVEL.md) for width semantics and refusal conditions.
 
-**Mesh → Knife** (**K** in VibeStudio/Blender) cuts a path into the active
+**Mesh → Knife** (**K** in SlopStudio/Blender) cuts a path into the active
 surface. Click points, use **N** or right-click for another chain, then
 **Enter/Space** to apply or **Esc** to discard. **C** toggles cut-through,
 **S** restricts cuts to selected faces, **A** constrains screen angles,
@@ -1070,7 +1070,7 @@ MDL page take a skin member out and back, mapped to the model's palette.
    package path. **Dismiss** keeps the model's skin.
 
 Turn on **Apply Saved Skins Automatically** in the UV toolbar to apply every
-save at once. The project is kept in the project's `.vibestudio/model-skins`
+save at once. The project is kept in the project's `.slopstudio/model-skins`
 folder. If you export or stage from Textures yourself, hide the UV guide first.
 
 ### Keep a painted skin after changing UVs
@@ -1318,7 +1318,7 @@ The Levels page **Models** tab, the Mesh Editor's and **Design Prop**'s
 **Stage and Place**, and `map place-model` all place models the same way:
 
 - A Quake III map bakes MD3, ASE, MDC, MD2, OBJ, LWO and FM models into the map
-  as `misc_model` (VibeMap3 reads them as q3map2 does), unless the entity
+  as `misc_model` (SlopMap3 reads them as q3map2 does), unless the entity
   definitions loaded in the Levels workbench declare only `misc_gamemodel`.
 - A Quake or Quake II map places MDL and MD2 models as the class your loaded
   definitions use for models (`misc_model`, else `misc_gamemodel`). Other
@@ -1687,7 +1687,7 @@ limits and the `model frames` command.
   weight and skeletal pose tools are available.
   Game animation scripts (Jedi Academy `animation.cfg`,
   Wolfenstein scripts, GZDoom MODELDEF) are not read; Doom 3 `.def` frame
-  commands are, and VibeStudio writes Doom 3, QuakeC, Quake II and GZDoom
+  commands are, and SlopStudio writes Doom 3, QuakeC, Quake II and GZDoom
   declarations.
 - A skeletal clip too long for the editable frame budget on its own cannot
   join the working set: edit it through the skeletal tools, which preview one
@@ -1707,12 +1707,12 @@ limits and the `model frames` command.
 ## Command-line equivalents
 
 ```sh
-vibestudio --cli model inspect ./id1/pak0.pak progs/player.mdl --json
-vibestudio --cli model import ./prop.obj --output ./prop.mesh.json --dry-run --json
-vibestudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./player.mesh.json --dry-run --json
-vibestudio --cli model build ./prop.mesh.json --output ./build/prop.md5mesh --dry-run --json
-vibestudio --cli model build ./monster.mesh.json --all-clips --output-dir ./build/anims --strict --json
-vibestudio --cli model controls --profile 3ds-max --section keys
+slopstudio --cli model inspect ./id1/pak0.pak progs/player.mdl --json
+slopstudio --cli model import ./prop.obj --output ./prop.mesh.json --dry-run --json
+slopstudio --cli model import ./id1/pak0.pak progs/player.mdl --output ./player.mesh.json --dry-run --json
+slopstudio --cli model build ./prop.mesh.json --output ./build/prop.md5mesh --dry-run --json
+slopstudio --cli model build ./monster.mesh.json --all-clips --output-dir ./build/anims --strict --json
+slopstudio --cli model controls --profile 3ds-max --section keys
 ```
 
 <details>

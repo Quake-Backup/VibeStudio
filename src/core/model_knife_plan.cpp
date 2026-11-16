@@ -7,7 +7,7 @@
 #include <cmath>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -329,4 +329,4 @@ bool planModelKnife(const ModelMesh &mesh, int surface, int frame, const QSet<in
 	*cuts = std::move(planned);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -4,7 +4,7 @@
 
 #include <QListView>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct PackageStagingRow {
 	QString text, state;
@@ -32,4 +32,4 @@ private:
 	PackageStagingListModel* m_rows = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

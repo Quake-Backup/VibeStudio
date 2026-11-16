@@ -9,7 +9,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -31,8 +31,8 @@ int difference(const QImage& a, const QImage& b)
 }
 void capture(const QImage& actual, const QImage& expected, const QString& name)
 {
-	if (qEnvironmentVariableIsEmpty("VIBESTUDIO_TEST_CAPTURE_DIR")) { return; }
-	QDir output(qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR")); QDir().mkpath(output.path());
+	if (qEnvironmentVariableIsEmpty("SLOPSTUDIO_TEST_CAPTURE_DIR")) { return; }
+	QDir output(qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR")); QDir().mkpath(output.path());
 	actual.save(output.filePath(name + "-actual.png")); expected.save(output.filePath(name + "-reference.png"));
 }
 QImage ringImage(ViewportRingCache* cache, qreal ratio, int variant)

@@ -25,7 +25,7 @@
 #include <iostream>
 #include <memory>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace
 {
@@ -112,7 +112,7 @@ class Builder
 
 QJsonObject document(const Builder &builder, QJsonObject root, const QString &uri)
 {
-	root.insert("asset", QJsonObject{{"version", "2.0"}, {"generator", "VibeStudio test"}});
+	root.insert("asset", QJsonObject{{"version", "2.0"}, {"generator", "SlopStudio test"}});
 	QJsonObject buffer{{"byteLength", int(builder.buffer().size())}};
 	if (!uri.isNull())
 		buffer.insert("uri", uri);
@@ -459,7 +459,7 @@ int main(int argc, char **argv)
 	}
 
 	// CLI.
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (argc == 2 && !root.isEmpty() && QDir().mkpath(root))
 	{
 		QTemporaryDir temporary(QDir(root).filePath("gltf-XXXXXX"));

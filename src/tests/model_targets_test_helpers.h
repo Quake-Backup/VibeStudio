@@ -11,7 +11,7 @@
 #include "tests/model_mdl_test_helpers.h"
 #include "tests/model_skeletal_export_test_helpers.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // A surface of `columns` by `rows` vertices, 4 units apart, with
 // (columns - 1) * (rows - 1) * 2 counter-clockwise triangles and UVs inside the
@@ -121,4 +121,4 @@ inline ModelMesh targetArmWithJoints(int extra)
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

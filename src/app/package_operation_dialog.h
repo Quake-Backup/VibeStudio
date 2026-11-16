@@ -9,7 +9,7 @@
 class QDialog;
 class QWidget;
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct IdTechPaletteResolution;
 
@@ -104,4 +104,4 @@ QDialog* showPackageSaveDialog(QWidget* parent, const PackageStagingModel& plan,
 QDialog* showPackageValidationDialog(QWidget* parent, const PackageArchive& source,
 	std::function<void(const PackageValidationReport&)> finished = {}, const PackageValidationRequest& request = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -5,7 +5,7 @@
 #include <QDateTime>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct TextRecoverySnapshot {
 	TextFileDocument source;
@@ -50,4 +50,4 @@ TextRecoveryRecord inspectTextRecovery(const QString& path, TextFileDocument* re
 TextRecoveryScan listTextRecoveries(const QString& directory, const std::function<bool()>& cancelled = {});
 bool removeTextRecovery(const QString& directory, const QString& id, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

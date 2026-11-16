@@ -118,7 +118,7 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
         run: |
-          $report = ./builddir/src/vibestudio.exe --settings-file "${{ runner.temp }}/vibestudio-render.ini" --cli render backends --json | Out-String
+          $report = ./builddir/src/slopstudio.exe --settings-file "${{ runner.temp }}/slopstudio-render.ini" --cli render backends --json | Out-String
           $report
           if ($LASTEXITCODE -ne 0 -or ($report | ConvertFrom-Json).active -ne 'vulkan') {
             Write-Output "::error::render backends does not report Vulkan as the active renderer, so the drawing tests cannot draw."
@@ -127,26 +127,26 @@ jobs:
 
       - name: Test
         env:
-          VIBESTUDIO_RENDER_REQUIRE: ${{ matrix.os != 'macos-latest' && '1' || '' }}
+          SLOPSTUDIO_RENDER_REQUIRE: ${{ matrix.os != 'macos-latest' && '1' || '' }}
         run: meson test -C builddir --print-errorlogs
 
       - name: Validate Windows Release
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          python scripts/validate_build.py --binary "builddir/src/vibestudio.exe" --expected-version "$((Get-Content VERSION -Raw).Trim())"
+          python scripts/validate_build.py --binary "builddir/src/slopstudio.exe" --expected-version "$((Get-Content VERSION -Raw).Trim())"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/validate_cli_docs.py --binary "builddir/src/vibestudio.exe"
+          python scripts/validate_cli_docs.py --binary "builddir/src/slopstudio.exe"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python scripts/validate_credits.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python scripts/extract_translations.py --check --dry-run --require-tool
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/validate_samples.py --binary "builddir/src/vibestudio.exe"
+          python scripts/validate_samples.py --binary "builddir/src/slopstudio.exe"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/validate_packaging.py --binary "builddir/src/vibestudio.exe" --compiled-translations "builddir/i18n"
+          python scripts/validate_packaging.py --binary "builddir/src/slopstudio.exe" --compiled-translations "builddir/i18n"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          python scripts/validate_release_assets.py --binary "builddir/src/vibestudio.exe"
+          python scripts/validate_release_assets.py --binary "builddir/src/slopstudio.exe"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Stage Verified Windows Binary And Source
@@ -163,20 +163,20 @@ jobs:
         if: matrix.os != 'windows-latest'
         shell: bash
         run: |
-          python scripts/validate_build.py --binary "builddir/src/vibestudio" --expected-version "$(cat VERSION)"
-          python scripts/validate_cli_docs.py --binary "builddir/src/vibestudio"
+          python scripts/validate_build.py --binary "builddir/src/slopstudio" --expected-version "$(cat VERSION)"
+          python scripts/validate_cli_docs.py --binary "builddir/src/slopstudio"
           python scripts/validate_credits.py
           python scripts/extract_translations.py --check --dry-run --require-tool
-          python scripts/validate_samples.py --binary "builddir/src/vibestudio"
-          python scripts/validate_packaging.py --binary "builddir/src/vibestudio" --compiled-translations "builddir/i18n"
-          python scripts/validate_release_assets.py --binary "builddir/src/vibestudio"
-          python scripts/package_portable.py --binary "builddir/src/vibestudio" --compiled-translations "builddir/i18n" --output "nightly-artifacts" --archive --target-platform current
+          python scripts/validate_samples.py --binary "builddir/src/slopstudio"
+          python scripts/validate_packaging.py --binary "builddir/src/slopstudio" --compiled-translations "builddir/i18n"
+          python scripts/validate_release_assets.py --binary "builddir/src/slopstudio"
+          python scripts/package_portable.py --binary "builddir/src/slopstudio" --compiled-translations "builddir/i18n" --output "nightly-artifacts" --archive --target-platform current
 
       - name: Upload Nightly Portable Artifact
         if: matrix.os != 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: vibestudio-nightly-${{ matrix.os }}-${{ github.run_number }}
+          name: slopstudio-nightly-${{ matrix.os }}-${{ github.run_number }}
           path: nightly-artifacts/**
           if-no-files-found: error
           retention-days: 30
@@ -185,7 +185,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: vibestudio-nightly-windows-latest-${{ github.run_number }}
+          name: slopstudio-nightly-windows-latest-${{ github.run_number }}
           path: nightly-artifacts/windows-release/publish/*
           if-no-files-found: error
           retention-days: 30
@@ -194,7 +194,7 @@ jobs:
         if: always() && matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
-          name: vibestudio-nightly-windows-diagnostics-${{ github.run_number }}
+          name: slopstudio-nightly-windows-diagnostics-${{ github.run_number }}
           path: |
             artifacts/build-evidence/*
             nightly-artifacts/windows-release/runtime-checks/*.txt

@@ -8,7 +8,7 @@
 #include <QJsonArray>
 #include <cmath>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace { struct Text { Q_DECLARE_TR_FUNCTIONS(LevelVisibilityCli) }; }
 LevelVisibilityCliResult runLevelVisibility(const QStringList& arguments)
 {

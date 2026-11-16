@@ -15,7 +15,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool condition, const char *message)
@@ -231,7 +231,7 @@ int main(int argc, char **argv)
 	const auto obj = exportEditableModel(document.mesh(), "obj", 0, &error, {}, &report);
 	ok &= expect(obj.startsWith("# Attachment tags are omitted") && !report.notes.isEmpty(),
 				 "OBJ frame export explicitly reports its attachment loss");
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;

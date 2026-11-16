@@ -22,7 +22,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -234,7 +234,7 @@ int main(int argc, char** argv)
 		if (joined != currentStudioTheme().colors.surface) {
 			std::cerr << "  joined pixel " << joined.name().toStdString() << " at " << other->width() - 2 << "," << tab.center().y() + tab.height() / 3
 					  << " in a " << other->width() << "x" << other->height() << " column; tab " << tab.x() << "," << tab.y() << " " << tab.width() << "x" << tab.height() << '\n';
-			const QString capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const QString capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!capture.isEmpty()) { QDir().mkpath(capture); image.save(QDir(capture).filePath(QStringLiteral("sidebar-column.png"))); }
 		}
 		const QColor accent = image.pixelColor(2, tab.top() + tab.height() / 2);
@@ -258,7 +258,7 @@ int main(int argc, char** argv)
 	leading->setShowLabels(true);
 	settle();
 	ok &= expect(bar->columnWidth() > bare * 3 / 2, "large text scales the column");
-	const QString capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+	const QString capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 	if (!capture.isEmpty()) {
 		QDir().mkpath(capture);
 		ok &= expect(splitter.grab().save(QDir(capture).filePath(QStringLiteral("sidebar-hc-200.png"))), "capture saved");

@@ -828,7 +828,7 @@ nearest old face.
 **Edit Skin…** writes the active surface's skin (the displayed material's
 original image, or the current MDL member as an indexed image in the model's
 palette) as a texture project (`.vtexture`, core/model_skin_roundtrip.h) in the
-open project's `.vibestudio/model-skins` folder, or the studio's local data
+open project's `.slopstudio/model-skins` folder, or the studio's local data
 folder with no project open, and opens it in the Textures workbench. The skin is
 the active, editable layer; above it a locked **UV guide** layer at half opacity
 holds the surface's UV layout (yellow edges, magenta island boundaries), which
@@ -1063,8 +1063,8 @@ reference drives preview and bakes through the same parser and material resolver
 The shared CLI accepts local files, archives/folders and saved package drafts:
 
 ```sh
-vibestudio --cli model skin ./prop.mesh.json --file ./default.skin --output ./prop-skinned.mesh.json --dry-run --json
-vibestudio --cli model skin ./prop.mesh.json --package ./assets.vibepackage --entry models/prop/default.skin --output ./prop-skinned.mesh.json --json
+slopstudio --cli model skin ./prop.mesh.json --file ./default.skin --output ./prop-skinned.mesh.json --dry-run --json
+slopstudio --cli model skin ./prop.mesh.json --package ./assets.sloppackage --entry models/prop/default.skin --output ./prop-skinned.mesh.json --json
 ```
 
 Use `--entry-index N` for an exact zero-based occurrence; also passing `--entry`
@@ -1177,7 +1177,7 @@ interchangeable with file hashes.
 Save writes an atomic `.mesh.json` authoring document. It stores every surface's
 triangles, UVs, positions and normals for every frame, material references,
 frame names and origins, animation ranges, and attachment tags. Schema identifier
-is `vibestudio.mesh`. Numbers are written as the shortest decimal that reads back
+is `slopstudio.mesh`. Numbers are written as the shortest decimal that reads back
 as the same float, for example `-8.864461` where earlier versions wrote the
 `-8.864460945129395` of the widened double; both forms load the same float, and
 readable sources are about half their earlier size. Negative zero is written as
@@ -1666,42 +1666,42 @@ inapplicable rate options are rejected. Mesh timing changes share validation,
 undo and recovery with the GUI and never alter native MDL schedules.
 
 ```sh
-vibestudio --cli model import ./samples/models/angled-panel.model.json --output ./out/panel.mesh.json --dry-run --json
-vibestudio --cli model import ./samples/models/angled-panel.model.json --output ./out/panel.mesh.json
-vibestudio --cli model import ./id1/pak0.pak progs/player.mdl --palette quake --output ./out/player.mesh.json --dry-run --json
-vibestudio --cli model edit ./out/panel.mesh.json --operation transform --surface 0 --faces all --offset 0,0,8 --output ./out/raised.mesh.json
-vibestudio --cli model edit ./out/raised.mesh.json --operation duplicate-frame --frame 0 --name pose02 --output ./out/animated.mesh.json
-vibestudio --cli model build ./out/animated.mesh.json --output ./out/panel.md3 --dry-run --json
-vibestudio --cli model materials ./out/panel.mesh.json --package ./assets --json
-vibestudio --cli model topology ./out/panel.mesh.json --surface 0 --json
-vibestudio --cli model edit ./out/animated.mesh.json --operation add-tag --name tag_weapon --tag-origin 0,0,24 --output ./out/tagged.mesh.json
-vibestudio --cli model tags ./out/tagged.mesh.json --frame all --json
-vibestudio --cli model edit ./out/tagged.mesh.json --operation transform-tag --tag tag_weapon --frame 1 --rotate 0,0,31 --snap-angle 15 --pivot-mode selection --output ./out/posed.mesh.json --dry-run --json
-vibestudio --cli model edit ./out/panel.mesh.json --operation transform --faces all --rotate 0,0,31 --snap-angle 15 --scale 1.27,1,1 --snap-scale 0.25 --pivot-mode selection --output ./out/turned.mesh.json --dry-run --json
-vibestudio --cli model uv ./out/panel.mesh.json --surface 0 --json
-vibestudio --cli model uv ./out/panel.mesh.json --health --texture-size 256x256 --fail-on "overlap,flipped,outside,stretch>2" --json
-vibestudio --cli model edit ./out/panel.mesh.json --operation uv-unwrap --faces all --uv-method conformal --uv-allow-rotation --output ./out/conformal.mesh.json --dry-run --json
-vibestudio --cli model edit ./out/seamed.mesh.json --operation uv-weld --faces 0,1 --uv-weld-tolerance 0.001 --output ./out/welded.mesh.json
-vibestudio --cli model edit ./out/seamed.mesh.json --operation uv-stitch --edges 6:7 --output ./out/stitched.mesh.json
-vibestudio --cli model edit ./out/panel.mesh.json --operation uv-align --vertices 0,1,2 --uv-align v-min --output ./out/aligned.mesh.json
-vibestudio --cli model edit ./out/panel.mesh.json --operation uv-snap-texels --faces all --uv-snap-size 256x128 --output ./out/snapped.mesh.json
-vibestudio --cli model edit ./out/panel.mesh.json --operation uv-pin --vertices 0,3 --output ./out/pinned.mesh.json
-vibestudio --cli model edit ./out/panel.mesh.json --operation uv-pack --faces all --uv-allow-rotation --uv-pack-surfaces 1,2 --output ./out/shared.mesh.json
-vibestudio --cli model tool ./out/player.mesh.json --tool uv-quake-frontback --axis x --faces all --output ./out/frontback.mesh.json --json
-vibestudio --cli model uv-layout ./out/panel.mesh.json --size 256x256 --surfaces material --fill 0.2 --output ./out/panel_uv.png
-vibestudio --cli model skin-transfer --from ./out/panel.mesh.json --to ./out/packed.mesh.json --texture ./skins/panel.png --output ./skins/panel_packed.png --json
-vibestudio --cli model skin-transfer --from ./out/panel.mesh.json --to ./out/subdivided.mesh.json --texture ./skins/panel.png --output ./skins/panel_subdivided.png --mapping auto --json
-vibestudio --cli model mdl ./out/player.mesh.json --operation export-skin --skin 0 --member 0 --output ./skins/player_0.pcx
-vibestudio --cli model edit ./out/panel.mesh.json --operation uv-unwrap --faces all --uv-atlas-size 512 --uv-padding 4 --output ./out/atlas.mesh.json --dry-run --json
-vibestudio --cli model edit ./out/atlas.mesh.json --operation uv-pack --faces all --uv-atlas-size 512x128 --uv-padding 4 --output ./out/packed.mesh.json
-vibestudio --cli model edit ./out/atlas.mesh.json --operation uv-pack-around --faces 0,1 --uv-islands --uv-atlas-size 512x128 --uv-padding 4 --uv-pack-scale preserve --output ./out/around-painted.mesh.json --dry-run --json
-vibestudio --cli model edit ./out/panel.mesh.json --operation uv-mark-seams --edges 0:2 --output ./out/seamed.mesh.json
-vibestudio --cli model edit ./out/seamed.mesh.json --operation uv-transform --faces 0 --uv-islands --uv-pivot-mode selection --uv-rotation 90 --uv-offset 0.07,0 --uv-grid 0.125 --output ./out/mapped.mesh.json --dry-run --json
-vibestudio --cli model edit ./out/seamed.mesh.json --operation uv-transform --faces all --uv-pivot-mode islands --uv-scale 0.75,0.75 --uv-rotation 90 --output ./out/individual.mesh.json --dry-run --json
-vibestudio --cli model edit ./out/panel.mesh.json --operation split-edges --edges 0:2 --output ./out/split.mesh.json --dry-run --json
-vibestudio --cli model edit ./out/panel.mesh.json --operation weld --vertices all --weld-distance 0.001 --output ./out/welded.mesh.json --dry-run --json
-vibestudio --cli model recoveries --json
-vibestudio --cli model recover ./copy.vsmeshrecovery --output ./out/recovered.mesh.json --dry-run --json
+slopstudio --cli model import ./samples/models/angled-panel.model.json --output ./out/panel.mesh.json --dry-run --json
+slopstudio --cli model import ./samples/models/angled-panel.model.json --output ./out/panel.mesh.json
+slopstudio --cli model import ./id1/pak0.pak progs/player.mdl --palette quake --output ./out/player.mesh.json --dry-run --json
+slopstudio --cli model edit ./out/panel.mesh.json --operation transform --surface 0 --faces all --offset 0,0,8 --output ./out/raised.mesh.json
+slopstudio --cli model edit ./out/raised.mesh.json --operation duplicate-frame --frame 0 --name pose02 --output ./out/animated.mesh.json
+slopstudio --cli model build ./out/animated.mesh.json --output ./out/panel.md3 --dry-run --json
+slopstudio --cli model materials ./out/panel.mesh.json --package ./assets --json
+slopstudio --cli model topology ./out/panel.mesh.json --surface 0 --json
+slopstudio --cli model edit ./out/animated.mesh.json --operation add-tag --name tag_weapon --tag-origin 0,0,24 --output ./out/tagged.mesh.json
+slopstudio --cli model tags ./out/tagged.mesh.json --frame all --json
+slopstudio --cli model edit ./out/tagged.mesh.json --operation transform-tag --tag tag_weapon --frame 1 --rotate 0,0,31 --snap-angle 15 --pivot-mode selection --output ./out/posed.mesh.json --dry-run --json
+slopstudio --cli model edit ./out/panel.mesh.json --operation transform --faces all --rotate 0,0,31 --snap-angle 15 --scale 1.27,1,1 --snap-scale 0.25 --pivot-mode selection --output ./out/turned.mesh.json --dry-run --json
+slopstudio --cli model uv ./out/panel.mesh.json --surface 0 --json
+slopstudio --cli model uv ./out/panel.mesh.json --health --texture-size 256x256 --fail-on "overlap,flipped,outside,stretch>2" --json
+slopstudio --cli model edit ./out/panel.mesh.json --operation uv-unwrap --faces all --uv-method conformal --uv-allow-rotation --output ./out/conformal.mesh.json --dry-run --json
+slopstudio --cli model edit ./out/seamed.mesh.json --operation uv-weld --faces 0,1 --uv-weld-tolerance 0.001 --output ./out/welded.mesh.json
+slopstudio --cli model edit ./out/seamed.mesh.json --operation uv-stitch --edges 6:7 --output ./out/stitched.mesh.json
+slopstudio --cli model edit ./out/panel.mesh.json --operation uv-align --vertices 0,1,2 --uv-align v-min --output ./out/aligned.mesh.json
+slopstudio --cli model edit ./out/panel.mesh.json --operation uv-snap-texels --faces all --uv-snap-size 256x128 --output ./out/snapped.mesh.json
+slopstudio --cli model edit ./out/panel.mesh.json --operation uv-pin --vertices 0,3 --output ./out/pinned.mesh.json
+slopstudio --cli model edit ./out/panel.mesh.json --operation uv-pack --faces all --uv-allow-rotation --uv-pack-surfaces 1,2 --output ./out/shared.mesh.json
+slopstudio --cli model tool ./out/player.mesh.json --tool uv-quake-frontback --axis x --faces all --output ./out/frontback.mesh.json --json
+slopstudio --cli model uv-layout ./out/panel.mesh.json --size 256x256 --surfaces material --fill 0.2 --output ./out/panel_uv.png
+slopstudio --cli model skin-transfer --from ./out/panel.mesh.json --to ./out/packed.mesh.json --texture ./skins/panel.png --output ./skins/panel_packed.png --json
+slopstudio --cli model skin-transfer --from ./out/panel.mesh.json --to ./out/subdivided.mesh.json --texture ./skins/panel.png --output ./skins/panel_subdivided.png --mapping auto --json
+slopstudio --cli model mdl ./out/player.mesh.json --operation export-skin --skin 0 --member 0 --output ./skins/player_0.pcx
+slopstudio --cli model edit ./out/panel.mesh.json --operation uv-unwrap --faces all --uv-atlas-size 512 --uv-padding 4 --output ./out/atlas.mesh.json --dry-run --json
+slopstudio --cli model edit ./out/atlas.mesh.json --operation uv-pack --faces all --uv-atlas-size 512x128 --uv-padding 4 --output ./out/packed.mesh.json
+slopstudio --cli model edit ./out/atlas.mesh.json --operation uv-pack-around --faces 0,1 --uv-islands --uv-atlas-size 512x128 --uv-padding 4 --uv-pack-scale preserve --output ./out/around-painted.mesh.json --dry-run --json
+slopstudio --cli model edit ./out/panel.mesh.json --operation uv-mark-seams --edges 0:2 --output ./out/seamed.mesh.json
+slopstudio --cli model edit ./out/seamed.mesh.json --operation uv-transform --faces 0 --uv-islands --uv-pivot-mode selection --uv-rotation 90 --uv-offset 0.07,0 --uv-grid 0.125 --output ./out/mapped.mesh.json --dry-run --json
+slopstudio --cli model edit ./out/seamed.mesh.json --operation uv-transform --faces all --uv-pivot-mode islands --uv-scale 0.75,0.75 --uv-rotation 90 --output ./out/individual.mesh.json --dry-run --json
+slopstudio --cli model edit ./out/panel.mesh.json --operation split-edges --edges 0:2 --output ./out/split.mesh.json --dry-run --json
+slopstudio --cli model edit ./out/panel.mesh.json --operation weld --vertices all --weld-distance 0.001 --output ./out/welded.mesh.json --dry-run --json
+slopstudio --cli model recoveries --json
+slopstudio --cli model recover ./copy.vsmeshrecovery --output ./out/recovered.mesh.json --dry-run --json
 ```
 
 `model import` accepts any model the studio decodes (OBJ, MDL, MD2, MD3, MDC,
@@ -1822,9 +1822,9 @@ Invalid generated geometry or names return validation failure 4 without writing.
 Preview speed is not a CLI authoring property. For example:
 
 ```sh
-vibestudio --cli model animations ./out/animated.mesh.json --json
-vibestudio --cli model edit ./out/animated.mesh.json --operation add-clip --name attack --first-frame 0 --last-frame 1 --output ./out/clipped.mesh.json
-vibestudio --cli model edit ./out/clipped.mesh.json --operation insert-inbetweens --frame 0 --insert-count 3 --name attack --output ./out/blended.mesh.json --dry-run --json
+slopstudio --cli model animations ./out/animated.mesh.json --json
+slopstudio --cli model edit ./out/animated.mesh.json --operation add-clip --name attack --first-frame 0 --last-frame 1 --output ./out/clipped.mesh.json
+slopstudio --cli model edit ./out/clipped.mesh.json --operation insert-inbetweens --frame 0 --insert-count 3 --name attack --output ./out/blended.mesh.json --dry-run --json
 ```
 
 `model recoveries [--directory <folder>]` reports headers, with each copy's
@@ -1931,8 +1931,8 @@ and without `--offset`) measured in `--source-frame N` (default 0). It covers
 every frame and refuses component selectors and `--frame N` with exit code 2.
 
 ```sh
-vibestudio --cli model edit ./models/import.mesh.json --operation transform-model --rotate 0,0,90 --scale 2,2,2 --output ./models/facing-x.mesh.json --json
-vibestudio --cli model edit ./models/import.mesh.json --operation transform-model --origin bounds-bottom --output ./models/feet.mesh.json --dry-run --json
+slopstudio --cli model edit ./models/import.mesh.json --operation transform-model --rotate 0,0,90 --scale 2,2,2 --output ./models/facing-x.mesh.json --json
+slopstudio --cli model edit ./models/import.mesh.json --operation transform-model --origin bounds-bottom --output ./models/feet.mesh.json --dry-run --json
 ```
 
 `transform-tag` shares `--offset`, `--rotate`, `--snap-grid`, `--snap-angle`,
@@ -1957,8 +1957,8 @@ cycle is used). These options require `--time` and cannot be combined
 with mutations, output paths, dry-run or overwrite. For example:
 
 ```sh
-vibestudio --cli model mdl ./models/prop.mesh.json --time 0.23 --native-frame 0 --skin 0 --timing stored --json
-vibestudio --cli model mdl ./models/prop.mesh.json --time 0.23 --timing glquake --json
+slopstudio --cli model mdl ./models/prop.mesh.json --time 0.23 --native-frame 0 --skin 0 --timing stored --json
+slopstudio --cli model mdl ./models/prop.mesh.json --time 0.23 --timing glquake --json
 ```
 
 | Operation | Required options | Optional options |
@@ -1976,7 +1976,7 @@ vibestudio --cli model mdl ./models/prop.mesh.json --time 0.23 --timing glquake 
 | `palette` | `--palette-file <768-byte RGB file>` | — |
 
 Skin sources are mutually exclusive: `--image <file>` accepts indexed PNG, PCX,
-LMP, miptexture, WAL or M8; `--package <archive|folder|draft.vibepackage>` requires
+LMP, miptexture, WAL or M8; `--package <archive|folder|draft.sloppackage>` requires
 exactly one `--entry <unique-path>` or `--entry-index N`. Package indexes match
 `package list --json` for that snapshot. Optional `--palette <family>` selects
 package palette candidate paths (default `quake`), not a remapping operation.
@@ -1986,8 +1986,8 @@ path/index when applicable, generated status and palette SHA-256. Outputs cannot
 replace package/draft inputs, even with `--overwrite`.
 
 ```sh
-vibestudio --cli model mdl ./models/prop.mesh.json --operation add-skin --package ./textures.vibepackage --entry textures/prop.png --output ./out/prop.mesh.json --dry-run --json
-vibestudio --cli model mdl ./models/prop.mesh.json --operation replace-member --skin 0 --member 1 --package ./textures.wad --entry-index 7 --output ./out/prop.mesh.json --json
+slopstudio --cli model mdl ./models/prop.mesh.json --operation add-skin --package ./textures.sloppackage --entry textures/prop.png --output ./out/prop.mesh.json --dry-run --json
+slopstudio --cli model mdl ./models/prop.mesh.json --operation replace-member --skin 0 --member 1 --package ./textures.wad --entry-index 7 --output ./out/prop.mesh.json --json
 ```
 
 Indices are zero-based; durations range from 0.000001 to 3600 seconds. Header
@@ -2027,24 +2027,24 @@ displayed snapshot.
 API-call time, time to a completed image, heartbeat count and maximum event-loop
 gap for camera, frame, selection, material, wireframe (including all faces
 selected), picking and replacement
-operations. `VIBESTUDIO_MODELLER_MAX_EVENT_GAP_MS` optionally enforces an explicit
+operations. `SLOPSTUDIO_MODELLER_MAX_EVENT_GAP_MS` optionally enforces an explicit
 machine/build budget; the default reports measurements with a suite watchdog.
-`VIBESTUDIO_MODELLER_MAX_WIREFRAME_MS` optionally limits completed-image time
+`SLOPSTUDIO_MODELLER_MAX_WIREFRAME_MS` optionally limits completed-image time
 for wireframe mode changes, orbit and all-face selection on that machine/build.
 `model-editor-latency-smoke` uses the same mesh in the real editor with the
 studio dark theme and standard density to measure
 preparation, component mode changes, Select All, vertex picks and pose refreshes.
 It checks stable table rows, compact selection and displayed pose values;
-`VIBESTUDIO_MODELLER_MAX_AUTHORING_GAP_MS` optionally enforces the local UI budget.
-`VIBESTUDIO_MODELLER_TRACE_AUTHORING_EVENTS=1` adds the eight longest GUI event
+`SLOPSTUDIO_MODELLER_MAX_AUTHORING_GAP_MS` optionally enforces the local UI budget.
+`SLOPSTUDIO_MODELLER_TRACE_AUTHORING_EVENTS=1` adds the eight longest GUI event
 dispatches taking at least 20 ms per stage, for diagnosis only. Default timing
 runs omit that instrumentation.
 `model-edit-latency-smoke` times maximum-size edits in core (completion,
 cancellation at 0, 50 and 90 per cent of progress, history and working set,
-save and recovery copy; `VIBESTUDIO_MODELLER_FULL_LATENCY=1` adds delete,
+save and recovery copy; `SLOPSTUDIO_MODELLER_FULL_LATENCY=1` adds delete,
 extrude, flip and the realistic float and skeletal fixtures) and the editor's
 worker path (largest event-loop gap and Cancel latency, optionally bounded by
-`VIBESTUDIO_MODELLER_MAX_EDIT_MS`, `_MAX_CANCEL_MS` and `_MAX_EDIT_GAP_MS`).
+`SLOPSTUDIO_MODELLER_MAX_EDIT_MS`, `_MAX_CANCEL_MS` and `_MAX_EDIT_GAP_MS`).
 Profiling that path showed the stall was not the edit or the document copy
 (implicitly shared, under 0.1 ms) but repainting: disabling the editing area
 for the work, and enabling it again, repainted every control, the 3D view and

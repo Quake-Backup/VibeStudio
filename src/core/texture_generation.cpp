@@ -19,7 +19,7 @@
 #include <cmath>
 #include <vector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -257,27 +257,27 @@ QString derivedBaseName(const QString& prompt)
 QString profileDirectory(const TextureGenerationSpec& spec)
 {
 	const QString directory = cleanedName(spec.directory, false, 24);
-	return directory.isEmpty() ? QStringLiteral("vibestudio") : directory;
+	return directory.isEmpty() ? QStringLiteral("slopstudio") : directory;
 }
 
 bool writeBytes(const QString& path, const QByteArray& bytes, bool replace, QString* error)
 {
 	if (QFileInfo::exists(path) && !replace) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioTextureGeneration", "%1 already exists. Allow replacing to write over it.").arg(QDir::toNativeSeparators(path));
+			*error = QCoreApplication::translate("SlopStudioTextureGeneration", "%1 already exists. Allow replacing to write over it.").arg(QDir::toNativeSeparators(path));
 		}
 		return false;
 	}
 	if (!QDir().mkpath(QFileInfo(path).absolutePath())) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioTextureGeneration", "Could not create the folder for %1.").arg(QDir::toNativeSeparators(path));
+			*error = QCoreApplication::translate("SlopStudioTextureGeneration", "Could not create the folder for %1.").arg(QDir::toNativeSeparators(path));
 		}
 		return false;
 	}
 	QSaveFile file(path);
 	if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioTextureGeneration", "Could not write %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
+			*error = QCoreApplication::translate("SlopStudioTextureGeneration", "Could not write %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
 		}
 		return false;
 	}
@@ -337,22 +337,22 @@ QVector<TextureGameProfile> textureGameProfiles()
 {
 	// Era hints are prompt text, so they stay in English.
 	return {
-		{QStringLiteral("quake"), QCoreApplication::translate("VibeStudioTextureGeneration", "Quake"), QStringLiteral("quake"), QSize(64, 64), QSize(64, 64), 15,
+		{QStringLiteral("quake"), QCoreApplication::translate("SlopStudioTextureGeneration", "Quake"), QStringLiteral("quake"), QSize(64, 64), QSize(64, 64), 15,
 			QStringLiteral("the gritty, dark gothic-industrial look of Quake (1996): muted browns, rust, slate and cold metal greys, with chunky shapes that stay readable at 64 pixels"),
 			QStringLiteral("_norm"), QStringLiteral("_gloss"), QStringLiteral("_glow")},
-		{QStringLiteral("quake2"), QCoreApplication::translate("VibeStudioTextureGeneration", "Quake II"), QStringLiteral("quake2"), QSize(128, 128), QSize(64, 64), 31,
+		{QStringLiteral("quake2"), QCoreApplication::translate("SlopStudioTextureGeneration", "Quake II"), QStringLiteral("quake2"), QSize(128, 128), QSize(64, 64), 31,
 			QStringLiteral("the industrial alien-base look of Quake II (1997): rusted steel, orange and brown tones, grime, rivets, grates and pipes"),
 			QStringLiteral("_norm"), QStringLiteral("_gloss"), QStringLiteral("_glow")},
-		{QStringLiteral("quake3"), QCoreApplication::translate("VibeStudioTextureGeneration", "Quake III Arena"), QString(), QSize(256, 256), QSize(256, 256), 63,
+		{QStringLiteral("quake3"), QCoreApplication::translate("SlopStudioTextureGeneration", "Quake III Arena"), QString(), QSize(256, 256), QSize(256, 256), 63,
 			QStringLiteral("the arena look of Quake III Arena (1999): gothic stone, ornate bronze and steel, crisp painted detail"),
 			QStringLiteral("_n"), QStringLiteral("_s"), QStringLiteral("_glow")},
-		{QStringLiteral("doom"), QCoreApplication::translate("VibeStudioTextureGeneration", "Doom"), QStringLiteral("doom"), QSize(64, 128), QSize(64, 64), 8,
+		{QStringLiteral("doom"), QCoreApplication::translate("SlopStudioTextureGeneration", "Doom"), QStringLiteral("doom"), QSize(64, 128), QSize(64, 64), 8,
 			QStringLiteral("the hand-painted look of Doom (1993): bold shapes, strong contrast and few colours, readable at 64 pixels"), QString(), QString(), QString()},
-		{QStringLiteral("heretic"), QCoreApplication::translate("VibeStudioTextureGeneration", "Heretic"), QStringLiteral("heretic"), QSize(64, 128), QSize(64, 64), 8,
+		{QStringLiteral("heretic"), QCoreApplication::translate("SlopStudioTextureGeneration", "Heretic"), QStringLiteral("heretic"), QSize(64, 128), QSize(64, 64), 8,
 			QStringLiteral("the dark fantasy look of Heretic (1994): weathered stone, wood, iron and moss"), QString(), QString(), QString()},
-		{QStringLiteral("hexen"), QCoreApplication::translate("VibeStudioTextureGeneration", "Hexen"), QStringLiteral("hexen"), QSize(64, 128), QSize(64, 64), 8,
+		{QStringLiteral("hexen"), QCoreApplication::translate("SlopStudioTextureGeneration", "Hexen"), QStringLiteral("hexen"), QSize(64, 128), QSize(64, 64), 8,
 			QStringLiteral("the dark fantasy look of Hexen (1995): ancient stone, wood, bronze and stained glass"), QString(), QString(), QString()},
-		{QStringLiteral("generic"), QCoreApplication::translate("VibeStudioTextureGeneration", "Generic (PNG)"), QString(), QSize(256, 256), QSize(256, 256), 64, QString(),
+		{QStringLiteral("generic"), QCoreApplication::translate("SlopStudioTextureGeneration", "Generic (PNG)"), QString(), QSize(256, 256), QSize(256, 256), 64, QString(),
 			QStringLiteral("_norm"), QStringLiteral("_gloss"), QStringLiteral("_glow")},
 	};
 }
@@ -787,28 +787,28 @@ GeneratedTexture processGeneratedTexture(const QImage& raw, const TextureGenerat
 	GeneratedTexture out;
 	TextureGameProfile profile;
 	if (!textureGameProfileForId(spec.game, &profile)) {
-		out.error = QCoreApplication::translate("VibeStudioTextureGeneration", "Unknown texture game \"%1\". Use one of: %2.").arg(spec.game, textureGameProfileIds().join(QStringLiteral(", ")));
+		out.error = QCoreApplication::translate("SlopStudioTextureGeneration", "Unknown texture game \"%1\". Use one of: %2.").arg(spec.game, textureGameProfileIds().join(QStringLiteral(", ")));
 		return out;
 	}
 	if (!textureGenerationSurfaceIds().contains(spec.surface)) {
-		out.error = QCoreApplication::translate("VibeStudioTextureGeneration", "Unknown surface \"%1\". Use one of: %2.").arg(spec.surface, textureGenerationSurfaceIds().join(QStringLiteral(", ")));
+		out.error = QCoreApplication::translate("SlopStudioTextureGeneration", "Unknown surface \"%1\". Use one of: %2.").arg(spec.surface, textureGenerationSurfaceIds().join(QStringLiteral(", ")));
 		return out;
 	}
 	if (raw.isNull() || raw.width() < 4 || raw.height() < 4) {
-		out.error = QCoreApplication::translate("VibeStudioTextureGeneration", "There is no picture to make a texture from.");
+		out.error = QCoreApplication::translate("SlopStudioTextureGeneration", "There is no picture to make a texture from.");
 		return out;
 	}
 	const bool doomFamily = profile.id == QStringLiteral("doom") || profile.id == QStringLiteral("heretic") || profile.id == QStringLiteral("hexen");
 	const bool quakeSky = profile.id == QStringLiteral("quake") && spec.surface == QStringLiteral("sky");
 	if (spec.surface == QStringLiteral("sky") && profile.id != QStringLiteral("quake") && profile.id != QStringLiteral("generic")) {
-		out.error = QCoreApplication::translate("VibeStudioTextureGeneration", "%1 skies are skyboxes or shaders, not one texture; generate a sky for Quake or as a generic PNG.").arg(profile.displayName);
+		out.error = QCoreApplication::translate("SlopStudioTextureGeneration", "%1 skies are skyboxes or shaders, not one texture; generate a sky for Quake or as a generic PNG.").arg(profile.displayName);
 		return out;
 	}
 	out.name = textureGenerationName(spec);
 	out.mapName = textureGenerationMapName(spec);
 	const QSize outputSize = textureGenerationOutputSize(spec);
 	if (!profile.paletteId.isEmpty() && profile.id != QStringLiteral("quake3") && (outputSize.width() % 16 || outputSize.height() % 16) && !doomFamily) {
-		out.error = QCoreApplication::translate("VibeStudioTextureGeneration", "%1 textures need a width and height divisible by 16.").arg(profile.displayName);
+		out.error = QCoreApplication::translate("SlopStudioTextureGeneration", "%1 textures need a width and height divisible by 16.").arg(profile.displayName);
 		return out;
 	}
 	const QSize layerSize = quakeSky ? QSize(128, 128) : outputSize;
@@ -816,7 +816,7 @@ GeneratedTexture processGeneratedTexture(const QImage& raw, const TextureGenerat
 	// 1. Shape.
 	QImage working = cropTextureToAspect(raw.convertToFormat(QImage::Format_ARGB32), layerSize);
 	if (working.size() != raw.size()) {
-		out.steps << QCoreApplication::translate("VibeStudioTextureGeneration", "Cropped %1x%2 to %3x%4 for the texture's shape.")
+		out.steps << QCoreApplication::translate("SlopStudioTextureGeneration", "Cropped %1x%2 to %3x%4 for the texture's shape.")
 						 .arg(raw.width())
 						 .arg(raw.height())
 						 .arg(working.width())
@@ -831,16 +831,16 @@ GeneratedTexture processGeneratedTexture(const QImage& raw, const TextureGenerat
 	out.seamScoreBefore = textureSeamScore(working);
 	if (spec.seamless && out.seamScoreBefore > kSeamlessEnough) {
 		working = makeTextureSeamless(working, spec.seamBlendPercent);
-		out.steps << QCoreApplication::translate("VibeStudioTextureGeneration", "Blended the edges to tile (seam %1 before, %2 after).")
+		out.steps << QCoreApplication::translate("SlopStudioTextureGeneration", "Blended the edges to tile (seam %1 before, %2 after).")
 						 .arg(out.seamScoreBefore, 0, 'f', 2)
 						 .arg(textureSeamScore(working), 0, 'f', 2);
 	} else if (spec.seamless) {
-		out.steps << QCoreApplication::translate("VibeStudioTextureGeneration", "The edges already tile (seam %1).").arg(out.seamScoreBefore, 0, 'f', 2);
+		out.steps << QCoreApplication::translate("SlopStudioTextureGeneration", "The edges already tile (seam %1).").arg(out.seamScoreBefore, 0, 'f', 2);
 	}
 	// 3. Size.
 	QImage layer = resampleTexture(working, layerSize, spec.seamless);
 	out.seamScoreAfter = textureSeamScore(layer);
-	out.steps << QCoreApplication::translate("VibeStudioTextureGeneration", "Resampled to %1x%2.").arg(layerSize.width()).arg(layerSize.height());
+	out.steps << QCoreApplication::translate("SlopStudioTextureGeneration", "Resampled to %1x%2.").arg(layerSize.width()).arg(layerSize.height());
 	if (quakeSky) {
 		// Quake draws the right half as the far layer and the left half as
 		// clouds over it, black showing through.
@@ -857,7 +857,7 @@ GeneratedTexture processGeneratedTexture(const QImage& raw, const TextureGenerat
 			}
 		}
 		layer = sky;
-		out.steps << QCoreApplication::translate("VibeStudioTextureGeneration", "Made the cloud layer (left) and the darker far layer (right) of a Quake sky.");
+		out.steps << QCoreApplication::translate("SlopStudioTextureGeneration", "Made the cloud layer (left) and the darker far layer (right) of a Quake sky.");
 	}
 	out.image = layer;
 
@@ -903,13 +903,13 @@ GeneratedTexture processGeneratedTexture(const QImage& raw, const TextureGenerat
 	}
 	out.preview = out.encoded.preview.format() == QImage::Format_Indexed8 ? out.encoded.preview.convertToFormat(QImage::Format_ARGB32) : out.encoded.preview;
 	if (!profile.paletteId.isEmpty()) {
-		out.steps << QCoreApplication::translate("VibeStudioTextureGeneration", "Converted to the %1 palette%2 (%3 pixels changed colour).")
+		out.steps << QCoreApplication::translate("SlopStudioTextureGeneration", "Converted to the %1 palette%2 (%3 pixels changed colour).")
 						 .arg(palette.palette.displayName.isEmpty() ? profile.displayName : palette.palette.displayName,
-							 spec.dither ? QCoreApplication::translate("VibeStudioTextureGeneration", " with dithering") : QString())
+							 spec.dither ? QCoreApplication::translate("SlopStudioTextureGeneration", " with dithering") : QString())
 						 .arg(out.encoded.colorChangedPixels);
 		if (palette.palette.generated) {
-			out.warnings << QCoreApplication::translate("VibeStudioTextureGeneration",
-				"No %1 palette was found, so a generated stand-in was used: colours will be wrong in the game. Point VibeStudio at the game's palette (a project or installation with %2).")
+			out.warnings << QCoreApplication::translate("SlopStudioTextureGeneration",
+				"No %1 palette was found, so a generated stand-in was used: colours will be wrong in the game. Point SlopStudio at the game's palette (a project or installation with %2).")
 								.arg(profile.displayName, idTechPaletteCandidatePaths(profile.paletteId).join(QStringLiteral(", ")));
 		}
 	}
@@ -923,12 +923,12 @@ GeneratedTexture processGeneratedTexture(const QImage& raw, const TextureGenerat
 		if (!glow.isNull()) {
 			out.companions.push_back({QStringLiteral("glow"), profile.glowSuffix, glow});
 		}
-		out.steps << QCoreApplication::translate("VibeStudioTextureGeneration", "Derived %n companion map(s) for source ports.", nullptr, int(out.companions.size()));
+		out.steps << QCoreApplication::translate("SlopStudioTextureGeneration", "Derived %n companion map(s) for source ports.", nullptr, int(out.companions.size()));
 	} else if (spec.companions) {
-		out.warnings << QCoreApplication::translate("VibeStudioTextureGeneration", "%1 ports have no common file names for companion maps, so none were made.").arg(profile.displayName);
+		out.warnings << QCoreApplication::translate("SlopStudioTextureGeneration", "%1 ports have no common file names for companion maps, so none were made.").arg(profile.displayName);
 	}
 	if (out.seamScoreAfter > 2.0 && spec.seamless) {
-		out.warnings << QCoreApplication::translate("VibeStudioTextureGeneration", "The seam is still visible (score %1); try a wider blend or another picture.").arg(out.seamScoreAfter, 0, 'f', 2);
+		out.warnings << QCoreApplication::translate("SlopStudioTextureGeneration", "The seam is still visible (score %1); try a wider blend or another picture.").arg(out.seamScoreAfter, 0, 'f', 2);
 	}
 	out.ok = true;
 	return out;
@@ -943,7 +943,7 @@ TextureGenerationWriteReport writeGeneratedTexture(const GeneratedTexture& textu
 		return report;
 	};
 	if (!texture.ok) {
-		return fail(texture.error.isEmpty() ? QCoreApplication::translate("VibeStudioTextureGeneration", "There is no finished texture to write.") : texture.error);
+		return fail(texture.error.isEmpty() ? QCoreApplication::translate("SlopStudioTextureGeneration", "There is no finished texture to write.") : texture.error);
 	}
 	TextureGameProfile profile;
 	textureGameProfileForId(spec.game, &profile);
@@ -966,20 +966,20 @@ TextureGenerationWriteReport writeGeneratedTexture(const GeneratedTexture& textu
 		for (const GeneratedTextureMap& companion : texture.companions) {
 			if (QFileInfo::exists(companionPath(companion))) {
 				report.alreadyExists = true;
-				return fail(QCoreApplication::translate("VibeStudioTextureGeneration", "%1 already exists.").arg(QDir::toNativeSeparators(companionPath(companion))));
+				return fail(QCoreApplication::translate("SlopStudioTextureGeneration", "%1 already exists.").arg(QDir::toNativeSeparators(companionPath(companion))));
 			}
 		}
 	}
 
 	// The texture itself.
 	if (profile.id == QStringLiteral("quake") || doomFamily) {
-		const QString wadPath = output.wadPath.trimmed().isEmpty() ? QDir(folder).filePath(QStringLiteral("wads/vibestudio_generated.wad")) : output.wadPath.trimmed();
+		const QString wadPath = output.wadPath.trimmed().isEmpty() ? QDir(folder).filePath(QStringLiteral("wads/slopstudio_generated.wad")) : output.wadPath.trimmed();
 		PackageStagingModel staging;
 		const bool exists = QFileInfo::exists(wadPath);
 		if (exists) {
 			PackageArchive archive;
 			if (!archive.load(wadPath, &error)) {
-				return fail(QCoreApplication::translate("VibeStudioTextureGeneration", "Could not open %1: %2").arg(QDir::toNativeSeparators(wadPath), error));
+				return fail(QCoreApplication::translate("SlopStudioTextureGeneration", "Could not open %1: %2").arg(QDir::toNativeSeparators(wadPath), error));
 			}
 			if (!staging.loadBaseArchive(archive, &error)) {
 				return fail(error);
@@ -988,7 +988,7 @@ TextureGenerationWriteReport writeGeneratedTexture(const GeneratedTexture& textu
 				for (const PackageEntry& entry : archive.entries()) {
 					if (entry.virtualPath.compare(texture.exportOptions.name, Qt::CaseInsensitive) == 0) {
 						report.alreadyExists = true;
-						return fail(QCoreApplication::translate("VibeStudioTextureGeneration", "%1 already holds a texture called %2.")
+						return fail(QCoreApplication::translate("SlopStudioTextureGeneration", "%1 already holds a texture called %2.")
 										.arg(QDir::toNativeSeparators(wadPath), texture.exportOptions.name));
 					}
 				}
@@ -997,7 +997,7 @@ TextureGenerationWriteReport writeGeneratedTexture(const GeneratedTexture& textu
 			return fail(error);
 		}
 		if (!stageTextureExport(texture.encoded, texture.exportOptions, texture.exportOptions.name, &staging, output.replaceExisting, &error)) {
-			return fail(QCoreApplication::translate("VibeStudioTextureGeneration", "Could not add %1 to %2: %3 Allow replacing, or pick another name.")
+			return fail(QCoreApplication::translate("SlopStudioTextureGeneration", "Could not add %1 to %2: %3 Allow replacing, or pick another name.")
 							.arg(texture.exportOptions.name, QDir::toNativeSeparators(wadPath), error));
 		}
 		if (!output.dryRun) {
@@ -1011,17 +1011,17 @@ TextureGenerationWriteReport writeGeneratedTexture(const GeneratedTexture& textu
 		request.dryRun = output.dryRun;
 		const PackageWriteReport written = staging.writeArchive(request);
 		if (!written.succeeded()) {
-			return fail(QCoreApplication::translate("VibeStudioTextureGeneration", "Could not write %1: %2")
+			return fail(QCoreApplication::translate("SlopStudioTextureGeneration", "Could not write %1: %2")
 							.arg(QDir::toNativeSeparators(wadPath), (written.blockedMessages + written.warnings).join(QStringLiteral(" "))));
 		}
 		report.writtenPaths << wadPath;
 		if (exists && !written.backupPath.isEmpty() && !output.dryRun) {
-			report.notes << QCoreApplication::translate("VibeStudioTextureGeneration", "The WAD's previous contents were kept in %1.").arg(QDir::toNativeSeparators(written.backupPath));
+			report.notes << QCoreApplication::translate("SlopStudioTextureGeneration", "The WAD's previous contents were kept in %1.").arg(QDir::toNativeSeparators(written.backupPath));
 		}
 		if (profile.id == QStringLiteral("quake")) {
-			report.notes << QCoreApplication::translate("VibeStudioTextureGeneration", "Add %1 to worldspawn's \"wad\" key so the compiler finds %2.").arg(QFileInfo(wadPath).fileName(), texture.name);
+			report.notes << QCoreApplication::translate("SlopStudioTextureGeneration", "Add %1 to worldspawn's \"wad\" key so the compiler finds %2.").arg(QFileInfo(wadPath).fileName(), texture.name);
 		} else if (texture.exportOptions.format == TextureExportFormat::DoomPatch) {
-			report.notes << QCoreApplication::translate("VibeStudioTextureGeneration",
+			report.notes << QCoreApplication::translate("SlopStudioTextureGeneration",
 				"%1 is a patch: list it in TEXTURE1 and PNAMES, or in a ZDoom TEXTURES lump, before maps can use it on walls.").arg(texture.name);
 		}
 	} else {
@@ -1030,7 +1030,7 @@ TextureGenerationWriteReport writeGeneratedTexture(const GeneratedTexture& textu
 																	: QDir(folder).filePath(QStringLiteral("textures/%1.%2").arg(texture.mapName, suffix));
 		if (QFileInfo::exists(path) && !output.replaceExisting) {
 			report.alreadyExists = true;
-			return fail(QCoreApplication::translate("VibeStudioTextureGeneration", "%1 already exists.").arg(QDir::toNativeSeparators(path)));
+			return fail(QCoreApplication::translate("SlopStudioTextureGeneration", "%1 already exists.").arg(QDir::toNativeSeparators(path)));
 		}
 		if (!output.dryRun && !writeBytes(path, texture.encoded.bytes, true, &error)) {
 			return fail(error);
@@ -1053,7 +1053,7 @@ TextureGenerationWriteReport writeGeneratedTexture(const GeneratedTexture& textu
 		glow = glow || companion.kind == QStringLiteral("glow");
 	}
 	if (!texture.companions.isEmpty() && profile.id == QStringLiteral("quake")) {
-		report.notes << QCoreApplication::translate("VibeStudioTextureGeneration",
+		report.notes << QCoreApplication::translate("SlopStudioTextureGeneration",
 			"Source ports read the companions from textures/: DarkPlaces and FTE all three, QuakeSpasm-family ports the _glow map as the fullbright layer.");
 	}
 
@@ -1061,7 +1061,7 @@ TextureGenerationWriteReport writeGeneratedTexture(const GeneratedTexture& textu
 	const QString liquid = spec.surface == QStringLiteral("liquid") ? liquidKind(spec) : QString();
 	if (profile.id == QStringLiteral("quake3") && (glow || !liquid.isEmpty())) {
 		report.shaderText = quake3Shader(texture.mapName, liquid, glow, profile.glowSuffix);
-		const QString shaderPath = QDir(folder).filePath(QStringLiteral("scripts/vibestudio_generated.shader"));
+		const QString shaderPath = QDir(folder).filePath(QStringLiteral("scripts/slopstudio_generated.shader"));
 		QString existing;
 		QFile shaderFile(shaderPath);
 		if (shaderFile.exists() && shaderFile.open(QIODevice::ReadOnly)) {
@@ -1071,20 +1071,20 @@ TextureGenerationWriteReport writeGeneratedTexture(const GeneratedTexture& textu
 		const QString header = QStringLiteral("textures/%1").arg(texture.mapName);
 		static const QRegularExpression lineBreak(QStringLiteral("\\r?\\n"));
 		if (existing.split(lineBreak).contains(header)) {
-			report.notes << QCoreApplication::translate("VibeStudioTextureGeneration", "%1 already defines %2; its shader was left as it was.").arg(QStringLiteral("scripts/vibestudio_generated.shader"), header);
+			report.notes << QCoreApplication::translate("SlopStudioTextureGeneration", "%1 already defines %2; its shader was left as it was.").arg(QStringLiteral("scripts/slopstudio_generated.shader"), header);
 		} else {
 			const QString combined = existing + (existing.isEmpty() || existing.endsWith(QLatin1Char('\n')) ? QString() : QStringLiteral("\n")) + report.shaderText;
 			if (!output.dryRun && !writeBytes(shaderPath, combined.toUtf8(), true, &error)) {
 				return fail(error);
 			}
 			report.writtenPaths << shaderPath;
-			report.notes << QCoreApplication::translate("VibeStudioTextureGeneration", "List vibestudio_generated in scripts/shaderlist.txt if your compiler or editor reads that list.");
+			report.notes << QCoreApplication::translate("SlopStudioTextureGeneration", "List slopstudio_generated in scripts/shaderlist.txt if your compiler or editor reads that list.");
 		}
 	}
 
 	// What made it, for review and to make it again.
 	QJsonObject provenance = output.provenance;
-	provenance.insert(QStringLiteral("schema"), QStringLiteral("vibestudio.generated-texture/1"));
+	provenance.insert(QStringLiteral("schema"), QStringLiteral("slopstudio.generated-texture/1"));
 	provenance.insert(QStringLiteral("createdUtc"), QDateTime::currentDateTimeUtc().toString(Qt::ISODate));
 	provenance.insert(QStringLiteral("spec"), textureGenerationSpecJson(spec));
 	provenance.insert(QStringLiteral("texture"), generatedTextureJson(texture));
@@ -1092,7 +1092,7 @@ TextureGenerationWriteReport writeGeneratedTexture(const GeneratedTexture& textu
 	provenance.insert(QStringLiteral("sha256"), QString::fromLatin1(QCryptographicHash::hash(texture.encoded.bytes, QCryptographicHash::Sha256).toHex()));
 	QString recordName = texture.name;
 	recordName.remove(QLatin1Char('*'));
-	const QString recordPath = QDir(folder).filePath(QStringLiteral(".vibestudio/generated/textures/%1.json").arg(recordName));
+	const QString recordPath = QDir(folder).filePath(QStringLiteral(".slopstudio/generated/textures/%1.json").arg(recordName));
 	if (!output.dryRun && !writeBytes(recordPath, QJsonDocument(provenance).toJson(QJsonDocument::Indented), true, &error)) {
 		return fail(error);
 	}
@@ -1149,13 +1149,13 @@ bool textureGenerationSpecFromJson(const QJsonObject& object, TextureGenerationS
 	}
 	if (!textureGameProfileForId(parsed.game)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioTextureGeneration", "Unknown texture game \"%1\".").arg(parsed.game);
+			*error = QCoreApplication::translate("SlopStudioTextureGeneration", "Unknown texture game \"%1\".").arg(parsed.game);
 		}
 		return false;
 	}
 	if (!textureGenerationSurfaceIds().contains(parsed.surface)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioTextureGeneration", "Unknown surface \"%1\".").arg(parsed.surface);
+			*error = QCoreApplication::translate("SlopStudioTextureGeneration", "Unknown surface \"%1\".").arg(parsed.surface);
 		}
 		return false;
 	}
@@ -1204,4 +1204,4 @@ QJsonObject textureGenerationWriteReportJson(const TextureGenerationWriteReport&
 	};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

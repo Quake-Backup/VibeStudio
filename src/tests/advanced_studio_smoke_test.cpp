@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -125,7 +125,7 @@ int main(int argc, char** argv)
 	ok &= expect(!shaders.isEmpty() && shaders.first().kind == QStringLiteral("shader"), "Shader names should be symbols of a .shader file");
 
 	const QString extensionRoot = QDir(temp.path()).filePath(QStringLiteral("extensions/sample"));
-	const QString manifestPath = QDir(extensionRoot).filePath(QStringLiteral("vibestudio.extension.json"));
+	const QString manifestPath = QDir(extensionRoot).filePath(QStringLiteral("slopstudio.extension.json"));
 	const QString manifestText = QStringLiteral(
 		"{\n"
 		"  \"schemaVersion\": 1,\n"

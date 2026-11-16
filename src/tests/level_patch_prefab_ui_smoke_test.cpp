@@ -43,14 +43,14 @@
 #include <QTimer>
 #include <QToolButton>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -327,7 +327,7 @@ int main(int argc, char** argv)
 				});
 				drive.start();
 				watchdog.start(60000);
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				shell.activateWindow();
 				until([&] { return QApplication::activeWindow() == &shell; }, 5000);
 				top->setFocus(Qt::OtherFocusReason);

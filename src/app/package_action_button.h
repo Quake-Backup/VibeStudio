@@ -2,9 +2,9 @@
 
 #include "app/wrapping_action_button.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Existing package controls share the studio-wide wrapping push button.
 using PackageActionButton = WrappingActionButton;
 
-} // namespace vibestudio
+} // namespace slopstudio

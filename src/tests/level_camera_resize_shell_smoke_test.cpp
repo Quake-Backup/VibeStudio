@@ -22,7 +22,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message, const QString& detail = {})
 {
@@ -108,7 +108,7 @@ int main(int argc, char** argv)
 		.arg(camera->isResizingSelection()).arg(gestureSize.width()).arg(gestureSize.height()).arg(camera->width()).arg(camera->height())
 		.arg(camera->navigationState().position == gestureView.position && camera->navigationState().yaw == gestureView.yaw
 			&& camera->navigationState().pitch == gestureView.pitch).arg(camera->isEnabled()))) { return 1; }
-	const auto output = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const auto output = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (!output.isEmpty()) {
 		QDir().mkpath(output); auto* views = shell.findChild<QSplitter*>("levelMapViews");
 		QImage frame(views->size(),QImage::Format_ARGB32_Premultiplied); views->render(&frame);

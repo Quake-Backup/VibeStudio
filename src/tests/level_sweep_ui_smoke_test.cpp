@@ -23,7 +23,7 @@
 #include <QTimer>
 #include <QTranslator>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool ok = true;
@@ -336,7 +336,7 @@ void shellChecks(const QString& directory)
 	}), "sweep state takes priority over component hover hints");
 	auto expected = shell.levelDocument();
 	expect(sweepLevelMap(&expected, native->request(), nullptr, &error), "shared native service candidate", error);
-	if (!qEnvironmentVariable("VIBESTUDIO_SWEEP_UI_EVIDENCE").isEmpty()) {
+	if (!qEnvironmentVariable("SLOPSTUDIO_SWEEP_UI_EVIDENCE").isEmpty()) {
 		// Frame the destination for the owned-widget evidence without sending
 		// pointer or keyboard events, or changing document geometry.
 		for (auto* canvas : shell.findChildren<LevelSweepCanvas*>("levelSweepCanvas")) {
@@ -351,7 +351,7 @@ void shellChecks(const QString& directory)
 		QImage image(shell.size(), QImage::Format_ARGB32_Premultiplied);
 		image.fill(Qt::transparent);
 		shell.render(&image);
-		expect(image.save(QDir(qEnvironmentVariable("VIBESTUDIO_SWEEP_UI_EVIDENCE")).filePath("sweep-views.png")),
+		expect(image.save(QDir(qEnvironmentVariable("SLOPSTUDIO_SWEEP_UI_EVIDENCE")).filePath("sweep-views.png")),
 		       "save owned map-view sweep render");
 	}
 	trigger("map.sweepApply");
@@ -404,7 +404,7 @@ int main(int argc, char** argv)
 	settings.setReducedMotion(true);
 	settings.setLevelViewLayoutPreference("four-views");
 	settings.sync();
-	dialogChecks(app, qEnvironmentVariable("VIBESTUDIO_SWEEP_UI_EVIDENCE"));
+	dialogChecks(app, qEnvironmentVariable("SLOPSTUDIO_SWEEP_UI_EVIDENCE"));
 	shellChecks(temp.path());
 	return ok ? 0 : 1;
 }

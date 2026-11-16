@@ -22,7 +22,7 @@
 
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelEditKind;
 struct ModelEdit;
@@ -40,4 +40,4 @@ using ModelEditApplier =
 // succeed. `apply` is the document's unreconciled edit service.
 bool applySymmetricModelEdit(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *resultingSelection, QString *error,
 							 const ModelWorkControl &control, ModelEditReport *report, const ModelEditApplier &apply);
-} // namespace vibestudio
+} // namespace slopstudio

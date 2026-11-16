@@ -9,7 +9,7 @@
 #include <bit>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -181,7 +181,7 @@ bool renderModelUv(const ModelUvRenderRequest &r, ModelUvRenderResult *result, Q
 	{
 		if (error)
 		{
-			*error = QCoreApplication::translate("VibeStudioModelUvView", "Unable to allocate the UV preview. Reduce its size.");
+			*error = QCoreApplication::translate("SlopStudioModelUvView", "Unable to allocate the UV preview. Reduce its size.");
 		}
 		return false;
 	}
@@ -475,4 +475,4 @@ bool renderModelUv(const ModelUvRenderRequest &r, ModelUvRenderResult *result, Q
 	*result = std::move(candidate);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

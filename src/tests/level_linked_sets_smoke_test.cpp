@@ -24,7 +24,7 @@
 #include <iostream>
 #include <numbers>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -497,7 +497,7 @@ int main(int argc, char** argv)
 		QString b;
 		ok &= expect(makeEll(&map, &a, &error) && createLinkedLevelGroup(&map, a, {256, 0, 0, true}, &b, &error), "pair to save", error);
 		QByteArray bytes = serializeLevelMap(map).bytes;
-		const QByteArray marker("// VibeStudioScene: ");
+		const QByteArray marker("// SlopStudioScene: ");
 		const qsizetype at = bytes.lastIndexOf(marker);
 		QJsonObject json = QJsonDocument::fromJson(QByteArray::fromBase64(bytes.mid(at + marker.size()).trimmed())).object();
 		json.insert(QStringLiteral("version"), 5);

@@ -4,11 +4,11 @@
 
 #include <QCoreApplication>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 // A WAL is at most a few hundred KiB; this only stops a damaged entry.
@@ -20,13 +20,13 @@ QString materialOverrideScriptPath(MaterialEngine engine, MaterialDialect dialec
 {
 	if (engine == MaterialEngine::Doom3) {
 		// idDeclManager keeps the first definition, reading files in sorted order.
-		return QStringLiteral("materials/00_vibestudio_overrides.mtr");
+		return QStringLiteral("materials/00_slopstudio_overrides.mtr");
 	}
 	if (engine == MaterialEngine::Quake3) {
 		// ioquake3 and its kin read the scripts in reverse, so the last one
 		// wins; Quake III 1.32's shader text hash finds the first.
-		return materialDialectLastScriptWins(dialect) ? QStringLiteral("scripts/zz_vibestudio_overrides.shader")
-													  : QStringLiteral("scripts/00_vibestudio_overrides.shader");
+		return materialDialectLastScriptWins(dialect) ? QStringLiteral("scripts/zz_slopstudio_overrides.shader")
+													  : QStringLiteral("scripts/00_slopstudio_overrides.shader");
 	}
 	return {};
 }
@@ -100,4 +100,4 @@ bool materialOverrideScriptText(const QString& existing, const MaterialOverride&
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

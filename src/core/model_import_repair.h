@@ -2,7 +2,7 @@
 
 #include "core/model_document.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr qint64 modelImportRepairMaxFacePoses = 16777216;
 enum class ModelImportRepairKind
@@ -42,4 +42,4 @@ bool saveModelImportRepair(const ModelImportRepairPlan &plan, const QString &out
 						   const ModelWorkControl &control = {});
 QString modelImportRepairKindId(ModelImportRepairKind kind);
 QJsonObject modelImportRepairJson(const ModelImportRepairPlan &plan);
-} // namespace vibestudio
+} // namespace slopstudio

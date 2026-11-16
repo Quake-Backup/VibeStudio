@@ -3,7 +3,7 @@
 #include "core/level_repeat_types.h"
 #include <QString>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct LevelMapDocument;
 struct LevelMapTextureLockOptions;
@@ -37,4 +37,4 @@ void levelRepeatHistoryNavigated(LevelMapDocument* document);
 bool applyLevelRepeatTransform(LevelMapDocument* document, const LevelRepeatAction& action, const LevelMapTextureLockOptions& textures,
                                QString* error);
 } // namespace detail
-} // namespace vibestudio
+} // namespace slopstudio

@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr qint64 metadataHashLimit = 32 * 1024 * 1024;
 bool validObject(const QString& name) { return name.size() == 64 && QByteArray::fromHex(name.toLatin1()).toHex() == name.toLatin1(); }
@@ -127,7 +127,7 @@ PackageStorageSnapshot inspectPackageStorage(const QString& path, const PackageR
 	std::sort(result.files.begin(), result.files.end(), [](const auto& a, const auto& b) { return a.relativePath < b.relativePath; });
 	QCryptographicHash hash(QCryptographicHash::Sha256);
 	const auto addField = [&](const QByteArray& field) { hash.addData(QByteArray::number(field.size())); hash.addData(QByteArrayLiteral(":")); hash.addData(field); };
-	addField(QByteArrayLiteral("vibestudio-package-storage-v1")); addField(result.path.toUtf8()); addField(QByteArray::number(rootCreated));
+	addField(QByteArrayLiteral("slopstudio-package-storage-v1")); addField(result.path.toUtf8()); addField(QByteArray::number(rootCreated));
 	addField(hasObjects ? QByteArrayLiteral("objects-present") : QByteArrayLiteral("objects-absent"));
 	for (const auto& file : result.files) {
 		if (!packageStorageFileUnchanged(path, file)) { return fail(QCoreApplication::translate("PackageStorage", "Package storage changed during the scan. Refresh and try again.")); }
@@ -149,4 +149,4 @@ PackageStorageSnapshot inspectPackageStorage(const QString& path, const PackageR
 	result.fingerprint = hash.result(); return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

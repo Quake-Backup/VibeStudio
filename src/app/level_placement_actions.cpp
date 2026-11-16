@@ -7,7 +7,7 @@
 #include <QGuiApplication>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 bool ApplicationShell::canDuplicateLevelMapSelection(LevelDuplicateMode mode) const {
 	return levelMapSelectionIsDuplicable(m_levelMapDocument)
 		&& (!(m_levelControls.duplicateRequiresObjectMode || mode == LevelDuplicateMode::MakeUnique) || !levelComponentsActive())
@@ -133,4 +133,4 @@ void ApplicationShell::placeLevelMapObjectsFromUi(bool paste) {
 	});
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

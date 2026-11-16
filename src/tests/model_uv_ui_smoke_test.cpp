@@ -27,7 +27,7 @@
 #include <crtdbg.h>
 #endif
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool condition, const char *message)
@@ -64,7 +64,7 @@ class Expansion final : public QTranslator
 	QString translate(const char *context, const char *text, const char *, int) const override
 	{
 		const auto name = QByteArray(context);
-		if (name != "VibeStudioModelEditor" && name != "VibeStudioModelUvView")
+		if (name != "SlopStudioModelEditor" && name != "SlopStudioModelUvView")
 		{
 			return {};
 		}
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
 	applyStudioTheme(app, studioThemeTokens(StudioTheme::Dark, UiDensity::Standard, 100));
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -255,8 +255,8 @@ int main(int argc, char **argv)
 			beat();
 			responsive.stop();
 			const double renderMs = elapsed.nsecsElapsed() / 1e6;
-			const double gapBudget = qEnvironmentVariable("VIBESTUDIO_MODELLER_MAX_EVENT_GAP_MS").toDouble();
-			const double renderBudget = qEnvironmentVariable("VIBESTUDIO_MODELLER_MAX_UV_VIEW_MS").toDouble();
+			const double gapBudget = qEnvironmentVariable("SLOPSTUDIO_MODELLER_MAX_EVENT_GAP_MS").toDouble();
+			const double renderBudget = qEnvironmentVariable("SLOPSTUDIO_MODELLER_MAX_UV_VIEW_MS").toDouble();
 			ok &= expect(beats > 1 && gap / 1e6 <= (gapBudget > 0 ? gapBudget : 300),
 						 "maximum UV selection preserves event-loop responsiveness");
 			ok &= expect(renderBudget <= 0 || renderMs <= renderBudget, "maximum UV worker stays within its explicit completion budget");
@@ -364,7 +364,7 @@ int main(int argc, char **argv)
 	const auto &surface = editor.document().mesh().surfaces[0];
 	ok &= expect(std::abs(surface.texCoords[surface.triangles[0].a].u + 0.5f) < 1e-6f && !custom->isEnabled(),
 				 "numeric UV transform uses selected pivot mode");
-	const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (!evidence.isEmpty())
 	{
 		QDir().mkpath(evidence);

@@ -24,7 +24,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct LevelSurfaceDialog::Work {
 	LevelMapDocument document;
@@ -500,4 +500,4 @@ void LevelSurfaceDialog::accept()
 	}
 	QDialog::accept();
 }
-} // namespace vibestudio
+} // namespace slopstudio

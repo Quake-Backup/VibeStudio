@@ -3,7 +3,7 @@
 #include "core/language_server.h"
 #include "core/project_text_search.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct LanguageReferenceRequest {
 	QString rootPath, symbol, provider;
@@ -19,4 +19,4 @@ struct LanguageReferenceRequest {
 // Run off the UI thread. Sources total at most 64 MiB; previews at most 4 MiB.
 AssetTextSearchReport prepareLanguageReferences(const LanguageReferenceRequest& request);
 
-} // namespace vibestudio
+} // namespace slopstudio

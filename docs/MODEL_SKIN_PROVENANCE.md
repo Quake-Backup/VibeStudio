@@ -8,7 +8,7 @@ you choose. Nothing is guessed from positions: an edit that cannot say where a
 skinned vertex came from is refused. Frame edits keep the bind frame and
 skeletal clip frames tied to the skeleton while any surface is skinned. See the
 [tool-by-tool table](MODEL_SKINNING.md#weights-through-other-tools) and
-[Limits](#limits). VibeStudio is pre-alpha and largely untested in real
+[Limits](#limits). SlopStudio is pre-alpha and largely untested in real
 projects; [production acceptance](MODELLER_RELEASE.md) remains open.
 
 Skeletal models (MD5, IQM, MDS, MDM, MDR, Ghoul 2 and Half-Life) store joint
@@ -99,9 +99,9 @@ primitive added to an unskinned surface stays unskinned without asking. On the c
 (which can be combined with a binding):
 
 ```sh
-vibestudio --cli model tool ./models/player.mesh.json --tool add --primitive cube --surface 0 \
+slopstudio --cli model tool ./models/player.mesh.json --tool add --primitive cube --surface 0 \
   --at 0,0,64 --size 12,12,12 --bind-joint head --output ./models/helmet.mesh.json --json
-vibestudio --cli model tool ./models/player.mesh.json --tool add --primitive cylinder \
+slopstudio --cli model tool ./models/player.mesh.json --tool add --primitive cylinder \
   --new-surface "rifle" --output ./models/rifle.mesh.json
 ```
 
@@ -198,11 +198,11 @@ knife, spin, rip). `model surfaces` also lists whether each surface is
 resulting surface is `skinned`.
 
 ```sh
-vibestudio --cli model tool ./models/player.mesh.json --tool symmetrize --faces all --axis x \
+slopstudio --cli model tool ./models/player.mesh.json --tool symmetrize --faces all --axis x \
   --direction positive --joint-map detect --output ./models/player-mirrored.mesh.json --json
-vibestudio --cli model tool ./models/player.mesh.json --tool symmetrize --faces all --axis x \
+slopstudio --cli model tool ./models/player.mesh.json --tool symmetrize --faces all --axis x \
   --joint-map "Lupperarm=Rupperarm,Lloarm=Rloarm,Lhand=Rhand" --output ./models/out.mesh.json
-vibestudio --cli model edit ./models/player.mesh.json --operation duplicate-frame --frame 12 \
+slopstudio --cli model edit ./models/player.mesh.json --operation duplicate-frame --frame 12 \
   --output ./models/out.mesh.json --json
 ```
 
@@ -259,7 +259,7 @@ listing.
 Retained poses are checked with the same consistency test weight painting
 uses, and a following weight paint succeeds. A skinned 65,536-vertex grid with
 16 poses times an in-place edit and a compaction; set
-`VIBESTUDIO_MODELLER_MAX_SKIN_RECONCILE_MS` to enforce a budget.
+`SLOPSTUDIO_MODELLER_MAX_SKIN_RECONCILE_MS` to enforce a budget.
 
 `model-skin-provenance-sweep-smoke` applies every topology, UV, surface and
 frame edit kind to the fixture (and to variants for the repairs, weld, fill,

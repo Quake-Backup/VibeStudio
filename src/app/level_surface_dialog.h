@@ -18,7 +18,7 @@ class QSpinBox;
 class QThread;
 class QTimer;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class LevelSurfaceDialog final : public QDialog
@@ -74,4 +74,4 @@ class LevelSurfaceDialog final : public QDialog
 	quint64 m_generation = 0;
 	bool m_ready = false, m_valid = false, m_updating = false, m_assetsReady = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

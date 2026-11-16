@@ -7,7 +7,7 @@
 
 class QLockFile;
 
-namespace vibestudio {
+namespace slopstudio {
 
 inline constexpr int PackageRecoveryScanLimit = 128;
 inline constexpr qint64 PackageRecoveryMetadataLimit = 64 * 1024 * 1024;
@@ -78,7 +78,7 @@ private:
 	bool m_retired = false;
 };
 
-// Restoration is always Save As to a new .vibepackage directory, outside the
+// Restoration is always Save As to a new .sloppackage directory, outside the
 // recovery store and recorded source/draft. The selected digest prevents stale
 // selections. The original checkpoint remains available until explicit discard.
 bool restorePackageRecovery(const QString& directory, const QString& id, const QByteArray& expectedManifestSha256,
@@ -92,4 +92,4 @@ bool discardPackageRecovery(const QString& directory, const QString& id, const Q
 bool discardPackageRecoveryStorage(const QString& directory, const QString& id, const QByteArray& expectedStorageSha256,
 	bool dryRun = false, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

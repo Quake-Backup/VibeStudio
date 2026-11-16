@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 QString validateAudioEffectAutomation(const AudioEffectChain &chain, int rate, const AudioEffectAutomation &lanes)
 {
@@ -83,4 +83,4 @@ bool audioEffectAutomationFromJson(const QJsonValue &value, AudioEffectAutomatio
 	*lanes = std::move(next);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -309,7 +309,7 @@ second check before atomic commit. Outside edits or deletion block the save;
 save a copy or reopen after reviewing the conflict.
 
 Before replacing different project bytes, Save keeps the exact previous file
-under the destination folder's `.vibestudio/texture-backups/`, named by its
+under the destination folder's `.slopstudio/texture-backups/`, named by its
 SHA-256. Repeated identical versions reuse a verified backup. Backup failures
 block replacement; existing backup corruption never overwrites the source.
 The save status and CLI `backupPath` report its location. Dry runs create no
@@ -357,7 +357,7 @@ document unchanged. Undo history and the clipping selection are not recovered.
 
 ## Native project format
 
-The original VibeStudio project format has the eight-byte magic
+The original SlopStudio project format has the eight-byte magic
 `56 53 54 45 58 0d 0a 1a`, followed by little-endian 32-bit version (1) and JSON
 length. Bounded JSON describes dimensions, active layer, layer properties and
 PNG byte lengths, and an extensible metadata object. One lossless PNG per
@@ -518,7 +518,7 @@ and companion maps are recorded in the studio's activity history. Dependency rev
 these references before compiling and packaging.
 
 `texture stage` uses the same encoders and native staging service, saving an
-undoable `.vibepackage` draft. `--target-package` accepts an archive, folder, or
+undoable `.sloppackage` draft. `--target-package` accepts an archive, folder, or
 existing draft; `--target-entry` is a filename or native lump name. `--replace-texture`
 permits entry replacement and `--overwrite` separately permits replacing a draft.
 Unless an explicit palette file/root is supplied, a real palette in the target
@@ -532,7 +532,7 @@ outputs separately. Updating pixels under an existing map reference only needs
 restaging and package publication; the map is already connected.
 
 ```sh
-vibestudio --cli texture stage flat.vtexture --profile doom-flat --target-package mod.wad --target-entry NEWFLAT --output mod.vibepackage --dry-run --json
+slopstudio --cli texture stage flat.vtexture --profile doom-flat --target-package mod.wad --target-entry NEWFLAT --output mod.sloppackage --dry-run --json
 ```
 
 ## Keyboard and accessibility
@@ -559,17 +559,17 @@ tools, and canvas instructions are translatable and accessible by name.
 ## CLI
 
 ```sh
-vibestudio --cli texture create --size 64x64 --color transparent --output texture.png --json
-vibestudio --cli texture edit texture.png --operations edits.json --output edited.png --json
-vibestudio --cli texture create --size 128x128 --operations layers.json --output wall.vtexture --json
-vibestudio --cli texture inspect wall.vtexture --json
-vibestudio --cli texture profiles --json
-vibestudio --cli texture validate wall.vtexture --profile tga --json
-vibestudio --cli texture export wall.vtexture --profile quake2-wal --export-options wal.json --output wall.wal --dry-run --json
-vibestudio --cli texture recoveries ./texture-recovery --json
-vibestudio --cli texture recover ./draft.vtrecovery --output ./recovered.vtexture --dry-run --json
-vibestudio --cli texture edit wall.vtexture --operations edits.json --output wall.vtexture --overwrite --json
-vibestudio --cli texture edit --package assets.pk3 --entry textures/wall.png --operations edits.json --output wall.png --dry-run --json
+slopstudio --cli texture create --size 64x64 --color transparent --output texture.png --json
+slopstudio --cli texture edit texture.png --operations edits.json --output edited.png --json
+slopstudio --cli texture create --size 128x128 --operations layers.json --output wall.vtexture --json
+slopstudio --cli texture inspect wall.vtexture --json
+slopstudio --cli texture profiles --json
+slopstudio --cli texture validate wall.vtexture --profile tga --json
+slopstudio --cli texture export wall.vtexture --profile quake2-wal --export-options wal.json --output wall.wal --dry-run --json
+slopstudio --cli texture recoveries ./texture-recovery --json
+slopstudio --cli texture recover ./draft.vtrecovery --output ./recovered.vtexture --dry-run --json
+slopstudio --cli texture edit wall.vtexture --operations edits.json --output wall.vtexture --overwrite --json
+slopstudio --cli texture edit --package assets.pk3 --entry textures/wall.png --operations edits.json --output wall.png --dry-run --json
 ```
 
 `texture profiles` lists profile requirements and complete version-1 defaults.
@@ -761,7 +761,7 @@ indices, exact duplicate-color indices, engine limits, cancellation, conflicts,
 and actual CLI validation/export/dry-run for all nine profiles. Synthetic PNG,
 TGA and PCX fixtures are also checked with an independent Pillow reader.
 To reproduce that optional check, run the export smoke suite with
-`VIBESTUDIO_TEST_CAPTURE_ROOT` pointing at an existing project-local evidence
+`SLOPSTUDIO_TEST_CAPTURE_ROOT` pointing at an existing project-local evidence
 directory, then run `python src/tests/texture_export_readers.py <directory>`
 with Pillow installed. `--report <file.json>` saves the results; this adds no
 runtime or required build dependency.
@@ -807,8 +807,8 @@ heartbeat measurements.
 stale-revision rejection, choice rollback and palette saved-state behavior.
 `texture-thumbnail-cache-smoke` visits 10,000 entries, checks byte/count eviction,
 and exercises visible-row demand at both ends of a large list and in filtered RTL tiles.
-Optional browser layout QA sets `VIBESTUDIO_TEST_BROWSER_LAYOUT=1` for the
-editor UI suite, with `VIBESTUDIO_TEST_CAPTURE_ROOT` pointing inside the project.
+Optional browser layout QA sets `SLOPSTUDIO_TEST_BROWSER_LAYOUT=1` for the
+editor UI suite, with `SLOPSTUDIO_TEST_CAPTURE_ROOT` pointing inside the project.
 This adds three whole-shell theme/scaling renders; allow a Meson timeout
 multiplier of at least 2 for that extra work. Whole-shell styling on a busy debug
 host can exceed that allowance; it is tracked separately from texture worker latency.
@@ -817,10 +817,10 @@ normal timeout and do not run these additional whole-shell renders.
 `texture-editor-ui-smoke` calls widget commands directly, exercises asynchronous
 edits/cancellation/save/staging and the shell's texture browser, and checks
 normal and enlarged high-contrast/RTL layouts without injecting user input.
-With `VIBESTUDIO_TEST_CAPTURE_ROOT` set, it also writes
+With `SLOPSTUDIO_TEST_CAPTURE_ROOT` set, it also writes
 `texture-ui-timings.json` containing shell construction and metadata-search
 duration, heartbeat count and maximum event-loop gap. For phase details, enable
-`QT_LOGGING_RULES=vibestudio.startup.info=true`; on Windows,
+`QT_LOGGING_RULES=slopstudio.startup.info=true`; on Windows,
 `QT_FORCE_STDERR_LOGGING=1` directs Qt logging to the captured standard error.
 These opt-in logs contain fixed phase names and elapsed milliseconds.
 `texture-editor-latency-smoke` measures dispatch, completion and UI heartbeats

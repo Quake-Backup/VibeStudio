@@ -6,7 +6,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // A profile binding remaps one command. `commandId` is either a shell command
 // documented in core/studio_semantics.h -- in which case the binding really
@@ -73,7 +73,7 @@ bool editorProfileHasShortcutConflict(const EditorProfileDescriptor& profile, QS
 // The keys a binding gives its command, split from `shortcut`; empty when it
 // takes them away.
 [[nodiscard]] QStringList editorProfileBindingKeys(const EditorProfileBinding& binding);
-// The level editor controls of the profile `id`, or the VibeStudio ones.
+// The level editor controls of the profile `id`, or the SlopStudio ones.
 [[nodiscard]] LevelEditorControls levelEditorControlsForProfile(const QString& id);
 
 // Bindings whose command id exists in the shell registry, i.e. the subset the
@@ -81,4 +81,4 @@ bool editorProfileHasShortcutConflict(const EditorProfileDescriptor& profile, QS
 QVector<EditorProfileBinding> editorProfileImplementedBindings(const EditorProfileDescriptor& profile);
 QStringList editorProfileRemappedShellCommandIds(const EditorProfileDescriptor& profile);
 
-} // namespace vibestudio
+} // namespace slopstudio

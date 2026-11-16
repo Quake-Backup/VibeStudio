@@ -3,7 +3,7 @@
 All profiles expose the opt-in **Draw Brush** camera tool on XY/XZ/YZ planes,
 with shared work-zone depth, grid, materials and plan-view square/cube modifiers.
 Left-drag sets the footprint; wheel adjusts depth before release. Other gestures
-retain the profile's navigation behavior. This is a common VibeStudio tool,
+retain the profile's navigation behavior. This is a common SlopStudio tool,
 not a claim that every upstream editor uses the same creation gesture.
 `map.draw-brush` can be assigned a key without reserving a default shortcut.
 See [camera brush creation](LEVEL_EDITOR.md#camera-brush-creation) for numeric
@@ -42,7 +42,7 @@ camera, camera beside plan or four synchronised views. The latter can use equal
 quadrants, **Camera Above Plans** or **Camera Beside Plans**, which gives the
 camera a large left pane and stacks three plan panes on the right. The override keeps the
 profile's gestures and keys; **Follow Editor Profile** returns to its layout.
-`vibestudio --cli editor layout [preference] --json` reads or changes this setting.
+`slopstudio --cli editor layout [preference] --json` reads or changes this setting.
 **Show Top/Front/Side View** (NetRadiant Custom's XY/XZ/YZ window toggles,
 unbound in every profile as upstream) hide plan panes in the three-plan
 layouts; `editor layout --panes` saves the same choice.
@@ -55,7 +55,7 @@ The Layout menu also offers **Maximize Active View**, which becomes **Restore
 View Layout**, and **Equalize View Sizes**. Expansion is temporary: the prior
 panes and splitter sizes return, edits keep their shared undo, and saved views
 capture the underlying arrangement. Shortcuts act on the focused pane; menus
-use the last focused visible pane. VibeStudio Default uses Ctrl+Space,
+use the last focused visible pane. SlopStudio Default uses Ctrl+Space,
 Hammer/Worldcraft, J.A.C.K. and Sledge use Shift+Z; both NetRadiant profiles use F12.
 Classic Hammer uses Ctrl+A for equal sizing. The editor's inspectors and asset
 panels remain visible. See [Four-View Workspace](LEVEL_EDITOR.md#four-view-workspace).
@@ -169,12 +169,12 @@ pane layout, temporary maximization and saved-view state. All three plan panes
 and the level camera adopt the same effective settings. Models retain their own
 controls. The Controls reference and accessible control descriptions update.
 
-Import/export uses a versioned VibeStudio JSON file with a base profile and only
+Import/export uses a versioned SlopStudio JSON file with a base profile and only
 its changed fields. Import stages a complete replacement and requires the same
 profile; it cannot silently turn Hammer preferences into TrenchBroom preferences.
 Malformed, oversized (over 64 KiB), unknown-version, unknown-field and conflicting
 files are rejected before changing the draft or settings. Export writes atomically,
-protects the active settings file and requires overwrite consent for an existing file. This is a VibeStudio format;
+protects the active settings file and requires overwrite consent for an existing file. This is a SlopStudio format;
 native upstream preference files are not imported.
 
 `editor gestures [profile] --json` reports defaults, effective values, available
@@ -185,13 +185,13 @@ Repeated `--set field=choice` updates distinct fields as one validated batch;
 These operations are separate. `--dry-run` validates a change without writing.
 
 ```sh
-vibestudio --cli editor gestures hammer --json
-vibestudio --cli editor gestures hammer --set plan.panButtons=right+middle --dry-run --json
-vibestudio --cli editor gestures hammer --set plan.panButtons=right+middle
-vibestudio --cli editor gestures hammer --set camera.flyKeys.forward=I --set camera.flyKeys.back=K --dry-run --json
-vibestudio --cli editor gestures hammer --set camera.lookToggleKey=Ctrl+Space
-vibestudio --cli editor gestures hammer --output hammer-gestures.json
-vibestudio --cli editor gestures hammer --input hammer-gestures.json
+slopstudio --cli editor gestures hammer --json
+slopstudio --cli editor gestures hammer --set plan.panButtons=right+middle --dry-run --json
+slopstudio --cli editor gestures hammer --set plan.panButtons=right+middle
+slopstudio --cli editor gestures hammer --set camera.flyKeys.forward=I --set camera.flyKeys.back=K --dry-run --json
+slopstudio --cli editor gestures hammer --set camera.lookToggleKey=Ctrl+Space
+slopstudio --cli editor gestures hammer --output hammer-gestures.json
+slopstudio --cli editor gestures hammer --input hammer-gestures.json
 ```
 
 Command shortcuts remain in Keyboard settings. The key fields use
@@ -211,7 +211,7 @@ profile, with axis chosen from the current orthographic view. It adds no default
 key binding. The numeric dialog provides arbitrary angles, a chosen pivot and
 texture lock; the existing quarter-turn shortcuts retain their legacy behavior.
 
-VibeStudio's level editor adapts to the editor a mapper already knows. The
+SlopStudio's level editor adapts to the editor a mapper already knows. The
 goal is not to clone another editor's assets or quirks; it is to give each
 mapper the mental model their hands have learned: which button pans, what a
 drag over empty space does, how the camera flies, how the views are laid out,
@@ -222,7 +222,7 @@ the **Controls** button on the Levels tool bar. The change takes effect at
 once, without a restart. The Controls button also opens the full reference,
 **Show Every Gesture and Key**, a searchable list of everything the Levels
 views answer to under the chosen profile.
-`vibestudio --cli editor controls <profile>` prints the same reference.
+`slopstudio --cli editor controls <profile>` prints the same reference.
 
 ## Philosophy
 - Editor familiarity is a product feature.
@@ -292,7 +292,7 @@ family of profiles:
 
 | Family | Profiles | Left | Right | Names |
 |---|---|---|---|---|
-| Studio | VibeStudio Default and any profile not listed | Outliner, Shapes, Entities, Textures, Models, Sounds, Prefabs | Inspector, Tools, Surfaces, Map, View, Health, History | The studio's own |
+| Studio | SlopStudio Default and any profile not listed | Outliner, Shapes, Entities, Textures, Models, Sounds, Prefabs | Inspector, Tools, Surfaces, Map, View, Health, History | The studio's own |
 | Radiant | GtkRadiant 1.4 to 1.6, QeRadiant, Q3Radiant, NetRadiant, NetRadiant Custom, DarkRadiant, DoomEdit | Textures first, then Entities, the Entity List and the asset browsers | Entity, Surface, Filters, Map, Issues, Undo | **Entity List**, **Entity**, **Surface**, **Filters**, **Issues**, **Undo**, **Brush** |
 | TrenchBroom | TrenchBroom | None | One inspector: Map, Entity, Face, then the browsers | **Entity**, **Face**, **Issues** |
 | Hammer | Hammer, J.A.C.K., Sledge, BSP Quake Editor | Objects and View | Textures and Primitives first, as Hammer's texture group and object bar | **Objects**, **Properties**, **Face Edit**, **Problems**, **Primitives** |
@@ -316,7 +316,7 @@ right-to-left mirroring.
 
 | Profile | Status |
 |---|---|
-| VibeStudio Default | Studio selection, navigation and a plan-first layout |
+| SlopStudio Default | Studio selection, navigation and a plan-first layout |
 | TrenchBroom Style | Brush/camera controls adapted from TrenchBroom's defaults |
 | NetRadiant Custom Style | Brush/camera controls adapted from NetRadiant Custom's defaults |
 | NetRadiant Style | Standalone Xonotic defaults, 8-unit grid, 110-degree camera and Delete/Insert zoom |
@@ -341,8 +341,8 @@ right-to-left mirroring.
 | Godot 3D Style | Middle orbit, Shift+middle pan, right-button flight, Shift+F look |
 | Blender Style | Middle orbit, Shift+middle pan, keypad views and familiar selection keys |
 
-There are 24 selectable profiles, including VibeStudio Default. They are
-familiarity adaptations for VibeStudio's supported map formats, not claims of
+There are 24 selectable profiles, including SlopStudio Default. They are
+familiarity adaptations for SlopStudio's supported map formats, not claims of
 complete upstream editor or engine emulation. The reference window includes
 searchable **Profile adaptations** alongside the actual gestures. Detailed
 coverage and remaining work follow below.
@@ -482,7 +482,7 @@ defaults as of `master` `90de03c`, September 2026 (see docs/CREDITS.md).
   - A left drag over empty space draws a brush: Shift keeps it square, and
     Shift+Ctrl makes it a cube.
   - Right or middle drag pans, and the wheel zooms.
-  - Shift+drag draws a rubber band, which TrenchBroom lacks; VibeStudio keeps
+  - Shift+drag draws a rubber band, which TrenchBroom lacks; SlopStudio keeps
     one within reach on an otherwise unused key.
 - **Keys:**
   - Editing: Ctrl+D duplicates, Del or Backspace deletes, C is the clip tool,
@@ -498,7 +498,7 @@ defaults as of `master` `90de03c`, September 2026 (see docs/CREDITS.md).
     Reset 2D Cameras (`ActionManager.cpp` and `MapView2D::reset2dCameras` at
     `4c756be1`): the other 2D views take the focused one's zoom and its
     position on the axes they share. Adaptation: TrenchBroom's Ctrl+Shift+U is
-    VibeStudio's Read Aloud, which must work in every view, so this profile
+    SlopStudio's Read Aloud, which must work in every view, so this profile
     leaves Reset 2D Views without a key, as the NetRadiant Custom profile does
     for CSG Intersect. Users may opt in by giving it Ctrl+Shift+U in Keyboard
     Shortcuts; a 2D view then claims the key only while the command can act
@@ -554,7 +554,7 @@ defaults as of `master` `90de03c`, September 2026 (see docs/CREDITS.md).
     about the texture origin (`ClockwiseRotate` in `core/level_surface.h`).
     TrenchBroom adds its angle to the stored rotation through
     `mdl::rotateUV`, which the pinned checkout does not include, so its
-    on-screen direction per face format was not compared; VibeStudio checks
+    on-screen direction per face format was not compared; SlopStudio checks
     its own direction on screen instead.
 - **Left alone:** with nothing selected, Ctrl+F in a view still reaches Find,
   and Alt+arrows keep going Back and Forward.
@@ -562,10 +562,10 @@ defaults as of `master` `90de03c`, September 2026 (see docs/CREDITS.md).
 ### NetRadiant Custom Style
 Reference: [NetRadiant Custom](https://github.com/Garux/netradiant-custom).
 The values follow its defaults at `68ecbed` (January 2026), the revision
-VibeStudio's q3map2 submodule pinned before VibeStudio moved to the VibeMap3
-compiler (see docs/CREDITS.md). The profile's compiler panel is **VibeMap3
-Build**, and its **Plan VibeMap3 Build** binding (`compiler.vibemap3.plan`)
-plans a VibeMap3 build.
+SlopStudio's q3map2 submodule pinned before SlopStudio moved to the SlopMap3
+compiler (see docs/CREDITS.md). The profile's compiler panel is **SlopMap3
+Build**, and its **Plan SlopMap3 Build** binding (`compiler.slopmap3.plan`)
+plans a SlopMap3 build.
 
 - **Layout:** the 3D camera beside a 2D view, with a 16-unit grid.
   - Ctrl+Tab steps the 2D view through Top, Front, and Side, and keypad 7, 1,
@@ -739,7 +739,7 @@ plans a VibeMap3 build.
   `world` (NRC default), `view` (axial view plane/depth), or `surface` (other
   profiles' default). Wider native scene-edge/vertex/patch snapping and physical
   input acceptance remain open; plain first-point dragging still uses
-  VibeStudio's second-point creation behaviour.
+  SlopStudio's second-point creation behaviour.
 
 ### GtkRadiant 1.6.0 Style
 Reference: [GtkRadiant](https://github.com/TTimo/GtkRadiant). The values follow
@@ -795,7 +795,7 @@ editor is the classic QERadiant line (see docs/CREDITS.md).
   (R) and Make Detail (Ctrl+M) remain unimplemented native modes. The camera's
   A and Z pitch keys are not bound.
 
-### VibeStudio Default
+### SlopStudio Default
 - **Layout:** one view, 2D first, with a 64-unit grid. The 3D button shows an
   orthographic view that orbits the map.
 - **2D view:** click selects, Shift+click adds, and Ctrl+click toggles. A drag
@@ -809,7 +809,7 @@ editor is the classic QERadiant line (see docs/CREDITS.md).
 QuArK now uses four synchronized panes and a 16-unit grid. Right drag pans the
 plan, middle drag zooms, Ctrl+click toggles selection, and arrows with D/C drive
 the camera. Ctrl+D duplicates and Escape deselects. Existing package shortcuts
-stay available. Right drag looks in the camera; VibeStudio's scene tree replaces
+stay available. Right drag looks in the camera; SlopStudio's scene tree replaces
 QuArK's MDI/explorer arrangement. Auxiliary selection keys, multi-button gestures,
 tree hotkeys and QuArK project files remain outside this adaptation.
 
@@ -844,7 +844,7 @@ uses Q for the enhanced visual view. `slade` (`slade3`) uses Q and WASD, with
 right-drag plan pan and Shift+G snap. `eureka` uses Tab, WASD/arrows, O duplicate
 and Shift slower flight; digits 1–9 and then 0 select grids 2–1024, as
 Eureka's `bindings.cfg` (`GRID_Set`) does. These profiles retain
-VibeStudio's Ctrl selection and explicit paint/sample/property tools. Dedicated
+SlopStudio's Ctrl selection and explicit paint/sample/property tools. Dedicated
 V/L/S/T modes, native crosshair interactions, right-button drawing/movement,
 wheel height editing, gravity and advanced source-port effects remain gaps.
 
@@ -854,7 +854,7 @@ keys immediately, including when Shift is already held; release ends held-button
 flight. Alt+left orbits in Unreal/Unity, middle orbits in Godot/Blender, and
 Shift+middle pans in Godot/Blender. Godot uses Shift+F to toggle look; Blender
 uses Shift+backtick. Focus loss, hiding a view or switching profiles cancels
-navigation. VibeStudio's handles/numeric tools remain the transform workflow;
+navigation. SlopStudio's handles/numeric tools remain the transform workflow;
 upstream gizmo modes, node/mesh systems, native assets, live play and flight-speed
 wheel controls are not reproduced. Unreal uses Ctrl+W duplicate; Blender uses
 Shift+D, keypad period to frame, H hide and Alt+H reveal.
@@ -864,9 +864,9 @@ ID. `editor profiles`/`current` JSON include `aliases`, `adaptations` and
 `referenceUrl`; `editor controls` includes `mouseLookToggleKey`. For example:
 
 ```sh
-vibestudio --cli editor select hammer++ --json
-vibestudio --cli editor controls udb --json
-vibestudio --cli editor select godot --json
+slopstudio --cli editor select hammer++ --json
+slopstudio --cli editor controls udb --json
+slopstudio --cli editor select godot --json
 ```
 
 Profile selection does not change the map dialect or compiler target. Explicit
@@ -1013,7 +1013,7 @@ map or frame-time performance.
 - Every command stays in the menus and the command palette, whatever key a
   profile gives it; a user's own keys (Settings > Keyboard) outrank a
   profile's.
-- A command with no VibeStudio key, such as Cycle Map View or Zoom In, takes
+- A command with no SlopStudio key, such as Cycle Map View or Zoom In, takes
   a key only from a profile or the user, and that key acts on the Levels page
   alone.
 - Cycle Map View, Next 2D View and 3D View shortcuts require focus in a level
@@ -1063,8 +1063,8 @@ map or frame-time performance.
   profile after its own description, so they stay heard as the view changes.
 
 ## Reporting
-- `vibestudio --cli editor controls <profile> [--json]` prints a profile's
-  layout, grid, effective gestures and profile keys. `vibestudio --cli editor profiles
+- `slopstudio --cli editor controls <profile> [--json]` prints a profile's
+  layout, grid, effective gestures and profile keys. `slopstudio --cli editor profiles
   --json` carries the built-in `controls` object per profile, with
   `unresolvedPresets` and `placeholder`.
 - `editorProfileSummaryText()` lists the controls and whether all presets
@@ -1174,7 +1174,7 @@ are untouched, so scene locks do not apply.
   CenterView at `449778b3` and `b4b295d7`), `gtkradiant-1-6`, `gtkradiant-1-4`,
   `gtkradiant-1-5`, `q3radiant` and `doomedit` (DOOM-3 `MainFrm.cpp`
   `Camera_CenterView`). `qeradiant` and `darkradiant` leave it unbound until
-  their own sources confirm it. The orbiting VibeStudio Default view levels its
+  their own sources confirm it. The orbiting SlopStudio Default view levels its
   orbit instead.
 - **Focus Camera on Selection** (`map.focusCameraOnSelection`) keeps heading and
   pitch and places the camera on the line through the selection box's centre,
@@ -1184,7 +1184,7 @@ are untouched, so scene locks do not apply.
   reimplemented). The plan views stay put, unlike **Frame Selection**. An
   empty selection focuses on the last selection of the same map load (NRC's
   work zone), limited to objects the open group still allows; hidden objects
-  never count. NRC binds it to Tab; VibeStudio gives it no key, because a
+  never count. NRC binds it to Tab; SlopStudio gives it no key, because a
   window-wide Tab would take keyboard focus navigation away.
 - **Reset Camera Zoom** (`map.resetCameraZoom`) restores the profile's
   `fieldOfViewDegrees` after Shift+wheel zoom or a saved view's own field of
@@ -1216,7 +1216,7 @@ and `trenchbroom` only (Xonotic NetRadiant was not audited for it). While
 **Snap** is on, **Rotate 90° Left/Right** and **Rotate X/Y/Z** then turn about
 the selection's bounds centre rounded with `snapLevelMapPosition()`, or in
 component mode the picked components' centre; a custom component pivot always
-wins. Ties round away from zero, as every VibeStudio grid snap does, where NRC's
+wins. Ties round away from zero, as every SlopStudio grid snap does, where NRC's
 `llrint` rounds them to even. The controls reference shows the policy as
 **Quick-turn pivot**; `editing.quickTurnSnapsPivot` overrides it per profile
 like any editing preference, and `editor controls` reports `quickTurnPivot`.

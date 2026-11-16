@@ -21,7 +21,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 
 bool expect(bool condition, const char* message)
@@ -53,7 +53,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "TextDocument" && QByteArray(context) != "vibestudio::ApplicationShell") { return {}; }
+		if (QByteArray(context) != "TextDocument" && QByteArray(context) != "slopstudio::ApplicationShell") { return {}; }
 		const QString text = QString::fromUtf8(source);
 		return QStringLiteral("[%1%2]").arg(text, QStringLiteral(" ~").repeated(text.size() / 6));
 	}
@@ -64,7 +64,7 @@ bool renderEvidence(QWidget& widget, const QString& name)
 	QImage rendering(widget.size(), QImage::Format_ARGB32_Premultiplied);
 	rendering.fill(Qt::transparent);
 	widget.render(&rendering);
-	const QString evidence = qEnvironmentVariable("VIBESTUDIO_TEXT_TEST_EVIDENCE");
+	const QString evidence = qEnvironmentVariable("SLOPSTUDIO_TEXT_TEST_EVIDENCE");
 	return !rendering.isNull() && (evidence.isEmpty() || rendering.save(QDir(evidence).filePath(name)));
 }
 

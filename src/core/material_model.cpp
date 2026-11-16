@@ -8,11 +8,11 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 QJsonArray stringsJson(const QStringList& values)
@@ -106,19 +106,19 @@ QString materialEngineDisplayName(MaterialEngine engine)
 {
 	switch (engine) {
 	case MaterialEngine::Doom:
-		return QCoreApplication::translate("VibeStudioMaterials", "Doom");
+		return QCoreApplication::translate("SlopStudioMaterials", "Doom");
 	case MaterialEngine::Quake:
-		return QCoreApplication::translate("VibeStudioMaterials", "Quake");
+		return QCoreApplication::translate("SlopStudioMaterials", "Quake");
 	case MaterialEngine::Quake2:
-		return QCoreApplication::translate("VibeStudioMaterials", "Quake II");
+		return QCoreApplication::translate("SlopStudioMaterials", "Quake II");
 	case MaterialEngine::Quake3:
-		return QCoreApplication::translate("VibeStudioMaterials", "Quake III");
+		return QCoreApplication::translate("SlopStudioMaterials", "Quake III");
 	case MaterialEngine::Doom3:
-		return QCoreApplication::translate("VibeStudioMaterials", "Doom 3");
+		return QCoreApplication::translate("SlopStudioMaterials", "Doom 3");
 	case MaterialEngine::Unknown:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioMaterials", "Unknown engine");
+	return QCoreApplication::translate("SlopStudioMaterials", "Unknown engine");
 }
 
 QString materialEngineGeneration(MaterialEngine engine)
@@ -537,15 +537,15 @@ QString materialStageRoleDisplayName(MaterialStageRole role)
 {
 	switch (role) {
 	case MaterialStageRole::Regular:
-		return QCoreApplication::translate("VibeStudioMaterials", "Regular");
+		return QCoreApplication::translate("SlopStudioMaterials", "Regular");
 	case MaterialStageRole::Diffuse:
-		return QCoreApplication::translate("VibeStudioMaterials", "Diffuse");
+		return QCoreApplication::translate("SlopStudioMaterials", "Diffuse");
 	case MaterialStageRole::Bump:
-		return QCoreApplication::translate("VibeStudioMaterials", "Bump");
+		return QCoreApplication::translate("SlopStudioMaterials", "Bump");
 	case MaterialStageRole::Specular:
-		return QCoreApplication::translate("VibeStudioMaterials", "Specular");
+		return QCoreApplication::translate("SlopStudioMaterials", "Specular");
 	}
-	return QCoreApplication::translate("VibeStudioMaterials", "Regular");
+	return QCoreApplication::translate("SlopStudioMaterials", "Regular");
 }
 
 QString materialAlphaTestId(MaterialAlphaTest test)
@@ -1337,55 +1337,55 @@ QJsonObject materialScriptJson(const MaterialScript& script, bool includeDirecti
 QStringList materialDefinitionSummaryLines(const MaterialDefinition& definition)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioMaterials", "Material: %1").arg(definition.name);
-	lines << QCoreApplication::translate("VibeStudioMaterials", "Engine: %1 (%2)")
+	lines << QCoreApplication::translate("SlopStudioMaterials", "Material: %1").arg(definition.name);
+	lines << QCoreApplication::translate("SlopStudioMaterials", "Engine: %1 (%2)")
 				 .arg(materialEngineDisplayName(definition.engine), materialEngineGeneration(definition.engine));
 	if (!definition.sourcePath.isEmpty() && definition.span.line > 0) {
-		lines << QCoreApplication::translate("VibeStudioMaterials", "Source: %1, line %2").arg(definition.sourcePath).arg(definition.span.line);
+		lines << QCoreApplication::translate("SlopStudioMaterials", "Source: %1, line %2").arg(definition.sourcePath).arg(definition.span.line);
 	} else if (!definition.sourcePath.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioMaterials", "Source: %1").arg(definition.sourcePath);
+		lines << QCoreApplication::translate("SlopStudioMaterials", "Source: %1").arg(definition.sourcePath);
 	}
 	QStringList traits;
 	if (definition.isAnimated()) {
-		traits << QCoreApplication::translate("VibeStudioMaterials", "animated");
+		traits << QCoreApplication::translate("SlopStudioMaterials", "animated");
 	}
 	if (definition.isSky()) {
-		traits << QCoreApplication::translate("VibeStudioMaterials", "sky");
+		traits << QCoreApplication::translate("SlopStudioMaterials", "sky");
 	}
 	if (definition.isFog()) {
-		traits << QCoreApplication::translate("VibeStudioMaterials", "fog");
+		traits << QCoreApplication::translate("SlopStudioMaterials", "fog");
 	}
 	if (definition.isLight()) {
-		traits << QCoreApplication::translate("VibeStudioMaterials", "light");
+		traits << QCoreApplication::translate("SlopStudioMaterials", "light");
 	}
 	if (definition.usesLightmap()) {
-		traits << QCoreApplication::translate("VibeStudioMaterials", "lightmapped");
+		traits << QCoreApplication::translate("SlopStudioMaterials", "lightmapped");
 	}
 	if (definition.cull == MaterialCull::None) {
-		traits << QCoreApplication::translate("VibeStudioMaterials", "two-sided");
+		traits << QCoreApplication::translate("SlopStudioMaterials", "two-sided");
 	}
 	if (!traits.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioMaterials", "Traits: %1").arg(traits.join(QStringLiteral(", ")));
+		lines << QCoreApplication::translate("SlopStudioMaterials", "Traits: %1").arg(traits.join(QStringLiteral(", ")));
 	}
 	if (!definition.surfaceParms.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioMaterials", "Surface parameters: %1").arg(definition.surfaceParms.join(QStringLiteral(", ")));
+		lines << QCoreApplication::translate("SlopStudioMaterials", "Surface parameters: %1").arg(definition.surfaceParms.join(QStringLiteral(", ")));
 	}
 	const int stageCount = static_cast<int>(definition.stages.size());
 	if (stageCount > 0) {
-		lines << QCoreApplication::translate("VibeStudioMaterials", "%n stage(s)", nullptr, stageCount);
+		lines << QCoreApplication::translate("SlopStudioMaterials", "%n stage(s)", nullptr, stageCount);
 	}
 	for (const MaterialStage& stage : definition.stages) {
 		QString image = stage.imagePath;
 		if (stage.imageKind == MaterialImageKind::Lightmap) {
 			image = QStringLiteral("$lightmap");
 		} else if (stage.imageKind == MaterialImageKind::Animation) {
-			image = QCoreApplication::translate("VibeStudioMaterials", "animMap %1 Hz: %2")
+			image = QCoreApplication::translate("SlopStudioMaterials", "animMap %1 Hz: %2")
 						.arg(stage.animationFrequency)
 						.arg(stage.animationFrames.join(QLatin1Char(' ')));
 		} else if (stage.imageKind == MaterialImageKind::Program) {
 			image = materialImageProgramText(definition.imagePrograms, stage.imageProgram);
 		}
-		lines << QCoreApplication::translate("VibeStudioMaterials", "  Stage %1 (%2): %3, blend %4 %5")
+		lines << QCoreApplication::translate("SlopStudioMaterials", "  Stage %1 (%2): %3, blend %4 %5")
 					 .arg(stage.index + 1)
 					 .arg(materialStageRoleDisplayName(stage.role), image.isEmpty() ? QStringLiteral("-") : image,
 						 materialBlendFactorId(stage.blend.source), materialBlendFactorId(stage.blend.destination));
@@ -1395,28 +1395,28 @@ QStringList materialDefinitionSummaryLines(const MaterialDefinition& definition)
 		for (const MaterialFrame& frame : definition.classic.frames) {
 			names << frame.name;
 		}
-		lines << QCoreApplication::translate("VibeStudioMaterials", "Animation (%1): %2").arg(definition.classic.animationSource, names.join(QStringLiteral(" > ")));
+		lines << QCoreApplication::translate("SlopStudioMaterials", "Animation (%1): %2").arg(definition.classic.animationSource, names.join(QStringLiteral(" > ")));
 	}
 	if (!definition.classic.switchPartner.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioMaterials", "Switch partner: %1").arg(definition.classic.switchPartner);
+		lines << QCoreApplication::translate("SlopStudioMaterials", "Switch partner: %1").arg(definition.classic.switchPartner);
 	}
 	const int patchCount = static_cast<int>(definition.classic.patches.size());
 	if (patchCount > 0) {
-		lines << QCoreApplication::translate("VibeStudioMaterials", "Composed from %n patch(es)", nullptr, patchCount);
+		lines << QCoreApplication::translate("SlopStudioMaterials", "Composed from %n patch(es)", nullptr, patchCount);
 	}
 	if (definition.engine == MaterialEngine::Quake2) {
 		const QStringList surface = quake2FlagIds(definition.classic.surfaceFlags, quake2SurfaceFlagDescriptors());
-		lines << QCoreApplication::translate("VibeStudioMaterials", "Surface flags: %1").arg(surface.isEmpty() ? QStringLiteral("-") : surface.join(QStringLiteral(", ")));
-		lines << QCoreApplication::translate("VibeStudioMaterials", "Value: %1").arg(definition.classic.surfaceValue);
+		lines << QCoreApplication::translate("SlopStudioMaterials", "Surface flags: %1").arg(surface.isEmpty() ? QStringLiteral("-") : surface.join(QStringLiteral(", ")));
+		lines << QCoreApplication::translate("SlopStudioMaterials", "Value: %1").arg(definition.classic.surfaceValue);
 	}
 	const int errors = definition.errorCount();
 	const int warnings = definition.warningCount();
 	if (errors > 0 || warnings > 0) {
-		const QString errorText = QCoreApplication::translate("VibeStudioMaterials", "%n error(s)", nullptr, errors);
-		const QString warningText = QCoreApplication::translate("VibeStudioMaterials", "%n warning(s)", nullptr, warnings);
-		lines << QCoreApplication::translate("VibeStudioMaterials", "Problems: %1, %2").arg(errorText, warningText);
+		const QString errorText = QCoreApplication::translate("SlopStudioMaterials", "%n error(s)", nullptr, errors);
+		const QString warningText = QCoreApplication::translate("SlopStudioMaterials", "%n warning(s)", nullptr, warnings);
+		lines << QCoreApplication::translate("SlopStudioMaterials", "Problems: %1, %2").arg(errorText, warningText);
 	}
 	return lines;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

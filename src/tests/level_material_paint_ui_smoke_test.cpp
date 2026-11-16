@@ -18,7 +18,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message, const QString& detail = {})
 {
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
 #endif
 	QApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("level-material-paint-ui-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("level-material-paint-ui-smoke"); skip >= 0) {
 		return skip;
 	}
 	QTemporaryDir temp;
@@ -124,7 +124,7 @@ int main(int argc, char** argv)
 		// Real event-loop/layout/raster work must not cancel an otherwise stable stroke.
 		app.processEvents();
 		ok &= expect(tests::settleModelViewport(*view) && view->surfaceStrokeActive(), "stroke survives paint and layout events", status->text());
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!captures.isEmpty()) {
 			QDir().mkpath(captures);
 			QImage image(shell.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); shell.render(&image);

@@ -24,11 +24,11 @@
 // MapWindow::exportDocumentAsObj at 4c756be1 (GPL-3.0-or-later) and NetRadiant
 // Custom contrib/brushexport/export.cpp ExportDataAsWavefront at 449778b3
 // (GPL-2.0-or-later). Original Qt implementation; see docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelMapObjExport)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelMapObjExport)
 };
 
 constexpr int kShortMaterialName = 20;
@@ -558,7 +558,7 @@ bool buildLevelMapObj(const LevelMapDocument& exported, const QString& objPath, 
 	};
 	QByteArray obj;
 	obj.reserve(static_cast<qsizetype>(std::min<qint64>(kLevelMapMaxDocumentBytes, static_cast<qint64>(preview.triangles) * 96 + 4096)));
-	obj += "# Wavefront OBJ written by VibeStudio\n";
+	obj += "# Wavefront OBJ written by SlopStudio\n";
 	obj += "# map " + token(exported.sourcePath.isEmpty() ? exported.mapName : QFileInfo(exported.sourcePath).fileName(), QStringLiteral("map")).toUtf8() + '\n';
 	obj += "# brushes " + QByteArray::number(counts.brushes) + ", patches " + QByteArray::number(counts.patches) + (options.keepZUp ? ", Z up\n" : ", Y up\n");
 	if (options.materialLibrary) {
@@ -668,7 +668,7 @@ bool buildLevelMapObj(const LevelMapDocument& exported, const QString& objPath, 
 	QByteArray mtl;
 	if (options.materialLibrary) {
 		const QDir objFolder = QFileInfo(objPath).absoluteDir();
-		mtl += "# Wavefront material library written by VibeStudio\n";
+		mtl += "# Wavefront material library written by SlopStudio\n";
 		mtl += "# materials " + QByteArray::number(materialKeys.size()) + '\n';
 		bool rootless = false;
 		for (const auto& key : std::as_const(materialKeys)) {
@@ -836,4 +836,4 @@ QJsonObject levelMapObjExportReportJson(const LevelMapObjExportReport& report)
 		{QStringLiteral("warnings"), QJsonArray::fromStringList(report.warnings)}};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

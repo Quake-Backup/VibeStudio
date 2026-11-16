@@ -27,7 +27,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace
 {
@@ -544,7 +544,7 @@ int main(int argc, char **argv)
 			   reread[1].brush.mode == ModelSkinPaintMode::Smudge,
 		   "a viewport stroke keeps its view and stamp, and smudge its mode");
 
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (!root.isEmpty() && QDir().mkpath(root))
 	{
 		// Staging the painted skin back at its package path.

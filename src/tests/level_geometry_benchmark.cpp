@@ -12,7 +12,7 @@
 #include <QTimer>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 int main(int argc, char** argv)
 {
 	// Offscreen semantic operations and render targets only; no injected input.

@@ -3,7 +3,7 @@
 #include "core/level_component_drag.h"
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelVertexInsertionBrush {
 	int id = -1;
 	LevelBrushTopology topology;
@@ -65,4 +65,4 @@ private:
 	QString m_error;
 	QVector<QPair<LevelMapVec3,LevelMapVec3>> m_edges;
 };
-} // namespace vibestudio
+} // namespace slopstudio

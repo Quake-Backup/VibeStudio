@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -126,9 +126,9 @@ QString formatSeconds(double seconds)
 			.arg(totalSeconds % 60, 2, 10, QLatin1Char('0'));
 	}
 	if (seconds >= 10.0) {
-		return QCoreApplication::translate("VibeStudioAssetViews", "%1 s").arg(seconds, 0, 'f', 1);
+		return QCoreApplication::translate("SlopStudioAssetViews", "%1 s").arg(seconds, 0, 'f', 1);
 	}
-	return QCoreApplication::translate("VibeStudioAssetViews", "%1 s").arg(seconds, 0, 'f', 2);
+	return QCoreApplication::translate("SlopStudioAssetViews", "%1 s").arg(seconds, 0, 'f', 2);
 }
 
 // 1 / 2 / 5 x 10^n tick step so the time axis lands on readable numbers.
@@ -182,7 +182,7 @@ ImagePreviewView::ImagePreviewView(QWidget* parent)
 	setFocusPolicy(Qt::StrongFocus);
 	setMouseTracking(true);
 	setAttribute(Qt::WA_OpaquePaintEvent, false);
-	setAccessibleName(QCoreApplication::translate("VibeStudioAssetViews", "Image preview"));
+	setAccessibleName(QCoreApplication::translate("SlopStudioAssetViews", "Image preview"));
 	setAccessibleDescription(accessibleSummary());
 }
 
@@ -428,43 +428,43 @@ QStringList ImagePreviewView::statusLines() const
 	QStringList lines;
 	const QImage active = activeImage();
 	if (active.isNull()) {
-		lines << QCoreApplication::translate("VibeStudioAssetViews", "No image loaded.");
+		lines << QCoreApplication::translate("SlopStudioAssetViews", "No image loaded.");
 		return lines;
 	}
 
 	if (!m_title.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioAssetViews", "Name: %1").arg(m_title);
+		lines << QCoreApplication::translate("SlopStudioAssetViews", "Name: %1").arg(m_title);
 	}
 	if (!m_result.formatName.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioAssetViews", "Format: %1").arg(m_result.formatName);
+		lines << QCoreApplication::translate("SlopStudioAssetViews", "Format: %1").arg(m_result.formatName);
 	}
-	lines << QCoreApplication::translate("VibeStudioAssetViews", "Dimensions: %1 x %2 px").arg(active.width()).arg(active.height());
-	lines << QCoreApplication::translate("VibeStudioAssetViews", "Zoom: %1%").arg(QString::number(m_zoom * 100.0, 'f', m_zoom < 1.0 ? 1 : 0));
+	lines << QCoreApplication::translate("SlopStudioAssetViews", "Dimensions: %1 x %2 px").arg(active.width()).arg(active.height());
+	lines << QCoreApplication::translate("SlopStudioAssetViews", "Zoom: %1%").arg(QString::number(m_zoom * 100.0, 'f', m_zoom < 1.0 ? 1 : 0));
 	if (mipLevelCount() > 1) {
-		lines << QCoreApplication::translate("VibeStudioAssetViews", "Mip level: %1 of %2").arg(m_mipLevel + 1).arg(mipLevelCount());
+		lines << QCoreApplication::translate("SlopStudioAssetViews", "Mip level: %1 of %2").arg(m_mipLevel + 1).arg(mipLevelCount());
 	}
 	if (frameCount() > 1) {
 		const QString label = m_result.frames.at(std::clamp(m_frameIndex, 0, frameCount() - 1)).label;
 		if (label.isEmpty()) {
-			lines << QCoreApplication::translate("VibeStudioAssetViews", "Frame: %1 of %2").arg(m_frameIndex + 1).arg(frameCount());
+			lines << QCoreApplication::translate("SlopStudioAssetViews", "Frame: %1 of %2").arg(m_frameIndex + 1).arg(frameCount());
 		} else {
-			lines << QCoreApplication::translate("VibeStudioAssetViews", "Frame: %1 of %2 (%3)").arg(m_frameIndex + 1).arg(frameCount()).arg(label);
+			lines << QCoreApplication::translate("SlopStudioAssetViews", "Frame: %1 of %2 (%3)").arg(m_frameIndex + 1).arg(frameCount()).arg(label);
 		}
 	}
 	if (m_result.leftOffset != 0 || m_result.topOffset != 0) {
-		lines << QCoreApplication::translate("VibeStudioAssetViews", "Offset: %1, %2").arg(m_result.leftOffset).arg(m_result.topOffset);
+		lines << QCoreApplication::translate("SlopStudioAssetViews", "Offset: %1, %2").arg(m_result.leftOffset).arg(m_result.topOffset);
 	}
 	if (!m_result.paletteId.isEmpty()) {
 		lines << (m_result.paletteGenerated
-			? QCoreApplication::translate("VibeStudioAssetViews", "Palette: %1 (generated stand-in)").arg(m_result.paletteId)
-			: QCoreApplication::translate("VibeStudioAssetViews", "Palette: %1").arg(m_result.paletteId));
+			? QCoreApplication::translate("SlopStudioAssetViews", "Palette: %1 (generated stand-in)").arg(m_result.paletteId)
+			: QCoreApplication::translate("SlopStudioAssetViews", "Palette: %1").arg(m_result.paletteId));
 	}
 	if (!m_result.paletteSourceVirtualPath.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioAssetViews", "Palette source: %1").arg(m_result.paletteSourceVirtualPath);
+		lines << QCoreApplication::translate("SlopStudioAssetViews", "Palette source: %1").arg(m_result.paletteSourceVirtualPath);
 	}
 	lines << (m_result.hasTransparency || active.hasAlphaChannel()
-		? QCoreApplication::translate("VibeStudioAssetViews", "Transparency: yes")
-		: QCoreApplication::translate("VibeStudioAssetViews", "Transparency: no"));
+		? QCoreApplication::translate("SlopStudioAssetViews", "Transparency: yes")
+		: QCoreApplication::translate("SlopStudioAssetViews", "Transparency: no"));
 	if (!m_hoverSummary.isEmpty()) {
 		lines << m_hoverSummary;
 	}
@@ -475,44 +475,44 @@ QString ImagePreviewView::accessibleSummary() const
 {
 	const QImage active = activeImage();
 	if (active.isNull()) {
-		return QCoreApplication::translate("VibeStudioAssetViews", "Image preview, empty. No image is loaded.");
+		return QCoreApplication::translate("SlopStudioAssetViews", "Image preview, empty. No image is loaded.");
 	}
 
 	QStringList parts;
 	const QString formatName = m_result.formatName.isEmpty()
-		? QCoreApplication::translate("VibeStudioAssetViews", "image")
+		? QCoreApplication::translate("SlopStudioAssetViews", "image")
 		: m_result.formatName;
 	if (m_title.isEmpty()) {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "%1, %2 by %3 pixels").arg(formatName).arg(active.width()).arg(active.height());
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "%1, %2 by %3 pixels").arg(formatName).arg(active.width()).arg(active.height());
 	} else {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "%1, %2, %3 by %4 pixels").arg(m_title, formatName).arg(active.width()).arg(active.height());
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "%1, %2, %3 by %4 pixels").arg(m_title, formatName).arg(active.width()).arg(active.height());
 	}
 
 	if (m_result.paletteId.isEmpty()) {
 		parts << (active.format() == QImage::Format_Indexed8
-			? QCoreApplication::translate("VibeStudioAssetViews", "indexed colour")
-			: QCoreApplication::translate("VibeStudioAssetViews", "direct colour"));
+			? QCoreApplication::translate("SlopStudioAssetViews", "indexed colour")
+			: QCoreApplication::translate("SlopStudioAssetViews", "direct colour"));
 	} else {
 		parts << (m_result.paletteGenerated
-			? QCoreApplication::translate("VibeStudioAssetViews", "palette %1, generated stand-in").arg(m_result.paletteId)
-			: QCoreApplication::translate("VibeStudioAssetViews", "palette %1").arg(m_result.paletteId));
+			? QCoreApplication::translate("SlopStudioAssetViews", "palette %1, generated stand-in").arg(m_result.paletteId)
+			: QCoreApplication::translate("SlopStudioAssetViews", "palette %1").arg(m_result.paletteId));
 	}
 	if (!m_result.paletteSourceVirtualPath.isEmpty()) {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "palette read from %1").arg(m_result.paletteSourceVirtualPath);
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "palette read from %1").arg(m_result.paletteSourceVirtualPath);
 	}
 
 	parts << (m_result.hasTransparency || active.hasAlphaChannel()
-		? QCoreApplication::translate("VibeStudioAssetViews", "has transparency")
-		: QCoreApplication::translate("VibeStudioAssetViews", "fully opaque"));
+		? QCoreApplication::translate("SlopStudioAssetViews", "has transparency")
+		: QCoreApplication::translate("SlopStudioAssetViews", "fully opaque"));
 
 	if (mipLevelCount() > 1) {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "mip level %1 of %2").arg(m_mipLevel + 1).arg(mipLevelCount());
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "mip level %1 of %2").arg(m_mipLevel + 1).arg(mipLevelCount());
 	}
 	if (frameCount() > 1) {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "frame %1 of %2").arg(m_frameIndex + 1).arg(frameCount());
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "frame %1 of %2").arg(m_frameIndex + 1).arg(frameCount());
 	}
-	parts << QCoreApplication::translate("VibeStudioAssetViews", "zoom %1 percent").arg(QString::number(m_zoom * 100.0, 'f', 0));
-	return parts.join(QCoreApplication::translate("VibeStudioAssetViews", ", "));
+	parts << QCoreApplication::translate("SlopStudioAssetViews", "zoom %1 percent").arg(QString::number(m_zoom * 100.0, 'f', 0));
+	return parts.join(QCoreApplication::translate("SlopStudioAssetViews", ", "));
 }
 
 QSize ImagePreviewView::sizeHint() const
@@ -535,7 +535,7 @@ void ImagePreviewView::paintEvent(QPaintEvent* event)
 	const QImage active = activeImage();
 	if (active.isNull()) {
 		drawEmptyState(painter, area, colors,
-			QCoreApplication::translate("VibeStudioAssetViews", "No image to preview.\nSelect a texture, sprite, flat, or picture asset."));
+			QCoreApplication::translate("SlopStudioAssetViews", "No image to preview.\nSelect a texture, sprite, flat, or picture asset."));
 		if (hasFocus()) {
 			drawFocusRing(painter, area, colors);
 		}
@@ -641,19 +641,19 @@ void ImagePreviewView::mouseMoveEvent(QMouseEvent* event)
 				texel = QPoint(x, y);
 				const QRgb color = active.pixel(x, y);
 				if (active.format() == QImage::Format_Indexed8) {
-					summary = QCoreApplication::translate("VibeStudioAssetViews", "Texel %1, %2 — palette index %3, %4")
+					summary = QCoreApplication::translate("SlopStudioAssetViews", "Texel %1, %2 — palette index %3, %4")
 						.arg(x)
 						.arg(y)
 						.arg(active.pixelIndex(x, y))
 						.arg(rgbHex(color));
 				} else if (active.hasAlphaChannel()) {
-					summary = QCoreApplication::translate("VibeStudioAssetViews", "Texel %1, %2 — %3, alpha %4")
+					summary = QCoreApplication::translate("SlopStudioAssetViews", "Texel %1, %2 — %3, alpha %4")
 						.arg(x)
 						.arg(y)
 						.arg(rgbHex(color))
 						.arg(qAlpha(color));
 				} else {
-					summary = QCoreApplication::translate("VibeStudioAssetViews", "Texel %1, %2 — %3").arg(x).arg(y).arg(rgbHex(color));
+					summary = QCoreApplication::translate("SlopStudioAssetViews", "Texel %1, %2 — %3").arg(x).arg(y).arg(rgbHex(color));
 				}
 			}
 		}
@@ -852,7 +852,7 @@ PaletteSwatchView::PaletteSwatchView(QWidget* parent)
 	setObjectName("paletteSwatchView");
 	setFocusPolicy(Qt::StrongFocus);
 	setMouseTracking(true);
-	setAccessibleName(QCoreApplication::translate("VibeStudioAssetViews", "Palette swatches"));
+	setAccessibleName(QCoreApplication::translate("SlopStudioAssetViews", "Palette swatches"));
 	setAccessibleDescription(accessibleSummary());
 }
 
@@ -915,30 +915,30 @@ QString PaletteSwatchView::hoverSummary() const
 QString PaletteSwatchView::accessibleSummary() const
 {
 	if (!hasPalette()) {
-		return QCoreApplication::translate("VibeStudioAssetViews", "Palette swatches, empty. No palette is loaded.");
+		return QCoreApplication::translate("SlopStudioAssetViews", "Palette swatches, empty. No palette is loaded.");
 	}
 
 	QStringList parts;
 	const QString name = m_palette.displayName.isEmpty() ? m_palette.id : m_palette.displayName;
-	parts << QCoreApplication::translate("VibeStudioAssetViews", "Palette %1, %2 entries in a 16 by 16 grid").arg(name).arg(m_palette.colors.size());
+	parts << QCoreApplication::translate("SlopStudioAssetViews", "Palette %1, %2 entries in a 16 by 16 grid").arg(name).arg(m_palette.colors.size());
 	if (!m_palette.sourceDescription.isEmpty()) {
 		parts << m_palette.sourceDescription;
 	}
 	if (m_palette.generated) {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "generated stand-in, not a shipped game palette");
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "generated stand-in, not a shipped game palette");
 	}
 	if (m_palette.transparentIndex >= 0) {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "transparent index %1, drawn with a hatch pattern").arg(m_palette.transparentIndex);
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "transparent index %1, drawn with a hatch pattern").arg(m_palette.transparentIndex);
 	}
 	if (m_palette.fullbrightStartIndex >= 0) {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "fullbright range starts at index %1, marked with a dashed edge").arg(m_palette.fullbrightStartIndex);
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "fullbright range starts at index %1, marked with a dashed edge").arg(m_palette.fullbrightStartIndex);
 	}
 	if (m_selectedIndex >= 0 && m_selectedIndex < m_palette.colors.size()) {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "selected index %1, %2").arg(m_selectedIndex).arg(rgbHex(m_palette.colors.at(m_selectedIndex)));
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "selected index %1, %2").arg(m_selectedIndex).arg(rgbHex(m_palette.colors.at(m_selectedIndex)));
 	} else {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "no index selected");
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "no index selected");
 	}
-	return parts.join(QCoreApplication::translate("VibeStudioAssetViews", ", "));
+	return parts.join(QCoreApplication::translate("SlopStudioAssetViews", ", "));
 }
 
 QSize PaletteSwatchView::sizeHint() const
@@ -959,7 +959,7 @@ void PaletteSwatchView::paintEvent(QPaintEvent* event)
 
 	if (!hasPalette()) {
 		drawEmptyState(painter, rect(), colors,
-			QCoreApplication::translate("VibeStudioAssetViews", "No palette to preview.\nSelect a PLAYPAL, palette.lmp, or colormap asset."));
+			QCoreApplication::translate("SlopStudioAssetViews", "No palette to preview.\nSelect a PLAYPAL, palette.lmp, or colormap asset."));
 		if (hasFocus()) {
 			drawFocusRing(painter, rect(), colors);
 		}
@@ -1077,11 +1077,11 @@ void PaletteSwatchView::mouseMoveEvent(QMouseEvent* event)
 	if (index >= 0 && index < m_palette.colors.size()) {
 		const QRgb color = m_palette.colors.at(index);
 		if (index == m_palette.transparentIndex) {
-			summary = QCoreApplication::translate("VibeStudioAssetViews", "Index %1 — %2 (transparent index)").arg(index).arg(rgbHex(color));
+			summary = QCoreApplication::translate("SlopStudioAssetViews", "Index %1 — %2 (transparent index)").arg(index).arg(rgbHex(color));
 		} else if (m_palette.fullbrightStartIndex >= 0 && index >= m_palette.fullbrightStartIndex) {
-			summary = QCoreApplication::translate("VibeStudioAssetViews", "Index %1 — %2 (fullbright)").arg(index).arg(rgbHex(color));
+			summary = QCoreApplication::translate("SlopStudioAssetViews", "Index %1 — %2 (fullbright)").arg(index).arg(rgbHex(color));
 		} else {
-			summary = QCoreApplication::translate("VibeStudioAssetViews", "Index %1 — %2").arg(index).arg(rgbHex(color));
+			summary = QCoreApplication::translate("SlopStudioAssetViews", "Index %1 — %2").arg(index).arg(rgbHex(color));
 		}
 	}
 
@@ -1179,7 +1179,7 @@ WaveformView::WaveformView(QWidget* parent)
 	setObjectName("waveformView");
 	// Focusable, so the playhead can be moved from the keyboard.
 	setFocusPolicy(Qt::StrongFocus);
-	setAccessibleName(QCoreApplication::translate("VibeStudioAssetViews", "Audio waveform"));
+	setAccessibleName(QCoreApplication::translate("SlopStudioAssetViews", "Audio waveform"));
 	setAccessibleDescription(accessibleSummary());
 }
 
@@ -1386,7 +1386,7 @@ void WaveformView::setHighContrast(bool enabled)
 QString WaveformView::accessibleSummary() const
 {
 	if (!hasPeaks()) {
-		return QCoreApplication::translate("VibeStudioAssetViews", "Audio waveform, empty. No decoded audio is loaded.");
+		return QCoreApplication::translate("SlopStudioAssetViews", "Audio waveform, empty. No decoded audio is loaded.");
 	}
 
 	float peak = 0.0f;
@@ -1396,25 +1396,25 @@ QString WaveformView::accessibleSummary() const
 
 	QStringList parts;
 	parts << (m_channels == 1
-		? QCoreApplication::translate("VibeStudioAssetViews", "Waveform, mono")
-		: (m_channels == 2 ? QCoreApplication::translate("VibeStudioAssetViews", "Waveform, stereo") : QCoreApplication::translate("VibeStudioAssetViews", "Waveform, %1 channels").arg(m_channels)));
+		? QCoreApplication::translate("SlopStudioAssetViews", "Waveform, mono")
+		: (m_channels == 2 ? QCoreApplication::translate("SlopStudioAssetViews", "Waveform, stereo") : QCoreApplication::translate("SlopStudioAssetViews", "Waveform, %1 channels").arg(m_channels)));
 	if (m_sampleRate > 0) {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "%1 Hz").arg(m_sampleRate);
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "%1 Hz").arg(m_sampleRate);
 	}
-	parts << QCoreApplication::translate("VibeStudioAssetViews", "duration %1").arg(formatSeconds(static_cast<double>(m_durationMs) / 1000.0));
-	parts << QCoreApplication::translate("VibeStudioAssetViews", "playhead at %1").arg(formatSeconds(static_cast<double>(m_playheadMs) / 1000.0));
+	parts << QCoreApplication::translate("SlopStudioAssetViews", "duration %1").arg(formatSeconds(static_cast<double>(m_durationMs) / 1000.0));
+	parts << QCoreApplication::translate("SlopStudioAssetViews", "playhead at %1").arg(formatSeconds(static_cast<double>(m_playheadMs) / 1000.0));
 	if (m_selectionEnabled) {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "selection from %1 to %2 milliseconds; Shift with navigation keys extends the selection")
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "selection from %1 to %2 milliseconds; Shift with navigation keys extends the selection")
 			.arg(m_selectionStartMs).arg(m_selectionEndMs);
 	}
 	if (peak <= 0.0f) {
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "silent");
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "silent");
 	} else {
 		const double peakLevel = static_cast<double>(peak);
-		parts << QCoreApplication::translate("VibeStudioAssetViews", "peak level %1 percent, %2 dBFS")
+		parts << QCoreApplication::translate("SlopStudioAssetViews", "peak level %1 percent, %2 dBFS")
 			.arg(QString::number(peakLevel * 100.0, 'f', 1), QString::number(20.0 * std::log10(peakLevel), 'f', 1));
 	}
-	return parts.join(QCoreApplication::translate("VibeStudioAssetViews", ", "));
+	return parts.join(QCoreApplication::translate("SlopStudioAssetViews", ", "));
 }
 
 QSize WaveformView::sizeHint() const
@@ -1435,13 +1435,13 @@ void WaveformView::paintEvent(QPaintEvent* event)
 
 	if (!hasPeaks()) {
 		drawEmptyState(painter, rect(), colors, !m_emptyText.isEmpty() ? m_emptyText
-			: QCoreApplication::translate("VibeStudioAssetViews", "No waveform to preview.\nSelect a WAV asset, or the audio could not be decoded."));
+			: QCoreApplication::translate("SlopStudioAssetViews", "No waveform to preview.\nSelect a WAV asset, or the audio could not be decoded."));
 		return;
 	}
 
 	const int pairsPerChannel = static_cast<int>(m_peaks.size()) / (2 * m_channels);
 	if (pairsPerChannel <= 0) {
-		drawEmptyState(painter, rect(), colors, QCoreApplication::translate("VibeStudioAssetViews", "Decoded audio contains no peak data."));
+		drawEmptyState(painter, rect(), colors, QCoreApplication::translate("SlopStudioAssetViews", "Decoded audio contains no peak data."));
 		return;
 	}
 
@@ -1495,8 +1495,8 @@ void WaveformView::paintEvent(QPaintEvent* event)
 		}
 
 		const QString laneLabel = m_channels == 1
-			? QCoreApplication::translate("VibeStudioAssetViews", "Mono")
-			: (m_channels == 2 ? (channel == 0 ? QCoreApplication::translate("VibeStudioAssetViews", "Left") : QCoreApplication::translate("VibeStudioAssetViews", "Right")) : QCoreApplication::translate("VibeStudioAssetViews", "Ch %1").arg(channel + 1));
+			? QCoreApplication::translate("SlopStudioAssetViews", "Mono")
+			: (m_channels == 2 ? (channel == 0 ? QCoreApplication::translate("SlopStudioAssetViews", "Left") : QCoreApplication::translate("SlopStudioAssetViews", "Right")) : QCoreApplication::translate("SlopStudioAssetViews", "Ch %1").arg(channel + 1));
 		// On a chip of the background, so the label reads over a loud envelope.
 		const QRect chip(lane.left() + 2, lane.top() + 2, metrics.horizontalAdvance(laneLabel) + 8, metrics.height() + 2);
 		painter.fillRect(chip, colors.background);
@@ -1541,7 +1541,7 @@ void WaveformView::paintEvent(QPaintEvent* event)
 		}
 	} else {
 		painter.setPen(labelPen);
-		painter.drawText(axis, Qt::AlignLeft | Qt::AlignVCenter, QCoreApplication::translate("VibeStudioAssetViews", "Duration unavailable"));
+		painter.drawText(axis, Qt::AlignLeft | Qt::AlignVCenter, QCoreApplication::translate("SlopStudioAssetViews", "Duration unavailable"));
 	}
 
 	// The playhead: a text-coloured line over the envelope, with a notch on the
@@ -1563,4 +1563,4 @@ void WaveformView::paintEvent(QPaintEvent* event)
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

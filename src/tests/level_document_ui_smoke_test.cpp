@@ -22,7 +22,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message, const QString& error = {})
@@ -114,7 +114,7 @@ int main(int argc, char** argv)
 		LevelMapDocument created;
 		ok &= expect(createLevelMap(dialog.request(), &created, &error) && created.mapName == QStringLiteral("MAP03"),
 					 "UI request uses the shared creation service", error);
-		const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			for (int bottom : {0, 1}) {
 				auto* scroll = dialog.findChild<QScrollArea*>();

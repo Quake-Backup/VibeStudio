@@ -1,7 +1,7 @@
 #pragma once
 #include "tests/model_rig_test_helpers.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh transferFixture()
 {
@@ -36,4 +36,4 @@ inline ModelEdit mirrorWeights()
 	o.joints = {{"arm.L", "arm.R"}, {"arm.R", "arm.L"}};
 	return edit;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

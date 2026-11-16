@@ -17,7 +17,7 @@
 // Map_Groups.cpp::extractLinkedGroups, GPL-3.0-or-later. See docs/CREDITS.md.
 // Clone each instance before pruning so local entity properties survive.
 // Nested groups move whole and keep their links, as TrenchBroom's do.
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -559,4 +559,4 @@ QJsonObject levelLinkedExtractionReportJson(const LevelLinkedExtractionReport& r
 	        {QStringLiteral("nestedGroups"), report.nestedGroups},
 	        {QStringLiteral("splitEntities"), report.splitEntities}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -2,7 +2,7 @@
 #include "app/level_merge_dialog.h"
 #include <QStatusBar>
 
-namespace vibestudio
+namespace slopstudio
 {
 bool ApplicationShell::applyLevelBrushMerge(const LevelBrushMergePlan &plan, QString *error)
 {
@@ -41,4 +41,4 @@ void ApplicationShell::mergeLevelMapBrushesFromUi()
 	});
 	dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

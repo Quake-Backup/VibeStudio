@@ -8,7 +8,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -134,4 +134,4 @@ bool applyModelSurfaceTransform(ModelMesh *mesh, const ModelEdit &edit, QString 
 	}
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

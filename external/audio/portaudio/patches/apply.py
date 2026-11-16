@@ -21,10 +21,10 @@ def patch(relative, text):
     text = text.replace('\r\n', '\n')
     if relative == 'src/hostapi/wasapi/pa_win_wasapi.c':
         text = replace(text, '#include "pa_win_wasapi.h"',
-                       '#include "pa_win_wasapi.h"\n#include "vibestudio_wasapi_packet.h"')
+                       '#include "pa_win_wasapi.h"\n#include "slopstudio_wasapi_packet.h"')
         text = replace(text, '    PaUtilCpuLoadMeasurer      cpuLoadMeasurer;',
-                       '    VibeWasapiPacketState vibePacket;\n    unsigned long vibeStoppedFlags;\n    int vibeDrain;\n    PaUtilCpuLoadMeasurer cpuLoadMeasurer;')
-        text = replace(text, '    // validate PaStreamParameters', '''    /* VibeStudio: full duplex uses variable callbacks, preserving packet
+                       '    SlopWasapiPacketState slopPacket;\n    unsigned long slopStoppedFlags;\n    int slopDrain;\n    PaUtilCpuLoadMeasurer cpuLoadMeasurer;')
+        text = replace(text, '    // validate PaStreamParameters', '''    /* SlopStudio: full duplex uses variable callbacks, preserving packet
        timestamps and allowing the buffer processor's zero-input path. */
     if (fullDuplex && framesPerBuffer != paFramesPerBufferUnspecified)
         return paInvalidFlag;
@@ -39,16 +39,16 @@ def patch(relative, text):
         text = replace(text, '            framesPerBuffer,\n            framesPerHostCallback,',
                        '            fullDuplex ? paFramesPerBufferUnspecified : framesPerBuffer,\n            framesPerHostCallback,')
         text = replace(text, '    PaUtil_ResetBufferProcessor(&stream->bufferProcessor);',
-                       '    memset(&stream->vibePacket, 0, sizeof(stream->vibePacket));\n    stream->vibeDrain = 0;\n    stream->vibeStoppedFlags = 0;\n    PaUtil_ResetBufferProcessor(&stream->bufferProcessor);')
+                       '    memset(&stream->slopPacket, 0, sizeof(stream->slopPacket));\n    stream->slopDrain = 0;\n    stream->slopStoppedFlags = 0;\n    PaUtil_ResetBufferProcessor(&stream->bufferProcessor);')
         text = replace(text, '''        timeInfo.outputBufferDacTime = timeInfo.currentTime + pending_time;''',
                        '''        if (PA_WASAPI__IS_FULLDUPLEX(stream) && hr != S_OK)
-            stream->vibePacket.flags |= VIBE_PA_TIMESTAMP_ERROR;
+            stream->slopPacket.flags |= SLOP_PA_TIMESTAMP_ERROR;
         timeInfo.outputBufferDacTime = timeInfo.currentTime + pending_time;''')
         text = replace(text, '    PaUtil_BeginBufferProcessing( &stream->bufferProcessor, &timeInfo, flags );', '''    if (PA_WASAPI__IS_FULLDUPLEX(stream))
     {
-        timeInfo.inputBufferAdcTime = stream->vibePacket.inputTime;
-        flags = stream->vibePacket.flags;
-        stream->vibePacket.flags = 0;
+        timeInfo.inputBufferAdcTime = stream->slopPacket.inputTime;
+        flags = stream->slopPacket.flags;
+        stream->slopPacket.flags = 0;
     }
     PaUtil_BeginBufferProcessing( &stream->bufferProcessor, &timeInfo, flags );''')
         text = replace(text, '''        PaUtil_SetInterleavedInputChannels( &stream->bufferProcessor,
@@ -60,7 +60,7 @@ def patch(relative, text):
             PaUtil_SetInterleavedInputChannels( &stream->bufferProcessor,
                 0, inputBuffer, 0 );''')
         text = replace(text, '    if (callbackResult != paContinue)\n',
-                       '    stream->vibeDrain = (callbackResult == paComplete);\n    if (callbackResult != paContinue)\n')
+                       '    stream->slopDrain = (callbackResult == paComplete);\n    if (callbackResult != paContinue)\n')
         text = replace(text, '            DWORD i_flags = 0;',
                        '            DWORD i_flags = 0;\n            UINT64 i_position = 0, i_qpc = 0;')
         text = replace(text, '''            while (o_frames != 0)
@@ -76,7 +76,7 @@ def patch(relative, text):
         text = replace(text, '                        if (stream->in.monoMixer != NULL)',
                        '                        if (stream->in.monoMixer != NULL && !(i_flags & AUDCLNT_BUFFERFLAGS_SILENT))')
         text = replace(text, '''                        // Process
-                        processor[S_FULLDUPLEX].processor''', '''                        VibeWasapiPacket(&stream->vibePacket, i_position, i_qpc, i_processed,
+                        processor[S_FULLDUPLEX].processor''', '''                        SlopWasapiPacket(&stream->slopPacket, i_position, i_qpc, i_processed,
                             (i_flags & AUDCLNT_BUFFERFLAGS_DATA_DISCONTINUITY) != 0,
                             (i_flags & AUDCLNT_BUFFERFLAGS_TIMESTAMP_ERROR) != 0);
                         if (i_flags & AUDCLNT_BUFFERFLAGS_SILENT)
@@ -90,15 +90,15 @@ def patch(relative, text):
                             LogHostError(hr);
                             goto thread_error;
                         }
-                        stream->vibePacket.outputWritten = 1;''')
+                        stream->slopPacket.outputWritten = 1;''')
         text = replace(text, '    // Set available frame count\n    (*available) = frames - padding;', '''    if (padding > frames)
         return E_UNEXPECTED;
     if (PA_WASAPI__IS_FULLDUPLEX(stream))
-        VibeWasapiPadding(&stream->vibePacket, padding);
+        SlopWasapiPadding(&stream->slopPacket, padding);
     // Set available frame count
     (*available) = frames - padding;''')
         text = replace(text, '''        // Start
-        if ((hr = IAudioClient_Start(stream->out.clientProc)) != S_OK)''', '''        /* VibeStudio: prime duplex output with host silence, never with a
+        if ((hr = IAudioClient_Start(stream->out.clientProc)) != S_OK)''', '''        /* SlopStudio: prime duplex output with host silence, never with a
            fabricated input callback. This creates room for capture polling. */
         if (PA_WASAPI__IS_FULLDUPLEX(stream))
         {
@@ -116,7 +116,7 @@ def patch(relative, text):
         text = replace(text, '''    // Stop INPUT/OUTPUT clients
     if (!stream->isBlocking)''', '''    /* paComplete must play queued output. This is the host worker, after
        the application callback, with a bounded wait if the driver stalls. */
-    if (stream->vibeDrain && stream->out.clientProc != NULL)
+    if (stream->slopDrain && stream->out.clientProc != NULL)
     {
         int attempts = 2000;
         HRESULT drainResult;
@@ -125,23 +125,23 @@ def patch(relative, text):
                (drainResult = IAudioClient_GetCurrentPadding(stream->out.clientProc, &padding)) == S_OK && padding != 0)
             Sleep(1);
         if (attempts < 0 || drainResult != S_OK)
-            stream->vibeStoppedFlags |= VIBE_PA_HOST_ERROR;
-        stream->vibeDrain = 0;
+            stream->slopStoppedFlags |= SLOP_PA_HOST_ERROR;
+        stream->slopDrain = 0;
     }
     // Stop INPUT/OUTPUT clients
     if (!stream->isBlocking)''')
         text = replace(text, 'thread_error:\n',
-                       'thread_error:\n    stream->vibeStoppedFlags |= VIBE_PA_HOST_ERROR;\n', 2)
+                       'thread_error:\n    stream->slopStoppedFlags |= SLOP_PA_HOST_ERROR;\n', 2)
         text = replace(text, 'thread_end:\n',
-                       'thread_end:\n    if (FAILED(hr))\n        stream->vibeStoppedFlags |= VIBE_PA_HOST_ERROR;\n', 2)
+                       'thread_end:\n    if (FAILED(hr))\n        stream->slopStoppedFlags |= SLOP_PA_HOST_ERROR;\n', 2)
         text = replace(text, '                if (i_processed == 0)\n                    break;',
                        '                if (i_processed == 0 || CheckForStop(stream))\n                    break;')
         text += '''
-/* VibeStudio private extension. The owner checks inactive before calling. */
-unsigned long VibePaWasapi_GetStoppedFlags(PaStream *s)
+/* SlopStudio private extension. The owner checks inactive before calling. */
+unsigned long SlopPaWasapi_GetStoppedFlags(PaStream *s)
 {
     PaWasapiStream *stream = (PaWasapiStream *)s;
-    return stream->vibeStoppedFlags;
+    return stream->slopStoppedFlags;
 }
 '''
         # Explicit channel counts must not silently activate the mono remapper.
@@ -153,7 +153,7 @@ unsigned long VibePaWasapi_GetStoppedFlags(PaStream *s)
             // If mono, then driver does not support 1 channel, we use internal workaround''')
     elif relative == 'src/hostapi/coreaudio/pa_mac_core_internal.h':
         text = replace(text, '    volatile uint32_t xrunFlags; /*PaStreamCallbackFlags*/',
-                       '    _Atomic(uint32_t) xrunFlags; /* VibeStudio: atomically consume concurrent notifications. */')
+                       '    _Atomic(uint32_t) xrunFlags; /* SlopStudio: atomically consume concurrent notifications. */')
         text = '#include <stdatomic.h>\n' + text
     elif relative == 'src/hostapi/coreaudio/pa_mac_core_utilities.c':
         for flag in ('paInputOverflow', 'paOutputUnderflow'):

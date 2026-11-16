@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelSurfaceClipboardCliResult {
 	int exitCode = 0;
 	QString error;
@@ -10,4 +10,4 @@ struct LevelSurfaceClipboardCliResult {
 	QStringList lines;
 };
 LevelSurfaceClipboardCliResult runLevelSurfaceClipboard(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

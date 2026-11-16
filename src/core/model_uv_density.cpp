@@ -7,7 +7,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -256,4 +256,4 @@ bool applyModelUvDensity(ModelMesh *mesh, const ModelEdit &edit, ModelSelection 
 	*selection = {selection->surface, {}, parts.first().faces};
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

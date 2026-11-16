@@ -28,8 +28,8 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::subset_test;
+using namespace slopstudio;
+using namespace slopstudio::subset_test;
 namespace {
 bool expect(bool value, const char* label) { if (!value) { std::cerr << label << '\n'; } return value; }
 bool wait(const std::function<bool()>& ready)
@@ -75,7 +75,7 @@ int main(int argc, char** argv)
 	const QDir root(temporary.path()); bool ok = true; QString error; ExpandedTranslator translator;
 	StudioSettings::setOverrideFilePath(root.filePath("settings.ini"));
 	QTranslator english;
-	if (english.load(QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("../i18n/vibestudio_en.qm")))) { app.installTranslator(&english); }
+	if (english.load(QDir(QCoreApplication::applicationDirPath()).filePath(QStringLiteral("../i18n/slopstudio_en.qm")))) { app.installTranslator(&english); }
 	const auto source = root.filePath("maps.wad"); auto archive = std::make_shared<PackageArchive>();
 	ok &= wad(source, fixture()) && archive->load(source, &error); if (!expect(ok, "prepare subset UI fixture")) { return 1; }
 	const auto original = get(source); PackageSelectionRequest selection; selection.entryIndexes = {index(*archive, "THINGS", 1)};
@@ -96,7 +96,7 @@ int main(int argc, char** argv)
 		auto* close = dialog.findChild<QDialogButtonBox*>()->button(QDialogButtonBox::Close); auto* scroll = dialog.findChild<QScrollArea*>();
 		ok &= expect(dialog.rect().contains(QRect(close->mapTo(&dialog, QPoint()), close->size())) && close->focusPolicy() != Qt::NoFocus, "Close remains visible and focusable at each scale");
 		const auto capture = [&](const QString& name) {
-			const QString folder = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT"); if (folder.isEmpty()) { return true; }
+			const QString folder = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT"); if (folder.isEmpty()) { return true; }
 			QDir().mkpath(folder); QApplication::processEvents(); dialog.repaint();
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog.render(&image);
 			return image.save(QDir(folder).filePath(QStringLiteral("subset-%1-%2.png").arg(scale).arg(name)));
@@ -130,7 +130,7 @@ int main(int argc, char** argv)
 		ok &= expect(table->rowCount() == 3 && table->item(2, 0)->text().contains("0502.txt"), "last review page includes the final occurrence");
 		table->setCurrentCell(2, 0);
 		ok &= expect(dialog.findChild<QPlainTextEdit*>("packageSubsetDetails")->toPlainText().contains("0502.txt"), "paged details resolve the correct entry");
-		if (const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT"); !captures.isEmpty()) {
+		if (const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT"); !captures.isEmpty()) {
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog.render(&image);
 			ok &= image.save(QDir(captures).filePath("subset-paged-200.png"));
 		}
@@ -156,7 +156,7 @@ int main(int argc, char** argv)
 	// staged bytes, without reducing it to an ambiguous name.
 	ok &= put(source, original); PackageArchive refreshed; PackageStagingModel staged;
 	ok &= refreshed.load(source, &error) && staged.loadBaseArchive(refreshed, &error);
-	const auto replacement = root.filePath("replacement.bin"), draft = root.filePath("browser.vibepackage");
+	const auto replacement = root.filePath("replacement.bin"), draft = root.filePath("browser.sloppackage");
 	ok &= put(replacement, "staged-things") && staged.replaceOccurrence(12, replacement, &error) && PackageDraft::save(draft, &staged, false, &error);
 	{
 		ApplicationShell shell; shell.openPathFromCommandLine(draft); shell.show(); QApplication::processEvents();

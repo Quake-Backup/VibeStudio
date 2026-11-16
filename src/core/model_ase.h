@@ -14,7 +14,7 @@
 #include <QByteArray>
 #include <QString>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ModelExportReport;
 
@@ -28,4 +28,4 @@ struct ModelExportReport;
 [[nodiscard]] QByteArray exportModelAse(const ModelMesh& mesh, int frameIndex, QString* error = nullptr, const ModelWorkControl& control = {},
 	ModelExportReport* report = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

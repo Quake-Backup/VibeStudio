@@ -19,69 +19,69 @@ int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
 
-	vibestudio::OperationStateModel model;
+	slopstudio::OperationStateModel model;
 	if (model.summaryText() != QStringLiteral("No activity yet.")) {
 		return fail("Expected empty activity summary.");
 	}
-	if (vibestudio::operationStateFromId(QStringLiteral("canceled")) != vibestudio::OperationState::Cancelled) {
+	if (slopstudio::operationStateFromId(QStringLiteral("canceled")) != slopstudio::OperationState::Cancelled) {
 		return fail("Expected operation state id normalization.");
 	}
-	if (!vibestudio::operationStateAllowsCancellation(vibestudio::OperationState::Queued) || !vibestudio::operationStateAllowsCancellation(vibestudio::OperationState::Loading) || vibestudio::operationStateAllowsCancellation(vibestudio::OperationState::Completed)) {
+	if (!slopstudio::operationStateAllowsCancellation(slopstudio::OperationState::Queued) || !slopstudio::operationStateAllowsCancellation(slopstudio::OperationState::Loading) || slopstudio::operationStateAllowsCancellation(slopstudio::OperationState::Completed)) {
 		return fail("Expected cancellation policy.");
 	}
 
-	const QString scanId = model.createTask(QStringLiteral("Package Scan"), QStringLiteral("Read package entries"), QStringLiteral("package"), vibestudio::OperationState::Queued, true);
-	if (!model.contains(scanId) || model.task(scanId).state != vibestudio::OperationState::Queued) {
+	const QString scanId = model.createTask(QStringLiteral("Package Scan"), QStringLiteral("Read package entries"), QStringLiteral("package"), slopstudio::OperationState::Queued, true);
+	if (!model.contains(scanId) || model.task(scanId).state != slopstudio::OperationState::Queued) {
 		return fail("Expected created queued task.");
 	}
 	if (model.task(scanId).transitions.size() != 1 || model.task(scanId).durationMs != 0) {
 		return fail("Expected task timing to start with one zero-duration transition.");
 	}
-	model.transitionTask(scanId, vibestudio::OperationState::Running, QStringLiteral("Scan started."));
-	model.transitionTask(scanId, vibestudio::OperationState::Loading, QStringLiteral("Entries loading."));
+	model.transitionTask(scanId, slopstudio::OperationState::Running, QStringLiteral("Scan started."));
+	model.transitionTask(scanId, slopstudio::OperationState::Loading, QStringLiteral("Entries loading."));
 	model.setProgress(scanId, 5, 10, QStringLiteral("Halfway."));
-	if (model.task(scanId).state != vibestudio::OperationState::Loading) {
+	if (model.task(scanId).state != slopstudio::OperationState::Loading) {
 		return fail("Expected loading state.");
 	}
-	if (model.task(scanId).progress.current != 5 || vibestudio::operationProgressPercent(model.task(scanId).progress) != 50) {
+	if (model.task(scanId).progress.current != 5 || slopstudio::operationProgressPercent(model.task(scanId).progress) != 50) {
 		return fail("Expected progress to be stored and normalized.");
 	}
 	model.appendWarning(scanId, QStringLiteral("Unknown lump type."));
-	if (model.task(scanId).state != vibestudio::OperationState::Warning || model.task(scanId).warnings.size() != 1) {
+	if (model.task(scanId).state != slopstudio::OperationState::Warning || model.task(scanId).warnings.size() != 1) {
 		return fail("Expected warning state and warning list.");
 	}
 	model.completeTask(scanId, QStringLiteral("Scan completed with warnings."));
-	if (model.task(scanId).state != vibestudio::OperationState::Warning || model.task(scanId).progress.current != model.task(scanId).progress.total) {
+	if (model.task(scanId).state != slopstudio::OperationState::Warning || model.task(scanId).progress.current != model.task(scanId).progress.total) {
 		return fail("Expected warning task to remain warning after completion.");
 	}
-	const vibestudio::OperationTask scanTask = model.task(scanId);
-	if (scanTask.durationMs < 0 || vibestudio::operationTaskElapsedMs(scanTask) < 0 || scanTask.transitions.size() < 5) {
+	const slopstudio::OperationTask scanTask = model.task(scanId);
+	if (scanTask.durationMs < 0 || slopstudio::operationTaskElapsedMs(scanTask) < 0 || scanTask.transitions.size() < 5) {
 		return fail("Expected task elapsed timing and transition history.");
 	}
-	const QString scanTimeline = vibestudio::operationTaskTimelineText(scanTask);
+	const QString scanTimeline = slopstudio::operationTaskTimelineText(scanTask);
 	if (!scanTimeline.contains(QStringLiteral("[queued]")) || !scanTimeline.contains(QStringLiteral("[running]")) || !scanTimeline.contains(QStringLiteral("[warning]"))) {
 		return fail("Expected timeline text to include timed state transitions.");
 	}
 
-	const QString compilerId = model.createTask(QStringLiteral("Compiler Probe"), QStringLiteral("Run q3map2 help"), QStringLiteral("compiler"), vibestudio::OperationState::Running, true);
+	const QString compilerId = model.createTask(QStringLiteral("Compiler Probe"), QStringLiteral("Run q3map2 help"), QStringLiteral("compiler"), slopstudio::OperationState::Running, true);
 	if (!model.cancelTask(compilerId, QStringLiteral("Probe cancelled by user."))) {
 		return fail("Expected cancellable task to cancel.");
 	}
-	if (model.task(compilerId).state != vibestudio::OperationState::Cancelled || model.cancelTask(compilerId)) {
+	if (model.task(compilerId).state != slopstudio::OperationState::Cancelled || model.cancelTask(compilerId)) {
 		return fail("Expected cancelled task to be terminal.");
 	}
 
 	const QString failedId = model.createTask(QStringLiteral("Validation"), QStringLiteral("Validate package"), QStringLiteral("qa"));
 	model.failTask(failedId, QStringLiteral("Validation failed."));
-	if (model.task(failedId).state != vibestudio::OperationState::Failed || model.task(failedId).finishedUtc.isNull()) {
+	if (model.task(failedId).state != slopstudio::OperationState::Failed || model.task(failedId).finishedUtc.isNull()) {
 		return fail("Expected failed terminal task.");
 	}
-	if (model.task(failedId).durationMs < 0 || model.task(failedId).transitions.constLast().state != vibestudio::OperationState::Failed) {
+	if (model.task(failedId).durationMs < 0 || model.task(failedId).transitions.constLast().state != slopstudio::OperationState::Failed) {
 		return fail("Expected terminal transition timing.");
 	}
 
-	const QMap<vibestudio::OperationState, int> counts = model.stateCounts();
-	if (counts.value(vibestudio::OperationState::Warning) != 1 || counts.value(vibestudio::OperationState::Cancelled) != 1 || counts.value(vibestudio::OperationState::Failed) != 1) {
+	const QMap<slopstudio::OperationState, int> counts = model.stateCounts();
+	if (counts.value(slopstudio::OperationState::Warning) != 1 || counts.value(slopstudio::OperationState::Cancelled) != 1 || counts.value(slopstudio::OperationState::Failed) != 1) {
 		return fail("Expected state counts.");
 	}
 	if (!model.summaryText().contains(QStringLiteral("1 warning")) || !model.summaryText().contains(QStringLiteral("1 failed"))) {

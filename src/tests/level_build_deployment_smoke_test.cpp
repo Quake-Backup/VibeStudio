@@ -11,7 +11,7 @@
 #include <QTemporaryDir>
 #include <QThread>
 #include <iostream>
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool pass, const char* label, const QString& error = {}) {
@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
 		const auto args = app.arguments();
 		const auto map = args.value(args.indexOf("+devmap") + 1);
 		const auto mod = args.value(args.indexOf("fs_game") + 1);
-		const auto package = QDir::current().filePath(mod + "/vibestudio_" + map + ".pk3");
+		const auto package = QDir::current().filePath(mod + "/slopstudio_" + map + ".pk3");
 		PackageArchive archive;
 		QString error;
 		const bool valid = archive.load(package, &error) && validatePackage(archive).valid();
@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
 	const auto workspace = prepareLevelBuildWorkspace(map, assets, preparation);
 	BuildPipelineRequest build;
 	build.pipelineId = "quake3-full";
-	build.executableOverrides = {{"vibemap3", QString::fromLocal8Bit(argv[1])}};
+	build.executableOverrides = {{"slopmap3", QString::fromLocal8Bit(argv[1])}};
 	const auto compiled = runLevelBuildWorkspace(workspace, build);
 	if (!expect(workspace.ready && compiled.succeeded(), "prepared compiler fixture", workspace.error + compiled.errors.join('\n'))) {
 		return 1;

@@ -5,7 +5,7 @@
 #include <QJsonObject>
 #include <optional>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 enum class AudioChannelRole { Left, Right, Center, LowFrequency, LeftSurround, RightSurround, LeftBack, RightBack, BackCenter, Unused };
@@ -60,4 +60,4 @@ AudioAnalysisResult analyzeAudioClip(const AudioClip& clip, qint64 firstFrame = 
 // Silence dBFS and absent frame positions are JSON null, never NaN/Infinity.
 QJsonObject audioAnalysisJson(const AudioAnalysis& analysis);
 
-} // namespace vibestudio
+} // namespace slopstudio

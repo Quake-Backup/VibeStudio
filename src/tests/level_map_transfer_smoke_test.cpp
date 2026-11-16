@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool pass, const char* label, const QString& detail = {})
@@ -306,8 +306,8 @@ void importTests(const QString& folder)
 	expect(!readLevelMapImport(QDir(folder).filePath("missing.wad"), {}, &imported, &error), "WAD refused");
 	expect(levelMapImportNeedsConversion(QStringLiteral("old.BSP")) && !readLevelMapImport(QStringLiteral("old.bsp"), {}, &imported, &error), "bsp needs conversion");
 	const auto conversion = levelMapImportConversionRequest(QDir(folder).filePath("old.bsp"), QDir(folder).filePath("old_converted.map"), QStringLiteral("valve220"));
-	expect(conversion.profileId == QStringLiteral("vibemap3-convert") && conversion.extraArguments.mid(0, 2) == QStringList{"-format", "map_220"}
-		&& conversion.extraArguments.value(2) == QStringLiteral("-o"), "VibeMap3 convert request matches the brush format");
+	expect(conversion.profileId == QStringLiteral("slopmap3-convert") && conversion.extraArguments.mid(0, 2) == QStringList{"-format", "map_220"}
+		&& conversion.extraArguments.value(2) == QStringLiteral("-o"), "SlopMap3 convert request matches the brush format");
 	const auto plan = buildCompilerCommandPlan(conversion);
 	expect(plan.arguments.value(0) == QStringLiteral("-convert") && plan.arguments.contains(QStringLiteral("map_220"))
 		&& QDir::cleanPath(plan.arguments.last()) == QDir::cleanPath(conversion.inputPath), "convert plan keeps the stage first and the BSP last");
@@ -361,7 +361,7 @@ void exportSelectionTests(const QString& folder)
 	// Complete groups keep their scene note.
 	expect(setLevelMapSelection(&document, {{LevelMapSelectionKind::QuakeBrush, 0}, {LevelMapSelectionKind::QuakeBrush, 1}}, &error), "select group", error);
 	const auto grouped = levelMapSelectionExportText(document, true, &error);
-	expect(grouped.contains(QStringLiteral("// VibeStudioScene: "))
+	expect(grouped.contains(QStringLiteral("// SlopStudioScene: "))
 		&& loadLevelMapBytes({QStringLiteral("grouped.map"), {}, {}}, grouped.toUtf8(), &exported, &error) && exported.scene.problem.isEmpty()
 		&& !nodeNamed(exported.scene, QStringLiteral("Pair")).isEmpty(), "groups survive the export", exported.scene.problem);
 
@@ -482,7 +482,7 @@ void cliTests(const QString& executable, const QString& folder)
 	expect(fake.open(QIODevice::WriteOnly) && fake.write("IBSP") == 4, "fake bsp");
 	fake.close();
 	report = run({"map", "import", dest, "--from", fake.fileName(), "--output", QDir(folder).filePath("cli-bsp.map")}, 4);
-	expect(report["message"].toString().contains(QStringLiteral("VibeMap3")) && !QFileInfo::exists(QDir(folder).filePath("cli-bsp.map")), "CLI bsp conversion failure",
+	expect(report["message"].toString().contains(QStringLiteral("SlopMap3")) && !QFileInfo::exists(QDir(folder).filePath("cli-bsp.map")), "CLI bsp conversion failure",
 		report["message"].toString());
 	run({"map", "import", dest, "--output", imported, "--overwrite"}, 2);
 

@@ -3,7 +3,7 @@
 // components in component mode. Workflow reference: NetRadiant Custom
 // Selection_SnapToGrid, Scene_SnapToGrid_Selected and
 // Scene_SnapToGrid_Component_Selected in radiant/select.cpp at 449778b3
-// (GPL-2.0-or-later). Original implementation over VibeStudio's component
+// (GPL-2.0-or-later). Original implementation over SlopStudio's component
 // transform service; see docs/CREDITS.md.
 
 #include "core/level_grid_round.h"
@@ -19,7 +19,7 @@
 #include <cmath>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -67,11 +67,11 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 		return false;
 	};
 	if (!document || (document->format != LevelMapFormat::QuakeMap && document->format != LevelMapFormat::Quake3Map)) {
-		return fail(QCoreApplication::translate("VibeStudioLevelGridRound",
+		return fail(QCoreApplication::translate("SlopStudioLevelGridRound",
 			"Open a Quake-family map to round brush vertices, patch control points and entity origins to the grid."));
 	}
 	if (!std::isfinite(request.grid) || request.grid <= 0 || request.grid > 4096) {
-		return fail(QCoreApplication::translate("VibeStudioLevelGridRound", "Round to a grid from more than 0 to 4096 units."));
+		return fail(QCoreApplication::translate("SlopStudioLevelGridRound", "Round to a grid from more than 0 to 4096 units."));
 	}
 	LevelComponentTransformRequest transform;
 	transform.grid = request.grid;
@@ -97,7 +97,7 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 		return true;
 	}
 	if (document->selection.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioLevelGridRound", "Select brushes, patches or entities to round them to the grid."));
+		return fail(QCoreApplication::translate("SlopStudioLevelGridRound", "Select brushes, patches or entities to round them to the grid."));
 	}
 
 	// Gather the objects whose points round: selected brushes and patches,
@@ -116,7 +116,7 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 		++considered;
 		const QString name = levelMapSelectionRefId({kind, id});
 		if (hidden.contains(name)) {
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "%1 is hidden; show it to round it.").arg(name);
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "%1 is hidden; show it to round it.").arg(name);
 			return;
 		}
 		(kind == LevelMapSelectionKind::QuakeBrush ? brushIds : patchIds) << id;
@@ -130,7 +130,7 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 		const QString name = levelMapSelectionRefId(ref);
 		if (ref.kind != LevelMapSelectionKind::Entity) {
 			++considered;
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "%1 has no points to round.").arg(name);
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "%1 has no points to round.").arg(name);
 			continue;
 		}
 		if (entitySeen.contains(ref.objectId)) {
@@ -140,12 +140,12 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 		const auto entity = std::find_if(document->entities.cbegin(), document->entities.cend(), [&ref](const auto& e) { return e.id == ref.objectId; });
 		if (entity == document->entities.cend()) {
 			++considered;
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "%1 is no longer in the map.").arg(name);
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "%1 is no longer in the map.").arg(name);
 			continue;
 		}
 		if (entity->className.compare(QStringLiteral("worldspawn"), Qt::CaseInsensitive) == 0) {
 			++considered;
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "Select worldspawn's brushes or patches to round them.");
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "Select worldspawn's brushes or patches to round them.");
 			continue;
 		}
 		bool owns = false;
@@ -167,9 +167,9 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 		}
 		++considered;
 		if (hidden.contains(name)) {
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "%1 is hidden; show it to round it.").arg(name);
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "%1 is hidden; show it to round it.").arg(name);
 		} else if (!entity->origin.valid) {
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "%1 has no origin to round.").arg(name);
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "%1 has no origin to round.").arg(name);
 		} else {
 			entityIds << ref.objectId;
 		}
@@ -183,13 +183,13 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 		detail::placementCancellationCheckpoint();
 		const auto found = std::find_if(document->brushes.cbegin(), document->brushes.cend(), [id](const auto& b) { return b.id == id; });
 		if (found == document->brushes.cend()) {
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "Brush %1 is no longer in the map.").arg(id);
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "Brush %1 is no longer in the map.").arg(id);
 			continue;
 		}
 		LevelBrushTopology topology;
 		QString problem;
 		if (!levelBrushTopology(*found, &topology, &problem)) {
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "Brush %1: %2").arg(id).arg(problem);
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "Brush %1: %2").arg(id).arg(problem);
 			continue;
 		}
 		QVector<int> all(topology.vertices.size());
@@ -198,7 +198,7 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 		LevelBrushEditReport edit;
 		if (!transformLevelBrushComponents(&draft, LevelBrushComponent::Vertex, all, identity, request.grid, false, request.textureLock,
 				request.allowValve220, &edit, &problem, request.fitUvLock)) {
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "Brush %1: %2").arg(id).arg(problem);
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "Brush %1: %2").arg(id).arg(problem);
 			continue;
 		}
 		if (edit.changed) {
@@ -209,7 +209,7 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 		detail::placementCancellationCheckpoint();
 		const auto found = std::find_if(document->patches.cbegin(), document->patches.cend(), [id](const auto& p) { return p.id == id; });
 		if (found == document->patches.cend()) {
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "Patch %1 is no longer in the map.").arg(id);
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "Patch %1 is no longer in the map.").arg(id);
 			continue;
 		}
 		LevelMapPatch draft = *found;
@@ -222,11 +222,11 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 		}
 		QString problem;
 		if (!inside) {
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "Patch %1 would leave the map's coordinate range.").arg(id);
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "Patch %1 would leave the map's coordinate range.").arg(id);
 			continue;
 		}
 		if (!validateLevelPatch(draft, &problem)) {
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "Patch %1: %2").arg(id).arg(problem);
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "Patch %1: %2").arg(id).arg(problem);
 			continue;
 		}
 		if (changed) {
@@ -241,7 +241,7 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 		const auto entity = std::find_if(document->entities.cbegin(), document->entities.cend(), [id](const auto& e) { return e.id == id; });
 		const LevelMapVec3 rounded = snapLevelMapPosition(entity->origin, request.grid);
 		if (!finitePoint(rounded)) {
-			skipped << QCoreApplication::translate("VibeStudioLevelGridRound", "Entity %1 would leave the map's coordinate range.").arg(id);
+			skipped << QCoreApplication::translate("SlopStudioLevelGridRound", "Entity %1 would leave the map's coordinate range.").arg(id);
 			continue;
 		}
 		if (samePoint(rounded, entity->origin)) {
@@ -282,8 +282,8 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 		const int steps = static_cast<int>(working.undoStack.size() - before);
 		if (steps > 0
 			&& !collapseLevelMapUndoSteps(&working, steps,
-				QCoreApplication::translate("VibeStudioLevelGridRound", "Round %n object(s) to the %1-unit grid", nullptr, objects).arg(coordinate(request.grid)),
-				QCoreApplication::translate("VibeStudioLevelGridRound", "Put the rounded objects back"), error)) {
+				QCoreApplication::translate("SlopStudioLevelGridRound", "Round %n object(s) to the %1-unit grid", nullptr, objects).arg(coordinate(request.grid)),
+				QCoreApplication::translate("SlopStudioLevelGridRound", "Put the rounded objects back"), error)) {
 			return false;
 		}
 	}
@@ -295,4 +295,4 @@ bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGrid
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

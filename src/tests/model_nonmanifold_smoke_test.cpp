@@ -16,7 +16,7 @@
 #include <iostream>
 #include <random>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -97,7 +97,7 @@ bool unambiguousEdgesPreserved(const ModelSurface &before, const ModelSurface &a
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root) || argc != 2)
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("nonmanifold-XXXXXX"));

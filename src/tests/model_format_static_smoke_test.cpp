@@ -20,7 +20,7 @@
 #include <iostream>
 #include <random>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

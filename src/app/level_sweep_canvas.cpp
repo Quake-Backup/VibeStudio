@@ -4,7 +4,7 @@
 #include <QMouseEvent>
 #include <QPainter>
 
-namespace vibestudio
+namespace slopstudio
 {
 LevelSweepCanvas::LevelSweepCanvas(QWidget* view, LevelSweepGizmo* gizmo, std::function<LevelComponentGizmoFrame()> frame,
                                    bool highContrast)
@@ -176,4 +176,4 @@ bool LevelSweepCanvas::eventFilter(QObject* watched, QEvent* event)
 	}
 	return false;
 }
-} // namespace vibestudio
+} // namespace slopstudio

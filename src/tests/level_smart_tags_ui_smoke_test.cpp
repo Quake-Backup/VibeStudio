@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 void check(bool passed, const char* label) { if (!passed) { ok = false; std::cerr << label << '\n'; } }

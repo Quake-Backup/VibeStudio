@@ -6,7 +6,7 @@ class QDoubleSpinBox;
 class QLabel;
 class QPushButton;
 class QTableWidget;
-namespace vibestudio
+namespace slopstudio
 {
 class AudioAutomationPlot;
 // A bounded point model shared by the accessible native controls and optional graphical gestures.
@@ -39,4 +39,4 @@ class AudioAutomationEditor final : public QWidget {
 	QLabel *m_status = nullptr;
 	AudioAutomationPlot *m_plot = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

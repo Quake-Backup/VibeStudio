@@ -12,7 +12,7 @@
 #include <QLockFile>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 
 PackageDraftStorageReview reviewPackageDraftStorage(const QString& path, const PackageReadControl& control)
 {
@@ -110,4 +110,4 @@ PackageDraftCompaction compactPackageDraftStorage(const QString& path, const QBy
 	result.succeeded = true; return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

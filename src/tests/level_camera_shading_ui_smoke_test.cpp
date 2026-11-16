@@ -48,7 +48,7 @@
 #include <utility>
 #include <vector>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -488,7 +488,7 @@ int main(int argc, char** argv)
 						expect(differences(restored, shaded, faces) == 0, "shading back on restores the picture",
 							QStringLiteral("%1: %2").arg(QLatin1String(name)).arg(differences(restored, shaded, faces)));
 
-						// The orthographic orbit camera (the VibeStudio Default
+						// The orthographic orbit camera (the SlopStudio Default
 						// profile's) counts fog from the front of the map.
 						const CameraViewControls profileControls = camera->cameraControls();
 						camera->setCameraControls(CameraViewControls {});

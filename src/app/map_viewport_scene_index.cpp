@@ -1,6 +1,6 @@
 #include "app/map_viewport_scene_index.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 void MapViewportSceneIndex::rebuild(const LevelMapDocument& document)
 {
@@ -48,4 +48,4 @@ const DoomSectorOutline* MapViewportSceneIndex::sector(const QVector<DoomSectorO
 	return id >= 0 && offset >= 0 && offset < sectors.size() && sectors.at(offset).sectorId == id ? &sectors.at(offset) : nullptr;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

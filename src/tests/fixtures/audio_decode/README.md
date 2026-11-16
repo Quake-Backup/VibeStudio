@@ -1,6 +1,6 @@
 # Compressed audio fixtures
 
-These files contain VibeStudio-generated tones and a distinct transient per
+These files contain SlopStudio-generated tones and a distinct transient per
 channel. They contain no game assets or third-party media. `manifest.json`
 records every input and reference hash, stream format, decoded length, numerical
 tolerance, and the tool versions used to generate the references.

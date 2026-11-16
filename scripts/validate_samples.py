@@ -62,14 +62,14 @@ def fail(message: str) -> int:
 
 
 def load_manifest(sample: SampleProject) -> dict:
-    manifest_path = sample.root / ".vibestudio" / "project.json"
+    manifest_path = sample.root / ".slopstudio" / "project.json"
     with manifest_path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
 
 
 def validate_manifest_shape(sample: SampleProject) -> list[str]:
     errors: list[str] = []
-    manifest_path = sample.root / ".vibestudio" / "project.json"
+    manifest_path = sample.root / ".slopstudio" / "project.json"
     if not manifest_path.exists():
         return [f"Missing project manifest: {manifest_path}"]
 
@@ -117,8 +117,8 @@ def validate_cli(sample: SampleProject, binary: Path) -> list[str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate VibeStudio sample projects.")
-    parser.add_argument("--binary", help="Optional built vibestudio executable used for CLI smoke checks.")
+    parser = argparse.ArgumentParser(description="Validate SlopStudio sample projects.")
+    parser.add_argument("--binary", help="Optional built slopstudio executable used for CLI smoke checks.")
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parents[1]
@@ -135,14 +135,14 @@ def main() -> int:
             "sample-quake-minimal",
             samples_root / "quake-minimal",
             samples_root / "quake-minimal" / "packages",
-            "vibemap2-bsp",
+            "slopmap2-bsp",
             samples_root / "quake-minimal" / "maps" / "start.map",
         ),
         SampleProject(
             "sample-quake3-minimal",
             samples_root / "quake3-minimal",
             samples_root / "quake3-minimal" / "packages",
-            "vibemap3-bsp",
+            "slopmap3-bsp",
             samples_root / "quake3-minimal" / "maps" / "sample_q3.map",
         ),
     ]
@@ -163,7 +163,7 @@ def main() -> int:
             print(error, file=sys.stderr)
         return 1
 
-    print(f"Validated {len(samples)} VibeStudio sample projects.")
+    print(f"Validated {len(samples)} SlopStudio sample projects.")
     return 0
 
 

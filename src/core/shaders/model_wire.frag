@@ -5,7 +5,7 @@
 
 #include "common.glsl"
 
-VIBE_UNIFORMS {
+SLOP_UNIFORMS {
 	mat4 viewProjection;
 	vec4 viewport;
 	vec4 wireColor;
@@ -13,10 +13,10 @@ VIBE_UNIFORMS {
 	vec4 widths;
 };
 
-VIBE_FLAT_IN(0) vec4 vEnds;
-VIBE_FLAT_IN(1) vec2 vStroke;
+SLOP_FLAT_IN(0) vec4 vEnds;
+SLOP_FLAT_IN(1) vec2 vStroke;
 
-VIBE_FRAGMENT_OUT(0) vec4 outColor;
+SLOP_FRAGMENT_OUT(0) vec4 outColor;
 
 void main()
 {

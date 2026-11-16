@@ -14,8 +14,8 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -37,7 +37,7 @@ bool near(double a, double b)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temp(QDir(root).filePath("edge-slide-XXXXXX"));
@@ -314,7 +314,7 @@ int main(int argc, char **argv)
 	const auto path = temp.filePath("grid.mesh.json"), output = temp.filePath("slide.mesh.json");
 	ModelDocument saved;
 	expect(saved.setMesh(source, &error) && saved.save(path, false, &error), "save CLI fixture");
-	const QStringList base{"vibestudio",		   "--cli",	  "model", "tool",	   path,  "--tool", "edge-slide", "--edges",
+	const QStringList base{"slopstudio",		   "--cli",	  "model", "tool",	   path,  "--tool", "edge-slide", "--edges",
 						   "2:7,7:12,12:17,17:22", "--slide", ".25",   "--output", output};
 	const auto dry = cli::runModelTool(base + QStringList{"--dry-run"});
 	expect(dry.exitCode == 0 && !QFile::exists(output) && !dry.payload["written"].toBool(), "CLI dry-run creates no output");

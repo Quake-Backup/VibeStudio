@@ -10,7 +10,7 @@
 #include <mutex>
 #include <new>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -486,4 +486,4 @@ void AudioSessionPlayback::resetMeters()
 	QMetaObject::invokeMethod(
 	    m_worker, [worker = m_worker, token] { worker->resetMeters(token); }, Qt::QueuedConnection);
 }
-} // namespace vibestudio
+} // namespace slopstudio

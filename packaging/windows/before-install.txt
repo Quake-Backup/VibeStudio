@@ -1,13 +1,13 @@
-Before you install VibeStudio
+Before you install SlopStudio
 
-VibeStudio is pre-alpha software. Most features have automated tests, but very
+SlopStudio is pre-alpha software. Most features have automated tests, but very
 little has been tried in real projects yet, and this installer is new.
 
 - Work on copies of your maps, packages and projects, and keep backups.
-- VibeStudio never changes a game installation unless you ask it to deploy a
+- SlopStudio never changes a game installation unless you ask it to deploy a
   test map, and it asks before it does.
 - Your settings stay in your user profile; uninstalling leaves them in place.
 
-The documentation installed alongside the studio (Start menu > VibeStudio
+The documentation installed alongside the studio (Start menu > SlopStudio
 Documentation) explains what works today and how to report a problem:
-https://github.com/themuffinator/VibeStudio/issues
+https://github.com/themuffinator/SlopStudio/issues

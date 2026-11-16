@@ -11,7 +11,7 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 using Kind = LevelBrushComponent;
 using Op = LevelComponentSelectionOperation;

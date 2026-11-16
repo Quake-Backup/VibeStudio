@@ -19,7 +19,7 @@ class QSpinBox;
 class QTableView;
 class QPainter;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class ModelWeightTable;
@@ -102,4 +102,4 @@ class ModelWeightPaintDialog final : public QDialog
 	void paintOverlay(QPainter &painter);
 	void probe(QPointF point);
 };
-} // namespace vibestudio
+} // namespace slopstudio

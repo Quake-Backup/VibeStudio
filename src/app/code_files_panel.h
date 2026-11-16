@@ -13,7 +13,7 @@ class QTimer;
 class QTreeWidget;
 class QTreeWidgetItem;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class CodeFilesWorker;
 
@@ -63,4 +63,4 @@ private:
 	QTimer* m_rowsTimer = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -11,11 +11,11 @@
 #include <array>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 // Chunk ids (RoQ format description, MultimediaWiki "RoQ").
@@ -525,4 +525,4 @@ MaterialTexturePtr MaterialVideo::frame(int index) const
 	return d->lastTexture;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

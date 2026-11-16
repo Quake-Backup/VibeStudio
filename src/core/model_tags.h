@@ -3,7 +3,7 @@
 #include "core/model_mesh.h"
 #include "core/model_transform.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelEditKind;
 struct ModelEdit;
@@ -21,4 +21,4 @@ ModelTag transformedModelTag(const ModelTag &tag, const ModelTransform &transfor
 // and result, and adopts mesh/selection atomically after cancellation checks.
 bool applyModelTagEdit(ModelMesh *candidate, const ModelEdit &edit, ModelSelection *selection, QString *error,
 					   const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

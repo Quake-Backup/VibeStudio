@@ -9,7 +9,7 @@
 #include <QtEndian>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 QString key(const QString& text) { return text.trimmed().replace('\\', '/').toCaseFolded(); }
 qint16 i16(const QByteArray& bytes, qsizetype at) { return qFromLittleEndian<qint16>(bytes.constData() + at); }
@@ -88,7 +88,7 @@ public:
 			// mappatch_t/maptexture_t and R_InitTextures (GPL-2.0-or-later).
 			// Copyright (C) 1993-1996 Id Software, Inc.; 2005-2014 Simon Howard.
 			// https://github.com/chocolate-doom/chocolate-doom/blob/chocolate-doom-3.1.0/src/doom/r_data.c
-			// Checked Qt parsing/composition below is VibeStudio code.
+			// Checked Qt parsing/composition below is SlopStudio code.
 			for (int i = 0; i < i32(bytes, 0); ++i) {
 				if (!tick()) { return; }
 				const qint64 offset = i32(bytes, 4 + 4 * i);
@@ -235,4 +235,4 @@ void resolveDoomPreviewAssets(const LevelMapDocument& document, const PackageArc
 	tick();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

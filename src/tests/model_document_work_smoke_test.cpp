@@ -17,7 +17,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -34,7 +34,7 @@ class Expansion final : public QTranslator
 	bool isEmpty() const override { return false; }
 	QString translate(const char *context, const char *source, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelEditor")
+		if (QByteArray(context) != "SlopStudioModelEditor")
 		{
 			return {};
 		}
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont(QStringLiteral("Segoe UI"), 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 								 usedCancel = status && !status->accessibleName().isEmpty() && status->accessibleName() != status->text() &&
 											  status->accessibleDescription() == status->text() &&
 											  widget->accessibleDescription() == status->text() && button->focusPolicy() != Qt::NoFocus;
-								 const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+								 const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 								 if (!evidence.isEmpty())
 								 {
 									 QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied);

@@ -26,7 +26,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ReleasePublishRequest {
 	ReleasePlan plan;
@@ -92,4 +92,4 @@ ReleasePublishResult publishRelease(const ReleasePublishRequest& request);
 QJsonObject releasePublishResultJson(const ReleasePublishResult& result);
 QString releasePublishResultText(const ReleasePublishResult& result);
 
-} // namespace vibestudio
+} // namespace slopstudio

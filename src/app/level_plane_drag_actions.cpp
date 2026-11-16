@@ -21,7 +21,7 @@
 #include <QSignalBlocker>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool quakeFamily(const LevelMapDocument& document)
 {
@@ -206,4 +206,4 @@ void ApplicationShell::buildLevelCloneChainFromView(const LevelMapVec3& step, in
 		6000);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

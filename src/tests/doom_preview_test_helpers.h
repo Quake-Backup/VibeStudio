@@ -6,7 +6,7 @@
 #include <QtEndian>
 #include <algorithm>
 
-namespace vibestudio::tests::doom {
+namespace slopstudio::tests::doom {
 
 inline void put16(QByteArray& b, int at, int value) { qToLittleEndian<qint16>(qint16(value), b.data() + at); }
 inline void put32(QByteArray& b, int at, int value) { qToLittleEndian<qint32>(value, b.data() + at); }

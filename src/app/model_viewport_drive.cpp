@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ModelViewport::stepCameraDrive(const CameraKeyMotion& motion)
 {
@@ -123,4 +123,4 @@ void ModelViewport::endPointerDrive()
 
 bool ModelViewport::isPointerDriving() const { return m_pointerDriving; }
 
-} // namespace vibestudio
+} // namespace slopstudio

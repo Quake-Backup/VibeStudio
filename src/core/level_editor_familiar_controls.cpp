@@ -4,12 +4,12 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 // Independent behavior adaptations; no upstream implementation is incorporated.
 // Source revisions, documentation and remaining differences: docs/EDITOR_PROFILES.md
-// and docs/CREDITS.md. These schemes always use VibeStudio's editing services.
+// and docs/CREDITS.md. These schemes always use SlopStudio's editing services.
 void key(LevelEditorControls& controls, const char* command, const QStringList& keys)
 {
 	const QString id = QString::fromLatin1(command);
@@ -246,7 +246,7 @@ static LevelEditorControls familiarLevelControlsWithoutNudges(const QString& id)
 		key(controls, "map.capPatch", {QStringLiteral("Shift+C")});
 		key(controls, "map.textureLock", {QStringLiteral("Shift+T")});
 		// MainFrm.cpp texture shortcuts. Operations use the explicit Surfaces
-		// target and VibeStudio's centre-anchored UV service; see profile notes.
+		// target and SlopStudio's centre-anchored UV service; see profile notes.
 		key(controls, "map.surfaceShiftLeft", {QStringLiteral("Shift+Left")});
 		key(controls, "map.surfaceShiftRight", {QStringLiteral("Shift+Right")});
 		key(controls, "map.surfaceShiftDown", {QStringLiteral("Shift+Down")});
@@ -567,7 +567,7 @@ static LevelEditorControls familiarLevelControlsWithoutNudges(const QString& id)
 		}
 		return controls;
 	}
-	return vibeStudioLevelControls();
+	return slopStudioLevelControls();
 }
 
 CameraMaterialGesture cameraMaterialGesture(const CameraViewControls& controls, Qt::MouseButton button, Qt::KeyboardModifiers modifiers)
@@ -696,4 +696,4 @@ CameraFlyKeys planRoutedCameraDriveKeys(const LevelEditorControls& controls)
 	return keys;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -19,7 +19,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace
 {
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
 	expect(composeModelQuake3Skin(scrolling, images, q3, &late, &error) && early.base == late.base, "the same time composes the same image");
 
 	// The command: a rich MDL with a skin group and a fullbright row.
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (argc == 2 && !root.isEmpty() && QDir().mkpath(root))
 	{
 		QTemporaryDir temporary(QDir(root).filePath("game-skin-XXXXXX"));

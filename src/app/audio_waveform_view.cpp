@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -523,4 +523,4 @@ void AudioWaveformView::paintEvent(QPaintEvent*)
 	}
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

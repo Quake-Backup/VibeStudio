@@ -6,22 +6,22 @@
 
 #include "material_common.glsl"
 
-VIBE_ATTRIBUTE(0) vec3 aPosition;
-VIBE_ATTRIBUTE(1) vec3 aNormal;
-VIBE_ATTRIBUTE(2) vec3 aTangent;
-VIBE_ATTRIBUTE(3) vec3 aBitangent;
+SLOP_ATTRIBUTE(0) vec3 aPosition;
+SLOP_ATTRIBUTE(1) vec3 aNormal;
+SLOP_ATTRIBUTE(2) vec3 aTangent;
+SLOP_ATTRIBUTE(3) vec3 aBitangent;
 // xy: the stage's texture coordinates; zw: lightmap coordinates.
-VIBE_ATTRIBUTE(4) vec4 aTexCoord;
-VIBE_ATTRIBUTE(5) vec4 aColor;
+SLOP_ATTRIBUTE(4) vec4 aTexCoord;
+SLOP_ATTRIBUTE(5) vec4 aColor;
 
-VIBE_VARYING_OUT(0) vec3 vPosition;
-VIBE_VARYING_OUT(1) vec3 vNormal;
-VIBE_VARYING_OUT(2) vec3 vTangent;
-VIBE_VARYING_OUT(3) vec3 vBitangent;
-VIBE_VARYING_OUT(4) vec4 vTexCoord;
-VIBE_VARYING_OUT(5) vec4 vColor;
+SLOP_VARYING_OUT(0) vec3 vPosition;
+SLOP_VARYING_OUT(1) vec3 vNormal;
+SLOP_VARYING_OUT(2) vec3 vTangent;
+SLOP_VARYING_OUT(3) vec3 vBitangent;
+SLOP_VARYING_OUT(4) vec4 vTexCoord;
+SLOP_VARYING_OUT(5) vec4 vColor;
 // Distance along the view direction, as the engines' depth.
-VIBE_VARYING_OUT(6) float vDepth;
+SLOP_VARYING_OUT(6) float vDepth;
 
 invariant gl_Position;
 
@@ -34,5 +34,5 @@ void main()
 	vTexCoord = aTexCoord;
 	vColor = aColor;
 	vDepth = dot(aPosition - eye.xyz, forward.xyz);
-	gl_Position = VIBE_CLIP(viewProjection * vec4(aPosition, 1.0));
+	gl_Position = SLOP_CLIP(viewProjection * vec4(aPosition, 1.0));
 }

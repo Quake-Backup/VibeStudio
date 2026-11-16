@@ -1,9 +1,9 @@
-# VibeStudio Translation Catalogs
+# SlopStudio Translation Catalogs
 
-This directory holds the Qt Linguist catalogs for VibeStudio's 47 interface
+This directory holds the Qt Linguist catalogs for SlopStudio's 47 interface
 languages plus a pseudo-localization catalog: 48 files, named with the target
-id in underscore form (`vibestudio_pt_BR.ts`, `vibestudio_zh_Hant.ts`,
-`vibestudio_es_419.ts`). Why each language is on the list, and which regional
+id in underscore form (`slopstudio_pt_BR.ts`, `slopstudio_zh_Hant.ts`,
+`slopstudio_es_419.ts`). Why each language is on the list, and which regional
 and legacy tags resolve to which catalog (`zh-TW` and `zh-HK` to `zh_Hant`,
 `es-MX` to `es_419`, `pt-AO` to `pt_PT`, `iw` to `he`, `tl` to `fil`, `no` and
 `nn` to `nb`), is in
@@ -59,7 +59,7 @@ translation call is: `QCoreApplication::translate("<context>", "...")`, or
 later, mark it `QT_TRANSLATE_NOOP("<context>", "...")` with the context of the
 call that translates it. See `docs/ACCESSIBILITY_LOCALIZATION.md`.
 
-`vibestudio_en.ts` is different: besides the untranslated messages, it holds the
+`slopstudio_en.ts` is different: besides the untranslated messages, it holds the
 English singular and plural forms of every `%n` message. That is how Qt turns
 "%n item(s)" into "1 item" and "5 items" in the source language.
 `english_plurals.py --write` fills those forms in. Without `--write`, the script
@@ -76,18 +76,18 @@ records present and missing catalogs, and the checksums and ZIP include the
 compiled bytes. A complete compiled set still does not mean complete language
 translations. See [Packaging](../docs/PACKAGING.md).
 
-`vibestudio_pseudo.ts` declares `en_XA`, CLDR's pseudo-accent locale, because
+`slopstudio_pseudo.ts` declares `en_XA`, CLDR's pseudo-accent locale, because
 lupdate will not update a catalog whose language it has no plural rules for.
 
 ## Finding Untranslated Strings
 
 To see what a screen still shows in English, run the studio in the language
-under review with `VIBESTUDIO_UNTRANSLATED_LOG` naming a file, and use the
+under review with `SLOPSTUDIO_UNTRANSLATED_LOG` naming a file, and use the
 screens:
 
 ```powershell
-$env:VIBESTUDIO_UNTRANSLATED_LOG = "$env:TEMP\untranslated-de.tsv"
-vibestudio --settings-file review.ini
+$env:SLOPSTUDIO_UNTRANSLATED_LOG = "$env:TEMP\untranslated-de.tsv"
+slopstudio --settings-file review.ini
 ```
 
 with `localeName=de` under `[preferences]` in `review.ini`. Every studio

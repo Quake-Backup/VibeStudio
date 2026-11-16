@@ -19,7 +19,7 @@
 #include <QTimer>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 
 PackageImportDialog::PackageImportDialog(QString directory, QWidget* parent)
 	: QDialog(parent), m_directory(std::move(directory)), m_cancel(std::make_shared<std::atomic_bool>(false))
@@ -196,4 +196,4 @@ void PackageImportDialog::releaseLock()
 	}, [this, error, released]() { reload(*released ? tr("Reviewed working import lock released.") : *error); });
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

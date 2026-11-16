@@ -10,7 +10,7 @@
 // Polygons Group, Local Normal and By Polygon types (Blender manual 4.0,
 // modeling/meshes/editing/face/extrude_faces*.html; reviewed 2026-10-28). No
 // code is used. Side-wall UV strips follow the strip layout of Bevel Edges.
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -334,4 +334,4 @@ bool extrudeFaces(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *select
 		report->sourceFaces.insert(selection->surface, sources);
 	return work.check();
 }
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

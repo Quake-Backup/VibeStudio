@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -611,4 +611,4 @@ bool applyModelFrameResampleEdit(ModelMesh *candidate, const ModelEdit &edit, QS
 	return edit.kind == ModelEditKind::ResampleAnimation ? resampleAnimation(candidate, edit, error, control)
 														 : closeAnimationLoop(candidate, edit, error, control);
 }
-} // namespace vibestudio
+} // namespace slopstudio

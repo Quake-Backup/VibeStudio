@@ -3,7 +3,7 @@
 #include "core/package_archive.h"
 #include <QJsonObject>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // PakFu-inspired exact entry/prefix selection, kept in the non-UI core.
 // Reference: https://github.com/themuffinator/PakFu/blob/13111e4c07513548a29fd7eb74fc9d004c44aa59/src/cli/cli.cpp
@@ -46,4 +46,4 @@ PackageSelectionResult selectPackageFiles(const PackageArchiveReader& archive, c
 	const PackageReadControl& control = {});
 QJsonObject packageSubsetReviewJson(const PackageSubsetReview& review);
 
-} // namespace vibestudio
+} // namespace slopstudio

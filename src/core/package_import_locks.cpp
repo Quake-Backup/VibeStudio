@@ -21,7 +21,7 @@
 #include <unistd.h>
 #endif
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr qint64 lockByteLimit = 65536;
 QString message(const char* value) { return QCoreApplication::translate("PackageImportLocks", value); }
@@ -232,4 +232,4 @@ bool releasePackageImportLock(const QString& directory, const QString& relativeP
 	if (observed != expectedFingerprint) return fail(error, message(QT_TRANSLATE_NOOP("PackageImportLocks", "The lock changed after review. Refresh the inventory.")));
 	return dryRun || handle.remove(error);
 }
-} // namespace vibestudio
+} // namespace slopstudio

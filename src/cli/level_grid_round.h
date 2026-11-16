@@ -1,7 +1,7 @@
 #pragma once
 #include <QJsonObject>
 #include <QStringList>
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelGridRoundCliResult {
 	int exitCode = 0;
 	QString error;
@@ -10,4 +10,4 @@ struct LevelGridRoundCliResult {
 };
 // map round-to-grid: Radiant's Snap To Grid through the GUI's service.
 LevelGridRoundCliResult runLevelGridRound(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

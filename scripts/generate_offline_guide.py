@@ -82,16 +82,16 @@ def guide_text(root: Path) -> str:
             contents.append(f"  - [{title}](#{github_slug(title)})")
             sections.append(body)
     header = [
-        f"# VibeStudio Offline User Guide ({version})",
+        f"# SlopStudio Offline User Guide ({version})",
         "",
-        "The VibeStudio user manual in a single file, for reading offline. It is",
+        "The SlopStudio user manual in a single file, for reading offline. It is",
         "generated from the pages in [docs/manual](manual/index.md) by",
         "`scripts/generate_offline_guide.py`; edit those pages, not this file.",
         "Release packages also include the manual as HTML: open",
         "`docs/html/index.html` in a browser.",
         "",
         "> [!WARNING]",
-        "> VibeStudio is pre-alpha and highly untested. Work on copies of your files",
+        "> SlopStudio is pre-alpha and highly untested. Work on copies of your files",
         "> and keep backups. [Project status](manual/status.md) explains what is and",
         "> is not tested.",
         "",

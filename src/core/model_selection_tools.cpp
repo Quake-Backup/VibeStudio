@@ -14,7 +14,7 @@
 #include <queue>
 #include <set>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -1344,4 +1344,4 @@ bool selectModelEdgeLoops(const ModelMesh &mesh, const ModelSelection &current, 
 	result->selection = std::move(joined);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

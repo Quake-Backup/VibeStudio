@@ -22,7 +22,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool ok = true;
@@ -380,7 +380,7 @@ void containerAndThingTests()
 			"containers are not entities", QString::number(statistics.entityCount));
 		const QStringList lines = levelMapStatisticsLines(reloaded, statistics);
 		expect(lines.contains(QStringLiteral("Layer and group entities (func_group, not counted above): 2")), "containers named", lines.join('\n'));
-		expect(!levelMapStatisticsLines(document).join('\n').contains(QStringLiteral("Layer and group entities")), "no line for VibeStudio storage");
+		expect(!levelMapStatisticsLines(document).join('\n').contains(QStringLiteral("Layer and group entities")), "no line for SlopStudio storage");
 	}
 
 	LevelMapDocument doom;

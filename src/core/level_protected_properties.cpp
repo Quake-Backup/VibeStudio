@@ -13,7 +13,7 @@
 // Independently implemented behaviour reference: TrenchBroom v2026.2,
 // Map_Entities.cpp and LinkedGroupUtils.cpp, GPL-3.0-or-later.
 // See docs/CREDITS.md; no upstream implementation or metadata is incorporated.
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -359,4 +359,4 @@ bool setLevelProtectedEntityProperty(LevelMapDocument* document, const QVector<i
 {
 	return edit(document, entities, {key}, Operation::SetValue, values, error);
 }
-} // namespace vibestudio
+} // namespace slopstudio

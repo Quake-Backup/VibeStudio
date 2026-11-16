@@ -7,7 +7,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 class PackageArchiveReader;
 
@@ -65,4 +65,4 @@ bool importModelDoom3Entity(const PackageArchiveReader &archive, const QString &
 QJsonObject modelDoom3EntityListingJson(const ModelDoom3EntityListing &listing);
 QJsonObject modelDoom3EntityImportJson(const ModelDoom3EntityImport &result);
 QStringList modelDoom3EntityImportText(const ModelDoom3EntityImport &result);
-} // namespace vibestudio
+} // namespace slopstudio

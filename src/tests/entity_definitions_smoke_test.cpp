@@ -18,7 +18,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -399,7 +399,7 @@ bool runSearchPathSmoke()
 	bool ok = true;
 	const QStringList paths = entityDefinitionSearchPaths(QStringLiteral("/projects/demo"));
 	ok &= expect(paths.size() == 6, "There are six conventional definition folders.");
-	ok &= expect(paths.first().endsWith(QStringLiteral(".vibestudio/definitions")), "The project-private folder comes first.");
+	ok &= expect(paths.first().endsWith(QStringLiteral(".slopstudio/definitions")), "The project-private folder comes first.");
 	ok &= expect(paths.at(1).endsWith(QStringLiteral("definitions")) && paths.at(2).endsWith(QStringLiteral("defs")),
 		"The conventional order is kept.");
 	ok &= expect(paths.last().endsWith(QStringLiteral("entities")), "The last folder is entities.");

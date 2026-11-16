@@ -12,7 +12,7 @@
 //
 // It is built read-only from packages the user already owns, cached beside the
 // studio settings, and reported stale when a stock package changes. No game
-// data or file list ships with VibeStudio.
+// data or file list ships with SlopStudio.
 //
 // Format knowledge comes from public sources:
 // - Stock package names per game: the released id Software engine sources
@@ -33,7 +33,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // One package the register indexed. The id is the path relative to the
 // installation root, lower-cased with forward slashes, so it stays the same
@@ -206,4 +206,4 @@ QString gameAssetRegisterSummaryText(const GameAssetRegister& registerData);
 // CRC-32 of a file on disk, streamed in 64 KiB chunks.
 bool fileCrc32(const QString& path, quint32* crc, QString* error = nullptr, const std::function<bool()>& isCancelled = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

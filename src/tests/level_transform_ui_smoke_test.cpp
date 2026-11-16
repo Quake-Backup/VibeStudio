@@ -17,8 +17,8 @@
 #include <QTimer>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 bool expect(bool ok, const char *message, const QString &error = {})
@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 			ok &= expect(menu.rect().contains(rect) && rect.width() > menu.fontMetrics().horizontalAdvance(action->text().remove('&')),
 						 "scaled labels fit native menu");
 		}
-		const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!capture.isEmpty()) {
 			QDir().mkpath(capture);
 			QImage image(menu.size(), QImage::Format_ARGB32_Premultiplied);

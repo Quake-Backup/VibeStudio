@@ -2,7 +2,7 @@
 #include "core/audio_duplex.h"
 #include "core/audio_take.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // A .vsrecord folder owns fixed, relative arm-01.vstake ... arm-08.vstake
 // journals. Session paths are provenance only and are never opened by readers.
@@ -46,4 +46,4 @@ bool finishAudioRecordingFolder(const QString &directory, const QByteArray &plan
                                 AudioRecordingInfo *finalInfo = nullptr);
 AudioRecordingInfo inspectAudioRecording(const QString &directory, const AudioWorkControl &control = {});
 QJsonObject audioRecordingInfoJson(const AudioRecordingInfo &info);
-} // namespace vibestudio
+} // namespace slopstudio

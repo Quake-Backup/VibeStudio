@@ -3,7 +3,7 @@
 // to World, Make Structural under both policies and Explode Entity. Each edit
 // is one undo step that undoes to the exact bytes it started from, keeps
 // primitive ids, survives a save and reopen, and refuses locked, linked and
-// unsuitable content without touching the map. With the vibestudio binary as
+// unsuitable content without touching the map. With the slopstudio binary as
 // its argument it drives the matching `map` CLI commands too.
 
 #include "core/level_document.h"
@@ -26,7 +26,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

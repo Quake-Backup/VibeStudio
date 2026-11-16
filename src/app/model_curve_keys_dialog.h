@@ -11,7 +11,7 @@ class QTabWidget;
 class QPushButton;
 class QLabel;
 class QLineEdit;
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class ModelCurveKeysTable;
@@ -70,4 +70,4 @@ class ModelCurveKeysDialog final : public QDialog
 	void updateControls();
 	void showPreview();
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -5,7 +5,7 @@
 #include <functional>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 // Local locks inherit through groups. The returned objects include geometric
 // dependencies (entity primitives, Doom sector boundaries and line endpoints).
 QSet<QString> levelSceneLockedNodes(const LevelSceneState& scene);
@@ -27,4 +27,4 @@ std::optional<bool> guardLevelSceneEdit(LevelMapDocument* document, QString* err
 // Called by the shared undo recorder; captures identity remaps even when the
 // undo limit evicts a command. History replay deliberately bypasses this guard.
 void recordLevelSceneEdit(const LevelMapDocument* document, const LevelMapUndoCommand& command);
-} // namespace vibestudio
+} // namespace slopstudio

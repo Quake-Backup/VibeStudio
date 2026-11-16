@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 bool sameMapViewportOverlayKey(const MapViewportOverlayKey& a, const MapViewportOverlayKey& b)
 {
@@ -71,4 +71,4 @@ bool renderMapViewportOverlays(const MapViewportOverlayRequest& request, MapView
 	next.ready = true; *result = std::move(next); return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

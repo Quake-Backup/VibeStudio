@@ -24,7 +24,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& error = {}) {
@@ -83,7 +83,7 @@ int main(int argc, char** argv) {
 	const auto replacement = tests::materialImage(128, 64, true);
 	expect(staging.addBytes(replacement, "textures/studio/grid.png", &error, PackageStageConflictResolution::ReplaceExisting),
 		   "edited texture", error);
-	const auto draft = temp.filePath("assets.vibepackage");
+	const auto draft = temp.filePath("assets.sloppackage");
 	expect(PackageDraft::save(draft, &staging, false, &error), "save draft", error);
 	const auto snapshot = std::make_shared<PackageStagingArchive>(staging);
 	for (int scale : {100, 200}) {
@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
 		expect(subset_test::get(QDir(dialog.workspace().assetsPath()).filePath("textures/studio/grid.png")) == replacement,
 			   "GUI captures package draft edits");
 		expect(dialog.findChild<QScrollArea*>()->horizontalScrollBar()->maximum() == 0, "expanded form fits without horizontal scrolling");
-		const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!capture.isEmpty()) {
 			QDir().mkpath(capture);
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied);
@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
 			expect(preparedClassic.target == target, "GUI target handoff");
 			BuildPipelineRequest build;
 			build.pipelineId = preparedClassic.defaultPipeline();
-			for (const auto& id : QStringList{"vibemap2-bsp", "vibemap2-vis", "vibemap2-light"}) {
+			for (const auto& id : QStringList{"slopmap2-bsp", "slopmap2-vis", "slopmap2-light"}) {
 				build.executableOverrides.append({id, QString::fromLocal8Bit(argv[1])});
 			}
 			if (target == "quake") {

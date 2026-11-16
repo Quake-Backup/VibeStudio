@@ -8,7 +8,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -16,7 +16,7 @@ bool malformed(QString *error)
 {
 	if (error)
 	{
-		*error = QCoreApplication::translate("VibeStudioModelMdl", "The mesh source contains malformed MDL settings or indexed skin data.");
+		*error = QCoreApplication::translate("SlopStudioModelMdl", "The mesh source contains malformed MDL settings or indexed skin data.");
 	}
 	return false;
 }
@@ -242,4 +242,4 @@ bool parseModelMdlSkin(const QJsonValue &value, const ModelMdlSettings &settings
 	*totalPixels += count;
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

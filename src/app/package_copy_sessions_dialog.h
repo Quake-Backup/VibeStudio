@@ -12,7 +12,7 @@ class QPushButton;
 class QTableWidget;
 class QThread;
 
-namespace vibestudio {
+namespace slopstudio {
 class PackageCopySessionsDialog final : public QDialog {
 	Q_DECLARE_TR_FUNCTIONS(PackageCopySessionsDialog)
 public:
@@ -42,4 +42,4 @@ private:
 	QProgressBar* m_progress = nullptr;
 	bool m_closeRequested = false, m_reducedMotion = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

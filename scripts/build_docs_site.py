@@ -263,10 +263,10 @@ def hero_pixels() -> str:
 def hero_html() -> str:
     return f"""    <section class="hero" aria-labelledby="hero-title">
       {hero_pixels()}
-      <h1 id="hero-title">VibeStudio documentation</h1>
+      <h1 id="hero-title">SlopStudio documentation</h1>
       <p>The all-in-one development studio for classic idTech games: levels, models, textures, audio, packages, code and builds in one place.</p>
       <div class="hero-actions">
-        <a class="button" href="install.html">Install VibeStudio</a>
+        <a class="button" href="install.html">Install SlopStudio</a>
         <a class="button secondary" href="first-run.html">First-run setup</a>
         <a class="button secondary" href="status.html">Project status</a>
       </div>
@@ -334,8 +334,8 @@ def build(output: Path, version: str, ref: str) -> list[str]:
     (assets / "img").mkdir(parents=True)
     (assets / "fonts").mkdir()
     template = Template((THEME / "template.html").read_text(encoding="utf-8"))
-    logo_light = inline_svg(BRANDING / "logo" / "vibestudio-logo-on-light.svg")
-    logo_dark = inline_svg(BRANDING / "logo" / "vibestudio-logo-on-dark.svg")
+    logo_light = inline_svg(BRANDING / "logo" / "slopstudio-logo-on-light.svg")
+    logo_dark = inline_svg(BRANDING / "logo" / "slopstudio-logo-on-dark.svg")
     order = [pages[slug] for section in sections for slug in section["pages"]]
     built = dt.date.today().isoformat()
     search: list[dict] = []
@@ -360,7 +360,7 @@ def build(output: Path, version: str, ref: str) -> list[str]:
                                       encoding="utf-8", newline="\n")
     shutil.copy2(THEME / "app.js", assets / "app.js")
     (assets / "search-index.js").write_text(
-        "window.VIBESTUDIO_SEARCH=" + json.dumps(search, ensure_ascii=False, separators=(",", ":")) + ";\n",
+        "window.SLOPSTUDIO_SEARCH=" + json.dumps(search, ensure_ascii=False, separators=(",", ":")) + ";\n",
         encoding="utf-8", newline="\n")
     for name in ("favicon.svg", "favicon-32.png", "apple-touch-icon.png"):
         shutil.copy2(BRANDING / "web" / name, assets / "img" / name)
@@ -426,7 +426,7 @@ def main() -> int:
             print(f"  - {error}", file=sys.stderr)
         return 1
     if args.zip:
-        write_zip(args.output, args.zip, f"VibeStudio-{version.replace('+', '-')}-docs")
+        write_zip(args.output, args.zip, f"SlopStudio-{version.replace('+', '-')}-docs")
         print(args.zip)
     print(f"Documentation written to {args.output} ({len(list(args.output.glob('*.html')))} pages).")
     return 0

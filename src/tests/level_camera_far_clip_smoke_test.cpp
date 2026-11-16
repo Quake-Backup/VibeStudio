@@ -4,7 +4,7 @@
 // mapping both GPU backends clip with, the fog ending at the clip while both
 // are on, the saved text, the translated announcements and palette entries,
 // the Radiant profiles' keys, cursor placement that takes nothing past the
-// clip, and editor far-clip on the command line (run with the vibestudio
+// clip, and editor far-clip on the command line (run with the slopstudio
 // executable as the argument).
 
 #include "core/editor_profiles.h"
@@ -30,7 +30,7 @@
 #include <tuple>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

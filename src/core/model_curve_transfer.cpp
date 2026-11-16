@@ -5,7 +5,7 @@
 #include <QCoreApplication>
 #include <algorithm>
 #include <cmath>
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -192,4 +192,4 @@ bool describeModelCurveTransfer(const ModelMesh &before, const ModelMesh &after,
 	*report = std::move(result);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

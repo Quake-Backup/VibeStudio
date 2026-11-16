@@ -35,13 +35,13 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelTools)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelTools)
 };
 using V = ModelVec3;
 bool isSpin(ModelModalOperator op) { return op == ModelModalOperator::Spin || op == ModelModalOperator::SpinDuplicate; }
@@ -2342,4 +2342,4 @@ void ModelEditorTools::paintOverlay(QPainter &painter)
 		}
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

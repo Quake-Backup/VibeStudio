@@ -5,7 +5,7 @@
 #include <QPointF>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Texel-centre rasterisation of UV triangles, shared by UV health (texels a
 // layout uses), UV layout export and skin transfer.
@@ -23,4 +23,4 @@ bool rasterizeModelUvTriangle(QPointF a, QPointF b, QPointF c, int width, int he
 {
 	return {double(uv.u) * width, double(uv.v) * height};
 }
-} // namespace vibestudio
+} // namespace slopstudio

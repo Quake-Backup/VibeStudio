@@ -3,7 +3,7 @@
 #include "core/level_build_workspace.h"
 #include "core/package_staging.h"
 
-namespace vibestudio {
+namespace slopstudio {
 enum class LevelBuildArtifactKind { Unknown, CompiledMap, GeneratedShader, ExternalLightmap, Diagnostic, ExternalLighting };
 LevelBuildArtifactKind levelBuildArtifactKind(const QString& workspaceRelativePath, const QString& mapName,
 											  const QString& target = QStringLiteral("quake3"));
@@ -54,4 +54,4 @@ struct LevelBuildPackageResult {
 LevelBuildPackageResult publishLevelBuildPackage(const LevelBuildWorkspace& workspace, const LevelBuildPackageRequest& request,
 												 const PackageReadControl& control = {});
 QJsonObject levelBuildPackageJson(const LevelBuildPackageResult& result);
-} // namespace vibestudio
+} // namespace slopstudio

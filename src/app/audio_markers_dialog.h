@@ -9,7 +9,7 @@ class QPushButton;
 class QSpinBox;
 class QTableWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class AudioMarkersDialog final : public QDialog
 {
@@ -33,4 +33,4 @@ private:
 	QPushButton* m_remove = nullptr;
 	QLabel* m_status = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

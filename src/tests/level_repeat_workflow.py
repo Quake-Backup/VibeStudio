@@ -1,4 +1,4 @@
-"""Original Repeat CLI, save/reopen and optional VibeMap3/PK3 acceptance fixture.
+"""Original Repeat CLI, save/reopen and optional SlopMap3/PK3 acceptance fixture.
 
 All geometry and textures are generated locally. No game, OS input or screen
 capture is used. Output must stay in the project's designated task area.

@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -161,4 +161,4 @@ void ModelSymmetrizeJointsDialog::refreshStatus()
 	else
 		m_status->setText(Text::tr("%n off-centre joint(s) have no mirror joint. Detect Pairs, enter them, or keep joint names.", nullptr, missing));
 }
-} // namespace vibestudio
+} // namespace slopstudio

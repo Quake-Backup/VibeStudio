@@ -7,7 +7,7 @@ class QComboBox;
 class QLabel;
 class QPushButton;
 class QTreeWidget;
-namespace vibestudio
+namespace slopstudio
 {
 class AudioMeterDialog final : public QDialog {
 	Q_OBJECT
@@ -34,4 +34,4 @@ class AudioMeterDialog final : public QDialog {
 	bool m_hasContext = false, m_offline = false, m_busy = false;
 	qint64 m_first = 0, m_end = 0;
 };
-} // namespace vibestudio
+} // namespace slopstudio

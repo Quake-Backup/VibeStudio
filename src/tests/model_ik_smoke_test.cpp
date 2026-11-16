@@ -14,8 +14,8 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -49,7 +49,7 @@ double length(ModelVec3 a, ModelVec3 b)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir tmp(QDir(root).filePath("ik-XXXXXX"));
@@ -330,7 +330,7 @@ int main(int argc, char **argv)
 	}
 	expect(!exportEditableModel(solved, "md5anim", 1, &error).isEmpty(), "MD5 clip export accepts solved pose");
 	expect(doc.setMesh(mesh, &error) && doc.save(path, false, &error), "prepare CLI source");
-	const QStringList base{"vibestudio", "--cli",		"model", "ik",		 path,	  "--clip", "0",	 "--first",	 "0",	"--last",
+	const QStringList base{"slopstudio", "--cli",		"model", "ik",		 path,	  "--clip", "0",	 "--first",	 "0",	"--last",
 						   "0",			 "--end-joint", "hand",	 "--target", "4,4,0", "--pole", "0,8,0", "--output", output};
 	QFile::remove(output);
 	auto cli = cli::runModelIk(base + QStringList{"--dry-run"});

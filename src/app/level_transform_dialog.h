@@ -17,7 +17,7 @@ class QPushButton;
 class QThread;
 class QTimer;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 
@@ -111,4 +111,4 @@ class LevelTransformDialog : public QDialog
 	quint64 m_generation = 0;
 	bool m_ready = false, m_valid = false, m_updating = false, m_finished = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

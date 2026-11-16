@@ -11,13 +11,13 @@
 
 namespace qmg {
 
-// VibeStudio: Quake-MapGen scored candidates through a ggml graph (GgmlRanker). The same linear
+// SlopStudio: Quake-MapGen scored candidates through a ggml graph (GgmlRanker). The same linear
 // model now runs by default as plain float arithmetic with ggml's accumulation order, so builds
 // need no ggml or llama.cpp. The report keeps its schema v4 keys (ggml_backend, ggml_version,
 // ggml_commit, llama_revision) and records these values in them.
-inline constexpr std::string_view kLayoutRankerBackend = "vibestudio/scalar-linear-layout-ranker";
+inline constexpr std::string_view kLayoutRankerBackend = "slopstudio/scalar-linear-layout-ranker";
 inline constexpr std::string_view kLayoutRankerNotLinked = "not-linked";
-// VibeStudio: builds with -Dggml=enabled can still rank through the upstream ggml graph, which
+// SlopStudio: builds with -Dggml=enabled can still rank through the upstream ggml graph, which
 // gives the same scores and records ggml's backend, version and commit, as Quake-MapGen did.
 inline constexpr std::string_view kGgmlLayoutRankerBackend = "ggml/cpu-linear-layout-ranker";
 

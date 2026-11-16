@@ -3,7 +3,7 @@
 #include <QSet>
 #include <QtEndian>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr quint64 budget = 256ULL * 1024 * 1024;
 constexpr int textureLimit = 65536;
@@ -177,4 +177,4 @@ QByteArray encodeLevelQuakeTextureWad(const LevelQuakeTextures& textures, QStrin
 	put32(result, 8, quint32(result.size()));
 	return result + directory;
 }
-} // namespace vibestudio
+} // namespace slopstudio

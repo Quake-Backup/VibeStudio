@@ -32,7 +32,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* label)
 {
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 						&& !field->accessibleName().isEmpty(), "technical lock paths preserve their leading punctuation and accessible value in RTL");
 					ok &= expect(picker->layoutDirection() == dialog.layoutDirection()
 						&& picker->width() <= picker->screen()->availableGeometry().width(), "lock selector respects RTL and fits the scaled screen");
-					const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+					const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 					if (capture && !captures.isEmpty()) {
 						QImage image(picker->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); picker->render(&image);
 						ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("package-working-lock-picker-%1.png").arg(scale))), "save reviewed lock selector render");
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
 								&& review->detailedText().contains(QStringLiteral("SHA-256")) && !review->accessibleName().isEmpty()
 								&& review->layoutDirection() == dialog.layoutDirection(),
 								"lock confirmation exposes review checksum with cancellation as default");
-							const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+							const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 							if (capture && !captures.isEmpty()) {
 								QImage image(review->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); review->render(&image);
 								ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("package-working-lock-%1.png").arg(scale))), "save reviewed lock confirmation render");
@@ -165,7 +165,7 @@ int main(int argc, char** argv)
 			if (table->item(row, 0)->data(Qt::AccessibleTextRole).toString() == id) { table->setCurrentCell(row, 0); }
 		}
 		ok &= expect(discard->isEnabled() && details->toPlainText().contains(id), "reviewable incomplete sessions can be selected for cleanup");
-		const QString captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+		const QString captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 		if (!captures.isEmpty()) {
 			auto* scroll = dialog.findChild<QScrollArea*>(); scroll->verticalScrollBar()->setValue(0); QApplication::processEvents();
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog.render(&image);

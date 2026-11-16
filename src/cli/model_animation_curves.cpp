@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -284,4 +284,4 @@ ModelToolsCliResult runModelCurves(const QStringList &args)
 		result.lines << packed;
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

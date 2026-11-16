@@ -6,8 +6,8 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::publication_test;
+using namespace slopstudio;
+using namespace slopstudio::publication_test;
 namespace {
 bool expect(bool value, const char* label) { if (!value) { std::cerr << label << '\n'; } return value; }
 }
@@ -34,7 +34,7 @@ int main(int argc, char** argv)
 		&& read(info.destinationPath) == QByteArray(262144, 'b') && QFileInfo::exists(info.journalPath), "cancel content verification within a large file without mutation");
 	report = recoverPackagePublication(info.journalPath, true, {}, {}, QByteArray(32, 'x'));
 	ok &= expect(!report.error.isEmpty() && !report.finished && !QFileInfo::exists(info.backupPath), "stale review rejects before backup publication");
-	const QString lockPath = info.destinationPath + ".vibestudio-save.lock";
+	const QString lockPath = info.destinationPath + ".slopstudio-save.lock";
 	{
 		QLockFile lock(lockPath); ok &= expect(lock.tryLock(), "reserve live output lock");
 		ok &= expect(recoverPackagePublication(info.journalPath).canFinish, "read-only verification does not acquire writer lock");
@@ -75,17 +75,17 @@ int main(int argc, char** argv)
 	report = recoverPackagePublication(original.journalPath, true);
 	ok &= expect(report.state == "original" && !report.finished && read(original.destinationPath) == "original", "recovery does not install an uncommitted replacement");
 	const auto invalidRoot = root.filePath("invalid"); QDir().mkpath(invalidRoot);
-	ok &= write(QDir(invalidRoot).filePath(".vibestudio-package-AAAAAA.payload.json"), QByteArray(65537, 'x'));
-	ok &= write(QDir(invalidRoot).filePath(".vibestudio-package-BBBBBB.payload.json"), "{");
+	ok &= write(QDir(invalidRoot).filePath(".slopstudio-package-AAAAAA.payload.json"), QByteArray(65537, 'x'));
+	ok &= write(QDir(invalidRoot).filePath(".slopstudio-package-BBBBBB.payload.json"), "{");
 	ok &= write(QDir(invalidRoot).filePath("unrelated.json"), "{}");
 	inventory = listPackagePublicationJournals({invalidRoot});
 	ok &= expect(!inventory.complete() && inventory.journals.size() == 2 && inventory.errors.size() == 2
 		&& !inventory.journals.first().metadataValid() && inventory.visitedEntries == 3, "bounded invalid journals remain visible alongside truthful scan errors");
 	const auto full = root.filePath("full"), extra = root.filePath("extra"); QDir().mkpath(full); QDir().mkpath(extra);
 	for (int i = 0; i < PackagePublicationJournalLimit; ++i) {
-		ok &= write(QDir(full).filePath(QStringLiteral(".vibestudio-package-%1.payload.json").arg(i, 6, 10, QLatin1Char('0'))), "{}");
+		ok &= write(QDir(full).filePath(QStringLiteral(".slopstudio-package-%1.payload.json").arg(i, 6, 10, QLatin1Char('0'))), "{}");
 	}
-	ok &= write(QDir(extra).filePath(".vibestudio-package-ABCDEF.payload.json"), "{}");
+	ok &= write(QDir(extra).filePath(".slopstudio-package-ABCDEF.payload.json"), "{}");
 	inventory = listPackagePublicationJournals({full});
 	ok &= expect(!inventory.truncated && inventory.journals.size() == PackagePublicationJournalLimit, "exact journal limit is not falsely truncated");
 	inventory = listPackagePublicationJournals({full, extra});

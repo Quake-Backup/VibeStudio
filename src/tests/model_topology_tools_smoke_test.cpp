@@ -29,7 +29,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0, failures = 0;
@@ -1429,7 +1429,7 @@ void linkedLimitChecks(const QString &path)
 	expect(document.setMesh(mesh, &error) && document.save(path, false, &error), "save the marked cube", error);
 	const auto select = [&](const QStringList &extra)
 	{
-		return cli::runModelSelect(QStringList{QStringLiteral("vibestudio"), QStringLiteral("model"), QStringLiteral("select"), path,
+		return cli::runModelSelect(QStringList{QStringLiteral("slopstudio"), QStringLiteral("model"), QStringLiteral("select"), path,
 											   QStringLiteral("--select"), QStringLiteral("linked"), QStringLiteral("--faces"), QStringLiteral("2,3")} +
 								   extra);
 	};
@@ -1580,7 +1580,7 @@ void intersectionChecks()
 
 cli::ModelToolsCliResult runTool(const QStringList &arguments)
 {
-	return cli::runModelTool(QStringList{QStringLiteral("vibestudio"), QStringLiteral("model"), QStringLiteral("tool")} + arguments);
+	return cli::runModelTool(QStringList{QStringLiteral("slopstudio"), QStringLiteral("model"), QStringLiteral("tool")} + arguments);
 }
 
 void alignCli(const QString &input, const QString &output)
@@ -1678,7 +1678,7 @@ void alignCli(const QString &input, const QString &output)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("topology-tools-XXXXXX"));
@@ -1726,7 +1726,7 @@ int main(int argc, char **argv)
 					"--json"},
 				   &json) == 0 &&
 				   json.value("align").toObject().value("grid").toDouble() == 5,
-			   "vibestudio --cli model tool --tool snap-grid reports JSON");
+			   "slopstudio --cli model tool --tool snap-grid reports JSON");
 		const auto output = temporary.filePath("moved.mesh.json");
 		expect(run({"model", "edit", input, "--operation", "transform-model", "--origin", "bounds-bottom", "--output", output, "--dry-run", "--json"}, &json) == 0 &&
 				   !QFileInfo::exists(output),

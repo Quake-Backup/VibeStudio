@@ -11,7 +11,7 @@
 #include <iostream>
 #include <thread>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 // Opt-in diagnostic workload. The harness samples process memory externally;
 // this executable records atomic batch admission and cancellation phases.

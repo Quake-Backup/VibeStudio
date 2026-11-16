@@ -4,7 +4,7 @@
 #include <QPainter>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 void ModelViewport::setShowCollision(bool show)
 {
@@ -176,4 +176,4 @@ void ModelViewport::paintCollisionOverlays(QPainter &painter) const
 	}
 	painter.restore();
 }
-} // namespace vibestudio
+} // namespace slopstudio

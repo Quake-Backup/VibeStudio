@@ -15,11 +15,11 @@ class QPushButton;
 class QTemporaryDir;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelMapImportTask;
 
 // Import Map's preview: reads the chosen map on a worker, first converting a
-// .bsp with VibeMap3's convert profile, then shows what the import adds and
+// .bsp with SlopMap3's convert profile, then shows what the import adds and
 // which entity names it renames. Import accepts; Cancel stops the worker.
 // The insertion itself runs afterwards as an ImportMap placement.
 class LevelMapImportDialog final : public QDialog {
@@ -65,4 +65,4 @@ class LevelMapImportDialog final : public QDialog {
 	QPushButton* m_import = nullptr;
 	QTimer* m_poll = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

@@ -21,7 +21,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct ModelSidebarTab {
 	QString id;
@@ -62,4 +62,4 @@ struct ModelSidebarArrangement {
 [[nodiscard]] QJsonObject modelSidebarArrangementJson(const ModelSidebarArrangement& arrangement, const QString& family);
 [[nodiscard]] bool modelSidebarArrangementFromJson(const QJsonObject& object, ModelSidebarArrangement* out, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

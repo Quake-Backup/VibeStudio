@@ -7,7 +7,7 @@
 #include <QTimer>
 #include <algorithm>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline bool settleModelUv(ModelUvView &view, int timeoutMs = 20000)
 {
@@ -25,4 +25,4 @@ inline bool settleModelUv(ModelUvView &view, int timeoutMs = 20000)
 	}
 	return !view.isRendering() && !view.pixmap().isNull();
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

@@ -1,4 +1,4 @@
-// Deterministic fuzz harness for every VibeStudio parser that reads
+// Deterministic fuzz harness for every SlopStudio parser that reads
 // attacker-controlled bytes.
 //
 // For each target the test builds valid seed inputs in memory, derives a fixed
@@ -8,10 +8,10 @@
 // count it reports is consistent with the buffer it was handed.
 //
 // Nothing here is random at run time. The seed is the compile-time constant
-// kDefaultSeed unless VIBESTUDIO_FUZZ_SEED overrides it, and every failure
+// kDefaultSeed unless SLOPSTUDIO_FUZZ_SEED overrides it, and every failure
 // prints the seed and the case id so a human can re-run exactly that case:
 //
-//     VIBESTUDIO_FUZZ_SEED=0x... meson test parser-fuzz
+//     SLOPSTUDIO_FUZZ_SEED=0x... meson test parser-fuzz
 //
 // All fixtures are assembled from published format layouts; no commercial game
 // data is embedded or read.
@@ -41,13 +41,13 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
 // Change this to walk a different corpus; CI always runs this exact value.
 constexpr quint64 kDefaultSeed = 0x5642f7a91d3c0007ull;
-constexpr const char* kSeedVariable = "VIBESTUDIO_FUZZ_SEED";
+constexpr const char* kSeedVariable = "SLOPSTUDIO_FUZZ_SEED";
 
 // Case counts are per target and fixed. Almost all of this test's wall clock
 // goes on writing one fixture file per case for the two targets that can only
@@ -927,7 +927,7 @@ QByteArray buildZip(const QVector<ArchiveFile>& files, bool deflated)
 QVector<ArchiveFile> archiveContents()
 {
 	return {
-		{QByteArrayLiteral("readme.txt"), QByteArrayLiteral("VibeStudio fixture archive.\n")},
+		{QByteArrayLiteral("readme.txt"), QByteArrayLiteral("SlopStudio fixture archive.\n")},
 		{QByteArrayLiteral("maps/base1.bsp"), buildQuakeBsp()},
 		{QByteArrayLiteral("textures/e1u1/metal1_1.wal"), buildQuake2Wal(32, 32)},
 		{QByteArrayLiteral("sound/ambience/drone.raw"), filler(777, 0x77u)},
@@ -1637,7 +1637,7 @@ bool runGeneratorSmoke()
 		std::cerr << "generator: an empty seed list should produce no cases\n";
 		return false;
 	}
-	if (parserFuzzSeed("VIBESTUDIO_FUZZ_SEED_THAT_IS_NEVER_SET", kDefaultSeed) != kDefaultSeed) {
+	if (parserFuzzSeed("SLOPSTUDIO_FUZZ_SEED_THAT_IS_NEVER_SET", kDefaultSeed) != kDefaultSeed) {
 		std::cerr << "generator: an unset environment variable must fall back to the constant seed\n";
 		return false;
 	}

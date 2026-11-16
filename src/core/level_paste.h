@@ -5,7 +5,7 @@
 #include <QHash>
 #include <QSet>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // A value-only snapshot: placement workers never query a widget or the cursor.
@@ -79,4 +79,4 @@ bool moveLevelMapSelectionToCamera(LevelMapDocument* document, const LevelPasteP
                                    const LevelMapTextureLockOptions& textures, LevelMapVec3* appliedOffset = nullptr,
                                    QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

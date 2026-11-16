@@ -2,7 +2,7 @@
 #include "app/locale_number.h"
 #include <QCoreApplication>
 #include <algorithm>
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -166,4 +166,4 @@ QVariant ModelCurveKeyReportTable::headerData(int section, Qt::Orientation orien
 					   Text::tr("Keys before"), Text::tr("Keys after"), Text::tr("Largest value change")}
 		.value(section);
 }
-} // namespace vibestudio
+} // namespace slopstudio

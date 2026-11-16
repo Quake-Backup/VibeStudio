@@ -2,7 +2,7 @@
 
 #include "core/model_mesh.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // The axis an OBJ's "up" points along. Blender, Maya and most modellers
 // export Y up and -Z forward; idTech models are Z up.
@@ -45,4 +45,4 @@ ModelMesh decodeModelObj(const QString &path, const QByteArray &bytes, const Mod
 ModelMesh decodeModelObj(const QString &path, const QByteArray &bytes, const ModelWorkControl &control = {});
 // Exact, verified streaming from an immutable reader. Ambiguous names fail.
 ModelMesh decodeModelObjFromArchive(const PackageArchiveReader &archive, const QString &path, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

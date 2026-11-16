@@ -12,49 +12,49 @@
 #include <array>
 #include <memory>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 QStringList findingNames()
 {
-	return {QCoreApplication::translate("VibeStudioModelEditor", "Duplicate faces"),
-			QCoreApplication::translate("VibeStudioModelEditor", "Unused vertices"),
-			QCoreApplication::translate("VibeStudioModelEditor", "Disconnected vertex fans"),
-			QCoreApplication::translate("VibeStudioModelEditor", "Inconsistent winding"),
-			QCoreApplication::translate("VibeStudioModelEditor", "Nonmanifold edges"),
-			QCoreApplication::translate("VibeStudioModelEditor", "Boundary edges")};
+	return {QCoreApplication::translate("SlopStudioModelEditor", "Duplicate faces"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Unused vertices"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Disconnected vertex fans"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Inconsistent winding"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Nonmanifold edges"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Boundary edges")};
 }
 QStringList findingDetails()
 {
-	return {QCoreApplication::translate("VibeStudioModelEditor",
+	return {QCoreApplication::translate("SlopStudioModelEditor",
 										"Faces with the same three vertex indices, in any order. Repair keeps the lowest face index, "
 										"including when a reversed copy was intentionally two-sided."),
 			QCoreApplication::translate(
-				"VibeStudioModelEditor",
+				"SlopStudioModelEditor",
 				"Vertices used by no face. Repair removes their UVs and all animation samples; surviving attributes stay exact."),
-			QCoreApplication::translate("VibeStudioModelEditor", "Face groups touching only at a vertex. Repair gives each disconnected "
+			QCoreApplication::translate("SlopStudioModelEditor", "Face groups touching only at a vertex. Repair gives each disconnected "
 																 "fan its own copy in every pose, preserving UVs, normals and seam marks."),
-			QCoreApplication::translate("VibeStudioModelEditor",
+			QCoreApplication::translate("SlopStudioModelEditor",
 										"Two faces traverse their shared edge in the same direction. Repair orients the whole surface from "
 										"each component's lowest face. It preserves authored normals; use Recalculate Normals if needed. "
 										"Remove duplicates and resolve nonmanifold edges first."),
-			QCoreApplication::translate("VibeStudioModelEditor",
+			QCoreApplication::translate("SlopStudioModelEditor",
 										"More than two faces share an indexed edge. Repair splits its endpoints into connected face fans, "
 										"preserving existing two-face connections. It keeps every face, UV and animation sample, and can "
 										"create open boundaries. Review the result before welding or exporting."),
-			QCoreApplication::translate("VibeStudioModelEditor",
+			QCoreApplication::translate("SlopStudioModelEditor",
 										"Edges belonging to one face. Open surfaces and indexed UV or normal seams commonly have "
 										"boundaries. These are informational and are not closed automatically. To close a chosen hole, "
 										"select an edge from it and use Geometry > Fill Boundary Loops.")};
 }
 QStringList repairNames()
 {
-	return {QCoreApplication::translate("VibeStudioModelEditor", "Remove Duplicate Faces"),
-			QCoreApplication::translate("VibeStudioModelEditor", "Remove Unused Vertices"),
-			QCoreApplication::translate("VibeStudioModelEditor", "Split Disconnected Fans"),
-			QCoreApplication::translate("VibeStudioModelEditor", "Orient Faces"),
-			QCoreApplication::translate("VibeStudioModelEditor", "Split Nonmanifold Edges")};
+	return {QCoreApplication::translate("SlopStudioModelEditor", "Remove Duplicate Faces"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Remove Unused Vertices"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Split Disconnected Fans"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Orient Faces"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Split Nonmanifold Edges")};
 }
 std::array<int, 6> counts(const ModelTopologyHealth &health)
 {
@@ -74,9 +74,9 @@ std::array<int, 6> counts(const ModelTopologyHealth &health)
 
 void ModelEditorDialog::addHealthControls(QFormLayout *form)
 {
-	m_healthInspect = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Inspect Surface"), 2);
+	m_healthInspect = new WrappingActionButton(QCoreApplication::translate("SlopStudioModelEditor", "Inspect Surface"), 2);
 	m_healthInspect->setObjectName(QStringLiteral("inspectMeshTopology"));
-	m_healthInspect->setToolTip(QCoreApplication::translate("VibeStudioModelEditor",
+	m_healthInspect->setToolTip(QCoreApplication::translate("SlopStudioModelEditor",
 															"Inspect indexed topology on the active surface. Coincident seam copies "
 															"remain separate. Inspection is cancellable and does not modify the source."));
 	form->addRow(m_healthInspect);
@@ -86,18 +86,18 @@ void ModelEditorDialog::addHealthControls(QFormLayout *form)
 	m_healthStatus->setWordWrap(true);
 	m_healthStatus->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	m_healthStatus->setMinimumWidth(0);
-	m_healthStatus->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Surface topology health"));
+	m_healthStatus->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Surface topology health"));
 	form->addRow(m_healthStatus);
 	m_healthFinding = new QComboBox;
 	m_healthFinding->setObjectName(QStringLiteral("meshHealthFinding"));
 	m_healthFinding->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
 	m_healthFinding->setMinimumContentsLength(12);
-	m_healthFinding->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Topology finding category"));
+	m_healthFinding->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Topology finding category"));
 	m_healthFinding->setAccessibleDescription(QCoreApplication::translate(
-		"VibeStudioModelEditor",
+		"SlopStudioModelEditor",
 		"Choose a finding category to inspect its count, select the affected components, or repair the entire active surface."));
 	m_healthFinding->addItems(findingNames());
-	form->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Findings"), m_healthFinding);
+	form->addRow(QCoreApplication::translate("SlopStudioModelEditor", "Findings"), m_healthFinding);
 	m_healthDetail = new QLabel;
 	m_healthDetail->setObjectName(QStringLiteral("meshHealthDetail"));
 	m_healthDetail->setTextFormat(Qt::PlainText);
@@ -105,15 +105,15 @@ void ModelEditorDialog::addHealthControls(QFormLayout *form)
 	m_healthDetail->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	m_healthDetail->setMinimumWidth(0);
 	form->addRow(m_healthDetail);
-	m_healthSelect = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Select Findings"), 2);
+	m_healthSelect = new WrappingActionButton(QCoreApplication::translate("SlopStudioModelEditor", "Select Findings"), 2);
 	m_healthSelect->setObjectName(QStringLiteral("selectMeshHealthFinding"));
 	m_healthSelect->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor", "Select the affected faces, vertices, or edges in the component table and both previews."));
+		"SlopStudioModelEditor", "Select the affected faces, vertices, or edges in the component table and both previews."));
 	form->addRow(m_healthSelect);
-	m_healthRepair = new WrappingActionButton(QCoreApplication::translate("VibeStudioModelEditor", "Split Disconnected Fans"), 2);
+	m_healthRepair = new WrappingActionButton(QCoreApplication::translate("SlopStudioModelEditor", "Split Disconnected Fans"), 2);
 	m_healthRepair->setObjectName(QStringLiteral("repairMeshHealthFinding"));
 	m_healthRepair->setToolTip(QCoreApplication::translate(
-		"VibeStudioModelEditor", "Repair every finding of this category on the active surface in one undo step. The current component "
+		"SlopStudioModelEditor", "Repair every finding of this category on the active surface in one undo step. The current component "
 								 "selection does not limit the repair. All animation poses are preserved."));
 	form->addRow(m_healthRepair);
 	for (auto *button : {m_healthInspect, m_healthSelect, m_healthRepair})
@@ -131,8 +131,8 @@ void ModelEditorDialog::addHealthControls(QFormLayout *form)
 	m_importIssues->setMinimumWidth(0);
 	m_importIssues->setFocusPolicy(Qt::TabFocus);
 	m_importIssues->setTextInteractionFlags(Qt::TextSelectableByKeyboard | Qt::TextSelectableByMouse);
-	m_importIssues->setAccessibleName(QCoreApplication::translate("VibeStudioModelEditor", "Import issues"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelEditor", "Import"), m_importIssues);
+	m_importIssues->setAccessibleName(QCoreApplication::translate("SlopStudioModelEditor", "Import issues"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelEditor", "Import"), m_importIssues);
 	connect(m_healthInspect, &QPushButton::clicked, this, [this] {
 		QString error;
 		if (!inspectTopology(&error))
@@ -155,7 +155,7 @@ bool ModelEditorDialog::inspectTopology(QString *error)
 	}
 	auto health = std::make_shared<ModelTopologyHealth>();
 	if (!performWork(
-			QCoreApplication::translate("VibeStudioModelEditor", "Inspect Surface Topology"),
+			QCoreApplication::translate("SlopStudioModelEditor", "Inspect Surface Topology"),
 			[surface, health](ModelDocument &candidate, QString *failure, const ModelWorkControl &control) {
 				return inspectModelTopology(candidate.mesh().surfaces[surface], health.get(), failure, control);
 			},
@@ -184,7 +184,7 @@ void ModelEditorDialog::refreshHealth()
 	for (int i = 0; i < names.size(); ++i)
 	{
 		m_healthFinding->setItemText(
-			i, current ? QCoreApplication::translate("VibeStudioModelEditor", "%1 — %2").arg(names[i]).arg(total[i]) : names[i]);
+			i, current ? QCoreApplication::translate("SlopStudioModelEditor", "%1 — %2").arg(names[i]).arg(total[i]) : names[i]);
 	}
 	const int category = m_healthFinding->currentIndex();
 	const bool meshMode = m_selectionMode->currentIndex() < 3;
@@ -192,17 +192,17 @@ void ModelEditorDialog::refreshHealth()
 	m_healthFinding->setEnabled(current && meshMode);
 	m_healthSelect->setEnabled(current && meshMode && category >= 0 && total[category] > 0);
 	const bool canRepair = category >= 0 && category < 5;
-	m_healthRepair->setText(canRepair ? repairNames()[category] : QCoreApplication::translate("VibeStudioModelEditor", "Repair Surface"));
+	m_healthRepair->setText(canRepair ? repairNames()[category] : QCoreApplication::translate("SlopStudioModelEditor", "Repair Surface"));
 	m_healthRepair->setAccessibleName(m_healthRepair->text());
 	m_healthRepair->setEnabled(current && meshMode && canRepair && total[category] > 0);
 	m_healthDetail->setText(category >= 0 ? findingDetails()[category] : QString());
 	m_healthDetail->setAccessibleName(m_healthDetail->text());
 	m_healthStatus->setText(
-		current ? QCoreApplication::translate("VibeStudioModelEditor", "%1 · %2\nRepair scope: entire active surface, all poses.",
+		current ? QCoreApplication::translate("SlopStudioModelEditor", "%1 · %2\nRepair scope: entire active surface, all poses.",
 											  "edge count, then face component count")
-					  .arg(QCoreApplication::translate("VibeStudioModelEditor", "%Ln edge(s)", nullptr, int(m_health.edges.size())),
-						   QCoreApplication::translate("VibeStudioModelEditor", "%Ln face component(s)", nullptr, int(m_health.faceComponents)))
-				: QCoreApplication::translate("VibeStudioModelEditor", "Inspect the active surface to update topology findings."));
+					  .arg(QCoreApplication::translate("SlopStudioModelEditor", "%Ln edge(s)", nullptr, int(m_health.edges.size())),
+						   QCoreApplication::translate("SlopStudioModelEditor", "%Ln face component(s)", nullptr, int(m_health.faceComponents)))
+				: QCoreApplication::translate("SlopStudioModelEditor", "Inspect the active surface to update topology findings."));
 	m_healthStatus->setAccessibleDescription(m_healthStatus->text());
 	if (m_importIssues)
 	{
@@ -213,7 +213,7 @@ void ModelEditorDialog::refreshHealth()
 			names << surface.name;
 		}
 		const auto lines = modelDecodeIssueLines(mesh.issues, names);
-		m_importIssues->setText(lines.isEmpty() ? QCoreApplication::translate("VibeStudioModelEditor", "No decode issues were recorded.")
+		m_importIssues->setText(lines.isEmpty() ? QCoreApplication::translate("SlopStudioModelEditor", "No decode issues were recorded.")
 												: lines.join(QLatin1Char('\n')));
 		m_importIssues->setAccessibleDescription(lines.isEmpty() ? m_importIssues->text()
 																 : modelDecodeIssueSummary(mesh.issues));
@@ -288,4 +288,4 @@ void ModelEditorDialog::repairHealthFinding()
 		m_status->setText(error);
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

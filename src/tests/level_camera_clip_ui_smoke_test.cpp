@@ -14,7 +14,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value,const char* label,const QString& detail = {}) { if (!value) { ok = false; std::cerr << label << ": " << detail.toStdString() << '\n'; } return value; }
@@ -136,7 +136,7 @@ int main(int argc,char** argv)
 		&& camera->clipState() == levelBase,"unresolvable horizontal movement retains exact plane");
 	expect(camera->accessibleSummary().contains("cannot resolve"),"unresolvable movement explains the next action");
 	camera->finishClipPoint(false); camera->setCameraView({-128,0,64},0,-20); expect(settle(camera),"restore camera after refused movement");
-	const auto evidence = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const auto evidence = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (!evidence.isEmpty()) {
 		camera->setClipState(corrected); expect(until([&] { return camera->clipPreview().status == LevelClipPreview::Status::Ready; }),"capture checked corrected cut");
 		for (int scale : {100,200}) {

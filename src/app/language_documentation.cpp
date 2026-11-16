@@ -6,7 +6,7 @@
 #include <QTextDocument>
 #include <QTextDocumentFragment>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 // Documentation never reads files, fetches images or invokes a global resource provider.
 class InfoDocument final : public QTextDocument {
@@ -71,4 +71,4 @@ void renderLanguageDocumentation(QTextDocument* document, const QVector<Language
 	}
 	for (auto& code : codeRanges) { code.mergeCharFormat(codeFormat); }
 }
-} // namespace vibestudio
+} // namespace slopstudio

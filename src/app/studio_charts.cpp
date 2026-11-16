@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -72,23 +72,23 @@ QString stateName(OperationState state)
 {
 	switch (state) {
 	case OperationState::Idle:
-		return QCoreApplication::translate("VibeStudioCharts", "Idle");
+		return QCoreApplication::translate("SlopStudioCharts", "Idle");
 	case OperationState::Queued:
-		return QCoreApplication::translate("VibeStudioCharts", "Queued");
+		return QCoreApplication::translate("SlopStudioCharts", "Queued");
 	case OperationState::Loading:
-		return QCoreApplication::translate("VibeStudioCharts", "Loading");
+		return QCoreApplication::translate("SlopStudioCharts", "Loading");
 	case OperationState::Running:
-		return QCoreApplication::translate("VibeStudioCharts", "Running");
+		return QCoreApplication::translate("SlopStudioCharts", "Running");
 	case OperationState::Warning:
-		return QCoreApplication::translate("VibeStudioCharts", "Warning");
+		return QCoreApplication::translate("SlopStudioCharts", "Warning");
 	case OperationState::Failed:
-		return QCoreApplication::translate("VibeStudioCharts", "Failed");
+		return QCoreApplication::translate("SlopStudioCharts", "Failed");
 	case OperationState::Cancelled:
-		return QCoreApplication::translate("VibeStudioCharts", "Cancelled");
+		return QCoreApplication::translate("SlopStudioCharts", "Cancelled");
 	case OperationState::Completed:
-		return QCoreApplication::translate("VibeStudioCharts", "Completed");
+		return QCoreApplication::translate("SlopStudioCharts", "Completed");
 	}
-	return QCoreApplication::translate("VibeStudioCharts", "Idle");
+	return QCoreApplication::translate("SlopStudioCharts", "Idle");
 }
 
 bool paletteIsLight(const QPalette& palette)
@@ -175,47 +175,47 @@ QString formatDurationText(qint64 milliseconds, bool coarse)
 	const qint64 ms = milliseconds < 0 ? 0 : milliseconds;
 	if (ms < 1000) {
 		if (coarse) {
-			return QCoreApplication::translate("VibeStudioCharts", "under 1 s");
+			return QCoreApplication::translate("SlopStudioCharts", "under 1 s");
 		}
-		return QCoreApplication::translate("VibeStudioCharts", "%1 ms").arg(ms);
+		return QCoreApplication::translate("SlopStudioCharts", "%1 ms").arg(ms);
 	}
 	if (ms < 60000) {
 		if (coarse) {
-			return QCoreApplication::translate("VibeStudioCharts", "%1 s").arg(ms / 1000);
+			return QCoreApplication::translate("SlopStudioCharts", "%1 s").arg(ms / 1000);
 		}
 		const double seconds = static_cast<double>(ms) / 1000.0;
-		return QCoreApplication::translate("VibeStudioCharts", "%1 s").arg(QString::number(seconds, 'f', 1));
+		return QCoreApplication::translate("SlopStudioCharts", "%1 s").arg(QString::number(seconds, 'f', 1));
 	}
 	if (ms < 3600000) {
 		const qint64 minutes = ms / 60000;
 		const qint64 seconds = (ms % 60000) / 1000;
 		if (coarse || seconds == 0) {
-			return QCoreApplication::translate("VibeStudioCharts", "%1 min").arg(minutes);
+			return QCoreApplication::translate("SlopStudioCharts", "%1 min").arg(minutes);
 		}
-		return QCoreApplication::translate("VibeStudioCharts", "%1 min %2 s").arg(minutes).arg(seconds);
+		return QCoreApplication::translate("SlopStudioCharts", "%1 min %2 s").arg(minutes).arg(seconds);
 	}
 	const qint64 hours = ms / 3600000;
 	const qint64 minutes = (ms % 3600000) / 60000;
 	if (coarse || minutes == 0) {
-		return QCoreApplication::translate("VibeStudioCharts", "%1 h").arg(hours);
+		return QCoreApplication::translate("SlopStudioCharts", "%1 h").arg(hours);
 	}
-	return QCoreApplication::translate("VibeStudioCharts", "%1 h %2 min").arg(hours).arg(minutes);
+	return QCoreApplication::translate("SlopStudioCharts", "%1 h %2 min").arg(hours).arg(minutes);
 }
 
 QString formatRelativeText(qint64 deltaMs)
 {
 	if (deltaMs <= 1500) {
-		return QCoreApplication::translate("VibeStudioCharts", "just now");
+		return QCoreApplication::translate("SlopStudioCharts", "just now");
 	}
-	return QCoreApplication::translate("VibeStudioCharts", "%1 ago").arg(formatDurationText(deltaMs, true));
+	return QCoreApplication::translate("SlopStudioCharts", "%1 ago").arg(formatDurationText(deltaMs, true));
 }
 
 QString formatShareText(double share)
 {
 	if (share > 0.0 && share < 1.0) {
-		return QCoreApplication::translate("VibeStudioCharts", "<1%");
+		return QCoreApplication::translate("SlopStudioCharts", "<1%");
 	}
-	return QCoreApplication::translate("VibeStudioCharts", "%1%").arg(QString::number(share, 'f', share < 10.0 ? 1 : 0));
+	return QCoreApplication::translate("SlopStudioCharts", "%1%").arg(QString::number(share, 'f', share < 10.0 ? 1 : 0));
 }
 
 // Keeps a translated or technical label, including its ellipsis, and a number
@@ -527,9 +527,9 @@ QString pipelineBadgeLine(const PipelineBox& box)
 	QString badge = box.badge;
 	if (box.optional) {
 		if (badge.isEmpty()) {
-			badge = QCoreApplication::translate("VibeStudioCharts", "optional");
+			badge = QCoreApplication::translate("SlopStudioCharts", "optional");
 		} else {
-			badge += QStringLiteral(" ") + QCoreApplication::translate("VibeStudioCharts", "optional");
+			badge += QStringLiteral(" ") + QCoreApplication::translate("SlopStudioCharts", "optional");
 		}
 	}
 	return badge;
@@ -2029,4 +2029,4 @@ int ActivityTimelineChart::eventAt(const QPoint& point) const
 	return -1;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

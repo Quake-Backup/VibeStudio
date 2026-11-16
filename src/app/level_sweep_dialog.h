@@ -16,7 +16,7 @@ class QPushButton;
 class QSpinBox;
 class QThread;
 class QTimer;
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class LevelSweepDialog final : public QDialog
@@ -40,8 +40,8 @@ class LevelSweepDialog final : public QDialog
 	void setViewportMode();
   Q_SIGNALS:
 	void scaleRequested(int direction);
-	void requestChanged(const vibestudio::LevelSweepRequest& request);
-	void previewChanged(bool pending, const QVector<QPair<vibestudio::LevelMapVec3, vibestudio::LevelMapVec3>>& edges,
+	void requestChanged(const slopstudio::LevelSweepRequest& request);
+	void previewChanged(bool pending, const QVector<QPair<slopstudio::LevelMapVec3, slopstudio::LevelMapVec3>>& edges,
 	                    const QString& status);
 
   private:
@@ -71,4 +71,4 @@ class LevelSweepDialog final : public QDialog
 	bool m_ready = false;
 	std::function<bool(const LevelMapDocument&, QString*)> m_applyHandler;
 };
-} // namespace vibestudio
+} // namespace slopstudio

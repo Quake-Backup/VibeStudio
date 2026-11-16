@@ -17,7 +17,7 @@
 #include <QTimer>
 #include <QUuid>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::initializePackageRecovery()
 {
@@ -47,7 +47,7 @@ void ApplicationShell::initializePackageRecovery()
 	auto* progress = new QTimer(this); progress->setInterval(250);
 	connect(progress, &QTimer::timeout, this, [this]() { if (m_packageRecoveryWriter->busy()) { refreshPackageRecoveryStatus(); } });
 	progress->start(); refreshPackageRecoveryStatus();
-	QDirIterator copies(packageRecoveryDirectory(), {QStringLiteral("*.vibepackage")}, QDir::Dirs | QDir::NoDotAndDotDot);
+	QDirIterator copies(packageRecoveryDirectory(), {QStringLiteral("*.sloppackage")}, QDir::Dirs | QDir::NoDotAndDotDot);
 	if (copies.hasNext()) {
 		QTimer::singleShot(0, this, [this]() { statusBar()->showMessage(tr("Package recovery copies are available in File > Recover Packages.")); });
 	}
@@ -114,9 +114,9 @@ void ApplicationShell::recoverPackagesFromUi()
 	dialog->restore = [this](const PackageRecoveryInfo& info) {
 		const QString directory = m_settings.currentProjectPath().isEmpty() ? QDir::currentPath() : m_settings.currentProjectPath();
 		QString destination = QFileDialog::getSaveFileName(this, tr("Restore Package to New Draft"),
-			QDir(directory).filePath(QStringLiteral("recovered.vibepackage")), tr("Package Draft Directory (*.vibepackage)"), nullptr, QFileDialog::DontConfirmOverwrite);
+			QDir(directory).filePath(QStringLiteral("recovered.sloppackage")), tr("Package Draft Directory (*.sloppackage)"), nullptr, QFileDialog::DontConfirmOverwrite);
 		if (destination.isEmpty()) { return; }
-		if (!destination.endsWith(QStringLiteral(".vibepackage"), Qt::CaseInsensitive)) { destination += QStringLiteral(".vibepackage"); }
+		if (!destination.endsWith(QStringLiteral(".sloppackage"), Qt::CaseInsensitive)) { destination += QStringLiteral(".sloppackage"); }
 		QString error;
 		if (!recoverPackageDocument(packageRecoveryDirectory(), info.id, info.manifestSha256, destination, &error) && !error.isEmpty()) {
 			QMessageBox::warning(this, tr("Package Recovery"), error);
@@ -155,4 +155,4 @@ bool ApplicationShell::recoverPackageDocument(const QString& directory, const QS
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

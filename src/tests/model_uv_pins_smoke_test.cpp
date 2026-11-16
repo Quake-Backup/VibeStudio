@@ -20,8 +20,8 @@
 // Pinned UV corners (core/model_uv_pins.h): the pin edits, the editable
 // source (version 17), how pins follow other edits, the conformal unwrap
 // that reads them, and the CLI.
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -217,7 +217,7 @@ int main(int argc, char **argv)
 	}
 
 	// CLI: uv-pin writes version 17; model uv lists the pins.
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	QTemporaryDir temp(QDir(root.isEmpty() ? QDir::tempPath() : root).filePath("uv-pins-XXXXXX"));
 	const auto input = temp.filePath("strip.mesh.json"), output = temp.filePath("pinned.mesh.json");
 	QFile file(input);

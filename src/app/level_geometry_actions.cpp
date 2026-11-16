@@ -47,7 +47,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -61,34 +61,34 @@ struct PatchMatrixCommand {
 const QList<PatchMatrixCommand>& patchMatrixCommands()
 {
 	static const QList<PatchMatrixCommand> commands {
-		{"map.patchInsertColumns", LevelPatchMatrixOperation::InsertColumns, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Insert Patch Columns"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Split the first span of each row of the selected patches in two, adding two control columns without changing the surface.")},
-		{"map.patchAddColumns", LevelPatchMatrixOperation::AddColumns, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Add Patch Columns"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Split the last span of each row of the selected patches in two, adding two control columns without changing the surface.")},
-		{"map.patchInsertRows", LevelPatchMatrixOperation::InsertRows, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Insert Patch Rows"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Split the first span of each column of the selected patches in two, adding two control rows without changing the surface.")},
-		{"map.patchAddRows", LevelPatchMatrixOperation::AddRows, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Add Patch Rows"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Split the last span of each column of the selected patches in two, adding two control rows without changing the surface.")},
-		{"map.patchDeleteFirstColumns", LevelPatchMatrixOperation::DeleteFirstColumns, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Delete First Patch Columns"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Join the first two spans of each row into one through the point they shared, two control columns fewer.")},
-		{"map.patchDeleteLastColumns", LevelPatchMatrixOperation::DeleteLastColumns, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Delete Last Patch Columns"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Join the last two spans of each row into one through the point they shared, two control columns fewer.")},
-		{"map.patchDeleteFirstRows", LevelPatchMatrixOperation::DeleteFirstRows, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Delete First Patch Rows"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Join the first two spans of each column into one through the point they shared, two control rows fewer.")},
-		{"map.patchDeleteLastRows", LevelPatchMatrixOperation::DeleteLastRows, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Delete Last Patch Rows"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Join the last two spans of each column into one through the point they shared, two control rows fewer.")},
-		{"map.patchTranspose", LevelPatchMatrixOperation::Transpose, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Transpose Patch"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Swap the selected patches' rows and columns, as Radiant's Matrix Transpose does; they then face the other way.")},
-		{"map.patchInvert", LevelPatchMatrixOperation::Invert, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Invert Patch Facing"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Turn the selected patches to face the other way.")},
-		{"map.patchRedisperseColumns", LevelPatchMatrixOperation::RedisperseColumns, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Re-disperse Patch Columns"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Put each span's middle control point halfway between its ends along the rows, spacing the patch evenly, as Radiant's Re-disperse does.")},
-		{"map.patchRedisperseRows", LevelPatchMatrixOperation::RedisperseRows, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Re-disperse Patch Rows"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Put each span's middle control point halfway between its ends down the columns, spacing the patch evenly.")},
-		{"map.patchSmoothColumns", LevelPatchMatrixOperation::SmoothColumns, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Smooth Patch Columns"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Move each joint between spans along the rows halfway between its neighbours, so the spans meet without a crease, as NetRadiant Custom's Smooth does.")},
-		{"map.patchSmoothRows", LevelPatchMatrixOperation::SmoothRows, QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Smooth Patch Rows"),
-			QT_TRANSLATE_NOOP("VibeStudioLevelGeometry", "Move each joint between spans down the columns halfway between its neighbours, so the spans meet without a crease.")},
+		{"map.patchInsertColumns", LevelPatchMatrixOperation::InsertColumns, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Insert Patch Columns"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Split the first span of each row of the selected patches in two, adding two control columns without changing the surface.")},
+		{"map.patchAddColumns", LevelPatchMatrixOperation::AddColumns, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Add Patch Columns"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Split the last span of each row of the selected patches in two, adding two control columns without changing the surface.")},
+		{"map.patchInsertRows", LevelPatchMatrixOperation::InsertRows, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Insert Patch Rows"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Split the first span of each column of the selected patches in two, adding two control rows without changing the surface.")},
+		{"map.patchAddRows", LevelPatchMatrixOperation::AddRows, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Add Patch Rows"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Split the last span of each column of the selected patches in two, adding two control rows without changing the surface.")},
+		{"map.patchDeleteFirstColumns", LevelPatchMatrixOperation::DeleteFirstColumns, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Delete First Patch Columns"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Join the first two spans of each row into one through the point they shared, two control columns fewer.")},
+		{"map.patchDeleteLastColumns", LevelPatchMatrixOperation::DeleteLastColumns, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Delete Last Patch Columns"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Join the last two spans of each row into one through the point they shared, two control columns fewer.")},
+		{"map.patchDeleteFirstRows", LevelPatchMatrixOperation::DeleteFirstRows, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Delete First Patch Rows"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Join the first two spans of each column into one through the point they shared, two control rows fewer.")},
+		{"map.patchDeleteLastRows", LevelPatchMatrixOperation::DeleteLastRows, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Delete Last Patch Rows"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Join the last two spans of each column into one through the point they shared, two control rows fewer.")},
+		{"map.patchTranspose", LevelPatchMatrixOperation::Transpose, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Transpose Patch"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Swap the selected patches' rows and columns, as Radiant's Matrix Transpose does; they then face the other way.")},
+		{"map.patchInvert", LevelPatchMatrixOperation::Invert, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Invert Patch Facing"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Turn the selected patches to face the other way.")},
+		{"map.patchRedisperseColumns", LevelPatchMatrixOperation::RedisperseColumns, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Re-disperse Patch Columns"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Put each span's middle control point halfway between its ends along the rows, spacing the patch evenly, as Radiant's Re-disperse does.")},
+		{"map.patchRedisperseRows", LevelPatchMatrixOperation::RedisperseRows, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Re-disperse Patch Rows"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Put each span's middle control point halfway between its ends down the columns, spacing the patch evenly.")},
+		{"map.patchSmoothColumns", LevelPatchMatrixOperation::SmoothColumns, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Smooth Patch Columns"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Move each joint between spans along the rows halfway between its neighbours, so the spans meet without a crease, as NetRadiant Custom's Smooth does.")},
+		{"map.patchSmoothRows", LevelPatchMatrixOperation::SmoothRows, QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Smooth Patch Rows"),
+			QT_TRANSLATE_NOOP("SlopStudioLevelGeometry", "Move each joint between spans down the columns halfway between its neighbours, so the spans meet without a crease.")},
 	};
 	return commands;
 }
@@ -286,8 +286,8 @@ void ApplicationShell::registerLevelGeometryCommands()
 	const QString patches = tr("Patch Matrix");
 	for (const PatchMatrixCommand& command : patchMatrixCommands()) {
 		const LevelPatchMatrixOperation operation = command.operation;
-		add(QString::fromLatin1(command.id), QCoreApplication::translate("VibeStudioLevelGeometry", command.label),
-			QCoreApplication::translate("VibeStudioLevelGeometry", command.tip), QStringLiteral("patch-cylinder"), patches,
+		add(QString::fromLatin1(command.id), QCoreApplication::translate("SlopStudioLevelGeometry", command.label),
+			QCoreApplication::translate("SlopStudioLevelGeometry", command.tip), QStringLiteral("patch-cylinder"), patches,
 			[this, operation]() { applyLevelPatchMatrixFromUi(operation); });
 	}
 	add(QStringLiteral("map.thickenPatch"), tr("Thicken Patch…"),
@@ -1326,7 +1326,7 @@ void ApplicationShell::replaceLevelSelectionWithPrefabFromUi()
 		return;
 	}
 	const QString start = m_lastLevelPrefabPath.isEmpty() ? m_settings.currentProjectPath() : m_lastLevelPrefabPath;
-	const QString path = QFileDialog::getOpenFileName(this, tr("Replace Selection with Prefab"), start, tr("VibeStudio prefabs (*.vprefab)"));
+	const QString path = QFileDialog::getOpenFileName(this, tr("Replace Selection with Prefab"), start, tr("SlopStudio prefabs (*.vprefab)"));
 	if (path.isEmpty()) {
 		return;
 	}
@@ -1402,4 +1402,4 @@ bool ApplicationShell::replaceLevelSelectionWithPrefab(const QString& path)
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

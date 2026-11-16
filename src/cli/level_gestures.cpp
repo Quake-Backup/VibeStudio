@@ -7,7 +7,7 @@
 #include <QJsonArray>
 #include <QSet>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 LevelGesturesCliResult runLevelGestures(const QStringList& arguments)
 {
 	const auto failure = [](int code, const QString& error) { return LevelGesturesCliResult{code, error, {}, {}}; };
@@ -93,4 +93,4 @@ LevelGesturesCliResult runLevelGestures(const QStringList& arguments)
 		{"shortcutWarnings", QJsonArray::fromStringList(warnings)}, {"dryRun", dryRun}, {"applied", writing && !dryRun}};
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

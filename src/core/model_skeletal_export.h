@@ -23,7 +23,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // --- Joint rigidity --------------------------------------------------------
 
@@ -107,4 +107,4 @@ struct ModelSkeletalFrameAudit {
 bool auditModelSkeletalFrames(const ModelMesh& mesh, ModelSkeletalFrameAudit* audit, QString* error = nullptr,
 	const ModelWorkControl& control = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

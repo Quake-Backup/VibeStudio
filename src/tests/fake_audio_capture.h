@@ -4,7 +4,7 @@
 #include <cstring>
 #include <mutex>
 
-namespace vibestudio::test
+namespace slopstudio::test
 {
 struct CaptureFixture {
 	mutable std::mutex mutex;
@@ -80,4 +80,4 @@ inline AudioCaptureDeviceFactory captureFactory(const std::shared_ptr<CaptureFix
 {
 	return [state] { return std::make_unique<FakeCaptureDevice>(state); };
 }
-} // namespace vibestudio::test
+} // namespace slopstudio::test

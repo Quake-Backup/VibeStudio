@@ -2,7 +2,7 @@
 
 #include "core/model_mesh.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelAnimationSample
 {
@@ -28,4 +28,4 @@ bool interpolateModelTag(const ModelTag &first, const ModelTag &second, double a
 // zero. Only finiteness and matching names are required: opposite handedness and
 // antipodal poses are allowed, because the game allows them.
 bool interpolateModelTagQuake3(const ModelTag &first, const ModelTag &second, double amount, ModelTag *output);
-} // namespace vibestudio
+} // namespace slopstudio

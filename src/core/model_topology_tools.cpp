@@ -8,7 +8,7 @@
 #include <array>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 using namespace model_tools;
 namespace
@@ -235,4 +235,4 @@ bool recalculateModelOutside(ModelMesh *candidate, const ModelEdit &edit, ModelS
 	}
 	return refreshNormals(&surface, expandToCopies(topology, corners), work);
 }
-} // namespace vibestudio
+} // namespace slopstudio

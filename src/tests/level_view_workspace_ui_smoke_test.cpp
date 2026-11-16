@@ -27,7 +27,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message)
 {
@@ -147,7 +147,7 @@ int main(int argc, char** argv)
 			const QList<QWidget*> panes {camera, top, front, side};
 			const QList<QSplitter*> splitters {root, upper, lower};
 			auto capture = [&](QWidget* widget, const QString& name) {
-				const auto directory = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+				const auto directory = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 				if (directory.isEmpty()) { return; }
 				QDir().mkpath(directory);
 				QImage image(widget->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); widget->render(&image);

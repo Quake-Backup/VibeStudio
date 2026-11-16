@@ -4,7 +4,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct CompilerRunRequest {
 	CompilerCommandRequest command;
@@ -54,7 +54,7 @@ CompilerRunResult rerunCompilerCommandManifest(const CompilerCommandManifest& ma
 QString compilerRunResultText(const CompilerRunResult& result);
 
 // Saved compiler runs. Run Profile in Levels and on the Build page, and
-// `compiler run`, keep each run's manifest in `<root>/.vibestudio/compiler-runs`,
+// `compiler run`, keep each run's manifest in `<root>/.slopstudio/compiler-runs`,
 // where root is the open project or, without one, the map's folder.
 QString compilerRunManifestDirectory(const QString& rootPath);
 // A new, time-stamped manifest path in that folder for one profile's run.
@@ -75,4 +75,4 @@ constexpr int kCompilerRunManifestScanLimit = 128;
 bool findNewestCompilerRunManifest(const QStringList& rootPaths, const QString& inputPath, CompilerRunManifestMatch* out = nullptr,
 	int scanLimit = kCompilerRunManifestScanLimit);
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -15,7 +15,7 @@ class QPushButton;
 class QSpinBox;
 class QTreeWidget;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelQ3AnimationDialog final : public QDialog
 {
@@ -60,4 +60,4 @@ class ModelQ3AnimationDialog final : public QDialog
 	void useSourceClip();
 	void finish(bool exporting);
 };
-} // namespace vibestudio
+} // namespace slopstudio

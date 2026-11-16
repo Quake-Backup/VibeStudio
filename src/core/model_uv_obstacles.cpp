@@ -11,7 +11,7 @@
 #include <limits>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -419,4 +419,4 @@ bool packModelUvAround(const ModelMesh &mesh, int surfaceIndex, const QSet<int> 
 		return fail(error, Text::tr("Not enough memory for UV obstacle packing. No mapping was changed."));
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

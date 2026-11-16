@@ -1,4 +1,4 @@
-"""Generated brush topology edits or clipping -> VibeMap3 -> verified PK3.
+"""Generated brush topology edits or clipping -> SlopMap3 -> verified PK3.
 
 No game launch, input injection or screen capture. Uses original fixtures;
 all generated output must stay inside this project's .agents/tmp directory.

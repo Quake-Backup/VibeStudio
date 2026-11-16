@@ -16,7 +16,7 @@
 #include <atomic>
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct WireSegment {
 	QPointF a, b;
@@ -46,4 +46,4 @@ bool renderWireLines(const QSize& size, const QVector<WireSegment>& segments, co
 bool paintWireLines(QImage* output, const QVector<WireSegment>& segments, const WireStyle& style, const std::atomic_bool* cancelled = nullptr,
 	const std::function<bool()>& cancelledCallback = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

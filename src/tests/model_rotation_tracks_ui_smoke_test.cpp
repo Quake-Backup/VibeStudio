@@ -20,8 +20,8 @@
 #include <iostream>
 #include <numbers>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0, failures = 0;
@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir tmp(QDir(root).filePath("rotation-tracks-ui-XXXXXX"));

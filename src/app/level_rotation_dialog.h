@@ -2,7 +2,7 @@
 #include "app/level_transform_dialog.h"
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Rotate Selection… (NetRadiant Custom's Arbitrary Rotation): X, Y and Z
 // angles turned as one Euler XYZ rotation about the pivot, as one undo step.
@@ -29,4 +29,4 @@ class LevelRotationDialog final : public LevelTransformDialog
 	std::array<QDoubleSpinBox*, 3> m_angles{};
 	std::function<bool(const LevelMapRotationRequest&, QString*)> m_applyHandler;
 };
-} // namespace vibestudio
+} // namespace slopstudio

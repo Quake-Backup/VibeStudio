@@ -11,13 +11,13 @@
 #include <QSignalBlocker>
 #include <QTreeWidget>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
 struct Text
 {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioModelEditor)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioModelEditor)
 };
 } // namespace
 void ModelEditorDialog::selectJoint(const QString &name, bool toggle)
@@ -124,4 +124,4 @@ void ModelEditorDialog::executeJointTransform()
 	}
 	applyJointTransform(transform);
 }
-} // namespace vibestudio
+} // namespace slopstudio

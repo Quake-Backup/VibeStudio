@@ -22,7 +22,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& detail = {})
@@ -66,7 +66,7 @@ int main(int argc, char** argv)
 	const auto path = temp.filePath("duplicate.map");
 	QFile file(path); if (!file.open(QIODevice::WriteOnly) || file.write(original) != original.size()) { return 1; } file.close();
 	const QVector<LevelMapSelectionRef> selection{{LevelMapSelectionKind::QuakeBrush,0}};
-	for (const auto& profile : {QStringLiteral("trenchbroom"),QStringLiteral("netradiant-custom"),QStringLiteral("vibestudio-default")}) {
+	for (const auto& profile : {QStringLiteral("trenchbroom"),QStringLiteral("netradiant-custom"),QStringLiteral("slopstudio-default")}) {
 		for (int scale : {100,200}) {
 			std::cout << "Duplicate UI " << profile.toStdString() << ' ' << scale << '%' << std::endl;
 			settings.setSelectedEditorProfileId(profile); settings.setEditorGestureOverrides(profile,{});
@@ -103,7 +103,7 @@ int main(int argc, char** argv)
 						field->setCurrentIndex(field->findData(choice));
 						expect(apply->isEnabled(),"valid placement preference can apply"); apply->click();
 						auto* tabs = dialog->findChild<QTabWidget*>("gestureTabs"); tabs->setCurrentIndex(tabs->count()-1);
-						const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+						const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 						if (!captures.isEmpty()) {
 							QDir().mkpath(captures); dialog->resize(scale == 100 ? 740 : 1300,scale == 100 ? 690 : 1050);
 							app.processEvents(QEventLoop::ExcludeUserInputEvents);
@@ -114,7 +114,7 @@ int main(int argc, char** argv)
 					});
 					action("editor.gestures")->trigger(); expect(visited,"editing preference applied through shell");
 				};
-				const bool sourceNudge = profile == "vibestudio-default";
+				const bool sourceNudge = profile == "slopstudio-default";
 				for (int policy : {0,1}) {
 					if (policy) { nudgePreference(sourceNudge ? "off" : "on"); }
 					const bool nudged = policy ? !sourceNudge : sourceNudge;

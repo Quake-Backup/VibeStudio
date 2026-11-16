@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelObjectList::Work {
 	std::atomic_bool cancelled{false};
 	LevelObjectRows source;
@@ -217,4 +217,4 @@ void LevelObjectList::changeEvent(QEvent* event)
 		viewport()->update();
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

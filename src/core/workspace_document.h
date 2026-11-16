@@ -3,7 +3,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Portable references to saved work, distinct from the project build manifest
 // and from each editor's native document, undo history and recovery store.
@@ -14,7 +14,7 @@ struct WorkspaceDocument {
 	QString activeModule = QStringLiteral("workspace");
 	QJsonObject assetSelections; // textures/models/audio -> package virtual path
 	// Editable model sources open in the modeller (.mesh.json, .model.json,
-	// .assembly.json). Stored in extensions under "vibestudio.modelSources",
+	// .assembly.json). Stored in extensions under "slopstudio.modelSources",
 	// so version-1 readers without it keep the file readable.
 	QStringList modelSources;
 	QJsonObject extensions; // opaque, preserved by version-1 readers/writers
@@ -30,4 +30,4 @@ bool writeWorkspaceDocument(const QString& path, const WorkspaceDocument& docume
 	QByteArray* revision = nullptr, QString* error = nullptr);
 QStringList workspaceMissingReferences(const WorkspaceDocument& document);
 
-} // namespace vibestudio
+} // namespace slopstudio

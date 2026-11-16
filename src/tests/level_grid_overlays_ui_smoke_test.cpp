@@ -49,7 +49,7 @@
 #include <tuple>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

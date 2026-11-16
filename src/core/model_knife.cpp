@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <deque>
 
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -502,4 +502,4 @@ bool applyModelKnifeCuts(ModelMesh *mesh, const ModelEdit &edit, ModelSelection 
 {
 	return KnifeBuilder(*mesh, edit, *selection, error, control).run(report, &cuts);
 }
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

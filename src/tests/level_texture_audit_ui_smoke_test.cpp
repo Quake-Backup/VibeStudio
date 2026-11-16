@@ -17,7 +17,7 @@
 #include <atomic>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 bool until(const std::function<bool()>& done)
@@ -62,7 +62,7 @@ class Expanded final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		return QByteArray(context) == "VibeStudioLevelTextureAudit" ? QStringLiteral("[%1 · %1]").arg(QString::fromUtf8(source)) : QString();
+		return QByteArray(context) == "SlopStudioLevelTextureAudit" ? QStringLiteral("[%1 · %1]").arg(QString::fromUtf8(source)) : QString();
 	}
 };
 }
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
 				good &= button && !button->accessibleName().isEmpty() && button->focusPolicy() != Qt::NoFocus && QAccessible::queryAccessibleInterface(button);
 				if (button && button->isVisible()) { good &= panel.rect().contains(QRect(button->mapTo(&panel, QPoint()), button->size())); }
 			}
-			const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+			const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 			if (!capture.isEmpty()) {
 				QImage image(host.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); host.render(&image);
 				good &= image.save(QDir(capture).filePath(QStringLiteral("texture-audit-%1-%2.png").arg(suffix).arg(scale)));

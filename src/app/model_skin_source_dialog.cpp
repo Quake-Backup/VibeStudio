@@ -17,7 +17,7 @@
 
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -82,13 +82,13 @@ class Entries final : public QAbstractTableModel
 		switch (section)
 		{
 		case 0:
-			return QCoreApplication::translate("VibeStudioModelSkinSource", "Entry (0-based)");
+			return QCoreApplication::translate("SlopStudioModelSkinSource", "Entry (0-based)");
 		case 1:
-			return QCoreApplication::translate("VibeStudioModelSkinSource", "Package path");
+			return QCoreApplication::translate("SlopStudioModelSkinSource", "Package path");
 		case 2:
-			return QCoreApplication::translate("VibeStudioModelSkinSource", "Type");
+			return QCoreApplication::translate("SlopStudioModelSkinSource", "Type");
 		case 3:
-			return QCoreApplication::translate("VibeStudioModelSkinSource", "Size");
+			return QCoreApplication::translate("SlopStudioModelSkinSource", "Size");
 		default:
 			return {};
 		}
@@ -120,10 +120,10 @@ ModelSkinSourceDialog::ModelSkinSourceDialog(QVector<PackageEntry> entries, int 
 	const bool bindings = purpose == ModelSkinSourcePurpose::ShaderBindings || preview;
 	const bool image = purpose == ModelSkinSourcePurpose::Image;
 	setObjectName(QStringLiteral("meshSkinSourceDialog"));
-	setWindowTitle(image ? QCoreApplication::translate("VibeStudioModelSkinSource", "Choose Package Image")
-		: preview ? QCoreApplication::translate("VibeStudioModelSkinSource", "Preview Package Skin")
-		: bindings ? QCoreApplication::translate("VibeStudioModelSkinSource", "Apply Package Skin Assignments")
-							: QCoreApplication::translate("VibeStudioModelSkinSource", "Import Package Texture"));
+	setWindowTitle(image ? QCoreApplication::translate("SlopStudioModelSkinSource", "Choose Package Image")
+		: preview ? QCoreApplication::translate("SlopStudioModelSkinSource", "Preview Package Skin")
+		: bindings ? QCoreApplication::translate("SlopStudioModelSkinSource", "Apply Package Skin Assignments")
+							: QCoreApplication::translate("SlopStudioModelSkinSource", "Import Package Texture"));
 	setAccessibleName(windowTitle());
 	auto *layout = new QVBoxLayout(this);
 	auto *form = new QFormLayout;
@@ -131,41 +131,41 @@ ModelSkinSourceDialog::ModelSkinSourceDialog(QVector<PackageEntry> entries, int 
 	layout->addLayout(form);
 	auto *filter = new QLineEdit;
 	filter->setObjectName(QStringLiteral("meshSkinSourceFilter"));
-	filter->setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinSource", "Filter package paths"));
+	filter->setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinSource", "Filter package paths"));
 	filter->setAccessibleDescription(
-		bindings ? QCoreApplication::translate("VibeStudioModelSkinSource", "Find a staged or existing .skin file by its package path.")
-				 : QCoreApplication::translate("VibeStudioModelSkinSource", "Find a staged or existing texture by its package path."));
+		bindings ? QCoreApplication::translate("SlopStudioModelSkinSource", "Find a staged or existing .skin file by its package path.")
+				 : QCoreApplication::translate("SlopStudioModelSkinSource", "Find a staged or existing texture by its package path."));
 	form->addRow(filter->accessibleName(), filter);
 	if (!bindings && !image)
 	{
 		m_operation = new QComboBox;
 		m_operation->setObjectName(QStringLiteral("meshSkinSourceOperation"));
-		m_operation->setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinSource", "Skin operation"));
+		m_operation->setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinSource", "Skin operation"));
 		m_operation->setAccessibleDescription(QCoreApplication::translate(
-			"VibeStudioModelSkinSource", "Add a new skin slot, or replace or append a member in the selected skin."));
-		m_operation->addItem(QCoreApplication::translate("VibeStudioModelSkinSource", "Add skin slot"), int(ModelEditKind::AddMdlSkin));
+			"SlopStudioModelSkinSource", "Add a new skin slot, or replace or append a member in the selected skin."));
+		m_operation->addItem(QCoreApplication::translate("SlopStudioModelSkinSource", "Add skin slot"), int(ModelEditKind::AddMdlSkin));
 		if (skin >= 0 && member >= 0)
 		{
 			m_operation->addItem(
-				QCoreApplication::translate("VibeStudioModelSkinSource", "Replace skin %1, member %2").arg(skin).arg(member),
+				QCoreApplication::translate("SlopStudioModelSkinSource", "Replace skin %1, member %2").arg(skin).arg(member),
 				int(ModelEditKind::ReplaceMdlSkinMember));
 			m_operation->addItem(
-				QCoreApplication::translate("VibeStudioModelSkinSource", "Append to skin %1 (%2 s)").arg(skin).arg(duration),
+				QCoreApplication::translate("SlopStudioModelSkinSource", "Append to skin %1 (%2 s)").arg(skin).arg(duration),
 				int(ModelEditKind::AppendMdlSkinMember));
 		}
 		form->addRow(m_operation->accessibleName(), m_operation);
 	}
 	m_entries = new QTableView;
 	m_entries->setObjectName(QStringLiteral("meshSkinSourceEntries"));
-	m_entries->setAccessibleName(bindings ? QCoreApplication::translate("VibeStudioModelSkinSource", "Package skin assignment entries")
-										  : QCoreApplication::translate("VibeStudioModelSkinSource", "Package texture entries"));
+	m_entries->setAccessibleName(bindings ? QCoreApplication::translate("SlopStudioModelSkinSource", "Package skin assignment entries")
+										  : QCoreApplication::translate("SlopStudioModelSkinSource", "Package texture entries"));
 	m_entries->setAccessibleDescription(
-		image ? QCoreApplication::translate("VibeStudioModelSkinSource", "Choose an exact image entry. Its bytes are read and validated by the requesting editor after selection.")
-		: preview ? QCoreApplication::translate("VibeStudioModelSkinSource", "Select an exact .skin entry for this preview. Original model bindings and package contents stay unchanged.") : bindings
+		image ? QCoreApplication::translate("SlopStudioModelSkinSource", "Choose an exact image entry. Its bytes are read and validated by the requesting editor after selection.")
+		: preview ? QCoreApplication::translate("SlopStudioModelSkinSource", "Select an exact .skin entry for this preview. Original model bindings and package contents stay unchanged.") : bindings
 			? QCoreApplication::translate(
-				  "VibeStudioModelSkinSource",
+				  "SlopStudioModelSkinSource",
 				  "Select an exact .skin entry. Its shader assignments will replace primary surface materials in one undo step.")
-			: QCoreApplication::translate("VibeStudioModelSkinSource", "Exact entry numbers distinguish repeated paths. Import copies "
+			: QCoreApplication::translate("SlopStudioModelSkinSource", "Exact entry numbers distinguish repeated paths. Import copies "
 																	   "indexed pixels into the model; package changes remain staged."));
 	m_entries->setSelectionBehavior(QAbstractItemView::SelectRows);
 	m_entries->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -182,7 +182,7 @@ ModelSkinSourceDialog::ModelSkinSourceDialog(QVector<PackageEntry> entries, int 
 	m_entries->horizontalHeader()->setResizeContentsPrecision(100);
 	m_entries->horizontalHeader()->setSectionResizeMode(1, QHeaderView::Stretch);
 	layout->addWidget(m_entries, 1);
-	auto *status = new QLabel(QCoreApplication::translate("VibeStudioModelSkinSource", "No entry selected"));
+	auto *status = new QLabel(QCoreApplication::translate("SlopStudioModelSkinSource", "No entry selected"));
 	status->setObjectName(QStringLiteral("meshSkinSourceSelection"));
 	status->setTextFormat(Qt::PlainText);
 	status->setWordWrap(true);
@@ -190,19 +190,19 @@ ModelSkinSourceDialog::ModelSkinSourceDialog(QVector<PackageEntry> entries, int 
 	status->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
 	layout->addWidget(status);
 	auto *buttons = new QDialogButtonBox(QDialogButtonBox::Cancel);
-	auto *import = buttons->addButton(image ? QCoreApplication::translate("VibeStudioModelSkinSource", "Choose Image")
-		: preview ? QCoreApplication::translate("VibeStudioModelSkinSource", "Preview Skin")
-		: bindings ? QCoreApplication::translate("VibeStudioModelSkinSource", "Apply Assignments")
-											   : QCoreApplication::translate("VibeStudioModelSkinSource", "Import Skin"),
+	auto *import = buttons->addButton(image ? QCoreApplication::translate("SlopStudioModelSkinSource", "Choose Image")
+		: preview ? QCoreApplication::translate("SlopStudioModelSkinSource", "Preview Skin")
+		: bindings ? QCoreApplication::translate("SlopStudioModelSkinSource", "Apply Assignments")
+											   : QCoreApplication::translate("SlopStudioModelSkinSource", "Import Skin"),
 									  QDialogButtonBox::AcceptRole);
 	import->setObjectName(QStringLiteral("meshSkinSourceImport"));
 	import->setAccessibleName(import->text());
 	import->setAccessibleDescription(
-		image ? QCoreApplication::translate("VibeStudioModelSkinSource", "Return the selected image path and exact package index without modifying any asset.")
-		: preview ? QCoreApplication::translate("VibeStudioModelSkinSource", "Validate complete surface coverage and preview the selected shader paths without editing the model.")
-		: bindings ? QCoreApplication::translate("VibeStudioModelSkinSource",
+		image ? QCoreApplication::translate("SlopStudioModelSkinSource", "Return the selected image path and exact package index without modifying any asset.")
+		: preview ? QCoreApplication::translate("SlopStudioModelSkinSource", "Validate complete surface coverage and preview the selected shader paths without editing the model.")
+		: bindings ? QCoreApplication::translate("SlopStudioModelSkinSource",
 											   "Validate complete surface coverage, then apply shader paths without changing the package.")
-				 : QCoreApplication::translate("VibeStudioModelSkinSource",
+				 : QCoreApplication::translate("SlopStudioModelSkinSource",
 											   "Read and validate the selected indexed image, then apply one undoable skin edit."));
 	import->setEnabled(false);
 	layout->addWidget(buttons);
@@ -214,8 +214,8 @@ ModelSkinSourceDialog::ModelSkinSourceDialog(QVector<PackageEntry> entries, int 
 		import->setEnabled(selected.entryIndex >= 0);
 		status->setText(
 			selected.entryIndex >= 0
-				? QCoreApplication::translate("VibeStudioModelSkinSource", "Entry %1: %2").arg(selected.entryIndex).arg(selected.path)
-				: QCoreApplication::translate("VibeStudioModelSkinSource", "No entry selected"));
+				? QCoreApplication::translate("SlopStudioModelSkinSource", "Entry %1: %2").arg(selected.entryIndex).arg(selected.path)
+				: QCoreApplication::translate("SlopStudioModelSkinSource", "No entry selected"));
 	});
 	if (bindings)
 	{
@@ -237,4 +237,4 @@ ModelEditKind ModelSkinSourceDialog::kind() const
 {
 	return m_operation ? ModelEditKind(m_operation->currentData().toInt()) : ModelEditKind::ApplySkinBindings;
 }
-} // namespace vibestudio
+} // namespace slopstudio

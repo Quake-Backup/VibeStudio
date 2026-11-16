@@ -21,7 +21,7 @@
 
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // True when the bytes start with a RoQ signature chunk (0x1084).
 bool isRoqVideo(const QByteArray& bytes);
@@ -54,4 +54,4 @@ private:
 	std::unique_ptr<Data> d;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

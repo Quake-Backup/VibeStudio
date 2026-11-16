@@ -33,7 +33,7 @@
 #include <iostream>
 #include <mutex>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* message)
 {
@@ -58,7 +58,7 @@ class Expanded final : public QTranslator {
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override {
-		return QByteArray(context) == "VibeStudioPackageDialog" ? QStringLiteral("[%1 — expanded]").arg(QString::fromUtf8(source)) : QString();
+		return QByteArray(context) == "SlopStudioPackageDialog" ? QStringLiteral("[%1 — expanded]").arg(QString::fromUtf8(source)) : QString();
 	}
 };
 
@@ -225,7 +225,7 @@ int main(int argc, char** argv)
 				dialog->ensurePolished(); dialog->layout()->activate();
 				phaseVisible = cancel && !cancel->isEnabled() && !summary->accessibleName().isEmpty()
 					&& summary->height() >= summary->fontMetrics().height() && !dialog->close();
-				const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+				const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 				if (!captures.isEmpty()) {
 					QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image);
 					ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("package-copy-%1-%2.png").arg(accept ? QStringLiteral("finishing") : QStringLiteral("discarding")).arg(scale))),
@@ -266,7 +266,7 @@ int main(int argc, char** argv)
 		}
 		{
 			HandoffGate gate(QStringLiteral("packageDraftSaveDialog"), close);
-			const auto destination = root.filePath(QStringLiteral("saved-%1.vibepackage").arg(scale));
+			const auto destination = root.filePath(QStringLiteral("saved-%1.sloppackage").arg(scale));
 			const auto result = runPackageDraftSaveDialog(nullptr, plan, destination, false, gate.control());
 			PackageStagingModel reopened;
 			ok &= expect(gate.checked() && result.ready() && !result.cancelled && PackageDraft::load(destination, &reopened, &error)

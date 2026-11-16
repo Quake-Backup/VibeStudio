@@ -3,7 +3,7 @@
 #include "core/model_work.h"
 #include <QJsonValue>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 // SolveTwoBoneIk always uses the analytic two-bone solve. SolveChainIk solves a
@@ -88,4 +88,4 @@ bool modelPoseWithinJointLimits(const ModelSkeleton &skeleton, const QVector<Mod
 bool validModelJointLimits(const ModelJointLimits &limits, QString *error = nullptr);
 [[nodiscard]] QJsonValue modelJointLimitsJson(const ModelJointLimits &limits);
 bool modelJointLimitsFromJson(const QJsonValue &value, ModelJointLimits *limits);
-} // namespace vibestudio
+} // namespace slopstudio

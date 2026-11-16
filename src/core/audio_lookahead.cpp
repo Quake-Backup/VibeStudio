@@ -3,7 +3,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 quint64 AudioLookaheadLimiter::memoryBytes(int frames)
 {
@@ -74,4 +74,4 @@ std::array<double, 2> AudioLookaheadLimiter::tick(double left, double right)
 	output[1] *= m_gain;
 	return output;
 }
-} // namespace vibestudio
+} // namespace slopstudio

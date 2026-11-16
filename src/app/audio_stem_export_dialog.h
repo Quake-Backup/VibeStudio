@@ -9,7 +9,7 @@ class QListWidget;
 class QPlainTextEdit;
 class QLabel;
 class QDialogButtonBox;
-namespace vibestudio
+namespace slopstudio
 {
 class AudioStemExportDialog final : public QDialog {
 	Q_OBJECT
@@ -29,4 +29,4 @@ class AudioStemExportDialog final : public QDialog {
 	QLabel *m_status = nullptr;
 	QDialogButtonBox *m_buttons = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

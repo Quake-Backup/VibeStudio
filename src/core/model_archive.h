@@ -3,7 +3,7 @@
 #include "core/model_file_io.h"
 #include "core/package_archive.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 // Check all destinations against one bounded package protection snapshot.
 // Folder identity capture runs on the caller's worker and honours model work
@@ -32,4 +32,4 @@ class ModelArchiveReader final : public PackageArchiveReader
 	ModelWorkControl m_control;
 	QVector<PackageEntry> m_entries;
 };
-} // namespace vibestudio
+} // namespace slopstudio

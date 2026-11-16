@@ -2,7 +2,7 @@
 
 #include "tests/model_uv_test_helpers.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline ModelMesh healthFixture()
 {
@@ -21,4 +21,4 @@ inline ModelMesh healthFixture()
 	updateEditableModelMetadata(&mesh);
 	return mesh;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

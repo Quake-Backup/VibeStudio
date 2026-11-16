@@ -14,7 +14,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -1175,4 +1175,4 @@ QJsonArray modelLodSetJson(const ModelLodSet &set)
 	}
 	return files;
 }
-} // namespace vibestudio
+} // namespace slopstudio

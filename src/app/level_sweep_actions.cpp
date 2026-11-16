@@ -7,7 +7,7 @@
 #include "app/studio_layout.h"
 #include <QStatusBar>
 #include <QTimer>
-namespace vibestudio
+namespace slopstudio
 {
 void ApplicationShell::sweepLevelFacesFromUi(bool inViews)
 {
@@ -178,9 +178,9 @@ void ApplicationShell::sweepLevelFacesFromUi(bool inViews)
 	refreshLevelGeometryCommands();
 	statusBar()->showMessage(tr("Sweep destination controls are active. Create Sweep applies the checked preview."),6000);
 }
-} // namespace vibestudio
+} // namespace slopstudio
 
-namespace vibestudio
+namespace slopstudio
 {
 bool ApplicationShell::levelSweepToolActive() const
 {
@@ -214,4 +214,4 @@ void ApplicationShell::commitLevelSweepTool()
 		m_levelSweepDialog->accept();
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

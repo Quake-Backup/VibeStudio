@@ -6,7 +6,7 @@
 
 #include <QColor>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Colour set for one paint pass. Every distinction the viewport draws is also
 // carried by line weight, dash pattern or marker shape so nothing depends on
@@ -38,4 +38,4 @@ struct MapViewport::Palette {
 	QColor block;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

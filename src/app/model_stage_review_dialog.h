@@ -8,7 +8,7 @@ class QCheckBox;
 class QLabel;
 class QPushButton;
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // The review before Stage in Package or Stage and Place (SI-2): every file the
@@ -30,4 +30,4 @@ class ModelStageReviewDialog final : public QDialog
 	QPushButton *m_stage = nullptr;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

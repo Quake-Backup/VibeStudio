@@ -5,7 +5,7 @@
 #include <QtEndian>
 #include <cstring>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // Synthetic IDPO layout, independently assembled from the public format.
 // No model, palette or texture content is taken from a game.
@@ -97,4 +97,4 @@ inline MdlFixture groupedMdlFixture()
 	}
 	return result;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

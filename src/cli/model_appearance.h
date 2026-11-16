@@ -3,7 +3,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct ModelAppearanceCliResult
 {
@@ -13,4 +13,4 @@ struct ModelAppearanceCliResult
 	QString text;
 };
 ModelAppearanceCliResult runModelAppearance(const QStringList &arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

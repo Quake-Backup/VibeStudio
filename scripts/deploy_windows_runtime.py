@@ -3,7 +3,7 @@
 
 Uses windeployqt only for discovery. Every copied DLL must come from the selected
 SDK; Windows ICU is a recorded OS prerequisite. No compiler/system/Vulkan DLLs,
-software OpenGL or shader compilers are copied. Current VibeStudio uses raster
+software OpenGL or shader compilers are copied. Current SlopStudio uses raster
 Qt Widgets; future GPU surfaces must extend this deployment profile explicitly.
 """
 from __future__ import annotations

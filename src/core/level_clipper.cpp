@@ -2,7 +2,7 @@
 #include <QCoreApplication>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 bool validLevelClipTexture(const QString& texture)
 {
 	return !texture.isEmpty() && texture.size() <= 1024 && !texture.contains(QStringLiteral("//"))
@@ -51,4 +51,4 @@ bool updateLevelClipperPreferences(const QJsonObject& values, LevelClipperPrefer
 	}
 	*preferences = next; return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

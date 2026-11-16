@@ -31,7 +31,7 @@
 #include <QJsonArray>
 #include <QLocale>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 struct ModelSelection;
@@ -108,4 +108,4 @@ bool parseModelTagAnchors(const QJsonValue &value, QVector<ModelTagAnchor> *anch
 // RefitAnchoredTags (tagFollow.tag names one anchored tag, or every one when
 // empty); applyModelEdit validates and adopts.
 bool applyModelTagFollowEdit(ModelMesh *candidate, const ModelEdit &edit, QString *error = nullptr, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

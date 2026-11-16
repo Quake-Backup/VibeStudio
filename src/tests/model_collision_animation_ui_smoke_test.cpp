@@ -25,7 +25,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message, const QString &error = {})
@@ -40,7 +40,7 @@ QByteArray bytes(const ModelMesh &mesh)
 }
 bool capture(QWidget &widget, const QString &name)
 {
-	const auto directory = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto directory = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (directory.isEmpty())
 		return true;
 	if (!QDir().mkpath(directory))
@@ -75,7 +75,7 @@ class Expansion final : public QTranslator
 	}
 	QString translate(const char *context, const char *source, const char *, int) const override
 	{
-		if (!QByteArray(context).contains("ModelCollision") && QByteArray(context) != "VibeStudioModelEditor")
+		if (!QByteArray(context).contains("ModelCollision") && QByteArray(context) != "SlopStudioModelEditor")
 			return {};
 		const auto text = QString::fromUtf8(source);
 		return '[' + text + QString(text.size() / 2, '~') + ']';
@@ -289,7 +289,7 @@ bool maximum(QApplication &app)
 	maximumGap = std::max(maximumGap, elapsed.nsecsElapsed() - last);
 	tick.stop();
 	const double gapMs = maximumGap / 1e6;
-	const auto budget = qEnvironmentVariable("VIBESTUDIO_MODELLER_MAX_AUTHORING_GAP_MS").toDouble();
+	const auto budget = qEnvironmentVariable("SLOPSTUDIO_MODELLER_MAX_AUTHORING_GAP_MS").toDouble();
 	ok &= expect(events >= 2 && (budget <= 0 || gapMs <= budget), "maximum collision authoring respects GUI event-gap budget");
 	std::cout << "Maximum GUI tracks: 64 x 1024; elapsed ms=" << elapsed.elapsed() << "; events=" << events << "; max gap ms=" << gapMs
 			  << '\n';
@@ -305,13 +305,13 @@ int main(int argc, char **argv)
 #endif
 	QApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-collision-animation-ui-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-collision-animation-ui-smoke"); skip >= 0) {
 		return skip;
 	}
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return EXIT_FAILURE;
 	QTemporaryDir temporary(QDir(root).filePath("collision-animation-ui-XXXXXX"));

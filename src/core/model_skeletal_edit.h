@@ -2,7 +2,7 @@
 
 #include "core/model_mesh.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 enum class ModelEditKind;
@@ -34,4 +34,4 @@ bool replaceModelSkeletalSamples(ModelMesh *candidate, int clip, int first, cons
 // Candidate-only edits. Poses are dense samples; interpolation works in parent
 // space. Structural edits remap retained frame metadata and auxiliary tracks.
 bool applyModelSkeletalEdit(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

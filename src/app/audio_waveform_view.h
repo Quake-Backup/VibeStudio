@@ -4,7 +4,7 @@
 
 #include <QWidget>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Frame-accurate authoring view; the browser's time-based preview remains a
@@ -70,4 +70,4 @@ private:
 	qint64 m_panFirst = 0;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

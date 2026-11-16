@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 
 TextureCanvas::TextureCanvas(TextureDocument* document, QWidget* parent) : QWidget(parent), m_document(document)
 {
@@ -27,8 +27,8 @@ TextureCanvas::TextureCanvas(TextureDocument* document, QWidget* parent) : QWidg
 	Q_UNUSED(factoryInstalled);
 	setObjectName(QStringLiteral("textureCanvas"));
 	setFocusPolicy(Qt::StrongFocus); setMouseTracking(true); setAttribute(Qt::WA_TabletTracking);
-	setAccessibleName(QCoreApplication::translate("VibeStudioTextureEditor", "Texture editing canvas"));
-	setAccessibleDescription(QCoreApplication::translate("VibeStudioTextureEditor", "Arrow keys move the pixel cursor; Space applies the tool and Shift+Space uses the secondary color. Shift and arrows select a rectangle. Plus and minus zoom; F fits. Middle-drag pans. Escape cancels a stroke."));
+	setAccessibleName(QCoreApplication::translate("SlopStudioTextureEditor", "Texture editing canvas"));
+	setAccessibleDescription(QCoreApplication::translate("SlopStudioTextureEditor", "Arrow keys move the pixel cursor; Space applies the tool and Shift+Space uses the secondary color. Shift and arrows select a rectangle. Plus and minus zoom; F fits. Middle-drag pans. Escape cancels a stroke."));
 }
 
 void TextureCanvas::setTool(Tool tool) { finishStroke(); m_tool = tool; m_cloneOffsetSet = false; update(); }
@@ -109,13 +109,13 @@ void TextureCanvas::setCursorPixel(QPoint pixel)
 void TextureCanvas::reportPixel()
 {
 	if (m_document->image().isNull()) { return; }
-	QString text = QCoreApplication::translate("VibeStudioTextureEditor", "Pixel %1, %2 · %3").arg(m_pixel.x()).arg(m_pixel.y()).arg(m_document->image().pixelColor(m_pixel).name(QColor::HexArgb));
+	QString text = QCoreApplication::translate("SlopStudioTextureEditor", "Pixel %1, %2 · %3").arg(m_pixel.x()).arg(m_pixel.y()).arg(m_document->image().pixelColor(m_pixel).name(QColor::HexArgb));
 	if (m_tool == Tool::Clone) {
-		text += QStringLiteral(" · ") + (m_hasCloneSource ? QCoreApplication::translate("VibeStudioTextureEditor", "Clone source %1, %2").arg(m_cloneSource.x()).arg(m_cloneSource.y()) :
-			QCoreApplication::translate("VibeStudioTextureEditor", "No clone source: Ctrl+click or Ctrl+Space sets one"));
+		text += QStringLiteral(" · ") + (m_hasCloneSource ? QCoreApplication::translate("SlopStudioTextureEditor", "Clone source %1, %2").arg(m_cloneSource.x()).arg(m_cloneSource.y()) :
+			QCoreApplication::translate("SlopStudioTextureEditor", "No clone source: Ctrl+click or Ctrl+Space sets one"));
 	}
-	const QString state = m_drawing ? QCoreApplication::translate("VibeStudioTextureEditor", "Shape %1, %2 to %3, %4 · Space commits; Escape cancels.").arg(m_shapeStart.x()).arg(m_shapeStart.y()).arg(m_shapeEnd.x()).arg(m_shapeEnd.y()) : text;
-	setAccessibleDescription(state + QLatin1Char('\n') + QCoreApplication::translate("VibeStudioTextureEditor", "Arrows move, Space applies or sets shape endpoints, Shift+Space uses the secondary color, Shift and arrows select, plus/minus zoom, F fits, Escape cancels."));
+	const QString state = m_drawing ? QCoreApplication::translate("SlopStudioTextureEditor", "Shape %1, %2 to %3, %4 · Space commits; Escape cancels.").arg(m_shapeStart.x()).arg(m_shapeStart.y()).arg(m_shapeEnd.x()).arg(m_shapeEnd.y()) : text;
+	setAccessibleDescription(state + QLatin1Char('\n') + QCoreApplication::translate("SlopStudioTextureEditor", "Arrows move, Space applies or sets shape endpoints, Shift+Space uses the secondary color, Shift and arrows select, plus/minus zoom, F fits, Escape cancels."));
 	if (statusChanged) { statusChanged(state); }
 }
 
@@ -157,7 +157,7 @@ void TextureCanvas::applyAtCursor(bool secondary)
 		}
 		TextureBrush brush = currentBrush();
 		if (m_tool == Tool::Clone) {
-			if (!m_hasCloneSource) { if (operationFailed) { operationFailed(QCoreApplication::translate("VibeStudioTextureEditor", "Choose a clone source first: Ctrl+click the canvas, or Ctrl+Space at the cursor.")); } return; }
+			if (!m_hasCloneSource) { if (operationFailed) { operationFailed(QCoreApplication::translate("SlopStudioTextureEditor", "Choose a clone source first: Ctrl+click the canvas, or Ctrl+Space at the cursor.")); } return; }
 			brush.cloneOffset = m_cloneAligned && m_cloneOffsetSet ? m_cloneOffset : m_cloneSource - m_pixel;
 			m_cloneOffset = brush.cloneOffset; m_cloneOffsetSet = m_cloneAligned;
 		}
@@ -194,7 +194,7 @@ void TextureCanvas::beginGesture(QPoint point, bool secondary)
 	if (strokeTool()) {
 		TextureBrush brush = currentBrush();
 		if (m_tool == Tool::Clone) {
-			if (!m_hasCloneSource) { if (operationFailed) { operationFailed(QCoreApplication::translate("VibeStudioTextureEditor", "Choose a clone source first: Ctrl+click the canvas, or Ctrl+Space at the cursor.")); } return; }
+			if (!m_hasCloneSource) { if (operationFailed) { operationFailed(QCoreApplication::translate("SlopStudioTextureEditor", "Choose a clone source first: Ctrl+click the canvas, or Ctrl+Space at the cursor.")); } return; }
 			brush.cloneOffset = m_cloneAligned && m_cloneOffsetSet ? m_cloneOffset : m_cloneSource - point;
 		}
 		QString error; m_lastPaint = gestureColor();
@@ -392,4 +392,4 @@ void TextureCanvas::keyPressEvent(QKeyEvent* event)
 	QAccessibleEvent accessible(this, QAccessible::DescriptionChanged); QAccessible::updateAccessibility(&accessible);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -14,8 +14,8 @@ from urllib.parse import urljoin
 
 CREDIT_TOKENS = [
     "PakFu",
-    "VibeMap2",
-    "VibeMap3",
+    "SlopMap2",
+    "SlopMap3",
     "ericw-tools",
     "NetRadiant Custom",
     "ZDBSP",
@@ -116,10 +116,10 @@ def parse_gitmodules(path: Path) -> dict[str, str]:
     return paths
 
 
-# VibeStudio's own compilers are submodules with URLs relative to this repository's home
+# SlopStudio's own compilers are submodules with URLs relative to this repository's home
 # ("../q3mapx.git"), which git resolves against the superproject's remote. Resolve them
 # against the canonical home so they compare with the manifest's absolute URLs.
-SUPERPROJECT_URL = "https://github.com/themuffinator/VibeStudio/"
+SUPERPROJECT_URL = "https://github.com/themuffinator/SlopStudio/"
 
 
 def normalize_url(url: str) -> str:
@@ -186,7 +186,7 @@ def main() -> int:
             source = (audio_root / path).resolve()
             if not source.is_relative_to(audio_root.resolve()) or hashlib.sha256(source.read_bytes()).hexdigest() != digest:
                 errors.append(f"r8brain pinned source hash mismatch: {path}")
-        for notice in ("LICENSE", "LICENSE-OOURA.txt", "VIBESTUDIO.md"):
+        for notice in ("LICENSE", "LICENSE-OOURA.txt", "SLOPSTUDIO.md"):
             if not (audio_root / notice).is_file():
                 errors.append(f"r8brain attribution file missing: {notice}")
         if audio_pin["revision"] not in readme_credits or audio_pin["revision"] not in credits:
@@ -203,7 +203,7 @@ def main() -> int:
                 if not source.is_relative_to(decoder_root.resolve()) or hashlib.sha256(source.read_bytes()).hexdigest() != digest:
                     errors.append(f"{component} pinned source hash mismatch: {path}")
             license_name = {"dr_libs": "LICENSE", "portaudio": "LICENSE.txt"}.get(component, "COPYING")
-            for notice in (license_name, "VIBESTUDIO.md"):
+            for notice in (license_name, "SLOPSTUDIO.md"):
                 if not (decoder_root / notice).is_file():
                     errors.append(f"{component} attribution file missing: {notice}")
             if pin["revision"] not in readme_credits or pin["revision"] not in credits:
@@ -218,7 +218,7 @@ def main() -> int:
             source = (atlas_root / path).resolve()
             if not source.is_relative_to(atlas_root.resolve()) or hashlib.sha256(source.read_bytes()).hexdigest() != digest:
                 errors.append(f"xatlas pinned source hash mismatch: {path}")
-        for notice in ("LICENSE", "LICENSE-THIRD-PARTY.txt", "VIBESTUDIO.md"):
+        for notice in ("LICENSE", "LICENSE-THIRD-PARTY.txt", "SLOPSTUDIO.md"):
             if not (atlas_root / notice).is_file():
                 errors.append(f"xatlas attribution file missing: {notice}")
         if pin["revision"] not in readme_credits or pin["revision"] not in credits:
@@ -233,7 +233,7 @@ def main() -> int:
             source = (vulkan_root / path).resolve()
             if not source.is_relative_to(vulkan_root.resolve()) or hashlib.sha256(source.read_bytes()).hexdigest() != digest:
                 errors.append(f"Vulkan-Headers pinned source hash mismatch: {path}")
-        for notice in ("LICENSE.md", "LICENSES/Apache-2.0.txt", "LICENSES/MIT.txt", "VIBESTUDIO.md"):
+        for notice in ("LICENSE.md", "LICENSES/Apache-2.0.txt", "LICENSES/MIT.txt", "SLOPSTUDIO.md"):
             if not (vulkan_root / notice).is_file():
                 errors.append(f"Vulkan-Headers attribution file missing: {notice}")
         if pin["revision"] not in readme_credits or pin["revision"] not in credits:

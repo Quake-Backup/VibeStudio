@@ -42,7 +42,7 @@ def collect(profile_path: Path, output: Path, cached_archives: Path | None = Non
             copy_checked(cached, destination, item['sha256'])
             origin = 'verified-independent-cache-copy'
         else:
-            request = urllib.request.Request(item['url'], headers={'User-Agent': 'VibeStudio-Source-Companion'})
+            request = urllib.request.Request(item['url'], headers={'User-Agent': 'SlopStudio-Source-Companion'})
             digest, total = hashlib.sha256(), 0
             with urllib.request.urlopen(request, timeout=45) as response, destination.open('xb') as stream:
                 if not response.url.startswith('https://'):

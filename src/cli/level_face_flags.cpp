@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <limits>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(LevelFaceFlagsCli)
@@ -277,4 +277,4 @@ LevelFaceFlagsCliResult runLevelFaceFlags(const QStringList& arguments)
 	result.lines << levelMapSaveReportText(saved);
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

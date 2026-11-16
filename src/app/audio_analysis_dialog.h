@@ -7,7 +7,7 @@
 class QComboBox;
 class QCheckBox;
 
-namespace vibestudio
+namespace slopstudio
 {
 
 class AudioChannelMapDialog final : public QDialog
@@ -32,4 +32,4 @@ private:
 	AudioAnalysis m_analysis;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

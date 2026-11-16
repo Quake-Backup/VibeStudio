@@ -9,7 +9,7 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 LevelMapDocument map()
@@ -100,7 +100,7 @@ int main(int argc, char** argv)
 	ok &= expect(plan.renameEntry(script, QStringLiteral("docs/studio.txt"), &error), "stage shader removal from its namespace");
 	ok &= expect(auditLevelMapTextures(map(), PackageStagingArchive(plan), false).missingCount == 1, "staged shader rename changes lookup immediately");
 	ok &= expect(plan.undo() && auditLevelMapTextures(map(), PackageStagingArchive(plan), false).resolvedCount == 1, "Undo restores the exact shader content");
-	const QString draft = temporary.filePath(QStringLiteral("planned.vibepackage"));
+	const QString draft = temporary.filePath(QStringLiteral("planned.sloppackage"));
 	ok &= expect(PackageDraft::save(draft, &plan, false, &error), "save a portable planned texture source");
 	if (argc > 1) {
 		LevelMapCreateRequest request; request.game = QStringLiteral("quake3");

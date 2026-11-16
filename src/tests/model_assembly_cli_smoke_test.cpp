@@ -12,7 +12,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -32,7 +32,7 @@ bool write(const QString &path, const QByteArray &bytes)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (argc < 2 || root.isEmpty() || !QDir().mkpath(root))
 	{
 		return EXIT_FAILURE;
@@ -131,20 +131,20 @@ int main(int argc, char **argv)
 				 "all CLI operations preserve original model bytes");
 	PackageStagingModel staging;
 	ok &= expect(staging.createEmpty(PackageArchiveFormat::Pak, {}, &error) && staging.addBytes(fixture, "models/part.mesh.json", &error) &&
-					 PackageDraft::save(path("models.vibepackage"), &staging, false, &error),
+					 PackageDraft::save(path("models.sloppackage"), &staging, false, &error),
 				 "portable draft with a generated model");
 	ok &= expect(run({"model", "assembly", "--new", "--part", "root", "--kind", "package", "--model", "models/part.mesh.json", "--package",
-					  path("models.vibepackage"), "--output", "package.assembly.json"}),
+					  path("models.sloppackage"), "--output", "package.assembly.json"}),
 				 "CLI source resolves portable staged model bytes");
 	ok &= expect(run({"model", "assembly", "package.assembly.json"}, 4), "package references require an explicit package context");
-	ok &= expect(run({"model", "assembly", "package.assembly.json", "--package", path("models.vibepackage"), "--operation", "bake",
+	ok &= expect(run({"model", "assembly", "package.assembly.json", "--package", path("models.sloppackage"), "--operation", "bake",
 					  "--output", "package.md3"}) &&
 					 output.value("vertices").toInt() == 3,
 				 "CLI bakes a portable package snapshot through native exporter");
-	ok &= expect(run({"model", "assembly", "package.assembly.json", "--package", path("models.vibepackage"), "--operation", "update",
-					  "--part", "root", "--output", path("models.vibepackage/blocked.assembly.json"), "--dry-run"},
+	ok &= expect(run({"model", "assembly", "package.assembly.json", "--package", path("models.sloppackage"), "--operation", "update",
+					  "--part", "root", "--output", path("models.sloppackage/blocked.assembly.json"), "--dry-run"},
 					 2) &&
-					 !QFileInfo::exists(path("models.vibepackage/blocked.assembly.json")),
+					 !QFileInfo::exists(path("models.sloppackage/blocked.assembly.json")),
 				 "source dry run protects the portable draft container");
 	return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelSmartTagsCliResult {
 	int exitCode = 0;
 	QString error;
@@ -10,4 +10,4 @@ struct LevelSmartTagsCliResult {
 	QStringList lines;
 };
 LevelSmartTagsCliResult runLevelSmartTags(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

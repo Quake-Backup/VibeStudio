@@ -13,7 +13,7 @@
 //   and reach the plan view, with exact undo for the patch edits;
 // - Show Map Statistics and Show Worldspawn Keys bring their Map tab sections
 //   up expanded, with keyboard focus in their lists.
-// With the vibestudio binary as the first argument, `ui semantics --json`
+// With the slopstudio binary as the first argument, `ui semantics --json`
 // is checked for the same ids. Owned offscreen widgets, settings in a
 // temporary folder and synthetic key events only.
 
@@ -52,7 +52,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -225,7 +225,7 @@ void checkProfileTables()
 		}
 	}
 	EditorProfileDescriptor studio;
-	if (expect(editorProfileForId(QStringLiteral("vibestudio-default"), &studio), "studio profile exists")) {
+	if (expect(editorProfileForId(QStringLiteral("slopstudio-default"), &studio), "studio profile exists")) {
 		for (const LevelEditorKeyBinding& binding : studio.controls.keys) {
 			expect(binding.commandId != QLatin1String("map.vertexTool") && binding.commandId != QLatin1String("map.faceTool"),
 				"studio profile keeps component modes unbound", binding.commandId);
@@ -295,7 +295,7 @@ int main(int argc, char** argv)
 		checkCli(QFileInfo(QString::fromLocal8Bit(argv[1])).absoluteFilePath(), temp.path());
 	}
 
-	for (const auto* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const auto* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		for (int scale : {100, 200}) {
 			const QString profileId = QString::fromLatin1(profile);
 			phase = QStringLiteral("%1 %2%").arg(profileId).arg(scale);
@@ -340,10 +340,10 @@ int main(int argc, char** argv)
 					}
 					// Open Map and Save Map As are filed under Maps beside the
 					// other document commands; everything else is Levels.
-					const bool document = entry.category == QCoreApplication::translate("VibeStudioSemantics", "Maps")
+					const bool document = entry.category == QCoreApplication::translate("SlopStudioSemantics", "Maps")
 						&& (id == QLatin1String("map.open") || id == QLatin1String("map.saveAs"));
 					if (listed && (entry.id.isEmpty() || entry.label.isEmpty() || entry.summary.isEmpty()
-							|| (entry.category != QCoreApplication::translate("VibeStudioSemantics", "Levels") && !document))) {
+							|| (entry.category != QCoreApplication::translate("SlopStudioSemantics", "Levels") && !document))) {
 						undescribed << id;
 					}
 				}

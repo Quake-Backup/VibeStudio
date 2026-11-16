@@ -11,7 +11,7 @@
 
 #include <utility>
 
-namespace vibestudio::levelgen {
+namespace slopstudio::levelgen {
 
 // A deterministic generator (splitmix64), so a seed gives the same level with
 // every compiler and standard library.
@@ -65,4 +65,4 @@ QString normalizedItemId(const QString& item);
 // Ceiling height above the floor for a room height class.
 int levelForHeight(const QString& height);
 
-} // namespace vibestudio::levelgen
+} // namespace slopstudio::levelgen

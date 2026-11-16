@@ -11,7 +11,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -26,49 +26,49 @@ struct ShapeInfo {
 
 // The shapes in the order the Shapes tab shows them.
 const ShapeInfo kShapes[] = {
-	{"box", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Box"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "One six-sided brush filling the box."), "cube", false, ""},
-	{"wedge", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Wedge"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "One brush sloping up across the box, for ramps and roofs."), "shape-wedge", false, "axis"},
-	{"cylinder", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Cylinder"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "One brush with round sides along the depth axis, for pillars and pipes."), "shape-cylinder", false, "axis,sides,fit"},
-	{"cone", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Cone"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "One brush narrowing to a point along the depth axis, for spikes and spires."), "shape-cone", false, "axis,sides,fit"},
-	{"sphere", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Sphere"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "One brush rounded on every side, with its poles on the depth axis."), "shape-sphere", false, "axis,sides,bands,fit"},
-	{"arch", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Arch"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Wall segments following a curve, one brush each, for doorways, bridges and curved walls."), "shape-arch", true,
+	{"box", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Box"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "One six-sided brush filling the box."), "cube", false, ""},
+	{"wedge", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Wedge"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "One brush sloping up across the box, for ramps and roofs."), "shape-wedge", false, "axis"},
+	{"cylinder", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Cylinder"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "One brush with round sides along the depth axis, for pillars and pipes."), "shape-cylinder", false, "axis,sides,fit"},
+	{"cone", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Cone"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "One brush narrowing to a point along the depth axis, for spikes and spires."), "shape-cone", false, "axis,sides,fit"},
+	{"sphere", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Sphere"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "One brush rounded on every side, with its poles on the depth axis."), "shape-sphere", false, "axis,sides,bands,fit"},
+	{"arch", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Arch"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Wall segments following a curve, one brush each, for doorways, bridges and curved walls."), "shape-arch", true,
 		"axis,sides,thickness,arc,start"},
-	{"ring", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Ring"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A full circle of wall segments, for towers, wells and round rooms."), "shape-ring", true, "axis,sides,thickness"},
-	{"stairs", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Stairs"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Solid steps climbing across the box, one brush each."), "shape-stairs", true, "steps,rise"},
-	{"room", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Room"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Six brushes walling in the box with its inside left hollow."), "shape-room", true, "thickness"},
+	{"ring", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Ring"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "A full circle of wall segments, for towers, wells and round rooms."), "shape-ring", true, "axis,sides,thickness"},
+	{"stairs", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Stairs"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Solid steps climbing across the box, one brush each."), "shape-stairs", true, "steps,rise"},
+	{"room", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Room"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Six brushes walling in the box with its inside left hollow."), "shape-room", true, "thickness"},
 	// Quake III patches, as GtkRadiant's and NetRadiant's Patch menu makes them.
-	{"patch-plane", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patch Plane"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A flat patch of the chosen columns and rows across the box's top, square to the depth axis, to bend into shape."),
+	{"patch-plane", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Patch Plane"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "A flat patch of the chosen columns and rows across the box's top, square to the depth axis, to bend into shape."),
 		"patch-plane", false, "axis,columns,rows"},
-	{"patch-cylinder", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patch Cylinder"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A smooth curved tube along the depth axis, open at its ends."), "patch-cylinder", false,
+	{"patch-cylinder", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Patch Cylinder"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "A smooth curved tube along the depth axis, open at its ends."), "patch-cylinder", false,
 		"axis,sides,rows,square,ringStart"},
-	{"patch-square-cylinder", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Square Patch Cylinder"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A four-sided patch tube along the depth axis, to round off or bend later."), "patch-square-cylinder",
+	{"patch-square-cylinder", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Square Patch Cylinder"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "A four-sided patch tube along the depth axis, to round off or bend later."), "patch-square-cylinder",
 		false, "axis"},
-	{"patch-cone", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patch Cone"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A smooth curved cone narrowing to a point along the depth axis, open at its base."), "patch-cone", false,
+	{"patch-cone", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Patch Cone"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "A smooth curved cone narrowing to a point along the depth axis, open at its base."), "patch-cone", false,
 		"axis,sides,rows,square,ringStart"},
-	{"patch-classic-cone", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Classic Patch Cone"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Radiant's cone: full-width rings until the last, which closes to a point, so its sides bulge."),
+	{"patch-classic-cone", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Classic Patch Cone"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Radiant's cone: full-width rings until the last, which closes to a point, so its sides bulge."),
 		"patch-cone", false, "axis,sides,rows,square,ringStart"},
-	{"patch-sphere", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patch Sphere"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A smooth closed sphere of one patch, its poles on the depth axis."), "patch-sphere", false,
+	{"patch-sphere", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Patch Sphere"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "A smooth closed sphere of one patch, its poles on the depth axis."), "patch-sphere", false,
 		"axis,sides,bands,square,ringStart"},
-	{"patch-bevel", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patch Bevel"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A quarter-round curve from one corner of the box to the opposite one, along the depth axis, for coves and fillets."),
+	{"patch-bevel", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Patch Bevel"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "A quarter-round curve from one corner of the box to the opposite one, along the depth axis, for coves and fillets."),
 		"patch-bevel", false, "axis"},
-	{"patch-endcap", QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patch End Cap"),
-		QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A half-round arch filling the box along the depth axis, for arched ceilings and pipe ends."),
+	{"patch-endcap", QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Patch End Cap"),
+		QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "A half-round arch filling the box along the depth axis, for arched ceilings and pipe ends."),
 		"patch-endcap", false, "axis"},
 };
 
@@ -85,7 +85,7 @@ const ShapeInfo* shapeInfo(const QString& shape)
 bool fail(QString* error, const char* message)
 {
 	if (error) {
-		*error = QCoreApplication::translate("VibeStudioLevelShapes", message);
+		*error = QCoreApplication::translate("SlopStudioLevelShapes", message);
 	}
 	return false;
 }
@@ -158,22 +158,22 @@ bool arcHulls(const LevelShapeRequest& request, QVector<QVector<LevelMapVec3>>* 
 	const bool ring = request.shape == QStringLiteral("ring");
 	const int segments = request.sides;
 	if (segments < (ring ? 3 : 1) || segments > 64) {
-		return fail(error, ring ? QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A ring needs 3 to 64 segments.")
-								: QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "An arch needs 1 to 64 segments."));
+		return fail(error, ring ? QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "A ring needs 3 to 64 segments.")
+								: QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "An arch needs 1 to 64 segments."));
 	}
 	const double sweep = ring ? 360.0 : request.arc;
 	if (!std::isfinite(sweep) || sweep < 1.0 || sweep > 360.0) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "An arch sweeps between 1 and 360 degrees."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "An arch sweeps between 1 and 360 degrees."));
 	}
 	if (sweep / segments >= 180.0) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Each segment must turn less than 180 degrees; use more segments."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Each segment must turn less than 180 degrees; use more segments."));
 	}
 	const double start = ring ? 0.0 : request.startAngle;
 	if (!std::isfinite(start) || std::abs(start) > 360.0) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Start the arch between -360 and 360 degrees."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Start the arch between -360 and 360 degrees."));
 	}
 	if (!std::isfinite(request.thickness) || request.thickness < 1.0) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Walls need to be at least one unit thick."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Walls need to be at least one unit thick."));
 	}
 	QVector<double> cosines;
 	QVector<double> sines;
@@ -191,7 +191,7 @@ bool arcHulls(const LevelShapeRequest& request, QVector<QVector<LevelMapVec3>>* 
 	const auto [lowCos, highCos] = std::minmax_element(cosines.cbegin(), cosines.cend());
 	const auto [lowSin, highSin] = std::minmax_element(sines.cbegin(), sines.cend());
 	if (*highCos - *lowCos < 1e-3 || *highSin - *lowSin < 1e-3) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "The arch is too narrow to fill the box; widen its sweep."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "The arch is too narrow to fill the box; widen its sweep."));
 	}
 	const int axis = request.axis;
 	const double right0 = component(request.mins, rightAxis(axis));
@@ -227,10 +227,10 @@ bool arcHulls(const LevelShapeRequest& request, QVector<QVector<LevelMapVec3>>* 
 bool stairHulls(const LevelShapeRequest& request, QVector<QVector<LevelMapVec3>>* hulls, QString* error)
 {
 	if (request.steps < 2 || request.steps > 64) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Stairs need 2 to 64 steps."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Stairs need 2 to 64 steps."));
 	}
 	if (!levelShapeRiseIds().contains(request.rise)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Stairs climb towards auto, +x, -x, +y or -y."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Stairs climb towards auto, +x, -x, +y or -y."));
 	}
 	const double x0 = whole(request.mins.x);
 	const double y0 = whole(request.mins.y);
@@ -244,7 +244,7 @@ bool stairHulls(const LevelShapeRequest& request, QVector<QVector<LevelMapVec3>>
 	const double run1 = alongX ? x1 : y1;
 	const int steps = request.steps;
 	if (run1 - run0 < steps || z1 - z0 < steps) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Each step needs at least one unit of run and of rise; use fewer steps or a bigger box."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Each step needs at least one unit of run and of rise; use fewer steps or a bigger box."));
 	}
 	for (int step = 0; step < steps; ++step) {
 		const double near = backwards ? whole(run1 - (run1 - run0) * (step + 1) / steps) : whole(run0 + (run1 - run0) * step / steps);
@@ -265,10 +265,10 @@ bool roomHulls(const LevelShapeRequest& request, QVector<QVector<LevelMapVec3>>*
 	const double y1 = whole(request.maxs.y);
 	const double z1 = whole(request.maxs.z);
 	if (!std::isfinite(request.thickness) || wall < 1.0) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Walls need to be at least one unit thick."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Walls need to be at least one unit thick."));
 	}
 	if (x1 - x0 < 2 * wall + 1 || y1 - y0 < 2 * wall + 1 || z1 - z0 < 2 * wall + 1) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "The room is too small for walls that thick; leave at least one unit inside."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "The room is too small for walls that thick; leave at least one unit inside."));
 	}
 	// Floor and ceiling span the box; the walls stand between them, the
 	// east and west ones full length, so no two brushes overlap.
@@ -300,13 +300,13 @@ bool isLevelShape(const QString& shape)
 QString levelShapeLabel(const QString& shape)
 {
 	const ShapeInfo* info = shapeInfo(shape);
-	return info ? QCoreApplication::translate("VibeStudioLevelShapes", info->label) : shape;
+	return info ? QCoreApplication::translate("SlopStudioLevelShapes", info->label) : shape;
 }
 
 QString levelShapeDescription(const QString& shape)
 {
 	const ShapeInfo* info = shapeInfo(shape);
-	return info ? QCoreApplication::translate("VibeStudioLevelShapes", info->description) : QString();
+	return info ? QCoreApplication::translate("SlopStudioLevelShapes", info->description) : QString();
 }
 
 QString levelShapeIconName(const QString& shape)
@@ -332,20 +332,20 @@ bool levelShapePatchRequest(const LevelShapeRequest& request, LevelPatchCreateRe
 		error->clear();
 	}
 	if (!levelShapeIsPatch(request.shape) || !patch) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Choose one of the patch shapes."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Choose one of the patch shapes."));
 	}
 	const auto finite = [](const LevelMapVec3& p) {
 		return p.valid && std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z) && std::max({std::abs(p.x), std::abs(p.y), std::abs(p.z)}) <= 32768;
 	};
 	if (!finite(request.mins) || !finite(request.maxs) || request.maxs.x - request.mins.x < 1 || request.maxs.y - request.mins.y < 1
 		|| request.maxs.z - request.mins.z < 1) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Use finite bounds within ±32768 units, with at least one unit of size on every axis."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Use finite bounds within ±32768 units, with at least one unit of size on every axis."));
 	}
 	if (request.axis < 0 || request.axis > 2) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "The shape's axis must be X, Y or Z."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "The shape's axis must be X, Y or Z."));
 	}
 	if (!validMaterial(request.texture)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Use a material path without spaces, control characters, quotes, brackets, backslashes or comment markers."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Use a material path without spaces, control characters, quotes, brackets, backslashes or comment markers."));
 	}
 	LevelPatchCreateRequest result;
 	result.shape = request.shape.mid(6);
@@ -403,20 +403,20 @@ bool levelShapeHulls(const LevelShapeRequest& request, QVector<QVector<LevelMapV
 	}
 	hulls->clear();
 	if (!levelShapeIsCompound(request.shape)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Arches, rings, stairs and rooms are the shapes made of several brushes."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Arches, rings, stairs and rooms are the shapes made of several brushes."));
 	}
 	const auto finite = [](const LevelMapVec3& p) {
 		return p.valid && std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z) && std::max({std::abs(p.x), std::abs(p.y), std::abs(p.z)}) <= 32768;
 	};
 	if (!finite(request.mins) || !finite(request.maxs) || request.maxs.x - request.mins.x < 1 || request.maxs.y - request.mins.y < 1
 		|| request.maxs.z - request.mins.z < 1) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Use finite bounds within ±32768 units, with at least one unit of size on every axis."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Use finite bounds within ±32768 units, with at least one unit of size on every axis."));
 	}
 	if (request.axis < 0 || request.axis > 2) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "The shape's axis must be X, Y or Z."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "The shape's axis must be X, Y or Z."));
 	}
 	if (!validMaterial(request.texture)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Use a material path without spaces, control characters, quotes, brackets, backslashes or comment markers."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Use a material path without spaces, control characters, quotes, brackets, backslashes or comment markers."));
 	}
 	bool built = false;
 	if (request.shape == QStringLiteral("arch") || request.shape == QStringLiteral("ring")) {
@@ -438,7 +438,7 @@ bool addLevelMapShape(LevelMapDocument* document, const LevelShapeRequest& reque
 		error->clear();
 	}
 	if (!isLevelShape(request.shape)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes",
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes",
 			"Choose box, wedge, cylinder, cone, sphere, arch, ring, stairs, room, or one of the patch shapes."));
 	}
 	if (levelShapeIsPatch(request.shape)) {
@@ -480,8 +480,8 @@ bool addLevelMapShape(LevelMapDocument* document, const LevelShapeRequest& reque
 	const QString label = levelShapeLabel(request.shape);
 	const int count = static_cast<int>(hulls.size());
 	return addLevelMapBrushHulls(document, hulls, request.texture.trimmed(),
-		QCoreApplication::translate("VibeStudioLevelShapes", "Add %1 (%n brush(es))", nullptr, count).arg(label),
-		QCoreApplication::translate("VibeStudioLevelShapes", "Remove %1 (%n brush(es))", nullptr, count).arg(label), brushIds, error);
+		QCoreApplication::translate("SlopStudioLevelShapes", "Add %1 (%n brush(es))", nullptr, count).arg(label),
+		QCoreApplication::translate("SlopStudioLevelShapes", "Remove %1 (%n brush(es))", nullptr, count).arg(label), brushIds, error);
 }
 
 bool levelMapBrushesBounds(const LevelMapDocument& document, const QVector<int>& brushIds, LevelMapVec3* mins, LevelMapVec3* maxs, QString* error)
@@ -490,7 +490,7 @@ bool levelMapBrushesBounds(const LevelMapDocument& document, const QVector<int>&
 		error->clear();
 	}
 	if (brushIds.isEmpty()) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Choose the brushes the shape replaces."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Choose the brushes the shape replaces."));
 	}
 	int worldspawnId = -1;
 	for (const LevelMapEntity& entity : document.entities) {
@@ -504,11 +504,11 @@ bool levelMapBrushesBounds(const LevelMapDocument& document, const QVector<int>&
 	for (const int id : brushIds) {
 		const auto found = std::find_if(document.brushes.cbegin(), document.brushes.cend(), [id](const LevelMapBrush& brush) { return brush.id == id; });
 		if (found == document.brushes.cend() || !found->boundsSolved) {
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A brush to replace is missing or not closed."));
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "A brush to replace is missing or not closed."));
 		}
 		if (found->entityId != worldspawnId) {
 			return fail(error,
-				QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Only world brushes can become a shape; move the brushes to the world first."));
+				QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Only world brushes can become a shape; move the brushes to the world first."));
 		}
 		if (!low.valid) {
 			low = found->mins;
@@ -564,8 +564,8 @@ bool replaceLevelMapBrushesWithShape(LevelMapDocument* document, const QVector<i
 	const int count = static_cast<int>(brushIds.size());
 	const QString label = levelShapeLabel(fitted.shape);
 	collapseLevelMapUndoSteps(document, static_cast<int>(document->revision - revision),
-		QCoreApplication::translate("VibeStudioLevelShapes", "Replace %n brush(es) with a shape: %1", nullptr, count).arg(label),
-		QCoreApplication::translate("VibeStudioLevelShapes", "Restore %n replaced brush(es)", nullptr, count));
+		QCoreApplication::translate("SlopStudioLevelShapes", "Replace %n brush(es) with a shape: %1", nullptr, count).arg(label),
+		QCoreApplication::translate("SlopStudioLevelShapes", "Restore %n replaced brush(es)", nullptr, count));
 	QVector<LevelMapSelectionRef> chosen;
 	const auto kind = levelShapeIsPatch(fitted.shape) ? LevelMapSelectionKind::QuakePatch : LevelMapSelectionKind::QuakeBrush;
 	for (const int id : std::as_const(added)) {
@@ -625,7 +625,7 @@ bool replaceLevelMapSelectionWithPatch(LevelMapDocument* document, const LevelMa
 		error->clear();
 	}
 	if (!document || document->format != LevelMapFormat::Quake3Map) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Patches can be added to Quake III maps only."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Patches can be added to Quake III maps only."));
 	}
 	int world = -1;
 	for (const LevelMapEntity& entity : std::as_const(document->entities)) {
@@ -683,8 +683,8 @@ bool replaceLevelMapSelectionWithPatch(LevelMapDocument* document, const LevelMa
 		}
 		const int count = static_cast<int>(replaced.size());
 		collapseLevelMapUndoSteps(document, static_cast<int>(document->revision - revision),
-			QCoreApplication::translate("VibeStudioLevelShapes", "Replace %n object(s) with patch %1", nullptr, count).arg(added.value(0)),
-			QCoreApplication::translate("VibeStudioLevelShapes", "Restore %n object(s) replaced by a patch", nullptr, count));
+			QCoreApplication::translate("SlopStudioLevelShapes", "Replace %n object(s) with patch %1", nullptr, count).arg(added.value(0)),
+			QCoreApplication::translate("SlopStudioLevelShapes", "Restore %n object(s) replaced by a patch", nullptr, count));
 	}
 	setLevelMapSelection(document, {{LevelMapSelectionKind::QuakePatch, added.value(0)}});
 	if (patchId) {
@@ -754,13 +754,13 @@ bool rebuildLevelMapBrushesAsShape(LevelMapDocument* document, const QVector<int
 		*report = {};
 	}
 	if (!document || (document->format != LevelMapFormat::QuakeMap && document->format != LevelMapFormat::Quake3Map)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Brushes can be rebuilt as shapes in Quake-family .map files only."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Brushes can be rebuilt as shapes in Quake-family .map files only."));
 	}
 	if (!levelShapeRebuildsBrushes(request.shape)) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "A brush can be rebuilt as a box, wedge, cylinder, cone or sphere."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "A brush can be rebuilt as a box, wedge, cylinder, cone or sphere."));
 	}
 	if (brushIds.isEmpty()) {
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioLevelShapes", "Select the brushes to rebuild."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioLevelShapes", "Select the brushes to rebuild."));
 	}
 	LevelBrushPrimitiveRequest primitive;
 	primitive.shape = request.shape;
@@ -780,7 +780,7 @@ bool rebuildLevelMapBrushesAsShape(LevelMapDocument* document, const QVector<int
 	for (const int id : wanted) {
 		if (std::none_of(document->brushes.cbegin(), document->brushes.cend(), [id](const LevelMapBrush& brush) { return brush.id == id; })) {
 			if (error) {
-				*error = QCoreApplication::translate("VibeStudioLevelShapes", "Brush %1 is not in the map.").arg(id);
+				*error = QCoreApplication::translate("SlopStudioLevelShapes", "Brush %1 is not in the map.").arg(id);
 			}
 			return false;
 		}
@@ -792,15 +792,15 @@ bool rebuildLevelMapBrushesAsShape(LevelMapDocument* document, const QVector<int
 			continue;
 		}
 		if (hidden.contains(levelMapSelectionRefId({LevelMapSelectionKind::QuakeBrush, brush.id}))) {
-			staged.skipped << QCoreApplication::translate("VibeStudioLevelShapes", "Brush %1 is hidden, so it was left as it was.").arg(brush.id);
+			staged.skipped << QCoreApplication::translate("SlopStudioLevelShapes", "Brush %1 is hidden, so it was left as it was.").arg(brush.id);
 			continue;
 		}
 		if (!brush.boundsSolved) {
-			staged.skipped << QCoreApplication::translate("VibeStudioLevelShapes", "Brush %1 is not a closed brush, so it was left as it was.").arg(brush.id);
+			staged.skipped << QCoreApplication::translate("SlopStudioLevelShapes", "Brush %1 is not a closed brush, so it was left as it was.").arg(brush.id);
 			continue;
 		}
 		if (brush.maxs.x - brush.mins.x < 1 || brush.maxs.y - brush.mins.y < 1 || brush.maxs.z - brush.mins.z < 1) {
-			staged.skipped << QCoreApplication::translate("VibeStudioLevelShapes", "Brush %1 is less than one unit across, so it was left as it was.")
+			staged.skipped << QCoreApplication::translate("SlopStudioLevelShapes", "Brush %1 is less than one unit across, so it was left as it was.")
 								  .arg(brush.id);
 			continue;
 		}
@@ -811,7 +811,7 @@ bool rebuildLevelMapBrushesAsShape(LevelMapDocument* document, const QVector<int
 		QString problem;
 		QVector<LevelMapVec3> points;
 		if (!levelBrushPrimitivePoints(own, &points, &problem) || !createLevelBrushPrimitive(own, &draft, &problem)) {
-			staged.skipped << QCoreApplication::translate("VibeStudioLevelShapes", "Brush %1 was left as it was: %2").arg(brush.id).arg(problem);
+			staged.skipped << QCoreApplication::translate("SlopStudioLevelShapes", "Brush %1 was left as it was: %2").arg(brush.id).arg(problem);
 			continue;
 		}
 		rebuilds.push_back({brush.id, points});
@@ -819,15 +819,15 @@ bool rebuildLevelMapBrushesAsShape(LevelMapDocument* document, const QVector<int
 	}
 	if (rebuilds.isEmpty()) {
 		if (error) {
-			*error = staged.skipped.value(0, QCoreApplication::translate("VibeStudioLevelShapes", "Select the brushes to rebuild."));
+			*error = staged.skipped.value(0, QCoreApplication::translate("SlopStudioLevelShapes", "Select the brushes to rebuild."));
 		}
 		return false;
 	}
 	const int count = static_cast<int>(rebuilds.size());
 	const QString label = levelShapeLabel(request.shape);
 	if (!rebuildLevelMapBrushHulls(document, rebuilds, primitive.texture,
-			QCoreApplication::translate("VibeStudioLevelShapes", "Rebuild %n brush(es) in place as a shape: %1", nullptr, count).arg(label),
-			QCoreApplication::translate("VibeStudioLevelShapes", "Restore %n rebuilt brush(es)", nullptr, count), error)) {
+			QCoreApplication::translate("SlopStudioLevelShapes", "Rebuild %n brush(es) in place as a shape: %1", nullptr, count).arg(label),
+			QCoreApplication::translate("SlopStudioLevelShapes", "Restore %n rebuilt brush(es)", nullptr, count), error)) {
 		return false;
 	}
 	if (report) {
@@ -836,4 +836,4 @@ bool rebuildLevelMapBrushesAsShape(LevelMapDocument* document, const QVector<int
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

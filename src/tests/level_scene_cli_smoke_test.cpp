@@ -15,7 +15,7 @@
 #include <QUuid>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool pass, const char* label, const QString& error = {}) {
 	if (!pass) {
@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
 	run({"assign", output, "--id", "default", "--objects", "brush:0", "--output", output, "--overwrite"});
 	run({"remove", output, "--id", id, "--output", output, "--overwrite"});
 	ok &= expect(loadLevelMap({output, {}, {}}, &restored, &error) && restored.scene.nodes.isEmpty() &&
-					 !read(output).contains("VibeStudioScene:"),
+					 !read(output).contains("SlopStudioScene:"),
 				 "last-node removal removes metadata carrier", error);
 	for (const auto& game : {QStringLiteral("doom"), QStringLiteral("hexen")}) {
 		request.game = game;

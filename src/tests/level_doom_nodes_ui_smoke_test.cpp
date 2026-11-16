@@ -13,9 +13,9 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
-namespace d = vibestudio::tests::doom;
-namespace f = vibestudio::tests::doomNodes;
+using namespace slopstudio;
+namespace d = slopstudio::tests::doom;
+namespace f = slopstudio::tests::doomNodes;
 namespace {
 bool ok = true;
 void expect(bool value, const char* message, const QString& detail = {}) {
@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
 			cancel->setFocus(Qt::TabFocusReason);
 			expect(dialog->focusWidget() == cancel, "keyboard focus reaches cancellation");
 			expect(progress->maximum() == 1 && phase->wordWrap(), "reduced motion and translation wrapping");
-			const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+			const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 			if (!captures.isEmpty()) {
 				QDir().mkpath(captures);
 				QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied);

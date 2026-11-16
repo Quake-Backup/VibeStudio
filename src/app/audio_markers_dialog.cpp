@@ -16,7 +16,7 @@
 #include <QVBoxLayout>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -235,4 +235,4 @@ void AudioMarkersDialog::accept()
 	}
 	QDialog::accept();
 }
-} // namespace vibestudio
+} // namespace slopstudio

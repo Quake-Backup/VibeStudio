@@ -5,7 +5,7 @@
 #include <QJsonObject>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 inline constexpr int kLevelSceneMaxNodes = 1000;
 inline constexpr int kLevelSceneMaxMembers = 100000;
 inline constexpr int kLevelSceneMaxDepth = 32;
@@ -87,12 +87,12 @@ bool mergeLevelSceneCopy(const LevelMapDocument& source, const LevelMapDocument&
 // entities, and the objects are numbered as the map reads once they are taken
 // out; the metadata says so (version 7).
 QByteArray encodeLevelScene(const LevelMapDocument& document, const QByteArray& bodyHash, const QHash<QString, QString>& emittedObjects,
-							QString* error = nullptr, LevelSceneStorage storage = LevelSceneStorage::VibeStudio);
+							QString* error = nullptr, LevelSceneStorage storage = LevelSceneStorage::SlopStudio);
 LevelSceneState decodeLevelScene(const LevelMapDocument& document, const QByteArray& metadata, const QByteArray& bodyHash);
 // TrenchBroom when the metadata was written with TrenchBroom storage, so it
-// binds to the map with TrenchBroom's entities taken out; VibeStudio for
-// anything else, including metadata from before VibeStudio read them.
+// binds to the map with TrenchBroom's entities taken out; SlopStudio for
+// anything else, including metadata from before SlopStudio read them.
 LevelSceneStorage levelSceneMetadataStorage(const QByteArray& metadata);
 QByteArray levelSceneDoomHash(const QMap<QString, QByteArray>& lumps);
 QJsonObject levelSceneJson(const LevelMapDocument& document);
-} // namespace vibestudio
+} // namespace slopstudio

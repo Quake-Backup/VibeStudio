@@ -8,7 +8,7 @@
 #include <QLabel>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 bool ApplicationShell::snapLevelVertex(const LevelMapSelectionRef& target,int vertex,QString* error)
 {
 	if (!m_levelMapViewport || !m_levelMapViewport->canSnapPickedVertex()) {
@@ -55,4 +55,4 @@ void ApplicationShell::snapLevelVertexFromUi()
 	});
 	dialog.resize(570,180); dialog.exec();
 }
-} // namespace vibestudio
+} // namespace slopstudio

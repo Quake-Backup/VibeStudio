@@ -14,7 +14,7 @@
 
 #include <cstring>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline void seedLe16(QByteArray *bytes, quint32 value)
 {
@@ -239,4 +239,4 @@ inline QVector<LegacyModelSeed> richLegacyModelSeeds()
 			{"md2-strip-fan", "models/test/rich/tris.md2", richQuake2Md2()},
 			{"md3-surfaces-tags", "models/test/rich/rich.md3", richQuake3Md3()}};
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

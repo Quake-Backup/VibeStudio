@@ -19,7 +19,7 @@
 #include <QTreeWidgetItemIterator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& detail = {})
@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 	auto& last = source.brushes[0].faces[2]; last.textureName = "studio/last"; last.shiftX = 37; last.scaleX = 2;
 	last.contentFlags = 1024; last.surfaceFlags = 128; last.surfaceValue = 77;
 	const auto raw = levelFaceSelectionText(source, {{0, 0}, {0, 2}}, &error);
-	for (const auto& profile : {QStringLiteral("trenchbroom"), QStringLiteral("netradiant-custom"), QStringLiteral("vibestudio-default")}) {
+	for (const auto& profile : {QStringLiteral("trenchbroom"), QStringLiteral("netradiant-custom"), QStringLiteral("slopstudio-default")}) {
 		std::cout << "Face clipboard UI " << profile.toStdString() << std::endl;
 		settings.setSelectedEditorProfileId(profile); settings.sync(); ApplicationShell shell; shell.resize(1600, 1000); shell.show();
 		shell.openPathFromCommandLine(path);

@@ -6,7 +6,7 @@
 #include <QFile>
 #include <QSaveFile>
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 
 // Recovery tests need history written before edit-time depth admission existed.
 // Change only fixture metadata; retain the normal content-addressed objects.
@@ -29,4 +29,4 @@ inline bool saveLegacyDeepPackageDraft(const QString& directory, QString* error)
 	return true;
 }
 
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

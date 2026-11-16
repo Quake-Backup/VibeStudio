@@ -1,7 +1,7 @@
 #pragma once
 #include <QJsonObject>
 #include <QStringList>
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelSceneCliResult {
 	int exitCode = 0;
 	QString error;
@@ -9,4 +9,4 @@ struct LevelSceneCliResult {
 	QStringList lines;
 };
 LevelSceneCliResult runLevelScene(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

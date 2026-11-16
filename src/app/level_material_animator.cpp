@@ -6,7 +6,7 @@
 
 #include <QTimer>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -223,4 +223,4 @@ void LevelMaterialAnimator::stop()
 	m_animated.clear();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

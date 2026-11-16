@@ -1,6 +1,6 @@
 #pragma once
 #include "tests/level_prefab_test_helpers.h"
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 inline QByteArray entitySelectionFixture()
 {
 	LevelMapDocument map; loadPrefabFixture(&map);

@@ -27,7 +27,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char *message)
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 	// `map place-model` shares the service: an MDL in a Quake map, an ASE in a Quake III map.
 	if (argc > 1)
 	{
-		const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+		const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 		QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("level-model-placement-XXXXXX")));
 		const auto path = [&](const QString &name) { return QDir(temporary.path()).filePath(name); };
 		QFile map(path(QStringLiteral("start.map")));

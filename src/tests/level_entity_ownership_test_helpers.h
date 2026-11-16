@@ -6,7 +6,7 @@
 #include <QHash>
 #include <QStringList>
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 
 // The map the entity ownership checks start from, built through the editor's
 // own services: worldspawn with brushes studio/floor and studio/w1, a
@@ -72,4 +72,4 @@ inline int entityOwnershipEntity(const LevelMapDocument& document, const QString
 	return -1;
 }
 
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

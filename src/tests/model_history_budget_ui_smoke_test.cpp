@@ -29,8 +29,8 @@
 
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int failures = 0;
@@ -52,7 +52,7 @@ class Expansion final : public QTranslator
 	bool isEmpty() const override { return false; }
 	QString translate(const char *context, const char *text, const char *, int n) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelEditor")
+		if (QByteArray(context) != "SlopStudioModelEditor")
 			return {};
 		auto original = QString::fromUtf8(text);
 		original.replace(QStringLiteral("%n"), QString::number(n));
@@ -309,7 +309,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("history-budget-ui-XXXXXX"));

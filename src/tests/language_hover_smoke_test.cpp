@@ -5,7 +5,7 @@
 #include <QJsonObject>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 QJsonObject position(int line, int column) { return {{QStringLiteral("line"), line}, {QStringLiteral("character"), column}}; }

@@ -4,7 +4,7 @@
 #include <QUuid>
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -193,4 +193,4 @@ AudioArrangementResult editAudioArrangement(const AudioSession &session, const A
 	}
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

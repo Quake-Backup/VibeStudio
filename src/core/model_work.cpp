@@ -3,7 +3,7 @@
 
 #include <QCoreApplication>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -33,7 +33,7 @@ bool modelWorkCheckpoint(const ModelWorkControl &control, ModelWorkPhase phase, 
 		}
 		if (error)
 		{
-			*error = QCoreApplication::translate("VibeStudioModelDocument", "Model operation cancelled.");
+			*error = QCoreApplication::translate("SlopStudioModelDocument", "Model operation cancelled.");
 		}
 		return true;
 	};
@@ -47,4 +47,4 @@ bool modelWorkCheckpoint(const ModelWorkControl &control, ModelWorkPhase phase, 
 	}
 	return !cancelled();
 }
-} // namespace vibestudio
+} // namespace slopstudio

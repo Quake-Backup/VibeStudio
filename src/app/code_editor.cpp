@@ -32,7 +32,7 @@
 #include <algorithm>
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -58,7 +58,7 @@ public:
 		: QWidget(editor)
 		, m_editor(editor)
 	{
-		setAccessibleName(QCoreApplication::translate("VibeStudioCodeEditor", "Line numbers"));
+		setAccessibleName(QCoreApplication::translate("SlopStudioCodeEditor", "Line numbers"));
 		setMouseTracking(true);
 	}
 
@@ -128,7 +128,7 @@ public:
 		, m_editor(editor)
 	{
 		setObjectName(QStringLiteral("codeStickyHeader"));
-		setAccessibleName(QCoreApplication::translate("VibeStudioCodeEditor", "Enclosing blocks"));
+		setAccessibleName(QCoreApplication::translate("SlopStudioCodeEditor", "Enclosing blocks"));
 		setCursor(Qt::PointingHandCursor);
 		hide();
 	}
@@ -662,7 +662,7 @@ namespace {
 
 QString foldBadgeLabel(int hiddenLines)
 {
-	return QStringLiteral("\u2026 %1").arg(QCoreApplication::translate("VibeStudioCodeEditor", "%n line(s)", nullptr, hiddenLines));
+	return QStringLiteral("\u2026 %1").arg(QCoreApplication::translate("SlopStudioCodeEditor", "%n line(s)", nullptr, hiddenLines));
 }
 
 } // namespace
@@ -968,8 +968,8 @@ QString StudioCodeEditor::foldMarkerToolTip(int line) const
 		return {};
 	}
 	return hasFoldMark(document()->findBlockByNumber(line - 1))
-		? QCoreApplication::translate("VibeStudioCodeEditor", "Unfold lines %1 to %2").arg(line + 1).arg(end)
-		: QCoreApplication::translate("VibeStudioCodeEditor", "Fold lines %1 to %2").arg(line + 1).arg(end);
+		? QCoreApplication::translate("SlopStudioCodeEditor", "Unfold lines %1 to %2").arg(line + 1).arg(end)
+		: QCoreApplication::translate("SlopStudioCodeEditor", "Fold lines %1 to %2").arg(line + 1).arg(end);
 }
 
 void StudioCodeEditor::mouseReleaseEvent(QMouseEvent* event)
@@ -1510,7 +1510,7 @@ CodeFindBar::CodeFindBar(QPlainTextEdit* editor, QWidget* parent)
 {
 	setObjectName(QStringLiteral("codeFindBar"));
 	setAttribute(Qt::WA_StyledBackground, true);
-	setAccessibleName(QCoreApplication::translate("VibeStudioCodeEditor", "Find in file"));
+	setAccessibleName(QCoreApplication::translate("SlopStudioCodeEditor", "Find in file"));
 	// Find on the first row, replace on a second one that only Ctrl+H shows.
 	auto* rows = new QVBoxLayout(this);
 	rows->setContentsMargins(8, 4, 6, 4);
@@ -1522,16 +1522,16 @@ CodeFindBar::CodeFindBar(QPlainTextEdit* editor, QWidget* parent)
 
 	m_field = new QLineEdit(this);
 	m_field->setObjectName(QStringLiteral("codeFindField"));
-	m_field->setPlaceholderText(QCoreApplication::translate("VibeStudioCodeEditor", "Find in file"));
-	m_field->setAccessibleName(QCoreApplication::translate("VibeStudioCodeEditor", "Find in file"));
-	m_field->setAccessibleDescription(QCoreApplication::translate("VibeStudioCodeEditor", "Enter finds the next match, Shift+Enter the previous one, and Escape closes the find bar."));
+	m_field->setPlaceholderText(QCoreApplication::translate("SlopStudioCodeEditor", "Find in file"));
+	m_field->setAccessibleName(QCoreApplication::translate("SlopStudioCodeEditor", "Find in file"));
+	m_field->setAccessibleDescription(QCoreApplication::translate("SlopStudioCodeEditor", "Enter finds the next match, Shift+Enter the previous one, and Escape closes the find bar."));
 	m_field->setClearButtonEnabled(true);
 	m_field->installEventFilter(this);
 	layout->addWidget(m_field, 1);
 
 	m_count = new QLabel(this);
 	m_count->setObjectName(QStringLiteral("fieldHint"));
-	m_count->setAccessibleName(QCoreApplication::translate("VibeStudioCodeEditor", "Find matches"));
+	m_count->setAccessibleName(QCoreApplication::translate("SlopStudioCodeEditor", "Find matches"));
 	layout->addWidget(m_count);
 
 	m_matchCase = new QToolButton(this);
@@ -1539,13 +1539,13 @@ CodeFindBar::CodeFindBar(QPlainTextEdit* editor, QWidget* parent)
 	m_matchCase->setCheckable(true);
 	m_matchCase->setAutoRaise(true);
 	m_matchCase->setFocusPolicy(Qt::TabFocus);
-	m_matchCase->setToolTip(QCoreApplication::translate("VibeStudioCodeEditor", "Match case"));
-	m_matchCase->setAccessibleName(QCoreApplication::translate("VibeStudioCodeEditor", "Match case"));
+	m_matchCase->setToolTip(QCoreApplication::translate("SlopStudioCodeEditor", "Match case"));
+	m_matchCase->setAccessibleName(QCoreApplication::translate("SlopStudioCodeEditor", "Match case"));
 	layout->addWidget(m_matchCase);
 
-	QToolButton* previous = createToolButton(QStringLiteral("chevron-up"), QCoreApplication::translate("VibeStudioCodeEditor", "Previous Match"), QCoreApplication::translate("VibeStudioCodeEditor", "Select the previous match (Shift+Enter or Shift+F3)."), false);
-	QToolButton* next = createToolButton(QStringLiteral("chevron-down"), QCoreApplication::translate("VibeStudioCodeEditor", "Next Match"), QCoreApplication::translate("VibeStudioCodeEditor", "Select the next match (Enter or F3)."), false);
-	QToolButton* close = createToolButton(QStringLiteral("close"), QCoreApplication::translate("VibeStudioCodeEditor", "Close Find"), QCoreApplication::translate("VibeStudioCodeEditor", "Hide the find bar (Escape)."), false);
+	QToolButton* previous = createToolButton(QStringLiteral("chevron-up"), QCoreApplication::translate("SlopStudioCodeEditor", "Previous Match"), QCoreApplication::translate("SlopStudioCodeEditor", "Select the previous match (Shift+Enter or Shift+F3)."), false);
+	QToolButton* next = createToolButton(QStringLiteral("chevron-down"), QCoreApplication::translate("SlopStudioCodeEditor", "Next Match"), QCoreApplication::translate("SlopStudioCodeEditor", "Select the next match (Enter or F3)."), false);
+	QToolButton* close = createToolButton(QStringLiteral("close"), QCoreApplication::translate("SlopStudioCodeEditor", "Close Find"), QCoreApplication::translate("SlopStudioCodeEditor", "Hide the find bar (Escape)."), false);
 	for (QToolButton* button : {previous, next, close}) {
 		setBaseIconSize(button, QSize(14, 14));
 		layout->addWidget(button);
@@ -1557,22 +1557,22 @@ CodeFindBar::CodeFindBar(QPlainTextEdit* editor, QWidget* parent)
 	replaceLayout->setSpacing(4);
 	m_replaceField = new QLineEdit(m_replaceRow);
 	m_replaceField->setObjectName(QStringLiteral("codeReplaceField"));
-	m_replaceField->setPlaceholderText(QCoreApplication::translate("VibeStudioCodeEditor", "Replace with"));
-	m_replaceField->setAccessibleName(QCoreApplication::translate("VibeStudioCodeEditor", "Replace with"));
-	m_replaceField->setAccessibleDescription(QCoreApplication::translate("VibeStudioCodeEditor", "Enter replaces the selected match and moves to the next, Ctrl+Enter replaces every match, and Escape closes the bar."));
+	m_replaceField->setPlaceholderText(QCoreApplication::translate("SlopStudioCodeEditor", "Replace with"));
+	m_replaceField->setAccessibleName(QCoreApplication::translate("SlopStudioCodeEditor", "Replace with"));
+	m_replaceField->setAccessibleDescription(QCoreApplication::translate("SlopStudioCodeEditor", "Enter replaces the selected match and moves to the next, Ctrl+Enter replaces every match, and Escape closes the bar."));
 	m_replaceField->setClearButtonEnabled(true);
 	m_replaceField->installEventFilter(this);
 	replaceLayout->addWidget(m_replaceField, 1);
 	auto* replaceOne = new QToolButton(m_replaceRow);
 	replaceOne->setObjectName(QStringLiteral("codeReplaceOne"));
-	replaceOne->setText(QCoreApplication::translate("VibeStudioCodeEditor", "Replace"));
-	replaceOne->setToolTip(QCoreApplication::translate("VibeStudioCodeEditor", "Replace the selected match and select the next (Enter)."));
-	replaceOne->setAccessibleName(QCoreApplication::translate("VibeStudioCodeEditor", "Replace"));
+	replaceOne->setText(QCoreApplication::translate("SlopStudioCodeEditor", "Replace"));
+	replaceOne->setToolTip(QCoreApplication::translate("SlopStudioCodeEditor", "Replace the selected match and select the next (Enter)."));
+	replaceOne->setAccessibleName(QCoreApplication::translate("SlopStudioCodeEditor", "Replace"));
 	auto* replaceEvery = new QToolButton(m_replaceRow);
 	replaceEvery->setObjectName(QStringLiteral("codeReplaceAll"));
-	replaceEvery->setText(QCoreApplication::translate("VibeStudioCodeEditor", "Replace All"));
-	replaceEvery->setToolTip(QCoreApplication::translate("VibeStudioCodeEditor", "Replace every match in the file as one undo step (Ctrl+Enter)."));
-	replaceEvery->setAccessibleName(QCoreApplication::translate("VibeStudioCodeEditor", "Replace All"));
+	replaceEvery->setText(QCoreApplication::translate("SlopStudioCodeEditor", "Replace All"));
+	replaceEvery->setToolTip(QCoreApplication::translate("SlopStudioCodeEditor", "Replace every match in the file as one undo step (Ctrl+Enter)."));
+	replaceEvery->setAccessibleName(QCoreApplication::translate("SlopStudioCodeEditor", "Replace All"));
 	for (QToolButton* button : {replaceOne, replaceEvery}) {
 		button->setToolButtonStyle(Qt::ToolButtonTextOnly);
 		button->setAutoRaise(true);
@@ -1624,8 +1624,8 @@ void CodeFindBar::syncReadOnly()
 {
 	const bool writable = m_editor && !m_editor->isReadOnly();
 	m_replaceRow->setEnabled(writable);
-	m_replaceField->setPlaceholderText(writable ? QCoreApplication::translate("VibeStudioCodeEditor", "Replace with") : QCoreApplication::translate("VibeStudioCodeEditor", "Read-only file"));
-	m_replaceField->setToolTip(writable ? QString() : QCoreApplication::translate("VibeStudioCodeEditor", "This file is open read-only, so nothing in it can be replaced."));
+	m_replaceField->setPlaceholderText(writable ? QCoreApplication::translate("SlopStudioCodeEditor", "Replace with") : QCoreApplication::translate("SlopStudioCodeEditor", "Read-only file"));
+	m_replaceField->setToolTip(writable ? QString() : QCoreApplication::translate("SlopStudioCodeEditor", "This file is open read-only, so nothing in it can be replaced."));
 }
 
 void CodeFindBar::activateReplace()
@@ -1694,7 +1694,7 @@ int CodeFindBar::replaceAll()
 	}
 	edit.endEditBlock();
 	refreshCount();
-	m_count->setText(QCoreApplication::translate("VibeStudioCodeEditor", "%n replaced", nullptr, count));
+	m_count->setText(QCoreApplication::translate("SlopStudioCodeEditor", "%n replaced", nullptr, count));
 	m_field->setAccessibleDescription(m_count->text());
 	return count;
 }
@@ -1809,13 +1809,13 @@ void CodeFindBar::refreshCount()
 	if (needle.isEmpty()) {
 		m_count->clear();
 	} else if (m_matchCount == 0) {
-		m_count->setText(QCoreApplication::translate("VibeStudioCodeEditor", "No matches"));
+		m_count->setText(QCoreApplication::translate("SlopStudioCodeEditor", "No matches"));
 	} else if (m_matchCount >= kFindCountLimit) {
-		m_count->setText(QCoreApplication::translate("VibeStudioCodeEditor", "%1+ matches").arg(kFindCountLimit));
+		m_count->setText(QCoreApplication::translate("SlopStudioCodeEditor", "%1+ matches").arg(kFindCountLimit));
 	} else if (current > 0) {
-		m_count->setText(QCoreApplication::translate("VibeStudioCodeEditor", "%1 of %2").arg(current).arg(m_matchCount));
+		m_count->setText(QCoreApplication::translate("SlopStudioCodeEditor", "%1 of %2").arg(current).arg(m_matchCount));
 	} else {
-		m_count->setText(QCoreApplication::translate("VibeStudioCodeEditor", "%n match(es)", nullptr, m_matchCount));
+		m_count->setText(QCoreApplication::translate("SlopStudioCodeEditor", "%n match(es)", nullptr, m_matchCount));
 	}
 	m_field->setAccessibleDescription(m_count->text());
 }
@@ -1880,4 +1880,4 @@ bool CodeFindBar::eventFilter(QObject* watched, QEvent* event)
 	return QWidget::eventFilter(watched, event);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

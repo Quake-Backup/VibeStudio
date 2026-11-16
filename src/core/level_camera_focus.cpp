@@ -18,7 +18,7 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 constexpr double kStepDegrees = 22.5;
@@ -325,4 +325,4 @@ LevelCameraFloorStep levelCameraFloorStep(const LevelMapDocument& document, cons
 	return step;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

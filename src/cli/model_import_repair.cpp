@@ -6,7 +6,7 @@
 #include <QHash>
 #include <QJsonDocument>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -108,4 +108,4 @@ ModelImportRepairCliResult runModelImportRepair(const QStringList &arguments)
 								   : Text::tr("Repair prepared; no files written."));
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

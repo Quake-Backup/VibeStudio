@@ -2,7 +2,7 @@
 
 #include "core/model_document.h"
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 // Original open prism fixtures; no game assets or external geometry.
 inline ModelMesh boundaryPrism(QVector<ModelVec3> top = {{-2, -2, 2}, {2, -2, 2}, {2, 2, 2}, {-2, 2, 2}}, bool bottom = true)
@@ -83,4 +83,4 @@ inline void appendBoundaryObstacle(ModelMesh *mesh, QVector<ModelVec3> points)
 	surface.triangles << ModelTriangle{start, start + 1, start + 2};
 	updateEditableModelMetadata(mesh);
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

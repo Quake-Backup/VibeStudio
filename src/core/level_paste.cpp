@@ -28,7 +28,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -395,4 +395,4 @@ bool moveLevelMapSelectionToCamera(LevelMapDocument* document, const LevelPasteP
 	}
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

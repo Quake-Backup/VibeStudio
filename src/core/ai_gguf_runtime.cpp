@@ -1,6 +1,6 @@
 #include "core/ai_gguf_runtime.h"
 
-#include "vibestudio_config.h"
+#include "slopstudio_config.h"
 
 #include <QCoreApplication>
 #include <QCryptographicHash>
@@ -13,7 +13,7 @@
 #include <chrono>
 #include <thread>
 
-#if VIBESTUDIO_HAVE_GGML
+#if SLOPSTUDIO_HAVE_GGML
 #include <llama-cpp.h>
 #include <llama.h>
 
@@ -31,33 +31,33 @@
 #include <vector>
 #endif
 
-namespace vibestudio {
+namespace slopstudio {
 
 QString aiGgufModelProblem(const QString& path)
 {
 	const QFileInfo info(path.trimmed());
 	if (path.trimmed().isEmpty()) {
-		return QCoreApplication::translate("VibeStudioAiGguf", "No GGUF model file is set. Name a .gguf file as the model in Settings > AI and Automation.");
+		return QCoreApplication::translate("SlopStudioAiGguf", "No GGUF model file is set. Name a .gguf file as the model in Settings > AI and Automation.");
 	}
 	if (!info.isFile()) {
-		return QCoreApplication::translate("VibeStudioAiGguf", "The GGUF model %1 does not exist.").arg(QDir::toNativeSeparators(path));
+		return QCoreApplication::translate("SlopStudioAiGguf", "The GGUF model %1 does not exist.").arg(QDir::toNativeSeparators(path));
 	}
 	if (info.suffix().compare(QStringLiteral("gguf"), Qt::CaseInsensitive) != 0) {
-		return QCoreApplication::translate("VibeStudioAiGguf", "%1 is not a .gguf model file.").arg(QDir::toNativeSeparators(path));
+		return QCoreApplication::translate("SlopStudioAiGguf", "%1 is not a .gguf model file.").arg(QDir::toNativeSeparators(path));
 	}
 	return {};
 }
 
 QString aiGgufRuntimeMissingText()
 {
-	return QCoreApplication::translate("VibeStudioAiGguf",
-		"This build of VibeStudio has no ggml runtime. Build llama.cpp with python scripts/build_ggml.py and configure with -Dggml=enabled, or run llama.cpp's server and use the Local/Offline Runtime connector.");
+	return QCoreApplication::translate("SlopStudioAiGguf",
+		"This build of SlopStudio has no ggml runtime. Build llama.cpp with python scripts/build_ggml.py and configure with -Dggml=enabled, or run llama.cpp's server and use the Local/Offline Runtime connector.");
 }
 
-#if VIBESTUDIO_HAVE_GGML
+#if SLOPSTUDIO_HAVE_GGML
 
 // Derived from Quake-MapGen's src/llama_text_model.cpp (MIT): backend start-up, batches, chat
-// templates, tokenizing, token pieces, and grammar-constrained greedy decoding. VibeStudio adds
+// templates, tokenizing, token pieces, and grammar-constrained greedy decoding. SlopStudio adds
 // conversations, free text with a repetition penalty, cancellation, and a cached model.
 namespace {
 
@@ -347,7 +347,7 @@ bool aiGgufRuntimeAvailable()
 
 QString aiGgufRuntimeVersion()
 {
-	return QStringLiteral("llama.cpp %1, CPU").arg(QStringLiteral(VIBESTUDIO_GGML_REVISION).left(7));
+	return QStringLiteral("llama.cpp %1, CPU").arg(QStringLiteral(SLOPSTUDIO_GGML_REVISION).left(7));
 }
 
 AiGgufResult runAiGguf(const AiGgufRequest& request, const std::atomic_bool* cancelled)
@@ -379,7 +379,7 @@ AiGgufResult runAiGguf(const AiGgufRequest& request, const std::atomic_bool* can
 		const int ceiling = trained > 0 ? std::min(trained, 32768) : 8192;
 		const int context = request.contextTokens > 0 ? std::min(std::max(request.contextTokens, 512), ceiling) : ceiling;
 		if (int(prompt.size()) + 1 > context) {
-			result.error = QCoreApplication::translate("VibeStudioAiGguf", "The request is %1 tokens; the model's context holds %2.").arg(prompt.size()).arg(context);
+			result.error = QCoreApplication::translate("SlopStudioAiGguf", "The request is %1 tokens; the model's context holds %2.").arg(prompt.size()).arg(context);
 			return result;
 		}
 		const int maxOutput = std::clamp(request.maxOutputTokens, 1, context - int(prompt.size()));
@@ -467,7 +467,7 @@ AiGgufResult runAiGguf(const AiGgufRequest& request, const std::atomic_bool* can
 	} catch (const Cancelled&) {
 		result.cancelled = true;
 	} catch (const std::exception& error) {
-		result.error = QCoreApplication::translate("VibeStudioAiGguf", "The GGUF model could not answer: %1").arg(QString::fromUtf8(error.what()));
+		result.error = QCoreApplication::translate("SlopStudioAiGguf", "The GGUF model could not answer: %1").arg(QString::fromUtf8(error.what()));
 	}
 	return result;
 }
@@ -493,4 +493,4 @@ AiGgufResult runAiGguf(const AiGgufRequest&, const std::atomic_bool*)
 
 #endif
 
-} // namespace vibestudio
+} // namespace slopstudio

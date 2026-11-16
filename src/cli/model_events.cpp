@@ -16,7 +16,7 @@
 #include <cmath>
 #include <iostream>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -435,4 +435,4 @@ ModelToolsCliResult runModelDeclarations(const QStringList &arguments)
 					  {"dryRun", dry}};
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

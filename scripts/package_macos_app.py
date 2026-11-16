@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Assemble VibeStudio.app and its disk image on macOS.
+"""Assemble SlopStudio.app and its disk image on macOS.
 
-    python scripts/package_macos_app.py --binary builddir/src/vibestudio \
+    python scripts/package_macos_app.py --binary builddir/src/slopstudio \
         --compiled-translations builddir/i18n --docs-site build/docs-site \
         --qt-prefix "$QT_ROOT_DIR" --output dist
 
 Steps: stage the portable layout (scripts/package_portable.py), move it into a
-bundle (Contents/MacOS/vibestudio, everything else under Contents/Resources),
+bundle (Contents/MacOS/slopstudio, everything else under Contents/Resources),
 write Info.plist from packaging/macos/Info.plist.in, add the brand icon, copy
 the Qt frameworks with macdeployqt, sign ad hoc, and build
-VibeStudio-<version>-macos-<arch>.dmg with the branded Finder background
+SlopStudio-<version>-macos-<arch>.dmg with the branded Finder background
 (create-dmg when installed, plain hdiutil otherwise).
 
 Builds are ad-hoc signed only, not notarised: Gatekeeper asks before the first
@@ -55,22 +55,22 @@ def assemble(binary: Path, translations: Path | None, docs_site: Path | None, wo
     package_dir, _ = create_package(binary, work / "staging", str(version), include_samples=True, archive=False,
                                     target_platform="macos", target_architecture=architecture,
                                     compiled_translations=translations, docs_site=docs_site)
-    app = work / "VibeStudio.app"
+    app = work / "SlopStudio.app"
     if app.exists():
         shutil.rmtree(app)
     macos = app / "Contents" / "MacOS"
     resources = app / "Contents" / "Resources"
     macos.mkdir(parents=True)
     resources.mkdir(parents=True)
-    shutil.copy2(package_dir / "bin" / binary.name, macos / "vibestudio")
-    os.chmod(macos / "vibestudio", 0o755)
+    shutil.copy2(package_dir / "bin" / binary.name, macos / "slopstudio")
+    os.chmod(macos / "slopstudio", 0o755)
     for item in RESOURCE_ITEMS:
         source = package_dir / item
         if source.is_dir():
             shutil.copytree(source, resources / item)
         elif source.is_file():
             shutil.copy2(source, resources / item)
-    shutil.copy2(BRANDING / "icons" / "vibestudio.icns", resources / "vibestudio.icns")
+    shutil.copy2(BRANDING / "icons" / "slopstudio.icns", resources / "slopstudio.icns")
     (app / "Contents" / "Info.plist").write_text(info_plist(version), encoding="utf-8")
     (app / "Contents" / "PkgInfo").write_text("APPL????", encoding="ascii")
     return app
@@ -122,7 +122,7 @@ def make_dmg(app: Path, dmg: Path, volume: str, work: Path) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Assemble VibeStudio.app and its disk image.")
+    parser = argparse.ArgumentParser(description="Assemble SlopStudio.app and its disk image.")
     parser.add_argument("--binary", type=Path, required=True)
     parser.add_argument("--compiled-translations", type=Path)
     parser.add_argument("--docs-site", type=Path)
@@ -139,7 +139,7 @@ def main() -> int:
     try:
         version = Version.parse(args.version) if args.version else read_version()
         args.output.mkdir(parents=True, exist_ok=True)
-        work = Path(tempfile.mkdtemp(prefix="vibestudio-macos-"))
+        work = Path(tempfile.mkdtemp(prefix="slopstudio-macos-"))
         app = assemble(args.binary, args.compiled_translations, args.docs_site, work, version, args.architecture)
         deploy_and_sign(app, args.qt_prefix, args.sign_identity)
         final_app = args.output / app.name
@@ -150,7 +150,7 @@ def main() -> int:
         if not args.no_dmg:
             name = asset_names(str(version))["macos-dmg"].replace("-arm64", f"-{args.architecture}")
             dmg = args.output / name
-            make_dmg(app, dmg, f"VibeStudio {version}", work)
+            make_dmg(app, dmg, f"SlopStudio {version}", work)
             print(dmg)
     except (OSError, ValueError, subprocess.CalledProcessError) as error:
         print(f"macOS packaging failed: {error}", file=sys.stderr)

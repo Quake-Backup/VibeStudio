@@ -23,7 +23,7 @@
 #include <new>
 #include <stdexcept>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool value, const char* message)
@@ -204,7 +204,7 @@ int main(int argc, char** argv)
 	// Direct Qt calls and a fake backend; no input injection or output device.
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	QApplication app(argc, argv); app.setQuitOnLastWindowClosed(false);
-	const QString root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT", QDir::currentPath()); QDir().mkpath(root);
+	const QString root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT", QDir::currentPath()); QDir().mkpath(root);
 	QTemporaryDir temporary(QDir(root).filePath(QStringLiteral("audio-history-XXXXXX")));
 	if (!temporary.isValid()) { return EXIT_FAILURE; }
 	StudioSettings::setOverrideFilePath(temporary.filePath(QStringLiteral("settings.ini")));

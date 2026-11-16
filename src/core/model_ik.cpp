@@ -16,7 +16,7 @@
 // Transactions on Robotics and Automation 7(4), 1991), implemented from those
 // published descriptions; see docs/CREDITS.md.
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -965,4 +965,4 @@ bool modelJointLimitsFromJson(const QJsonValue &value, ModelJointLimits *limits)
 	*limits = result;
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 bool insertLevelMapVertices(LevelMapDocument* document, const QVector<LevelMapVertexInsertion>& insertions,
 	double grid, bool allowCollapse, LevelMapComponentReport* report, QString* error)
 {
@@ -47,4 +47,4 @@ bool insertLevelMapVertices(LevelMapDocument* document, const QVector<LevelMapVe
 	if (report) { *report = result; }
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

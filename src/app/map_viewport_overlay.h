@@ -3,7 +3,7 @@
 #include "app/map_grid.h"
 #include "app/map_viewport_projection.h"
 
-namespace vibestudio {
+namespace slopstudio {
 
 inline constexpr qsizetype mapViewportMaxMemberMarkers = 512;
 
@@ -46,4 +46,4 @@ bool mapViewportMemberCenters(const MapViewportOverlayRequest& request, QVector<
 bool renderMapViewportOverlays(const MapViewportOverlayRequest& request, MapViewportOverlayResult* result,
 	const std::atomic_bool* cancelled = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

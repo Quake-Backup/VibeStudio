@@ -11,7 +11,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -153,7 +153,7 @@ QByteArray encodeAudioEffectPreset(const AudioEffectPreset &preset, QString *err
 	}
 	if (error)
 		error->clear();
-	return QJsonDocument(QJsonObject{{"format", "vibestudio.audio-effects"},
+	return QJsonDocument(QJsonObject{{"format", "slopstudio.audio-effects"},
 	                                 {"version", 1},
 	                                 {"name", preset.name},
 	                                 {"sampleRate", preset.sampleRate},
@@ -170,7 +170,7 @@ bool decodeAudioEffectPreset(const QByteArray &bytes, AudioEffectPreset *preset,
 	const double rate = object.value("sampleRate").toDouble(std::numeric_limits<double>::quiet_NaN());
 	AudioEffectPreset next;
 	if (!preset || parse.error != QJsonParseError::NoError || !json.isObject() || object.size() != 6 ||
-	    object.value("format") != QJsonValue("vibestudio.audio-effects") || object.value("version") != QJsonValue(1) ||
+	    object.value("format") != QJsonValue("slopstudio.audio-effects") || object.value("version") != QJsonValue(1) ||
 	    !object.value("name").isString() || !std::isfinite(rate) || rate != std::floor(rate) || rate < 1 ||
 	    rate > 384000 || !audioEffectsFromJson(object.value("effects"), &next.effects))
 		return fail(error,
@@ -217,4 +217,4 @@ AudioProjectSaveReport writeAudioEffectPreset(const AudioEffectPreset &preset, c
 		                         return !bytes.isEmpty() && write(bytes);
 	                         });
 }
-} // namespace vibestudio
+} // namespace slopstudio

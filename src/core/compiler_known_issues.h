@@ -4,7 +4,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class CompilerKnownIssueSeverity {
 	Info,
@@ -43,6 +43,6 @@ QVector<CompilerKnownIssueDescriptor> compilerKnownIssuesForTool(const QString& 
 QVector<CompilerKnownIssueDescriptor> compilerKnownIssuesForProfile(const QString& profileId);
 QVector<CompilerKnownIssueMatch> matchCompilerKnownIssues(const QString& text, const QString& toolId = QString(), const QString& profileId = QString());
 QString compilerKnownIssueText(const CompilerKnownIssueDescriptor& issue);
-QStringList vibemap2KnownIssuePlanWarnings(const QString& profileId, const QString& inputPath, const QStringList& arguments);
+QStringList slopmap2KnownIssuePlanWarnings(const QString& profileId, const QString& inputPath, const QStringList& arguments);
 
-} // namespace vibestudio
+} // namespace slopstudio

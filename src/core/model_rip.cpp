@@ -7,9 +7,9 @@
 
 // Behavioural reference: Blender 4.5 Rip Vertices / Rip Vertices and Fill
 // manuals, reviewed 2026-10-21 (CC-BY-SA-4.0). Original implementation; no
-// upstream code or prose. VibeStudio cancels the entire candidate on Escape.
+// upstream code or prose. SlopStudio cancels the entire candidate on Escape.
 // https://docs.blender.org/manual/en/4.5/modeling/meshes/editing/vertex/rip_vertices.html
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -355,4 +355,4 @@ bool planModelRip(const ModelSurface &surface, const ModelSelection &selection, 
 	*result = std::move(plan);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

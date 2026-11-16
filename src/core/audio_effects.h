@@ -12,7 +12,7 @@
 #include <span>
 #include <vector>
 
-namespace vibestudio
+namespace slopstudio
 {
 inline constexpr int AudioEffectChainLimit = 8;
 inline constexpr quint64 AudioEffectMemoryLimit = 128ULL * 1024 * 1024;
@@ -118,4 +118,4 @@ class AudioEffectsProcessor {
 	qint64 m_nextFrame = 0, m_resetFrame = 0;
 	AudioTimelineLoop m_loop;
 };
-} // namespace vibestudio
+} // namespace slopstudio

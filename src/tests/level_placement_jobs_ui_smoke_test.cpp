@@ -23,7 +23,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* message, const QString& error = {}) {
@@ -110,7 +110,7 @@ int main(int argc, char** argv) {
 				   "accessible progress role");
 			expect(cancel && !cancel->accessibleDescription().isEmpty() && cancel->focusPolicy() != Qt::NoFocus,
 				   "accessible cancel control");
-			const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+			const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 			if (!capture.isEmpty()) {
 				QDir().mkpath(capture);
 				QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied);

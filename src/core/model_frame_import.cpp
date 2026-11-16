@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -453,4 +453,4 @@ bool exportModelFrameObjSequence(const ModelMesh &mesh, int first, int last, con
 		*written = files;
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

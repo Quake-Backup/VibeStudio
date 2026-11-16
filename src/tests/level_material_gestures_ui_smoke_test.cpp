@@ -23,7 +23,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message, const QString& detail = {})
 {
@@ -104,7 +104,7 @@ bool inspectPreferences(QApplication& app, StudioSettings& settings, int scale)
 	// finish before sizing a render target or checking the dialog's footer.
 	{ QEventLoop loop; QTimer::singleShot(75, &loop, &QEventLoop::quit); loop.exec(QEventLoop::ExcludeUserInputEvents); }
 	ok &= expect(dialog.rect().contains(QRect(apply->mapTo(&dialog, QPoint()), apply->size())), "scaled material preference footer fits the dialog");
-	const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (!captures.isEmpty()) {
 		QDir().mkpath(captures); QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog.render(&image);
 		ok &= expect(image.save(QDir(captures).filePath(QStringLiteral("material-preferences-%1.png").arg(scale))), "render preference widget target");
@@ -132,7 +132,7 @@ int main(int argc, char** argv)
 #endif
 	QApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("level-material-gestures-ui-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("level-material-gestures-ui-smoke"); skip >= 0) {
 		return skip;
 	}
 #ifdef Q_OS_WIN

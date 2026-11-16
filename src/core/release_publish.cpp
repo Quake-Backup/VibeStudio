@@ -17,7 +17,7 @@
 #include <cstring>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -53,7 +53,7 @@ bool modFolder(const ReleasePlan& plan)
 bool publishBytes(const QString& path, const QByteArray& bytes, bool overwrite, const std::function<bool()>& isCancelled, ReleasePublishResult* result, QString* error)
 {
 	if (!QDir().mkpath(QFileInfo(path).absolutePath())) {
-		*error = QCoreApplication::translate("VibeStudioReleasePublish", "Unable to create %1.").arg(QDir::toNativeSeparators(QFileInfo(path).absolutePath()));
+		*error = QCoreApplication::translate("SlopStudioReleasePublish", "Unable to create %1.").arg(QDir::toNativeSeparators(QFileInfo(path).absolutePath()));
 		return false;
 	}
 	PackagePublicationOptions options;
@@ -65,7 +65,7 @@ bool publishBytes(const QString& path, const QByteArray& bytes, bool overwrite, 
 		return false;
 	}
 	if (publication.device()->write(bytes) != bytes.size()) {
-		*error = QCoreApplication::translate("VibeStudioReleasePublish", "Unable to write %1.").arg(QDir::toNativeSeparators(path));
+		*error = QCoreApplication::translate("SlopStudioReleasePublish", "Unable to write %1.").arg(QDir::toNativeSeparators(path));
 		return false;
 	}
 	const PackagePublicationResult published = publication.commit(quint64(bytes.size()), sha256Hex(bytes));
@@ -74,7 +74,7 @@ bool publishBytes(const QString& path, const QByteArray& bytes, bool overwrite, 
 		result->backupPaths << published.backupPath;
 	}
 	if (!published.committed) {
-		*error = published.error.isEmpty() ? QCoreApplication::translate("VibeStudioReleasePublish", "Unable to write %1.").arg(QDir::toNativeSeparators(path)) : published.error;
+		*error = published.error.isEmpty() ? QCoreApplication::translate("SlopStudioReleasePublish", "Unable to write %1.").arg(QDir::toNativeSeparators(path)) : published.error;
 		return false;
 	}
 	return true;
@@ -92,7 +92,7 @@ bool readPlannedEntry(const ReleasePlan& plan, const ReleaseEntry& entry, QByteA
 			return layer->reader->readEntryAt(entry.layerIndex, bytes, error);
 		}
 	}
-	*error = QCoreApplication::translate("VibeStudioReleasePublish", "%1 has no readable source.").arg(entry.virtualPath);
+	*error = QCoreApplication::translate("SlopStudioReleasePublish", "%1 has no readable source.").arg(entry.virtualPath);
 	return false;
 }
 
@@ -110,12 +110,12 @@ bool mergedWadBytes(const ReleasePlan& plan, QByteArray* out, QString* error, co
 			continue;
 		}
 		if (isCancelled && isCancelled()) {
-			*error = QCoreApplication::translate("VibeStudioReleasePublish", "Publishing was cancelled.");
+			*error = QCoreApplication::translate("SlopStudioReleasePublish", "Publishing was cancelled.");
 			return false;
 		}
 		const QByteArray name = entry.virtualPath.toUpper().toLatin1();
 		if (name.isEmpty() || name.size() > 8) {
-			*error = QCoreApplication::translate("VibeStudioReleasePublish", "%1 is not a valid lump name (one to eight characters).").arg(entry.virtualPath);
+			*error = QCoreApplication::translate("SlopStudioReleasePublish", "%1 is not a valid lump name (one to eight characters).").arg(entry.virtualPath);
 			return false;
 		}
 		QByteArray bytes;
@@ -123,7 +123,7 @@ bool mergedWadBytes(const ReleasePlan& plan, QByteArray* out, QString* error, co
 			return false;
 		}
 		if (data.size() + bytes.size() > kMaximumWadBytes) {
-			*error = QCoreApplication::translate("VibeStudioReleasePublish", "The merged WAD would exceed 1 GiB.");
+			*error = QCoreApplication::translate("SlopStudioReleasePublish", "The merged WAD would exceed 1 GiB.");
 			return false;
 		}
 		directory.push_back({qint32(data.size()), qint32(bytes.size()), name});
@@ -190,7 +190,7 @@ QString writeFailure(const PackageWriteReport& report)
 {
 	QStringList details = report.blockedMessages;
 	details += report.warnings;
-	return details.isEmpty() ? QCoreApplication::translate("VibeStudioReleasePublish", "The package could not be written.") : details.join(QLatin1Char(' '));
+	return details.isEmpty() ? QCoreApplication::translate("SlopStudioReleasePublish", "The package could not be written.") : details.join(QLatin1Char(' '));
 }
 
 } // namespace
@@ -217,7 +217,7 @@ QString releaseOutputProblem(const ReleasePlan& plan, const QString& outputDirec
 {
 	const QString directory = outputDirectory.trimmed();
 	if (directory.isEmpty() || !QDir::isAbsolutePath(directory)) {
-		return QCoreApplication::translate("VibeStudioReleasePublish", "Choose an absolute output folder.");
+		return QCoreApplication::translate("SlopStudioReleasePublish", "Choose an absolute output folder.");
 	}
 	const QString clean = QDir::cleanPath(directory);
 	if (plan.reader) {
@@ -232,7 +232,7 @@ QString releaseOutputProblem(const ReleasePlan& plan, const QString& outputDirec
 						excluded = excluded || insideOrSame(folder, clean);
 					}
 					if (!excluded) {
-						return QCoreApplication::translate("VibeStudioReleasePublish",
+						return QCoreApplication::translate("SlopStudioReleasePublish",
 							"%1 is inside the project's content, so the next release would include this one. Choose a folder under the project's output folder, such as build/releases.")
 							.arg(QDir::toNativeSeparators(clean));
 					}
@@ -247,7 +247,7 @@ QString releaseOutputProblem(const ReleasePlan& plan, const QString& outputDirec
 		}
 		for (const QString& name : std::as_const(targets)) {
 			if (QFileInfo::exists(QDir(clean).filePath(name))) {
-				return QCoreApplication::translate("VibeStudioReleasePublish", "%1 already holds a release (%2). Choose a new version, or allow replacing it.")
+				return QCoreApplication::translate("SlopStudioReleasePublish", "%1 already holds a release (%2). Choose a new version, or allow replacing it.")
 					.arg(QDir::toNativeSeparators(clean), name);
 			}
 		}
@@ -264,7 +264,7 @@ ReleasePublishResult publishRelease(const ReleasePublishRequest& request)
 	const auto fail = [&result, &cancelled](const QString& message) {
 		result.succeeded = false;
 		result.cancelled = cancelled();
-		result.error = result.cancelled ? QCoreApplication::translate("VibeStudioReleasePublish", "Publishing was cancelled.") : message;
+		result.error = result.cancelled ? QCoreApplication::translate("SlopStudioReleasePublish", "Publishing was cancelled.") : message;
 		return result;
 	};
 	const auto phase = [&request](const QString& text, qint64 completed = 0, qint64 total = 0) {
@@ -273,10 +273,10 @@ ReleasePublishResult publishRelease(const ReleasePublishRequest& request)
 		}
 	};
 	if (!plan.canPublish()) {
-		return fail(QCoreApplication::translate("VibeStudioReleasePublish", "The release plan has blocking problems. Resolve them, then plan again."));
+		return fail(QCoreApplication::translate("SlopStudioReleasePublish", "The release plan has blocking problems. Resolve them, then plan again."));
 	}
 	if (!isValidReleaseVersion(plan.release.version)) {
-		return fail(QCoreApplication::translate("VibeStudioReleasePublish", "%1 is not a usable version. Use letters, digits, '.', '-', '+' or '_', such as 1.2.0.").arg(plan.release.version));
+		return fail(QCoreApplication::translate("SlopStudioReleasePublish", "%1 is not a usable version. Use letters, digits, '.', '-', '+' or '_', such as 1.2.0.").arg(plan.release.version));
 	}
 	const QString problem = releaseOutputProblem(plan, request.outputDirectory, request.overwrite);
 	if (!problem.isEmpty()) {
@@ -285,10 +285,10 @@ ReleasePublishResult publishRelease(const ReleasePublishRequest& request)
 	result.outputDirectory = QDir::cleanPath(request.outputDirectory);
 	const QDir output(result.outputDirectory);
 	if (!request.dryRun && !QDir().mkpath(result.outputDirectory)) {
-		return fail(QCoreApplication::translate("VibeStudioReleasePublish", "Unable to create %1.").arg(QDir::toNativeSeparators(result.outputDirectory)));
+		return fail(QCoreApplication::translate("SlopStudioReleasePublish", "Unable to create %1.").arg(QDir::toNativeSeparators(result.outputDirectory)));
 	}
 
-	phase(QCoreApplication::translate("VibeStudioReleasePublish", "Checking the release's files"));
+	phase(QCoreApplication::translate("SlopStudioReleasePublish", "Checking the release's files"));
 	QString error;
 	if (!releaseInventory(plan, &result.inventory, &error, request.isCancelled)) {
 		return fail(error);
@@ -299,7 +299,7 @@ ReleasePublishResult publishRelease(const ReleasePublishRequest& request)
 	const QString readmeName = baseName(plan) + QStringLiteral(".txt");
 	const QString prefix = modFolder(plan) ? plan.packageFolder + QLatin1Char('/') : QString();
 	result.packagePath = output.filePath(plan.packageFileName);
-	const QString packagePhase = QCoreApplication::translate("VibeStudioReleasePublish", "Writing %1").arg(plan.packageFileName);
+	const QString packagePhase = QCoreApplication::translate("SlopStudioReleasePublish", "Writing %1").arg(plan.packageFileName);
 	phase(packagePhase);
 	if (plan.formatId == QStringLiteral("wad")) {
 		QByteArray wad;
@@ -315,7 +315,7 @@ ReleasePublishResult publishRelease(const ReleasePublishRequest& request)
 			// Reopen to prove the merged directory reads back as written.
 			PackageArchive check;
 			if (!check.load(result.packagePath, &error) || check.wadMagic() != QStringLiteral("PWAD")) {
-				return fail(QCoreApplication::translate("VibeStudioReleasePublish", "The merged WAD does not read back: %1").arg(error));
+				return fail(QCoreApplication::translate("SlopStudioReleasePublish", "The merged WAD does not read back: %1").arg(error));
 			}
 			result.packageCommitted = true;
 		}
@@ -369,7 +369,7 @@ ReleasePublishResult publishRelease(const ReleasePublishRequest& request)
 			if (!entry.sourcePath.isEmpty()) {
 				QFile file(entry.sourcePath);
 				if (file.size() > kMaximumLooseBytes || !file.open(QIODevice::ReadOnly)) {
-					return fail(QCoreApplication::translate("VibeStudioReleasePublish", "Unable to read %1.").arg(QDir::toNativeSeparators(entry.sourcePath)));
+					return fail(QCoreApplication::translate("SlopStudioReleasePublish", "Unable to read %1.").arg(QDir::toNativeSeparators(entry.sourcePath)));
 				}
 				bytes = file.readAll();
 			} else if (!readPlannedEntry(plan, entry, &bytes, &error)) {
@@ -398,7 +398,7 @@ ReleasePublishResult publishRelease(const ReleasePublishRequest& request)
 
 	if (request.writeArchive && plan.formatId != QStringLiteral("zip")) {
 		result.archivePath = output.filePath(releaseArchiveFileName(plan));
-		const QString archivePhase = QCoreApplication::translate("VibeStudioReleasePublish", "Writing %1").arg(QFileInfo(result.archivePath).fileName());
+		const QString archivePhase = QCoreApplication::translate("SlopStudioReleasePublish", "Writing %1").arg(QFileInfo(result.archivePath).fileName());
 		phase(archivePhase);
 		if (!request.dryRun) {
 			PackageStagingModel archive;
@@ -467,7 +467,7 @@ ReleasePublishResult publishRelease(const ReleasePublishRequest& request)
 			}
 		}
 	}
-	phase(QCoreApplication::translate("VibeStudioReleasePublish", "Release ready"), 1, 1);
+	phase(QCoreApplication::translate("SlopStudioReleasePublish", "Release ready"), 1, 1);
 	result.succeeded = true;
 	return result;
 }
@@ -524,16 +524,16 @@ QString releasePublishResultText(const ReleasePublishResult& result)
 {
 	QStringList lines;
 	if (!result.succeeded) {
-		lines << (result.cancelled ? QCoreApplication::translate("VibeStudioReleasePublish", "Publishing was cancelled.")
-								   : QCoreApplication::translate("VibeStudioReleasePublish", "Publishing failed: %1").arg(result.error));
+		lines << (result.cancelled ? QCoreApplication::translate("SlopStudioReleasePublish", "Publishing was cancelled.")
+								   : QCoreApplication::translate("SlopStudioReleasePublish", "Publishing failed: %1").arg(result.error));
 		if (result.packageCommitted) {
-			lines << QCoreApplication::translate("VibeStudioReleasePublish", "The package was already written: %1").arg(QDir::toNativeSeparators(result.packagePath));
+			lines << QCoreApplication::translate("SlopStudioReleasePublish", "The package was already written: %1").arg(QDir::toNativeSeparators(result.packagePath));
 		}
 		return lines.join(QLatin1Char('\n'));
 	}
-	lines << (result.dryRun ? QCoreApplication::translate("VibeStudioReleasePublish", "Dry run: nothing was written. The release would go to %1").arg(QDir::toNativeSeparators(result.outputDirectory))
-							: QCoreApplication::translate("VibeStudioReleasePublish", "Release written to %1").arg(QDir::toNativeSeparators(result.outputDirectory)));
-	lines << QCoreApplication::translate("VibeStudioReleasePublish", "Package: %1 (%2 bytes, SHA-256 %3)").arg(QDir::toNativeSeparators(result.packagePath)).arg(result.packageBytes).arg(result.packageSha256);
+	lines << (result.dryRun ? QCoreApplication::translate("SlopStudioReleasePublish", "Dry run: nothing was written. The release would go to %1").arg(QDir::toNativeSeparators(result.outputDirectory))
+							: QCoreApplication::translate("SlopStudioReleasePublish", "Release written to %1").arg(QDir::toNativeSeparators(result.outputDirectory)));
+	lines << QCoreApplication::translate("SlopStudioReleasePublish", "Package: %1 (%2 bytes, SHA-256 %3)").arg(QDir::toNativeSeparators(result.packagePath)).arg(result.packageBytes).arg(result.packageSha256);
 	for (const QString& path : {result.readmePath, result.notesPath, result.archivePath, result.recordPath, result.changelogPath}) {
 		if (!path.isEmpty()) {
 			lines << QStringLiteral("  ") + QDir::toNativeSeparators(path);
@@ -548,4 +548,4 @@ QString releasePublishResultText(const ReleasePublishResult& result)
 	return lines.join(QLatin1Char('\n'));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

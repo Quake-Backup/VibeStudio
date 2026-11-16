@@ -4,7 +4,7 @@
 #include <QSize>
 #include <QTransform>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Ceiling for one viewport image in physical pixels: 2D line caches, vertex
 // markers and GPU frames read back from the 3D views. Larger windows scale
@@ -25,4 +25,4 @@ ViewportImageDevice viewportImageDevice(const QTransform& transform);
 // or over-budget requests return an empty size, never reduced resolution.
 QSize viewportImageSize(QSize viewport, double pixelRatio, QPointF pixelPhase = {});
 
-} // namespace vibestudio
+} // namespace slopstudio

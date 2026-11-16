@@ -9,11 +9,11 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 // Behaviour reference: NRC radiant/csg.cpp CSG_WrapMerge,
 // Scene_gatherSelectedComponents and ultimate_group_path, revision
 // 449778b3840f8f2062daab15c87cb012f2ac945c, GPL-2.0-or-later.
-// Independent implementation using VibeStudio services; see docs/CREDITS.md.
+// Independent implementation using SlopStudio services; see docs/CREDITS.md.
 bool wrapLevelMap(LevelMapDocument* document, const LevelWrapRequest& request, LevelWrapReport* report, QString* error)
 {
 	if (report) { *report = {}; } if (error) { error->clear(); }
@@ -101,4 +101,4 @@ QJsonObject levelWrapReportJson(const LevelWrapReport& r)
 		{"sourceBrushes",r.sourceBrushes},{"sourcePatches",r.sourcePatches},{"vertices",r.vertices},{"faces",r.faces},
 		{"inheritedFaces",r.inheritedFaces},{"newFaces",r.newFaces}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

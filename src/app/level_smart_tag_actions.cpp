@@ -9,7 +9,7 @@
 #include <QInputDialog>
 #include <QStatusBar>
 
-namespace vibestudio {
+namespace slopstudio {
 
 void ApplicationShell::refreshLevelSmartTagCommands()
 {
@@ -76,4 +76,4 @@ void ApplicationShell::applyLevelSmartTagFromUi(const QString& tagId, bool enabl
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("%1 completed as one undo step.").arg(label), 6000);
 }
-} // namespace vibestudio
+} // namespace slopstudio

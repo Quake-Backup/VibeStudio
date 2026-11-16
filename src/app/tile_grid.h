@@ -17,7 +17,7 @@
 class QAbstractButton;
 class QGridLayout;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class TileGrid final : public QWidget {
 	Q_OBJECT
@@ -48,4 +48,4 @@ private:
 	bool m_arrangePending = false;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

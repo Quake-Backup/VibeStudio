@@ -8,7 +8,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 QImage fixture(QSize size, QImage::Format format, int paletteSize = 32, bool transparent = true)

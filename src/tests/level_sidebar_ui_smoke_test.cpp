@@ -51,7 +51,7 @@
 #include <functional>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -307,7 +307,7 @@ bool groupBox(ApplicationShell& shell, int box)
 // selected crate's link set over its picture as the plan views do, and says
 // so; with the floor selected it draws none of it until Show > Linked Groups
 // boxes every linked group. The camera's frames go under
-// VIBESTUDIO_TEST_SNAPSHOTS, named with `suffix`.
+// SLOPSTUDIO_TEST_SNAPSHOTS, named with `suffix`.
 bool cameraLinkedGroups(ApplicationShell& shell, int box, const QString& suffix)
 {
 	const QString label = suffix.isEmpty() ? QStringLiteral("at 100% text") : suffix;
@@ -331,7 +331,7 @@ bool cameraLinkedGroups(ApplicationShell& shell, int box, const QString& suffix)
 	};
 	bool ok = expect(until(settled, 120000), "the camera builds and draws the map with both crates",
 		QStringLiteral("%1: %2 triangles").arg(label).arg(preview->mesh().triangleCount));
-	const QString shots = qEnvironmentVariable("VIBESTUDIO_TEST_SNAPSHOTS");
+	const QString shots = qEnvironmentVariable("SLOPSTUDIO_TEST_SNAPSHOTS");
 	const auto save = [&shots, &suffix](const QImage& image, const QString& name) {
 		if (!shots.isEmpty()) {
 			image.save(QDir(shots).filePath(name + suffix + QStringLiteral(".png")));
@@ -688,7 +688,7 @@ int main(int argc, char** argv)
 				drain();
 				ok &= expect(plan->accessibleDescription().contains(QStringLiteral("Arrows run from the selected linked group to the 1 other group")),
 					"the plan view outlines the link set and says so", plan->accessibleDescription());
-				if (const QString shots = qEnvironmentVariable("VIBESTUDIO_TEST_SNAPSHOTS"); !shots.isEmpty()) {
+				if (const QString shots = qEnvironmentVariable("SLOPSTUDIO_TEST_SNAPSHOTS"); !shots.isEmpty()) {
 					plan->grab().save(QDir(shots).filePath(QStringLiteral("linked-groups-plan.png")));
 				}
 			}
@@ -813,7 +813,7 @@ int main(int argc, char** argv)
 		if (required(expect(models && placeModel && modelHint && until([&] { return itemWithPayload(models, crate) != nullptr; }),
 				"the Models tab lists the package's model"))) {
 			// Quake's own classes have no misc_model, and no q3map2 bakes it.
-			ok &= expect(modelHint->text().contains(QStringLiteral("misc_model")) && !modelHint->text().contains(QStringLiteral("VibeMap3"))
+			ok &= expect(modelHint->text().contains(QStringLiteral("misc_model")) && !modelHint->text().contains(QStringLiteral("SlopMap3"))
 					&& modelHint->text().contains(QStringLiteral("No loaded definition")),
 				"the Models tab says what a Quake map makes of a model", modelHint->text());
 			models->setCurrentItem(itemWithPayload(models, crate));

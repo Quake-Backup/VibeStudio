@@ -4,7 +4,7 @@
 
 #include <QStringList>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // Radiant's Snap To Grid: every point rounds onto the grid on its own, so an
@@ -38,4 +38,4 @@ struct LevelMapGridRoundReport {
 bool roundLevelMapSelectionToGrid(LevelMapDocument* document, const LevelMapGridRoundRequest& request,
 	LevelMapGridRoundReport* report = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

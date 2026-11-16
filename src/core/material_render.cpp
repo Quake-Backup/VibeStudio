@@ -9,12 +9,12 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace material_render {
 namespace {
 
 struct Text {
-	Q_DECLARE_TR_FUNCTIONS(VibeStudioMaterials)
+	Q_DECLARE_TR_FUNCTIONS(SlopStudioMaterials)
 };
 
 constexpr double kPi = 3.14159265358979323846;
@@ -1142,17 +1142,17 @@ QString materialPreviewShapeDisplayName(MaterialPreviewShape shape)
 {
 	switch (shape) {
 	case MaterialPreviewShape::Wall:
-		return QCoreApplication::translate("VibeStudioMaterials", "Wall");
+		return QCoreApplication::translate("SlopStudioMaterials", "Wall");
 	case MaterialPreviewShape::Floor:
-		return QCoreApplication::translate("VibeStudioMaterials", "Floor");
+		return QCoreApplication::translate("SlopStudioMaterials", "Floor");
 	case MaterialPreviewShape::Cube:
-		return QCoreApplication::translate("VibeStudioMaterials", "Cube");
+		return QCoreApplication::translate("SlopStudioMaterials", "Cube");
 	case MaterialPreviewShape::Sphere:
-		return QCoreApplication::translate("VibeStudioMaterials", "Sphere");
+		return QCoreApplication::translate("SlopStudioMaterials", "Sphere");
 	case MaterialPreviewShape::Cylinder:
-		return QCoreApplication::translate("VibeStudioMaterials", "Cylinder");
+		return QCoreApplication::translate("SlopStudioMaterials", "Cylinder");
 	case MaterialPreviewShape::Room:
-		return QCoreApplication::translate("VibeStudioMaterials", "Room");
+		return QCoreApplication::translate("SlopStudioMaterials", "Room");
 	}
 	return QString();
 }
@@ -1283,7 +1283,7 @@ MaterialRenderResult renderMaterial(const MaterialDefinition& definition, const 
 		MaterialGpuFrame gpu(makeCamera(mesh, bounded), mesh, bounded);
 		gpu.background(bounded.background, bounded.checker, 1.0);
 		gpu.finish(1.0, &result, stop);
-		result.notes << QCoreApplication::translate("VibeStudioMaterials", "The material's engine is unknown, so nothing is drawn.");
+		result.notes << QCoreApplication::translate("SlopStudioMaterials", "The material's engine is unknown, so nothing is drawn.");
 		break;
 	}
 	}
@@ -1345,4 +1345,4 @@ double materialCycleSeconds(const MaterialDefinition& definition, const Material
 	return cycle > 0.0 ? std::clamp(cycle, 1.0, 60.0) : 10.0;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

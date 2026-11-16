@@ -4,7 +4,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 
 struct LevelCameraFarClipCliResult {
 	int exitCode = 0;
@@ -21,4 +21,4 @@ struct LevelCameraFarClipCliResult {
 // studio reads the same settings key when it starts.
 LevelCameraFarClipCliResult runLevelCameraFarClip(const QStringList& arguments);
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

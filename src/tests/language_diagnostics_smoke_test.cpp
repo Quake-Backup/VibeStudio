@@ -4,7 +4,7 @@
 #include <QProcess>
 #include <QTemporaryDir>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* why) { if (!value) { std::cerr << why << '\n'; } return value; }
 bool wait(const std::function<bool()>& ready, int ms = 7000) { QElapsedTimer elapsed; elapsed.start(); while (!ready() && elapsed.elapsed() < ms) { QCoreApplication::processEvents(QEventLoop::AllEvents, 10); QThread::msleep(2); } return ready(); }

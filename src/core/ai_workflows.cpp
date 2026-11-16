@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -154,7 +154,7 @@ void applyCredentialWarning(AiWorkflowManifest* manifest, const AiAutomationPref
 	}
 	const AiCredentialStatus status = aiCredentialStatusForConnector(connector.id, preferences);
 	if (!status.configured) {
-		manifest->warnings.push_back(QCoreApplication::translate("VibeStudioAiWorkflows", "Provider credential is not configured; the workflow remains a local, reviewable proposal."));
+		manifest->warnings.push_back(QCoreApplication::translate("SlopStudioAiWorkflows", "Provider credential is not configured; the workflow remains a local, reviewable proposal."));
 		manifest->state = OperationState::Warning;
 	}
 }
@@ -182,14 +182,14 @@ QString chooseCompilerProfileId(const QString& prompt)
 		return QString();
 	};
 
-	if (containsAny(lower, {QStringLiteral("q3"), QStringLiteral("quake 3"), QStringLiteral("q3map2"), QStringLiteral("vibemap3")})) {
+	if (containsAny(lower, {QStringLiteral("q3"), QStringLiteral("quake 3"), QStringLiteral("q3map2"), QStringLiteral("slopmap3")})) {
 		if (lower.contains(QStringLiteral("light"))) {
-			return firstProfile({QStringLiteral("vibemap3-light")});
+			return firstProfile({QStringLiteral("slopmap3-light")});
 		}
 		if (lower.contains(QStringLiteral("vis"))) {
-			return firstProfile({QStringLiteral("vibemap3-vis")});
+			return firstProfile({QStringLiteral("slopmap3-vis")});
 		}
-		return firstProfile({QStringLiteral("vibemap3-bsp")});
+		return firstProfile({QStringLiteral("slopmap3-bsp")});
 	}
 	if (containsAny(lower, {QStringLiteral("doom"), QStringLiteral("node"), QStringLiteral("zdbsp")})) {
 		return firstProfile({QStringLiteral("zdbsp"), QStringLiteral("zokumbsp")});
@@ -198,12 +198,12 @@ QString chooseCompilerProfileId(const QString& prompt)
 		return firstProfile({QStringLiteral("zokumbsp"), QStringLiteral("zdbsp")});
 	}
 	if (lower.contains(QStringLiteral("light"))) {
-		return firstProfile({QStringLiteral("vibemap2-light")});
+		return firstProfile({QStringLiteral("slopmap2-light")});
 	}
 	if (lower.contains(QStringLiteral("vis"))) {
-		return firstProfile({QStringLiteral("vibemap2-vis")});
+		return firstProfile({QStringLiteral("slopmap2-vis")});
 	}
-	return firstProfile({QStringLiteral("vibemap2-bsp")});
+	return firstProfile({QStringLiteral("slopmap2-bsp")});
 }
 
 QString quotedCliPath(const QString& value)
@@ -236,12 +236,12 @@ QString projectManifestPreview(const ProjectManifest& manifest)
 QVector<AiToolDescriptor> aiToolDescriptors()
 {
 	return {
-		{QStringLiteral("project-summary"), QCoreApplication::translate("VibeStudioAiWorkflows", "Project Summary"), QCoreApplication::translate("VibeStudioAiWorkflows", "Summarizes project manifests, folders, overrides, and health without mutating project files."), {QStringLiteral("reasoning"), QStringLiteral("tool-calls")}, {QStringLiteral("ProjectManifest")}, {QStringLiteral("summary")}, false, false},
-		{QStringLiteral("package-metadata-search"), QCoreApplication::translate("VibeStudioAiWorkflows", "Package Metadata Search"), QCoreApplication::translate("VibeStudioAiWorkflows", "Searches package entries, warnings, types, and likely dependency hints without extracting content."), {QStringLiteral("reasoning"), QStringLiteral("tool-calls")}, {QStringLiteral("PackageArchive")}, {QStringLiteral("dependency-hints")}, false, false},
-		{QStringLiteral("compiler-profile-list"), QCoreApplication::translate("VibeStudioAiWorkflows", "Compiler Profile Listing"), QCoreApplication::translate("VibeStudioAiWorkflows", "Lists registered compiler profiles and tool readiness for command proposals."), {QStringLiteral("coding"), QStringLiteral("tool-calls")}, {QStringLiteral("CompilerProfileDescriptor")}, {QStringLiteral("profile-summary")}, false, false},
-		{QStringLiteral("compiler-command-proposal"), QCoreApplication::translate("VibeStudioAiWorkflows", "Compiler Command Proposal"), QCoreApplication::translate("VibeStudioAiWorkflows", "Builds reviewable compiler commands and manifests before any process is started."), {QStringLiteral("coding"), QStringLiteral("tool-calls")}, {QStringLiteral("prompt"), QStringLiteral("CompilerCommandRequest")}, {QStringLiteral("command-line"), QStringLiteral("manifest")}, true, false},
-		{QStringLiteral("staged-text-edit"), QCoreApplication::translate("VibeStudioAiWorkflows", "Staged Text Edit"), QCoreApplication::translate("VibeStudioAiWorkflows", "Produces text edits as staged previews and diffs before any file write is applied."), {QStringLiteral("coding"), QStringLiteral("tool-calls")}, {QStringLiteral("prompt"), QStringLiteral("file-summary")}, {QStringLiteral("staged-diff")}, true, true},
-		{QStringLiteral("staged-asset-generation-request"), QCoreApplication::translate("VibeStudioAiWorkflows", "Staged Asset Generation Request"), QCoreApplication::translate("VibeStudioAiWorkflows", "Creates provider-specific asset generation requests that remain staged until imported by the user."), {QStringLiteral("image"), QStringLiteral("audio"), QStringLiteral("voice"), QStringLiteral("three-d"), QStringLiteral("tool-calls")}, {QStringLiteral("prompt"), QStringLiteral("asset-kind")}, {QStringLiteral("staged-asset-request")}, true, true},
+		{QStringLiteral("project-summary"), QCoreApplication::translate("SlopStudioAiWorkflows", "Project Summary"), QCoreApplication::translate("SlopStudioAiWorkflows", "Summarizes project manifests, folders, overrides, and health without mutating project files."), {QStringLiteral("reasoning"), QStringLiteral("tool-calls")}, {QStringLiteral("ProjectManifest")}, {QStringLiteral("summary")}, false, false},
+		{QStringLiteral("package-metadata-search"), QCoreApplication::translate("SlopStudioAiWorkflows", "Package Metadata Search"), QCoreApplication::translate("SlopStudioAiWorkflows", "Searches package entries, warnings, types, and likely dependency hints without extracting content."), {QStringLiteral("reasoning"), QStringLiteral("tool-calls")}, {QStringLiteral("PackageArchive")}, {QStringLiteral("dependency-hints")}, false, false},
+		{QStringLiteral("compiler-profile-list"), QCoreApplication::translate("SlopStudioAiWorkflows", "Compiler Profile Listing"), QCoreApplication::translate("SlopStudioAiWorkflows", "Lists registered compiler profiles and tool readiness for command proposals."), {QStringLiteral("coding"), QStringLiteral("tool-calls")}, {QStringLiteral("CompilerProfileDescriptor")}, {QStringLiteral("profile-summary")}, false, false},
+		{QStringLiteral("compiler-command-proposal"), QCoreApplication::translate("SlopStudioAiWorkflows", "Compiler Command Proposal"), QCoreApplication::translate("SlopStudioAiWorkflows", "Builds reviewable compiler commands and manifests before any process is started."), {QStringLiteral("coding"), QStringLiteral("tool-calls")}, {QStringLiteral("prompt"), QStringLiteral("CompilerCommandRequest")}, {QStringLiteral("command-line"), QStringLiteral("manifest")}, true, false},
+		{QStringLiteral("staged-text-edit"), QCoreApplication::translate("SlopStudioAiWorkflows", "Staged Text Edit"), QCoreApplication::translate("SlopStudioAiWorkflows", "Produces text edits as staged previews and diffs before any file write is applied."), {QStringLiteral("coding"), QStringLiteral("tool-calls")}, {QStringLiteral("prompt"), QStringLiteral("file-summary")}, {QStringLiteral("staged-diff")}, true, true},
+		{QStringLiteral("staged-asset-generation-request"), QCoreApplication::translate("SlopStudioAiWorkflows", "Staged Asset Generation Request"), QCoreApplication::translate("SlopStudioAiWorkflows", "Creates provider-specific asset generation requests that remain staged until imported by the user."), {QStringLiteral("image"), QStringLiteral("audio"), QStringLiteral("voice"), QStringLiteral("three-d"), QStringLiteral("tool-calls")}, {QStringLiteral("prompt"), QStringLiteral("asset-kind")}, {QStringLiteral("staged-asset-request")}, true, true},
 	};
 }
 
@@ -277,9 +277,9 @@ AiWorkflowManifest defaultAiWorkflowManifest(const QString& workflowIdValue, con
 	manifest.providerId = normalizedAiId(providerId);
 	manifest.modelId = normalizedAiModelId(modelId);
 	manifest.prompt = prompt.trimmed();
-	manifest.redactionSummary = QCoreApplication::translate("VibeStudioAiWorkflows", "Secrets are not stored; credentials are represented only by source and redacted lookup status.");
-	manifest.validationSummary = QCoreApplication::translate("VibeStudioAiWorkflows", "Preview generated. No files were written and no compiler/package mutation was started.");
-	manifest.costUsageSummary = QCoreApplication::translate("VibeStudioAiWorkflows", "No provider cost is recorded for deterministic local preview output.");
+	manifest.redactionSummary = QCoreApplication::translate("SlopStudioAiWorkflows", "Secrets are not stored; credentials are represented only by source and redacted lookup status.");
+	manifest.validationSummary = QCoreApplication::translate("SlopStudioAiWorkflows", "Preview generated. No files were written and no compiler/package mutation was started.");
+	manifest.costUsageSummary = QCoreApplication::translate("SlopStudioAiWorkflows", "No provider cost is recorded for deterministic local preview output.");
 	return manifest;
 }
 
@@ -287,7 +287,7 @@ AiWorkflowManifest cancelledAiWorkflowManifest(AiWorkflowManifest manifest)
 {
 	manifest.state = OperationState::Cancelled;
 	manifest.cancellable = false;
-	manifest.validationSummary = QCoreApplication::translate("VibeStudioAiWorkflows", "Workflow was cancelled before staged outputs were applied.");
+	manifest.validationSummary = QCoreApplication::translate("SlopStudioAiWorkflows", "Workflow was cancelled before staged outputs were applied.");
 	return manifest;
 }
 
@@ -296,7 +296,7 @@ AiWorkflowManifest retryAiWorkflowManifest(AiWorkflowManifest manifest)
 	manifest.state = OperationState::Queued;
 	manifest.cancellable = true;
 	++manifest.retryCount;
-	manifest.validationSummary = QCoreApplication::translate("VibeStudioAiWorkflows", "Workflow is queued for supervised retry.");
+	manifest.validationSummary = QCoreApplication::translate("SlopStudioAiWorkflows", "Workflow is queued for supervised retry.");
 	return manifest;
 }
 
@@ -369,19 +369,19 @@ QJsonObject aiWorkflowManifestJson(const AiWorkflowManifest& manifest)
 QString aiWorkflowManifestText(const AiWorkflowManifest& manifest)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioAiWorkflows", "AI workflow manifest: %1").arg(manifest.workflowId);
-	lines << QCoreApplication::translate("VibeStudioAiWorkflows", "Provider/model: %1 / %2").arg(manifest.providerId, manifest.modelId.isEmpty() ? QCoreApplication::translate("VibeStudioAiWorkflows", "provider default") : manifest.modelId);
-	lines << QCoreApplication::translate("VibeStudioAiWorkflows", "State: %1").arg(operationStateId(manifest.state));
-	lines << QCoreApplication::translate("VibeStudioAiWorkflows", "Approval: %1").arg(manifest.approvalState);
-	lines << QCoreApplication::translate("VibeStudioAiWorkflows", "Context: %1").arg(manifest.contextSummary);
-	lines << QCoreApplication::translate("VibeStudioAiWorkflows", "Redaction: %1").arg(manifest.redactionSummary);
-	lines << QCoreApplication::translate("VibeStudioAiWorkflows", "Validation: %1").arg(manifest.validationSummary);
-	lines << QCoreApplication::translate("VibeStudioAiWorkflows", "Cost/usage: %1").arg(manifest.costUsageSummary);
-	lines << QCoreApplication::translate("VibeStudioAiWorkflows", "Tool calls:");
+	lines << QCoreApplication::translate("SlopStudioAiWorkflows", "AI workflow manifest: %1").arg(manifest.workflowId);
+	lines << QCoreApplication::translate("SlopStudioAiWorkflows", "Provider/model: %1 / %2").arg(manifest.providerId, manifest.modelId.isEmpty() ? QCoreApplication::translate("SlopStudioAiWorkflows", "provider default") : manifest.modelId);
+	lines << QCoreApplication::translate("SlopStudioAiWorkflows", "State: %1").arg(operationStateId(manifest.state));
+	lines << QCoreApplication::translate("SlopStudioAiWorkflows", "Approval: %1").arg(manifest.approvalState);
+	lines << QCoreApplication::translate("SlopStudioAiWorkflows", "Context: %1").arg(manifest.contextSummary);
+	lines << QCoreApplication::translate("SlopStudioAiWorkflows", "Redaction: %1").arg(manifest.redactionSummary);
+	lines << QCoreApplication::translate("SlopStudioAiWorkflows", "Validation: %1").arg(manifest.validationSummary);
+	lines << QCoreApplication::translate("SlopStudioAiWorkflows", "Cost/usage: %1").arg(manifest.costUsageSummary);
+	lines << QCoreApplication::translate("SlopStudioAiWorkflows", "Tool calls:");
 	for (const AiWorkflowToolCall& call : manifest.toolCalls) {
 		lines << QStringLiteral("- %1: %2").arg(call.toolId, call.summary);
 	}
-	lines << QCoreApplication::translate("VibeStudioAiWorkflows", "Staged outputs:");
+	lines << QCoreApplication::translate("SlopStudioAiWorkflows", "Staged outputs:");
 	for (const AiStagedOutput& output : manifest.stagedOutputs) {
 		lines << QStringLiteral("- %1 [%2]: %3").arg(output.label, output.kind, output.summary);
 		if (!output.proposedPath.isEmpty()) {
@@ -389,7 +389,7 @@ QString aiWorkflowManifestText(const AiWorkflowManifest& manifest)
 		}
 	}
 	if (!manifest.warnings.isEmpty()) {
-		lines << QCoreApplication::translate("VibeStudioAiWorkflows", "Warnings:");
+		lines << QCoreApplication::translate("SlopStudioAiWorkflows", "Warnings:");
 		for (const QString& warning : manifest.warnings) {
 			lines << QStringLiteral("- %1").arg(warning);
 		}
@@ -405,7 +405,7 @@ bool saveAiWorkflowManifest(const AiWorkflowManifest& manifest, const QString& p
 	const QString trimmedPath = path.trimmed();
 	if (trimmedPath.isEmpty()) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioAiWorkflows", "Manifest path is empty.");
+			*error = QCoreApplication::translate("SlopStudioAiWorkflows", "Manifest path is empty.");
 		}
 		return false;
 	}
@@ -414,7 +414,7 @@ bool saveAiWorkflowManifest(const AiWorkflowManifest& manifest, const QString& p
 	QDir dir = info.absoluteDir();
 	if (!dir.exists() && !dir.mkpath(QStringLiteral("."))) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioAiWorkflows", "Unable to create manifest directory.");
+			*error = QCoreApplication::translate("SlopStudioAiWorkflows", "Unable to create manifest directory.");
 		}
 		return false;
 	}
@@ -422,7 +422,7 @@ bool saveAiWorkflowManifest(const AiWorkflowManifest& manifest, const QString& p
 	QFile file(info.absoluteFilePath());
 	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioAiWorkflows", "Unable to write AI workflow manifest.");
+			*error = QCoreApplication::translate("SlopStudioAiWorkflows", "Unable to write AI workflow manifest.");
 		}
 		return false;
 	}
@@ -435,10 +435,10 @@ AiWorkflowResult explainCompilerLogAiExperiment(const QString& logText, const Ai
 	const QString provider = selectedProviderId(preferences, providerId, QStringLiteral("reasoning"));
 	const QString model = selectedModelId(preferences, provider, modelId, QStringLiteral("reasoning"));
 	AiWorkflowResult result;
-	result.title = QCoreApplication::translate("VibeStudioAiWorkflows", "Compiler Log Explanation");
-	result.manifest = defaultAiWorkflowManifest(QStringLiteral("explain-compiler-log"), provider, model, QCoreApplication::translate("VibeStudioAiWorkflows", "Explain compiler log"));
-	result.manifest.contextSummary = QCoreApplication::translate("VibeStudioAiWorkflows", "Compiler log text only; no files are read or written.");
-	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("compiler-profile-list"), QCoreApplication::translate("VibeStudioAiWorkflows", "Referenced compiler profile families to make diagnostics actionable."), {}, {QCoreApplication::translate("VibeStudioAiWorkflows", "Compiler profiles available: %1").arg(compilerProfileDescriptors().size())}));
+	result.title = QCoreApplication::translate("SlopStudioAiWorkflows", "Compiler Log Explanation");
+	result.manifest = defaultAiWorkflowManifest(QStringLiteral("explain-compiler-log"), provider, model, QCoreApplication::translate("SlopStudioAiWorkflows", "Explain compiler log"));
+	result.manifest.contextSummary = QCoreApplication::translate("SlopStudioAiWorkflows", "Compiler log text only; no files are read or written.");
+	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("compiler-profile-list"), QCoreApplication::translate("SlopStudioAiWorkflows", "Referenced compiler profile families to make diagnostics actionable."), {}, {QCoreApplication::translate("SlopStudioAiWorkflows", "Compiler profiles available: %1").arg(compilerProfileDescriptors().size())}));
 
 	const QStringList lines = firstNonEmptyLines(logText, 8);
 	const QString lower = logText.toLower();
@@ -446,35 +446,35 @@ AiWorkflowResult explainCompilerLogAiExperiment(const QString& logText, const Ai
 	const int warningCount = lower.count(QStringLiteral("warn"));
 	QStringList findings;
 	if (errorCount > 0) {
-		findings << QCoreApplication::translate("VibeStudioAiWorkflows", "The log contains blocking error or fatal markers.");
+		findings << QCoreApplication::translate("SlopStudioAiWorkflows", "The log contains blocking error or fatal markers.");
 	}
 	if (warningCount > 0) {
-		findings << QCoreApplication::translate("VibeStudioAiWorkflows", "The log contains warning markers that may still produce usable output.");
+		findings << QCoreApplication::translate("SlopStudioAiWorkflows", "The log contains warning markers that may still produce usable output.");
 	}
 	if (containsAny(lower, {QStringLiteral("leak"), QStringLiteral("portal") })) {
-		findings << QCoreApplication::translate("VibeStudioAiWorkflows", "Leak or portal wording suggests a map sealing/visibility problem.");
+		findings << QCoreApplication::translate("SlopStudioAiWorkflows", "Leak or portal wording suggests a map sealing/visibility problem.");
 	}
 	if (containsAny(lower, {QStringLiteral("texture"), QStringLiteral("shader"), QStringLiteral("wad") })) {
-		findings << QCoreApplication::translate("VibeStudioAiWorkflows", "Texture, shader, or WAD wording suggests a missing asset or mount/dependency issue.");
+		findings << QCoreApplication::translate("SlopStudioAiWorkflows", "Texture, shader, or WAD wording suggests a missing asset or mount/dependency issue.");
 	}
 	if (containsAny(lower, {QStringLiteral("entity"), QStringLiteral("classname"), QStringLiteral("spawn") })) {
-		findings << QCoreApplication::translate("VibeStudioAiWorkflows", "Entity wording suggests checking class names, definitions, or map entity keys.");
+		findings << QCoreApplication::translate("SlopStudioAiWorkflows", "Entity wording suggests checking class names, definitions, or map entity keys.");
 	}
 	if (findings.isEmpty()) {
-		findings << QCoreApplication::translate("VibeStudioAiWorkflows", "No obvious fatal marker was found. Review the first compiler messages and rerun with verbose output if the tool failed.");
+		findings << QCoreApplication::translate("SlopStudioAiWorkflows", "No obvious fatal marker was found. Review the first compiler messages and rerun with verbose output if the tool failed.");
 	}
 
-	result.summary = QCoreApplication::translate("VibeStudioAiWorkflows", "%1 findings from %2 non-empty log lines.").arg(findings.size()).arg(lines.size());
+	result.summary = QCoreApplication::translate("SlopStudioAiWorkflows", "%1 findings from %2 non-empty log lines.").arg(findings.size()).arg(lines.size());
 	result.reviewableText = QStringLiteral("%1\n\n%2\n\n%3")
-		.arg(QCoreApplication::translate("VibeStudioAiWorkflows", "Findings:"), QStringLiteral("- %1").arg(findings.join(QStringLiteral("\n- "))), QCoreApplication::translate("VibeStudioAiWorkflows", "First log lines:"));
-	result.reviewableText += QStringLiteral("\n- %1").arg(lines.isEmpty() ? QCoreApplication::translate("VibeStudioAiWorkflows", "No log text supplied.") : lines.join(QStringLiteral("\n- ")));
+		.arg(QCoreApplication::translate("SlopStudioAiWorkflows", "Findings:"), QStringLiteral("- %1").arg(findings.join(QStringLiteral("\n- "))), QCoreApplication::translate("SlopStudioAiWorkflows", "First log lines:"));
+	result.reviewableText += QStringLiteral("\n- %1").arg(lines.isEmpty() ? QCoreApplication::translate("SlopStudioAiWorkflows", "No log text supplied.") : lines.join(QStringLiteral("\n- ")));
 	result.nextActions = {
-		QCoreApplication::translate("VibeStudioAiWorkflows", "Open the compiler manifest or captured stdout/stderr for the full context."),
-		QCoreApplication::translate("VibeStudioAiWorkflows", "Run ai propose-command with the desired target to get a reviewable next command."),
-		QCoreApplication::translate("VibeStudioAiWorkflows", "Keep AI-free mode enabled if you want deterministic local explanations only."),
+		QCoreApplication::translate("SlopStudioAiWorkflows", "Open the compiler manifest or captured stdout/stderr for the full context."),
+		QCoreApplication::translate("SlopStudioAiWorkflows", "Run ai propose-command with the desired target to get a reviewable next command."),
+		QCoreApplication::translate("SlopStudioAiWorkflows", "Keep AI-free mode enabled if you want deterministic local explanations only."),
 	};
 	result.diagnostics = findings;
-	result.manifest.stagedOutputs.push_back({QStringLiteral("compiler-log-explanation"), QStringLiteral("text"), QCoreApplication::translate("VibeStudioAiWorkflows", "Compiler log explanation"), QString(), result.summary, findings, false});
+	result.manifest.stagedOutputs.push_back({QStringLiteral("compiler-log-explanation"), QStringLiteral("text"), QCoreApplication::translate("SlopStudioAiWorkflows", "Compiler log explanation"), QString(), result.summary, findings, false});
 	applyCredentialWarning(&result.manifest, preferences);
 	return result;
 }
@@ -487,26 +487,26 @@ AiWorkflowResult proposeCompilerCommandAiExperiment(const QString& prompt, const
 	const QString input = inferredInputPath(prompt).isEmpty() ? QStringLiteral("<map-or-wad-path>") : inferredInputPath(prompt);
 
 	AiWorkflowResult result;
-	result.title = QCoreApplication::translate("VibeStudioAiWorkflows", "Compiler Command Proposal");
+	result.title = QCoreApplication::translate("SlopStudioAiWorkflows", "Compiler Command Proposal");
 	result.manifest = defaultAiWorkflowManifest(QStringLiteral("propose-compiler-command"), provider, model, prompt);
 	result.manifest.contextSummary = workspaceRootPath.trimmed().isEmpty()
-		? QCoreApplication::translate("VibeStudioAiWorkflows", "Natural-language prompt and compiler profile registry only.")
-		: QCoreApplication::translate("VibeStudioAiWorkflows", "Natural-language prompt, compiler profile registry, and workspace root path.");
-	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("compiler-profile-list"), QCoreApplication::translate("VibeStudioAiWorkflows", "Matched prompt intent to a compiler profile."), {prompt}, {profileId}));
-	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("compiler-command-proposal"), QCoreApplication::translate("VibeStudioAiWorkflows", "Produced a reviewable CLI command without starting a compiler process."), {profileId, input}, {}, {}));
+		? QCoreApplication::translate("SlopStudioAiWorkflows", "Natural-language prompt and compiler profile registry only.")
+		: QCoreApplication::translate("SlopStudioAiWorkflows", "Natural-language prompt, compiler profile registry, and workspace root path.");
+	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("compiler-profile-list"), QCoreApplication::translate("SlopStudioAiWorkflows", "Matched prompt intent to a compiler profile."), {prompt}, {profileId}));
+	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("compiler-command-proposal"), QCoreApplication::translate("SlopStudioAiWorkflows", "Produced a reviewable CLI command without starting a compiler process."), {profileId, input}, {}, {}));
 
-	result.commandLine = QStringLiteral("vibestudio --cli compiler plan %1 --input %2 --dry-run").arg(profileId, quotedCliPath(input));
+	result.commandLine = QStringLiteral("slopstudio --cli compiler plan %1 --input %2 --dry-run").arg(profileId, quotedCliPath(input));
 	if (!workspaceRootPath.trimmed().isEmpty()) {
 		result.commandLine += QStringLiteral(" --workspace-root %1").arg(quotedCliPath(workspaceRootPath));
 	}
-	result.summary = QCoreApplication::translate("VibeStudioAiWorkflows", "Reviewable compiler command proposal for profile %1.").arg(profileId);
+	result.summary = QCoreApplication::translate("SlopStudioAiWorkflows", "Reviewable compiler command proposal for profile %1.").arg(profileId);
 	result.reviewableText = QStringLiteral("%1\n%2").arg(result.summary, result.commandLine);
 	result.nextActions = {
-		QCoreApplication::translate("VibeStudioAiWorkflows", "Review the profile and input path."),
-		QCoreApplication::translate("VibeStudioAiWorkflows", "Run the plan command first; add --manifest when you want a reproducible command record."),
-		QCoreApplication::translate("VibeStudioAiWorkflows", "Switch to compiler run only after the plan is correct."),
+		QCoreApplication::translate("SlopStudioAiWorkflows", "Review the profile and input path."),
+		QCoreApplication::translate("SlopStudioAiWorkflows", "Run the plan command first; add --manifest when you want a reproducible command record."),
+		QCoreApplication::translate("SlopStudioAiWorkflows", "Switch to compiler run only after the plan is correct."),
 	};
-	result.manifest.stagedOutputs.push_back({QStringLiteral("compiler-command"), QStringLiteral("command"), QCoreApplication::translate("VibeStudioAiWorkflows", "Compiler command"), QString(), result.commandLine, {result.commandLine}, false});
+	result.manifest.stagedOutputs.push_back({QStringLiteral("compiler-command"), QStringLiteral("command"), QCoreApplication::translate("SlopStudioAiWorkflows", "Compiler command"), QString(), result.commandLine, {result.commandLine}, false});
 	applyCredentialWarning(&result.manifest, preferences);
 	return result;
 }
@@ -519,16 +519,16 @@ AiWorkflowResult draftProjectManifestAiExperiment(const QString& projectRootPath
 	const ProjectManifest draft = defaultProjectManifest(rootPath, displayName);
 
 	AiWorkflowResult result;
-	result.title = QCoreApplication::translate("VibeStudioAiWorkflows", "Project Manifest Draft");
-	result.summary = QCoreApplication::translate("VibeStudioAiWorkflows", "Draft .vibestudio/project.json preview for %1.").arg(QDir::toNativeSeparators(draft.rootPath));
+	result.title = QCoreApplication::translate("SlopStudioAiWorkflows", "Project Manifest Draft");
+	result.summary = QCoreApplication::translate("SlopStudioAiWorkflows", "Draft .slopstudio/project.json preview for %1.").arg(QDir::toNativeSeparators(draft.rootPath));
 	result.reviewableText = projectManifestPreview(draft);
-	result.manifest = defaultAiWorkflowManifest(QStringLiteral("draft-project-manifest"), provider, model, QCoreApplication::translate("VibeStudioAiWorkflows", "Draft project manifest"));
-	result.manifest.contextSummary = QCoreApplication::translate("VibeStudioAiWorkflows", "Project root path and folder naming only; manifest is staged and not written.");
-	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("project-summary"), QCoreApplication::translate("VibeStudioAiWorkflows", "Built a default project manifest draft from the requested folder."), {draft.rootPath}, {draft.projectId}));
-	result.manifest.stagedOutputs.push_back({QStringLiteral("project-manifest-draft"), QStringLiteral("json"), QCoreApplication::translate("VibeStudioAiWorkflows", "Project manifest draft"), projectManifestPath(draft.rootPath), result.summary, result.reviewableText.split('\n'), true});
+	result.manifest = defaultAiWorkflowManifest(QStringLiteral("draft-project-manifest"), provider, model, QCoreApplication::translate("SlopStudioAiWorkflows", "Draft project manifest"));
+	result.manifest.contextSummary = QCoreApplication::translate("SlopStudioAiWorkflows", "Project root path and folder naming only; manifest is staged and not written.");
+	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("project-summary"), QCoreApplication::translate("SlopStudioAiWorkflows", "Built a default project manifest draft from the requested folder."), {draft.rootPath}, {draft.projectId}));
+	result.manifest.stagedOutputs.push_back({QStringLiteral("project-manifest-draft"), QStringLiteral("json"), QCoreApplication::translate("SlopStudioAiWorkflows", "Project manifest draft"), projectManifestPath(draft.rootPath), result.summary, result.reviewableText.split('\n'), true});
 	result.nextActions = {
-		QCoreApplication::translate("VibeStudioAiWorkflows", "Review source, package, output, temp, and AI-free settings before saving."),
-		QCoreApplication::translate("VibeStudioAiWorkflows", "Use project init when you want VibeStudio to write the manifest."),
+		QCoreApplication::translate("SlopStudioAiWorkflows", "Review source, package, output, temp, and AI-free settings before saving."),
+		QCoreApplication::translate("SlopStudioAiWorkflows", "Use project init when you want SlopStudio to write the manifest."),
 	};
 	applyCredentialWarning(&result.manifest, preferences);
 	return result;
@@ -540,9 +540,9 @@ AiWorkflowResult suggestPackageDependenciesAiExperiment(const QString& packagePa
 	const QString model = selectedModelId(preferences, provider, modelId, QStringLiteral("reasoning"));
 
 	AiWorkflowResult result;
-	result.title = QCoreApplication::translate("VibeStudioAiWorkflows", "Package Dependency Suggestions");
-	result.manifest = defaultAiWorkflowManifest(QStringLiteral("suggest-package-dependencies"), provider, model, QCoreApplication::translate("VibeStudioAiWorkflows", "Suggest missing package dependencies"));
-	result.manifest.contextSummary = QCoreApplication::translate("VibeStudioAiWorkflows", "Package metadata only; entries are listed without extraction.");
+	result.title = QCoreApplication::translate("SlopStudioAiWorkflows", "Package Dependency Suggestions");
+	result.manifest = defaultAiWorkflowManifest(QStringLiteral("suggest-package-dependencies"), provider, model, QCoreApplication::translate("SlopStudioAiWorkflows", "Suggest missing package dependencies"));
+	result.manifest.contextSummary = QCoreApplication::translate("SlopStudioAiWorkflows", "Package metadata only; entries are listed without extraction.");
 
 	QStringList suggestions;
 	PackageArchive archive;
@@ -560,34 +560,34 @@ AiWorkflowResult suggestPackageDependenciesAiExperiment(const QString& packagePa
 			hasSounds = hasSounds || path.startsWith(QStringLiteral("sound/")) || path.startsWith(QStringLiteral("sounds/"));
 		}
 		if (hasMaps && !hasTextures) {
-			suggestions << QCoreApplication::translate("VibeStudioAiWorkflows", "Map entries were found but no obvious texture folder or WAD reference was present; verify base texture packages.");
+			suggestions << QCoreApplication::translate("SlopStudioAiWorkflows", "Map entries were found but no obvious texture folder or WAD reference was present; verify base texture packages.");
 		}
 		if (hasShaders && !hasTextures) {
-			suggestions << QCoreApplication::translate("VibeStudioAiWorkflows", "Shader scripts were found without obvious texture assets; verify shader texture dependencies.");
+			suggestions << QCoreApplication::translate("SlopStudioAiWorkflows", "Shader scripts were found without obvious texture assets; verify shader texture dependencies.");
 		}
 		if (hasMaps && !hasSounds) {
-			suggestions << QCoreApplication::translate("VibeStudioAiWorkflows", "Map entries were found without sound assets; verify whether the map expects base-game ambient or trigger sounds.");
+			suggestions << QCoreApplication::translate("SlopStudioAiWorkflows", "Map entries were found without sound assets; verify whether the map expects base-game ambient or trigger sounds.");
 		}
 		if (!archive.warnings().isEmpty()) {
-			suggestions << QCoreApplication::translate("VibeStudioAiWorkflows", "Package loader warnings should be reviewed before release.");
+			suggestions << QCoreApplication::translate("SlopStudioAiWorkflows", "Package loader warnings should be reviewed before release.");
 		}
 		if (suggestions.isEmpty()) {
-			suggestions << QCoreApplication::translate("VibeStudioAiWorkflows", "No obvious missing package dependency pattern was detected from metadata alone.");
+			suggestions << QCoreApplication::translate("SlopStudioAiWorkflows", "No obvious missing package dependency pattern was detected from metadata alone.");
 		}
-		result.manifest.toolCalls.push_back(toolCall(QStringLiteral("package-metadata-search"), QCoreApplication::translate("VibeStudioAiWorkflows", "Scanned package metadata for map, shader, texture, and sound hints."), {packagePath}, suggestions));
+		result.manifest.toolCalls.push_back(toolCall(QStringLiteral("package-metadata-search"), QCoreApplication::translate("SlopStudioAiWorkflows", "Scanned package metadata for map, shader, texture, and sound hints."), {packagePath}, suggestions));
 	} else {
-		suggestions << (packagePath.trimmed().isEmpty() ? QCoreApplication::translate("VibeStudioAiWorkflows", "No package path was supplied.") : QCoreApplication::translate("VibeStudioAiWorkflows", "Package could not be loaded: %1").arg(error));
-		result.manifest.toolCalls.push_back(toolCall(QStringLiteral("package-metadata-search"), QCoreApplication::translate("VibeStudioAiWorkflows", "Package metadata scan could not complete."), {packagePath}, {}, suggestions));
+		suggestions << (packagePath.trimmed().isEmpty() ? QCoreApplication::translate("SlopStudioAiWorkflows", "No package path was supplied.") : QCoreApplication::translate("SlopStudioAiWorkflows", "Package could not be loaded: %1").arg(error));
+		result.manifest.toolCalls.push_back(toolCall(QStringLiteral("package-metadata-search"), QCoreApplication::translate("SlopStudioAiWorkflows", "Package metadata scan could not complete."), {packagePath}, {}, suggestions));
 	}
 
-	result.summary = QCoreApplication::translate("VibeStudioAiWorkflows", "Package dependency suggestions: %1.").arg(suggestions.size());
+	result.summary = QCoreApplication::translate("SlopStudioAiWorkflows", "Package dependency suggestions: %1.").arg(suggestions.size());
 	result.reviewableText = QStringLiteral("- %1").arg(suggestions.join(QStringLiteral("\n- ")));
 	result.diagnostics = suggestions;
 	result.nextActions = {
-		QCoreApplication::translate("VibeStudioAiWorkflows", "Open package info/list for the full entry set."),
-		QCoreApplication::translate("VibeStudioAiWorkflows", "Add detected base packages through project or installation settings before release validation."),
+		QCoreApplication::translate("SlopStudioAiWorkflows", "Open package info/list for the full entry set."),
+		QCoreApplication::translate("SlopStudioAiWorkflows", "Add detected base packages through project or installation settings before release validation."),
 	};
-	result.manifest.stagedOutputs.push_back({QStringLiteral("package-dependency-suggestions"), QStringLiteral("text"), QCoreApplication::translate("VibeStudioAiWorkflows", "Package dependency suggestions"), QString(), result.summary, suggestions, false});
+	result.manifest.stagedOutputs.push_back({QStringLiteral("package-dependency-suggestions"), QStringLiteral("text"), QCoreApplication::translate("SlopStudioAiWorkflows", "Package dependency suggestions"), QString(), result.summary, suggestions, false});
 	applyCredentialWarning(&result.manifest, preferences);
 	return result;
 }
@@ -598,30 +598,30 @@ AiWorkflowResult generateCliCommandAiExperiment(const QString& prompt, const AiA
 	const QString model = selectedModelId(preferences, provider, modelId, QStringLiteral("coding"));
 	const QString lower = prompt.toLower();
 	const QString input = inferredInputPath(prompt);
-	QString command = QStringLiteral("vibestudio --cli --help");
+	QString command = QStringLiteral("slopstudio --cli --help");
 	if (containsAny(lower, {QStringLiteral("validate package"), QStringLiteral("check package")})) {
-		command = QStringLiteral("vibestudio --cli package validate %1").arg(quotedCliPath(input.isEmpty() ? QStringLiteral("<package-path>") : input));
+		command = QStringLiteral("slopstudio --cli package validate %1").arg(quotedCliPath(input.isEmpty() ? QStringLiteral("<package-path>") : input));
 	} else if (containsAny(lower, {QStringLiteral("list package"), QStringLiteral("show package")})) {
-		command = QStringLiteral("vibestudio --cli package list %1").arg(quotedCliPath(input.isEmpty() ? QStringLiteral("<package-path>") : input));
+		command = QStringLiteral("slopstudio --cli package list %1").arg(quotedCliPath(input.isEmpty() ? QStringLiteral("<package-path>") : input));
 	} else if (containsAny(lower, {QStringLiteral("project info"), QStringLiteral("show project")})) {
-		command = QStringLiteral("vibestudio --cli project info %1").arg(quotedCliPath(input.isEmpty() ? QStringLiteral("<project-root>") : input));
+		command = QStringLiteral("slopstudio --cli project info %1").arg(quotedCliPath(input.isEmpty() ? QStringLiteral("<project-root>") : input));
 	} else if (containsAny(lower, {QStringLiteral("compiler"), QStringLiteral("compile"), QStringLiteral("build map")})) {
 		const QString profileId = chooseCompilerProfileId(prompt);
-		command = QStringLiteral("vibestudio --cli compiler plan %1 --input %2 --dry-run").arg(profileId, quotedCliPath(input.isEmpty() ? QStringLiteral("<map-or-wad-path>") : input));
+		command = QStringLiteral("slopstudio --cli compiler plan %1 --input %2 --dry-run").arg(profileId, quotedCliPath(input.isEmpty() ? QStringLiteral("<map-or-wad-path>") : input));
 	} else if (containsAny(lower, {QStringLiteral("explain log"), QStringLiteral("compiler log")})) {
-		command = QStringLiteral("vibestudio --cli ai explain-log --log %1").arg(quotedCliPath(QStringLiteral("<compiler-log-path>")));
+		command = QStringLiteral("slopstudio --cli ai explain-log --log %1").arg(quotedCliPath(QStringLiteral("<compiler-log-path>")));
 	}
 
 	AiWorkflowResult result;
-	result.title = QCoreApplication::translate("VibeStudioAiWorkflows", "CLI Command Proposal");
-	result.summary = QCoreApplication::translate("VibeStudioAiWorkflows", "Reviewable CLI command generated from the requested workflow.");
+	result.title = QCoreApplication::translate("SlopStudioAiWorkflows", "CLI Command Proposal");
+	result.summary = QCoreApplication::translate("SlopStudioAiWorkflows", "Reviewable CLI command generated from the requested workflow.");
 	result.commandLine = command;
 	result.reviewableText = command;
 	result.manifest = defaultAiWorkflowManifest(QStringLiteral("generate-cli-command"), provider, model, prompt);
-	result.manifest.contextSummary = QCoreApplication::translate("VibeStudioAiWorkflows", "Prompt text and CLI command registry only.");
-	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("compiler-command-proposal"), QCoreApplication::translate("VibeStudioAiWorkflows", "Mapped user intent to a safe CLI command proposal."), {prompt}, {command}));
-	result.manifest.stagedOutputs.push_back({QStringLiteral("cli-command"), QStringLiteral("command"), QCoreApplication::translate("VibeStudioAiWorkflows", "CLI command"), QString(), command, {command}, false});
-	result.nextActions = {QCoreApplication::translate("VibeStudioAiWorkflows", "Review placeholder paths before running the command."), QCoreApplication::translate("VibeStudioAiWorkflows", "Add --json for machine-readable output or --verbose for timing diagnostics.")};
+	result.manifest.contextSummary = QCoreApplication::translate("SlopStudioAiWorkflows", "Prompt text and CLI command registry only.");
+	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("compiler-command-proposal"), QCoreApplication::translate("SlopStudioAiWorkflows", "Mapped user intent to a safe CLI command proposal."), {prompt}, {command}));
+	result.manifest.stagedOutputs.push_back({QStringLiteral("cli-command"), QStringLiteral("command"), QCoreApplication::translate("SlopStudioAiWorkflows", "CLI command"), QString(), command, {command}, false});
+	result.nextActions = {QCoreApplication::translate("SlopStudioAiWorkflows", "Review placeholder paths before running the command."), QCoreApplication::translate("SlopStudioAiWorkflows", "Add --json for machine-readable output or --verbose for timing diagnostics.")};
 	applyCredentialWarning(&result.manifest, preferences);
 	return result;
 }
@@ -630,23 +630,23 @@ AiWorkflowResult fixAndRetryPlanAiExperiment(const QString& compilerLogText, con
 {
 	AiWorkflowResult explanation = explainCompilerLogAiExperiment(compilerLogText, preferences, providerId, modelId);
 	AiWorkflowResult result = explanation;
-	result.title = QCoreApplication::translate("VibeStudioAiWorkflows", "Supervised Fix And Retry Plan");
+	result.title = QCoreApplication::translate("SlopStudioAiWorkflows", "Supervised Fix And Retry Plan");
 	result.manifest.workflowId = QStringLiteral("fix-and-retry-plan");
-	result.manifest.prompt = QCoreApplication::translate("VibeStudioAiWorkflows", "Generate supervised fix and retry plan");
-	result.manifest.contextSummary = QCoreApplication::translate("VibeStudioAiWorkflows", "Compiler log text and optional prior command line. No files are written.");
-	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("compiler-command-proposal"), QCoreApplication::translate("VibeStudioAiWorkflows", "Prepared a retry command review step without executing it."), {commandLine}, {commandLine.trimmed().isEmpty() ? QCoreApplication::translate("VibeStudioAiWorkflows", "No prior command supplied.") : commandLine}));
+	result.manifest.prompt = QCoreApplication::translate("SlopStudioAiWorkflows", "Generate supervised fix and retry plan");
+	result.manifest.contextSummary = QCoreApplication::translate("SlopStudioAiWorkflows", "Compiler log text and optional prior command line. No files are written.");
+	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("compiler-command-proposal"), QCoreApplication::translate("SlopStudioAiWorkflows", "Prepared a retry command review step without executing it."), {commandLine}, {commandLine.trimmed().isEmpty() ? QCoreApplication::translate("SlopStudioAiWorkflows", "No prior command supplied.") : commandLine}));
 	QStringList steps;
-	steps << QCoreApplication::translate("VibeStudioAiWorkflows", "1. Inspect the first fatal/error message and linked file path, if present.");
-	steps << QCoreApplication::translate("VibeStudioAiWorkflows", "2. Fix the smallest likely cause: missing asset mount, map leak, bad entity key, or unsupported compiler argument.");
-	steps << QCoreApplication::translate("VibeStudioAiWorkflows", "3. Re-run the command as a dry-run plan before executing.");
-	steps << QCoreApplication::translate("VibeStudioAiWorkflows", "4. Save a compiler manifest when the retry command is ready.");
+	steps << QCoreApplication::translate("SlopStudioAiWorkflows", "1. Inspect the first fatal/error message and linked file path, if present.");
+	steps << QCoreApplication::translate("SlopStudioAiWorkflows", "2. Fix the smallest likely cause: missing asset mount, map leak, bad entity key, or unsupported compiler argument.");
+	steps << QCoreApplication::translate("SlopStudioAiWorkflows", "3. Re-run the command as a dry-run plan before executing.");
+	steps << QCoreApplication::translate("SlopStudioAiWorkflows", "4. Save a compiler manifest when the retry command is ready.");
 	if (!commandLine.trimmed().isEmpty()) {
-		steps << QCoreApplication::translate("VibeStudioAiWorkflows", "Retry command to review: %1").arg(commandLine);
+		steps << QCoreApplication::translate("SlopStudioAiWorkflows", "Retry command to review: %1").arg(commandLine);
 	}
-	result.summary = QCoreApplication::translate("VibeStudioAiWorkflows", "Supervised retry plan generated from compiler diagnostics.");
+	result.summary = QCoreApplication::translate("SlopStudioAiWorkflows", "Supervised retry plan generated from compiler diagnostics.");
 	result.reviewableText = steps.join('\n');
 	result.nextActions = steps;
-	result.manifest.stagedOutputs.push_back({QStringLiteral("fix-and-retry-plan"), QStringLiteral("text"), QCoreApplication::translate("VibeStudioAiWorkflows", "Fix and retry plan"), QString(), result.summary, steps, false});
+	result.manifest.stagedOutputs.push_back({QStringLiteral("fix-and-retry-plan"), QStringLiteral("text"), QCoreApplication::translate("SlopStudioAiWorkflows", "Fix and retry plan"), QString(), result.summary, steps, false});
 	return result;
 }
 
@@ -661,17 +661,17 @@ AiWorkflowResult stageAssetGenerationRequestAiExperiment(const QString& connecto
 	const QString model = selectedModelId(preferences, provider, modelId, capability);
 
 	AiWorkflowResult result;
-	result.title = QCoreApplication::translate("VibeStudioAiWorkflows", "Staged Asset Generation Request");
-	result.summary = QCoreApplication::translate("VibeStudioAiWorkflows", "Provider-specific asset request staged for review; no generated file is imported.");
-	result.reviewableText = QStringLiteral("%1: %2\n%3: %4").arg(QCoreApplication::translate("VibeStudioAiWorkflows", "Provider"), provider, QCoreApplication::translate("VibeStudioAiWorkflows", "Prompt"), prompt);
+	result.title = QCoreApplication::translate("SlopStudioAiWorkflows", "Staged Asset Generation Request");
+	result.summary = QCoreApplication::translate("SlopStudioAiWorkflows", "Provider-specific asset request staged for review; no generated file is imported.");
+	result.reviewableText = QStringLiteral("%1: %2\n%3: %4").arg(QCoreApplication::translate("SlopStudioAiWorkflows", "Provider"), provider, QCoreApplication::translate("SlopStudioAiWorkflows", "Prompt"), prompt);
 	result.manifest = defaultAiWorkflowManifest(QStringLiteral("stage-asset-generation-request"), provider, model, prompt);
-	result.manifest.contextSummary = QCoreApplication::translate("VibeStudioAiWorkflows", "Asset prompt, requested kind, connector metadata, and credential redaction status.");
-	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("staged-asset-generation-request"), QCoreApplication::translate("VibeStudioAiWorkflows", "Prepared generated asset request for review before import."), {provider, normalizedKind, prompt}, {QCoreApplication::translate("VibeStudioAiWorkflows", "staged request")}));
-	const QString proposedPath = QDir::cleanPath(QStringLiteral(".vibestudio/ai-staged/%1-%2-request.json").arg(provider, normalizedKind.isEmpty() ? QStringLiteral("asset") : normalizedKind));
-	result.manifest.stagedOutputs.push_back({QStringLiteral("asset-generation-request"), normalizedKind.isEmpty() ? QStringLiteral("asset") : normalizedKind, QCoreApplication::translate("VibeStudioAiWorkflows", "Asset generation request"), proposedPath, result.summary, {result.reviewableText}, true});
+	result.manifest.contextSummary = QCoreApplication::translate("SlopStudioAiWorkflows", "Asset prompt, requested kind, connector metadata, and credential redaction status.");
+	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("staged-asset-generation-request"), QCoreApplication::translate("SlopStudioAiWorkflows", "Prepared generated asset request for review before import."), {provider, normalizedKind, prompt}, {QCoreApplication::translate("SlopStudioAiWorkflows", "staged request")}));
+	const QString proposedPath = QDir::cleanPath(QStringLiteral(".slopstudio/ai-staged/%1-%2-request.json").arg(provider, normalizedKind.isEmpty() ? QStringLiteral("asset") : normalizedKind));
+	result.manifest.stagedOutputs.push_back({QStringLiteral("asset-generation-request"), normalizedKind.isEmpty() ? QStringLiteral("asset") : normalizedKind, QCoreApplication::translate("SlopStudioAiWorkflows", "Asset generation request"), proposedPath, result.summary, {result.reviewableText}, true});
 	result.nextActions = {
-		QCoreApplication::translate("VibeStudioAiWorkflows", "Review provider, prompt, cost expectations, and generated-asset provenance before sending."),
-		QCoreApplication::translate("VibeStudioAiWorkflows", "Import generated assets only through a staged package/project workflow."),
+		QCoreApplication::translate("SlopStudioAiWorkflows", "Review provider, prompt, cost expectations, and generated-asset provenance before sending."),
+		QCoreApplication::translate("SlopStudioAiWorkflows", "Import generated assets only through a staged package/project workflow."),
 	};
 	applyCredentialWarning(&result.manifest, preferences);
 	return result;
@@ -685,17 +685,17 @@ AiWorkflowResult compareProviderOutputsAiExperiment(const QString& prompt, const
 	const QString secondModel = selectedModelId(preferences, secondProvider, modelB, QStringLiteral("reasoning"));
 
 	AiWorkflowResult result;
-	result.title = QCoreApplication::translate("VibeStudioAiWorkflows", "Provider Output Comparison");
-	result.summary = QCoreApplication::translate("VibeStudioAiWorkflows", "Comparison manifest prepared for two reasoning providers.");
+	result.title = QCoreApplication::translate("SlopStudioAiWorkflows", "Provider Output Comparison");
+	result.summary = QCoreApplication::translate("SlopStudioAiWorkflows", "Comparison manifest prepared for two reasoning providers.");
 	result.reviewableText = QStringLiteral("%1 / %2\n- %3\n\n%4 / %5\n- %6")
-		.arg(firstProvider, firstModel, QCoreApplication::translate("VibeStudioAiWorkflows", "Would answer with the selected primary provider once configured."), secondProvider, secondModel, QCoreApplication::translate("VibeStudioAiWorkflows", "Would answer with the selected comparison provider once configured."));
+		.arg(firstProvider, firstModel, QCoreApplication::translate("SlopStudioAiWorkflows", "Would answer with the selected primary provider once configured."), secondProvider, secondModel, QCoreApplication::translate("SlopStudioAiWorkflows", "Would answer with the selected comparison provider once configured."));
 	result.manifest = defaultAiWorkflowManifest(QStringLiteral("compare-provider-outputs"), firstProvider, firstModel, prompt);
-	result.manifest.contextSummary = QCoreApplication::translate("VibeStudioAiWorkflows", "Prompt text and provider/model selections for side-by-side review.");
-	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("project-summary"), QCoreApplication::translate("VibeStudioAiWorkflows", "Captured prompt context for provider comparison."), {prompt}, {firstProvider, secondProvider}));
-	result.manifest.stagedOutputs.push_back({QStringLiteral("provider-a-output"), QStringLiteral("text"), QCoreApplication::translate("VibeStudioAiWorkflows", "Primary provider output placeholder"), QString(), firstProvider, {QCoreApplication::translate("VibeStudioAiWorkflows", "Awaiting configured provider call.")}, false});
-	result.manifest.stagedOutputs.push_back({QStringLiteral("provider-b-output"), QStringLiteral("text"), QCoreApplication::translate("VibeStudioAiWorkflows", "Comparison provider output placeholder"), QString(), secondProvider, {QCoreApplication::translate("VibeStudioAiWorkflows", "Awaiting configured provider call.")}, false});
+	result.manifest.contextSummary = QCoreApplication::translate("SlopStudioAiWorkflows", "Prompt text and provider/model selections for side-by-side review.");
+	result.manifest.toolCalls.push_back(toolCall(QStringLiteral("project-summary"), QCoreApplication::translate("SlopStudioAiWorkflows", "Captured prompt context for provider comparison."), {prompt}, {firstProvider, secondProvider}));
+	result.manifest.stagedOutputs.push_back({QStringLiteral("provider-a-output"), QStringLiteral("text"), QCoreApplication::translate("SlopStudioAiWorkflows", "Primary provider output placeholder"), QString(), firstProvider, {QCoreApplication::translate("SlopStudioAiWorkflows", "Awaiting configured provider call.")}, false});
+	result.manifest.stagedOutputs.push_back({QStringLiteral("provider-b-output"), QStringLiteral("text"), QCoreApplication::translate("SlopStudioAiWorkflows", "Comparison provider output placeholder"), QString(), secondProvider, {QCoreApplication::translate("SlopStudioAiWorkflows", "Awaiting configured provider call.")}, false});
 	applyCredentialWarning(&result.manifest, preferences);
 	return result;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

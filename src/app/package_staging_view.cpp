@@ -7,7 +7,7 @@
 #include <QLocale>
 #include <QStyledItemDelegate>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr int CompactRole = Qt::UserRole + 10;
 constexpr int DetailsRole = Qt::UserRole + 11;
@@ -176,4 +176,4 @@ QString PackageStagingView::currentDetails() const
 	return currentIndex().isValid() ? currentIndex().data(DetailsRole).toString() : QString();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

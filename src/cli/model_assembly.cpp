@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 {
@@ -125,10 +125,10 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	const bool player = operation == "player-review" || operation == "player-export";
 	// Quake III weapon model sets (core/model_weapon_bundle.h).
 	const bool weapon = operation == "weapon-review" || operation == "weapon-export";
-	// A package, a folder or a portable .vibepackage draft, read-only.
+	// A package, a folder or a portable .sloppackage draft, read-only.
 	const auto loadPackage = [](const QString &path, std::shared_ptr<const PackageArchiveReader> *result, QString *error) {
 		PackageArchive archive;
-		if (path.endsWith(".vibepackage", Qt::CaseInsensitive))
+		if (path.endsWith(".sloppackage", Qt::CaseInsensitive))
 		{
 			PackageStagingModel staging;
 			if (!PackageDraft::load(path, &staging, error))
@@ -1035,4 +1035,4 @@ ModelAssemblyCliResult runModelAssembly(const QStringList &arguments)
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

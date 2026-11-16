@@ -18,7 +18,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -60,52 +60,52 @@ QStringList validateModelDesign(const ModelDesign& design)
 	const QRegularExpression identifier(QStringLiteral("^[A-Za-z0-9_-]{1,48}$"));
 	const QRegularExpression material(QStringLiteral("^[A-Za-z0-9_./-]{1,63}$"));
 	if (!identifier.match(design.name).hasMatch()) {
-		errors << QCoreApplication::translate("VibeStudioModelDesign",
+		errors << QCoreApplication::translate("SlopStudioModelDesign",
 		                                      "Design names need 1 to 48 ASCII letters, digits, underscores, or hyphens.");
 	}
 	if (design.parts.isEmpty() || design.parts.size() > 32) {
-		errors << QCoreApplication::translate("VibeStudioModelDesign", "A design needs between 1 and 32 parts.");
+		errors << QCoreApplication::translate("SlopStudioModelDesign", "A design needs between 1 and 32 parts.");
 		return errors;
 	}
 	QSet<QString> names;
 	for (const auto& part : design.parts) {
 		if (!identifier.match(part.name).hasMatch() || names.contains(part.name.toCaseFolded())) {
-			errors << QCoreApplication::translate("VibeStudioModelDesign", "Part names must be unique identifiers of up to 48 characters.");
+			errors << QCoreApplication::translate("SlopStudioModelDesign", "Part names must be unique identifiers of up to 48 characters.");
 		}
 		names.insert(part.name.toCaseFolded());
 		if (part.primitive != QStringLiteral("box") && part.primitive != QStringLiteral("cylinder") &&
 		    part.primitive != QStringLiteral("plane")) {
-			errors << QCoreApplication::translate("VibeStudioModelDesign", "Unknown primitive: %1").arg(part.primitive);
+			errors << QCoreApplication::translate("SlopStudioModelDesign", "Unknown primitive: %1").arg(part.primitive);
 		}
 		if (!finite(part.size) || part.size.x < 1.0f / 64 || part.size.y < 1.0f / 64 || part.size.z < 1.0f / 64 || part.size.x > 1000 ||
 		    part.size.y > 1000 || part.size.z > 1000 || !finite(part.origin) || std::abs(part.origin.x) > 10000 ||
 		    std::abs(part.origin.y) > 10000 || std::abs(part.origin.z) > 10000) {
 			errors << QCoreApplication::translate(
-			    "VibeStudioModelDesign", "Part dimensions must be between 1/64 and 1000; positions must be finite and within ±10000.");
+			    "SlopStudioModelDesign", "Part dimensions must be between 1/64 and 1000; positions must be finite and within ±10000.");
 		}
 		for (double angle : {part.roll, part.pitch, part.yaw, part.uvRotation}) {
 			if (!std::isfinite(angle) || std::abs(angle) > 36000) {
-				errors << QCoreApplication::translate("VibeStudioModelDesign",
+				errors << QCoreApplication::translate("SlopStudioModelDesign",
 				                                      "Part and UV rotations must be finite and within ±36000 degrees.");
 				break;
 			}
 		}
 		for (float scale : {part.uvScale.u, part.uvScale.v}) {
 			if (!std::isfinite(scale) || std::abs(scale) < 1.0f / 64 || std::abs(scale) > 64) {
-				errors << QCoreApplication::translate("VibeStudioModelDesign",
+				errors << QCoreApplication::translate("SlopStudioModelDesign",
 				                                      "UV scale magnitudes must be between 1/64 and 64; use negative values to mirror.");
 				break;
 			}
 		}
 		if (!std::isfinite(part.uvOffset.u) || !std::isfinite(part.uvOffset.v) || std::abs(part.uvOffset.u) > 1024 ||
 		    std::abs(part.uvOffset.v) > 1024) {
-			errors << QCoreApplication::translate("VibeStudioModelDesign", "UV offsets must be finite and within ±1024.");
+			errors << QCoreApplication::translate("SlopStudioModelDesign", "UV offsets must be finite and within ±1024.");
 		}
 		if (part.segments < 3 || part.segments > 64) {
-			errors << QCoreApplication::translate("VibeStudioModelDesign", "Cylinder segments must be between 3 and 64.");
+			errors << QCoreApplication::translate("SlopStudioModelDesign", "Cylinder segments must be between 3 and 64.");
 		}
 		if (!material.match(part.material).hasMatch() || !isSafePackageVirtualPath(part.material)) {
-			errors << QCoreApplication::translate("VibeStudioModelDesign",
+			errors << QCoreApplication::translate("SlopStudioModelDesign",
 			                                      "Materials must be safe package paths of up to 63 ASCII characters.");
 		}
 	}
@@ -138,7 +138,7 @@ bool parseModelDesign(const QByteArray& json, ModelDesign* design, QString* erro
 		error->clear();
 	}
 	if (!design || json.size() > 1024 * 1024) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Design input is unavailable or exceeds 1 MiB."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDesign", "Design input is unavailable or exceeds 1 MiB."));
 	}
 	QJsonParseError parseError;
 	const auto doc = QJsonDocument::fromJson(json, &parseError);
@@ -146,14 +146,14 @@ bool parseModelDesign(const QByteArray& json, ModelDesign* design, QString* erro
 	const auto version = object.value(QStringLiteral("schemaVersion"));
 	if (parseError.error != QJsonParseError::NoError || !doc.isObject() || (version != QJsonValue(1) && version != QJsonValue(2)) ||
 	    !object.value(QStringLiteral("name")).isString() || !object.value(QStringLiteral("parts")).isArray()) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDesign",
 		                                               "Expected a model design object with schemaVersion 1 or 2, name, and parts."));
 	}
 	ModelDesign result;
 	result.name = object.value(QStringLiteral("name")).toString();
 	const auto parts = object.value(QStringLiteral("parts")).toArray();
 	if (parts.size() > 32) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "A design needs between 1 and 32 parts."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDesign", "A design needs between 1 and 32 parts."));
 	}
 	for (const auto& value : parts) {
 		const auto p = value.toObject();
@@ -163,7 +163,7 @@ bool parseModelDesign(const QByteArray& json, ModelDesign* design, QString* erro
 		part.material = p.value(QStringLiteral("material")).toString();
 		if (!readVector(p.value(QStringLiteral("size")), &part.size) || !readVector(p.value(QStringLiteral("origin")), &part.origin) ||
 		    !p.value(QStringLiteral("yaw")).isDouble() || !p.value(QStringLiteral("segments")).isDouble()) {
-			return fail(error, QCoreApplication::translate("VibeStudioModelDesign",
+			return fail(error, QCoreApplication::translate("SlopStudioModelDesign",
 			                                               "Each part needs size/origin vectors, numeric yaw, and integer segments."));
 		}
 		part.yaw = p.value(QStringLiteral("yaw")).toDouble();
@@ -172,7 +172,7 @@ bool parseModelDesign(const QByteArray& json, ModelDesign* design, QString* erro
 			    !p.value(QStringLiteral("uvRotation")).isDouble() || !readUv(p.value(QStringLiteral("uvScale")), &part.uvScale) ||
 			    !readUv(p.value(QStringLiteral("uvOffset")), &part.uvOffset)) {
 				return fail(error, QCoreApplication::translate(
-				                       "VibeStudioModelDesign",
+				                       "SlopStudioModelDesign",
 				                       "Version 2 parts need numeric roll, pitch, and uvRotation, plus uvScale and uvOffset pairs."));
 			}
 			part.roll = p.value(QStringLiteral("roll")).toDouble();
@@ -181,7 +181,7 @@ bool parseModelDesign(const QByteArray& json, ModelDesign* design, QString* erro
 		}
 		const double segments = p.value(QStringLiteral("segments")).toDouble();
 		if (segments < 3 || segments > 64 || std::floor(segments) != segments) {
-			return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Cylinder segments must be between 3 and 64."));
+			return fail(error, QCoreApplication::translate("SlopStudioModelDesign", "Cylinder segments must be between 3 and 64."));
 		}
 		part.segments = static_cast<int>(segments);
 		result.parts << part;
@@ -205,7 +205,7 @@ ModelMesh buildModelDesignMesh(const ModelDesign& design)
 	mesh.sourcePath = design.name;
 	mesh.format = ModelMeshFormat::Quake3Md3;
 	mesh.formatId = QStringLiteral("md3");
-	mesh.formatName = QCoreApplication::translate("VibeStudioModelDesign", "Static model design");
+	mesh.formatName = QCoreApplication::translate("SlopStudioModelDesign", "Static model design");
 	mesh.version = 15;
 	mesh.mins = {100000, 100000, 100000};
 	mesh.maxs = {-100000, -100000, -100000};
@@ -323,7 +323,7 @@ QByteArray exportModelDesign(const ModelDesign& design, const QString& format, Q
 		}
 		return obj.toUtf8();
 	}
-	fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Model design output must be MD2, MD3, or OBJ."));
+	fail(error, QCoreApplication::translate("SlopStudioModelDesign", "Model design output must be MD2, MD3, or OBJ."));
 	return {};
 }
 
@@ -335,24 +335,24 @@ bool saveModelDesignBytes(const QString& path, const QByteArray& bytes, bool ove
 	}
 	const auto target = inspectModelWriteTarget(path, control);
 	if (path.trimmed().isEmpty() || bytes.isEmpty()) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Choose an output path and a valid design first."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDesign", "Choose an output path and a valid design first."));
 	}
 	if (!target.isValid()) { return fail(error, target.error); }
 	if (modelPathsReferToSameFile(path, protectedSource)) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "An exported model cannot overwrite its design source."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDesign", "An exported model cannot overwrite its design source."));
 	}
 	if (target.existed && !overwrite) {
 		return fail(error, QCoreApplication::translate(
-		                       "VibeStudioModelDesign",
+		                       "SlopStudioModelDesign",
 		                       "The output exists or is a symbolic link; choose a new path or explicitly enable overwrite."));
 	}
 	// The writer re-checks this identity before publishing (core/model_file_io.h).
 	if (!expectedSha256.isEmpty() && target.existed && target.sha256 != expectedSha256) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign",
+		return fail(error, QCoreApplication::translate("SlopStudioModelDesign",
 		                                               "The design changed on disk after it was opened. Save to another path, or reopen it."));
 	}
 	if (bytes.size() > modelFileByteLimit) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "The exported model exceeds the 64 MiB output limit."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDesign", "The exported model exceeds the 64 MiB output limit."));
 	}
 	return dryRun ? validateModelWriteTarget(target, error, control) : writeModelFile(target, bytes, error, control);
 }
@@ -361,7 +361,7 @@ bool loadModelDesign(const QString& path, ModelDesign* design, QString* error, Q
 {
 	QFile file(path);
 	if (!file.open(QIODevice::ReadOnly) || file.size() > 1024 * 1024) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Unable to read the design, or it exceeds 1 MiB."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDesign", "Unable to read the design, or it exceeds 1 MiB."));
 	}
 	const auto bytes = file.read(1024 * 1024 + 1);
 	if (file.error() != QFileDevice::NoError) {
@@ -413,7 +413,7 @@ bool stageModelExport(const QByteArray& bytes, const QString& virtualPath, Packa
 		error->clear();
 	}
 	if (!staging || !staging->isLoaded() || staging->sourceFormat() == PackageArchiveFormat::Wad) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Open a folder, PAK, ZIP, or PK3 before staging a model."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDesign", "Open a folder, PAK, ZIP, or PK3 before staging a model."));
 	}
 	const auto normalized = normalizePackageVirtualPath(virtualPath, false);
 	// The same path and header rules as a staged set (core/model_stage.h).
@@ -435,7 +435,7 @@ bool stageModelExport(const QByteArray& bytes, const QString& virtualPath, Packa
 	    !staged.summary().canSave) {
 		return fail(error, error && !error->isEmpty()
 		                       ? *error
-		                       : QCoreApplication::translate("VibeStudioModelDesign",
+		                       : QCoreApplication::translate("SlopStudioModelDesign",
 		                                                     "Resolve package staging conflicts before handing off a model."));
 	}
 	if (placeInMap && !placeLevelModel(placeInMap, normalized.normalizedPath, origin, nullptr, error)) {
@@ -452,15 +452,15 @@ bool stageModelExports(const QVector<QPair<QString, QByteArray>>& files, Package
 		error->clear();
 	}
 	if (files.isEmpty()) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Prepare the model files before staging them."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDesign", "Prepare the model files before staging them."));
 	}
 	if (!staging || !staging->isLoaded() || staging->sourceFormat() == PackageArchiveFormat::Wad) {
-		return fail(error, QCoreApplication::translate("VibeStudioModelDesign", "Open a folder, PAK, ZIP, or PK3 before staging a model."));
+		return fail(error, QCoreApplication::translate("SlopStudioModelDesign", "Open a folder, PAK, ZIP, or PK3 before staging a model."));
 	}
 	// Each file is checked and staged on its own copy first, so the group
 	// below only commits files that stage.
 	auto staged = *staging;
-	if (!staged.beginOperationGroup(QCoreApplication::translate("VibeStudioModelDesign", "Stage model and detail levels"), error)) {
+	if (!staged.beginOperationGroup(QCoreApplication::translate("SlopStudioModelDesign", "Stage model and detail levels"), error)) {
 		return false;
 	}
 	for (const auto& [path, bytes] : files) {
@@ -504,4 +504,4 @@ QHash<QString, QByteArray> readStagedModelFiles(const PackageStagingModel& stagi
 	return files;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

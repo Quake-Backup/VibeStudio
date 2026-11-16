@@ -12,7 +12,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -91,7 +91,7 @@ bool borders(const ModelSurface &s, int width, int height, int padding)
 int main(int argc, char **argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root) || argc != 2) return 1;
 	QTemporaryDir temporary(QDir(root).filePath("rectangular-atlas-XXXXXX"));
 	if (!temporary.isValid()) return 1;

@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <functional>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -230,4 +230,4 @@ ModelEdit ModelEventsDialog::edit() const
 	tableEvents(&o.events);
 	return result;
 }
-} // namespace vibestudio
+} // namespace slopstudio

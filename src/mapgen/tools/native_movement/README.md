@@ -1,9 +1,9 @@
 # Native Quake II movement experiments
 
-> **VibeStudio:** imported as source only. VibeStudio's Meson build never compiles or links
+> **SlopStudio:** imported as source only. SlopStudio's Meson build never compiles or links
 > `harness.c`; this directory's `CMakeLists.txt` remains Quake-MapGen's separate, private GPL build
 > (`python -B -m tools.native_movement.build`, run from `src/mapgen`), and nothing it produces is
-> linked into or shipped with VibeStudio. See [VIBESTUDIO.md](../../VIBESTUDIO.md).
+> linked into or shipped with SlopStudio. See [SLOPSTUDIO.md](../../SLOPSTUDIO.md).
 
 This optional harness calls the **unmodified official Quake II 3.19 `Pmove`,
 `CM_BoxTrace`, and `CM_PointContents` functions** against a compiled IBSP38 world.

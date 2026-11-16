@@ -20,7 +20,7 @@
 #include <QToolTip>
 #include <QTranslator>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* text) { if (!condition) { std::cerr << text << '\n'; } return condition; }
 bool wait(const std::function<bool()>& ready, int ms = 10000)
@@ -42,7 +42,7 @@ public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* source, const char*, int) const override
 	{
-		if (QByteArray(context) != "vibestudio::CodeQuickInfoPanel" && QByteArray(context) != "CodeQuickInfo") { return {}; }
+		if (QByteArray(context) != "slopstudio::CodeQuickInfoPanel" && QByteArray(context) != "CodeQuickInfo") { return {}; }
 		const auto text = QString::fromUtf8(source); return text + QStringLiteral(" ~").repeated(text.size() / 6);
 	}
 };
@@ -81,7 +81,7 @@ int main(int argc, char** argv)
 		}
 		ok &= expect(resourceReads == 0 && !panel.view()->openLinks() && !panel.view()->openExternalLinks(), "documentation cannot invoke resource providers or open links");
 		ok &= expect(!panel.view()->accessibleName().isEmpty() && panel.view()->focusPolicy() == Qt::StrongFocus && panel.view()->isReadOnly(), "persistent documentation remains selectable and keyboard accessible");
-		const QString evidence = qEnvironmentVariable("VIBESTUDIO_LANGUAGE_TEST_EVIDENCE");
+		const QString evidence = qEnvironmentVariable("SLOPSTUDIO_LANGUAGE_TEST_EVIDENCE");
 		if (!evidence.isEmpty()) { QImage image(panel.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); panel.render(&image); ok &= expect(image.save(QDir(evidence).filePath(QStringLiteral("language-hover-%1.png").arg(scale))), "render Quick Info at both scales"); }
 		LanguageHover longInfo; longInfo.contents = {{QStringLiteral("plaintext"), QString(5000, QLatin1Char('x')), {}}};
 		ok &= expect(CodeQuickInfoPanel::hintText(longInfo).size() < 2000 && CodeQuickInfoPanel::hintText(longInfo).contains(QStringLiteral("Quick Info")), "pointer hints stay bounded and expose the longer-documentation route");

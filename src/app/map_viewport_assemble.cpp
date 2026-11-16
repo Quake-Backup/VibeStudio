@@ -19,7 +19,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 enum AssembleGesture { None = 0, Add = 1, Move = 2, Extrude = 3 };
 constexpr double kAssembleDragPixels = 4.0;
@@ -351,4 +351,4 @@ void MapViewport::paintBrushAssemble(QPainter& painter, const Palette& palette) 
 	}
 	painter.restore();
 }
-} // namespace vibestudio
+} // namespace slopstudio

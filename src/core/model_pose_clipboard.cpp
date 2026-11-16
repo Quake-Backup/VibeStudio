@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -261,7 +261,7 @@ QByteArray modelPoseClipboardBytes(const ModelPoseClipboard &clipboard)
 		curves.append(modelPoseCurvesJson(group));
 	for (int channel : clipboard.channels)
 		channels.append(modelCurveChannelId(channel));
-	QJsonObject root{{QStringLiteral("schema"), QStringLiteral("vibestudio.pose-clipboard")},
+	QJsonObject root{{QStringLiteral("schema"), QStringLiteral("slopstudio.pose-clipboard")},
 					 {QStringLiteral("version"), modelPoseClipboardVersion},
 					 {QStringLiteral("kind"), kindId(clipboard.kind)},
 					 {QStringLiteral("rig"), rig},
@@ -287,7 +287,7 @@ QByteArray modelPoseClipboardBytes(const ModelPoseClipboard &clipboard)
 bool parseModelPoseClipboard(const QByteArray &bytes, ModelPoseClipboard *result, QString *error)
 {
 	const auto malformed = [error] {
-		return fail(error, Text::tr("The clipboard does not hold a VibeStudio pose or key copy of a supported version."));
+		return fail(error, Text::tr("The clipboard does not hold a SlopStudio pose or key copy of a supported version."));
 	};
 	if (!result || bytes.size() > modelPoseClipboardMaxBytes)
 		return malformed();
@@ -296,7 +296,7 @@ bool parseModelPoseClipboard(const QByteArray &bytes, ModelPoseClipboard *result
 	if (parse.error != QJsonParseError::NoError || !document.isObject())
 		return malformed();
 	const auto root = document.object();
-	if (root.value(QStringLiteral("schema")).toString() != QStringLiteral("vibestudio.pose-clipboard") ||
+	if (root.value(QStringLiteral("schema")).toString() != QStringLiteral("slopstudio.pose-clipboard") ||
 		root.value(QStringLiteral("version")) != QJsonValue(modelPoseClipboardVersion))
 		return malformed();
 	ModelPoseClipboard copy;
@@ -739,4 +739,4 @@ bool applyModelPosePaste(ModelMesh *mesh, const ModelEdit &edit, QString *error,
 		return false;
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -10,7 +10,7 @@
 #include <optional>
 #include <atomic>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct ClipDraft {
 	LevelMapDocument document;
@@ -204,4 +204,4 @@ void ApplicationShell::connectLevelClipper()
 		return LevelClipState::finite(*point);
 	});
 }
-} // namespace vibestudio
+} // namespace slopstudio

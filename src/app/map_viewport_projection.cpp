@@ -1,7 +1,7 @@
 #include "app/map_viewport_projection.h"
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 LevelMapVec3 makeVec(double x, double y, double z)
 {
@@ -172,4 +172,4 @@ bool mapViewportObjectPoint(const LevelMapDocument& document, const QVector<Doom
 	return false;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

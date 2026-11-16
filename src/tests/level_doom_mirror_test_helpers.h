@@ -1,7 +1,7 @@
 #pragma once
 #include "tests/doom_preview_test_helpers.h"
 
-namespace vibestudio::tests::doomMirror {
+namespace slopstudio::tests::doomMirror {
 // Generated two rooms with a shared wall, plus an unrelated island. Independent
 // binary encoding makes endpoint/side/argument preservation checks meaningful.
 inline QByteArray fixture(bool hexen = false) {
@@ -98,4 +98,4 @@ inline QByteArray firstLump(const QByteArray& wad, const QByteArray& name) {
 	}
 	return {};
 }
-} // namespace vibestudio::tests::doomMirror
+} // namespace slopstudio::tests::doomMirror

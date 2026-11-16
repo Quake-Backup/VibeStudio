@@ -1,6 +1,6 @@
-"""Optional generated-texture acceptance through VibeMap2 bsp and VibeMap3.
+"""Optional generated-texture acceptance through SlopMap2 bsp and SlopMap3.
 
-All assets are authored by VibeStudio CLI from a synthetic layered recipe.
+All assets are authored by SlopStudio CLI from a synthetic layered recipe.
 Outputs and compiler logs stay under the repository's .agents/tmp directory.
 No game launch, commercial assets, input control or screen capture is used.
 """
@@ -94,7 +94,7 @@ def main():
     # Native Quake: a staged miptexture, saved WAD2, and independently read BSP.
     empty = root / 'empty.wad'
     empty.write_bytes(b'WAD2' + struct.pack('<2i', 0, 12))
-    draft = root / 'quake.vibepackage'
+    draft = root / 'quake.sloppackage'
     run('quake-stage', ['texture', 'stage', project, '--profile', 'quake-miptex', '--palette-file', palette,
                         '--export-options', options, '--target-package', empty, '--target-entry', 'authored', '--output', draft, '--overwrite'])
     # qbsp adds a skip material internally, even for an all-authored room.
@@ -161,7 +161,7 @@ def main():
     (assets / 'scripts').mkdir(parents=True, exist_ok=True)
     (assets / 'scripts' / 'shaderlist.txt').write_text('handoff\n', encoding='utf-8')
     (assets / 'scripts' / 'handoff.shader').write_text('textures/handoff/material\n{\n qer_editorimage textures/handoff/authored.png\n q3map_lightimage textures/handoff/authored.png\n { map textures/handoff/authored.tga }\n}\n', encoding='utf-8')
-    draft = root / 'quake3.vibepackage'
+    draft = root / 'quake3.sloppackage'
     for profile, suffix in [('png', 'png'), ('tga', 'tga')]:
         run(f'quake3-stage-{suffix}', ['texture', 'stage', project, '--profile', profile, '--target-package', assets if suffix == 'png' else draft,
                                       '--target-entry', f'textures/handoff/authored.{suffix}', '--output', draft, '--overwrite'])

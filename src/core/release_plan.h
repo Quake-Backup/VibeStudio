@@ -31,7 +31,7 @@
 #include <functional>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class ReleaseScope {
 	// Every content file of the project that the game does not already have.
@@ -271,4 +271,4 @@ std::shared_ptr<const GameAssetRegister> requirementAssetRegister(const ProjectR
 QJsonObject releasePlanJson(const ReleasePlan& plan);
 QString releasePlanText(const ReleasePlan& plan);
 
-} // namespace vibestudio
+} // namespace slopstudio

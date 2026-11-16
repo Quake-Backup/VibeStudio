@@ -9,7 +9,7 @@
 #include <map>
 #include <numeric>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -17,7 +17,7 @@ bool fail(QString *error, const char *message)
 {
 	if (error)
 	{
-		*error = QCoreApplication::translate("VibeStudioModelDocument", message);
+		*error = QCoreApplication::translate("SlopStudioModelDocument", message);
 	}
 	return false;
 }
@@ -177,7 +177,7 @@ bool inspectModelTopology(const ModelSurface &surface, ModelTopologyHealth *resu
 	if (!result || surface.vertexCount < 3 || surface.vertexCount > 65536 || surface.triangles.isEmpty() ||
 		surface.triangles.size() > 131072)
 	{
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelDocument", "Topology inspection requires a bounded, indexed surface."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelDocument", "Topology inspection requires a bounded, indexed surface."));
 	}
 	ModelTopologyHealth health;
 	QMap<ModelEdge, ModelHealthEdge> edges;
@@ -195,7 +195,7 @@ bool inspectModelTopology(const ModelSurface &surface, ModelTopologyHealth *resu
 		if (indices[0] == indices[1] || indices[1] == indices[2] || indices[2] == indices[0] ||
 			std::any_of(indices.begin(), indices.end(), [&](int i) { return i < 0 || i >= surface.vertexCount; }))
 		{
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelDocument", "Topology inspection found an invalid triangle index."));
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelDocument", "Topology inspection found an invalid triangle index."));
 		}
 		auto key = indices;
 		std::sort(key.begin(), key.end());
@@ -320,7 +320,7 @@ bool repairModelTopology(const ModelSurface &source, ModelTopologyRepair repair,
 					[&](const auto &f) { return f.positions.size() != source.vertexCount || f.normals.size() != source.vertexCount; }))
 	{
 		return fail(error,
-					QT_TRANSLATE_NOOP("VibeStudioModelDocument", "Topology repair requires complete editable geometry and output maps."));
+					QT_TRANSLATE_NOOP("SlopStudioModelDocument", "Topology repair requires complete editable geometry and output maps."));
 	}
 	ModelTopologyHealth health;
 	if (!inspectModelTopology(source, &health, error, control))
@@ -458,9 +458,9 @@ bool repairModelTopology(const ModelSurface &source, ModelTopologyRepair repair,
 		if (required > vertexLimit || required > 65536 || required * source.frames.size() > 1048576)
 		{
 			return fail(error, cutEdges
-								   ? QT_TRANSLATE_NOOP("VibeStudioModelDocument",
+								   ? QT_TRANSLATE_NOOP("SlopStudioModelDocument",
 													   "Splitting nonmanifold edges would exceed the vertex or animation storage limit.")
-								   : QT_TRANSLATE_NOOP("VibeStudioModelDocument",
+								   : QT_TRANSLATE_NOOP("SlopStudioModelDocument",
 													   "Splitting disconnected fans would exceed the vertex or animation storage limit."));
 		}
 		if (!splits.isEmpty())
@@ -510,7 +510,7 @@ bool repairModelTopology(const ModelSurface &source, ModelTopologyRepair repair,
 	case ModelTopologyRepair::OrientFaces: {
 		if (!health.duplicateFaces.isEmpty() || !health.nonmanifoldEdges.isEmpty())
 		{
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelDocument",
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelDocument",
 												 "Remove duplicate faces and resolve nonmanifold edges before orienting this surface."));
 		}
 		QVector<QVector<QPair<int, bool>>> neighbours(source.triangles.size());
@@ -558,7 +558,7 @@ bool repairModelTopology(const ModelSurface &source, ModelTopologyRepair repair,
 					{
 						return fail(error,
 									QT_TRANSLATE_NOOP(
-										"VibeStudioModelDocument",
+										"SlopStudioModelDocument",
 										"This surface cannot be oriented consistently without cutting edges. No faces were changed."));
 					}
 				}
@@ -579,11 +579,11 @@ bool repairModelTopology(const ModelSurface &source, ModelTopologyRepair repair,
 		break;
 	}
 	default:
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelDocument", "Unknown topology repair."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelDocument", "Unknown topology repair."));
 	}
 	if (!changed)
 	{
-		return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelDocument", "This surface has no topology findings for the chosen repair."));
+		return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelDocument", "This surface has no topology findings for the chosen repair."));
 	}
 	// Remap marks through each face corner, avoiding a cartesian product of fan
 	// copies. Orientation changes preserve endpoint identities directly.
@@ -620,7 +620,7 @@ bool repairModelTopology(const ModelSurface &source, ModelTopologyRepair repair,
 		}
 		if (!checked.nonmanifoldEdges.isEmpty())
 		{
-			return fail(error, QT_TRANSLATE_NOOP("VibeStudioModelDocument",
+			return fail(error, QT_TRANSLATE_NOOP("SlopStudioModelDocument",
 												 "The proposed split retains a nonmanifold edge. No geometry was changed."));
 		}
 	}
@@ -633,4 +633,4 @@ bool repairModelTopology(const ModelSurface &source, ModelTopologyRepair repair,
 	*faceMap = std::move(faces);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

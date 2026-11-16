@@ -20,7 +20,7 @@
 #include <cstdlib>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const char* message)
@@ -265,7 +265,7 @@ int main(int argc, char** argv)
 		ok &= expect(cli({QStringLiteral("texture"), QStringLiteral("edit"), project, QStringLiteral("--operations"), recipe, QStringLiteral("--output"), root.filePath(QStringLiteral("adjusted.vtexture"))}, 0), "CLI recipes run the new operations");
 		ok &= expect(cli({QStringLiteral("texture"), QStringLiteral("inspect"), project}, 0, &report) && report.value(QStringLiteral("frames")).toInt() == 2 && report.contains(QStringLiteral("distinctColors")), "inspect reports frames and colours");
 		const QString walls = root.filePath(QStringLiteral("walls.wad"));
-		const QString draft = root.filePath(QStringLiteral("walls.vibepackage"));
+		const QString draft = root.filePath(QStringLiteral("walls.sloppackage"));
 		TextureDocument patchDocument; patchDocument.create({64, 64}, QColor(40, 40, 40));
 		const QString patchProject = root.filePath(QStringLiteral("patch.vtexture")); put(patchProject, encodeTextureProject(patchDocument));
 		ok &= expect(cli({QStringLiteral("texture"), QStringLiteral("stage"), patchProject, QStringLiteral("--profile"), QStringLiteral("doom-patch"), QStringLiteral("--allow-generated-palette"),

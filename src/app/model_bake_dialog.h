@@ -24,7 +24,7 @@ class QPushButton;
 class QSpinBox;
 class QThread;
 
-namespace vibestudio
+namespace slopstudio
 {
 
 class ModelBakeDialog final : public QDialog
@@ -74,4 +74,4 @@ class ModelBakeDialog final : public QDialog
 	ModelBakeOptions m_lastOptions;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

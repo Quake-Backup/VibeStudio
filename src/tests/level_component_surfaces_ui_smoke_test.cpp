@@ -25,7 +25,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& detail = {})
@@ -82,7 +82,7 @@ int main(int argc,char** argv)
 		{{LevelMapSelectionKind::QuakeBrush,0},LevelBrushComponent::Face,{1,4}},
 		{{LevelMapSelectionKind::QuakeBrush,1},LevelBrushComponent::Face,{3}},
 		{{LevelMapSelectionKind::QuakePatch,2},LevelBrushComponent::Vertex,{0}}};
-	for (const auto* profile : {"trenchbroom","netradiant-custom","vibestudio-default"}) {
+	for (const auto* profile : {"trenchbroom","netradiant-custom","slopstudio-default"}) {
 		for (int scale : {100,200}) {
 			std::cout << "Component surface UI " << profile << ' ' << scale << '%' << std::endl;
 			QElapsedTimer phase; phase.start();
@@ -207,7 +207,7 @@ int main(int argc,char** argv)
 					}
 				}
 				if (QLatin1String(profile) == "netradiant-custom" && scale == 200) {
-					const auto capture = qEnvironmentVariable("VIBESTUDIO_COMPONENT_SURFACES_CAPTURE");
+					const auto capture = qEnvironmentVariable("SLOPSTUDIO_COMPONENT_SURFACES_CAPTURE");
 					if (!capture.isEmpty()) { QImage image(shell.size(),QImage::Format_ARGB32_Premultiplied); shell.render(&image); expect(image.save(capture),"owned render saved"); }
 				}
 				action("map.faceTool")->trigger();

@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 void ModelViewport::resetPlaybackClock()
 {
@@ -481,4 +481,4 @@ QString ModelViewport::mdlPlaybackSummary() const
 			 : m_playing	 ? tr("Playing")
 							 : tr("Paused"));
 }
-} // namespace vibestudio
+} // namespace slopstudio

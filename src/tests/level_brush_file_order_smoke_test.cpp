@@ -18,7 +18,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 	QCoreApplication app(argc, argv);
 	QTemporaryDir temp;
 	if (!temp.isValid() || argc != 2) {
-		std::cerr << "usage: level_brush_file_order_smoke_test <vibestudio>\n";
+		std::cerr << "usage: level_brush_file_order_smoke_test <slopstudio>\n";
 		return 1;
 	}
 	bool ok = true;

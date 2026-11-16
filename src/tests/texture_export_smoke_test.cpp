@@ -14,7 +14,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool value, const char* message) { if (!value) { std::cerr << message << '\n'; } return value; }
 bool put(const QString& path, const QByteArray& bytes) { QFile file(path); return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size(); }
@@ -134,8 +134,8 @@ int main(int argc, char** argv)
 	ok &= expect(saveTextureExport(rgba, options, {}, destination, false, false, nullptr, &error) && read(destination) == targa.bytes && !saveTextureExport(rgba, options, {}, destination, false, false, nullptr, &error), "native export shares guarded publication and explicit overwrite");
 	bool changed = false;
 	ok &= expect(!saveTextureExport(rgba, options, {}, destination, true, false, nullptr, &error, [&](qint64 done, qint64 total) { if (done == total && !changed) { changed = true; put(destination, "outside changes"); } return true; }) && read(destination) == "outside changes", "destination fingerprint precedes encoding and rejects intervening edits");
-	const QDir evidence(qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT"));
-	if (!qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT").isEmpty()) {
+	const QDir evidence(qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT"));
+	if (!qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT").isEmpty()) {
 		auto colored = palette; for (int index = 0; index < 256; ++index) { colored.palette.colors[index] = qRgb(index, (index * 3) % 256, 255 - index); }
 		auto colorImage = odd; colorImage.setColorTable(colored.palette.colors); TextureExportOptions pcxOptions; pcxOptions.format = TextureExportFormat::Pcx;
 		const auto colorPcx = encodeTextureExport(colorImage, pcxOptions, colored);

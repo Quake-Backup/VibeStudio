@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 const QByteArray magic = QByteArrayLiteral("VSTREC\x1a\n");
 constexpr int headerSize = 24;
@@ -30,7 +30,7 @@ bool validId(const QString& id)
 }
 bool checkpoint(const TextureProgress& progress, qint64 done, qint64 total, QString* error)
 {
-	return !progress || progress(done, total) || fail(error, QCoreApplication::translate("VibeStudioTextureRecovery", "Texture recovery operation cancelled."));
+	return !progress || progress(done, total) || fail(error, QCoreApplication::translate("SlopStudioTextureRecovery", "Texture recovery operation cancelled."));
 }
 bool jsonInteger(const QJsonObject& object, const QString& key, int minimum, int maximum, int* result)
 {
@@ -46,21 +46,21 @@ TextureRecoveryInfo readRecord(const QString& path, QByteArray* payload, const T
 	const auto invalid = [&](const QString& text) { record.error = text; return record; };
 	if (!fileInfo.isFile() || fileInfo.isSymLink() || !file.open(QIODevice::ReadOnly) ||
 		file.size() < headerSize + 32 || file.size() > textureProjectFileLimit + metadataLimit + headerSize + 32) {
-		return invalid(QCoreApplication::translate("VibeStudioTextureRecovery", "Not a bounded regular texture recovery file."));
+		return invalid(QCoreApplication::translate("SlopStudioTextureRecovery", "Not a bounded regular texture recovery file."));
 	}
 	const QByteArray header = file.read(headerSize);
 	if (header.size() != headerSize || !header.startsWith(magic) || qFromLittleEndian<quint32>(header.constData() + 8) != 1) {
-		return invalid(QCoreApplication::translate("VibeStudioTextureRecovery", "The texture recovery header or version is unsupported."));
+		return invalid(QCoreApplication::translate("SlopStudioTextureRecovery", "The texture recovery header or version is unsupported."));
 	}
 	const auto jsonBytes = qFromLittleEndian<quint32>(header.constData() + 12);
 	const auto payloadBytes = qFromLittleEndian<quint64>(header.constData() + 16);
 	if (jsonBytes == 0 || jsonBytes > metadataLimit || payloadBytes < 48 || payloadBytes > quint64(textureProjectFileLimit) ||
 		quint64(file.size()) != headerSize + quint64(jsonBytes) + payloadBytes + 32) {
-		return invalid(QCoreApplication::translate("VibeStudioTextureRecovery", "Texture recovery lengths exceed their bounds or do not match the file."));
+		return invalid(QCoreApplication::translate("SlopStudioTextureRecovery", "Texture recovery lengths exceed their bounds or do not match the file."));
 	}
 	const QByteArray json = file.read(jsonBytes); QJsonParseError parseError;
 	const auto parsed = QJsonDocument::fromJson(json, &parseError);
-	if (parseError.error != QJsonParseError::NoError || !parsed.isObject()) { return invalid(QCoreApplication::translate("VibeStudioTextureRecovery", "Texture recovery metadata is malformed.")); }
+	if (parseError.error != QJsonParseError::NoError || !parsed.isObject()) { return invalid(QCoreApplication::translate("SlopStudioTextureRecovery", "Texture recovery metadata is malformed.")); }
 	const auto metadata = parsed.object();
 	record.id = metadata.value(QStringLiteral("id")).toString(); record.displayName = metadata.value(QStringLiteral("displayName")).toString();
 	record.sourcePath = metadata.value(QStringLiteral("sourcePath")).toString(); record.payloadBytes = qint64(payloadBytes);
@@ -79,7 +79,7 @@ TextureRecoveryInfo readRecord(const QString& path, QByteArray* payload, const T
 		!jsonInteger(metadata, QStringLiteral("height"), 1, TextureDocument::MaximumDimension, &height) ||
 		!jsonInteger(metadata, QStringLiteral("layerCount"), 1, TextureDocument::MaximumLayers, &record.layerCount) ||
 		!validTextureSize({width, height}) || qint64(width) * height * record.layerCount > TextureDocument::MaximumLayerPixels) {
-		return invalid(QCoreApplication::translate("VibeStudioTextureRecovery", "Texture recovery identity, dimensions, timestamp, or source metadata is invalid."));
+		return invalid(QCoreApplication::translate("SlopStudioTextureRecovery", "Texture recovery identity, dimensions, timestamp, or source metadata is invalid."));
 	}
 	record.size = {width, height}; record.sourceSha256 = QByteArray::fromHex(hash.toLatin1());
 	QCryptographicHash digest(QCryptographicHash::Sha256); digest.addData(header); digest.addData(json);
@@ -88,14 +88,14 @@ TextureRecoveryInfo readRecord(const QString& path, QByteArray* payload, const T
 	while (remaining > 0) {
 		if (!checkpoint(progress, record.payloadBytes - remaining, record.payloadBytes, &record.error)) { return record; }
 		const auto chunk = file.read(std::min<qint64>(remaining, 64 * 1024));
-		if (chunk.isEmpty() || file.error() != QFile::NoError) { return invalid(QCoreApplication::translate("VibeStudioTextureRecovery", "The recovery payload is truncated or unreadable.")); }
+		if (chunk.isEmpty() || file.error() != QFile::NoError) { return invalid(QCoreApplication::translate("SlopStudioTextureRecovery", "The recovery payload is truncated or unreadable.")); }
 		if (remaining == record.payloadBytes && (chunk.size() < 16 || !chunk.startsWith(QByteArrayLiteral("VSTEX\r\n\x1a")) || qFromLittleEndian<quint32>(chunk.constData() + 8) != 1)) {
-			return invalid(QCoreApplication::translate("VibeStudioTextureRecovery", "The embedded texture project version is unsupported."));
+			return invalid(QCoreApplication::translate("SlopStudioTextureRecovery", "The embedded texture project version is unsupported."));
 		}
 		digest.addData(chunk); if (payload) { payload->append(chunk); } remaining -= chunk.size();
 	}
 	record.recordSha256 = digest.result();
-	if (file.read(32) != record.recordSha256 || !file.atEnd()) { return invalid(QCoreApplication::translate("VibeStudioTextureRecovery", "Texture recovery checksum verification failed.")); }
+	if (file.read(32) != record.recordSha256 || !file.atEnd()) { return invalid(QCoreApplication::translate("SlopStudioTextureRecovery", "Texture recovery checksum verification failed.")); }
 	if (!checkpoint(progress, record.payloadBytes, record.payloadBytes, &record.error)) { return record; }
 	return record;
 }
@@ -110,11 +110,11 @@ QString writeTextureRecovery(const TextureRecoverySnapshot& snapshot, const QStr
 {
 	if (error) { error->clear(); }
 	const QString target = textureRecoveryPath(directory, id); const QFileInfo folder(directory);
-	if (snapshot.document.strokeActive()) { fail(error, QCoreApplication::translate("VibeStudioTextureRecovery", "Finish the current texture stroke before taking a checkpoint.")); return {}; }
+	if (snapshot.document.strokeActive()) { fail(error, QCoreApplication::translate("SlopStudioTextureRecovery", "Finish the current texture stroke before taking a checkpoint.")); return {}; }
 	if (target.isEmpty() || folder.isSymLink() || (folder.exists() && !folder.isDir()) || snapshot.displayName.size() > 4096 ||
 		snapshot.source.path.size() > 32768 || snapshot.source.path.contains(QChar::Null) || snapshot.displayName.contains(QChar::Null) ||
 		(!snapshot.source.sha256.isEmpty() && snapshot.source.sha256.size() != 32)) {
-		fail(error, QCoreApplication::translate("VibeStudioTextureRecovery", "Choose a regular recovery folder, a UUID, and bounded source metadata.")); return {};
+		fail(error, QCoreApplication::translate("SlopStudioTextureRecovery", "Choose a regular recovery folder, a UUID, and bounded source metadata.")); return {};
 	}
 	const auto payload = encodeTextureProject(snapshot.document, snapshot.metadata, error, [&](qint64 done, qint64 total) {
 		return checkpoint(progress, total > 0 ? done * 500 / total : 0, 1000, error);
@@ -126,13 +126,13 @@ QString writeTextureRecovery(const TextureRecoverySnapshot& snapshot, const QStr
 		{QStringLiteral("revision"), QString::number(snapshot.document.revision())}, {QStringLiteral("width"), snapshot.document.size().width()},
 		{QStringLiteral("height"), snapshot.document.size().height()}, {QStringLiteral("layerCount"), snapshot.document.layers().size()}};
 	const auto json = QJsonDocument(metadata).toJson(QJsonDocument::Compact);
-	if (json.size() > metadataLimit) { fail(error, QCoreApplication::translate("VibeStudioTextureRecovery", "Texture recovery metadata exceeds 64 KiB.")); return {}; }
+	if (json.size() > metadataLimit) { fail(error, QCoreApplication::translate("SlopStudioTextureRecovery", "Texture recovery metadata exceeds 64 KiB.")); return {}; }
 	if (!checkpoint(progress, 500, 1000, error)) { return {}; }
-	if (!QDir().mkpath(folder.absoluteFilePath()) || QFileInfo(directory).isSymLink()) { fail(error, QCoreApplication::translate("VibeStudioTextureRecovery", "Unable to create a regular texture recovery directory.")); return {}; }
+	if (!QDir().mkpath(folder.absoluteFilePath()) || QFileInfo(directory).isSymLink()) { fail(error, QCoreApplication::translate("SlopStudioTextureRecovery", "Unable to create a regular texture recovery directory.")); return {}; }
 	const QString canonicalDirectory = QFileInfo(directory).canonicalFilePath();
 	const QString path = QDir(canonicalDirectory).filePath(QFileInfo(target).fileName()); const QFileInfo before(path);
 	if (canonicalDirectory.isEmpty() || before.isSymLink() || (before.exists() && !before.isFile())) {
-		fail(error, QCoreApplication::translate("VibeStudioTextureRecovery", "The recovery checkpoint is not a regular file.")); return {};
+		fail(error, QCoreApplication::translate("SlopStudioTextureRecovery", "The recovery checkpoint is not a regular file.")); return {};
 	}
 	QByteArray header(headerSize, '\0'); header.replace(0, magic.size(), magic);
 	qToLittleEndian<quint32>(1, header.data() + 8); qToLittleEndian<quint32>(quint32(json.size()), header.data() + 12);
@@ -147,7 +147,7 @@ QString writeTextureRecovery(const TextureRecoverySnapshot& snapshot, const QStr
 		digest.addData(chunk); offset += count;
 	}
 	if (!checkpoint(progress, 1000, 1000, error)) { output.cancelWriting(); return {}; }
-	if (QFileInfo(directory).canonicalFilePath() != canonicalDirectory || QFileInfo(path).isSymLink()) { output.cancelWriting(); fail(error, QCoreApplication::translate("VibeStudioTextureRecovery", "The recovery destination changed during writing.")); return {}; }
+	if (QFileInfo(directory).canonicalFilePath() != canonicalDirectory || QFileInfo(path).isSymLink()) { output.cancelWriting(); fail(error, QCoreApplication::translate("SlopStudioTextureRecovery", "The recovery destination changed during writing.")); return {}; }
 	if (output.write(digest.result()) != 32 || !output.commit()) { fail(error, output.errorString()); return {}; }
 	return path;
 }
@@ -158,7 +158,7 @@ TextureRecoveryList listTextureRecoveries(const QString& directory, const Textur
 {
 	TextureRecoveryList result;
 	if (!QFileInfo::exists(directory)) { return result; }
-	if (!QFileInfo(directory).isDir() || QFileInfo(directory).isSymLink()) { result.error = QCoreApplication::translate("VibeStudioTextureRecovery", "Choose a regular texture recovery directory."); return result; }
+	if (!QFileInfo(directory).isDir() || QFileInfo(directory).isSymLink()) { result.error = QCoreApplication::translate("SlopStudioTextureRecovery", "Choose a regular texture recovery directory."); return result; }
 	QVector<QFileInfo> files;
 	QDirIterator iterator(directory, {QStringLiteral("*.vtrecovery")}, QDir::Files | QDir::NoSymLinks | QDir::NoDotAndDotDot);
 	while (iterator.hasNext()) {
@@ -184,11 +184,11 @@ bool restoreTextureRecovery(const QString& path, TextureDocument* document, QJso
 {
 	if (error) { error->clear(); }
 	QByteArray payload; const auto record = readRecord(path, &payload, [&](qint64 done, qint64 total) { return checkpoint(progress, total > 0 ? done * 500 / total : 0, 1000, error); });
-	if (!document || !record.isValid()) { return fail(error, record.error.isEmpty() ? QCoreApplication::translate("VibeStudioTextureRecovery", "A texture document is required for restoration.") : record.error); }
-	if (!expectedRecordSha256.isEmpty() && expectedRecordSha256 != record.recordSha256) { return fail(error, QCoreApplication::translate("VibeStudioTextureRecovery", "The selected checkpoint changed. Inspect it again before restoring.")); }
+	if (!document || !record.isValid()) { return fail(error, record.error.isEmpty() ? QCoreApplication::translate("SlopStudioTextureRecovery", "A texture document is required for restoration.") : record.error); }
+	if (!expectedRecordSha256.isEmpty() && expectedRecordSha256 != record.recordSha256) { return fail(error, QCoreApplication::translate("SlopStudioTextureRecovery", "The selected checkpoint changed. Inspect it again before restoring.")); }
 	TextureDocument restored; QJsonObject values;
 	if (!decodeTextureProject(payload, &restored, &values, error, [&](qint64 done, qint64 total) { return checkpoint(progress, 500 + (total > 0 ? done * 500 / total : 0), 1000, error); })) { return false; }
-	if (restored.size() != record.size || restored.layers().size() != record.layerCount) { return fail(error, QCoreApplication::translate("VibeStudioTextureRecovery", "Recovery summary and project dimensions do not agree.")); }
+	if (restored.size() != record.size || restored.layers().size() != record.layerCount) { return fail(error, QCoreApplication::translate("SlopStudioTextureRecovery", "Recovery summary and project dimensions do not agree.")); }
 	if (!checkpoint(progress, 1, 1, error)) { return false; }
 	restored.markUnsaved(); *document = std::move(restored); if (metadata) { *metadata = values; } if (info) { *info = record; }
 	return true;
@@ -197,10 +197,10 @@ bool restoreTextureRecovery(const QString& path, TextureDocument* document, QJso
 bool removeTextureRecovery(const QString& directory, const QString& id, QString* error)
 {
 	const auto path = textureRecoveryPath(directory, id); const QFileInfo folder(directory), file(path);
-	if (path.isEmpty() || folder.isSymLink() || file.isSymLink() || (file.exists() && !file.isFile())) { return fail(error, QCoreApplication::translate("VibeStudioTextureRecovery", "Only an owned regular texture checkpoint can be removed.")); }
+	if (path.isEmpty() || folder.isSymLink() || file.isSymLink() || (file.exists() && !file.isFile())) { return fail(error, QCoreApplication::translate("SlopStudioTextureRecovery", "Only an owned regular texture checkpoint can be removed.")); }
 	if (!file.exists()) { return true; }
-	if (file.canonicalPath() != folder.canonicalFilePath()) { return fail(error, QCoreApplication::translate("VibeStudioTextureRecovery", "The texture checkpoint is outside its recovery directory.")); }
-	return QFile::remove(file.absoluteFilePath()) || fail(error, QCoreApplication::translate("VibeStudioTextureRecovery", "Unable to remove the retired texture checkpoint."));
+	if (file.canonicalPath() != folder.canonicalFilePath()) { return fail(error, QCoreApplication::translate("SlopStudioTextureRecovery", "The texture checkpoint is outside its recovery directory.")); }
+	return QFile::remove(file.absoluteFilePath()) || fail(error, QCoreApplication::translate("SlopStudioTextureRecovery", "Unable to remove the retired texture checkpoint."));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -10,7 +10,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 bool finite(QPointF p) { return std::isfinite(p.x()) && std::isfinite(p.y()); }
 bool finite(ModelVec3 p) { return std::isfinite(p.x) && std::isfinite(p.y) && std::isfinite(p.z); }
@@ -494,4 +494,4 @@ void ModelViewport::paintComponents(QPainter& painter)
 	if (m_componentBanding) { painter.setPen(QPen(chosen,1.5,Qt::DashLine)); painter.setBrush(Qt::NoBrush); painter.drawRect(QRectF(m_componentPress,m_componentBandEnd).normalized()); }
 	painter.restore();
 }
-} // namespace vibestudio
+} // namespace slopstudio

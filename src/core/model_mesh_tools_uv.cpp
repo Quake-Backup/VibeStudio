@@ -9,7 +9,7 @@
 // neighbour keeps a different mapping, so seams appear where the texture
 // actually changes and vertex counts stay low for MD3/MD2/MDL budgets.
 
-namespace vibestudio::model_tools
+namespace slopstudio::model_tools
 {
 namespace
 {
@@ -353,4 +353,4 @@ bool projectUvs(ModelMesh *mesh, const ModelEdit &edit, ModelSelection *selectio
 	pruneSeams(&surface);
 	return compactUnused(&surface, spare, selection, work);
 }
-} // namespace vibestudio::model_tools
+} // namespace slopstudio::model_tools

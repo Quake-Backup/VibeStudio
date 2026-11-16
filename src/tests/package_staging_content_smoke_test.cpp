@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool condition, const char* message)
@@ -171,7 +171,7 @@ bool fingerprints(const QDir& root)
 bool drafts(const QDir& root)
 {
 	bool ok = true; QString error; PackageStagingContentUsage usage;
-	const auto path = root.filePath("content.vibepackage");
+	const auto path = root.filePath("content.sloppackage");
 	PackageStagingContentLimits limits; limits.maximumFingerprintBytes = 32;
 	PackageStagingModel model(limits);
 	ok &= expect(model.createEmpty(PackageArchiveFormat::Zip) && model.addBytes("same", "a") && model.addBytes("same", "b"), "Prepare generated content with a shared draft object identity.");

@@ -9,7 +9,7 @@
 #include <limits>
 #include <numbers>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -413,4 +413,4 @@ AudioSessionRenderer::BlockStatus AudioSessionRenderer::renderRouted(qint64 firs
 	m_meters.process(int(session.tracks.size()), true, first - m_latency.total, std::span<const float>(output));
 	return BlockStatus::Ready;
 }
-} // namespace vibestudio
+} // namespace slopstudio

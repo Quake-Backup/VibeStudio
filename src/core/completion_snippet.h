@@ -5,7 +5,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct CompletionSnippetStop {
 	int number = 0;
@@ -29,4 +29,4 @@ CompletionSnippet expandCompletionSnippet(const QString& body, const QHash<QStri
 QHash<QString, QString> completionSnippetVariables(const QString& source, int caret, const QString& filePath);
 bool validCompletionSnippetStops(const QString& text, const QVector<CompletionSnippetStop>& stops);
 
-} // namespace vibestudio
+} // namespace slopstudio

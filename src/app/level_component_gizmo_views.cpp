@@ -6,7 +6,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 // The text scale, so the object tools' pointer targets grow with it at 200%.
 double gizmoHandleScale() { return std::clamp(currentStudioTheme().textScalePercent,100,400)/100.0; }
@@ -88,4 +88,4 @@ bool ModelViewport::beginComponentTransform(const QPointF& point)
 	if (!m_componentGizmo->begin(point,componentGizmoFrame(),font())) { return false; }
 	m_heldKeys.clear(); m_flyTimer->stop(); return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

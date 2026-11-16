@@ -7,7 +7,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 // Original parser/projection, informed by UDMF v1.1 and ZDBSP's
 // processor_udmf.cpp at bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659.
@@ -733,4 +733,4 @@ QJsonObject levelUdmfDocumentJson(const LevelUdmfDocument& document) {
 	}
 	return {{"namespace", document.nameSpace}, {"globals", props(document.globals)}, {"blocks", blocks}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

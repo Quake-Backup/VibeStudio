@@ -10,7 +10,7 @@ class QFormLayout;
 class QLabel;
 class QLineEdit;
 
-namespace vibestudio
+namespace slopstudio
 {
 class ModelRigDialog final : public QDialog
 {
@@ -34,4 +34,4 @@ class ModelRigDialog final : public QDialog
 	QLabel *m_summary = nullptr;
 	void refresh();
 };
-} // namespace vibestudio
+} // namespace slopstudio

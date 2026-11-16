@@ -216,12 +216,12 @@ LayoutRanker::Ranking LayoutRanker::rank(const PromptSpec &spec, const std::vect
         model_weights[7] = 0.0F;
     }
 
-    // VibeStudio: one float dot product per candidate, in place of the ggml graph Quake-MapGen ran
+    // SlopStudio: one float dot product per candidate, in place of the ggml graph Quake-MapGen ran
     // (ggml_mul_mat of the candidate matrix and the weight vector on the CPU backend, one thread).
     // At the pinned llama.cpp revision c1d0e7a004015f23bc0233470b747b596f29b264,
     // ggml/src/ggml-cpu/vec.cpp ggml_vec_dot_f32 handles an 8-element row entirely in its scalar
     // tail: a float sum from +0, in feature order. scalar_dot keeps that order and rounding so every
-    // score, tie and selection matches the ggml build bit for bit (src/mapgen/VIBESTUDIO.md).
+    // score, tie and selection matches the ggml build bit for bit (src/mapgen/SLOPSTUDIO.md).
     for (std::size_t candidate = 0; candidate < candidates.size(); ++candidate)
         scores[candidate] = scalar_dot(&feature_matrix[candidate * kFeatureCount], model_weights);
 #if QMG_HAVE_GGML

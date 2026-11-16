@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelFaceFlagsCliResult {
 	int exitCode = 0;
 	QString error;
@@ -13,4 +13,4 @@ struct LevelFaceFlagsCliResult {
 // value of Quake II and Quake III brush faces through the Levels Surfaces
 // tab's service (core/level_face_flags.h).
 LevelFaceFlagsCliResult runLevelFaceFlags(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

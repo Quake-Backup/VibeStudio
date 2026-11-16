@@ -23,7 +23,7 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 // The model, drawn from the paint view, with the brush outline under the
@@ -34,8 +34,8 @@ class ModelSkinPaintCanvas final : public QWidget
 	explicit ModelSkinPaintCanvas(ModelSkinPaintDialog *dialog) : m_dialog(dialog)
 	{
 		setObjectName(QStringLiteral("modelSkinPaintCanvas"));
-		setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinPaint", "Paint view"));
-		setAccessibleDescription(QCoreApplication::translate("VibeStudioModelSkinPaint",
+		setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinPaint", "Paint view"));
+		setAccessibleDescription(QCoreApplication::translate("SlopStudioModelSkinPaint",
 			"Drag with the left button to paint the skin on the model; Escape cancels a stroke. Change the view with Yaw, Pitch and Zoom."));
 		setMouseTracking(true);
 		setFocusPolicy(Qt::StrongFocus);
@@ -91,7 +91,7 @@ ModelSkinPaintDialog::ModelSkinPaintDialog(const ModelMesh &mesh, int surface, i
 	: QDialog(parent), m_mesh(mesh), m_surface(surface), m_frame(frame), m_skin(skin)
 {
 	setObjectName(QStringLiteral("modelSkinPaintDialog"));
-	setWindowTitle(QCoreApplication::translate("VibeStudioModelSkinPaint", "Paint Skin"));
+	setWindowTitle(QCoreApplication::translate("SlopStudioModelSkinPaint", "Paint Skin"));
 	setAccessibleName(windowTitle());
 	if (m_skin.isNull())
 	{
@@ -108,67 +108,67 @@ ModelSkinPaintDialog::ModelSkinPaintDialog(const ModelMesh &mesh, int surface, i
 	layout->addWidget(m_canvas, 1);
 	auto *side = new QVBoxLayout;
 	auto *form = new QFormLayout;
-	m_colourButton = new QPushButton(QCoreApplication::translate("VibeStudioModelSkinPaint", "Colour…"));
+	m_colourButton = new QPushButton(QCoreApplication::translate("SlopStudioModelSkinPaint", "Colour…"));
 	m_colourButton->setObjectName(QStringLiteral("modelSkinPaintColour"));
-	m_colourButton->setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinPaint", "Brush colour"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Colour"), m_colourButton);
+	m_colourButton->setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinPaint", "Brush colour"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Colour"), m_colourButton);
 	m_index = new QSpinBox;
 	m_index->setObjectName(QStringLiteral("modelSkinPaintIndex"));
 	m_index->setRange(-1, 255);
 	m_index->setValue(-1);
-	m_index->setSpecialValueText(QCoreApplication::translate("VibeStudioModelSkinPaint", "Nearest to colour"));
-	m_index->setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinPaint", "Palette index"));
+	m_index->setSpecialValueText(QCoreApplication::translate("SlopStudioModelSkinPaint", "Nearest to colour"));
+	m_index->setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinPaint", "Palette index"));
 	m_index->setEnabled(m_skin.format() == QImage::Format_Indexed8);
-	form->addRow(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Index"), m_index);
+	form->addRow(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Index"), m_index);
 	m_radius = new QSpinBox;
 	m_radius->setObjectName(QStringLiteral("modelSkinPaintRadius"));
 	m_radius->setRange(1, 256);
 	m_radius->setValue(12);
-	m_radius->setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinPaint", "Brush radius in view pixels"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Radius"), m_radius);
+	m_radius->setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinPaint", "Brush radius in view pixels"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Radius"), m_radius);
 	m_opacity = new QDoubleSpinBox;
 	m_opacity->setObjectName(QStringLiteral("modelSkinPaintOpacity"));
 	m_opacity->setRange(0.0, 1.0);
 	m_opacity->setSingleStep(0.05);
 	m_opacity->setValue(1.0);
-	m_opacity->setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinPaint", "Brush opacity, or smudge strength"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Opacity"), m_opacity);
+	m_opacity->setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinPaint", "Brush opacity, or smudge strength"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Opacity"), m_opacity);
 	m_hardness = new QDoubleSpinBox;
 	m_hardness->setObjectName(QStringLiteral("modelSkinPaintHardness"));
 	m_hardness->setRange(0.0, 1.0);
 	m_hardness->setSingleStep(0.1);
 	m_hardness->setValue(0.5);
-	m_hardness->setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinPaint", "Brush hardness"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Hardness"), m_hardness);
+	m_hardness->setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinPaint", "Brush hardness"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Hardness"), m_hardness);
 	m_mode = new QComboBox;
 	m_mode->setObjectName(QStringLiteral("modelSkinPaintMode"));
-	m_mode->setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinPaint", "Brush blend"));
-	m_mode->addItem(QCoreApplication::translate("VibeStudioModelSkinPaint", "Mix"));
-	m_mode->addItem(QCoreApplication::translate("VibeStudioModelSkinPaint", "Replace"));
-	m_mode->addItem(QCoreApplication::translate("VibeStudioModelSkinPaint", "Smudge"));
-	m_mode->setItemData(2, QCoreApplication::translate("VibeStudioModelSkinPaint", "Drag the skin along the stroke; the mirror axis and stamp do not apply."),
+	m_mode->setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinPaint", "Brush blend"));
+	m_mode->addItem(QCoreApplication::translate("SlopStudioModelSkinPaint", "Mix"));
+	m_mode->addItem(QCoreApplication::translate("SlopStudioModelSkinPaint", "Replace"));
+	m_mode->addItem(QCoreApplication::translate("SlopStudioModelSkinPaint", "Smudge"));
+	m_mode->setItemData(2, QCoreApplication::translate("SlopStudioModelSkinPaint", "Drag the skin along the stroke; the mirror axis and stamp do not apply."),
 		Qt::ToolTipRole);
-	form->addRow(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Blend"), m_mode);
+	form->addRow(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Blend"), m_mode);
 	m_mirror = new QComboBox;
 	m_mirror->setObjectName(QStringLiteral("modelSkinPaintMirror"));
-	m_mirror->setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinPaint", "Mirror axis"));
-	m_mirror->addItem(QCoreApplication::translate("VibeStudioModelSkinPaint", "No mirror"));
-	m_mirror->addItem(QCoreApplication::translate("VibeStudioModelSkinPaint", "Across X"));
-	m_mirror->addItem(QCoreApplication::translate("VibeStudioModelSkinPaint", "Across Y"));
-	m_mirror->addItem(QCoreApplication::translate("VibeStudioModelSkinPaint", "Across Z"));
-	form->addRow(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Mirror"), m_mirror);
+	m_mirror->setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinPaint", "Mirror axis"));
+	m_mirror->addItem(QCoreApplication::translate("SlopStudioModelSkinPaint", "No mirror"));
+	m_mirror->addItem(QCoreApplication::translate("SlopStudioModelSkinPaint", "Across X"));
+	m_mirror->addItem(QCoreApplication::translate("SlopStudioModelSkinPaint", "Across Y"));
+	m_mirror->addItem(QCoreApplication::translate("SlopStudioModelSkinPaint", "Across Z"));
+	form->addRow(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Mirror"), m_mirror);
 	auto *stampRow = new QHBoxLayout;
-	m_stampButton = new QPushButton(QCoreApplication::translate("VibeStudioModelSkinPaint", "Stamp…"));
+	m_stampButton = new QPushButton(QCoreApplication::translate("SlopStudioModelSkinPaint", "Stamp…"));
 	m_stampButton->setObjectName(QStringLiteral("modelSkinPaintStamp"));
-	m_stampButton->setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinPaint", "Choose a stamp image"));
-	m_stampButton->setToolTip(QCoreApplication::translate("VibeStudioModelSkinPaint",
+	m_stampButton->setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinPaint", "Choose a stamp image"));
+	m_stampButton->setToolTip(QCoreApplication::translate("SlopStudioModelSkinPaint",
 		"Paint with an image: its colours and transparency, scaled to the brush and centred on the pointer."));
-	m_clearStamp = new QPushButton(QCoreApplication::translate("VibeStudioModelSkinPaint", "No Stamp"));
+	m_clearStamp = new QPushButton(QCoreApplication::translate("SlopStudioModelSkinPaint", "No Stamp"));
 	m_clearStamp->setObjectName(QStringLiteral("modelSkinPaintClearStamp"));
-	m_clearStamp->setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinPaint", "Paint with the colour instead of a stamp"));
+	m_clearStamp->setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinPaint", "Paint with the colour instead of a stamp"));
 	stampRow->addWidget(m_stampButton);
 	stampRow->addWidget(m_clearStamp);
-	form->addRow(QCoreApplication::translate("VibeStudioModelSkinPaint", "S&tamp"), stampRow);
+	form->addRow(QCoreApplication::translate("SlopStudioModelSkinPaint", "S&tamp"), stampRow);
 	const auto angle = [&](const QString &name, const QString &accessible, double low, double high, double value) {
 		auto *spin = new QDoubleSpinBox;
 		spin->setObjectName(name);
@@ -178,34 +178,34 @@ ModelSkinPaintDialog::ModelSkinPaintDialog(const ModelMesh &mesh, int surface, i
 		spin->setAccessibleName(accessible);
 		return spin;
 	};
-	m_yaw = angle(QStringLiteral("modelSkinPaintYaw"), QCoreApplication::translate("VibeStudioModelSkinPaint", "View yaw in degrees"), -360, 360, m_camera.yaw);
-	m_pitch = angle(QStringLiteral("modelSkinPaintPitch"), QCoreApplication::translate("VibeStudioModelSkinPaint", "View pitch in degrees"), -89, 89, m_camera.pitch);
-	m_zoom = angle(QStringLiteral("modelSkinPaintZoom"), QCoreApplication::translate("VibeStudioModelSkinPaint", "View zoom"), 0.1, 20, m_camera.zoom);
+	m_yaw = angle(QStringLiteral("modelSkinPaintYaw"), QCoreApplication::translate("SlopStudioModelSkinPaint", "View yaw in degrees"), -360, 360, m_camera.yaw);
+	m_pitch = angle(QStringLiteral("modelSkinPaintPitch"), QCoreApplication::translate("SlopStudioModelSkinPaint", "View pitch in degrees"), -89, 89, m_camera.pitch);
+	m_zoom = angle(QStringLiteral("modelSkinPaintZoom"), QCoreApplication::translate("SlopStudioModelSkinPaint", "View zoom"), 0.1, 20, m_camera.zoom);
 	m_zoom->setSingleStep(0.25);
-	form->addRow(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Yaw"), m_yaw);
-	form->addRow(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Pitch"), m_pitch);
-	form->addRow(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Zoom"), m_zoom);
+	form->addRow(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Yaw"), m_yaw);
+	form->addRow(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Pitch"), m_pitch);
+	form->addRow(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Zoom"), m_zoom);
 	side->addLayout(form);
 	m_status = new QLabel;
 	m_status->setObjectName(QStringLiteral("modelSkinPaintStatus"));
 	m_status->setWordWrap(true);
 	m_status->setTextFormat(Qt::PlainText);
-	m_status->setAccessibleName(QCoreApplication::translate("VibeStudioModelSkinPaint", "Paint status"));
+	m_status->setAccessibleName(QCoreApplication::translate("SlopStudioModelSkinPaint", "Paint status"));
 	side->addWidget(m_status);
 	side->addStretch(1);
 	auto *buttons = new QDialogButtonBox(Qt::Vertical);
-	m_inView = buttons->addButton(QCoreApplication::translate("VibeStudioModelSkinPaint", "Paint in &View"), QDialogButtonBox::ActionRole);
+	m_inView = buttons->addButton(QCoreApplication::translate("SlopStudioModelSkinPaint", "Paint in &View"), QDialogButtonBox::ActionRole);
 	m_inView->setObjectName(QStringLiteral("modelSkinPaintInView"));
 	m_inView->setCheckable(true);
-	m_inView->setToolTip(QCoreApplication::translate("VibeStudioModelSkinPaint",
+	m_inView->setToolTip(QCoreApplication::translate("SlopStudioModelSkinPaint",
 		"Paint by dragging in the Mesh Editor's viewport, through its camera; the other mouse buttons still move the view."));
-	m_undoButton = buttons->addButton(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Undo Stroke"), QDialogButtonBox::ActionRole);
+	m_undoButton = buttons->addButton(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Undo Stroke"), QDialogButtonBox::ActionRole);
 	m_undoButton->setObjectName(QStringLiteral("modelSkinPaintUndo"));
-	m_redoButton = buttons->addButton(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Redo Stroke"), QDialogButtonBox::ActionRole);
+	m_redoButton = buttons->addButton(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Redo Stroke"), QDialogButtonBox::ActionRole);
 	m_redoButton->setObjectName(QStringLiteral("modelSkinPaintRedo"));
-	m_applyButton = buttons->addButton(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Apply to Model"), QDialogButtonBox::ActionRole);
+	m_applyButton = buttons->addButton(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Apply to Model"), QDialogButtonBox::ActionRole);
 	m_applyButton->setObjectName(QStringLiteral("modelSkinPaintApply"));
-	m_save = buttons->addButton(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Save Skin…"), QDialogButtonBox::ActionRole);
+	m_save = buttons->addButton(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Save Skin…"), QDialogButtonBox::ActionRole);
 	m_save->setObjectName(QStringLiteral("modelSkinPaintSave"));
 	auto *close = buttons->addButton(QDialogButtonBox::Close);
 	close->setObjectName(QStringLiteral("modelSkinPaintClose"));
@@ -213,9 +213,9 @@ ModelSkinPaintDialog::ModelSkinPaintDialog(const ModelMesh &mesh, int surface, i
 		button->setAccessibleName(button->text().remove(QLatin1Char('&')));
 	side->addWidget(buttons);
 	layout->addLayout(side);
-	setApplyTarget(QCoreApplication::translate("VibeStudioModelSkinPaint", "This skin has nowhere to go back to in the model; use Save Skin…"), {});
+	setApplyTarget(QCoreApplication::translate("SlopStudioModelSkinPaint", "This skin has nowhere to go back to in the model; use Save Skin…"), {});
 	connect(m_colourButton, &QPushButton::clicked, this, [this] {
-		const QColor chosen = QColorDialog::getColor(m_colour, this, QCoreApplication::translate("VibeStudioModelSkinPaint", "Brush Colour"));
+		const QColor chosen = QColorDialog::getColor(m_colour, this, QCoreApplication::translate("SlopStudioModelSkinPaint", "Brush Colour"));
 		if (chosen.isValid())
 		{
 			m_colour = chosen;
@@ -223,14 +223,14 @@ ModelSkinPaintDialog::ModelSkinPaintDialog(const ModelMesh &mesh, int surface, i
 		}
 	});
 	connect(m_stampButton, &QPushButton::clicked, this, [this] {
-		const auto path = QFileDialog::getOpenFileName(this, QCoreApplication::translate("VibeStudioModelSkinPaint", "Choose a Stamp"), QString(),
-			QCoreApplication::translate("VibeStudioModelSkinPaint", "Images (*.png *.tga *.jpg *.jpeg *.bmp)"));
+		const auto path = QFileDialog::getOpenFileName(this, QCoreApplication::translate("SlopStudioModelSkinPaint", "Choose a Stamp"), QString(),
+			QCoreApplication::translate("SlopStudioModelSkinPaint", "Images (*.png *.tga *.jpg *.jpeg *.bmp)"));
 		QImage stamp;
 		if (path.isEmpty())
 			return;
 		if (!stamp.load(path))
 		{
-			announce(QCoreApplication::translate("VibeStudioModelSkinPaint", "The stamp image cannot be read: %1").arg(QDir::toNativeSeparators(path)));
+			announce(QCoreApplication::translate("SlopStudioModelSkinPaint", "The stamp image cannot be read: %1").arg(QDir::toNativeSeparators(path)));
 			return;
 		}
 		setStamp(stamp);
@@ -255,8 +255,8 @@ ModelSkinPaintDialog::ModelSkinPaintDialog(const ModelMesh &mesh, int surface, i
 			m_inView->setChecked(false);
 	});
 	connect(m_save, &QPushButton::clicked, this, [this] {
-		const auto path = QFileDialog::getSaveFileName(this, QCoreApplication::translate("VibeStudioModelSkinPaint", "Save Painted Skin"), QString(),
-			QCoreApplication::translate("VibeStudioModelSkinPaint", "PNG images (*.png);;Targa images (*.tga);;PCX images (*.pcx);;JPEG images (*.jpg)"));
+		const auto path = QFileDialog::getSaveFileName(this, QCoreApplication::translate("SlopStudioModelSkinPaint", "Save Painted Skin"), QString(),
+			QCoreApplication::translate("SlopStudioModelSkinPaint", "PNG images (*.png);;Targa images (*.tga);;PCX images (*.pcx);;JPEG images (*.jpg)"));
 		if (!path.isEmpty())
 			saveTo(path);
 	});
@@ -290,8 +290,8 @@ void ModelSkinPaintDialog::setStamp(const QImage &stamp)
 		m_stamp = stamp.isNull() ? QImage() : stamp.convertToFormat(QImage::Format_ARGB32);
 	}
 	m_clearStamp->setEnabled(!m_stamp.isNull());
-	announce(m_stamp.isNull() ? QCoreApplication::translate("VibeStudioModelSkinPaint", "Painting with the colour.")
-							  : QCoreApplication::translate("VibeStudioModelSkinPaint", "Painting with a %1 x %2 stamp.").arg(m_stamp.width()).arg(m_stamp.height()));
+	announce(m_stamp.isNull() ? QCoreApplication::translate("SlopStudioModelSkinPaint", "Painting with the colour.")
+							  : QCoreApplication::translate("SlopStudioModelSkinPaint", "Painting with a %1 x %2 stamp.").arg(m_stamp.width()).arg(m_stamp.height()));
 }
 
 void ModelSkinPaintDialog::setMode(ModelSkinPaintMode mode)
@@ -334,13 +334,13 @@ void ModelSkinPaintDialog::refresh()
 	m_undoButton->setEnabled(!m_undo.isEmpty() && !m_active);
 	m_redoButton->setEnabled(!m_redo.isEmpty() && !m_active);
 	m_applyButton->setEnabled(bool(m_apply) && !m_active);
-	m_colourButton->setText(QCoreApplication::translate("VibeStudioModelSkinPaint", "Colour %1…").arg(m_colour.name()));
+	m_colourButton->setText(QCoreApplication::translate("SlopStudioModelSkinPaint", "Colour %1…").arg(m_colour.name()));
 	m_colourButton->setAccessibleDescription(m_colour.name());
 	m_clearStamp->setEnabled(!m_stamp.isNull());
 	const int strokes = int(m_strokes.size());
 	m_status->setText(paintingInView()
-			? QCoreApplication::translate("VibeStudioModelSkinPaint", "%n stroke(s) painted. Drag in the Mesh Editor's view to paint; Escape cancels a stroke.", nullptr, strokes)
-			: QCoreApplication::translate("VibeStudioModelSkinPaint", "%n stroke(s) painted. Escape cancels a stroke in progress.", nullptr, strokes));
+			? QCoreApplication::translate("SlopStudioModelSkinPaint", "%n stroke(s) painted. Drag in the Mesh Editor's view to paint; Escape cancels a stroke.", nullptr, strokes)
+			: QCoreApplication::translate("SlopStudioModelSkinPaint", "%n stroke(s) painted. Escape cancels a stroke in progress.", nullptr, strokes));
 	m_status->setAccessibleDescription(m_status->text());
 }
 
@@ -437,7 +437,7 @@ bool ModelSkinPaintDialog::finishStroke(bool commit)
 		refresh();
 		if (skinChanged)
 			skinChanged(m_skin);
-		announce(QCoreApplication::translate("VibeStudioModelSkinPaint", "Stroke cancelled."));
+		announce(QCoreApplication::translate("SlopStudioModelSkinPaint", "Stroke cancelled."));
 		return true;
 	}
 	m_undo.append(m_before);
@@ -492,12 +492,12 @@ bool ModelSkinPaintDialog::applyToModel()
 	QString error;
 	if (!m_apply(m_skin, &error))
 	{
-		setLiveStatus(m_status, error.isEmpty() ? QCoreApplication::translate("VibeStudioModelSkinPaint", "The painted skin was not applied.") : error,
+		setLiveStatus(m_status, error.isEmpty() ? QCoreApplication::translate("SlopStudioModelSkinPaint", "The painted skin was not applied.") : error,
 			LiveStatus::Problem);
 		return false;
 	}
 	m_kept = m_skin;
-	announce(QCoreApplication::translate("VibeStudioModelSkinPaint", "Applied the painted skin: %1").arg(m_applyButton->toolTip()));
+	announce(QCoreApplication::translate("SlopStudioModelSkinPaint", "Applied the painted skin: %1").arg(m_applyButton->toolTip()));
 	return true;
 }
 
@@ -519,12 +519,12 @@ void ModelSkinPaintDialog::reject()
 		}
 		else
 		{
-			QMessageBox box(QMessageBox::Question, QCoreApplication::translate("VibeStudioModelSkinPaint", "Discard Painted Strokes?"),
-				QCoreApplication::translate("VibeStudioModelSkinPaint",
+			QMessageBox box(QMessageBox::Question, QCoreApplication::translate("SlopStudioModelSkinPaint", "Discard Painted Strokes?"),
+				QCoreApplication::translate("SlopStudioModelSkinPaint",
 					"The painted skin has been neither applied to the model nor saved. Close and discard the strokes?"),
 				QMessageBox::NoButton, this);
-			auto *discardButton = box.addButton(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Discard Strokes"), QMessageBox::DestructiveRole);
-			auto *keepButton = box.addButton(QCoreApplication::translate("VibeStudioModelSkinPaint", "&Keep Editing"), QMessageBox::RejectRole);
+			auto *discardButton = box.addButton(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Discard Strokes"), QMessageBox::DestructiveRole);
+			auto *keepButton = box.addButton(QCoreApplication::translate("SlopStudioModelSkinPaint", "&Keep Editing"), QMessageBox::RejectRole);
 			discardButton->setObjectName(QStringLiteral("modelSkinPaintDiscard"));
 			keepButton->setObjectName(QStringLiteral("modelSkinPaintKeepEditing"));
 			box.setDefaultButton(keepButton);
@@ -534,7 +534,7 @@ void ModelSkinPaintDialog::reject()
 		}
 		if (!discard)
 		{
-			announce(QCoreApplication::translate("VibeStudioModelSkinPaint", "Kept the painted strokes; apply or save them before closing."));
+			announce(QCoreApplication::translate("SlopStudioModelSkinPaint", "Kept the painted strokes; apply or save them before closing."));
 			return;
 		}
 	}
@@ -564,10 +564,10 @@ bool ModelSkinPaintDialog::saveTo(const QString &path)
 	if (written)
 	{
 		m_kept = m_skin;
-		announce(QCoreApplication::translate("VibeStudioModelSkinPaint", "Saved the skin to %1.").arg(QDir::toNativeSeparators(path)));
+		announce(QCoreApplication::translate("SlopStudioModelSkinPaint", "Saved the skin to %1.").arg(QDir::toNativeSeparators(path)));
 	}
 	else
-		setLiveStatus(m_status, error.isEmpty() ? QCoreApplication::translate("VibeStudioModelSkinPaint", "The skin could not be saved to %1.").arg(QDir::toNativeSeparators(path)) : error,
+		setLiveStatus(m_status, error.isEmpty() ? QCoreApplication::translate("SlopStudioModelSkinPaint", "The skin could not be saved to %1.").arg(QDir::toNativeSeparators(path)) : error,
 			LiveStatus::Problem);
 	return written;
 }
@@ -584,4 +584,4 @@ void ModelSkinPaintDialog::keyPressEvent(QKeyEvent *event)
 	QDialog::keyPressEvent(event);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,5 +1,5 @@
 // Offscreen checks of Set Entity Colour and Normalise Entity Colour on the
-// Levels page, under the NetRadiant Custom, TrenchBroom and VibeStudio
+// Levels page, under the NetRadiant Custom, TrenchBroom and SlopStudio
 // profiles at 100% and at 200% text with the high-visibility theme, an
 // expanding translator and right-to-left layout. The picker opens on the
 // primary entity's colour, or the colour chosen last; each command is one
@@ -29,14 +29,14 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
 #include <iostream>
 #include <memory>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -182,7 +182,7 @@ int main(int argc, char** argv)
 		expect(commandPaletteEntryForCommandId(QString::fromLatin1(id)), "palette entry");
 	}
 	const QStringList commands {QStringLiteral("map.setEntityColour"), QStringLiteral("map.normaliseEntityColour")};
-	for (const char* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const char* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		for (const int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);
 			std::cout << "Entity colour UI " << phase.toStdString() << std::endl;
@@ -285,7 +285,7 @@ int main(int argc, char** argv)
 				undoBack("undo Normalise Entity Colour");
 
 				if (nrc && scale == 100) {
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 					// K in a view sets the colour, as in NetRadiant Custom. The window
 					// must be active for its shortcuts to reach the plan view.
 					pick({lightRef});

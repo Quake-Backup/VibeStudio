@@ -6,7 +6,7 @@
 #include <QTemporaryDir>
 #include <memory>
 
-namespace vibestudio {
+namespace slopstudio {
 
 class PackageCopySession;
 class PackageCopyPreparation;
@@ -67,4 +67,4 @@ bool discardPreparedPackageCopies(PackageCopyResult* result);
 // unsafe paths and links; partial batches are removed before returning failure.
 PackageCopyResult copyPackageEntries(const PackageArchiveReader& source, const PackageCopyRequest& request);
 
-} // namespace vibestudio
+} // namespace slopstudio

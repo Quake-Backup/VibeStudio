@@ -21,7 +21,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* label, const QString& detail = {})
@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 	settings.setRestoreSession(false); settings.setReducedMotion(true); settings.setLevelViewLayoutPreference("four-views");
 	const auto path = temp.filePath("objects.map"); const auto original = tests::objectClipboardFixture();
 	if (!write(path, original)) { return 1; }
-	for (const auto& profile : {QStringLiteral("trenchbroom"), QStringLiteral("netradiant-custom"), QStringLiteral("vibestudio-default")}) {
+	for (const auto& profile : {QStringLiteral("trenchbroom"), QStringLiteral("netradiant-custom"), QStringLiteral("slopstudio-default")}) {
 		std::cout << "Object clipboard UI " << profile.toStdString() << std::endl;
 		settings.setSelectedEditorProfileId(profile); settings.sync(); ApplicationShell shell; shell.resize(1600, 1000); shell.show(); shell.openPathFromCommandLine(path);
 		const auto action = [&](const char* id) { return shell.findChild<QAction*>(QLatin1String(id)); };
@@ -138,7 +138,7 @@ int main(int argc, char** argv)
 				auto* cancel = dialog->findChild<QPushButton*>("levelPlacementTaskCancel");
 				expect(dialog->accessibleName() == dialog->windowTitle() && bar && QAccessible::queryAccessibleInterface(bar)->role() == QAccessible::ProgressBar
 					&& cancel && cancel->focusPolicy() != Qt::NoFocus && !cancel->accessibleDescription().isEmpty(), "copy progress and cancellation accessibility");
-				const auto capture = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+				const auto capture = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 				if (!capture.isEmpty()) {
 					QDir().mkpath(capture); QImage image(dialog->size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent); dialog->render(&image);
 					expect(image.save(QDir(capture).filePath(QStringLiteral("object-copy-%1.png").arg(scale))), "render owned progress widget");

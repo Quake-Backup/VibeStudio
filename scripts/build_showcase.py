@@ -2,7 +2,7 @@
 """Export docs/showcase/index.html as one offline, shareable HTML document.
 
 Run: python scripts/build_showcase.py
-Output: build/showcase/VibeStudio.html
+Output: build/showcase/SlopStudio.html
 Only Python's standard library is required. Edit the source page and run again.
 """
 from __future__ import annotations
@@ -20,7 +20,7 @@ SOURCE = ROOT / "docs/showcase/index.html"
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output", type=Path, default=ROOT / "build/showcase/VibeStudio.html")
+    parser.add_argument("--output", type=Path, default=ROOT / "build/showcase/SlopStudio.html")
     args = parser.parse_args()
     output = args.output.resolve()
     document = SOURCE.read_text(encoding="utf-8")

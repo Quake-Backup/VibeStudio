@@ -1,13 +1,13 @@
 # Cut mesh paths
 
 **Available** — **Knife** cuts drawn paths into the active mesh surface, through
-the Mesh Editor and `model tool --tool knife`. VibeStudio remains pre-alpha and
+the Mesh Editor and `model tool --tool knife`. SlopStudio remains pre-alpha and
 largely untested in real projects. This operation does not establish the wider
 [modeller release gate](MODELLER_RELEASE.md).
 
 ## Draw a cut
 
-1. Choose **Mesh → Knife**, the tool shelf or command search. VibeStudio and
+1. Choose **Mesh → Knife**, the tool shelf or command search. SlopStudio and
    Blender profiles assign **K**; every profile exposes the named command.
 2. Click to place the first point, then further points. The preview includes
    the segment from the last fixed point to the crosshair. Points may lie
@@ -16,7 +16,7 @@ largely untested in real projects. This operation does not establish the wider
    the same draft. **Backspace** or **Ctrl+Z** removes the last fixed point.
 4. **Enter** or **Space** applies the complete preview as one undo step.
    **Esc** discards it. A refused confirmation retains the editable draft.
-5. **Adjust Last Operation** (**F9** in VibeStudio/Blender) changes **Cut through**
+5. **Adjust Last Operation** (**F9** in SlopStudio/Blender) changes **Cut through**
    and **Selected faces only**, replaying the saved path as one undo step.
 
 **Repeat Last** reuses the recorded path, projection and reference pose with
@@ -87,9 +87,9 @@ still apply. Preparation is cancellable and leaves source/history untouched.
 ## Automate a knife cut
 
 ```sh
-vibestudio --cli model tool models/prop.mesh.json --tool knife --view xy --path '-40,3;40,3' --output models/cut.mesh.json --dry-run --json
-vibestudio --cli model tool models/prop.mesh.json --tool knife --view xy --path '-40,3;40,3|0,-40;0,40' --through --output models/cut.mesh.json --json
-vibestudio --cli model tool models/prop.mesh.json --tool knife --path-file cuts.json --perspective --camera-origin 0,0,128 --output models/cut.mesh.json --json
+slopstudio --cli model tool models/prop.mesh.json --tool knife --view xy --path '-40,3;40,3' --output models/cut.mesh.json --dry-run --json
+slopstudio --cli model tool models/prop.mesh.json --tool knife --view xy --path '-40,3;40,3|0,-40;0,40' --through --output models/cut.mesh.json --json
+slopstudio --cli model tool models/prop.mesh.json --tool knife --path-file cuts.json --perspective --camera-origin 0,0,128 --output models/cut.mesh.json --json
 ```
 
 Supply exactly one of `--path` and `--path-file`. Inline paths use `u,v` points,

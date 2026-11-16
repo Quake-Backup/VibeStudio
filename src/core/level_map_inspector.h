@@ -25,7 +25,7 @@
 
 #include <functional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 inline constexpr auto kLevelMapSoftBoundsKey = "_tb_soft_map_bounds";
 inline constexpr auto kLevelMapModsKey = "_tb_mod";
@@ -137,4 +137,4 @@ struct LevelMapLayerSummary {
 // The same for text reports.
 [[nodiscard]] QStringList levelMapInspectorLines(const LevelMapDocument& document);
 
-} // namespace vibestudio
+} // namespace slopstudio

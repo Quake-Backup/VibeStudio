@@ -27,7 +27,7 @@
 #include <QVector>
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 class PackageStagingModel;
 struct ModelDoom3DefOptions
@@ -124,4 +124,4 @@ bool modelDoom3ModelSet(const ModelMesh &mesh, const ModelDoom3DefOptions &optio
 // staged when any file is refused. Files already at those paths are replaced
 // only with `replaceExisting`.
 bool stageModelGameFiles(const QVector<ModelGameFile> &files, PackageStagingModel *staging, bool replaceExisting, QString *error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

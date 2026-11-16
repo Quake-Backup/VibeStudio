@@ -6,7 +6,7 @@
 // operations Natural, Fit and Cap. Behaviour follows GtkRadiant 1.5 and
 // NetRadiant Custom (radiant/patch.cpp and radiant/patchmanip.cpp,
 // GPL-2.0-or-later, revision 8216133984031afaa9a857b56ea66dd9c3d54b26);
-// the implementations are VibeStudio's own. See docs/CREDITS.md.
+// the implementations are SlopStudio's own. See docs/CREDITS.md.
 
 #include "core/level_patch.h"
 
@@ -15,7 +15,7 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 enum class LevelPatchMatrixOperation {
 	// Split the first span of every row in two, exactly: two more columns at
@@ -121,4 +121,4 @@ struct LevelPatchDeformRequest {
 bool deformLevelMapPatches(LevelMapDocument* document, const QVector<int>& patchIds, const LevelPatchDeformRequest& request,
 	int* changed = nullptr, int* skipped = nullptr, QString* error = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

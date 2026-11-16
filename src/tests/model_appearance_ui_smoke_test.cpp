@@ -31,8 +31,8 @@
 
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0;
@@ -45,7 +45,7 @@ bool waitFor(const std::function<bool()>& ready) {
 	return ready();
 }
 bool capture(QWidget& widget, const QString& name) {
-	const auto directory = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+	const auto directory = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 	if (directory.isEmpty()) { return true; }
 	QImage image(widget.size() * widget.devicePixelRatioF(), QImage::Format_ARGB32_Premultiplied);
 	image.setDevicePixelRatio(widget.devicePixelRatioF()); image.fill(Qt::transparent);
@@ -57,8 +57,8 @@ class Expansion final : public QTranslator
 public:
 	bool isEmpty() const override { return false; }
 	QString translate(const char* context, const char* text, const char*, int) const override {
-		if (QByteArray(context) != "ApplicationShell" && QByteArray(context) != "vibestudio::ApplicationShell" &&
-			QByteArray(context) != "VibeStudioModelSkinSource" && QByteArray(context) != "VibeStudioModelAppearance") { return {}; }
+		if (QByteArray(context) != "ApplicationShell" && QByteArray(context) != "slopstudio::ApplicationShell" &&
+			QByteArray(context) != "SlopStudioModelSkinSource" && QByteArray(context) != "SlopStudioModelAppearance") { return {}; }
 		const auto value = QString::fromUtf8(text);
 		return QStringLiteral("[%1%2]").arg(value, QString(value.size() / 2, '~'));
 	}
@@ -78,13 +78,13 @@ int main(int argc, char** argv)
 #endif
 	QApplication app(argc, argv);
 	// Draws in 3D: skip where no OpenGL or Vulkan renderer starts.
-	if (const int skip = vibestudio::test_support::exitCodeWithoutRenderer("model-appearance-ui-smoke"); skip >= 0) {
+	if (const int skip = slopstudio::test_support::exitCodeWithoutRenderer("model-appearance-ui-smoke"); skip >= 0) {
 		return skip;
 	}
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root)) { return 1; }
 	QTemporaryDir temporary(QDir(root).filePath("model-appearance-ui-XXXXXX"));
 	if (!temporary.isValid()) { return 1; }

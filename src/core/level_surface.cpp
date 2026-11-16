@@ -14,7 +14,7 @@
 #include <cmath>
 #include <limits>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -1345,4 +1345,4 @@ bool prepareLevelTextureReset(const LevelMapDocument &document, const LevelTextu
 	*plan = std::move(result);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

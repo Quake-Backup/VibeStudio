@@ -3,7 +3,7 @@
 #include "core/model_transform.h"
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 // NRC TranslateFreeXY_Z in selection_mtable_translate.h at 449778b3840f8f2062daab15c87cb012f2ac945c
 // (GPL-2.0-or-later), independently implemented; see docs/CREDITS.md.
 // Pure point tracking: fixed press anchors, relative grid, live plane/axis choice.
@@ -21,4 +21,4 @@ private:
 	int m_axis = 2;
 	bool m_started = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

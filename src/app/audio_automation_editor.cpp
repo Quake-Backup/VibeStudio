@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
-namespace vibestudio
+namespace slopstudio
 {
 class AudioAutomationPlot final : public QWidget {
   public:
@@ -386,4 +386,4 @@ void AudioAutomationEditor::updateSelected()
 		point.curve = AudioAutomationCurve(m_curve->currentData().toInt());
 	setPoint(row, point);
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -14,7 +14,7 @@ class QProgressBar;
 class QScrollArea;
 class QTimer;
 class QThread;
-namespace vibestudio
+namespace slopstudio
 {
 class ModelViewport;
 class PatchCapDialog final : public QDialog
@@ -69,4 +69,4 @@ class PatchCapDialog final : public QDialog
 	quint64 m_generation = 0;
 	bool m_ready = false, m_valid = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

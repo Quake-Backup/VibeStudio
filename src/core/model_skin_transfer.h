@@ -6,7 +6,7 @@
 #include <QImage>
 #include <QJsonObject>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Skin transfer (rebake): repaints a skin for changed UVs by sampling the old
 // skin through each face's old UVs, so unwrapping, packing or moving islands
@@ -70,4 +70,4 @@ bool transferModelSkin(const ModelSurface &before, const ModelSurface &after, co
 					   const ModelSkinTransferOptions &options, QImage *result, ModelSkinTransferReport *report = nullptr,
 					   QString *error = nullptr, const ModelWorkControl &control = {});
 [[nodiscard]] QJsonObject modelSkinTransferJson(const ModelSkinTransferReport &report);
-} // namespace vibestudio
+} // namespace slopstudio

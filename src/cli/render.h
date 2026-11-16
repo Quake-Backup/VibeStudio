@@ -3,7 +3,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 
 struct RenderCliResult {
 	int exitCode = 0;
@@ -25,4 +25,4 @@ QStringList renderCommandActions();
 // this run only. False, with `error`, for an unknown --renderer value.
 bool applyRendererChoice(const QStringList& arguments, QString* error);
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

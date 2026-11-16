@@ -20,7 +20,7 @@
 #include <unistd.h>
 #endif
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -116,7 +116,7 @@ ModelWorkControl cliModelWorkControl(bool requested)
 	control.cancelled = [] { return cliCancellationRequested(); };
 	// A test hook: cancel at the Nth progress report, as a console request
 	// arriving at that moment would, without depending on timing or a console.
-	const qint64 cancelAt = qEnvironmentVariableIntValue("VIBESTUDIO_CLI_CANCEL_AT_PROGRESS");
+	const qint64 cancelAt = qEnvironmentVariableIntValue("SLOPSTUDIO_CLI_CANCEL_AT_PROGRESS");
 	if (cancelAt <= 0 && !progress)
 		return control;
 	struct Counter
@@ -145,4 +145,4 @@ ModelWorkControl cliModelWorkControl(bool requested)
 	};
 	return control;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -208,7 +208,7 @@ def assemble(source: Path, build_evidence: Path, package: Path, runtime_sources:
         for path in [archive_path, checksum_path]:
             new_output(path, protected)
     project = Path(__file__).resolve().parents[1]
-    plan = {'vibestudio/' + name: (source / name, value) for name, value in sources.items()}
+    plan = {'slopstudio/' + name: (source / name, value) for name, value in sources.items()}
     plan.update({'runtime/' + name: (runtime_sources / name, value) for name, value in archive_hashes.items()})
     plan.update({'binary-notices/' + name: (package / name, value) for name, value in package_files.items() if name.startswith('licenses/')})
     for name in ['scripts/source_companion_common.py', 'scripts/collect_qt_runtime_sources.py', 'scripts/package_source_companion.py',
@@ -243,7 +243,7 @@ def assemble(source: Path, build_evidence: Path, package: Path, runtime_sources:
                'binaryPackageName': package_manifest['packageName'], 'binarySha256': binary['sha256'],
                'binaryPackageManifestSha256': package_files['package-manifest.json'], 'buildEvidenceSha256': build_digest,
                'targetPlatform': package_manifest['targetPlatform'], 'targetArchitecture': package_manifest['targetArchitecture'],
-               'sourceHashes': sources, 'sourceRoot': 'vibestudio', 'runtimeProfile': profile['id'],
+               'sourceHashes': sources, 'sourceRoot': 'slopstudio', 'runtimeProfile': profile['id'],
                'runtimeProfileSha256': profile_digest, 'runtimeArchives': archive_hashes,
                'buildType': build.get('buildType'), 'audioPlayback': build.get('audioPlayback'),
                'buildOptions': options, 'compilers': compilers, 'compiledCatalogs': catalogs,

@@ -1,6 +1,6 @@
 #pragma once
 #include "tests/doom_preview_test_helpers.h"
-namespace vibestudio::tests::udmf {
+namespace slopstudio::tests::udmf {
 inline QByteArray textmap() {
 	QByteArray text = "// Original generated room\r\nnamespace = \"zdoom\";\r\nuser_title = \"Room \\\"A\\\"\";\r\n";
 	text += "vertex { x = +0.2500; y = 0.25; user_marker = 0xDEAD; }\r\nvertex { x = 0.25; y = 256.25; }\r\nvertex { x = 256.25; y = "
@@ -51,4 +51,4 @@ inline QByteArray fixture(const QByteArray& source = textmap()) {
 							  {"USERDATA", "second"}};
 	return doom::wad(first + rest);
 }
-} // namespace vibestudio::tests::udmf
+} // namespace slopstudio::tests::udmf

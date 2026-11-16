@@ -1,9 +1,9 @@
 # Optional stock Quake II teleporter host
 
-> **VibeStudio:** imported as source only. VibeStudio's Meson build never compiles or links
+> **SlopStudio:** imported as source only. SlopStudio's Meson build never compiles or links
 > `host.c` or `server_bridge.c`; this directory's `CMakeLists.txt` remains Quake-MapGen's separate,
 > private GPL build (`python -B -m tools.native_teleport.build`, run from `src/mapgen`), and nothing it
-> produces is linked into or shipped with VibeStudio. See [VIBESTUDIO.md](../../VIBESTUDIO.md).
+> produces is linked into or shipped with SlopStudio. See [SLOPSTUDIO.md](../../SLOPSTUDIO.md).
 
 This separate headless host links the unmodified local [id Software Quake II 3.19 source](https://github.com/id-Software/Quake-2): the complete stock game module, server entity-world queries, CM and Pmove. It does not launch an engine client, read input devices, create sockets or modify an installation. Fixed synthetic `ClientThink` calls exercise the game API; they are not human input.
 

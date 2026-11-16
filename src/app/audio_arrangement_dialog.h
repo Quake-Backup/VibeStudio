@@ -8,7 +8,7 @@ class QDoubleSpinBox;
 class QFormLayout;
 class QLabel;
 class QLineEdit;
-namespace vibestudio
+namespace slopstudio
 {
 class AudioArrangementDialog final : public QDialog {
 	Q_OBJECT
@@ -30,4 +30,4 @@ class AudioArrangementDialog final : public QDialog {
 	QLineEdit *m_name = nullptr;
 	QLabel *m_summary = nullptr, *m_error = nullptr;
 };
-} // namespace vibestudio
+} // namespace slopstudio

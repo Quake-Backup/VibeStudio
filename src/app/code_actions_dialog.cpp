@@ -6,7 +6,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-namespace vibestudio {
+namespace slopstudio {
 CodeActionsDialog::CodeActionsDialog(const LanguageCodeActions& actions, const QString& provider, QWidget* parent)
 	: QDialog(parent), m_actions(actions), m_list(new QListWidget(this)), m_details(new QLabel(this))
 {
@@ -51,4 +51,4 @@ void CodeActionsDialog::accept()
 {
 	const int index = selectedAction(); if (index >= 0 && index < m_actions.items.size() && m_actions.items[index].available()) { QDialog::accept(); }
 }
-} // namespace vibestudio
+} // namespace slopstudio

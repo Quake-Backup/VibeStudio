@@ -6,7 +6,7 @@
 #include <QHash>
 #include <QJsonValue>
 
-namespace vibestudio
+namespace slopstudio
 {
 enum class ModelEditKind;
 struct ModelEdit;
@@ -59,4 +59,4 @@ void carryModelUvPins(const ModelUvPinState &before, ModelMesh *mesh);
 // Editable source form: ascending corner indices.
 [[nodiscard]] QJsonValue modelUvPinsJson(const QSet<int> &pins);
 bool parseModelUvPins(const QJsonValue &value, int vertexCount, QSet<int> *pins);
-} // namespace vibestudio
+} // namespace slopstudio

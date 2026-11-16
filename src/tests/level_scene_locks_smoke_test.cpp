@@ -21,7 +21,7 @@
 #include <QtEndian>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 int refusalCases = 0;
@@ -302,7 +302,7 @@ int main(int argc, char** argv) {
 	expect(loadLevelMapBytes({"locks.map", {}, {}}, saved, &restored, &error) && restored.scene == persisted.scene &&
 			   !moveLevelMapObject(&restored, "brush", 0, 8, 0, 0, &error),
 		   "native lock roundtrip", error);
-	const QByteArray marker("\n// VibeStudioScene: ");
+	const QByteArray marker("\n// SlopStudioScene: ");
 	const auto offset = saved.lastIndexOf(marker);
 	auto json = QJsonDocument::fromJson(QByteArray::fromBase64(saved.mid(offset + marker.size()).trimmed())).object();
 	json["version"] = 1;

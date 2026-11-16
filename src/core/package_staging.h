@@ -13,7 +13,7 @@
 #include <memory>
 #include <optional>
 
-namespace vibestudio {
+namespace slopstudio {
 
 struct PackageSubsetReview;
 
@@ -533,4 +533,4 @@ QString packageTimestampModeId(PackageTimestampMode mode);
 PackageTimestampMode packageTimestampModeFromId(const QString& id);
 QString packageWriteReportText(const PackageWriteReport& report);
 
-} // namespace vibestudio
+} // namespace slopstudio

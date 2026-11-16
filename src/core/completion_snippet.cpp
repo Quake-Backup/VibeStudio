@@ -6,7 +6,7 @@
 #include <QSet>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr int textLimit = 65536;
 struct Node {
@@ -175,4 +175,4 @@ QHash<QString, QString> completionSnippetVariables(const QString& source, int ca
 		{QStringLiteral("TM_DIRECTORY"), filePath.isEmpty() ? QString() : file.path()}, {QStringLiteral("TM_FILEPATH"), filePath}};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

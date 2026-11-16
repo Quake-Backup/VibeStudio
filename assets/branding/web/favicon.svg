@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="VibeStudio">
-<title>VibeStudio</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-label="SlopStudio">
+<title>SlopStudio</title>
 <defs><linearGradient id="g1" gradientUnits="userSpaceOnUse" x1="0" y1="64" x2="0" y2="960"><stop offset="0" stop-color="#F7A040"/><stop offset="1" stop-color="#D66A0E"/></linearGradient></defs>
 <path d="M280 64L744 64C863.29 64 960 160.71 960 280L960 744C960 863.29 863.29 960 744 960L280 960C160.71 960 64 863.29 64 744L64 280C64 160.71 160.71 64 280 64Z" fill="url(#g1)"/>
 <path d="M242.69 412.49L418.69 766.49C434.43 798.14 472.84 811.04 504.49 795.31C536.14 779.57 549.04 741.16 533.31 709.51L357.31 355.51C341.57 323.86 303.16 310.96 271.51 326.69C239.86 342.43 226.96 380.84 242.69 412.49Z" fill="#FFFFFF"/>

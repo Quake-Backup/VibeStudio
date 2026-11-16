@@ -8,7 +8,7 @@
 
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -27,7 +27,7 @@ QString number(double value)
 
 QString chooseLevelModelEntityClass(const EntityDefinitionCatalogue *definitions)
 {
-	// misc_model is the class VibeMap3 (like q3map2) bakes models from, and the
+	// misc_model is the class SlopMap3 (like q3map2) bakes models from, and the
 	// one the Quake-family definitions most often declare.
 	if (definitions)
 	{
@@ -45,7 +45,7 @@ QStringList levelModelPlacementSuffixes(LevelMapFormat format)
 	switch (format)
 	{
 	case LevelMapFormat::Quake3Map:
-		// What q3map2's picomodel loader (and so VibeMap3) reads.
+		// What q3map2's picomodel loader (and so SlopMap3) reads.
 		return {QStringLiteral("md3"), QStringLiteral("ase"), QStringLiteral("mdc"), QStringLiteral("md2"),
 				QStringLiteral("obj"), QStringLiteral("lwo"), QStringLiteral("fm")};
 	case LevelMapFormat::QuakeMap:
@@ -64,33 +64,33 @@ bool checkLevelModelPlacement(const LevelMapDocument &document, const LevelModel
 	LevelModelPlacementResult checked;
 	if (document.format != LevelMapFormat::QuakeMap && document.format != LevelMapFormat::Quake3Map)
 		return fail(error, document.format == LevelMapFormat::DoomWad
-							   ? QCoreApplication::translate("VibeStudioLevelModelPlacement",
+							   ? QCoreApplication::translate("SlopStudioLevelModelPlacement",
 															 "Doom maps have no model entities; things take their sprites from the game.")
-							   : QCoreApplication::translate("VibeStudioLevelModelPlacement", "Open a Quake-family map to place a model."));
+							   : QCoreApplication::translate("SlopStudioLevelModelPlacement", "Open a Quake-family map to place a model."));
 	const auto normalized = normalizePackageVirtualPath(request.virtualPath, false);
 	if (!normalized.isSafe() || normalized.normalizedPath.isEmpty() || normalized.normalizedPath.toUtf8().size() >= 64)
-		return fail(error, QCoreApplication::translate("VibeStudioLevelModelPlacement", "Choose a safe model package path shorter than 64 bytes."));
+		return fail(error, QCoreApplication::translate("SlopStudioLevelModelPlacement", "Choose a safe model package path shorter than 64 bytes."));
 	const QString suffix = QFileInfo(normalized.normalizedPath).suffix().toLower();
 	const auto loaded = levelModelPlacementSuffixes(document.format);
 	if (document.format == LevelMapFormat::Quake3Map && !loaded.contains(suffix))
-		return fail(error, QCoreApplication::translate("VibeStudioLevelModelPlacement",
+		return fail(error, QCoreApplication::translate("SlopStudioLevelModelPlacement",
 													   "A Quake III map bakes MD3, ASE, MDC, MD2, OBJ, LWO and FM models; %1 is not one.")
 							   .arg(normalized.normalizedPath));
 	if (document.format == LevelMapFormat::QuakeMap && !loaded.contains(suffix))
-		checked.warnings << QCoreApplication::translate("VibeStudioLevelModelPlacement",
+		checked.warnings << QCoreApplication::translate("SlopStudioLevelModelPlacement",
 														"Quake and Quake II load MDL and MD2 models; %1 loads only in source ports that read .%2 files.")
 								.arg(normalized.normalizedPath, suffix);
 	const auto finite = [](const LevelMapVec3 &v) { return std::isfinite(v.x) && std::isfinite(v.y) && std::isfinite(v.z); };
 	if (!finite(request.origin) || !finite(request.angles) || !std::isfinite(request.modelscale) || request.modelscale <= 0)
-		return fail(error, QCoreApplication::translate("VibeStudioLevelModelPlacement",
+		return fail(error, QCoreApplication::translate("SlopStudioLevelModelPlacement",
 													   "Model placement needs finite coordinates and angles, and a scale above zero."));
 	checked.entityClass = request.entityClass.trimmed().isEmpty() ? chooseLevelModelEntityClass(request.definitions) : request.entityClass.trimmed();
 	if (checked.entityClass.contains(QLatin1Char('"')) || checked.entityClass.contains(QLatin1Char(' ')) || checked.entityClass.contains(QLatin1Char('\n')))
-		return fail(error, QCoreApplication::translate("VibeStudioLevelModelPlacement", "An entity class is one word without quotes."));
-	// VibeMap3 bakes misc_model whatever the game's definitions say.
+		return fail(error, QCoreApplication::translate("SlopStudioLevelModelPlacement", "An entity class is one word without quotes."));
+	// SlopMap3 bakes misc_model whatever the game's definitions say.
 	const bool baked = document.format == LevelMapFormat::Quake3Map && checked.entityClass == QStringLiteral("misc_model");
 	if (!baked && request.definitions && !request.definitions->isEmpty() && !request.definitions->classForName(checked.entityClass))
-		checked.warnings << QCoreApplication::translate("VibeStudioLevelModelPlacement",
+		checked.warnings << QCoreApplication::translate("SlopStudioLevelModelPlacement",
 														"No loaded definition declares %1, so make sure your game or mod has it.")
 								.arg(checked.entityClass);
 	if (result)
@@ -102,7 +102,7 @@ bool placeLevelModelEntity(LevelMapDocument *document, const LevelModelPlacement
 						   QString *error)
 {
 	if (!document)
-		return fail(error, QCoreApplication::translate("VibeStudioLevelModelPlacement", "Open a Quake-family map to place a model."));
+		return fail(error, QCoreApplication::translate("SlopStudioLevelModelPlacement", "Open a Quake-family map to place a model."));
 	LevelModelPlacementResult placed;
 	if (!checkLevelModelPlacement(*document, request, &placed, error))
 		return false;
@@ -137,4 +137,4 @@ QString levelEntityModelPath(const LevelMapEntity &entity)
 	return {};
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

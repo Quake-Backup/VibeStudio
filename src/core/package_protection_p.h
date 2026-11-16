@@ -4,7 +4,7 @@
 #include <QSet>
 #include <QStringList>
 
-namespace vibestudio {
+namespace slopstudio {
 // Separate bounded set of absolute input roots. Document accounting also charges
 // every retained root and UTF-16 byte. Roots protect their descendants even if
 // the original directory has disappeared. No file is opened for writing here.
@@ -49,4 +49,4 @@ private:
 	bool m_identityReady = false, m_portableIdentity = false;
 	bool m_cancelled = false, m_failed = false, m_matching = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

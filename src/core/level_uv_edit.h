@@ -8,7 +8,7 @@
 #include <QString>
 #include <QVector>
 
-namespace vibestudio {
+namespace slopstudio {
 
 // The UV Editor's service: one brush face's winding or one patch's control
 // grid in texture space, as NetRadiant Custom's TexTool plugin shows it.
@@ -133,4 +133,4 @@ QVector<QPointF> levelUvPatchTransformed(const QVector<QPointF>& uv, const QVect
 bool prepareLevelUvEdit(const LevelMapDocument& document, const LevelUvLayout& layout, const LevelUvEdit& edit, LevelSurfaceEditPlan* plan,
 	QString* error = nullptr, LevelUvFit* fit = nullptr);
 
-} // namespace vibestudio
+} // namespace slopstudio

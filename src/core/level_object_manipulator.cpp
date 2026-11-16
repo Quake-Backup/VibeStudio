@@ -18,7 +18,7 @@
 // aabb_snap_translation, and radiant/selection.cpp TransformOriginTranslate and
 // RadiantSelectionSystem::setCustomTransformOrigin at 449778b3
 // (GPL-2.0-or-later). Original Qt implementation; see docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(LevelObjectManipulator)
@@ -671,4 +671,4 @@ QVector<QPair<LevelMapVec3, LevelMapVec3>> levelObjectManipulatorEdges(const Lev
 	}
 	return edges;
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -27,7 +27,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 QString phase;
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 		return 1;
 	}
 
-	for (const auto* profile : {"netradiant-custom", "trenchbroom", "vibestudio-default"}) {
+	for (const auto* profile : {"netradiant-custom", "trenchbroom", "slopstudio-default"}) {
 		for (int scale : {100, 200}) {
 			phase = QStringLiteral("%1 %2%").arg(QLatin1String(profile)).arg(scale);
 			std::cout << "Round to grid UI " << phase.toStdString() << std::endl;

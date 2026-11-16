@@ -19,7 +19,7 @@
 
 #include <optional>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 
 namespace {
 
@@ -57,14 +57,14 @@ Arguments parseArguments(const QStringList& arguments, const QSet<QString>& flag
 		const QString key = equal < 0 ? argument : argument.left(equal);
 		if (globalFlags.contains(key) || flags.contains(key)) {
 			if (equal >= 0) {
-				parsed.error = QCoreApplication::translate("VibeStudioReleaseCli", "%1 takes no value.").arg(key);
+				parsed.error = QCoreApplication::translate("SlopStudioReleaseCli", "%1 takes no value.").arg(key);
 				return parsed;
 			}
 			parsed.flags.insert(key);
 			continue;
 		}
 		if (!options.contains(key) && !globalOptions.contains(key)) {
-			parsed.error = QCoreApplication::translate("VibeStudioReleaseCli", "Unknown option %1.").arg(key);
+			parsed.error = QCoreApplication::translate("SlopStudioReleaseCli", "Unknown option %1.").arg(key);
 			return parsed;
 		}
 		QString value;
@@ -74,11 +74,11 @@ Arguments parseArguments(const QStringList& arguments, const QSet<QString>& flag
 			value = arguments[++i];
 		}
 		if (value.isEmpty()) {
-			parsed.error = QCoreApplication::translate("VibeStudioReleaseCli", "%1 needs a value.").arg(key);
+			parsed.error = QCoreApplication::translate("SlopStudioReleaseCli", "%1 needs a value.").arg(key);
 			return parsed;
 		}
 		if (parsed.values.contains(key) && !repeatable.contains(key)) {
-			parsed.error = QCoreApplication::translate("VibeStudioReleaseCli", "%1 was given more than once.").arg(key);
+			parsed.error = QCoreApplication::translate("SlopStudioReleaseCli", "%1 was given more than once.").arg(key);
 			return parsed;
 		}
 		parsed.values[key] << value;
@@ -123,7 +123,7 @@ bool loadProjectContext(const Arguments& args, const QString& projectArgument, P
 {
 	context->root = QDir::cleanPath(QFileInfo(projectArgument.isEmpty() ? QDir::currentPath() : projectArgument).absoluteFilePath());
 	if (!QFileInfo(context->root).isDir()) {
-		*error = failure(3, QCoreApplication::translate("VibeStudioReleaseCli", "Project folder not found: %1").arg(QDir::toNativeSeparators(context->root)));
+		*error = failure(3, QCoreApplication::translate("SlopStudioReleaseCli", "Project folder not found: %1").arg(QDir::toNativeSeparators(context->root)));
 		return false;
 	}
 	QString manifestError;
@@ -131,20 +131,20 @@ bool loadProjectContext(const Arguments& args, const QString& projectArgument, P
 	if (!context->hasManifest && projectArgument.isEmpty()) {
 		// Never scan an arbitrary working folder by accident: a folder without
 		// a manifest must be named.
-		*error = failure(3, QCoreApplication::translate("VibeStudioReleaseCli", "No project manifest in %1. Name the project folder, or create a manifest with: vibestudio --cli project init <folder>")
+		*error = failure(3, QCoreApplication::translate("SlopStudioReleaseCli", "No project manifest in %1. Name the project folder, or create a manifest with: slopstudio --cli project init <folder>")
 			.arg(QDir::toNativeSeparators(context->root)));
 		return false;
 	}
 	if (!context->hasManifest) {
 		context->manifest = defaultProjectManifest(context->root);
-		context->warnings << QCoreApplication::translate("VibeStudioReleaseCli", "%1 has no project manifest; its folder defaults are used. Run: vibestudio --cli project init %2")
+		context->warnings << QCoreApplication::translate("SlopStudioReleaseCli", "%1 has no project manifest; its folder defaults are used. Run: slopstudio --cli project init %2")
 			.arg(QDir::toNativeSeparators(context->root), QDir::toNativeSeparators(context->root));
 	}
 	const StudioSettings settings(StudioSettings::AccessMode::ReadOnly);
 	const QString requested = args.value(QStringLiteral("--installation"));
 	if (!requested.isEmpty()) {
 		if (!findInstallation(settings, requested, &context->installation)) {
-			*error = failure(3, QCoreApplication::translate("VibeStudioReleaseCli", "No saved installation has the id %1. List them with: vibestudio --cli install list").arg(requested));
+			*error = failure(3, QCoreApplication::translate("SlopStudioReleaseCli", "No saved installation has the id %1. List them with: slopstudio --cli install list").arg(requested));
 			return false;
 		}
 		context->hasInstallation = true;
@@ -171,7 +171,7 @@ bool loadProjectContext(const Arguments& args, const QString& projectArgument, P
 		context->release.includeSources = true;
 	}
 	if (!isValidReleaseVersion(context->release.version)) {
-		*error = failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "%1 is not a usable version. Use letters, digits, '.', '-', '+' or '_', such as 1.2.0.").arg(context->release.version));
+		*error = failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "%1 is not a usable version. Use letters, digits, '.', '-', '+' or '_', such as 1.2.0.").arg(context->release.version));
 		return false;
 	}
 	return true;
@@ -200,20 +200,20 @@ bool planFromArguments(const Arguments& args, const ProjectContext& context, Pla
 		}
 	}
 	if (kinds > 1) {
-		*error = failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "Choose one kind of item: --map, --model or --texture."));
+		*error = failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "Choose one kind of item: --map, --model or --texture."));
 		return false;
 	}
 	if (args.has(QStringLiteral("--scope"))) {
 		bool ok = false;
 		const ReleaseScope requested = releaseScopeFromId(args.value(QStringLiteral("--scope")), &ok);
 		if (!ok || (kinds > 0 && requested != scope)) {
-			*error = failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "--scope must be project, maps, models or textures, and match the items given."));
+			*error = failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "--scope must be project, maps, models or textures, and match the items given."));
 			return false;
 		}
 		scope = requested;
 	}
 	if (scope != ReleaseScope::Project && items.isEmpty()) {
-		*error = failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "Name the items to release with --map, --model or --texture."));
+		*error = failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "Name the items to release with --map, --model or --texture."));
 		return false;
 	}
 	for (QString& item : items) {
@@ -325,7 +325,7 @@ bool parseDate(const Arguments& args, QDate* date, ReleaseCliResult* error)
 	if (args.has(QStringLiteral("--date"))) {
 		*date = QDate::fromString(args.value(QStringLiteral("--date")), Qt::ISODate);
 		if (!date->isValid()) {
-			*error = failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "--date must be a date such as 2026-10-08."));
+			*error = failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "--date must be a date such as 2026-10-08."));
 			return false;
 		}
 	}
@@ -377,12 +377,12 @@ ReleaseCliResult runPlan(const Arguments& args, const QString& action)
 	// publish
 	if (!plan.canPublish()) {
 		result.exitCode = 4;
-		result.error = QCoreApplication::translate("VibeStudioReleaseCli", "The release has %1 blocking problem(s); nothing was written.").arg(plan.blockingCount());
+		result.error = QCoreApplication::translate("SlopStudioReleaseCli", "The release has %1 blocking problem(s); nothing was written.").arg(plan.blockingCount());
 		return result;
 	}
 	const QString recordPath = releaseRecordPath(context.root, plan.release.version);
 	if (!args.has(QStringLiteral("--overwrite")) && !recordPath.isEmpty() && QFileInfo::exists(recordPath)) {
-		return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "Version %1 has already been released. Pass --release-version %2 for the next release, or --overwrite to replace it.")
+		return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "Version %1 has already been released. Pass --release-version %2 for the next release, or --overwrite to replace it.")
 			.arg(plan.release.version, bumpReleaseVersion(plan.release.version, QStringLiteral("patch"))));
 	}
 	ReleasePublishRequest publish;
@@ -395,7 +395,7 @@ ReleaseCliResult runPlan(const Arguments& args, const QString& action)
 	if (args.has(QStringLiteral("--notes-file"))) {
 		QFile file(args.value(QStringLiteral("--notes-file")));
 		if (!file.open(QIODevice::ReadOnly)) {
-			return failure(3, QCoreApplication::translate("VibeStudioReleaseCli", "Unable to read %1.").arg(args.value(QStringLiteral("--notes-file"))));
+			return failure(3, QCoreApplication::translate("SlopStudioReleaseCli", "Unable to read %1.").arg(args.value(QStringLiteral("--notes-file"))));
 		}
 		publish.notesMarkdown = QString::fromUtf8(file.readAll());
 	}
@@ -410,7 +410,7 @@ ReleaseCliResult runPlan(const Arguments& args, const QString& action)
 	if (args.has(QStringLiteral("--compression"))) {
 		DeflateLevel level = DeflateLevel::Default;
 		if (!deflateLevelFromId(args.value(QStringLiteral("--compression")), &level)) {
-			return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "--compression must be store, fast, default or best."));
+			return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "--compression must be store, fast, default or best."));
 		}
 		publish.compression = level;
 	}
@@ -448,7 +448,7 @@ ReleaseCliResult runChangelog(const Arguments& args)
 		}
 		added = true;
 	} else if (args.has(QStringLiteral("--category"))) {
-		return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "--category goes with --add."));
+		return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "--category goes with --add."));
 	}
 	const QVector<ChangelogEntry> unreleased = changelog.unreleasedEntries();
 	result.payload = {
@@ -461,13 +461,13 @@ ReleaseCliResult runChangelog(const Arguments& args)
 	};
 	result.lines << QDir::toNativeSeparators(path);
 	if (unreleased.isEmpty()) {
-		result.lines << QCoreApplication::translate("VibeStudioReleaseCli", "No unreleased changes recorded yet.");
+		result.lines << QCoreApplication::translate("SlopStudioReleaseCli", "No unreleased changes recorded yet.");
 	}
 	for (const ChangelogEntry& entry : unreleased) {
 		result.lines << QStringLiteral("- [%1] %2").arg(changelogCategoryDisplayName(entry.category), entry.text);
 	}
 	if (!changelog.versions().isEmpty()) {
-		result.lines << QCoreApplication::translate("VibeStudioReleaseCli", "Released: %1").arg(changelog.versions().join(QStringLiteral(", ")));
+		result.lines << QCoreApplication::translate("SlopStudioReleaseCli", "Released: %1").arg(changelog.versions().join(QStringLiteral(", ")));
 	}
 	return result;
 }
@@ -495,10 +495,10 @@ ReleaseCliResult runHistory(const Arguments& args)
 			{QStringLiteral("record"), QDir::toNativeSeparators(record.recordPath)},
 		});
 		result.lines << QStringLiteral("%1  %2  %3  %4").arg(record.version, record.publishedUtc.toLocalTime().toString(Qt::ISODate), record.packageFileName,
-			QCoreApplication::translate("VibeStudioReleaseCli", "%1 file(s)").arg(record.files.size()));
+			QCoreApplication::translate("SlopStudioReleaseCli", "%1 file(s)").arg(record.files.size()));
 	}
 	if (records.isEmpty()) {
-		result.lines << QCoreApplication::translate("VibeStudioReleaseCli", "No releases have been published from this project yet.");
+		result.lines << QCoreApplication::translate("SlopStudioReleaseCli", "No releases have been published from this project yet.");
 	}
 	result.lines += warnings;
 	result.payload = {{QStringLiteral("project"), QDir::toNativeSeparators(context.root)}, {QStringLiteral("releases"), releases}, {QStringLiteral("warnings"), jsonStrings(warnings)}};
@@ -523,15 +523,15 @@ ReleaseCliResult runCatalog(const Arguments& args)
 			{QStringLiteral("stale"), map.stale},
 			{QStringLiteral("doomMaps"), jsonStrings(map.doomMaps)},
 		});
-		result.lines << QCoreApplication::translate("VibeStudioReleaseCli", "map      %1  %2").arg(map.name,
-			!map.built ? QCoreApplication::translate("VibeStudioReleaseCli", "not built") : map.stale ? QCoreApplication::translate("VibeStudioReleaseCli", "out of date")
-			: QCoreApplication::translate("VibeStudioReleaseCli", "built"));
+		result.lines << QCoreApplication::translate("SlopStudioReleaseCli", "map      %1  %2").arg(map.name,
+			!map.built ? QCoreApplication::translate("SlopStudioReleaseCli", "not built") : map.stale ? QCoreApplication::translate("SlopStudioReleaseCli", "out of date")
+			: QCoreApplication::translate("SlopStudioReleaseCli", "built"));
 	}
 	for (const QString& model : catalog.models) {
-		result.lines << QCoreApplication::translate("VibeStudioReleaseCli", "model    %1").arg(QDir::toNativeSeparators(model));
+		result.lines << QCoreApplication::translate("SlopStudioReleaseCli", "model    %1").arg(QDir::toNativeSeparators(model));
 	}
 	for (const QString& folder : catalog.textureFolders) {
-		result.lines << QCoreApplication::translate("VibeStudioReleaseCli", "textures %1").arg(QDir::toNativeSeparators(folder));
+		result.lines << QCoreApplication::translate("SlopStudioReleaseCli", "textures %1").arg(QDir::toNativeSeparators(folder));
 	}
 	result.lines += catalog.warnings;
 	QJsonArray models;
@@ -572,7 +572,7 @@ ReleaseCliResult runReleaseCommand(const QStringList& arguments)
 	}
 	const QString action = args.positional.value(1).toLower();
 	if (args.positional.size() > 3) {
-		return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "Expected at most one project folder."));
+		return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "Expected at most one project folder."));
 	}
 	// Options that only one action reads are refused elsewhere.
 	const QSet<QString> publishOnly {QStringLiteral("--output"), QStringLiteral("--notes-file"), QStringLiteral("--compression"), QStringLiteral("--no-readme"),
@@ -580,19 +580,19 @@ ReleaseCliResult runReleaseCommand(const QStringList& arguments)
 	const QSet<QString> changelogOnly {QStringLiteral("--add"), QStringLiteral("--category")};
 	for (const QString& key : publishOnly) {
 		if (args.has(key) && action != QStringLiteral("publish")) {
-			return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "%1 applies only to release publish.").arg(key));
+			return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "%1 applies only to release publish.").arg(key));
 		}
 	}
 	for (const QString& key : changelogOnly) {
 		if (args.has(key) && action != QStringLiteral("changelog")) {
-			return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "%1 applies only to release changelog.").arg(key));
+			return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "%1 applies only to release changelog.").arg(key));
 		}
 	}
 	if (args.has(QStringLiteral("--readme")) && action != QStringLiteral("notes")) {
-		return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "--readme applies only to release notes."));
+		return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "--readme applies only to release notes."));
 	}
 	if (args.has(QStringLiteral("--dry-run")) && action != QStringLiteral("publish") && action != QStringLiteral("changelog")) {
-		return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "--dry-run applies to release publish and release changelog."));
+		return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "--dry-run applies to release publish and release changelog."));
 	}
 	if (action == QStringLiteral("plan") || action == QStringLiteral("publish") || action == QStringLiteral("notes")) {
 		return runPlan(args, action);
@@ -606,7 +606,7 @@ ReleaseCliResult runReleaseCommand(const QStringList& arguments)
 	if (action == QStringLiteral("catalog")) {
 		return runCatalog(args);
 	}
-	return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "Expected release plan, publish, notes, changelog, history or catalog."));
+	return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "Expected release plan, publish, notes, changelog, history or catalog."));
 }
 
 ReleaseCliResult runInstallRegisterCommand(const QStringList& arguments)
@@ -622,16 +622,16 @@ ReleaseCliResult runInstallRegisterCommand(const QStringList& arguments)
 	const QString action = args.positional.value(2).toLower();
 	const QString id = args.positional.value(3);
 	if (action.isEmpty() || id.isEmpty()) {
-		return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "Expected install register build|info|check|export <installation-id>."));
+		return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "Expected install register build|info|check|export <installation-id>."));
 	}
 	const StudioSettings settings(StudioSettings::AccessMode::ReadOnly);
 	GameInstallationProfile installation;
 	if (!findInstallation(settings, id, &installation)) {
-		return failure(3, QCoreApplication::translate("VibeStudioReleaseCli", "No saved installation has the id %1. List them with: vibestudio --cli install list").arg(id));
+		return failure(3, QCoreApplication::translate("SlopStudioReleaseCli", "No saved installation has the id %1. List them with: slopstudio --cli install list").arg(id));
 	}
 	const auto refuse = [&args](const QString& key, const QString& owner) -> std::optional<ReleaseCliResult> {
 		if (args.has(key)) {
-			return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "%1 applies only to install register %2.").arg(key, owner));
+			return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "%1 applies only to install register %2.").arg(key, owner));
 		}
 		return std::nullopt;
 	};
@@ -643,7 +643,7 @@ ReleaseCliResult runInstallRegisterCommand(const QStringList& arguments)
 			}
 		}
 		if (args.positional.size() > 4) {
-			return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "install register build takes one installation id."));
+			return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "install register build takes one installation id."));
 		}
 		GameAssetRegisterBuildRequest request;
 		request.installation = installation;
@@ -667,55 +667,55 @@ ReleaseCliResult runInstallRegisterCommand(const QStringList& arguments)
 			{QStringLiteral("warnings"), jsonStrings(built.warnings)},
 		};
 		result.lines << gameAssetRegisterSummaryText(built.registerData);
-		result.lines << (args.has(QStringLiteral("--dry-run")) ? QCoreApplication::translate("VibeStudioReleaseCli", "Dry run: the index was not saved.")
-															   : QCoreApplication::translate("VibeStudioReleaseCli", "Saved %1").arg(QDir::toNativeSeparators(path)));
+		result.lines << (args.has(QStringLiteral("--dry-run")) ? QCoreApplication::translate("SlopStudioReleaseCli", "Dry run: the index was not saved.")
+															   : QCoreApplication::translate("SlopStudioReleaseCli", "Saved %1").arg(QDir::toNativeSeparators(path)));
 		result.lines += built.warnings;
 		return result;
 	}
 	if (args.has(QStringLiteral("--package"))) {
-		return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "--package applies only to install register build."));
+		return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "--package applies only to install register build."));
 	}
 	if (args.has(QStringLiteral("--dry-run"))) {
-		return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "--dry-run applies only to install register build."));
+		return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "--dry-run applies only to install register build."));
 	}
 	GameAssetRegister loaded;
 	const GameAssetRegisterStatus status = gameAssetRegisterStatus(installation, &loaded);
 	if (action == QStringLiteral("info")) {
 		if (args.positional.size() > 4 || args.has(QStringLiteral("--output")) || args.has(QStringLiteral("--file")) || args.has(QStringLiteral("--as"))) {
-			return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "install register info takes only an installation id."));
+			return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "install register info takes only an installation id."));
 		}
 		result.payload = {{QStringLiteral("installation"), installation.id}, {QStringLiteral("status"), gameAssetRegisterStatusJson(status)}};
 		if (status.loaded) {
 			result.payload.insert(QStringLiteral("register"), gameAssetRegisterSummaryJson(loaded));
 			result.lines << gameAssetRegisterSummaryText(loaded);
-			result.lines << (status.fresh ? QCoreApplication::translate("VibeStudioReleaseCli", "Up to date.") : QCoreApplication::translate("VibeStudioReleaseCli", "Out of date:"));
+			result.lines << (status.fresh ? QCoreApplication::translate("SlopStudioReleaseCli", "Up to date.") : QCoreApplication::translate("SlopStudioReleaseCli", "Out of date:"));
 			result.lines += status.staleReasons;
 		} else {
-			result.lines << (status.exists ? status.error : QCoreApplication::translate("VibeStudioReleaseCli", "Not indexed yet. Run: vibestudio --cli install register build %1").arg(installation.id));
+			result.lines << (status.exists ? status.error : QCoreApplication::translate("SlopStudioReleaseCli", "Not indexed yet. Run: slopstudio --cli install register build %1").arg(installation.id));
 		}
 		// A missing or stale index is a finding, like a failed validation.
 		result.exitCode = status.usable() ? 0 : 4;
 		return result;
 	}
 	if (!status.loaded) {
-		return failure(4, status.exists ? status.error : QCoreApplication::translate("VibeStudioReleaseCli", "Not indexed yet. Run: vibestudio --cli install register build %1").arg(installation.id));
+		return failure(4, status.exists ? status.error : QCoreApplication::translate("SlopStudioReleaseCli", "Not indexed yet. Run: slopstudio --cli install register build %1").arg(installation.id));
 	}
 	if (action == QStringLiteral("check")) {
 		if (args.has(QStringLiteral("--output"))) {
-			return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "--output applies only to install register export."));
+			return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "--output applies only to install register export."));
 		}
 		QStringList paths = args.positional.mid(4);
 		const bool compareFile = args.has(QStringLiteral("--file"));
 		if (compareFile) {
 			if (!args.has(QStringLiteral("--as")) || !paths.isEmpty()) {
-				return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "--file needs --as <game path> and no other paths."));
+				return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "--file needs --as <game path> and no other paths."));
 			}
 			paths = {args.value(QStringLiteral("--as"))};
 		} else if (args.has(QStringLiteral("--as"))) {
-			return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "--as goes with --file."));
+			return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "--as goes with --file."));
 		}
 		if (paths.isEmpty()) {
-			return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "Name at least one game path, such as textures/base_wall/basewall01.tga."));
+			return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "Name at least one game path, such as textures/base_wall/basewall01.tga."));
 		}
 		QJsonArray checks;
 		for (const QString& path : std::as_const(paths)) {
@@ -723,9 +723,9 @@ ReleaseCliResult runInstallRegisterCommand(const QStringList& arguments)
 			// A map can name a shader that has no file of its own.
 			const GameAssetRegisterFile* shader = file ? nullptr : loaded.shaderScript(path);
 			QJsonObject check {{QStringLiteral("path"), path}, {QStringLiteral("stock"), file != nullptr || shader != nullptr}};
-			QString line = file ? QCoreApplication::translate("VibeStudioReleaseCli", "%1: in %2").arg(path, loaded.sourceLabel(file->source))
-				: shader ? QCoreApplication::translate("VibeStudioReleaseCli", "%1: a shader declared by %2 in %3").arg(path, shader->path, loaded.sourceLabel(shader->source))
-						 : QCoreApplication::translate("VibeStudioReleaseCli", "%1: not a stock file").arg(path);
+			QString line = file ? QCoreApplication::translate("SlopStudioReleaseCli", "%1: in %2").arg(path, loaded.sourceLabel(file->source))
+				: shader ? QCoreApplication::translate("SlopStudioReleaseCli", "%1: a shader declared by %2 in %3").arg(path, shader->path, loaded.sourceLabel(shader->source))
+						 : QCoreApplication::translate("SlopStudioReleaseCli", "%1: not a stock file").arg(path);
 			if (shader) {
 				check.insert(QStringLiteral("shaderScript"), shader->path);
 				check.insert(QStringLiteral("source"), loaded.sourceLabel(shader->source));
@@ -744,9 +744,9 @@ ReleaseCliResult runInstallRegisterCommand(const QStringList& arguments)
 				}
 				const GameAssetMatch match = loaded.match(path, quint64(QFileInfo(local).size()), crc);
 				check.insert(QStringLiteral("match"), gameAssetMatchId(match));
-				line += QStringLiteral(" (%1)").arg(match == GameAssetMatch::Identical ? QCoreApplication::translate("VibeStudioReleaseCli", "your copy is identical")
-					: match == GameAssetMatch::Different ? QCoreApplication::translate("VibeStudioReleaseCli", "your copy differs and would replace it")
-														 : QCoreApplication::translate("VibeStudioReleaseCli", "yours is new"));
+				line += QStringLiteral(" (%1)").arg(match == GameAssetMatch::Identical ? QCoreApplication::translate("SlopStudioReleaseCli", "your copy is identical")
+					: match == GameAssetMatch::Different ? QCoreApplication::translate("SlopStudioReleaseCli", "your copy differs and would replace it")
+														 : QCoreApplication::translate("SlopStudioReleaseCli", "yours is new"));
 			}
 			checks.append(check);
 			result.lines << line;
@@ -756,11 +756,11 @@ ReleaseCliResult runInstallRegisterCommand(const QStringList& arguments)
 	}
 	if (action == QStringLiteral("export")) {
 		if (args.has(QStringLiteral("--file")) || args.has(QStringLiteral("--as")) || args.positional.size() > 4) {
-			return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "install register export takes an installation id and --output."));
+			return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "install register export takes an installation id and --output."));
 		}
 		const QString output = args.value(QStringLiteral("--output"));
 		if (output.isEmpty()) {
-			return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "Name the file to write with --output."));
+			return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "Name the file to write with --output."));
 		}
 		QString error;
 		const QString path = QFileInfo(output).absoluteFilePath();
@@ -768,10 +768,10 @@ ReleaseCliResult runInstallRegisterCommand(const QStringList& arguments)
 			return failure(1, error);
 		}
 		result.payload = {{QStringLiteral("installation"), installation.id}, {QStringLiteral("output"), QDir::toNativeSeparators(path)}, {QStringLiteral("fresh"), status.fresh}};
-		result.lines << QCoreApplication::translate("VibeStudioReleaseCli", "Wrote %1. Pass it to release commands with --register on machines without the game.").arg(QDir::toNativeSeparators(path));
+		result.lines << QCoreApplication::translate("SlopStudioReleaseCli", "Wrote %1. Pass it to release commands with --register on machines without the game.").arg(QDir::toNativeSeparators(path));
 		return result;
 	}
-	return failure(2, QCoreApplication::translate("VibeStudioReleaseCli", "Expected install register build|info|check|export <installation-id>."));
+	return failure(2, QCoreApplication::translate("SlopStudioReleaseCli", "Expected install register build|info|check|export <installation-id>."));
 }
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

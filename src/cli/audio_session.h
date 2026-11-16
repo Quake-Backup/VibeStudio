@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 struct AudioSessionCliResult {
 	int exitCode = 0;
@@ -11,4 +11,4 @@ struct AudioSessionCliResult {
 	QStringList lines;
 };
 AudioSessionCliResult runAudioSession(const QStringList &arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

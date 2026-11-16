@@ -13,7 +13,7 @@
 #include <cmath>
 #include <cstring>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -115,15 +115,15 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 	const ModelSkeleton& skeleton = mesh.skeleton;
 	const int boneCount = int(skeleton.joints.size());
 	if (skeleton.isEmpty()) {
-		fail(error, QCoreApplication::translate("VibeStudioModelMds", "An MDS needs a skeleton; this model animates by frames. Export MD3 instead."));
+		fail(error, QCoreApplication::translate("SlopStudioModelMds", "An MDS needs a skeleton; this model animates by frames. Export MD3 instead."));
 		return {};
 	}
 	if (boneCount > kMaxBones) {
-		fail(error, QCoreApplication::translate("VibeStudioModelMds", "The skeleton has %1 bones; RTCW's renderer holds at most %2.").arg(boneCount).arg(kMaxBones));
+		fail(error, QCoreApplication::translate("SlopStudioModelMds", "The skeleton has %1 bones; RTCW's renderer holds at most %2.").arg(boneCount).arg(kMaxBones));
 		return {};
 	}
 	if (options.torsoParent < -1 || options.torsoParent >= boneCount) {
-		fail(error, QCoreApplication::translate("VibeStudioModelMds", "The torso parent must be a bone of the skeleton."));
+		fail(error, QCoreApplication::translate("SlopStudioModelMds", "The torso parent must be a bone of the skeleton."));
 		return {};
 	}
 	ModelWorkProgress work(control, ModelWorkPhase::Serializing, error);
@@ -140,12 +140,12 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 	QVector<bool> weighted(boneCount, false), tagged(boneCount, false);
 	for (const ModelSurface& surface : mesh.surfaces) {
 		if (surface.skinning.isEmpty()) {
-			fail(error, QCoreApplication::translate("VibeStudioModelMds", "Surface %1 does not follow the skeleton; every MDS vertex needs a bone.").arg(surface.name));
+			fail(error, QCoreApplication::translate("SlopStudioModelMds", "Surface %1 does not follow the skeleton; every MDS vertex needs a bone.").arg(surface.name));
 			return {};
 		}
 		for (int v = 0; v < surface.skinning.count.size(); ++v) {
 			if (surface.skinning.count.at(v) > options.maxInfluences) {
-				fail(error, QCoreApplication::translate("VibeStudioModelMds", "Vertex %1 of surface %2 has %3 bone weights; MDS export keeps at most %4.")
+				fail(error, QCoreApplication::translate("SlopStudioModelMds", "Vertex %1 of surface %2 has %3 bone weights; MDS export keeps at most %4.")
 					.arg(QString::number(v), surface.name, QString::number(surface.skinning.count.at(v)), QString::number(options.maxInfluences)));
 				return {};
 			}
@@ -191,12 +191,12 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 		for (int bone = 0; bone < boneCount; ++bone) {
 			const ModelJointMatrix& m = pose.at(bone);
 			if (!modelJointMatrixIsFinite(m)) {
-				fail(error, QCoreApplication::translate("VibeStudioModelMds", "Bone %1 has a pose that is not a finite number.").arg(skeleton.joints.at(bone).name));
+				fail(error, QCoreApplication::translate("SlopStudioModelMds", "Bone %1 has a pose that is not a finite number.").arg(skeleton.joints.at(bone).name));
 				return {};
 			}
 			const ModelVec3 scale = modelJointScale(m);
 			if (std::abs(scale.x - 1.0f) > 1e-3f || std::abs(scale.y - 1.0f) > 1e-3f || std::abs(scale.z - 1.0f) > 1e-3f) {
-				fail(error, QCoreApplication::translate("VibeStudioModelMds", "Bone %1 scales in frame %2; MDS bones only rotate.").arg(skeleton.joints.at(bone).name, QString::number(f)));
+				fail(error, QCoreApplication::translate("SlopStudioModelMds", "Bone %1 scales in frame %2; MDS bones only rotate.").arg(skeleton.joints.at(bone).name, QString::number(f)));
 				return {};
 			}
 			// The axes AnglesToAxis must produce: the rows of the vertex
@@ -223,7 +223,7 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 					rootSet = true;
 				} else if (std::abs(translation.x - rootOffset.x) > options.distanceTolerance || std::abs(translation.y - rootOffset.y) > options.distanceTolerance
 					|| std::abs(translation.z - rootOffset.z) > options.distanceTolerance) {
-					fail(error, QCoreApplication::translate("VibeStudioModelMds", "Root bones %1 and the first root sit apart in frame %2; MDS roots share one position.")
+					fail(error, QCoreApplication::translate("SlopStudioModelMds", "Root bones %1 and the first root sit apart in frame %2; MDS roots share one position.")
 						.arg(skeleton.joints.at(bone).name, QString::number(f)));
 					return {};
 				}
@@ -235,7 +235,7 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 				const double stretch = std::abs(distance - parentDist.at(bone));
 				worstStretch = std::max(worstStretch, stretch);
 				if (stretch > std::max(options.distanceTolerance, parentDist.at(bone) * 1e-3)) {
-					fail(error, QCoreApplication::translate("VibeStudioModelMds",
+					fail(error, QCoreApplication::translate("SlopStudioModelMds",
 						"Bone %1 is %2 units from its parent in frame %3 but %4 in the first frame; MDS bones keep a fixed length.")
 						.arg(skeleton.joints.at(bone).name, QString::number(distance, 'g', 6), QString::number(f), QString::number(parentDist.at(bone), 'g', 6)));
 					return {};
@@ -306,7 +306,7 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 		for (int v = 0; v < surface.vertexCount; ++v) {
 			const int first = surface.skinning.first.value(v), count = surface.skinning.count.value(v);
 			if (count < 1) {
-				fail(error, QCoreApplication::translate("VibeStudioModelMds", "Vertex %1 of surface %2 has no bone weight.").arg(QString::number(v), surface.name));
+				fail(error, QCoreApplication::translate("SlopStudioModelMds", "Vertex %1 of surface %2 has no bone weight.").arg(QString::number(v), surface.name));
 				return {};
 			}
 			// The normal in the first bone's space (RB_SurfaceAnim rotates it
@@ -387,11 +387,11 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 		}
 	}
 	if (offsetTags > 0) {
-		result.omissions << QCoreApplication::translate("VibeStudioModelMds",
+		result.omissions << QCoreApplication::translate("SlopStudioModelMds",
 			"%n tag(s) sit off their bone; MDS tags follow the bone itself, so the offset is left out.", nullptr, offsetTags);
 	}
 	if (!mesh.collisionBoxes.isEmpty()) {
-		result.omissions << QCoreApplication::translate("VibeStudioModelMds", "Collision boxes stay in the editable source; MDS does not store them.");
+		result.omissions << QCoreApplication::translate("SlopStudioModelMds", "Collision boxes stay in the editable source; MDS does not store them.");
 	}
 	// The editable model keeps no torso parent or torso weights, so a model
 	// that came from an RTCW or Enemy Territory skeleton may lose them.
@@ -400,12 +400,12 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 		|| (mesh.sourcePath.contains(QLatin1Char('.'))
 			&& (sourceSuffix == QLatin1String("mds") || sourceSuffix == QLatin1String("mdm") || sourceSuffix == QLatin1String("mdx")));
 	if (torsoSource && options.torsoParent < 0) {
-		result.omissions << QCoreApplication::translate("VibeStudioModelMds",
+		result.omissions << QCoreApplication::translate("SlopStudioModelMds",
 			"The source's torso blending is not kept: this MDS is written with no torso parent and a torso weight of 0 on every bone and "
 			"tag, so the game will not turn the upper body separately. Keep the original file if it needs torso blending.");
 	}
 	if (skeleton.clips.size() > 1) {
-		result.notes << QCoreApplication::translate("VibeStudioModelMds",
+		result.notes << QCoreApplication::translate("SlopStudioModelMds",
 			"%1 clips were written one after another as %2 frames; name their ranges in the game's animation script.")
 			.arg(skeleton.clips.size()).arg(frames.size());
 	}
@@ -418,7 +418,7 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 	if (frameBlock.size() != qint64(frames.size()) * (kFrameHeaderBytes + qint64(boneCount) * kBoneFrameBytes)
 		|| boneBlock.size() != qint64(boneCount) * kBoneInfoBytes || tagBlock.size() != qint64(skeleton.tags.size()) * kTagBytes
 		|| surfaceBlock.size() < qint64(mesh.surfaces.size()) * kSurfaceBytes + vertexRecords) {
-		fail(error, QCoreApplication::translate("VibeStudioModelMds", "The MDS blocks came out the wrong size; nothing was written."));
+		fail(error, QCoreApplication::translate("SlopStudioModelMds", "The MDS blocks came out the wrong size; nothing was written."));
 		return {};
 	}
 	QByteArray bytes("MDSW");
@@ -447,7 +447,7 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 	if (!work.check()) {
 		return {};
 	}
-	result.notes << QCoreApplication::translate("VibeStudioModelMds", "Frames: %1, bones: %2; angles round to 1/65536 of a turn.")
+	result.notes << QCoreApplication::translate("SlopStudioModelMds", "Frames: %1, bones: %2; angles round to 1/65536 of a turn.")
 		.arg(frames.size()).arg(boneCount);
 	result.maxJointTranslationError = worstStretch;
 	result.maxJointRotationDegrees = std::asin(std::min(1.0, worstRotation)) / kRadians;
@@ -458,4 +458,4 @@ QByteArray exportModelMds(const ModelMesh& mesh, const ModelMdsExportOptions& op
 	return bytes;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -21,7 +21,7 @@
 
 #include <algorithm>
 
-namespace vibestudio
+namespace slopstudio
 {
 QWidget* ApplicationShell::createModelAppearancePanel()
 {
@@ -251,4 +251,4 @@ void ApplicationShell::refreshModelAppearanceImage()
 		}
 	}
 }
-} // namespace vibestudio
+} // namespace slopstudio

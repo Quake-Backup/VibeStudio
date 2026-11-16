@@ -4,7 +4,7 @@
 
 #include <array>
 
-namespace vibestudio
+namespace slopstudio
 {
 // Convex collision hulls. A hull is a collision volume whose `hull` points
 // (ModelCollisionBox::hull) lie in its box frame: world = centre + R(rotation)
@@ -65,4 +65,4 @@ QVector<QPair<ModelVec3, ModelVec3>> modelCollisionEdges(const ModelCollisionBox
 // frame is their bounding box). Refuses extents under one unit.
 bool makeModelCollisionHull(const QString &name, const QVector<ModelVec3> &vertices, ModelCollisionBox *box, QString *error = nullptr);
 QString validateModelCollisionHull(const ModelCollisionBox &box);
-} // namespace vibestudio
+} // namespace slopstudio

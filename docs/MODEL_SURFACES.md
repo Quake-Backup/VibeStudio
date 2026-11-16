@@ -89,8 +89,8 @@ checklist from the selected set; other reviewed actions name their active source
 Join remaps the selection to its surviving target. Undo restores the prior set.
 
 ```sh
-vibestudio --cli model edit parts.mesh.json --operation transform --surfaces 0,2 --offset 0,0,8 --snap-grid 1 --output raised.mesh.json --dry-run --json
-vibestudio --cli model edit parts.mesh.json --operation transform --surfaces all --rotate 0,0,90 --pivot-mode selection --pivot-frame 1 --output rotated.mesh.json
+slopstudio --cli model edit parts.mesh.json --operation transform --surfaces 0,2 --offset 0,0,8 --snap-grid 1 --output raised.mesh.json --dry-run --json
+slopstudio --cli model edit parts.mesh.json --operation transform --surfaces all --rotate 0,0,90 --pivot-mode selection --pivot-frame 1 --output rotated.mesh.json
 ```
 
 `--surfaces` accepts `all` or unique comma-separated indices and applies only to
@@ -131,13 +131,13 @@ The `model surfaces` command uses the same document operations as the GUI.
 Indices are zero-based. `--input` can replace the positional source.
 
 ```sh
-vibestudio --cli model surfaces prop.mesh.json --json
-vibestudio --cli model surfaces prop.mesh.json --operation rename --surface 0 --name body --output named.mesh.json
-vibestudio --cli model surfaces prop.mesh.json --operation separate --surface 0 --faces 0,2,3 --name panel --output parts.mesh.json
-vibestudio --cli model surfaces parts.mesh.json --operation move --surface 1 --faces all --target-surface 0 --output moved.mesh.json
-vibestudio --cli model surfaces prop.mesh.json --operation duplicate --surface 0 --name body_copy --output copied.mesh.json
-vibestudio --cli model surfaces parts.mesh.json --operation delete --surface 1 --output remaining.mesh.json
-vibestudio --cli model surfaces parts.mesh.json --operation join --surfaces 0,1 --target-surface 0 --adopt-target-materials --output joined.mesh.json --dry-run --json
+slopstudio --cli model surfaces prop.mesh.json --json
+slopstudio --cli model surfaces prop.mesh.json --operation rename --surface 0 --name body --output named.mesh.json
+slopstudio --cli model surfaces prop.mesh.json --operation separate --surface 0 --faces 0,2,3 --name panel --output parts.mesh.json
+slopstudio --cli model surfaces parts.mesh.json --operation move --surface 1 --faces all --target-surface 0 --output moved.mesh.json
+slopstudio --cli model surfaces prop.mesh.json --operation duplicate --surface 0 --name body_copy --output copied.mesh.json
+slopstudio --cli model surfaces parts.mesh.json --operation delete --surface 1 --output remaining.mesh.json
+slopstudio --cli model surfaces parts.mesh.json --operation join --surfaces 0,1 --target-surface 0 --adopt-target-materials --output joined.mesh.json --dry-run --json
 ```
 
 Omitting `--operation`, or using `list`, reports each surface's index, name,

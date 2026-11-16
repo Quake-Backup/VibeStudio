@@ -14,7 +14,7 @@
 #include <iostream>
 #include <optional>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 

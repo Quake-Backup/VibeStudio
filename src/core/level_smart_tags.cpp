@@ -15,9 +15,9 @@
 #include <QSet>
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
-struct Text { Q_DECLARE_TR_FUNCTIONS(VibeStudioLevelSmartTags) };
+struct Text { Q_DECLARE_TR_FUNCTIONS(SlopStudioLevelSmartTags) };
 bool fail(QString* error, const QString& message)
 {
 	if (error) { *error = message; }
@@ -214,7 +214,7 @@ bool applyLevelSmartTag(LevelMapDocument* document, const LevelSmartTagRequest& 
 			} else {
 				if (!patches.isEmpty()) { return fail(error, Text::tr("Patches carry no content or surface flags; select brush faces only.")); }
 				if (levelFaceFlagGame(candidate) == LevelFaceFlagGame::None) {
-					return fail(error, QCoreApplication::translate("VibeStudioLevelFaceFlags", "Face flags belong to Quake II and Quake III maps; this map's faces carry none."));
+					return fail(error, QCoreApplication::translate("SlopStudioLevelFaceFlags", "Face flags belong to Quake II and Quake III maps; this map's faces carry none."));
 				}
 				QStringList unresolved;
 				quint32 bits = levelFilterTagFlagBits(tag, candidate, &unresolved);
@@ -260,4 +260,4 @@ bool applyLevelSmartTag(LevelMapDocument* document, const LevelSmartTagRequest& 
 	*document = std::move(candidate);
 	return true;
 }
-} // namespace vibestudio
+} // namespace slopstudio

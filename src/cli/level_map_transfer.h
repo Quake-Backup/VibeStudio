@@ -2,7 +2,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 struct LevelMapTransferCliResult {
 	int exitCode = 0;
 	QString error;
@@ -14,4 +14,4 @@ struct LevelMapTransferCliResult {
 LevelMapTransferCliResult runLevelMapTransfer(const QStringList& arguments);
 // map export-obj <map> --output <file.obj> (core/level_map_obj_export.h).
 LevelMapTransferCliResult runLevelMapObjExport(const QStringList& arguments);
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

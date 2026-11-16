@@ -8,7 +8,7 @@
 #include <iostream>
 #include <limits>
 
-using namespace vibestudio;
+using namespace slopstudio;
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv); QTemporaryDir temporary;

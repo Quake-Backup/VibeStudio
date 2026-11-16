@@ -2,7 +2,7 @@
 
 #include <array>
 
-namespace vibestudio {
+namespace slopstudio {
 
 using BoxResizePoint = std::array<double,3>;
 struct ResizeBox {
@@ -68,4 +68,4 @@ bool resizeBoxAlongHandle(const ResizeBox& source, int handle, double travel, do
 // translation instead, preserving the size of entity models and thing markers.
 BoxResizePoint resizeBoxPoint(const ResizeBox& from, const ResizeBox& to, BoxResizePoint point);
 
-} // namespace vibestudio
+} // namespace slopstudio

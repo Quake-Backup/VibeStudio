@@ -3,7 +3,7 @@
 #include "core/model_mesh.h"
 #include "core/model_work.h"
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 enum class ModelWeightPaintMode
@@ -41,4 +41,4 @@ double modelVertexJointWeight(const ModelSurface &surface, int vertex, int joint
 // Candidate-only operation; ModelDocument adopts the result atomically. Every
 // stroke uses a frozen source for smoothing. Bake affected poses once at the end.
 bool applyModelWeightPaint(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

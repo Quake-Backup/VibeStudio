@@ -9,7 +9,7 @@
 #include <QTemporaryDir>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* message, const QString& error = {}) {
@@ -89,7 +89,7 @@ int main(int argc, char** argv) {
 	BuildPipelineRequest pipeline;
 	pipeline.pipelineId = "quake3-full";
 	pipeline.dryRun = true;
-	pipeline.executableOverrides = {{"vibemap3", app.applicationFilePath()}};
+	pipeline.executableOverrides = {{"slopmap3", app.applicationFilePath()}};
 	pipeline.stageExtraArguments["light"] = {"-fast"};
 	expect(configureLevelBuildPipeline(loaded, &pipeline, &error), "configure workspace paths", error);
 	const auto configured = pipeline;
@@ -157,7 +157,7 @@ int main(int argc, char** argv) {
 	const auto cancelled = prepareLevelBuildWorkspace(map, snapshot, request, control);
 	expect(cancelled.cancelled && !cancelled.ready && !QFileInfo::exists(request.directory), "cancel streamed preparation atomically",
 		   cancelled.error);
-	expect(QDir(temp.path()).entryList({".vibestudio-build-*"}, QDir::Dirs | QDir::Hidden).isEmpty(), "failed private copies cleaned");
+	expect(QDir(temp.path()).entryList({".slopstudio-build-*"}, QDir::Dirs | QDir::Hidden).isEmpty(), "failed private copies cleaned");
 	// Portable manifests reject escaping paths and excessive/invalid inventory data.
 	const auto manifestBytes = subset_test::get(loaded.manifestPath());
 	auto manifest = QJsonDocument::fromJson(manifestBytes).object();

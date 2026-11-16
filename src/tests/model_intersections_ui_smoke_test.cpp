@@ -25,7 +25,7 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 int checks = 0;
@@ -45,7 +45,7 @@ class Expansion final : public QTranslator
 	}
 	QString translate(const char *context, const char *source, const char *, int) const override
 	{
-		if (QByteArray(context) != "VibeStudioModelEditor")
+		if (QByteArray(context) != "SlopStudioModelEditor")
 			return {};
 		const auto value = QString::fromUtf8(source);
 		return QStringLiteral("[%1%2]").arg(value, QString(value.size() / 2, '~'));
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
 #ifdef Q_OS_WIN
 	app.setFont(QFont("Segoe UI", 10));
 #endif
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root))
 		return 1;
 	QTemporaryDir temporary(QDir(root).filePath("intersections-ui-XXXXXX"));
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
 			app.processEvents();
 			ok &= expect(tests::settleModelViewport(*preview), "intersection preview settles");
 			ok &= expect(!page || page->horizontalScrollBar()->maximum() == 0, "inspector has no horizontal overflow");
-			const auto evidence = qEnvironmentVariable("VIBESTUDIO_MODELLER_EVIDENCE");
+			const auto evidence = qEnvironmentVariable("SLOPSTUDIO_MODELLER_EVIDENCE");
 			if (!evidence.isEmpty())
 			{
 				QImage image(editor.size() * editor.devicePixelRatioF(), QImage::Format_ARGB32_Premultiplied);
@@ -255,7 +255,7 @@ int main(int argc, char **argv)
 		app.processEvents();
 		beat();
 		timer.stop();
-		const double budget = qEnvironmentVariable("VIBESTUDIO_MODELLER_MAX_AUTHORING_GAP_MS").toDouble();
+		const double budget = qEnvironmentVariable("SLOPSTUDIO_MODELLER_MAX_AUTHORING_GAP_MS").toDouble();
 		ok &= expect(gap / 1e6 <= (budget > 0 ? budget : 300), "maximum-grid scan keeps the editor responsive");
 		std::cout << QJsonDocument(QJsonObject{{"stage", QString::fromLatin1(stage)},
 											   {"elapsedMs", elapsed.nsecsElapsed() / 1e6},

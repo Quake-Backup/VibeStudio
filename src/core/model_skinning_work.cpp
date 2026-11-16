@@ -4,7 +4,7 @@
 #include <QCoreApplication>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -89,4 +89,4 @@ bool ModelSkinningWork::bakeSurface(ModelMesh *mesh, int index, QString *error, 
 	}
 	return work.check();
 }
-} // namespace vibestudio
+} // namespace slopstudio

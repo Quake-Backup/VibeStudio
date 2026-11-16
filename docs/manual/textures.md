@@ -73,11 +73,11 @@ depends on the palette. The **Palette** list on the toolbar decides it:
   ships: `PLAYPAL` for Doom-family WADs, `gfx/palette.lmp` for Quake and
   `pics/colormap.pcx` for Quake II.
 - The other entries name a game family, such as **Quake II (generated)** or
-  **Doom (generated)**. VibeStudio still looks for that family's real palette,
+  **Doom (generated)**. SlopStudio still looks for that family's real palette,
   first in the open package and then in the selected game installation.
 
 The line under the preview always says where the palette came from. If no real
-palette is found, VibeStudio uses a generated stand-in palette and says so:
+palette is found, SlopStudio uses a generated stand-in palette and says so:
 indexed colours will not match the game. The stand-ins contain no game data.
 When neither the project nor package names a palette family, **Automatic** can
 infer it from the selected image, such as a Doom flat, before checking the
@@ -293,9 +293,9 @@ The `texture`, `asset` and `sprite` command families use the same services as
 the page. For example:
 
 ```sh
-vibestudio --cli texture palette ./mymod/pak0.pak --palette quake --json
-vibestudio --cli texture export ./wall.vtexture --profile tga --output ./wall.tga --dry-run --json
-vibestudio --cli asset convert ./pak0.pk3 --entry textures/base/wall.png --output ./converted --format png --resize 128x128 --dry-run
+slopstudio --cli texture palette ./mymod/pak0.pak --palette quake --json
+slopstudio --cli texture export ./wall.vtexture --profile tga --output ./wall.tga --dry-run --json
+slopstudio --cli asset convert ./pak0.pk3 --entry textures/base/wall.png --output ./converted --format png --resize 128x128 --dry-run
 ```
 
 <details>

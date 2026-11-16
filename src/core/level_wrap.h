@@ -3,7 +3,7 @@
 #include "core/level_brush.h"
 #include <QJsonObject>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelWrapRequest {
 	bool componentsOnly = false;
 	QVector<LevelMapComponentSet> components;
@@ -27,4 +27,4 @@ struct LevelWrapReport {
 bool wrapLevelMap(LevelMapDocument* document, const LevelWrapRequest& request,
 	LevelWrapReport* report = nullptr, QString* error = nullptr);
 QJsonObject levelWrapReportJson(const LevelWrapReport& report);
-} // namespace vibestudio
+} // namespace slopstudio

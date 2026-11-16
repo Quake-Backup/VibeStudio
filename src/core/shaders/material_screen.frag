@@ -9,9 +9,9 @@
 
 #include "material_common.glsl"
 
-VIBE_VARYING_IN(0) vec2 vUv;
+SLOP_VARYING_IN(0) vec2 vUv;
 
-VIBE_FRAGMENT_OUT(0) vec4 outColor;
+SLOP_FRAGMENT_OUT(0) vec4 outColor;
 
 void main()
 {

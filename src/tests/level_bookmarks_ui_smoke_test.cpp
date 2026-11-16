@@ -26,7 +26,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace {
 bool expect(bool condition, const char* label, const QString& detail = {})
 {
@@ -278,7 +278,7 @@ int main(int argc, char** argv)
 		dialog.findChild<QPushButton*>(QStringLiteral("levelBookmarkRemove"))->click();
 		ok &= expect(dialog.bookmarks().size() == saved.size() - 1 && dialog.bookmarks()[0].id == saved[1].id, "manager removal preserves other views");
 		ok &= expect(dialog.importFile(output), "restore captured list for visual review");
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!captures.isEmpty()) {
 			QDir().mkpath(captures);
 			QImage image(dialog.size(), QImage::Format_ARGB32_Premultiplied);

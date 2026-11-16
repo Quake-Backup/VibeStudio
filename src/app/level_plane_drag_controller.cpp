@@ -11,7 +11,7 @@
 // DragManipulator (Construct, Transform and highlight) and radiant/tools.cpp
 // MouseBuild at 449778b3 (GPL-2.0-or-later). Original Qt implementation; see
 // docs/CREDITS.md.
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 LevelMapVec3 mapVector(const ModelVec3& v) { return {v.x, v.y, v.z, true}; }
 ModelVec3 modelVector(const LevelMapVec3& v) { return {float(v.x), float(v.y), float(v.z)}; }
@@ -332,4 +332,4 @@ void LevelPlaneDragController::paint(QPainter& painter, const LevelComponentGizm
 	painter.restore();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

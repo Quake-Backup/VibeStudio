@@ -4,7 +4,7 @@
 #include <QSet>
 #include <QWidget>
 
-namespace vibestudio
+namespace slopstudio
 {
 class AudioSessionTimeline final : public QWidget {
 	Q_OBJECT
@@ -59,4 +59,4 @@ class AudioSessionTimeline final : public QWidget {
 	qint64 m_dragAnchor = 0, m_dragOriginal = 0, m_dragPosition = 0;
 	bool m_dragging = false;
 };
-} // namespace vibestudio
+} // namespace slopstudio

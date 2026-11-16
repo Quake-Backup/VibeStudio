@@ -16,7 +16,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 constexpr quint64 outputByteLimit = 16ULL * 1024 * 1024 * 1024;
 constexpr qsizetype outputFileLimit = 100000;
@@ -247,7 +247,7 @@ QJsonObject levelBuildArtifactsJson(const LevelBuildArtifacts& artifacts) {
 		outputs[at] = output;
 	}
 	return {{"schemaVersion", 1},
-			{"kind", "vibestudio-level-outputs"},
+			{"kind", "slopstudio-level-outputs"},
 			{"workspaceDirectory", artifacts.workspaceDirectory},
 			{"target", artifacts.target},
 			{"runId", artifacts.runId},
@@ -283,7 +283,7 @@ LevelBuildArtifacts inspectLevelBuildArtifacts(const LevelBuildWorkspace& worksp
 	QJsonParseError parse;
 	const auto json = QJsonDocument::fromJson(bytes, &parse).object();
 	if (parse.error != QJsonParseError::NoError || json.value("schemaVersion").toInt() != 1 ||
-		json.value("kind").toString() != "vibestudio-level-outputs" || json.value("state").toString() != "completed" ||
+		json.value("kind").toString() != "slopstudio-level-outputs" || json.value("state").toString() != "completed" ||
 		!json.value("outputs").isArray()) {
 		return fail(text(QT_TRANSLATE_NOOP("LevelBuildArtifacts",
 										   "The last build is incomplete or its output record is invalid. Run a full prepared build.")));
@@ -588,4 +588,4 @@ QJsonObject levelBuildPackageJson(const LevelBuildPackageResult& result) {
 			{"error", result.error},
 			{"warnings", QJsonArray::fromStringList(result.write.warnings)}};
 }
-} // namespace vibestudio
+} // namespace slopstudio

@@ -31,7 +31,7 @@ class QLabel;
 class QPushButton;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class ElidedLabel;
 
@@ -284,4 +284,4 @@ private:
 // screen without returning to the event loop. Hidden widgets are left alone.
 void paintNow(QWidget* widget);
 
-} // namespace vibestudio
+} // namespace slopstudio

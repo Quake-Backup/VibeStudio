@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -71,13 +71,13 @@ QString modelDecodeIssueSeverityName(ModelDecodeIssueSeverity severity)
 {
 	switch (severity) {
 	case ModelDecodeIssueSeverity::Advisory:
-		return QCoreApplication::translate("VibeStudioModelDecodeIssues", "Advisory");
+		return QCoreApplication::translate("SlopStudioModelDecodeIssues", "Advisory");
 	case ModelDecodeIssueSeverity::Omission:
-		return QCoreApplication::translate("VibeStudioModelDecodeIssues", "Omission");
+		return QCoreApplication::translate("SlopStudioModelDecodeIssues", "Omission");
 	case ModelDecodeIssueSeverity::Damage:
 		break;
 	}
-	return QCoreApplication::translate("VibeStudioModelDecodeIssues", "Damage");
+	return QCoreApplication::translate("SlopStudioModelDecodeIssues", "Damage");
 }
 
 void noteModelDecodeIssue(ModelMesh* mesh, ModelDecodeIssueSeverity severity, const QString& id, const QString& text)
@@ -250,7 +250,7 @@ bool parseModelDecodeIssues(const QJsonValue& value, int surfaceCount, QVector<M
 {
 	const auto malformed = [error] {
 		if (error) {
-			*error = QCoreApplication::translate("VibeStudioModelDecodeIssues",
+			*error = QCoreApplication::translate("SlopStudioModelDecodeIssues",
 				"The source's import issues must list advisories and accepted omissions, each with an id, a severity and text.");
 		}
 		return false;
@@ -309,15 +309,15 @@ QStringList modelDecodeIssueLines(const QVector<ModelDecodeIssue>& issues, const
 	for (const ModelDecodeIssue& issue : issues) {
 		QString severity = modelDecodeIssueSeverityName(issue.severity);
 		if (issue.accepted) {
-			severity = QCoreApplication::translate("VibeStudioModelDecodeIssues", "%1 (accepted)", "severity of an accepted omission").arg(severity);
+			severity = QCoreApplication::translate("SlopStudioModelDecodeIssues", "%1 (accepted)", "severity of an accepted omission").arg(severity);
 		}
 		if (issue.surface < 0) {
-			lines << QCoreApplication::translate("VibeStudioModelDecodeIssues", "%1: %2", "severity: issue").arg(severity, issue.text);
+			lines << QCoreApplication::translate("SlopStudioModelDecodeIssues", "%1: %2", "severity: issue").arg(severity, issue.text);
 		} else {
 			const QString surface = issue.surface < surfaceNames.size() && !surfaceNames.at(issue.surface).isEmpty()
 				? surfaceNames.at(issue.surface)
 				: QString::number(issue.surface);
-			lines << QCoreApplication::translate("VibeStudioModelDecodeIssues", "%1, surface %2: %3", "severity, surface name: issue")
+			lines << QCoreApplication::translate("SlopStudioModelDecodeIssues", "%1, surface %2: %3", "severity, surface name: issue")
 				.arg(severity, surface, issue.text);
 		}
 	}
@@ -330,18 +330,18 @@ QString modelDecodeIssueSummary(const QVector<ModelDecodeIssue>& issues)
 	const int open = counts.omissions - counts.accepted;
 	QStringList parts;
 	if (counts.advisories > 0) {
-		parts << QCoreApplication::translate("VibeStudioModelDecodeIssues", "%Ln advisory note(s)", nullptr, counts.advisories);
+		parts << QCoreApplication::translate("SlopStudioModelDecodeIssues", "%Ln advisory note(s)", nullptr, counts.advisories);
 	}
 	if (open > 0) {
-		parts << QCoreApplication::translate("VibeStudioModelDecodeIssues", "%Ln omission(s) to accept", nullptr, open);
+		parts << QCoreApplication::translate("SlopStudioModelDecodeIssues", "%Ln omission(s) to accept", nullptr, open);
 	}
 	if (counts.accepted > 0) {
-		parts << QCoreApplication::translate("VibeStudioModelDecodeIssues", "%Ln accepted omission(s)", nullptr, counts.accepted);
+		parts << QCoreApplication::translate("SlopStudioModelDecodeIssues", "%Ln accepted omission(s)", nullptr, counts.accepted);
 	}
 	if (counts.damage > 0) {
-		parts << QCoreApplication::translate("VibeStudioModelDecodeIssues", "%Ln damaged part(s)", nullptr, counts.damage);
+		parts << QCoreApplication::translate("SlopStudioModelDecodeIssues", "%Ln damaged part(s)", nullptr, counts.damage);
 	}
-	return parts.join(QCoreApplication::translate("VibeStudioModelDecodeIssues", ", ", "list separator"));
+	return parts.join(QCoreApplication::translate("SlopStudioModelDecodeIssues", ", ", "list separator"));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -1,16 +1,16 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/branding/logo/vibestudio-banner-on-dark.svg">
-    <img alt="VibeStudio: the all-in-one idTech development studio" src="assets/branding/logo/vibestudio-banner-on-light.svg" width="720">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/branding/logo/slopstudio-banner-on-dark.svg">
+    <img alt="SlopStudio: the all-in-one idTech development studio" src="assets/branding/logo/slopstudio-banner-on-light.svg" width="720">
   </picture>
 </p>
 
 <p align="center">
-  <a href="https://github.com/themuffinator/VibeStudio/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.1.0--alpha.1-E8841A?style=flat-square"></a>
+  <a href="https://github.com/themuffinator/SlopStudio/releases"><img alt="Version" src="https://img.shields.io/badge/version-0.1.0--alpha.1-E8841A?style=flat-square"></a>
   <a href="docs/manual/status.md"><img alt="Status: pre-alpha" src="https://img.shields.io/badge/status-pre--alpha-B35900?style=flat-square"></a>
   <img alt="Platforms: Windows, macOS, Linux" src="https://img.shields.io/badge/platforms-Windows%20%7C%20macOS%20%7C%20Linux-3A3A3A?style=flat-square">
   <a href="LICENSE"><img alt="License: GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-3A3A3A?style=flat-square"></a>
-  <a href="https://github.com/themuffinator/VibeStudio/actions/workflows/pr-ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/themuffinator/VibeStudio/pr-ci.yml?label=CI&style=flat-square"></a>
+  <a href="https://github.com/themuffinator/SlopStudio/actions/workflows/pr-ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/themuffinator/SlopStudio/pr-ci.yml?label=CI&style=flat-square"></a>
   <a href="AGENTS.md"><img alt="Proudly vibecoded" src="assets/docs/img/badge-proudly-vibecoded.svg"></a>
 </p>
 
@@ -21,7 +21,7 @@
   <b><a href="CHANGELOG.md">Changelog</a></b>
 </p>
 
-**VibeStudio** is an open-source development studio for **idTech 1, 2 and 3**
+**SlopStudio** is an open-source development studio for **idTech 1, 2 and 3**
 games: Doom, Quake, Quake II, Quake III Arena and their families. Level
 editing, models, textures, audio, packages, code, compilers and game launching
 share one window on Windows, macOS and Linux, and a command line drives the
@@ -29,7 +29,7 @@ same services for scripts and automation. An AI assistant is available, but
 optional and off by default.
 
 > [!WARNING]
-> **VibeStudio is pre-alpha and highly untested.** Most features have
+> **SlopStudio is pre-alpha and highly untested.** Most features have
 > automated tests, but very few have been used in real projects, the installers
 > are new, and many planned parts of the studio don't exist yet. Work on copies
 > of your files and keep backups. [Project status](docs/manual/status.md)
@@ -48,7 +48,7 @@ optional and off by default.
 | [Audio](docs/manual/audio.md) | Preview, edit and analyse game sounds; multitrack sessions (no playback in Linux builds yet) | Partial |
 | [Materials and shaders](docs/manual/materials.md) | Every texture, Quake III shader and Doom 3 material of idTech 1 to 4, previewed live and animated by each engine's rules, checked, and edited as text or as nodes | Partial |
 | [Code](docs/manual/code.md) | Edit QuakeC, shader scripts and configs with highlighting, search and language servers | Partial |
-| [Build and launch](docs/manual/build-and-launch.md) | Run VibeMap2, VibeMap3, ZDBSP and ZokumBSP pipelines, jump to problems and leaks, and launch the game | Partial |
+| [Build and launch](docs/manual/build-and-launch.md) | Run SlopMap2, SlopMap3, ZDBSP and ZokumBSP pipelines, jump to problems and leaks, and launch the game | Partial |
 | [AI assistant](docs/manual/ai.md) | Optional and off by default; ask a model about your work, or generate levels, textures and sounds for review | Partial |
 | [Command line](docs/manual/cli.md) | 273 scriptable commands in 29 families with JSON output | Available |
 | [Accessibility and languages](docs/manual/accessibility.md) | High-contrast themes, text up to 200%, full keyboard use, screen reader support; 47 languages registered, none translated yet | Partial |
@@ -59,24 +59,24 @@ page lists the gaps.
 
 ## Install
 
-Pre-built downloads are on the [Releases page](https://github.com/themuffinator/VibeStudio/releases).
+Pre-built downloads are on the [Releases page](https://github.com/themuffinator/SlopStudio/releases).
 Every release lists its files with a `SHA256SUMS.txt`; pre-release versions are
 marked as such.
 
 | Platform | Download | First launch |
 | --- | --- | --- |
-| Windows 10/11 (x64) | `VibeStudio-<version>-windows-x64-setup.exe`, or the `-portable.zip` | Not code-signed yet: **More info** > **Run anyway** |
-| macOS 13+ (Apple silicon) | `VibeStudio-<version>-macos-arm64.dmg` | Not notarised yet: Control-click the app > **Open** |
-| Linux (x86_64) | `VibeStudio-<version>-linux-x86_64.AppImage` | `chmod +x` it; needs FUSE 2 |
+| Windows 10/11 (x64) | `SlopStudio-<version>-windows-x64-setup.exe`, or the `-portable.zip` | Not code-signed yet: **More info** > **Run anyway** |
+| macOS 13+ (Apple silicon) | `SlopStudio-<version>-macos-arm64.dmg` | Not notarised yet: Control-click the app > **Open** |
+| Linux (x86_64) | `SlopStudio-<version>-linux-x86_64.AppImage` | `chmod +x` it; needs FUSE 2 |
 
 Each download includes the offline HTML documentation. Builds of `main` are
-available as artifacts of the [nightly workflow](https://github.com/themuffinator/VibeStudio/actions/workflows/release-nightly.yml)
-(sign-in required). [Install VibeStudio](docs/manual/install.md) covers every
+available as artifacts of the [nightly workflow](https://github.com/themuffinator/SlopStudio/actions/workflows/release-nightly.yml)
+(sign-in required). [Install SlopStudio](docs/manual/install.md) covers every
 step, checksums, and where settings live.
 
 ## Quick start
 
-1. Install and launch VibeStudio.
+1. Install and launch SlopStudio.
 2. Open **Settings** > **Getting Started** and run the checklist: language,
    accessibility, theme, editor profile, games and compilers. Every choice can
    be changed later.
@@ -91,7 +91,7 @@ step, checksums, and where settings live.
 
 - **[User manual](docs/manual/index.md)**: installing, the studio's pages, the
   command line and troubleshooting. Every release ships it as offline HTML
-  (`docs/html/index.html`, or **VibeStudio Documentation** in the Windows Start
+  (`docs/html/index.html`, or **SlopStudio Documentation** in the Windows Start
   menu).
 - **[Documentation index](docs/README.md)**: the manual plus contributor guides
   and the design records for each part of the studio.
@@ -100,21 +100,21 @@ step, checksums, and where settings live.
 ## CLI Quick Reference
 
 The command line shares the studio's services, project state and validation.
-Run it as `vibestudio --cli` (on Windows `vibestudio.exe`; see
+Run it as `slopstudio --cli` (on Windows `slopstudio.exe`; see
 [Command line](docs/manual/cli.md) for the macOS and AppImage paths).
 
 ```sh
-vibestudio --cli --help                                   # usage and global options
-vibestudio --cli cli commands                             # every command, by family
-vibestudio --cli package validate ./pak0.pak --json       # check a package
-vibestudio --cli map render ./maps/start.map --output ./start.svg --projection top
-vibestudio --cli compiler list                            # find VibeMap2, VibeMap3 and the Doom node builders
-vibestudio --cli build run quake-full --input ./maps/start.map --watch
-vibestudio --cli release publish ./mymod --map maps/arena1.map --release-version 1.0.0
-vibestudio --cli localization targets                     # the 47 interface languages
-vibestudio --cli diagnostics bundle --output ./diagnostics
-vibestudio --cli ui semantics --json                      # commands, shortcuts and accessibility metadata
-vibestudio --cli render backends                          # the OpenGL and Vulkan renderers, and the one in use
+slopstudio --cli --help                                   # usage and global options
+slopstudio --cli cli commands                             # every command, by family
+slopstudio --cli package validate ./pak0.pak --json       # check a package
+slopstudio --cli map render ./maps/start.map --output ./start.svg --projection top
+slopstudio --cli compiler list                            # find SlopMap2, SlopMap3 and the Doom node builders
+slopstudio --cli build run quake-full --input ./maps/start.map --watch
+slopstudio --cli release publish ./mymod --map maps/arena1.map --release-version 1.0.0
+slopstudio --cli localization targets                     # the 47 interface languages
+slopstudio --cli diagnostics bundle --output ./diagnostics
+slopstudio --cli ui semantics --json                      # commands, shortcuts and accessibility metadata
+slopstudio --cli render backends                          # the OpenGL and Vulkan renderers, and the one in use
 ```
 
 Add `--json` for machine-readable output and `--settings-file <path>` to keep
@@ -127,8 +127,8 @@ You need a C++20 compiler, Qt 6 (CI uses 6.10.1) with Core, Gui, Widgets and
 Network (Multimedia optional), Meson, Ninja and Python 3.
 
 ```sh
-git clone --recursive https://github.com/themuffinator/VibeStudio.git
-cd VibeStudio
+git clone --recursive https://github.com/themuffinator/SlopStudio.git
+cd SlopStudio
 meson setup builddir --backend ninja
 meson compile -C builddir
 meson test -C builddir --print-errorlogs
@@ -155,13 +155,13 @@ libogg and libvorbis, libebur128, r8brain and PortAudio, and UV atlases use
 xatlas. 3D views and material previews draw on the GPU with OpenGL or Vulkan,
 your choice, through an in-house renderer built on the pinned Vulkan-Headers.
 Level compilers are Git submodules under `external/compilers`,
-including VibeStudio's own VibeMap2 and VibeMap3.
+including SlopStudio's own SlopMap2 and SlopMap3.
 [docs/STACK.md](docs/STACK.md) records the stack decisions and
 [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md) every dependency.
 
 ## Credits
 
-VibeStudio is created by [themuffinator](https://github.com/themuffinator)
+SlopStudio is created by [themuffinator](https://github.com/themuffinator)
 (DarkMatter Productions). It stands on the work of many projects; every
 borrowed idea, format, pattern and line of code is credited here and in full in
 [docs/CREDITS.md](docs/CREDITS.md), with upstream links, licences and pinned
@@ -172,7 +172,7 @@ see the [Qt source review](docs/CREDITS.md#core-technology).
 
 The Hingeworks sample's external test harness references id Software's
 [Quake II rerelease interfaces](https://github.com/id-Software/quake2-rerelease-dll),
-and its lightmap auditors reference Quake II and VibeMap2;
+and its lightmap auditors reference Quake II and SlopMap2;
 see its [validation credits](docs/CREDITS.md#hingeworks-map-validation-2026-10-28).
 
 The [Panic Protocol campaign sample](samples/projects/quake2-panic-protocol/README.md)
@@ -182,10 +182,10 @@ validation, and private stock-map layout study in its [credits](samples/projects
 | Upstream | Used for | Licence | Pinned revision |
 | --- | --- | --- | --- |
 | [PakFu](https://github.com/themuffinator/PakFu) | Package, archive, format and installation reference; DDS/FTX/SWL codecs | GPL-3.0 | `13111e4c` |
-| [VibeMap2](https://github.com/themuffinator/VibeyMapTools) | VibeStudio's Quake/idTech2 compilers (submodule), derived from ericw-tools; [audit reference](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/docs/upstream-audit.rst) for known-issue reconciliation | GPL-3.0 | `4495049a9e4c1f6deadae3a76b8256614840af35` |
-| [VibeMap3](https://github.com/themuffinator/q3mapx) | VibeStudio's Quake III compiler (submodule), continuing q3map2 from NetRadiant Custom | GPL-3.0-or-later; imported q3map2 files GPL-2.0-or-later | `897524439cb58d2b736bc96b16c231d22dc5ddce` |
-| [ericw-tools](https://github.com/ericwa/ericw-tools) | Upstream of VibeMap2; Quake BSP format and interface references | GPL-2.0-or-later | `f80b1e216a415581aea7475cb52b16b8c4859084` |
-| q3map2 from [NetRadiant Custom](https://github.com/Garux/netradiant-custom) | Upstream of VibeMap3; Quake III format and interface references | GPL (repository mixes GPL, LGPL and BSD) | `68ecbed64b7be78741878c730279b5471d978c7c` |
+| [SlopMap2](https://github.com/themuffinator/VibeyMapTools) | SlopStudio's Quake/idTech2 compilers (submodule), derived from ericw-tools; [audit reference](https://github.com/themuffinator/VibeyMapTools/blob/4495049a9e4c1f6deadae3a76b8256614840af35/docs/upstream-audit.rst) for known-issue reconciliation | GPL-3.0 | `4495049a9e4c1f6deadae3a76b8256614840af35` |
+| [SlopMap3](https://github.com/themuffinator/q3mapx) | SlopStudio's Quake III compiler (submodule), continuing q3map2 from NetRadiant Custom | GPL-3.0-or-later; imported q3map2 files GPL-2.0-or-later | `897524439cb58d2b736bc96b16c231d22dc5ddce` |
+| [ericw-tools](https://github.com/ericwa/ericw-tools) | Upstream of SlopMap2; Quake BSP format and interface references | GPL-2.0-or-later | `f80b1e216a415581aea7475cb52b16b8c4859084` |
+| q3map2 from [NetRadiant Custom](https://github.com/Garux/netradiant-custom) | Upstream of SlopMap3; Quake III format and interface references | GPL (repository mixes GPL, LGPL and BSD) | `68ecbed64b7be78741878c730279b5471d978c7c` |
 | [NetRadiant Custom](https://github.com/Garux/netradiant-custom) editor (`radiant/patch.cpp`, `patchmanip.cpp`, `csg.cpp`) | Behaviour of the Levels patch matrix commands, exact patch cylinders, Thicken, wrapped hollow and Make Room (no code copied; the CSG Tool section follows `csg.cpp` at `449778b3840f8f2062daab15c87cb012f2ac945c`) | GPL-2.0-or-later | `8216133984031afaa9a857b56ea66dd9c3d54b26` |
 | [ZDBSP](https://github.com/rheit/zdbsp) | Doom node builder (submodule) | GPL-2.0-or-later | `bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659` |
 | [ZokumBSP](https://github.com/zokum-no/zokumbsp) | Doom node, blockmap and reject builder (submodule) | GPL-2.0 | `22af6defeb84ce836e0b184d6be5e80f127d9451` |
@@ -306,7 +306,7 @@ above. It peels translucent layers after Cass Everitt's
 [depth peeling](https://developer.nvidia.com/content/interactive-order-independent-transparency)
 (NVIDIA, 2001) and keeps depth reversed after Nathan Reed's
 [Depth Precision Visualized](https://developer.nvidia.com/content/depth-precision-visualized)
-(NVIDIA, 2015); its SPIR-V is compiled from VibeStudio's own GLSL with
+(NVIDIA, 2015); its SPIR-V is compiled from SlopStudio's own GLSL with
 Khronos' [glslang](https://github.com/KhronosGroup/glslang), reviewed
 2026-10-08. See [3D Rendering: OpenGL And Vulkan](docs/CREDITS.md#3d-rendering-opengl-and-vulkan-2026-10-08).
 
@@ -388,7 +388,7 @@ License (2015). Reference, review and preserved notices are in
   (including its linked groups, [object correspondence](docs/CREDITS.md#linked-object-correspondence), [protected properties](docs/CREDITS.md#protected-entity-properties), [linked extraction](docs/CREDITS.md#linked-group-extraction) and [repeat workflow](docs/CREDITS.md#repeatable-object-commands)), NetRadiant Custom and
   [Q3Radiant](https://github.com/id-Software/Quake-III-Arena/blob/dbe4ddb10315479fc00086f08e25d968b4b43c49/q3radiant/SELECT.CPP).
   The built-in entity catalogues record facts from id Software's GPL Quake, Quake II and Quake III Arena game and
-  tool sources and the ericw-tools qbsp documentation, in VibeStudio's own words. Original code throughout; see
+  tool sources and the ericw-tools qbsp documentation, in SlopStudio's own words. Original code throughout; see
   [Level Editor Sidebars, Shapes And Tools](docs/CREDITS.md#level-editor-sidebars-shapes-and-tools-2026-10-08).
 
 - Standalone [NetRadiant controls](https://github.com/xonotic/netradiant/tree/b4b295d7a37797cc2752e48aa8ce42492e7016f0/radiant),
@@ -404,7 +404,7 @@ License (2015). Reference, review and preserved notices are in
   revision `dbe4ddb10315479fc00086f08e25d968b4b43c49`, informs classic profile,
   position-steering and fixed camera-step behavior. `MainFrm.cpp` also informs
   the profile's texture shift, rotation and fit shortcuts; quick surface
-  operations retain VibeStudio's documented UV mapping rules. `CamWnd.cpp`, `MainFrm.cpp`
+  operations retain SlopStudio's documented UV mapping rules. `CamWnd.cpp`, `MainFrm.cpp`
   and the plan/preferences modules are GPL-2.0-or-later, reviewed as GPLv3-compatible
   on 2026-10-06. The Qt implementation is independent; no game assets are used.
   [Detailed credits and remaining differences](docs/CREDITS.md#editor-workflow-inspirations).
@@ -420,7 +420,7 @@ License (2015). Reference, review and preserved notices are in
   [original Hammer 3.4 reference](https://documentation.help/Valve-Hammer-Editor-3.4/Hotkey_Reference.htm),
   [J.A.C.K. 1.1 manual](https://valvedev.info/tools/jack/jack_manual.pdf) and
   [NetRadiant Custom command registration](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/radiant/mainframe.cpp).
-  Original VibeStudio implementation; behavioral facts only. Licenses and review
+  Original SlopStudio implementation; behavioral facts only. Licenses and review
   date are recorded in [Credits](docs/CREDITS.md#editor-workflow-inspirations).
 
 ### Additional asset exchange credits
@@ -448,7 +448,7 @@ See [codec provenance](docs/CREDITS.md#pakfu-image-exchange-and-capability-catal
 - Doom node readiness uses original bounded readers of the layouts written by
   [ZDBSP `processor.cpp`](https://github.com/rheit/zdbsp/blob/bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659/processor.cpp),
   revision `bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659`, reviewed 2026-10-05.
-  GPL-2.0-or-later (Randy Heit), compatible with VibeStudio's GPL-3.0;
+  GPL-2.0-or-later (Randy Heit), compatible with SlopStudio's GPL-3.0;
   no upstream implementation copied. Editor saves, compiler output checks and
   Doom launch plans share this validation. See [node readiness](docs/LEVEL_EDITOR.md#doom-node-readiness).
 
@@ -464,12 +464,12 @@ Doom camera texture layout and wall anchors reference
 [Chocolate Doom 3.1.0](https://github.com/chocolate-doom/chocolate-doom/tree/chocolate-doom-3.1.0/src/doom)
 (`r_data.c`, `r_segs.c`, GPL-2.0-or-later; compatibility reviewed 2026-10-04).
 The [credits record](docs/CREDITS.md#doom-camera-materials) identifies the
-adaptations and original VibeStudio components.
+adaptations and original SlopStudio components.
 
 Shared WAD subset/edit map-group recognition and new-document assembly use the format contracts in
 [ZDBSP `wad.cpp`](https://github.com/rheit/zdbsp/blob/bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659/wad.cpp)
 (revision `bcb9bdbcaf8ad296242c03cf3f9bff7ee732f659`, GPL-2.0-or-later, reviewed
-for GPL-3.0 compatibility on 2026-10-04). VibeStudio owns the implementation;
+for GPL-3.0 compatibility on 2026-10-04). SlopStudio owns the implementation;
 no upstream source was copied.
 
 Mesh Editor edit mode (menus, keymap, modal transforms, selection operators,
@@ -506,7 +506,7 @@ thekla_atlas/NVIDIA and Fast-BVH ancestry and BSD-3-Clause OpenNL code. These
 terms were reviewed for GPLv3 compatibility on 2026-10-04. Original notices and
 the reviewed indexed-seam, shape-preserving and rectangular-packing build
 adaptations (the latter reviewed 2026-10-06) are documented in the
-[integration record](external/modelling/xatlas/VIBESTUDIO.md). The conformal
+[integration record](external/modelling/xatlas/SLOPSTUDIO.md). The conformal
 unwrap is an original implementation of Lévy et al.'s
 [Least Squares Conformal Maps](https://doi.org/10.1145/566654.566590)
 (SIGGRAPH 2002), and skin transfer's projection follows Ericson's
@@ -517,7 +517,7 @@ closest-point-on-triangle test (*Real-Time Collision Detection*, 2005); see
   on Qt 6.0–6.5 through an original compatibility adapter. Qt 6.4.2/6.10.1,
   GPL-3.0/LGPL-3.0, reviewed 2026-10-04; no Qt code or documentation prose copied.
 
-Saved-draft reader protection uses an original GPL-3.0 VibeStudio adapter to the
+Saved-draft reader protection uses an original GPL-3.0 SlopStudio adapter to the
 public [Windows directory sharing](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew),
 [Linux flock](https://man7.org/linux/man-pages/man2/flock.2.html) and
 [Apple flock](https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/flock.2.html)
@@ -593,7 +593,7 @@ The optional synchronized recording backend uses [PortAudio](https://github.com/
 revision `873e3c83fbe2f57ebcf59083e627a3f8fa051ffe`, under its GPLv3-compatible
 MIT-style license. Original notices and hashes accompany the private Meson build;
 reviewed WASAPI/CoreAudio fixes are generated separately. See the
-[backend integration record](external/audio/portaudio/VIBESTUDIO.md).
+[backend integration record](external/audio/portaudio/SLOPSTUDIO.md).
 
 Audio loudness metering uses Jan Kokemüller's [libebur128 1.2.6](https://github.com/jiixyj/libebur128/tree/67b33abe1558160ed76ada1322329b0e9e058b02),
 revision `67b33abe1558160ed76ada1322329b0e9e058b02`. Its MIT library/R128Scan
@@ -624,7 +624,7 @@ See [the full attribution](docs/CREDITS.md#language-server-protocol).
 Completion-resolution and parameter-hint verification also use
 [Pyright 1.1.414](https://github.com/microsoft/pyright/tree/1.1.414)
 ([MIT](https://github.com/microsoft/pyright/blob/1.1.414/LICENSE.txt), reviewed
-2026-10-04) as an isolated test executable; it is not bundled with VibeStudio.
+2026-10-04) as an isolated test executable; it is not bundled with SlopStudio.
 Pull-diagnostic verification uses [Ruff 0.16.4](https://github.com/astral-sh/ruff/tree/0.16.4)
 under its [MIT license and third-party notices](https://github.com/astral-sh/ruff/blob/0.16.4/LICENSE),
 reviewed 2026-10-04, as a separate test process. It is not bundled or linked.
@@ -634,10 +634,10 @@ Game sound delivery follows reader behaviour in
 [Quake `WinQuake/snd_mem.c`](https://github.com/id-Software/Quake/blob/master/WinQuake/snd_mem.c),
 [Quake II `client/snd_mem.c`](https://github.com/id-Software/Quake-2/blob/master/client/snd_mem.c), and
 [Quake III `code/client/snd_mem.c`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/client/snd_mem.c).
-These GPL-2.0-or-later references are compatible with VibeStudio's GPL-3.0;
+These GPL-2.0-or-later references are compatible with SlopStudio's GPL-3.0;
 reviewed 2026-10-04 (the id repositories' master snapshots on that date).
 Only format facts and compatibility behaviour are used; no engine code or game
-assets are copied. Preset defaults and the delivery writer are VibeStudio's own.
+assets are copied. Preset defaults and the delivery writer are SlopStudio's own.
 
 WAV precision export follows factual Microsoft RIFF/WAVE and
 [WAVEFORMATEXTENSIBLE layouts](https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ksmedia/ns-ksmedia-waveformatextensible)
@@ -661,7 +661,7 @@ is included under MIT at revision `cb2abb9977efe2471979b380ed95daa56ab4fdb9`
 (reviewed 2026-10-04), using [Takuya Ooura's FFT](https://www.kurims.kyoto-u.ac.jp/~ooura/fft.html)
 under its permissive use/copy/modify/distribute licence. Both are compatible with
 GPL-3.0; notices are preserved in `external/audio/r8brain-free-src` and release
-licence bundles. See [integration details](external/audio/r8brain-free-src/VIBESTUDIO.md).
+licence bundles. See [integration details](external/audio/r8brain-free-src/SLOPSTUDIO.md).
 
 Patch authoring follows the format and 31-point control-axis limit in
 [NetRadiant Custom's q3map2](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/q3map2.h),
@@ -735,13 +735,13 @@ at the same revision and license.
 - Level dependency graphs and selective export take workflow inspiration from
   [PakFu's CLI and asset graph](https://github.com/themuffinator/PakFu/blob/13111e4c07513548a29fd7eb74fc9d004c44aa59/src/cli/cli.cpp)
   and its archive search index (GPL-3.0, revision `13111e4c`, local checkout reviewed
-  2026-10-03). These are original VibeStudio implementations. Shader skybox and
+  2026-10-03). These are original SlopStudio implementations. Shader skybox and
   light-image references follow the [Quake III Shader Manual, revision 12](https://icculus.org/gtkradiant/documentation/Q3AShader_Manual/index.htm).
 - Creator: [themuffinator](https://github.com/themuffinator) (DarkMatter Productions)
-- Structural, archive-tooling, and installation-profile reference: [PakFu](https://github.com/themuffinator/PakFu), with the current package interface, virtual-path safety, and staged package write-back concepts adapted from its archive direction at `c82dfb0ef0b5d7442e243ace8cd83bc45f82f257`; the game installation profile/detection model is a VibeStudio-owned adaptation of PakFu's profile-driven workflow ideas.
-- Imported compiler/toolchain sources: VibeStudio's own [VibeMap2](https://github.com/themuffinator/VibeyMapTools) (derived from [ericw-tools](https://github.com/ericwa/ericw-tools)) and [VibeMap3](https://github.com/themuffinator/q3mapx) (continuing q3map2 from [NetRadiant Custom](https://github.com/Garux/netradiant-custom)), developed as part of the project, plus [ZDBSP](https://github.com/rheit/zdbsp) and [ZokumBSP](https://github.com/zokum-no/zokumbsp). See [Compiler Integration](docs/COMPILER_INTEGRATION.md#vibestudio-compilers)
+- Structural, archive-tooling, and installation-profile reference: [PakFu](https://github.com/themuffinator/PakFu), with the current package interface, virtual-path safety, and staged package write-back concepts adapted from its archive direction at `c82dfb0ef0b5d7442e243ace8cd83bc45f82f257`; the game installation profile/detection model is a SlopStudio-owned adaptation of PakFu's profile-driven workflow ideas.
+- Imported compiler/toolchain sources: SlopStudio's own [SlopMap2](https://github.com/themuffinator/VibeyMapTools) (derived from [ericw-tools](https://github.com/ericwa/ericw-tools)) and [SlopMap3](https://github.com/themuffinator/q3mapx) (continuing q3map2 from [NetRadiant Custom](https://github.com/Garux/netradiant-custom)), developed as part of the project, plus [ZDBSP](https://github.com/rheit/zdbsp) and [ZokumBSP](https://github.com/zokum-no/zokumbsp). See [Compiler Integration](docs/COMPILER_INTEGRATION.md#slopstudio-compilers)
 - Prepared build filesystem flags follow q3map2's [path initialization](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/path_init.cpp) and shader-list behavior in its [shader loader](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/shaders.cpp), NetRadiant Custom revision `68ecbed64b7be78741878c730279b5471d978c7c` (GPL-2.0-or-later, reviewed for GPL-3.0 compatibility 2026-10-05). Interface reference only; no upstream code copied.
-- Prepared output naming follows that revision's [map shader writer](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/shaders.cpp), [external lightmap writer](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/lightmaps_ydnar.cpp) and `q3map2.h`. BSP header validation follows id Software's [Quake III `qfiles.h`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/qcommon/qfiles.h) and q3map2's [Quake Live extension](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/bspfile_ibsp.cpp). GPL-2.0-or-later format/interface references, reviewed 2026-10-05; no upstream implementation copied. Output receipts, retained history and publication orchestration are VibeStudio code.
+- Prepared output naming follows that revision's [map shader writer](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/shaders.cpp), [external lightmap writer](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/lightmaps_ydnar.cpp) and `q3map2.h`. BSP header validation follows id Software's [Quake III `qfiles.h`](https://github.com/id-Software/Quake-III-Arena/blob/master/code/qcommon/qfiles.h) and q3map2's [Quake Live extension](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/tools/quake3/q3map2/bspfile_ibsp.cpp). GPL-2.0-or-later format/interface references, reviewed 2026-10-05; no upstream implementation copied. Output receipts, retained history and publication orchestration are SlopStudio code.
 - Editor workflow inspirations: [GtkRadiant](https://github.com/TTimo/GtkRadiant), [NetRadiant Custom](https://github.com/Garux/netradiant-custom), [TrenchBroom](https://trenchbroom.github.io/), [QuArK](https://quark.sourceforge.io/), and, for Doom map editing behaviour such as Make Door, [Ultimate Doom Builder](https://github.com/UltimateDoomBuilder/UltimateDoomBuilder) (behaviour only, no code used). The TrenchBroom, NetRadiant Custom, and GtkRadiant 1.6.0 editor profiles follow those editors' default mouse and key bindings, read from their sources (TrenchBroom `master` `90de03c`, September 2026; NetRadiant Custom `68ecbed`; GtkRadiant `1.6-release` `270af88`, August 2024); facts about behaviour only, no code used
 - Accessibility and localization references: [WCAG 2.2](https://www.w3.org/TR/WCAG22/) (text spacing, timing), the [Ethnologue 200](https://www.ethnologue.com/insights/ethnologue200/) and Steam's supported-language list for the 47-language set, [Primer Primitives](https://github.com/primer/primitives) (MIT) colour-blind themes for the red-green palette's blue success (pattern only, reviewed 2026-10-07), and the colour-vision simulation matrices of Machado, Oliveira and Fernandes (IEEE TVCG, 2009) in the theme tests (published coefficients only). See [Credits](docs/CREDITS.md#accessibility-and-localization-references).
 - Studio interface inspiration: [idStudio](https://idstudio.idsoftware.com/) (id Software's DOOM Eternal editor, public beta August 2024) for the shell's visual language; inspiration only, with no idStudio code, icons, or assets used. [Visual Studio Code](https://github.com/microsoft/vscode) (MIT) for the one-row studio bar with a centred command search, after its Command Center (pattern only, reviewed 2026-10-06; no code, icons, or assets used)
@@ -749,7 +749,7 @@ at the same revision and license.
 - File-format references: public specifications and wikis (Doom Wiki, Boom's generalized linedef reference, Quake Wiki, Valve Developer Community, IETF RFCs, Xiph), plus behaviour notes from GPL source ports such as [Chocolate Doom](https://github.com/chocolate-doom/chocolate-doom) for DMX sound lumps; layouts are reimplemented and no port code is copied
 - Ogg preview metadata and synthetic header fixtures follow [RFC 3533](https://www.rfc-editor.org/rfc/rfc3533) (Internet Society implementation-use notice, May 2003), [Vorbis I section 4.2.2](https://xiph.org/vorbis/doc/Vorbis_I_spec.html) (Xiph specification use permission, 1994–2015), and [RFC 7845 section 4](https://www.rfc-editor.org/rfc/rfc7845) (IETF Trust Legal Provisions, April 2016), reviewed 2026-10-06. Original GPL-3.0 implementation; no specification prose, external code or sound assets copied.
 - Full attribution list: [`docs/CREDITS.md`](docs/CREDITS.md)
-- Optional independent texture fixture checks use [Pillow 11.3.0](https://github.com/python-pillow/Pillow/tree/11.3.0) (MIT-CMU, reviewed 2026-10-04); no Pillow code is bundled or linked into VibeStudio.
+- Optional independent texture fixture checks use [Pillow 11.3.0](https://github.com/python-pillow/Pillow/tree/11.3.0) (MIT-CMU, reviewed 2026-10-04); no Pillow code is bundled or linked into SlopStudio.
 - Indexed PNG structure follows the [PNG third edition, 24 June 2025](https://www.w3.org/TR/2025/REC-png-3-20250624/) (W3C Software and Document License 2023). Grayscale project round-trip behavior was checked against [Qt 6.10.1's PNG handler](https://github.com/qt/qtbase/blob/v6.10.1/src/gui/image/qpnghandler.cpp) (GPL-3.0/LGPL-3.0). Reviewed 2026-10-04; implementations are original, with no sample or Qt code copied.
 - Texture export layouts and engine constraints: [Quake](https://github.com/id-Software/Quake), [Quake II](https://github.com/id-Software/Quake-2), [Quake III Arena](https://github.com/id-Software/Quake-III-Arena) and [Chocolate Doom 3.1.0](https://github.com/chocolate-doom/chocolate-doom/tree/chocolate-doom-3.1.0) (GPL-2.0-or-later), plus [GZDoom's patch reader](https://github.com/ZDoom/gzdoom/blob/master/src/common/textures/formats/patchtexture.cpp) (BSD-3-Clause), reviewed 2026-10-04. Format knowledge only; encoders are independently implemented. Exact files and scope are in the credits list above.
 
@@ -772,7 +772,7 @@ Surface clipboard sampling and face/brush paste behavior also credit the pinned
 GPL-2.0-or-later [Q3Radiant DRAG.CPP](https://github.com/id-Software/Quake-III-Arena/blob/dbe4ddb10315479fc00086f08e25d968b4b43c49/q3radiant/DRAG.CPP)
 and [GtkRadiant drag.cpp](https://github.com/TTimo/GtkRadiant/blob/270af88f3c2471f6773bded0b5760a3115b52965/radiant/drag.cpp),
 reviewed 2026-10-06. The clipboard and projection integration are original
-VibeStudio implementations; the detailed credit records native differences.
+SlopStudio implementations; the detailed credit records native differences.
 Seamless wrapping and NetRadiant parameter paste also reference the GPL-2.0-or-later
 [NetRadiant Custom surface dialog](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/radiant/surfacedialog.cpp)
 and [NetRadiant surface dialog](https://github.com/xonotic/netradiant/blob/b4b295d7a37797cc2752e48aa8ce42492e7016f0/radiant/surfacedialog.cpp),
@@ -781,7 +781,7 @@ Custom's pinned [select.cpp](https://github.com/Garux/netradiant-custom/blob/68e
 [brush_primit.cpp](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/radiant/brush_primit.cpp)
 and [brush_primit.h](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/radiant/brush_primit.h)
 under the same licence and review date. The transfer service and rigid UV
-transport solver are original VibeStudio code.
+transport solver are original SlopStudio code.
 Native projected paste additionally references
 [`Patch::ProjectTexture`](https://github.com/Garux/netradiant-custom/blob/68ecbed64b7be78741878c730279b5471d978c7c/radiant/patch.cpp)
 and `Texdef_ProjectTexture`/`BPTexdef_fromST011` in that pinned `brush_primit.cpp`.
@@ -819,7 +819,7 @@ Component drag constraints and labelled movement traces also reference its
 (same tag/licence/date; [details](docs/CREDITS.md#component-drag-constraints)).
 Exact vertex quick snapping references
 [VertexToolController.cpp](https://github.com/TrenchBroom/TrenchBroom/blob/v2026.2/lib/TbUiLib/src/VertexToolController.cpp)
-at the same tag, licence and review date; VibeStudio's implementation is original.
+at the same tag, licence and review date; SlopStudio's implementation is original.
 
 Shared clipper point editing follows [TrenchBroom's clip tool](https://trenchbroom.github.io/manual/latest/#clipping)
 and [NetRadiant Custom's clipper](https://github.com/Garux/netradiant-custom/blob/449778b3840f8f2062daab15c87cb012f2ac945c/radiant/clippertool.cpp)
@@ -907,8 +907,8 @@ library is used. See [Model Decode Issues, glTF Import And Legacy Fuzzing](docs/
 
 ## License
 
-VibeStudio's own code is licensed under the GNU General Public License,
+SlopStudio's own code is licensed under the GNU General Public License,
 version 3 or later ([`LICENSE`](LICENSE)). Compiler submodules and other
 third-party components keep their own licences; release packages carry every
 notice under `licenses/`. Doom, Quake and id Tech are trademarks of their
-respective owners; VibeStudio is not affiliated with or endorsed by them.
+respective owners; SlopStudio is not affiliated with or endorsed by them.

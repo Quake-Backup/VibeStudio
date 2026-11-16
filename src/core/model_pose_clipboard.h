@@ -4,7 +4,7 @@
 // into another clip, joint or document, optionally mirrored left to right.
 //
 // A copy is a small versioned JSON payload (MIME type
-// application/x-vibestudio-pose+json, also written as a file by the CLI): the
+// application/x-slopstudio-pose+json, also written as a file by the CLI): the
 // whole source rig (joint names, parents and binds, which identify it), the
 // copied joints, and either their parent-local poses for a sample range or
 // their animation curve keys over that range. Pasting is the document edit
@@ -20,11 +20,11 @@
 #include <QStringList>
 #include <QVector>
 
-namespace vibestudio
+namespace slopstudio
 {
 struct ModelEdit;
 
-inline constexpr char modelPoseClipboardMimeType[] = "application/x-vibestudio-pose+json";
+inline constexpr char modelPoseClipboardMimeType[] = "application/x-slopstudio-pose+json";
 inline constexpr int modelPoseClipboardVersion = 1;
 inline constexpr qint64 modelPoseClipboardMaxBytes = 16LL * 1024 * 1024;
 // Copied joints times samples.
@@ -128,4 +128,4 @@ bool spliceModelCurveKeys(const QVector<ModelPoseCurveKey> &destination, const Q
 						  int frames, QVector<ModelPoseCurveKey> *result, QString *error = nullptr, const ModelWorkControl &control = {});
 // Candidate-only: use applyModelEdit/ModelDocument for transactional publication.
 bool applyModelPosePaste(ModelMesh *candidate, const ModelEdit &edit, QString *error, const ModelWorkControl &control = {});
-} // namespace vibestudio
+} // namespace slopstudio

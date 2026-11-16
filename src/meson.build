@@ -1,9 +1,9 @@
 conf = configuration_data()
-conf.set('VIBESTUDIO_VERSION', meson.project_version())
-conf.set('VIBESTUDIO_GITHUB_REPO', get_option('github_repo'))
-conf.set('VIBESTUDIO_UPDATE_CHANNEL', get_option('update_channel'))
-conf.set10('VIBESTUDIO_HAVE_AUDIO_PLAYBACK', qt6_multimedia_dep.found())
-conf.set10('VIBESTUDIO_HAVE_AUDIO_DUPLEX', pa_enabled)
+conf.set('SLOPSTUDIO_VERSION', meson.project_version())
+conf.set('SLOPSTUDIO_GITHUB_REPO', get_option('github_repo'))
+conf.set('SLOPSTUDIO_UPDATE_CHANNEL', get_option('update_channel'))
+conf.set10('SLOPSTUDIO_HAVE_AUDIO_PLAYBACK', qt6_multimedia_dep.found())
+conf.set10('SLOPSTUDIO_HAVE_AUDIO_DUPLEX', pa_enabled)
 
 # Optional llama.cpp/ggml (-Dggml=enabled): the static libraries scripts/build_ggml.py installs.
 ggml_option = get_option('ggml')
@@ -39,148 +39,148 @@ if not ggml_option.disabled()
     ggml_revision = 'c1d0e7a004015f23bc0233470b747b596f29b264'
   endif
 endif
-conf.set10('VIBESTUDIO_HAVE_GGML', ggml_dep.found())
-conf.set_quoted('VIBESTUDIO_GGML_REVISION', ggml_revision)
+conf.set10('SLOPSTUDIO_HAVE_GGML', ggml_dep.found())
+conf.set_quoted('SLOPSTUDIO_GGML_REVISION', ggml_revision)
 
 configure_file(
-  input: 'vibestudio_config.h.in',
-  output: 'vibestudio_config.h',
+  input: 'slopstudio_config.h.in',
+  output: 'slopstudio_config.h',
   configuration: conf,
 )
 
-vibestudio_includes = include_directories('.')
+slopstudio_includes = include_directories('.')
 
 # The Quake-MapGen level generator (src/mapgen), linked into core by core/level_mapgen.
 subdir('mapgen')
 
-install_headers('core/texture_document.h', subdir: 'vibestudio/core')
-install_headers('core/texture_paint.h', subdir: 'vibestudio/core')
-install_headers('core/texture_adjust.h', subdir: 'vibestudio/core')
-install_headers('core/texture_output.h', subdir: 'vibestudio/core')
-install_headers('core/texture_transform.h', subdir: 'vibestudio/core')
-install_headers('core/texture_export.h', subdir: 'vibestudio/core')
-install_headers('core/texture_formats.h', subdir: 'vibestudio/core')
-install_headers('core/texture_doom_walls.h', subdir: 'vibestudio/core')
-install_headers('core/texture_handoff.h', subdir: 'vibestudio/core')
-install_headers('core/texture_project.h', subdir: 'vibestudio/core')
-install_headers('core/texture_recovery.h', subdir: 'vibestudio/core')
-install_headers('core/audio_clip.h', subdir: 'vibestudio/core')
-install_headers('core/audio_decode.h', subdir: 'vibestudio/core')
-install_headers('core/audio_markers.h', subdir: 'vibestudio/core')
-install_headers('core/audio_project.h', subdir: 'vibestudio/core')
-install_headers('core/audio_session.h', 'core/audio_session_io.h', 'core/audio_transport.h', 'core/audio_take.h', 'core/audio_routing.h', subdir: 'vibestudio/core')
-install_headers('core/audio_effects.h', subdir: 'vibestudio/core')
-install_headers('core/audio_latency.h', 'core/audio_lookahead.h', subdir: 'vibestudio/core')
-install_headers('core/audio_tempo.h', 'core/audio_arrangement.h', 'core/audio_range.h', subdir: 'vibestudio/core')
-install_headers('core/audio_media.h', subdir: 'vibestudio/core')
-install_headers('core/audio_meter.h', subdir: 'vibestudio/core')
-install_headers('core/audio_duplex.h', 'core/audio_duplex_queue.h', subdir: 'vibestudio/core')
-install_headers('core/audio_recording.h', subdir: 'vibestudio/core')
-install_headers('core/audio_recording_import.h', subdir: 'vibestudio/core')
-install_headers('core/audio_recording_review.h', subdir: 'vibestudio/core')
-install_headers('core/audio_take_lanes.h', subdir: 'vibestudio/core')
-install_headers('core/audio_stems.h', subdir: 'vibestudio/core')
-install_headers('core/audio_automation.h', subdir: 'vibestudio/core')
-install_headers('core/audio_reverb.h', subdir: 'vibestudio/core')
-install_headers('core/audio_publication.h', subdir: 'vibestudio/core')
-install_headers('core/audio_effect_preset.h', subdir: 'vibestudio/core')
-install_headers('core/audio_recovery_store.h', subdir: 'vibestudio/core')
-install_headers('core/audio_waveform.h', subdir: 'vibestudio/core')
-install_headers('core/audio_resample.h', subdir: 'vibestudio/core')
-install_headers('core/audio_export.h', subdir: 'vibestudio/core')
-install_headers('core/audio_delivery.h', subdir: 'vibestudio/core')
-install_headers('core/audio_level.h', subdir: 'vibestudio/core')
-install_headers('core/audio_analysis.h', subdir: 'vibestudio/core')
+install_headers('core/texture_document.h', subdir: 'slopstudio/core')
+install_headers('core/texture_paint.h', subdir: 'slopstudio/core')
+install_headers('core/texture_adjust.h', subdir: 'slopstudio/core')
+install_headers('core/texture_output.h', subdir: 'slopstudio/core')
+install_headers('core/texture_transform.h', subdir: 'slopstudio/core')
+install_headers('core/texture_export.h', subdir: 'slopstudio/core')
+install_headers('core/texture_formats.h', subdir: 'slopstudio/core')
+install_headers('core/texture_doom_walls.h', subdir: 'slopstudio/core')
+install_headers('core/texture_handoff.h', subdir: 'slopstudio/core')
+install_headers('core/texture_project.h', subdir: 'slopstudio/core')
+install_headers('core/texture_recovery.h', subdir: 'slopstudio/core')
+install_headers('core/audio_clip.h', subdir: 'slopstudio/core')
+install_headers('core/audio_decode.h', subdir: 'slopstudio/core')
+install_headers('core/audio_markers.h', subdir: 'slopstudio/core')
+install_headers('core/audio_project.h', subdir: 'slopstudio/core')
+install_headers('core/audio_session.h', 'core/audio_session_io.h', 'core/audio_transport.h', 'core/audio_take.h', 'core/audio_routing.h', subdir: 'slopstudio/core')
+install_headers('core/audio_effects.h', subdir: 'slopstudio/core')
+install_headers('core/audio_latency.h', 'core/audio_lookahead.h', subdir: 'slopstudio/core')
+install_headers('core/audio_tempo.h', 'core/audio_arrangement.h', 'core/audio_range.h', subdir: 'slopstudio/core')
+install_headers('core/audio_media.h', subdir: 'slopstudio/core')
+install_headers('core/audio_meter.h', subdir: 'slopstudio/core')
+install_headers('core/audio_duplex.h', 'core/audio_duplex_queue.h', subdir: 'slopstudio/core')
+install_headers('core/audio_recording.h', subdir: 'slopstudio/core')
+install_headers('core/audio_recording_import.h', subdir: 'slopstudio/core')
+install_headers('core/audio_recording_review.h', subdir: 'slopstudio/core')
+install_headers('core/audio_take_lanes.h', subdir: 'slopstudio/core')
+install_headers('core/audio_stems.h', subdir: 'slopstudio/core')
+install_headers('core/audio_automation.h', subdir: 'slopstudio/core')
+install_headers('core/audio_reverb.h', subdir: 'slopstudio/core')
+install_headers('core/audio_publication.h', subdir: 'slopstudio/core')
+install_headers('core/audio_effect_preset.h', subdir: 'slopstudio/core')
+install_headers('core/audio_recovery_store.h', subdir: 'slopstudio/core')
+install_headers('core/audio_waveform.h', subdir: 'slopstudio/core')
+install_headers('core/audio_resample.h', subdir: 'slopstudio/core')
+install_headers('core/audio_export.h', subdir: 'slopstudio/core')
+install_headers('core/audio_delivery.h', subdir: 'slopstudio/core')
+install_headers('core/audio_level.h', subdir: 'slopstudio/core')
+install_headers('core/audio_analysis.h', subdir: 'slopstudio/core')
 
-install_headers('core/project_text_search.h', subdir: 'vibestudio/core')
-install_headers('core/text_document.h', subdir: 'vibestudio/core')
-install_headers('core/text_recovery.h', subdir: 'vibestudio/core')
-install_headers('core/code_files.h', subdir: 'vibestudio/core')
-install_headers('core/language_server.h', subdir: 'vibestudio/core')
-install_headers('core/language_references.h', subdir: 'vibestudio/core')
-install_headers('core/language_completion.h', subdir: 'vibestudio/core')
-install_headers('core/completion_snippet.h', subdir: 'vibestudio/core')
-install_headers('core/language_hover.h', subdir: 'vibestudio/core')
-install_headers('core/language_signature.h', subdir: 'vibestudio/core')
-install_headers('core/language_formatting.h', subdir: 'vibestudio/core')
-install_headers('core/language_rename.h', subdir: 'vibestudio/core')
-install_headers('core/language_workspace_edit.h', 'core/language_code_actions.h', subdir: 'vibestudio/core')
+install_headers('core/project_text_search.h', subdir: 'slopstudio/core')
+install_headers('core/text_document.h', subdir: 'slopstudio/core')
+install_headers('core/text_recovery.h', subdir: 'slopstudio/core')
+install_headers('core/code_files.h', subdir: 'slopstudio/core')
+install_headers('core/language_server.h', subdir: 'slopstudio/core')
+install_headers('core/language_references.h', subdir: 'slopstudio/core')
+install_headers('core/language_completion.h', subdir: 'slopstudio/core')
+install_headers('core/completion_snippet.h', subdir: 'slopstudio/core')
+install_headers('core/language_hover.h', subdir: 'slopstudio/core')
+install_headers('core/language_signature.h', subdir: 'slopstudio/core')
+install_headers('core/language_formatting.h', subdir: 'slopstudio/core')
+install_headers('core/language_rename.h', subdir: 'slopstudio/core')
+install_headers('core/language_workspace_edit.h', 'core/language_code_actions.h', subdir: 'slopstudio/core')
 
-install_headers('core/box_resize.h', subdir: 'vibestudio/core')
-install_headers('core/box_draw.h', subdir: 'vibestudio/core')
-install_headers('core/camera_surface_placement.h', subdir: 'vibestudio/core')
-install_headers('core/level_navigation.h', subdir: 'vibestudio/core')
-install_headers('core/level_component_selection.h', subdir: 'vibestudio/core')
-install_headers('core/level_clipper.h', subdir: 'vibestudio/core')
-install_headers('core/level_hollow.h', subdir: 'vibestudio/core')
-install_headers('core/level_placement.h', subdir: 'vibestudio/core')
-install_headers('core/level_region_selection.h', 'core/level_region_selection_types.h', subdir: 'vibestudio/core')
-install_headers('core/level_object_selection.h', subdir: 'vibestudio/core')
-install_headers('core/level_visibility.h', 'core/level_visibility_types.h', subdir: 'vibestudio/core')
-install_headers('core/level_paste.h', subdir: 'vibestudio/core')
-install_headers('core/level_map_transfer.h', subdir: 'vibestudio/core')
-install_headers('core/level_map_obj_export.h', subdir: 'vibestudio/core')
-install_headers('core/level_map_inspector.h', subdir: 'vibestudio/core')
-install_headers('core/level_face_clipboard.h', subdir: 'vibestudio/core')
-install_headers('core/level_build_workspace.h', subdir: 'vibestudio/core')
-install_headers('core/level_quake_assets.h', subdir: 'vibestudio/core')
-install_headers('core/model_fingerprint.h', subdir: 'vibestudio/core')
-install_headers('core/level_build_artifacts.h', subdir: 'vibestudio/core')
-install_headers('core/level_build_deployment.h', subdir: 'vibestudio/core')
-install_headers('core/level_doom_selection.h', subdir: 'vibestudio/core')
-install_headers('core/level_doom_nodes.h', subdir: 'vibestudio/core')
-install_headers('core/level_udmf.h', subdir: 'vibestudio/core')
-install_headers('core/package_index_p.h', subdir: 'vibestudio/core')
-install_headers('core/package_protection_p.h', subdir: 'vibestudio/core')
-install_headers('core/level_build_pak_deployment.h', subdir: 'vibestudio/core')
-install_headers('core/level_scene.h', 'core/level_scene_types.h', 'core/level_scene_locks.h', 'core/level_linked_groups.h', 'core/level_linked_objects.h', subdir: 'vibestudio/core')
-install_headers('core/level_scene_layers.h', subdir: 'vibestudio/core')
-install_headers('core/level_scene_trenchbroom.h', subdir: 'vibestudio/core')
-install_headers('core/level_protected_properties.h', subdir: 'vibestudio/core')
-install_headers('core/level_linked_extraction.h', subdir: 'vibestudio/core')
-install_headers('core/level_repeat.h', 'core/level_repeat_types.h', subdir: 'vibestudio/core')
-install_headers('core/level_entity_connections.h', 'core/level_entity_connection_types.h', subdir: 'vibestudio/core')
-install_headers('core/level_entity_ownership.h', subdir: 'vibestudio/core')
-install_headers('core/level_entity_colour.h', subdir: 'vibestudio/core')
-install_headers('core/level_entity_create.h', subdir: 'vibestudio/core')
-install_headers('core/level_sidebar.h', subdir: 'vibestudio/core')
-install_headers('core/level_view_filters.h', subdir: 'vibestudio/core')
-install_headers('core/level_filter_tags.h', subdir: 'vibestudio/core')
-install_headers('core/level_smart_tags.h', subdir: 'vibestudio/core')
-install_headers('core/level_camera_focus.h', subdir: 'vibestudio/core')
-install_headers('core/level_camera_render.h', subdir: 'vibestudio/core')
-install_headers('core/level_block_grid.h', subdir: 'vibestudio/core')
-install_headers('core/level_shapes.h', subdir: 'vibestudio/core')
-install_headers('core/level_brush_points.h', subdir: 'vibestudio/core')
-install_headers('core/level_brush_assemble.h', subdir: 'vibestudio/core')
-install_headers('core/portal_file.h', subdir: 'vibestudio/core')
-install_headers('core/level_doom_shapes.h', 'core/level_doom_align.h', subdir: 'vibestudio/core')
-install_headers('core/entity_builtin_catalogue.h', subdir: 'vibestudio/core')
-install_headers('core/map_geometry_cache.h', subdir: 'vibestudio/core')
-install_headers('core/level_material_paint.h', subdir: 'vibestudio/core')
-install_headers('core/level_material_find.h', subdir: 'vibestudio/core')
-install_headers('core/level_surface_clipboard.h', subdir: 'vibestudio/core')
-install_headers('core/level_face_flags.h', subdir: 'vibestudio/core')
-install_headers('core/level_uv_edit.h', subdir: 'vibestudio/core')
-install_headers('core/level_face_attributes.h', subdir: 'vibestudio/core')
-install_headers('core/level_uv_tool.h', subdir: 'vibestudio/core')
-install_headers('core/doom_preview_geometry.h', 'core/doom_preview_materials.h', subdir: 'vibestudio/core')
+install_headers('core/box_resize.h', subdir: 'slopstudio/core')
+install_headers('core/box_draw.h', subdir: 'slopstudio/core')
+install_headers('core/camera_surface_placement.h', subdir: 'slopstudio/core')
+install_headers('core/level_navigation.h', subdir: 'slopstudio/core')
+install_headers('core/level_component_selection.h', subdir: 'slopstudio/core')
+install_headers('core/level_clipper.h', subdir: 'slopstudio/core')
+install_headers('core/level_hollow.h', subdir: 'slopstudio/core')
+install_headers('core/level_placement.h', subdir: 'slopstudio/core')
+install_headers('core/level_region_selection.h', 'core/level_region_selection_types.h', subdir: 'slopstudio/core')
+install_headers('core/level_object_selection.h', subdir: 'slopstudio/core')
+install_headers('core/level_visibility.h', 'core/level_visibility_types.h', subdir: 'slopstudio/core')
+install_headers('core/level_paste.h', subdir: 'slopstudio/core')
+install_headers('core/level_map_transfer.h', subdir: 'slopstudio/core')
+install_headers('core/level_map_obj_export.h', subdir: 'slopstudio/core')
+install_headers('core/level_map_inspector.h', subdir: 'slopstudio/core')
+install_headers('core/level_face_clipboard.h', subdir: 'slopstudio/core')
+install_headers('core/level_build_workspace.h', subdir: 'slopstudio/core')
+install_headers('core/level_quake_assets.h', subdir: 'slopstudio/core')
+install_headers('core/model_fingerprint.h', subdir: 'slopstudio/core')
+install_headers('core/level_build_artifacts.h', subdir: 'slopstudio/core')
+install_headers('core/level_build_deployment.h', subdir: 'slopstudio/core')
+install_headers('core/level_doom_selection.h', subdir: 'slopstudio/core')
+install_headers('core/level_doom_nodes.h', subdir: 'slopstudio/core')
+install_headers('core/level_udmf.h', subdir: 'slopstudio/core')
+install_headers('core/package_index_p.h', subdir: 'slopstudio/core')
+install_headers('core/package_protection_p.h', subdir: 'slopstudio/core')
+install_headers('core/level_build_pak_deployment.h', subdir: 'slopstudio/core')
+install_headers('core/level_scene.h', 'core/level_scene_types.h', 'core/level_scene_locks.h', 'core/level_linked_groups.h', 'core/level_linked_objects.h', subdir: 'slopstudio/core')
+install_headers('core/level_scene_layers.h', subdir: 'slopstudio/core')
+install_headers('core/level_scene_trenchbroom.h', subdir: 'slopstudio/core')
+install_headers('core/level_protected_properties.h', subdir: 'slopstudio/core')
+install_headers('core/level_linked_extraction.h', subdir: 'slopstudio/core')
+install_headers('core/level_repeat.h', 'core/level_repeat_types.h', subdir: 'slopstudio/core')
+install_headers('core/level_entity_connections.h', 'core/level_entity_connection_types.h', subdir: 'slopstudio/core')
+install_headers('core/level_entity_ownership.h', subdir: 'slopstudio/core')
+install_headers('core/level_entity_colour.h', subdir: 'slopstudio/core')
+install_headers('core/level_entity_create.h', subdir: 'slopstudio/core')
+install_headers('core/level_sidebar.h', subdir: 'slopstudio/core')
+install_headers('core/level_view_filters.h', subdir: 'slopstudio/core')
+install_headers('core/level_filter_tags.h', subdir: 'slopstudio/core')
+install_headers('core/level_smart_tags.h', subdir: 'slopstudio/core')
+install_headers('core/level_camera_focus.h', subdir: 'slopstudio/core')
+install_headers('core/level_camera_render.h', subdir: 'slopstudio/core')
+install_headers('core/level_block_grid.h', subdir: 'slopstudio/core')
+install_headers('core/level_shapes.h', subdir: 'slopstudio/core')
+install_headers('core/level_brush_points.h', subdir: 'slopstudio/core')
+install_headers('core/level_brush_assemble.h', subdir: 'slopstudio/core')
+install_headers('core/portal_file.h', subdir: 'slopstudio/core')
+install_headers('core/level_doom_shapes.h', 'core/level_doom_align.h', subdir: 'slopstudio/core')
+install_headers('core/entity_builtin_catalogue.h', subdir: 'slopstudio/core')
+install_headers('core/map_geometry_cache.h', subdir: 'slopstudio/core')
+install_headers('core/level_material_paint.h', subdir: 'slopstudio/core')
+install_headers('core/level_material_find.h', subdir: 'slopstudio/core')
+install_headers('core/level_surface_clipboard.h', subdir: 'slopstudio/core')
+install_headers('core/level_face_flags.h', subdir: 'slopstudio/core')
+install_headers('core/level_uv_edit.h', subdir: 'slopstudio/core')
+install_headers('core/level_face_attributes.h', subdir: 'slopstudio/core')
+install_headers('core/level_uv_tool.h', subdir: 'slopstudio/core')
+install_headers('core/doom_preview_geometry.h', 'core/doom_preview_materials.h', subdir: 'slopstudio/core')
 
-install_headers('core/extra_image.h', subdir: 'vibestudio/core')
+install_headers('core/extra_image.h', subdir: 'slopstudio/core')
 
-install_headers('core/asset_formats.h', 'core/workspace_document.h', subdir: 'vibestudio/core')
-install_headers('core/game_asset_register.h', 'core/project_content.h', 'core/release_plan.h', 'core/release_notes.h', 'core/release_publish.h', 'core/release_script_refs.h', subdir: 'vibestudio/core')
-install_headers('core/material_model.h', 'core/material_script.h', subdir: 'vibestudio/core')
-install_headers('core/material_classic.h', subdir: 'vibestudio/core')
-install_headers('core/material_eval.h', 'core/material_images.h', subdir: 'vibestudio/core')
-install_headers('core/material_render.h', 'core/material_render_p.h', subdir: 'vibestudio/core')
-install_headers('core/render_device.h', 'core/render_device_p.h', 'core/render_shaders.h', subdir: 'vibestudio/core')
-install_headers('core/material_library.h', subdir: 'vibestudio/core')
-install_headers('core/material_graph.h', subdir: 'vibestudio/core')
-install_headers('core/material_video.h', subdir: 'vibestudio/core')
-install_headers('core/material_usage.h', subdir: 'vibestudio/core')
-install_headers('core/material_lookup.h', subdir: 'vibestudio/core')
-install_headers('core/material_override.h', subdir: 'vibestudio/core')
+install_headers('core/asset_formats.h', 'core/workspace_document.h', subdir: 'slopstudio/core')
+install_headers('core/game_asset_register.h', 'core/project_content.h', 'core/release_plan.h', 'core/release_notes.h', 'core/release_publish.h', 'core/release_script_refs.h', subdir: 'slopstudio/core')
+install_headers('core/material_model.h', 'core/material_script.h', subdir: 'slopstudio/core')
+install_headers('core/material_classic.h', subdir: 'slopstudio/core')
+install_headers('core/material_eval.h', 'core/material_images.h', subdir: 'slopstudio/core')
+install_headers('core/material_render.h', 'core/material_render_p.h', subdir: 'slopstudio/core')
+install_headers('core/render_device.h', 'core/render_device_p.h', 'core/render_shaders.h', subdir: 'slopstudio/core')
+install_headers('core/material_library.h', subdir: 'slopstudio/core')
+install_headers('core/material_graph.h', subdir: 'slopstudio/core')
+install_headers('core/material_video.h', subdir: 'slopstudio/core')
+install_headers('core/material_usage.h', subdir: 'slopstudio/core')
+install_headers('core/material_lookup.h', subdir: 'slopstudio/core')
+install_headers('core/material_override.h', subdir: 'slopstudio/core')
 
 core_sources = files(
   'core/render_device.cpp',
@@ -660,154 +660,154 @@ core_sources = files(
 
 audio_threads_dep = dependency('threads')
 
-vibestudio_core = static_library(
-  'vibestudio_core',
+slopstudio_core = static_library(
+  'slopstudio_core',
   core_sources,
-  include_directories: [vibestudio_includes, include_directories('../external/audio/r8brain-free-src', '../external/audio/dr_libs', '../external/graphics/vulkan-headers/include', is_system: true)],
+  include_directories: [slopstudio_includes, include_directories('../external/audio/r8brain-free-src', '../external/audio/dr_libs', '../external/graphics/vulkan-headers/include', is_system: true)],
   dependencies: [qt6_core_dep, audio_threads_dep, xiph_decoder_dep, audio_meter_dep, xatlas_dep, mapgen_dep, ggml_dep],
   install: true,
 )
 
-vibestudio_core_dep = declare_dependency(
-  include_directories: vibestudio_includes,
+slopstudio_core_dep = declare_dependency(
+  include_directories: slopstudio_includes,
   dependencies: [qt6_core_dep, audio_threads_dep, xiph_decoder_dep, audio_meter_dep, xatlas_dep, mapgen_dep, ggml_dep],
-  link_with: [vibestudio_core],
+  link_with: [slopstudio_core],
 )
 
-install_headers('core/level_dependencies.h', 'core/level_document.h', 'core/package_selection.h', 'core/model_design.h', subdir: 'vibestudio/core')
-install_headers('core/level_patch.h', subdir: 'vibestudio/core')
-install_headers('core/level_patch_stitch.h', subdir: 'vibestudio/core')
-install_headers('core/level_patch_cap.h', subdir: 'vibestudio/core')
-install_headers('core/level_patch_convert.h', subdir: 'vibestudio/core')
-install_headers('core/level_patch_tools.h', subdir: 'vibestudio/core')
-install_headers('core/level_selection_tools.h', subdir: 'vibestudio/core')
-install_headers('core/level_brush.h', subdir: 'vibestudio/core')
-install_headers('core/level_grid_round.h', subdir: 'vibestudio/core')
-install_headers('core/level_object_manipulator.h', subdir: 'vibestudio/core')
-install_headers('core/level_plane_drag.h', subdir: 'vibestudio/core')
-install_headers('core/level_quick_transform.h', subdir: 'vibestudio/core')
-install_headers('core/level_nudge.h', subdir: 'vibestudio/core')
-install_headers('core/level_camera_texture.h', subdir: 'vibestudio/core')
-install_headers('core/level_primitive.h', subdir: 'vibestudio/core')
-install_headers('core/level_prefab.h', subdir: 'vibestudio/core')
-install_headers('core/level_merge.h', subdir: 'vibestudio/core')
-install_headers('core/level_wrap.h', subdir: 'vibestudio/core')
-install_headers('core/level_sweep.h', subdir: 'vibestudio/core')
-install_headers('core/level_sweep_controls.h', subdir: 'vibestudio/core')
-install_headers('core/level_clip_camera.h', subdir: 'vibestudio/core')
-install_headers('core/level_clip_drag.h', subdir: 'vibestudio/core')
-install_headers('core/level_textured_selection.h', subdir: 'vibestudio/core')
-install_headers('core/level_surface.h', subdir: 'vibestudio/core')
-install_headers('core/level_texture_mapping.h', subdir: 'vibestudio/core')
-install_headers('core/model_document.h', 'core/model_topology.h', subdir: 'vibestudio/core')
-install_headers('core/model_document_memory.h', 'core/model_source_encoding.h', subdir: 'vibestudio/core')
-install_headers('core/model_assembly.h', subdir: 'vibestudio/core')
-install_headers('core/model_player_bundle.h', subdir: 'vibestudio/core')
-install_headers('core/model_weapon_bundle.h', subdir: 'vibestudio/core')
-install_headers('core/model_q2_player_bundle.h', subdir: 'vibestudio/core')
-install_headers('core/model_player_import.h', subdir: 'vibestudio/core')
-install_headers('core/model_doom3_entity_import.h', subdir: 'vibestudio/core')
-install_headers('core/model_q3_animation.h', subdir: 'vibestudio/core')
-install_headers('core/model_assembly_animation.h', subdir: 'vibestudio/core')
-install_headers('core/model_collision.h', subdir: 'vibestudio/core')
-install_headers('core/model_collision_placement.h', subdir: 'vibestudio/core')
-install_headers('core/model_collision_hull.h', subdir: 'vibestudio/core')
-install_headers('core/model_collision_doom3.h', subdir: 'vibestudio/core')
-install_headers('core/model_assembly_recovery.h', subdir: 'vibestudio/core')
-install_headers('core/model_topology_health.h', subdir: 'vibestudio/core')
-install_headers('core/model_boundary_fill.h', subdir: 'vibestudio/core')
-install_headers('core/model_intersections.h', 'core/model_triangle_contact.h', subdir: 'vibestudio/core')
-install_headers('core/model_import_repair.h', subdir: 'vibestudio/core')
-install_headers('core/model_boundary_bridge.h', subdir: 'vibestudio/core')
-install_headers('core/model_surfaces.h', subdir: 'vibestudio/core')
-install_headers('core/model_rig.h', subdir: 'vibestudio/core')
-install_headers('core/model_skeletal_edit.h', subdir: 'vibestudio/core')
-install_headers('core/model_skeletal_working_set.h', subdir: 'vibestudio/core')
-install_headers('core/model_joint_tools.h', subdir: 'vibestudio/core')
-install_headers('core/model_skinning_work.h', subdir: 'vibestudio/core')
-install_headers('core/model_weight_paint.h', subdir: 'vibestudio/core')
-install_headers('core/model_weight_transfer.h', subdir: 'vibestudio/core')
-install_headers('core/model_ik.h', subdir: 'vibestudio/core')
-install_headers('core/model_animation_curves.h', subdir: 'vibestudio/core')
-install_headers('core/model_curve_key_tools.h', subdir: 'vibestudio/core')
-install_headers('core/model_curve_transfer.h', subdir: 'vibestudio/core')
-install_headers('core/model_pose_clipboard.h', 'core/model_animation_authoring.h', 'core/model_animation_events.h', subdir: 'vibestudio/core')
+install_headers('core/level_dependencies.h', 'core/level_document.h', 'core/package_selection.h', 'core/model_design.h', subdir: 'slopstudio/core')
+install_headers('core/level_patch.h', subdir: 'slopstudio/core')
+install_headers('core/level_patch_stitch.h', subdir: 'slopstudio/core')
+install_headers('core/level_patch_cap.h', subdir: 'slopstudio/core')
+install_headers('core/level_patch_convert.h', subdir: 'slopstudio/core')
+install_headers('core/level_patch_tools.h', subdir: 'slopstudio/core')
+install_headers('core/level_selection_tools.h', subdir: 'slopstudio/core')
+install_headers('core/level_brush.h', subdir: 'slopstudio/core')
+install_headers('core/level_grid_round.h', subdir: 'slopstudio/core')
+install_headers('core/level_object_manipulator.h', subdir: 'slopstudio/core')
+install_headers('core/level_plane_drag.h', subdir: 'slopstudio/core')
+install_headers('core/level_quick_transform.h', subdir: 'slopstudio/core')
+install_headers('core/level_nudge.h', subdir: 'slopstudio/core')
+install_headers('core/level_camera_texture.h', subdir: 'slopstudio/core')
+install_headers('core/level_primitive.h', subdir: 'slopstudio/core')
+install_headers('core/level_prefab.h', subdir: 'slopstudio/core')
+install_headers('core/level_merge.h', subdir: 'slopstudio/core')
+install_headers('core/level_wrap.h', subdir: 'slopstudio/core')
+install_headers('core/level_sweep.h', subdir: 'slopstudio/core')
+install_headers('core/level_sweep_controls.h', subdir: 'slopstudio/core')
+install_headers('core/level_clip_camera.h', subdir: 'slopstudio/core')
+install_headers('core/level_clip_drag.h', subdir: 'slopstudio/core')
+install_headers('core/level_textured_selection.h', subdir: 'slopstudio/core')
+install_headers('core/level_surface.h', subdir: 'slopstudio/core')
+install_headers('core/level_texture_mapping.h', subdir: 'slopstudio/core')
+install_headers('core/model_document.h', 'core/model_topology.h', subdir: 'slopstudio/core')
+install_headers('core/model_document_memory.h', 'core/model_source_encoding.h', subdir: 'slopstudio/core')
+install_headers('core/model_assembly.h', subdir: 'slopstudio/core')
+install_headers('core/model_player_bundle.h', subdir: 'slopstudio/core')
+install_headers('core/model_weapon_bundle.h', subdir: 'slopstudio/core')
+install_headers('core/model_q2_player_bundle.h', subdir: 'slopstudio/core')
+install_headers('core/model_player_import.h', subdir: 'slopstudio/core')
+install_headers('core/model_doom3_entity_import.h', subdir: 'slopstudio/core')
+install_headers('core/model_q3_animation.h', subdir: 'slopstudio/core')
+install_headers('core/model_assembly_animation.h', subdir: 'slopstudio/core')
+install_headers('core/model_collision.h', subdir: 'slopstudio/core')
+install_headers('core/model_collision_placement.h', subdir: 'slopstudio/core')
+install_headers('core/model_collision_hull.h', subdir: 'slopstudio/core')
+install_headers('core/model_collision_doom3.h', subdir: 'slopstudio/core')
+install_headers('core/model_assembly_recovery.h', subdir: 'slopstudio/core')
+install_headers('core/model_topology_health.h', subdir: 'slopstudio/core')
+install_headers('core/model_boundary_fill.h', subdir: 'slopstudio/core')
+install_headers('core/model_intersections.h', 'core/model_triangle_contact.h', subdir: 'slopstudio/core')
+install_headers('core/model_import_repair.h', subdir: 'slopstudio/core')
+install_headers('core/model_boundary_bridge.h', subdir: 'slopstudio/core')
+install_headers('core/model_surfaces.h', subdir: 'slopstudio/core')
+install_headers('core/model_rig.h', subdir: 'slopstudio/core')
+install_headers('core/model_skeletal_edit.h', subdir: 'slopstudio/core')
+install_headers('core/model_skeletal_working_set.h', subdir: 'slopstudio/core')
+install_headers('core/model_joint_tools.h', subdir: 'slopstudio/core')
+install_headers('core/model_skinning_work.h', subdir: 'slopstudio/core')
+install_headers('core/model_weight_paint.h', subdir: 'slopstudio/core')
+install_headers('core/model_weight_transfer.h', subdir: 'slopstudio/core')
+install_headers('core/model_ik.h', subdir: 'slopstudio/core')
+install_headers('core/model_animation_curves.h', subdir: 'slopstudio/core')
+install_headers('core/model_curve_key_tools.h', subdir: 'slopstudio/core')
+install_headers('core/model_curve_transfer.h', subdir: 'slopstudio/core')
+install_headers('core/model_pose_clipboard.h', 'core/model_animation_authoring.h', 'core/model_animation_events.h', subdir: 'slopstudio/core')
 install_headers('core/model_animation_constraints.h', 'core/model_clip_import.h', 'core/model_game_declarations.h', 'core/model_rotation_tracks.h',
-                subdir: 'vibestudio/core')
-install_headers('core/model_edge_slide.h', subdir: 'vibestudio/core')
-install_headers('core/model_rip.h', subdir: 'vibestudio/core')
-install_headers('core/model_vertex_identity.h', subdir: 'vibestudio/core')
-install_headers('core/model_align.h', subdir: 'vibestudio/core')
-install_headers('core/model_whole_transform.h', 'core/model_topology_tools.h', subdir: 'vibestudio/core')
-install_headers('core/model_skinning_tools.h', subdir: 'vibestudio/core')
-install_headers('core/model_skeleton.h', 'core/model_md5.h', 'core/model_ase.h', 'core/model_iqm.h', subdir: 'vibestudio/core')
-install_headers('core/model_skeletal_export.h', subdir: 'vibestudio/core')
-install_headers('core/model_targets.h', subdir: 'vibestudio/core')
-install_headers('core/model_target_prepare.h', subdir: 'vibestudio/core')
-install_headers('core/model_delivery.h', subdir: 'vibestudio/core')
-install_headers('core/model_recovery_policy.h', 'core/model_outputs.h', 'core/model_stage.h', subdir: 'vibestudio/core')
-install_headers('core/level_model_placement.h', 'core/cli_cancellation.h', subdir: 'vibestudio/core')
-install_headers('core/model_session_draft.h', 'core/model_weight_stroke_recipe.h', 'core/model_work_defaults.h', subdir: 'vibestudio/core')
-install_headers('core/model_editor_controls.h', 'core/model_sidebar.h', subdir: 'vibestudio/core')
-install_headers('core/model_decode_issues.h', 'core/model_audit.h', 'core/model_game_preview.h', 'core/model_bvh.h', 'core/model_bake.h', 'core/model_skin_paint.h', 'core/model_mds.h', subdir: 'vibestudio/core')
-install_headers('core/model_surface_selection.h', subdir: 'vibestudio/core')
-install_headers('core/model_geometric_topology.h', 'core/model_mesh_tools.h', 'core/model_selection_tools.h', 'core/model_lod.h', subdir: 'vibestudio/core')
-install_headers('core/model_material_slots.h', subdir: 'vibestudio/core')
-install_headers('core/model_animation.h', subdir: 'vibestudio/core')
-install_headers('core/model_frame_tools.h', 'core/model_frame_import.h', 'core/model_tag_follow.h', subdir: 'vibestudio/core')
-install_headers('core/model_pose.h', subdir: 'vibestudio/core')
-install_headers('core/model_mdl.h', subdir: 'vibestudio/core')
-install_headers('core/model_skin_source.h', subdir: 'vibestudio/core')
-install_headers('core/model_skin_bindings.h', subdir: 'vibestudio/core')
-install_headers('core/model_skin_variants.h', subdir: 'vibestudio/core')
-install_headers('core/model_obj.h', subdir: 'vibestudio/core')
-install_headers('core/model_archive.h', subdir: 'vibestudio/core')
-install_headers('core/model_frame_export.h', subdir: 'vibestudio/core')
-install_headers('core/model_appearance.h', subdir: 'vibestudio/core')
-install_headers('core/package_wad_groups.h', subdir: 'vibestudio/core')
-install_headers('core/model_transform.h', subdir: 'vibestudio/core')
-install_headers('core/model_trackball.h', subdir: 'vibestudio/core')
-install_headers('core/model_transform_axes.h', subdir: 'vibestudio/core')
-install_headers('core/model_transform_pieces.h', subdir: 'vibestudio/core')
-install_headers('core/model_symmetry.h', subdir: 'vibestudio/core')
-install_headers('core/model_tags.h', subdir: 'vibestudio/core')
-install_headers('core/model_uv.h', subdir: 'vibestudio/core')
-install_headers('core/model_uv_density.h', subdir: 'vibestudio/core')
-install_headers('core/model_uv_mapping.h', subdir: 'vibestudio/core')
-install_headers('core/model_uv_atlas.h', subdir: 'vibestudio/core')
-install_headers('core/model_uv_obstacles.h', subdir: 'vibestudio/core')
-install_headers('core/model_uv_atlas_memory.h', subdir: 'vibestudio/core')
-install_headers('core/model_uv_health.h', subdir: 'vibestudio/core')
-install_headers('core/model_uv_raster.h', subdir: 'vibestudio/core')
-install_headers('core/model_uv_ops.h', subdir: 'vibestudio/core')
-install_headers('core/model_uv_unwrap.h', subdir: 'vibestudio/core')
-install_headers('core/model_uv_layout.h', subdir: 'vibestudio/core')
-install_headers('core/model_skin_transfer.h', subdir: 'vibestudio/core')
-install_headers('core/model_skin_handoff.h', subdir: 'vibestudio/core')
-install_headers('core/model_skin_roundtrip.h', subdir: 'vibestudio/core')
-install_headers('core/model_uv_pins.h', subdir: 'vibestudio/core')
-install_headers('core/model_file_io.h', 'core/model_work.h', subdir: 'vibestudio/core')
-install_headers('core/package_validation.h', subdir: 'vibestudio/core')
-install_headers('core/package_publication.h', subdir: 'vibestudio/core')
-install_headers('core/package_content.h', subdir: 'vibestudio/core')
-install_headers('core/package_import_store.h', subdir: 'vibestudio/core')
-install_headers('core/package_draft.h', 'core/package_draft_access.h', 'core/package_draft_storage.h', subdir: 'vibestudio/core')
-install_headers('core/package_recovery.h', subdir: 'vibestudio/core')
-install_headers('core/package_storage.h', 'core/package_copy.h', 'core/package_copy_budget.h', 'core/package_copy_store.h', subdir: 'vibestudio/core')
+                subdir: 'slopstudio/core')
+install_headers('core/model_edge_slide.h', subdir: 'slopstudio/core')
+install_headers('core/model_rip.h', subdir: 'slopstudio/core')
+install_headers('core/model_vertex_identity.h', subdir: 'slopstudio/core')
+install_headers('core/model_align.h', subdir: 'slopstudio/core')
+install_headers('core/model_whole_transform.h', 'core/model_topology_tools.h', subdir: 'slopstudio/core')
+install_headers('core/model_skinning_tools.h', subdir: 'slopstudio/core')
+install_headers('core/model_skeleton.h', 'core/model_md5.h', 'core/model_ase.h', 'core/model_iqm.h', subdir: 'slopstudio/core')
+install_headers('core/model_skeletal_export.h', subdir: 'slopstudio/core')
+install_headers('core/model_targets.h', subdir: 'slopstudio/core')
+install_headers('core/model_target_prepare.h', subdir: 'slopstudio/core')
+install_headers('core/model_delivery.h', subdir: 'slopstudio/core')
+install_headers('core/model_recovery_policy.h', 'core/model_outputs.h', 'core/model_stage.h', subdir: 'slopstudio/core')
+install_headers('core/level_model_placement.h', 'core/cli_cancellation.h', subdir: 'slopstudio/core')
+install_headers('core/model_session_draft.h', 'core/model_weight_stroke_recipe.h', 'core/model_work_defaults.h', subdir: 'slopstudio/core')
+install_headers('core/model_editor_controls.h', 'core/model_sidebar.h', subdir: 'slopstudio/core')
+install_headers('core/model_decode_issues.h', 'core/model_audit.h', 'core/model_game_preview.h', 'core/model_bvh.h', 'core/model_bake.h', 'core/model_skin_paint.h', 'core/model_mds.h', subdir: 'slopstudio/core')
+install_headers('core/model_surface_selection.h', subdir: 'slopstudio/core')
+install_headers('core/model_geometric_topology.h', 'core/model_mesh_tools.h', 'core/model_selection_tools.h', 'core/model_lod.h', subdir: 'slopstudio/core')
+install_headers('core/model_material_slots.h', subdir: 'slopstudio/core')
+install_headers('core/model_animation.h', subdir: 'slopstudio/core')
+install_headers('core/model_frame_tools.h', 'core/model_frame_import.h', 'core/model_tag_follow.h', subdir: 'slopstudio/core')
+install_headers('core/model_pose.h', subdir: 'slopstudio/core')
+install_headers('core/model_mdl.h', subdir: 'slopstudio/core')
+install_headers('core/model_skin_source.h', subdir: 'slopstudio/core')
+install_headers('core/model_skin_bindings.h', subdir: 'slopstudio/core')
+install_headers('core/model_skin_variants.h', subdir: 'slopstudio/core')
+install_headers('core/model_obj.h', subdir: 'slopstudio/core')
+install_headers('core/model_archive.h', subdir: 'slopstudio/core')
+install_headers('core/model_frame_export.h', subdir: 'slopstudio/core')
+install_headers('core/model_appearance.h', subdir: 'slopstudio/core')
+install_headers('core/package_wad_groups.h', subdir: 'slopstudio/core')
+install_headers('core/model_transform.h', subdir: 'slopstudio/core')
+install_headers('core/model_trackball.h', subdir: 'slopstudio/core')
+install_headers('core/model_transform_axes.h', subdir: 'slopstudio/core')
+install_headers('core/model_transform_pieces.h', subdir: 'slopstudio/core')
+install_headers('core/model_symmetry.h', subdir: 'slopstudio/core')
+install_headers('core/model_tags.h', subdir: 'slopstudio/core')
+install_headers('core/model_uv.h', subdir: 'slopstudio/core')
+install_headers('core/model_uv_density.h', subdir: 'slopstudio/core')
+install_headers('core/model_uv_mapping.h', subdir: 'slopstudio/core')
+install_headers('core/model_uv_atlas.h', subdir: 'slopstudio/core')
+install_headers('core/model_uv_obstacles.h', subdir: 'slopstudio/core')
+install_headers('core/model_uv_atlas_memory.h', subdir: 'slopstudio/core')
+install_headers('core/model_uv_health.h', subdir: 'slopstudio/core')
+install_headers('core/model_uv_raster.h', subdir: 'slopstudio/core')
+install_headers('core/model_uv_ops.h', subdir: 'slopstudio/core')
+install_headers('core/model_uv_unwrap.h', subdir: 'slopstudio/core')
+install_headers('core/model_uv_layout.h', subdir: 'slopstudio/core')
+install_headers('core/model_skin_transfer.h', subdir: 'slopstudio/core')
+install_headers('core/model_skin_handoff.h', subdir: 'slopstudio/core')
+install_headers('core/model_skin_roundtrip.h', subdir: 'slopstudio/core')
+install_headers('core/model_uv_pins.h', subdir: 'slopstudio/core')
+install_headers('core/model_file_io.h', 'core/model_work.h', subdir: 'slopstudio/core')
+install_headers('core/package_validation.h', subdir: 'slopstudio/core')
+install_headers('core/package_publication.h', subdir: 'slopstudio/core')
+install_headers('core/package_content.h', subdir: 'slopstudio/core')
+install_headers('core/package_import_store.h', subdir: 'slopstudio/core')
+install_headers('core/package_draft.h', 'core/package_draft_access.h', 'core/package_draft_storage.h', subdir: 'slopstudio/core')
+install_headers('core/package_recovery.h', subdir: 'slopstudio/core')
+install_headers('core/package_storage.h', 'core/package_copy.h', 'core/package_copy_budget.h', 'core/package_copy_store.h', subdir: 'slopstudio/core')
 
-install_headers(files('core/level_component_drag.h', 'core/advanced_studio.h', 'core/ai_connectors.h', 'core/ai_transport.h', 'core/ai_workflows.h', 'core/asset_tools.h', 'core/bsp_inspect.h', 'core/build_pipeline.h', 'core/build_program_trust.h', 'core/compiler_artifact_validation.h', 'core/compiler_known_issues.h', 'core/compiler_profiles.h', 'core/compiler_registry.h', 'core/compiler_runner.h', 'core/deflate.h', 'core/document_watch.h', 'core/quake_map_preflight.h', 'core/editor_profiles.h', 'core/entity_definitions.h', 'core/game_installation.h', 'core/idtech_image.h', 'core/level_editor_controls.h', 'core/level_gestures.h', 'core/level_camera_keys.h', 'core/level_map.h', 'core/localization.h', 'core/map_assets.h', 'core/map_geometry.h', 'core/map_preview_mesh.h', 'core/map_render.h', 'core/model_mesh.h', 'core/operation_state.h', 'core/package_archive.h', 'core/package_compare.h', 'core/package_preview.h', 'core/package_staging.h', 'core/package_directory.h', 'core/package_browser.h', 'core/parser_fuzz.h', 'core/project_manifest.h', 'core/studio_semantics.h', 'core/studio_manifest.h', 'core/studio_query.h', 'core/studio_settings.h'), subdir: 'vibestudio/core')
+install_headers(files('core/level_component_drag.h', 'core/advanced_studio.h', 'core/ai_connectors.h', 'core/ai_transport.h', 'core/ai_workflows.h', 'core/asset_tools.h', 'core/bsp_inspect.h', 'core/build_pipeline.h', 'core/build_program_trust.h', 'core/compiler_artifact_validation.h', 'core/compiler_known_issues.h', 'core/compiler_profiles.h', 'core/compiler_registry.h', 'core/compiler_runner.h', 'core/deflate.h', 'core/document_watch.h', 'core/quake_map_preflight.h', 'core/editor_profiles.h', 'core/entity_definitions.h', 'core/game_installation.h', 'core/idtech_image.h', 'core/level_editor_controls.h', 'core/level_gestures.h', 'core/level_camera_keys.h', 'core/level_map.h', 'core/localization.h', 'core/map_assets.h', 'core/map_geometry.h', 'core/map_preview_mesh.h', 'core/map_render.h', 'core/model_mesh.h', 'core/operation_state.h', 'core/package_archive.h', 'core/package_compare.h', 'core/package_preview.h', 'core/package_staging.h', 'core/package_directory.h', 'core/package_browser.h', 'core/parser_fuzz.h', 'core/project_manifest.h', 'core/studio_semantics.h', 'core/studio_manifest.h', 'core/studio_query.h', 'core/studio_settings.h'), subdir: 'slopstudio/core')
 
-install_headers('core/ai_image_transport.h', subdir: 'vibestudio/core')
-install_headers('core/ai_harness.h', 'core/ai_gguf_runtime.h', 'core/ai_json_grammar.h', 'core/process_tree.h', subdir: 'vibestudio/core')
-install_headers('core/texture_generation.h', subdir: 'vibestudio/core')
-install_headers('core/level_generation.h', subdir: 'vibestudio/core')
-install_headers('core/level_mapgen.h', subdir: 'vibestudio/core')
-install_headers('core/level_ai_edit.h', subdir: 'vibestudio/core')
-install_headers('core/ai_audio_transport.h', subdir: 'vibestudio/core')
-install_headers('core/sound_generation.h', subdir: 'vibestudio/core')
-install_headers('core/level_materials.h', subdir: 'vibestudio/core')
-install_headers('core/level_model_appearance.h', subdir: 'vibestudio/core')
-install_headers('core/level_model_instance.h', subdir: 'vibestudio/core')
+install_headers('core/ai_image_transport.h', subdir: 'slopstudio/core')
+install_headers('core/ai_harness.h', 'core/ai_gguf_runtime.h', 'core/ai_json_grammar.h', 'core/process_tree.h', subdir: 'slopstudio/core')
+install_headers('core/texture_generation.h', subdir: 'slopstudio/core')
+install_headers('core/level_generation.h', subdir: 'slopstudio/core')
+install_headers('core/level_mapgen.h', subdir: 'slopstudio/core')
+install_headers('core/level_ai_edit.h', subdir: 'slopstudio/core')
+install_headers('core/ai_audio_transport.h', subdir: 'slopstudio/core')
+install_headers('core/sound_generation.h', subdir: 'slopstudio/core')
+install_headers('core/level_materials.h', subdir: 'slopstudio/core')
+install_headers('core/level_model_appearance.h', subdir: 'slopstudio/core')
+install_headers('core/level_model_instance.h', subdir: 'slopstudio/core')
 
 app_sources = files(
   'app/asset_workbench_actions.cpp',
@@ -1295,7 +1295,7 @@ app_moc_headers = files(
 
 app_moc_sources = qt6.preprocess(
   moc_headers: app_moc_headers,
-  include_directories: vibestudio_includes,
+  include_directories: slopstudio_includes,
   dependencies: qt6_dep,
 )
 
@@ -1308,29 +1308,29 @@ endif
 # The application icon at every size Qt asks for (assets/branding, generated by
 # scripts/generate_branding.py). studioApplicationIcon() initialises it.
 branding_resources = qt6.compile_resources(
-  name: 'vibestudio_branding',
-  sources: files('../assets/branding/vibestudio.qrc'),
+  name: 'slopstudio_branding',
+  sources: files('../assets/branding/slopstudio.qrc'),
 )
 
-vibestudio_app = static_library(
-  'vibestudio_app',
+slopstudio_app = static_library(
+  'slopstudio_app',
   app_sources,
   app_moc_sources,
   branding_resources,
-  include_directories: vibestudio_includes,
-  dependencies: [qt6_dep, qt6_multimedia_dep, audio_capture_platform_dep, audio_duplex_dep, vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [qt6_dep, qt6_multimedia_dep, audio_capture_platform_dep, audio_duplex_dep, slopstudio_core_dep],
   install: false,
 )
 
-vibestudio_app_dep = declare_dependency(
-  include_directories: vibestudio_includes,
-  dependencies: [qt6_dep, qt6_multimedia_dep, audio_capture_platform_dep, audio_duplex_dep, vibestudio_core_dep],
-  link_with: [vibestudio_app],
+slopstudio_app_dep = declare_dependency(
+  include_directories: slopstudio_includes,
+  dependencies: [qt6_dep, qt6_multimedia_dep, audio_capture_platform_dep, audio_duplex_dep, slopstudio_core_dep],
+  link_with: [slopstudio_app],
 )
 
-# Windows: the brand icon and version details on vibestudio.exe
-# (packaging/windows/vibestudio.rc.in, filled in from VERSION).
-vibestudio_platform_sources = []
+# Windows: the brand icon and version details on slopstudio.exe
+# (packaging/windows/slopstudio.rc.in, filled in from VERSION).
+slopstudio_platform_sources = []
 if host_machine.system() == 'windows' and find_program('rc', 'llvm-rc', required: false).found()
   windows = import('windows')
   version_core = meson.project_version().split('+')[0].split('-')[0].split('.')
@@ -1340,16 +1340,16 @@ if host_machine.system() == 'windows' and find_program('rc', 'llvm-rc', required
   rc_config.set('VERSION_MINOR', version_core.length() > 1 ? version_core[1] : '0')
   rc_config.set('VERSION_PATCH', version_core.length() > 2 ? version_core[2] : '0')
   rc_config.set('FILE_FLAGS', meson.project_version().split('+')[0].contains('-') ? '0x2L' : '0x0L')
-  vibestudio_platform_sources += windows.compile_resources(
-    configure_file(input: '../packaging/windows/vibestudio.rc.in', output: 'vibestudio.rc', configuration: rc_config),
+  slopstudio_platform_sources += windows.compile_resources(
+    configure_file(input: '../packaging/windows/slopstudio.rc.in', output: 'slopstudio.rc', configuration: rc_config),
     include_directories: include_directories('../assets/branding/icons'),
-    depend_files: files('../assets/branding/icons/vibestudio.ico'),
+    depend_files: files('../assets/branding/icons/slopstudio.ico'),
   )
 endif
 
-vibestudio = executable(
-  'vibestudio',
-  vibestudio_platform_sources,
+slopstudio = executable(
+  'slopstudio',
+  slopstudio_platform_sources,
   files('cli/audio_take.cpp'),
   files('cli/audio_recording.cpp'),
   files('cli/audio_session.cpp'),
@@ -1360,16 +1360,16 @@ vibestudio = executable(
   files('cli/model_controls.cpp'),
   files('cli/ai_generation.cpp'),
   ['main.cpp', 'cli/cli.cpp', 'cli/audio_session.cpp', 'cli/level_scene.cpp', 'cli/level_component_selection.cpp', 'cli/level_grid_round.cpp', 'cli/level_nudge.cpp', 'cli/level_move_repeat.cpp', 'cli/level_view_transform.cpp', 'cli/level_bookmarks.cpp', 'cli/workspace.cpp', 'cli/release.cpp', 'cli/level_build_workspace.cpp', 'cli/level_build_artifacts.cpp', 'cli/level_build_deployment.cpp', 'cli/level_material_paint.cpp', 'cli/level_surface_clipboard.cpp', 'cli/level_smart_tags.cpp', 'cli/level_face_flags.cpp', 'cli/level_uv_edit.cpp', 'cli/level_clipboard.cpp', 'cli/level_region_selection.cpp', 'cli/level_object_selection.cpp', 'cli/level_face_transform.cpp', 'cli/level_hollow_options.cpp', 'cli/level_visibility.cpp', 'cli/level_view_filters.cpp', 'cli/level_camera_focus.cpp', 'cli/level_entity_create.cpp', 'cli/model_mdl.cpp', 'cli/model_appearance.cpp', 'cli/model_assembly.cpp', 'cli/model_collision.cpp', 'cli/model_skin_bindings.cpp', 'cli/model_skin_variants.cpp', 'cli/model_audit.cpp', 'cli/model_game_skin.cpp', 'cli/model_bake.cpp', 'cli/model_skin_paint.cpp', 'cli/model_surfaces.cpp', 'cli/model_tools.cpp', 'cli/model_rig.cpp', 'cli/model_skeletal_edit.cpp', 'cli/model_skinning.cpp', 'cli/model_weight_paint.cpp', 'cli/model_weight_transfer.cpp', 'cli/model_ik.cpp', 'cli/model_animation_curves.cpp', 'cli/model_curve_keys.cpp', 'cli/model_curve_transfer.cpp', 'cli/model_events.cpp', 'cli/model_constraints.cpp', 'cli/model_uv_density.cpp', 'cli/model_frames.cpp', 'cli/model_uv_health.cpp', 'cli/model_uv_ops.cpp', 'cli/model_uv_layout.cpp', 'cli/materials.cpp', 'cli/render.cpp', 'cli/model_material_slots.cpp', 'cli/model_intersections.cpp', 'cli/model_outputs.cpp', 'cli/package_copy_limits.cpp', 'cli/package_copy_store_limits.cpp', 'cli/package_copy_sessions.cpp', 'cli/level_patch_convert_deform.cpp', 'cli/level_face_attributes.cpp', 'cli/level_map_transfer.cpp', 'cli/level_map_properties.cpp', 'cli/launch_profiles.cpp', 'cli/build_pipelines.cpp', 'cli/level_camera_far_clip.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: true,
 )
 
 deflate_smoke_test = executable(
   'deflate_smoke_test',
   ['tests/deflate_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -1378,8 +1378,8 @@ test('deflate-smoke', deflate_smoke_test)
 idtech_image_smoke_test = executable(
   'idtech_image_smoke_test',
   ['tests/idtech_image_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -1388,17 +1388,17 @@ test('idtech-image-smoke', idtech_image_smoke_test)
 texture_document_smoke_test = executable(
   'texture_document_smoke_test',
   ['tests/texture_document_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('texture-document-smoke', texture_document_smoke_test, args: [vibestudio], timeout: 90)
+test('texture-document-smoke', texture_document_smoke_test, args: [slopstudio], timeout: 90)
 
 texture_paint_smoke_test = executable(
   'texture_paint_smoke_test',
   ['tests/texture_paint_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('texture-paint-smoke', texture_paint_smoke_test, timeout: 90)
@@ -1406,8 +1406,8 @@ test('texture-paint-smoke', texture_paint_smoke_test, timeout: 90)
 texture_adjust_smoke_test = executable(
   'texture_adjust_smoke_test',
   ['tests/texture_adjust_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('texture-adjust-smoke', texture_adjust_smoke_test, timeout: 90)
@@ -1415,17 +1415,17 @@ test('texture-adjust-smoke', texture_adjust_smoke_test, timeout: 90)
 texture_formats_smoke_test = executable(
   'texture_formats_smoke_test',
   ['tests/texture_formats_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('texture-formats-smoke', texture_formats_smoke_test, args: [vibestudio], timeout: 120)
+test('texture-formats-smoke', texture_formats_smoke_test, args: [slopstudio], timeout: 120)
 
 texture_transform_smoke_test = executable(
   'texture_transform_smoke_test',
   ['tests/texture_transform_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('texture-transform-smoke', texture_transform_smoke_test, timeout: 90)
@@ -1433,8 +1433,8 @@ test('texture-transform-smoke', texture_transform_smoke_test, timeout: 90)
 material_smoke_test = executable(
   'material_smoke_test',
   ['tests/material_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('material-smoke', material_smoke_test, timeout: 180)
@@ -1442,8 +1442,8 @@ test('material-smoke', material_smoke_test, timeout: 180)
 material_graph_smoke_test = executable(
   'material_graph_smoke_test',
   ['tests/material_graph_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('material-graph-smoke', material_graph_smoke_test, timeout: 120)
@@ -1453,8 +1453,8 @@ test('material-graph-smoke', material_graph_smoke_test, timeout: 120)
 material_integration_smoke_test = executable(
   'material_integration_smoke_test',
   ['tests/material_integration_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('material-integration-smoke', material_integration_smoke_test, timeout: 180)
@@ -1462,19 +1462,19 @@ test('material-integration-smoke', material_integration_smoke_test, timeout: 180
 material_cli_smoke_test = executable(
   'material_cli_smoke_test',
   ['tests/material_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('material-cli-smoke', material_cli_smoke_test, args: [vibestudio], timeout: 240)
+test('material-cli-smoke', material_cli_smoke_test, args: [slopstudio], timeout: 240)
 
 # Engine rules of the material scripts: brace recovery, rejection rules,
 # names, stage edits and implicit stages.
 material_script_rules_smoke_test = executable(
   'material_script_rules_smoke_test',
   ['tests/material_script_rules_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('material-script-rules-smoke', material_script_rules_smoke_test, timeout: 120)
@@ -1484,8 +1484,8 @@ test('material-script-rules-smoke', material_script_rules_smoke_test, timeout: 1
 material_asset_rules_smoke_test = executable(
   'material_asset_rules_smoke_test',
   ['tests/material_asset_rules_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('material-asset-rules-smoke', material_asset_rules_smoke_test, timeout: 180)
@@ -1495,8 +1495,8 @@ test('material-asset-rules-smoke', material_asset_rules_smoke_test, timeout: 180
 material_render_rules_smoke_test = executable(
   'material_render_rules_smoke_test',
   ['tests/material_render_rules_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('material-render-rules-smoke', material_render_rules_smoke_test, timeout: 180)
@@ -1506,19 +1506,19 @@ test('material-render-rules-smoke', material_render_rules_smoke_test, timeout: 1
 render_cli_smoke_test = executable(
   'render_cli_smoke_test',
   ['tests/render_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
+  include_directories: slopstudio_includes,
   dependencies: [qt6_core_dep],
   install: false,
 )
-test('render-cli-smoke', render_cli_smoke_test, args: [vibestudio], timeout: 180)
+test('render-cli-smoke', render_cli_smoke_test, args: [slopstudio], timeout: 180)
 
 # The Materials workbench as a widget, driven with Qt Test.
 if qt6_test_dep.found()
   material_workbench_ui_smoke_test = executable(
     'material_workbench_ui_smoke_test',
     ['tests/material_workbench_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes,
-    dependencies: [vibestudio_app_dep, qt6_test_dep],
+    include_directories: slopstudio_includes,
+    dependencies: [slopstudio_app_dep, qt6_test_dep],
     install: false,
   )
   test('material-workbench-ui-smoke', material_workbench_ui_smoke_test, timeout: 600)
@@ -1527,8 +1527,8 @@ if qt6_test_dep.found()
   material_graph_ui_smoke_test = executable(
     'material_graph_ui_smoke_test',
     ['tests/material_graph_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes,
-    dependencies: [vibestudio_app_dep, qt6_test_dep],
+    include_directories: slopstudio_includes,
+    dependencies: [slopstudio_app_dep, qt6_test_dep],
     install: false,
   )
   test('material-graph-ui-smoke', material_graph_ui_smoke_test, timeout: 300)
@@ -1538,8 +1538,8 @@ endif
 level_material_animation_ui_smoke_test = executable(
   'level_material_animation_ui_smoke_test',
   ['tests/level_material_animation_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('level-material-animation-ui-smoke', level_material_animation_ui_smoke_test, timeout: 180)
@@ -1547,8 +1547,8 @@ test('level-material-animation-ui-smoke', level_material_animation_ui_smoke_test
 texture_resource_smoke_test = executable(
   'texture_resource_smoke_test',
   ['tests/texture_resource_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('texture-resource-smoke', texture_resource_smoke_test, timeout: 90)
@@ -1557,8 +1557,8 @@ test('texture-performance-smoke', texture_resource_smoke_test, args: ['--benchma
 texture_preview_worker_smoke_test = executable(
   'texture_preview_worker_smoke_test',
   ['tests/texture_preview_worker_smoke_test.cpp', 'app/texture_preview_worker.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('texture-preview-worker-smoke', texture_preview_worker_smoke_test, timeout: 90)
@@ -1566,8 +1566,8 @@ test('texture-preview-worker-smoke', texture_preview_worker_smoke_test, timeout:
 texture_palette_ui_smoke_test = executable(
   'texture_palette_ui_smoke_test',
   ['tests/texture_palette_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('texture-palette-ui-smoke', texture_palette_ui_smoke_test, timeout: 90)
@@ -1575,7 +1575,7 @@ test('texture-palette-ui-smoke', texture_palette_ui_smoke_test, timeout: 90)
 texture_thumbnail_cache_smoke_test = executable(
   'texture_thumbnail_cache_smoke_test',
   ['tests/texture_thumbnail_cache_smoke_test.cpp', 'app/texture_thumbnail_cache.cpp'],
-  include_directories: vibestudio_includes,
+  include_directories: slopstudio_includes,
   dependencies: [qt6_dep],
   install: false,
 )
@@ -1584,8 +1584,8 @@ test('texture-thumbnail-cache-smoke', texture_thumbnail_cache_smoke_test, timeou
 texture_png_export_ui_smoke_test = executable(
   'texture_png_export_ui_smoke_test',
   ['tests/texture_png_export_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('texture-png-export-ui-smoke', texture_png_export_ui_smoke_test, timeout: 90)
@@ -1593,26 +1593,26 @@ test('texture-png-export-ui-smoke', texture_png_export_ui_smoke_test, timeout: 9
 texture_export_smoke_test = executable(
   'texture_export_smoke_test',
   ['tests/texture_export_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('texture-export-smoke', texture_export_smoke_test, args: [vibestudio], timeout: 90)
+test('texture-export-smoke', texture_export_smoke_test, args: [slopstudio], timeout: 90)
 
 texture_staging_smoke_test = executable(
   'texture_staging_smoke_test',
   ['tests/texture_staging_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('texture-staging-smoke', texture_staging_smoke_test, args: [vibestudio], timeout: 90)
+test('texture-staging-smoke', texture_staging_smoke_test, args: [slopstudio], timeout: 90)
 
 texture_handoff_smoke_test = executable(
   'texture_handoff_smoke_test',
   ['tests/texture_handoff_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('texture-handoff-smoke', texture_handoff_smoke_test, timeout: 90)
@@ -1620,8 +1620,8 @@ test('texture-handoff-smoke', texture_handoff_smoke_test, timeout: 90)
 texture_project_smoke_test = executable(
   'texture_project_smoke_test',
   ['tests/texture_project_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('texture-project-smoke', texture_project_smoke_test, timeout: 90)
@@ -1629,17 +1629,17 @@ test('texture-project-smoke', texture_project_smoke_test, timeout: 90)
 texture_recovery_smoke_test = executable(
   'texture_recovery_smoke_test',
   ['tests/texture_recovery_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
-test('texture-recovery-smoke', texture_recovery_smoke_test, args: [vibestudio], timeout: 90)
+test('texture-recovery-smoke', texture_recovery_smoke_test, args: [slopstudio], timeout: 90)
 
 texture_editor_ui_smoke_test = executable(
   'texture_editor_ui_smoke_test',
   ['tests/texture_editor_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 # These suites construct the complete shell; serialize them on shared runners.
@@ -1648,8 +1648,8 @@ test('texture-editor-ui-smoke', texture_editor_ui_smoke_test, timeout: 90, is_pa
 texture_editor_latency_smoke_test = executable(
   'texture_editor_latency_smoke_test',
   ['tests/texture_editor_latency_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('texture-editor-latency-smoke', texture_editor_latency_smoke_test, timeout: 180, is_parallel: false)
@@ -1657,8 +1657,8 @@ test('texture-editor-latency-smoke', texture_editor_latency_smoke_test, timeout:
 texture_accessibility_smoke_test = executable(
   'texture_accessibility_smoke_test',
   ['tests/texture_accessibility_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('texture-accessibility-smoke', texture_accessibility_smoke_test, timeout: 60, is_parallel: false)
@@ -1666,8 +1666,8 @@ test('texture-accessibility-smoke', texture_accessibility_smoke_test, timeout: 6
 texture_recovery_ui_smoke_test = executable(
   'texture_recovery_ui_smoke_test',
   ['tests/texture_recovery_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('texture-recovery-ui-smoke', texture_recovery_ui_smoke_test, timeout: 90, is_parallel: false)
@@ -1675,8 +1675,8 @@ test('texture-recovery-ui-smoke', texture_recovery_ui_smoke_test, timeout: 90, i
 texture_export_ui_smoke_test = executable(
   'texture_export_ui_smoke_test',
   ['tests/texture_export_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('texture-export-ui-smoke', texture_export_ui_smoke_test, timeout: 90, is_parallel: false)
@@ -1684,8 +1684,8 @@ test('texture-export-ui-smoke', texture_export_ui_smoke_test, timeout: 90, is_pa
 map_assets_smoke_test = executable(
   'map_assets_smoke_test',
   ['tests/map_assets_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -1694,37 +1694,37 @@ test('map-assets-smoke', map_assets_smoke_test)
 package_context_ui_smoke_test = executable(
   'package_context_ui_smoke_test',
   ['tests/package_context_ui_smoke_test.cpp'],
-  dependencies: vibestudio_app_dep,
+  dependencies: slopstudio_app_dep,
   install: false,
 )
 test('package-context-ui-smoke', package_context_ui_smoke_test, timeout: 120)
 
 package_context_smoke_test = executable(
   'package_context_smoke_test', ['tests/package_context_smoke_test.cpp'],
-  dependencies: vibestudio_core_dep, install: false,
+  dependencies: slopstudio_core_dep, install: false,
 )
-test('package-context-smoke', package_context_smoke_test, args: [vibestudio], timeout: 90)
+test('package-context-smoke', package_context_smoke_test, args: [slopstudio], timeout: 90)
 
 level_texture_audit_ui_smoke_test = executable(
   'level_texture_audit_ui_smoke_test', ['tests/level_texture_audit_ui_smoke_test.cpp'],
-  dependencies: vibestudio_app_dep, install: false,
+  dependencies: slopstudio_app_dep, install: false,
 )
 test('level-texture-audit-ui-smoke', level_texture_audit_ui_smoke_test, timeout: 90)
 
 level_package_workflow_smoke_test = executable(
   'level_package_workflow_smoke_test',
   ['tests/level_package_workflow_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('level-package-workflow-smoke', level_package_workflow_smoke_test, args: [vibestudio], timeout: 90)
+test('level-package-workflow-smoke', level_package_workflow_smoke_test, args: [slopstudio], timeout: 90)
 
 level_dependency_ui_smoke_test = executable(
   'level_dependency_ui_smoke_test',
   ['tests/level_dependency_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('level-dependency-ui-smoke', level_dependency_ui_smoke_test, timeout: 60)
@@ -1732,465 +1732,465 @@ test('level-dependency-ui-smoke', level_dependency_ui_smoke_test, timeout: 60)
 map_geometry_smoke_test = executable(
   'map_geometry_smoke_test',
   ['tests/map_geometry_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
 test('map-geometry-smoke', map_geometry_smoke_test)
 
 map_geometry_cache_smoke_test = executable('map_geometry_cache_smoke_test', ['tests/map_geometry_cache_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('map-geometry-cache-smoke', map_geometry_cache_smoke_test)
 
 level_geometry_cache_ui_smoke_test = executable('level_geometry_cache_ui_smoke_test', ['tests/level_geometry_cache_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-geometry-cache-ui-smoke', level_geometry_cache_ui_smoke_test, timeout: 90)
 
 level_plan_selection_ui_smoke_test = executable('level_plan_selection_ui_smoke_test', ['tests/level_plan_selection_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-plan-selection-ui-smoke', level_plan_selection_ui_smoke_test, timeout: 120)
 
 level_plan_wires_ui_smoke_test = executable('level_plan_wires_ui_smoke_test', ['tests/level_plan_wires_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-plan-wires-ui-smoke', level_plan_wires_ui_smoke_test, timeout: 120)
 
 level_selection_outlines_ui_smoke_test = executable('level_selection_outlines_ui_smoke_test', ['tests/level_selection_outlines_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-selection-outlines-ui-smoke', level_selection_outlines_ui_smoke_test, timeout: 120)
 
 level_plan_worker_ui_smoke_test = executable('level_plan_worker_ui_smoke_test', ['tests/level_plan_worker_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-plan-worker-ui-smoke', level_plan_worker_ui_smoke_test, timeout: 120)
 
 level_plan_scale_ui_smoke_test = executable('level_plan_scale_ui_smoke_test', ['tests/level_plan_scale_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-plan-scale-ui-smoke', level_plan_scale_ui_smoke_test, timeout: 60)
 
 level_viewport_overlay_ui_smoke_test = executable('level_viewport_overlay_ui_smoke_test', ['tests/level_viewport_overlay_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-viewport-overlay-ui-smoke', level_viewport_overlay_ui_smoke_test, timeout: 60)
 
 level_overlay_worker_ui_smoke_test = executable('level_overlay_worker_ui_smoke_test', ['tests/level_overlay_worker_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-overlay-worker-ui-smoke', level_overlay_worker_ui_smoke_test, timeout: 90)
 
 level_pane_phase_ui_smoke_test = executable('level_pane_phase_ui_smoke_test', ['tests/level_pane_phase_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-pane-phase-ui-smoke', level_pane_phase_ui_smoke_test, timeout: 90)
 
 box_resize_smoke_test = executable('box_resize_smoke_test', ['tests/box_resize_smoke_test.cpp', 'core/box_resize.cpp'],
-  include_directories: vibestudio_includes, install: false)
+  include_directories: slopstudio_includes, install: false)
 test('box-resize-smoke', box_resize_smoke_test)
 
 box_draw_smoke_test = executable('box_draw_smoke_test', ['tests/box_draw_smoke_test.cpp', 'core/box_draw.cpp'],
-  include_directories: vibestudio_includes, install: false)
+  include_directories: slopstudio_includes, install: false)
 test('box-draw-smoke', box_draw_smoke_test)
 
 level_camera_brush_ui_smoke_test = executable('level_camera_brush_ui_smoke_test', ['tests/level_camera_brush_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-camera-brush-ui-smoke', level_camera_brush_ui_smoke_test, timeout: 90)
 test('level-camera-brush-latency-smoke', level_camera_brush_ui_smoke_test, args: ['--latency'], timeout: 180)
 
 level_camera_brush_shell_smoke_test = executable('level_camera_brush_shell_smoke_test', ['tests/level_camera_brush_shell_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-camera-brush-shell-smoke', level_camera_brush_shell_smoke_test, timeout: 120)
 
 level_camera_resize_ui_smoke_test = executable('level_camera_resize_ui_smoke_test', ['tests/level_camera_resize_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-camera-resize-ui-smoke', level_camera_resize_ui_smoke_test, timeout: 90)
 test('level-camera-resize-latency-smoke', level_camera_resize_ui_smoke_test, args: ['--latency'], timeout: 180)
 
 level_camera_resize_shell_smoke_test = executable('level_camera_resize_shell_smoke_test', ['tests/level_camera_resize_shell_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-camera-resize-shell-smoke', level_camera_resize_shell_smoke_test, timeout: 120)
 
 level_camera_components_smoke_test = executable('level_camera_components_smoke_test', ['tests/level_camera_components_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-camera-components-smoke', level_camera_components_smoke_test, timeout: 180)
 level_component_selection_smoke_test = executable('level_component_selection_smoke_test', ['tests/level_component_selection_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-component-selection-smoke', level_component_selection_smoke_test, timeout: 180)
 level_component_cycle_smoke_test = executable('level_component_cycle_smoke_test', ['tests/level_component_cycle_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-component-cycle-smoke', level_component_cycle_smoke_test, timeout: 180)
 level_component_topology_selection_smoke_test = executable('level_component_topology_selection_smoke_test', ['tests/level_component_topology_selection_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-component-topology-selection-smoke', level_component_topology_selection_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-component-topology-selection-smoke', level_component_topology_selection_smoke_test, args: [slopstudio], timeout: 120)
 level_component_topology_selection_ui_smoke_test = executable('level_component_topology_selection_ui_smoke_test', ['tests/level_component_topology_selection_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-component-topology-selection-ui-smoke', level_component_topology_selection_ui_smoke_test, timeout: 180)
 
 level_clipper_ui_smoke_test = executable('level_clipper_ui_smoke_test', ['tests/level_clipper_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-clipper-ui-smoke', level_clipper_ui_smoke_test, timeout: 180)
 level_clipper_options_smoke_test = executable('level_clipper_options_smoke_test', ['tests/level_clipper_options_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-clipper-options-smoke', level_clipper_options_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-clipper-options-smoke', level_clipper_options_smoke_test, args: [slopstudio], timeout: 180)
 level_clip_wrap_smoke_test = executable('level_clip_wrap_smoke_test', ['tests/level_clip_wrap_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-clip-wrap-smoke', level_clip_wrap_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-clip-wrap-smoke', level_clip_wrap_smoke_test, args: [slopstudio], timeout: 180)
 level_component_wrap_smoke_test = executable('level_component_wrap_smoke_test', ['tests/level_component_wrap_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-component-wrap-smoke', level_component_wrap_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-component-wrap-smoke', level_component_wrap_smoke_test, args: [slopstudio], timeout: 180)
 level_sweep_smoke_test = executable('level_sweep_smoke_test', ['tests/level_sweep_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-sweep-smoke', level_sweep_smoke_test, args: [vibestudio], timeout: 240)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-sweep-smoke', level_sweep_smoke_test, args: [slopstudio], timeout: 240)
 level_sweep_ui_smoke_test = executable('level_sweep_ui_smoke_test', ['tests/level_sweep_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-sweep-ui-smoke', level_sweep_ui_smoke_test, timeout: 180)
 level_sweep_handles_smoke_test = executable('level_sweep_handles_smoke_test', ['tests/level_sweep_handles_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-sweep-handles-smoke', level_sweep_handles_smoke_test, timeout: 120)
 level_component_wrap_ui_smoke_test = executable('level_component_wrap_ui_smoke_test', ['tests/level_component_wrap_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-component-wrap-ui-smoke', level_component_wrap_ui_smoke_test, timeout: 180)
 level_camera_clip_smoke_test = executable('level_camera_clip_smoke_test', ['tests/level_camera_clip_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-camera-clip-smoke', level_camera_clip_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-camera-clip-smoke', level_camera_clip_smoke_test, args: [slopstudio], timeout: 180)
 level_camera_clip_ui_smoke_test = executable('level_camera_clip_ui_smoke_test', ['tests/level_camera_clip_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-camera-clip-ui-smoke', level_camera_clip_ui_smoke_test, timeout: 180)
 level_clip_drag_smoke_test = executable('level_clip_drag_smoke_test', ['tests/level_clip_drag_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-clip-drag-smoke', level_clip_drag_smoke_test, timeout: 60)
 
 level_map_load_smoke_test = executable('level_map_load_smoke_test', ['tests/level_map_load_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-map-load-smoke', level_map_load_smoke_test)
 
 level_scene_smoke_test = executable('level_scene_smoke_test', ['tests/level_scene_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-scene-smoke', level_scene_smoke_test)
 
 level_group_context_smoke_test = executable('level_group_context_smoke_test', ['tests/level_group_context_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-group-context-smoke', level_group_context_smoke_test)
 
 level_group_transfer_smoke_test = executable('level_group_transfer_smoke_test', ['tests/level_group_transfer_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-group-transfer-smoke', level_group_transfer_smoke_test, timeout: 120)
 
 level_component_transform_smoke_test = executable('level_component_transform_smoke_test', ['tests/level_component_transform_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-component-transform-smoke', level_component_transform_smoke_test, timeout: 120)
 level_component_transform_cli_smoke_test = executable('level_component_transform_cli_smoke_test', ['tests/level_component_transform_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-component-transform-cli-smoke', level_component_transform_cli_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-component-transform-cli-smoke', level_component_transform_cli_smoke_test, args: [slopstudio], timeout: 120)
 level_component_transform_ui_smoke_test = executable('level_component_transform_ui_smoke_test', ['tests/level_component_transform_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-component-transform-ui-smoke', level_component_transform_ui_smoke_test, timeout: 180)
 level_grid_round_smoke_test = executable('level_grid_round_smoke_test', ['tests/level_grid_round_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-grid-round-smoke', level_grid_round_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-grid-round-smoke', level_grid_round_smoke_test, args: [slopstudio], timeout: 120)
 level_grid_round_ui_smoke_test = executable('level_grid_round_ui_smoke_test', ['tests/level_grid_round_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-grid-round-ui-smoke', level_grid_round_ui_smoke_test, timeout: 300)
 level_component_gizmo_smoke_test = executable('level_component_gizmo_smoke_test', ['tests/level_component_gizmo_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-component-gizmo-smoke', level_component_gizmo_smoke_test, timeout: 180)
 level_vertex_insertion_smoke_test = executable('level_vertex_insertion_smoke_test', ['tests/level_vertex_insertion_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-vertex-insertion-smoke', level_vertex_insertion_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-vertex-insertion-smoke', level_vertex_insertion_smoke_test, args: [slopstudio], timeout: 120)
 level_component_drag_smoke_test = executable('level_component_drag_smoke_test', ['tests/level_component_drag_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-component-drag-smoke', level_component_drag_smoke_test, timeout: 60)
 level_component_drag_ui_smoke_test = executable('level_component_drag_ui_smoke_test', ['tests/level_component_drag_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-component-drag-ui-smoke', level_component_drag_ui_smoke_test, timeout: 180)
 level_vertex_snap_smoke_test = executable('level_vertex_snap_smoke_test', ['tests/level_vertex_snap_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-vertex-snap-smoke', level_vertex_snap_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-vertex-snap-smoke', level_vertex_snap_smoke_test, args: [slopstudio], timeout: 120)
 level_vertex_snap_ui_smoke_test = executable('level_vertex_snap_ui_smoke_test', ['tests/level_vertex_snap_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-vertex-snap-ui-smoke', level_vertex_snap_ui_smoke_test, timeout: 180)
 level_vertex_insertion_ui_smoke_test = executable('level_vertex_insertion_ui_smoke_test', ['tests/level_vertex_insertion_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-vertex-insertion-ui-smoke', level_vertex_insertion_ui_smoke_test, timeout: 180)
 
 level_scene_locks_smoke_test = executable('level_scene_locks_smoke_test', ['tests/level_scene_locks_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-scene-locks-smoke', level_scene_locks_smoke_test, timeout: 120)
 
 level_sidebar_smoke_test = executable('level_sidebar_smoke_test', ['tests/level_sidebar_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-sidebar-smoke', level_sidebar_smoke_test)
 
 level_map_tools_smoke_test = executable('level_map_tools_smoke_test', ['tests/level_map_tools_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-map-tools-smoke', level_map_tools_smoke_test, timeout: 120)
 
 level_entity_ownership_smoke_test = executable('level_entity_ownership_smoke_test', ['tests/level_entity_ownership_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-entity-ownership-smoke', level_entity_ownership_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-entity-ownership-smoke', level_entity_ownership_smoke_test, args: [slopstudio], timeout: 180)
 
 level_entity_ownership_ui_smoke_test = executable('level_entity_ownership_ui_smoke_test', ['tests/level_entity_ownership_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-entity-ownership-ui-smoke', level_entity_ownership_ui_smoke_test, timeout: 300)
 
 level_entity_colour_smoke_test = executable('level_entity_colour_smoke_test', ['tests/level_entity_colour_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-entity-colour-smoke', level_entity_colour_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-entity-colour-smoke', level_entity_colour_smoke_test, args: [slopstudio], timeout: 180)
 
 # Qt Test, when present, also presses K in a view through the shortcut map.
 level_entity_colour_ui_smoke_test = executable('level_entity_colour_ui_smoke_test', ['tests/level_entity_colour_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-entity-colour-ui-smoke', level_entity_colour_ui_smoke_test, timeout: 300)
 
 level_entity_create_smoke_test = executable('level_entity_create_smoke_test', ['tests/level_entity_create_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-entity-create-smoke', level_entity_create_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-entity-create-smoke', level_entity_create_smoke_test, args: [slopstudio], timeout: 180)
 
 # Qt Test, when present, also presses a key given to a Create command in a view.
 level_entity_create_ui_smoke_test = executable('level_entity_create_ui_smoke_test', ['tests/level_entity_create_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-entity-create-ui-smoke', level_entity_create_ui_smoke_test, timeout: 600)
 
 level_shapes_smoke_test = executable('level_shapes_smoke_test', ['tests/level_shapes_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-shapes-smoke', level_shapes_smoke_test)
 
 portal_file_smoke_test = executable('portal_file_smoke_test', ['tests/portal_file_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('portal-file-smoke', portal_file_smoke_test)
 
 entity_builtin_catalogue_smoke_test = executable('entity_builtin_catalogue_smoke_test', ['tests/entity_builtin_catalogue_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('entity-builtin-catalogue-smoke', entity_builtin_catalogue_smoke_test)
 
 level_scene_locks_benchmark = executable('level_scene_locks_benchmark', ['tests/level_scene_locks_benchmark.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 
 level_scene_ui_smoke_test = executable('level_scene_ui_smoke_test', ['tests/level_scene_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-scene-ui-smoke', level_scene_ui_smoke_test, timeout: 120)
 
 level_group_context_ui_smoke_test = executable('level_group_context_ui_smoke_test', ['tests/level_group_context_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-group-context-ui-smoke', level_group_context_ui_smoke_test, timeout: 120)
 
 level_scene_cli_smoke_test = executable('level_scene_cli_smoke_test', ['tests/level_scene_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-scene-cli-smoke', level_scene_cli_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-scene-cli-smoke', level_scene_cli_smoke_test, args: [slopstudio], timeout: 120)
 
 level_scene_layers_smoke_test = executable('level_scene_layers_smoke_test', ['tests/level_scene_layers_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-scene-layers-smoke', level_scene_layers_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-scene-layers-smoke', level_scene_layers_smoke_test, args: [slopstudio], timeout: 180)
 
 # Qt Test, when present, also presses NetRadiant Custom's layer keys in a view.
 level_scene_layers_ui_smoke_test = executable('level_scene_layers_ui_smoke_test', ['tests/level_scene_layers_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-scene-layers-ui-smoke', level_scene_layers_ui_smoke_test, timeout: 600)
 
 level_linked_groups_smoke_test = executable('level_linked_groups_smoke_test', ['tests/level_linked_groups_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-linked-groups-smoke', level_linked_groups_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-linked-groups-smoke', level_linked_groups_smoke_test, args: [slopstudio], timeout: 120)
 
 level_linked_objects_smoke_test = executable('level_linked_objects_smoke_test', ['tests/level_linked_objects_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-linked-objects-smoke', level_linked_objects_smoke_test, timeout: 120)
 
 level_protected_properties_smoke_test = executable('level_protected_properties_smoke_test', ['tests/level_protected_properties_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-protected-properties-smoke', level_protected_properties_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-protected-properties-smoke', level_protected_properties_smoke_test, args: [slopstudio], timeout: 120)
 
 level_linked_extraction_smoke_test = executable('level_linked_extraction_smoke_test', ['tests/level_linked_extraction_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-linked-extraction-smoke', level_linked_extraction_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-linked-extraction-smoke', level_linked_extraction_smoke_test, args: [slopstudio], timeout: 120)
 
 level_linked_sets_smoke_test = executable('level_linked_sets_smoke_test', ['tests/level_linked_sets_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-linked-sets-smoke', level_linked_sets_smoke_test, timeout: 120)
 
 level_trenchbroom_groups_smoke_test = executable('level_trenchbroom_groups_smoke_test', ['tests/level_trenchbroom_groups_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-trenchbroom-groups-smoke', level_trenchbroom_groups_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-trenchbroom-groups-smoke', level_trenchbroom_groups_smoke_test, args: [slopstudio], timeout: 120)
 
 level_repeat_smoke_test = executable('level_repeat_smoke_test', ['tests/level_repeat_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-repeat-smoke', level_repeat_smoke_test, timeout: 120)
 
 level_selection_history_smoke_test = executable('level_selection_history_smoke_test', ['tests/level_selection_history_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-selection-history-smoke', level_selection_history_smoke_test, timeout: 120)
 
 level_object_selection_smoke_test = executable('level_object_selection_smoke_test', ['tests/level_object_selection_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-object-selection-smoke', level_object_selection_smoke_test, timeout: 120)
 
 level_visibility_smoke_test = executable('level_visibility_smoke_test', ['tests/level_visibility_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-visibility-smoke', level_visibility_smoke_test, timeout: 120)
 
 level_edit_scaling_smoke_test = executable('level_edit_scaling_smoke_test', ['tests/level_edit_scaling_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-edit-scaling-smoke', level_edit_scaling_smoke_test, timeout: 120)
 
 # Explicit performance harness: timings are evidence, not portable CI thresholds.
 level_edit_benchmark = executable('level_edit_benchmark', ['tests/level_edit_benchmark.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 
 level_visibility_ui_smoke_test = executable('level_visibility_ui_smoke_test', ['tests/level_visibility_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-visibility-ui-smoke', level_visibility_ui_smoke_test, timeout: 240)
 
 level_camera_focus_smoke_test = executable('level_camera_focus_smoke_test', ['tests/level_camera_focus_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-camera-focus-smoke', level_camera_focus_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-camera-focus-smoke', level_camera_focus_smoke_test, args: [slopstudio], timeout: 120)
 
 level_camera_focus_ui_smoke_test = executable('level_camera_focus_ui_smoke_test', ['tests/level_camera_focus_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-camera-focus-ui-smoke', level_camera_focus_ui_smoke_test, timeout: 300)
 
 level_camera_render_smoke_test = executable('level_camera_render_smoke_test', ['tests/level_camera_render_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-camera-render-smoke', level_camera_render_smoke_test, timeout: 60)
 
 level_camera_render_ui_smoke_test = executable('level_camera_render_ui_smoke_test', ['tests/level_camera_render_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-camera-render-ui-smoke', level_camera_render_ui_smoke_test, timeout: 400)
 
 level_camera_shading_smoke_test = executable('level_camera_shading_smoke_test', ['tests/level_camera_shading_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-camera-shading-smoke', level_camera_shading_smoke_test, timeout: 60)
 
 level_camera_shading_ui_smoke_test = executable('level_camera_shading_ui_smoke_test', ['tests/level_camera_shading_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-camera-shading-ui-smoke', level_camera_shading_ui_smoke_test, timeout: 400)
 
 level_camera_far_clip_smoke_test = executable('level_camera_far_clip_smoke_test', ['tests/level_camera_far_clip_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-camera-far-clip-smoke', level_camera_far_clip_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-camera-far-clip-smoke', level_camera_far_clip_smoke_test, args: [slopstudio], timeout: 120)
 
 level_camera_far_clip_ui_smoke_test = executable('level_camera_far_clip_ui_smoke_test', ['tests/level_camera_far_clip_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-camera-far-clip-ui-smoke', level_camera_far_clip_ui_smoke_test, timeout: 600)
 
 level_camera_floor_smoke_test = executable('level_camera_floor_smoke_test', ['tests/level_camera_floor_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-camera-floor-smoke', level_camera_floor_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-camera-floor-smoke', level_camera_floor_smoke_test, args: [slopstudio], timeout: 120)
 
 level_camera_floor_ui_smoke_test = executable('level_camera_floor_ui_smoke_test', ['tests/level_camera_floor_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-camera-floor-ui-smoke', level_camera_floor_ui_smoke_test, timeout: 400)
 
 level_plan_panes_smoke_test = executable('level_plan_panes_smoke_test', ['tests/level_plan_panes_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-plan-panes-smoke', level_plan_panes_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-plan-panes-smoke', level_plan_panes_smoke_test, args: [slopstudio], timeout: 120)
 
 level_plan_panes_ui_smoke_test = executable('level_plan_panes_ui_smoke_test', ['tests/level_plan_panes_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-plan-panes-ui-smoke', level_plan_panes_ui_smoke_test, timeout: 300)
 
 level_block_grid_smoke_test = executable('level_block_grid_smoke_test', ['tests/level_block_grid_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-block-grid-smoke', level_block_grid_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-block-grid-smoke', level_block_grid_smoke_test, args: [slopstudio], timeout: 120)
 
 level_grid_overlays_ui_smoke_test = executable('level_grid_overlays_ui_smoke_test', ['tests/level_grid_overlays_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-grid-overlays-ui-smoke', level_grid_overlays_ui_smoke_test, timeout: 480)
 
 level_view_filters_smoke_test = executable('level_view_filters_smoke_test', ['tests/level_view_filters_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-view-filters-smoke', level_view_filters_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-view-filters-smoke', level_view_filters_smoke_test, args: [slopstudio], timeout: 120)
 
 level_view_filters_ui_smoke_test = executable('level_view_filters_ui_smoke_test', ['tests/level_view_filters_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-view-filters-ui-smoke', level_view_filters_ui_smoke_test, timeout: 300)
 
 level_filter_tags_smoke_test = executable('level_filter_tags_smoke_test', ['tests/level_filter_tags_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-filter-tags-smoke', level_filter_tags_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-filter-tags-smoke', level_filter_tags_smoke_test, args: [slopstudio], timeout: 120)
 
 level_filter_tags_ui_smoke_test = executable('level_filter_tags_ui_smoke_test', ['tests/level_filter_tags_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-filter-tags-ui-smoke', level_filter_tags_ui_smoke_test, timeout: 480)
 
 level_smart_tags_smoke_test = executable('level_smart_tags_smoke_test', ['tests/level_smart_tags_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-smart-tags-smoke', level_smart_tags_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-smart-tags-smoke', level_smart_tags_smoke_test, args: [slopstudio], timeout: 120)
 
 level_smart_tags_ui_smoke_test = executable('level_smart_tags_ui_smoke_test', ['tests/level_smart_tags_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-smart-tags-ui-smoke', level_smart_tags_ui_smoke_test, timeout: 480)
 
 level_filter_texture_kinds_smoke_test = executable('level_filter_texture_kinds_smoke_test', ['tests/level_filter_texture_kinds_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-filter-texture-kinds-smoke', level_filter_texture_kinds_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-filter-texture-kinds-smoke', level_filter_texture_kinds_smoke_test, args: [slopstudio], timeout: 120)
 
 level_filter_texture_kinds_ui_smoke_test = executable('level_filter_texture_kinds_ui_smoke_test', ['tests/level_filter_texture_kinds_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-filter-texture-kinds-ui-smoke', level_filter_texture_kinds_ui_smoke_test, timeout: 300)
 
 level_filter_material_kinds_smoke_test = executable('level_filter_material_kinds_smoke_test', ['tests/level_filter_material_kinds_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-filter-material-kinds-smoke', level_filter_material_kinds_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-filter-material-kinds-smoke', level_filter_material_kinds_smoke_test, args: [slopstudio], timeout: 120)
 
 level_filter_material_kinds_ui_smoke_test = executable('level_filter_material_kinds_ui_smoke_test', ['tests/level_filter_material_kinds_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-filter-material-kinds-ui-smoke', level_filter_material_kinds_ui_smoke_test, timeout: 480)
 
 level_object_selection_ui_smoke_test = executable('level_object_selection_ui_smoke_test', ['tests/level_object_selection_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-object-selection-ui-smoke', level_object_selection_ui_smoke_test, timeout: 240)
 
 level_selection_history_ui_smoke_test = executable('level_selection_history_ui_smoke_test', ['tests/level_selection_history_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-selection-history-ui-smoke', level_selection_history_ui_smoke_test, timeout: 180)
 
 level_repeat_ui_smoke_test = executable('level_repeat_ui_smoke_test', ['tests/level_repeat_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-repeat-ui-smoke', level_repeat_ui_smoke_test, timeout: 180)
 
 level_linked_extraction_ui_smoke_test = executable('level_linked_extraction_ui_smoke_test', ['tests/level_linked_extraction_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-linked-extraction-ui-smoke', level_linked_extraction_ui_smoke_test, timeout: 180)
 
 level_protected_properties_ui_smoke_test = executable('level_protected_properties_ui_smoke_test', ['tests/level_protected_properties_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-protected-properties-ui-smoke', level_protected_properties_ui_smoke_test, timeout: 180)
 
 level_map_load_ui_smoke_test = executable('level_map_load_ui_smoke_test', ['tests/level_map_load_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-map-load-ui-smoke', level_map_load_ui_smoke_test, timeout: 90)
 
 level_map_load_benchmark = executable('level_map_load_benchmark', ['tests/level_map_load_benchmark.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 
 # Explicit performance harness: timings are evidence, not portable CI thresholds.
 level_geometry_benchmark = executable('level_geometry_benchmark', ['tests/level_geometry_benchmark.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 
 level_plan_selection_benchmark = executable('level_plan_selection_benchmark', ['tests/level_plan_selection_benchmark.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 
 # Explicit performance harness for the model document: evidence, not CI thresholds.
 model_edit_benchmark = executable('model_edit_benchmark', ['tests/model_edit_benchmark.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 
 map_render_smoke_test = executable(
   'map_render_smoke_test',
   ['tests/map_render_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2199,8 +2199,8 @@ test('map-render-smoke', map_render_smoke_test)
 bsp_inspect_smoke_test = executable(
   'bsp_inspect_smoke_test',
   ['tests/bsp_inspect_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2209,8 +2209,8 @@ test('bsp-inspect-smoke', bsp_inspect_smoke_test)
 build_pipeline_smoke_test = executable(
   'build_pipeline_smoke_test',
   ['tests/build_pipeline_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2219,8 +2219,8 @@ test('build-pipeline-smoke', build_pipeline_smoke_test)
 core_smoke_test = executable(
   'core_smoke_test',
   ['tests/core_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2229,8 +2229,8 @@ test('core-smoke', core_smoke_test)
 ai_connectors_smoke_test = executable(
   'ai_connectors_smoke_test',
   ['tests/ai_connectors_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2241,8 +2241,8 @@ test('ai-connectors-smoke', ai_connectors_smoke_test)
 ai_transport_smoke_test = executable(
   'ai_transport_smoke_test',
   ['tests/ai_transport_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2253,8 +2253,8 @@ test('ai-transport-smoke', ai_transport_smoke_test)
 ai_image_transport_smoke_test = executable(
   'ai_image_transport_smoke_test',
   ['tests/ai_image_transport_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2265,8 +2265,8 @@ test('ai-image-transport-smoke', ai_image_transport_smoke_test)
 texture_generation_smoke_test = executable(
   'texture_generation_smoke_test',
   ['tests/texture_generation_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2277,8 +2277,8 @@ test('texture-generation-smoke', texture_generation_smoke_test)
 level_generation_smoke_test = executable(
   'level_generation_smoke_test',
   ['tests/level_generation_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2289,8 +2289,8 @@ test('level-generation-smoke', level_generation_smoke_test, timeout: 120)
 level_mapgen_smoke_test = executable(
   'level_mapgen_smoke_test',
   ['tests/level_mapgen_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2307,18 +2307,18 @@ fake_ai_harness = executable(
 ai_harness_smoke_test = executable(
   'ai_harness_smoke_test',
   ['tests/ai_harness_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('ai-harness-smoke', ai_harness_smoke_test, args: [fake_ai_harness], timeout: 180)
 
-# A real GGUF model through llama.cpp/ggml; skipped unless -Dggml=enabled and VIBESTUDIO_TEST_GGUF.
+# A real GGUF model through llama.cpp/ggml; skipped unless -Dggml=enabled and SLOPSTUDIO_TEST_GGUF.
 ai_gguf_smoke_test = executable(
   'ai_gguf_smoke_test',
   ['tests/ai_gguf_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('ai-gguf-smoke', ai_gguf_smoke_test, timeout: 900)
@@ -2328,8 +2328,8 @@ test('ai-gguf-smoke', ai_gguf_smoke_test, timeout: 900)
 level_ai_edit_smoke_test = executable(
   'level_ai_edit_smoke_test',
   ['tests/level_ai_edit_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2341,8 +2341,8 @@ test('level-ai-edit-smoke', level_ai_edit_smoke_test, timeout: 120)
 sound_generation_smoke_test = executable(
   'sound_generation_smoke_test',
   ['tests/sound_generation_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2353,18 +2353,18 @@ test('sound-generation-smoke', sound_generation_smoke_test, timeout: 120)
 ai_generation_cli_smoke_test = executable(
   'ai_generation_cli_smoke_test',
   ['tests/ai_generation_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
-test('ai-generation-cli-smoke', ai_generation_cli_smoke_test, args: [vibestudio, fake_ai_harness], timeout: 240)
+test('ai-generation-cli-smoke', ai_generation_cli_smoke_test, args: [slopstudio, fake_ai_harness], timeout: 240)
 
 ai_workflows_smoke_test = executable(
   'ai_workflows_smoke_test',
   ['tests/ai_workflows_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2373,8 +2373,8 @@ test('ai-workflows-smoke', ai_workflows_smoke_test)
 advanced_studio_smoke_test = executable(
   'advanced_studio_smoke_test',
   ['tests/advanced_studio_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2383,8 +2383,8 @@ test('advanced-studio-smoke', advanced_studio_smoke_test)
 compiler_registry_smoke_test = executable(
   'compiler_registry_smoke_test',
   ['tests/compiler_registry_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2393,8 +2393,8 @@ test('compiler-registry-smoke', compiler_registry_smoke_test)
 compiler_known_issues_smoke_test = executable(
   'compiler_known_issues_smoke_test',
   ['tests/compiler_known_issues_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2403,8 +2403,8 @@ test('compiler-known-issues-smoke', compiler_known_issues_smoke_test)
 compiler_profiles_smoke_test = executable(
   'compiler_profiles_smoke_test',
   ['tests/compiler_profiles_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2413,8 +2413,8 @@ test('compiler-profiles-smoke', compiler_profiles_smoke_test)
 compiler_artifact_validation_smoke_test = executable(
   'compiler_artifact_validation_smoke_test',
   ['tests/compiler_artifact_validation_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2423,8 +2423,8 @@ test('compiler-artifact-validation-smoke', compiler_artifact_validation_smoke_te
 quake_map_preflight_smoke_test = executable(
   'quake_map_preflight_smoke_test',
   ['tests/quake_map_preflight_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2433,8 +2433,8 @@ test('quake-map-preflight-smoke', quake_map_preflight_smoke_test)
 level_map_smoke_test = executable(
   'level_map_smoke_test',
   ['tests/level_map_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -2445,14 +2445,14 @@ test('level-map-smoke', level_map_smoke_test, timeout: 240)
 level_patch_smoke_test = executable(
   'level_patch_smoke_test',
   ['tests/level_patch_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('level-patch-smoke', level_patch_smoke_test, args: [vibestudio], timeout: 90)
+test('level-patch-smoke', level_patch_smoke_test, args: [slopstudio], timeout: 90)
 
 level_patch_tools_smoke_test = executable('level_patch_tools_smoke_test', ['tests/level_patch_tools_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-patch-tools-smoke', level_patch_tools_smoke_test, timeout: 120)
 
 # NetRadiant Custom's patch prefabs: Radiant's control-point layouts, Natural
@@ -2460,13 +2460,13 @@ test('level-patch-tools-smoke', level_patch_tools_smoke_test, timeout: 120)
 # map add-patch / map add-shape; then the prefab commands, the Shapes tab's
 # patch fields and Add Patch… (Shift+P) in the real shell.
 level_patch_prefab_smoke_test = executable('level_patch_prefab_smoke_test', ['tests/level_patch_prefab_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-patch-prefab-smoke', level_patch_prefab_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-patch-prefab-smoke', level_patch_prefab_smoke_test, args: [slopstudio], timeout: 180)
 
 level_patch_prefab_ui_smoke_test = executable('level_patch_prefab_ui_smoke_test', ['tests/level_patch_prefab_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-patch-prefab-ui-smoke', level_patch_prefab_ui_smoke_test, timeout: 600)
 
 # NetRadiant Custom's Exact patch densities and Square box: upstream's Exact
@@ -2474,528 +2474,528 @@ test('level-patch-prefab-ui-smoke', level_patch_prefab_ui_smoke_test, timeout: 6
 # map add-patch / map add-shape; then the Exact commands' Patch Density
 # dialog, the Shapes tab's Rows and Square, and Add Patch… in the real shell.
 level_patch_density_smoke_test = executable('level_patch_density_smoke_test', ['tests/level_patch_density_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-patch-density-smoke', level_patch_density_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-patch-density-smoke', level_patch_density_smoke_test, args: [slopstudio], timeout: 180)
 
 level_patch_density_ui_smoke_test = executable('level_patch_density_ui_smoke_test', ['tests/level_patch_density_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep], install: false)
 test('level-patch-density-ui-smoke', level_patch_density_ui_smoke_test, timeout: 600)
 
 level_brush_tools_smoke_test = executable('level_brush_tools_smoke_test', ['tests/level_brush_tools_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-brush-tools-smoke', level_brush_tools_smoke_test, timeout: 120)
 
 level_make_room_smoke_test = executable('level_make_room_smoke_test', ['tests/level_make_room_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-make-room-smoke', level_make_room_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-make-room-smoke', level_make_room_smoke_test, args: [slopstudio], timeout: 180)
 
 level_csg_tool_smoke_test = executable('level_csg_tool_smoke_test', ['tests/level_csg_tool_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-csg-tool-smoke', level_csg_tool_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-csg-tool-smoke', level_csg_tool_smoke_test, args: [slopstudio], timeout: 180)
 
 level_primitive_smoke_test = executable('level_primitive_smoke_test', ['tests/level_primitive_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-primitive-smoke', level_primitive_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-primitive-smoke', level_primitive_smoke_test, args: [slopstudio], timeout: 120)
 
 # NetRadiant Custom's in-place prisms, cones and spheres: the circle fit,
 # in-place rebuilds keeping owners, and map add-shape --in-place/--fit.
 level_prism_smoke_test = executable('level_prism_smoke_test', ['tests/level_prism_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-prism-smoke', level_prism_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-prism-smoke', level_prism_smoke_test, args: [slopstudio], timeout: 180)
 
 # TrenchBroom's Create Brush and Print Vertices: points to a convex brush,
 # vertex listings, map add-brush --points and multi-brush brush-components.
 level_brush_points_smoke_test = executable('level_brush_points_smoke_test', ['tests/level_brush_points_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-brush-points-smoke', level_brush_points_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-brush-points-smoke', level_brush_points_smoke_test, args: [slopstudio], timeout: 180)
 
 # TrenchBroom's Brush Tool: point shapes, face grid points and rectangles,
 # extrusion, the workflow as one undo step and map add-brush --extrude.
 level_brush_assemble_smoke_test = executable('level_brush_assemble_smoke_test', ['tests/level_brush_assemble_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-brush-assemble-smoke', level_brush_assemble_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-brush-assemble-smoke', level_brush_assemble_smoke_test, args: [slopstudio], timeout: 180)
 
 level_brush_jobs_smoke_test = executable('level_brush_jobs_smoke_test', ['tests/level_brush_jobs_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-brush-jobs-smoke', level_brush_jobs_smoke_test, timeout: 120)
 
 level_object_model_smoke_test = executable('level_object_model_smoke_test', ['tests/level_object_model_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-object-model-smoke', level_object_model_smoke_test, timeout: 180)
 
 level_object_shell_smoke_test = executable('level_object_shell_smoke_test', ['tests/level_object_shell_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-object-shell-smoke', level_object_shell_smoke_test, timeout: 180)
 
 level_texture_summary_smoke_test = executable('level_texture_summary_smoke_test', ['tests/level_texture_summary_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-texture-summary-smoke', level_texture_summary_smoke_test, timeout: 120)
 
 level_brush_jobs_ui_smoke_test = executable('level_brush_jobs_ui_smoke_test', ['tests/level_brush_jobs_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-brush-jobs-ui-smoke', level_brush_jobs_ui_smoke_test, timeout: 180)
 test('level-brush-jobs-latency-smoke', level_brush_jobs_ui_smoke_test, args: ['--latency'], timeout: 240)
 
 level_prefab_smoke_test = executable('level_prefab_smoke_test', ['tests/level_prefab_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-prefab-smoke', level_prefab_smoke_test, timeout: 120)
 
 level_prefab_ui_smoke_test = executable('level_prefab_ui_smoke_test', ['tests/level_prefab_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-prefab-ui-smoke', level_prefab_ui_smoke_test, timeout: 240)
 
 level_views_ui_smoke_test = executable('level_views_ui_smoke_test', ['tests/level_views_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
-test('level-views-ui-smoke', level_views_ui_smoke_test, args: [vibestudio], timeout: 240)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
+test('level-views-ui-smoke', level_views_ui_smoke_test, args: [slopstudio], timeout: 240)
 
 level_view_workspace_ui_smoke_test = executable('level_view_workspace_ui_smoke_test', ['tests/level_view_workspace_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-view-workspace-ui-smoke', level_view_workspace_ui_smoke_test, timeout: 240)
 
 camera_surface_placement_smoke_test = executable('camera_surface_placement_smoke_test', ['tests/camera_surface_placement_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('camera-surface-placement-smoke', camera_surface_placement_smoke_test, timeout: 120)
 
 level_camera_placement_ui_smoke_test = executable('level_camera_placement_ui_smoke_test', ['tests/level_camera_placement_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-camera-placement-ui-smoke', level_camera_placement_ui_smoke_test, timeout: 150)
 
 level_sidebar_ui_smoke_test = executable('level_sidebar_ui_smoke_test', ['tests/level_sidebar_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-sidebar-ui-smoke', level_sidebar_ui_smoke_test, timeout: 180)
 
 # Every Levels command in the shared registry, the familiar profiles' keys for
 # the newly registered ones, and the Map tab section routes, with Qt Test keys.
 if qt6_test_dep.found()
   level_palette_coverage_ui_smoke_test = executable('level_palette_coverage_ui_smoke_test', ['tests/level_palette_coverage_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
-  test('level-palette-coverage-ui-smoke', level_palette_coverage_ui_smoke_test, args: [vibestudio], timeout: 300)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
+  test('level-palette-coverage-ui-smoke', level_palette_coverage_ui_smoke_test, args: [slopstudio], timeout: 300)
 endif
 
 level_transform_layout_ui_smoke_test = executable('level_transform_layout_ui_smoke_test', ['tests/level_transform_layout_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep], install: false)
+  dependencies: [slopstudio_app_dep], install: false)
 test('level-transform-layout-ui-smoke', level_transform_layout_ui_smoke_test, timeout: 240)
 
 viewport_hud_smoke_test = executable('viewport_hud_smoke_test', ['tests/viewport_hud_smoke_test.cpp', 'app/viewport_hud.cpp'],
-  include_directories: vibestudio_includes, dependencies: [qt6_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [qt6_dep], install: false)
 test('viewport-hud-smoke', viewport_hud_smoke_test, timeout: 30)
 
 viewport_overlay_smoke_test = executable('viewport_overlay_smoke_test',
   ['tests/viewport_overlay_smoke_test.cpp', 'app/map_grid.cpp', 'app/viewport_ring_cache.cpp', 'app/viewport_image.cpp'],
-  include_directories: vibestudio_includes, dependencies: [qt6_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [qt6_dep], install: false)
 test('viewport-overlay-smoke', viewport_overlay_smoke_test, timeout: 30)
 
 level_gestures_smoke_test = executable('level_gestures_smoke_test', ['tests/level_gestures_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-gestures-smoke', level_gestures_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-gestures-smoke', level_gestures_smoke_test, args: [slopstudio], timeout: 120)
 
 level_large_grid_smoke_test = executable('level_large_grid_smoke_test', ['tests/level_large_grid_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-large-grid-smoke', level_large_grid_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-large-grid-smoke', level_large_grid_smoke_test, args: [slopstudio], timeout: 180)
 
 if qt6_test_dep.found()
   level_large_grid_ui_smoke_test = executable('level_large_grid_ui_smoke_test', ['tests/level_large_grid_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-large-grid-ui-smoke', level_large_grid_ui_smoke_test, timeout: 360)
 endif
 
 level_fractional_grid_smoke_test = executable('level_fractional_grid_smoke_test', ['tests/level_fractional_grid_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-fractional-grid-smoke', level_fractional_grid_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-fractional-grid-smoke', level_fractional_grid_smoke_test, args: [slopstudio], timeout: 180)
 
 if qt6_test_dep.found()
   level_fractional_grid_ui_smoke_test = executable('level_fractional_grid_ui_smoke_test', ['tests/level_fractional_grid_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-fractional-grid-ui-smoke', level_fractional_grid_ui_smoke_test, timeout: 420)
 endif
 
 level_gestures_ui_smoke_test = executable('level_gestures_ui_smoke_test', ['tests/level_gestures_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-gestures-ui-smoke', level_gestures_ui_smoke_test, timeout: 240)
 
 level_profiles_ui_smoke_test = executable('level_profiles_ui_smoke_test', ['tests/level_profiles_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
-test('level-profiles-ui-smoke', level_profiles_ui_smoke_test, args: [vibestudio], timeout: 240)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
+test('level-profiles-ui-smoke', level_profiles_ui_smoke_test, args: [slopstudio], timeout: 240)
 
 level_view_links_ui_smoke_test = executable('level_view_links_ui_smoke_test', ['tests/level_view_links_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-view-links-ui-smoke', level_view_links_ui_smoke_test, timeout: 240)
 
 level_plan_framing_ui_smoke_test = executable('level_plan_framing_ui_smoke_test', ['tests/level_plan_framing_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-plan-framing-ui-smoke', level_plan_framing_ui_smoke_test, timeout: 400)
 
 level_navigation_smoke_test = executable('level_navigation_smoke_test', ['tests/level_navigation_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-navigation-smoke', level_navigation_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-navigation-smoke', level_navigation_smoke_test, args: [slopstudio], timeout: 120)
 
 doom_preview_smoke_test = executable('doom_preview_smoke_test', ['tests/doom_preview_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('doom-preview-smoke', doom_preview_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('doom-preview-smoke', doom_preview_smoke_test, args: [slopstudio], timeout: 120)
 
 doom_preview_ui_smoke_test = executable('doom_preview_ui_smoke_test', ['tests/doom_preview_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('doom-preview-ui-smoke', doom_preview_ui_smoke_test, timeout: 240)
 
 level_doom_nodes_smoke_test = executable('level_doom_nodes_smoke_test', ['tests/level_doom_nodes_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-doom-nodes-smoke', level_doom_nodes_smoke_test, timeout: 120)
 
 level_udmf_smoke_test = executable('level_udmf_smoke_test', ['tests/level_udmf_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-udmf-smoke', level_udmf_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-udmf-smoke', level_udmf_smoke_test, args: [slopstudio], timeout: 120)
 level_udmf_ui_smoke_test = executable('level_udmf_ui_smoke_test', ['tests/level_udmf_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-udmf-ui-smoke', level_udmf_ui_smoke_test, timeout: 180)
 level_udmf_transform_smoke_test = executable('level_udmf_transform_smoke_test', ['tests/level_udmf_transform_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-udmf-transform-smoke', level_udmf_transform_smoke_test, timeout: 120)
 level_udmf_transform_ui_smoke_test = executable('level_udmf_transform_ui_smoke_test', ['tests/level_udmf_transform_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-udmf-transform-ui-smoke', level_udmf_transform_ui_smoke_test, timeout: 180)
 level_doom_nodes_ui_smoke_test = executable('level_doom_nodes_ui_smoke_test', ['tests/level_doom_nodes_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-doom-nodes-ui-smoke', level_doom_nodes_ui_smoke_test, timeout: 120)
 
 level_doom_mirror_smoke_test = executable('level_doom_mirror_smoke_test', ['tests/level_doom_mirror_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-doom-mirror-smoke', level_doom_mirror_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-doom-mirror-smoke', level_doom_mirror_smoke_test, args: [slopstudio], timeout: 120)
 
 level_doom_mirror_ui_smoke_test = executable('level_doom_mirror_ui_smoke_test', ['tests/level_doom_mirror_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-doom-mirror-ui-smoke', level_doom_mirror_ui_smoke_test, timeout: 240)
 
 level_material_paint_smoke_test = executable('level_material_paint_smoke_test', ['tests/level_material_paint_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-material-paint-smoke', level_material_paint_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-material-paint-smoke', level_material_paint_smoke_test, args: [slopstudio], timeout: 120)
 
 level_material_paint_ui_smoke_test = executable('level_material_paint_ui_smoke_test', ['tests/level_material_paint_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-material-paint-ui-smoke', level_material_paint_ui_smoke_test, timeout: 240)
 
 level_material_gestures_ui_smoke_test = executable('level_material_gestures_ui_smoke_test', ['tests/level_material_gestures_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-material-gestures-ui-smoke', level_material_gestures_ui_smoke_test, timeout: 240)
 
 level_camera_drive_ui_smoke_test = executable('level_camera_drive_ui_smoke_test', ['tests/level_camera_drive_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-camera-drive-ui-smoke', level_camera_drive_ui_smoke_test, timeout: 120)
 
 level_camera_drive_keys_smoke_test = executable('level_camera_drive_keys_smoke_test', ['tests/level_camera_drive_keys_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-camera-drive-keys-smoke', level_camera_drive_keys_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-camera-drive-keys-smoke', level_camera_drive_keys_smoke_test, args: [slopstudio], timeout: 120)
 
 level_camera_drive_keys_ui_smoke_test = executable('level_camera_drive_keys_ui_smoke_test', ['tests/level_camera_drive_keys_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-camera-drive-keys-ui-smoke', level_camera_drive_keys_ui_smoke_test, timeout: 600)
 
 level_bookmarks_ui_smoke_test = executable('level_bookmarks_ui_smoke_test', ['tests/level_bookmarks_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-bookmarks-ui-smoke', level_bookmarks_ui_smoke_test, timeout: 240)
 
 level_primitive_ui_smoke_test = executable('level_primitive_ui_smoke_test', ['tests/level_primitive_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-primitive-ui-smoke', level_primitive_ui_smoke_test, timeout: 180)
 
 level_brush_smoke_test = executable('level_brush_smoke_test', ['tests/level_brush_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-brush-smoke', level_brush_smoke_test, args: [vibestudio], timeout: 90)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-brush-smoke', level_brush_smoke_test, args: [slopstudio], timeout: 90)
 level_brush_file_order_smoke_test = executable('level_brush_file_order_smoke_test', ['tests/level_brush_file_order_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-brush-file-order-smoke', level_brush_file_order_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-brush-file-order-smoke', level_brush_file_order_smoke_test, args: [slopstudio], timeout: 180)
 
 level_rotation_smoke_test = executable('level_rotation_smoke_test', ['tests/level_rotation_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-rotation-smoke', level_rotation_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-rotation-smoke', level_rotation_smoke_test, args: [slopstudio], timeout: 120)
 
 level_arbitrary_transform_smoke_test = executable('level_arbitrary_transform_smoke_test', ['tests/level_arbitrary_transform_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-arbitrary-transform-smoke', level_arbitrary_transform_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-arbitrary-transform-smoke', level_arbitrary_transform_smoke_test, args: [slopstudio], timeout: 120)
 
 level_placement_smoke_test = executable('level_placement_smoke_test', ['tests/level_placement_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-placement-smoke', level_placement_smoke_test, timeout: 120)
 
 level_paste_smoke_test = executable('level_paste_smoke_test', ['tests/level_paste_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-paste-smoke', level_paste_smoke_test, timeout: 120)
 
 level_paste_ui_smoke_test = executable('level_paste_ui_smoke_test', ['tests/level_paste_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-paste-ui-smoke', level_paste_ui_smoke_test, timeout: 240)
 
 level_map_transfer_smoke_test = executable('level_map_transfer_smoke_test', ['tests/level_map_transfer_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-map-transfer-smoke', level_map_transfer_smoke_test, args: [vibestudio], timeout: 300)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-map-transfer-smoke', level_map_transfer_smoke_test, args: [slopstudio], timeout: 300)
 
 level_map_transfer_ui_smoke_test = executable('level_map_transfer_ui_smoke_test', ['tests/level_map_transfer_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-map-transfer-ui-smoke', level_map_transfer_ui_smoke_test, timeout: 900)
 
 level_map_obj_export_smoke_test = executable('level_map_obj_export_smoke_test', ['tests/level_map_obj_export_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-map-obj-export-smoke', level_map_obj_export_smoke_test, args: [vibestudio], timeout: 300)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-map-obj-export-smoke', level_map_obj_export_smoke_test, args: [slopstudio], timeout: 300)
 
 level_map_obj_export_ui_smoke_test = executable('level_map_obj_export_ui_smoke_test', ['tests/level_map_obj_export_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-map-obj-export-ui-smoke', level_map_obj_export_ui_smoke_test, timeout: 600)
 
 # Map Info's class table and the Map tab inspector: soft bounds, mods and the
 # layer summary, with `map inspect --json` and `map properties`.
 level_map_info_smoke_test = executable('level_map_info_smoke_test', ['tests/level_map_info_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-map-info-smoke', level_map_info_smoke_test, args: [vibestudio], timeout: 300)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-map-info-smoke', level_map_info_smoke_test, args: [slopstudio], timeout: 300)
 
 if qt6_test_dep.found()
   level_map_info_ui_smoke_test = executable('level_map_info_ui_smoke_test', ['tests/level_map_info_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-map-info-ui-smoke', level_map_info_ui_smoke_test, timeout: 600)
 endif
 
 build_rerun_smoke_test = executable('build_rerun_smoke_test', ['tests/build_rerun_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('build-rerun-smoke', build_rerun_smoke_test, args: [vibestudio], timeout: 300)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('build-rerun-smoke', build_rerun_smoke_test, args: [slopstudio], timeout: 300)
 
 if qt6_test_dep.found()
   build_rerun_ui_smoke_test = executable('build_rerun_ui_smoke_test', ['tests/build_rerun_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('build-rerun-ui-smoke', build_rerun_ui_smoke_test, timeout: 600)
 endif
 
 build_project_pipelines_smoke_test = executable('build_project_pipelines_smoke_test', ['tests/build_project_pipelines_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('build-project-pipelines-smoke', build_project_pipelines_smoke_test, args: [vibestudio], timeout: 300)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('build-project-pipelines-smoke', build_project_pipelines_smoke_test, args: [slopstudio], timeout: 300)
 
 if qt6_test_dep.found()
   build_project_pipelines_ui_smoke_test = executable('build_project_pipelines_ui_smoke_test', ['tests/build_project_pipelines_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('build-project-pipelines-ui-smoke', build_project_pipelines_ui_smoke_test, timeout: 600)
 endif
 
 level_placement_jobs_smoke_test = executable('level_placement_jobs_smoke_test', ['tests/level_placement_jobs_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-placement-jobs-smoke', level_placement_jobs_smoke_test, timeout: 120)
 
 level_build_workspace_smoke_test = executable('level_build_workspace_smoke_test', ['tests/level_build_workspace_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], include_directories: vibestudio_includes)
+  dependencies: [slopstudio_core_dep], include_directories: slopstudio_includes)
 test('level-build-workspace-smoke', level_build_workspace_smoke_test, timeout: 120)
 
 level_build_workspace_cli_smoke_test = executable('level_build_workspace_cli_smoke_test', ['tests/level_build_workspace_cli_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], include_directories: vibestudio_includes)
-test('level-build-workspace-cli-smoke', level_build_workspace_cli_smoke_test, args: [vibestudio], timeout: 120)
+  dependencies: [slopstudio_core_dep], include_directories: slopstudio_includes)
+test('level-build-workspace-cli-smoke', level_build_workspace_cli_smoke_test, args: [slopstudio], timeout: 120)
 
 level_build_engines_smoke_test = executable('level_build_engines_smoke_test', ['tests/level_build_engines_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], include_directories: vibestudio_includes)
-test('level-build-engines-smoke', level_build_engines_smoke_test, args: [vibestudio], timeout: 180)
+  dependencies: [slopstudio_core_dep], include_directories: slopstudio_includes)
+test('level-build-engines-smoke', level_build_engines_smoke_test, args: [slopstudio], timeout: 180)
 
 level_build_artifacts_smoke_test = executable('level_build_artifacts_smoke_test', ['tests/level_build_artifacts_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], include_directories: vibestudio_includes)
-test('level-build-artifacts-smoke', level_build_artifacts_smoke_test, args: [vibestudio], timeout: 120)
+  dependencies: [slopstudio_core_dep], include_directories: slopstudio_includes)
+test('level-build-artifacts-smoke', level_build_artifacts_smoke_test, args: [slopstudio], timeout: 120)
 
 level_build_deployment_smoke_test = executable('level_build_deployment_smoke_test', ['tests/level_build_deployment_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], include_directories: vibestudio_includes)
-test('level-build-deployment-smoke', level_build_deployment_smoke_test, args: [level_build_artifacts_smoke_test, vibestudio], timeout: 180)
+  dependencies: [slopstudio_core_dep], include_directories: slopstudio_includes)
+test('level-build-deployment-smoke', level_build_deployment_smoke_test, args: [level_build_artifacts_smoke_test, slopstudio], timeout: 180)
 
 level_classic_deployment_smoke_test = executable('level_classic_deployment_smoke_test', ['tests/level_classic_deployment_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], include_directories: vibestudio_includes)
-test('level-classic-deployment-smoke', level_classic_deployment_smoke_test, args: [level_build_engines_smoke_test, vibestudio], timeout: 240)
+  dependencies: [slopstudio_core_dep], include_directories: slopstudio_includes)
+test('level-classic-deployment-smoke', level_classic_deployment_smoke_test, args: [level_build_engines_smoke_test, slopstudio], timeout: 240)
 
 level_classic_deployment_ui_smoke_test = executable('level_classic_deployment_ui_smoke_test', ['tests/level_classic_deployment_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep], include_directories: vibestudio_includes)
+  dependencies: [slopstudio_app_dep], include_directories: slopstudio_includes)
 test('level-classic-deployment-ui-smoke', level_classic_deployment_ui_smoke_test, args: [level_build_engines_smoke_test, level_classic_deployment_smoke_test], timeout: 240)
 
 level_build_deployment_ui_smoke_test = executable('level_build_deployment_ui_smoke_test', ['tests/level_build_deployment_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep], include_directories: vibestudio_includes)
+  dependencies: [slopstudio_app_dep], include_directories: slopstudio_includes)
 test('level-build-deployment-ui-smoke', level_build_deployment_ui_smoke_test, args: [level_build_artifacts_smoke_test, level_build_deployment_smoke_test], timeout: 240)
 
 level_build_package_ui_smoke_test = executable('level_build_package_ui_smoke_test', ['tests/level_build_package_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep], include_directories: vibestudio_includes)
+  dependencies: [slopstudio_app_dep], include_directories: slopstudio_includes)
 test('level-build-package-ui-smoke', level_build_package_ui_smoke_test, args: [level_build_artifacts_smoke_test], timeout: 240)
 
 level_build_workspace_ui_smoke_test = executable('level_build_workspace_ui_smoke_test', ['tests/level_build_workspace_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep], include_directories: vibestudio_includes)
+  dependencies: [slopstudio_app_dep], include_directories: slopstudio_includes)
 test('level-build-workspace-ui-smoke', level_build_workspace_ui_smoke_test, args: [level_build_engines_smoke_test], timeout: 240)
 
 level_placement_jobs_ui_smoke_test = executable('level_placement_jobs_ui_smoke_test', ['tests/level_placement_jobs_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-placement-jobs-ui-smoke', level_placement_jobs_ui_smoke_test, timeout: 180)
 
 level_placement_cli_smoke_test = executable('level_placement_cli_smoke_test', ['tests/level_placement_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-placement-cli-smoke', level_placement_cli_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-placement-cli-smoke', level_placement_cli_smoke_test, args: [slopstudio], timeout: 120)
 
 level_placement_ui_smoke_test = executable('level_placement_ui_smoke_test', ['tests/level_placement_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-placement-ui-smoke', level_placement_ui_smoke_test, timeout: 240)
 
 level_duplicate_ui_smoke_test = executable('level_duplicate_ui_smoke_test', ['tests/level_duplicate_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-duplicate-ui-smoke', level_duplicate_ui_smoke_test, timeout: 240)
 
 level_duplicate_unique_smoke_test = executable('level_duplicate_unique_smoke_test', ['tests/level_duplicate_unique_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-duplicate-unique-smoke', level_duplicate_unique_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-duplicate-unique-smoke', level_duplicate_unique_smoke_test, args: [slopstudio], timeout: 120)
 
 level_entity_connections_smoke_test = executable('level_entity_connections_smoke_test', ['tests/level_entity_connections_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-entity-connections-smoke', level_entity_connections_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-entity-connections-smoke', level_entity_connections_smoke_test, args: [slopstudio], timeout: 120)
 
 level_entity_connections_ui_smoke_test = executable('level_entity_connections_ui_smoke_test', ['tests/level_entity_connections_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-entity-connections-ui-smoke', level_entity_connections_ui_smoke_test, timeout: 180)
 
 level_entity_selection_smoke_test = executable('level_entity_selection_smoke_test', ['tests/level_entity_selection_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-entity-selection-smoke', level_entity_selection_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-entity-selection-smoke', level_entity_selection_smoke_test, args: [slopstudio], timeout: 120)
 
 level_entity_selection_ui_smoke_test = executable('level_entity_selection_ui_smoke_test', ['tests/level_entity_selection_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-entity-selection-ui-smoke', level_entity_selection_ui_smoke_test, timeout: 240)
 
 level_type_selection_smoke_test = executable('level_type_selection_smoke_test', ['tests/level_type_selection_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-type-selection-smoke', level_type_selection_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-type-selection-smoke', level_type_selection_smoke_test, args: [slopstudio], timeout: 120)
 
 level_textured_selection_smoke_test = executable('level_textured_selection_smoke_test', ['tests/level_textured_selection_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-textured-selection-smoke', level_textured_selection_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-textured-selection-smoke', level_textured_selection_smoke_test, args: [slopstudio], timeout: 120)
 
 level_object_translate_smoke_test = executable('level_object_translate_smoke_test', ['tests/level_object_translate_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-object-translate-smoke', level_object_translate_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-object-translate-smoke', level_object_translate_smoke_test, args: [slopstudio], timeout: 120)
 
 # The Translate tool in the views, with Qt Test key events.
 if qt6_test_dep.found()
   level_object_translate_ui_smoke_test = executable('level_object_translate_ui_smoke_test', ['tests/level_object_translate_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-object-translate-ui-smoke', level_object_translate_ui_smoke_test, timeout: 600)
 endif
 
 level_object_rotate_smoke_test = executable('level_object_rotate_smoke_test', ['tests/level_object_rotate_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-object-rotate-smoke', level_object_rotate_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-object-rotate-smoke', level_object_rotate_smoke_test, args: [slopstudio], timeout: 120)
 
 # The Rotate tool in the views, with Qt Test key events.
 if qt6_test_dep.found()
   level_object_rotate_ui_smoke_test = executable('level_object_rotate_ui_smoke_test', ['tests/level_object_rotate_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-object-rotate-ui-smoke', level_object_rotate_ui_smoke_test, timeout: 600)
 endif
 
 level_object_scale_smoke_test = executable('level_object_scale_smoke_test', ['tests/level_object_scale_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-object-scale-smoke', level_object_scale_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-object-scale-smoke', level_object_scale_smoke_test, args: [slopstudio], timeout: 120)
 
 # The Scale tool and the box handles' Shift and Alt in the views, with Qt Test key events.
 if qt6_test_dep.found()
   level_object_scale_ui_smoke_test = executable('level_object_scale_ui_smoke_test', ['tests/level_object_scale_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-object-scale-ui-smoke', level_object_scale_ui_smoke_test, timeout: 600)
 endif
 
 level_object_transform_smoke_test = executable('level_object_transform_smoke_test', ['tests/level_object_transform_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-object-transform-smoke', level_object_transform_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-object-transform-smoke', level_object_transform_smoke_test, args: [slopstudio], timeout: 120)
 
 # The Transform tool and the Shear Tool's camera handles in the views, with Qt Test key events.
 if qt6_test_dep.found()
   level_object_transform_ui_smoke_test = executable('level_object_transform_ui_smoke_test', ['tests/level_object_transform_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-object-transform-ui-smoke', level_object_transform_ui_smoke_test, timeout: 600)
 endif
 
 # NetRadiant Custom's drag-tool gestures and the Build tool's chain as core services and map drag-planes.
 level_plane_drag_smoke_test = executable('level_plane_drag_smoke_test', ['tests/level_plane_drag_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-plane-drag-smoke', level_plane_drag_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-plane-drag-smoke', level_plane_drag_smoke_test, args: [slopstudio], timeout: 120)
 
 # The drag-tool gestures and the Build tool in the views, with real mouse events.
 if qt6_test_dep.found()
   level_plane_drag_ui_smoke_test = executable('level_plane_drag_ui_smoke_test', ['tests/level_plane_drag_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-plane-drag-ui-smoke', level_plane_drag_ui_smoke_test, timeout: 600)
 endif
 
 level_material_find_smoke_test = executable('level_material_find_smoke_test', ['tests/level_material_find_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-material-find-smoke', level_material_find_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-material-find-smoke', level_material_find_smoke_test, args: [slopstudio], timeout: 120)
 
 level_material_find_ui_smoke_test = executable('level_material_find_ui_smoke_test', ['tests/level_material_find_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-material-find-ui-smoke', level_material_find_ui_smoke_test, timeout: 300)
 
 level_face_transform_smoke_test = executable('level_face_transform_smoke_test', ['tests/level_face_transform_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-face-transform-smoke', level_face_transform_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-face-transform-smoke', level_face_transform_smoke_test, args: [slopstudio], timeout: 120)
 
 level_type_selection_ui_smoke_test = executable('level_type_selection_ui_smoke_test', ['tests/level_type_selection_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-type-selection-ui-smoke', level_type_selection_ui_smoke_test, timeout: 240)
 
 level_textured_selection_ui_smoke_test = executable('level_textured_selection_ui_smoke_test', ['tests/level_textured_selection_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-textured-selection-ui-smoke', level_textured_selection_ui_smoke_test, timeout: 240)
 
 level_face_transform_ui_smoke_test = executable('level_face_transform_ui_smoke_test', ['tests/level_face_transform_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-face-transform-ui-smoke', level_face_transform_ui_smoke_test, timeout: 240)
 
 level_deletion_smoke_test = executable('level_deletion_smoke_test', ['tests/level_deletion_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-deletion-smoke', level_deletion_smoke_test, timeout: 120)
 
 level_deletion_ui_smoke_test = executable('level_deletion_ui_smoke_test', ['tests/level_deletion_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-deletion-ui-smoke', level_deletion_ui_smoke_test, timeout: 240)
 
 level_component_surfaces_smoke_test = executable('level_component_surfaces_smoke_test', ['tests/level_component_surfaces_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-component-surfaces-smoke', level_component_surfaces_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-component-surfaces-smoke', level_component_surfaces_smoke_test, args: [slopstudio], timeout: 120)
 
 level_component_surfaces_ui_smoke_test = executable('level_component_surfaces_ui_smoke_test', ['tests/level_component_surfaces_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-component-surfaces-ui-smoke', level_component_surfaces_ui_smoke_test, timeout: 240)
 
 level_placement_benchmark = executable('level_placement_benchmark', ['tests/level_placement_benchmark.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 
 level_rotation_ui_smoke_test = executable('level_rotation_ui_smoke_test', ['tests/level_rotation_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-rotation-ui-smoke', level_rotation_ui_smoke_test, timeout: 180)
 
 level_arbitrary_transform_ui_smoke_test = executable('level_arbitrary_transform_ui_smoke_test', ['tests/level_arbitrary_transform_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-arbitrary-transform-ui-smoke', level_arbitrary_transform_ui_smoke_test, timeout: 300)
 
 level_transform_smoke_test = executable('level_transform_smoke_test', ['tests/level_transform_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-transform-smoke', level_transform_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-transform-smoke', level_transform_smoke_test, args: [slopstudio], timeout: 120)
 
 level_transform_ui_smoke_test = executable('level_transform_ui_smoke_test', ['tests/level_transform_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-transform-ui-smoke', level_transform_ui_smoke_test, timeout: 180)
 
 level_axis_transform_smoke_test = executable('level_axis_transform_smoke_test', ['tests/level_axis_transform_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-axis-transform-smoke', level_axis_transform_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-axis-transform-smoke', level_axis_transform_smoke_test, args: [slopstudio], timeout: 120)
 
 level_axis_transform_ui_smoke_test = executable('level_axis_transform_ui_smoke_test', ['tests/level_axis_transform_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-axis-transform-ui-smoke', level_axis_transform_ui_smoke_test, timeout: 600)
 
 level_nudge_smoke_test = executable('level_nudge_smoke_test', ['tests/level_nudge_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-nudge-smoke', level_nudge_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-nudge-smoke', level_nudge_smoke_test, args: [slopstudio], timeout: 180)
 
 # Directional and depth nudge keys in the views, with Qt Test key events.
 if qt6_test_dep.found()
   level_nudge_ui_smoke_test = executable('level_nudge_ui_smoke_test', ['tests/level_nudge_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-nudge-ui-smoke', level_nudge_ui_smoke_test, timeout: 600)
 endif
 
@@ -3003,14 +3003,14 @@ endif
 # prisms in the shell, with Qt Test key events.
 if qt6_test_dep.found()
   level_prism_ui_smoke_test = executable('level_prism_ui_smoke_test', ['tests/level_prism_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-prism-ui-smoke', level_prism_ui_smoke_test, timeout: 600)
 endif
 
 # Create Brush from Points… and Copy Vertex Coordinates in the shell.
 if qt6_test_dep.found()
   level_brush_points_ui_smoke_test = executable('level_brush_points_ui_smoke_test', ['tests/level_brush_points_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-brush-points-ui-smoke', level_brush_points_ui_smoke_test, timeout: 600)
 endif
 
@@ -3018,167 +3018,167 @@ endif
 # extrusion, the worker-checked hull and Create Assembled Brush.
 if qt6_test_dep.found()
   level_brush_assemble_ui_smoke_test = executable('level_brush_assemble_ui_smoke_test', ['tests/level_brush_assemble_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-brush-assemble-ui-smoke', level_brush_assemble_ui_smoke_test, timeout: 600)
 endif
 
 level_duplicate_move_smoke_test = executable('level_duplicate_move_smoke_test', ['tests/level_duplicate_move_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-duplicate-move-smoke', level_duplicate_move_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-duplicate-move-smoke', level_duplicate_move_smoke_test, args: [slopstudio], timeout: 180)
 
 # Duplicate and Move, Move to Camera and Repeat Transforms in the views, with Qt Test key events.
 if qt6_test_dep.found()
   level_duplicate_move_ui_smoke_test = executable('level_duplicate_move_ui_smoke_test', ['tests/level_duplicate_move_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-duplicate-move-ui-smoke', level_duplicate_move_ui_smoke_test, timeout: 600)
 endif
 
 level_view_transform_smoke_test = executable('level_view_transform_smoke_test', ['tests/level_view_transform_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-view-transform-smoke', level_view_transform_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-view-transform-smoke', level_view_transform_smoke_test, args: [slopstudio], timeout: 180)
 
 # View-relative Roll, Yaw, Pitch and flips in the views, with Qt Test key events.
 if qt6_test_dep.found()
   level_view_transform_ui_smoke_test = executable('level_view_transform_ui_smoke_test', ['tests/level_view_transform_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false)
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)
   test('level-view-transform-ui-smoke', level_view_transform_ui_smoke_test, timeout: 600)
 endif
 
 level_materials_smoke_test = executable('level_materials_smoke_test', ['tests/level_materials_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-materials-smoke', level_materials_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-materials-smoke', level_materials_smoke_test, args: [slopstudio], timeout: 120)
 
 level_materials_ui_smoke_test = executable('level_materials_ui_smoke_test', ['tests/level_materials_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-materials-ui-smoke', level_materials_ui_smoke_test, timeout: 180)
 
 level_surface_smoke_test = executable('level_surface_smoke_test', ['tests/level_surface_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-surface-smoke', level_surface_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-surface-smoke', level_surface_smoke_test, args: [slopstudio], timeout: 120)
 
 level_merge_smoke_test = executable('level_merge_smoke_test', ['tests/level_merge_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-merge-smoke', level_merge_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-merge-smoke', level_merge_smoke_test, args: [slopstudio], timeout: 120)
 
 level_merge_ui_smoke_test = executable('level_merge_ui_smoke_test', ['tests/level_merge_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-merge-ui-smoke', level_merge_ui_smoke_test, timeout: 180)
 
 patch_stitch_smoke_test = executable('patch_stitch_smoke_test', ['tests/patch_stitch_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('patch-stitch-smoke', patch_stitch_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('patch-stitch-smoke', patch_stitch_smoke_test, args: [slopstudio], timeout: 120)
 
 patch_stitch_ui_smoke_test = executable('patch_stitch_ui_smoke_test', ['tests/patch_stitch_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('patch-stitch-ui-smoke', patch_stitch_ui_smoke_test, timeout: 180)
 
 patch_cap_smoke_test = executable('patch_cap_smoke_test', ['tests/patch_cap_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('patch-cap-smoke', patch_cap_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('patch-cap-smoke', patch_cap_smoke_test, args: [slopstudio], timeout: 120)
 
 patch_cap_ui_smoke_test = executable('patch_cap_ui_smoke_test', ['tests/patch_cap_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('patch-cap-ui-smoke', patch_cap_ui_smoke_test, timeout: 180)
 
 # TrenchBroom's Convert Selection to Patches and NetRadiant Custom's Deform:
 # the shared services, map convert-patches and map deform-patch, and the
 # Levels commands, dialog and keys.
 level_patch_convert_deform_smoke_test = executable('level_patch_convert_deform_smoke_test', ['tests/level_patch_convert_deform_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-patch-convert-deform-smoke', level_patch_convert_deform_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-patch-convert-deform-smoke', level_patch_convert_deform_smoke_test, args: [slopstudio], timeout: 180)
 
 level_patch_convert_deform_ui_smoke_test = executable('level_patch_convert_deform_ui_smoke_test', ['tests/level_patch_convert_deform_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-patch-convert-deform-ui-smoke', level_patch_convert_deform_ui_smoke_test, timeout: 600)
 
 level_surface_ui_smoke_test = executable('level_surface_ui_smoke_test', ['tests/level_surface_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-surface-ui-smoke', level_surface_ui_smoke_test, timeout: 180)
 
 level_surface_batch_smoke_test = executable('level_surface_batch_smoke_test', ['tests/level_surface_batch_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-surface-batch-smoke', level_surface_batch_smoke_test, timeout: 120)
 
 level_surface_clipboard_smoke_test = executable('level_surface_clipboard_smoke_test', ['tests/level_surface_clipboard_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-surface-clipboard-smoke', level_surface_clipboard_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-surface-clipboard-smoke', level_surface_clipboard_smoke_test, args: [slopstudio], timeout: 120)
 level_face_clipboard_smoke_test = executable('level_face_clipboard_smoke_test', ['tests/level_face_clipboard_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-face-clipboard-smoke', level_face_clipboard_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-face-clipboard-smoke', level_face_clipboard_smoke_test, args: [slopstudio], timeout: 120)
 
 level_object_clipboard_smoke_test = executable('level_object_clipboard_smoke_test', ['tests/level_object_clipboard_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-object-clipboard-smoke', level_object_clipboard_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-object-clipboard-smoke', level_object_clipboard_smoke_test, args: [slopstudio], timeout: 120)
 
 level_region_selection_smoke_test = executable('level_region_selection_smoke_test', ['tests/level_region_selection_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-region-selection-smoke', level_region_selection_smoke_test, timeout: 120)
 
 level_region_selection_ui_smoke_test = executable('level_region_selection_ui_smoke_test', ['tests/level_region_selection_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-region-selection-ui-smoke', level_region_selection_ui_smoke_test, timeout: 240)
 
 level_object_clipboard_ui_smoke_test = executable('level_object_clipboard_ui_smoke_test', ['tests/level_object_clipboard_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-object-clipboard-ui-smoke', level_object_clipboard_ui_smoke_test, timeout: 240)
 
 level_face_clipboard_ui_smoke_test = executable('level_face_clipboard_ui_smoke_test', ['tests/level_face_clipboard_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-face-clipboard-ui-smoke', level_face_clipboard_ui_smoke_test, timeout: 240)
 
 level_surface_wrap_smoke_test = executable('level_surface_wrap_smoke_test', ['tests/level_surface_wrap_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('level-surface-wrap-smoke', level_surface_wrap_smoke_test, timeout: 120)
 
 level_surface_transfer_smoke_test = executable('level_surface_transfer_smoke_test', ['tests/level_surface_transfer_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-surface-transfer-smoke', level_surface_transfer_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-surface-transfer-smoke', level_surface_transfer_smoke_test, args: [slopstudio], timeout: 120)
 
 level_surface_project_smoke_test = executable('level_surface_project_smoke_test', ['tests/level_surface_project_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-surface-project-smoke', level_surface_project_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-surface-project-smoke', level_surface_project_smoke_test, args: [slopstudio], timeout: 120)
 
 level_surface_stroke_smoke_test = executable('level_surface_stroke_smoke_test', ['tests/level_surface_stroke_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-surface-stroke-smoke', level_surface_stroke_smoke_test, args: [vibestudio], timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-surface-stroke-smoke', level_surface_stroke_smoke_test, args: [slopstudio], timeout: 120)
 
 level_surface_stroke_ui_smoke_test = executable('level_surface_stroke_ui_smoke_test', ['tests/level_surface_stroke_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-surface-stroke-ui-smoke', level_surface_stroke_ui_smoke_test, timeout: 240)
 
 level_surface_clipboard_ui_smoke_test = executable('level_surface_clipboard_ui_smoke_test', ['tests/level_surface_clipboard_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-surface-clipboard-ui-smoke', level_surface_clipboard_ui_smoke_test, timeout: 240)
 
 level_surface_quick_ui_smoke_test = executable('level_surface_quick_ui_smoke_test', ['tests/level_surface_quick_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-surface-quick-ui-smoke', level_surface_quick_ui_smoke_test, timeout: 180)
 
 # NetRadiant Custom's texture scale steps and origin-anchored turns.
 level_surface_step_smoke_test = executable('level_surface_step_smoke_test', ['tests/level_surface_step_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-surface-step-smoke', level_surface_step_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-surface-step-smoke', level_surface_step_smoke_test, args: [slopstudio], timeout: 180)
 
 # Qt Test, when present, also presses the NetRadiant Custom keys in a view.
 level_surface_step_ui_smoke_test = executable('level_surface_step_ui_smoke_test', ['tests/level_surface_step_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-surface-step-ui-smoke', level_surface_step_ui_smoke_test, timeout: 300)
 
 # TrenchBroom's camera-relative texture moves and flips: the shared service,
 # map align-textures --camera-shift and --camera-flip, and, with Qt Test, the
 # TrenchBroom camera keys while faces are picked.
 level_camera_texture_smoke_test = executable('level_camera_texture_smoke_test', ['tests/level_camera_texture_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-camera-texture-smoke', level_camera_texture_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-camera-texture-smoke', level_camera_texture_smoke_test, args: [slopstudio], timeout: 180)
 
 level_camera_texture_ui_smoke_test = executable('level_camera_texture_ui_smoke_test', ['tests/level_camera_texture_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-camera-texture-ui-smoke', level_camera_texture_ui_smoke_test, timeout: 600)
 
 # TrenchBroom's Reset Texture Alignment, Radiant's Reset Texture and
@@ -3186,13 +3186,13 @@ test('level-camera-texture-ui-smoke', level_camera_texture_ui_smoke_test, timeou
 # --reset-alignment, --radiant-reset and its Reset Textures mode, and the
 # Levels commands, keys and window.
 level_texture_reset_smoke_test = executable('level_texture_reset_smoke_test', ['tests/level_texture_reset_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-texture-reset-smoke', level_texture_reset_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-texture-reset-smoke', level_texture_reset_smoke_test, args: [slopstudio], timeout: 180)
 
 level_texture_reset_ui_smoke_test = executable('level_texture_reset_ui_smoke_test', ['tests/level_texture_reset_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-texture-reset-ui-smoke', level_texture_reset_ui_smoke_test, timeout: 600)
 
 # NetRadiant Custom's Fit Width and Fit Height and its Project Axial, Ortho
@@ -3200,24 +3200,24 @@ test('level-texture-reset-ui-smoke', level_texture_reset_ui_smoke_test, timeout:
 # align-textures --keep-proportions, --project and --project-direction, and
 # the Levels commands and Surface Alignment window.
 level_texture_projection_smoke_test = executable('level_texture_projection_smoke_test', ['tests/level_texture_projection_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-texture-projection-smoke', level_texture_projection_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-texture-projection-smoke', level_texture_projection_smoke_test, args: [slopstudio], timeout: 180)
 
 level_texture_projection_ui_smoke_test = executable('level_texture_projection_ui_smoke_test', ['tests/level_texture_projection_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-texture-projection-ui-smoke', level_texture_projection_ui_smoke_test, timeout: 600)
 
 # TrenchBroom's Face inspector: brush faces' offset, scale and rotation in
 # every format, turns and stretches about a pivot, map face-attributes, and
 # the Surfaces tab's Face section with its handles, fields and Ctrl+3.
 level_face_attributes_smoke_test = executable('level_face_attributes_smoke_test', ['tests/level_face_attributes_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-face-attributes-smoke', level_face_attributes_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-face-attributes-smoke', level_face_attributes_smoke_test, args: [slopstudio], timeout: 180)
 
 level_face_inspector_ui_smoke_test = executable('level_face_inspector_ui_smoke_test', ['tests/level_face_inspector_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-face-inspector-ui-smoke', level_face_inspector_ui_smoke_test, timeout: 600)
 
 # Per-face content and surface flags and value (NetRadiant Custom's Surface
@@ -3225,65 +3225,65 @@ test('level-face-inspector-ui-smoke', level_face_inspector_ui_smoke_test, timeou
 # Surfaces tab's Flags section, Clear Face Flags and the Show Surfaces toggle
 # (S in the NetRadiant Custom profile).
 level_face_flags_smoke_test = executable('level_face_flags_smoke_test', ['tests/level_face_flags_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-face-flags-smoke', level_face_flags_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-face-flags-smoke', level_face_flags_smoke_test, args: [slopstudio], timeout: 180)
 
 level_face_flags_ui_smoke_test = executable('level_face_flags_ui_smoke_test', ['tests/level_face_flags_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-face-flags-ui-smoke', level_face_flags_ui_smoke_test, timeout: 600)
 
 # The UV Editor (NetRadiant Custom's TexTool): the shared texture-space
 # service, map edit-uv, and the dialog's drags, turns, nudges, live preview
 # and one-step Apply in the real shell.
 level_uv_edit_smoke_test = executable('level_uv_edit_smoke_test', ['tests/level_uv_edit_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-uv-edit-smoke', level_uv_edit_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-uv-edit-smoke', level_uv_edit_smoke_test, args: [slopstudio], timeout: 180)
 
 level_uv_editor_ui_smoke_test = executable('level_uv_editor_ui_smoke_test', ['tests/level_uv_editor_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-uv-editor-ui-smoke', level_uv_editor_ui_smoke_test, timeout: 600)
 
 # The camera UV tool (NetRadiant Custom's G): the shared service's frame,
 # repeat lines, snapping and edits, map edit-uv's stretch, skew, rows and
 # columns, and the camera's drags, pivot, picking and G key in the real shell.
 level_uv_tool_smoke_test = executable('level_uv_tool_smoke_test', ['tests/level_uv_tool_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('level-uv-tool-smoke', level_uv_tool_smoke_test, args: [vibestudio], timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('level-uv-tool-smoke', level_uv_tool_smoke_test, args: [slopstudio], timeout: 180)
 
 level_camera_uv_tool_ui_smoke_test = executable('level_camera_uv_tool_ui_smoke_test', ['tests/level_camera_uv_tool_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: qt6_test_dep.found() ? [vibestudio_app_dep, qt6_test_dep] : [vibestudio_app_dep],
-  cpp_args: qt6_test_dep.found() ? ['-DVIBESTUDIO_HAVE_QTEST=1'] : [], install: false)
+  include_directories: slopstudio_includes,
+  dependencies: qt6_test_dep.found() ? [slopstudio_app_dep, qt6_test_dep] : [slopstudio_app_dep],
+  cpp_args: qt6_test_dep.found() ? ['-DSLOPSTUDIO_HAVE_QTEST=1'] : [], install: false)
 test('level-camera-uv-tool-ui-smoke', level_camera_uv_tool_ui_smoke_test, timeout: 600)
 
 # Vertex editing, regions, patch matrix and Thicken, navigation, picked faces
 # and prefab drops in the real shell, driven by Qt events.
 level_geometry_tools_ui_smoke_test = executable('level_geometry_tools_ui_smoke_test', ['tests/level_geometry_tools_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-geometry-tools-ui-smoke', level_geometry_tools_ui_smoke_test, timeout: 180)
 
 level_make_room_ui_smoke_test = executable('level_make_room_ui_smoke_test', ['tests/level_make_room_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-make-room-ui-smoke', level_make_room_ui_smoke_test, timeout: 300)
 
 level_csg_tool_ui_smoke_test = executable('level_csg_tool_ui_smoke_test', ['tests/level_csg_tool_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('level-csg-tool-ui-smoke', level_csg_tool_ui_smoke_test, timeout: 300)
 
 brush_editor_ui_smoke_test = executable('brush_editor_ui_smoke_test', ['tests/brush_editor_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 # Includes the full shell workflow and two scaled/translated dialog renders.
 test('brush-editor-ui-smoke', brush_editor_ui_smoke_test, timeout: 180)
 
 patch_editor_ui_smoke_test = executable(
   'patch_editor_ui_smoke_test',
   ['tests/patch_editor_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('patch-editor-ui-smoke', patch_editor_ui_smoke_test, timeout: 90)
@@ -3291,24 +3291,24 @@ test('patch-editor-ui-smoke', patch_editor_ui_smoke_test, timeout: 90)
 level_document_smoke_test = executable(
   'level_document_smoke_test',
   ['tests/level_document_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
 )
-test('level-document-smoke', level_document_smoke_test, args: [vibestudio], timeout: 90)
+test('level-document-smoke', level_document_smoke_test, args: [slopstudio], timeout: 90)
 
 level_document_ui_smoke_test = executable(
   'level_document_ui_smoke_test',
   ['tests/level_document_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
 )
 test('level-document-ui-smoke', level_document_ui_smoke_test, timeout: 90)
 
 localization_smoke_test = executable(
   'localization_smoke_test',
   ['tests/localization_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3317,8 +3317,8 @@ test('localization-smoke', localization_smoke_test)
 studio_semantics_smoke_test = executable(
   'studio_semantics_smoke_test',
   ['tests/studio_semantics_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3327,8 +3327,8 @@ test('studio-semantics-smoke', studio_semantics_smoke_test)
 editor_profiles_smoke_test = executable(
   'editor_profiles_smoke_test',
   ['tests/editor_profiles_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3337,8 +3337,8 @@ test('editor-profiles-smoke', editor_profiles_smoke_test)
 settings_smoke_test = executable(
   'settings_smoke_test',
   ['tests/settings_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3347,8 +3347,8 @@ test('settings-smoke', settings_smoke_test)
 operation_state_smoke_test = executable(
   'operation_state_smoke_test',
   ['tests/operation_state_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3357,8 +3357,8 @@ test('operation-state-smoke', operation_state_smoke_test)
 game_installation_smoke_test = executable(
   'game_installation_smoke_test',
   ['tests/game_installation_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3367,8 +3367,8 @@ test('game-installation-smoke', game_installation_smoke_test)
 package_archive_smoke_test = executable(
   'package_archive_smoke_test',
   ['tests/package_archive_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3376,58 +3376,58 @@ test('package-archive-smoke', package_archive_smoke_test)
 
 package_zip_metadata_smoke_test = executable(
   'package_zip_metadata_smoke_test', ['tests/package_zip_metadata_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('package-zip-metadata-smoke', package_zip_metadata_smoke_test, timeout: 90)
 
 package_base_identity_smoke_test = executable(
   'package_base_identity_smoke_test', ['tests/package_base_identity_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('package-base-identity-smoke', package_base_identity_smoke_test, timeout: 90)
 package_protection_smoke_test = executable(
   'package_protection_smoke_test', ['tests/package_protection_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('package-protection-smoke', package_protection_smoke_test, timeout: 90)
 
 package_protection_work_smoke_test = executable(
   'package_protection_work_smoke_test', ['tests/package_protection_work_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep],
+  dependencies: [slopstudio_core_dep],
 )
 test('package-protection-work-smoke', package_protection_work_smoke_test, timeout: 90)
 
 model_document_test_env = environment()
-model_document_test_env.set('VIBESTUDIO_TEST_TMP_ROOT', join_paths(meson.project_source_root(), '.agents', 'tmp', 'modeller-rc', 'runtime'))
+model_document_test_env.set('SLOPSTUDIO_TEST_TMP_ROOT', join_paths(meson.project_source_root(), '.agents', 'tmp', 'modeller-rc', 'runtime'))
 
 package_protection_identity_smoke_test = executable(
   'package_protection_identity_smoke_test', ['tests/package_protection_identity_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], install: false,
+  dependencies: [slopstudio_core_dep], install: false,
 )
 test('package-protection-identity-smoke', package_protection_identity_smoke_test,
-  env: {'VIBESTUDIO_TEST_TMP_ROOT': join_paths(meson.project_source_root(), '.agents', 'tmp', 'modeller-rc', 'runtime')}, timeout: 120)
+  env: {'SLOPSTUDIO_TEST_TMP_ROOT': join_paths(meson.project_source_root(), '.agents', 'tmp', 'modeller-rc', 'runtime')}, timeout: 120)
 
 package_base_admission_smoke_test = executable(
   'package_base_admission_smoke_test', ['tests/package_base_admission_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('package-base-admission-smoke', package_base_admission_smoke_test, timeout: 90)
 
 package_index_smoke_test = executable(
   'package_index_smoke_test',
   ['tests/package_index_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-index-smoke', package_index_smoke_test, timeout: 90)
 
 ogg_preview_smoke_test = executable(
   'ogg_preview_smoke_test', ['tests/ogg_preview_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('ogg-preview-smoke', ogg_preview_smoke_test, args: [vibestudio], timeout: 90)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('ogg-preview-smoke', ogg_preview_smoke_test, args: [slopstudio], timeout: 90)
 
 package_preview_smoke_test = executable(
   'package_preview_smoke_test',
   ['tests/package_preview_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3436,8 +3436,8 @@ test('package-preview-smoke', package_preview_smoke_test)
 package_preview_worker_smoke_test = executable(
   'package_preview_worker_smoke_test',
   ['tests/package_preview_worker_smoke_test.cpp', 'app/package_preview_worker.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-preview-worker-smoke', package_preview_worker_smoke_test, timeout: 90)
@@ -3445,8 +3445,8 @@ test('package-preview-worker-smoke', package_preview_worker_smoke_test, timeout:
 package_preview_ui_smoke_test = executable(
   'package_preview_ui_smoke_test',
   ['tests/package_preview_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('package-preview-ui-smoke', package_preview_ui_smoke_test, timeout: 180)
@@ -3454,8 +3454,8 @@ test('package-preview-ui-smoke', package_preview_ui_smoke_test, timeout: 180)
 asset_tools_smoke_test = executable(
   'asset_tools_smoke_test',
   ['tests/asset_tools_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3464,59 +3464,59 @@ test('asset-tools-smoke', asset_tools_smoke_test)
 project_text_search_smoke_test = executable(
   'project_text_search_smoke_test',
   ['tests/project_text_search_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep],
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('project-text-search-smoke', project_text_search_smoke_test, args: [vibestudio], timeout: 60)
+test('project-text-search-smoke', project_text_search_smoke_test, args: [slopstudio], timeout: 60)
 
 language_completion_smoke_test = executable(
   'language_completion_smoke_test',
   ['tests/language_completion_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep],
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('language-completion-smoke', language_completion_smoke_test, timeout: 30)
 
 language_diagnostics_smoke_test = executable(
   'language_diagnostics_smoke_test', ['tests/language_diagnostics_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], install: false,
+  dependencies: [slopstudio_core_dep], install: false,
 )
-test('language-diagnostics-smoke', language_diagnostics_smoke_test, args: [vibestudio], timeout: 90)
+test('language-diagnostics-smoke', language_diagnostics_smoke_test, args: [slopstudio], timeout: 90)
 
 language_diagnostics_ui_smoke_test = executable(
   'language_diagnostics_ui_smoke_test', ['tests/language_diagnostics_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep], install: false,
+  dependencies: [slopstudio_app_dep], install: false,
 )
 test('language-diagnostics-ui-smoke', language_diagnostics_ui_smoke_test, timeout: 180)
 
 completion_snippet_smoke_test = executable(
   'completion_snippet_smoke_test', ['tests/completion_snippet_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], install: false,
+  dependencies: [slopstudio_core_dep], install: false,
 )
-test('completion-snippet-smoke', completion_snippet_smoke_test, args: [vibestudio], timeout: 60)
+test('completion-snippet-smoke', completion_snippet_smoke_test, args: [slopstudio], timeout: 60)
 
 completion_snippet_ui_smoke_test = executable(
   'completion_snippet_ui_smoke_test', ['tests/completion_snippet_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep], install: false,
+  dependencies: [slopstudio_app_dep], install: false,
 )
 test('completion-snippet-ui-smoke', completion_snippet_ui_smoke_test, timeout: 180)
 
 language_completion_resolve_smoke_test = executable(
   'language_completion_resolve_smoke_test', ['tests/language_completion_resolve_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], install: false,
+  dependencies: [slopstudio_core_dep], install: false,
 )
-test('language-completion-resolve-smoke', language_completion_resolve_smoke_test, args: [vibestudio], timeout: 90)
+test('language-completion-resolve-smoke', language_completion_resolve_smoke_test, args: [slopstudio], timeout: 90)
 
 language_completion_resolve_ui_smoke_test = executable(
   'language_completion_resolve_ui_smoke_test', ['tests/language_completion_resolve_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep], install: false,
+  dependencies: [slopstudio_app_dep], install: false,
 )
 test('language-completion-resolve-ui-smoke', language_completion_resolve_ui_smoke_test, timeout: 180)
 
 language_completion_ui_smoke_test = executable(
   'language_completion_ui_smoke_test',
   ['tests/language_completion_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep],
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('language-completion-ui-smoke', language_completion_ui_smoke_test, timeout: 120)
@@ -3524,15 +3524,15 @@ test('language-completion-ui-smoke', language_completion_ui_smoke_test, timeout:
 language_server_smoke_test = executable(
   'language_server_smoke_test',
   ['tests/language_server_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep],
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('language-server-smoke', language_server_smoke_test, args: [vibestudio], timeout: 60)
+test('language-server-smoke', language_server_smoke_test, args: [slopstudio], timeout: 60)
 
 language_references_smoke_test = executable(
   'language_references_smoke_test',
   ['tests/language_references_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep],
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('language-references-smoke', language_references_smoke_test, timeout: 30)
@@ -3540,7 +3540,7 @@ test('language-references-smoke', language_references_smoke_test, timeout: 30)
 language_references_ui_smoke_test = executable(
   'language_references_ui_smoke_test',
   ['tests/language_references_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep],
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('language-references-ui-smoke', language_references_ui_smoke_test, timeout: 120)
@@ -3548,59 +3548,59 @@ test('language-references-ui-smoke', language_references_ui_smoke_test, timeout:
 language_hover_smoke_test = executable(
   'language_hover_smoke_test',
   ['tests/language_hover_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep],
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('language-hover-smoke', language_hover_smoke_test, timeout: 30)
 
 language_signature_smoke_test = executable('language_signature_smoke_test', ['tests/language_signature_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], install: false)
-test('language-signature-smoke', language_signature_smoke_test, args: [vibestudio], timeout: 90)
+  dependencies: [slopstudio_core_dep], install: false)
+test('language-signature-smoke', language_signature_smoke_test, args: [slopstudio], timeout: 90)
 
 language_signature_ui_smoke_test = executable('language_signature_ui_smoke_test', ['tests/language_signature_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep], install: false)
+  dependencies: [slopstudio_app_dep], install: false)
 test('language-signature-ui-smoke', language_signature_ui_smoke_test, timeout: 180)
 
 language_formatting_smoke_test = executable(
   'language_formatting_smoke_test', ['tests/language_formatting_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], install: false,
+  dependencies: [slopstudio_core_dep], install: false,
 )
-test('language-formatting-smoke', language_formatting_smoke_test, args: [vibestudio], timeout: 90)
+test('language-formatting-smoke', language_formatting_smoke_test, args: [slopstudio], timeout: 90)
 
 language_formatting_ui_smoke_test = executable(
   'language_formatting_ui_smoke_test', ['tests/language_formatting_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep], install: false,
+  dependencies: [slopstudio_app_dep], install: false,
 )
 test('language-formatting-ui-smoke', language_formatting_ui_smoke_test, timeout: 120)
 
 language_rename_smoke_test = executable(
   'language_rename_smoke_test', ['tests/language_rename_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], install: false,
+  dependencies: [slopstudio_core_dep], install: false,
 )
-test('language-rename-smoke', language_rename_smoke_test, args: [vibestudio], timeout: 90)
+test('language-rename-smoke', language_rename_smoke_test, args: [slopstudio], timeout: 90)
 
 language_rename_ui_smoke_test = executable(
   'language_rename_ui_smoke_test', ['tests/language_rename_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep], install: false,
+  dependencies: [slopstudio_app_dep], install: false,
 )
 test('language-rename-ui-smoke', language_rename_ui_smoke_test, timeout: 120)
 
 language_code_actions_smoke_test = executable(
   'language_code_actions_smoke_test', ['tests/language_code_actions_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep], install: false,
+  dependencies: [slopstudio_core_dep], install: false,
 )
-test('language-code-actions-smoke', language_code_actions_smoke_test, args: [vibestudio], timeout: 90)
+test('language-code-actions-smoke', language_code_actions_smoke_test, args: [slopstudio], timeout: 90)
 
 language_code_actions_ui_smoke_test = executable(
   'language_code_actions_ui_smoke_test', ['tests/language_code_actions_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep], install: false,
+  dependencies: [slopstudio_app_dep], install: false,
 )
 test('language-code-actions-ui-smoke', language_code_actions_ui_smoke_test, timeout: 180)
 
 language_hover_ui_smoke_test = executable(
   'language_hover_ui_smoke_test',
   ['tests/language_hover_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep],
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('language-hover-ui-smoke', language_hover_ui_smoke_test, timeout: 120)
@@ -3608,7 +3608,7 @@ test('language-hover-ui-smoke', language_hover_ui_smoke_test, timeout: 120)
 language_server_ui_smoke_test = executable(
   'language_server_ui_smoke_test',
   ['tests/language_server_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep],
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('language-server-ui-smoke', language_server_ui_smoke_test, timeout: 120)
@@ -3616,7 +3616,7 @@ test('language-server-ui-smoke', language_server_ui_smoke_test, timeout: 120)
 project_search_ui_smoke_test = executable(
   'project_search_ui_smoke_test',
   ['tests/project_search_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep],
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('project-search-ui-smoke', project_search_ui_smoke_test, timeout: 90)
@@ -3624,15 +3624,15 @@ test('project-search-ui-smoke', project_search_ui_smoke_test, timeout: 90)
 text_document_smoke_test = executable(
   'text_document_smoke_test',
   ['tests/text_document_smoke_test.cpp'],
-  dependencies: [vibestudio_core_dep],
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('text-document-smoke', text_document_smoke_test, args: [vibestudio], timeout: 90)
+test('text-document-smoke', text_document_smoke_test, args: [slopstudio], timeout: 90)
 
 text_document_ui_smoke_test = executable(
   'text_document_ui_smoke_test',
   ['tests/text_document_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep],
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('text-document-ui-smoke', text_document_ui_smoke_test, timeout: 90)
@@ -3640,58 +3640,58 @@ test('text-document-ui-smoke', text_document_ui_smoke_test, timeout: 90)
 code_document_ui_smoke_test = executable(
   'code_document_ui_smoke_test',
   ['tests/code_document_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep],
+  dependencies: [slopstudio_app_dep],
 )
 test('code-document-ui-smoke', code_document_ui_smoke_test, timeout: 120)
 
 text_recovery_smoke_test = executable(
   'text_recovery_smoke_test',
   ['tests/text_recovery_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep],
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
-test('text-recovery-smoke', text_recovery_smoke_test, args: [vibestudio], timeout: 90)
+test('text-recovery-smoke', text_recovery_smoke_test, args: [slopstudio], timeout: 90)
 
 code_index_smoke_test = executable(
   'code_index_smoke_test',
   ['tests/code_index_smoke_test.cpp', 'app/code_index_worker.cpp'],
-  dependencies: [vibestudio_core_dep],
+  dependencies: [slopstudio_core_dep],
 )
-test('code-index-smoke', code_index_smoke_test, args: [vibestudio], timeout: 90)
+test('code-index-smoke', code_index_smoke_test, args: [slopstudio], timeout: 90)
 
 code_index_ui_smoke_test = executable(
   'code_index_ui_smoke_test',
   ['tests/code_index_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep],
+  dependencies: [slopstudio_app_dep],
 )
 test('code-index-ui-smoke', code_index_ui_smoke_test, timeout: 120)
 
 code_files_smoke_test = executable(
   'code_files_smoke_test',
   ['tests/code_files_smoke_test.cpp', 'app/code_files_worker.cpp'],
-  dependencies: [vibestudio_core_dep],
+  dependencies: [slopstudio_core_dep],
 )
-test('code-files-smoke', code_files_smoke_test, args: [vibestudio], timeout: 90)
+test('code-files-smoke', code_files_smoke_test, args: [slopstudio], timeout: 90)
 
 code_files_ui_smoke_test = executable(
   'code_files_ui_smoke_test',
   ['tests/code_files_ui_smoke_test.cpp'],
-  dependencies: [vibestudio_app_dep],
+  dependencies: [slopstudio_app_dep],
 )
 test('code-files-ui-smoke', code_files_ui_smoke_test, timeout: 120)
 
 quick_open_ui_smoke_test = executable(
   'quick_open_ui_smoke_test',
   ['tests/quick_open_ui_smoke_test.cpp'],
-  dependencies: vibestudio_app_dep,
+  dependencies: slopstudio_app_dep,
 )
 test('quick-open-ui-smoke', quick_open_ui_smoke_test, timeout: 120)
 
 package_staging_smoke_test = executable(
   'package_staging_smoke_test',
   ['tests/package_staging_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3702,8 +3702,8 @@ test('package-staging-smoke', package_staging_smoke_test, timeout: 90)
 package_plan_smoke_test = executable(
   'package_plan_smoke_test',
   ['tests/package_plan_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-plan-smoke', package_plan_smoke_test, timeout: 90)
@@ -3711,8 +3711,8 @@ test('package-plan-smoke', package_plan_smoke_test, timeout: 90)
 package_plan_limits_smoke_test = executable(
   'package_plan_limits_smoke_test',
   ['tests/package_plan_limits_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-plan-limits-smoke', package_plan_limits_smoke_test, timeout: 90)
@@ -3720,8 +3720,8 @@ test('package-plan-limits-smoke', package_plan_limits_smoke_test, timeout: 90)
 package_view_admission_smoke_test = executable(
   'package_view_admission_smoke_test',
   ['tests/package_view_admission_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-view-admission-smoke', package_view_admission_smoke_test, timeout: 90)
@@ -3730,16 +3730,16 @@ test('package-view-admission-smoke', package_view_admission_smoke_test, timeout:
 package_plan_scale_probe = executable(
   'package_plan_scale_probe',
   ['tests/package_plan_scale_probe.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
 package_write_index_smoke_test = executable(
   'package_write_index_smoke_test',
   ['tests/package_write_index_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3748,33 +3748,33 @@ test('package-write-index-smoke', package_write_index_smoke_test, timeout: 90)
 package_snapshot_smoke_test = executable(
   'package_snapshot_smoke_test',
   ['tests/package_snapshot_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-snapshot-smoke', package_snapshot_smoke_test, timeout: 90)
 
 package_summary_smoke_test = executable(
   'package_summary_smoke_test', ['tests/package_summary_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('package-summary-smoke', package_summary_smoke_test, timeout: 90)
 
 package_summary_cli_smoke_test = executable(
   'package_summary_cli_smoke_test', ['tests/package_summary_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('package-summary-cli-smoke', package_summary_cli_smoke_test, args: [vibestudio], timeout: 90)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('package-summary-cli-smoke', package_summary_cli_smoke_test, args: [slopstudio], timeout: 90)
 
 package_summary_ui_smoke_test = executable(
   'package_summary_ui_smoke_test', ['tests/package_summary_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('package-summary-ui-smoke', package_summary_ui_smoke_test, timeout: 120)
 
 
 package_staging_metadata_smoke_test = executable(
   'package_staging_metadata_smoke_test',
   ['tests/package_staging_metadata_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-staging-metadata-smoke', package_staging_metadata_smoke_test, timeout: 90)
@@ -3782,8 +3782,8 @@ test('package-staging-metadata-smoke', package_staging_metadata_smoke_test, time
 package_staging_content_smoke_test = executable(
   'package_staging_content_smoke_test',
   ['tests/package_staging_content_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-staging-content-smoke', package_staging_content_smoke_test, timeout: 90)
@@ -3791,8 +3791,8 @@ test('package-staging-content-smoke', package_staging_content_smoke_test, timeou
 project_manifest_smoke_test = executable(
   'project_manifest_smoke_test',
   ['tests/project_manifest_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3801,8 +3801,8 @@ test('project-manifest-smoke', project_manifest_smoke_test)
 game_asset_register_smoke_test = executable(
   'game_asset_register_smoke_test',
   ['tests/game_asset_register_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3811,8 +3811,8 @@ test('game-asset-register-smoke', game_asset_register_smoke_test, timeout: 120)
 release_smoke_test = executable(
   'release_smoke_test',
   ['tests/release_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3821,34 +3821,34 @@ test('release-smoke', release_smoke_test, timeout: 180)
 release_cli_smoke_test = executable(
   'release_cli_smoke_test',
   ['tests/release_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
-test('release-cli-smoke', release_cli_smoke_test, args: [vibestudio], timeout: 300)
+test('release-cli-smoke', release_cli_smoke_test, args: [slopstudio], timeout: 300)
 
 # Package and Release as a widget, driven with Qt Test.
 if qt6_test_dep.found()
   release_dialog_ui_smoke_test = executable(
     'release_dialog_ui_smoke_test',
     ['tests/release_dialog_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes,
-    dependencies: [vibestudio_app_dep, qt6_test_dep],
+    include_directories: slopstudio_includes,
+    dependencies: [slopstudio_app_dep, qt6_test_dep],
     install: false,
   )
   test('release-dialog-ui-smoke', release_dialog_ui_smoke_test, timeout: 300)
 endif
 
 inspector_layout_smoke_test = executable('inspector_layout_smoke_test', ['tests/inspector_layout_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('inspector-layout-smoke', inspector_layout_smoke_test, timeout: 90)
 
 ui_primitives_smoke_test = executable(
   'ui_primitives_smoke_test',
   ['tests/ui_primitives_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 
@@ -3864,22 +3864,22 @@ test(
 )
 
 studio_progress_smoke_test = executable('studio_progress_smoke_test', ['tests/studio_progress_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('studio-progress-smoke', studio_progress_smoke_test, env: ui_primitives_test_env, timeout: 90)
 
 startup_progress_smoke_test = executable('startup_progress_smoke_test', ['tests/startup_progress_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('startup-progress-smoke', startup_progress_smoke_test, env: ui_primitives_test_env, timeout: 180)
 
 studio_sidebar_smoke_test = executable('studio_sidebar_smoke_test', ['tests/studio_sidebar_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('studio-sidebar-smoke', studio_sidebar_smoke_test, env: ui_primitives_test_env, timeout: 90)
 
 document_watch_smoke_test = executable(
   'document_watch_smoke_test',
   ['tests/document_watch_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3888,8 +3888,8 @@ test('document-watch-smoke', document_watch_smoke_test)
 entity_definitions_smoke_test = executable(
   'entity_definitions_smoke_test',
   ['tests/entity_definitions_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3898,8 +3898,8 @@ test('entity-definitions-smoke', entity_definitions_smoke_test)
 model_mesh_smoke_test = executable(
   'model_mesh_smoke_test',
   ['tests/model_mesh_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -3908,19 +3908,19 @@ test('model-mesh-smoke', model_mesh_smoke_test)
 model_design_smoke_test = executable(
   'model_design_smoke_test',
   ['tests/model_design_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 # CLI fixtures change their child working directory. Pass an absolute program
 # path on every platform and retain the explicit application build dependency.
-test('model-design-smoke', model_design_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, timeout: 90)
+test('model-design-smoke', model_design_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, timeout: 90)
 
 model_design_ui_smoke_test = executable(
   'model_design_ui_smoke_test',
   ['tests/model_design_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('model-design-ui-smoke', model_design_ui_smoke_test, timeout: 60)
@@ -3928,311 +3928,311 @@ test('model-design-ui-smoke', model_design_ui_smoke_test, timeout: 60)
 
 model_mdl_smoke_test = executable(
   'model_mdl_smoke_test', ['tests/model_mdl_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-mdl-smoke', model_mdl_smoke_test, env: model_document_test_env, timeout: 90)
 model_mdl_export_smoke_test = executable(
   'model_mdl_export_smoke_test', ['tests/model_mdl_export_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-mdl-export-smoke', model_mdl_export_smoke_test, env: model_document_test_env, timeout: 90)
 model_mdl_edit_smoke_test = executable(
   'model_mdl_edit_smoke_test', ['tests/model_mdl_edit_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-mdl-edit-smoke', model_mdl_edit_smoke_test, env: model_document_test_env, timeout: 90)
 model_mdl_cli_smoke_test = executable(
   'model_mdl_cli_smoke_test', ['tests/model_mdl_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-mdl-cli-smoke', model_mdl_cli_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-mdl-cli-smoke', model_mdl_cli_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 model_import_cli_smoke_test = executable(
   'model_import_cli_smoke_test', ['tests/model_import_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-import-cli-smoke', model_import_cli_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-import-cli-smoke', model_import_cli_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 model_mdl_ui_smoke_test = executable(
   'model_mdl_ui_smoke_test', ['tests/model_mdl_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-mdl-ui-smoke', model_mdl_ui_smoke_test, env: model_document_test_env, timeout: 90)
 model_mdl_playback_smoke_test = executable(
   'model_mdl_playback_smoke_test', ['tests/model_mdl_playback_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-mdl-playback-smoke', model_mdl_playback_smoke_test, env: model_document_test_env, timeout: 90)
 model_skin_source_smoke_test = executable(
   'model_skin_source_smoke_test', ['tests/model_skin_source_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-skin-source-smoke', model_skin_source_smoke_test, env: model_document_test_env, timeout: 90)
 model_skin_source_ui_smoke_test = executable(
   'model_skin_source_ui_smoke_test', ['tests/model_skin_source_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-skin-source-ui-smoke', model_skin_source_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_skin_bindings_smoke_test = executable(
   'model_skin_bindings_smoke_test', ['tests/model_skin_bindings_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-skin-bindings-smoke', model_skin_bindings_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-skin-bindings-smoke', model_skin_bindings_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 model_skin_bindings_ui_smoke_test = executable(
   'model_skin_bindings_ui_smoke_test', ['tests/model_skin_bindings_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-skin-bindings-ui-smoke', model_skin_bindings_ui_smoke_test, env: model_document_test_env, timeout: 120)
 model_document_smoke_test = executable(
   'model_document_smoke_test',
   ['tests/model_document_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('model-document-smoke', model_document_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-document-smoke', model_document_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_save_smoke_test = executable(
   'model_save_smoke_test', ['tests/model_save_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-save-smoke', model_save_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-save-smoke', model_save_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_obj_smoke_test = executable(
   'model_obj_smoke_test', ['tests/model_obj_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-obj-smoke', model_obj_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-obj-smoke', model_obj_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_obj_ui_smoke_test = executable(
   'model_obj_ui_smoke_test', ['tests/model_obj_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-obj-ui-smoke', model_obj_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_preview_smoke_test = executable(
   'model_preview_smoke_test', ['tests/model_preview_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-preview-smoke', model_preview_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_frame_export_smoke_test = executable(
   'model_frame_export_smoke_test', ['tests/model_frame_export_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-frame-export-smoke', model_frame_export_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-frame-export-smoke', model_frame_export_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_frame_export_ui_smoke_test = executable(
   'model_frame_export_ui_smoke_test', ['tests/model_frame_export_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-frame-export-ui-smoke', model_frame_export_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_appearance_smoke_test = executable(
   'model_appearance_smoke_test', ['tests/model_appearance_smoke_test.cpp', 'cli/model_appearance.cpp', 'app/model_preview_worker.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-appearance-smoke', model_appearance_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-appearance-smoke', model_appearance_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 level_model_appearance_smoke_test = executable(
   'level_model_appearance_smoke_test', ['tests/level_model_appearance_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('level-model-appearance-smoke', level_model_appearance_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('level-model-appearance-smoke', level_model_appearance_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 level_model_appearance_ui_smoke_test = executable(
   'level_model_appearance_ui_smoke_test', ['tests/level_model_appearance_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('level-model-appearance-ui-smoke', level_model_appearance_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_appearance_ui_smoke_test = executable(
   'model_appearance_ui_smoke_test', ['tests/model_appearance_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-appearance-ui-smoke', model_appearance_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_md2_smoke_test = executable(
   'model_md2_smoke_test', ['tests/model_md2_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-md2-smoke', model_md2_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-md2-smoke', model_md2_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_winding_smoke_test = executable(
   'model_winding_smoke_test', ['tests/model_winding_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-winding-smoke', model_winding_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_topology_smoke_test = executable(
   'model_topology_smoke_test',
   ['tests/model_topology_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('model-topology-smoke', model_topology_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-topology-smoke', model_topology_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_mesh_tools_smoke_test = executable(
   'model_mesh_tools_smoke_test', ['tests/model_mesh_tools_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-mesh-tools-smoke', model_mesh_tools_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-mesh-tools-smoke', model_mesh_tools_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 # Align Vertices and the polygon modelling round's topology tools (core and CLI).
 model_topology_tools_smoke_test = executable(
   'model_topology_tools_smoke_test', ['tests/model_topology_tools_smoke_test.cpp', 'cli/model_tools.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-topology-tools-smoke', model_topology_tools_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-topology-tools-smoke', model_topology_tools_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_topology_tools_ui_smoke_test = executable(
   'model_topology_tools_ui_smoke_test', ['tests/model_topology_tools_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-topology-tools-ui-smoke', model_topology_tools_ui_smoke_test, env: model_document_test_env, timeout: 240)
 
 model_edge_slide_smoke_test = executable(
   'model_edge_slide_smoke_test', ['tests/model_edge_slide_smoke_test.cpp', 'cli/model_tools.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-edge-slide-smoke', model_edge_slide_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-edge-slide-smoke', model_edge_slide_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 # Select Edge Loops and Rings of the selection: the core service and `model select --edges`.
 model_edge_loops_smoke_test = executable(
   'model_edge_loops_smoke_test', ['tests/model_edge_loops_smoke_test.cpp', 'cli/model_tools.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-edge-loops-smoke', model_edge_loops_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-edge-loops-smoke', model_edge_loops_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_edge_slide_ui_smoke_test = executable(
   'model_edge_slide_ui_smoke_test', ['tests/model_edge_slide_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-edge-slide-ui-smoke', model_edge_slide_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_spin_smoke_test = executable(
   'model_spin_smoke_test', ['tests/model_spin_smoke_test.cpp', 'cli/model_tools.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('model-spin-smoke', model_spin_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('model-spin-smoke', model_spin_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_vertex_identity_smoke_test = executable(
   'model_vertex_identity_smoke_test', 'tests/model_vertex_identity_smoke_test.cpp',
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('model-vertex-identity-smoke', model_vertex_identity_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_rip_smoke_test = executable(
   'model_rip_smoke_test', ['tests/model_rip_smoke_test.cpp', 'cli/model_tools.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('model-rip-smoke', model_rip_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('model-rip-smoke', model_rip_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_rip_ui_smoke_test = executable(
   'model_rip_ui_smoke_test', ['tests/model_rip_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('model-rip-ui-smoke', model_rip_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_spin_ui_smoke_test = executable(
   'model_spin_ui_smoke_test', ['tests/model_spin_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('model-spin-ui-smoke', model_spin_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_edge_bevel_smoke_test = executable(
   'model_edge_bevel_smoke_test', ['tests/model_edge_bevel_smoke_test.cpp', 'cli/model_tools.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-edge-bevel-smoke', model_edge_bevel_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-edge-bevel-smoke', model_edge_bevel_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_edge_bevel_ui_smoke_test = executable(
   'model_edge_bevel_ui_smoke_test', ['tests/model_edge_bevel_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-edge-bevel-ui-smoke', model_edge_bevel_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_knife_smoke_test = executable(
   'model_knife_smoke_test', ['tests/model_knife_smoke_test.cpp', 'cli/model_tools.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-knife-smoke', model_knife_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-knife-smoke', model_knife_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_knife_ui_smoke_test = executable(
   'model_knife_ui_smoke_test', ['tests/model_knife_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-knife-ui-smoke', model_knife_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 # Skeletal models and the format decoders in core/model_format_*.cpp.
 model_skeleton_smoke_test = executable(
   'model_skeleton_smoke_test', ['tests/model_skeleton_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-skeleton-smoke', model_skeleton_smoke_test, timeout: 120)
 
 # Exact skin-weight provenance through mesh, UV and surface edits.
 model_skin_provenance_smoke_test = executable(
   'model_skin_provenance_smoke_test', ['tests/model_skin_provenance_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-skin-provenance-smoke', model_skin_provenance_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-skin-provenance-smoke', model_skin_provenance_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_skin_provenance_ui_smoke_test = executable(
   'model_skin_provenance_ui_smoke_test', ['tests/model_skin_provenance_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-skin-provenance-ui-smoke', model_skin_provenance_ui_smoke_test, env: model_document_test_env, timeout: 180)
 # Every topology, UV, surface and frame edit on a skinned fixture.
 model_skin_provenance_sweep_smoke_test = executable(
   'model_skin_provenance_sweep_smoke_test', ['tests/model_skin_provenance_sweep_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-skin-provenance-sweep-smoke', model_skin_provenance_sweep_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 240)
+test('model-skin-provenance-sweep-smoke', model_skin_provenance_sweep_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 240)
 
 model_rig_smoke_test = executable(
   'model_rig_smoke_test', ['tests/model_rig_smoke_test.cpp', 'cli/model_rig.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-rig-smoke', model_rig_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-rig-smoke', model_rig_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_rig_ui_smoke_test = executable(
   'model_rig_ui_smoke_test', ['tests/model_rig_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-rig-ui-smoke', model_rig_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 
 model_editor_controls_smoke_test = executable(
   'model_editor_controls_smoke_test', ['tests/model_editor_controls_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-editor-controls-smoke', model_editor_controls_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, timeout: 180)
+test('model-editor-controls-smoke', model_editor_controls_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, timeout: 180)
 
 model_format_mdc_mdr_iqm_smoke_test = executable(
   'model_format_mdc_mdr_iqm_smoke_test', ['tests/model_format_mdc_mdr_iqm_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-format-mdc-mdr-iqm-smoke', model_format_mdc_mdr_iqm_smoke_test, timeout: 120)
 
 model_format_md5_smoke_test = executable(
   'model_format_md5_smoke_test', ['tests/model_format_md5_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-format-md5-smoke', model_format_md5_smoke_test, timeout: 120)
 
 model_skeletal_export_smoke_test = executable(
   'model_skeletal_export_smoke_test', ['tests/model_skeletal_export_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-skeletal-export-smoke', model_skeletal_export_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, timeout: 180)
+test('model-skeletal-export-smoke', model_skeletal_export_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, timeout: 180)
 
 model_skeletal_export_ui_smoke_test = executable(
   'model_skeletal_export_ui_smoke_test', ['tests/model_skeletal_export_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-skeletal-export-ui-smoke', model_skeletal_export_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
@@ -4242,7 +4242,7 @@ test('model-skeletal-export-ui-smoke', model_skeletal_export_ui_smoke_test, env:
 model_oracle_python = find_program('python', 'python3', required: false)
 model_skeletal_writer_oracle_test = executable(
   'model_skeletal_writer_oracle_test', ['tests/model_skeletal_writer_oracle_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-skeletal-writer-oracle', model_skeletal_writer_oracle_test,
   args: [files('tests/model_skeletal_writer_oracle.py'), model_oracle_python.found() ? model_oracle_python.full_path() : ''],
@@ -4250,178 +4250,178 @@ test('model-skeletal-writer-oracle', model_skeletal_writer_oracle_test,
 
 model_targets_smoke_test = executable(
   'model_targets_smoke_test', ['tests/model_targets_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-targets-smoke', model_targets_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, timeout: 180)
+test('model-targets-smoke', model_targets_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, timeout: 180)
 
 model_targets_ui_smoke_test = executable(
   'model_targets_ui_smoke_test', ['tests/model_targets_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-targets-ui-smoke', model_targets_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_target_prepare_smoke_test = executable(
   'model_target_prepare_smoke_test', ['tests/model_target_prepare_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-target-prepare-smoke', model_target_prepare_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, timeout: 300)
+test('model-target-prepare-smoke', model_target_prepare_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, timeout: 300)
 
 model_target_prepare_ui_smoke_test = executable(
   'model_target_prepare_ui_smoke_test', ['tests/model_target_prepare_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-target-prepare-ui-smoke', model_target_prepare_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 model_lod_smoke_test = executable(
   'model_lod_smoke_test', ['tests/model_lod_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-lod-smoke', model_lod_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, timeout: 300)
+test('model-lod-smoke', model_lod_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, timeout: 300)
 
 model_lod_ui_smoke_test = executable(
   'model_lod_ui_smoke_test', ['tests/model_lod_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-lod-ui-smoke', model_lod_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 model_skin_variants_smoke_test = executable(
   'model_skin_variants_smoke_test', ['tests/model_skin_variants_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-skin-variants-smoke', model_skin_variants_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-skin-variants-smoke', model_skin_variants_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_skin_variants_ui_smoke_test = executable(
   'model_skin_variants_ui_smoke_test', ['tests/model_skin_variants_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-skin-variants-ui-smoke', model_skin_variants_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 model_format_mds_ghoul2_smoke_test = executable(
   'model_format_mds_ghoul2_smoke_test', ['tests/model_format_mds_ghoul2_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-format-mds-ghoul2-smoke', model_format_mds_ghoul2_smoke_test, timeout: 120)
 
 model_format_static_smoke_test = executable(
   'model_format_static_smoke_test', ['tests/model_format_static_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-format-static-smoke', model_format_static_smoke_test, timeout: 120)
 
 model_format_studio_hexen2_fm_smoke_test = executable(
   'model_format_studio_hexen2_fm_smoke_test', ['tests/model_format_studio_hexen2_fm_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-format-studio-hexen2-fm-smoke', model_format_studio_hexen2_fm_smoke_test, timeout: 120)
 
 # Decode issue severities and the editable gate (FMT-02).
 model_decode_issues_smoke_test = executable(
   'model_decode_issues_smoke_test', ['tests/model_decode_issues_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-decode-issues-smoke', model_decode_issues_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-decode-issues-smoke', model_decode_issues_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_import_review_ui_smoke_test = executable(
   'model_import_review_ui_smoke_test', ['tests/model_import_review_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-import-review-ui-smoke', model_import_review_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 # Malformed-input coverage for MDL, MD2, MD3 and OBJ and the decode, edit and export chain (FMT-10).
 model_format_legacy_fuzz_smoke_test = executable(
   'model_format_legacy_fuzz_smoke_test', ['tests/model_format_legacy_fuzz_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-format-legacy-fuzz-smoke', model_format_legacy_fuzz_smoke_test, timeout: 240)
 
 # glTF 2.0 import (FMT-05).
 model_format_gltf_smoke_test = executable(
   'model_format_gltf_smoke_test', ['tests/model_format_gltf_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-format-gltf-smoke', model_format_gltf_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-format-gltf-smoke', model_format_gltf_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 # Bulk model audit (FMT-11).
 model_audit_smoke_test = executable(
   'model_audit_smoke_test', ['tests/model_audit_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-audit-smoke', model_audit_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 300)
+test('model-audit-smoke', model_audit_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 300)
 
 model_audit_ui_smoke_test = executable(
   'model_audit_ui_smoke_test', ['tests/model_audit_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-audit-ui-smoke', model_audit_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 # Engine-parity Game preview (UVSKIN-08).
 model_game_preview_smoke_test = executable(
   'model_game_preview_smoke_test', ['tests/model_game_preview_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-game-preview-smoke', model_game_preview_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-game-preview-smoke', model_game_preview_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_game_preview_ui_smoke_test = executable(
   'model_game_preview_ui_smoke_test', ['tests/model_game_preview_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-game-preview-ui-smoke', model_game_preview_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 # Texture map baking (UVSKIN-06).
 model_bake_smoke_test = executable(
   'model_bake_smoke_test', ['tests/model_bake_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-bake-smoke', model_bake_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 300)
+test('model-bake-smoke', model_bake_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 300)
 
 model_bake_ui_smoke_test = executable(
   'model_bake_ui_smoke_test', ['tests/model_bake_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-bake-ui-smoke', model_bake_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 # Painting skins on the model (UVSKIN-09).
 model_skin_paint_smoke_test = executable(
   'model_skin_paint_smoke_test', ['tests/model_skin_paint_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-skin-paint-smoke', model_skin_paint_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-skin-paint-smoke', model_skin_paint_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_skin_paint_ui_smoke_test = executable(
   'model_skin_paint_ui_smoke_test', ['tests/model_skin_paint_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-skin-paint-ui-smoke', model_skin_paint_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 # The RTCW MDS writer (FMT-09).
 model_format_mds_writer_smoke_test = executable(
   'model_format_mds_writer_smoke_test', ['tests/model_format_mds_writer_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-format-mds-writer-smoke', model_format_mds_writer_smoke_test, timeout: 120)
 
 
 model_health_smoke_test = executable(
   'model_health_smoke_test', ['tests/model_health_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-health-smoke', model_health_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-health-smoke', model_health_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_nonmanifold_smoke_test = executable(
   'model_nonmanifold_smoke_test', ['tests/model_nonmanifold_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-nonmanifold-smoke', model_nonmanifold_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-nonmanifold-smoke', model_nonmanifold_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_intersections_smoke_test = executable(
   'model_intersections_smoke_test', ['tests/model_intersections_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-intersections-smoke', model_intersections_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-intersections-smoke', model_intersections_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_intersections_ui_smoke_test = executable(
   'model_intersections_ui_smoke_test', ['tests/model_intersections_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 # Both time the editor's event loop through a maximum-size job against a
 # 300 ms budget; beside other heavy tests the gaps measure the machine, not
@@ -4430,193 +4430,193 @@ test('model-intersections-ui-smoke', model_intersections_ui_smoke_test, env: mod
 
 model_import_repair_smoke_test = executable(
   'model_import_repair_smoke_test', ['tests/model_import_repair_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep],
 )
-test('model-import-repair-smoke', model_import_repair_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-import-repair-smoke', model_import_repair_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_import_repair_ui_smoke_test = executable(
   'model_import_repair_ui_smoke_test', ['tests/model_import_repair_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep],
 )
 test('model-import-repair-ui-smoke', model_import_repair_ui_smoke_test, env: model_document_test_env, timeout: 120, is_parallel: false)
 
 model_health_ui_smoke_test = executable(
   'model_health_ui_smoke_test', ['tests/model_health_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-health-ui-smoke', model_health_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_surface_selection_smoke_test = executable(
   'model_surface_selection_smoke_test', ['tests/model_surface_selection_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-surface-selection-smoke', model_surface_selection_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-surface-selection-smoke', model_surface_selection_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_surface_selection_ui_smoke_test = executable(
   'model_surface_selection_ui_smoke_test', ['tests/model_surface_selection_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-surface-selection-ui-smoke', model_surface_selection_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_material_slots_smoke_test = executable(
   'model_material_slots_smoke_test', ['tests/model_material_slots_smoke_test.cpp', 'cli/model_material_slots.cpp', 'app/model_material_worker.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-material-slots-smoke', model_material_slots_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-material-slots-smoke', model_material_slots_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_material_slots_ui_smoke_test = executable(
   'model_material_slots_ui_smoke_test', ['tests/model_material_slots_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-material-slots-ui-smoke', model_material_slots_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_surfaces_smoke_test = executable(
   'model_surfaces_smoke_test', ['tests/model_surfaces_smoke_test.cpp', 'cli/model_surfaces.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-surfaces-smoke', model_surfaces_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-surfaces-smoke', model_surfaces_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_surfaces_ui_smoke_test = executable(
   'model_surfaces_ui_smoke_test', ['tests/model_surfaces_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-surfaces-ui-smoke', model_surfaces_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_boundary_fill_smoke_test = executable(
   'model_boundary_fill_smoke_test', ['tests/model_boundary_fill_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-boundary-fill-smoke', model_boundary_fill_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-boundary-fill-smoke', model_boundary_fill_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_boundary_fill_ui_smoke_test = executable(
   'model_boundary_fill_ui_smoke_test', ['tests/model_boundary_fill_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-boundary-fill-ui-smoke', model_boundary_fill_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_boundary_bridge_smoke_test = executable(
   'model_boundary_bridge_smoke_test', ['tests/model_boundary_bridge_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-boundary-bridge-smoke', model_boundary_bridge_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-boundary-bridge-smoke', model_boundary_bridge_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_boundary_bridge_ui_smoke_test = executable(
   'model_boundary_bridge_ui_smoke_test', ['tests/model_boundary_bridge_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-boundary-bridge-ui-smoke', model_boundary_bridge_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_transform_smoke_test = executable(
   'model_transform_smoke_test', ['tests/model_transform_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-transform-smoke', model_transform_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-transform-smoke', model_transform_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_transform_axes_smoke_test = executable(
   'model_transform_axes_smoke_test', ['tests/model_transform_axes_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-transform-axes-smoke', model_transform_axes_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-transform-axes-smoke', model_transform_axes_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_transform_pieces_smoke_test = executable(
   'model_transform_pieces_smoke_test', ['tests/model_transform_pieces_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-transform-pieces-smoke', model_transform_pieces_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-transform-pieces-smoke', model_transform_pieces_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_array_smoke_test = executable(
   'model_array_smoke_test', ['tests/model_array_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-array-smoke', model_array_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-array-smoke', model_array_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_extrude_smoke_test = executable(
   'model_extrude_smoke_test', ['tests/model_extrude_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-extrude-smoke', model_extrude_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-extrude-smoke', model_extrude_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_bridge_options_smoke_test = executable(
   'model_bridge_options_smoke_test', ['tests/model_bridge_options_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-bridge-options-smoke', model_bridge_options_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-bridge-options-smoke', model_bridge_options_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_symmetry_smoke_test = executable(
   'model_symmetry_smoke_test', ['tests/model_symmetry_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-symmetry-smoke', model_symmetry_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-symmetry-smoke', model_symmetry_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_add_face_smoke_test = executable(
   'model_add_face_smoke_test', ['tests/model_add_face_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-add-face-smoke', model_add_face_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-add-face-smoke', model_add_face_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_bevel_clamp_smoke_test = executable(
   'model_bevel_clamp_smoke_test', ['tests/model_bevel_clamp_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-bevel-clamp-smoke', model_bevel_clamp_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-bevel-clamp-smoke', model_bevel_clamp_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_intersect_cut_smoke_test = executable(
   'model_intersect_cut_smoke_test', ['tests/model_intersect_cut_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-intersect-cut-smoke', model_intersect_cut_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-intersect-cut-smoke', model_intersect_cut_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_rip_branch_smoke_test = executable(
   'model_rip_branch_smoke_test', ['tests/model_rip_branch_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-rip-branch-smoke', model_rip_branch_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-rip-branch-smoke', model_rip_branch_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_polygon_tools_ui_smoke_test = executable(
   'model_polygon_tools_ui_smoke_test', ['tests/model_polygon_tools_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-polygon-tools-ui-smoke', model_polygon_tools_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 model_transform_axes_ui_smoke_test = executable(
   'model_transform_axes_ui_smoke_test', ['tests/model_transform_axes_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-transform-axes-ui-smoke', model_transform_axes_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_trackball_smoke_test = executable(
   'model_trackball_smoke_test', ['tests/model_trackball_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-trackball-smoke', model_trackball_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-trackball-smoke', model_trackball_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_trackball_ui_smoke_test = executable(
   'model_trackball_ui_smoke_test', ['tests/model_trackball_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-trackball-ui-smoke', model_trackball_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_tags_smoke_test = executable(
   'model_tags_smoke_test', ['tests/model_tags_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-tags-smoke', model_tags_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-tags-smoke', model_tags_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_tags_ui_smoke_test = executable(
   'model_tags_ui_smoke_test', ['tests/model_tags_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-tags-ui-smoke', model_tags_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_editor_tools_ui_smoke_test = executable(
   'model_editor_tools_ui_smoke_test', ['tests/model_editor_tools_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-editor-tools-ui-smoke', model_editor_tools_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_profiles_ui_smoke_test = executable(
   'model_profiles_ui_smoke_test', ['tests/model_profiles_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-profiles-ui-smoke', model_profiles_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
@@ -4625,7 +4625,7 @@ test('model-profiles-ui-smoke', model_profiles_ui_smoke_test, env: model_documen
 # screen.
 model_editor_layout_ui_smoke_test = executable(
   'model_editor_layout_ui_smoke_test', ['tests/model_editor_layout_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-editor-layout-ui-smoke', model_editor_layout_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
@@ -4634,14 +4634,14 @@ test('model-editor-layout-ui-smoke', model_editor_layout_ui_smoke_test, env: mod
 # previews and busy bars under high contrast and reduced motion.
 model_accessibility_ui_smoke_test = executable(
   'model_accessibility_ui_smoke_test', ['tests/model_accessibility_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-accessibility-ui-smoke', model_accessibility_ui_smoke_test, env: model_document_test_env, timeout: 240)
 
 # Modeller numbers in the user's number format and counts in each plural form.
 model_locale_ui_smoke_test = executable(
   'model_locale_ui_smoke_test', ['tests/model_locale_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-locale-ui-smoke', model_locale_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
@@ -4650,227 +4650,227 @@ test('model-locale-ui-smoke', model_locale_ui_smoke_test, env: model_document_te
 if qt6_test_dep.found()
   model_editor_keyboard_ui_smoke_test = executable(
     'model_editor_keyboard_ui_smoke_test', ['tests/model_editor_keyboard_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false,
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false,
   )
   test('model-editor-keyboard-ui-smoke', model_editor_keyboard_ui_smoke_test, env: model_document_test_env, timeout: 180)
   # The navigation gizmo against the heads-up tags at 100% and 200% text in
   # both directions, with real clicks on its bubbles.
   model_navigation_gizmo_ui_smoke_test = executable(
     'model_navigation_gizmo_ui_smoke_test', ['tests/model_navigation_gizmo_ui_smoke_test.cpp'],
-    include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep, qt6_test_dep], install: false,
+    include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false,
   )
   test('model-navigation-gizmo-ui-smoke', model_navigation_gizmo_ui_smoke_test, env: model_document_test_env, timeout: 180)
 endif
 
 model_animation_smoke_test = executable(
   'model_animation_smoke_test', ['tests/model_animation_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-animation-smoke', model_animation_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-animation-smoke', model_animation_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_frame_tools_smoke_test = executable(
   'model_frame_tools_smoke_test', ['tests/model_frame_tools_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-frame-tools-smoke', model_frame_tools_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-frame-tools-smoke', model_frame_tools_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_frame_resample_smoke_test = executable(
   'model_frame_resample_smoke_test', ['tests/model_frame_resample_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-frame-resample-smoke', model_frame_resample_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 240)
+test('model-frame-resample-smoke', model_frame_resample_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 240)
 
 model_tag_follow_smoke_test = executable(
   'model_tag_follow_smoke_test', ['tests/model_tag_follow_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-tag-follow-smoke', model_tag_follow_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 240)
+test('model-tag-follow-smoke', model_tag_follow_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 240)
 
 model_pose_range_smoke_test = executable(
   'model_pose_range_smoke_test', ['tests/model_pose_range_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-pose-range-smoke', model_pose_range_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 240)
+test('model-pose-range-smoke', model_pose_range_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 240)
 
 model_frame_import_smoke_test = executable(
   'model_frame_import_smoke_test', ['tests/model_frame_import_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-frame-import-smoke', model_frame_import_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 240)
+test('model-frame-import-smoke', model_frame_import_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 240)
 
 model_frame_tools_ui_smoke_test = executable(
   'model_frame_tools_ui_smoke_test', ['tests/model_frame_tools_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-frame-tools-ui-smoke', model_frame_tools_ui_smoke_test, env: model_document_test_env, timeout: 240)
 
 model_animation_ui_smoke_test = executable(
   'model_animation_ui_smoke_test', ['tests/model_animation_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-animation-ui-smoke', model_animation_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_playback_smoke_test = executable(
   'model_playback_smoke_test', ['tests/model_playback_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-playback-smoke', model_playback_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_uv_smoke_test = executable(
   'model_uv_smoke_test', ['tests/model_uv_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-uv-smoke', model_uv_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-uv-smoke', model_uv_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_uv_islands_smoke_test = executable(
   'model_uv_islands_smoke_test', ['tests/model_uv_islands_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-uv-islands-smoke', model_uv_islands_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-uv-islands-smoke', model_uv_islands_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_uv_density_smoke_test = executable(
   'model_uv_density_smoke_test', ['tests/model_uv_density_smoke_test.cpp', 'cli/model_uv_density.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-uv-density-smoke', model_uv_density_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-uv-density-smoke', model_uv_density_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_uv_density_ui_smoke_test = executable(
   'model_uv_density_ui_smoke_test', ['tests/model_uv_density_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-uv-density-ui-smoke', model_uv_density_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_uv_health_smoke_test = executable(
   'model_uv_health_smoke_test', ['tests/model_uv_health_smoke_test.cpp', 'cli/model_uv_health.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-uv-health-smoke', model_uv_health_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-uv-health-smoke', model_uv_health_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_uv_health_ui_smoke_test = executable(
   'model_uv_health_ui_smoke_test', ['tests/model_uv_health_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-uv-health-ui-smoke', model_uv_health_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_uv_ops_smoke_test = executable(
   'model_uv_ops_smoke_test', ['tests/model_uv_ops_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-uv-ops-smoke', model_uv_ops_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-uv-ops-smoke', model_uv_ops_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_uv_unwrap_smoke_test = executable(
   'model_uv_unwrap_smoke_test', ['tests/model_uv_unwrap_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-uv-unwrap-smoke', model_uv_unwrap_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-uv-unwrap-smoke', model_uv_unwrap_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_uv_frontback_smoke_test = executable(
   'model_uv_frontback_smoke_test', ['tests/model_uv_frontback_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-uv-frontback-smoke', model_uv_frontback_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-uv-frontback-smoke', model_uv_frontback_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 model_uv_layout_smoke_test = executable(
   'model_uv_layout_smoke_test', ['tests/model_uv_layout_smoke_test.cpp', 'cli/model_uv_layout.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-uv-layout-smoke', model_uv_layout_smoke_test, env: model_document_test_env, timeout: 120)
 model_skin_transfer_smoke_test = executable(
   'model_skin_transfer_smoke_test', ['tests/model_skin_transfer_smoke_test.cpp', 'cli/model_uv_layout.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-skin-transfer-smoke', model_skin_transfer_smoke_test, env: model_document_test_env, timeout: 120)
 model_skin_handoff_smoke_test = executable(
   'model_skin_handoff_smoke_test', ['tests/model_skin_handoff_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-skin-handoff-smoke', model_skin_handoff_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-skin-handoff-smoke', model_skin_handoff_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 model_uv_tools_ui_smoke_test = executable(
   'model_uv_tools_ui_smoke_test', ['tests/model_uv_tools_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-uv-tools-ui-smoke', model_uv_tools_ui_smoke_test, env: model_document_test_env, timeout: 300)
 model_uv_pins_smoke_test = executable(
   'model_uv_pins_smoke_test', ['tests/model_uv_pins_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-uv-pins-smoke', model_uv_pins_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-uv-pins-smoke', model_uv_pins_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_skin_shell_ui_smoke_test = executable(
   'model_skin_shell_ui_smoke_test', ['tests/model_skin_shell_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-skin-shell-ui-smoke', model_skin_shell_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
 model_uv_islands_ui_smoke_test = executable(
   'model_uv_islands_ui_smoke_test', ['tests/model_uv_islands_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-uv-islands-ui-smoke', model_uv_islands_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_uv_atlas_smoke_test = executable(
   'model_uv_atlas_smoke_test', ['tests/model_uv_atlas_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-uv-atlas-smoke', model_uv_atlas_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-uv-atlas-smoke', model_uv_atlas_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_uv_atlas_ui_smoke_test = executable(
   'model_uv_atlas_ui_smoke_test', ['tests/model_uv_atlas_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-uv-atlas-ui-smoke', model_uv_atlas_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_uv_rect_smoke_test = executable(
   'model_uv_rect_smoke_test', ['tests/model_uv_rect_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-uv-rect-smoke', model_uv_rect_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-uv-rect-smoke', model_uv_rect_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_uv_rect_ui_smoke_test = executable(
   'model_uv_rect_ui_smoke_test', ['tests/model_uv_rect_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-uv-rect-ui-smoke', model_uv_rect_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_uv_obstacles_smoke_test = executable(
   'model_uv_obstacles_smoke_test', ['tests/model_uv_obstacles_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-uv-obstacles-smoke', model_uv_obstacles_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-uv-obstacles-smoke', model_uv_obstacles_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_uv_obstacles_ui_smoke_test = executable(
   'model_uv_obstacles_ui_smoke_test', ['tests/model_uv_obstacles_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-uv-obstacles-ui-smoke', model_uv_obstacles_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_uv_ui_smoke_test = executable(
   'model_uv_ui_smoke_test', ['tests/model_uv_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-uv-ui-smoke', model_uv_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_uv_render_smoke_test = executable(
   'model_uv_render_smoke_test', ['tests/model_uv_render_smoke_test.cpp', 'app/model_uv_render.cpp', 'app/model_uv_fill.cpp', 'app/wire_lines.cpp', 'core/model_uv.cpp', 'core/model_work.cpp'],
-  include_directories: vibestudio_includes, dependencies: [qt6_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [qt6_core_dep], install: false,
 )
 test('model-uv-render-smoke', model_uv_render_smoke_test, env: model_document_test_env, timeout: 240)
 
 model_manipulation_ui_smoke_test = executable(
   'model_manipulation_ui_smoke_test', ['tests/model_manipulation_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-manipulation-ui-smoke', model_manipulation_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
-install_headers('core/model_recovery.h', subdir: 'vibestudio/core')
+install_headers('core/model_recovery.h', subdir: 'slopstudio/core')
 model_recovery_smoke_test = executable(
   'model_recovery_smoke_test',
   ['tests/model_recovery_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('model-recovery-smoke', model_recovery_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-recovery-smoke', model_recovery_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_recovery_writer_smoke_test = executable(
   'model_recovery_writer_smoke_test',
   ['tests/model_recovery_writer_smoke_test.cpp', 'app/model_recovery_writer.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('model-recovery-writer-smoke', model_recovery_writer_smoke_test, env: model_document_test_env, timeout: 90)
@@ -4878,7 +4878,7 @@ test('model-recovery-writer-smoke', model_recovery_writer_smoke_test, env: model
 model_file_io_smoke_test = executable(
   'model_file_io_smoke_test',
   ['tests/model_file_io_smoke_test.cpp', 'core/model_file_io.cpp', 'core/model_work.cpp'],
-  include_directories: vibestudio_includes,
+  include_directories: slopstudio_includes,
   dependencies: [qt6_core_dep],
   install: false,
 )
@@ -4887,8 +4887,8 @@ test('model-file-io-smoke', model_file_io_smoke_test, env: model_document_test_e
 model_document_work_smoke_test = executable(
   'model_document_work_smoke_test',
   ['tests/model_document_work_smoke_test.cpp', 'app/model_document_work.cpp', 'app/studio_accessibility.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep, qt6_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep, qt6_dep],
   install: false,
 )
 test('model-document-work-smoke', model_document_work_smoke_test, env: model_document_test_env, timeout: 90)
@@ -4896,17 +4896,17 @@ test('model-document-work-smoke', model_document_work_smoke_test, env: model_doc
 model_materials_smoke_test = executable(
   'model_materials_smoke_test',
   ['tests/model_materials_smoke_test.cpp', 'app/model_material_worker.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('model-materials-smoke', model_materials_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-materials-smoke', model_materials_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_materials_ui_smoke_test = executable(
   'model_materials_ui_smoke_test',
   ['tests/model_materials_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('model-materials-ui-smoke', model_materials_ui_smoke_test, env: model_document_test_env, timeout: 120)
@@ -4915,32 +4915,32 @@ test('model-materials-ui-smoke', model_materials_ui_smoke_test, env: model_docum
 model_recovery_ui_smoke_test = executable(
   'model_recovery_ui_smoke_test',
   ['tests/model_recovery_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('model-recovery-ui-smoke', model_recovery_ui_smoke_test, env: model_document_test_env, timeout: 90)
 model_session_draft_ui_smoke_test = executable(
   'model_session_draft_ui_smoke_test',
   ['tests/model_session_draft_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
-test('model-session-draft-ui-smoke', model_session_draft_ui_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 300)
+test('model-session-draft-ui-smoke', model_session_draft_ui_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 300)
 model_stage_review_ui_smoke_test = executable(
   'model_stage_review_ui_smoke_test',
   ['tests/model_stage_review_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('model-stage-review-ui-smoke', model_stage_review_ui_smoke_test, env: model_document_test_env, timeout: 180)
 model_stage_place_ui_smoke_test = executable(
   'model_stage_place_ui_smoke_test',
   ['tests/model_stage_place_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('model-stage-place-ui-smoke', model_stage_place_ui_smoke_test, env: model_document_test_env, timeout: 300)
@@ -4948,563 +4948,563 @@ test('model-stage-place-ui-smoke', model_stage_place_ui_smoke_test, env: model_d
 model_editor_ui_smoke_test = executable(
   'model_editor_ui_smoke_test',
   ['tests/model_editor_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('model-editor-ui-smoke', model_editor_ui_smoke_test, env: model_document_test_env, timeout: 90)
 model_editor_external_change_ui_smoke_test = executable(
   'model_editor_external_change_ui_smoke_test', ['tests/model_editor_external_change_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-editor-external-change-ui-smoke', model_editor_external_change_ui_smoke_test, env: model_document_test_env, timeout: 120)
 model_recovery_policy_smoke_test = executable(
   'model_recovery_policy_smoke_test', ['tests/model_recovery_policy_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep], install: false,
 )
-test('model-recovery-policy-smoke', model_recovery_policy_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-recovery-policy-smoke', model_recovery_policy_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 model_outputs_smoke_test = executable(
   'model_outputs_smoke_test', ['tests/model_outputs_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-outputs-smoke', model_outputs_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-outputs-smoke', model_outputs_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_stage_smoke_test = executable(
   'model_stage_smoke_test', ['tests/model_stage_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-stage-smoke', model_stage_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-stage-smoke', model_stage_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 level_model_placement_smoke_test = executable(
   'level_model_placement_smoke_test', ['tests/level_model_placement_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep], install: false,
 )
-test('level-model-placement-smoke', level_model_placement_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('level-model-placement-smoke', level_model_placement_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 model_cli_cancellation_smoke_test = executable(
   'model_cli_cancellation_smoke_test', ['tests/model_cli_cancellation_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-cli-cancellation-smoke', model_cli_cancellation_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-cli-cancellation-smoke', model_cli_cancellation_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_edit_latency_smoke_test = executable(
   'model_edit_latency_smoke_test', ['tests/model_edit_latency_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-edit-latency-smoke', model_edit_latency_smoke_test, env: model_document_test_env, timeout: 600)
 
 model_shell_smoke_test = executable(
   'model_shell_smoke_test', ['tests/model_shell_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-shell-smoke', model_shell_smoke_test, env: model_document_test_env, timeout: 300)
 
 # The OpenGL and Vulkan backends render the same frames; exits 77 (skipped)
-# where neither can start. VIBESTUDIO_RENDER_REQUIRE=opengl,vulkan makes a
+# where neither can start. SLOPSTUDIO_RENDER_REQUIRE=opengl,vulkan makes a
 # missing backend fail instead.
 render_device_smoke_test = executable(
   'render_device_smoke_test', ['tests/render_device_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('render-device-smoke', render_device_smoke_test, timeout: 120)
 
 model_wireframe_smoke_test = executable(
   'model_wireframe_smoke_test', ['tests/model_wireframe_smoke_test.cpp', 'app/wire_lines.cpp'],
-  include_directories: vibestudio_includes, dependencies: [qt6_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [qt6_core_dep], install: false,
 )
 test('model-wireframe-smoke', model_wireframe_smoke_test, timeout: 90)
 
 model_vertex_overlay_smoke_test = executable(
   'model_vertex_overlay_smoke_test', ['tests/model_vertex_overlay_smoke_test.cpp', 'app/model_vertex_overlay.cpp'],
-  include_directories: vibestudio_includes, dependencies: [qt6_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [qt6_core_dep], install: false,
 )
 test('model-vertex-overlay-smoke', model_vertex_overlay_smoke_test, timeout: 90)
 
 model_viewport_smoke_test = executable(
   'model_viewport_smoke_test',
   ['tests/model_viewport_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('model-viewport-smoke', model_viewport_smoke_test, timeout: 90)
 
 model_viewport_latency_smoke_test = executable(
   'model_viewport_latency_smoke_test', ['tests/model_viewport_latency_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-viewport-latency-smoke', model_viewport_latency_smoke_test, timeout: 180)
 
 model_editor_latency_smoke_test = executable(
   'model_editor_latency_smoke_test', ['tests/model_editor_latency_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-editor-latency-smoke', model_editor_latency_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_document_latency_smoke_test = executable(
   'model_document_latency_smoke_test', ['tests/model_document_latency_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-document-latency-smoke', model_document_latency_smoke_test, env: model_document_test_env, timeout: 240)
 
 model_assembly_smoke_test = executable(
   'model_assembly_smoke_test', ['tests/model_assembly_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-assembly-smoke', model_assembly_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_q3_animation_smoke_test = executable(
   'model_q3_animation_smoke_test', ['tests/model_q3_animation_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-q3-animation-smoke', model_q3_animation_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-q3-animation-smoke', model_q3_animation_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_q3_animation_ui_smoke_test = executable(
   'model_q3_animation_ui_smoke_test', ['tests/model_q3_animation_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-q3-animation-ui-smoke', model_q3_animation_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_assembly_skin_smoke_test = executable(
   'model_assembly_skin_smoke_test', ['tests/model_assembly_skin_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-assembly-skin-smoke', model_assembly_skin_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-assembly-skin-smoke', model_assembly_skin_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_assembly_skin_ui_smoke_test = executable(
   'model_assembly_skin_ui_smoke_test', ['tests/model_assembly_skin_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-assembly-skin-ui-smoke', model_assembly_skin_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_player_bundle_smoke_test = executable(
   'model_player_bundle_smoke_test', ['tests/model_player_bundle_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-player-bundle-smoke', model_player_bundle_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-player-bundle-smoke', model_player_bundle_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_player_bundle_ui_smoke_test = executable(
   'model_player_bundle_ui_smoke_test', ['tests/model_player_bundle_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-player-bundle-ui-smoke', model_player_bundle_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_player_import_smoke_test = executable(
   'model_player_import_smoke_test', ['tests/model_player_import_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-player-import-smoke', model_player_import_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-player-import-smoke', model_player_import_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_player_import_ui_smoke_test = executable(
   'model_player_import_ui_smoke_test', ['tests/model_player_import_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-player-import-ui-smoke', model_player_import_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_assembly_animation_smoke_test = executable(
   'model_assembly_animation_smoke_test', ['tests/model_assembly_animation_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-assembly-animation-smoke', model_assembly_animation_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-assembly-animation-smoke', model_assembly_animation_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_assembly_animation_ui_smoke_test = executable(
   'model_assembly_animation_ui_smoke_test', ['tests/model_assembly_animation_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-assembly-animation-ui-smoke', model_assembly_animation_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_assembly_cli_smoke_test = executable(
   'model_assembly_cli_smoke_test', ['tests/model_assembly_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-assembly-cli-smoke', model_assembly_cli_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-assembly-cli-smoke', model_assembly_cli_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_assembly_tag_interpolation_smoke_test = executable(
   'model_assembly_tag_interpolation_smoke_test', ['tests/model_assembly_tag_interpolation_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-assembly-tag-interpolation-smoke', model_assembly_tag_interpolation_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-assembly-tag-interpolation-smoke', model_assembly_tag_interpolation_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_assembly_collision_smoke_test = executable(
   'model_assembly_collision_smoke_test', ['tests/model_assembly_collision_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-assembly-collision-smoke', model_assembly_collision_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-assembly-collision-smoke', model_assembly_collision_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_assembly_joint_smoke_test = executable(
   'model_assembly_joint_smoke_test', ['tests/model_assembly_joint_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-assembly-joint-smoke', model_assembly_joint_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-assembly-joint-smoke', model_assembly_joint_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_weapon_bundle_smoke_test = executable(
   'model_weapon_bundle_smoke_test', ['tests/model_weapon_bundle_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-weapon-bundle-smoke', model_weapon_bundle_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-weapon-bundle-smoke', model_weapon_bundle_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_q2_player_bundle_smoke_test = executable(
   'model_q2_player_bundle_smoke_test', ['tests/model_q2_player_bundle_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-q2-player-bundle-smoke', model_q2_player_bundle_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-q2-player-bundle-smoke', model_q2_player_bundle_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_assembly_ui_smoke_test = executable(
   'model_assembly_ui_smoke_test', ['tests/model_assembly_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-assembly-ui-smoke', model_assembly_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_assembly_recovery_smoke_test = executable(
   'model_assembly_recovery_smoke_test', ['tests/model_assembly_recovery_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-assembly-recovery-smoke', model_assembly_recovery_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-assembly-recovery-smoke', model_assembly_recovery_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_assembly_recovery_ui_smoke_test = executable(
   'model_assembly_recovery_ui_smoke_test', ['tests/model_assembly_recovery_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-assembly-recovery-ui-smoke', model_assembly_recovery_ui_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_collision_smoke_test = executable(
   'model_collision_smoke_test', ['tests/model_collision_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-collision-smoke', model_collision_smoke_test, env: model_document_test_env, timeout: 90)
 
 model_collision_placement_smoke_test = executable(
   'model_collision_placement_smoke_test', ['tests/model_collision_placement_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-collision-placement-smoke', model_collision_placement_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-collision-placement-smoke', model_collision_placement_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_collision_hull_smoke_test = executable(
   'model_collision_hull_smoke_test', ['tests/model_collision_hull_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-collision-hull-smoke', model_collision_hull_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-collision-hull-smoke', model_collision_hull_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_collision_doom3_smoke_test = executable(
   'model_collision_doom3_smoke_test', ['tests/model_collision_doom3_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-collision-doom3-smoke', model_collision_doom3_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-collision-doom3-smoke', model_collision_doom3_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 model_doom3_entity_import_smoke_test = executable(
   'model_doom3_entity_import_smoke_test', ['tests/model_doom3_entity_import_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-doom3-entity-import-smoke', model_doom3_entity_import_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-doom3-entity-import-smoke', model_doom3_entity_import_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_collision_cli_smoke_test = executable(
   'model_collision_cli_smoke_test', ['tests/model_collision_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-collision-cli-smoke', model_collision_cli_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 90)
+test('model-collision-cli-smoke', model_collision_cli_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 90)
 
 model_collision_ui_smoke_test = executable(
   'model_collision_ui_smoke_test', ['tests/model_collision_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-collision-ui-smoke', model_collision_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_collision_animation_smoke_test = executable(
   'model_collision_animation_smoke_test', ['tests/model_collision_animation_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-collision-animation-smoke', model_collision_animation_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-collision-animation-smoke', model_collision_animation_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 
 model_collision_animation_ui_smoke_test = executable(
   'model_collision_animation_ui_smoke_test', ['tests/model_collision_animation_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-collision-animation-ui-smoke', model_collision_animation_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
 model_fingerprint_smoke_test = executable(
   'model_fingerprint_smoke_test', ['tests/model_fingerprint_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-fingerprint-smoke', model_fingerprint_smoke_test, timeout: 90)
 
 model_edit_reuse_smoke_test = executable(
   'model_edit_reuse_smoke_test', ['tests/model_edit_reuse_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-edit-reuse-smoke', model_edit_reuse_smoke_test, timeout: 90)
 
 audio_test_env = environment()
-audio_test_env.set('VIBESTUDIO_TEST_TMP_ROOT', join_paths(meson.project_source_root(), '.agents', 'tmp', 'audio-editor'))
-audio_test_env.set('VIBESTUDIO_AUDIO_FIXTURES', meson.current_source_dir() / 'tests/fixtures/audio_decode')
+audio_test_env.set('SLOPSTUDIO_TEST_TMP_ROOT', join_paths(meson.project_source_root(), '.agents', 'tmp', 'audio-editor'))
+audio_test_env.set('SLOPSTUDIO_AUDIO_FIXTURES', meson.current_source_dir() / 'tests/fixtures/audio_decode')
 audio_clip_smoke_test = executable(
   'audio_clip_smoke_test',
   ['tests/audio_clip_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('audio-clip-smoke', audio_clip_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 90)
+test('audio-clip-smoke', audio_clip_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 90)
 
 audio_take_smoke_test = executable('audio_take_smoke_test', ['tests/audio_take_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-take-smoke', audio_take_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_capture_smoke_test = executable('audio_capture_smoke_test', ['tests/audio_capture_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-capture-smoke', audio_capture_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_recording_smoke_test = executable('audio_recording_smoke_test', ['tests/audio_recording_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-recording-smoke', audio_recording_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_recording_import_smoke_test = executable('audio_recording_import_smoke_test', ['tests/audio_recording_import_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-recording-import-smoke', audio_recording_import_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_recording_comp_smoke_test = executable('audio_recording_comp_smoke_test', ['tests/audio_recording_comp_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-recording-comp-smoke', audio_recording_comp_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_recording_review_smoke_test = executable('audio_recording_review_smoke_test', ['tests/audio_recording_review_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-recording-review-smoke', audio_recording_review_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_recording_worker_smoke_test = executable('audio_recording_worker_smoke_test', ['tests/audio_recording_worker_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-recording-worker-smoke', audio_recording_worker_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_recording_ui_smoke_test = executable('audio_recording_ui_smoke_test', ['tests/audio_recording_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-recording-ui-smoke', audio_recording_ui_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_recording_audition_smoke_test = executable('audio_recording_audition_smoke_test', ['tests/audio_recording_audition_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-recording-audition-smoke', audio_recording_audition_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_recording_cli_smoke_test = executable('audio_recording_cli_smoke_test', ['tests/audio_recording_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('audio-recording-cli-smoke', audio_recording_cli_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('audio-recording-cli-smoke', audio_recording_cli_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 120)
 
 audio_take_cli_smoke_test = executable('audio_take_cli_smoke_test', ['tests/audio_take_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('audio-take-cli-smoke', audio_take_cli_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('audio-take-cli-smoke', audio_take_cli_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 180)
 
 audio_take_ui_smoke_test = executable('audio_take_ui_smoke_test', ['tests/audio_take_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-take-ui-smoke', audio_take_ui_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_session_transport_smoke_test = executable('audio_session_transport_smoke_test', ['tests/audio_session_transport_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-session-transport-smoke', audio_session_transport_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_playback_loop_smoke_test = executable('audio_playback_loop_smoke_test', ['tests/audio_playback_loop_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-playback-loop-smoke', audio_playback_loop_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_session_playback_smoke_test = executable('audio_session_playback_smoke_test', ['tests/audio_session_playback_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-session-playback-smoke', audio_session_playback_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_session_smoke_test = executable('audio_session_smoke_test', ['tests/audio_session_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-session-smoke', audio_session_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_routing_smoke_test = executable('audio_routing_smoke_test', ['tests/audio_routing_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-routing-smoke', audio_routing_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_stems_smoke_test = executable('audio_stems_smoke_test', ['tests/audio_stems_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-stems-smoke', audio_stems_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_latency_smoke_test = executable('audio_latency_smoke_test', ['tests/audio_latency_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-latency-smoke', audio_latency_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_live_smoke_test = executable('audio_live_smoke_test', ['tests/audio_live_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-live-smoke', audio_live_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_duplex_smoke_test = executable('audio_duplex_smoke_test', ['tests/audio_duplex_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-duplex-smoke', audio_duplex_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_duplex_meter_smoke_test = executable('audio_duplex_meter_smoke_test', ['tests/audio_duplex_meter_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-duplex-meter-smoke', audio_duplex_meter_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_duplex_loop_smoke_test = executable('audio_duplex_loop_smoke_test', ['tests/audio_duplex_loop_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-duplex-loop-smoke', audio_duplex_loop_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_duplex_queue_smoke_test = executable('audio_duplex_queue_smoke_test', ['tests/audio_duplex_queue_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-duplex-queue-smoke', audio_duplex_queue_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_duplex_device_smoke_test = executable('audio_duplex_device_smoke_test',
   ['tests/audio_duplex_device_smoke_test.cpp', 'app/audio_duplex_device.cpp'],
-  include_directories: [vibestudio_includes, pa_common_headers],
-  dependencies: [vibestudio_core_dep, audio_duplex_dep], install: false)
+  include_directories: [slopstudio_includes, pa_common_headers],
+  dependencies: [slopstudio_core_dep, audio_duplex_dep], install: false)
 test('audio-duplex-device-smoke', audio_duplex_device_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_meter_smoke_test = executable('audio_meter_smoke_test', ['tests/audio_meter_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-meter-smoke', audio_meter_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_meter_cli_smoke_test = executable('audio_meter_cli_smoke_test', ['tests/audio_meter_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('audio-meter-cli-smoke', audio_meter_cli_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('audio-meter-cli-smoke', audio_meter_cli_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 180)
 
 audio_meter_ui_smoke_test = executable('audio_meter_ui_smoke_test', ['tests/audio_meter_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-meter-ui-smoke', audio_meter_ui_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_media_smoke_test = executable('audio_media_smoke_test', ['tests/audio_media_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-media-smoke', audio_media_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_media_cli_smoke_test = executable('audio_media_cli_smoke_test', ['tests/audio_media_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('audio-media-cli-smoke', audio_media_cli_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('audio-media-cli-smoke', audio_media_cli_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 180)
 
 audio_media_ui_smoke_test = executable('audio_media_ui_smoke_test', ['tests/audio_media_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-media-ui-smoke', audio_media_ui_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_range_smoke_test = executable('audio_range_smoke_test', ['tests/audio_range_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-range-smoke', audio_range_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_range_cli_smoke_test = executable('audio_range_cli_smoke_test', ['tests/audio_range_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('audio-range-cli-smoke', audio_range_cli_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('audio-range-cli-smoke', audio_range_cli_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 180)
 
 audio_range_ui_smoke_test = executable('audio_range_ui_smoke_test', ['tests/audio_range_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-range-ui-smoke', audio_range_ui_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_arrangement_smoke_test = executable('audio_arrangement_smoke_test', ['tests/audio_arrangement_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-arrangement-smoke', audio_arrangement_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_arrangement_cli_smoke_test = executable('audio_arrangement_cli_smoke_test', ['tests/audio_arrangement_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('audio-arrangement-cli-smoke', audio_arrangement_cli_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('audio-arrangement-cli-smoke', audio_arrangement_cli_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 180)
 
 audio_arrangement_ui_smoke_test = executable('audio_arrangement_ui_smoke_test', ['tests/audio_arrangement_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-arrangement-ui-smoke', audio_arrangement_ui_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_tempo_smoke_test = executable('audio_tempo_smoke_test', ['tests/audio_tempo_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-tempo-smoke', audio_tempo_smoke_test, env: audio_test_env, timeout: 120)
 
 # Keep musical arithmetic executable without linking the GUI or unrelated core
 # modules, including in device-disabled portability builds.
 audio_tempo_timing_smoke_test = executable('audio_tempo_timing_smoke_test',
   ['tests/audio_tempo_timing_smoke_test.cpp', 'core/audio_tempo.cpp'],
-  include_directories: vibestudio_includes, dependencies: [qt6_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [qt6_core_dep], install: false)
 test('audio-tempo-timing-smoke', audio_tempo_timing_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_tempo_cli_smoke_test = executable('audio_tempo_cli_smoke_test', ['tests/audio_tempo_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('audio-tempo-cli-smoke', audio_tempo_cli_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 120)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('audio-tempo-cli-smoke', audio_tempo_cli_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 120)
 
 audio_tempo_ui_smoke_test = executable('audio_tempo_ui_smoke_test', ['tests/audio_tempo_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-tempo-ui-smoke', audio_tempo_ui_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_stems_ui_smoke_test = executable('audio_stems_ui_smoke_test', ['tests/audio_stems_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-stems-ui-smoke', audio_stems_ui_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_effects_smoke_test = executable('audio_effects_smoke_test', ['tests/audio_effects_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-effects-smoke', audio_effects_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_modulation_smoke_test = executable('audio_modulation_smoke_test', ['tests/audio_modulation_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-modulation-smoke', audio_modulation_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_effect_automation_smoke_test = executable('audio_effect_automation_smoke_test', ['tests/audio_effect_automation_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-effect-automation-smoke', audio_effect_automation_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_effect_preset_smoke_test = executable('audio_effect_preset_smoke_test', ['tests/audio_effect_preset_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('audio-effect-preset-smoke', audio_effect_preset_smoke_test, env: audio_test_env, timeout: 120)
 
 audio_routing_ui_smoke_test = executable('audio_routing_ui_smoke_test', ['tests/audio_routing_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-routing-ui-smoke', audio_routing_ui_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_effects_ui_smoke_test = executable('audio_effects_ui_smoke_test', ['tests/audio_effects_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-effects-ui-smoke', audio_effects_ui_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_automation_ui_smoke_test = executable('audio_automation_ui_smoke_test', ['tests/audio_automation_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-automation-ui-smoke', audio_automation_ui_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_session_cli_smoke_test = executable('audio_session_cli_smoke_test', ['tests/audio_session_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('audio-session-cli-smoke', audio_session_cli_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('audio-session-cli-smoke', audio_session_cli_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 180)
 
 audio_session_ui_smoke_test = executable('audio_session_ui_smoke_test', ['tests/audio_session_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-session-ui-smoke', audio_session_ui_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_session_recovery_smoke_test = executable('audio_session_recovery_smoke_test', ['tests/audio_session_recovery_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('audio-session-recovery-smoke', audio_session_recovery_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 180)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('audio-session-recovery-smoke', audio_session_recovery_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 180)
 
 audio_session_recovery_ui_smoke_test = executable('audio_session_recovery_ui_smoke_test', ['tests/audio_session_recovery_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('audio-session-recovery-ui-smoke', audio_session_recovery_ui_smoke_test, env: audio_test_env, timeout: 180)
 
 audio_project_smoke_test = executable(
   'audio_project_smoke_test',
   ['tests/audio_project_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('audio-project-smoke', audio_project_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 90)
+test('audio-project-smoke', audio_project_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 90)
 
 audio_recovery_smoke_test = executable(
   'audio_recovery_smoke_test',
   ['tests/audio_recovery_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('audio-recovery-smoke', audio_recovery_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 90)
+test('audio-recovery-smoke', audio_recovery_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 90)
 
 audio_markers_smoke_test = executable(
   'audio_markers_smoke_test',
   ['tests/audio_markers_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('audio-markers-smoke', audio_markers_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 90)
+test('audio-markers-smoke', audio_markers_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 90)
 
 audio_decode_smoke_test = executable(
   'audio_decode_smoke_test',
   ['tests/audio_decode_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('audio-decode-smoke', audio_decode_smoke_test, args: [meson.current_source_dir() / 'tests/fixtures/audio_decode', vibestudio], env: audio_test_env, timeout: 90)
+test('audio-decode-smoke', audio_decode_smoke_test, args: [meson.current_source_dir() / 'tests/fixtures/audio_decode', slopstudio], env: audio_test_env, timeout: 90)
 
 audio_resample_smoke_test = executable(
   'audio_resample_smoke_test',
   ['tests/audio_resample_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('audio-resample-smoke', audio_resample_smoke_test, timeout: 90)
@@ -5512,8 +5512,8 @@ test('audio-resample-smoke', audio_resample_smoke_test, timeout: 90)
 audio_export_smoke_test = executable(
   'audio_export_smoke_test',
   ['tests/audio_export_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('audio-export-smoke', audio_export_smoke_test, env: audio_test_env, timeout: 90)
@@ -5521,35 +5521,35 @@ test('audio-export-smoke', audio_export_smoke_test, env: audio_test_env, timeout
 audio_delivery_smoke_test = executable(
   'audio_delivery_smoke_test',
   ['tests/audio_delivery_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('audio-delivery-smoke', audio_delivery_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 90)
+test('audio-delivery-smoke', audio_delivery_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 90)
 
 audio_level_smoke_test = executable(
   'audio_level_smoke_test',
   ['tests/audio_level_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('audio-level-smoke', audio_level_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 90)
+test('audio-level-smoke', audio_level_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 90)
 
 audio_analysis_smoke_test = executable(
   'audio_analysis_smoke_test',
   ['tests/audio_analysis_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('audio-analysis-smoke', audio_analysis_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 90)
+test('audio-analysis-smoke', audio_analysis_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 90)
 
 audio_loudness_smoke_test = executable(
   'audio_loudness_smoke_test', 'tests/audio_loudness_smoke_test.cpp',
-  include_directories: vibestudio_includes, dependencies: vibestudio_core_dep,
+  include_directories: slopstudio_includes, dependencies: slopstudio_core_dep,
 )
-test('audio-loudness-smoke', audio_loudness_smoke_test, args: [vibestudio], env: audio_test_env, timeout: 90)
+test('audio-loudness-smoke', audio_loudness_smoke_test, args: [slopstudio], env: audio_test_env, timeout: 90)
 
 # Run explicitly against staged application, Qt, and SDK catalog directories.
 qt_runtime_catalog_probe = executable(
@@ -5560,8 +5560,8 @@ qt_runtime_catalog_probe = executable(
 audio_transport_smoke_test = executable(
   'audio_transport_smoke_test',
   ['tests/audio_transport_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('audio-transport-smoke', audio_transport_smoke_test, env: audio_test_env, timeout: 90)
@@ -5569,8 +5569,8 @@ test('audio-transport-smoke', audio_transport_smoke_test, env: audio_test_env, t
 audio_browser_smoke_test = executable(
   'audio_browser_smoke_test',
   ['tests/audio_browser_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('audio-browser-smoke', audio_browser_smoke_test, env: audio_test_env, timeout: 180)
@@ -5578,8 +5578,8 @@ test('audio-browser-smoke', audio_browser_smoke_test, env: audio_test_env, timeo
 audio_editor_ui_smoke_test = executable(
   'audio_editor_ui_smoke_test',
   ['tests/audio_editor_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('audio-editor-ui-smoke', audio_editor_ui_smoke_test, env: audio_test_env, timeout: 180)
@@ -5587,8 +5587,8 @@ test('audio-editor-ui-smoke', audio_editor_ui_smoke_test, env: audio_test_env, t
 audio_history_smoke_test = executable(
   'audio_history_smoke_test',
   ['tests/audio_history_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('audio-history-smoke', audio_history_smoke_test, env: audio_test_env, timeout: 180)
@@ -5596,8 +5596,8 @@ test('audio-history-smoke', audio_history_smoke_test, env: audio_test_env, timeo
 audio_level_ui_smoke_test = executable(
   'audio_level_ui_smoke_test',
   ['tests/audio_level_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('audio-level-ui-smoke', audio_level_ui_smoke_test, env: audio_test_env, timeout: 120)
@@ -5605,8 +5605,8 @@ test('audio-level-ui-smoke', audio_level_ui_smoke_test, env: audio_test_env, tim
 audio_startup_ui_smoke_test = executable(
   'audio_startup_ui_smoke_test',
   ['tests/audio_startup_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('audio-startup-ui-smoke', audio_startup_ui_smoke_test, env: audio_test_env, timeout: 180)
@@ -5614,8 +5614,8 @@ test('audio-startup-ui-smoke', audio_startup_ui_smoke_test, env: audio_test_env,
 audio_import_ui_smoke_test = executable(
   'audio_import_ui_smoke_test',
   ['tests/audio_import_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('audio-import-ui-smoke', audio_import_ui_smoke_test, env: audio_test_env, timeout: 90)
@@ -5623,8 +5623,8 @@ test('audio-import-ui-smoke', audio_import_ui_smoke_test, env: audio_test_env, t
 package_compare_smoke_test = executable(
   'package_compare_smoke_test',
   ['tests/package_compare_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -5633,8 +5633,8 @@ test('package-compare-smoke', package_compare_smoke_test)
 package_validation_smoke_test = executable(
   'package_validation_smoke_test',
   ['tests/package_validation_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-validation-smoke', package_validation_smoke_test)
@@ -5642,80 +5642,80 @@ test('package-validation-smoke', package_validation_smoke_test)
 package_publication_smoke_test = executable(
   'package_publication_smoke_test',
   ['tests/package_publication_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-publication-smoke', package_publication_smoke_test, timeout: 90)
 
 package_publication_inventory_smoke_test = executable(
   'package_publication_inventory_smoke_test', ['tests/package_publication_inventory_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('package-publication-inventory-smoke', package_publication_inventory_smoke_test, timeout: 90)
 
 package_wad_groups_smoke_test = executable(
   'package_wad_groups_smoke_test', ['tests/package_wad_groups_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('package-wad-groups-smoke', package_wad_groups_smoke_test, timeout: 90)
 
 package_wad_groups_ui_smoke_test = executable(
   'package_wad_groups_ui_smoke_test', ['tests/package_wad_groups_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('package-wad-groups-ui-smoke', package_wad_groups_ui_smoke_test, timeout: 120)
 
 package_wad_groups_cli_smoke_test = executable(
   'package_wad_groups_cli_smoke_test', ['tests/package_wad_groups_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('package-wad-groups-cli-smoke', package_wad_groups_cli_smoke_test, args: [vibestudio], timeout: 90)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('package-wad-groups-cli-smoke', package_wad_groups_cli_smoke_test, args: [slopstudio], timeout: 90)
 
 package_subset_smoke_test = executable(
   'package_subset_smoke_test', ['tests/package_subset_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('package-subset-smoke', package_subset_smoke_test, timeout: 90)
 
 package_subset_cli_smoke_test = executable(
   'package_subset_cli_smoke_test', ['tests/package_subset_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('package-subset-cli-smoke', package_subset_cli_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, timeout: 90)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('package-subset-cli-smoke', package_subset_cli_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, timeout: 90)
 
 package_subset_ui_smoke_test = executable(
   'package_subset_ui_smoke_test', ['tests/package_subset_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('package-subset-ui-smoke', package_subset_ui_smoke_test, timeout: 90)
 
 package_publication_cli_smoke_test = executable(
   'package_publication_cli_smoke_test', ['tests/package_publication_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('package-publication-cli-smoke', package_publication_cli_smoke_test, args: [vibestudio], timeout: 90)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('package-publication-cli-smoke', package_publication_cli_smoke_test, args: [slopstudio], timeout: 90)
 
 package_publication_ui_smoke_test = executable(
   'package_publication_ui_smoke_test', ['tests/package_publication_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('package-publication-ui-smoke', package_publication_ui_smoke_test, timeout: 90)
 
 package_import_smoke_test = executable(
   'package_import_smoke_test',
   ['tests/package_import_smoke_test.cpp'],
-  dependencies: vibestudio_core_dep,
+  dependencies: slopstudio_core_dep,
   install: false,
 )
 test('package-import-smoke', package_import_smoke_test, timeout: 90)
 
 package_draft_storage_cli_smoke_test = executable(
   'package_draft_storage_cli_smoke_test', ['tests/package_draft_storage_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('package-draft-storage-cli-smoke', package_draft_storage_cli_smoke_test, args: [vibestudio], timeout: 90)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('package-draft-storage-cli-smoke', package_draft_storage_cli_smoke_test, args: [slopstudio], timeout: 90)
 
 package_draft_storage_ui_smoke_test = executable(
   'package_draft_storage_ui_smoke_test', ['tests/package_draft_storage_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('package-draft-storage-ui-smoke', package_draft_storage_ui_smoke_test, timeout: 90)
 
 package_draft_quota_smoke_test = executable(
   'package_draft_quota_smoke_test',
   ['tests/package_draft_quota_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-draft-quota-smoke', package_draft_quota_smoke_test, timeout: 90)
@@ -5723,8 +5723,8 @@ test('package-draft-quota-smoke', package_draft_quota_smoke_test, timeout: 90)
 package_draft_storage_smoke_test = executable(
   'package_draft_storage_smoke_test',
   ['tests/package_draft_storage_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-draft-storage-smoke', package_draft_storage_smoke_test, timeout: 90)
@@ -5732,8 +5732,8 @@ test('package-draft-storage-smoke', package_draft_storage_smoke_test, timeout: 9
 package_draft_access_smoke_test = executable(
   'package_draft_access_smoke_test',
   ['tests/package_draft_access_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-draft-access-smoke', package_draft_access_smoke_test, timeout: 90)
@@ -5741,23 +5741,23 @@ test('package-draft-access-smoke', package_draft_access_smoke_test, timeout: 90)
 package_import_storage_smoke_test = executable(
   'package_import_storage_smoke_test',
   ['tests/package_import_storage_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
-test('package-import-storage-smoke', package_import_storage_smoke_test, args: [vibestudio], timeout: 90)
+test('package-import-storage-smoke', package_import_storage_smoke_test, args: [slopstudio], timeout: 90)
 
 package_import_locks_smoke_test = executable(
   'package_import_locks_smoke_test', ['tests/package_import_locks_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('package-import-locks-smoke', package_import_locks_smoke_test, args: [vibestudio], timeout: 90)
+test('package-import-locks-smoke', package_import_locks_smoke_test, args: [slopstudio], timeout: 90)
 
 package_import_ui_smoke_test = executable(
   'package_import_ui_smoke_test',
   ['tests/package_import_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('package-import-ui-smoke', package_import_ui_smoke_test, timeout: 90)
@@ -5765,8 +5765,8 @@ test('package-import-ui-smoke', package_import_ui_smoke_test, timeout: 90)
 package_content_smoke_test = executable(
   'package_content_smoke_test',
   ['tests/package_content_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-content-smoke', package_content_smoke_test, timeout: 90)
@@ -5774,26 +5774,26 @@ test('package-content-smoke', package_content_smoke_test, timeout: 90)
 package_document_smoke_test = executable(
   'package_document_smoke_test',
   ['tests/package_document_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-document-smoke', package_document_smoke_test, timeout: 90)
 
 package_document_cli_smoke_test = executable(
   'package_document_cli_smoke_test', ['tests/package_document_cli_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('package-document-cli-smoke', package_document_cli_smoke_test, args: [vibestudio], timeout: 90)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('package-document-cli-smoke', package_document_cli_smoke_test, args: [slopstudio], timeout: 90)
 
 package_document_ui_smoke_test = executable(
   'package_document_ui_smoke_test', ['tests/package_document_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('package-document-ui-smoke', package_document_ui_smoke_test, timeout: 120)
 
 package_recovery_ui_smoke_test = executable(
   'package_recovery_ui_smoke_test',
   ['tests/package_recovery_ui_smoke_test.cpp'],
-  dependencies: vibestudio_app_dep,
+  dependencies: slopstudio_app_dep,
   install: false,
 )
 test('package-recovery-ui-smoke', package_recovery_ui_smoke_test, timeout: 180)
@@ -5801,22 +5801,22 @@ test('package-recovery-ui-smoke', package_recovery_ui_smoke_test, timeout: 180)
 package_recovery_writer_smoke_test = executable(
   'package_recovery_writer_smoke_test',
   ['tests/package_recovery_writer_smoke_test.cpp', 'app/package_recovery_writer.cpp'],
-  dependencies: vibestudio_core_dep,
+  dependencies: slopstudio_core_dep,
   install: false,
 )
 test('package-recovery-writer-smoke', package_recovery_writer_smoke_test, timeout: 90)
 package_recovery_cli_smoke_test = executable(
   'package_recovery_cli_smoke_test',
   ['tests/package_recovery_cli_smoke_test.cpp'],
-  dependencies: vibestudio_core_dep,
+  dependencies: slopstudio_core_dep,
   install: false,
 )
-test('package-recovery-cli-smoke', package_recovery_cli_smoke_test, args: [vibestudio], timeout: 90)
+test('package-recovery-cli-smoke', package_recovery_cli_smoke_test, args: [slopstudio], timeout: 90)
 
 package_storage_smoke_test = executable(
   'package_storage_smoke_test',
   ['tests/package_storage_smoke_test.cpp'],
-  dependencies: vibestudio_core_dep,
+  dependencies: slopstudio_core_dep,
   install: false,
 )
 test('package-storage-smoke', package_storage_smoke_test, timeout: 90)
@@ -5824,7 +5824,7 @@ test('package-storage-smoke', package_storage_smoke_test, timeout: 90)
 package_recovery_smoke_test = executable(
   'package_recovery_smoke_test',
   ['tests/package_recovery_smoke_test.cpp'],
-  dependencies: vibestudio_core_dep,
+  dependencies: slopstudio_core_dep,
   install: false,
 )
 test('package-recovery-smoke', package_recovery_smoke_test, timeout: 90)
@@ -5832,81 +5832,81 @@ test('package-recovery-smoke', package_recovery_smoke_test, timeout: 90)
 package_draft_smoke_test = executable(
   'package_draft_smoke_test',
   ['tests/package_draft_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-draft-smoke', package_draft_smoke_test, timeout: 90)
 
 package_damaged_history_smoke_test = executable('package_damaged_history_smoke_test',
-  ['tests/package_damaged_history_smoke_test.cpp'], include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep], install: false)
+  ['tests/package_damaged_history_smoke_test.cpp'], include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep], install: false)
 test('package-damaged-history-smoke', package_damaged_history_smoke_test, timeout: 90)
 
 package_copy_store_smoke_test = executable('package_copy_store_smoke_test', ['tests/package_copy_store_smoke_test.cpp'],
-  dependencies: vibestudio_core_dep)
+  dependencies: slopstudio_core_dep)
 test('package-copy-store-smoke', package_copy_store_smoke_test, timeout: 90)
 
 package_copy_quota_smoke_test = executable('package_copy_quota_smoke_test', ['tests/package_copy_quota_smoke_test.cpp'],
-  dependencies: vibestudio_core_dep, install: false)
+  dependencies: slopstudio_core_dep, install: false)
 test('package-copy-quota-smoke', package_copy_quota_smoke_test, timeout: 90)
 
 package_copy_sessions_cli_smoke_test = executable('package_copy_sessions_cli_smoke_test', ['tests/package_copy_sessions_cli_smoke_test.cpp'],
-  dependencies: vibestudio_core_dep, install: false)
-test('package-copy-sessions-cli-smoke', package_copy_sessions_cli_smoke_test, args: [vibestudio], timeout: 90)
+  dependencies: slopstudio_core_dep, install: false)
+test('package-copy-sessions-cli-smoke', package_copy_sessions_cli_smoke_test, args: [slopstudio], timeout: 90)
 
 package_copy_sessions_ui_smoke_test = executable('package_copy_sessions_ui_smoke_test', ['tests/package_copy_sessions_ui_smoke_test.cpp'],
-  dependencies: vibestudio_app_dep, install: false)
+  dependencies: slopstudio_app_dep, install: false)
 test('package-copy-sessions-ui-smoke', package_copy_sessions_ui_smoke_test, timeout: 90)
 
 package_copy_budget_smoke_test = executable('package_copy_budget_smoke_test', ['tests/package_copy_budget_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
-test('package-copy-budget-smoke', package_copy_budget_smoke_test, args: [vibestudio], timeout: 90)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('package-copy-budget-smoke', package_copy_budget_smoke_test, args: [slopstudio], timeout: 90)
 
 package_copy_budget_ui_smoke_test = executable('package_copy_budget_ui_smoke_test', ['tests/package_copy_budget_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('package-copy-budget-ui-smoke', package_copy_budget_ui_smoke_test, timeout: 60)
 
 package_copy_scale_probe = executable('package_copy_scale_probe', ['tests/package_copy_scale_probe.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 
 package_copy_smoke_test = executable('package_copy_smoke_test', ['tests/package_copy_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('package-copy-smoke', package_copy_smoke_test, timeout: 90)
 
 package_copy_ui_smoke_test = executable('package_copy_ui_smoke_test', ['tests/package_copy_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('package-copy-ui-smoke', package_copy_ui_smoke_test, timeout: 180)
 
 package_extraction_smoke_test = executable(
   'package_extraction_smoke_test',
   ['tests/package_extraction_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-extraction-smoke', package_extraction_smoke_test, timeout: 90)
 
 package_protection_ui_smoke_test = executable('package_protection_ui_smoke_test', ['tests/package_protection_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false)
 test('package-protection-ui-smoke', package_protection_ui_smoke_test, timeout: 90)
 
 package_operation_ui_smoke_test = executable(
   'package_operation_ui_smoke_test',
   ['tests/package_operation_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 # Covers modal workers, scaled/translated widgets, shell handoffs and many CLI
 # subprocesses. Individual operation checks retain their own bounded waits.
-test('package-operation-ui-smoke', package_operation_ui_smoke_test, args: [vibestudio], timeout: 180)
+test('package-operation-ui-smoke', package_operation_ui_smoke_test, args: [slopstudio], timeout: 180)
 
 package_handoff_ui_smoke_test = executable(
   'package_handoff_ui_smoke_test',
   ['tests/package_handoff_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('package-handoff-ui-smoke', package_handoff_ui_smoke_test, timeout: 120)
@@ -5914,8 +5914,8 @@ test('package-handoff-ui-smoke', package_handoff_ui_smoke_test, timeout: 120)
 package_browser_model_smoke_test = executable(
   'package_browser_model_smoke_test',
   ['tests/package_browser_model_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 test('package-browser-model-smoke', package_browser_model_smoke_test, timeout: 90)
@@ -5923,8 +5923,8 @@ test('package-browser-model-smoke', package_browser_model_smoke_test, timeout: 9
 package_entry_view_smoke_test = executable(
   'package_entry_view_smoke_test',
   ['tests/package_entry_view_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('package-entry-view-smoke', package_entry_view_smoke_test, timeout: 120)
@@ -5932,8 +5932,8 @@ test('package-entry-view-smoke', package_entry_view_smoke_test, timeout: 120)
 package_staging_view_smoke_test = executable(
   'package_staging_view_smoke_test',
   ['tests/package_staging_view_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('package-staging-view-smoke', package_staging_view_smoke_test, timeout: 90)
@@ -5941,8 +5941,8 @@ test('package-staging-view-smoke', package_staging_view_smoke_test, timeout: 90)
 package_folder_view_smoke_test = executable(
   'package_folder_view_smoke_test',
   ['tests/package_folder_view_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('package-folder-view-smoke', package_folder_view_smoke_test, timeout: 120)
@@ -5950,8 +5950,8 @@ test('package-folder-view-smoke', package_folder_view_smoke_test, timeout: 120)
 package_browser_ui_smoke_test = executable(
   'package_browser_ui_smoke_test',
   ['tests/package_browser_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('package-browser-ui-smoke', package_browser_ui_smoke_test, timeout: 90)
@@ -5959,17 +5959,17 @@ test('package-browser-ui-smoke', package_browser_ui_smoke_test, timeout: 90)
 package_occurrence_ui_smoke_test = executable(
   'package_occurrence_ui_smoke_test',
   ['tests/package_occurrence_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
-test('package-occurrence-ui-smoke', package_occurrence_ui_smoke_test, args: [vibestudio], timeout: 90)
+test('package-occurrence-ui-smoke', package_occurrence_ui_smoke_test, args: [slopstudio], timeout: 90)
 
 parser_fuzz_smoke_test = executable(
   'parser_fuzz_smoke_test',
   ['tests/parser_fuzz_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -5978,8 +5978,8 @@ test('parser-fuzz-smoke', parser_fuzz_smoke_test)
 corrupt_fixture_smoke_test = executable(
   'corrupt_fixture_smoke_test',
   ['tests/corrupt_fixture_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_core_dep],
   install: false,
 )
 
@@ -5988,27 +5988,27 @@ test('corrupt-fixture-smoke', corrupt_fixture_smoke_test)
 studio_charts_smoke_test = executable(
   'studio_charts_smoke_test',
   ['tests/studio_charts_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 test('studio-charts-smoke', studio_charts_smoke_test, timeout: 30)
 
 package_progress_smoke_test = executable('package_progress_smoke_test',
   ['tests/package_progress_smoke_test.cpp', 'app/package_progress.cpp'],
-  include_directories: vibestudio_includes, dependencies: [qt6_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [qt6_dep], install: false)
 test('package-progress-smoke', package_progress_smoke_test, timeout: 30)
 
 progress_theme_smoke_test = executable('progress_theme_smoke_test',
   ['tests/progress_theme_smoke_test.cpp', 'app/studio_theme.cpp', 'app/studio_icons.cpp'],
-  include_directories: vibestudio_includes, dependencies: [qt6_dep, vibestudio_core_dep], install: false)
+  include_directories: slopstudio_includes, dependencies: [qt6_dep, slopstudio_core_dep], install: false)
 test('progress-theme-smoke', progress_theme_smoke_test, timeout: 90)
 
 studio_theme_smoke_test = executable(
   'studio_theme_smoke_test',
   ['tests/studio_theme_smoke_test.cpp', 'app/studio_theme.cpp', 'app/studio_icons.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [qt6_dep, vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [qt6_dep, slopstudio_core_dep],
   install: false,
 )
 
@@ -6021,8 +6021,8 @@ test(
 studio_runtime_smoke_test = executable(
   'studio_runtime_smoke_test',
   ['tests/studio_runtime_smoke_test.cpp', 'app/studio_runtime.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [qt6_dep, vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [qt6_dep, slopstudio_core_dep],
   install: false,
 )
 
@@ -6035,8 +6035,8 @@ test(
 studio_speech_smoke_test = executable(
   'studio_speech_smoke_test',
   ['tests/studio_speech_smoke_test.cpp', 'app/studio_speech.cpp', 'app/studio_accessibility.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [qt6_dep, vibestudio_core_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [qt6_dep, slopstudio_core_dep],
   install: false,
 )
 
@@ -6045,8 +6045,8 @@ test('studio-speech-smoke', studio_speech_smoke_test, timeout: 60)
 studio_sound_cues_smoke_test = executable(
   'studio_sound_cues_smoke_test',
   ['tests/studio_sound_cues_smoke_test.cpp'],
-  include_directories: vibestudio_includes,
-  dependencies: [vibestudio_app_dep],
+  include_directories: slopstudio_includes,
+  dependencies: [slopstudio_app_dep],
   install: false,
 )
 
@@ -6059,8 +6059,8 @@ if qt6_test_dep.found()
   shell_interaction_smoke_test = executable(
     'shell_interaction_smoke_test',
     ['tests/shell_interaction_smoke_test.cpp'],
-    include_directories: vibestudio_includes,
-    dependencies: [vibestudio_app_dep, qt6_test_dep],
+    include_directories: slopstudio_includes,
+    dependencies: [slopstudio_app_dep, qt6_test_dep],
     install: false,
   )
 
@@ -6077,35 +6077,35 @@ endif
 
 workspace_smoke_test = executable(
   'workspace_smoke_test', ['tests/workspace_smoke_test.cpp', 'cli/workspace.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('workspace-smoke', workspace_smoke_test)
 extra_image_smoke_test = executable(
   'extra_image_smoke_test', ['tests/extra_image_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('extra-image-smoke', extra_image_smoke_test)
 workspace_ui_smoke_test = executable(
   'workspace_ui_smoke_test', ['tests/workspace_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('workspace-ui-smoke', workspace_ui_smoke_test, env: ['QT_QPA_PLATFORM=offscreen'], timeout: 120)
 
 asset_workbench_ui_smoke_test = executable(
   'asset_workbench_ui_smoke_test', ['tests/asset_workbench_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('asset-workbench-ui-smoke', asset_workbench_ui_smoke_test, env: audio_test_env, timeout: 240, is_parallel: false)
 
 # Joint pose and skeletal clip authoring.
 model_skeletal_edit_smoke_test = executable(
   'model_skeletal_edit_smoke_test', ['tests/model_skeletal_edit_smoke_test.cpp', 'cli/model_skeletal_edit.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-skeletal-edit-smoke', model_skeletal_edit_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-skeletal-edit-smoke', model_skeletal_edit_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 model_skeletal_edit_ui_smoke_test = executable(
   'model_skeletal_edit_ui_smoke_test', ['tests/model_skeletal_edit_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-skeletal-edit-ui-smoke', model_skeletal_edit_ui_smoke_test, env: model_document_test_env, timeout: 120)
 
@@ -6113,12 +6113,12 @@ test('model-skeletal-edit-ui-smoke', model_skeletal_edit_ui_smoke_test, env: mod
 # frame budget, and the clips baked into editable frames chosen by edit.
 model_skeletal_working_set_smoke_test = executable(
   'model_skeletal_working_set_smoke_test', ['tests/model_skeletal_working_set_smoke_test.cpp', 'cli/model_skeletal_edit.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-skeletal-working-set-smoke', model_skeletal_working_set_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 600)
+test('model-skeletal-working-set-smoke', model_skeletal_working_set_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 600)
 model_skeletal_working_set_ui_smoke_test = executable(
   'model_skeletal_working_set_ui_smoke_test', ['tests/model_skeletal_working_set_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-skeletal-working-set-ui-smoke', model_skeletal_working_set_ui_smoke_test, env: model_document_test_env, timeout: 300)
 
@@ -6127,169 +6127,169 @@ test('model-skeletal-working-set-ui-smoke', model_skeletal_working_set_ui_smoke_
 # edit refusal that keeps every document saveable.
 model_source_budget_smoke_test = executable(
   'model_source_budget_smoke_test', ['tests/model_source_budget_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-source-budget-smoke', model_source_budget_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 900)
+test('model-source-budget-smoke', model_source_budget_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 900)
 # Undo history memory: skeletal data counted, shared arrays counted once, the
 # limit enforced through edits, undo and redo, and its setting.
 model_history_budget_smoke_test = executable(
   'model_history_budget_smoke_test', ['tests/model_history_budget_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
 test('model-history-budget-smoke', model_history_budget_smoke_test, env: model_document_test_env, timeout: 600)
 model_history_budget_ui_smoke_test = executable(
   'model_history_budget_ui_smoke_test', ['tests/model_history_budget_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-history-budget-ui-smoke', model_history_budget_ui_smoke_test, env: model_document_test_env, timeout: 600)
 
 model_joint_smoke_test = executable(
   'model_joint_smoke_test', ['tests/model_joint_smoke_test.cpp', 'cli/model_skeletal_edit.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-joint-smoke', model_joint_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 120)
+test('model-joint-smoke', model_joint_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 120)
 model_joint_ui_smoke_test = executable(
   'model_joint_ui_smoke_test', ['tests/model_joint_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-joint-ui-smoke', model_joint_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_skinning_tools_smoke_test = executable(
   'model_skinning_tools_smoke_test', ['tests/model_skinning_tools_smoke_test.cpp', 'cli/model_skinning.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-skinning-tools-smoke', model_skinning_tools_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-skinning-tools-smoke', model_skinning_tools_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_skinning_ui_smoke_test = executable(
   'model_skinning_ui_smoke_test', ['tests/model_skinning_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-skinning-ui-smoke', model_skinning_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_weight_paint_smoke_test = executable(
   'model_weight_paint_smoke_test', ['tests/model_weight_paint_smoke_test.cpp', 'cli/model_weight_paint.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-weight-paint-smoke', model_weight_paint_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-weight-paint-smoke', model_weight_paint_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_weight_paint_ui_smoke_test = executable(
   'model_weight_paint_ui_smoke_test', ['tests/model_weight_paint_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-weight-paint-ui-smoke', model_weight_paint_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_weight_transfer_smoke_test = executable(
   'model_weight_transfer_smoke_test', ['tests/model_weight_transfer_smoke_test.cpp', 'cli/model_weight_transfer.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-weight-transfer-smoke', model_weight_transfer_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-weight-transfer-smoke', model_weight_transfer_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_weight_transfer_ui_smoke_test = executable(
   'model_weight_transfer_ui_smoke_test', ['tests/model_weight_transfer_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-weight-transfer-ui-smoke', model_weight_transfer_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_ik_smoke_test = executable(
   'model_ik_smoke_test', ['tests/model_ik_smoke_test.cpp', 'cli/model_ik.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-ik-smoke', model_ik_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-ik-smoke', model_ik_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_ik_ui_smoke_test = executable(
   'model_ik_ui_smoke_test', ['tests/model_ik_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-ik-ui-smoke', model_ik_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_animation_curves_smoke_test = executable(
   'model_animation_curves_smoke_test', ['tests/model_animation_curves_smoke_test.cpp', 'cli/model_animation_curves.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-animation-curves-smoke', model_animation_curves_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-animation-curves-smoke', model_animation_curves_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_animation_curves_ui_smoke_test = executable(
   'model_animation_curves_ui_smoke_test', ['tests/model_animation_curves_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-animation-curves-ui-smoke', model_animation_curves_ui_smoke_test, env: model_document_test_env, timeout: 180)
 
 model_curve_keys_smoke_test = executable(
   'model_curve_keys_smoke_test', ['tests/model_curve_keys_smoke_test.cpp', 'cli/model_curve_keys.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-curve-keys-smoke', model_curve_keys_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-curve-keys-smoke', model_curve_keys_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 
 model_curve_keys_ui_smoke_test = executable(
   'model_curve_keys_ui_smoke_test', ['tests/model_curve_keys_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-curve-keys-ui-smoke', model_curve_keys_ui_smoke_test, env: model_document_test_env, timeout: 240)
 
 model_curve_transfer_smoke_test = executable(
   'model_curve_transfer_smoke_test', ['tests/model_curve_transfer_smoke_test.cpp', 'cli/model_curve_transfer.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-curve-transfer-smoke', model_curve_transfer_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-curve-transfer-smoke', model_curve_transfer_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_curve_transfer_ui_smoke_test = executable(
   'model_curve_transfer_ui_smoke_test', ['tests/model_curve_transfer_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-curve-transfer-ui-smoke', model_curve_transfer_ui_smoke_test, env: model_document_test_env, timeout: 240)
 
 model_pose_clipboard_smoke_test = executable(
   'model_pose_clipboard_smoke_test', ['tests/model_pose_clipboard_smoke_test.cpp', 'cli/model_skeletal_edit.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-pose-clipboard-smoke', model_pose_clipboard_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-pose-clipboard-smoke', model_pose_clipboard_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_pose_clipboard_ui_smoke_test = executable(
   'model_pose_clipboard_ui_smoke_test', ['tests/model_pose_clipboard_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-pose-clipboard-ui-smoke', model_pose_clipboard_ui_smoke_test, env: model_document_test_env, timeout: 240)
 model_ik_chain_smoke_test = executable(
   'model_ik_chain_smoke_test', ['tests/model_ik_chain_smoke_test.cpp', 'cli/model_ik.cpp', 'cli/model_rig.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-ik-chain-smoke', model_ik_chain_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 300)
+test('model-ik-chain-smoke', model_ik_chain_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 300)
 model_ik_chain_ui_smoke_test = executable(
   'model_ik_chain_ui_smoke_test', ['tests/model_ik_chain_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-ik-chain-ui-smoke', model_ik_chain_ui_smoke_test, env: model_document_test_env, timeout: 240)
 model_clip_import_smoke_test = executable(
   'model_clip_import_smoke_test', ['tests/model_clip_import_smoke_test.cpp', 'cli/model_skeletal_edit.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-clip-import-smoke', model_clip_import_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-clip-import-smoke', model_clip_import_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_clip_import_ui_smoke_test = executable(
   'model_clip_import_ui_smoke_test', ['tests/model_clip_import_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-clip-import-ui-smoke', model_clip_import_ui_smoke_test, env: model_document_test_env, timeout: 240)
 model_game_declarations_smoke_test = executable(
   'model_game_declarations_smoke_test', ['tests/model_game_declarations_smoke_test.cpp', 'cli/model_events.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-game-declarations-smoke', model_game_declarations_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-game-declarations-smoke', model_game_declarations_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_game_declarations_ui_smoke_test = executable(
   'model_game_declarations_ui_smoke_test', ['tests/model_game_declarations_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-game-declarations-ui-smoke', model_game_declarations_ui_smoke_test, env: model_document_test_env, timeout: 240)
 model_animation_constraints_smoke_test = executable(
   'model_animation_constraints_smoke_test', ['tests/model_animation_constraints_smoke_test.cpp', 'cli/model_constraints.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-animation-constraints-smoke', model_animation_constraints_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-animation-constraints-smoke', model_animation_constraints_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_animation_constraints_ui_smoke_test = executable(
   'model_animation_constraints_ui_smoke_test', ['tests/model_animation_constraints_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-animation-constraints-ui-smoke', model_animation_constraints_ui_smoke_test, env: model_document_test_env, timeout: 240)
 model_rotation_tracks_smoke_test = executable(
   'model_rotation_tracks_smoke_test', ['tests/model_rotation_tracks_smoke_test.cpp', 'cli/model_animation_curves.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_core_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false,
 )
-test('model-rotation-tracks-smoke', model_rotation_tracks_smoke_test, args: [vibestudio.full_path()], depends: vibestudio, env: model_document_test_env, timeout: 180)
+test('model-rotation-tracks-smoke', model_rotation_tracks_smoke_test, args: [slopstudio.full_path()], depends: slopstudio, env: model_document_test_env, timeout: 180)
 model_rotation_tracks_ui_smoke_test = executable(
   'model_rotation_tracks_ui_smoke_test', ['tests/model_rotation_tracks_ui_smoke_test.cpp'],
-  include_directories: vibestudio_includes, dependencies: [vibestudio_app_dep], install: false,
+  include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep], install: false,
 )
 test('model-rotation-tracks-ui-smoke', model_rotation_tracks_ui_smoke_test, env: model_document_test_env, timeout: 240)

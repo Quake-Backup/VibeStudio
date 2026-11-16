@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -45,15 +45,15 @@ QString audioDeliveryPresetLabel(AudioDeliveryPreset preset)
 {
 	switch (preset) {
 	case AudioDeliveryPreset::Wav:
-		return QCoreApplication::translate("VibeStudioAudio", "WAV (custom precision)");
+		return QCoreApplication::translate("SlopStudioAudio", "WAV (custom precision)");
 	case AudioDeliveryPreset::Doom:
-		return QCoreApplication::translate("VibeStudioAudio", "Doom sound effect");
+		return QCoreApplication::translate("SlopStudioAudio", "Doom sound effect");
 	case AudioDeliveryPreset::Quake:
-		return QCoreApplication::translate("VibeStudioAudio", "Quake sound effect");
+		return QCoreApplication::translate("SlopStudioAudio", "Quake sound effect");
 	case AudioDeliveryPreset::Quake2:
-		return QCoreApplication::translate("VibeStudioAudio", "Quake II sound effect");
+		return QCoreApplication::translate("SlopStudioAudio", "Quake II sound effect");
 	case AudioDeliveryPreset::Quake3:
-		return QCoreApplication::translate("VibeStudioAudio", "Quake III sound effect");
+		return QCoreApplication::translate("SlopStudioAudio", "Quake III sound effect");
 	}
 	return {};
 }
@@ -79,7 +79,7 @@ AudioDeliveryPlan planAudioDelivery(const AudioClip& clip, const AudioDeliveryOp
 	    clip.samples.isEmpty() || clip.samples.size() > AudioSampleLimit || clip.samples.size() % clip.channels ||
 	    audioDeliveryPresetId(options.preset).isEmpty() || audioWavBits(options.wav.format) == 0) {
 		plan.error = QCoreApplication::translate(
-		    "VibeStudioAudio", "Choose a valid delivery preset and a sound containing complete frames.");
+		    "SlopStudioAudio", "Choose a valid delivery preset and a sound containing complete frames.");
 		return plan;
 	}
 	plan.error = validateAudioMarkers(clip.markers, clip.frameCount());
@@ -115,12 +115,12 @@ AudioDeliveryPlan planAudioDelivery(const AudioClip& clip, const AudioDeliveryOp
 	}
 	plan.frames = std::max<qint64>(1, audioFrameAtSampleRate(clip.frameCount(), clip.sampleRate, plan.sampleRate));
 	if (plan.frames > AudioSampleLimit / plan.channels) {
-		plan.error = QCoreApplication::translate("VibeStudioAudio", "Delivery conversion exceeds the sample limit.");
+		plan.error = QCoreApplication::translate("SlopStudioAudio", "Delivery conversion exceeds the sample limit.");
 	} else if (plan.dmx && plan.frames < 17) {
-		plan.error = QCoreApplication::translate("VibeStudioAudio",
+		plan.error = QCoreApplication::translate("SlopStudioAudio",
 		                                         "Doom delivery needs at least 17 playable frames after resampling.");
 	} else if (plan.wav.format == AudioWavFormat::Float32 && plan.wav.dither) {
-		plan.error = QCoreApplication::translate("VibeStudioAudio", "Float WAV output does not use dither.");
+		plan.error = QCoreApplication::translate("SlopStudioAudio", "Float WAV output does not use dither.");
 	}
 	const auto mapped =
 	    resampleAudioMarkers(clip.markers, clip.frameCount(), plan.frames, clip.sampleRate, plan.sampleRate);
@@ -129,22 +129,22 @@ AudioDeliveryPlan planAudioDelivery(const AudioClip& clip, const AudioDeliveryOp
 	plan.outputCues = omit ? 0 : int(mapped.cues.size());
 	plan.outputLoop = !omit && mapped.loop.has_value();
 	if (!clip.markers.empty()) {
-		plan.markerSummary = QCoreApplication::translate("VibeStudioAudio", "Cue markers: %1 → %2. Forward loop: %3.")
+		plan.markerSummary = QCoreApplication::translate("SlopStudioAudio", "Cue markers: %1 → %2. Forward loop: %3.")
 		                         .arg(clip.markers.cues.size())
 		                         .arg(plan.outputCues)
-		                         .arg(plan.outputLoop ? QCoreApplication::translate("VibeStudioAudio", "included")
-		                                              : QCoreApplication::translate("VibeStudioAudio", "not included"));
+		                         .arg(plan.outputLoop ? QCoreApplication::translate("SlopStudioAudio", "included")
+		                                              : QCoreApplication::translate("SlopStudioAudio", "not included"));
 		if (plan.dmx) {
 			plan.markerSummary +=
-			    QLatin1Char(' ') + QCoreApplication::translate("VibeStudioAudio", "DMX has no marker metadata.");
+			    QLatin1Char(' ') + QCoreApplication::translate("SlopStudioAudio", "DMX has no marker metadata.");
 		} else if (plan.wav.markers == AudioWavMarkers::Quake) {
 			plan.markerSummary +=
 			    QLatin1Char(' ') +
-			    QCoreApplication::translate("VibeStudioAudio",
+			    QCoreApplication::translate("SlopStudioAudio",
 			                                "Quake/II cues require a loop; the engine plays only through its end.");
 		} else if (options.preset == AudioDeliveryPreset::Quake3) {
 			plan.markerSummary += QLatin1Char(' ') +
-			                      QCoreApplication::translate("VibeStudioAudio",
+			                      QCoreApplication::translate("SlopStudioAudio",
 			                                                  "Original Quake III does not use embedded loop markers.");
 		}
 	}
@@ -156,7 +156,7 @@ QString audioDeliveryDescription(const AudioDeliveryPlan& plan)
 	if (!plan.error.isEmpty()) {
 		return plan.error;
 	}
-	return QCoreApplication::translate("VibeStudioAudio", "%1 Hz · %2 channels · %3 · %4 frames")
+	return QCoreApplication::translate("SlopStudioAudio", "%1 Hz · %2 channels · %3 · %4 frames")
 	           .arg(plan.sampleRate)
 	           .arg(plan.channels)
 	           .arg(plan.dmx ? QStringLiteral("DMX PCM8") : audioWavFormatId(plan.wav.format))
@@ -243,7 +243,7 @@ bool writeAudioDelivery(const AudioDeliveryResult& result, const QString& path, 
 {
 	if (!result.succeeded()) {
 		return fail(error, result.error.isEmpty()
-		                       ? QCoreApplication::translate("VibeStudioAudio",
+		                       ? QCoreApplication::translate("SlopStudioAudio",
 		                                                     "Prepare a complete audio delivery before saving.")
 		                       : result.error);
 	}
@@ -277,11 +277,11 @@ bool stageAudioDelivery(const QByteArray& bytes, const QString& virtualPath, Pac
 	if (!staging || !staging->isLoaded() || staging->sourceFormat() != PackageArchiveFormat::Wad ||
 	    (staging->sourceWadMagic() != QStringLiteral("PWAD") && staging->sourceWadMagic() != QStringLiteral("IWAD"))) {
 		return fail(error,
-		            QCoreApplication::translate("VibeStudioAudio", "Open a Doom IWAD or PWAD to stage a DMX sound."));
+		            QCoreApplication::translate("SlopStudioAudio", "Open a Doom IWAD or PWAD to stage a DMX sound."));
 	}
 	static const QRegularExpression soundName(QStringLiteral("^DS[A-Z0-9_]{1,6}$"));
 	if (!soundName.match(virtualPath).hasMatch()) {
-		return fail(error, QCoreApplication::translate("VibeStudioAudio",
+		return fail(error, QCoreApplication::translate("SlopStudioAudio",
 		                                               "Use a Doom sound lump name: DS followed by 1–6 uppercase "
 		                                               "letters, digits, or underscores; no extension."));
 	}
@@ -293,11 +293,11 @@ bool stageAudioDelivery(const QByteArray& bytes, const QString& virtualPath, Pac
 	}
 	if (next.summary().blockingCount > staging->summary().blockingCount) {
 		return fail(error, QCoreApplication::translate(
-		                       "VibeStudioAudio",
+		                       "SlopStudioAudio",
 		                       "The sound conflicts with the package. Review the name and replacement option."));
 	}
 	*staging = std::move(next);
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

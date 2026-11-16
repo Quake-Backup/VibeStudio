@@ -9,7 +9,7 @@
 #include <iostream>
 #include <vector>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -28,7 +28,7 @@ bool expect(bool condition, const char* message)
 	return true;
 }
 
-// Test-local bit writer used to hand-build streams that VibeStudio's own
+// Test-local bit writer used to hand-build streams that SlopStudio's own
 // encoder never produces (stored headers, dynamic Huffman blocks, deliberately
 // corrupt back references). Bit packing follows RFC 1951 3.1.1: values are
 // least significant bit first, Huffman codes most significant bit first.
@@ -172,7 +172,7 @@ QByteArray mixedPayload(int size)
 	while (bytes.size() < size) {
 		state = state * 1103515245u + 12345u;
 		if ((state >> 28) < 6u) {
-			bytes.append("vibestudio/textures/base_wall/");
+			bytes.append("slopstudio/textures/base_wall/");
 		} else if ((state >> 28) < 11u) {
 			bytes.append(QByteArray(17, static_cast<char>('a' + static_cast<int>((state >> 8) % 26u))));
 		} else {

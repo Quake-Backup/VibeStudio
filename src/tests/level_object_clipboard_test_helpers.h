@@ -1,7 +1,7 @@
 #pragma once
 #include "tests/level_prefab_test_helpers.h"
 
-namespace vibestudio::tests {
+namespace slopstudio::tests {
 // Original fixture: the door owns a patch followed by two brushes. The world
 // retains its own patch so tests distinguish copied children from siblings.
 inline QByteArray objectClipboardFixture()
@@ -13,4 +13,4 @@ inline QByteArray objectClipboardFixture()
 	bytes.replace("\"speed\" \"160\"\n", "\"speed\" \"160\"\n" + levelMapSelectionText(source).toUtf8());
 	return bytes;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

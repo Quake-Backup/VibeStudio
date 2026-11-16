@@ -14,8 +14,8 @@
 
 #include <iostream>
 
-using namespace vibestudio;
-using namespace vibestudio::tests;
+using namespace slopstudio;
+using namespace slopstudio::tests;
 namespace
 {
 int checks = 0;
@@ -33,7 +33,7 @@ bool waitFor(const std::function<bool()>& ready) {
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
-	const auto root = qEnvironmentVariable("VIBESTUDIO_TEST_TMP_ROOT");
+	const auto root = qEnvironmentVariable("SLOPSTUDIO_TEST_TMP_ROOT");
 	if (root.isEmpty() || !QDir().mkpath(root) || argc != 2) { return 1; }
 	QTemporaryDir temporary(QDir(root).filePath("model-appearance-XXXXXX"));
 	if (!temporary.isValid()) { return 1; }
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 	ok &= expect(!prepareModelAppearance(mesh, {}, &archive, &snapshot, &error, cancellation) && snapshot.receipt == beforeFailure,
 		"cancellation preserves the prior completed output");
 	ok &= expect(modelStateFingerprint(mesh) == original && modelStateFingerprint(mdl) == mdlOriginal, "source geometry, animation, skins and metadata remain unchanged");
-	const auto command = QStringList{"vibestudio", "--cli", "model", "materials", fixture.path("source.mesh.json"), "--package", fixture.path("assets"), "--json"};
+	const auto command = QStringList{"slopstudio", "--cli", "model", "materials", fixture.path("source.mesh.json"), "--package", fixture.path("assets"), "--json"};
 	auto cli = cli::runModelAppearance(command + QStringList{"--entry", "models/test.skin"});
 	ok &= expect(cli.exitCode == 0 && cli.data.value("appearance").toObject().value("skinSource").toObject().value("sha256") == source.value("sha256"),
 		"CLI skin receipt matches browser service inputs");
@@ -127,9 +127,9 @@ int main(int argc, char** argv)
 	}
 	PackageStagingModel staging;
 	ok &= expect(staging.loadBaseArchive(archive, &error) && staging.addBytes("body,models/alternate\nhead,models/new_head\n", "models/test.skin", &error,
-		PackageStageConflictResolution::ReplaceExisting) && PackageDraft::save(fixture.path("assets.vibepackage"), &staging, false, &error),
+		PackageStageConflictResolution::ReplaceExisting) && PackageDraft::save(fixture.path("assets.sloppackage"), &staging, false, &error),
 		"retain portable draft with staged appearance bindings");
-	auto draftCommand = command; draftCommand[draftCommand.indexOf("--package") + 1] = fixture.path("assets.vibepackage");
+	auto draftCommand = command; draftCommand[draftCommand.indexOf("--package") + 1] = fixture.path("assets.sloppackage");
 	cli = cli::runModelAppearance(draftCommand + QStringList{"--entry", "models/test.skin"});
 	ok &= expect(cli.exitCode == 0 && cli.data.value("appearance").toObject().value("surfaces").toArray()[0].toObject().value("material") == "models/alternate",
 		"appearance review sees staged draft bytes");

@@ -42,13 +42,13 @@
 #include <QTimer>
 #include <QToolButton>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -288,8 +288,8 @@ int main(int argc, char** argv)
 						&& !light->accessibleName().isEmpty() && !light->accessibleDescription().isEmpty() && light->focusPolicy() != Qt::NoFocus,
 					"a partly ticked box is accessible as mixed", light->accessibleName());
 			}
-			// VIBESTUDIO_FACE_FLAGS_GRAB=<folder> saves the tab for a look.
-			if (const QString grab = qEnvironmentVariable("VIBESTUDIO_FACE_FLAGS_GRAB"); !grab.isEmpty()) {
+			// SLOPSTUDIO_FACE_FLAGS_GRAB=<folder> saves the tab for a look.
+			if (const QString grab = qEnvironmentVariable("SLOPSTUDIO_FACE_FLAGS_GRAB"); !grab.isEmpty()) {
 				tools->ensureWidgetVisible(body);
 				settle();
 				tools->grab().save(QDir(grab).filePath(QStringLiteral("flags-%1-%2.png").arg(QLatin1String(pass.profile)).arg(pass.scale)));
@@ -361,7 +361,7 @@ int main(int argc, char** argv)
 			show->trigger();
 			expect(sidebar->isFolded() && !show->isChecked(), "and folds it again");
 			sidebar->setFolded(false);
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 			if (nrc) {
 				// S in a 2D view toggles the tab, as in NetRadiant Custom.
 				shell.showLevelSidebarTab(QStringLiteral("inspector"));

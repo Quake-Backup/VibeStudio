@@ -37,7 +37,7 @@
 // Skin round trips for the Mesh Editor: Edit Skin…, MDL member export and
 // replacement from any image (core/model_skin_handoff.h), and Transfer Skin
 // to New UVs… (core/model_skin_transfer.h).
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -193,7 +193,7 @@ QString ModelEditorDialog::skinRoundTripDirectory() const
 {
 	const auto root = deliveryContext ? deliveryContext().projectRoot : QString();
 	if (!root.isEmpty())
-		return QDir(root).filePath(QStringLiteral(".vibestudio/model-skins"));
+		return QDir(root).filePath(QStringLiteral(".slopstudio/model-skins"));
 	return QDir(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation)).filePath(QStringLiteral("model-skins"));
 }
 
@@ -635,4 +635,4 @@ void ModelEditorDialog::transferSkin()
 		summary += QLatin1Char(' ') + Text::tr("%Ln of them were found by projection onto the old surface.", nullptr, projected);
 	m_status->setText(summary, LiveStatus::Result);
 }
-} // namespace vibestudio
+} // namespace slopstudio

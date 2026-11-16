@@ -9,7 +9,7 @@
 #include <atomic>
 #include <new>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -176,7 +176,7 @@ void ModelMaterialWorker::startNext()
 			catch (const std::bad_alloc &)
 			{
 				work->result.error =
-					QCoreApplication::translate("VibeStudioModelEditor", "Not enough memory to load the model's material images.");
+					QCoreApplication::translate("SlopStudioModelEditor", "Not enough memory to load the model's material images.");
 			}
 		});
 	m_thread->setParent(this);
@@ -195,4 +195,4 @@ void ModelMaterialWorker::startNext()
 	m_progressTimer->start();
 	m_thread->start();
 }
-} // namespace vibestudio
+} // namespace slopstudio

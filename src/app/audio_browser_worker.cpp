@@ -11,7 +11,7 @@
 #include <new>
 #include <utility>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -48,7 +48,7 @@ private:
 	QByteArray m_bytes;
 };
 
-QString text(const char* message) { return QCoreApplication::translate("VibeStudioAudioBrowser", message); }
+QString text(const char* message) { return QCoreApplication::translate("SlopStudioAudioBrowser", message); }
 } // namespace
 
 struct AudioBrowserWorker::Work {
@@ -101,25 +101,25 @@ void AudioBrowserWorker::startNext()
 			const auto entries = request.archive ? request.archive->entries() : QVector<PackageEntry>{};
 			if (!request.archive || !request.archive->isOpen() || request.entryIndex < 0 || request.entryIndex >= entries.size() ||
 			    entries.at(request.entryIndex).virtualPath != request.virtualPath) {
-				result.error = text(QT_TRANSLATE_NOOP("VibeStudioAudioBrowser", "The selected audio entry is no longer available.")); return;
+				result.error = text(QT_TRANSLATE_NOOP("SlopStudioAudioBrowser", "The selected audio entry is no longer available.")); return;
 			}
 			const auto& entry = entries.at(request.entryIndex);
 			if (!entry.readable || entry.kind != PackageEntryKind::File) {
-				result.error = entry.note.isEmpty() ? text(QT_TRANSLATE_NOOP("VibeStudioAudioBrowser", "This audio entry is not readable.")) : entry.note; return;
+				result.error = entry.note.isEmpty() ? text(QT_TRANSLATE_NOOP("SlopStudioAudioBrowser", "This audio entry is not readable.")) : entry.note; return;
 			}
 			const bool audition = request.kind == AudioBrowserRequest::Kind::Audition;
 			if (audition && entry.sizeBytes > AudioInputByteLimit) {
-				result.error = text(QT_TRANSLATE_NOOP("VibeStudioAudioBrowser", "Audio audition is limited to 128 MiB per sound.")); return;
+				result.error = text(QT_TRANSLATE_NOOP("SlopStudioAudioBrowser", "Audio audition is limited to 128 MiB per sound.")); return;
 			}
 			const bool headerOnly = !audition && entry.sizeBytes > PreviewByteLimit;
 			QByteArray bytes;
 			if (headerOnly) {
 				if (!request.archive->readEntryAt(request.entryIndex, &bytes, &result.error, HeaderByteLimit)) {
-					if (result.error.isEmpty()) { result.error = text(QT_TRANSLATE_NOOP("VibeStudioAudioBrowser", "Unable to read the audio header.")); }
+					if (result.error.isEmpty()) { result.error = text(QT_TRANSLATE_NOOP("SlopStudioAudioBrowser", "Unable to read the audio header.")); }
 					return;
 				}
 				if (bytes.size() > HeaderByteLimit) {
-					result.error = text(QT_TRANSLATE_NOOP("VibeStudioAudioBrowser", "The audio reader exceeded the requested byte limit.")); return;
+					result.error = text(QT_TRANSLATE_NOOP("SlopStudioAudioBrowser", "The audio reader exceeded the requested byte limit.")); return;
 				}
 			} else {
 				const qint64 limit = audition ? AudioInputByteLimit : PreviewByteLimit;
@@ -137,8 +137,8 @@ void AudioBrowserWorker::startNext()
 				if (cancelled()) { return; }
 				if (!read || exceeded || static_cast<quint64>(bytes.size()) != entry.sizeBytes) {
 					// Even a checksum failure after the last chunk invalidates all bytes.
-					if (exceeded) { result.error = text(QT_TRANSLATE_NOOP("VibeStudioAudioBrowser", "The audio reader exceeded the requested byte limit.")); }
-					else if (result.error.isEmpty()) { result.error = text(QT_TRANSLATE_NOOP("VibeStudioAudioBrowser", "Unable to read and verify the complete audio entry.")); }
+					if (exceeded) { result.error = text(QT_TRANSLATE_NOOP("SlopStudioAudioBrowser", "The audio reader exceeded the requested byte limit.")); }
+					else if (result.error.isEmpty()) { result.error = text(QT_TRANSLATE_NOOP("SlopStudioAudioBrowser", "Unable to read and verify the complete audio entry.")); }
 					return;
 				}
 			}
@@ -148,7 +148,7 @@ void AudioBrowserWorker::startNext()
 				result.source = assetAudioPlaybackSource(request.virtualPath, bytes);
 				if (result.source.bytes.size() > AudioInputByteLimit) {
 					result.source = {};
-					result.error = text(QT_TRANSLATE_NOOP("VibeStudioAudioBrowser", "The converted sound exceeds the 128 MiB audition limit."));
+					result.error = text(QT_TRANSLATE_NOOP("SlopStudioAudioBrowser", "The converted sound exceeds the 128 MiB audition limit."));
 				} else { result.error = result.source.error; }
 			} else {
 				const qint64 cap = headerOnly ? HeaderByteLimit : PreviewByteLimit;
@@ -157,14 +157,14 @@ void AudioBrowserWorker::startNext()
 				result.error = result.preview.error;
 				if (headerOnly) {
 					result.preview.audioPeaks = {};
-					result.preview.audioWaveformLines = {text(QT_TRANSLATE_NOOP("VibeStudioAudioBrowser",
+					result.preview.audioWaveformLines = {text(QT_TRANSLATE_NOOP("SlopStudioAudioBrowser",
 						"Waveform unavailable: this sound exceeds the 64 MiB preview limit. Only header metadata was sampled."))};
 				}
 			}
 			work->progress = 100;
 		} catch (const std::bad_alloc&) {
 			work->result.preview = {}; work->result.source = {};
-			work->result.error = text(QT_TRANSLATE_NOOP("VibeStudioAudioBrowser", "Not enough memory to prepare this sound."));
+			work->result.error = text(QT_TRANSLATE_NOOP("SlopStudioAudioBrowser", "Not enough memory to prepare this sound."));
 		}
 	});
 	m_thread->setParent(this);
@@ -177,4 +177,4 @@ void AudioBrowserWorker::startNext()
 	m_timer->start(); m_thread->start();
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

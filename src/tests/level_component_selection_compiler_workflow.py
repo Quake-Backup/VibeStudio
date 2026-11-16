@@ -1,4 +1,4 @@
-"""Optional shared-corner authoring proof through VibeMap3 and PK3 publication.
+"""Optional shared-corner authoring proof through SlopMap3 and PK3 publication.
 
 Uses synthetic adjacent brushes, generated textures and no installed game data.
 The output root must be inside this repository's .agents/tmp directory.

@@ -12,9 +12,9 @@
 #include <QProcess>
 #include <QTemporaryDir>
 #include <iostream>
-using namespace vibestudio;
-namespace f = vibestudio::tests::udmf;
-namespace d = vibestudio::tests::doom;
+using namespace slopstudio;
+namespace f = slopstudio::tests::udmf;
+namespace d = slopstudio::tests::doom;
 namespace {
 bool ok = true;
 bool expect(bool condition, const char* message, const QString& error = {}) {

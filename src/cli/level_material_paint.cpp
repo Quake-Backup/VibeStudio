@@ -7,7 +7,7 @@
 #include <QJsonArray>
 #include <QSet>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 LevelMaterialPaintCliResult runLevelMaterialPaint(const QStringList& arguments)
 {
 	const auto failure = [](int code, const QString& message) { return LevelMaterialPaintCliResult{code, message, {}, {}}; };
@@ -91,4 +91,4 @@ LevelMaterialPaintCliResult runLevelMaterialPaint(const QStringList& arguments)
 	result.lines << report.warnings;
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

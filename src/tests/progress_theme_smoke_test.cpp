@@ -11,7 +11,7 @@
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool expect(bool value, const QString& message)
@@ -70,7 +70,7 @@ bool inspect(QProgressBar& bar, const QString& label, bool capture, double& mini
 	ok &= expect(accessible && accessible->role() == QAccessible::ProgressBar && accessible->valueInterface()
 		&& accessible->valueInterface()->currentValue().toInt() == bar.value()
 		&& !accessible->text(QAccessible::Name).isEmpty(), label + ": built-in progress role and value remain available.");
-	const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_ROOT");
+	const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT");
 	if (capture && !captures.isEmpty()) {
 		ok &= expect(text.save(QDir(captures).filePath(label + ".png")), "Save progress contrast render.");
 	}

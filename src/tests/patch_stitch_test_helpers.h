@@ -4,7 +4,7 @@
 #include <array>
 #include <cmath>
 
-namespace vibestudio::tests
+namespace slopstudio::tests
 {
 inline LevelMapPatch stitchPatch(LevelPatchBoundary edge, int id, bool second = false, bool reversed = false)
 {
@@ -68,4 +68,4 @@ inline bool createStitchMap(LevelMapDocument *map, QString *error = nullptr)
 	setLevelMapSelection(map, {{LevelMapSelectionKind::QuakePatch, 0}, {LevelMapSelectionKind::QuakePatch, 1}});
 	return true;
 }
-} // namespace vibestudio::tests
+} // namespace slopstudio::tests

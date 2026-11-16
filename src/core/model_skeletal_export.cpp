@@ -10,7 +10,7 @@
 #include <cmath>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -128,9 +128,9 @@ QStringList modelSkeletalClipSummaries(const ModelSkeleton& skeleton)
 	for (int index = 0; index < skeleton.clips.size(); ++index) {
 		const ModelSkeletalClip& clip = skeleton.clips.at(index);
 		const QString rate = clip.framesPerSecond > 0 && std::isfinite(clip.framesPerSecond)
-			? QCoreApplication::translate("VibeStudioModelSkeleton", "%1 fps").arg(clip.framesPerSecond, 0, 'g', 6)
-			: QCoreApplication::translate("VibeStudioModelSkeleton", "no rate");
-		lines << QCoreApplication::translate("VibeStudioModelSkeleton", "%1 %2 (%n frame(s), %3)", nullptr, int(clip.frames.size()))
+			? QCoreApplication::translate("SlopStudioModelSkeleton", "%1 fps").arg(clip.framesPerSecond, 0, 'g', 6)
+			: QCoreApplication::translate("SlopStudioModelSkeleton", "no rate");
+		lines << QCoreApplication::translate("SlopStudioModelSkeleton", "%1 %2 (%n frame(s), %3)", nullptr, int(clip.frames.size()))
 					 .arg(index)
 					 .arg(clip.name, rate);
 	}
@@ -170,10 +170,10 @@ bool prepareModelMd5Clips(const ModelMesh& mesh, const QString& directory, const
 		return false;
 	};
 	if (directory.trimmed().isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Choose a folder for the MD5 animations."));
+		return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Choose a folder for the MD5 animations."));
 	}
 	if (mesh.skeleton.isEmpty() || mesh.skeleton.clips.isEmpty()) {
-		return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "An md5anim needs a skeletal clip; this model animates by frames."));
+		return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "An md5anim needs a skeletal clip; this model animates by frames."));
 	}
 	QVector<ModelMd5ClipFile> prepared;
 	QSet<QString> names;
@@ -182,7 +182,7 @@ bool prepareModelMd5Clips(const ModelMesh& mesh, const QString& directory, const
 	for (int clip = 0; clip < mesh.skeleton.clips.size(); ++clip) {
 		const QString name = modelMd5ClipFileName(mesh.skeleton, clip);
 		if (names.contains(name.toLower())) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton",
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton",
 				"Two clips would both be written as %1. Rename one in Edit Skeletal Animation so every clip has its own file.")
 							.arg(name));
 		}
@@ -198,7 +198,7 @@ bool prepareModelMd5Clips(const ModelMesh& mesh, const QString& directory, const
 		// so the refusal can list what each one would leave out.
 		const bool strictRefusal = file.bytes.isEmpty() && options.strict && !file.report.omissions.isEmpty() && file.report.target.ready();
 		if (file.bytes.isEmpty() && !strictRefusal) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "Clip %1 \"%2\": %3").arg(clip).arg(mesh.skeleton.clips.at(clip).name, problem));
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "Clip %1 \"%2\": %3").arg(clip).arg(mesh.skeleton.clips.at(clip).name, problem));
 		}
 		if (strictRefusal) {
 			refused << QStringLiteral("%1 \"%2\"").arg(clip).arg(mesh.skeleton.clips.at(clip).name);
@@ -210,7 +210,7 @@ bool prepareModelMd5Clips(const ModelMesh& mesh, const QString& directory, const
 	}
 	if (!refused.isEmpty()) {
 		const int count = int(refused.size());
-		return fail(QCoreApplication::translate("VibeStudioModelSkeleton",
+		return fail(QCoreApplication::translate("SlopStudioModelSkeleton",
 			"Strict export refused, so no MD5 animation was written. Clips that would leave out data the editable source holds (%n): %1.",
 			nullptr, count)
 						.arg(refused.join(QStringLiteral(", "))));
@@ -246,18 +246,18 @@ bool writeModelMd5Clips(const QVector<ModelMd5ClipFile>& files, bool overwrite, 
 	for (const ModelMd5ClipFile& file : files) {
 		const ModelWriteTarget target = inspectModelWriteTarget(file.path, control);
 		if (!target.isValid()) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "%1: %2").arg(file.path, target.error));
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "%1: %2").arg(file.path, target.error));
 		}
 		if (modelPathsReferToSameFile(file.path, protectedSource)) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "%1 is the editable source. Choose another folder.").arg(file.path));
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "%1 is the editable source. Choose another folder.").arg(file.path));
 		}
 		if (target.existed && !overwrite) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton",
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton",
 				"%1 already exists, so no MD5 animation was written. Choose an empty folder or allow replacing existing files.")
 							.arg(file.path));
 		}
 		if (file.bytes.size() > modelFileByteLimit) {
-			return fail(QCoreApplication::translate("VibeStudioModelSkeleton", "%1 would exceed the 64 MiB output limit.").arg(file.path));
+			return fail(QCoreApplication::translate("SlopStudioModelSkeleton", "%1 would exceed the 64 MiB output limit.").arg(file.path));
 		}
 		targets.append(target);
 	}
@@ -275,7 +275,7 @@ bool writeModelMd5Clips(const QVector<ModelMd5ClipFile>& files, bool overwrite, 
 		QString problem;
 		if (!writeModelFile(targets.at(index), files.at(index).bytes, &problem, control)) {
 			return fail(written.isEmpty() ? problem
-										  : QCoreApplication::translate("VibeStudioModelSkeleton", "%1 Already written: %2.")
+										  : QCoreApplication::translate("SlopStudioModelSkeleton", "%1 Already written: %2.")
 												.arg(problem, written.join(QStringLiteral(", "))));
 		}
 		written << files.at(index).path;
@@ -363,4 +363,4 @@ bool auditModelSkeletalFrames(const ModelMesh& mesh, ModelSkeletalFrameAudit* au
 	return true;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

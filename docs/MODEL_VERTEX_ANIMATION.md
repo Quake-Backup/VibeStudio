@@ -4,7 +4,7 @@
 closing, a frame timeline with onion skinning, tags that follow the mesh,
 range sculpting, and frame import and export for vertex-animated models
 (Quake MDL, Quake II MD2, Quake III MD3 and editable sources). They use the
-shared Mesh Editor document and the `model frames` command. VibeStudio is
+shared Mesh Editor document and the `model frames` command. SlopStudio is
 pre-alpha: these tools are tested on synthetic fixtures only, not on real game
 projects, and the [release checklist](MODELLER_RELEASE.md) is still open.
 
@@ -60,7 +60,7 @@ checked before anything changes.
 
 ## Name frames so clips survive native files
 
-MDL, MD2 and MD3 have no clip table. Readers, including VibeStudio's own,
+MDL, MD2 and MD3 have no clip table. Readers, including SlopStudio's own,
 rebuild clips from frame names: consecutive frames sharing a stem with a
 trailing number (`stand1`, `stand2` ...) form one clip named after the stem.
 Quake and Quake II game code also address frames by those names and numbers.
@@ -329,13 +329,13 @@ Without `--operation` it lists each clip, whether it comes back from frame
 names and what the names give instead.
 
 ```sh
-vibestudio --cli model frames ./models/soldier.mesh.json --json
-vibestudio --cli model frames ./models/soldier.mesh.json --operation move --first 10 --last 14 --to 0 --output ./models/moved.mesh.json --json
-vibestudio --cli model frames ./models/soldier.mesh.json --operation name-from-clips --clip 2 --start 0 --keep-clip-names --output ./models/named.mesh.json
-vibestudio --cli model frames ./models/soldier.mesh.json --operation resample --clip 0 --fps 10 --output ./models/10fps.mesh.json --json
-vibestudio --cli model frames ./models/soldier.mesh.json --operation follow-tag --tag tag_weapon --surface 0 --faces 12,13 --output ./models/tagged.mesh.json --json
-vibestudio --cli model frames ./models/soldier.mesh.json --operation import --source ./obj/run_01.obj --source ./obj/run_02.obj --clip-name run --obj-up y --output ./models/run.mesh.json --json
-vibestudio --cli model frames ./models/soldier.mesh.json --operation export-obj --first 0 --last 9 --output ./obj/walk_###.obj
+slopstudio --cli model frames ./models/soldier.mesh.json --json
+slopstudio --cli model frames ./models/soldier.mesh.json --operation move --first 10 --last 14 --to 0 --output ./models/moved.mesh.json --json
+slopstudio --cli model frames ./models/soldier.mesh.json --operation name-from-clips --clip 2 --start 0 --keep-clip-names --output ./models/named.mesh.json
+slopstudio --cli model frames ./models/soldier.mesh.json --operation resample --clip 0 --fps 10 --output ./models/10fps.mesh.json --json
+slopstudio --cli model frames ./models/soldier.mesh.json --operation follow-tag --tag tag_weapon --surface 0 --faces 12,13 --output ./models/tagged.mesh.json --json
+slopstudio --cli model frames ./models/soldier.mesh.json --operation import --source ./obj/run_01.obj --source ./obj/run_02.obj --clip-name run --obj-up y --output ./models/run.mesh.json --json
+slopstudio --cli model frames ./models/soldier.mesh.json --operation export-obj --first 0 --last 9 --output ./obj/walk_###.obj
 ```
 
 | Operation | Options |

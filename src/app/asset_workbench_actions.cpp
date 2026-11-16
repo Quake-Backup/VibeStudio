@@ -17,7 +17,7 @@
 #include <QTabBar>
 #include <QTabWidget>
 
-namespace vibestudio {
+namespace slopstudio {
 
 QWidget* ApplicationShell::buildAssetWorkspace(StudioMode mode, QWidget* browser)
 {
@@ -188,4 +188,4 @@ void ApplicationShell::revealWorkbenchAsset(StudioMode mode)
 	revealPackageEntry(path, ordinal);
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

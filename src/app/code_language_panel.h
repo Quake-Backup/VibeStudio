@@ -10,7 +10,7 @@ class QPushButton;
 class QProgressBar;
 class QTimer;
 
-namespace vibestudio {
+namespace slopstudio {
 
 class CodeLanguagePanel final : public QWidget {
 	Q_OBJECT
@@ -41,4 +41,4 @@ private:
 	QTimer *m_syncTimer, *m_refreshTimer;
 };
 
-} // namespace vibestudio
+} // namespace slopstudio

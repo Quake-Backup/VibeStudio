@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::cli
+namespace slopstudio::cli
 {
 namespace
 {
@@ -519,4 +519,4 @@ ModelToolsCliResult runModelFrames(const QStringList &args)
 	}
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

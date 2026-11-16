@@ -13,7 +13,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 bool linked(const QFileInfo& file)
@@ -161,18 +161,18 @@ AssetTextSearchReport findReplaceProjectText(const AssetTextSearchRequest& reque
 		if (report.warnings.size() < 128) { report.warnings << message; }
 	};
 	if (request.rootPath.trimmed().isEmpty() || !rootInfo.isDir() || linked(rootInfo)) {
-		warn(QCoreApplication::translate("VibeStudioProjectText", "Project root path is required and must be a directory, not a link."));
+		warn(QCoreApplication::translate("SlopStudioProjectText", "Project root path is required and must be a directory, not a link."));
 		report.saveState = QStringLiteral("failed");
 		return report;
 	}
 	if (request.findText.isEmpty() || !request.findText.isValidUtf16() || request.findText.contains(QLatin1Char('\n'))
 		|| request.findText.contains(QLatin1Char('\r')) || request.findText.contains(QChar(0x2029))) {
-		warn(QCoreApplication::translate("VibeStudioProjectText", "Find text must be a nonempty Unicode line."));
+		warn(QCoreApplication::translate("SlopStudioProjectText", "Find text must be a nonempty Unicode line."));
 		report.saveState = QStringLiteral("failed");
 		return report;
 	}
 	if (request.maxMatches <= 0 || request.maxFiles <= 0 || request.maxFileBytes <= 0 || request.maxTotalBytes <= 0) {
-		warn(QCoreApplication::translate("VibeStudioProjectText", "Search limits must be positive."));
+		warn(QCoreApplication::translate("SlopStudioProjectText", "Search limits must be positive."));
 		report.saveState = QStringLiteral("failed");
 		return report;
 	}
@@ -185,7 +185,7 @@ AssetTextSearchReport findReplaceProjectText(const AssetTextSearchRequest& reque
 			&& std::none_of(text.cbegin(), text.cend(), [](QChar ch) { return ch.unicode() < 0x20 && ch != QLatin1Char('\n') && ch != QLatin1Char('\t') && ch != QLatin1Char('\f'); });
 	};
 	if (request.replace && !validText(replacementText)) {
-		warn(QCoreApplication::translate("VibeStudioProjectText", "Replacement text contains invalid Unicode or binary controls."));
+		warn(QCoreApplication::translate("SlopStudioProjectText", "Replacement text contains invalid Unicode or binary controls."));
 		report.saveState = QStringLiteral("failed");
 		return report;
 	}
@@ -252,7 +252,7 @@ AssetTextSearchReport findReplaceProjectText(const AssetTextSearchRequest& reque
 			if (buffer->id.isEmpty() || !buffer->error.isEmpty() || !safeBuffer(path) || !validText(buffer->text)
 				|| size > fileLimit * 2 || size > totalLimit - bytesScanned) {
 				++report.filesSkipped;
-				warn(QCoreApplication::translate("VibeStudioProjectText", "Open document unavailable or outside search limits: %1. %2").arg(path, buffer->error));
+				warn(QCoreApplication::translate("SlopStudioProjectText", "Open document unavailable or outside search limits: %1. %2").arg(path, buffer->error));
 				return;
 			}
 			bytesScanned += size;
@@ -262,20 +262,20 @@ AssetTextSearchReport findReplaceProjectText(const AssetTextSearchRequest& reque
 			const QFileInfo info(path);
 			if (info.size() > fileLimit) {
 				++report.filesSkipped;
-				warn(QCoreApplication::translate("VibeStudioProjectText", "File exceeds the search size limit: %1").arg(path));
+				warn(QCoreApplication::translate("SlopStudioProjectText", "File exceeds the search size limit: %1").arg(path));
 				return;
 			}
 			if (info.size() > totalLimit - bytesScanned) { limitReached = true; return; }
 			QFile file(path);
 			if (!safeTarget(report.rootPath, path) || !file.open(QIODevice::ReadOnly)) {
 				++report.filesSkipped;
-				warn(QCoreApplication::translate("VibeStudioProjectText", "Unable to read %1.").arg(path));
+				warn(QCoreApplication::translate("SlopStudioProjectText", "Unable to read %1.").arg(path));
 				return;
 			}
 			const QByteArray bytes = file.read(fileLimit + 1);
 			if (file.error() != QFileDevice::NoError || bytes.size() > fileLimit || bytes.size() > totalLimit - bytesScanned) {
 				++report.filesSkipped;
-				warn(QCoreApplication::translate("VibeStudioProjectText", "File could not be read within the search limits: %1").arg(path));
+				warn(QCoreApplication::translate("SlopStudioProjectText", "File could not be read within the search limits: %1").arg(path));
 				return;
 			}
 			bytesScanned += bytes.size();
@@ -348,7 +348,7 @@ AssetTextSearchReport findReplaceProjectText(const AssetTextSearchRequest& reque
 					} else {
 						QString error;
 						if (!encodeTextFileEdits(source, edits, &change.replacementBytes, nullptr, &error)) {
-							warn(QCoreApplication::translate("VibeStudioProjectText", "Unable to prepare replacements for %1: %2").arg(path, error));
+							warn(QCoreApplication::translate("SlopStudioProjectText", "Unable to prepare replacements for %1: %2").arg(path, error));
 							return;
 						}
 						if (change.replacementBytes.size() > totalLimit - bytesPrepared) { limitReached = true; return; }
@@ -372,7 +372,7 @@ AssetTextSearchReport findReplaceProjectText(const AssetTextSearchRequest& reque
 	while (!directories.isEmpty() && !limitReached && !cancelRequested(report, request.isCancelled)) {
 		const QString directory = directories.takeLast();
 		if (linked(QFileInfo(directory)) || !QFileInfo(directory).isReadable()) {
-			warn(QCoreApplication::translate("VibeStudioProjectText", "Unable to read directory %1.").arg(directory));
+			warn(QCoreApplication::translate("SlopStudioProjectText", "Unable to read directory %1.").arg(directory));
 			continue;
 		}
 		QDirIterator iterator(directory, QDir::AllEntries | QDir::NoDotAndDotDot | QDir::Hidden | QDir::System);
@@ -387,7 +387,7 @@ AssetTextSearchReport findReplaceProjectText(const AssetTextSearchRequest& reque
 			} else if (info.isFile()) { processFile(info.absoluteFilePath(), nullptr); }
 		}
 	}
-	if (limitReached) { warn(QCoreApplication::translate("VibeStudioProjectText", "Search limit reached. Narrow the file filters and search again before replacing.")); }
+	if (limitReached) { warn(QCoreApplication::translate("SlopStudioProjectText", "Search limit reached. Narrow the file filters and search again before replacing.")); }
 	std::sort(report.matches.begin(), report.matches.end(), [](const auto& left, const auto& right) {
 		if (left.filePath != right.filePath) { return left.filePath < right.filePath; }
 		return left.line < right.line || (left.line == right.line && left.column < right.column);
@@ -413,13 +413,13 @@ AssetTextSearchReport applyProjectTextReplacements(const AssetTextSearchReport& 
 	report.replacementsApplied = 0;
 	if (!preview.canApply()) {
 		report.saveState = QStringLiteral("failed");
-		report.warnings << QCoreApplication::translate("VibeStudioProjectText", "A complete replacement preview is required before applying changes.");
+		report.warnings << QCoreApplication::translate("SlopStudioProjectText", "A complete replacement preview is required before applying changes.");
 		return report;
 	}
 	const bool hasBuffers = std::any_of(preview.changes.cbegin(), preview.changes.cend(), [](const auto& change) { return !change.bufferId.isEmpty(); });
 	if (hasBuffers && !deferBufferEdits) {
 		report.saveState = QStringLiteral("failed");
-		report.warnings << QCoreApplication::translate("VibeStudioProjectText", "This preview includes open documents and must be applied by its editor host.");
+		report.warnings << QCoreApplication::translate("SlopStudioProjectText", "This preview includes open documents and must be applied by its editor host.");
 		return report;
 	}
 	// Do not start a batch if even one reviewed file already changed.
@@ -428,7 +428,7 @@ AssetTextSearchReport applyProjectTextReplacements(const AssetTextSearchReport& 
 		if (cancelRequested(report, isCancelled)) { return report; }
 		if (!unchanged(report.rootPath, change)) {
 			report.saveState = QStringLiteral("failed");
-			report.warnings << QCoreApplication::translate("VibeStudioProjectText", "File changed, disappeared, or became a link after preview: %1. Search again.").arg(change.filePath);
+			report.warnings << QCoreApplication::translate("SlopStudioProjectText", "File changed, disappeared, or became a link after preview: %1. Search again.").arg(change.filePath);
 			return report;
 		}
 	}
@@ -439,23 +439,23 @@ AssetTextSearchReport applyProjectTextReplacements(const AssetTextSearchReport& 
 		QSaveFile output(change.filePath);
 		if (!unchanged(report.rootPath, change)) {
 			report.saveState = QStringLiteral("failed");
-			report.warnings << QCoreApplication::translate("VibeStudioProjectText", "File changed during replacement: %1. Search again.").arg(change.filePath);
+			report.warnings << QCoreApplication::translate("SlopStudioProjectText", "File changed during replacement: %1. Search again.").arg(change.filePath);
 			return report;
 		}
 		if (!output.open(QIODevice::WriteOnly) || output.write(change.replacementBytes) != change.replacementBytes.size()) {
 			report.saveState = QStringLiteral("failed");
-			report.warnings << QCoreApplication::translate("VibeStudioProjectText", "Unable to write %1: %2").arg(change.filePath, output.errorString());
+			report.warnings << QCoreApplication::translate("SlopStudioProjectText", "Unable to write %1: %2").arg(change.filePath, output.errorString());
 			return report;
 		}
 		if (cancelRequested(report, isCancelled)) { return report; }
 		if (!unchanged(report.rootPath, change)) {
 			report.saveState = QStringLiteral("failed");
-			report.warnings << QCoreApplication::translate("VibeStudioProjectText", "File changed during replacement: %1. Search again.").arg(change.filePath);
+			report.warnings << QCoreApplication::translate("SlopStudioProjectText", "File changed during replacement: %1. Search again.").arg(change.filePath);
 			return report;
 		}
 		if (!output.commit()) {
 			report.saveState = QStringLiteral("failed");
-			report.warnings << QCoreApplication::translate("VibeStudioProjectText", "Unable to save %1: %2").arg(change.filePath, output.errorString());
+			report.warnings << QCoreApplication::translate("SlopStudioProjectText", "Unable to save %1: %2").arg(change.filePath, output.errorString());
 			return report;
 		}
 		report.writtenFiles << change.filePath;
@@ -471,30 +471,30 @@ AssetTextSearchReport applyProjectTextReplacements(const AssetTextSearchReport& 
 QString assetTextSearchReportText(const AssetTextSearchReport& report)
 {
 	QStringList lines;
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Project text search");
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Root: %1").arg(report.rootPath);
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Find: %1").arg(report.findText);
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Replace: %1").arg(report.replace ? report.replaceText : QCoreApplication::translate("VibeStudioProjectText", "disabled"));
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Project text search");
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Root: %1").arg(report.rootPath);
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Find: %1").arg(report.findText);
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Replace: %1").arg(report.replace ? report.replaceText : QCoreApplication::translate("SlopStudioProjectText", "disabled"));
 	// Preserve the original CLI labels for scripts consuming text output.
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Mode: %1").arg(report.dryRun
-		? QCoreApplication::translate("VibeStudioProjectText", "dry run") : QCoreApplication::translate("VibeStudioProjectText", "write"));
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Files scanned: %1").arg(report.filesScanned);
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Open documents scanned: %1").arg(report.buffersScanned);
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Files with matches: %1").arg(report.filesWithMatches);
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Matches: %1").arg(report.matchCount);
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Replacements: %1").arg(report.replacementCount);
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Save state: %1").arg(report.saveState);
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Files skipped: %1").arg(report.filesSkipped);
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Replacements applied: %1").arg(report.replacementsApplied);
-	lines << QCoreApplication::translate("VibeStudioProjectText", "Complete: %1; cancelled: %2").arg(report.complete).arg(report.cancelled);
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Mode: %1").arg(report.dryRun
+		? QCoreApplication::translate("SlopStudioProjectText", "dry run") : QCoreApplication::translate("SlopStudioProjectText", "write"));
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Files scanned: %1").arg(report.filesScanned);
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Open documents scanned: %1").arg(report.buffersScanned);
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Files with matches: %1").arg(report.filesWithMatches);
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Matches: %1").arg(report.matchCount);
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Replacements: %1").arg(report.replacementCount);
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Save state: %1").arg(report.saveState);
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Files skipped: %1").arg(report.filesSkipped);
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Replacements applied: %1").arg(report.replacementsApplied);
+	lines << QCoreApplication::translate("SlopStudioProjectText", "Complete: %1; cancelled: %2").arg(report.complete).arg(report.cancelled);
 	for (const auto& match : report.matches) {
 		lines << QStringLiteral("%1:%2:%3  %4").arg(QDir::toNativeSeparators(match.filePath)).arg(match.line).arg(match.column).arg(match.lineText.left(2000));
 		if (report.replace) { lines << QStringLiteral("  → %1").arg(match.replacementLine.left(2000)); }
 	}
-	for (const auto& path : report.editedBuffers) { lines << QCoreApplication::translate("VibeStudioProjectText", "Edited, not saved: %1").arg(path); }
-	for (const auto& path : report.writtenFiles) { lines << QCoreApplication::translate("VibeStudioProjectText", "Saved: %1").arg(path); }
-	for (const auto& warning : report.warnings) { lines << QCoreApplication::translate("VibeStudioProjectText", "Warning: %1").arg(warning); }
+	for (const auto& path : report.editedBuffers) { lines << QCoreApplication::translate("SlopStudioProjectText", "Edited, not saved: %1").arg(path); }
+	for (const auto& path : report.writtenFiles) { lines << QCoreApplication::translate("SlopStudioProjectText", "Saved: %1").arg(path); }
+	for (const auto& warning : report.warnings) { lines << QCoreApplication::translate("SlopStudioProjectText", "Warning: %1").arg(warning); }
 	return lines.join(QLatin1Char('\n'));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

@@ -14,7 +14,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 
 QWidget *ApplicationShell::buildLevelCameraPlacementTools()
@@ -245,4 +245,4 @@ void ApplicationShell::placeLevelMapPaletteAtCamera()
 								 .arg(origin[2], 0, 'g', 8));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

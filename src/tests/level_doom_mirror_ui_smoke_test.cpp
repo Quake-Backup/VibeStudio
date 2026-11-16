@@ -17,9 +17,9 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
-namespace d = vibestudio::tests::doom;
-namespace f = vibestudio::tests::doomMirror;
+using namespace slopstudio;
+namespace d = slopstudio::tests::doom;
+namespace f = slopstudio::tests::doomMirror;
 namespace {
 bool ok = true;
 bool expect(bool value, const char* message, const QString& detail = {}) {
@@ -47,7 +47,7 @@ class Expansion final : public QTranslator {
 	}
 };
 void capture(QWidget& widget, const QString& name) {
-	const auto path = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+	const auto path = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 	if (path.isEmpty()) {
 		return;
 	}

@@ -24,7 +24,7 @@
 
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 bool ok = true;
@@ -45,7 +45,7 @@ bool writeFile(const QString& path, const QByteArray& bytes)
 	return file.open(QIODevice::WriteOnly | QIODevice::Truncate) && file.write(bytes) == bytes.size();
 }
 
-// A stand-in for vibemap2-bsp: a minimal Quake BSP beside the .map it is given.
+// A stand-in for slopmap2-bsp: a minimal Quake BSP beside the .map it is given.
 int fakeCompiler(const QStringList& arguments)
 {
 	QString output;
@@ -108,8 +108,8 @@ void pipelineTests(const QString& folder)
 			&& pipeline.stages[2].optional,
 		"stages read the previous output; every stage can be turned off");
 	expect(projectBuildPipelineProblems(pipeline, {pipeline}).isEmpty(), "a good pipeline", projectBuildPipelineProblems(pipeline, {pipeline}).join('\n'));
-	expect(projectBuildPipelineStageId(QStringLiteral("vibemap2-light"), pipeline) == QStringLiteral("light-2"), "stage ids stay unique",
-		projectBuildPipelineStageId(QStringLiteral("vibemap2-light"), pipeline));
+	expect(projectBuildPipelineStageId(QStringLiteral("slopmap2-light"), pipeline) == QStringLiteral("light-2"), "stage ids stay unique",
+		projectBuildPipelineStageId(QStringLiteral("slopmap2-light"), pipeline));
 
 	const auto problemOf = [](BuildPipelineDescriptor broken, const QVector<BuildPipelineDescriptor>& all = {}) {
 		normalizeProjectBuildPipeline(&broken);
@@ -135,7 +135,7 @@ void pipelineTests(const QString& folder)
 	broken.stages[2].profileId = QStringLiteral("nope");
 	expect(problemOf(broken).contains(QStringLiteral("nope")), "an unknown compiler is named");
 	broken = pipeline;
-	broken.stages[2].profileId = QStringLiteral("vibemap3-light");
+	broken.stages[2].profileId = QStringLiteral("slopmap3-light");
 	expect(problemOf(broken).contains(QStringLiteral("idTech3")), "one game's compilers per pipeline");
 	broken = pipeline;
 	broken.stages[0].argumentLine = QStringLiteral("-note \"open");
@@ -204,7 +204,7 @@ void planTests(const QString& folder)
 	request.inputPath = map;
 	request.workspaceRootPath = project;
 	request.dryRun = true;
-	for (const char* tool : {"vibemap2-bsp", "vibemap2-vis", "vibemap2-light"}) {
+	for (const char* tool : {"slopmap2-bsp", "slopmap2-vis", "slopmap2-light"}) {
 		request.executableOverrides.push_back({QString::fromLatin1(tool), QCoreApplication::applicationFilePath()});
 	}
 	BuildPipelineResult plan = planBuildPipeline(request);
@@ -254,14 +254,14 @@ void trustTests(const QString& folder)
 	expect(writeFile(program, QByteArrayLiteral("MZ not really a compiler")), "a program in the project");
 	const QString self = QCoreApplication::applicationFilePath();
 
-	const QVector<KnownCompilerProgram> known = knownCompilerPrograms(userCompilerRegistryOptions({{QStringLiteral("vibemap2-bsp"), self}}));
+	const QVector<KnownCompilerProgram> known = knownCompilerPrograms(userCompilerRegistryOptions({{QStringLiteral("slopmap2-bsp"), self}}));
 	bool configured = false;
 	for (const KnownCompilerProgram& compiler : known) {
 		configured = configured || (QFileInfo(compiler.path) == QFileInfo(self) && compiler.configured && compiler.engineFamily == QStringLiteral("idTech2"));
 	}
 	expect(configured, "a Toolchain path is a known compiler");
 
-	BuildProgramUse mine {self, QStringLiteral("vibemap2-bsp start.map"), project, QStringLiteral("bsp"), QStringLiteral("idTech2")};
+	BuildProgramUse mine {self, QStringLiteral("slopmap2-bsp start.map"), project, QStringLiteral("bsp"), QStringLiteral("idTech2")};
 	BuildProgramUse theirs {program, QStringLiteral("evil.exe start.map"), project, QStringLiteral("bsp"), QStringLiteral("idTech2")};
 	BuildProgramUse gone {QDir(project).filePath(QStringLiteral("tools/missing.exe")), QStringLiteral("missing"), project, QString(), QString()};
 	BuildProgramReview review = reviewBuildPrograms({mine, theirs, gone}, project, known, {});
@@ -269,7 +269,7 @@ void trustTests(const QString& folder)
 		"known, untrusted and missing programs");
 	expect(review.untrustedPrograms().size() == 1 && QFileInfo(review.untrustedPrograms()[0]) == QFileInfo(program), "the untrusted program is named once");
 	const QString text = buildProgramReviewText(review);
-	expect(text.contains(QStringLiteral("evil.exe start.map")) && text.contains(QStringLiteral("evil.exe")) && !text.contains(QStringLiteral("vibemap2-bsp start.map")),
+	expect(text.contains(QStringLiteral("evil.exe start.map")) && text.contains(QStringLiteral("evil.exe")) && !text.contains(QStringLiteral("slopmap2-bsp start.map")),
 		"the text shows the untrusted command line only", text);
 	expect(buildProgramReviewJson(review).value(QStringLiteral("programs")).toArray().size() == 3, "JSON lists every program");
 
@@ -278,7 +278,7 @@ void trustTests(const QString& folder)
 	expect(reviewBuildPrograms({mine}, project, known, {}).trust.value(0) == BuildProgramTrust::Untrusted, "a known compiler of another game asks");
 
 	// Discovery from inside the project's folder proves nothing.
-	KnownCompilerProgram discovered {QStringLiteral("vibemap2-bsp"), QStringLiteral("idTech2"), program, false};
+	KnownCompilerProgram discovered {QStringLiteral("slopmap2-bsp"), QStringLiteral("idTech2"), program, false};
 	expect(reviewBuildPrograms({theirs}, project, {discovered}, {}).trust.value(0) == BuildProgramTrust::Untrusted
 			&& reviewBuildPrograms({theirs}, folder + QStringLiteral("/elsewhere"), {discovered}, {}).trust.value(0) == BuildProgramTrust::Known,
 		"a discovered compiler inside the project is not known");
@@ -310,12 +310,12 @@ void trustTests(const QString& folder)
 
 	// A saved run claims a profile: its program must be that game's compiler.
 	CompilerCommandManifest manifest;
-	manifest.profileId = QStringLiteral("vibemap2-bsp");
+	manifest.profileId = QStringLiteral("slopmap2-bsp");
 	manifest.program = program;
 	manifest.arguments = {QStringLiteral("start.map")};
 	manifest.workingDirectory = project;
 	const BuildProgramUse replay = compilerManifestProgramUse(manifest);
-	expect(replay.engineFamily == QStringLiteral("idTech2") && replay.commandLine.contains(QStringLiteral("start.map")) && replay.label == QStringLiteral("vibemap2-bsp"),
+	expect(replay.engineFamily == QStringLiteral("idTech2") && replay.commandLine.contains(QStringLiteral("start.map")) && replay.label == QStringLiteral("slopmap2-bsp"),
 		"a saved run's program use");
 }
 
@@ -342,7 +342,7 @@ void cliTests(const QString& executable, const QString& folder)
 	expect(writeFile(map, mapText()), "CLI map");
 	// The project names the test program as its BSP compiler: project data.
 	ProjectManifest manifest = defaultProjectManifest(project, QStringLiteral("CLI pipelines"));
-	manifest.compilerToolOverrides = {{QStringLiteral("vibemap2-bsp"), QCoreApplication::applicationFilePath()}};
+	manifest.compilerToolOverrides = {{QStringLiteral("slopmap2-bsp"), QCoreApplication::applicationFilePath()}};
 	expect(saveProjectManifest(manifest), "CLI project");
 
 	run({"build", "pipeline-set", "fast"}, 2);
@@ -362,7 +362,7 @@ void cliTests(const QString& executable, const QString& folder)
 	run({"build", "pipeline-set", "fast", "--workspace-root", project, "--stage-args", "nope=-x"}, 4);
 	run({"build", "pipeline-set", "fast", "--workspace-root", project, "--stage", "bad"}, 2);
 	run({"build", "pipeline-set", "fast", "--workspace-root", project, "--stage-args", "light=-extra ${NOPE}"}, 4);
-	result = run({"build", "pipeline-set", "mine", "--workspace-root", project, "--name", "BSP only", "--stage", "bsp=vibemap2-bsp", "--stage-args",
+	result = run({"build", "pipeline-set", "mine", "--workspace-root", project, "--name", "BSP only", "--stage", "bsp=slopmap2-bsp", "--stage-args",
 		"bsp=--fake-compiler -name ${MAP_NAME}"});
 	expect(result["saved"].toBool() && result["pipeline"].toObject()["stages"].toArray().size() == 1, "a pipeline from --stage");
 

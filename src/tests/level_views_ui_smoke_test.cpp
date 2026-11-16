@@ -21,7 +21,7 @@
 #include <QTranslator>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 namespace
 {
 bool expect(bool condition, const char *label, const QString &detail = {})
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
 			ok &= expect(view->isVisible() && view->width() >= 240 && view->height() >= 180,
 						 "each expanded pane remains visible with usable extent");
 		}
-		const auto captures = qEnvironmentVariable("VIBESTUDIO_TEST_CAPTURE_DIR");
+		const auto captures = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR");
 		if (!captures.isEmpty()) {
 			QDir().mkpath(captures);
 			for (auto *widget : {static_cast<QWidget *>(views), static_cast<QWidget *>(&shell)}) {

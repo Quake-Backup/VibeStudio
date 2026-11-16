@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-namespace vibestudio
+namespace slopstudio
 {
 namespace
 {
@@ -122,4 +122,4 @@ bool levelEntityPlacesModel(const LevelMapEntity &entity)
 	const auto model = property(entity, QStringLiteral("model")).trimmed();
 	return !model.isEmpty() && !model.startsWith(QLatin1Char('*'));
 }
-} // namespace vibestudio
+} // namespace slopstudio

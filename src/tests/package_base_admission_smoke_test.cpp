@@ -9,8 +9,8 @@
 #include <iostream>
 #include <utility>
 
-using namespace vibestudio;
-using namespace vibestudio::subset_test;
+using namespace slopstudio;
+using namespace slopstudio::subset_test;
 
 namespace {
 bool expect(bool value, const char* message, const QString& error = {})

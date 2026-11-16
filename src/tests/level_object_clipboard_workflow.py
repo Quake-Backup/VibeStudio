@@ -1,4 +1,4 @@
-"""Original object copy/cut -> paste -> VibeMap3 -> PK3 acceptance fixtures.
+"""Original object copy/cut -> paste -> SlopMap3 -> PK3 acceptance fixtures.
 
 Generated geometry and textures only; no game launch, OS input or screen capture.
 """

@@ -6,7 +6,7 @@
 #include <QHash>
 #include <QSet>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelRegionSelectionRequest {
 	LevelRegionSelectionPolicy policy = LevelRegionSelectionPolicy::Bounds;
 	LevelMapRegionSelection mode = LevelMapRegionSelection::Inside;
@@ -24,9 +24,9 @@ struct LevelRegionSelectionReport {
 // Bounds replaces selection without changing geometry. TB uses each convex
 // brush and consumes the selected brushes. Radiant uses each brush's AABB:
 // Inside consumes all selected objects; Touching adds to the current selection.
-// Tall modes project along axis; Radiant tall modes are a VibeStudio extension.
+// Tall modes project along axis; Radiant tall modes are a SlopStudio extension.
 // Consuming operations restore source objects AND selection in one undo step.
 // Failure/cancellation never publishes a partial map, selection or report.
 bool selectLevelMapByRegion(LevelMapDocument* document, const LevelRegionSelectionRequest& request,
 	LevelRegionSelectionReport* report = nullptr, QString* error = nullptr);
-} // namespace vibestudio
+} // namespace slopstudio

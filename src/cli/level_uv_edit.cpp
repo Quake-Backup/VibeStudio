@@ -22,7 +22,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 namespace {
 struct Text {
 	Q_DECLARE_TR_FUNCTIONS(LevelUvEditCli)
@@ -474,4 +474,4 @@ LevelUvEditCliResult runLevelUvEdit(const QStringList& arguments)
 	result.lines << levelMapSaveReportText(saved);
 	return result;
 }
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

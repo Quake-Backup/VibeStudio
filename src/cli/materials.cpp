@@ -33,7 +33,7 @@
 #include <initializer_list>
 #include <memory>
 
-namespace vibestudio::cli {
+namespace slopstudio::cli {
 
 namespace {
 
@@ -1427,7 +1427,7 @@ MaterialsCliResult renderCommand(const QStringList& arguments)
 		return fail(kUsage, Text::tr("Give --output for the image, or --dry-run to render without writing."));
 	}
 	if (!output.isEmpty() && !QImageWriter::supportedImageFormats().contains(QFileInfo(output).suffix().toLower().toLatin1())) {
-		return fail(kUsage, Text::tr("%1 has no image type VibeStudio can write; use .png.").arg(native(output)));
+		return fail(kUsage, Text::tr("%1 has no image type SlopStudio can write; use .png.").arg(native(output)));
 	}
 	int frames = 1;
 	double fps = 10.0;
@@ -2632,4 +2632,4 @@ MaterialsCliResult runMaterialCommand(const QString& action, const QStringList& 
 	return fail(kUsage, Text::tr("Unknown material command %1; use %2.").arg(action, materialCommandActions().join(QStringLiteral(", "))));
 }
 
-} // namespace vibestudio::cli
+} // namespace slopstudio::cli

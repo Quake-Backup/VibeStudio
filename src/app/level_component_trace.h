@@ -2,7 +2,7 @@
 #include "app/level_component_gizmo.h"
 #include <QPalette>
 
-namespace vibestudio {
+namespace slopstudio {
 struct LevelComponentTraceLabel {
 	int axis = -1;
 	QRectF bounds;
@@ -14,4 +14,4 @@ struct LevelComponentTraceLabel {
 QVector<LevelComponentTraceLabel> paintLevelComponentTrace(QPainter& painter,
 	const LevelComponentGizmoFrame& frame,LevelMapVec3 origin,LevelMapVec3 position,
 	int constrainedAxis,bool pending,bool highContrast,const QPalette& palette);
-} // namespace vibestudio
+} // namespace slopstudio

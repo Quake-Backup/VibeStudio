@@ -40,14 +40,14 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
 #include <cmath>
 #include <iostream>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -313,7 +313,7 @@ int main(int argc, char** argv)
 				[&] { action(QStringLiteral("map.rotateTexturesCounterclockwise"))->trigger(); },
 				QStringLiteral("Rotate Textures Counter-clockwise on the picked face"));
 
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 			if (tb && !cameraLive) {
 				std::cout << "The offscreen camera has no renderer here; its key checks are skipped." << std::endl;
 			}

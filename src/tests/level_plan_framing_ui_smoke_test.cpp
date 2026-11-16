@@ -41,7 +41,7 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 #include <QTest>
 #endif
 
@@ -52,7 +52,7 @@
 #include <iostream>
 #include <utility>
 
-using namespace vibestudio;
+using namespace slopstudio;
 
 namespace {
 
@@ -139,7 +139,7 @@ int main(int argc, char** argv)
 {
 	qputenv("QT_QPA_PLATFORM", "offscreen");
 	// Read Aloud is pressed below: log what would be said, silently.
-	qputenv("VIBESTUDIO_SPEECH_ENGINE", "log");
+	qputenv("SLOPSTUDIO_SPEECH_ENGINE", "log");
 #ifdef Q_OS_WIN
 	qputenv("QT_QPA_FONTDIR", QDir(qEnvironmentVariable("SystemRoot")).filePath(QStringLiteral("Fonts")).toLocal8Bit());
 #endif
@@ -265,7 +265,7 @@ int main(int argc, char** argv)
 				expect(at(plan, MapViewportProjection::FrontXZ, pillarFront, 0.8), "Front View keeps the zoom and centres on the selection", describe(plan));
 				action("map.nextProjection")->trigger();
 				expect(at(plan, MapViewportProjection::SideZY, pillarSide, 0.8), "Next 2D View keeps the zoom and centres on the selection", describe(plan));
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				// NRC's Ctrl+Tab in the plan view steps the plane ahead of the
 				// view's own Ctrl+Tab, which extends the selection elsewhere.
 				if (focus(plan)) {
@@ -356,7 +356,7 @@ int main(int argc, char** argv)
 				expect(at(plan, MapViewportProjection::TopXY, {-40, 20}, 5) && at(side, MapViewportProjection::SideZY, {70, 30}, 5)
 						&& at(front, MapViewportProjection::FrontXZ, {-40, 30}, 5),
 					"Reset 2D Views from the front pane gives X and Z, keeping Y", describe(plan) + QStringLiteral(" / ") + describe(side));
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				// Where Reset 2D Views can act, Ctrl+Shift+U still reads aloud.
 				spread();
 				if (focus(plan)) {
@@ -404,7 +404,7 @@ int main(int argc, char** argv)
 
 	// A Doom map: Draw Sector switches the one plan view to Top, keeping its
 	// zoom and centring on the selected sector, as any change of plane does.
-	settings.setSelectedEditorProfileId(QStringLiteral("vibestudio-default"));
+	settings.setSelectedEditorProfileId(QStringLiteral("slopstudio-default"));
 	settings.setTextScalePercent(100);
 	settings.setTheme(StudioTheme::Dark);
 	settings.setLevelViewLayoutPreference(QStringLiteral("camera-and-plan"));
@@ -493,7 +493,7 @@ int main(int argc, char** argv)
 					expect(other == readAloud || !other->shortcuts().contains(readAloudKey), "no other command takes Ctrl+Shift+U",
 						profile.id + QLatin1Char(' ') + other->objectName());
 				}
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 				for (QWidget* view : std::initializer_list<QWidget*> {top, front, side, camera}) {
 					shell.activateWindow();
 					expect(until([&] { return QApplication::activeWindow() == &shell; }), "owned offscreen window is active");
@@ -509,7 +509,7 @@ int main(int argc, char** argv)
 				}
 #endif
 			}
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 			expect(loggedSpeechForTesting().size() > spokenBefore, "Read Aloud spoke (to the log)");
 #endif
 		}
@@ -539,7 +539,7 @@ int main(int argc, char** argv)
 				"opt-in shell ready")) {
 			expect(action("map.resetPlanViews")->shortcuts().contains(readAloudKey) && readAloud->shortcuts().contains(readAloudKey),
 				"the user's key and Read Aloud share Ctrl+Shift+U");
-#ifdef VIBESTUDIO_HAVE_QTEST
+#ifdef SLOPSTUDIO_HAVE_QTEST
 			int readCount = 0;
 			QObject::connect(readAloud, &QAction::triggered, &shell, [&readCount] { ++readCount; });
 			top->applyLinkedNavigation({0, {10, 20}, 2});

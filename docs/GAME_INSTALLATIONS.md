@@ -1,6 +1,6 @@
 # Game Installations
 
-VibeStudio builds on PakFu's installation profile concept and expands it into
+SlopStudio builds on PakFu's installation profile concept and expands it into
 project-aware game management.
 
 ## Current Implementation
@@ -83,8 +83,8 @@ Each profile should eventually include:
   arguments planned]
 - Palette and texture defaults. [palette default active; texture defaults
   planned]
-- Compiler profile defaults. [active: `vibemap2` for Quake and Quake II,
-  `vibemap3` for Quake III; profiles saved with the earlier `ericw-tools` and
+- Compiler profile defaults. [active: `slopmap2` for Quake and Quake II,
+  `slopmap3` for Quake III; profiles saved with the earlier `ericw-tools` and
   `q3map2` labels migrate automatically]
 - Validation rules for required files. [active]
 - Project-local selected-install overrides. [active]
@@ -92,7 +92,7 @@ Each profile should eventually include:
 ## Safety Rules
 Prepared Quake-family builds deploy the complete captured assets and runtime
 outputs through the ordinary package publisher. Quake/Quake II use reviewed
-numbered PAK slots; Quake III uses `vibestudio_<map>.pk3`. A per-slot receipt
+numbered PAK slots; Quake III uses `slopstudio_<map>.pk3`. A per-slot receipt
 remembers each classic map without authorizing replacement of registered base
 or mod packages. Read-only permission is granted per operation and never saved
 as a profile change. Review details, backup behavior and source-port limitations

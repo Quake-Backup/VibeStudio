@@ -4,7 +4,7 @@
 
 // Small public helpers for the Mesh Editor's modal tools and selection
 // overlays. They reuse the viewport's own camera state and projection.
-namespace vibestudio
+namespace slopstudio
 {
 ModelPickRay ModelViewport::viewRay(const QPointF &point)
 {
@@ -155,4 +155,4 @@ void ModelViewport::clearTexCoordPreview()
 {
 	setTexCoordPreview({}, {});
 }
-} // namespace vibestudio
+} // namespace slopstudio

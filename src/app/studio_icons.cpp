@@ -15,7 +15,7 @@
 #include <initializer_list>
 #include <utility>
 
-namespace vibestudio {
+namespace slopstudio {
 
 namespace {
 
@@ -1175,7 +1175,7 @@ public:
 
 	QString key() const override
 	{
-		return QStringLiteral("vibestudio-glyph");
+		return QStringLiteral("slopstudio-glyph");
 	}
 
 	QString iconName() override
@@ -1228,4 +1228,4 @@ QStringList studioIconNames()
 	return names;
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

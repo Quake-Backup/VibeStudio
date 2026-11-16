@@ -15,7 +15,7 @@
 
 #include <algorithm>
 
-namespace vibestudio {
+namespace slopstudio {
 namespace {
 
 constexpr qint64 recoveryByteLimit = 6ll * 1024 * 1024;
@@ -185,4 +185,4 @@ bool removeTextRecovery(const QString& directory, const QString& id, QString* er
 	return fail(QCoreApplication::translate("TextRecovery", "The recovery copy could not be discarded."));
 }
 
-} // namespace vibestudio
+} // namespace slopstudio

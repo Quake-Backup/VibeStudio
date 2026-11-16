@@ -12,7 +12,7 @@
 
 class QIODevice;
 
-namespace vibestudio {
+namespace slopstudio {
 
 // Checkpoints are an internal fault-injection seam. Production callers leave
 // the hook empty; tests can fail or terminate a child process at each boundary.
@@ -118,4 +118,4 @@ struct PackagePublicationInventory {
 PackagePublicationInventory listPackagePublicationJournals(const QStringList& directories, const PackageReadControl& control = {});
 QJsonObject packagePublicationInventoryJson(const PackagePublicationInventory& inventory);
 
-} // namespace vibestudio
+} // namespace slopstudio
