@@ -286,6 +286,8 @@ SlopStudio was called VibeStudio until 15 November 2026. Everything VibeStudio w
 | Models, assemblies, gesture and control profiles, release records and other saved documents | Open as before; they are saved with the new format names. |
 | VibeMap2 and VibeMap3 compiler ids, executables and version banners | Recognised as SlopMap2 and SlopMap3. |
 | `VIBESTUDIO_*` environment variables | Still read when the matching `SLOPSTUDIO_*` variable is not set. |
+| A package's `vibestudio_overrides` material script from **Override in Package** | Kept: later overrides are added to it, so the game still reads every copy in the right order. New packages get a `slopstudio_overrides` script. |
+| Recovery copies of models and package copy reviews | Still match the files they were made from. |
 
 Two things are not carried over:
 

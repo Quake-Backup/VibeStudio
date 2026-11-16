@@ -155,8 +155,8 @@ MaterialRenderResult renderDoom(const MaterialDefinition& definition, const Mate
 	u.setParam(0, band, definition.classic.warpSpeed, options.time);
 	u.setParam(1, repeatWidth, repeatHeight, largestPowerOfTwo(texture->width));
 	GpuDraw textures;
-	gpu.bind(&textures, &u, 0, gpu.texture(texture.get()), Wrap::Repeat);
-	gpu.bind(&textures, &u, 1, gpu.indices(texture.get()), Wrap::Repeat);
+	gpu.bind(&textures, &u, 0, gpu.texture(texture), Wrap::Repeat);
+	gpu.bind(&textures, &u, 1, gpu.indices(texture), Wrap::Repeat);
 	gpu.bind(&textures, &u, 2, gpu.palette(paletteFor(images, *texture)), Wrap::Clamp);
 	gpu.bind(&textures, &u, 3, gpu.rows(colormap, 34), Wrap::Clamp);
 	GpuState state;
@@ -255,14 +255,14 @@ MaterialRenderResult renderQuakeFamily(const MaterialDefinition& definition, con
 	if (quake2 && sky) {
 		for (int face = 0; face < 6; ++face) {
 			const MaterialTexturePtr& faceTexture = skyBox ? skyBox->faces[size_t(face)] : MaterialTexturePtr();
-			gpu.bind(&textures, &u, face, faceTexture && faceTexture->usable() ? gpu.texture(faceTexture.get()) : -1, Wrap::Clamp);
+			gpu.bind(&textures, &u, face, faceTexture && faceTexture->usable() ? gpu.texture(faceTexture) : -1, Wrap::Clamp);
 		}
 	} else if (usable) {
-		gpu.bind(&textures, &u, 0, gpu.texture(texture.get()), Wrap::Repeat);
-		gpu.bind(&textures, &u, 1, gpu.indices(texture.get()), Wrap::Repeat);
+		gpu.bind(&textures, &u, 0, gpu.texture(texture), Wrap::Repeat);
+		gpu.bind(&textures, &u, 1, gpu.indices(texture), Wrap::Repeat);
 		gpu.bind(&textures, &u, 2, gpu.palette(paletteFor(images, *texture)), Wrap::Clamp);
 		gpu.bind(&textures, &u, 3, gpu.rows(colormap, 64), Wrap::Clamp);
-		gpu.bind(&textures, &u, 4, companionGlow ? gpu.texture(companionGlow.get()) : -1, Wrap::Repeat);
+		gpu.bind(&textures, &u, 4, companionGlow ? gpu.texture(companionGlow) : -1, Wrap::Repeat);
 	}
 	GpuState state;
 	state.depthTest = true;

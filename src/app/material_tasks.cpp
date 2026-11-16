@@ -1,8 +1,29 @@
 #include "app/material_tasks.h"
 
+#include <QMetaObject>
 #include <QThread>
 
+#include <condition_variable>
+#include <mutex>
+
 namespace slopstudio {
+
+namespace {
+
+// The stop flag of the task this worker thread is running.
+thread_local const std::atomic_bool* t_currentStop = nullptr;
+
+} // namespace
+
+// What the GUI thread hands the lane's worker thread: one task at a time.
+struct MaterialTaskLane::Worker {
+	std::mutex mutex;
+	std::condition_variable wake;
+	Task task;
+	std::shared_ptr<std::atomic_bool> stop;
+	bool hasTask = false;
+	bool quit = false;
+};
 
 MaterialTaskLane::MaterialTaskLane(QObject* parent)
 	: QObject(parent)
@@ -17,7 +38,15 @@ MaterialTaskLane::~MaterialTaskLane()
 		m_stop->store(true);
 	}
 	if (m_thread) {
-		disconnect(m_thread, nullptr, this, nullptr);
+		{
+			const std::lock_guard<std::mutex> lock(m_worker->mutex);
+			m_worker->quit = true;
+			m_worker->hasTask = false;
+			m_worker->task = {};
+		}
+		m_worker->wake.notify_all();
+		// The running task sees its stop flag and returns; its result, posted
+		// to this lane, goes with it.
 		m_thread->wait();
 		delete m_thread;
 		m_thread = nullptr;
@@ -45,17 +74,22 @@ void MaterialTaskLane::cancel()
 
 bool MaterialTaskLane::busy() const
 {
-	return m_thread != nullptr;
+	return m_running;
 }
 
 bool MaterialTaskLane::pending() const
 {
-	return m_thread != nullptr || m_hasQueued;
+	return m_running || m_hasQueued;
+}
+
+const std::atomic_bool* MaterialTaskLane::currentStopFlag()
+{
+	return t_currentStop;
 }
 
 void MaterialTaskLane::startNext()
 {
-	if (m_thread || !m_hasQueued) {
+	if (m_running || !m_hasQueued) {
 		return;
 	}
 	Task task = std::move(m_queued);
@@ -63,23 +97,57 @@ void MaterialTaskLane::startNext()
 	m_hasQueued = false;
 	auto stop = std::make_shared<std::atomic_bool>(false);
 	m_stop = stop;
-	auto publish = std::make_shared<std::function<void()>>();
-	m_thread = QThread::create([task = std::move(task), stop, publish]() {
-		*publish = task([stop]() { return stop->load(std::memory_order_relaxed); });
-	});
-	m_thread->setObjectName(QStringLiteral("MaterialTask"));
-	connect(m_thread, &QThread::finished, this, [this, stop, publish]() {
-		QThread* finished = m_thread;
-		m_thread = nullptr;
-		if (finished) {
-			finished->deleteLater();
-		}
-		if (!stop->load() && *publish) {
-			(*publish)();
-		}
-		startNext();
-	});
-	m_thread->start(QThread::LowPriority);
+	m_running = true;
+	if (!m_thread) {
+		// One worker for the lane's life, started with its first task.
+		m_worker = std::make_shared<Worker>();
+		const std::shared_ptr<Worker> worker = m_worker;
+		MaterialTaskLane* lane = this;
+		m_thread = QThread::create([worker, lane]() {
+			for (;;) {
+				Task next;
+				std::shared_ptr<std::atomic_bool> flag;
+				{
+					std::unique_lock<std::mutex> lock(worker->mutex);
+					worker->wake.wait(lock, [&worker]() { return worker->quit || worker->hasTask; });
+					if (worker->quit) {
+						return;
+					}
+					next = std::move(worker->task);
+					worker->task = {};
+					worker->hasTask = false;
+					flag = worker->stop;
+				}
+				auto publish = std::make_shared<std::function<void()>>();
+				t_currentStop = flag.get();
+				*publish = next([flag]() { return flag->load(std::memory_order_relaxed); });
+				t_currentStop = nullptr;
+				next = {};
+				// The lane outlives this thread (its destructor waits), and a
+				// result posted to a lane being destroyed is dropped with it.
+				QMetaObject::invokeMethod(
+					lane, [lane, flag, publish]() { lane->finished(flag, publish); }, Qt::QueuedConnection);
+			}
+		});
+		m_thread->setObjectName(QStringLiteral("MaterialTask"));
+		m_thread->start(QThread::LowPriority);
+	}
+	{
+		const std::lock_guard<std::mutex> lock(m_worker->mutex);
+		m_worker->task = std::move(task);
+		m_worker->stop = stop;
+		m_worker->hasTask = true;
+	}
+	m_worker->wake.notify_one();
+}
+
+void MaterialTaskLane::finished(const std::shared_ptr<std::atomic_bool>& stop, const std::shared_ptr<std::function<void()>>& publish)
+{
+	m_running = false;
+	if (!stop->load() && *publish) {
+		(*publish)();
+	}
+	startNext();
 }
 
 } // namespace slopstudio

@@ -308,6 +308,8 @@ enum class MaterialStageRole {
 };
 
 QString materialStageRoleId(MaterialStageRole role);
+// "Regular", "Diffuse", ... translated.
+QString materialStageRoleDisplayName(MaterialStageRole role);
 
 enum class MaterialAlphaTest {
 	None,

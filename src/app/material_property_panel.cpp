@@ -2,6 +2,7 @@
 
 #include "core/material_script.h"
 
+#include <QAccessible>
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
@@ -14,21 +15,25 @@
 #include <QLineEdit>
 #include <QScrollArea>
 #include <QSpinBox>
+#include <QTimer>
 #include <QToolButton>
 #include <QVBoxLayout>
 
 #include <cmath>
 #include <functional>
+#include <utility>
 
 namespace slopstudio {
 
 namespace {
 
-// A number field: Up and Down step it (Shift ten times, Ctrl a tenth), and
-// each step is committed at once so the preview follows.
+// A number field: Up and Down step it (Shift ten times, Ctrl a tenth). The
+// steps are sent when the key is let go, or a moment after the last step
+// while it is held, so the preview follows without an edit per repeat.
 class NumberField final : public QLineEdit {
 public:
 	std::function<void()> stepped;
+	std::function<void()> stepFinished;
 
 	using QLineEdit::QLineEdit;
 
@@ -38,7 +43,7 @@ protected:
 		if (event->key() == Qt::Key_Up || event->key() == Qt::Key_Down) {
 			bool ok = false;
 			const double value = text().trimmed().toDouble(&ok);
-			if (ok) {
+			if (ok && !isReadOnly()) {
 				double step = 0.1;
 				if (event->modifiers() & Qt::ShiftModifier) {
 					step = 1.0;
@@ -56,6 +61,16 @@ protected:
 			}
 		}
 		QLineEdit::keyPressEvent(event);
+	}
+
+	void keyReleaseEvent(QKeyEvent* event) override
+	{
+		if ((event->key() == Qt::Key_Up || event->key() == Qt::Key_Down) && !event->isAutoRepeat() && stepFinished) {
+			stepFinished();
+			event->accept();
+			return;
+		}
+		QLineEdit::keyReleaseEvent(event);
 	}
 };
 
@@ -88,12 +103,10 @@ MaterialPropertyPanel::MaterialPropertyPanel(QWidget* parent)
 	m_scroll->setWidgetResizable(true);
 	m_scroll->setFrameShape(QFrame::NoFrame);
 	m_scroll->setAccessibleName(tr("Node properties"));
-	m_formHost = new QWidget(m_scroll);
-	m_form = new QFormLayout(m_formHost);
-	m_form->setContentsMargins(0, 0, 0, 0);
-	m_form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
-	m_form->setRowWrapPolicy(QFormLayout::WrapLongRows);
-	m_scroll->setWidget(m_formHost);
+	m_stepTimer = new QTimer(this);
+	m_stepTimer->setSingleShot(true);
+	m_stepTimer->setInterval(kStepDelayMs);
+	connect(m_stepTimer, &QTimer::timeout, this, &MaterialPropertyPanel::flushPendingStep);
 	layout->addWidget(m_title);
 	layout->addWidget(m_subtitle);
 	layout->addWidget(m_empty, 1);
@@ -118,6 +131,10 @@ QString MaterialPropertyPanel::signature(const MaterialGraphNode& node) const
 
 void MaterialPropertyPanel::setNode(const MaterialGraphNode* node, bool readOnly)
 {
+	// A step still waiting belongs to the node shown now.
+	if (!node || !m_hasNode || node->id != m_node.id) {
+		flushPendingStep();
+	}
 	if (!node) {
 		m_hasNode = false;
 		m_node = MaterialGraphNode();
@@ -130,8 +147,9 @@ void MaterialPropertyPanel::setNode(const MaterialGraphNode* node, bool readOnly
 	m_hasNode = true;
 	m_readOnly = readOnly;
 	if (sameShape) {
-		m_title->setText(m_node.title);
-		m_title->setAccessibleName(m_node.title);
+		const QString title = materialGraphNodeLabel(m_node);
+		m_title->setText(title);
+		m_title->setAccessibleName(title);
 		m_subtitle->setText(m_node.subtitle);
 		m_subtitle->setVisible(!m_node.subtitle.isEmpty());
 		refreshValues();
@@ -140,74 +158,151 @@ void MaterialPropertyPanel::setNode(const MaterialGraphNode* node, bool readOnly
 	}
 }
 
+QString MaterialPropertyPanel::focusedProperty() const
+{
+	QWidget* focus = QApplication::focusWidget();
+	if (!focus && window()) {
+		focus = window()->focusWidget();
+	}
+	if (!focus || !m_formHost || !m_formHost->isAncestorOf(focus)) {
+		return QString();
+	}
+	for (auto it = m_editors.cbegin(); it != m_editors.cend(); ++it) {
+		QWidget* editor = it.value();
+		if (editor && (editor == focus || editor->isAncestorOf(focus))) {
+			return it.key();
+		}
+	}
+	return QString();
+}
+
 void MaterialPropertyPanel::rebuild()
 {
-	while (m_form->rowCount() > 0) {
-		m_form->removeRow(0);
-	}
+	// Focus goes back to the same property in the new controls.
+	const QString focused = focusedProperty();
+	const bool hadFocus = !focused.isEmpty() || (m_formHost && m_formHost->isAncestorOf(QApplication::focusWidget()));
 	m_editors.clear();
 	m_problems.clear();
+	// The old controls may be the ones whose signal brought us here: they are
+	// taken out now and deleted later, never under their own feet. The new
+	// host is in place first, so anything the old ones send on the way out
+	// is ignored (commit checks where the sender lives).
+	QWidget* previous = m_formHost;
+	m_formHost = new QWidget;
+	m_formHost->setObjectName(QStringLiteral("materialPropertiesForm"));
+	m_form = new QFormLayout(m_formHost);
+	m_form->setContentsMargins(0, 0, 0, 0);
+	m_form->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
+	m_form->setRowWrapPolicy(QFormLayout::WrapLongRows);
+	if (previous) {
+		if (m_scroll->widget() == previous) {
+			m_scroll->takeWidget();
+		}
+		previous->hide();
+		previous->deleteLater();
+	}
 	m_title->setVisible(m_hasNode);
 	m_subtitle->setVisible(m_hasNode && !m_node.subtitle.isEmpty());
 	m_empty->setVisible(!m_hasNode);
 	m_scroll->setVisible(m_hasNode);
-	if (!m_hasNode) {
+	if (m_hasNode) {
+		const QString title = materialGraphNodeLabel(m_node);
+		m_title->setText(title);
+		m_title->setAccessibleName(title);
+		m_subtitle->setText(m_node.subtitle);
+		if (m_node.properties.isEmpty()) {
+			auto* none = new QLabel(tr("This node has nothing to set."), m_formHost);
+			none->setWordWrap(true);
+			m_form->addRow(none);
+		}
+		for (const MaterialGraphProperty& property : m_node.properties) {
+			QWidget* editor = createEditor(property);
+			auto* label = new QLabel(property.label, m_formHost);
+			label->setBuddy(editor);
+			label->setToolTip(property.help);
+			auto* problem = new QLabel(m_formHost);
+			problem->setWordWrap(true);
+			problem->setVisible(false);
+			problem->setForegroundRole(QPalette::BrightText);
+			auto* field = new QWidget(m_formHost);
+			auto* fieldLayout = new QVBoxLayout(field);
+			fieldLayout->setContentsMargins(0, 0, 0, 0);
+			fieldLayout->setSpacing(2);
+			fieldLayout->addWidget(editor);
+			fieldLayout->addWidget(problem);
+			m_form->addRow(label, field);
+			m_editors.insert(property.id, editor);
+			m_problems.insert(property.id, problem);
+		}
+	}
+	m_scroll->setWidget(m_formHost);
+	if (!m_hasNode || !hadFocus) {
 		return;
 	}
-	m_title->setText(m_node.title);
-	m_title->setAccessibleName(m_node.title);
-	m_subtitle->setText(m_node.subtitle);
-	if (m_node.properties.isEmpty()) {
-		auto* none = new QLabel(tr("This node has nothing to set."), m_formHost);
-		none->setWordWrap(true);
-		m_form->addRow(none);
-		return;
+	if (QWidget* editor = m_editors.value(focused); editor && editor->isEnabled()) {
+		editor->setFocus(Qt::OtherFocusReason);
+	} else {
+		focusFirstField();
 	}
-	for (const MaterialGraphProperty& property : m_node.properties) {
-		QWidget* editor = createEditor(property);
-		auto* label = new QLabel(property.label, m_formHost);
-		label->setBuddy(editor);
-		label->setToolTip(property.help);
-		auto* problem = new QLabel(m_formHost);
-		problem->setWordWrap(true);
-		problem->setVisible(false);
-		problem->setForegroundRole(QPalette::BrightText);
-		auto* field = new QWidget(m_formHost);
-		auto* fieldLayout = new QVBoxLayout(field);
-		fieldLayout->setContentsMargins(0, 0, 0, 0);
-		fieldLayout->setSpacing(2);
-		fieldLayout->addWidget(editor);
-		fieldLayout->addWidget(problem);
-		m_form->addRow(label, field);
-		m_editors.insert(property.id, editor);
-		m_problems.insert(property.id, problem);
+}
+
+bool MaterialPropertyPanel::eventFilter(QObject* watched, QEvent* event)
+{
+	// Scrolling the panel over a closed choice or a spin box scrolls; only a
+	// control the user has focused takes the wheel.
+	if (event->type() == QEvent::Wheel) {
+		auto* widget = qobject_cast<QWidget*>(watched);
+		if (widget && !widget->hasFocus()) {
+			event->ignore();
+			return true;
+		}
 	}
+	return QWidget::eventFilter(watched, event);
+}
+
+QString MaterialPropertyPanel::valueText(const MaterialGraphProperty& property, const QString& value) const
+{
+	const int option = static_cast<int>(property.options.indexOf(value));
+	if (option >= 0 && option < property.optionLabels.size()) {
+		return property.optionLabels.at(option);
+	}
+	if (property.type == MaterialGraphPropertyType::Bool) {
+		return value == QStringLiteral("true") ? tr("on") : tr("off");
+	}
+	return value;
 }
 
 QWidget* MaterialPropertyPanel::createEditor(const MaterialGraphProperty& property)
 {
 	const QString id = property.id;
+	// Paths, numbers, vectors and expressions read left to right in every
+	// language; a Doom 3 description is ordinary text.
+	const bool technical = id != QStringLiteral("description");
 	QWidget* editor = nullptr;
 	switch (property.type) {
 	case MaterialGraphPropertyType::Bool: {
 		auto* box = new QCheckBox(m_formHost);
 		box->setChecked(property.value == QStringLiteral("true"));
 		box->setEnabled(!m_readOnly);
-		connect(box, &QCheckBox::toggled, this, [this, id](bool checked) {
-			commit(id, checked ? QStringLiteral("true") : QStringLiteral("false"));
+		connect(box, &QCheckBox::toggled, this, [this, id, box](bool checked) {
+			commit(box, id, checked ? QStringLiteral("true") : QStringLiteral("false"));
 		});
 		editor = box;
 		break;
 	}
 	case MaterialGraphPropertyType::Enum: {
 		auto* combo = new QComboBox(m_formHost);
-		combo->addItems(property.options);
-		if (!property.value.isEmpty() && combo->findText(property.value) < 0) {
-			combo->addItem(property.value);
+		for (int option = 0; option < property.options.size(); ++option) {
+			combo->addItem(property.optionLabels.value(option, property.options.at(option)), property.options.at(option));
 		}
-		combo->setCurrentText(property.value);
+		if (!property.value.isEmpty() && combo->findData(property.value) < 0) {
+			combo->addItem(property.value, property.value);
+		}
+		combo->setCurrentIndex(combo->findData(property.value));
 		combo->setEnabled(!m_readOnly);
-		connect(combo, &QComboBox::activated, this, [this, id, combo](int) { commit(id, combo->currentText()); });
+		combo->setFocusPolicy(Qt::StrongFocus);
+		combo->installEventFilter(this);
+		connect(combo, &QComboBox::activated, this, [this, id, combo](int) { commit(combo, id, combo->currentData().toString()); });
 		editor = combo;
 		break;
 	}
@@ -217,32 +312,39 @@ QWidget* MaterialPropertyPanel::createEditor(const MaterialGraphProperty& proper
 		spin->setKeyboardTracking(false);
 		spin->setValue(property.value.toInt());
 		spin->setEnabled(!m_readOnly);
-		connect(spin, &QSpinBox::valueChanged, this, [this, id](int value) { commit(id, QString::number(value)); });
+		spin->setFocusPolicy(Qt::StrongFocus);
+		spin->setLayoutDirection(Qt::LeftToRight);
+		spin->installEventFilter(this);
+		// Arrow and wheel steps are sent once the stepping stops; Enter or
+		// leaving the field sends at once.
+		connect(spin, &QSpinBox::valueChanged, this, [this, id]() { scheduleStep(id); });
+		connect(spin, &QSpinBox::editingFinished, this, [this, id]() {
+			if (m_stepProperty == id) {
+				flushPendingStep();
+			}
+		});
 		editor = spin;
 		break;
 	}
 	case MaterialGraphPropertyType::Number: {
 		auto* field = new NumberField(property.value, m_formHost);
 		field->setReadOnly(m_readOnly);
+		field->setLayoutDirection(Qt::LeftToRight);
 		field->setToolTip(tr("Up and Down step by 0.1; Shift steps by 1 and Ctrl by 0.01."));
-		const auto apply = [this, id, field]() {
-			bool ok = false;
-			field->text().trimmed().toDouble(&ok);
-			QLabel* problem = m_problems.value(id);
-			if (problem) {
-				problem->setText(ok ? QString() : tr("Enter a number, such as 0.5."));
-				problem->setVisible(!ok);
-			}
-			field->setAccessibleDescription(ok ? QString() : tr("Enter a number, such as 0.5."));
-			if (ok) {
-				commit(id, field->text().trimmed());
+		field->stepped = [this, id]() { scheduleStep(id); };
+		field->stepFinished = [this, id]() {
+			if (m_stepProperty == id) {
+				flushPendingStep();
 			}
 		};
-		field->stepped = apply;
-		connect(field, &QLineEdit::editingFinished, this, [this, id, field, apply]() {
+		connect(field, &QLineEdit::editingFinished, this, [this, id, field]() {
+			if (m_stepProperty == id) {
+				m_stepProperty.clear();
+				m_stepTimer->stop();
+			}
 			const MaterialGraphProperty* current = m_node.property(id);
 			if (!current || field->text().trimmed() != current->value) {
-				apply();
+				commitNumber(field, id);
 			}
 		});
 		editor = field;
@@ -251,6 +353,7 @@ QWidget* MaterialPropertyPanel::createEditor(const MaterialGraphProperty& proper
 	case MaterialGraphPropertyType::Expression: {
 		auto* field = new QLineEdit(property.value, m_formHost);
 		field->setReadOnly(m_readOnly);
+		field->setLayoutDirection(Qt::LeftToRight);
 		const auto check = [this, id, field]() {
 			QVector<MaterialExpressionNode> nodes;
 			QString error;
@@ -266,7 +369,7 @@ QWidget* MaterialPropertyPanel::createEditor(const MaterialGraphProperty& proper
 		connect(field, &QLineEdit::editingFinished, this, [this, id, field, check]() {
 			const MaterialGraphProperty* current = m_node.property(id);
 			if ((!current || field->text().trimmed() != current->value) && check()) {
-				commit(id, field->text().trimmed());
+				commit(field, id, field->text().trimmed());
 			}
 		});
 		editor = field;
@@ -280,6 +383,7 @@ QWidget* MaterialPropertyPanel::createEditor(const MaterialGraphProperty& proper
 		auto* field = new QLineEdit(property.value, host);
 		field->setReadOnly(m_readOnly);
 		field->setAccessibleName(property.label);
+		field->setLayoutDirection(Qt::LeftToRight);
 		if (!m_images.isEmpty()) {
 			auto* completer = new QCompleter(m_images, field);
 			completer->setCaseSensitivity(Qt::CaseInsensitive);
@@ -294,7 +398,7 @@ QWidget* MaterialPropertyPanel::createEditor(const MaterialGraphProperty& proper
 		connect(field, &QLineEdit::editingFinished, this, [this, id, field]() {
 			const MaterialGraphProperty* current = m_node.property(id);
 			if (!current || field->text().trimmed() != current->value) {
-				commit(id, field->text().trimmed());
+				commit(field, id, field->text().trimmed());
 			}
 		});
 		row->addWidget(field, 1);
@@ -314,10 +418,13 @@ QWidget* MaterialPropertyPanel::createEditor(const MaterialGraphProperty& proper
 	case MaterialGraphPropertyType::Text: {
 		auto* field = new QLineEdit(property.value, m_formHost);
 		field->setReadOnly(m_readOnly);
+		if (technical) {
+			field->setLayoutDirection(Qt::LeftToRight);
+		}
 		connect(field, &QLineEdit::editingFinished, this, [this, id, field]() {
 			const MaterialGraphProperty* current = m_node.property(id);
 			if (!current || field->text() != current->value) {
-				commit(id, field->text());
+				commit(field, id, field->text());
 			}
 		});
 		editor = field;
@@ -348,10 +455,10 @@ void MaterialPropertyPanel::refreshValues()
 		if (auto* box = qobject_cast<QCheckBox*>(editor)) {
 			box->setChecked(property.value == QStringLiteral("true"));
 		} else if (auto* combo = qobject_cast<QComboBox*>(editor)) {
-			if (combo->findText(property.value) < 0) {
-				combo->addItem(property.value);
+			if (combo->findData(property.value) < 0) {
+				combo->addItem(property.value, property.value);
 			}
-			combo->setCurrentText(property.value);
+			combo->setCurrentIndex(combo->findData(property.value));
 		} else if (auto* spin = qobject_cast<QSpinBox*>(editor)) {
 			spin->setValue(property.value.toInt());
 		} else if (auto* field = qobject_cast<QLineEdit*>(editor)) {
@@ -368,16 +475,83 @@ void MaterialPropertyPanel::refreshValues()
 	}
 }
 
-void MaterialPropertyPanel::commit(const QString& propertyId, const QString& value)
+void MaterialPropertyPanel::scheduleStep(const QString& propertyId)
+{
+	if (!m_stepProperty.isEmpty() && m_stepProperty != propertyId) {
+		flushPendingStep();
+	}
+	m_stepProperty = propertyId;
+	m_stepTimer->start();
+}
+
+void MaterialPropertyPanel::flushPendingStep()
+{
+	m_stepTimer->stop();
+	const QString id = std::exchange(m_stepProperty, QString());
+	if (id.isEmpty()) {
+		return;
+	}
+	QWidget* editor = m_editors.value(id);
+	if (auto* spin = qobject_cast<QSpinBox*>(editor)) {
+		commit(spin, id, QString::number(spin->value()));
+	} else if (auto* field = qobject_cast<QLineEdit*>(editor)) {
+		commitNumber(field, id);
+	}
+}
+
+void MaterialPropertyPanel::commitNumber(QLineEdit* field, const QString& propertyId)
+{
+	bool ok = false;
+	field->text().trimmed().toDouble(&ok);
+	if (QLabel* problem = m_problems.value(propertyId)) {
+		problem->setText(ok ? QString() : tr("Enter a number, such as 0.5."));
+		problem->setVisible(!ok);
+	}
+	field->setAccessibleDescription(ok ? QString() : tr("Enter a number, such as 0.5."));
+	if (ok) {
+		commit(field, propertyId, field->text().trimmed());
+	}
+}
+
+void MaterialPropertyPanel::commit(QWidget* editor, const QString& propertyId, const QString& value)
 {
 	if (!m_hasNode || m_readOnly) {
+		return;
+	}
+	// A control of a node no longer shown, saying goodbye as it is replaced.
+	if (editor && (!m_formHost || !m_formHost->isAncestorOf(editor))) {
 		return;
 	}
 	const MaterialGraphProperty* current = m_node.property(propertyId);
 	if (current && current->value == value) {
 		return;
 	}
-	Q_EMIT propertyEdited(m_node.id, propertyId, value);
+	const QString nodeId = m_node.id;
+	const QString key = nodeId + QLatin1Char('\n') + propertyId + QLatin1Char('\n') + value;
+	if (key == m_pendingCommit) {
+		return;
+	}
+	m_pendingCommit = key;
+	const QString label = current ? current->label : propertyId;
+	// Sent once the control's own signal has returned: the edit rebuilds the
+	// graph, and with it perhaps these controls.
+	QMetaObject::invokeMethod(
+		this,
+		[this, nodeId, propertyId, value, label, key]() {
+			if (m_pendingCommit == key) {
+				m_pendingCommit.clear();
+			}
+			Q_EMIT propertyEdited(nodeId, propertyId, value);
+			// The workbench shows the edited node again before the signal
+			// returns; the value it now has says whether the edit applied.
+			if (m_hasNode && m_node.id == nodeId) {
+				if (const MaterialGraphProperty* now = m_node.property(propertyId); now && now->value == value) {
+					QAccessibleAnnouncementEvent announcement(this, tr("%1 set to %2.").arg(label, valueText(*now, value)));
+					QAccessible::updateAccessibility(&announcement);
+				}
+			}
+		},
+		Qt::QueuedConnection);
 }
 
 void MaterialPropertyPanel::focusFirstField()
@@ -406,7 +580,10 @@ void MaterialPropertyPanel::changeEvent(QEvent* event)
 	QWidget::changeEvent(event);
 	if (event->type() == QEvent::LanguageChange) {
 		setAccessibleName(tr("Node properties"));
+		m_scroll->setAccessibleName(tr("Node properties"));
 		m_empty->setText(tr("Select a node to edit its properties."));
+		// Show, the step hints and "nothing to set" are made with the rows.
+		rebuild();
 	}
 }
 

@@ -1870,20 +1870,46 @@ edited map still do work for every face of the map or of the selection; they
 grow in step with it but with a larger cost per face than the edits above.
 
 The Levels page is now the larger cost of an edit. It refreshes its panels in
-full after each one: with 2,000 brushes in the same debug build, nudging one
-brush takes about half a second of the interface thread, against well under a
-millisecond for the edit itself. Samples put about three fifths of that in the
-page refresh (the inspector rows, command states, map settings and the scene
-selection context, which still names every object of the map), a quarter in
-preparing the edit behind its progress window, which is built for every edit
-though few run long enough to show it, and the rest in recording the activity
-and saving it to settings. Two parts of it are gone: the linked-group queries
-the refresh makes return at once on a map with no linked group or with nothing
-selected, and the status bar's compiler chip probes the disk at most once a
-minute rather than every five seconds, which had stalled the first edit after
-any pause. Refreshing only what an edit changed, and sharing one selection
-context across a refresh, remain to do. None of this has release-build or
-production-map evidence yet. Status: Partial.
+full after each one, and the work that follows the refresh (laying out and
+painting what changed) costs about as much again. Measured with a scratch
+driver of the real shell, offscreen, in the same debug build: nudging one
+brush took about 500 ms of the interface thread with 4,000 brushes and undo
+about 380 ms, against about a millisecond for the edit itself.
+
+The parts of that which grew with the map have been cut:
+
+- A move under a texture policy, which is what a nudge or a drag makes,
+  checked the brushes it moved against every face line of the map. The first
+  few are now checked against the map directly and the lines are gathered
+  only when more follow (`LevelMapBrushLineConflicts`); one such move on
+  4,000 brushes fell from about 29 ms to about 1.3 ms.
+- A plan view rebuilding after an edit built a key for every brush to see
+  whether its solved geometry could be reused. Unchanged brushes are now
+  compared against the stored key in place (`MapBrushGeometryCache`).
+- One refresh named every object of the map twice for the scene selection
+  context, in the page and again in the plan view, and scanned every surface
+  twice for texture use, for the material row and again for the tool shelf.
+  `refreshLevelMapWorkbench()` now lends both to the refreshes it calls.
+- The scene panel and the Map tab's layer list count the objects in Default
+  without naming them when the map has no layers or groups.
+- The linked-group queries return at once on a map with no linked group or
+  with nothing selected, and the status bar's compiler chip probes the disk
+  at most once a minute rather than every five seconds, which had stalled
+  the first edit after any pause.
+
+With these, the same driver measured the nudge at about 340 ms and undo at
+about 270 ms with 4,000 brushes (best of three alternating runs on a busy
+machine). At 500 brushes the times did not change: there the fixed work
+dominates, about 110 ms for a pick and 170 to 240 ms for an edit in this
+debug build. That fixed work is spread thinly: rebuilding the inspector's
+rows, bringing several hundred command states up to date, the view filter
+and scene panels, recording the activity and saving it to settings, and
+preparing the edit behind a progress window that is built for every edit
+though few run long enough to show it (several tests inspect it before it
+shows, so it stays built up front). Refreshing only the panels an edit
+changed, or deferring the side panels while a key repeats, would be the next
+step. None of this has release-build or production-map evidence yet.
+Status: Partial.
 
 A Quake-family `.map` that is not valid UTF-8 is read one character a byte
 and saved the same way (`LevelMapDocument::sourceTextEightBit`), so 8-bit text

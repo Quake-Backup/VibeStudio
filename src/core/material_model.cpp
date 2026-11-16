@@ -533,6 +533,21 @@ QString materialStageRoleId(MaterialStageRole role)
 	return QStringLiteral("regular");
 }
 
+QString materialStageRoleDisplayName(MaterialStageRole role)
+{
+	switch (role) {
+	case MaterialStageRole::Regular:
+		return QCoreApplication::translate("SlopStudioMaterials", "Regular");
+	case MaterialStageRole::Diffuse:
+		return QCoreApplication::translate("SlopStudioMaterials", "Diffuse");
+	case MaterialStageRole::Bump:
+		return QCoreApplication::translate("SlopStudioMaterials", "Bump");
+	case MaterialStageRole::Specular:
+		return QCoreApplication::translate("SlopStudioMaterials", "Specular");
+	}
+	return QCoreApplication::translate("SlopStudioMaterials", "Regular");
+}
+
 QString materialAlphaTestId(MaterialAlphaTest test)
 {
 	switch (test) {
@@ -867,8 +882,22 @@ bool MaterialDefinition::isAnimated() const
 		return true;
 	}
 	for (const MaterialDeform& deform : deforms) {
-		if (deform.kind != MaterialDeformKind::Autosprite && deform.kind != MaterialDeformKind::Autosprite2
-			&& deform.kind != MaterialDeformKind::ProjectionShadow) {
+		switch (deform.kind) {
+		// Facing the view or drawing text changes nothing over time;
+		// expand and move only do when their expression reads time, which
+		// the expression check below finds.
+		case MaterialDeformKind::Autosprite:
+		case MaterialDeformKind::Autosprite2:
+		case MaterialDeformKind::ProjectionShadow:
+		case MaterialDeformKind::Text:
+		case MaterialDeformKind::Sprite:
+		case MaterialDeformKind::Tube:
+		case MaterialDeformKind::Flare:
+		case MaterialDeformKind::EyeBall:
+		case MaterialDeformKind::Expand:
+		case MaterialDeformKind::MoveExpression:
+			break;
+		default:
 			return true;
 		}
 	}
@@ -942,7 +971,9 @@ QStringList MaterialDefinition::imageReferences() const
 					continue;
 				}
 				const MaterialImageProgramNode& node = imagePrograms.at(index);
-				if (node.function.isEmpty()) {
+				// Doom 3's built-in images (_white, _flat, _currentRender,
+				// ...) are made by the engine, not read from a file.
+				if (node.function.isEmpty() && !(engine == MaterialEngine::Doom3 && node.path.trimmed().startsWith(QLatin1Char('_')))) {
 					add(node.path);
 				}
 				for (int child : node.children) {
@@ -1356,7 +1387,7 @@ QStringList materialDefinitionSummaryLines(const MaterialDefinition& definition)
 		}
 		lines << QCoreApplication::translate("SlopStudioMaterials", "  Stage %1 (%2): %3, blend %4 %5")
 					 .arg(stage.index + 1)
-					 .arg(materialStageRoleId(stage.role), image.isEmpty() ? QStringLiteral("-") : image,
+					 .arg(materialStageRoleDisplayName(stage.role), image.isEmpty() ? QStringLiteral("-") : image,
 						 materialBlendFactorId(stage.blend.source), materialBlendFactorId(stage.blend.destination));
 	}
 	if (!definition.classic.frames.isEmpty()) {
@@ -1381,7 +1412,9 @@ QStringList materialDefinitionSummaryLines(const MaterialDefinition& definition)
 	const int errors = definition.errorCount();
 	const int warnings = definition.warningCount();
 	if (errors > 0 || warnings > 0) {
-		lines << QCoreApplication::translate("SlopStudioMaterials", "Problems: %1 error(s), %2 warning(s)").arg(errors).arg(warnings);
+		const QString errorText = QCoreApplication::translate("SlopStudioMaterials", "%n error(s)", nullptr, errors);
+		const QString warningText = QCoreApplication::translate("SlopStudioMaterials", "%n warning(s)", nullptr, warnings);
+		lines << QCoreApplication::translate("SlopStudioMaterials", "Problems: %1, %2").arg(errorText, warningText);
 	}
 	return lines;
 }

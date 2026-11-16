@@ -661,7 +661,7 @@ void MapViewport::setDocument(const LevelMapDocument& document, const MapBrushGe
 	update();
 }
 
-void MapViewport::updateDocument(const LevelMapDocument& document)
+void MapViewport::updateDocument(const LevelMapDocument& document, const LevelSceneSelectionContext* context)
 {
 	if (!m_hasDocument) {
 		setDocument(document);
@@ -671,7 +671,7 @@ void MapViewport::updateDocument(const LevelMapDocument& document)
 	// set, and only re-solve what is drawn. The document owns visibility and
 	// its undo history; refreshing a view must not silently reveal anything.
 	m_sourceDocument = document;
-	m_sceneContext = levelSceneSelectionContext(document);
+	m_sceneContext = context ? *context : levelSceneSelectionContext(document);
 	m_sourceIndex.rebuild(m_sourceDocument);
 	if (document.doomTopologyRevision != m_topologyRevision) {
 		m_topologyRevision = document.doomTopologyRevision;

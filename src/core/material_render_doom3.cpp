@@ -21,45 +21,58 @@ struct Text {
 
 constexpr double kPi = 3.14159265358979323846;
 
-struct Registers {
-	QVector<double> values;
+using Registers = Doom3Registers;
+using TextureMatrix = Doom3TextureMatrix;
+using Interaction = Doom3Interaction;
 
-	[[nodiscard]] double at(int index, double fallback = 1.0) const
-	{
-		if (index < 0 || index >= values.size()) {
-			return fallback;
-		}
-		const double value = values.at(index);
-		return std::isfinite(value) ? value : 0.0;
+Color stageColor(const MaterialStage& stage, const Registers& registers)
+{
+	Color color {registers.at(stage.colorExpressions[0]), registers.at(stage.colorExpressions[1]), registers.at(stage.colorExpressions[2]),
+		registers.at(stage.colorExpressions[3])};
+	return color.clamped();
+}
+
+// A repeat keyword of ParseMaterial or ParseStage sets `wrap`; anything
+// else returns false.
+bool repeatKeyword(const QString& keyword, Wrap* wrap)
+{
+	const QString key = keyword.toLower();
+	if (key == QStringLiteral("clamp")) {
+		*wrap = Wrap::Clamp;
+	} else if (key == QStringLiteral("noclamp")) {
+		*wrap = Wrap::Repeat;
+	} else if (key == QStringLiteral("zeroclamp")) {
+		*wrap = Wrap::ZeroClamp;
+	} else if (key == QStringLiteral("alphazeroclamp")) {
+		*wrap = Wrap::AlphaZeroClamp;
+	} else {
+		return false;
 	}
-};
+	return true;
+}
 
-// The 2x3 texture matrix of a stage: each transform multiplies on the
-// right (MultiplyTextureMatrix), so the newest keyword acts on the raw
-// coordinates first.
-struct TextureMatrix {
-	double m[2][3] = {{1, 0, 0}, {0, 1, 0}};
+} // namespace
 
-	void multiply(const double n[2][3])
-	{
-		double r[2][3];
-		for (int row = 0; row < 2; ++row) {
-			r[row][0] = m[row][0] * n[0][0] + m[row][1] * n[1][0];
-			r[row][1] = m[row][0] * n[0][1] + m[row][1] * n[1][1];
-			r[row][2] = m[row][0] * n[0][2] + m[row][1] * n[1][2] + m[row][2];
-		}
-		std::copy(&r[0][0], &r[0][0] + 6, &m[0][0]);
+void Doom3TextureMatrix::multiply(const double n[2][3])
+{
+	double r[2][3];
+	for (int row = 0; row < 2; ++row) {
+		r[row][0] = m[row][0] * n[0][0] + m[row][1] * n[1][0];
+		r[row][1] = m[row][0] * n[0][1] + m[row][1] * n[1][1];
+		r[row][2] = m[row][0] * n[0][2] + m[row][1] * n[1][2] + m[row][2];
 	}
-	void apply(double* s, double* t) const
-	{
-		const double s0 = *s;
-		const double t0 = *t;
-		*s = m[0][0] * s0 + m[0][1] * t0 + m[0][2];
-		*t = m[1][0] * s0 + m[1][1] * t0 + m[1][2];
-	}
-};
+	std::copy(&r[0][0], &r[0][0] + 6, &m[0][0]);
+}
 
-TextureMatrix stageMatrix(const MaterialStage& stage, const Registers& registers, const MaterialTableSet& tables)
+void Doom3TextureMatrix::apply(double* s, double* t) const
+{
+	const double s0 = *s;
+	const double t0 = *t;
+	*s = m[0][0] * s0 + m[0][1] * t0 + m[0][2];
+	*t = m[1][0] * s0 + m[1][1] * t0 + m[1][2];
+}
+
+Doom3TextureMatrix doom3StageMatrix(const MaterialStage& stage, const Doom3Registers& registers, const MaterialTableSet& tables)
 {
 	TextureMatrix matrix;
 	for (const MaterialTexMod& mod : stage.tcMods) {
@@ -106,44 +119,226 @@ TextureMatrix stageMatrix(const MaterialStage& stage, const Registers& registers
 		}
 		matrix.multiply(n);
 	}
-	// RB_LoadShaderTextureMatrix keeps scrolls from growing without bound.
+	// RB_LoadShaderTextureMatrix keeps scrolls from growing without bound:
+	// the whole part goes (in double, so a huge one cannot overflow an int).
 	for (int row = 0; row < 2; ++row) {
-		if (matrix.m[row][2] < -40 || matrix.m[row][2] > 40) {
-			matrix.m[row][2] -= static_cast<int>(matrix.m[row][2]);
+		double& offset = matrix.m[row][2];
+		if (!std::isfinite(offset)) {
+			offset = 0.0;
+		} else if (offset < -40 || offset > 40) {
+			offset -= std::trunc(offset);
 		}
 	}
 	return matrix;
 }
 
-Color stageColor(const MaterialStage& stage, const Registers& registers)
-{
-	Color color {registers.at(stage.colorExpressions[0]), registers.at(stage.colorExpressions[1]), registers.at(stage.colorExpressions[2]),
-		registers.at(stage.colorExpressions[3])};
-	return color.clamped();
-}
-
-bool stageActive(const MaterialStage& stage, const Registers& registers)
+bool doom3StageActive(const MaterialStage& stage, const Doom3Registers& registers)
 {
 	return stage.conditionExpression < 0 || registers.at(stage.conditionExpression) != 0.0;
 }
 
-Wrap stageWrap(const MaterialStage& stage, const MaterialDefinition& definition)
+Wrap doom3StageWrap(const MaterialStage& stage, const MaterialDefinition& definition)
 {
-	if (stage.zeroClamp || stage.alphaZeroClamp) {
-		return Wrap::ZeroClamp;
+	// The material's clamp, zeroclamp or alphazeroclamp written before the
+	// stage sets its default repeat (trpDefault), for lighting stages and
+	// their shorthands too.
+	Wrap wrap = Wrap::Repeat;
+	for (const MaterialDirective& directive : definition.directives) {
+		if (stage.span.isValid() && directive.span.isValid() && directive.span.start > stage.span.start) {
+			continue;
+		}
+		repeatKeyword(directive.keyword, &wrap);
 	}
-	if (stage.clamp || stage.imageKind == MaterialImageKind::Video) {
-		return Wrap::Clamp;
+	// The stage's own keywords, the last one winning.
+	bool own = false;
+	for (const MaterialDirective& directive : stage.directives) {
+		own |= repeatKeyword(directive.keyword, &wrap);
 	}
-	// The global clamp keywords set the material's default repeat.
-	if (definition.hasFlag(QStringLiteral("zeroclamp")) || definition.hasFlag(QStringLiteral("alphazeroclamp"))) {
-		return stage.role == MaterialStageRole::Regular ? Wrap::ZeroClamp : Wrap::Repeat;
+	if (!own) {
+		// A stage built without directives (a stand-in) says it in flags.
+		if (stage.alphaZeroClamp) {
+			return Wrap::AlphaZeroClamp;
+		}
+		if (stage.zeroClamp) {
+			return Wrap::ZeroClamp;
+		}
+		if (stage.clamp || stage.imageKind == MaterialImageKind::Video) {
+			return Wrap::Clamp;
+		}
 	}
-	if (definition.hasFlag(QStringLiteral("clamp"))) {
-		return stage.role == MaterialStageRole::Regular ? Wrap::Clamp : Wrap::Repeat;
-	}
-	return Wrap::Repeat;
+	return wrap;
 }
+
+// SortInteractionStages: a stable sort by lighting kind inside each group
+// that starts at a bump stage; a first group that does not start with a bump
+// runs on to the next one.
+QVector<int> doom3SortedStageOrder(const MaterialDefinition& definition)
+{
+	QVector<int> order;
+	for (int index = 0; index < definition.stages.size(); ++index) {
+		order << index;
+	}
+	bool lighting = false;
+	for (const MaterialStage& stage : definition.stages) {
+		lighting |= stage.role != MaterialStageRole::Regular;
+	}
+	if (!lighting) {
+		return order;
+	}
+	const auto rank = [&](int index) {
+		switch (definition.stages.at(index).role) {
+		case MaterialStageRole::Regular:
+			return 0;
+		case MaterialStageRole::Bump:
+			return 1;
+		case MaterialStageRole::Diffuse:
+			return 2;
+		case MaterialStageRole::Specular:
+			return 3;
+		}
+		return 0;
+	};
+	const int count = static_cast<int>(order.size());
+	for (int i = 0; i < count;) {
+		int j = i + 1;
+		for (; j < count; ++j) {
+			if (definition.stages.at(order.at(j)).role == MaterialStageRole::Bump) {
+				if (definition.stages.at(order.at(i)).role != MaterialStageRole::Bump) {
+					continue;
+				}
+				break;
+			}
+		}
+		std::stable_sort(order.begin() + i, order.begin() + j, [&](int a, int b) { return rank(a) < rank(b); });
+		i = j;
+	}
+	return order;
+}
+
+namespace {
+
+struct LightingStages {
+	bool bump = false;
+	bool diffuse = false;
+	bool specular = false;
+	bool reflection = false;
+};
+
+LightingStages lightingStages(const MaterialDefinition& definition)
+{
+	LightingStages found;
+	for (const MaterialStage& stage : definition.stages) {
+		found.bump |= stage.role == MaterialStageRole::Bump;
+		found.diffuse |= stage.role == MaterialStageRole::Diffuse;
+		found.specular |= stage.role == MaterialStageRole::Specular;
+		found.reflection |= stage.tcGen.source == MaterialTexCoordSource::Reflect;
+	}
+	return found;
+}
+
+} // namespace
+
+bool doom3NeedsImplicitBump(const MaterialDefinition& definition)
+{
+	const LightingStages found = lightingStages(definition);
+	return (found.diffuse || found.specular) && !found.bump;
+}
+
+bool doom3NeedsImplicitDiffuse(const MaterialDefinition& definition)
+{
+	const LightingStages found = lightingStages(definition);
+	return found.bump && !found.diffuse && !found.specular && !found.reflection;
+}
+
+MaterialStage doom3ImplicitDiffuseStage()
+{
+	MaterialStage stage;
+	stage.index = -1;
+	stage.role = MaterialStageRole::Diffuse;
+	stage.imageKind = MaterialImageKind::White;
+	stage.imagePath = QStringLiteral("_white");
+	return stage;
+}
+
+bool doom3AnyStageActive(const MaterialDefinition& definition, const Doom3Registers& registers)
+{
+	if (doom3NeedsImplicitBump(definition) || doom3NeedsImplicitDiffuse(definition)) {
+		return true;
+	}
+	for (const MaterialStage& stage : definition.stages) {
+		if (doom3StageActive(stage, registers)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+QVector<Doom3Interaction> doom3PairInteractions(const MaterialDefinition& definition, const QVector<int>& order, const Doom3Registers& registers,
+	const MaterialStage* implicitDiffuse, bool* implicitBump)
+{
+	QVector<Interaction> interactions;
+	Interaction current;
+	bool haveBump = false;
+	const auto flush = [&]() {
+		if (haveBump && (current.diffuse || current.specular)) {
+			interactions.push_back(current);
+		}
+	};
+	// _flat stands in when diffuse or specular stages have no bump: the
+	// implicit stage sorts to the front of the only group.
+	bool anyBump = false;
+	for (int index : order) {
+		anyBump |= definition.stages.at(index).role == MaterialStageRole::Bump;
+	}
+	if (implicitBump) {
+		*implicitBump = !anyBump;
+	}
+	haveBump = !anyBump;
+	QVector<const MaterialStage*> stages;
+	stages.reserve(order.size() + 1);
+	for (int index : order) {
+		stages << &definition.stages.at(index);
+	}
+	// The appended _white diffuse sorts after the last group's bump.
+	if (implicitDiffuse) {
+		stages << implicitDiffuse;
+	}
+	for (const MaterialStage* stage : stages) {
+		if (stage->role == MaterialStageRole::Regular || !doom3StageActive(*stage, registers)) {
+			continue;
+		}
+		switch (stage->role) {
+		case MaterialStageRole::Bump:
+			flush();
+			current = Interaction();
+			current.bump = stage;
+			haveBump = true;
+			break;
+		case MaterialStageRole::Diffuse:
+			if (current.diffuse) {
+				flush();
+			}
+			current.diffuse = stage;
+			current.diffuseColor = stageColor(*stage, registers);
+			current.vertexColor = stage->vertexColor;
+			break;
+		case MaterialStageRole::Specular:
+			if (current.specular) {
+				flush();
+			}
+			current.specular = stage;
+			current.specularColor = stageColor(*stage, registers);
+			current.vertexColor = stage->vertexColor;
+			break;
+		default:
+			break;
+		}
+	}
+	flush();
+	return interactions;
+}
+
+namespace {
 
 // The heatHaze family of Doom 3's stock ARB programs (heatHaze,
 // heatHazeWithMask, heatHazeWithMaskAndVertex, as the modding wiki
@@ -197,116 +392,6 @@ MaterialTexturePtr stageTexture(const MaterialDefinition& definition, const Mate
 		return images.find(stage.imagePath);
 	}
 	return {};
-}
-
-// SortInteractionStages: a stable sort by lighting kind inside each group
-// that starts at a bump stage; a first group that does not start with a bump
-// runs on to the next one.
-QVector<int> sortedStageOrder(const MaterialDefinition& definition)
-{
-	QVector<int> order;
-	for (int index = 0; index < definition.stages.size(); ++index) {
-		order << index;
-	}
-	bool lighting = false;
-	for (const MaterialStage& stage : definition.stages) {
-		lighting |= stage.role != MaterialStageRole::Regular;
-	}
-	if (!lighting) {
-		return order;
-	}
-	const auto rank = [&](int index) {
-		switch (definition.stages.at(index).role) {
-		case MaterialStageRole::Regular:
-			return 0;
-		case MaterialStageRole::Bump:
-			return 1;
-		case MaterialStageRole::Diffuse:
-			return 2;
-		case MaterialStageRole::Specular:
-			return 3;
-		}
-		return 0;
-	};
-	const int count = static_cast<int>(order.size());
-	for (int i = 0; i < count;) {
-		int j = i + 1;
-		for (; j < count; ++j) {
-			if (definition.stages.at(order.at(j)).role == MaterialStageRole::Bump) {
-				if (definition.stages.at(order.at(i)).role != MaterialStageRole::Bump) {
-					continue;
-				}
-				break;
-			}
-		}
-		std::stable_sort(order.begin() + i, order.begin() + j, [&](int a, int b) { return rank(a) < rank(b); });
-		i = j;
-	}
-	return order;
-}
-
-struct Interaction {
-	const MaterialStage* bump = nullptr;
-	const MaterialStage* diffuse = nullptr;
-	const MaterialStage* specular = nullptr;
-	Color diffuseColor;
-	Color specularColor;
-	MaterialVertexColor vertexColor = MaterialVertexColor::None;
-};
-
-// RB_CreateSingleDrawInteractions: a bump flushes and clears; a second
-// diffuse or specular flushes and replaces just that slot.
-QVector<Interaction> pairInteractions(const MaterialDefinition& definition, const QVector<int>& order, const Registers& registers, bool* implicitBump)
-{
-	QVector<Interaction> interactions;
-	Interaction current;
-	bool haveBump = false;
-	const auto flush = [&]() {
-		if (haveBump && (current.diffuse || current.specular)) {
-			interactions.push_back(current);
-		}
-	};
-	// _flat stands in when diffuse or specular stages have no bump.
-	bool anyBump = false;
-	for (int index : order) {
-		anyBump |= definition.stages.at(index).role == MaterialStageRole::Bump;
-	}
-	*implicitBump = !anyBump;
-	haveBump = !anyBump;
-	for (int index : order) {
-		const MaterialStage& stage = definition.stages.at(index);
-		if (stage.role == MaterialStageRole::Regular || !stageActive(stage, registers)) {
-			continue;
-		}
-		switch (stage.role) {
-		case MaterialStageRole::Bump:
-			flush();
-			current = Interaction();
-			current.bump = &stage;
-			haveBump = true;
-			break;
-		case MaterialStageRole::Diffuse:
-			if (current.diffuse) {
-				flush();
-			}
-			current.diffuse = &stage;
-			current.diffuseColor = stageColor(stage, registers);
-			current.vertexColor = stage.vertexColor;
-			break;
-		case MaterialStageRole::Specular:
-			if (current.specular) {
-				flush();
-			}
-			current.specular = &stage;
-			current.specularColor = stageColor(stage, registers);
-			current.vertexColor = stage.vertexColor;
-			break;
-		default:
-			break;
-		}
-	}
-	flush();
-	return interactions;
 }
 
 void applyDoom3Deforms(const MaterialDefinition& definition, Mesh* mesh, const Camera& camera, const Registers& registers, const MaterialTableSet& tables,
@@ -448,44 +533,52 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 	MaterialEvalContext eval = options.eval;
 	eval.time = options.time;
 
-	MaterialDefinition definition = source;
+	// The source is used as it is unless something stands in for it.
+	MaterialDefinition substitute;
+	const MaterialDefinition* chosen = &source;
 	if (options.editorImage && !source.editorImage.isEmpty()) {
-		definition = implicitDoom3Material(source.editorImage);
-		definition.name = source.name;
+		substitute = implicitDoom3Material(source.editorImage);
+		substitute.name = source.name;
+		chosen = &substitute;
 	} else if (options.honourRejection && !source.engineRejection.isEmpty()) {
 		// Parse errors leave { { blend blend; map _default } }.
-		definition = MaterialDefinition();
-		definition.name = source.name;
-		definition.engine = MaterialEngine::Doom3;
+		substitute.name = source.name;
+		substitute.engine = MaterialEngine::Doom3;
 		MaterialStage stage;
 		stage.imageKind = MaterialImageKind::Builtin;
 		stage.imagePath = QStringLiteral("_default");
 		stage.blend.source = MaterialBlendFactor::SourceAlpha;
 		stage.blend.destination = MaterialBlendFactor::OneMinusSourceAlpha;
-		definition.stages.push_back(stage);
-		definition.coverage = QStringLiteral("translucent");
+		substitute.stages.push_back(stage);
+		substitute.coverage = QStringLiteral("translucent");
+		chosen = &substitute;
 		result.fallback = true;
 		result.notes << source.engineRejection;
 		if (!options.developerDefault) {
 			result.notes << Text::tr("Release builds draw _default as transparent black, so the surface disappears.");
 		}
 	}
+	const MaterialDefinition& definition = *chosen;
 	QStringList missingTables;
 	Registers registers;
 	registers.values = evaluateMaterialExpressions(definition, tables, eval, &missingTables);
 	for (const QString& table : missingTables) {
 		result.notes << Text::tr("Table %1 is not loaded; its lookups read 0.").arg(table);
 	}
-	for (const QString& name : tables.names()) {
-		const MaterialTable* table = tables.find(name);
-		if (table && table->generated) {
-			for (const MaterialExpressionNode& node : definition.expressions) {
-				if (node.op == MaterialExpressionOp::Table && node.name.compare(name, Qt::CaseInsensitive) == 0) {
-					result.notes << Text::tr("%1 is a generated stand-in; mount the game's tables.mtr for its real values.").arg(name);
-					break;
-				}
-			}
+	// The tables the expressions read that are generated stand-ins, by name.
+	QStringList generatedTables;
+	for (const MaterialExpressionNode& node : definition.expressions) {
+		if (node.op != MaterialExpressionOp::Table) {
+			continue;
 		}
+		const MaterialTable* table = tables.find(node.name);
+		if (table && table->generated && !generatedTables.contains(table->name, Qt::CaseInsensitive)) {
+			generatedTables << table->name;
+		}
+	}
+	generatedTables.sort(Qt::CaseInsensitive);
+	for (const QString& name : generatedTables) {
+		result.notes << Text::tr("%1 is a generated stand-in; mount the game's tables.mtr for its real values.").arg(name);
 	}
 
 	const QSize imageSize = mainImageSize(definition, images);
@@ -500,6 +593,7 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 	applyDoom3Deforms(definition, &mesh, camera, registers, tables, &result.notes);
 
 	MaterialGpuFrame gpu(camera, mesh, options);
+	gpu.setMeshStatic(definition.deforms.isEmpty());
 	gpu.background(options.background, options.checker, 1.0);
 	const CullMode cull = cullModeFor(definition.cull);
 	const int vertices = gpu.vertices();
@@ -534,7 +628,7 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 				result.cancelled = true;
 				return result;
 			}
-			if (!stageActive(stage, registers)) {
+			if (!doom3StageActive(stage, registers)) {
 				continue;
 			}
 			PreviewLight preview = defaultLight(mesh, options);
@@ -551,11 +645,12 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 			u.mode[0] = 3;
 			u.mode[2] = (projected ? 1 : 0) | (fades ? 2 : 0) | (definition.ambientLight ? 4 : 0) | (definition.blendLight ? 8 : 0);
 			setLight(&u, preview);
-			setMatrix(&u, 3, stageMatrix(stage, registers, tables));
+			setMatrix(&u, 3, doom3StageMatrix(stage, registers, tables));
 			GpuDraw textures;
-			const Wrap projectionWrap = stage.zeroClamp || stage.alphaZeroClamp ? Wrap::ZeroClamp : (stage.clamp ? Wrap::Clamp : Wrap::Repeat);
-			gpu.bind(&textures, &u, 3, projected ? gpu.texture(projection.get()) : -1, projectionWrap);
-			gpu.bind(&textures, &u, 4, fades ? gpu.texture(falloff.get()) : -1, Wrap::ZeroClamp);
+			gpu.bind(&textures, &u, 3, projected ? gpu.texture(projection) : -1, doom3StageWrap(stage, definition));
+			// lightFalloffImage loads with TR_CLAMP; the shader ends it at the
+			// light's box.
+			gpu.bind(&textures, &u, 4, fades ? gpu.texture(falloff) : -1, Wrap::Clamp);
 			GpuState state = addState;
 			state.cull = gpuCull(CullMode::Front);
 			if (definition.blendLight) {
@@ -576,41 +671,73 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 
 	const QString coverage = definition.coverage.isEmpty() ? QStringLiteral("opaque") : definition.coverage;
 	const bool translucent = coverage == QStringLiteral("translucent");
-	const QVector<int> order = sortedStageOrder(definition);
+	const QVector<int> order = doom3SortedStageOrder(definition);
+
+	// RB_T_FillDepthBuffer leaves a surface whose stages are all
+	// conditioned off out entirely: no depth, no light, no stages.
+	if (!doom3AnyStageActive(definition, registers)) {
+		if (definition.stages.isEmpty()) {
+			result.notes << Text::tr("The material has no stages, so Doom 3 does not draw it.");
+		} else {
+			result.notes << Text::tr("Every stage is conditioned off, so Doom 3 does not draw this surface.");
+		}
+		gpu.finish(1.0, &result, cancelled);
+		return result;
+	}
 
 	// 1. The depth fill: opaque surfaces become black; perforated ones only
-	// where an alpha-tested stage passes.
+	// where an alpha-tested stage passes, or solid when none was tried.
 	if (!translucent) {
 		MaterialUniforms u = gpu.uniforms();
 		u.mode[0] = 0;
 		GpuDraw textures;
+		bool tried = false;
+		int tested = 0;
 		if (coverage == QStringLiteral("perforated")) {
-			int tested = 0;
 			for (int index : order) {
 				const MaterialStage& stage = definition.stages.at(index);
-				if (tested >= 4 || stage.alphaTest != MaterialAlphaTest::Expression || !stageActive(stage, registers)) {
+				if (stage.alphaTest != MaterialAlphaTest::Expression || !doom3StageActive(stage, registers)) {
 					continue;
 				}
-				const MaterialTexturePtr texture = stageTexture(definition, stage, images, options.time);
+				// Trying an alpha-tested stage keeps the surface from being
+				// drawn solid, even when the stage then draws nothing.
+				tried = true;
+				const double alpha = stageColor(stage, registers).a;
+				if (alpha <= 0.0 || tested >= 4) {
+					continue;
+				}
+				MaterialTexturePtr texture = stageTexture(definition, stage, images, options.time);
+				if (!texture || !texture->usable()) {
+					// An image that did not load binds _default.
+					texture = materialBuiltinTexture(QStringLiteral("_default"), options.developerDefault);
+				}
 				if (!texture || !texture->usable()) {
 					continue;
 				}
-				gpu.bind(&textures, &u, tested, gpu.texture(texture.get()), stageWrap(stage, definition));
-				setMatrix(&u, tested, stageMatrix(stage, registers, tables));
-				u.setParam(tested, registers.at(stage.alphaTestExpression, 0.5), stageColor(stage, registers).a);
+				gpu.bind(&textures, &u, tested, gpu.texture(texture), doom3StageWrap(stage, definition));
+				setMatrix(&u, tested, doom3StageMatrix(stage, registers, tables));
+				u.setParam(tested, registers.at(stage.alphaTestExpression, 0.5), alpha);
 				++tested;
 			}
-			u.mode[2] = 1;
-			u.mode[3] = tested;
+			if (tried) {
+				u.mode[2] = 1;
+				u.mode[3] = tested;
+			}
 		}
-		GpuState state = fillState;
-		state.cull = gpuCull(cull);
-		gpu.draw(GpuProgram::MaterialDoom3, u, state, vertices, textures);
+		if (!tried || tested > 0) {
+			GpuState state = fillState;
+			state.cull = gpuCull(cull);
+			gpu.draw(GpuProgram::MaterialDoom3, u, state, vertices, textures);
+		}
 	}
 
 	// 2. Interactions with the preview light, added where depth matches.
+	// Translucent surfaces have no depth fill: theirs draw with
+	// GLS_DEPTHFUNC_LESS (less or equal) over what is there.
 	bool implicitBump = false;
-	const QVector<Interaction> interactions = translucent ? QVector<Interaction>() : pairInteractions(definition, order, registers, &implicitBump);
+	const MaterialStage implicitDiffuse = doom3ImplicitDiffuseStage();
+	const bool whiteDiffuse = doom3NeedsImplicitDiffuse(definition);
+	const QVector<Interaction> interactions = doom3PairInteractions(definition, order, registers, whiteDiffuse ? &implicitDiffuse : nullptr, &implicitBump);
 	if (!interactions.isEmpty()) {
 		const PreviewLight preview = defaultLight(mesh, options);
 		for (const Interaction& interaction : interactions) {
@@ -627,8 +754,8 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 				if (!texture || !texture->usable()) {
 					return;
 				}
-				gpu.bind(&textures, &u, slot, gpu.texture(texture.get()), stageWrap(*stage, definition));
-				setMatrix(&u, slot, stageMatrix(*stage, registers, tables));
+				gpu.bind(&textures, &u, slot, gpu.texture(texture), doom3StageWrap(*stage, definition));
+				setMatrix(&u, slot, doom3StageMatrix(*stage, registers, tables));
 				flags |= bit;
 			};
 			bindStage(interaction.bump, 0, 4);
@@ -644,9 +771,15 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 			u.setParam(4, options.lighting.doom3Ambient);
 			GpuState state = addState;
 			state.cull = gpuCull(cull);
+			if (translucent) {
+				state.depthCompare = GpuCompare::GreaterOrEqual;
+			}
 			gpu.draw(GpuProgram::MaterialDoom3, u, state, vertices, textures);
 		}
 		result.stagesDrawn += static_cast<int>(interactions.size());
+		if (whiteDiffuse) {
+			result.notes << Text::tr("No diffuse map: Doom 3 lights this material with _white.");
+		}
 	}
 
 	// 3. The remaining stages in order, over what was drawn.
@@ -656,7 +789,7 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 			return result;
 		}
 		const MaterialStage& stage = definition.stages.at(index);
-		if (stage.role != MaterialStageRole::Regular || !stageActive(stage, registers) || stage.blend.writesNothing()) {
+		if (stage.role != MaterialStageRole::Regular || !doom3StageActive(stage, registers) || stage.blend.writesNothing()) {
 			continue;
 		}
 		const Color color = stageColor(stage, registers);
@@ -665,7 +798,7 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 			&& color.b <= 0) {
 			continue;
 		}
-		const TextureMatrix matrix = stageMatrix(stage, registers, tables);
+		const TextureMatrix matrix = doom3StageMatrix(stage, registers, tables);
 		bool hazeMask = false;
 		bool hazeVertex = false;
 		if (heatHazeProgram(stage, &hazeMask, &hazeVertex)) {
@@ -689,12 +822,12 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 			u.mode[0] = 2;
 			GpuDraw textures;
 			gpu.bindSnapshot(&textures, &u, 7);
-			gpu.bind(&textures, &u, 0, gpu.texture(normals.get()), Wrap::Repeat);
+			gpu.bind(&textures, &u, 0, gpu.texture(normals), Wrap::Repeat);
 			int flags = 1 | 32 | (hazeVertex ? 128 : 0);
 			if (hazeMask) {
 				const MaterialTexturePtr mask = fragmentTexture(2);
 				if (mask && mask->usable()) {
-					gpu.bind(&textures, &u, 1, gpu.texture(mask.get()), Wrap::Clamp);
+					gpu.bind(&textures, &u, 1, gpu.texture(mask), Wrap::Clamp);
 					flags |= 64;
 				}
 			}
@@ -722,12 +855,12 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 			GpuDraw textures;
 			for (int face = 0; face < 6; ++face) {
 				const MaterialTexturePtr& faceTexture = environment->faces[size_t(face)];
-				gpu.bind(&textures, &u, face, faceTexture && faceTexture->usable() ? gpu.texture(faceTexture.get()) : -1, Wrap::Clamp);
+				gpu.bind(&textures, &u, face, faceTexture && faceTexture->usable() ? gpu.texture(faceTexture) : -1, Wrap::Clamp);
 			}
 			int flags = 1 | 256;
 			const MaterialTexturePtr normals = images.find(fragmentText(1));
 			if (normals && normals->usable()) {
-				gpu.bind(&textures, &u, 6, gpu.texture(normals.get()), Wrap::Repeat);
+				gpu.bind(&textures, &u, 6, gpu.texture(normals), Wrap::Repeat);
 				setMatrix(&u, 6, matrix);
 				flags |= 512;
 			}
@@ -791,11 +924,11 @@ MaterialRenderResult renderDoom3Material(const MaterialDefinition& source, const
 		} else if (cube) {
 			for (int face = 0; face < 6; ++face) {
 				const MaterialTexturePtr& faceTexture = cube->faces[size_t(face)];
-				gpu.bind(&textures, &u, face, faceTexture && faceTexture->usable() ? gpu.texture(faceTexture.get()) : -1, Wrap::Clamp);
+				gpu.bind(&textures, &u, face, faceTexture && faceTexture->usable() ? gpu.texture(faceTexture) : -1, Wrap::Clamp);
 			}
 			flags |= 2;
 		} else {
-			gpu.bind(&textures, &u, 0, gpu.texture(texture.get()), stageWrap(stage, definition));
+			gpu.bind(&textures, &u, 0, gpu.texture(texture), doom3StageWrap(stage, definition));
 			flags |= 16;
 			u.lighting[3] = static_cast<float>(texture->width / std::max(1.0, mesh.repeatS));
 		}

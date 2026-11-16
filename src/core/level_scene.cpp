@@ -129,6 +129,19 @@ QStringList levelSceneObjects(const LevelMapDocument& document) {
 	return objects;
 }
 
+qsizetype levelSceneObjectCount(const LevelMapDocument& document) {
+	if (document.format == LevelMapFormat::DoomWad) {
+		return document.doomVertices.size() + document.doomLinedefs.size() + document.doomThings.size() + document.doomSectors.size();
+	}
+	qsizetype count = document.brushes.size() + document.patches.size();
+	for (const auto& entity : document.entities) {
+		if (entity.className.compare(QStringLiteral("worldspawn"), Qt::CaseInsensitive) != 0) {
+			++count;
+		}
+	}
+	return count;
+}
+
 QString levelSceneCanonicalObject(const LevelMapDocument& document, const QString& object) {
 	if (document.format == LevelMapFormat::DoomWad && object.startsWith(QStringLiteral("entity:"))) {
 		return QStringLiteral("thing:") + object.mid(7);

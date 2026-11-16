@@ -264,6 +264,32 @@ int main(int argc, char** argv)
 		return QJsonDocument::fromJson(out).object();
 	};
 	const auto run = [&](const QStringList& arguments) { return runCommand(QStringList {QStringLiteral("material")} + arguments); };
+	// Text mode, as a person sees it: stdout and stderr apart.
+	QString lastStdout;
+	QString lastStderr;
+	const auto runText = [&](const QStringList& arguments) {
+		QProcess process;
+		process.setWorkingDirectory(temp.path());
+		process.start(cli, QStringList {QStringLiteral("--cli"), QStringLiteral("--settings-file"), root.filePath(QStringLiteral("cli.ini")),
+							   QStringLiteral("material")}
+				+ arguments);
+		const bool ended = process.waitForStarted() && process.waitForFinished(120000);
+		if (!ended) {
+			process.kill();
+			process.waitForFinished();
+		}
+		lastStdout = QString::fromUtf8(process.readAllStandardOutput());
+		lastStderr = QString::fromUtf8(process.readAllStandardError());
+		lastOutput = lastStdout + lastStderr;
+		lastExit = ended && process.exitStatus() == QProcess::NormalExit ? process.exitCode() : -1;
+	};
+	const auto entryNames = [](const QJsonObject& object) {
+		QStringList list;
+		for (const QJsonValue& entry : object.value(QStringLiteral("entries")).toArray()) {
+			list << entry.toObject().value(QStringLiteral("name")).toString();
+		}
+		return list;
+	};
 
 	// Fixtures.
 	const QString q3 = root.filePath(QStringLiteral("q3"));
@@ -296,8 +322,34 @@ int main(int argc, char** argv)
 		names.join(QLatin1Char(',')));
 	run({QStringLiteral("list"), q3, QStringLiteral("--where"), QStringLiteral("nosuchkey=1")});
 	expect(lastExit == 2, "a --where key no material has is a usage error", lastOutput);
+	result = run({QStringLiteral("list"), q3, QStringLiteral("--where"), QStringLiteral("image=textures/test/anim1.tga")});
+	names = entryNames(result);
+	expect(lastExit == 0 && names.contains(QStringLiteral("textures/test/anim")) && !names.contains(QStringLiteral("textures/test/glow")),
+		"image= matches one of a material's several images", names.join(QLatin1Char(',')) + lastOutput);
 	result = run({QStringLiteral("list"), wad});
 	expect(lastExit == 0 && result.value(QStringLiteral("matched")).toInt() == 4, "material list reads Doom walls and flats", lastOutput);
+	result = run({QStringLiteral("list"), q3, QStringLiteral("--where"), QStringLiteral("stages>1 kind=shader")});
+	names = entryNames(result);
+	expect(lastExit == 0 && names.contains(QStringLiteral("textures/test/wall")) && !names.contains(QStringLiteral("textures/test/glow")),
+		"a numeric --where term compares stage counts", names.join(QLatin1Char(',')));
+	run({QStringLiteral("list"), q3, QStringLiteral("--where"), QStringLiteral("stages>x")});
+	expect(lastExit == 2, "a numeric --where term without a number is a usage error", lastOutput);
+	run({QStringLiteral("list"), q3, QStringLiteral("--where"), QStringLiteral("engin!=doom")});
+	expect(lastExit == 2, "a mistyped --where key is a usage error even when every material matches", lastOutput);
+	result = run({QStringLiteral("list"), q3, QStringLiteral("--where"), QStringLiteral("kind=shader"), QStringLiteral("--limit"), QStringLiteral("2")});
+	expect(lastExit == 0 && result.value(QStringLiteral("shown")).toInt() == 2 && result.value(QStringLiteral("matched")).toInt() == 5
+			&& result.value(QStringLiteral("entries")).toArray().size() == 2,
+		"--limit caps the rows and reports how many matched", lastOutput);
+	run({QStringLiteral("list"), q3, QStringLiteral("--where"), QStringLiteral("kind=shader"), QStringLiteral("--where"), QStringLiteral("sky=yes")});
+	expect(lastExit == 2 && lastOutput.contains(QStringLiteral("Repeated option")), "a repeated option is a usage error", lastOutput);
+	run({QStringLiteral("list"), wad, QStringLiteral("--palette"), QStringLiteral("doom9")});
+	expect(lastExit == 2, "an unknown --palette is a usage error", lastOutput);
+	run({QStringLiteral("list"), wad, QStringLiteral("--palette"), QStringLiteral("doom")});
+	expect(lastExit == 0, "a known --palette is accepted", lastOutput);
+	runText({QStringLiteral("list"), q3});
+	expect(lastExit == 0 && lastStdout.contains(QStringLiteral("textures/test/bad")) && lastStdout.contains(QStringLiteral("rejected"))
+			&& lastStderr.isEmpty(),
+		"material list in text mode prints a line per material with its traits", lastOutput);
 
 	// inspect
 	result = run({QStringLiteral("inspect"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow")});
@@ -309,6 +361,21 @@ int main(int argc, char** argv)
 	expect(lastExit == 3, "inspecting a material that is not there is not-found", lastOutput);
 	run({QStringLiteral("inspect"), q3});
 	expect(lastExit == 2, "inspect without --material on a package of many is a usage error", lastOutput);
+	result = run({QStringLiteral("inspect"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/wall"), QStringLiteral("--no-images")});
+	expect(lastExit == 0 && result.value(QStringLiteral("sharedWith")).toArray().contains(QStringLiteral("textures/test/bad"))
+			&& !result.value(QStringLiteral("sharedWith")).toArray().contains(QStringLiteral("textures/test/wall")),
+		"inspect names the materials sharing its images", lastOutput);
+	result = run({QStringLiteral("inspect"), root.filePath(QStringLiteral("q2")), QStringLiteral("--material"), QStringLiteral("e1u1/anim_1"),
+		QStringLiteral("--no-images")});
+	expect(lastExit == 0 && result.value(QStringLiteral("textKind")).toString() == QStringLiteral("wal-json")
+			&& result.value(QStringLiteral("text")).toString().contains(QStringLiteral("\"animation\"")),
+		"inspect shows a Quake II texture's .wal_json text", lastOutput);
+	runText({QStringLiteral("inspect"), root.filePath(QStringLiteral("q2")), QStringLiteral("--material"), QStringLiteral("e1u1/anim_1"),
+		QStringLiteral("--no-images"), QStringLiteral("--show-source")});
+	expect(lastExit == 0 && lastStdout.contains(QStringLiteral("e1u1/anim_2")), "inspect --show-source prints that text", lastOutput);
+	runText({QStringLiteral("inspect"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/missing")});
+	expect(lastExit == 0 && lastStdout.contains(QStringLiteral("textures/test/not_here.tga: missing")), "inspect in text mode marks a missing image",
+		lastOutput);
 
 	// validate
 	result = run({QStringLiteral("validate"), q3});
@@ -318,8 +385,25 @@ int main(int argc, char** argv)
 	}
 	expect(lastExit == 4 && codes.contains(QStringLiteral("missing-image")) && codes.contains(QStringLiteral("engine-rejects")),
 		"material validate reports the missing image and the rejected shader", lastOutput);
+	expect(!result.value(QStringLiteral("ok")).toBool() && result.value(QStringLiteral("exitCode")).toObject().value(QStringLiteral("code")).toInt() == 4
+			&& !result.value(QStringLiteral("message")).toString().isEmpty() && result.value(QStringLiteral("complete")).toBool()
+			&& result.value(QStringLiteral("checked")).toInt() > 0,
+		"a failed validate keeps its report in the JSON failure envelope", lastOutput);
+	runText({QStringLiteral("validate"), q3});
+	expect(lastExit == 4 && lastStdout.contains(QStringLiteral("missing-image")) && lastStdout.contains(QStringLiteral("Checked"))
+			&& lastStderr.contains(QStringLiteral("Material validation found errors")),
+		"validate in text mode prints the problems on stdout and the verdict on stderr", lastOutput);
 	run({QStringLiteral("validate"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow")});
 	expect(lastExit == 0, "a clean material validates", lastOutput);
+	// --strict: a shadowed definition is a warning, which --strict fails.
+	const QString shadow = root.filePath(QStringLiteral("shadow"));
+	writeFile(shadow + QStringLiteral("/scripts/a.shader"), "textures/s/x\n{\n\t{\n\t\tmap $whiteimage\n\t}\n}\n");
+	writeFile(shadow + QStringLiteral("/scripts/b.shader"), "textures/s/x\n{\n\t{\n\t\tmap $whiteimage\n\t}\n}\n");
+	result = run({QStringLiteral("validate"), shadow, QStringLiteral("--no-images")});
+	expect(lastExit == 0 && result.value(QStringLiteral("warnings")).toInt() > 0, "warnings alone pass without --strict", lastOutput);
+	result = run({QStringLiteral("validate"), shadow, QStringLiteral("--no-images"), QStringLiteral("--strict")});
+	expect(lastExit == 4 && !result.value(QStringLiteral("passed")).toBool() && result.value(QStringLiteral("message")).toString().contains(QStringLiteral("--strict")),
+		"--strict fails on warnings", lastOutput);
 
 	// render
 	const QString sheet = root.filePath(QStringLiteral("anim.png"));
@@ -353,10 +437,46 @@ int main(int argc, char** argv)
 			"a dry render writes nothing and puts flats on the floor", lastOutput);
 		result = run({QStringLiteral("render"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/bad"), QStringLiteral("--dry-run")});
 		expect(result.value(QStringLiteral("fallback")).toBool(), "a shader Quake III drops renders as its fallback", lastOutput);
+		// --cycle spreads the frames over one loop as the page's sheet does:
+		// animMap 4 over two images is 0.5 s, which the page rounds up to 1 s.
+		result = run({QStringLiteral("render"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/anim"), QStringLiteral("--frames"),
+			QStringLiteral("2"), QStringLiteral("--cycle"), QStringLiteral("--size"), QStringLiteral("32x32"), QStringLiteral("--dry-run")});
+		const QJsonArray cycled = result.value(QStringLiteral("frames")).toArray();
+		expect(lastExit == 0 && qFuzzyCompare(result.value(QStringLiteral("cycleSeconds")).toDouble(), 1.0) && cycled.size() == 2
+				&& qFuzzyCompare(cycled.at(1).toObject().value(QStringLiteral("time")).toDouble(), 0.5),
+			"--cycle spreads the frames over one loop of the material", lastOutput);
+		result = run({QStringLiteral("render"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow"), QStringLiteral("--swatch"),
+			QStringLiteral("--size"), QStringLiteral("48x32"), QStringLiteral("--dry-run")});
+		expect(lastExit == 0 && result.value(QStringLiteral("shape")).toString() == QStringLiteral("swatch")
+				&& result.value(QStringLiteral("frameWidth")).toInt() == 32 && result.value(QStringLiteral("frameHeight")).toInt() == 32,
+			"--swatch draws a square library swatch", lastOutput);
+		result = run({QStringLiteral("render"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow"), QStringLiteral("--grid-ambient"),
+			QStringLiteral("10"), QStringLiteral("--grid-directed"), QStringLiteral("20"), QStringLiteral("--entity-color"), QStringLiteral("255,128,0"),
+			QStringLiteral("--globals"), QStringLiteral("0=1"), QStringLiteral("--light-radius"), QStringLiteral("256"), QStringLiteral("--orbit-seconds"),
+			QStringLiteral("4"), QStringLiteral("--size"), QStringLiteral("32x32"), QStringLiteral("--dry-run")});
+		expect(lastExit == 0, "the light grid, entity colour, globals, light radius and orbit options render", lastOutput);
 	}
 	run({QStringLiteral("render"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/anim"), QStringLiteral("--renderer"),
 		QStringLiteral("software"), QStringLiteral("--dry-run")});
 	expect(lastExit == 2, "material render refuses an unknown --renderer", lastOutput);
+	const QStringList anim {QStringLiteral("render"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/anim"), QStringLiteral("--dry-run")};
+	run(anim + QStringList {QStringLiteral("--grid-ambient"), QStringLiteral("300")});
+	expect(lastExit == 2, "--grid-ambient past 255 is a usage error", lastOutput);
+	run(anim + QStringList {QStringLiteral("--swatch"), QStringLiteral("--shape"), QStringLiteral("cube")});
+	expect(lastExit == 2 && lastOutput.contains(QStringLiteral("--shape")), "--swatch refuses --shape", lastOutput);
+	run(anim + QStringList {QStringLiteral("--swatch"), QStringLiteral("--tiling"), QStringLiteral("2")});
+	expect(lastExit == 2 && lastOutput.contains(QStringLiteral("--tiling")), "--swatch refuses the framing options it sets itself", lastOutput);
+	// Every other render option reaches the swatch (renderMaterialSwatch with base options).
+	run(anim + QStringList {QStringLiteral("--swatch"), QStringLiteral("--background"), QStringLiteral("none"), QStringLiteral("--parms"), QStringLiteral("7=1")});
+	expect(lastExit == 0, "--swatch takes the background and parms", lastOutput);
+	run(anim + QStringList {QStringLiteral("--frames"), QStringLiteral("2"), QStringLiteral("--cycle"), QStringLiteral("--fps"), QStringLiteral("4")});
+	expect(lastExit == 2, "--cycle and --fps together are a usage error", lastOutput);
+	run(anim + QStringList {QStringLiteral("--entity-color"), QStringLiteral("255,0,0"), QStringLiteral("--parms"), QStringLiteral("0=1")});
+	expect(lastExit == 2, "--entity-color and --parms 0-3 together are a usage error", lastOutput);
+	run(anim + QStringList {QStringLiteral("--globals"), QStringLiteral("8=1")});
+	expect(lastExit == 2, "--globals takes indexes 0 to 7", lastOutput);
+	run(anim + QStringList {QStringLiteral("--light-angle"), QStringLiteral("30"), QStringLiteral("--orbit-seconds"), QStringLiteral("4")});
+	expect(lastExit == 2, "--light-angle and --orbit-seconds together are a usage error", lastOutput);
 
 	// graph
 	result = run({QStringLiteral("graph"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow")});
@@ -372,6 +492,61 @@ int main(int argc, char** argv)
 	run({QStringLiteral("graph"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow"), QStringLiteral("--edits"), graphEdits,
 		QStringLiteral("--output"), graphOut});
 	expect(lastExit == 0 && readFile(graphOut).contains("rgbGen wave sin 0.5 0.5 0 2"), "a graph edit rewrites the shader text", lastOutput);
+	const QString graphDry = root.filePath(QStringLiteral("graph-dry.shader"));
+	result = run({QStringLiteral("graph"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow"), QStringLiteral("--edits"), graphEdits,
+		QStringLiteral("--output"), graphDry, QStringLiteral("--dry-run")});
+	expect(lastExit == 0 && !QFile::exists(graphDry) && result.value(QStringLiteral("text")).toString().contains(QStringLiteral("rgbGen wave sin 0.5 0.5 0 2")),
+		"a dry graph edit shows the text and writes nothing", lastOutput);
+	run({QStringLiteral("graph"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow"), QStringLiteral("--dry-run")});
+	expect(lastExit == 2, "graph --dry-run needs --edits", lastOutput);
+	run({QStringLiteral("graph"), wad, QStringLiteral("--material"), QStringLiteral("NUKAGE1"), QStringLiteral("--text-kind"), QStringLiteral("quake3-shader")});
+	expect(lastExit == 2, "a text kind that does not fit the engine is a usage error", lastOutput);
+	result = run({QStringLiteral("graph"), wad, QStringLiteral("--material"), QStringLiteral("NUKAGE1"), QStringLiteral("--text-kind"), QStringLiteral("swantbls")});
+	expect(lastExit == 0 && !result.value(QStringLiteral("graph")).toObject().value(QStringLiteral("nodes")).toArray().isEmpty(),
+		"a Doom flat's graph reads its SWANTBLS text", lastOutput);
+	const QString noEdits = root.filePath(QStringLiteral("none.json"));
+	writeFile(noEdits, "[]");
+	run({QStringLiteral("graph"), wad, QStringLiteral("--material"), QStringLiteral("NUKAGE1"), QStringLiteral("--text-kind"), QStringLiteral("swantbls"),
+		QStringLiteral("--edits"), noEdits, QStringLiteral("--output"), wad, QStringLiteral("--overwrite")});
+	expect(lastExit == 2 && QFileInfo(wad).size() == doomFixture().size(), "graph will not write over the package it reads", lastOutput);
+	// Adding a Doom range runs it to the last flat with the same name.
+	const QString zapWad = root.filePath(QStringLiteral("zap.wad"));
+	writeFile(zapWad, doomWad({{"F_START", {}}, {"ZAP1", QByteArray(4096, char(20))}, {"ZAP2", QByteArray(4096, char(30))},
+						  {"ZAP3", QByteArray(4096, char(40))}, {"FLOORX", QByteArray(4096, char(50))}, {"F_END", {}}}));
+	const QString rangeEdit = root.filePath(QStringLiteral("range.json"));
+	writeFile(rangeEdit, R"([{"edit": "add", "node": "material", "template": "doom.range"}])");
+	result = run({QStringLiteral("graph"), zapWad, QStringLiteral("--material"), QStringLiteral("ZAP1"), QStringLiteral("--text-kind"), QStringLiteral("swantbls"),
+		QStringLiteral("--edits"), rangeEdit, QStringLiteral("--dry-run")});
+	expect(lastExit == 0 && result.value(QStringLiteral("text")).toString().simplified().contains(QStringLiteral("ZAP3 ZAP1")),
+		"adding a Doom range in the graph runs it to the last flat of the name", lastOutput);
+	// A wal-json edit written to a .wal rewrites that WAL's header.
+	const QString walEdits = root.filePath(QStringLiteral("wal-edits.json"));
+	writeFile(walEdits, R"([{"edit": "set", "node": "flags", "property": "value", "value": 777}])");
+	const QString graphWal = root.filePath(QStringLiteral("graph.wal"));
+	run({QStringLiteral("graph"), root.filePath(QStringLiteral("q2")), QStringLiteral("--material"), QStringLiteral("e1u1/anim_1"), QStringLiteral("--edits"),
+		walEdits, QStringLiteral("--output"), graphWal});
+	const bool graphWalWritten = lastExit == 0;
+	result = run({QStringLiteral("wal"), graphWal});
+	expect(graphWalWritten && lastExit == 0 && result.value(QStringLiteral("value")).toInt() == 777 && readFile(graphWal).mid(100) == readFile(wal).mid(100),
+		"a wal-json graph edit written to a .wal rewrites its header and keeps its pixels", lastOutput);
+	const QString oversized = root.filePath(QStringLiteral("big.json"));
+	writeFile(oversized, QByteArray(4 * 1024 * 1024 + 16, ' '));
+	run({QStringLiteral("graph"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow"), QStringLiteral("--edits"), oversized,
+		QStringLiteral("--dry-run")});
+	expect(lastExit == 2, "an --edits file over 4 MiB is a usage error, not a missing file", lastOutput);
+	run({QStringLiteral("graph"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow"), QStringLiteral("--edits"),
+		root.filePath(QStringLiteral("nope.json")), QStringLiteral("--dry-run")});
+	expect(lastExit == 3, "a missing --edits file is not-found", lastOutput);
+	const QString opGraphEdits = root.filePath(QStringLiteral("graph-op.json"));
+	writeFile(opGraphEdits, R"([{"op": "set", "node": "stage/0/rgbgen", "property": "frequency", "value": 3}])");
+	result = run({QStringLiteral("graph"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow"), QStringLiteral("--edits"), opGraphEdits,
+		QStringLiteral("--dry-run")});
+	expect(lastExit == 0 && result.value(QStringLiteral("text")).toString().contains(QStringLiteral("rgbGen wave sin 0.5 0.5 0 3")),
+		"a graph edit may name its kind with 'op'", lastOutput);
+	writeFile(opGraphEdits, R"([{"edit": "set", "node": "stage/0/rgbgen", "property": "frequency", "value": [3]}])");
+	run({QStringLiteral("graph"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow"), QStringLiteral("--edits"), opGraphEdits,
+		QStringLiteral("--dry-run")});
+	expect(lastExit == 2 && lastOutput.contains(QStringLiteral("'value'")), "a graph edit value given as an array is a usage error", lastOutput);
 
 	// edit
 	const QString script = root.filePath(QStringLiteral("edit.shader"));
@@ -385,6 +560,37 @@ int main(int argc, char** argv)
 	run({QStringLiteral("edit"), script, QStringLiteral("--edits"), textEdits, QStringLiteral("--output"), script, QStringLiteral("--overwrite")});
 	expect(lastExit == 0 && readFile(script).contains("tcMod scroll 1 0.25") && readFile(script).contains("// CLI fixture"),
 		"an edit in place keeps the rest of the script", lastOutput);
+	const QString badEdits = root.filePath(QStringLiteral("bad-edits.json"));
+	writeFile(badEdits, R"([{"op": "set", "material": "textures/test/glow", "stage": 0, "keyword": "cull", "arguments": "none"}])");
+	run({QStringLiteral("edit"), script, QStringLiteral("--edits"), badEdits, QStringLiteral("--dry-run")});
+	expect(lastExit == 2 && lastOutput.contains(QStringLiteral("global block")), "an edit with stage 0 is a usage error naming the global block", lastOutput);
+	writeFile(badEdits, R"([{"op": "set", "material": "textures/test/glow", "stage": 1, "keyword": "blendFunc", "arguments": ["GL_ONE", "GL_ONE"]}])");
+	run({QStringLiteral("edit"), script, QStringLiteral("--edits"), badEdits, QStringLiteral("--dry-run")});
+	expect(lastExit == 2 && lastOutput.contains(QStringLiteral("'arguments' must be text")), "edit arguments given as an array are a usage error", lastOutput);
+	writeFile(badEdits, R"({"op": "set"})");
+	run({QStringLiteral("edit"), script, QStringLiteral("--edits"), badEdits, QStringLiteral("--dry-run")});
+	expect(lastExit == 2 && lastOutput.contains(QStringLiteral("JSON object")), "an edits file holding one object says so", lastOutput);
+	result = run({QStringLiteral("edit"), q3, QStringLiteral("--script"), QStringLiteral("scripts/test.shader"), QStringLiteral("--edits"), textEdits,
+		QStringLiteral("--dry-run")});
+	expect(lastExit == 0 && result.value(QStringLiteral("text")).toString().contains(QStringLiteral("tcMod scroll 1 0.25")),
+		"edit --script picks a script in a package", lastOutput);
+	run({QStringLiteral("edit"), q3, QStringLiteral("--script"), QStringLiteral("scripts/nope.shader"), QStringLiteral("--edits"), textEdits,
+		QStringLiteral("--dry-run")});
+	expect(lastExit == 3 && lastOutput.contains(QStringLiteral("scripts/test.shader")), "an unknown --script names the scripts there are", lastOutput);
+	run({QStringLiteral("edit"), script, QStringLiteral("--script"), QStringLiteral("scripts/test.shader"), QStringLiteral("--edits"), textEdits,
+		QStringLiteral("--dry-run")});
+	expect(lastExit == 2, "--script with a loose script is a usage error", lastOutput);
+	// --strict: an edit that leaves an error writes nothing.
+	const QString clean = root.filePath(QStringLiteral("clean.shader"));
+	const QByteArray cleanText("textures/test/clean\n{\n\t{\n\t\tmap $whiteimage\n\t}\n}\n");
+	writeFile(clean, cleanText);
+	const QString badEdit = root.filePath(QStringLiteral("bad-edit.json"));
+	writeFile(badEdit, R"([{"op": "add", "material": "textures/test/clean", "stage": 1, "keyword": "frobnicate", "arguments": "1"}])");
+	result = run({QStringLiteral("edit"), clean, QStringLiteral("--edits"), badEdit, QStringLiteral("--dry-run")});
+	expect(lastExit == 0 && result.value(QStringLiteral("errors")).toInt() > 0, "without --strict an edit that leaves an error is reported", lastOutput);
+	run({QStringLiteral("edit"), clean, QStringLiteral("--edits"), badEdit, QStringLiteral("--output"), clean, QStringLiteral("--overwrite"),
+		QStringLiteral("--strict")});
+	expect(lastExit == 4 && readFile(clean) == cleanText, "edit --strict refuses to write a script with errors", lastOutput);
 
 	// templates and new
 	result = run({QStringLiteral("templates"), QStringLiteral("--engine"), QStringLiteral("doom3")});
@@ -400,6 +606,13 @@ int main(int argc, char** argv)
 	run({QStringLiteral("new"), QStringLiteral("--template"), QStringLiteral("q3-glow"), QStringLiteral("--name"), QStringLiteral("textures/test/lamp"),
 		QStringLiteral("--output"), script, QStringLiteral("--append")});
 	expect(lastExit == 4, "new --append refuses a name the script already defines", lastOutput);
+	const QString wrongEngine = root.filePath(QStringLiteral("wrong.shader"));
+	run({QStringLiteral("new"), QStringLiteral("--template"), QStringLiteral("d3-standard"), QStringLiteral("--name"), QStringLiteral("textures/test/d3"),
+		QStringLiteral("--output"), wrongEngine});
+	expect(lastExit == 2 && !QFile::exists(wrongEngine), "a Doom 3 template is not written into a .shader script", lastOutput);
+	run({QStringLiteral("new"), QStringLiteral("--template"), QStringLiteral("d3-standard"), QStringLiteral("--name"), QStringLiteral("textures/test/d3"),
+		QStringLiteral("--output"), script, QStringLiteral("--append")});
+	expect(lastExit == 2, "a Doom 3 template is not appended to a .shader script", lastOutput);
 
 	// doom-tables
 	const QString lumps = root.filePath(QStringLiteral("lumps"));
@@ -413,12 +626,17 @@ int main(int argc, char** argv)
 	expect(lastExit == 0 && result.value(QStringLiteral("ranges")).toArray().size() == 22
 			&& result.value(QStringLiteral("switches")).toArray().size() == 40,
 		"SWANTBLS text reads back", lastOutput);
+	run({QStringLiteral("doom-tables"), wad, QStringLiteral("--output-dir"), lumps});
+	expect(lastExit == 1, "doom-tables will not replace its outputs without --overwrite", lastOutput);
+	run({QStringLiteral("doom-tables"), wad, QStringLiteral("--output-dir"), lumps, QStringLiteral("--overwrite")});
+	expect(lastExit == 0, "doom-tables --overwrite replaces its outputs", lastOutput);
 
 	// wal
 	const QString metadata = root.filePath(QStringLiteral("anim.wal_json"));
 	writeFile(metadata, R"({"flags": ["light", "slick"], "value": 1200})");
 	const QString walOut = root.filePath(QStringLiteral("anim_1.wal"));
 	run({QStringLiteral("wal"), wal, QStringLiteral("--metadata"), metadata, QStringLiteral("--output"), walOut});
+	expect(lastExit == 0 && QFile::exists(walOut), "wal --metadata --output writes the rewritten WAL", lastOutput);
 	result = run({QStringLiteral("wal"), walOut});
 	const QJsonArray flags = result.value(QStringLiteral("surfaceFlagIds")).toArray();
 	expect(lastExit == 0 && result.value(QStringLiteral("value")).toInt() == 1200 && flags.contains(QStringLiteral("slick"))
@@ -428,6 +646,19 @@ int main(int argc, char** argv)
 	result = run({QStringLiteral("wal"), root.filePath(QStringLiteral("q2")), QStringLiteral("--material"), QStringLiteral("e1u1/anim_2")});
 	expect(lastExit == 0 && result.value(QStringLiteral("name")).toString() == QStringLiteral("e1u1/anim_2"), "wal reads a texture in a package",
 		lastOutput);
+	const QString walCopy = root.filePath(QStringLiteral("copy.wal"));
+	run({QStringLiteral("wal"), wal, QStringLiteral("--output"), walCopy});
+	expect(lastExit == 2 && !QFile::exists(walCopy), "wal --output without --metadata refuses a .wal name", lastOutput);
+	const QString sidecar = root.filePath(QStringLiteral("sidecar.wal_json"));
+	run({QStringLiteral("wal"), wal, QStringLiteral("--output"), sidecar});
+	const QJsonObject sidecarJson = QJsonDocument::fromJson(readFile(sidecar)).object();
+	expect(lastExit == 0 && sidecarJson.value(QStringLiteral("value")).toInt() == 300
+			&& sidecarJson.value(QStringLiteral("animation")).toString() == QStringLiteral("e1u1/anim_2"),
+		"wal --output writes the .wal_json sidecar", lastOutput);
+	const QString shortWal = root.filePath(QStringLiteral("short.wal"));
+	writeFile(shortWal, QByteArray(50, 'x'));
+	run({QStringLiteral("wal"), shortWal});
+	expect(lastExit == 4, "a WAL shorter than its header is refused", lastOutput);
 
 	// Whole-definition edits without a JSON file.
 	const QString shortcuts = root.filePath(QStringLiteral("shortcuts.shader"));
@@ -460,6 +691,38 @@ int main(int argc, char** argv)
 	result = run({QStringLiteral("inspect"), jedi, QStringLiteral("--no-images"), QStringLiteral("--dialect"), QStringLiteral("quake3")});
 	expect(lastExit == 0 && result.value(QStringLiteral("entry")).toObject().value(QStringLiteral("rejected")).toBool(),
 		"--dialect quake3 reads it as Quake III Arena, which drops it", lastOutput);
+	// Image extensions follow the dialect: ioquake3 also tries .png for a
+	// .tga name, Quake III 1.32 only retries .tga as .jpg.
+	const QString pngOnly = root.filePath(QStringLiteral("pngonly"));
+	QDir().mkpath(pngOnly + QStringLiteral("/textures/p"));
+	checker(16, qRgb(200, 10, 10), qRgb(10, 10, 200), 4).save(pngOnly + QStringLiteral("/textures/p/img.png"));
+	writeFile(pngOnly + QStringLiteral("/scripts/p.shader"), "textures/p/x\n{\n\t{\n\t\tmap textures/p/img.tga\n\t}\n}\n");
+	result = run({QStringLiteral("validate"), pngOnly, QStringLiteral("--dialect"), QStringLiteral("quake3")});
+	expect(lastExit == 0 && result.value(QStringLiteral("missingImages")).toInt() == 0, "ioquake3 finds a .tga stage image saved as .png", lastOutput);
+	result = run({QStringLiteral("validate"), pngOnly, QStringLiteral("--dialect"), QStringLiteral("quake3-1.32")});
+	codes.clear();
+	for (const QJsonValue& problem : result.value(QStringLiteral("problems")).toArray()) {
+		codes << problem.toObject().value(QStringLiteral("code")).toString();
+	}
+	expect(lastExit == 4 && codes.contains(QStringLiteral("missing-image")), "Quake III 1.32 does not find a .tga stage image saved as .png", lastOutput);
+
+	// Doom 3: a table lookup no loaded script defines.
+	const QString tables = root.filePath(QStringLiteral("tables.mtr"));
+	writeFile(tables, "textures/d3/pulse\n{\n\t{\n\t\tblend add\n\t\tmap _white\n\t\trgb nosuchTable[ time ]\n\t}\n}\n");
+	result = run({QStringLiteral("validate"), tables, QStringLiteral("--no-images")});
+	codes.clear();
+	for (const QJsonValue& problem : result.value(QStringLiteral("problems")).toArray()) {
+		codes << problem.toObject().value(QStringLiteral("code")).toString();
+	}
+	expect(codes.contains(QStringLiteral("missing-table")), "validate reports a Doom 3 table no script defines", lastOutput);
+	result = run({QStringLiteral("inspect"), tables, QStringLiteral("--no-images")});
+	expect(lastExit == 0 && QJsonDocument(result.value(QStringLiteral("diagnostics")).toArray()).toJson().contains("missing-table"),
+		"inspect reports a Doom 3 table no script defines", lastOutput);
+	run({QStringLiteral("new"), QStringLiteral("--template"), QStringLiteral("q3-glow"), QStringLiteral("--name"), QStringLiteral("textures/a b")});
+	expect(lastExit == 2, "new refuses a name the engine's lexer splits", lastOutput);
+	run({QStringLiteral("edit"), jedi, QStringLiteral("--material"), QStringLiteral("textures/jk/sign"), QStringLiteral("--rename"), QStringLiteral("two words"),
+		QStringLiteral("--dry-run")});
+	expect(lastExit == 2, "edit --rename refuses a name the engine's lexer splits", lastOutput);
 	run({QStringLiteral("list"), q3, QStringLiteral("--dialect"), QStringLiteral("doom9")});
 	expect(lastExit == 2, "an unknown dialect is a usage error", lastOutput);
 	result = run({QStringLiteral("list"), q3, QStringLiteral("--dialect"), QStringLiteral("quake3-1.32")});
@@ -482,6 +745,14 @@ int main(int argc, char** argv)
 	expect(lastExit == 0 && names.contains(QStringLiteral("textures/test/glow")) && names.contains(QStringLiteral("textures/mod/lamp"))
 			&& result.value(QStringLiteral("basePackages")).toInt() == 1,
 		"--include-base lists the base package's materials too", lastOutput);
+	const QString q3b = root.filePath(QStringLiteral("q3b"));
+	writeFile(q3b + QStringLiteral("/textures/other/plate.tga"), tga(checker(16, qRgb(10, 200, 10), qRgb(5, 100, 5), 4)));
+	result = run({QStringLiteral("list"), mod, QStringLiteral("--base"), q3 + QDir::listSeparator() + q3b});
+	expect(lastExit == 0 && result.value(QStringLiteral("basePackages")).toInt() == 2, "--base takes several packages joined as in PATH", lastOutput);
+	run({QStringLiteral("list"), mod, QStringLiteral("--base"), root.filePath(QStringLiteral("nope"))});
+	expect(lastExit == 3, "a --base that does not exist is not-found", lastOutput);
+	run({QStringLiteral("list"), q3, QStringLiteral("--package"), root.filePath(QStringLiteral("nope"))});
+	expect(lastExit == 3, "a --package that does not exist is not-found", lastOutput);
 
 	// map materials reads the base packages beneath the package and the chosen
 	// game as the Levels camera does: a mod map's face named after the base
@@ -520,6 +791,66 @@ int main(int argc, char** argv)
 		expect(lastExit == 2, "map materials refuses an unknown dialect", lastOutput);
 	}
 
+	// override: the page's Override in Package, into the mod folder.
+	{
+		const QString overrides = mod + QStringLiteral("/scripts/zz_slopstudio_overrides.shader");
+		result = run({QStringLiteral("override"), mod, QStringLiteral("--base"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow"),
+			QStringLiteral("--dry-run")});
+		expect(lastExit == 0 && !QFile::exists(overrides)
+				&& result.value(QStringLiteral("virtualPath")).toString() == QStringLiteral("scripts/zz_slopstudio_overrides.shader")
+				&& result.value(QStringLiteral("text")).toString().contains(QStringLiteral("tcMod scroll")),
+			"a dry override names the override script and writes nothing", lastOutput);
+		result = run({QStringLiteral("override"), mod, QStringLiteral("--base"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow"),
+			QStringLiteral("--dialect"), QStringLiteral("quake3-1.32"), QStringLiteral("--dry-run")});
+		expect(lastExit == 0 && result.value(QStringLiteral("virtualPath")).toString() == QStringLiteral("scripts/00_slopstudio_overrides.shader"),
+			"Quake III 1.32, where the first definition wins, gets an override script read first", lastOutput);
+		run({QStringLiteral("override"), mod, QStringLiteral("--base"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow")});
+		expect(lastExit == 0 && readFile(overrides).contains("textures/test/glow"), "override copies the base shader into the mod", lastOutput);
+		result = run({QStringLiteral("list"), mod, QStringLiteral("--base"), q3, QStringLiteral("--include-base"), QStringLiteral("--where"),
+			QStringLiteral("name=textures/test/glow")});
+		bool modWins = false;
+		bool baseShadowed = false;
+		for (const QJsonValue& value : result.value(QStringLiteral("entries")).toArray()) {
+			const QJsonObject entry = value.toObject();
+			// The JSON names the winner in shadowedBy only on a shadowed entry.
+			if (entry.value(QStringLiteral("base")).toBool()) {
+				baseShadowed = entry.contains(QStringLiteral("shadowedBy"));
+			} else {
+				modWins = !entry.contains(QStringLiteral("shadowedBy"));
+			}
+		}
+		expect(modWins && baseShadowed, "after the override the mod's copy wins over the base shader", lastOutput);
+		run({QStringLiteral("override"), mod, QStringLiteral("--base"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow")});
+		expect(lastExit == 4, "a material the mod already has is not copied again", lastOutput);
+		result = run({QStringLiteral("override"), mod, QStringLiteral("--base"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/wall")});
+		expect(lastExit == 0 && result.value(QStringLiteral("appended")).toBool() && readFile(overrides).contains("textures/test/glow")
+				&& readFile(overrides).contains("textures/test/wall"),
+			"a second override is added to the same script", lastOutput);
+		run({QStringLiteral("override"), mod, QStringLiteral("--material"), QStringLiteral("textures/test/glow")});
+		expect(lastExit == 2, "override needs --base", lastOutput);
+		run({QStringLiteral("override"), mod, QStringLiteral("--base"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/none")});
+		expect(lastExit == 3, "overriding a material that is not there is not-found", lastOutput);
+		// A mod overridden by VibeStudio, before the rename, keeps adding to
+		// its VibeStudio-named script rather than starting a second one.
+		const QString oldMod = root.filePath(QStringLiteral("oldmod"));
+		const QString oldOverrides = oldMod + QStringLiteral("/scripts/zz_vibestudio_overrides.shader");
+		writeFile(oldOverrides, "textures/old/kept\n{\n\tsurfaceparm nodraw\n}\n");
+		result = run({QStringLiteral("override"), oldMod, QStringLiteral("--base"), q3, QStringLiteral("--material"), QStringLiteral("textures/test/glow")});
+		expect(lastExit == 0 && result.value(QStringLiteral("virtualPath")).toString() == QStringLiteral("scripts/zz_vibestudio_overrides.shader")
+				&& result.value(QStringLiteral("appended")).toBool() && readFile(oldOverrides).contains("textures/old/kept")
+				&& readFile(oldOverrides).contains("textures/test/glow")
+				&& !QFile::exists(oldMod + QStringLiteral("/scripts/zz_slopstudio_overrides.shader")),
+			"an override script from before the rename keeps taking the copies", lastOutput);
+		// A Quake II texture: the WAL is copied whole.
+		const QString q2mod = root.filePath(QStringLiteral("q2mod"));
+		writeFile(q2mod + QStringLiteral("/readme.txt"), "mod\n");
+		result = run({QStringLiteral("override"), q2mod, QStringLiteral("--base"), root.filePath(QStringLiteral("q2")), QStringLiteral("--material"),
+			QStringLiteral("e1u1/anim_1")});
+		expect(lastExit == 0 && readFile(q2mod + QStringLiteral("/textures/e1u1/anim_1.wal")) == readFile(wal)
+				&& result.value(QStringLiteral("copy")).toString() == QStringLiteral("file"),
+			"overriding a Quake II texture copies its WAL into the mod", lastOutput);
+	}
+
 	// usage: the maps that use a material.
 	writeFile(q3 + QStringLiteral("/maps/test.map"),
 		"{\n\"classname\" \"worldspawn\"\n{\n( 0 0 0 ) ( 1 0 0 ) ( 0 1 0 ) test/glow 0 0 0 0.5 0.5 0 0 0\n"
@@ -534,6 +865,25 @@ int main(int argc, char** argv)
 	}
 	expect(lastExit == 0 && unused.contains(QStringLiteral("textures/test/bad")) && !unused.contains(QStringLiteral("textures/test/glow")),
 		"usage --unused lists the materials no map uses", lastOutput);
+	result = run({QStringLiteral("usage"), q3, QStringLiteral("--limit"), QStringLiteral("1")});
+	expect(lastExit == 0 && result.value(QStringLiteral("used")).toArray().size() == 1 && result.value(QStringLiteral("matched")).toInt() == 2
+			&& result.value(QStringLiteral("complete")).toBool(),
+		"usage --limit caps the rows and reports how many matched", lastOutput);
+	result = run({QStringLiteral("usage"), mod, QStringLiteral("--base"), q3});
+	QStringList maps;
+	for (const QJsonValue& each : result.value(QStringLiteral("maps")).toArray()) {
+		maps << each.toString();
+	}
+	expect(lastExit == 0 && maps.contains(QStringLiteral("maps/lamp.map")) && !maps.contains(QStringLiteral("maps/test.map")),
+		"usage reads the package's own maps, not the base game's", maps.join(QLatin1Char(',')));
+	result = run({QStringLiteral("usage"), mod, QStringLiteral("--base"), q3, QStringLiteral("--include-base")});
+	maps.clear();
+	for (const QJsonValue& each : result.value(QStringLiteral("maps")).toArray()) {
+		maps << each.toString();
+	}
+	expect(lastExit == 0 && maps.contains(QStringLiteral("maps/lamp.map")) && maps.contains(QStringLiteral("maps/test.map"))
+			&& result.value(QStringLiteral("baseMaps")).toArray().contains(QStringLiteral("maps/test.map")),
+		"usage --include-base reads the base game's maps too", maps.join(QLatin1Char(',')));
 	run({QStringLiteral("usage"), jedi});
 	expect(lastExit == 2, "usage needs a package with maps, not a loose script", lastOutput);
 
@@ -544,6 +894,11 @@ int main(int argc, char** argv)
 	expect(lastExit == 2, "an unknown option is a usage error", lastOutput);
 	run({QStringLiteral("nonsense")});
 	expect(lastExit == 2, "an unknown material command is a usage error", lastOutput);
+	runText({});
+	expect(lastExit == 2 && lastStderr.contains(QStringLiteral("Give a material command")) && lastStderr.contains(QStringLiteral("override")),
+		"material alone lists the commands", lastOutput);
+	run({QStringLiteral("override")});
+	expect(lastExit == 2, "override without a source is a usage error", lastOutput);
 
 	if (failures > 0) {
 		std::cerr << failures << " material CLI check(s) failed\n";

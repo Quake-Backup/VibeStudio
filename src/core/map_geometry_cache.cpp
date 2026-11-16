@@ -46,6 +46,36 @@ QByteArray geometryKey(const LevelMapBrush& brush, MapGeometryPrecision precisio
 	return key;
 }
 
+// Whether `key` is what geometryKey() would write for this brush, compared
+// value by value in place. A view rebuilds after every edit and nearly every
+// brush is unchanged: building a key for each one just to compare it was the
+// largest part of that rebuild that grows with the map.
+bool geometryKeyMatches(const QByteArray& key, const LevelMapBrush& brush, MapGeometryPrecision precision)
+{
+	const char* cursor = key.constData();
+	const char* const end = cursor + key.size();
+	const auto same = [&cursor, end](const void* data, qsizetype bytes) {
+		if (end - cursor < bytes) { return false; }
+		const bool equal = bytes <= 0 || std::memcmp(cursor, data, static_cast<size_t>(bytes)) == 0;
+		cursor += std::max<qsizetype>(bytes, 0);
+		return equal;
+	};
+	const char mode = char(precision);
+	const qint64 count = brush.faces.size();
+	if (!same(&mode, 1) || !same(&count, sizeof(count))) { return false; }
+	for (const auto& face : brush.faces) {
+		const std::array<double, 13> coordinates {face.p0.x, face.p0.y, face.p0.z,
+			face.p1.x, face.p1.y, face.p1.z, face.p2.x, face.p2.y, face.p2.z,
+			face.planeNormal.x, face.planeNormal.y, face.planeNormal.z, face.planeDistance};
+		const char flags = char(int(face.p0.valid) | (int(face.p1.valid) << 1) | (int(face.p2.valid) << 2)
+			| (int(face.explicitPlane) << 3) | (int(face.planeNormal.valid) << 4));
+		const qint64 textBytes = face.textureName.size() * qint64(sizeof(QChar));
+		if (!same(coordinates.data(), sizeof(coordinates)) || !same(&flags, 1) || !same(&textBytes, sizeof(textBytes))
+			|| !same(face.textureName.utf16(), textBytes)) { return false; }
+	}
+	return cursor == end;
+}
+
 qint64 entryBytes(const QByteArray& key, const MapBrushGeometry& geometry)
 {
 	// Account for capacities and owned text, plus conservative entry/container
@@ -86,14 +116,14 @@ MapBrushGeometry MapBrushGeometryCache::resolve(const LevelMapBrush& brush, MapG
 		MapBrushGeometry result; result.brushId = brush.id; result.entityId = brush.entityId; result.cancelled = true;
 		return result;
 	}
-	const auto key = m_byteLimit > 0 ? geometryKey(brush, precision) : QByteArray();
 	const auto found = m_entries.constFind(brush.id);
-	if (!key.isEmpty() && found != m_entries.cend() && found->key == key) {
+	if (m_byteLimit > 0 && found != m_entries.cend() && geometryKeyMatches(found->key, brush, precision)) {
 		++m_statistics.reused;
 		auto geometry = found->geometry;
 		geometry.entityId = brush.entityId;
 		return geometry;
 	}
+	const auto key = m_byteLimit > 0 ? geometryKey(brush, precision) : QByteArray();
 	++m_statistics.solved;
 	auto geometry = solveBrushGeometry(brush.faces, brush.id, brush.entityId, precision, isCancelled);
 	if (geometry.cancelled) { return geometry; }

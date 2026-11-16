@@ -76,6 +76,13 @@ struct ReaderIndexData {
 	QVector<PackageEntry> entries;
 	QHash<QString, int> byPath;
 	QHash<QString, QVector<int>> byLumpName;
+
+	// What palette searches found in this snapshot, so each material does
+	// not search every entry again (guarded by paletteMutex).
+	mutable QMutex paletteMutex;
+	mutable bool paletteIdKnown = false;
+	mutable QString paletteIdInPackage;
+	mutable QHash<QString, IdTechPaletteResolution> palettes;
 };
 
 std::shared_ptr<const ReaderIndexData> buildReaderIndex(const PackageArchiveReader& reader)
@@ -149,7 +156,96 @@ struct ReaderIndex {
 		, data(sharedReaderIndex(reader))
 	{
 	}
+
+	// idTechPaletteIdInPackage, once per snapshot.
+	[[nodiscard]] QString paletteId() const
+	{
+		if (!reader) {
+			return {};
+		}
+		{
+			QMutexLocker lock(&data->paletteMutex);
+			if (data->paletteIdKnown) {
+				return data->paletteIdInPackage;
+			}
+		}
+		const QString id = idTechPaletteIdInPackage(*reader);
+		QMutexLocker lock(&data->paletteMutex);
+		data->paletteIdKnown = true;
+		data->paletteIdInPackage = id;
+		return id;
+	}
+
+	// resolveIdTechPalette, once per snapshot and palette id.
+	[[nodiscard]] IdTechPaletteResolution palette(const QString& paletteId) const
+	{
+		{
+			QMutexLocker lock(&data->paletteMutex);
+			const auto found = data->palettes.constFind(paletteId);
+			if (found != data->palettes.constEnd()) {
+				return *found;
+			}
+		}
+		const IdTechPaletteResolution resolution = resolveIdTechPalette(*reader, paletteId);
+		QMutexLocker lock(&data->paletteMutex);
+		data->palettes.insert(paletteId, resolution);
+		return resolution;
+	}
 };
+
+// Generated colormaps depend only on the palette; building one takes
+// millions of distance tests, so they are shared process-wide.
+QByteArray sharedGeneratedColormap(const QString& kind, const QVector<QRgb>& palette, const std::function<QByteArray()>& build)
+{
+	static QMutex mutex;
+	static QHash<QByteArray, QByteArray> colormaps;
+	QByteArray key = kind.toLatin1() + '|';
+	key.append(reinterpret_cast<const char*>(palette.constData()), palette.size() * static_cast<qsizetype>(sizeof(QRgb)));
+	{
+		QMutexLocker lock(&mutex);
+		const auto found = colormaps.constFind(key);
+		if (found != colormaps.constEnd()) {
+			return *found;
+		}
+	}
+	const QByteArray colormap = build();
+	QMutexLocker lock(&mutex);
+	if (colormaps.size() >= 16) {
+		colormaps.clear();
+	}
+	colormaps.insert(key, colormap);
+	return colormap;
+}
+
+// Doom 3 image program functions, matched once per node instead of per pixel.
+enum class ProgramFunction {
+	Other,
+	Scale,
+	InvertAlpha,
+	InvertColor,
+	MakeIntensity,
+	MakeAlpha,
+};
+
+ProgramFunction programFunction(const QString& function)
+{
+	if (function == QStringLiteral("scale")) {
+		return ProgramFunction::Scale;
+	}
+	if (function == QStringLiteral("invertalpha")) {
+		return ProgramFunction::InvertAlpha;
+	}
+	if (function == QStringLiteral("invertcolor")) {
+		return ProgramFunction::InvertColor;
+	}
+	if (function == QStringLiteral("makeintensity")) {
+		return ProgramFunction::MakeIntensity;
+	}
+	if (function == QStringLiteral("makealpha")) {
+		return ProgramFunction::MakeAlpha;
+	}
+	return ProgramFunction::Other;
+}
 
 class Resolver {
 public:
@@ -250,8 +346,13 @@ private:
 		}
 	}
 
+	// Charges a texture the set keeps to the budget, once however many keys
+	// or cube faces share it, cached or freshly decoded alike.
 	bool charge(const MaterialTexture& texture)
 	{
+		if (m_charged.contains(&texture)) {
+			return true;
+		}
 		const qint64 bytes = static_cast<qint64>(texture.pixels.size()) * 5;
 		if (m_bytes + bytes > m_source.byteBudget) {
 			m_set->complete = false;
@@ -262,7 +363,28 @@ private:
 			return false;
 		}
 		m_bytes += bytes;
+		m_charged.insert(&texture);
 		return true;
+	}
+
+	// The texture when the budget holds it, else a missing stand-in.
+	MaterialTexturePtr charged(const QString& reference, const MaterialTexturePtr& texture)
+	{
+		if (!texture || !texture->usable()) {
+			return texture;
+		}
+		if (charge(*texture)) {
+			// Kept alive so a freed texture's address is never taken for a
+			// charged one.
+			m_keep.push_back(texture);
+			return texture;
+		}
+		auto stand = std::make_shared<MaterialTexture>();
+		stand->reference = reference;
+		stand->path = texture->path;
+		stand->status = QStringLiteral("missing");
+		stand->note = Text::tr("Image memory budget reached.");
+		return stand;
 	}
 
 	MaterialTexturePtr missing(const QString& reference, const QStringList& candidates, const QString& note = QString())
@@ -270,7 +392,13 @@ private:
 		auto texture = std::make_shared<MaterialTexture>();
 		texture->reference = reference;
 		texture->status = QStringLiteral("missing");
-		texture->note = note.isEmpty() ? Text::tr("Not found. Looked for: %1").arg(candidates.join(QStringLiteral(", "))) : note;
+		if (!note.isEmpty()) {
+			texture->note = note;
+		} else if (candidates.isEmpty()) {
+			texture->note = Text::tr("Not found: the game reads no file for this name.");
+		} else {
+			texture->note = Text::tr("Not found. Looked for: %1").arg(candidates.join(QStringLiteral(", ")));
+		}
 		return texture;
 	}
 
@@ -311,9 +439,11 @@ private:
 							.scaled(m_source.maximumDimension, m_source.maximumDimension, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 			}
 		}
+		// Not charged here: a leaf that only feeds a Doom 3 program is
+		// dropped after it; what the set keeps is charged in store().
 		auto texture = std::make_shared<MaterialTexture>(materialTextureFromImage(image, reference, path, QStringLiteral("image")));
-		if (!charge(*texture)) {
-			return missing(reference, {path}, Text::tr("Image memory budget reached."));
+		if (static_cast<qint64>(texture->pixels.size()) * 5 > m_source.byteBudget) {
+			return charged(reference, texture);
 		}
 		texture->buildMips();
 		remember(path, texture);
@@ -335,7 +465,7 @@ private:
 	void store(const QString& reference, const MaterialTexturePtr& texture)
 	{
 		if (!reference.trimmed().isEmpty() && texture) {
-			m_set->textures.insert(materialImageKey(reference), texture);
+			m_set->textures.insert(materialImageKey(reference), charged(reference, texture));
 		}
 	}
 
@@ -352,9 +482,12 @@ private:
 	void resolveDoom3Cube(const QString& reference, bool camera);
 	QImage evaluateProgram(int node, QString* status, QString* note, int depth = 0);
 	QImage loadDoom3Leaf(const QString& path, QString* status, QString* note);
+	MaterialTexturePtr loadDoom3LeafTexture(const QString& path);
+	int nearestPaletteIndex(QRgb color);
 	MaterialTexturePtr doomComposite(const QString& name);
 	MaterialTexturePtr doomFlat(const QString& name);
 	MaterialTexturePtr doomPatchTexture(const QString& name);
+	MaterialTexturePtr decodeDoomPatch(const QString& name);
 
 	const MaterialDefinition& m_definition;
 	const MaterialImageSource& m_source;
@@ -365,23 +498,39 @@ private:
 	QString m_paletteKey;
 	qint64 m_bytes = 0;
 	bool m_budgetWarned = false;
+	QSet<const MaterialTexture*> m_charged;
+	QVector<MaterialTexturePtr> m_keep;
 	std::shared_ptr<const DoomMaterialCatalog> m_doomCatalog;
 	QHash<QString, QImage> m_leafCache;
+	QHash<QString, MaterialTexturePtr> m_leafTextures;
+	// Doom patches decoded for this material, and truecolour patch pixels
+	// already matched to the palette.
+	QHash<QString, MaterialTexturePtr> m_patches;
+	QHash<QRgb, int> m_nearest;
+	QVector<MaterialTexturePtr> m_missingPatches;
 };
 
 void Resolver::resolvePalette(const QString& defaultId)
 {
 	QString paletteId = m_source.paletteId.trimmed();
-	if (paletteId.isEmpty() || paletteId == QStringLiteral("auto")) {
-		paletteId = m_source.archive ? idTechPaletteIdInPackage(*m_source.archive) : QString();
-		if (paletteId.isEmpty()) {
-			for (const auto& fallback : m_source.fallbacks) {
-				if (fallback) {
-					paletteId = idTechPaletteIdInPackage(*fallback);
-					if (!paletteId.isEmpty()) {
-						break;
-					}
-				}
+	const bool automatic = paletteId.isEmpty() || paletteId == QStringLiteral("auto");
+	if (automatic && defaultId == QStringLiteral("generic")) {
+		// Quake III and Doom 3 images carry their own colours (a PCX its own
+		// palette), so no package is searched for a game palette.
+		m_palette = generatedIdTechPalette(defaultId);
+		m_paletteKey = defaultId + QStringLiteral(":generated");
+		m_set->palette = m_palette.colors;
+		m_set->paletteGenerated = true;
+		m_set->paletteSource = m_palette.displayName;
+		return;
+	}
+	if (automatic) {
+		// m_readers holds the package first, then the fallbacks.
+		paletteId.clear();
+		for (const ReaderIndex& reader : m_readers) {
+			paletteId = reader.paletteId();
+			if (!paletteId.isEmpty()) {
+				break;
 			}
 		}
 		if (paletteId.isEmpty()) {
@@ -394,7 +543,7 @@ void Resolver::resolvePalette(const QString& defaultId)
 		if (!reader.reader) {
 			continue;
 		}
-		resolution = resolveIdTechPalette(*reader.reader, paletteId);
+		resolution = reader.palette(paletteId);
 		if (resolution.fromPackage) {
 			found = true;
 			break;
@@ -455,22 +604,24 @@ void Resolver::resolveColormaps()
 		}
 		// A stand-in: 32 rows darkening linearly towards black, an inverse
 		// grey row for invulnerability, and a black row.
-		QByteArray colormap(34 * 256, '\0');
-		for (int row = 0; row < 32; ++row) {
-			const double factor = 1.0 - row / 32.0;
+		m_set->doomColormap = sharedGeneratedColormap(QStringLiteral("doom"), palette, [&palette]() {
+			QByteArray colormap(34 * 256, '\0');
+			for (int row = 0; row < 32; ++row) {
+				const double factor = 1.0 - row / 32.0;
+				for (int index = 0; index < 256; ++index) {
+					const QRgb color = palette.at(index);
+					colormap[row * 256 + index] = static_cast<char>(nearestIndex(palette, static_cast<int>(qRed(color) * factor),
+						static_cast<int>(qGreen(color) * factor), static_cast<int>(qBlue(color) * factor)));
+				}
+			}
 			for (int index = 0; index < 256; ++index) {
 				const QRgb color = palette.at(index);
-				colormap[row * 256 + index] = static_cast<char>(nearestIndex(palette, static_cast<int>(qRed(color) * factor),
-					static_cast<int>(qGreen(color) * factor), static_cast<int>(qBlue(color) * factor)));
+				const int grey = 255 - qGray(color);
+				colormap[32 * 256 + index] = static_cast<char>(nearestIndex(palette, grey, grey, grey));
+				colormap[33 * 256 + index] = static_cast<char>(nearestIndex(palette, 0, 0, 0));
 			}
-		}
-		for (int index = 0; index < 256; ++index) {
-			const QRgb color = palette.at(index);
-			const int grey = 255 - qGray(color);
-			colormap[32 * 256 + index] = static_cast<char>(nearestIndex(palette, grey, grey, grey));
-			colormap[33 * 256 + index] = static_cast<char>(nearestIndex(palette, 0, 0, 0));
-		}
-		m_set->doomColormap = colormap;
+			return colormap;
+		});
 		m_set->doomColormapGenerated = true;
 		m_set->warnings << Text::tr("No COLORMAP lump was found; lighting uses a generated colormap.");
 		return;
@@ -488,20 +639,22 @@ void Resolver::resolveColormaps()
 		// Rows 0-63 run from about twice as bright to black, row 32 normal;
 		// the fullbright range 224-255 is copied unchanged into every row,
 		// as qlumpy's GrabColormap does.
-		QByteArray colormap(64 * 256, '\0');
-		for (int row = 0; row < 64; ++row) {
-			const double factor = (64 - row) / 32.0;
-			for (int index = 0; index < 256; ++index) {
-				if (index >= 224) {
-					colormap[row * 256 + index] = static_cast<char>(index);
-					continue;
+		m_set->quakeColormap = sharedGeneratedColormap(QStringLiteral("quake"), palette, [&palette]() {
+			QByteArray colormap(64 * 256, '\0');
+			for (int row = 0; row < 64; ++row) {
+				const double factor = (64 - row) / 32.0;
+				for (int index = 0; index < 256; ++index) {
+					if (index >= 224) {
+						colormap[row * 256 + index] = static_cast<char>(index);
+						continue;
+					}
+					const QRgb color = palette.at(index);
+					colormap[row * 256 + index] = static_cast<char>(nearestIndex(palette, static_cast<int>(qRed(color) * factor),
+						static_cast<int>(qGreen(color) * factor), static_cast<int>(qBlue(color) * factor), 255));
 				}
-				const QRgb color = palette.at(index);
-				colormap[row * 256 + index] = static_cast<char>(nearestIndex(palette, static_cast<int>(qRed(color) * factor),
-					static_cast<int>(qGreen(color) * factor), static_cast<int>(qBlue(color) * factor), 255));
 			}
-		}
-		m_set->quakeColormap = colormap;
+			return colormap;
+		});
 		m_set->quakeColormapGenerated = true;
 	}
 }
@@ -520,7 +673,12 @@ void Resolver::resolveFile(const QString& reference)
 		store(reference, builtin);
 		return;
 	}
-	const QStringList candidates = materialImageCandidates(m_definition.engine, reference, m_source.ioquake3Extensions);
+	const QStringList candidates = materialImageCandidates(m_definition.engine, reference, m_source.extensionRule);
+	if (candidates.isEmpty() && m_definition.engine == MaterialEngine::Quake3) {
+		store(reference, missing(reference, candidates,
+			Text::tr("Not found: this game loads stage images only by a .tga, .jpg, .pcx or .bmp name, so it reads nothing for %1.").arg(reference)));
+		return;
+	}
 	store(reference, loadByCandidates(reference, candidates));
 }
 
@@ -567,6 +725,9 @@ void Resolver::resolveSkyBox(const QString& base, bool underscore, const QString
 	if (base.isEmpty() || base == QStringLiteral("-") || m_set->cubes.contains(materialImageKey(base))) {
 		return;
 	}
+	// Quake III asks for <farbox>_<side>.tga (tr_shader.c ParseSkyParms)
+	// and finds it by its image rule; Quake II lists its own extensions.
+	const bool quake3 = m_definition.engine == MaterialEngine::Quake3;
 	auto cube = std::make_shared<MaterialCubeTexture>();
 	cube->reference = base;
 	cube->status = QStringLiteral("quake-sky");
@@ -577,10 +738,14 @@ void Resolver::resolveSkyBox(const QString& base, bool underscore, const QString
 	for (int index = 0; index < 6; ++index) {
 		const QString name = base + (underscore ? QStringLiteral("_") : QString()) + suffixes.at(index);
 		QStringList candidates;
-		for (const QString& extension : extensions) {
-			candidates << name + QLatin1Char('.') + extension;
+		if (quake3) {
+			candidates = materialImageCandidates(MaterialEngine::Quake3, name + QStringLiteral(".tga"), m_source.extensionRule);
+		} else {
+			for (const QString& extension : extensions) {
+				candidates << name + QLatin1Char('.') + extension;
+			}
 		}
-		MaterialTexturePtr texture = loadByCandidates(name, candidates);
+		MaterialTexturePtr texture = charged(name, loadByCandidates(name, candidates));
 		ready += texture && texture->usable() ? 1 : 0;
 		cube->faces[static_cast<size_t>(faceOf[index])] = texture;
 	}
@@ -614,12 +779,27 @@ void Resolver::resolveQuake3()
 		}
 	}
 	if (m_definition.sky.present) {
-		resolveSkyBox(m_definition.sky.farBox, true, {QStringLiteral("tga"), QStringLiteral("jpg"), QStringLiteral("png")});
+		resolveSkyBox(m_definition.sky.farBox, true, {});
 	}
 	if (!m_definition.editorImage.isEmpty()) {
 		resolveFile(m_definition.editorImage);
 	}
 	store(QStringLiteral("$quake3default"), quake3DefaultTexture());
+}
+
+MaterialTexturePtr Resolver::loadDoom3LeafTexture(const QString& path)
+{
+	const QString key = path.trimmed().toLower();
+	const auto found = m_leafTextures.constFind(key);
+	if (found != m_leafTextures.constEnd()) {
+		return *found;
+	}
+	MaterialTexturePtr texture = materialBuiltinTexture(key, m_source.developerDefault);
+	if (!texture) {
+		texture = loadByCandidates(path, materialImageCandidates(MaterialEngine::Doom3, path));
+	}
+	m_leafTextures.insert(key, texture);
+	return texture;
 }
 
 QImage Resolver::loadDoom3Leaf(const QString& path, QString* status, QString* note)
@@ -628,21 +808,27 @@ QImage Resolver::loadDoom3Leaf(const QString& path, QString* status, QString* no
 	if (m_leafCache.contains(key)) {
 		return m_leafCache.value(key);
 	}
-	if (MaterialTexturePtr builtin = materialBuiltinTexture(key, m_source.developerDefault)) {
-		const QImage image = builtin->toImage();
-		m_leafCache.insert(key, image);
-		return image;
-	}
-	const QStringList candidates = materialImageCandidates(MaterialEngine::Doom3, path, false);
-	const MaterialTexturePtr texture = loadByCandidates(path, candidates);
-	if (!texture->usable()) {
-		*status = texture->status;
-		*note = texture->note;
+	const MaterialTexturePtr texture = loadDoom3LeafTexture(path);
+	if (!texture || !texture->usable()) {
+		*status = texture ? texture->status : QStringLiteral("missing");
+		*note = texture ? texture->note : QString();
 		return {};
 	}
 	const QImage image = texture->toImage();
 	m_leafCache.insert(key, image);
 	return image;
+}
+
+int Resolver::nearestPaletteIndex(QRgb color)
+{
+	const QRgb key = color | 0xff000000u;
+	const auto found = m_nearest.constFind(key);
+	if (found != m_nearest.constEnd()) {
+		return *found;
+	}
+	const int index = nearestIndex(m_set->palette, qRed(key), qGreen(key), qBlue(key));
+	m_nearest.insert(key, index);
+	return index;
 }
 
 QImage Resolver::evaluateProgram(int nodeIndex, QString* status, QString* note, int depth)
@@ -689,25 +875,37 @@ QImage Resolver::evaluateProgram(int nodeIndex, QString* status, QString* note, 
 	if (function == QStringLiteral("smoothnormals")) {
 		return doom3SmoothNormalMap(first);
 	}
+	const ProgramFunction kind = programFunction(function);
+	if (kind == ProgramFunction::Other) {
+		return first;
+	}
+	const double scales[4] = {node.numbers.value(0, 1.0), node.numbers.value(1, 1.0), node.numbers.value(2, 1.0), node.numbers.value(3, 1.0)};
+	// R_ImageScale casts to a byte before clamping, so values above 255 wrap.
+	const auto scaled = [&scales](int value, int at) {
+		return static_cast<int>(static_cast<unsigned char>(static_cast<int>(value * scales[at])));
+	};
 	for (int y = 0; y < first.height(); ++y) {
 		auto* line = reinterpret_cast<QRgb*>(first.scanLine(y));
 		for (int x = 0; x < first.width(); ++x) {
 			const QRgb c = line[x];
-			if (function == QStringLiteral("scale")) {
-				// R_ImageScale casts to a byte before clamping, so values
-				// above 255 wrap.
-				const auto scaled = [&](int value, int at) {
-					return static_cast<int>(static_cast<unsigned char>(static_cast<int>(value * node.numbers.value(at, 1.0))));
-				};
+			switch (kind) {
+			case ProgramFunction::Scale:
 				line[x] = qRgba(scaled(qRed(c), 0), scaled(qGreen(c), 1), scaled(qBlue(c), 2), scaled(qAlpha(c), 3));
-			} else if (function == QStringLiteral("invertalpha")) {
+				break;
+			case ProgramFunction::InvertAlpha:
 				line[x] = qRgba(qRed(c), qGreen(c), qBlue(c), 255 - qAlpha(c));
-			} else if (function == QStringLiteral("invertcolor")) {
+				break;
+			case ProgramFunction::InvertColor:
 				line[x] = qRgba(255 - qRed(c), 255 - qGreen(c), 255 - qBlue(c), qAlpha(c));
-			} else if (function == QStringLiteral("makeintensity")) {
+				break;
+			case ProgramFunction::MakeIntensity:
 				line[x] = qRgba(qRed(c), qRed(c), qRed(c), qRed(c));
-			} else if (function == QStringLiteral("makealpha")) {
+				break;
+			case ProgramFunction::MakeAlpha:
 				line[x] = qRgba(255, 255, 255, (qRed(c) + qGreen(c) + qBlue(c)) / 3);
+				break;
+			case ProgramFunction::Other:
+				break;
 			}
 		}
 	}
@@ -776,8 +974,9 @@ void Resolver::resolveDoom3Cube(const QString& reference, bool camera)
 		}
 		auto texture = std::make_shared<MaterialTexture>(materialTextureFromImage(image, name, name, QStringLiteral("image")));
 		texture->buildMips();
-		cube->faces[static_cast<size_t>(face)] = texture;
-		++ready;
+		const MaterialTexturePtr kept = charged(name, texture);
+		cube->faces[static_cast<size_t>(face)] = kept;
+		ready += kept->usable() ? 1 : 0;
 	}
 	if (ready < 6) {
 		cube->note = Text::tr("%1 of 6 cube faces were found.").arg(ready);
@@ -792,6 +991,18 @@ void Resolver::resolveDoom3()
 		if (program < 0 || reference.isEmpty() || m_set->textures.contains(materialImageKey(reference))) {
 			return;
 		}
+		const MaterialImageProgramNode& node = m_definition.imagePrograms.at(program);
+		if (node.function.isEmpty()) {
+			// A plain image: the decoded texture itself, no copy.
+			store(reference, loadDoom3LeafTexture(node.path));
+			return;
+		}
+		// Program results are cached like images, under their program text.
+		const QString cacheName = QStringLiteral("program:") + reference;
+		if (const MaterialTexturePtr hit = cached(cacheName)) {
+			store(reference, hit);
+			return;
+		}
 		QString status = QStringLiteral("program");
 		QString note;
 		const QImage image = evaluateProgram(program, &status, &note);
@@ -803,15 +1014,13 @@ void Resolver::resolveDoom3()
 			store(reference, texture);
 			return;
 		}
-		const bool leaf = m_definition.imagePrograms.at(program).function.isEmpty();
-		const QString key = reference.trimmed().toLower();
-		const bool builtin = leaf && key.startsWith(QLatin1Char('_'));
-		auto texture = std::make_shared<MaterialTexture>(materialTextureFromImage(image, reference, reference,
-			builtin ? QStringLiteral("builtin") : (leaf ? QStringLiteral("image") : QStringLiteral("program"))));
+		auto texture = std::make_shared<MaterialTexture>(materialTextureFromImage(image, reference, reference, QStringLiteral("program")));
 		if (!charge(*texture)) {
+			store(reference, texture);
 			return;
 		}
 		texture->buildMips();
+		remember(cacheName, texture);
 		store(reference, texture);
 	};
 	for (const MaterialStage& stage : m_definition.stages) {
@@ -856,20 +1065,36 @@ void Resolver::resolveDoom3()
 	for (const QString& builtin : {QStringLiteral("_flat"), QStringLiteral("_white"), QStringLiteral("_black"), QStringLiteral("_default")}) {
 		store(builtin, materialBuiltinTexture(builtin, m_source.developerDefault));
 	}
-	if (!m_definition.editorImage.isEmpty()) {
-		QString status;
-		QString note;
-		const QImage image = loadDoom3Leaf(m_definition.editorImage, &status, &note);
-		if (!image.isNull()) {
-			auto texture = std::make_shared<MaterialTexture>(materialTextureFromImage(image, m_definition.editorImage, m_definition.editorImage,
-				QStringLiteral("image")));
-			texture->buildMips();
+	if (!m_definition.editorImage.isEmpty() && !m_set->textures.contains(materialImageKey(m_definition.editorImage))) {
+		const MaterialTexturePtr texture = loadDoom3LeafTexture(m_definition.editorImage);
+		if (texture && texture->usable()) {
 			store(m_definition.editorImage, texture);
 		}
 	}
 }
 
 MaterialTexturePtr Resolver::doomPatchTexture(const QString& name)
+{
+	// A patch is decoded once per material, and once per snapshot when a
+	// cache is shared: walls reuse patches, and a texture may place one
+	// patch many times.
+	const QString key = name.trimmed().toUpper();
+	const auto known = m_patches.constFind(key);
+	if (known != m_patches.constEnd()) {
+		return *known;
+	}
+	const QString cacheName = QStringLiteral("doom-patch:") + key;
+	if (const MaterialTexturePtr hit = cached(cacheName)) {
+		m_patches.insert(key, hit);
+		return hit;
+	}
+	MaterialTexturePtr texture = decodeDoomPatch(name);
+	remember(cacheName, texture);
+	m_patches.insert(key, texture);
+	return texture;
+}
+
+MaterialTexturePtr Resolver::decodeDoomPatch(const QString& name)
 {
 	int reader = -1;
 	int entry = -1;
@@ -918,7 +1143,18 @@ MaterialTexturePtr Resolver::doomComposite(const QString& name)
 		if (findLump(key, {QStringLiteral("wad-texture")}, &reader, &entry)) {
 			return decodePath(name, m_readers.at(reader).data->entries.at(entry).virtualPath, reader, entry);
 		}
-		return missing(name, {QStringLiteral("TEXTURE1/TEXTURE2")}, Text::tr("No TEXTURE1/TEXTURE2 definition or direct texture is named %1.").arg(key));
+		// ZDoom PK3s keep them in textures/ (the last such file wins).
+		for (int index = 0; index < m_readers.size(); ++index) {
+			const QVector<int> candidates = m_readers.at(index).data->byLumpName.value(key);
+			for (int at = static_cast<int>(candidates.size()) - 1; at >= 0; --at) {
+				const QString path = m_readers.at(index).data->entries.at(candidates.at(at)).virtualPath;
+				if (packageVirtualPathParent(path).compare(QStringLiteral("textures"), Qt::CaseInsensitive) == 0) {
+					return decodePath(name, path, index, candidates.at(at));
+				}
+			}
+		}
+		return missing(name, {QStringLiteral("TEXTURE1/TEXTURE2"), QStringLiteral("textures/") + name},
+			Text::tr("No TEXTURE1/TEXTURE2 definition or direct texture is named %1.").arg(key));
 	}
 	const DoomCompositeTexture& composite = m_doomCatalog->textures.at(index);
 	if (composite.size.width() <= 0 || composite.size.height() <= 0 || composite.size.width() > 4096 || composite.size.height() > 4096) {
@@ -934,7 +1170,12 @@ MaterialTexturePtr Resolver::doomComposite(const QString& name)
 		}
 		const MaterialTexturePtr patch = doomPatchTexture(placement.patch);
 		if (!patch || !patch->usable()) {
-			problems << placement.patch;
+			if (!problems.contains(placement.patch)) {
+				problems << placement.patch;
+				// Listed with the set's missing images, so the preview is not
+				// counted complete while vanilla Doom would stop.
+				m_missingPatches.push_back(patch ? patch : missing(placement.patch, {placement.patch}));
+			}
 			continue;
 		}
 		for (int y = 0; y < patch->height; ++y) {
@@ -953,7 +1194,7 @@ MaterialTexturePtr Resolver::doomComposite(const QString& name)
 				}
 				indices[static_cast<qsizetype>(targetY) * width + targetX] = patch->hasIndices()
 					? patch->indices.at(source)
-					: nearestIndex(m_set->palette, qRed(patch->pixels.at(source)), qGreen(patch->pixels.at(source)), qBlue(patch->pixels.at(source)));
+					: nearestPaletteIndex(patch->pixels.at(source));
 			}
 		}
 	}
@@ -973,13 +1214,11 @@ MaterialTexturePtr Resolver::doomComposite(const QString& name)
 	texture->status = QStringLiteral("composite");
 	texture->note = problems.isEmpty() ? Text::tr("Composed from %1 patch(es) in %2.").arg(composite.patches.size()).arg(composite.lump)
 									   : Text::tr("Missing patches: %1").arg(problems.join(QStringLiteral(", ")));
-	if (!problems.isEmpty()) {
-		texture->status = QStringLiteral("composite");
+	// A composite with missing patches is not cached, so its patches are
+	// reported again for every material that uses it.
+	if (problems.isEmpty()) {
+		remember(QStringLiteral("doom-composite:") + key, texture);
 	}
-	if (!charge(*texture)) {
-		return missing(name, {}, Text::tr("Image memory budget reached."));
-	}
-	remember(QStringLiteral("doom-composite:") + key, texture);
 	return texture;
 }
 
@@ -1039,6 +1278,23 @@ void Resolver::resolveDoom()
 	}
 }
 
+// A port's loose textures/<name>.<ext>. DarkPlaces and FTE write a liquid's
+// `*` as `#` in file names (`*` cannot be in a Windows file name).
+QStringList quakeLooseCandidates(const QString& name, const QStringList& extensions)
+{
+	QStringList names {name};
+	if (name.contains(QLatin1Char('*'))) {
+		names << QString(name).replace(QLatin1Char('*'), QLatin1Char('#'));
+	}
+	QStringList candidates;
+	for (const QString& each : std::as_const(names)) {
+		for (const QString& extension : extensions) {
+			candidates << QStringLiteral("textures/%1.%2").arg(each, extension);
+		}
+	}
+	return candidates;
+}
+
 void Resolver::resolveQuake()
 {
 	resolvePalette(QStringLiteral("quake"));
@@ -1060,18 +1316,11 @@ void Resolver::resolveQuake()
 			store(name, decodePath(name, m_readers.at(reader).data->entries.at(entry).virtualPath, reader, entry));
 			continue;
 		}
-		QStringList candidates;
-		for (const QString& extension : {QStringLiteral("tga"), QStringLiteral("png"), QStringLiteral("jpg"), QStringLiteral("pcx")}) {
-			candidates << QStringLiteral("textures/%1.%2").arg(name, extension);
-		}
-		store(name, loadByCandidates(name, candidates));
+		store(name, loadByCandidates(name, quakeLooseCandidates(name, {QStringLiteral("tga"), QStringLiteral("png"), QStringLiteral("jpg"), QStringLiteral("pcx")})));
 	}
 	for (const QString& suffix : quakeCompanionSuffixes()) {
 		const QString name = m_definition.name + suffix;
-		QStringList candidates;
-		for (const QString& extension : {QStringLiteral("tga"), QStringLiteral("png"), QStringLiteral("jpg")}) {
-			candidates << QStringLiteral("textures/%1.%2").arg(name, extension);
-		}
+		const QStringList candidates = quakeLooseCandidates(name, {QStringLiteral("tga"), QStringLiteral("png"), QStringLiteral("jpg")});
 		int reader = -1;
 		int entry = -1;
 		for (const QString& candidate : candidates) {
@@ -1145,6 +1394,12 @@ void Resolver::run()
 		break;
 	case MaterialEngine::Unknown:
 		break;
+	}
+	for (const MaterialTexturePtr& patch : std::as_const(m_missingPatches)) {
+		const QString key = QStringLiteral("$patch/") + materialImageKey(patch->reference);
+		if (!m_set->textures.contains(key)) {
+			m_set->textures.insert(key, patch);
+		}
 	}
 	for (auto it = m_set->textures.cbegin(); it != m_set->textures.cend(); ++it) {
 		if (it.value() && !it.value()->usable()) {
@@ -1289,8 +1544,12 @@ void MaterialImageCache::insert(const QString& key, const MaterialTexturePtr& te
 	if (bytes > m_limit) {
 		return;
 	}
-	if (m_slots.contains(key)) {
-		m_bytes -= m_slots.value(key).bytes;
+	// The slot being replaced goes first, so eviction cannot subtract its
+	// bytes a second time.
+	const auto existing = m_slots.find(key);
+	if (existing != m_slots.end()) {
+		m_bytes -= existing->bytes;
+		m_slots.erase(existing);
 	}
 	while (m_bytes + bytes > m_limit && !m_slots.isEmpty()) {
 		auto oldest = m_slots.begin();
@@ -1391,7 +1650,23 @@ QString materialImageKey(const QString& reference)
 	return normalizedPath(reference).toCaseFolded();
 }
 
-QStringList materialImageCandidates(MaterialEngine engine, const QString& reference, bool ioquake3Extensions)
+MaterialImageExtensionRule materialImageExtensionRule(MaterialDialect dialect)
+{
+	switch (dialect) {
+	case MaterialDialect::Quake3Original:
+	case MaterialDialect::EnemyTerritory:
+		return MaterialImageExtensionRule::Quake3Original;
+	case MaterialDialect::JediKnight:
+		return MaterialImageExtensionRule::JediKnight;
+	case MaterialDialect::Automatic:
+	case MaterialDialect::Quake3:
+	case MaterialDialect::Wolfenstein:
+		break;
+	}
+	return MaterialImageExtensionRule::Ioquake3;
+}
+
+QStringList materialImageCandidates(MaterialEngine engine, const QString& reference, MaterialImageExtensionRule rule)
 {
 	const QString path = normalizedPath(reference);
 	QStringList candidates;
@@ -1414,24 +1689,38 @@ QStringList materialImageCandidates(MaterialEngine engine, const QString& refere
 		return candidates;
 	}
 	if (engine == MaterialEngine::Quake3) {
-		if (suffix.isEmpty()) {
-			if (ioquake3Extensions) {
-				for (const QString& extension : {QStringLiteral("tga"), QStringLiteral("jpg"), QStringLiteral("jpeg"), QStringLiteral("png"),
-						 QStringLiteral("pcx"), QStringLiteral("bmp")}) {
-					add(base + QLatin1Char('.') + extension);
-				}
+		switch (rule) {
+		case MaterialImageExtensionRule::Quake3Original:
+			// R_LoadImage in Quake III 1.32: only these four suffixes load,
+			// and a missing .tga is retried as .jpg.
+			if (suffix == QStringLiteral("tga")) {
+				add(path);
+				add(base + QStringLiteral(".jpg"));
+			} else if (suffix == QStringLiteral("jpg") || suffix == QStringLiteral("pcx") || suffix == QStringLiteral("bmp")) {
+				add(path);
+			}
+			return candidates;
+		case MaterialImageExtensionRule::JediKnight: {
+			const QStringList loaders {QStringLiteral("jpg"), QStringLiteral("tga"), QStringLiteral("png")};
+			if (loaders.contains(suffix)) {
+				add(path);
+			}
+			for (const QString& extension : loaders) {
+				add(base + QLatin1Char('.') + extension);
 			}
 			return candidates;
 		}
-		add(path);
-		if (suffix == QStringLiteral("tga")) {
-			add(base + QStringLiteral(".jpg"));
+		case MaterialImageExtensionRule::Ioquake3:
+			break;
 		}
-		if (ioquake3Extensions) {
-			for (const QString& extension : {QStringLiteral("tga"), QStringLiteral("jpg"), QStringLiteral("jpeg"), QStringLiteral("png"),
-					 QStringLiteral("pcx"), QStringLiteral("bmp")}) {
-				add(base + QLatin1Char('.') + extension);
-			}
+		// ioquake3 R_LoadImage: the name as written, then every other
+		// loader's extension in its table order.
+		if (!suffix.isEmpty()) {
+			add(path);
+		}
+		for (const QString& extension : {QStringLiteral("tga"), QStringLiteral("jpg"), QStringLiteral("jpeg"), QStringLiteral("png"),
+				 QStringLiteral("pcx"), QStringLiteral("bmp")}) {
+			add(base + QLatin1Char('.') + extension);
 		}
 		return candidates;
 	}
@@ -1706,6 +1995,9 @@ bool decodeDoomPatchIndices(const QByteArray& bytes, QVector<int>* indices, QSiz
 			}
 			top = delta <= top ? top + delta : delta;
 			if (position + 3 > bytes.size()) {
+				if (error) {
+					*error = Text::tr("A patch post runs outside the lump.");
+				}
 				return false;
 			}
 			const int length = data[position + 1];

@@ -4,10 +4,14 @@
 // selection changes that refuse without touching the map, shared-line refusals
 // that read the same for a few surfaces and for many, objects woven back into
 // their places by undo, session visibility followed through structural edits,
-// the texture list left alone by entity edits, and face points rewritten in
-// place without disturbing the rest of the line. Synthetic geometry only.
+// the texture list left alone by entity edits, face points rewritten in place
+// without disturbing the rest of the line, texture-policy moves refused alike
+// for one brush and for many, object counts that agree with the named lists,
+// and 8-bit map text kept byte for byte. Synthetic geometry only.
 #include "core/level_document.h"
 #include "core/level_map.h"
+#include "core/level_map_inspector.h"
+#include "core/level_scene.h"
 #include "core/level_visibility.h"
 #include "tests/level_geometry_test_helpers.h"
 #include <QCoreApplication>
@@ -332,11 +336,71 @@ void eightBitText()
 	const auto marked = loaded(QByteArray("\xEF\xBB\xBF") + legacy);
 	expect(!marked.sourceTextEightBit && marked.brushes.size() == 3, "a marked file is read as UTF-8");
 }
+
+// A move under a texture policy (what a nudge or a drag makes) checks a few
+// brushes against the map and many against gathered lines; both refuse a
+// brush that shares a source line, in the same words.
+void texturePolicyMoves()
+{
+	const auto text = QString::fromUtf8(serializeLevelMap(fixture(16)).bytes);
+	QStringList lines = text.split(QLatin1Char('\n'));
+	int firstClose = -1;
+	int depth = 0;
+	for (int index = 0; index < lines.size(); ++index) {
+		const auto trimmed = lines.at(index).trimmed();
+		if (trimmed == QLatin1String("{")) { ++depth; }
+		else if (trimmed == QLatin1String("}")) { if (depth == 2) { firstClose = index; break; } --depth; }
+	}
+	if (!expect(firstClose > 1 && firstClose + 2 < lines.size(), "fixture layout")) { return; }
+	lines[firstClose - 1] = lines.at(firstClose - 1) + QStringLiteral(" } { ") + lines.at(firstClose + 2);
+	lines.remove(firstClose, 3);
+	const auto map = loaded(lines.join(QLatin1Char('\n')).toUtf8());
+	if (!expect(map.brushes.size() == 16, "compact brushes parse")) { return; }
+	const LevelMapTextureLockOptions lock {true, false};
+	const auto move = [&](const QVector<LevelMapSelectionRef>& selection, QString* error) {
+		auto candidate = map;
+		setLevelMapSelection(&candidate, selection);
+		const bool moved = moveLevelMapSelection(&candidate, 16, 0, 0, lock, error);
+		if (!moved) { expect(serializeLevelMap(candidate).bytes == serializeLevelMap(map).bytes, "a refused move changes nothing"); }
+		return moved;
+	};
+	QVector<LevelMapSelectionRef> many {brush(map.brushes.at(0).id)};
+	QVector<LevelMapSelectionRef> free;
+	for (int index = 2; index < map.brushes.size(); ++index) { many.push_back(brush(map.brushes.at(index).id)); free.push_back(brush(map.brushes.at(index).id)); }
+	QString few, bulk, error;
+	expect(!move({brush(map.brushes.at(0).id)}, &few) && !few.isEmpty(), "one brush sharing a line does not move");
+	expect(!move(many, &bulk) && bulk == few, "nor among many, for the same reason", few + QStringLiteral(" / ") + bulk);
+	expect(move({brush(map.brushes.at(5).id)}, &error), "one free brush moves", error);
+	expect(move(free, &error), "many free brushes move", error);
+}
+
+// Counts the Levels page shows after every edit agree with the named lists
+// they stand in for.
+void sceneCounts()
+{
+	auto map = loaded(12); QString error;
+	expect(addLevelMapEntity(&map, QStringLiteral("light"), {0, -64, 32, true}, {}, nullptr, &error), "add entity", error);
+	expect(levelSceneObjectCount(map) == levelSceneObjects(map).size() && levelSceneObjectCount(map) == 13, "scene objects are counted as they are named");
+	auto layers = levelMapLayerSummaries(map);
+	expect(layers.size() == 1 && layers.first().objects == 13 && layers.first().creation, "every object is in Default without layers");
+	QString layer;
+	expect(createLevelSceneNode(&map, LevelSceneNodeKind::Layer, QStringLiteral("Detail"), {}, &layer, &error)
+		&& assignLevelSceneObjects(&map, layer, {QStringLiteral("brush:%1").arg(map.brushes.at(2).id), QStringLiteral("brush:%1").arg(map.brushes.at(3).id)}, &error),
+		"make a layer", error);
+	layers = levelMapLayerSummaries(map);
+	expect(layers.size() == 2 && layers.at(0).objects == 11 && layers.at(1).objects == 2 && levelSceneMembers(map, {}, false).size() == 11,
+		"layers split the count");
+	LevelMapDocument doom; LevelMapCreateRequest request; request.game = QStringLiteral("doom");
+	expect(createLevelMap(request, &doom, &error) && levelSceneObjectCount(doom) == levelSceneObjects(doom).size() && levelSceneObjectCount(doom) > 0,
+		"Doom objects are counted as they are named", error);
+}
 } // namespace
 
 int main(int argc, char** argv)
 {
 	QCoreApplication app(argc, argv);
+	texturePolicyMoves();
+	sceneCounts();
 	eightBitText();
 	unorderedIds();
 	selectionHistory();

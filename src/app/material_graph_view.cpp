@@ -7,11 +7,14 @@
 #include <QFocusEvent>
 #include <QHelpEvent>
 #include <QKeyEvent>
+#include <QLocale>
 #include <QMenu>
 #include <QMouseEvent>
+#include <QPaintEvent>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPointer>
+#include <QTimer>
 #include <QToolTip>
 #include <QWheelEvent>
 #include <QWindow>
@@ -25,19 +28,38 @@ namespace slopstudio {
 
 namespace {
 
-// Scene units: pixels at zoom 1 with text at 100%. Text is drawn at a fixed
-// scene size so the core's layout holds; larger text scales the zoom.
-constexpr double kNodeWidth = 196.0;
-constexpr double kHeader = 26.0;
-constexpr double kSubtitle = 18.0;
-constexpr double kPortRow = 18.0;
-constexpr double kThumbnail = 52.0;
-constexpr double kPadding = 6.0;
+// Scene units: pixels at zoom 1 with text at 100%. Node sizes come from the
+// core (materialGraphNodeSize), which lays the graph out with the same sizes.
+// Text is drawn at a fixed scene size so that layout holds; larger text
+// scales the zoom.
 constexpr int kFontPixels = 12;
+// Below this many pixels, subtitles and port labels are not drawn and titles
+// are drawn at a readable minimum size instead.
+constexpr double kDetailPixels = 6.0;
+constexpr double kOverviewTitlePixels = 9.0;
+// Fit never makes node text smaller than this share of its full size.
+constexpr double kLegibleZoom = 0.85;
 
 double textZoom()
 {
 	return std::max(1.0, currentStudioTheme().textScalePercent / 100.0);
+}
+
+// Right to left, technical text (paths, numbers, keywords) is kept left to
+// right in an isolate, or "1 0.5 0.25" reads backwards. Text that already
+// holds right-to-left letters is a translation and keeps its direction.
+QString isolated(const QString& text, bool rtl)
+{
+	if (!rtl || text.isEmpty()) {
+		return text;
+	}
+	for (const QChar character : text) {
+		const QChar::Direction direction = character.direction();
+		if (direction == QChar::DirR || direction == QChar::DirAL) {
+			return text;
+		}
+	}
+	return QChar(0x2066) + text + QChar(0x2069);
 }
 
 QColor portColor(MaterialGraphPortType type, const StudioThemeColors& colors)
@@ -91,6 +113,90 @@ QColor kindColor(const QString& kind, const StudioThemeColors& colors)
 		return colors.accentHover;
 	}
 	return colors.textMuted;
+}
+
+// What kind of node it is, for screen readers.
+QString kindName(const QString& kind)
+{
+	if (kind == QStringLiteral("output")) {
+		return MaterialGraphView::tr("material output");
+	}
+	if (kind == QStringLiteral("stage")) {
+		return MaterialGraphView::tr("stage");
+	}
+	if (kind == QStringLiteral("image")) {
+		return MaterialGraphView::tr("image");
+	}
+	if (kind == QStringLiteral("animmap")) {
+		return MaterialGraphView::tr("animated images");
+	}
+	if (kind == QStringLiteral("lightmap")) {
+		return MaterialGraphView::tr("lightmap");
+	}
+	if (kind == QStringLiteral("video")) {
+		return MaterialGraphView::tr("video");
+	}
+	if (kind == QStringLiteral("cube")) {
+		return MaterialGraphView::tr("cube map");
+	}
+	if (kind == QStringLiteral("program")) {
+		return MaterialGraphView::tr("image function");
+	}
+	if (kind == QStringLiteral("tcgen") || kind == QStringLiteral("texgen")) {
+		return MaterialGraphView::tr("texture coordinates");
+	}
+	if (kind == QStringLiteral("tcmod") || kind == QStringLiteral("transform")) {
+		return MaterialGraphView::tr("coordinate change");
+	}
+	if (kind == QStringLiteral("rgbgen")) {
+		return MaterialGraphView::tr("colour");
+	}
+	if (kind == QStringLiteral("alphagen")) {
+		return MaterialGraphView::tr("alpha");
+	}
+	if (kind == QStringLiteral("color")) {
+		return MaterialGraphView::tr("colour channels");
+	}
+	if (kind == QStringLiteral("condition")) {
+		return MaterialGraphView::tr("condition");
+	}
+	if (kind == QStringLiteral("alphatest")) {
+		return MaterialGraphView::tr("alpha test");
+	}
+	if (kind == QStringLiteral("expression")) {
+		return MaterialGraphView::tr("expression");
+	}
+	if (kind == QStringLiteral("deform")) {
+		return MaterialGraphView::tr("deform");
+	}
+	if (kind == QStringLiteral("sky")) {
+		return MaterialGraphView::tr("sky");
+	}
+	if (kind == QStringLiteral("fog")) {
+		return MaterialGraphView::tr("fog");
+	}
+	if (kind == QStringLiteral("frame")) {
+		return MaterialGraphView::tr("animation frame");
+	}
+	if (kind == QStringLiteral("animation")) {
+		return MaterialGraphView::tr("animation");
+	}
+	if (kind == QStringLiteral("patch")) {
+		return MaterialGraphView::tr("patch");
+	}
+	if (kind == QStringLiteral("switch")) {
+		return MaterialGraphView::tr("switch");
+	}
+	if (kind == QStringLiteral("flags")) {
+		return MaterialGraphView::tr("surface flags");
+	}
+	if (kind == QStringLiteral("warp")) {
+		return MaterialGraphView::tr("warp");
+	}
+	if (kind == QStringLiteral("info")) {
+		return MaterialGraphView::tr("name rules");
+	}
+	return kind;
 }
 
 // Each port type has its own shape as well as its own colour.
@@ -165,9 +271,10 @@ QString portTypeName(MaterialGraphPortType type)
 
 // --- Accessibility ---------------------------------------------------------
 
-// One node, read as a list item: its title, then its kind, subtitle and
-// connections.
-class MaterialGraphNodeAccessible final : public QAccessibleInterface {
+// One node, read as a list item: its name with its stage, then its kind,
+// subtitle, what can be done with it and its connections. Press edits its
+// properties; the menu action opens its context menu.
+class MaterialGraphNodeAccessible final : public QAccessibleInterface, public QAccessibleActionInterface {
 public:
 	MaterialGraphNodeAccessible(MaterialGraphView* view, int index)
 		: m_view(view)
@@ -222,6 +329,43 @@ public:
 			state.offscreen = true;
 		}
 		return state;
+	}
+	void* interface_cast(QAccessible::InterfaceType type) override
+	{
+		return type == QAccessible::ActionInterface ? static_cast<QAccessibleActionInterface*>(this) : nullptr;
+	}
+
+	QStringList actionNames() const override { return {pressAction(), showMenuAction()}; }
+	QString localizedActionDescription(const QString& name) const override
+	{
+		if (name == pressAction()) {
+			return MaterialGraphView::tr("Edit the node's properties");
+		}
+		if (name == showMenuAction()) {
+			return MaterialGraphView::tr("Show the node's actions");
+		}
+		return QAccessibleActionInterface::localizedActionDescription(name);
+	}
+	void doAction(const QString& name) override
+	{
+		if (!isValid()) {
+			return;
+		}
+		if (name == pressAction()) {
+			m_view->activateNode(m_index);
+		} else if (name == showMenuAction()) {
+			m_view->showNodeMenu(m_index);
+		}
+	}
+	QStringList keyBindingsForAction(const QString& name) const override
+	{
+		if (name == pressAction()) {
+			return {QKeySequence(Qt::Key_Return).toString(QKeySequence::NativeText)};
+		}
+		if (name == showMenuAction()) {
+			return {QKeySequence(Qt::ShiftModifier | Qt::Key_F10).toString(QKeySequence::NativeText)};
+		}
+		return {};
 	}
 
 private:
@@ -285,6 +429,7 @@ MaterialGraphView::MaterialGraphView(QWidget* parent)
 	setAccessibleDescription(tr("Arrow keys move between connected nodes; Enter edits the node's properties; Delete removes it; "
 								"Alt+Up and Alt+Down change the draw order; the context menu adds nodes."));
 	m_message = tr("Choose a material to see its nodes.");
+	m_fitTextZoom = textZoom();
 }
 
 MaterialGraphView::~MaterialGraphView()
@@ -292,26 +437,72 @@ MaterialGraphView::~MaterialGraphView()
 	resetAccessibleChildren();
 }
 
+void MaterialGraphView::rebuildIndex()
+{
+	m_indexById.clear();
+	m_indexById.reserve(m_graph.nodes.size());
+	for (int index = 0; index < m_graph.nodes.size(); ++index) {
+		m_indexById.insert(m_graph.nodes.at(index).id, index);
+	}
+	m_linksIn = QVector<QVector<int>>(m_graph.nodes.size());
+	m_linksOut = QVector<QVector<int>>(m_graph.nodes.size());
+	for (int link = 0; link < m_graph.links.size(); ++link) {
+		const int from = indexOf(m_graph.links.at(link).fromNode);
+		const int to = indexOf(m_graph.links.at(link).toNode);
+		if (from >= 0 && to >= 0) {
+			m_linksOut[from].push_back(link);
+			m_linksIn[to].push_back(link);
+		}
+	}
+	m_textsValid = false;
+}
+
 void MaterialGraphView::setGraph(const MaterialGraph& graph, const QString& layoutKey)
 {
-	const QString previous = selectedNode();
+	const QString original = selectedNode();
+	QString previous = original;
 	const bool sameLayout = layoutKey == m_layoutKey && !m_graph.nodes.isEmpty();
+	if (sameLayout && !m_pendingMoves.isEmpty()) {
+		// The edit gave nodes new ids: their dragged places and the
+		// selection go with them.
+		QHash<QString, QPointF> moved;
+		for (auto it = m_moved.cbegin(); it != m_moved.cend(); ++it) {
+			const QString to = remapMaterialGraphId(it.key(), m_pendingMoves);
+			if (!to.isEmpty()) {
+				moved.insert(to, it.value());
+			}
+		}
+		m_moved = moved;
+		const QString remapped = remapMaterialGraphId(previous, m_pendingMoves);
+		previous = remapped.isEmpty() ? previous : remapped;
+	}
+	m_pendingMoves.clear();
 	m_graph = graph;
+	rebuildIndex();
+	++m_graphGeneration;
 	if (!sameLayout) {
 		m_moved.clear();
 		m_fitPending = true;
 	} else {
 		// Forget positions of nodes that went away.
 		for (auto it = m_moved.begin(); it != m_moved.end();) {
-			it = m_graph.indexOf(it.key()) < 0 ? m_moved.erase(it) : std::next(it);
+			it = indexOf(it.key()) < 0 ? m_moved.erase(it) : std::next(it);
 		}
 	}
 	m_layoutKey = layoutKey;
 	m_hover = -1;
 	resetAccessibleChildren();
-	m_selected = m_graph.indexOf(previous);
-	if (m_selected < 0 && sameLayout && !m_graph.nodes.isEmpty()) {
-		m_selected = m_graph.indexOf(QStringLiteral("material"));
+	m_selected = indexOf(previous);
+	if (m_selected < 0 && sameLayout && !previous.isEmpty()) {
+		// The selected node went away: its nearest parent, else the output.
+		QString parent = previous;
+		while (m_selected < 0 && parent.contains(QLatin1Char('/'))) {
+			parent = parent.left(parent.lastIndexOf(QLatin1Char('/')));
+			m_selected = indexOf(parent);
+		}
+		if (m_selected < 0) {
+			m_selected = indexOf(QStringLiteral("material"));
+		}
 	}
 	if (m_fitPending && width() > 0 && height() > 0) {
 		fitToView();
@@ -321,7 +512,7 @@ void MaterialGraphView::setGraph(const MaterialGraph& graph, const QString& layo
 		QAccessible::updateAccessibility(&event);
 	}
 	update();
-	if (m_graph.indexOf(previous) < 0) {
+	if (selectedNode() != original || m_selected < 0) {
 		notifySelection();
 	}
 }
@@ -329,16 +520,27 @@ void MaterialGraphView::setGraph(const MaterialGraph& graph, const QString& layo
 void MaterialGraphView::clearGraph(const QString& message)
 {
 	m_graph = MaterialGraph();
+	rebuildIndex();
+	++m_graphGeneration;
 	m_message = message;
 	m_selected = -1;
 	m_hover = -1;
 	m_layoutKey.clear();
 	m_moved.clear();
+	m_pendingMoves.clear();
+	m_partialFit = false;
 	resetAccessibleChildren();
 	QAccessibleEvent event(this, QAccessible::ObjectReorder);
 	QAccessible::updateAccessibility(&event);
 	update();
 	Q_EMIT selectionChanged(QString());
+}
+
+void MaterialGraphView::renameLayoutKey(const QString& from, const QString& to)
+{
+	if (m_layoutKey == from) {
+		m_layoutKey = to;
+	}
 }
 
 void MaterialGraphView::setThumbnails(const QHash<QString, QImage>& thumbnails)
@@ -364,7 +566,22 @@ QString MaterialGraphView::selectedNode() const
 
 void MaterialGraphView::selectNode(const QString& nodeId)
 {
-	selectIndex(m_graph.indexOf(nodeId));
+	if (nodeId.isEmpty()) {
+		selectIndex(-1);
+		return;
+	}
+	int index = indexOf(nodeId);
+	QString parent = nodeId;
+	while (index < 0 && parent.contains(QLatin1Char('/'))) {
+		parent = parent.left(parent.lastIndexOf(QLatin1Char('/')));
+		index = indexOf(parent);
+	}
+	if (index < 0) {
+		index = indexOf(QStringLiteral("material"));
+	}
+	if (index >= 0) {
+		selectIndex(index);
+	}
 }
 
 void MaterialGraphView::selectIndex(int index)
@@ -398,25 +615,31 @@ void MaterialGraphView::notifySelection()
 	}
 }
 
+void MaterialGraphView::announce(const QString& message)
+{
+	if (message.isEmpty()) {
+		return;
+	}
+	QAccessibleAnnouncementEvent event(this, message);
+	QAccessible::updateAccessibility(&event);
+}
+
 QSizeF MaterialGraphView::nodeSize(int index) const
 {
 	const MaterialGraphNode& node = m_graph.nodes.at(index);
-	double height = kHeader;
-	if (!node.subtitle.isEmpty() || node.inactive) {
-		height += kSubtitle;
-	}
-	height += std::max(node.inputs.size(), node.outputs.size()) * kPortRow;
-	if (!node.imageReference.isEmpty() && m_thumbnails.contains(node.imageReference)) {
-		height += kThumbnail;
-	}
-	height += kPadding;
-	return {kNodeWidth, std::max(height, kHeader + kPadding * 2)};
+	return materialGraphNodeSize(node, !node.imageReference.isEmpty() && m_thumbnails.contains(node.imageReference));
 }
 
 QPointF MaterialGraphView::nodePosition(int index) const
 {
 	const MaterialGraphNode& node = m_graph.nodes.at(index);
 	return m_moved.value(node.id, node.position);
+}
+
+QPointF MaterialGraphView::nodeScenePosition(const QString& nodeId) const
+{
+	const int index = indexOf(nodeId);
+	return index < 0 ? QPointF() : nodePosition(index);
 }
 
 QRectF MaterialGraphView::sceneRect(int index) const
@@ -434,8 +657,8 @@ QPointF MaterialGraphView::portPoint(int index, int port, bool output) const
 {
 	const MaterialGraphNode& node = m_graph.nodes.at(index);
 	const QRectF rect = sceneRect(index);
-	const double top = rect.top() + kHeader + ((!node.subtitle.isEmpty() || node.inactive) ? kSubtitle : 0.0);
-	const double y = top + std::max(0, port) * kPortRow + kPortRow / 2.0;
+	const double top = rect.top() + kMaterialGraphHeader + ((!node.subtitle.isEmpty() || node.inactive) ? kMaterialGraphSubtitle : 0.0);
+	const double y = top + std::max(0, port) * kMaterialGraphPortRow + kMaterialGraphPortRow / 2.0;
 	const bool rightEdge = output != rightToLeft();
 	return {rightEdge ? rect.right() : rect.left(), y};
 }
@@ -498,21 +721,65 @@ void MaterialGraphView::fitToView()
 		m_fitPending = bounds.isNull() ? m_fitPending : true;
 		return;
 	}
+	m_fitTextZoom = textZoom();
+	const double margin = 24.0;
+	const double zoomX = (width() - margin * 2) / std::max(1.0, bounds.width());
+	const double zoomY = (height() - margin * 2) / std::max(1.0, bounds.height());
+	const double fit = std::min(zoomX, zoomY);
+	const double legible = kLegibleZoom * textZoom();
+	const QPointF centre(width() / 2.0, height() / 2.0);
+	if (fit >= legible) {
+		m_zoom = std::min(fit, textZoom());
+		m_pan = centre - bounds.center() * m_zoom;
+		m_partialFit = false;
+	} else {
+		// Too large to read whole: legible text, centred on what the user is
+		// working on.
+		m_zoom = legible;
+		int focus = m_selected >= 0 ? m_selected : indexOf(QStringLiteral("material"));
+		const QRectF target = focus >= 0 ? sceneRect(focus) : bounds;
+		m_pan = centre - target.center() * m_zoom;
+		m_partialFit = true;
+	}
+	update();
+}
+
+void MaterialGraphView::showWholeGraph()
+{
+	m_fitPending = false;
+	const QRectF bounds = contentsRect();
+	if (bounds.isNull() || width() < 10 || height() < 10) {
+		return;
+	}
+	m_fitTextZoom = textZoom();
 	const double margin = 24.0;
 	const double zoomX = (width() - margin * 2) / std::max(1.0, bounds.width());
 	const double zoomY = (height() - margin * 2) / std::max(1.0, bounds.height());
 	m_zoom = std::clamp(std::min(zoomX, zoomY), 0.2, textZoom());
 	m_pan = QPointF(width() / 2.0, height() / 2.0) - bounds.center() * m_zoom;
+	m_partialFit = false;
+	update();
+}
+
+void MaterialGraphView::resetLayout()
+{
+	m_moved.clear();
+	fitToView();
+	announce(tr("The automatic layout is back."));
+}
+
+void MaterialGraphView::setZoomAround(double zoom, const QPointF& anchor)
+{
+	const QPointF scene = toScene(anchor);
+	m_zoom = std::clamp(zoom, 0.2, 3.0 * textZoom());
+	m_pan = anchor - scene * m_zoom;
+	m_partialFit = false;
 	update();
 }
 
 void MaterialGraphView::zoomBy(double factor)
 {
-	const QPointF centre(width() / 2.0, height() / 2.0);
-	const QPointF scene = toScene(centre);
-	m_zoom = std::clamp(m_zoom * factor, 0.2, 3.0 * textZoom());
-	m_pan = centre - scene * m_zoom;
-	update();
+	setZoomAround(m_zoom * factor, QPointF(width() / 2.0, height() / 2.0));
 }
 
 void MaterialGraphView::ensureVisible(int index)
@@ -542,7 +809,7 @@ QString MaterialGraphView::nodeAccessibleName(int index) const
 	if (index < 0 || index >= m_graph.nodes.size()) {
 		return {};
 	}
-	return m_graph.nodes.at(index).title;
+	return materialGraphNodeLabel(m_graph.nodes.at(index));
 }
 
 QString MaterialGraphView::nodeAccessibleDescription(int index) const
@@ -552,30 +819,46 @@ QString MaterialGraphView::nodeAccessibleDescription(int index) const
 	}
 	const MaterialGraphNode& node = m_graph.nodes.at(index);
 	QStringList parts;
+	parts << tr("Kind: %1.").arg(kindName(node.kind));
 	if (!node.subtitle.isEmpty()) {
 		parts << node.subtitle;
 	}
 	if (node.inactive) {
 		parts << tr("Not drawn by the engine.");
 	}
+	if (!m_readOnly) {
+		if (node.removable && node.reorderable) {
+			parts << tr("Delete removes it; Alt+Up and Alt+Down move it in the draw order.");
+		} else if (node.removable) {
+			parts << tr("Delete removes it.");
+		} else if (node.reorderable) {
+			parts << tr("Alt+Up and Alt+Down move it in the draw order.");
+		}
+	}
 	QStringList feeds;
 	QStringList fedBy;
-	for (const MaterialGraphLink& link : m_graph.links) {
-		if (link.fromNode == node.id) {
-			if (const MaterialGraphNode* target = m_graph.node(link.toNode)) {
-				feeds << target->title;
+	if (index < m_linksOut.size()) {
+		for (int link : m_linksOut.at(index)) {
+			const int target = indexOf(m_graph.links.at(link).toNode);
+			if (target >= 0) {
+				feeds << materialGraphNodeLabel(m_graph.nodes.at(target));
 			}
-		} else if (link.toNode == node.id) {
-			if (const MaterialGraphNode* source = m_graph.node(link.fromNode)) {
-				fedBy << source->title;
+		}
+		for (int link : m_linksIn.at(index)) {
+			const int source = indexOf(m_graph.links.at(link).fromNode);
+			if (source >= 0) {
+				fedBy << materialGraphNodeLabel(m_graph.nodes.at(source));
 			}
 		}
 	}
+	feeds.removeDuplicates();
+	fedBy.removeDuplicates();
+	const QLocale locale;
 	if (!fedBy.isEmpty()) {
-		parts << tr("Takes: %1.").arg(fedBy.join(QStringLiteral(", ")));
+		parts << tr("Takes: %1.").arg(locale.createSeparatedList(fedBy));
 	}
 	if (!feeds.isEmpty()) {
-		parts << tr("Feeds: %1.").arg(feeds.join(QStringLiteral(", ")));
+		parts << tr("Feeds: %1.").arg(locale.createSeparatedList(feeds));
 	}
 	if (node.line > 0) {
 		parts << tr("Line %1.").arg(node.line);
@@ -617,13 +900,87 @@ void MaterialGraphView::resetAccessibleChildren()
 	m_accessibleChildren.clear();
 }
 
-void MaterialGraphView::paintEvent(QPaintEvent*)
+void MaterialGraphView::activateNode(int index)
+{
+	if (index < 0 || index >= m_graph.nodes.size()) {
+		return;
+	}
+	selectIndex(index);
+	Q_EMIT nodeActivated(m_graph.nodes.at(index).id);
+}
+
+void MaterialGraphView::showNodeMenu(int index)
+{
+	if (index < 0 || index >= m_graph.nodes.size()) {
+		return;
+	}
+	selectIndex(index);
+	const QString id = m_graph.nodes.at(index).id;
+	// Not inside the screen reader's call: the menu runs its own loop.
+	QTimer::singleShot(0, this, [this, id]() {
+		const int current = indexOf(id);
+		if (current < 0) {
+			return;
+		}
+		const QRect box = nodeRect(current);
+		showMenu(mapToGlobal(box.isNull() ? rect().center() : box.center()), current);
+	});
+}
+
+void MaterialGraphView::ensureTexts() const
+{
+	if (m_textsValid && m_texts.size() == m_graph.nodes.size()) {
+		return;
+	}
+	QFont body = font();
+	body.setPixelSize(kFontPixels);
+	QFont title = body;
+	title.setBold(true);
+	const QFontMetricsF bodyMetrics(body);
+	const QFontMetricsF titleMetrics(title);
+	const double titleWidth = kMaterialGraphNodeWidth - 20.0;
+	const double half = (kMaterialGraphNodeWidth - 24.0) / 2.0;
+	const bool rtl = rightToLeft();
+	m_texts.resize(m_graph.nodes.size());
+	for (int index = 0; index < m_graph.nodes.size(); ++index) {
+		const MaterialGraphNode& node = m_graph.nodes.at(index);
+		NodeText& text = m_texts[index];
+		text.title = isolated(titleMetrics.elidedText(node.title, Qt::ElideRight, titleWidth), rtl);
+		QString subtitle = node.subtitle;
+		if (node.inactive) {
+			subtitle = subtitle.isEmpty() ? tr("Not drawn") : tr("Not drawn: %1").arg(isolated(subtitle, rtl));
+			text.subtitle = bodyMetrics.elidedText(subtitle, Qt::ElideRight, titleWidth);
+		} else {
+			text.subtitle = isolated(bodyMetrics.elidedText(subtitle, Qt::ElideRight, titleWidth), rtl);
+		}
+		text.inputs.clear();
+		text.outputs.clear();
+		for (const MaterialGraphPort& port : node.inputs) {
+			text.inputs << bodyMetrics.elidedText(port.label, Qt::ElideRight, half);
+		}
+		for (const MaterialGraphPort& port : node.outputs) {
+			text.outputs << bodyMetrics.elidedText(port.label, Qt::ElideRight, half);
+		}
+	}
+	m_textsValid = true;
+}
+
+void MaterialGraphView::updateNode(int index)
+{
+	if (index >= 0 && index < m_graph.nodes.size()) {
+		update(nodeRect(index).adjusted(-6, -6, 6, 6));
+	}
+}
+
+void MaterialGraphView::paintEvent(QPaintEvent* event)
 {
 	QPainter painter(this);
+	const QRect exposed = event->rect();
+	painter.setClipRect(exposed);
 	painter.setRenderHint(QPainter::Antialiasing, true);
 	const StudioThemeTokens& tokens = currentStudioTheme();
 	const StudioThemeColors& colors = tokens.colors;
-	painter.fillRect(rect(), colors.input);
+	painter.fillRect(exposed, colors.input);
 	if (m_graph.nodes.isEmpty()) {
 		painter.setPen(colors.textMuted);
 		painter.drawText(rect().adjusted(24, 24, -24, -24), Qt::AlignCenter | Qt::TextWordWrap, m_message);
@@ -631,35 +988,48 @@ void MaterialGraphView::paintEvent(QPaintEvent*)
 		// A dot grid, except in the high-visibility themes.
 		const double spacing = 24.0 * m_zoom;
 		if (!tokens.highContrast && spacing >= 10.0) {
-			painter.setPen(QPen(colors.borderSubtle, 1.5));
-			const double startX = std::fmod(m_pan.x(), spacing);
-			const double startY = std::fmod(m_pan.y(), spacing);
-			for (double x = startX; x < width(); x += spacing) {
-				for (double y = startY; y < height(); y += spacing) {
-					painter.drawPoint(QPointF(x, y));
+			const double offsetX = std::fmod(m_pan.x(), spacing);
+			const double offsetY = std::fmod(m_pan.y(), spacing);
+			const double startX = offsetX + std::floor((exposed.left() - offsetX) / spacing) * spacing;
+			const double startY = offsetY + std::floor((exposed.top() - offsetY) / spacing) * spacing;
+			QVector<QPointF> dots;
+			for (double x = startX; x <= exposed.right() + 1; x += spacing) {
+				for (double y = startY; y <= exposed.bottom() + 1; y += spacing) {
+					dots.push_back(QPointF(x, y));
 				}
 			}
+			painter.setRenderHint(QPainter::Antialiasing, false);
+			painter.setPen(QPen(colors.borderSubtle, 2.0));
+			painter.drawPoints(dots.constData(), static_cast<int>(dots.size()));
+			painter.setRenderHint(QPainter::Antialiasing, true);
 		}
+		ensureTexts();
+		const QRectF exposedScene(toScene(QPointF(exposed.topLeft()) - QPointF(8, 8)), toScene(QPointF(exposed.bottomRight()) + QPointF(8, 8)));
+		const bool detailed = m_zoom * kFontPixels >= kDetailPixels;
 		painter.save();
 		painter.translate(m_pan);
 		painter.scale(m_zoom, m_zoom);
 		const bool rtl = rightToLeft();
 
 		// Wires first, under the nodes.
-		for (const MaterialGraphLink& link : m_graph.links) {
-			const int from = m_graph.indexOf(link.fromNode);
-			const int to = m_graph.indexOf(link.toNode);
+		for (int link = 0; link < m_graph.links.size(); ++link) {
+			const MaterialGraphLink& item = m_graph.links.at(link);
+			const int from = indexOf(item.fromNode);
+			const int to = indexOf(item.toNode);
 			if (from < 0 || to < 0) {
 				continue;
 			}
-			const int fromPort = portIndex(from, link.fromPort, true);
-			const int toPort = portIndex(to, link.toPort, false);
+			const int fromPort = portIndex(from, item.fromPort, true);
+			const int toPort = portIndex(to, item.toPort, false);
 			const QPointF start = portPoint(from, fromPort, true);
 			const QPointF end = portPoint(to, toPort, false);
 			const double reach = std::max(40.0, std::abs(end.x() - start.x()) * 0.5);
 			const double direction = rtl ? -1.0 : 1.0;
 			QPainterPath path(start);
 			path.cubicTo(start + QPointF(reach * direction, 0), end - QPointF(reach * direction, 0), end);
+			if (!path.controlPointRect().intersects(exposedScene)) {
+				continue;
+			}
 			const MaterialGraphPortType type =
 				fromPort >= 0 ? m_graph.nodes.at(from).outputs.at(fromPort).type : MaterialGraphPortType::Scalar;
 			QPen pen(portColor(type, colors), (from == m_selected || to == m_selected) ? 3.0 : 2.0);
@@ -676,15 +1046,20 @@ void MaterialGraphView::paintEvent(QPaintEvent*)
 		body.setPixelSize(kFontPixels);
 		QFont title = body;
 		title.setBold(true);
-		const QFontMetricsF bodyMetrics(body);
-		const QFontMetricsF titleMetrics(title);
 		// Sides are worked out here already: AlignAbsolute stops the painter
 		// mirroring them again right to left.
 		const Qt::Alignment leading = (rtl ? Qt::AlignRight : Qt::AlignLeft) | Qt::AlignAbsolute;
 		const Qt::Alignment trailing = (rtl ? Qt::AlignLeft : Qt::AlignRight) | Qt::AlignAbsolute;
+		const double half = (kMaterialGraphNodeWidth - 24) / 2.0;
+		QVector<int> visible;
 		for (int index = 0; index < m_graph.nodes.size(); ++index) {
-			const MaterialGraphNode& node = m_graph.nodes.at(index);
 			const QRectF box = sceneRect(index);
+			if (!box.intersects(exposedScene)) {
+				continue;
+			}
+			visible.push_back(index);
+			const MaterialGraphNode& node = m_graph.nodes.at(index);
+			const NodeText& text = m_texts.at(index);
 			painter.setOpacity(node.inactive ? 0.6 : 1.0);
 			QPen outline(index == m_selected ? colors.focus : (index == m_hover ? colors.borderStrong : colors.border),
 				index == m_selected ? std::max(2.0, tokens.metrics.focusWidth * 2.0) : 1.0);
@@ -698,44 +1073,45 @@ void MaterialGraphView::paintEvent(QPaintEvent*)
 			// The kind's colour as a strip on the leading edge.
 			painter.setPen(Qt::NoPen);
 			painter.setBrush(kindColor(node.kind, colors));
-			painter.drawRoundedRect(QRectF(rtl ? box.right() - 6 : box.left() + 2, box.top() + 5, 4, kHeader - 10), 2, 2);
+			painter.drawRoundedRect(QRectF(rtl ? box.right() - 6 : box.left() + 2, box.top() + 5, 4, kMaterialGraphHeader - 10), 2, 2);
 
-			painter.setFont(title);
-			painter.setPen(colors.text);
 			const QRectF titleBox = box.adjusted(rtl ? 8 : 12, 0, rtl ? -12 : -8, 0);
-			painter.drawText(QRectF(titleBox.left(), box.top(), titleBox.width(), kHeader), Qt::AlignVCenter | leading,
-				titleMetrics.elidedText(node.title, Qt::ElideRight, titleBox.width()));
-			double y = box.top() + kHeader;
+			if (detailed) {
+				painter.setFont(title);
+				painter.setPen(colors.text);
+				painter.drawText(QRectF(titleBox.left(), box.top(), titleBox.width(), kMaterialGraphHeader), Qt::AlignVCenter | leading, text.title);
+			}
+			double y = box.top() + kMaterialGraphHeader;
 			painter.setFont(body);
 			if (!node.subtitle.isEmpty() || node.inactive) {
-				QString subtitle = node.subtitle;
-				if (node.inactive) {
-					subtitle = subtitle.isEmpty() ? tr("Not drawn") : tr("Not drawn: %1").arg(subtitle);
+				if (detailed) {
+					painter.setPen(colors.textMuted);
+					painter.drawText(QRectF(titleBox.left(), y - 4, titleBox.width(), kMaterialGraphSubtitle), Qt::AlignVCenter | leading, text.subtitle);
 				}
-				painter.setPen(colors.textMuted);
-				painter.drawText(QRectF(titleBox.left(), y - 4, titleBox.width(), kSubtitle), Qt::AlignVCenter | leading,
-					bodyMetrics.elidedText(subtitle, Qt::ElideRight, titleBox.width()));
-				y += kSubtitle;
+				y += kMaterialGraphSubtitle;
 			}
-			const double half = (box.width() - 24) / 2.0;
 			for (int port = 0; port < node.inputs.size(); ++port) {
 				const QPointF point = portPoint(index, port, false);
 				drawPort(painter, point, node.inputs.at(port).type, portColor(node.inputs.at(port).type, colors), colors.panelRaised);
-				painter.setPen(colors.text);
-				const QRectF label(rtl ? point.x() - 10 - half : point.x() + 10, point.y() - kPortRow / 2, half, kPortRow);
-				painter.drawText(label, Qt::AlignVCenter | leading, bodyMetrics.elidedText(node.inputs.at(port).label, Qt::ElideRight, half));
+				if (detailed) {
+					painter.setPen(colors.text);
+					const QRectF label(rtl ? point.x() - 10 - half : point.x() + 10, point.y() - kMaterialGraphPortRow / 2, half, kMaterialGraphPortRow);
+					painter.drawText(label, Qt::AlignVCenter | leading, text.inputs.value(port));
+				}
 			}
 			for (int port = 0; port < node.outputs.size(); ++port) {
 				const QPointF point = portPoint(index, port, true);
 				drawPort(painter, point, node.outputs.at(port).type, portColor(node.outputs.at(port).type, colors), colors.panelRaised);
-				painter.setPen(colors.text);
-				const QRectF label(rtl ? point.x() + 10 : point.x() - 10 - half, point.y() - kPortRow / 2, half, kPortRow);
-				painter.drawText(label, Qt::AlignVCenter | trailing, bodyMetrics.elidedText(node.outputs.at(port).label, Qt::ElideRight, half));
+				if (detailed) {
+					painter.setPen(colors.text);
+					const QRectF label(rtl ? point.x() + 10 : point.x() - 10 - half, point.y() - kMaterialGraphPortRow / 2, half, kMaterialGraphPortRow);
+					painter.drawText(label, Qt::AlignVCenter | trailing, text.outputs.value(port));
+				}
 			}
-			y += std::max(node.inputs.size(), node.outputs.size()) * kPortRow;
+			y += std::max(node.inputs.size(), node.outputs.size()) * kMaterialGraphPortRow;
 			const auto thumbnail = m_thumbnails.constFind(node.imageReference);
 			if (!node.imageReference.isEmpty() && thumbnail != m_thumbnails.constEnd() && !thumbnail->isNull()) {
-				const double side = kThumbnail - 6;
+				const double side = kMaterialGraphThumbnail - 6;
 				const QRectF picture(box.center().x() - side / 2, y + 2, side, side);
 				painter.drawImage(picture, *thumbnail);
 				painter.setPen(QPen(colors.border, 1));
@@ -745,6 +1121,40 @@ void MaterialGraphView::paintEvent(QPaintEvent*)
 		}
 		painter.setOpacity(1.0);
 		painter.restore();
+		if (!detailed) {
+			// Zoomed far out: titles alone, at a size that can still be read.
+			QFont overview = font();
+			overview.setBold(true);
+			overview.setPixelSize(static_cast<int>(std::lround(std::max(kOverviewTitlePixels, kFontPixels * m_zoom))));
+			const QFontMetricsF metrics(overview);
+			painter.setFont(overview);
+			painter.setPen(colors.text);
+			for (int index : std::as_const(visible)) {
+				const QRectF box = nodeRect(index);
+				const QRectF line(box.left() + 4, box.top(), std::max(0.0, box.width() - 8), std::max(box.height(), metrics.height()));
+				painter.setOpacity(m_graph.nodes.at(index).inactive ? 0.6 : 1.0);
+				painter.drawText(line, Qt::AlignTop | (rtl ? Qt::AlignRight : Qt::AlignLeft) | Qt::AlignAbsolute,
+					isolated(metrics.elidedText(m_graph.nodes.at(index).title, Qt::ElideRight, line.width()), rtl));
+			}
+			painter.setOpacity(1.0);
+		}
+		if (m_partialFit) {
+			// After a fit that could not show everything legibly.
+			const QString note = tr("Part of the graph is outside the view; Shift+F shows all of it.");
+			const QFontMetrics metrics(font());
+			const int margin = 8;
+			const int available = std::max(40, width() - margin * 4);
+			const QString shown = metrics.elidedText(note, Qt::ElideRight, available);
+			const QSize size(metrics.horizontalAdvance(shown) + 16, metrics.height() + 8);
+			const QRect chip(rtl ? width() - margin - size.width() : margin, height() - margin - size.height(), size.width(), size.height());
+			if (chip.intersects(exposed)) {
+				painter.setPen(QPen(colors.border, 1));
+				painter.setBrush(colors.panelRaised);
+				painter.drawRoundedRect(QRectF(chip).adjusted(0.5, 0.5, -0.5, -0.5), 4, 4);
+				painter.setPen(colors.textMuted);
+				painter.drawText(chip, Qt::AlignCenter, shown);
+			}
+		}
 	}
 	if (hasFocus()) {
 		QPen pen(colors.focus, std::max(2, tokens.metrics.focusWidth * 2));
@@ -763,9 +1173,8 @@ void MaterialGraphView::mousePressEvent(QMouseEvent* event)
 		m_dragOrigin = position;
 		m_dragStart = m_pan;
 		m_dragMoved = false;
-		if (event->button() == Qt::LeftButton) {
-			selectIndex(-1);
-		}
+		// The selection is cleared on release, unless this becomes a pan.
+		m_backgroundPress = event->button() == Qt::LeftButton;
 		setCursor(Qt::ClosedHandCursor);
 		event->accept();
 		return;
@@ -787,8 +1196,12 @@ void MaterialGraphView::mouseMoveEvent(QMouseEvent* event)
 {
 	const QPointF position = event->position();
 	if (m_drag == Drag::Pan) {
+		if (!m_dragMoved && QLineF(position, m_dragOrigin).length() < 3.0) {
+			return;
+		}
 		m_pan = m_dragStart + (position - m_dragOrigin);
 		m_dragMoved = true;
+		m_partialFit = false;
 		update();
 		event->accept();
 		return;
@@ -810,8 +1223,9 @@ void MaterialGraphView::mouseMoveEvent(QMouseEvent* event)
 	}
 	const int hover = nodeAt(position);
 	if (hover != m_hover) {
+		updateNode(m_hover);
 		m_hover = hover;
-		update();
+		updateNode(m_hover);
 	}
 	QWidget::mouseMoveEvent(event);
 }
@@ -819,8 +1233,13 @@ void MaterialGraphView::mouseMoveEvent(QMouseEvent* event)
 void MaterialGraphView::mouseReleaseEvent(QMouseEvent* event)
 {
 	if (m_drag != Drag::None) {
+		const bool clear = m_drag == Drag::Pan && m_backgroundPress && !m_dragMoved && event->button() == Qt::LeftButton;
 		m_drag = Drag::None;
+		m_backgroundPress = false;
 		unsetCursor();
+		if (clear) {
+			selectIndex(-1);
+		}
 		event->accept();
 		return;
 	}
@@ -851,11 +1270,7 @@ void MaterialGraphView::wheelEvent(QWheelEvent* event)
 		QWidget::wheelEvent(event);
 		return;
 	}
-	const QPointF anchor = event->position();
-	const QPointF scene = toScene(anchor);
-	m_zoom = std::clamp(m_zoom * std::pow(1.12, steps), 0.2, 3.0 * textZoom());
-	m_pan = anchor - scene * m_zoom;
-	update();
+	setZoomAround(m_zoom * std::pow(1.12, steps), event->position());
 	event->accept();
 }
 
@@ -865,21 +1280,19 @@ void MaterialGraphView::moveSelection(int key)
 		return;
 	}
 	if (m_selected < 0) {
-		const int output = m_graph.indexOf(QStringLiteral("material"));
+		const int output = indexOf(QStringLiteral("material"));
 		selectIndex(output >= 0 ? output : 0);
 		return;
 	}
 	const QRectF current = sceneRect(m_selected);
-	const QString id = m_graph.nodes.at(m_selected).id;
 	// Left and right follow the wires: towards what feeds this node, or what
 	// it feeds. Right to left the flow is mirrored, and so are the keys.
 	const bool upstream = (key == Qt::Key_Left) != rightToLeft();
 	int best = -1;
 	double bestDistance = std::numeric_limits<double>::max();
-	if (key == Qt::Key_Left || key == Qt::Key_Right) {
-		for (const MaterialGraphLink& link : m_graph.links) {
-			const QString other = upstream ? (link.toNode == id ? link.fromNode : QString()) : (link.fromNode == id ? link.toNode : QString());
-			const int index = m_graph.indexOf(other);
+	if ((key == Qt::Key_Left || key == Qt::Key_Right) && m_selected < m_linksIn.size()) {
+		for (int link : upstream ? m_linksIn.at(m_selected) : m_linksOut.at(m_selected)) {
+			const int index = indexOf(upstream ? m_graph.links.at(link).fromNode : m_graph.links.at(link).toNode);
 			if (index < 0) {
 				continue;
 			}
@@ -939,24 +1352,70 @@ void MaterialGraphView::moveSelection(int key)
 	}
 }
 
-void MaterialGraphView::requestEdit(MaterialGraphEditKind kind, int index, const QString& value, int step, const QString& nodeTemplate)
+void MaterialGraphView::requestEdit(MaterialGraphEditKind kind, const QString& nodeId, const QString& value, int step)
 {
 	if (m_readOnly) {
 		return;
 	}
+	const int index = indexOf(nodeId);
+	if (index < 0) {
+		return;
+	}
 	MaterialGraphEdit edit;
 	edit.kind = kind;
-	edit.node = index >= 0 && index < m_graph.nodes.size() ? m_graph.nodes.at(index).id : QStringLiteral("material");
+	edit.node = nodeId;
 	edit.value = value;
 	edit.step = step;
-	edit.nodeTemplate = nodeTemplate;
+	const QString label = materialGraphNodeLabel(m_graph.nodes.at(index));
+	QString summary;
+	switch (kind) {
+	case MaterialGraphEditKind::RemoveNode:
+		summary = tr("Removed %1.").arg(label);
+		break;
+	case MaterialGraphEditKind::MoveNode:
+		summary = step < 0 ? tr("Moved %1 earlier.").arg(label) : tr("Moved %1 later.").arg(label);
+		break;
+	case MaterialGraphEditKind::WrapExpression:
+		summary = tr("Wrapped %1 in %2.").arg(label, value);
+		break;
+	case MaterialGraphEditKind::UnwrapExpression:
+		summary = tr("Unwrapped %1.").arg(label);
+		break;
+	case MaterialGraphEditKind::ExpandShorthand:
+		summary = tr("Expanded %1 into a stage block.").arg(label);
+		break;
+	default:
+		break;
+	}
+	sendEdit(edit, summary);
+}
+
+void MaterialGraphView::sendEdit(const MaterialGraphEdit& edit, const QString& summary)
+{
+	if (m_readOnly) {
+		return;
+	}
+	// The workbench applies the edit and shows the graph it makes before
+	// this returns; that graph takes the id moves, and a new graph means
+	// the edit applied.
+	m_pendingMoves = materialGraphIdMoves(m_graph, edit);
+	const int generation = m_graphGeneration;
+	const QPointer<MaterialGraphView> self(this);
 	Q_EMIT editRequested(edit);
+	if (!self) {
+		return;
+	}
+	m_pendingMoves.clear();
+	if (m_graphGeneration != generation) {
+		announce(summary);
+	}
 }
 
 void MaterialGraphView::keyPressEvent(QKeyEvent* event)
 {
 	const bool alt = event->modifiers() & Qt::AltModifier;
 	const bool control = event->modifiers() & Qt::ControlModifier;
+	const bool shift = event->modifiers() & Qt::ShiftModifier;
 	const MaterialGraphNode* node = m_selected >= 0 ? &m_graph.nodes.at(m_selected) : nullptr;
 	switch (event->key()) {
 	case Qt::Key_Left:
@@ -967,7 +1426,7 @@ void MaterialGraphView::keyPressEvent(QKeyEvent* event)
 	case Qt::Key_Down:
 		if (alt) {
 			if (node && node->reorderable) {
-				requestEdit(MaterialGraphEditKind::MoveNode, m_selected, QString(), event->key() == Qt::Key_Up ? -1 : 1);
+				requestEdit(MaterialGraphEditKind::MoveNode, node->id, QString(), event->key() == Qt::Key_Up ? -1 : 1);
 			}
 		} else {
 			moveSelection(event->key());
@@ -979,7 +1438,7 @@ void MaterialGraphView::keyPressEvent(QKeyEvent* event)
 	case Qt::Key_Delete:
 	case Qt::Key_Backspace:
 		if (node && node->removable) {
-			requestEdit(MaterialGraphEditKind::RemoveNode, m_selected);
+			requestEdit(MaterialGraphEditKind::RemoveNode, node->id);
 		}
 		break;
 	case Qt::Key_Return:
@@ -994,7 +1453,7 @@ void MaterialGraphView::keyPressEvent(QKeyEvent* event)
 		break;
 	}
 	case Qt::Key_F10:
-		if (event->modifiers() & Qt::ShiftModifier) {
+		if (shift) {
 			const QRect box = nodeRect(m_selected);
 			showMenu(mapToGlobal(box.isNull() ? rect().center() : box.center()), m_selected);
 		} else {
@@ -1011,7 +1470,11 @@ void MaterialGraphView::keyPressEvent(QKeyEvent* event)
 		}
 		break;
 	case Qt::Key_F:
-		fitToView();
+		if (shift) {
+			showWholeGraph();
+		} else {
+			fitToView();
+		}
 		break;
 	case Qt::Key_Plus:
 	case Qt::Key_Equal:
@@ -1042,9 +1505,20 @@ void MaterialGraphView::showMenu(const QPoint& globalPosition, int index)
 	QMenu menu(this);
 	menu.setAccessibleName(tr("Node actions"));
 	const MaterialGraphNode* node = index >= 0 && index < m_graph.nodes.size() ? &m_graph.nodes.at(index) : nullptr;
+	// Actions name the node by id: the graph may be rebuilt while the menu
+	// is open (typing in the text), and an index would then name another.
+	const QString nodeId = node ? node->id : QString();
 	if (!m_readOnly && !m_templates.isEmpty()) {
 		QMenu* add = menu.addMenu(tr("Add Node"));
 		QHash<QString, QMenu*> categories;
+		const int stage = node ? node->stage : -1;
+		int tcMods = 0;
+		if (stage >= 0) {
+			const QString prefix = QStringLiteral("stage/%1/tcmod/").arg(stage);
+			for (const MaterialGraphNode& each : std::as_const(m_graph.nodes)) {
+				tcMods += each.id.startsWith(prefix) && !each.id.mid(prefix.size()).contains(QLatin1Char('/')) ? 1 : 0;
+			}
+		}
 		for (const MaterialGraphNodeTemplate& each : std::as_const(m_templates)) {
 			QMenu* target = categories.value(each.category);
 			if (!target) {
@@ -1055,18 +1529,22 @@ void MaterialGraphView::showMenu(const QPoint& globalPosition, int index)
 			action->setToolTip(each.description);
 			action->setStatusTip(each.description);
 			const bool needsStage = each.needsStage;
-			const int stage = node ? node->stage : -1;
-			action->setEnabled(!needsStage || stage >= 0);
+			bool enabled = !needsStage || stage >= 0;
+			if (enabled && each.id.startsWith(QStringLiteral("q3.tcmod.")) && tcMods >= 4) {
+				// ioquake3 drops a shader with a fifth tcMod in a stage.
+				enabled = false;
+				action->setToolTip(tr("This stage already has 4 tcMods, the most Quake III allows."));
+				action->setStatusTip(action->toolTip());
+			}
+			action->setEnabled(enabled);
 			const QString id = each.id;
-			connect(action, &QAction::triggered, this, [this, needsStage, stage, id]() {
-				if (m_readOnly) {
-					return;
-				}
+			const QString title = each.title;
+			connect(action, &QAction::triggered, this, [this, needsStage, stage, id, title]() {
 				MaterialGraphEdit edit;
 				edit.kind = MaterialGraphEditKind::AddNode;
 				edit.nodeTemplate = id;
 				edit.node = needsStage ? QStringLiteral("stage/%1").arg(stage) : QStringLiteral("material");
-				Q_EMIT editRequested(edit);
+				sendEdit(edit, tr("Added %1.").arg(title));
 			});
 		}
 		add->setToolTipsVisible(true);
@@ -1078,35 +1556,63 @@ void MaterialGraphView::showMenu(const QPoint& globalPosition, int index)
 		if (node->removable) {
 			QAction* remove = menu.addAction(tr("Remove"));
 			remove->setShortcut(QKeySequence::Delete);
-			connect(remove, &QAction::triggered, this, [this, index]() { requestEdit(MaterialGraphEditKind::RemoveNode, index); });
+			connect(remove, &QAction::triggered, this, [this, nodeId]() { requestEdit(MaterialGraphEditKind::RemoveNode, nodeId); });
 		}
 		if (node->reorderable) {
 			QAction* earlier = menu.addAction(tr("Move Earlier"));
 			earlier->setShortcut(QKeySequence(Qt::AltModifier | Qt::Key_Up));
-			connect(earlier, &QAction::triggered, this, [this, index]() { requestEdit(MaterialGraphEditKind::MoveNode, index, QString(), -1); });
+			connect(earlier, &QAction::triggered, this, [this, nodeId]() { requestEdit(MaterialGraphEditKind::MoveNode, nodeId, QString(), -1); });
 			QAction* later = menu.addAction(tr("Move Later"));
 			later->setShortcut(QKeySequence(Qt::AltModifier | Qt::Key_Down));
-			connect(later, &QAction::triggered, this, [this, index]() { requestEdit(MaterialGraphEditKind::MoveNode, index, QString(), 1); });
+			connect(later, &QAction::triggered, this, [this, nodeId]() { requestEdit(MaterialGraphEditKind::MoveNode, nodeId, QString(), 1); });
 		}
 		if (node->kind == QStringLiteral("expression")) {
 			QMenu* wrap = menu.addMenu(tr("Wrap In Operator"));
+			wrap->setObjectName(QStringLiteral("materialGraphWrapOperator"));
 			const QVector<std::pair<QString, QString>> operators {{QStringLiteral("add"), tr("Add (+)")},
 				{QStringLiteral("subtract"), tr("Subtract (-)")}, {QStringLiteral("multiply"), tr("Multiply (*)")},
 				{QStringLiteral("divide"), tr("Divide (/)")}, {QStringLiteral("modulo"), tr("Modulo (%)")},
-				{QStringLiteral("greater"), tr("Greater (>)")}, {QStringLiteral("less"), tr("Less (<)")},
+				{QStringLiteral("greater"), tr("Greater (>)")}, {QStringLiteral("greaterEqual"), tr("Greater or Equal (>=)")},
+				{QStringLiteral("less"), tr("Less (<)")}, {QStringLiteral("lessEqual"), tr("Less or Equal (<=)")},
 				{QStringLiteral("equal"), tr("Equal (==)")}, {QStringLiteral("notEqual"), tr("Not Equal (!=)")},
 				{QStringLiteral("and"), tr("And (&&)")}, {QStringLiteral("or"), tr("Or (||)")}};
 			for (const auto& [id, label] : operators) {
 				QAction* action = wrap->addAction(label);
+				action->setData(id);
 				const QString op = id;
-				connect(action, &QAction::triggered, this, [this, index, op]() { requestEdit(MaterialGraphEditKind::WrapExpression, index, op); });
+				connect(action, &QAction::triggered, this, [this, nodeId, op]() { requestEdit(MaterialGraphEditKind::WrapExpression, nodeId, op); });
 			}
+			wrap->addSeparator();
+			QAction* table = wrap->addAction(tr("Table Lookup"));
+			table->setData(QStringLiteral("table"));
+			table->setToolTip(tr("Reads the node's value from a table: sinTable[ value ]."));
+			connect(table, &QAction::triggered, this, [this, nodeId]() {
+				requestEdit(MaterialGraphEditKind::WrapExpression, nodeId, QStringLiteral("table"));
+			});
+			wrap->setToolTipsVisible(true);
 			QAction* unwrap = menu.addAction(tr("Unwrap"));
-			connect(unwrap, &QAction::triggered, this, [this, index]() { requestEdit(MaterialGraphEditKind::UnwrapExpression, index); });
+			connect(unwrap, &QAction::triggered, this, [this, nodeId]() { requestEdit(MaterialGraphEditKind::UnwrapExpression, nodeId); });
+		}
+		if (node->programNode) {
+			// Doom 3 image programs (R_ParseImageProgram); the function
+			// names are the keywords written to the text.
+			QMenu* wrap = menu.addMenu(tr("Wrap In Image Function"));
+			wrap->setObjectName(QStringLiteral("materialGraphWrapImage"));
+			for (const char* function : {"heightmap", "addnormals", "smoothnormals", "add", "scale", "invertalpha", "invertcolor", "makeintensity",
+					 "makealpha"}) {
+				const QString name = QString::fromLatin1(function);
+				QAction* action = wrap->addAction(name);
+				action->setData(name);
+				connect(action, &QAction::triggered, this, [this, nodeId, name]() { requestEdit(MaterialGraphEditKind::WrapExpression, nodeId, name); });
+			}
+			if (node->kind == QStringLiteral("program")) {
+				QAction* unwrap = menu.addAction(tr("Unwrap"));
+				connect(unwrap, &QAction::triggered, this, [this, nodeId]() { requestEdit(MaterialGraphEditKind::UnwrapExpression, nodeId); });
+			}
 		}
 		if (node->kind == QStringLiteral("stage") && node->property(QStringLiteral("shorthand"))) {
 			QAction* expand = menu.addAction(tr("Expand to Stage Block"));
-			connect(expand, &QAction::triggered, this, [this, index]() { requestEdit(MaterialGraphEditKind::ExpandShorthand, index); });
+			connect(expand, &QAction::triggered, this, [this, nodeId]() { requestEdit(MaterialGraphEditKind::ExpandShorthand, nodeId); });
 		}
 	}
 	if (node) {
@@ -1134,6 +1640,14 @@ void MaterialGraphView::showMenu(const QPoint& globalPosition, int index)
 	QAction* fit = menu.addAction(tr("Fit Graph"));
 	fit->setShortcut(QKeySequence(Qt::ControlModifier | Qt::Key_0));
 	connect(fit, &QAction::triggered, this, &MaterialGraphView::fitToView);
+	QAction* whole = menu.addAction(tr("Show Whole Graph"));
+	whole->setShortcut(QKeySequence(Qt::ShiftModifier | Qt::Key_F));
+	connect(whole, &QAction::triggered, this, &MaterialGraphView::showWholeGraph);
+	QAction* reset = menu.addAction(tr("Reset Layout"));
+	reset->setEnabled(!m_moved.isEmpty());
+	reset->setToolTip(tr("Puts the nodes you dragged back where the automatic layout places them."));
+	connect(reset, &QAction::triggered, this, &MaterialGraphView::resetLayout);
+	menu.setToolTipsVisible(true);
 	menu.exec(globalPosition);
 }
 
@@ -1141,7 +1655,7 @@ void MaterialGraphView::focusInEvent(QFocusEvent* event)
 {
 	QWidget::focusInEvent(event);
 	if (m_selected < 0 && !m_graph.nodes.isEmpty()) {
-		const int output = m_graph.indexOf(QStringLiteral("material"));
+		const int output = indexOf(QStringLiteral("material"));
 		selectIndex(output >= 0 ? output : 0);
 	} else if (m_selected >= 0) {
 		QAccessibleEvent focus(this, QAccessible::Focus);
@@ -1170,18 +1684,35 @@ void MaterialGraphView::changeEvent(QEvent* event)
 	QWidget::changeEvent(event);
 	switch (event->type()) {
 	case QEvent::LayoutDirectionChange:
+		m_textsValid = false;
 		m_fitPending = true;
 		fitToView();
 		break;
 	case QEvent::LanguageChange:
+		m_textsValid = false;
 		setAccessibleName(tr("Material node graph"));
 		setAccessibleDescription(tr("Arrow keys move between connected nodes; Enter edits the node's properties; Delete removes it; "
 									"Alt+Up and Alt+Down change the draw order; the context menu adds nodes."));
-		break;
-	case QEvent::PaletteChange:
-	case QEvent::StyleChange:
 		update();
 		break;
+	case QEvent::FontChange:
+	case QEvent::PaletteChange:
+	case QEvent::StyleChange: {
+		m_textsValid = false;
+		// A new text size keeps the same part of the graph in view, with
+		// the text scaled to match.
+		const double scale = textZoom();
+		if (std::abs(scale - m_fitTextZoom) > 1e-6 && m_fitTextZoom > 0.0) {
+			const double ratio = scale / m_fitTextZoom;
+			m_fitTextZoom = scale;
+			const QPointF centre(width() / 2.0, height() / 2.0);
+			const QPointF scene = toScene(centre);
+			m_zoom = std::clamp(m_zoom * ratio, 0.2, 3.0 * scale);
+			m_pan = centre - scene * m_zoom;
+		}
+		update();
+		break;
+	}
 	default:
 		break;
 	}
@@ -1211,7 +1742,7 @@ bool MaterialGraphView::event(QEvent* event)
 			}
 		}
 		if (text.isEmpty()) {
-			text = node.title;
+			text = nodeAccessibleName(index);
 			const QString description = nodeAccessibleDescription(index);
 			if (!description.isEmpty()) {
 				text += QLatin1Char('\n') + description;
