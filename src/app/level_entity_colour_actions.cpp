@@ -82,7 +82,7 @@ void ApplicationShell::setLevelMapEntityColourFromUi()
 		return;
 	}
 	const int changed = static_cast<int>(report.changed.size());
-	recordActivity(tr("Entity colour set"), report.value, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Entity colour set"), report.value, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	QString message = tr("Set _color to %1 on %n entit(y)(ies) as one undo step.", nullptr, changed).arg(report.value);
 	if (report.worldPrimitives > 0) {
@@ -113,7 +113,7 @@ void ApplicationShell::normaliseLevelMapEntityColourFromUi()
 		return;
 	}
 	const int changed = static_cast<int>(report.changed.size());
-	recordActivity(tr("Entity colour normalised"), report.value, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Entity colour normalised"), report.value, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	QString message =
 		tr("Normalised the colour of entity %1 to %2 and set it on %n entit(y)(ies) as one undo step.", nullptr, changed).arg(report.sourceEntity).arg(report.value);

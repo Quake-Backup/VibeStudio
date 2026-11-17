@@ -10,6 +10,8 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QHash>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QRegularExpression>
@@ -88,6 +90,18 @@ QString stripTrailingCarriageReturn(const QString& line)
 	return stripped;
 }
 
+// What a terminal shows for one line of output. SlopMap2 draws its progress as
+// "[ 42%]  est: 00:00:03\r" and a spinner "[.   ]\r", each returning to the start of the line with no
+// line feed (external/compilers/slopmap2/src/common/log.cc, logging::percent), so the next message
+// arrives glued to every snapshot printed before it: "[ 42%]  est: 00:00:03\rWARNING: 34: microbrush".
+// Only the text after the last carriage return is the line; what came before it was overwritten.
+QString terminalLineText(const QString& rawLine)
+{
+	const QString stripped = stripTrailingCarriageReturn(rawLine);
+	const qsizetype lastReturn = stripped.lastIndexOf(QLatin1Char('\r'));
+	return lastReturn < 0 ? stripped : stripped.mid(lastReturn + 1);
+}
+
 // Tools that colour their console output, as SlopMap2 does, wrap their
 // messages in ECMA-48 escape sequences: "ESC [ ... final byte" (CSI), "ESC ]
 // ... BEL" (OSC), or a two-byte escape. Left in, they show as stray
@@ -100,6 +114,12 @@ QString stripTerminalEscapes(const QString& line)
 	}
 	static const QRegularExpression escapes(QStringLiteral(R"re(\x1B(?:\[[0-?]*[ -/]*[@-~]|\][^\x07\x1B]*(?:\x07|\x1B\\)|[@-_]))re"));
 	return QString(line).remove(escapes);
+}
+
+// One line of a tool's output as it is logged and parsed.
+QString outputLineText(const QString& rawLine)
+{
+	return stripTerminalEscapes(terminalLineText(rawLine));
 }
 
 // Both SlopMap2 (src/common/log.cc, exit_on_exception) and SlopMap3
@@ -176,7 +196,11 @@ void applyDiagnosticLocation(CompilerDiagnostic* diagnostic, const QString& text
 		return;
 	}
 
-	static const QRegularExpression pathPattern(QString::fromLatin1(R"regex((?:"([^"\n\r]+?\.(?:%1))"|((?:[A-Za-z]:)?[^:\n\r\t ]+?\.(?:%1)))(?:[:(](\d+))?(?:[:,](\d+))?)regex").arg(QString::fromLatin1(kDiagnosticPathExtensions)), QRegularExpression::CaseInsensitiveOption);
+	// The unquoted form reads lazily up to a listed extension, so the extension has to end the name:
+	// without the lookahead "C:/Users/john.clark/maps/e1m1.map:120" stopped at "john.c",
+	// "mathlib.cpp:44" at "mathlib.c" and "textures/base.wall/metal.tga" at "base.wal", each losing
+	// the real file and its line.
+	static const QRegularExpression pathPattern(QString::fromLatin1(R"regex((?:"([^"\n\r]+?\.(?:%1))"|((?:[A-Za-z]:)?[^:\n\r\t ]+?\.(?:%1))(?![\w/\\-]|\.\w))(?:[:(](\d+))?(?:[:,](\d+))?)regex").arg(QString::fromLatin1(kDiagnosticPathExtensions)), QRegularExpression::CaseInsensitiveOption);
 	const QRegularExpressionMatch match = pathPattern.match(text);
 	if (match.hasMatch()) {
 		const QString quotedPath = match.captured(1);
@@ -374,27 +398,17 @@ void appendNote(CompilerRunResult* result, const CompilerRunCallbacks& callbacks
 	appendLog(&result->manifest, callbacks, QStringLiteral("info"), note);
 }
 
-// Run the upstream issue catalog over the captured output so real diagnostics gain upstream context.
+// Run the upstream issue catalog over the run's diagnostics so real warnings and errors gain
+// upstream context. A match explains a diagnostic that has already decided how the run ended, so it
+// is recorded as a note and never as a warning of its own: it must not turn a clean run into Warning.
 void enrichWithKnownIssues(CompilerRunResult* result, const CompilerRunCallbacks& callbacks)
 {
 	if (!result) {
 		return;
 	}
-	const QString output = QStringLiteral("%1\n%2").arg(result->stdoutText, result->stderrText);
-	if (output.trimmed().isEmpty()) {
-		return;
-	}
-	for (const CompilerKnownIssueMatch& match : matchCompilerKnownIssues(output, result->manifest.toolId, result->manifest.profileId)) {
-		const QString text = QCoreApplication::translate("SlopStudioCompilerRunner", "Compiler output matches upstream issue #%1 (keyword \"%2\"): %3 Action: %4")
-			.arg(match.issue.issueId, match.matchedKeyword, match.issue.warningText, match.issue.actionText);
-		if (match.issue.highValue) {
-			if (!containsTrimmed(result->manifest.knownIssueWarnings, text)) {
-				result->manifest.knownIssueWarnings.push_back(text.trimmed());
-			}
-			appendWarning(result, callbacks, text);
-		} else {
-			appendNote(result, callbacks, text);
-		}
+	for (const CompilerKnownIssueMatch& match : compilerKnownIssuesForDiagnostics(result->diagnostics, result->manifest.toolId, result->manifest.profileId)) {
+		appendNote(result, callbacks, QCoreApplication::translate("SlopStudioCompilerRunner", "Compiler output matches upstream issue #%1 (keyword \"%2\"): %3 Action: %4")
+			.arg(match.issue.issueId, match.matchedKeyword, match.issue.warningText, match.issue.actionText));
 	}
 }
 
@@ -721,6 +735,9 @@ CompilerRunResult runResolvedCommand(CompilerRunResult result, const CompilerRun
 	}
 
 	result.started = true;
+	// Nothing is ever written to the tool, so its input is closed: a tool that waits for a key
+	// press or reads stdin gets end-of-file instead of sitting there until the run is stopped.
+	process.closeWriteChannel();
 	appendLog(&result.manifest, callbacks, QStringLiteral("info"), QCoreApplication::translate("SlopStudioCompilerRunner", "Process started: %1").arg(result.plan.commandLine));
 
 	CompilerDiagnosticParser diagnosticParser;
@@ -732,7 +749,7 @@ CompilerRunResult runResolvedCommand(CompilerRunResult result, const CompilerRun
 	// Emit one log entry per complete line as it arrives so watchers see progress live, and parse
 	// diagnostics incrementally instead of only after the process has exited.
 	const auto handleLine = [&](const QString& rawLine, const QString& channel) {
-		const QString line = stripTerminalEscapes(stripTrailingCarriageReturn(rawLine));
+		const QString line = outputLineText(rawLine);
 		if (line.trimmed().isEmpty()) {
 			return;
 		}
@@ -775,7 +792,10 @@ CompilerRunResult runResolvedCommand(CompilerRunResult result, const CompilerRun
 		pumpChannel(&stderrPending, &stderrBytes, process.readAllStandardError(), QStringLiteral("stderr"));
 	};
 
-	const int timeoutMs = std::max(1000, request.timeoutMs);
+	// A timeout of zero or less means no limit: a full vis or light pass can take hours, and a run
+	// with a Cancel control should end when the tool does, not when a clock runs out.
+	const bool hasTimeout = request.timeoutMs > 0;
+	const int timeoutMs = hasTimeout ? std::max(1000, request.timeoutMs) : 0;
 	while (!process.waitForFinished(100)) {
 		pump();
 		if (callbacks.cancellationRequested && callbacks.cancellationRequested()) {
@@ -785,7 +805,7 @@ CompilerRunResult runResolvedCommand(CompilerRunResult result, const CompilerRun
 			appendLog(&result.manifest, callbacks, QStringLiteral("warning"), QCoreApplication::translate("SlopStudioCompilerRunner", "Cancellation requested; compiler process was stopped."));
 			break;
 		}
-		if (timer.elapsed() > timeoutMs) {
+		if (hasTimeout && timer.elapsed() > timeoutMs) {
 			result.timedOut = true;
 			process.kill();
 			process.waitForFinished(1000);
@@ -860,6 +880,36 @@ CompilerRunResult runResolvedCommand(CompilerRunResult result, const CompilerRun
 }
 
 } // namespace
+
+QVector<CompilerDiagnostic> compilerOutputDiagnostics(const QString& output, const QString& channel)
+{
+	QVector<CompilerDiagnostic> diagnostics;
+	CompilerDiagnosticParser parser;
+	for (const QString& rawLine : output.split(QLatin1Char('\n'))) {
+		const QString line = outputLineText(rawLine);
+		CompilerDiagnostic diagnostic;
+		if (!line.trimmed().isEmpty() && parser.consume(line, channel, &diagnostic)) {
+			diagnostics.push_back(diagnostic);
+		}
+	}
+	diagnostics += parser.flush();
+	return diagnostics;
+}
+
+QVector<CompilerKnownIssueMatch> compilerKnownIssuesForDiagnostics(const QVector<CompilerDiagnostic>& diagnostics, const QString& toolId, const QString& profileId)
+{
+	// Only the diagnostic lines are matched, never the whole output. The tools print catalogue words
+	// on every healthy run: qbsp's lump table names "clipnodes" and "marksurfaces"
+	// (external/compilers/slopmap2/src/common/bspfile.cc, PrintQ1BSPLumps), and light reports
+	// "shadow-casting skip faces" (src/light/trace_embree.cc) and "INFO: using built-in palette."
+	// (src/common/imglib.cc). Matched against all of it, every bsp and light run picked up an
+	// unrelated upstream issue.
+	QStringList lines;
+	for (const CompilerDiagnostic& diagnostic : diagnostics) {
+		lines << diagnostic.rawLine;
+	}
+	return matchCompilerKnownIssues(lines.join(QLatin1Char('\n')), toolId, profileId);
+}
 
 CompilerRunResult runCompilerCommand(const CompilerRunRequest& request, const CompilerRunCallbacks& callbacks)
 {
@@ -972,6 +1022,93 @@ QString newCompilerRunManifestPath(const QString& rootPath, const QString& profi
 	return path;
 }
 
+namespace {
+
+bool isJsonSpace(char character)
+{
+	return character == ' ' || character == '\t' || character == '\n' || character == '\r';
+}
+
+// The inputs a saved run names, read from the file's bytes without parsing the rest: the captured
+// output and the per-line log make up nearly all of a manifest, and most of a folder's runs are of
+// other maps. False whenever the bytes are not plainly one "inputPaths" key with an array of
+// strings (no key, the key twice, anything nested); the caller then parses the whole file, so this
+// can only ever spare a parse, never change which run is found.
+bool savedRunInputPaths(const QByteArray& bytes, QStringList* paths)
+{
+	static const QByteArray key = QByteArrayLiteral("\"inputPaths\"");
+	qsizetype arrayStart = -1;
+	for (qsizetype at = bytes.indexOf(key); at >= 0; at = bytes.indexOf(key, at + key.size())) {
+		// A quote inside a string value is always written escaped, so text such as compiler output
+		// that happens to hold these characters is preceded by a backslash and is not a key.
+		if (at > 0 && bytes.at(at - 1) == '\\') {
+			continue;
+		}
+		qsizetype next = at + key.size();
+		while (next < bytes.size() && isJsonSpace(bytes.at(next))) {
+			++next;
+		}
+		if (next >= bytes.size() || bytes.at(next) != ':') {
+			// The same characters as a string value, not a key.
+			continue;
+		}
+		++next;
+		while (next < bytes.size() && isJsonSpace(bytes.at(next))) {
+			++next;
+		}
+		if (next >= bytes.size() || bytes.at(next) != '[' || arrayStart >= 0) {
+			return false;
+		}
+		arrayStart = next;
+	}
+	if (arrayStart < 0) {
+		return false;
+	}
+
+	qsizetype arrayEnd = -1;
+	bool inString = false;
+	for (qsizetype index = arrayStart + 1; index < bytes.size() && arrayEnd < 0; ++index) {
+		const char character = bytes.at(index);
+		if (inString) {
+			if (character == '\\') {
+				++index;
+			} else if (character == '"') {
+				inString = false;
+			}
+		} else if (character == '"') {
+			inString = true;
+		} else if (character == ']') {
+			arrayEnd = index;
+		} else if (character == '[' || character == '{') {
+			return false;
+		}
+	}
+	if (arrayEnd < 0) {
+		return false;
+	}
+
+	// The array itself goes through the JSON parser, so escapes in a path are read as they are
+	// when the whole manifest is loaded.
+	QJsonParseError parseError;
+	const QJsonDocument document = QJsonDocument::fromJson(bytes.mid(arrayStart, arrayEnd - arrayStart + 1), &parseError);
+	if (parseError.error != QJsonParseError::NoError || !document.isArray()) {
+		return false;
+	}
+	if (paths) {
+		paths->clear();
+		const QJsonArray array = document.array();
+		for (const QJsonValue& value : array) {
+			const QString path = value.toString();
+			if (!path.isEmpty()) {
+				paths->push_back(path);
+			}
+		}
+	}
+	return true;
+}
+
+} // namespace
+
 bool findNewestCompilerRunManifest(const QStringList& rootPaths, const QString& inputPath, CompilerRunManifestMatch* out, int scanLimit)
 {
 	// Workflow reference: TrenchBroom MapWindow::rerunLastCompilation at
@@ -1012,12 +1149,28 @@ bool findNewestCompilerRunManifest(const QStringList& rootPaths, const QString& 
 		const QDateTime rightTime = right.lastModified();
 		return leftTime != rightTime ? leftTime > rightTime : left.fileName() > right.fileName();
 	});
+	const bool anyInput = inputPath.trimmed().isEmpty();
 	for (const QFileInfo& file : std::as_const(files)) {
+		if (!anyInput) {
+			// A run of another map is passed over on its inputs alone, without loading its output
+			// and log; anything less than plain is left to the full parse below.
+			QFile source(file.absoluteFilePath());
+			QStringList namedInputs;
+			if (source.open(QIODevice::ReadOnly) && savedRunInputPaths(source.readAll(), &namedInputs)) {
+				bool named = false;
+				for (const QString& input : std::as_const(namedInputs)) {
+					named = named || samePath(input, inputPath);
+				}
+				if (!named) {
+					continue;
+				}
+			}
+		}
 		CompilerCommandManifest manifest;
 		if (!loadCompilerCommandManifest(file.absoluteFilePath(), &manifest) || manifest.program.trimmed().isEmpty()) {
 			continue;
 		}
-		bool matches = inputPath.trimmed().isEmpty();
+		bool matches = anyInput;
 		for (const QString& input : std::as_const(manifest.inputPaths)) {
 			matches = matches || samePath(input, inputPath);
 		}

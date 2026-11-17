@@ -181,6 +181,35 @@ bool OperationStateModel::clearTerminalTasks()
 	return m_tasks.size() != oldSize;
 }
 
+QStringList OperationStateModel::pruneTerminalTasks(int maximumTerminal, const QStringList& keepIds)
+{
+	const int limit = std::max(0, maximumTerminal);
+	int terminal = 0;
+	for (const OperationTask& task : std::as_const(m_tasks)) {
+		if (operationStateIsTerminal(task.state)) {
+			++terminal;
+		}
+	}
+	if (terminal <= limit) {
+		return {};
+	}
+
+	// Tasks are held newest first, so the first `limit` finished ones stay.
+	QStringList removed;
+	QVector<OperationTask> kept;
+	kept.reserve(m_tasks.size());
+	int seen = 0;
+	for (OperationTask& task : m_tasks) {
+		if (operationStateIsTerminal(task.state) && ++seen > limit && !keepIds.contains(task.id)) {
+			removed.push_back(task.id);
+			continue;
+		}
+		kept.push_back(std::move(task));
+	}
+	m_tasks = std::move(kept);
+	return removed;
+}
+
 QMap<OperationState, int> OperationStateModel::stateCounts() const
 {
 	QMap<OperationState, int> counts;

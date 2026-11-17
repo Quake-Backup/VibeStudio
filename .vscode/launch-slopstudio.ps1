@@ -4,7 +4,23 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+$workspaceRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$buildDir = Join-Path $workspaceRoot "builddir"
+
 function Find-QtBin {
+  # The Qt the build used, recorded by scripts/meson_build.ps1: the program
+  # needs those libraries, and reading it avoids searching C:\Qt on each start.
+  $statePath = Join-Path $buildDir "slopstudio-build-env.json"
+  if (Test-Path $statePath) {
+    try {
+      $recorded = (Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json).qtBin
+      if ($recorded -and (Test-Path $recorded)) {
+        return $recorded
+      }
+    } catch {
+    }
+  }
+
   $roots = @($env:QT_BIN_DIR, $env:QTDIR, $env:QT_DIR, $env:Qt6_DIR, "C:\Qt") | Where-Object { $_ -and (Test-Path $_) }
 
   foreach ($root in $roots) {
@@ -31,11 +47,10 @@ function Find-QtBin {
   return $null
 }
 
-$workspaceRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$binary = Join-Path $workspaceRoot "builddir/src/slopstudio"
+$binary = Join-Path $buildDir "src/slopstudio"
 
 if ($IsWindows -or $env:OS -eq "Windows_NT") {
-  $binary = Join-Path $workspaceRoot "builddir/src/slopstudio.exe"
+  $binary = Join-Path $buildDir "src/slopstudio.exe"
   $qtBin = Find-QtBin
   if ($qtBin) {
     $env:PATH = "$qtBin;$env:PATH"
@@ -43,7 +58,7 @@ if ($IsWindows -or $env:OS -eq "Windows_NT") {
 }
 
 if (!(Test-Path $binary)) {
-  throw "Built executable not found: $binary. Run 'SlopStudio: build and validate' first."
+  throw "Built executable not found: $binary. Run 'SlopStudio: build app' first."
 }
 
 $appArgs = @()

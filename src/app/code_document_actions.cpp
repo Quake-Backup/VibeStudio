@@ -176,8 +176,8 @@ bool ApplicationShell::saveCodeDocumentAs(const TextFileWriteTarget& target, QSt
 	if (matches(m_levelMapDocument.sourcePath)) { loadLevelMapPath(target.path); }
 	const QString project = m_settings.currentProjectPath();
 	if (!project.isEmpty() && matches(projectManifestPath(project))) {
+		// The dashboard ends by refreshing the context panels itself.
 		refreshWorkspaceDashboard();
-		refreshWorkspaceContextPanels();
 		refreshSetupPanel();
 		refreshTexturePaletteSources();
 	}

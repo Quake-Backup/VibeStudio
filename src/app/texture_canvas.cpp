@@ -90,7 +90,10 @@ QPoint TextureCanvas::boundedPoint(QPoint point) const
 {
 	const QSize size = m_document->size();
 	// Gradients and selections stay on the canvas; painting may reach the repeat.
-	const bool repeat = m_wrap && m_tiled && m_tool != Tool::Select && m_tool != Tool::Gradient;
+	// A stroke in progress always may: clamping it to the canvas would paint a
+	// line along the border while the pointer moves outside. Without wrapping
+	// the document paints only the part of the stroke that crosses the canvas.
+	const bool repeat = m_stroke || (m_wrap && m_tiled && m_tool != Tool::Select && m_tool != Tool::Gradient);
 	return {std::clamp(point.x(), repeat ? -size.width() : 0, std::max(0, (repeat ? 2 : 1) * size.width() - 1)),
 		std::clamp(point.y(), repeat ? -size.height() : 0, std::max(0, (repeat ? 2 : 1) * size.height() - 1))};
 }
@@ -187,12 +190,27 @@ void TextureCanvas::submitShape()
 	if (shapeRequested) { shapeRequested(shape, m_shapeStart, m_shapeEnd, currentBrush(), m_filledShapes, gestureColor()); }
 }
 
-void TextureCanvas::beginGesture(QPoint point, bool secondary)
+int TextureCanvas::pressureWidth(double pressure) const
+{
+	if (!m_pressure || !std::isfinite(pressure)) { return m_brushWidth; }
+	return std::clamp(int(std::lround(m_brushWidth * std::clamp(pressure, 0.0, 1.0))), 1, m_brushWidth);
+}
+
+void TextureCanvas::beginGesture(QPoint point, bool secondary) { startGesture(point, secondary, m_brushWidth); }
+
+void TextureCanvas::beginGestureWithPressure(QPoint point, double pressure, bool secondary)
+{
+	// A pen's first stamp takes its width from the pressure it lands with, as
+	// every later one does: a light touch must not open with a full-width blot.
+	startGesture(point, secondary, pressureWidth(pressure));
+}
+
+void TextureCanvas::startGesture(QPoint point, bool secondary, int strokeWidth)
 {
 	if (!isEnabled() || m_document->size().isEmpty() || !validTexturePaintPoint(point, m_document->size(), m_wrap && m_tiled && m_tool != Tool::Select && m_tool != Tool::Gradient)) { return; }
 	finishStroke(); setCursorPixel(point); m_secondaryGesture = secondary;
 	if (strokeTool()) {
-		TextureBrush brush = currentBrush();
+		TextureBrush brush = currentBrush(); brush.width = strokeWidth;
 		if (m_tool == Tool::Clone) {
 			if (!m_hasCloneSource) { if (operationFailed) { operationFailed(QCoreApplication::translate("SlopStudioTextureEditor", "Choose a clone source first: Ctrl+click the canvas, or Ctrl+Space at the cursor.")); } return; }
 			brush.cloneOffset = m_cloneAligned && m_cloneOffsetSet ? m_cloneOffset : m_cloneSource - point;
@@ -218,9 +236,7 @@ void TextureCanvas::continueGesture(QPoint point)
 
 void TextureCanvas::continueGestureWithPressure(QPoint point, double pressure)
 {
-	if (m_stroke && m_pressure && std::isfinite(pressure)) {
-		m_document->setStrokeWidth(std::clamp(int(std::lround(m_brushWidth * std::clamp(pressure, 0.0, 1.0))), 1, m_brushWidth));
-	}
+	if (m_stroke && m_pressure && std::isfinite(pressure)) { m_document->setStrokeWidth(pressureWidth(pressure)); }
 	continueGesture(point);
 }
 
@@ -345,8 +361,7 @@ void TextureCanvas::tabletEvent(QTabletEvent* event)
 	case QEvent::TabletPress:
 		setFocus(Qt::MouseFocusReason);
 		if (m_tool == Tool::Clone && event->modifiers().testFlag(Qt::ControlModifier)) { setCloneSource(pixel); break; }
-		beginGesture(pixel, event->button() == Qt::RightButton);
-		if (m_stroke) { continueGestureWithPressure(pixel, event->pressure()); }
+		beginGestureWithPressure(pixel, event->pressure(), event->button() == Qt::RightButton);
 		break;
 	case QEvent::TabletMove:
 		m_hover = true;

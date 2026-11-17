@@ -1,4 +1,5 @@
 #include "core/compiler_known_issues.h"
+#include "core/compiler_runner.h"
 
 #include <cstdlib>
 #include <iostream>
@@ -313,6 +314,50 @@ int main()
 				return fail("An ordinary SlopMap2 run must not match a high-value known issue.");
 			}
 		}
+	}
+
+	// The tools also print catalogue words on every healthy run, where they are counts and notices
+	// and not problems: qbsp's lump table names "clipnodes" and "marksurfaces"
+	// (external/compilers/slopmap2/src/qbsp/writebsp.cc, src/common/bspfile.cc PrintLumpSize), and
+	// light reports "shadow-casting skip faces" (src/light/trace_embree.cc) and "INFO: using built-in
+	// palette." (src/common/imglib.cc). Matched as plain text these lines hit #136, #255 and #192, so
+	// a run matches the catalogue against its diagnostic lines only, and they never reach it.
+	const QVector<OrdinaryRun> ordinaryStatusOutput = {
+		{"slopmap2-bsp", QStringLiteral(
+			"---- slopmap2-bsp / SlopMap2 3.1.0 ----\n"
+			"Wrote maps/start.bsp\n"
+			"      1 models               64\n"
+			"     12 clipnodes            96\n"
+			"     40 marksurfaces         80\n"
+			"[  0%]  ...\r[ 50%]  est: 00:00:01\r[100%] time elapsed: 00:00:01\n")},
+		{"slopmap2-light", QStringLiteral(
+			"---- slopmap2-light / SlopMap2 3.1.0 ----\n"
+			"INFO: using built-in palette.\n"
+			"\t0 sky faces\n"
+			"\t3 shadow-casting skip faces\n")},
+	};
+	for (const OrdinaryRun& run : ordinaryStatusOutput) {
+		const QString toolId = QString::fromLatin1(run.toolId);
+		if (slopstudio::matchCompilerKnownIssues(run.output, toolId, toolId).isEmpty()) {
+			return fail("Expected the status-line samples to use catalogue keywords, or they prove nothing.");
+		}
+		const QVector<slopstudio::CompilerDiagnostic> diagnostics = slopstudio::compilerOutputDiagnostics(run.output);
+		if (!diagnostics.isEmpty() || !slopstudio::compilerKnownIssuesForDiagnostics(diagnostics, toolId, toolId).isEmpty()) {
+			return fail("A healthy SlopMap2 run's status lines must not be matched against the known-issue catalogue.");
+		}
+	}
+	// A real diagnostic is still matched, whatever else the run printed around it.
+	const QVector<slopstudio::CompilerDiagnostic> paletteDiagnostics = slopstudio::compilerOutputDiagnostics(QStringLiteral(
+		"     12 clipnodes            96\n"
+		"[ 50%]  est: 00:00:01\rWARNING: unable to load palette from gfx/palette.lmp\n"));
+	bool foundPaletteIssue = false;
+	for (const slopstudio::CompilerKnownIssueMatch& match : slopstudio::compilerKnownIssuesForDiagnostics(paletteDiagnostics,
+			QStringLiteral("slopmap2-light"), QStringLiteral("slopmap2-light"))) {
+		foundPaletteIssue = foundPaletteIssue || match.issue.issueId == QStringLiteral("192");
+	}
+	if (paletteDiagnostics.size() != 1 || paletteDiagnostics.first().message != QStringLiteral("WARNING: unable to load palette from gfx/palette.lmp")
+		|| !foundPaletteIssue) {
+		return fail("Expected a real compiler warning to keep its known-issue match.");
 	}
 
 	// Keywords match whole tokens: "leak" must not fire on the "-leaktest" argument preset, and

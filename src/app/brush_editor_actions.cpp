@@ -15,7 +15,7 @@ bool ApplicationShell::applyLevelBrushGeometry(const LevelMapBrush &brush, int b
 		return true;
 	}
 	recordActivity(tr("Brush components edited"), QStringLiteral("brush:%1").arg(brushId), QStringLiteral("level-map"),
-				   OperationState::Warning, tr("Unsaved map edit"));
+				   OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Brush updated. Save the map to include it in the next build."));
 	return true;

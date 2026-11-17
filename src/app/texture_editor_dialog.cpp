@@ -380,8 +380,7 @@ TextureEditorDialog::TextureEditorDialog(QWidget* parent) : QDialog(parent)
 		const auto path = QFileDialog::getSaveFileName(this, QCoreApplication::translate("SlopStudioTextureEditor", "Export Companion Maps"), QStringLiteral("texture.png"),
 			QCoreApplication::translate("SlopStudioTextureEditor", "Texture name (*.png)"));
 		if (path.isEmpty()) { return; }
-		QString error;
-		if (exportCompanionMaps(path, true, &error)) { setStatus(QCoreApplication::translate("SlopStudioTextureEditor", "Exported companion maps beside %1.").arg(path)); } else { setStatus(error); }
+		saveCompanionMapsToPath(path, true);
 	})->setToolTip(QCoreApplication::translate("SlopStudioTextureEditor", "Write the companion maps as PNG files named after the chosen texture file."));
 	form = propertyTab(QCoreApplication::translate("SlopStudioTextureEditor", "Layers"));
 	m_layers = new QListWidget; m_layers->setObjectName(QStringLiteral("textureLayers"));
@@ -965,6 +964,9 @@ void TextureEditorDialog::runJob(const QString& title, std::function<bool(Textur
 {
 	if (m_busy) { return; }
 	m_canvas->finishStroke(); m_busy = true; m_cancelled = false; m_cancellable = cancellable;
+	// Disabling the focused control moves the focus on; the end of the job (or of
+	// a chain of jobs) gives it back, so the keyboard keeps working where it was.
+	m_jobFocus.begin();
 	m_tools->setEnabled(false); m_properties->setEnabled(false); m_canvas->setEnabled(false);
 	m_task = std::make_shared<TextureEditorTask>(); m_progressTimer->start(); m_progress->setRange(0, 0);
 	m_progress->show(); m_cancel->setVisible(cancellable); m_cancel->setEnabled(true); setStatus(title); refreshContext();
@@ -986,12 +988,16 @@ void TextureEditorDialog::runJob(const QString& title, std::function<bool(Textur
 	connect(m_worker, &QThread::finished, this, [this, result, completed = std::move(completed)]() {
 		m_worker->wait(); m_worker->deleteLater(); m_worker = nullptr;
 		m_progressTimer->stop(); m_task.reset();
+		m_jobFocus.ended(m_cancel);
 		m_busy = false; m_cancellable = false; m_tools->setEnabled(true); m_properties->setEnabled(true); updateCanvasEnabled();
 		m_progress->hide(); m_cancel->hide();
 		if (m_cancelled) { setStatus(QCoreApplication::translate("SlopStudioTextureEditor", "Cancelled. The texture is unchanged.")); }
 		else if (!result->ok) { setStatus(result->error); }
 		else { m_document = std::move(result->document); setStatus(QCoreApplication::translate("SlopStudioTextureEditor", "Completed.")); if (completed) { completed(); } }
 		refresh();
+		// A completion callback may have started the next job of a chain (prepare,
+		// then publish): the focus goes back when the last one ends.
+		if (!m_busy) { m_jobFocus.restore(); }
 	});
 	m_worker->start();
 }
@@ -1231,23 +1237,39 @@ void TextureEditorDialog::stage(bool applyToMap)
 		});
 }
 
-QVector<TextureExportCompanion> TextureEditorDialog::companionMaps(const QString& basePath) const
+namespace {
+// The normal, gloss and (when something glows) glow maps of a composite, PNG
+// encoded and named after `basePath`. Deriving and encoding three maps takes
+// seconds at the largest canvas, so the editor runs this on its job worker;
+// `progress` is asked between the six steps and during each encode, and an
+// empty result follows a cancellation as it does a canvas nothing derives from.
+QVector<TextureExportCompanion> deriveCompanionMaps(const QImage& composite, const QString& basePath, bool ioquake3, const TextureProgress& progress = {})
 {
-	const bool ioquake3 = m_companionNaming && m_companionNaming->currentData().toString() == QStringLiteral("ioquake3");
 	const QFileInfo info(basePath);
 	const QString directory = basePath.contains(QLatin1Char('/')) ? basePath.left(basePath.lastIndexOf(QLatin1Char('/')) + 1) : QString();
 	const QString stem = directory + info.completeBaseName();
-	const QImage image = m_document.image().convertToFormat(QImage::Format_ARGB32);
+	const QImage image = composite.convertToFormat(QImage::Format_ARGB32);
 	QVector<TextureExportCompanion> maps;
+	int step = 0;
+	const auto proceed = [&]() { return !progress || progress(step++, 6); };
 	const auto add = [&](const QString& suffix, const QImage& map) {
-		if (map.isNull()) { return; }
-		QString error; const QByteArray png = encodeTextureOutputPng(map, &error);
+		if (!proceed()) { return false; }
+		if (map.isNull()) { return true; }
+		QString error; const QByteArray png = encodeTextureOutputPng(map, &error, [&]() { return progress && !progress(step, 6); });
 		if (!png.isEmpty()) { maps.push_back({stem + suffix + QStringLiteral(".png"), png}); }
+		return true;
 	};
-	add(ioquake3 ? QStringLiteral("_n") : QStringLiteral("_norm"), deriveTextureNormalMap(image, 2.5, true));
-	add(ioquake3 ? QStringLiteral("_s") : QStringLiteral("_gloss"), deriveTextureGlossMap(image));
-	add(QStringLiteral("_glow"), deriveTextureGlowMap(image, 0.85));
-	return maps;
+	const bool complete = proceed() && add(ioquake3 ? QStringLiteral("_n") : QStringLiteral("_norm"), deriveTextureNormalMap(image, 2.5, true)) &&
+		proceed() && add(ioquake3 ? QStringLiteral("_s") : QStringLiteral("_gloss"), deriveTextureGlossMap(image)) &&
+		proceed() && add(QStringLiteral("_glow"), deriveTextureGlowMap(image, 0.85));
+	return complete ? maps : QVector<TextureExportCompanion>{};
+}
+}
+
+QVector<TextureExportCompanion> TextureEditorDialog::companionMaps(const QString& basePath) const
+{
+	const bool ioquake3 = m_companionNaming && m_companionNaming->currentData().toString() == QStringLiteral("ioquake3");
+	return deriveCompanionMaps(m_document.image(), basePath, ioquake3);
 }
 
 void TextureEditorDialog::stageCompanionMaps()
@@ -1258,11 +1280,55 @@ void TextureEditorDialog::stageCompanionMaps()
 		setStatus(QCoreApplication::translate("SlopStudioTextureEditor", "Open a folder, PAK, ZIP or PK3 package to stage companion maps. WADs cannot hold PNG files."));
 		return;
 	}
-	const auto maps = companionMaps(m_virtualPath->text());
-	QString error;
-	if (maps.isEmpty() || !stageFiles(maps, m_replace->isChecked(), &error)) { setStatus(error.isEmpty() ? QCoreApplication::translate("SlopStudioTextureEditor", "No companion maps could be derived.") : error); return; }
-	QStringList paths; for (const auto& map : maps) { paths << map.path; }
-	setStatus(QCoreApplication::translate("SlopStudioTextureEditor", "Staged %1. Save the package separately.").arg(paths.join(QStringLiteral(", "))));
+	// The maps are derived and encoded on the job worker, like every other heavy
+	// texture operation; only the staging itself runs here, once they are ready.
+	const QString path = m_virtualPath->text(); const bool replace = m_replace->isChecked();
+	const bool ioquake3 = m_companionNaming && m_companionNaming->currentData().toString() == QStringLiteral("ioquake3");
+	auto maps = std::make_shared<QVector<TextureExportCompanion>>();
+	runJob(QCoreApplication::translate("SlopStudioTextureEditor", "Deriving companion maps…"), [maps, path, ioquake3](TextureDocument& document, QString* error, const TextureProgress& progress) {
+		*maps = deriveCompanionMaps(document.image(), path, ioquake3, progress);
+		if (maps->isEmpty()) { *error = QCoreApplication::translate("SlopStudioTextureEditor", "No companion maps could be derived."); return false; }
+		return true;
+	}, [this, maps, replace, current]() {
+		const auto now = context ? context() : TextureEditorContext{};
+		if (!now.canStage || !stageFiles || !now.wadMagic.isEmpty() || now.packagePath != current.packagePath || now.packageTargetKey != current.packageTargetKey) {
+			setStatus(QCoreApplication::translate("SlopStudioTextureEditor", "The project context changed. Stage again after reviewing the target.")); return;
+		}
+		QString error;
+		if (!stageFiles(*maps, replace, &error)) { setStatus(error.isEmpty() ? QCoreApplication::translate("SlopStudioTextureEditor", "No companion maps could be derived.") : error); return; }
+		QStringList paths; for (const auto& map : *maps) { paths << map.path; }
+		setStatus(QCoreApplication::translate("SlopStudioTextureEditor", "Staged %1. Save the package separately.").arg(paths.join(QStringLiteral(", "))));
+	});
+}
+
+void TextureEditorDialog::saveCompanionMapsToPath(const QString& basePngPath, bool overwrite, std::function<void()> completed)
+{
+	if (m_busy) { return; }
+	const QString base = QDir::fromNativeSeparators(basePngPath);
+	const bool ioquake3 = m_companionNaming && m_companionNaming->currentData().toString() == QStringLiteral("ioquake3");
+	auto maps = std::make_shared<QVector<TextureExportCompanion>>(); auto targets = std::make_shared<QVector<TextureOutputTarget>>();
+	// As with an export: deriving and encoding can be cancelled; publishing is a
+	// separate short job that cannot, so a written file is never reported cancelled.
+	runJob(QCoreApplication::translate("SlopStudioTextureEditor", "Deriving companion maps…"), [maps, targets, base, ioquake3, overwrite](TextureDocument& document, QString* error, const TextureProgress& progress) {
+		*maps = deriveCompanionMaps(document.image(), base, ioquake3, progress);
+		if (maps->isEmpty()) { *error = QCoreApplication::translate("SlopStudioTextureEditor", "No companion maps could be derived."); return false; }
+		for (const auto& map : *maps) {
+			TextureOutputTarget target;
+			if (!inspectTextureOutputTarget(map.path, overwrite, &target, error, [&] { return !progress(0, 1); })) { return false; }
+			targets->push_back(target);
+		}
+		return true;
+	}, [this, maps, targets, basePngPath, completed = std::move(completed)]() {
+		runJob(QCoreApplication::translate("SlopStudioTextureEditor", "Writing companion maps…"), [maps, targets](TextureDocument&, QString* error, const TextureProgress&) {
+			for (qsizetype index = 0; index < targets->size(); ++index) { if (!writeTextureOutput(targets->at(index), maps->at(index).bytes, false, error)) { return false; } }
+			return true;
+		}, [this, maps, basePngPath, completed]() {
+			const int count = int(maps->size());
+			if (activity) { activity(QCoreApplication::translate("SlopStudioTextureEditor", "Companion Maps Exported"), basePngPath, QCoreApplication::translate("SlopStudioTextureEditor", "%n map(s) written.", nullptr, count)); }
+			setStatus(QCoreApplication::translate("SlopStudioTextureEditor", "Exported companion maps beside %1.").arg(basePngPath));
+			if (completed) { completed(); }
+		}, false);
+	});
 }
 
 bool TextureEditorDialog::exportCompanionMaps(const QString& basePngPath, bool overwrite, QString* error)

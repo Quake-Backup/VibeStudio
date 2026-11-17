@@ -21,6 +21,7 @@
 #include <QJsonObject>
 #include <QProcess>
 #include <QTemporaryDir>
+#include <QThread>
 #include <QtEndian>
 
 #include <iostream>
@@ -62,7 +63,17 @@ int fakeCompiler(const QStringList& arguments)
 	QByteArray bytes(4 + 15 * 8, '\0');
 	qToLittleEndian<qint32>(29, reinterpret_cast<uchar*>(bytes.data()));
 	std::cout << "fake compiler run " << qPrintable(QFileInfo(output).fileName()) << std::endl;
+	if (arguments.contains(QStringLiteral("--fake-slow"))) {
+		// Outlives the runner's shortest time limit, one second.
+		QThread::msleep(1500);
+	}
 	return !output.isEmpty() && writeFile(output, bytes) ? 0 : 1;
+}
+
+QByteArray readFile(const QString& path)
+{
+	QFile file(path);
+	return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
 }
 
 QByteArray mapText()
@@ -137,6 +148,70 @@ void manifestTests(const QString& folder)
 	expect(replayed.started && replayed.manifest.commandLine == match.manifest.commandLine && QFileInfo::exists(rerun.manifestPath), "replay runs the same command",
 		compilerRunResultText(replayed));
 	expect(findNewestCompilerRunManifest({root}, start, &match) && QFileInfo(match.path) == QFileInfo(rerun.manifestPath), "the replay is the newest run now",
+		match.path);
+
+	// A replay with a time limit is stopped when it outlives it; zero or less
+	// means no limit, as Re-run Last Compile asks for. Neither is saved.
+	CompilerCommandManifest slow = match.manifest;
+	slow.arguments << QStringLiteral("--fake-slow");
+	slow.commandLine = compilerCommandLineText(slow.program, slow.arguments);
+	CompilerManifestRerunRequest limited;
+	limited.timeoutMs = 1;
+	const CompilerRunResult stopped = rerunCompilerCommandManifest(slow, limited);
+	expect(stopped.started && stopped.timedOut && stopped.state == OperationState::Failed, "a replay that outlives its time limit is stopped",
+		compilerRunResultText(stopped));
+	for (const int noLimit : {0, -1}) {
+		limited.timeoutMs = noLimit;
+		const CompilerRunResult unlimited = rerunCompilerCommandManifest(slow, limited);
+		expect(unlimited.started && !unlimited.timedOut && unlimited.exitCode == 0, "a time limit of zero or less is no limit", compilerRunResultText(unlimited));
+	}
+
+	// A run of another map is passed over on its inputs alone, without loading
+	// the rest of it; whatever a manifest looks like, the run found is the one
+	// a full read of every manifest finds.
+	const QString runs = compilerRunManifestDirectory(root);
+	const QByteArray replayBytes = readFile(rerun.manifestPath);
+	// The map's name written with a JSON escape is still the map.
+	const QString escapedPath = QDir(runs).filePath(QStringLiteral("zz-escaped.json"));
+	QByteArray escapedBytes = replayBytes;
+	escapedBytes.replace("start.map", "\\u0073tart.map");
+	expect(escapedBytes != replayBytes && writeFile(escapedPath, escapedBytes), "escaped manifest written");
+	setModified(escapedPath, -60);
+	expect(findNewestCompilerRunManifest({root}, start, &match) && QFileInfo(match.path) == QFileInfo(escapedPath)
+			&& match.manifest.inputPaths.join(QLatin1Char('|')).endsWith(QStringLiteral("start.map")),
+		"a map named with a JSON escape is found", match.path);
+	QFile::remove(escapedPath);
+	// A run of other.map whose captured output quotes an inputs list naming
+	// start.map is still a run of other.map.
+	const QString decoyPath = QDir(runs).filePath(QStringLiteral("zz-decoy.json"));
+	QJsonObject decoy = QJsonDocument::fromJson(readFile(second.manifestPath)).object();
+	decoy.insert(QStringLiteral("stdout"), QStringLiteral("\"inputPaths\": [\"%1\"]\n\\\"inputPaths\": [\"%1\"]").arg(start));
+	expect(writeFile(decoyPath, QJsonDocument(decoy).toJson()), "decoy manifest written");
+	setModified(decoyPath, -60);
+	expect(findNewestCompilerRunManifest({root}, start, &match) && QFileInfo(match.path) == QFileInfo(rerun.manifestPath),
+		"output that quotes another inputs list does not make a run of this map", match.path);
+	expect(findNewestCompilerRunManifest({root}, other, &match) && QFileInfo(match.path) == QFileInfo(decoyPath), "and it is still found for its own map",
+		match.path);
+	QFile::remove(decoyPath);
+	// Anything less than one plain inputs list is left to the full read: here
+	// the key is written twice, and the run found agrees with that read.
+	const QString twicePath = QDir(runs).filePath(QStringLiteral("zz-twice.json"));
+	QByteArray twiceBytes = replayBytes;
+	const qsizetype keyAt = twiceBytes.indexOf("\"inputPaths\"");
+	twiceBytes.insert(keyAt < 0 ? 0 : keyAt, "\"inputPaths\": [\"nowhere.map\"],\n    ");
+	expect(keyAt > 0 && writeFile(twicePath, twiceBytes), "manifest with the key twice written");
+	setModified(twicePath, -60);
+	CompilerCommandManifest twice;
+	bool twiceNamesStart = false;
+	if (loadCompilerCommandManifest(twicePath, &twice)) {
+		for (const QString& input : std::as_const(twice.inputPaths)) {
+			twiceNamesStart = twiceNamesStart || QFileInfo(input) == QFileInfo(start);
+		}
+	}
+	expect(findNewestCompilerRunManifest({root}, start, &match) && QFileInfo(match.path) == QFileInfo(twiceNamesStart ? twicePath : rerun.manifestPath),
+		"a manifest that is not plain is read in full", match.path);
+	QFile::remove(twicePath);
+	expect(findNewestCompilerRunManifest({root}, start, &match) && QFileInfo(match.path) == QFileInfo(rerun.manifestPath), "the replay is the newest run again",
 		match.path);
 }
 

@@ -610,6 +610,8 @@ void MapViewport::setDocument(const LevelMapDocument& document, const MapBrushGe
 	m_pressArmed = false;
 	m_dragging = false;
 	m_resizing = false;
+	m_shearing = false;
+	m_shearEdge = 0;
 	m_hoverHandle = 0;
 	m_banding = false;
 	m_clipDrawing = false;
@@ -682,6 +684,9 @@ void MapViewport::updateDocument(const LevelMapDocument& document, const LevelSc
 	m_pressArmed = false;
 	m_dragging = false;
 	m_resizing = false;
+	// A shear would otherwise slant the new selection by the old one's box.
+	m_shearing = false;
+	m_shearEdge = 0;
 	m_banding = false;
 	rebuildGeometry();
 	updateWorldBounds();
@@ -761,6 +766,7 @@ void MapViewport::clearDocument()
 	m_hidden.clear();
 	m_sceneHidden.clear();
 	m_effectiveHidden.clear();
+	m_effectiveHiddenKeys.clear();
 	m_filtered.clear();
 	m_leakTrail.clear();
 	m_targetLinks.clear();
@@ -779,6 +785,8 @@ void MapViewport::clearDocument()
 	m_pressArmed = false;
 	m_dragging = false;
 	m_resizing = false;
+	m_shearing = false;
+	m_shearEdge = 0;
 	m_hoverHandle = 0;
 	m_banding = false;
 	m_clipDrawing = false;
@@ -839,6 +847,7 @@ void MapViewport::synchronizeSceneFrom(const MapViewport& source, bool frame)
 		m_sectorOutlines = source.m_sectorOutlines;
 		m_hidden = source.m_hidden;
 		m_effectiveHidden = source.m_effectiveHidden;
+		m_effectiveHiddenKeys = source.m_effectiveHiddenKeys;
 		m_sceneHidden = source.m_sceneHidden;
 		m_filtered = source.m_filtered;
 		m_targetLinks = source.m_targetLinks;
@@ -1070,7 +1079,10 @@ void MapViewport::cancelInteraction()
 	finishClipPoint(false);
 	finishBrushAssemble(false);
 	setTemporaryPan(false);
-	const bool wasBusy = m_dragging || m_banding || m_pressArmed || m_resizing || m_clipDrawing || m_brushDrawing || m_clickArmed;
+	const bool wasBusy = m_dragging || m_banding || m_pressArmed || m_resizing || m_clipDrawing || m_brushDrawing || m_clickArmed || m_shearing;
+	// A shear left live would slant the next selection by this one's box.
+	m_shearing = false;
+	m_shearEdge = 0;
 	m_brushArmed = false;
 	m_brushDrawing = false;
 	m_clickArmed = false;
@@ -1331,7 +1343,12 @@ int MapViewport::temporaryHiddenCount() const { return static_cast<int>(m_hidden
 
 bool MapViewport::isHidden(LevelMapSelectionKind kind, int objectId) const
 {
-	if (!m_effectiveHidden.isEmpty() && m_effectiveHidden.contains(levelSceneCanonicalObject(m_sourceDocument, levelMapSelectionRefId({kind, objectId})))) { return true; }
+	if (!m_effectiveHiddenKeys.isEmpty()) {
+		// A Doom entity is hidden as its thing (levelSceneCanonicalObject).
+		const LevelMapSelectionKind named = kind == LevelMapSelectionKind::Entity && m_sourceDocument.format == LevelMapFormat::DoomWad
+			? LevelMapSelectionKind::DoomThing : kind;
+		if (m_effectiveHiddenKeys.contains({static_cast<int>(named), objectId})) { return true; }
+	}
 	if (m_filtered.isEmpty()) { return false; }
 	const auto held = [this](const QPair<int, int>& key) { return m_filtered.contains(key); };
 	if (held({static_cast<int>(kind), objectId})) {
@@ -1364,6 +1381,18 @@ void MapViewport::applyHiddenFilter()
 	m_hidden.clear();
 	m_sceneHidden = levelSceneHiddenObjects(m_sourceDocument);
 	m_effectiveHidden = levelMapHiddenObjects(m_sourceDocument);
+	// The same set by kind and id for isHidden(). Only a name that reads back
+	// exactly as levelMapSelectionRefId() writes it can match there, so any
+	// other is left out and the answers are the ones the names gave.
+	m_effectiveHiddenKeys.clear();
+	m_effectiveHiddenKeys.reserve(m_effectiveHidden.size());
+	for (const auto& object : std::as_const(m_effectiveHidden)) {
+		const auto colon = object.indexOf(':');
+		const LevelMapSelectionRef ref {levelMapSelectionKindFromId(object.left(colon)), object.mid(colon + 1).toInt()};
+		if (levelMapSelectionRefId(ref) == object) {
+			m_effectiveHiddenKeys.insert({static_cast<int>(ref.kind), ref.objectId});
+		}
+	}
 	for (const auto& object : m_effectiveHidden - m_sceneHidden) {
 		const auto colon = object.indexOf(':');
 		m_hidden.insert({static_cast<int>(levelMapSelectionKindFromId(object.left(colon))),object.mid(colon+1).toInt()});
@@ -2080,12 +2109,13 @@ MapViewportHit MapViewport::hitTest(const QPointF& viewPoint) const
 		world.y() + pickWorld);
 	double best = kPickRadius;
 	const auto consider = [&](LevelMapSelectionKind kind, int id, const QPointF& worldPoint, double distance) {
-		if (isHidden(kind, id) || !m_sceneContext.allowedObjects.contains(levelMapSelectionRefId({kind,id}))) { return; }
 		// Outside the pick radius is always rejected; once something is held, a
 		// tie keeps it so that the documented tier and iteration order decides.
 		if (distance > best || (hit.kind != LevelMapSelectionKind::None && distance >= best)) {
 			return;
 		}
+		// Asked last: the open group's test names the object.
+		if (isHidden(kind, id) || !m_sceneContext.allowedObjects.contains(levelMapSelectionRefId({kind,id}))) { return; }
 		best = distance;
 		hit.kind = kind;
 		hit.objectId = id;
@@ -2128,7 +2158,7 @@ MapViewportHit MapViewport::hitTest(const QPointF& viewPoint) const
 
 	// Tier 2: vertices.
 	for (const LevelMapDoomVertex& vertex : m_document.doomVertices) {
-		if (isHidden(LevelMapSelectionKind::DoomVertex, vertex.id)) { continue; }
+		// consider() leaves out what is hidden, once the point is in reach.
 		const QPointF point = mapViewportProjectPoint(m_projection, makeVec(vertex.x, vertex.y, 0.0));
 		if (!pickRect.contains(point)) {
 			continue;
@@ -2143,7 +2173,6 @@ MapViewportHit MapViewport::hitTest(const QPointF& viewPoint) const
 
 	// Tier 3: linedefs, brush edges and patch outlines.
 	for (const LevelMapDoomLinedef& linedef : m_document.doomLinedefs) {
-		if (isHidden(LevelMapSelectionKind::DoomLinedef, linedef.id)) { continue; }
 		const LevelMapDoomVertex* start = findById(m_document.doomVertices, linedef.startVertex);
 		const LevelMapDoomVertex* end = findById(m_document.doomVertices, linedef.endVertex);
 		if (start == nullptr || end == nullptr) {
@@ -2240,7 +2269,9 @@ QVector<LevelMapSelectionRef> MapViewport::objectsInWorldRect(const QRectF& rect
 	// order without allocating per-object lookups on every pointer move.
 	const int worldspawnId = worldspawnEntityId(m_document);
 	const auto keep = [&](LevelMapSelectionKind kind, int id, const QRectF& bounds) {
-		if (id >= 0 && !isHidden(kind, id) && m_sceneContext.allowedObjects.contains(levelMapSelectionRefId({kind,id})) && rectContainsRect(area, bounds)) {
+		// The rectangle first: it is the cheap test, and the open group's
+		// test names the object, on every pointer move of a rubber band.
+		if (id >= 0 && rectContainsRect(area, bounds) && !isHidden(kind, id) && m_sceneContext.allowedObjects.contains(levelMapSelectionRefId({kind,id}))) {
 			result.push_back(LevelMapSelectionRef {kind, id});
 		}
 	};
@@ -3357,10 +3388,11 @@ void MapViewport::paintDoom(QPainter& painter, const Palette& palette) const
 	if (m_showSectorFill && m_projection == MapViewportProjection::TopXY) {
 		painter.setPen(Qt::NoPen);
 		for (const DoomSectorOutline& outline : m_sectorOutlines) {
-		if (isHidden(LevelMapSelectionKind::DoomSector, outline.sectorId)) { continue; }
+			// What is off screen first: that test is the cheaper one.
 			if (!outline.bounds.isNull() && !rectsOverlap(outline.bounds, visible)) {
 				continue;
 			}
+			if (isHidden(LevelMapSelectionKind::DoomSector, outline.sectorId)) { continue; }
 			const LevelMapDoomSector* sector = findById(m_document.doomSectors, outline.sectorId);
 			const int light = sector != nullptr ? std::clamp(sector->lightLevel, 0, 255) : 128;
 			const double mix = static_cast<double>(light) / 255.0;
@@ -3391,7 +3423,6 @@ void MapViewport::paintDoom(QPainter& painter, const Palette& palette) const
 	const QPen solidPen(palette.oneSided, m_highContrast ? 2.4 : 1.8, Qt::SolidLine, Qt::RoundCap);
 	const QPen twoSidedPen(palette.twoSided, 0.9, Qt::SolidLine, Qt::RoundCap);
 	for (const LevelMapDoomLinedef& linedef : m_document.doomLinedefs) {
-		if (isHidden(LevelMapSelectionKind::DoomLinedef, linedef.id)) { continue; }
 		const LevelMapDoomVertex* start = findById(m_document.doomVertices, linedef.startVertex);
 		const LevelMapDoomVertex* end = findById(m_document.doomVertices, linedef.endVertex);
 		if (start == nullptr || end == nullptr) {
@@ -3407,6 +3438,7 @@ void MapViewport::paintDoom(QPainter& painter, const Palette& palette) const
 		if (!rectsOverlap(segment, visible)) {
 			continue;
 		}
+		if (isHidden(LevelMapSelectionKind::DoomLinedef, linedef.id)) { continue; }
 		painter.setPen(doomLinedefIsTwoSided(linedef) ? twoSidedPen : solidPen);
 		painter.drawLine(worldToView(a.x(), a.y()), worldToView(b.x(), b.y()));
 	}
@@ -3415,11 +3447,11 @@ void MapViewport::paintDoom(QPainter& painter, const Palette& palette) const
 		painter.setPen(QPen(palette.vertex, 1.0));
 		painter.setBrush(QBrush(palette.vertex));
 		for (const LevelMapDoomVertex& vertex : m_document.doomVertices) {
-		if (isHidden(LevelMapSelectionKind::DoomVertex, vertex.id)) { continue; }
 			const QPointF point = mapViewportProjectPoint(m_projection, makeVec(vertex.x, vertex.y, 0.0));
 			if (!visible.contains(point)) {
 				continue;
 			}
+			if (isHidden(LevelMapSelectionKind::DoomVertex, vertex.id)) { continue; }
 			const QPointF view = worldToView(point.x(), point.y());
 			// Square marker: vertices never share a shape with things.
 			painter.drawRect(QRectF(view.x() - 2.0, view.y() - 2.0, 4.0, 4.0));
@@ -3795,14 +3827,25 @@ bool MapViewport::event(QEvent* event)
 		const int key = static_cast<QKeyEvent*>(event)->key();
 		if (key == Qt::Key_Escape || key == Qt::Key_Backspace || key == Qt::Key_Delete || key == Qt::Key_Return || key == Qt::Key_Enter) { event->accept(); return true; }
 	}
-	if (event->type() == QEvent::FocusOut || event->type() == QEvent::Hide || (event->type() == QEvent::EnabledChange && !isEnabled())) {
-		m_objectGizmo->finish(false);
-		m_planeDrag->finish(false);
-		m_planeDragClick = false;
+	if (event->type() == QEvent::FocusOut || event->type() == QEvent::WindowDeactivate || event->type() == QEvent::UngrabMouse
+		|| event->type() == QEvent::Hide || (event->type() == QEvent::EnabledChange && !isEnabled())) {
+		// The button's release goes elsewhere once the view loses the focus,
+		// its window or the mouse, so nothing may stay held: a move, resize,
+		// shear, rubber band or brush left live would follow the pointer with
+		// no button down and act on the next click. The 3D view does the same.
+		const bool navigating = m_panning || m_zoomDragging;
 		finishComponentMove(false);
-		finishClipPoint(false);
-		finishBrushAssemble(false);
-		setTemporaryPan(false);
+		cancelInteraction();
+		if (navigating) {
+			m_panning = false;
+			m_panButton = Qt::NoButton;
+			// Space's hand stays until Space again.
+			if (m_handMode) {
+				setCursor(Qt::OpenHandCursor);
+			} else {
+				unsetCursor();
+			}
+		}
 	}
 	if (event->type() == QEvent::ShortcutOverride && (m_componentMode != ComponentMode::Off || m_regionDrawMode)) {
 		// While vertex editing, the arrows (Shift: eight steps) move the picked
@@ -4265,7 +4308,7 @@ void MapViewport::mousePressEvent(QMouseEvent* event)
 		return;
 	}
 	if (button == Qt::RightButton
-		&& (m_dragging || m_banding || m_pressArmed || m_resizing || m_clipDrawing || m_brushArmed || m_brushDrawing || m_clickArmed
+		&& (m_dragging || m_banding || m_pressArmed || m_resizing || m_shearing || m_clipDrawing || m_brushArmed || m_brushDrawing || m_clickArmed
 			|| m_pendingResizeEdges != 0 || m_pendingPlaneDrag)) {
 		// A right press in the middle of a drag, resize, or rubber band calls it
 		// off, as Escape does, rather than changing what the gesture acts on;
@@ -5120,29 +5163,80 @@ void MapViewport::keyPressEvent(QKeyEvent* event)
 		event->accept();
 		return;
 	}
-	int current = -1;
-	int offset = 0;
-	for (const LevelMapSelectionKind kind : tiers) {
-		const int count = objectCountForKind(m_document, kind);
-		if (kind == m_selectionKind) {
-			const int index = objectIndexOfId(m_document, kind, m_selectedObjectId);
-			if (index >= 0) {
-				current = offset + index;
+	// Where an object stands in the cycle, or -1.
+	const auto cyclePosition = [&](const LevelMapSelectionRef& ref) {
+		int base = 0;
+		for (const LevelMapSelectionKind kind : tiers) {
+			if (kind == ref.kind) {
+				const int index = objectIndexOfId(m_document, kind, ref.objectId);
+				return index < 0 ? -1 : base + index;
+			}
+			base += objectCountForKind(m_document, kind);
+		}
+		return -1;
+	};
+	// A closed group is one stop, at the first of its members the cycle can
+	// reach; the others are passed over, so the group is not offered once per
+	// member.
+	QHash<QString, LevelMapSelectionRef> groupStops;
+	const auto groupStop = [&](const QString& group) {
+		const auto known = groupStops.constFind(group);
+		if (known != groupStops.cend()) {
+			return known.value();
+		}
+		LevelMapSelectionRef stop;
+		qsizetype stopTier = tiers.size();
+		for (const LevelMapSelectionRef& member : m_sceneContext.groupSelections.value(group)) {
+			const qsizetype tier = tiers.indexOf(member.kind);
+			// Members are named in the map's order within a kind, as the cycle
+			// walks them.
+			if (tier >= 0 && tier < stopTier && !isHidden(member.kind, member.objectId)) {
+				stop = member;
+				stopTier = tier;
 			}
 		}
-		offset += count;
+		groupStops.insert(group, stop);
+		return stop;
+	};
+	// Where the cycle stands. A closed group is selected whole and its primary
+	// is its last member, so stepping on from the primary would never reach
+	// what lies between the group's members in the map's order: a selection
+	// whose primary belongs to a closed group stands at that group's stop.
+	const LevelMapSelectionRef primary {m_selectionKind, m_selectedObjectId};
+	int current = -1;
+	if (primary.kind != LevelMapSelectionKind::None) {
+		const QString group = m_sceneContext.closedGroups.value(levelMapSelectionRefId(primary));
+		if (!group.isEmpty()) {
+			current = cyclePosition(groupStop(group));
+		}
+		if (current < 0) {
+			current = cyclePosition(primary);
+		}
 	}
+	const auto canStopAt = [&](const LevelMapSelectionRef& ref) {
+		if (ref.objectId < 0 || isHidden(ref.kind, ref.objectId)) {
+			return false;
+		}
+		// Picking refuses whatever lies outside the open group, which would
+		// empty the selection and leave the cycle where it started.
+		const QString object = levelMapSelectionRefId(ref);
+		if (!m_sceneContext.allowedObjects.contains(object)) {
+			return false;
+		}
+		const QString group = m_sceneContext.closedGroups.value(object);
+		return group.isEmpty() || groupStop(group) == ref;
+	};
 	int next = current < 0 ? (step > 0 ? 0 : total - 1) : ((current + step) % total + total) % total;
 	bool found = false;
 	for (int attempt = 0; attempt < total && !found; ++attempt) {
-		offset = 0;
+		int offset = 0;
 		for (const auto kind : tiers) {
 			const int count = objectCountForKind(m_document, kind);
 			if (next < offset + count) {
-				const int id = objectIdAtIndex(m_document, kind, next - offset);
-				if (!isHidden(kind, id)) {
-					if (extend) { addToSelection(kind, id); }
-					else { replaceSelection(kind, id); }
+				const LevelMapSelectionRef candidate {kind, objectIdAtIndex(m_document, kind, next - offset)};
+				if (canStopAt(candidate)) {
+					if (extend) { addToSelection(candidate.kind, candidate.objectId); }
+					else { replaceSelection(candidate.kind, candidate.objectId); }
 					found = true;
 				}
 				break;

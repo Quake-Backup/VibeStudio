@@ -221,6 +221,28 @@ void checkRequests()
 		"A custom connector without an endpoint says so.");
 	expect(!buildAiImageHttpRequest(texture(QStringLiteral("local-offline"), QString(), QStringLiteral("ftp://127.0.0.1")), QString(), &http, &error),
 		"Only http and https endpoints are asked.");
+
+	// A key never travels over plain http to another machine, whichever of the
+	// three request shapes would carry it: OpenAI's, Gemini's, or the web UI's.
+	const QString teamKey = QStringLiteral("team-secret-value-0123456789");
+	const std::pair<const char*, const char*> offMachine[] = {{"custom-http", "http://192.168.0.5:8080/v1"}, {"openai", "HTTP://proxy.example.test/v1"},
+		{"gemini", "http://proxy.example.test"}, {"local-offline", "http://192.168.0.5:7860"}};
+	for (const auto& [connector, endpoint] : offMachine) {
+		AiHttpRequest refused;
+		error.clear();
+		expect(!buildAiImageHttpRequest(texture(QString::fromLatin1(connector), QStringLiteral("m"), QString::fromLatin1(endpoint)), teamKey, &refused, &error)
+				&& error.contains(QStringLiteral("https://")) && !error.contains(teamKey) && refused.headers.isEmpty() && !refused.url.isValid(),
+			"A keyed image request to an http:// endpoint off this machine is refused, and asks for https.");
+	}
+	expect(buildAiImageHttpRequest(texture(QStringLiteral("custom-http"), QStringLiteral("m"), QStringLiteral("http://192.168.0.5:8080/v1")), QString(), &http, &error)
+			&& headerValue(http, "authorization").isEmpty(),
+		"Without a key, an http:// image endpoint on the network is still asked.");
+	expect(buildAiImageHttpRequest(texture(QStringLiteral("custom-http"), QStringLiteral("m"), QStringLiteral("https://192.168.0.5:8080/v1")), teamKey, &http, &error)
+			&& headerValue(http, "authorization") == "Bearer team-secret-value-0123456789",
+		"The same image endpoint over https takes the key.");
+	expect(buildAiImageHttpRequest(texture(QStringLiteral("custom-http"), QStringLiteral("m"), QStringLiteral("http://127.0.0.1:8080/v1")), teamKey, &http, &error)
+			&& headerValue(http, "authorization") == "Bearer team-secret-value-0123456789",
+		"An http:// image endpoint on this machine takes a key: nothing leaves it.");
 }
 
 void checkAnswers()

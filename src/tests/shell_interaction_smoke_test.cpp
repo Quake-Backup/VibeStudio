@@ -5981,13 +5981,19 @@ void checkExternalChanges(ApplicationShell& shell, const Fixtures& fixtures)
 		}
 	}
 	settle();
+	// The project files are scanned in the background and listed in batches, so
+	// the map's row comes when that scan ends rather than at once.
 	auto* codeTree = child<QTreeWidget>(shell, "codeTree");
 	QTreeWidgetItem* mapItem = nullptr;
-	for (QTreeWidgetItemIterator it(codeTree); codeTree && *it; ++it) {
-		if (QFileInfo((*it)->data(0, Qt::UserRole).toString()) == QFileInfo(sharedMap)) {
-			mapItem = *it;
+	waitFor([codeTree, &sharedMap, &mapItem]() {
+		for (QTreeWidgetItemIterator it(codeTree); codeTree && *it; ++it) {
+			if (QFileInfo((*it)->data(0, Qt::UserRole).toString()) == QFileInfo(sharedMap)) {
+				mapItem = *it;
+				return true;
+			}
 		}
-	}
+		return false;
+	});
 	check(mapItem != nullptr, "Project files should list the map.");
 	if (mapItem) {
 		codeTree->setCurrentItem(mapItem);
@@ -7653,7 +7659,8 @@ void checkNextProblem(ApplicationShell& shell, const Fixtures& fixtures)
 	};
 	// The readout counts them; a click on the count goes to the next, as F8.
 	auto* count = child<QToolButton>(shell, "codeProblems");
-	check(count && count->isVisible() && count->text() == QStringLiteral("3 problem(s)"), "The readout should count the file's problems.");
+	// A comment that says WARNING is not a problem in a document being edited.
+	check(count && count->isVisible() && count->text() == QStringLiteral("2 problem(s)"), "The readout should count the file's problems.");
 	if (count) {
 		count->click();
 		settle();
@@ -7662,18 +7669,17 @@ void checkNextProblem(ApplicationShell& shell, const Fixtures& fixtures)
 		settle();
 	}
 	press(shell, Qt::Key_F8);
-	check(caretLine() == 2 && shell.statusBar()->currentMessage().startsWith(QStringLiteral("Problem 1 of 3: line 2:"))
+	check(caretLine() == 2 && shell.statusBar()->currentMessage().startsWith(QStringLiteral("Problem 1 of 2: line 2:"))
 			&& diagnostics->currentItem() && diagnostics->currentItem()->data(Qt::UserRole).toInt() == 2,
 		"F8 should go to the first problem after the caret, say which it is, and select its row.");
 	press(shell, Qt::Key_F8);
-	press(shell, Qt::Key_F8);
 	check(caretLine() == 6, "F8 again should step through the problems in order.");
 	press(shell, Qt::Key_F8);
-	check(caretLine() == 2 && shell.statusBar()->currentMessage().startsWith(QStringLiteral("Problem 1 of 3")), "F8 on the last problem should wrap to the first.");
+	check(caretLine() == 2 && shell.statusBar()->currentMessage().startsWith(QStringLiteral("Problem 1 of 2")), "F8 on the last problem should wrap to the first.");
 	press(shell, Qt::Key_F8, Qt::ShiftModifier);
-	check(caretLine() == 6 && shell.statusBar()->currentMessage().startsWith(QStringLiteral("Problem 3 of 3")), "Shift+F8 on the first problem should wrap to the last.");
+	check(caretLine() == 6 && shell.statusBar()->currentMessage().startsWith(QStringLiteral("Problem 2 of 2")), "Shift+F8 on the first problem should wrap to the last.");
 	press(shell, Qt::Key_F8, Qt::ShiftModifier);
-	check(caretLine() == 4, "Shift+F8 should step back.");
+	check(caretLine() == 2, "Shift+F8 should step back.");
 	// A file without problems says so.
 	const QString clean = QDir(fixtures.project).filePath(QStringLiteral("progs/problem_free.qc"));
 	writeFile(clean, QByteArrayLiteral("void() fine = {\n};\n"));
@@ -7683,27 +7689,50 @@ void checkNextProblem(ApplicationShell& shell, const Fixtures& fixtures)
 	press(shell, Qt::Key_F8);
 	check(shell.statusBar()->currentMessage() == QStringLiteral("No problems in this file."), "F8 in a file without problems should say so.");
 	check(count && count->isHidden(), "A file without problems should show no count.");
-	// A problem typed in joins the list a moment after typing stops.
-	QTextCursor typing(editor->document()->findBlockByNumber(0));
+	// A problem typed in joins the list a moment after typing stops. The line
+	// added after the block holds two: an unterminated string and a closing
+	// brace with nothing open.
+	QTextCursor typing(editor->document()->findBlockByNumber(1));
 	typing.movePosition(QTextCursor::EndOfBlock);
 	editor->setTextCursor(typing);
-	editor->insertPlainText(QStringLiteral("\n\tself.message = \"WARNING open;"));
+	editor->insertPlainText(QStringLiteral("\n\tself.message = \"open; }"));
 	QTest::qWait(700);
 	editor->setTextCursor(QTextCursor(editor->document()->findBlockByNumber(0)));
 	settle();
 	press(shell, Qt::Key_F8);
-	check(editor->textCursor().blockNumber() == 1 && shell.statusBar()->currentMessage().startsWith(QStringLiteral("Problem 1 of 2")),
+	check(editor->textCursor().blockNumber() == 2 && shell.statusBar()->currentMessage().startsWith(QStringLiteral("Problem 1 of 2")),
 		"F8 should find a problem typed in a moment ago.");
 	// That line holds two problems: F8 steps to the second on the same line,
 	// then wraps.
 	press(shell, Qt::Key_F8);
-	check(editor->textCursor().blockNumber() == 1 && shell.statusBar()->currentMessage().startsWith(QStringLiteral("Problem 2 of 2")),
+	check(editor->textCursor().blockNumber() == 2 && shell.statusBar()->currentMessage().startsWith(QStringLiteral("Problem 2 of 2")),
 		"F8 should step to a second problem on the same line.");
 	press(shell, Qt::Key_F8);
 	check(shell.statusBar()->currentMessage().startsWith(QStringLiteral("Problem 1 of 2")), "F8 should then wrap to the first.");
 	editor->undo();
 	settle();
+	// Past the size at which folding stands down, the outline and the
+	// diagnostics do too: both read the whole document on the interface thread
+	// a moment after every pause in typing. Each list says so in one row.
+	const QString large = QDir(fixtures.project).filePath(QStringLiteral("progs/problem_large.qc"));
+	QByteArray largeText = QByteArrayLiteral("void() big = {\n\tlocal string s = \"open;\n};\n");
+	while (largeText.size() <= 520 * 1024) {
+		largeText += QByteArrayLiteral("// A line of filler in a file too large to check as it is typed.\n");
+	}
+	writeFile(large, largeText);
+	shell.openPathFromCommandLine(large);
+	settle();
+	auto* outline = child<QListWidget>(shell, "codeOutline");
+	check(editor->document()->characterCount() > 512 * 1024, "The large file should be open in the editor.");
+	check(outline && outline->count() == 1 && outline->item(0)->text().contains(QStringLiteral("too large")),
+		"A file too large for the live outline should say so in the outline.");
+	check(diagnostics->count() == 1 && diagnostics->item(0)->text().contains(QStringLiteral("too large")) && count && count->isHidden(),
+		"A file too large for live diagnostics should say so in the diagnostics list and count no problems.");
+	editor->setFocus();
+	press(shell, Qt::Key_F8);
+	check(shell.statusBar()->currentMessage() == QStringLiteral("No problems in this file."), "F8 in a file too large to check should find no problems.");
 	closeAllCodeTabs(shell);
+	QFile::remove(large);
 }
 
 // The Shaders filter reads property terms as a query over each shader,

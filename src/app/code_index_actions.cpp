@@ -3,6 +3,7 @@
 #include "app/code_editor.h"
 #include "app/code_index_worker.h"
 #include "app/studio_actions.h"
+#include "app/studio_progress.h"
 #include "app/studio_runtime.h"
 #include "app/syntax_highlight.h"
 
@@ -87,24 +88,60 @@ QWidget* ApplicationShell::buildCodeIndexPanel()
 	m_codeIndexRefreshTimer->setInterval(400);
 	connect(m_codeIndexRefreshTimer, &QTimer::timeout, this, [this]() { ensureDefinitionIndex(); });
 	m_codeIndexWorker = new CodeIndexWorker(this);
-	m_codeIndexWorker->started = [this]() {
-		m_codeIndexProgress->show();
-		m_codeIndexCancel->setEnabled(true);
-		m_codeIndexStatus->setText(tr("Indexing %1…").arg(QDir::toNativeSeparators(codeIndexRoot())));
+	// A scan the user asked for (Refresh Index, Index Code, a waiting Go to
+	// Definition) is an Activity task. One the studio starts on its own, in the
+	// pause after an edit or when completion asks for names, is not: a task for
+	// every typing pause filled the Activity list and its history, and took the
+	// selection from whatever was being watched. Such a scan still shows in
+	// this panel, and the status bar's ring turns while it runs.
+	const auto beginIndexTask = [this]() {
 		m_codeIndexActivityId = m_activity.createTask(tr("Index Code"), QDir::toNativeSeparators(codeIndexRoot()), QStringLiteral("code"), OperationState::Running, true);
 		refreshActivityCenter(m_codeIndexActivityId);
 	};
-	m_codeIndexWorker->progress = [this](int files, int symbols) {
+	m_codeIndexWorker->backgroundRunning = [token = 0](bool running) mutable {
+		// Only the shared tracker is touched: the end can come from the worker's
+		// destructor, when the shell is already going.
+		if (running) {
+			token = studioWorkTracker().begin(tr("Index Code"));
+		} else {
+			studioWorkTracker().end(token);
+			token = 0;
+		}
+	};
+	m_codeIndexWorker->started = [this, beginIndexTask]() {
+		m_codeIndexProgress->show();
+		m_codeIndexCancel->setEnabled(true);
+		m_codeIndexStatus->setText(tr("Indexing %1…").arg(QDir::toNativeSeparators(codeIndexRoot())));
+		if (m_codeIndexWorker->background()) {
+			m_codeIndexActivityId.clear();
+			return;
+		}
+		beginIndexTask();
+	};
+	m_codeIndexWorker->progress = [this, beginIndexTask](int files, int symbols) {
 		const QString status = tr("Indexing: %1 file(s), %2 symbol(s)…").arg(files).arg(symbols);
 		m_codeIndexStatus->setText(status);
-		m_activity.setProgress(m_codeIndexActivityId, files, 0, status);
+		if (m_codeIndexActivityId.isEmpty() && m_pendingDefinitionDocument) {
+			// Go to Definition is waiting on this scan, so it is the user's own after all.
+			m_codeIndexWorker->endBackground();
+			beginIndexTask();
+		}
+		if (!m_codeIndexActivityId.isEmpty()) {
+			m_activity.setProgress(m_codeIndexActivityId, files, 0, status);
+		}
 	};
 	m_codeIndexWorker->completed = [this](const CodeWorkspaceIndex& index) {
 		m_codeIndexProgress->hide();
 		m_codeIndexCancel->setEnabled(false);
+		const bool hasTask = !m_codeIndexActivityId.isEmpty();
 		if (!sameIndexPath(index.rootPath, codeIndexRoot())) {
-			m_activity.cancelTask(m_codeIndexActivityId, tr("Source context changed; this result was discarded."));
-			persistActivityTask(m_codeIndexActivityId);
+			if (hasTask) {
+				m_activity.cancelTask(m_codeIndexActivityId, tr("Source context changed; this result was discarded."));
+				persistActivityTask(m_codeIndexActivityId);
+				// The scan that follows is a quiet one, so the list follows now.
+				m_codeIndexActivityId.clear();
+				refreshActivityCenter();
+			}
 			invalidateDefinitionIndex();
 			return;
 		}
@@ -120,13 +157,18 @@ QWidget* ApplicationShell::buildCodeIndexPanel()
 			: tr("Index ready — %1").arg(counts);
 		m_codeIndexStatus->setText(status);
 		m_codeIndexStatus->setAccessibleDescription(status);
-		for (const auto& warning : index.warnings) { m_activity.appendWarning(m_codeIndexActivityId, warning); }
-		if (index.cancelled) { m_activity.cancelTask(m_codeIndexActivityId, status); }
-		else if (index.state == OperationState::Failed) { m_activity.failTask(m_codeIndexActivityId, status); }
-		else { m_activity.completeTask(m_codeIndexActivityId, status); }
-		persistActivityTask(m_codeIndexActivityId);
-		refreshActivityCenter(m_codeIndexActivityId);
-		refreshAdvancedStudioSurface();
+		if (hasTask) {
+			for (const auto& warning : index.warnings) { m_activity.appendWarning(m_codeIndexActivityId, warning); }
+			if (index.cancelled) { m_activity.cancelTask(m_codeIndexActivityId, status); }
+			else if (index.state == OperationState::Failed) { m_activity.failTask(m_codeIndexActivityId, status); }
+			else { m_activity.completeTask(m_codeIndexActivityId, status); }
+			persistActivityTask(m_codeIndexActivityId);
+			refreshActivityCenter(m_codeIndexActivityId);
+			refreshAdvancedStudioSurface();
+		} else {
+			// A quiet refresh changes this panel's list and nothing else.
+			refreshCodeIndexResults();
+		}
 		const bool resume = !index.cancelled && m_pendingDefinitionDocument
 			&& m_codeEditor->document() == m_pendingDefinitionDocument
 			&& m_pendingDefinitionDocument->revision() == m_pendingDefinitionRevision
@@ -204,6 +246,10 @@ void ApplicationShell::invalidateDefinitionIndex()
 	if (m_codeIndexWorker->busy() && !m_codeIndexActivityId.isEmpty()) {
 		m_activity.cancelTask(m_codeIndexActivityId, tr("Source context changed; the index will be refreshed."));
 		persistActivityTask(m_codeIndexActivityId);
+		// The task is over and nothing later may write to it. The refresh that
+		// follows an edit is a quiet one, so the list and the ring follow now.
+		m_codeIndexActivityId.clear();
+		refreshActivityCenter();
 	}
 	m_codeIndexWorker->reset();
 	m_codeIndexRefreshTimer->stop();
@@ -252,7 +298,13 @@ QString ApplicationShell::ensureDefinitionIndex()
 		return {};
 	}
 	if (m_definitionIndexValid && sameIndexPath(m_definitionIndex.rootPath, root)) { return root; }
-	if (m_codeIndexWorker && (!m_codeIndexWorker->busy() || !sameIndexPath(m_codeIndexWorker->requestedRoot(), root))) { startCodeIndex(); }
+	if (m_codeIndexWorker && (!m_codeIndexWorker->busy() || !sameIndexPath(m_codeIndexWorker->requestedRoot(), root))) {
+		// Started by the studio itself (the pause after an edit, completion asking
+		// for names, Go to Definition before it says it is waiting): a quiet scan.
+		m_codeIndexWorker->setNextStartBackground(true);
+		startCodeIndex();
+		m_codeIndexWorker->setNextStartBackground(false);
+	}
 	return root;
 }
 

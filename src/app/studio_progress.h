@@ -19,6 +19,7 @@
 #include "core/operation_state.h"
 
 #include <QColor>
+#include <QElapsedTimer>
 #include <QObject>
 #include <QPixmap>
 #include <QString>
@@ -257,6 +258,14 @@ public:
 	// One line for diagnostics: "No pauses", or the count and the longest.
 	[[nodiscard]] QString summaryText() const;
 
+	// A gap between two beats at least this long is the computer asleep or the
+	// process suspended rather than the interface held: logged, not counted.
+	static constexpr qint64 kSuspensionGapMs = 5 * 60 * 1000;
+	// One heartbeat, `gapMilliseconds` after the one before, as the timer
+	// measures it on a monotonic clock. Public so that a test can hand over a
+	// gap no test could wait for.
+	void noteBeat(qint64 gapMilliseconds);
+
 signals:
 	void stallDetected(qint64 milliseconds);
 
@@ -267,7 +276,7 @@ private:
 	int m_threshold = 500;
 	int m_interval = 100;
 	int m_timerId = 0;
-	qint64 m_lastBeatMs = 0;
+	QElapsedTimer m_beatClock;
 	int m_stallCount = 0;
 	qint64 m_longestStallMs = 0;
 	qint64 m_totalStallMs = 0;

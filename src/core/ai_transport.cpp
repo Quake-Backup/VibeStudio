@@ -7,6 +7,7 @@
 #include "core/ai_json_grammar.h"
 
 #include <QCoreApplication>
+#include <QCryptographicHash>
 #include <QDir>
 #include <QElapsedTimer>
 #include <QFile>
@@ -601,6 +602,12 @@ bool buildAiHttpRequest(const AiChatRequest& request, const QString& apiKey, AiH
 	if (!baseUrl.isValid() || (baseUrl.scheme() != QStringLiteral("http") && baseUrl.scheme() != QStringLiteral("https"))) {
 		return fail(QCoreApplication::translate("SlopStudioAiTransport", "The endpoint must be an http:// or https:// address."));
 	}
+	// A key over plain http can be read by anything between here and there.
+	if (!apiKey.isEmpty() && baseUrl.scheme() == QStringLiteral("http") && !aiEndpointIsLocal(base)) {
+		return fail(QCoreApplication::translate("SlopStudioAiTransport",
+			"This connector sends an API key, so its endpoint must be an https:// address unless it is on this computer. %1 would receive the key unencrypted.")
+				.arg(baseUrl.host()));
+	}
 	if (request.messages.isEmpty()) {
 		return fail(QCoreApplication::translate("SlopStudioAiTransport", "There is nothing to ask."));
 	}
@@ -985,9 +992,13 @@ QString redactAiText(const QString& text, const QStringList& secrets)
 			redacted.replace(secret, QStringLiteral("***"));
 		}
 	}
-	// Shapes of provider keys that may sit in pasted logs or config files.
+	// Shapes of provider keys that may sit in pasted logs or config files. The
+	// last two are the connectors' own: ElevenLabs' "sk_" and Meshy's "msy_"
+	// keys, each followed by a long run of letters and digits with no further
+	// underscore, which a snake_case identifier does not have.
 	static const QRegularExpression keyShapes(QStringLiteral(
-		"\\b(sk-(?:ant-|proj-)?[A-Za-z0-9_\\-]{12,}|AIza[0-9A-Za-z_\\-]{20,}|xai-[A-Za-z0-9]{20,}|gsk_[A-Za-z0-9]{20,})"));
+		"\\b(sk-(?:ant-|proj-)?[A-Za-z0-9_\\-]{12,}|AIza[0-9A-Za-z_\\-]{20,}|xai-[A-Za-z0-9]{20,}|gsk_[A-Za-z0-9]{20,}"
+		"|sk_[A-Za-z0-9]{20,}|msy_[A-Za-z0-9]{20,})"));
 	redacted.replace(keyShapes, QStringLiteral("***"));
 	return redacted;
 }
@@ -1003,14 +1014,35 @@ QString redactAiContextPaths(const QString& text, const QString& projectRoot, co
 		if (folder.size() < 3) {
 			return;
 		}
-		QString forward = folder;
-		forward.replace(QLatin1Char('\\'), QLatin1Char('/'));
-		QString backward = folder;
-		backward.replace(QLatin1Char('/'), QLatin1Char('\\'));
-		// Windows paths compare without case; the rest are left as they are.
-		const Qt::CaseSensitivity sensitivity = folder.contains(QLatin1Char(':')) ? Qt::CaseInsensitive : Qt::CaseSensitive;
-		redacted.replace(forward, token, sensitivity);
-		redacted.replace(backward, token, sensitivity);
+		const auto isSeparator = [](QChar ch) { return ch == QLatin1Char('/') || ch == QLatin1Char('\\'); };
+		// A separator as text carries it: a slash, a backslash, or the doubled
+		// backslash of JSON, C strings and many logs. Each of the folder's
+		// separators may be written any of those ways, so mixed paths match too.
+		const QString separator = QStringLiteral("(?:\\\\\\\\|[/\\\\])");
+		// A network share (\\server\share) opens with two separators.
+		qsizetype leading = 0;
+		while (leading < folder.size() && isSeparator(folder.at(leading))) {
+			++leading;
+		}
+		const bool share = leading >= 2;
+		QString pattern = separator.repeated(std::min<qsizetype>(leading, 2));
+		const QStringList parts = folder.mid(leading).split(QRegularExpression(QStringLiteral("[/\\\\]+")), Qt::SkipEmptyParts);
+		if (parts.isEmpty()) {
+			return;
+		}
+		for (qsizetype index = 0; index < parts.size(); ++index) {
+			pattern += (index > 0 ? separator : QString()) + QRegularExpression::escape(parts.at(index));
+		}
+		// The folder itself, not a neighbour whose name only starts the same way
+		// (C:/Users/dj inside C:/Users/djones, or dj-old, or dj.bak): what follows
+		// must not carry the name on.
+		pattern += QStringLiteral("(?![\\p{L}\\p{N}_\\-]|\\.[\\p{L}\\p{N}_\\-])");
+		// Windows drive and share paths compare without case; the rest are left as they are.
+		QRegularExpression::PatternOptions options = QRegularExpression::UseUnicodePropertiesOption;
+		if (share || folder.contains(QLatin1Char(':'))) {
+			options |= QRegularExpression::CaseInsensitiveOption;
+		}
+		redacted.replace(QRegularExpression(pattern, options), token);
 	};
 	// The project first: it usually sits inside the home folder.
 	replaceFolder(projectRoot, QStringLiteral("<project>"));
@@ -1313,6 +1345,19 @@ QString aiTextConnectionDestinationText(const AiTextConnection& connection)
 		break;
 	}
 	return connection.local ? QCoreApplication::translate("SlopStudioAiTransport", "this machine") : QUrl(connection.endpoint).host();
+}
+
+QString aiTextConnectionConsentKey(const AiTextConnection& connection)
+{
+	QString key = QStringLiteral("%1@%2").arg(connection.connectorId, aiTextConnectionDestinationText(connection));
+	if (aiHarnessKind(connection.connectorId) == AiHarnessKind::CustomCommand) {
+		// The destination is only the program's file name ("python.exe"), which
+		// says nothing of the script it runs: a yes to one command line must
+		// not cover another.
+		const QByteArray digest = QCryptographicHash::hash(connection.endpoint.trimmed().toUtf8(), QCryptographicHash::Sha1).toHex();
+		key += QLatin1Char('#') + QString::fromLatin1(digest.left(12));
+	}
+	return key;
 }
 
 QString aiTextConnectionLabel(const AiTextConnection& connection)

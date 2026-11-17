@@ -199,6 +199,50 @@ int main(int argc, char** argv)
 	} else {
 		std::cout << "Symlink fixture unavailable on this host: " << linkError.message() << '\n';
 	}
+	// A project reached through a linked folder above it. The search works
+	// under the canonical root, so an open document that the editor names by
+	// the linked path must still be found there and stand in for the saved
+	// text; a link inside the project is refused as before.
+	{
+		const QString realParent = temp.filePath(QStringLiteral("real parent"));
+		const QString aliasParent = temp.filePath(QStringLiteral("alias parent"));
+		const QString realRoot = QDir(realParent).filePath(QStringLiteral("proj"));
+		const QString aliasRoot = QDir(aliasParent).filePath(QStringLiteral("proj"));
+		ok &= expect(writeFile(QDir(realRoot).filePath(QStringLiteral("scripts/open.cfg")), "saved needle\n"), "write linked-ancestor fixture");
+		std::error_code aliasError;
+		std::filesystem::create_directory_symlink(nativePath(realParent), nativePath(aliasParent), aliasError);
+		if (!aliasError) {
+			AssetTextSearchRequest aliasRequest;
+			aliasRequest.rootPath = aliasRoot;
+			aliasRequest.findText = QStringLiteral("needle");
+			aliasRequest.replace = true;
+			aliasRequest.replaceText = QStringLiteral("thread");
+			aliasRequest.buffers = {{QDir(aliasRoot).filePath(QStringLiteral("scripts/open.cfg")), QStringLiteral("alias-tab"), 3,
+				QStringLiteral("unsaved needle needle\n"), QStringLiteral("UTF-8"), {}}};
+			const auto aliasPreview = findReplaceProjectText(aliasRequest);
+			ok &= expect(aliasPreview.canApply() && aliasPreview.buffersScanned == 1 && aliasPreview.filesScanned == 1
+				&& aliasPreview.matchCount == 2 && aliasPreview.changes.size() == 1,
+				"an open document under a linked project path must be searched once, in place of its saved text");
+			ok &= expect(aliasPreview.changes.size() == 1 && aliasPreview.changes[0].bufferId == QStringLiteral("alias-tab")
+				&& aliasPreview.changes[0].bufferRevision == 3 && aliasPreview.changes[0].replacementBytes.isEmpty()
+				&& QDir(aliasPreview.rootPath).relativeFilePath(aliasPreview.changes[0].filePath) == QStringLiteral("scripts/open.cfg"),
+				"the open document is reported under the canonical root with its buffer identity");
+			// The same document named through a link inside the project.
+			const QString loop = QDir(realRoot).filePath(QStringLiteral("loop"));
+			std::error_code loopError;
+			std::filesystem::create_directory_symlink(nativePath(realRoot), nativePath(loop), loopError);
+			if (!loopError) {
+				aliasRequest.buffers[0].filePath = QDir(aliasRoot).filePath(QStringLiteral("loop/scripts/open.cfg"));
+				const auto loopPreview = findReplaceProjectText(aliasRequest);
+				ok &= expect(!loopPreview.complete && !loopPreview.canApply() && !loopPreview.warnings.isEmpty(),
+					"an open document reached through a link inside the project must still be refused");
+				std::filesystem::remove(nativePath(loop), loopError);
+			}
+			std::filesystem::remove(nativePath(aliasParent), aliasError);
+		} else {
+			std::cout << "Directory symlink fixture unavailable on this host: " << aliasError.message() << '\n';
+		}
+	}
 	const QDir unicodeRoot(temp.filePath(QStringLiteral("unicode")));
 	const QString littlePath = unicodeRoot.filePath(QStringLiteral("little.cfg"));
 	const QString bigPath = unicodeRoot.filePath(QStringLiteral("big.cfg"));

@@ -253,6 +253,15 @@ int main(int argc, char** argv)
 	sig.centralSuffix.clear(); sig.followingCentral = signature(); check(QStringLiteral("signature-after-directory"), make(sig), Outcome::Valid);
 	Options directory; directory.name = "folder/"; directory.payload.clear();
 	check(QStringLiteral("directory"), make(directory), Outcome::Valid, QStringLiteral("folder"));
+	// A writer that uses Windows separators names the same record "folder\".
+	Options backslashDirectory = directory; backslashDirectory.name = "folder\\";
+	check(QStringLiteral("directory-backslash"), make(backslashDirectory), Outcome::Valid, QStringLiteral("folder"));
+	{
+		PackageArchive listed; QString listError;
+		expect(listed.load(root.filePath(QStringLiteral("directory-backslash.pk3")), &listError) && listed.entries().size() == 1
+			&& listed.entries().first().kind == PackageEntryKind::Directory && !listed.entries().first().readable,
+			QStringLiteral("directory-backslash"), "a record ending in a backslash is a directory, not an empty file");
+	}
 
 	using Mutator = std::function<void(Fixture&)>;
 	const QList<QPair<QString, Mutator>> endMutations = {

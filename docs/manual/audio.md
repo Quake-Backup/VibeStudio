@@ -26,7 +26,8 @@ selects it. The filter takes words and terms such as `ext=wav size>1mb` or
 Select a sound to see its waveform and its **Format** tab: codec, channels,
 sample rate, bit depth, bitrate and duration. **Metadata** shows the raw header
 details. Compressed sounds show their header details in the browser; open them
-with **Edit Sound** to see the decoded waveform.
+with **Edit Sound** to see the decoded waveform. A WAV that declares more than
+eight channels shows its format without a waveform.
 
 | Format | Browse and play | Edit |
 | --- | --- | --- |

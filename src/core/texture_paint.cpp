@@ -119,8 +119,13 @@ QRect texturePixelBounds(QPoint first, QPoint last)
 bool paintTextureSegment(QImage* pixels, const QImage& source, QPoint from, QPoint to,
 	QRgb color, const TextureBrush& brush, QRect clip, const TextureProgress& progress)
 {
-	if (!validSurface(pixels, source, clip, brush) || !validTexturePaintPoint(from, pixels->size(), brush.wrap) ||
-		!validTexturePaintPoint(to, pixels->size(), brush.wrap)) { return false; }
+	// Endpoints may lie anywhere in the 3 × 3 repeat, with or without wrapping:
+	// an interactive stroke that leaves the canvas carries on outside it. Nothing
+	// is written there, because paintSpan() confines every row and column it
+	// touches to `clip`, which validSurface() has confined to the image. Callers
+	// that take points from a recipe validate them more strictly themselves.
+	if (!validSurface(pixels, source, clip, brush) || !validTexturePaintPoint(from, pixels->size(), true) ||
+		!validTexturePaintPoint(to, pixels->size(), true)) { return false; }
 	const int bias = (brush.width - 1) / 2;
 	const int firstRow = std::min(from.y(), to.y()) - bias;
 	// The union of adjacent hard stamps along one monotone raster segment is
@@ -169,9 +174,12 @@ bool paintTextureSegment(QImage* pixels, const QImage& source, QPoint from, QPoi
 bool paintTextureShape(QImage* pixels, const QImage& source, TextureShape shape, QPoint from, QPoint to,
 	QRgb color, const TextureBrush& brush, bool filled, QRect clip, const TextureProgress& progress)
 {
-	if (shape == TextureShape::Line) { return paintTextureSegment(pixels, source, from, to, color, brush, clip, progress); }
+	// Shapes come from recipes and committed gestures: their endpoints stay on
+	// the canvas unless the brush wraps, lines included.
 	if (!validSurface(pixels, source, clip, brush) || !validTexturePaintPoint(from, pixels->size(), brush.wrap) ||
-		!validTexturePaintPoint(to, pixels->size(), brush.wrap) || (shape != TextureShape::Rectangle && shape != TextureShape::Ellipse)) { return false; }
+		!validTexturePaintPoint(to, pixels->size(), brush.wrap)) { return false; }
+	if (shape == TextureShape::Line) { return paintTextureSegment(pixels, source, from, to, color, brush, clip, progress); }
+	if (shape != TextureShape::Rectangle && shape != TextureShape::Ellipse) { return false; }
 	const QRect bounds = texturePixelBounds(from, to);
 	const qint64 w = bounds.width(), h = bounds.height();
 	const qint64 innerW = w - 2 * brush.width, innerH = h - 2 * brush.width;

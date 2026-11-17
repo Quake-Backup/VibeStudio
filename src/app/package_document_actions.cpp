@@ -282,16 +282,31 @@ void ApplicationShell::stagePackageDeleteEntries(const QVector<PackageEntry>& se
 		QStringList folders;
 		for (const auto& entry : selectedEntries) { if (entry.kind == PackageEntryKind::Directory) { folders << key(entry.virtualPath); } }
 		if (!plan.beginOperationGroup(label, error, control)) { return false; }
+		// Consecutive source occurrences are staged as one batch, in selection
+		// order: staging them one by one recomputes the whole package plan for
+		// each, which makes deleting a large selection quadratic.
+		QVector<int> occurrences;
+		const auto stageOccurrences = [&] {
+			if (occurrences.isEmpty()) { return true; }
+			const bool staged = plan.deleteOccurrences(occurrences, error, PackageStageConflictResolution::Block, control);
+			occurrences.clear();
+			return staged;
+		};
 		for (const auto& entry : selectedEntries) {
 			if (control.isCancelled && control.isCancelled()) { return false; }
 			const auto pathKey = key(entry.virtualPath);
 			const bool nested = std::any_of(folders.cbegin(), folders.cend(), [&](const QString& folder) { return pathKey.startsWith(folder + QLatin1Char('/')); });
 			if (nested) { continue; }
+			if (entry.kind != PackageEntryKind::Directory && entry.sourceOrdinal >= 0) {
+				occurrences << static_cast<int>(entry.sourceOrdinal);
+				continue;
+			}
+			if (!stageOccurrences()) { return false; }
 			const bool staged = entry.kind == PackageEntryKind::Directory ? plan.deleteDirectory(entry.virtualPath, error, control)
-				: entry.sourceOrdinal >= 0 ? plan.deleteOccurrence(static_cast<int>(entry.sourceOrdinal), error, PackageStageConflictResolution::Block, control)
-					: plan.deleteEntry(entry.virtualPath, error, PackageStageConflictResolution::Block, control);
+				: plan.deleteEntry(entry.virtualPath, error, PackageStageConflictResolution::Block, control);
 			if (!staged) { return false; }
 		}
+		if (!stageOccurrences()) { return false; }
 		return plan.endOperationGroup(true, error, control);
 	})) { return; }
 	recordActivity(tr("Package Stage Delete"), paths.join(QStringLiteral("; ")), tr("package"), OperationState::Completed, tr("Delete staged for save-as."));

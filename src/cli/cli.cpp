@@ -219,6 +219,7 @@
 #include <numbers>
 #include <cstddef>
 #include <iostream>
+#include <sstream>
 #include <streambuf>
 #include <string>
 
@@ -238,10 +239,6 @@ enum class CliExitCode {
 enum class CliOutputFormat {
 	Text,
 	Json,
-};
-
-struct NullOutputBuffer final : std::streambuf {
-	int overflow(int character) override { return character; }
 };
 
 QStringList& currentCliArgs()
@@ -707,6 +704,20 @@ bool optionMatchesInline(const QString& token, const QString& option, QString* v
 	return true;
 }
 
+// The option tables of commandTokens(), defined with it below.
+const QSet<QString>& cliBooleanFlags();
+const QSet<QString>& cliValueFlags();
+
+// An option's value is never another option: `--output --overwrite` leaves
+// --output without a value rather than naming a file "--overwrite". A value
+// that really is spelled like an option goes inline, as in `--find=--watch`.
+// Only registered names count, so a negative number (`--delta -16,0,0`) or a
+// compiler switch (`--extra-args -verbose`) is still a value.
+bool isRegisteredOption(const QString& token)
+{
+	return cliBooleanFlags().contains(token) || cliValueFlags().contains(token);
+}
+
 QString optionValue(const QStringList& args, const QString& option)
 {
 	for (int index = 0; index < args.size(); ++index) {
@@ -715,7 +726,7 @@ QString optionValue(const QStringList& args, const QString& option)
 			return inlineValue;
 		}
 		if (args.at(index) == option) {
-			return index + 1 < args.size() ? args.at(index + 1) : QString();
+			return index + 1 < args.size() && !isRegisteredOption(args.at(index + 1)) ? args.at(index + 1) : QString();
 		}
 	}
 	return {};
@@ -730,7 +741,7 @@ QStringList optionValues(const QStringList& args, const QString& option)
 			values.push_back(inlineValue);
 			continue;
 		}
-		if (args.at(index) == option && index + 1 < args.size()) {
+		if (args.at(index) == option && index + 1 < args.size() && !isRegisteredOption(args.at(index + 1))) {
 			values.push_back(args.at(index + 1));
 			++index;
 		}
@@ -757,13 +768,14 @@ bool hasOption(const QStringList& args, const QString& option)
 	return false;
 }
 
-QStringList commandTokens(const QStringList& args)
+// Options are recognized from tables rather than an inline chain so that an
+// option added to a handler cannot silently leak itself, and its value, into
+// the positional stream. That leak is what made
+// `project init --project-ai-free on ./mymod` parse "--project-ai-free" as
+// the project path. An option read only with hasOption() belongs in the
+// boolean table: in the value table it would swallow the argument after it.
+const QSet<QString>& cliBooleanFlags()
 {
-	// Options are recognized from a table rather than an inline chain so that an
-	// option added to a handler cannot silently leak itself, and its value, into
-	// the positional stream. That leak is what made
-	// `project init --project-ai-free on ./mymod` parse "--project-ai-free" as
-	// the project path.
 	static const QSet<QString> booleanFlags = {
 			QStringLiteral("--choices"), QStringLiteral("--disable"),
 			// model import: accepted decode omissions; model pose import without curves or events.
@@ -849,8 +861,29 @@ QStringList commandTokens(const QStringList& args)
 			QStringLiteral("--trust-programs"),
 			// map convert-patches (cli/level_patch_convert_deform.cpp)
 			QStringLiteral("--keep-brushes"),
+			// model commands: progress lines, recovery retention, staging
+			QStringLiteral("--progress"), QStringLiteral("--prune"), QStringLiteral("--require-materials"), QStringLiteral("--replace-existing"),
+			QStringLiteral("--skins"),
+			// model edit
+			QStringLiteral("--merge-seams"), QStringLiteral("--uv-islands"),
+			// map detail, move-to-world, explode-entity, make-door, replace-key,
+			// flip and materials
+			QStringLiteral("--structural"), QStringLiteral("--selected-only"), QStringLiteral("--rename-targetnames"),
+			QStringLiteral("--keep-offsets"), QStringLiteral("--partial"), QStringLiteral("--connected"), QStringLiteral("--geometry"),
+			// map extrude-faces, clip and the brush component commands
+			QStringLiteral("--split"), QStringLiteral("--no-texture-lock"), QStringLiteral("--wrap-merge"), QStringLiteral("--allow-collapse"),
+			// asset audio-analyze; texture export and stage
+			QStringLiteral("--no-loudness"), QStringLiteral("--doom-sprite"),
+			// code language-server queries
+			QStringLiteral("--completion"), QStringLiteral("--hover"), QStringLiteral("--references"), QStringLiteral("--signature-help"),
+			QStringLiteral("--code-actions"), QStringLiteral("--format-document"), QStringLiteral("--format-range"),
+			QStringLiteral("--insert-spaces"), QStringLiteral("--exclude-declaration"),
 	};
+	return booleanFlags;
+}
 
+const QSet<QString>& cliValueFlags()
+{
 	static const QSet<QString> valueFlags = {
 			// model import: OBJ axis, scale, material libraries and loose data.
 			QStringLiteral("--obj-up"), QStringLiteral("--obj-scale"), QStringLiteral("--obj-materials"), QStringLiteral("--obj-loose"),
@@ -1208,9 +1241,6 @@ QStringList commandTokens(const QStringList& args)
 			// map hollow, shrink-brushes and expand-brushes
 			QStringLiteral("--caulk-texture"), QStringLiteral("--open-face"), QStringLiteral("--exclude-face"), QStringLiteral("--only-face"),
 			QStringLiteral("--exclude-facing"),
-			// model commands: progress lines, recovery retention, staging
-			QStringLiteral("--progress"), QStringLiteral("--prune"), QStringLiteral("--require-materials"), QStringLiteral("--replace-existing"),
-			QStringLiteral("--skins"),
 			// map shear's side shear (cli/level_move_repeat.cpp)
 			QStringLiteral("--side"),
 			// launch profile-set and launch extra-args (cli/launch_profiles.cpp)
@@ -1219,8 +1249,26 @@ QStringList commandTokens(const QStringList& args)
 			QStringLiteral("--variable"), QStringLiteral("--enable-stage"), QStringLiteral("--map-input"),
 			// map deform-patch (cli/level_patch_convert_deform.cpp)
 			QStringLiteral("--max"),
+			// map detail, align, align-walls, curve-linedefs, repeat and materials
+			QStringLiteral("--policy"), QStringLiteral("--edge"), QStringLiteral("--part"), QStringLiteral("--sidedef"), QStringLiteral("--axes"),
+			QStringLiteral("--bulge"), QStringLiteral("--recipe"), QStringLiteral("--dialect"),
+			// map add-brush, add-shape, draw-stairs, place-sound, merge-brushes,
+			// clip, shear, transform-components and the brush component commands
+			QStringLiteral("--extrude"), QStringLiteral("--rise"), QStringLiteral("--step-height"), QStringLiteral("--targetname"),
+			QStringLiteral("--face-source"), QStringLiteral("--cut-texture"), QStringLiteral("--wrap-texture"), QStringLiteral("--view-axis"),
+			QStringLiteral("--view-sign"), QStringLiteral("--along"), QStringLiteral("--brush"), QStringLiteral("--component"),
+			// texture export and stage; model stage
+			QStringLiteral("--wall-texture"), QStringLiteral("--map-output"),
+			// code language-server formatting and ranges
+			QStringLiteral("--tab-size"), QStringLiteral("--end-line"), QStringLiteral("--end-column"),
 	};
+	return valueFlags;
+}
 
+QStringList commandTokens(const QStringList& args)
+{
+	const QSet<QString>& booleanFlags = cliBooleanFlags();
+	const QSet<QString>& valueFlags = cliValueFlags();
 	QStringList tokens;
 	for (int i = 1; i < args.size(); ++i) {
 		const QString token = args.at(i);
@@ -1233,7 +1281,12 @@ QStringList commandTokens(const QStringList& args)
 			continue;
 		}
 		if (valueFlags.contains(token)) {
-			++i;
+			// The next argument is its value, unless that is another option:
+			// optionValue() then reports the value as missing, and the option
+			// that follows keeps its own meaning and its own value.
+			if (i + 1 < args.size() && !isRegisteredOption(args.at(i + 1))) {
+				++i;
+			}
 			continue;
 		}
 		// "--option=value" carries its value inline, so nothing is consumed.
@@ -1294,7 +1347,7 @@ void printHelp()
 	std::cout << "  --about             Print version, repository, credits, and license pointers.\n";
 	std::cout << "  --credits           Print credits and license pointers.\n";
 	std::cout << "  --json              Emit machine-readable JSON for supported commands.\n";
-	std::cout << "  --quiet             Suppress successful human-readable narration. Errors still go to stderr.\n";
+	std::cout << "  --quiet             Suppress the text of a successful command. A failing command's report and errors go to stderr.\n";
 	std::cout << "  --verbose           Print timing and extra diagnostics for supported text commands.\n";
 	std::cout << "  --exit-codes        Print stable CLI exit-code identifiers.\n";
 	std::cout << "  --settings-file <path>\n";
@@ -1380,6 +1433,7 @@ void printHelp()
 	std::cout << "                      --expected-deployment-sha256 <hash> binds the complete deployment review; --pak-slot also applies.\n";
 	std::cout << "  --dry-run           Report package extraction/save-as writes or compiler command plans without touching the file system.\n";
 	std::cout << "  --watch             Stream compiler task log entries while a long-running command is active.\n";
+	std::cout << "  --timeout-ms <n>    Time limit in milliseconds for compiler run and for each stage of build run; 0 means no limit.\n";
 	std::cout << "  --task-state        Include machine-readable task state objects in JSON output where supported.\n";
 	std::cout << "  --overwrite         Allow package extraction or save-as to replace existing output files.\n";
 	std::cout << "  --in-place          Replace an existing package only after the new archive is written and verified.\n";
@@ -3816,7 +3870,10 @@ bool printPackagePreview(const PackageArchive& archive, const QString& virtualPa
 	}
 	std::cout << "Truncated: " << (preview.truncated ? "yes" : "no") << "\n";
 	if (!preview.error.isEmpty()) {
-		std::cout << "Error: " << text(preview.error) << "\n";
+		// Only a preview that could not be made has one: it is the failure
+		// message, so it goes where errors go, after the report so far.
+		std::cout.flush();
+		std::cerr << "Error: " << text(preview.error) << "\n";
 	}
 	if (!preview.imageFormat.isEmpty() || preview.imageSize.isValid()) {
 		std::cout << "Image format: " << text(preview.imageFormat.isEmpty() ? QStringLiteral("unknown") : preview.imageFormat) << "\n";
@@ -5014,14 +5071,23 @@ int runAccessibilitySpeakCommand(const QString& commandName, const QStringList& 
 	const AccessibilityPreferences preferences = settings.accessibilityPreferences();
 	SpeechSettings speechSettings;
 	speechSettings.voiceId = hasOption(args, QStringLiteral("--voice")) ? optionValue(args, QStringLiteral("--voice")) : preferences.speechVoice;
+	// An option that is given must be a whole number in its range; the saved
+	// preference stands in for one that is not given.
 	bool ok = true;
-	speechSettings.rate = hasOption(args, QStringLiteral("--rate")) ? optionValue(args, QStringLiteral("--rate")).toInt(&ok) : preferences.speechRate;
-	if (ok) {
-		speechSettings.pitch = hasOption(args, QStringLiteral("--pitch")) ? optionValue(args, QStringLiteral("--pitch")).toInt(&ok) : preferences.speechPitch;
-	}
-	if (ok) {
-		speechSettings.volume = hasOption(args, QStringLiteral("--volume")) ? optionValue(args, QStringLiteral("--volume")).toInt(&ok) : preferences.speechVolume;
-	}
+	const auto speechNumber = [&args, &ok](const QString& option, int minimum, int maximum, int saved) {
+		if (!hasOption(args, option)) {
+			return saved;
+		}
+		bool valid = false;
+		const int value = optionValue(args, option).trimmed().toInt(&valid);
+		if (!valid || value < minimum || value > maximum) {
+			ok = false;
+		}
+		return value;
+	};
+	speechSettings.rate = speechNumber(QStringLiteral("--rate"), -10, 10, preferences.speechRate);
+	speechSettings.pitch = speechNumber(QStringLiteral("--pitch"), -10, 10, preferences.speechPitch);
+	speechSettings.volume = speechNumber(QStringLiteral("--volume"), 0, 100, preferences.speechVolume);
 	if (!ok) {
 		return printCliError(commandName, CliExitCode::Usage, QStringLiteral("--rate and --pitch take -10 to 10, and --volume 0 to 100."), format);
 	}
@@ -6029,21 +6095,32 @@ int runPackagePreviewCommand(const QString& commandName, const QString& packageP
 	previewTimer.start();
 	const PackagePreview preview = entryIndex >= 0 ? buildPackageEntryPreviewAt(archive, entryIndex) : buildPackageEntryPreview(archive, entryPath);
 	const qint64 previewMs = previewTimer.elapsed();
+	// One exit code whatever the output format. No preview because no single
+	// entry answers the path or the index (missing, or a path that occurs more
+	// than once) is "not found"; an entry that was found reports its size, and
+	// one whose bytes could not be read is a plain failure.
+	CliExitCode code = CliExitCode::Success;
+	if (preview.kind == PackagePreviewKind::Unavailable) {
+		code = preview.cancelled || preview.totalBytesKnown ? CliExitCode::Failure : CliExitCode::NotFound;
+	}
 	if (format == CliOutputFormat::Json) {
-		QJsonObject object = cliResultJson(commandName, preview.kind == PackagePreviewKind::Unavailable ? CliExitCode::NotFound : CliExitCode::Success);
+		QJsonObject object = cliResultJson(commandName, code);
+		if (code != CliExitCode::Success && !preview.error.isEmpty()) {
+			object.insert(QStringLiteral("message"), preview.error);
+		}
 		object.insert(QStringLiteral("packagePath"), packagePath);
 		object.insert(QStringLiteral("preview"), packagePreviewJson(preview));
 		if (entryIndex >= 0) { object.insert(QStringLiteral("entryIndex"), entryIndex); }
 		object.insert(QStringLiteral("timing"), packageTimingJson(packageOpenMs, previewMs));
 		printJson(object);
-		return preview.kind == PackagePreviewKind::Unavailable ? exitCodeValue(CliExitCode::NotFound) : exitCodeValue(CliExitCode::Success);
+		return exitCodeValue(code);
 	}
 
-	const bool previewPrinted = printPackagePreview(archive, preview.virtualPath, &preview);
+	printPackagePreview(archive, preview.virtualPath, &preview);
 	if (verboseOutput()) {
 		std::cerr << "slopstudio: package opened in " << packageOpenMs << " ms; preview built in " << previewMs << " ms\n";
 	}
-	return previewPrinted ? exitCodeValue(CliExitCode::Success) : exitCodeValue(CliExitCode::Failure);
+	return exitCodeValue(code);
 }
 
 int runPackageExtractCommand(const QString& commandName, const QString& packagePath, const QString& outputPath, const QStringList& entries, bool extractAll, bool dryRun, bool overwrite, const QStringList& args, CliOutputFormat format)
@@ -13191,10 +13268,16 @@ int runExtensionRunCommand(const QString& commandName, const QString& manifestPa
 	if (hasOption(args, QStringLiteral("--extra-args"))) {
 		extraArguments = QProcess::splitCommand(optionValue(args, QStringLiteral("--extra-args")));
 	}
-	bool timeoutOk = false;
-	const int requestedTimeout = optionValue(args, QStringLiteral("--timeout-ms")).toInt(&timeoutOk);
+	int timeoutMs = 30000;
+	if (hasOption(args, QStringLiteral("--timeout-ms"))) {
+		bool timeoutOk = false;
+		timeoutMs = optionValue(args, QStringLiteral("--timeout-ms")).trimmed().toInt(&timeoutOk);
+		if (!timeoutOk || timeoutMs < 1) {
+			return printCliError(commandName, CliExitCode::Usage, QStringLiteral("--timeout-ms needs a whole number of milliseconds, at least 1."), format);
+		}
+	}
 	const ExtensionCommandPlan plan = buildExtensionCommandPlan(manifest, commandId, extraArguments, dryRun, allowExecution);
-	const ExtensionCommandResult result = runExtensionCommand(plan, timeoutOk && requestedTimeout > 0 ? requestedTimeout : 30000);
+	const ExtensionCommandResult result = runExtensionCommand(plan, timeoutMs);
 	const CliExitCode code = result.state == OperationState::Failed ? CliExitCode::Failure : CliExitCode::Success;
 	if (format == CliOutputFormat::Json) {
 		QJsonObject object = cliResultJson(commandName, code);
@@ -13325,6 +13408,25 @@ int runCompilerClearPathCommand(const QString& commandName, const QString& toolI
 	return exitCodeValue(CliExitCode::Success);
 }
 
+// --timeout-ms of a compiler run or a build stage: a whole number of
+// milliseconds, where 0 means no limit (CompilerRunRequest::timeoutMs).
+// Without the option the default stays; a value that is not such a number
+// is a usage error, never a silent return to the default.
+bool compilerTimeoutFromArgs(const QStringList& args, int* timeoutMs, QString* error)
+{
+	if (!hasOption(args, QStringLiteral("--timeout-ms"))) {
+		return true;
+	}
+	bool ok = false;
+	const int value = optionValue(args, QStringLiteral("--timeout-ms")).trimmed().toInt(&ok);
+	if (!ok || value < 0) {
+		*error = QStringLiteral("--timeout-ms needs a whole number of milliseconds, or 0 for no limit.");
+		return false;
+	}
+	*timeoutMs = value;
+	return true;
+}
+
 CliExitCode compilerPlanExitCode(const CompilerCommandPlan& plan)
 {
 	if (plan.errors.isEmpty()) {
@@ -13413,10 +13515,9 @@ int runCompilerRunCommand(const QString& commandName, const QString& profileId, 
 	runRequest.manifestPath = optionValue(args, QStringLiteral("--manifest"));
 	runRequest.dryRun = hasOption(args, QStringLiteral("--dry-run"));
 	runRequest.registerOutputs = hasOption(args, QStringLiteral("--register-output")) || hasOption(args, QStringLiteral("--register-outputs"));
-	bool timeoutOk = false;
-	const int timeoutMs = optionValue(args, QStringLiteral("--timeout-ms")).toInt(&timeoutOk);
-	if (timeoutOk && timeoutMs > 0) {
-		runRequest.timeoutMs = timeoutMs;
+	QString timeoutError;
+	if (!compilerTimeoutFromArgs(args, &runRequest.timeoutMs, &timeoutError)) {
+		return printCliError(commandName, CliExitCode::Usage, timeoutError, format);
 	}
 
 	CompilerRunCallbacks callbacks;
@@ -13628,17 +13729,29 @@ int runMapRenderCommand(const QString& commandName, const QString& path, const Q
 		return printCliError(commandName, CliExitCode::Usage,
 			QStringLiteral("Unknown --projection value. Expected one of: %1.").arg(mapRenderProjectionIds().join(QStringLiteral(", "))), format);
 	}
+	// A size or grid that is given must be usable: a picture drawn at the
+	// default size instead would look like the one that was asked for.
 	bool ok = false;
-	const int width = optionValue(args, QStringLiteral("--width")).toInt(&ok);
-	if (ok && width > 0) {
-		options.width = std::clamp(width, 64, 8192);
+	if (hasOption(args, QStringLiteral("--width"))) {
+		const int width = optionValue(args, QStringLiteral("--width")).trimmed().toInt(&ok);
+		if (!ok || width < 64 || width > 8192) {
+			return printCliError(commandName, CliExitCode::Usage, QStringLiteral("--width needs a whole number of pixels from 64 to 8192."), format);
+		}
+		options.width = width;
 	}
-	const int height = optionValue(args, QStringLiteral("--height")).toInt(&ok);
-	if (ok && height > 0) {
-		options.height = std::clamp(height, 64, 8192);
+	if (hasOption(args, QStringLiteral("--height"))) {
+		const int height = optionValue(args, QStringLiteral("--height")).trimmed().toInt(&ok);
+		if (!ok || height < 64 || height > 8192) {
+			return printCliError(commandName, CliExitCode::Usage, QStringLiteral("--height needs a whole number of pixels from 64 to 8192."), format);
+		}
+		options.height = height;
 	}
-	const double grid = optionValue(args, QStringLiteral("--grid")).toDouble(&ok);
-	if (ok && std::isfinite(grid) && grid > 0) {
+	if (hasOption(args, QStringLiteral("--grid"))) {
+		const double grid = optionValue(args, QStringLiteral("--grid")).trimmed().toDouble(&ok);
+		if (!ok || !std::isfinite(grid) || grid <= 0) {
+			return printCliError(commandName, CliExitCode::Usage,
+				QStringLiteral("--grid needs a spacing in map units above 0, such as 64 or 0.5; --no-grid leaves the grid out."), format);
+		}
 		options.gridSize = grid;
 	}
 	if (hasOption(args, QStringLiteral("--no-grid"))) {
@@ -13673,7 +13786,10 @@ int runMapRenderCommand(const QString& commandName, const QString& path, const Q
 		options.highContrast = true;
 	}
 	const QString highlight = optionValue(args, QStringLiteral("--highlight"));
-	if (!highlight.trimmed().isEmpty() && selectLevelMapObject(&document, highlight, &error)) {
+	if (!highlight.trimmed().isEmpty()) {
+		if (!selectLevelMapObject(&document, highlight, &error)) {
+			return printCliError(commandName, CliExitCode::Usage, QStringLiteral("--highlight names no object of this map: %1").arg(error), format);
+		}
 		options.highlightKind = document.selectionKind;
 		options.highlightObjectId = document.selectedObjectId;
 	}
@@ -13775,7 +13891,9 @@ int runBspInspectCommand(const QString& commandName, const QString& path, const 
 // build pipelines
 // ---------------------------------------------------------------------------
 
-BuildPipelineRequest buildPipelineRequestFromArgs(const QString& pipelineId, const QStringList& args)
+// `usageError` is set when an option's value is malformed; build plan and
+// build run then stop instead of planning without what was asked for.
+BuildPipelineRequest buildPipelineRequestFromArgs(const QString& pipelineId, const QStringList& args, QString* usageError)
 {
 	BuildPipelineRequest request;
 	request.pipelineId = pipelineId;
@@ -13787,29 +13905,26 @@ BuildPipelineRequest buildPipelineRequestFromArgs(const QString& pipelineId, con
 	request.dryRun = hasOption(args, QStringLiteral("--dry-run"));
 	request.registerOutputs = hasOption(args, QStringLiteral("--register-output")) || hasOption(args, QStringLiteral("--register-outputs"));
 
-	for (int index = 0; index + 1 < args.size(); ++index) {
-		if (args.at(index) == QStringLiteral("--disable-stage")) {
-			request.disabledStageIds << args.at(index + 1);
+	// optionValues() reads `--option value` and `--option=value` alike, as
+	// commandTokens() strips both.
+	request.disabledStageIds = optionValues(args, QStringLiteral("--disable-stage"));
+	for (const QString& value : optionValues(args, QStringLiteral("--stage-args"))) {
+		// "--stage-args <stageId>=<args>" keeps per-stage flags separable. The
+		// arguments split as --extra-args does, so a quoted path stays whole.
+		const qsizetype equals = value.indexOf(QLatin1Char('='));
+		if (equals <= 0) {
+			*usageError = QStringLiteral("--stage-args takes ID=ARGUMENTS: %1").arg(value);
+			return request;
 		}
-		if (args.at(index) == QStringLiteral("--stage-args")) {
-			// "--stage-args <stageId>=<args>" keeps per-stage flags separable.
-			const QString value = args.at(index + 1);
-			const qsizetype equals = value.indexOf(QLatin1Char('='));
-			if (equals > 0) {
-				request.stageExtraArguments.insert(value.left(equals),
-					value.mid(equals + 1).split(QLatin1Char(' '), Qt::SkipEmptyParts));
-			}
-		}
+		request.stageExtraArguments.insert(value.left(equals).trimmed(), QProcess::splitCommand(value.mid(equals + 1)));
 	}
 
 	const QString searchPaths = optionValue(args, QStringLiteral("--compiler-search-paths"));
 	if (!searchPaths.trimmed().isEmpty()) {
 		request.extraSearchPaths = searchPaths.split(QLatin1Char(';'), Qt::SkipEmptyParts);
 	}
-	bool ok = false;
-	const int timeout = optionValue(args, QStringLiteral("--timeout-ms")).toInt(&ok);
-	if (ok && timeout > 0) {
-		request.stageTimeoutMs = timeout;
+	if (!compilerTimeoutFromArgs(args, &request.stageTimeoutMs, usageError)) {
+		return request;
 	}
 
 	// The user's compiler paths, as the Build page uses them, under the
@@ -13832,12 +13947,13 @@ BuildPipelineRequest buildPipelineRequestFromArgs(const QString& pipelineId, con
 			request.variables.insert(QStringLiteral("GAME_DIR"), installation.rootPath);
 		}
 	}
-	for (int index = 0; index + 1 < args.size(); ++index) {
-		const QString value = args.at(index + 1);
+	for (const QString& value : optionValues(args, QStringLiteral("--variable"))) {
 		const qsizetype equals = value.indexOf(QLatin1Char('='));
-		if (args.at(index) == QStringLiteral("--variable") && equals > 0) {
-			request.variables.insert(value.left(equals).trimmed(), value.mid(equals + 1));
+		if (equals <= 0) {
+			*usageError = QStringLiteral("--variable takes NAME=VALUE: %1").arg(value);
+			return request;
 		}
+		request.variables.insert(value.left(equals).trimmed(), value.mid(equals + 1));
 	}
 	return request;
 }
@@ -13896,7 +14012,11 @@ int runBuildPlanCommand(const QString& commandName, const QString& pipelineId, c
 		return printCliError(commandName, CliExitCode::Usage,
 			QStringLiteral("%1 requires a pipeline id. Known pipelines: %2.").arg(commandName, buildPipelineIds().join(QStringLiteral(", "))), format);
 	}
-	const BuildPipelineRequest request = buildPipelineRequestFromArgs(pipelineId, args);
+	QString usageError;
+	const BuildPipelineRequest request = buildPipelineRequestFromArgs(pipelineId, args, &usageError);
+	if (!usageError.isEmpty()) {
+		return printCliError(commandName, CliExitCode::Usage, usageError, format);
+	}
 	if (request.inputPath.trimmed().isEmpty()) {
 		return printCliError(commandName, CliExitCode::Usage, QStringLiteral("%1 requires --input <map path>.").arg(commandName), format);
 	}
@@ -13904,8 +14024,16 @@ int runBuildPlanCommand(const QString& commandName, const QString& pipelineId, c
 	if (!result.errors.isEmpty() && result.stages.isEmpty()) {
 		return printCliError(commandName, CliExitCode::NotFound, result.errors.join(QStringLiteral(" ")), format);
 	}
+	// A plan with errors (a missing input, a stage whose arguments cannot be
+	// resolved) is still printed in full, but it is not a success: the exit
+	// code is the one `compiler plan` gives a plan that cannot run. A compiler
+	// that is not installed yet is a warning, and leaves the plan reviewable.
+	const CliExitCode code = result.errors.isEmpty() ? CliExitCode::Success : CliExitCode::NotFound;
 	if (format == CliOutputFormat::Json) {
-		QJsonObject object = cliResultJson(commandName);
+		QJsonObject object = cliResultJson(commandName, code);
+		if (code != CliExitCode::Success) {
+			object.insert(QStringLiteral("message"), result.errors.join(QStringLiteral(" ")));
+		}
 		object.insert(QStringLiteral("pipeline"), buildPipelineResultJson(result));
 		// Whether `build run` would start a program that needs trusting first.
 		const StudioSettings settings;
@@ -13918,7 +14046,7 @@ int runBuildPlanCommand(const QString& commandName, const QString& pipelineId, c
 	} else {
 		std::cout << text(buildPipelineResultText(result)) << "\n";
 	}
-	return exitCodeValue(CliExitCode::Success);
+	return exitCodeValue(code);
 }
 
 int runBuildRunCommand(const QString& commandName, const QString& pipelineId, const QStringList& args, CliOutputFormat format)
@@ -13927,7 +14055,11 @@ int runBuildRunCommand(const QString& commandName, const QString& pipelineId, co
 		return printCliError(commandName, CliExitCode::Usage,
 			QStringLiteral("%1 requires a pipeline id. Known pipelines: %2.").arg(commandName, buildPipelineIds().join(QStringLiteral(", "))), format);
 	}
-	BuildPipelineRequest request = buildPipelineRequestFromArgs(pipelineId, args);
+	QString usageError;
+	BuildPipelineRequest request = buildPipelineRequestFromArgs(pipelineId, args, &usageError);
+	if (!usageError.isEmpty()) {
+		return printCliError(commandName, CliExitCode::Usage, usageError, format);
+	}
 	if (request.inputPath.trimmed().isEmpty()) {
 		return printCliError(commandName, CliExitCode::Usage, QStringLiteral("%1 requires --input <map path>.").arg(commandName), format);
 	}
@@ -18452,7 +18584,88 @@ int runSubcommand(const QStringList& args)
 		}
 	}
 
-	return printCliError(commandName, CliExitCode::Usage, QStringLiteral("Unknown SlopStudio CLI subcommand. Run --cli --help."), format);
+	// No handler took it: say what was asked for and what the family offers.
+	QStringList familyCommands;
+	for (const CliCommandDescriptor& descriptor : cliCommandDescriptors()) {
+		if (normalizedOptionId(descriptor.family) == family && !familyCommands.contains(descriptor.command)) {
+			familyCommands.push_back(descriptor.command);
+		}
+	}
+	QString message = QStringLiteral("Unknown SlopStudio CLI subcommand: %1.").arg(commandName);
+	if (!familyCommands.isEmpty()) {
+		message += QStringLiteral(" Commands of %1: %2.").arg(family, familyCommands.join(QStringLiteral(", ")));
+	}
+	message += QStringLiteral(" Run --cli --help.");
+	return printCliError(commandName, CliExitCode::Usage, message, format);
+}
+
+// The shared options that change what a command does to files and settings,
+// by their spelling with dashes, underscores and case removed.
+QString sharedOptionForLooseSpelling(const QString& name)
+{
+	QString key = name.toLower();
+	key.remove(QLatin1Char('-'));
+	key.remove(QLatin1Char('_'));
+	if (key == QLatin1String("dryrun")) {
+		return QStringLiteral("--dry-run");
+	}
+	if (key == QLatin1String("overwrite")) {
+		return QStringLiteral("--overwrite");
+	}
+	if (key == QLatin1String("json")) {
+		return QStringLiteral("--json");
+	}
+	if (key == QLatin1String("quiet")) {
+		return QStringLiteral("--quiet");
+	}
+	if (key == QLatin1String("verbose")) {
+		return QStringLiteral("--verbose");
+	}
+	if (key == QLatin1String("settingsfile")) {
+		return QStringLiteral("--settings-file");
+	}
+	return {};
+}
+
+// A near miss of one of those options (`--dryrun`, `--dry_run`, `-json`),
+// which no command would otherwise notice: `install remove quake --dryrun`
+// took the token for an extra argument and removed the profile for real.
+// Returns the token's option name and sets the spelling it should have had.
+QString misspelledSharedOption(const QStringList& args, QString* intended)
+{
+	for (int index = 1; index < args.size(); ++index) {
+		const QString& token = args.at(index);
+		if (cliValueFlags().contains(token)) {
+			// Its value is a value, whatever it looks like.
+			if (index + 1 < args.size() && !isRegisteredOption(args.at(index + 1))) {
+				++index;
+			}
+			continue;
+		}
+		if (!token.startsWith(QLatin1Char('-'))) {
+			continue;
+		}
+		const qsizetype equals = token.indexOf(QLatin1Char('='));
+		const QString name = equals < 0 ? token : token.left(equals);
+		const QString shared = sharedOptionForLooseSpelling(name);
+		if (!shared.isEmpty() && name != shared) {
+			*intended = shared;
+			return name;
+		}
+	}
+	return {};
+}
+
+// The command a message about the arguments themselves belongs to.
+QString commandNameFromArgs(const QStringList& args)
+{
+	const QStringList tokens = commandTokens(args);
+	if (tokens.isEmpty() || tokens.first().startsWith(QLatin1Char('-'))) {
+		return QStringLiteral("cli");
+	}
+	const QString family = normalizedOptionId(tokens.value(0));
+	const QString action = normalizedOptionId(tokens.value(1));
+	return action.isEmpty() || action.startsWith(QLatin1Char('-')) ? family : QStringLiteral("%1 %2").arg(family, action);
 }
 
 } // namespace
@@ -18464,6 +18677,14 @@ int runImpl(const QStringList& args)
 	requestedOptions.removeAll(QStringLiteral("--json"));
 	requestedOptions.removeAll(QStringLiteral("--quiet"));
 	requestedOptions.removeAll(QStringLiteral("--verbose"));
+
+	// Before anything runs: a mistyped --dry-run must not become a real run.
+	QString intendedOption;
+	const QString misspelled = misspelledSharedOption(args, &intendedOption);
+	if (!misspelled.isEmpty()) {
+		return printCliError(commandNameFromArgs(args), CliExitCode::Usage,
+			QStringLiteral("Unknown option %1; did you mean %2?").arg(misspelled, intendedOption), outputFormat(args));
+	}
 
 	if (hasOption(args, "--version")) {
 		std::cout << "SlopStudio " << text(versionString()) << "\n";
@@ -19135,8 +19356,14 @@ int runImpl(const QStringList& args)
 		return 0;
 	}
 
-	std::cerr << "Unknown SlopStudio CLI option. Run --cli --help.\n";
-	return 2;
+	// Nothing above took the arguments. The first one that is not a known
+	// option is the one to name; with none, no command was given at all.
+	const QString unknownOption = commandTokens(args).value(0);
+	return printCliError(QStringLiteral("cli"), CliExitCode::Usage,
+		unknownOption.isEmpty()
+			? QStringLiteral("No SlopStudio CLI command was given. Run --cli --help.")
+			: QStringLiteral("Unknown SlopStudio CLI option %1. Run --cli --help.").arg(unknownOption),
+		outputFormat(args));
 }
 
 bool commandUsesRenderer(const QStringList& args)
@@ -19156,16 +19383,24 @@ int run(const QStringList& args)
 	QElapsedTimer timer;
 	timer.start();
 
-	NullOutputBuffer nullBuffer;
+	// --quiet hides what a successful command says. Many commands print their
+	// failure report on standard output as well, so the text is held, not
+	// thrown away, and goes to standard error when the command fails.
+	std::stringbuf quietBuffer;
 	std::streambuf* originalOutput = nullptr;
 	if (quietOutput()) {
-		originalOutput = std::cout.rdbuf(&nullBuffer);
+		originalOutput = std::cout.rdbuf(&quietBuffer);
 	}
 
 	const int result = runImpl(args);
 
 	if (originalOutput) {
+		std::cout.flush();
 		std::cout.rdbuf(originalOutput);
+		if (result != 0) {
+			std::cerr << quietBuffer.str();
+			std::cerr.flush();
+		}
 	}
 	if (verboseOutput()) {
 		std::cerr << "slopstudio: command completed with exit code " << result << " in " << timer.elapsed() << " ms\n";

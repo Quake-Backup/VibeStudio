@@ -40,8 +40,24 @@ void CodeIndexWorker::start(CodeWorkspaceIndexRequest request)
 	reset();
 	m_root = request.rootPath;
 	m_pending = std::move(request);
+	m_background = m_nextStartBackground;
+	m_nextStartBackground = false;
+	setBackgroundRunning(m_background);
 	if (started) { started(); }
 	startPending();
+}
+
+void CodeIndexWorker::endBackground()
+{
+	m_background = false;
+	setBackgroundRunning(false);
+}
+
+void CodeIndexWorker::setBackgroundRunning(bool running)
+{
+	if (m_backgroundRunning == running) { return; }
+	m_backgroundRunning = running;
+	if (backgroundRunning) { backgroundRunning(running); }
 }
 
 void CodeIndexWorker::cancel()
@@ -66,6 +82,7 @@ void CodeIndexWorker::reset()
 	m_root.clear();
 	if (m_work) { m_work->cancel = true; }
 	m_progressTimer->stop();
+	setBackgroundRunning(false);
 }
 
 void CodeIndexWorker::startPending()
@@ -87,6 +104,7 @@ void CodeIndexWorker::startPending()
 		m_progressTimer->stop();
 		m_work.reset();
 		if (work->serial == m_serial) {
+			setBackgroundRunning(false);
 			if (work->cancel) {
 				work->result.cancelled = true;
 				work->result.complete = false;

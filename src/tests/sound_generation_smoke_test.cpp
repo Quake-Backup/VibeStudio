@@ -277,6 +277,26 @@ void checkTransport()
 		"A custom endpoint takes the same request with a bearer token.");
 	const QJsonObject lean = QJsonDocument::fromJson(http.body).object();
 	expect(lean.keys() == QStringList {QStringLiteral("text")}, "Unset fields are left out.");
+	// A key never travels over plain http to another machine, as a bearer token
+	// or in ElevenLabs' own header.
+	AiSoundRequest offMachine = custom;
+	offMachine.endpoint = QStringLiteral("http://192.168.0.5:9000/v1/");
+	AiHttpRequest refused;
+	error.clear();
+	expect(!buildAiSoundHttpRequest(offMachine, QStringLiteral("team-secret-value-0123456789"), &refused, &error) && error.contains(QStringLiteral("https://"))
+			&& !error.contains(QStringLiteral("team-secret")) && refused.headers.isEmpty() && !refused.url.isValid(),
+		"A keyed sound request to an http:// endpoint off this machine is refused, and asks for https.");
+	AiSoundRequest proxied = request;
+	proxied.endpoint = QStringLiteral("HTTP://proxy.example.test");
+	error.clear();
+	expect(!buildAiSoundHttpRequest(proxied, QStringLiteral("sk-test-123456789"), &refused, &error) && error.contains(QStringLiteral("https://")) && refused.headers.isEmpty(),
+		"ElevenLabs' key is not sent to an http:// proxy either.");
+	expect(buildAiSoundHttpRequest(offMachine, QString(), &http, &error) && headerValue(http, "Authorization").isEmpty(),
+		"Without a key, an http:// sound endpoint on the network is still asked.");
+	offMachine.endpoint = QStringLiteral("https://192.168.0.5:9000/v1/");
+	expect(buildAiSoundHttpRequest(offMachine, QStringLiteral("team-secret-value-0123456789"), &http, &error)
+			&& headerValue(http, "Authorization") == QStringLiteral("Bearer team-secret-value-0123456789"),
+		"The same sound endpoint over https takes the key.");
 	custom.prompt.clear();
 	expect(!buildAiSoundHttpRequest(custom, QString(), &http, &error), "A request without a description is refused.");
 	request.connectorId = QStringLiteral("openai");

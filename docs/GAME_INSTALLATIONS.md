@@ -15,6 +15,17 @@ project-aware game management.
   library, is never walked file by file. On a machine with DOOM Eternal and
   Quake Champions in its libraries this took the Steam scan from about 3.8 s
   to 0.25 s with the same candidates.
+- A folder is matched to a game by its expected base packages and by its
+  name. Packages are looked up without regard to case (`Id1/PAK0.PAK` is
+  Quake's `id1/pak0.pak` on a case-sensitive filesystem), through the same
+  lookup the game asset index uses. A folder name fits a game when it is one
+  of the game's name hints or contains one; a hint that merely contains the
+  folder name does not count, so a folder called `Quake` is not also offered
+  as Quake II and Quake III. Name-only candidates (62%) are dropped when
+  another game's packages are in the folder, and among name-only candidates
+  only the closest name is kept: an exact hint beats a contained one, and a
+  longer contained hint beats a shorter one. Two games whose packages are both
+  present are both offered.
 - Profiles store a stable ID, game key, engine family, display name,
   installation root, optional executable, base/mod package paths, palette
   default, compiler-profile default, read-only state, hidden state, and

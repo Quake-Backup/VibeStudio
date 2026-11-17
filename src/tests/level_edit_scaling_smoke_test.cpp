@@ -394,6 +394,41 @@ void sceneCounts()
 	expect(createLevelMap(request, &doom, &error) && levelSceneObjectCount(doom) == levelSceneObjects(doom).size() && levelSceneObjectCount(doom) > 0,
 		"Doom objects are counted as they are named", error);
 }
+
+// Whether the selection can be deleted is asked about ten times after every
+// selection change, so each selected entity is found by id rather than by a
+// pass over the map's entities: worldspawn holds the answer back wherever it
+// stands in the selection, in id order and out of it.
+void deletableSelection()
+{
+	auto ordered = fixture(6); QString error;
+	int first = -1, second = -1;
+	expect(addLevelMapEntity(&ordered, QStringLiteral("light"), {0, -64, 32, true}, {}, &first, &error)
+		&& addLevelMapEntity(&ordered, QStringLiteral("light"), {32, -64, 32, true}, {}, &second, &error), "add entities", error);
+	int world = -1;
+	for (const auto& record : std::as_const(ordered.entities)) {
+		if (record.className.compare(QStringLiteral("worldspawn"), Qt::CaseInsensitive) == 0) { world = record.id; }
+	}
+	if (!expect(world >= 0 && first >= 0 && second >= 0 && ordered.entities.size() == 3, "fixture entities")) { return; }
+	auto shuffled = ordered;
+	std::reverse(shuffled.entities.begin(), shuffled.entities.end());
+	const int box = ordered.brushes.at(2).id;
+	for (auto* map : {&ordered, &shuffled}) {
+		const QString order = map == &ordered ? QStringLiteral("id order") : QStringLiteral("out of id order");
+		const auto deletable = [&](const QVector<LevelMapSelectionRef>& selection) {
+			auto probe = *map;
+			return expect(setLevelMapSelection(&probe, selection, &error), "select", error) && levelMapSelectionIsDeletable(probe);
+		};
+		expect(deletable({entity(first), brush(box), entity(second)}), "entities and a brush can be deleted", order);
+		expect(!deletable({entity(world)}), "worldspawn alone cannot", order);
+		expect(!deletable({entity(first), entity(world), brush(box)}), "nor among other objects", order);
+		expect(!deletable({brush(box), entity(second), entity(world)}), "nor as the primary", order);
+		expect(deletable({brush(box)}), "a brush alone can", order);
+	}
+	auto empty = ordered;
+	setLevelMapSelection(&empty, {});
+	expect(empty.selection.isEmpty() && !levelMapSelectionIsDeletable(empty), "nothing selected is nothing to delete");
+}
 } // namespace
 
 int main(int argc, char** argv)
@@ -409,6 +444,7 @@ int main(int argc, char** argv)
 	textureList();
 	visibility();
 	facePoints();
+	deletableSelection();
 	if (ok) { std::cout << "level edit scaling checks passed" << std::endl; }
 	return ok ? 0 : 1;
 }

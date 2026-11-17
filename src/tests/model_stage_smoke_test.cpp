@@ -279,6 +279,20 @@ int main(int argc, char **argv)
 						 2) &&
 						 !QFileInfo::exists(path(QStringLiteral("x.pk3"))),
 					 "an unsupported format is a usage error");
+		// --skins and --replace-existing are switches: placed before the
+		// source, they must not take it for their value.
+		bool skinStaged = false;
+		const bool switchesFirst =
+			run({QStringLiteral("model"), QStringLiteral("stage"), QStringLiteral("--skins"), QStringLiteral("--replace-existing"), sourcePath,
+				 QStringLiteral("--package"), path(QStringLiteral("base.pk3")), QStringLiteral("--as"), QStringLiteral("models/props/crate.md3"),
+				 QStringLiteral("--output"), path(QStringLiteral("skins.pk3")), QStringLiteral("--dry-run")},
+				0);
+		for (const auto &entry : output.value(QStringLiteral("set")).toObject().value(QStringLiteral("entries")).toArray())
+		{
+			skinStaged |= entry.toObject().value(QStringLiteral("role")).toString() == QStringLiteral("skin");
+		}
+		ok &= expect(switchesFirst && skinStaged && !QFileInfo::exists(path(QStringLiteral("skins.pk3"))),
+					 "switches before the source keep the source, and --skins stages the skin");
 	}
 	if (!ok)
 		std::cerr << qPrintable(error) << '\n';

@@ -451,9 +451,14 @@ GLuint OpenGLDevice::uploadTexture(const GpuTextureData& data, qint64* bytes)
 	*bytes = 0;
 	for (int level = 0; level < data.levels.size(); ++level) {
 		const QImage image = textureLevelImage(data.levels.at(level));
-		m_gl->glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA8, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-		for (int y = 0; y < image.height(); ++y) {
-			m_gl->glTexSubImage2D(GL_TEXTURE_2D, level, 0, y, image.width(), 1, GL_RGBA, GL_UNSIGNED_BYTE, image.constScanLine(y));
+		if (image.bytesPerLine() == qsizetype(image.width()) * 4) {
+			// Rows follow one another without padding: the level in one call.
+			m_gl->glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA8, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, image.constBits());
+		} else {
+			m_gl->glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA8, image.width(), image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+			for (int y = 0; y < image.height(); ++y) {
+				m_gl->glTexSubImage2D(GL_TEXTURE_2D, level, 0, y, image.width(), 1, GL_RGBA, GL_UNSIGNED_BYTE, image.constScanLine(y));
+			}
 		}
 		*bytes += qint64(image.width()) * image.height() * 4;
 	}

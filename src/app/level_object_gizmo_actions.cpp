@@ -313,7 +313,7 @@ void ApplicationShell::translateLevelObjectsFromGizmo(LevelComponentGizmo* gizmo
 		m_levelObjectPivot = {m_levelObjectPivot.x + delta.x, m_levelObjectPivot.y + delta.y, m_levelObjectPivot.z + delta.z, true};
 	}
 	recordActivity(tr("Level map selection translated"), tr("%1, %2, %3").arg(delta.x).arg(delta.y).arg(delta.z), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	refreshLevelObjectGizmos();
 	const int moved = static_cast<int>(target.objects.size());
@@ -355,7 +355,7 @@ void ApplicationShell::rotateLevelObjectsFromGizmo(LevelComponentGizmo* gizmo, M
 	const QString turn = rotation.euler
 		? tr("%1°, %2° and %3° about X, Y and Z").arg(rotation.eulerDegrees[0], 0, 'g', 6).arg(rotation.eulerDegrees[1], 0, 'g', 6).arg(rotation.eulerDegrees[2], 0, 'g', 6)
 		: tr("%1° about %2").arg(rotation.degrees, 0, 'g', 6).arg(QLatin1Char("XYZ"[std::clamp(rotation.axis, 0, 2)]));
-	recordActivity(tr("Level map selection rotated"), turn, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map selection rotated"), turn, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	refreshLevelObjectGizmos();
 	statusBar()->showMessage(tr("Rotated %n object(s) by %1. Undo restores them.", nullptr, report.objects).arg(turn), 5000);
@@ -393,7 +393,7 @@ void ApplicationShell::scaleLevelObjectsFromGizmo(LevelComponentGizmo* gizmo, Ma
 		return;
 	}
 	const QString by = tr("%1 × %2 × %3").arg(scale.factors[0], 0, 'g', 6).arg(scale.factors[1], 0, 'g', 6).arg(scale.factors[2], 0, 'g', 6);
-	recordActivity(tr("Level map selection scaled"), by, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map selection scaled"), by, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	refreshLevelObjectGizmos();
 	statusBar()->showMessage(tr("Scaled %n object(s) by %1. Undo restores them.", nullptr, report.objects).arg(by), 5000);
@@ -450,7 +450,7 @@ void ApplicationShell::shearLevelObjectsFromView(int axis, int side, const Level
 		unlocked = true;
 	}
 	const QString slide = tr("%1, %2, %3").arg(offset.x, 0, 'g', 8).arg(offset.y, 0, 'g', 8).arg(offset.z, 0, 'g', 8);
-	recordActivity(tr("Level map selection sheared"), slide, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map selection sheared"), slide, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	refreshLevelObjectGizmos();
 	refreshLevelCameraResize();

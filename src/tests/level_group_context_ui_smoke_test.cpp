@@ -14,6 +14,7 @@
 #include <QFile>
 #include <QLabel>
 #include <QPushButton>
+#include <QShortcut>
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
@@ -33,6 +34,17 @@ bool until(const std::function<bool()>& ready)
 		QEventLoop loop; QTimer::singleShot(20,&loop,&QEventLoop::quit); loop.exec(QEventLoop::ExcludeUserInputEvents);
 	}
 	return ready();
+}
+using Refs = QVector<LevelMapSelectionRef>;
+// The view binds Tab and its relatives as shortcuts of its own, since
+// QWidget::event() takes Tab for focus navigation first: activate the one
+// bound to `keys`, as the key would.
+bool key(MapViewport* view, const QKeySequence& keys)
+{
+	for (auto* shortcut : view->findChildren<QShortcut*>(QString(),Qt::FindDirectChildrenOnly)) {
+		if (shortcut->key() == keys) { Q_EMIT shortcut->activated(); return true; }
+	}
+	return false;
 }
 class Expanded final : public QTranslator {
 public:
@@ -85,6 +97,15 @@ int main(int argc, char** argv)
 	plan->selectSceneObjects({first},LevelScenePick::Replace);
 	shell.findChild<QAction*>("map.openGroup")->trigger();
 	ok &= expect(shell.levelDocument().openSceneGroups == QStringList{outer} && shell.levelDocument().selection.isEmpty(),"open command enters group and clears selection");
+	// Tab steps through what the open group holds and comes round: its own
+	// brush, then the group nested in it. It used to stop dead on the first
+	// object outside the group, which picking refuses.
+	ok &= expect(key(plan,QKeySequence(Qt::Key_Tab)) && shell.levelDocument().selection == Refs{first},"Tab in an open group selects its first object");
+	ok &= expect(key(plan,QKeySequence(Qt::Key_Tab)) && shell.levelDocument().selection == Refs{second},"Tab steps on to the group nested in it");
+	ok &= expect(key(plan,QKeySequence(Qt::Key_Tab)) && shell.levelDocument().selection == Refs{first},"Tab passes over what lies outside the open group and comes round");
+	ok &= expect(key(plan,QKeySequence(Qt::CTRL | Qt::Key_Tab)) && shell.levelDocument().selection == Refs{first,second},"Ctrl+Tab extends the selection inside the open group");
+	ok &= expect(key(plan,QKeySequence(Qt::CTRL | Qt::Key_Tab)) && shell.levelDocument().selection.size() == 2 && !shell.levelDocument().selection.contains(outside),
+		"Ctrl+Tab does not stall on, or take in, an object outside the open group");
 	plan->selectSceneObjects({outside},LevelScenePick::Replace);
 	ok &= expect(shell.levelDocument().selection.isEmpty(),"outside plan pick cannot escape context");
 	plan->selectSceneObjects({first},LevelScenePick::Replace);
@@ -136,6 +157,31 @@ int main(int argc, char** argv)
 		&& shell.levelDocument().openSceneGroups == QStringList{outer},"camera group activation resolves presented geometry");
 	ok &= settleCamera();
 	ok &= expect(camera->activateGroupAt(QPointF(5,5)) && shell.levelDocument().openSceneGroups.isEmpty(),"camera empty-space activation closes context");
+
+	// At map level a closed group is one stop of the Tab cycle, at its first
+	// member, and what lies between its members in the map's order is still
+	// reached: the cycle used to carry on from the group's last member.
+	{
+		LevelMapDocument cycle; ok &= expect(tests::createGeometryFixture(4,&cycle,&error),"cycle fixture");
+		QString pair;
+		ok &= expect(createLevelSceneNode(&cycle,LevelSceneNodeKind::Group,"Pair",{},&pair) && assignLevelSceneObjects(&cycle,pair,{"brush:0","brush:2"}),"cycle group");
+		MapViewport view; view.resize(640,480); view.setDocument(cycle);
+		const LevelMapSelectionRef world{LevelMapSelectionKind::Entity,cycle.entities.first().id};
+		const LevelMapSelectionRef b0{LevelMapSelectionKind::QuakeBrush,0},b1{LevelMapSelectionKind::QuakeBrush,1},b2{LevelMapSelectionKind::QuakeBrush,2},b3{LevelMapSelectionKind::QuakeBrush,3};
+		const auto tab = [&] { key(&view,QKeySequence(Qt::Key_Tab)); return view.selectionSet(); };
+		const auto back = [&] { key(&view,QKeySequence(Qt::SHIFT | Qt::Key_Tab)); return view.selectionSet(); };
+		ok &= expect(tab() == Refs{world},"Tab starts at the first object");
+		ok &= expect(tab() == Refs{b0,b2},"Tab selects a closed group whole at its first member");
+		ok &= expect(tab() == Refs{b1},"the next Tab reaches the object between the group's members");
+		ok &= expect(tab() == Refs{b3},"and passes over the group's other member");
+		ok &= expect(tab() == Refs{world},"then comes round");
+		ok &= expect(back() == Refs{world,b3} && back() == Refs{world,b3,b1} && back() == Refs{world,b3,b1,b0,b2},
+			"Shift+Tab extends backwards over the same stops, the group once");
+		// A group whose first member a filter hides is reached at its next one.
+		view.setSelectionSet({}); view.setFilteredObjects({b0});
+		ok &= expect(tab() == Refs{world} && tab() == Refs{b1} && tab() == Refs{b0,b2} && tab() == Refs{b3},
+			"a group stays one stop when its first member is hidden");
+	}
 
 	const auto output = qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_DIR"); if (!output.isEmpty()) { QDir().mkpath(output); }
 	for (int scale : {100,200}) {

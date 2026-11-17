@@ -49,4 +49,22 @@ private:
 	bool m_identityReady = false, m_portableIdentity = false;
 	bool m_cancelled = false, m_failed = false, m_matching = false;
 };
+
+// An output root resolved once, for a pass over many output paths that creates
+// nothing (the extraction preflight). The checks are exactly those of
+// safePackageOutputPath and packagePathIsInsideDirectory, and every candidate
+// is still resolved afresh; only the root's own resolution is reused. Anything
+// that creates a directory or a file must use the functions that resolve the
+// root at that moment instead.
+struct PackageOutputRoot {
+	// The root as safePackageOutputPath resolves it.
+	QString resolved;
+	// What packagePathIsInsideDirectory compares for the root as given, and
+	// for `resolved`.
+	QString comparable;
+	QString comparableResolved;
+};
+PackageOutputRoot resolvePackageOutputRoot(const QString& rootDirectory);
+bool packagePathIsInsideOutputRoot(const PackageOutputRoot& root, const QString& candidatePath);
+QString safePackageOutputPathUnder(const PackageOutputRoot& root, const QString& virtualPath, QString* error = nullptr);
 } // namespace slopstudio

@@ -37,6 +37,59 @@ int main(int argc, char** argv)
 	ok &= expect(document.beginStroke({0, 7}, Qt::blue, 3) && document.continueStroke({7, 0}), "interactive stroke can span several updates");
 	document.cancelStroke();
 	ok &= expect(!document.isDirty() && document.image().pixelColor(0, 7).alpha() == 0, "cancel restores all pixels and save state");
+	{
+		// An interactive stroke that leaves the canvas is followed outside it: what
+		// crosses the canvas is painted, and nothing is drawn along the border
+		// while the pointer moves outside.
+		TextureDocument edge; edge.create({8, 8}, Qt::transparent);
+		ok &= expect(edge.beginStroke({2, 1}, Qt::red, 1) && edge.continueStroke({-5, 1}) && edge.continueStroke({-5, 6}) &&
+			edge.continueStroke({1, 6}) && edge.endStroke(), "an interactive stroke may leave the canvas and come back");
+		bool exact = true;
+		for (int y = 0; y < 8; ++y) {
+			for (int x = 0; x < 8; ++x) {
+				const bool expected = (y == 1 && x <= 2) || (y == 6 && x <= 1);
+				exact &= edge.image().pixelColor(x, y) == (expected ? QColor(Qt::red) : QColor(Qt::transparent));
+			}
+		}
+		ok &= expect(exact, "only the parts of a stroke that cross the canvas are painted, with no line down its edge");
+		ok &= expect(edge.undo() && edge.image().pixelColor(0, 1).alpha() == 0, "a stroke that left the canvas is still one undo step");
+		TextureBrush mirrored{1}; mirrored.mirrorX = true;
+		ok &= expect(edge.beginStroke({1, 3}, Qt::blue, mirrored) && edge.continueStroke({-3, 3}) && edge.endStroke() &&
+			edge.image().pixelColor(0, 3) == QColor(Qt::blue) && edge.image().pixelColor(7, 3) == QColor(Qt::blue) &&
+			edge.image().pixelColor(6, 3) == QColor(Qt::blue) && edge.image().pixelColor(5, 3).alpha() == 0 && edge.image().pixelColor(2, 3).alpha() == 0,
+			"the mirrored copy of a stroke leaves the canvas with it");
+		ok &= expect(edge.beginStroke({2, 1}, Qt::red, 1) && !edge.continueStroke({-9, 1}) && edge.strokeActive() && edge.continueStroke({-8, 1}),
+			"a point beyond the 3 x 3 repeat is skipped without ending the stroke");
+		edge.cancelStroke();
+		const QImage kept = edge.image();
+		ok &= expect(!edge.beginStroke({-1, 1}, Qt::red, 1) && !edge.paintStroke({{2, 1}, {-5, 1}}, Qt::red, 1, &error) &&
+			!edge.drawShape(TextureShape::Line, {2, 1}, {-5, 1}, Qt::red, TextureBrush{1}, false, &error) && edge.image() == kept,
+			"stroke starts, recipe strokes and lines still have to lie on the canvas");
+	}
+	{
+		// A document's only layer, at reduced opacity, is rendered like any stack.
+		// A stroke then repaints the rectangles it touched in the composite it
+		// already has, instead of rendering the whole canvas again per segment.
+		// (The upper half of an image's cache key identifies its pixel buffer.)
+		TextureDocument faded; faded.create({64, 64}, Qt::red);
+		ok &= expect(faded.setLayerProperties(faded.activeLayer()->name, true, false, 50, TextureBlendMode::Normal), "fade a document's only layer");
+		const auto rendered = [](const TextureDocument& source) {
+			TextureDocument fresh; fresh.restoreLayers(source.size(), source.layers(), source.activeLayerIndex()); return fresh.image();
+		};
+		const qint64 buffer = faded.image().cacheKey() >> 32;
+		bool same = true, inPlace = true, painted = faded.beginStroke({4, 4}, Qt::blue, 3);
+		for (const QPoint point : {QPoint(4, 4), QPoint(40, 9), QPoint(-10, 30), QPoint(20, 60)}) {
+			painted &= faded.continueStroke(point);
+			same &= faded.image() == rendered(faded); inPlace &= (faded.image().cacheKey() >> 32) == buffer;
+		}
+		painted &= faded.endStroke();
+		ok &= expect(painted && same && faded.image() == rendered(faded) && faded.image().pixel(4, 4) != faded.image().pixel(60, 4),
+			"a stroke on a faded single layer shows exactly what a full render shows after every segment");
+		ok &= expect(inPlace && (faded.image().cacheKey() >> 32) == buffer, "a stroke on a faded single layer updates the composite in place");
+		TextureDocument opaque; opaque.create({64, 64}, Qt::red);
+		ok &= expect(opaque.beginStroke({4, 4}, Qt::blue, 3) && opaque.continueStroke({40, 9}) && opaque.image().cacheKey() == opaque.activeLayer()->pixels.cacheKey() &&
+			opaque.endStroke(), "an opaque single layer is still its own composite, shared rather than rendered");
+	}
 	const QImage before = document.image();
 	ok &= expect(!document.paintStroke({{0, 0}, {8, 0}}, Qt::blue, 1, &error) && document.image() == before, "invalid stroke is atomic");
 	ok &= expect(!document.crop({-1, 0, 4, 4}, &error) && document.image() == before, "out-of-bounds crop does not pad or mutate");

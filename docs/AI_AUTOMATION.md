@@ -190,14 +190,21 @@ the text model a question about the open work:
   manifest. The page in front of the user decides what starts ticked. Paths in
   the project and home folders become `<project>` and `~`, and anything shaped
   like a provider key becomes `***`. Long items are cut to their first lines,
-  and the request says so.
+  and the request says so. Folders match with either slash, the doubled
+  backslashes of JSON and logs, or a mix; drive and network-share paths match
+  without case; and a neighbour whose name only starts the same way
+  (`C:/Users/dj` in `C:/Users/djones`) is left alone.
 - **Before it goes.** **Preview** shows the exact request without the key,
   and sends nothing: readable by default (the settings one per line, then
   each message's text as it is written), or the raw JSON body with one tick. The first question from a project to an endpoint off this
   machine shows that request in a dialog and asks, and the answer is kept per
   project and destination until Settings' *Ask Again Before Sending* forgets
   it. A local endpoint (localhost, loopback, or `.localhost`) never leaves the
-  machine, so it does not ask.
+  machine, so it does not ask. A custom command is remembered by its program
+  and a digest of its whole command line (`aiTextConnectionConsentKey`), so a
+  changed command asks again. An API key is never sent over plain `http://` to
+  another machine: the text, image and sound request builders refuse, and ask
+  for an `https://` endpoint.
 - **While it runs.** The panel counts the seconds, Cancel or Escape stops it,
   and the Activity panel shows it as a running, cancellable task that ends
   answered, failed, or cancelled.

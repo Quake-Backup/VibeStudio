@@ -401,6 +401,39 @@ bool runNonFatalStageErrorSmoke(const QDir& root)
 	return ok;
 }
 
+// A stage's time limit stops a tool that outlives it. Zero means no limit, which is what a run with
+// a Cancel control asks for: a full vis or light pass can take hours.
+bool runStageTimeoutSmoke(const QDir& root)
+{
+	bool ok = true;
+	const QString mapPath = root.filePath(QStringLiteral("timeout.map"));
+	if (!writeFile(mapPath, minimalQuakeMap())) {
+		return expect(false, "Failed to write the time-limit .map fixture.");
+	}
+
+	BuildPipelineRequest request;
+	request.pipelineId = QStringLiteral("quake-bsp-only");
+	request.inputPath = mapPath;
+	request.workspaceRootPath = root.path();
+	request.executableOverrides.push_back({QStringLiteral("slopmap2-bsp"), QCoreApplication::applicationFilePath()});
+	// The fake stage runs for a second and a half; the runner's shortest limit is one second.
+	request.stageExtraArguments.insert(QStringLiteral("qbsp"), {QStringLiteral("--fake-stage-compiler"), QStringLiteral("--fake-slow-stage")});
+	request.stageTimeoutMs = 1;
+	const BuildPipelineResult limited = runBuildPipeline(request);
+	const BuildPipelineStageResult* limitedStage = stageById(limited, QStringLiteral("qbsp"));
+	ok &= expect(limitedStage != nullptr && limitedStage->run.timedOut, "A stage that outlives a positive time limit should be stopped.");
+	ok &= expect(limited.failedStageCount == 1 && !limited.succeeded(), "A stage stopped by its time limit should fail the pipeline.");
+
+	request.stageTimeoutMs = 0;
+	const BuildPipelineResult unlimited = runBuildPipeline(request);
+	const BuildPipelineStageResult* unlimitedStage = stageById(unlimited, QStringLiteral("qbsp"));
+	ok &= expect(unlimitedStage != nullptr && !unlimitedStage->run.timedOut && unlimitedStage->run.exitCode == 0,
+		"A stage time limit of zero should mean no limit.");
+	ok &= expect(unlimited.failedStageCount == 0 && unlimited.completedStageCount == 1 && unlimited.succeeded(),
+		"A stage with no time limit should finish and complete the pipeline.");
+	return ok;
+}
+
 bool runLaunchSmoke(const QDir& root)
 {
 	bool ok = true;
@@ -656,6 +689,7 @@ int main(int argc, char** argv)
 	ok &= runPlanSmoke(root);
 	ok &= runDryRunSmoke(root);
 	ok &= runNonFatalStageErrorSmoke(root);
+	ok &= runStageTimeoutSmoke(root);
 	ok &= runLaunchSmoke(root);
 	ok &= runDeploySmoke(root);
 	return ok ? EXIT_SUCCESS : EXIT_FAILURE;

@@ -870,7 +870,12 @@ With Qt Multimedia, **Play Selection** auditions the edited samples. When the
 selection is empty, **Play From Cursor** auditions from that frame to the end;
 at frame zero, **Play Sound** auditions the full clip. Pause, resume, stop,
 looping, and playback volume are available. Space controls playback while the
-waveform has focus; it retains its normal behavior in other controls. Playback
+waveform has focus; it retains its normal behavior in other controls. Edits,
+exports and audition preparation disable the waveform and most commands while
+they run; when the work ends, the control that had the keyboard focus has it
+again, so Space still pauses what it started and Ctrl+Z still undoes. A control
+you moved to meanwhile keeps the focus instead. The multitrack session does the
+same for its timeline, track list and **Play Range**. Playback
 volume does not change exported samples. Editing, export, and staging also work
 in builds with `-Daudio_playback=disabled` and in AI-free mode.
 

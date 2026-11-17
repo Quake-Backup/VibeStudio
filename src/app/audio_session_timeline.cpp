@@ -80,11 +80,47 @@ void AudioSessionTimeline::setVisibleRange(qint64 first, qint64 end)
 	describe();
 	update();
 }
+QRect AudioSessionTimeline::cursorStrip() const
+{
+	if (m_cursor < m_first || m_cursor > m_end) {
+		return {};
+	}
+	// The cursor is a two-pixel dashed line; a pixel either side covers rounding.
+	return QRect(int(std::floor(xFor(m_cursor))) - 2, 0, 5, height());
+}
+void AudioSessionTimeline::moveCursor(qint64 frame)
+{
+	frame = std::clamp<qint64>(frame, 0, AudioSessionFrameLimit);
+	if (frame == m_cursor) {
+		return;
+	}
+	// Only the cursor moved: repaint the strip it left and the strip it entered,
+	// not every clip's waveform. paintEvent() limits its work to that part.
+	const QRect before = cursorStrip();
+	m_cursor = frame;
+	const QRect after = cursorStrip();
+	if (!before.isEmpty()) {
+		update(before);
+	}
+	if (!after.isEmpty()) {
+		update(after);
+	}
+}
 void AudioSessionTimeline::setCursor(qint64 frame)
 {
-	m_cursor = std::clamp<qint64>(frame, 0, AudioSessionFrameLimit);
+	moveCursor(frame);
 	describe();
-	update();
+}
+void AudioSessionTimeline::trackCursor(qint64 frame)
+{
+	moveCursor(frame);
+	m_describePending = true;
+}
+void AudioSessionTimeline::settleCursor()
+{
+	if (m_describePending) {
+		describe();
+	}
 }
 void AudioSessionTimeline::setTimeRange(qint64 first, qint64 end)
 {
@@ -160,28 +196,33 @@ QString AudioSessionTimeline::hitRegion(const QPointF &point, QString *track) co
 }
 void AudioSessionTimeline::describe()
 {
-	setAccessibleDescription(
+	m_describePending = false;
+	// Built whole and set once. Setting the description is what announces the
+	// change to assistive technology, so three partial descriptions and an
+	// explicit event made four announcements of one change.
+	const QString description =
 	    tr("Track count: %1. Visible frames %2 to %3. Cursor frame %4. Selected track %5; clip %6. Use "
 	       "the track and clip lists for named item navigation.")
 	        .arg(m_session.tracks.size())
 	        .arg(m_first)
 	        .arg(m_end)
 	        .arg(m_cursor)
-	        .arg(m_track, m_region));
-	setAccessibleDescription(accessibleDescription() +
-	                         tr(" Edit targets: %3. Musical cursor %1; %2 BPM.")
-	                             .arg(audioMusicalPositionText(m_time.positionAtFrame(m_cursor)))
-	                             .arg(m_time.tempoAtFrame(m_cursor))
-	                             .arg(m_selection.size()));
-	setAccessibleDescription(accessibleDescription() +
-	                         tr(" Time range %1 to %2, end exclusive.").arg(m_rangeFirst).arg(m_rangeEnd));
-	QAccessibleEvent event(this, QAccessible::DescriptionChanged);
-	QAccessible::updateAccessibility(&event);
+	        .arg(m_track, m_region) +
+	    tr(" Edit targets: %3. Musical cursor %1; %2 BPM.")
+	        .arg(audioMusicalPositionText(m_time.positionAtFrame(m_cursor)))
+	        .arg(m_time.tempoAtFrame(m_cursor))
+	        .arg(m_selection.size()) +
+	    tr(" Time range %1 to %2, end exclusive.").arg(m_rangeFirst).arg(m_rangeEnd);
+	setAccessibleDescription(description);
 }
-void AudioSessionTimeline::paintEvent(QPaintEvent *)
+void AudioSessionTimeline::paintEvent(QPaintEvent *event)
 {
 	QPainter painter(this);
 	const auto colors = palette();
+	// The part being repainted, with room for a two-pixel pen. A moving cursor
+	// repaints two thin strips, so clips and waveform columns outside it are
+	// skipped: the painter would clip them away, but only after the work.
+	const QRectF dirty = QRectF(event->rect()).adjusted(-2, -2, 2, 2);
 	painter.fillRect(rect(), colors.base());
 	painter.setPen(colors.text().color());
 	const int left = labelWidth();
@@ -233,6 +274,11 @@ void AudioSessionTimeline::paintEvent(QPaintEvent *)
 				continue;
 			}
 			const bool selected = m_selection.contains(region.id);
+			// A dragged clip also draws its preview elsewhere; any other clip draws
+			// inside its box only.
+			if (!(m_dragging && selected) && !box.isEmpty() && !box.intersects(dirty)) {
+				continue;
+			}
 			painter.fillRect(box, selected ? colors.highlight() : colors.alternateBase());
 			painter.setPen(QPen(selected ? colors.highlightedText().color() : colors.text().color(), selected ? 2 : 1,
 			                    region.muted || track.muted ? Qt::DashLine : Qt::SolidLine));
@@ -241,8 +287,16 @@ void AudioSessionTimeline::paintEvent(QPaintEvent *)
 			if (wave != m_waveforms.cend() && wave->valid()) {
 				const double middle = box.center().y() + fontMetrics().height() / 2;
 				const double amplitude = std::max(1.0, (box.height() - fontMetrics().height() - 10) / 2);
-				for (int x = int(std::max(double(left), std::floor(box.left())));
-				     x < int(std::min(double(width()), std::ceil(box.right()))); x += 2) {
+				// Every second column carries a line. Start on the same columns as a
+				// full repaint would, at the first one that can reach the dirty part.
+				int x = int(std::max(double(left), std::floor(box.left())));
+				const int firstDirty = int(std::floor(dirty.left()));
+				if (firstDirty > x) {
+					x += (firstDirty - x) / 2 * 2;
+				}
+				const int columnsEnd =
+				    std::min(int(std::min(double(width()), std::ceil(box.right()))), int(std::ceil(dirty.right())));
+				for (; x < columnsEnd; x += 2) {
 					const qint64 first =
 					    region.sourceOffset + std::clamp<qint64>(frameAt(x) - region.position, 0, region.length - 1);
 					const qint64 end =

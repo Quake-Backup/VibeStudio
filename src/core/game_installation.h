@@ -80,6 +80,11 @@ QString defaultGameDirectory(const GameInstallationProfile& profile);
 
 QString normalizedGameKey(const QString& gameKey);
 QString normalizedInstallationPath(const QString& path, const QString& rootPath = QString());
+// Finds the file `relativePath` under `rootPath`, matching each component
+// without regard to case, so "id1/pak0.pak" finds "Id1/PAK0.PAK" on a
+// case-sensitive filesystem. Empty when a component is missing or the last one
+// is not a file.
+QString findInstallationFile(const QString& rootPath, const QString& relativePath);
 QString defaultGameInstallationDisplayName(const QString& rootPath, const QString& gameKey = QString(), const QString& preferredName = QString());
 QString stableGameInstallationId(const GameInstallationProfile& profile);
 GameInstallationProfile normalizedGameInstallationProfile(const GameInstallationProfile& profile);

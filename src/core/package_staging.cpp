@@ -29,6 +29,8 @@
 #include <algorithm>
 #include <functional>
 #include <limits>
+#include <mutex>
+#include <utility>
 
 namespace slopstudio {
 
@@ -2576,6 +2578,98 @@ bool PackageStagingModel::appendOccurrenceOperation(PackageStageOperation operat
 	return appendOperation(operation, error, control, mode);
 }
 
+namespace {
+
+// One pass over the plan for a batch of occurrence edits: the planned path of
+// the one file that carries each wanted source ordinal. An ordinal carried by
+// two planned files names no single occurrence and gets no path, which is how
+// a single occurrence edit treats it too.
+bool planOccurrencePaths(const QVector<PackageStagedEntry>& planEntries, const QSet<int>& wanted,
+	QHash<int, QString>* paths, QString* error, const PackageReadControl& control)
+{
+	QSet<int> ambiguous;
+	for (const auto& entry : planEntries) {
+		if (control.isCancelled && control.isCancelled()) {
+			if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Package content admission cancelled."); }
+			return false;
+		}
+		if (entry.kind != PackageEntryKind::File || entry.sourceOrdinal < 0 || !wanted.contains(entry.sourceOrdinal)) { continue; }
+		if (paths->contains(entry.sourceOrdinal)) { ambiguous.insert(entry.sourceOrdinal); }
+		else { paths->insert(entry.sourceOrdinal, entry.virtualPath); }
+	}
+	for (const int ordinal : std::as_const(ambiguous)) { paths->remove(ordinal); }
+	return true;
+}
+
+} // namespace
+
+bool PackageStagingModel::deleteOccurrences(const QVector<int>& sourceOrdinals, QString* error, PackageStageConflictResolution resolution, const PackageReadControl& control)
+{
+	if (error) { error->clear(); }
+	if (sourceOrdinals.isEmpty()) { return true; }
+	if (!preparePlan(error, control)) { return false; }
+	// Every append invalidates the plan, so resolve the whole batch first. A
+	// deletion removes only its own occurrence: each ordinal names the same
+	// file here as it would after the deletions before it, and one named twice
+	// is gone by its second turn.
+	const QSet<int> wanted(sourceOrdinals.cbegin(), sourceOrdinals.cend());
+	QHash<int, QString> paths;
+	if (m_loaded && !planOccurrencePaths(m_planEntries, wanted, &paths, error, control)) { return false; }
+	if (wanted.size() != sourceOrdinals.size() || paths.size() != wanted.size()) {
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "Select one existing source occurrence before editing it."); }
+		return false;
+	}
+	for (const int sourceOrdinal : sourceOrdinals) {
+		PackageStageOperation operation;
+		operation.type = PackageStageOperationType::Delete; operation.sourceOrdinal = sourceOrdinal;
+		operation.conflictResolution = resolution;
+		operation.virtualPath = paths.value(sourceOrdinal);
+		if (!appendOperation(operation, error, control)) { return false; }
+	}
+	return true;
+}
+
+bool PackageStagingModel::replaceOccurrences(QVector<PackageOccurrenceReplacement>* replacements, const PackageReadControl& control, PackageFileImportMode mode)
+{
+	if (!replacements || replacements->isEmpty()) { return true; }
+	QSet<int> wanted;
+	for (auto& replacement : *replacements) {
+		replacement.staged = false; replacement.error.clear();
+		wanted.insert(replacement.sourceOrdinal);
+	}
+	const auto refuseFrom = [&](qsizetype first, const QString& message) {
+		for (qsizetype at = first; at < replacements->size(); ++at) { (*replacements)[at].error = message; }
+		return false;
+	};
+	// A replacement keeps its occurrence's ordinal and path, so the paths the
+	// plan gives now still hold after the replacements before each one.
+	QString error;
+	QHash<int, QString> paths;
+	if (!preparePlan(&error, control) || (m_loaded && !planOccurrencePaths(m_planEntries, wanted, &paths, &error, control))) {
+		return refuseFrom(0, error);
+	}
+	bool all = true;
+	for (qsizetype at = 0; at < replacements->size(); ++at) {
+		auto& replacement = (*replacements)[at];
+		const auto path = paths.constFind(replacement.sourceOrdinal);
+		if (path == paths.constEnd()) {
+			replacement.error = QCoreApplication::translate("SlopStudioPackageStaging", "Select one existing source occurrence before editing it.");
+			all = false;
+			continue;
+		}
+		PackageStageOperation operation;
+		operation.type = PackageStageOperationType::Replace; operation.sourceOrdinal = replacement.sourceOrdinal;
+		operation.sourceFilePath = QFileInfo(replacement.sourceFilePath).absoluteFilePath();
+		operation.virtualPath = path.value();
+		replacement.staged = appendOperation(operation, &replacement.error, control, mode);
+		if (control.isCancelled && control.isCancelled()) {
+			return refuseFrom(replacement.staged ? at + 1 : at, QCoreApplication::translate("SlopStudioPackageStaging", "Package content admission cancelled."));
+		}
+		all = all && replacement.staged;
+	}
+	return all;
+}
+
 bool PackageStagingModel::clearOperation(const QString& operationId, QString* error, const PackageReadControl& control)
 {
 	if (error) { error->clear(); }
@@ -2765,7 +2859,7 @@ bool PackageStagingModel::exportManifest(const QString& outputPath, QString* err
 	QSaveFile file(outputPath);
 	if (!file.open(QIODevice::WriteOnly)) {
 		if (error) {
-			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to open package manifest for writing.");
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to open package manifest %1 for writing: %2").arg(QDir::toNativeSeparators(outputPath), file.errorString());
 		}
 		return false;
 	}
@@ -2773,13 +2867,13 @@ bool PackageStagingModel::exportManifest(const QString& outputPath, QString* err
 	if (json.isEmpty()) return false;
 	if (file.write(json) != json.size()) {
 		if (error) {
-			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to write package manifest.");
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to write package manifest %1: %2").arg(QDir::toNativeSeparators(outputPath), file.errorString());
 		}
 		return false;
 	}
 	if (!file.commit()) {
 		if (error) {
-			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to commit package manifest.");
+			*error = QCoreApplication::translate("SlopStudioPackageStaging", "Unable to commit package manifest %1: %2").arg(QDir::toNativeSeparators(outputPath), file.errorString());
 		}
 		return false;
 	}
@@ -2787,8 +2881,19 @@ bool PackageStagingModel::exportManifest(const QString& outputPath, QString* err
 }
 
 
+// The file rows of a planned snapshot by entry key, for reads by path. Built
+// once, by the first such read: a snapshot made only to admit an edit never
+// pays for it, and readers on other threads wait for the one build.
+struct PackageStagingPathIndex {
+	// The value for a key that two file rows share.
+	static constexpr qsizetype ambiguous = -1;
+	std::once_flag built;
+	QHash<QString, qsizetype> files;
+};
+
 PackageStagingArchive::PackageStagingArchive(const PackageStagingModel& staging, PackageStagingReadMode mode,
-	const PackageReadControl& control, const PackageIndexLimits& requested) : m_snapshot(staging)
+	const PackageReadControl& control, const PackageIndexLimits& requested)
+	: m_snapshot(staging), m_pathIndex(std::make_shared<PackageStagingPathIndex>())
 {
 	if (!validPackageIndexLimits(requested, &m_error) || !validPackageIndexLimits(staging.viewLimits(), &m_error)) { return; }
 	auto limits = staging.viewLimits();
@@ -2883,13 +2988,31 @@ PackageArchive packagePlannedArchive(const PackageStagingModel& staging, QString
 bool PackageStagingArchive::readEntryBytes(const QString& virtualPath, QByteArray* out, QString* error, qint64 maxBytes) const
 {
 	if (out) { out->clear(); } if (error) { error->clear(); }
-	const PackageStagedEntry* match = nullptr;
-	for (const auto& entry : m_entries) {
-		if (entry.kind == PackageEntryKind::File && entryKey(entry.virtualPath) == entryKey(virtualPath)) {
-			if (match) { if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "The staged path is ambiguous."); } return false; }
-			match = &entry;
-		}
+	// m_entries never changes after construction, so the index is built once
+	// and every later read by path is a lookup, not a scan that normalises and
+	// folds every row's path again.
+	if (!m_pathIndex) {
+		// Only a moved-from snapshot has no index, and it has no rows either.
+		if (error) { *error = (m_error.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "The staged file is unavailable.") : m_error); }
+		return false;
 	}
+	std::call_once(m_pathIndex->built, [this] {
+		auto& files = m_pathIndex->files;
+		for (qsizetype index = 0; index < m_entries.size(); ++index) {
+			if (m_entries.at(index).kind != PackageEntryKind::File) { continue; }
+			const QString key = entryKey(m_entries.at(index).virtualPath);
+			const auto found = files.find(key);
+			if (found == files.end()) { files.insert(key, index); }
+			else { found.value() = PackageStagingPathIndex::ambiguous; }
+		}
+	});
+	const auto found = m_pathIndex->files.constFind(entryKey(virtualPath));
+	const bool listed = found != m_pathIndex->files.constEnd();
+	if (listed && found.value() == PackageStagingPathIndex::ambiguous) {
+		if (error) { *error = QCoreApplication::translate("SlopStudioPackageStaging", "The staged path is ambiguous."); }
+		return false;
+	}
+	const PackageStagedEntry* match = listed ? &m_entries.at(found.value()) : nullptr;
 	if (!m_ready || !match) { if (error) { *error = (m_error.isEmpty() ? QCoreApplication::translate("SlopStudioPackageStaging", "The staged file is unavailable.") : m_error); } return false; }
 	return m_snapshot.entryBytes(*match, out, error, maxBytes);
 }

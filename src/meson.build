@@ -2772,6 +2772,11 @@ build_project_pipelines_smoke_test = executable('build_project_pipelines_smoke_t
   include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
 test('build-project-pipelines-smoke', build_project_pipelines_smoke_test, args: [slopstudio], timeout: 300)
 
+# How the command line reads its own arguments, through the real program.
+cli_arguments_smoke_test = executable('cli_arguments_smoke_test', ['tests/cli_arguments_smoke_test.cpp'],
+  include_directories: slopstudio_includes, dependencies: [slopstudio_core_dep], install: false)
+test('cli-arguments-smoke', cli_arguments_smoke_test, args: [slopstudio], timeout: 300)
+
 if qt6_test_dep.found()
   build_project_pipelines_ui_smoke_test = executable('build_project_pipelines_ui_smoke_test', ['tests/build_project_pipelines_ui_smoke_test.cpp'],
     include_directories: slopstudio_includes, dependencies: [slopstudio_app_dep, qt6_test_dep], install: false)

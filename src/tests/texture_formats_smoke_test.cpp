@@ -17,6 +17,7 @@
 #include <QTemporaryDir>
 #include <QtEndian>
 
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 
@@ -193,6 +194,48 @@ int main(int argc, char** argv)
 		const auto ddsImport = decodeExtraImage(IdTechImageFormat::Dds, dds.bytes, context);
 		ok &= expect(ddsImport.decoded && ddsImport.mipLevels.size() == 6 && ddsImport.mipLevels[2].size() == QSize(8, 8) &&
 			ddsImport.mipLevels[2].convertToFormat(QImage::Format_ARGB32) == dds.mipLevels[2] && ddsImport.warnings.isEmpty(), "DDS import keeps every stored mip level");
+		{
+			// The mip chain and its DDS bytes, level by level, against the plain
+			// per-texel average and encoding: an even square and an odd rectangle
+			// with partial alpha, whose last row and column are sampled twice.
+			QImage odd(7, 5, QImage::Format_ARGB32);
+			for (int y = 0; y < odd.height(); ++y) { for (int x = 0; x < odd.width(); ++x) { odd.setPixel(x, y, qRgba(x * 36, y * 60, (x * y * 11) % 256, (x + y) % 4 == 0 ? 0 : 40 + x * 30)); } }
+			for (const QImage& source : {document.image().convertToFormat(QImage::Format_ARGB32), odd}) {
+				QVector<QImage> chain{source};
+				while (chain.last().width() > 1 || chain.last().height() > 1) {
+					const QImage previous = chain.last();
+					QImage next(std::max(1, previous.width() / 2), std::max(1, previous.height() / 2), QImage::Format_ARGB32);
+					for (int y = 0; y < next.height(); ++y) {
+						for (int x = 0; x < next.width(); ++x) {
+							qint64 sum[4]{};
+							for (int dy = 0; dy < 2; ++dy) {
+								for (int dx = 0; dx < 2; ++dx) {
+									const QRgb pixel = previous.pixel(std::min(x * 2 + dx, previous.width() - 1), std::min(y * 2 + dy, previous.height() - 1));
+									sum[0] += qRed(pixel) * qAlpha(pixel); sum[1] += qGreen(pixel) * qAlpha(pixel); sum[2] += qBlue(pixel) * qAlpha(pixel); sum[3] += qAlpha(pixel);
+								}
+							}
+							const auto channel = [&](qint64 value) { return sum[3] ? int((value + sum[3] / 2) / sum[3]) : 0; };
+							next.setPixel(x, y, qRgba(channel(sum[0]), channel(sum[1]), channel(sum[2]), int((sum[3] + 2) / 4)));
+						}
+					}
+					chain << next;
+				}
+				QByteArray texels;
+				for (const QImage& level : chain) {
+					for (int y = 0; y < level.height(); ++y) {
+						for (int x = 0; x < level.width(); ++x) {
+							const QRgb pixel = level.pixel(x, y);
+							texels += char(qBlue(pixel)); texels += char(qGreen(pixel)); texels += char(qRed(pixel)); texels += char(qAlpha(pixel));
+						}
+					}
+				}
+				const auto built = textureRgbaMipChain(source);
+				const QByteArray encoded = encodeDdsMipmapped(built);
+				ok &= expect(built == chain, "each mip level is the alpha-weighted average of its four source texels");
+				ok &= expect(encoded.size() == 128 + texels.size() && encoded.mid(128) == texels && at32(encoded, 28) == quint32(chain.size()),
+					"the DDS stores every level as BGRA texels in order after its header");
+			}
+		}
 		ok &= expect(encodeRawTexturePalette(quake.palette.colors).size() == 768 && uchar(encodeRawTexturePalette(quake.palette.colors).at(5)) == qBlue(quake.palette.colorAt(1)), "raw palettes are 256 RGB triplets");
 	}
 

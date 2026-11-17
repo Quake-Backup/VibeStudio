@@ -231,6 +231,40 @@ int main(int argc, char** argv)
 	expect(!standalone.isHidden(child.kind,child.objectId) && standalone.displayDocument().brushes.size() == 2,"shown child survives hidden owner culling");
 	standalone.setFilteredObjects({{LevelMapSelectionKind::Entity,owner}});
 	expect(standalone.isHidden(child.kind,child.objectId) && standalone.displayDocument().brushes.size() == 1,"explicit filters still mask shown descendants");
+	// The view answers isHidden() from kinds and ids, kept beside the hidden
+	// names: a rubber band asks about every object on every pointer move. The
+	// answers are the ones the names give, also for a Doom entity, which is
+	// hidden as its thing.
+	const auto hiddenAsNamed = [&](MapViewport& view, const LevelMapDocument& map, const QVector<LevelMapSelectionRef>& objects) {
+		const auto named = levelMapHiddenObjects(map);
+		int hiddenCount = 0;
+		for (const auto& ref : objects) {
+			const bool hidden = named.contains(levelSceneCanonicalObject(map,levelMapSelectionRefId(ref)));
+			hiddenCount += hidden ? 1 : 0;
+			if (view.isHidden(ref.kind,ref.objectId) != hidden) { expect(false,"isHidden agrees with the hidden names",levelMapSelectionRefId(ref)); return -1; }
+		}
+		return hiddenCount;
+	};
+	{
+		standalone.setFilteredObjects({});
+		QVector<LevelMapSelectionRef> objects{{LevelMapSelectionKind::None,0},{LevelMapSelectionKind::QuakeBrush,9999},{LevelMapSelectionKind::DoomThing,0}};
+		for (const auto& entity : owned.entities) { objects.push_back({LevelMapSelectionKind::Entity,entity.id}); }
+		for (const auto& brush : owned.brushes) { objects.push_back({LevelMapSelectionKind::QuakeBrush,brush.id}); }
+		expect(hiddenAsNamed(standalone,owned,objects) >= 1,"what a hidden owner hides, by kind and id");
+		LevelMapDocument doom; LevelMapCreateRequest doomRequest; doomRequest.game = QStringLiteral("doom");
+		if (expect(createLevelMap(doomRequest,&doom,&error) && !doom.doomThings.isEmpty() && !doom.doomVertices.isEmpty(),"Doom visibility fixture",error)) {
+			const int thing = doom.doomThings.first().id;
+			doom.hiddenObjects = {levelMapSelectionRefId({LevelMapSelectionKind::DoomThing,thing}),levelMapSelectionRefId({LevelMapSelectionKind::DoomVertex,doom.doomVertices.first().id})};
+			MapViewport plan; plan.setDocument(doom);
+			QVector<LevelMapSelectionRef> doomObjects{{LevelMapSelectionKind::QuakeBrush,0}};
+			for (const auto& record : doom.doomThings) { doomObjects.push_back({LevelMapSelectionKind::DoomThing,record.id}); doomObjects.push_back({LevelMapSelectionKind::Entity,record.id}); }
+			for (const auto& record : doom.doomVertices) { doomObjects.push_back({LevelMapSelectionKind::DoomVertex,record.id}); }
+			for (const auto& record : doom.doomLinedefs) { doomObjects.push_back({LevelMapSelectionKind::DoomLinedef,record.id}); }
+			for (const auto& record : doom.doomSectors) { doomObjects.push_back({LevelMapSelectionKind::DoomSector,record.id}); }
+			expect(hiddenAsNamed(plan,doom,doomObjects) >= 2 && plan.isHidden(LevelMapSelectionKind::DoomThing,thing) && plan.isHidden(LevelMapSelectionKind::Entity,thing),
+				"a hidden Doom thing hides the entity that mirrors it");
+		}
+	}
 	LevelMapDocument dense; tests::createGeometryFixture(100000,&dense,&error); setLevelMapSelection(&dense,chosen);
 	LevelPlacementRequest request; request.operation = LevelPlacementOperation::Visibility; request.visibility = {LevelVisibilityOperation::Isolate,true};
 	for (int scale : {100,200}) {

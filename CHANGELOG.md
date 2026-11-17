@@ -258,6 +258,20 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Branding:** SlopStudio has its own look. The app icon is an orange tile with a charcoal S built on a level editor's grid and paint running off its bottom edge; the wordmark sets Slop in ExtraBold and Studio in SemiBold, with paint running off the o and a drop for the i's dot; installer art, the social preview and the documentation site swap the pixel accents for the editor grid and drips.
 - **Documentation:** Project status now says where things stand (no release or nightly build yet, CI failing, MVP criteria open) and lists what SlopStudio needs before it can be called alpha; the README, install and build pages say to build from source until a release exists.
 - **Branding:** The GitHub social preview shows the studio at work: beside the logo and workflows, a level editor's top view of an original map is mid-compile while orange paint pours over it.
+- **Build from source:** The VS Code default build task is now **SlopStudio: build app**: it compiles what changed and links only the studio and its catalogues (the new `slopstudio-app` target), leaving the several hundred test programs alone. **SlopStudio: build and validate** remains the full check.
+- **Command line:** `--timeout-ms 0` means no limit for `compiler run` and `build run`.
+- **Activity:** A task's log gains only its new lines while a compiler streams output, and the reader keeps their place and chosen section.
+- **Activity:** Routine map edits are recorded as completed rather than as warnings, the panel keeps the newest 200 finished tasks of a session, and recent activity is written to settings a moment after work pauses rather than on every edit.
+- **Workspace:** Open files are checked for outside changes by size and time and read only when those move, and compiler discovery is reused for a minute across the dashboard, problems, inspector and status chips.
+- **Code:** Files over about half a megabyte skip the live outline and built-in diagnostics, and the project index refreshes quietly after an edit; only a scan you ask for is listed in Activity.
+- **Packages:** Deleting or replacing many selected entries stages them in one pass, reading an entry by path is a lookup instead of a scan, and extraction checks each output path with fewer repeated filesystem walks; no safety check is removed.
+- **Projects and packages:** Manifest, PAK and WAD open and write errors name the file and the system's reason.
+- **Levels:** Selection changes on large maps do less work in command enablement, rubber-band selection and the Scene panel.
+- **Audio:** Sample-wise edits (gain, fades, reverse, invert and others) run faster with identical results.
+- **Textures:** With **Wrap painting** on, a stroke that leaves the canvas continues from the opposite edge even when **Tile Preview** is off.
+- **Textures:** **Stage Companion Maps** and **Export Companion Maps…** run in the background with progress and **Cancel Operation**; colour adjustments, Find Edges, export previews and mipmapped DDS export are faster with identical output.
+- **Rendering:** OpenGL uploads each texture level in one call instead of one call per row.
+- **AI:** An API key is no longer sent over plain `http://` to another machine; the request is refused and asks for an `https://` endpoint. Endpoints on this computer, and `http://` endpoints that need no key, work as before.
 
 ### Removed
 
@@ -349,6 +363,42 @@ release is cut; [docs/RELEASING.md](docs/RELEASING.md) explains how.
 - **Materials:** A changed image shows in the preview at once, the preview no longer shows the previous material while images load, two new scripts can no longer share a path, and a rename keeps the graph layout.
 - **Materials:** Doom walls and flats of the same name no longer shadow each other, ZDoom PK3 `textures/` walls and `#` liquids resolve, missing patches are listed, RoQ videos decode kept blocks as the game does, and Doom 3 built-in images are no longer listed as the material's images.
 - **Materials:** `material wal` no longer writes JSON into a `.wal` file, `material new` checks the template's engine against the output, rename and new-material names the game would split are refused, malformed edit files and unknown `--palette` or `--where` values are reported, and `material validate` reports an incomplete scan even when filtered.
+- **Build from source:** `scripts/meson_build.ps1` no longer configures a build folder again on every run, wipes it when a compiler look-up fails, or lets tasks with different warning options compile every file again; one run at a time uses a build folder, and a second waits.
+- **Command line:** `--settings-file` without a usable path now stops the studio and the command line with exit code 2 instead of using your own settings.
+- **Command line:** `build plan` and `build run` read `--disable-stage=`, `--stage-args=` and `--variable=`, keep quoted stage arguments whole, and refuse a value without `=`.
+- **Command line:** `--quiet` no longer hides a failing command's report; it goes to standard error.
+- **Command line:** Unusable values for `--timeout-ms`, `map render --width`, `--height`, `--grid` and `--highlight`, and out-of-range speech settings, are usage errors rather than silent defaults.
+- **Command line:** `build plan` exits with 3 when the plan has errors, and still prints the plan.
+- **Command line:** `package preview` and `asset inspect` exit alike in text and JSON, and the text error goes to standard error.
+- **Command line:** Switches such as `model stage --skins` no longer swallow the argument after them, and an option is never taken as the value of the option before it.
+- **Command line:** Near misses of `--dry-run`, `--overwrite`, `--json`, `--quiet`, `--verbose` and `--settings-file` are refused before anything runs; unknown options and commands are named, in JSON too.
+- **Windows:** `--settings-file` and `--open` paths outside the ANSI code page work, and the command line shows UTF-8 text in the console.
+- **Studio:** Logging off or shutting down asks about unsaved work and no longer makes the next start report a crash.
+- **Build:** A running build keeps its Running state in the Activity panel while its tools print output, stays cancellable, and a cancelled build ends as Cancelled.
+- **Build:** Closing SlopStudio while a compile or build is running asks first, stops the run, and closes once it has stopped.
+- **Build:** Compiles and builds started from the window, and Re-run Last Compile, are no longer stopped after five or ten minutes; they run until the tool finishes or you cancel.
+- **Build:** Run Selected Compiler Profile enables Cancel Running Task as soon as it starts.
+- **Build:** A healthy SlopMap2 bsp or light compile ends as completed instead of Warning with an unrelated upstream issue; a known issue that matches a real compiler warning is added as a note.
+- **Build:** SlopMap2's carriage-return progress no longer fills the log with every percent snapshot, and a warning printed mid-phase keeps its line number.
+- **Build:** Compiler problems name the right file when a path has a dotted folder or a `.cpp` or `.hpp` file, and a compiler that waits for input no longer hangs a run.
+- **Activity:** The summary and dates in the Activity panel, Recent Activity, Recent Projects and the inspectors follow the chosen language and region format, and waking the computer from sleep is no longer recorded as "Studio paused".
+- **Packages:** A ZIP or PK3 directory record written with a backslash lists as a folder, so Extract All no longer refuses the archive.
+- **Packages:** A text preview with 64 or more findings no longer adds a false "block opened here is never closed".
+- **Game installations:** A folder is offered as one game (a folder called Quake is no longer also offered as Quake II and Quake III), and base packages are found whatever the case of their names.
+- **Project search:** Open documents are searched when the project is reached through a linked folder.
+- **Levels:** Tab in a 2D view no longer stops dead while a group is open, and reaches the objects that lie between a closed group's members; a closed group is one stop.
+- **Levels:** A move, resize, shear, rubber band or brush being dragged in a 2D view is cancelled when the view loses the focus or its window, rather than following the pointer afterwards; a shear is also cancelled by a right-click, a change of view plane and undo.
+- **Levels:** Moving the focus through the Transform fields no longer nudges a selection whose centre or size lies on an odd eighth of a unit.
+- **Levels:** A map restored from a recovery checkpoint gets a checkpoint of its own at once.
+- **Audio:** A WAV that declares more than eight channels no longer hangs the preview; its format shows without a waveform.
+- **Audio and textures:** After a background operation the control that had keyboard focus has it again, so Space pauses what it started and the canvas keys and Ctrl+Z work without a click.
+- **Audio:** Session playback no longer repaints the whole timeline or re-announces its description twenty times a second; the editor's playhead repaints only its own strip.
+- **Textures:** A brush stroke dragged off the canvas no longer paints a line along its edge, a pen stroke's first stamp follows pen pressure, and a refused paste gives its actual reason.
+- **Rendering:** A Vulkan frame that is cancelled or fails part-way no longer leaves empty textures and buffers in the cache, and a view drawing while its renderer is stopped gets an error instead of waiting for ever.
+- **Releases:** A package file name or game folder that is not a single name blocks publishing, and nothing a release writes can land outside its output folder.
+- **AI:** Context redaction covers paths written with doubled backslashes or mixed separators, network shares in any case, and more key shapes; approval remembered for a Custom Command covers that exact command line; saving a workflow manifest reports a failed write; and `ai status` no longer calls a blank credential configured.
+- **Code:** The editor's problems list and count no longer flag a comment that says WARNING or ERROR, or a long line; those remarks stay in package previews. A file with too many findings to check says where the check stopped instead of reporting a block that is never closed.
+- **Models:** Transfer Skin from a skin without a palette no longer stops a debug build with an assertion.
 
 ### Security
 

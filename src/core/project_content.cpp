@@ -325,7 +325,13 @@ bool ProjectContentReader::streamEntryAt(qsizetype index, const std::function<bo
 		}
 		remaining -= chunk.size();
 		if (!sink(QByteArrayView(chunk))) {
-			if (error) { *error = QCoreApplication::translate("SlopStudioProjectContent", "Reading was cancelled."); }
+			// The sink also stops a read it cannot take, such as a write to a
+			// full disk. Only a caller that asked to stop was cancelled.
+			if (error) {
+				*error = isCancelled && isCancelled()
+					? QCoreApplication::translate("SlopStudioProjectContent", "Reading was cancelled.")
+					: QCoreApplication::translate("SlopStudioProjectContent", "Reading %1 stopped: the destination did not accept the data.").arg(QDir::toNativeSeparators(m_paths[index]));
+			}
 			return false;
 		}
 	}

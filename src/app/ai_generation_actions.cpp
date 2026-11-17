@@ -173,7 +173,16 @@ bool ApplicationShell::confirmGenerationSend(const QString& connectorId, const Q
 	const QString& explanationText)
 {
 	const QString host = generationDestination(connectorId, endpoint);
-	const QString destination = QStringLiteral("%1@%2").arg(connectorId, host);
+	// The key approval is remembered under: for a custom command it names the
+	// exact command line, so another script run by the same program asks again.
+	QString destination = QStringLiteral("%1@%2").arg(connectorId, host);
+	if (aiTextTransport(connectorId) == AiTextTransport::Harness) {
+		AiTextConnection target;
+		target.connectorId = connectorId;
+		target.endpoint = endpoint;
+		target.program = aiHarnessProgram(connectorId, endpoint);
+		destination = aiTextConnectionConsentKey(target);
+	}
 	if (m_settings.aiContextConsentGiven(m_settings.currentProjectPath(), destination)) {
 		return true;
 	}
@@ -309,7 +318,7 @@ void ApplicationShell::showTextureGenerator()
 				return false;
 			}
 			rememberLevelMaterial(name);
-			recordActivity(tr("Level map texture applied"), name, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+			recordActivity(tr("Level map texture applied"), name, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 			refreshLevelMapWorkbench();
 			return true;
 		};
@@ -365,7 +374,7 @@ void ApplicationShell::showLevelAiEditor()
 			const LevelAiEditApplyReport report = applyLevelAiEditProposal(&m_levelMapDocument, proposal);
 			if (report.applied > 0) {
 				recordActivity(tr("AI map edits applied"), tr("%n edit(s) to %1", nullptr, report.applied).arg(m_levelMapDocument.mapName), QStringLiteral("level-map"),
-					OperationState::Warning, tr("Unsaved map edit"));
+					OperationState::Completed, tr("Unsaved map edit"));
 				refreshLevelMapWorkbench();
 			}
 			return report;

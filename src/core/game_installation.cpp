@@ -55,7 +55,7 @@ QStringList normalizedPathList(const QStringList& paths, const QString& rootPath
 
 bool pathExistsUnderRoot(const QString& rootPath, const QString& relativePath)
 {
-	return QFileInfo::exists(QDir(rootPath).filePath(relativePath));
+	return !findInstallationFile(rootPath, relativePath).isEmpty();
 }
 
 struct GameDetectionHint {
@@ -142,6 +142,7 @@ QVector<GameDetectionHint> gameDetectionHints()
 		{
 			QStringLiteral("quake3"),
 			{
+				QStringLiteral("Quake 3"),
 				QStringLiteral("Quake 3 Arena"),
 				QStringLiteral("Quake III Arena"),
 				QStringLiteral("Quake III"),
@@ -174,10 +175,12 @@ QStringList uniqueNormalizedPaths(const QStringList& paths)
 QStringList existingChildPaths(const QString& rootPath, const QStringList& relativePaths)
 {
 	QStringList paths;
-	const QDir root(rootPath);
 	for (const QString& relativePath : relativePaths) {
-		const QString absolutePath = QDir::cleanPath(root.filePath(relativePath));
-		if (QFileInfo::exists(absolutePath)) {
+		// The definitions name packages in lower case ("id1/pak0.pak"); an
+		// install copied from DOS media keeps "ID1/PAK0.PAK", which a plain
+		// existence test misses on a case-sensitive filesystem.
+		const QString absolutePath = findInstallationFile(rootPath, relativePath);
+		if (!absolutePath.isEmpty()) {
 			paths.push_back(absolutePath);
 		}
 	}
@@ -221,19 +224,33 @@ QString findExecutablePath(const QString& rootPath, const QStringList& executabl
 	return {};
 }
 
-bool folderNameMatchesHint(const QString& folderName, const GameDetectionHint& hint)
+// How well a folder name fits a game's hints: 0 for no fit, more for a closer
+// one. A name that is a hint beats a name that only contains one, and a longer
+// contained hint beats a shorter one, so "Quake III Arena", which also contains
+// "quake" and "quake-ii", reads as Quake III. The test runs one way only: a
+// hint that merely contains the folder name is no fit, or a folder called
+// "Quake" would be Quake II and Quake III as well.
+int folderNameMatchStrength(const QString& folderName, const GameDetectionHint& hint)
 {
+	constexpr int ExactMatch = 1 << 20;
 	const QString normalizedFolder = normalizedId(folderName);
 	if (normalizedFolder.isEmpty()) {
-		return false;
+		return 0;
 	}
+	if (normalizedFolder == normalizedId(hint.gameKey)) {
+		return ExactMatch;
+	}
+	int strength = 0;
 	for (const QString& name : hint.folderNames) {
 		const QString normalizedName = normalizedId(name);
-		if (normalizedFolder == normalizedName || normalizedFolder.contains(normalizedName) || normalizedName.contains(normalizedFolder)) {
-			return true;
+		if (normalizedFolder == normalizedName) {
+			return ExactMatch;
+		}
+		if (normalizedFolder.contains(normalizedName)) {
+			strength = std::max(strength, static_cast<int>(normalizedName.size()));
 		}
 	}
-	return normalizedFolder == normalizedId(hint.gameKey);
+	return strength;
 }
 
 QVector<GameInstallationDetectionCandidate> candidatesForDirectory(const QString& rootPath, const QString& sourceId, const QString& sourceName)
@@ -244,13 +261,43 @@ QVector<GameInstallationDetectionCandidate> candidatesForDirectory(const QString
 		return candidates;
 	}
 
+	struct HintMatch {
+		GameDetectionHint hint;
+		GameDefinition definition;
+		int nameStrength = 0;
+		QStringList packages;
+	};
+	QVector<HintMatch> matches;
+	bool anyPackages = false;
+	int strongestNameOnly = 0;
 	for (const GameDetectionHint& hint : gameDetectionHints()) {
-		const GameDefinition definition = gameDefinitionForKey(hint.gameKey);
-		const bool folderMatch = folderNameMatchesHint(rootInfo.fileName(), hint);
-		const QStringList packages = existingChildPaths(rootInfo.absoluteFilePath(), definition.expectedBasePackages);
-		if (!folderMatch && packages.isEmpty()) {
+		HintMatch match;
+		match.definition = gameDefinitionForKey(hint.gameKey);
+		match.nameStrength = folderNameMatchStrength(rootInfo.fileName(), hint);
+		match.packages = existingChildPaths(rootInfo.absoluteFilePath(), match.definition.expectedBasePackages);
+		if (match.nameStrength == 0 && match.packages.isEmpty()) {
 			continue;
 		}
+		match.hint = hint;
+		if (match.packages.isEmpty()) {
+			strongestNameOnly = std::max(strongestNameOnly, match.nameStrength);
+		} else {
+			anyPackages = true;
+		}
+		matches.push_back(match);
+	}
+
+	for (const HintMatch& match : matches) {
+		// A folder name alone is a guess. Once another game's packages are in
+		// the folder the guess is wrong, and among guesses only the closest
+		// name stands: one folder must not be offered as several games.
+		if (match.packages.isEmpty() && (anyPackages || match.nameStrength < strongestNameOnly)) {
+			continue;
+		}
+		const GameDetectionHint& hint = match.hint;
+		const GameDefinition& definition = match.definition;
+		const bool folderMatch = match.nameStrength > 0;
+		const QStringList& packages = match.packages;
 
 		GameInstallationProfile profile;
 		profile.rootPath = rootInfo.absoluteFilePath();
@@ -552,6 +599,38 @@ QString normalizedInstallationPath(const QString& path, const QString& rootPath)
 		? info.absoluteFilePath()
 		: (rootPath.trimmed().isEmpty() ? QDir::current().absoluteFilePath(trimmed) : QDir(rootPath).absoluteFilePath(trimmed));
 	return QDir::cleanPath(absolutePath);
+}
+
+QString findInstallationFile(const QString& rootPath, const QString& relativePath)
+{
+	QString current = QDir::cleanPath(rootPath);
+	const QStringList parts = QDir::cleanPath(relativePath).split(QLatin1Char('/'), Qt::SkipEmptyParts);
+	if (current.isEmpty() || parts.isEmpty()) {
+		return {};
+	}
+	for (qsizetype i = 0; i < parts.size(); ++i) {
+		const QString& part = parts[i];
+		const bool last = i == parts.size() - 1;
+		const QString direct = QDir(current).filePath(part);
+		const QFileInfo directInfo(direct);
+		if (directInfo.exists() && (last ? directInfo.isFile() : directInfo.isDir())) {
+			current = direct;
+			continue;
+		}
+		const QDir::Filters filters = (last ? QDir::Files : QDir::Dirs) | QDir::NoDotAndDotDot | QDir::Hidden;
+		QString found;
+		for (const QFileInfo& child : QDir(current).entryInfoList(filters)) {
+			if (child.fileName().compare(part, Qt::CaseInsensitive) == 0) {
+				found = child.absoluteFilePath();
+				break;
+			}
+		}
+		if (found.isEmpty()) {
+			return {};
+		}
+		current = found;
+	}
+	return QFileInfo(current).absoluteFilePath();
 }
 
 QString defaultGameInstallationDisplayName(const QString& rootPath, const QString& gameKey, const QString& preferredName)

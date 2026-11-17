@@ -280,6 +280,12 @@ Current implementation:
   (see [Status](#status)); retained reports are not proof of a reproduced fork defect.
   Warnings are scoped by profile/tool, include the issue IDs and suggested
   local actions, and are also kept in the manifest `knownIssueWarnings` field.
+  After a run the catalogue is matched against the run's diagnostic lines only,
+  never the whole output: the tools print catalogue words on every healthy run
+  (`clipnodes` and `marksurfaces` in qbsp's lump table, `skip faces` and
+  `built-in palette` from light). A match is context for a warning or error the
+  compiler already printed, so it is recorded as a note in `knownIssueNotes`
+  and never changes how the run ended.
 - `src/core/quake_map_preflight.*` performs conservative Quake `.map`
   preflight checks for SlopMap2 profiles. It reports path privacy, long
   values, escape sequences, external-map/prefab hazards, light-group conflicts,
@@ -292,7 +298,8 @@ Current implementation:
 - `src/core/compiler_runner.*` executes compiler profiles through `QProcess`,
   streams stdout/stderr line by line while the process runs, parses diagnostics
   incrementally, links them to file paths and line numbers where present,
-  supports timeout and cancellation callbacks, surfaces plan/preflight warnings
+  supports a time limit (zero or less means none) and cancellation callbacks,
+  closes the tool's input so a prompt cannot hang a run, surfaces plan/preflight warnings
   before launch, refuses missing working directories, applies isolated `TMP`,
   `TEMP`, and `TMPDIR` paths to compiler processes, detects leaks, validates
   produced artifacts, saves manifests, and registers produced outputs.
@@ -432,7 +439,16 @@ entry as it arrives - `stderr` lines are prefixed `[stderr]` - so `--watch`, the
 activity center, and the pipeline log all show progress while the compiler is
 still running rather than after it exits. Any trailing partial line is flushed
 once the process finishes. Cancellation and the timeout are checked on the same
-loop and kill the process.
+loop and kill the process. A timeout of zero or less (`CompilerRunRequest::timeoutMs`,
+`BuildPipelineRequest::stageTimeoutMs`) means no limit; runs started from the
+window use that, because they can be cancelled and a full vis or light pass can
+take hours.
+
+SlopMap2 redraws its progress with a carriage return and no line feed
+(`[ 42%]  est: 00:00:03\r`, `src/common/log.cc`), so a message printed
+mid-phase arrives behind every snapshot drawn before it. A line is logged and
+parsed as a terminal would show it: only the text after its last carriage
+return. The captured stdout and stderr keep the bytes as they came.
 
 ### Diagnostic Parsing
 `CompilerDiagnosticParser` consumes one line at a time and keeps per-channel
@@ -451,7 +467,9 @@ state, which is what makes the two-line error form work:
   no file name; the line number is still captured.
 - **Generic fallback.** Otherwise a `path[:line[:column]]` pattern is tried,
   restricted to a fixed extension list so ordinary prose is not mistaken for a
-  path.
+  path. The extension has to end the name, so `C:/Users/john.clark/maps/e1m1.map:120`,
+  `mathlib.cpp:44` and `textures/base.wall/metal.tga` are read whole instead of
+  stopping at `.c` or `.wal`.
 - **Status lines are not diagnostics.** `0 errors`, `no warnings`, and
   `Error count: 0` are recognised as summaries and ignored, so a clean compile
   does not report itself as failing.

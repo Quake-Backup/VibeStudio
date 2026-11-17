@@ -176,6 +176,42 @@ int main(int argc, char** argv)
 	ok &= expect(setLevelMapSelection(&document, copyMembers, &error) && moveLevelMapSelection(&document, 0, 64, 0, &error), "move the copy", error);
 	ok &= expect(near(originalBrush()->mins.y, 0) && copyBrush() && near(copyBrush()->mins.y, 64),
 		"a whole copy moved leaves the original where it was");
+
+	// What the selection holds whole and which linked groups it reaches, asked
+	// with a selection context the caller already has and without one: the
+	// Levels page asks both after every selection change.
+	{
+		const auto refsOf = [&](const QString& nodeId) {
+			QVector<LevelMapSelectionRef> refs;
+			for (const QString& member : node(document, nodeId)->objects) {
+				refs.push_back({levelMapSelectionKindFromId(member.section(QLatin1Char(':'), 0, 0)), member.section(QLatin1Char(':'), 1).toInt()});
+			}
+			return refs;
+		};
+		LevelMapDocument probe = document;
+		const auto agree = [&](const QStringList& whole, const QStringList& reached, const char* label) {
+			const LevelSceneSelectionContext context = levelSceneSelectionContext(probe);
+			const QStringList held = levelSelectedSceneGroups(probe);
+			const QStringList linked = levelLinkedGroupsOfSelection(probe);
+			return expect(held == whole && linked == reached && levelSelectedSceneGroups(probe, context) == held
+					&& levelLinkedGroupsOfSelection(probe, context) == linked,
+				label, held.join(QLatin1Char(',')) + QStringLiteral(" / ") + linked.join(QLatin1Char(',')));
+		};
+		ok &= expect(setLevelMapSelection(&probe, refsOf(copy), &error), "select the copy", error);
+		ok &= agree({copy}, {copy}, "a closed linked group selected whole is held and reached");
+		ok &= expect(setLevelMapSelection(&probe, refsOf(group) + refsOf(copy), &error), "select both", error);
+		ok &= agree({group, copy}, {group, copy}, "both copies, in scene order");
+		ok &= expect(setLevelMapSelection(&probe, {{LevelMapSelectionKind::QuakeBrush, floor}}, &error), "select the floor", error);
+		ok &= agree({}, {}, "an object outside every group holds and reaches none");
+		setLevelMapSelection(&probe, {});
+		ok &= agree({}, {}, "nothing selected holds and reaches none");
+		// Inside the open group its own brush reaches it, and is not a group
+		// held whole.
+		ok &= expect(openLevelSceneGroup(&probe, group, &error)
+				&& setLevelMapSelection(&probe, {{LevelMapSelectionKind::QuakeBrush, idOf(node(probe, group)->objects, QStringLiteral("brush"))}}, &error),
+			"open the group and select its brush", error);
+		ok &= agree({}, {group}, "an object of the open linked group reaches it");
+	}
 	ok &= expect(setLevelMapEntityProperty(&document, originalEntity()->id, QStringLiteral("light"), QStringLiteral("300"), &error), "light level", error);
 	ok &= expect(property(copyEntity(), QStringLiteral("light")) == QStringLiteral("300") && copyBrush() && near(copyBrush()->mins.y, 64)
 			&& near(copyBrush()->mins.x, 128),

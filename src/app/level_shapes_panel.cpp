@@ -551,7 +551,7 @@ bool ApplicationShell::addLevelShapeFromUi(const LevelMapVec3& mins, const Level
 	const bool patch = levelShapeIsPatch(request.shape);
 	recordActivity(drawn ? tr("Level map shape drawn") : tr("Level map shape added"),
 		QStringLiteral("%1 %2:%3").arg(request.shape, patch ? QStringLiteral("patch") : QStringLiteral("brush")).arg(added.value(0)), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(patch ? tr("%1 added: one patch in %2, selected.").arg(label, request.texture)
 								   : tr("%1 added: %n brush(es) in %2, selected.", nullptr, static_cast<int>(added.size())).arg(label, request.texture),
@@ -602,7 +602,7 @@ void ApplicationShell::replaceLevelSelectionWithShape()
 		}
 		rememberLevelMaterial(request.texture);
 		recordActivity(tr("Selection replaced with a patch shape"), QStringLiteral("%1 patch:%2").arg(request.shape).arg(patchId), QStringLiteral("level-map"),
-			OperationState::Warning, tr("Unsaved map edit"));
+			OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		const int count = static_cast<int>(taken.size());
 		statusBar()->showMessage(tr("Replaced %n brush(es) and patch(es) with the %1.", nullptr, count).arg(levelShapeLabel(request.shape)), 5000);
@@ -627,7 +627,7 @@ void ApplicationShell::replaceLevelSelectionWithShape()
 	}
 	rememberLevelMaterial(request.texture);
 	recordActivity(tr("Brushes replaced with a shape"), QStringLiteral("%1 brush:%2").arg(request.shape).arg(added.value(0)), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Replaced %n brush(es) with the %1.", nullptr, static_cast<int>(brushes.size())).arg(levelShapeLabel(request.shape)), 5000);
 }

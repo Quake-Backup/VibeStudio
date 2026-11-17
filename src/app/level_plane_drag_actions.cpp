@@ -165,7 +165,7 @@ void ApplicationShell::applyLevelPlaneDragFromView(const LevelPlaneDragRequest& 
 		}
 		break;
 	}
-	recordActivity(activity, tr("%n brush(es)", nullptr, report.brushes), QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(activity, tr("%n brush(es)", nullptr, report.brushes), QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	refreshLevelObjectGizmos();
 	refreshLevelCameraResize();
@@ -196,7 +196,7 @@ void ApplicationShell::buildLevelCloneChainFromView(const LevelMapVec3& step, in
 	// One array, one undo step; Repeat Last Commands lays the same chain on.
 	recordLevelCloneChainRepeat(&m_levelMapDocument, step, copies);
 	const QString offset = tr("%1, %2, %3").arg(step.x).arg(step.y).arg(step.z);
-	recordActivity(tr("Level map chain built"), offset, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map chain built"), offset, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	refreshCommandEnablement();
 	statusBar()->showMessage(tr("Laid %n copy(ies) of the selection end to end, each %1 from the last; the last copy is selected. Repeat Last "

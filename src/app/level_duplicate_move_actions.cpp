@@ -187,7 +187,7 @@ void ApplicationShell::duplicateMoveLevelSelectionFromUi(const QString& commandI
 	}
 	const int count = static_cast<int>(m_levelMapDocument.selection.size());
 	const QString offset = tr("%1, %2, %3").arg(delta.x).arg(delta.y).arg(delta.z);
-	recordActivity(tr("Level map objects duplicated and moved"), offset, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map objects duplicated and moved"), offset, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Copied %n object(s) and moved the copies by %1; the copies are selected.", nullptr, count).arg(offset));
 }
@@ -253,7 +253,7 @@ void ApplicationShell::moveLevelSelectionToCameraFromUi()
 	const LevelMapVec3 offset = result.pasteOffset;
 	const int count = static_cast<int>(m_levelMapDocument.selection.size());
 	recordActivity(tr("Level map selection moved to the camera"), tr("%1, %2, %3").arg(offset.x).arg(offset.y).arg(offset.z),
-		QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+		QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Moved %n object(s) by %1, %2, %3 to centre them on the camera.", nullptr, count)
 		.arg(offset.x).arg(offset.y).arg(offset.z));
@@ -293,7 +293,7 @@ void ApplicationShell::repeatLevelMapTransformsFromUi()
 	}
 	const int count = static_cast<int>(m_levelMapDocument.selection.size());
 	const LevelMapVec3 pivot = result.repeatPivot;
-	recordActivity(tr("Level map transforms repeated"), applied, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map transforms repeated"), applied, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Copied %n object(s) and repeated %1 about %2, %3, %4 as one undo step.", nullptr, count)
 		.arg(applied).arg(pivot.x).arg(pivot.y).arg(pivot.z), 7000);

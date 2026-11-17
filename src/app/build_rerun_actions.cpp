@@ -287,6 +287,9 @@ void ApplicationShell::rerunLastCompile()
 	CompilerManifestRerunRequest rerun;
 	rerun.manifestPath = newCompilerRunManifestPath(root, match.manifest.profileId);
 	rerun.registerOutputs = true;
+	// No time limit: the run shows in Activity with Cancel, and a full compile
+	// can take far longer than any limit worth guessing.
+	rerun.timeoutMs = 0;
 	noteBuildRunStarted(QStringLiteral("profile"), match.manifest.profileId, false, mapPath);
 
 	m_compilerRunCancelRequested.store(false);
@@ -307,9 +310,7 @@ void ApplicationShell::rerunLastCompile()
 		callbacks.logEntry = [this, taskId](const CompilerTaskLogEntry& entry) {
 			QMetaObject::invokeMethod(this, [this, taskId, entry]() {
 				m_activity.appendLog(taskId, OperationState::Running, entry.message);
-				if (selectedActivityTaskId() == taskId) {
-					refreshActivityDetails(taskId);
-				}
+				scheduleActivityDetailsRefresh(taskId);
 			}, Qt::QueuedConnection);
 		};
 		const CompilerRunResult result = rerunCompilerCommandManifest(manifest, rerun, callbacks);

@@ -1,4 +1,5 @@
 #include "core/game_installation.h"
+#include "core/project_content.h"
 #include "core/project_manifest.h"
 
 #include <QDir>
@@ -202,6 +203,65 @@ int main()
 	slopstudio::ProjectManifest missing = slopstudio::defaultProjectManifest(root.filePath(QStringLiteral("missing")));
 	if (slopstudio::saveProjectManifest(missing, &error)) {
 		return fail("Expected missing project root save to fail.");
+	}
+
+	// A manifest that cannot be opened or written says which file, and why. A
+	// folder where the manifest file belongs exists but is no file to open or
+	// to replace.
+	{
+		const QString blockedRoot = root.filePath(QStringLiteral("blocked project"));
+		if (!QDir().mkpath(QDir(blockedRoot).filePath(QStringLiteral(".slopstudio/project.json")))) {
+			return fail("Expected a folder in the manifest's place.");
+		}
+		const QString blockedPath = QDir::toNativeSeparators(slopstudio::projectManifestPath(blockedRoot));
+		slopstudio::ProjectManifest blocked;
+		if (slopstudio::loadProjectManifest(blockedRoot, &blocked, &error) || !error.contains(blockedPath) || error.endsWith(QStringLiteral(": "))) {
+			std::cerr << qUtf8Printable(error) << "\n";
+			return fail("Expected a manifest that cannot be opened to name its path and the reason.");
+		}
+		blocked = slopstudio::defaultProjectManifest(blockedRoot, QStringLiteral("Blocked"));
+		if (slopstudio::saveProjectManifest(blocked, &error) || !error.contains(blockedPath) || error.endsWith(QStringLiteral(": "))) {
+			std::cerr << qUtf8Printable(error) << "\n";
+			return fail("Expected a manifest that cannot be written to name its path and the reason.");
+		}
+	}
+
+	// A project file's reader tells a caller that asked to stop from a
+	// destination that would not take the data, such as a full disk.
+	{
+		const QString contentRoot = root.filePath(QStringLiteral("content"));
+		const QString notesPath = QDir(contentRoot).filePath(QStringLiteral("notes.txt"));
+		QFile notes(notesPath);
+		if (!QDir().mkpath(contentRoot) || !notes.open(QIODevice::WriteOnly) || notes.write("project notes\n") <= 0) {
+			return fail("Expected a project content fixture.");
+		}
+		notes.close();
+		slopstudio::ProjectContentRoot contentLayer;
+		contentLayer.path = contentRoot;
+		contentLayer.layerId = QStringLiteral("project");
+		slopstudio::ProjectContentReader reader;
+		if (!reader.load({contentLayer}, &error) || reader.indexOf(QStringLiteral("notes.txt")) < 0) {
+			return fail("Expected the project content fixture to list.");
+		}
+		const qsizetype notesIndex = reader.indexOf(QStringLiteral("notes.txt"));
+		QString refusedError;
+		if (reader.streamEntryAt(notesIndex, [](QByteArrayView) { return false; }, &refusedError, [] { return false; })
+			|| !refusedError.contains(QDir::toNativeSeparators(notesPath)) || refusedError.contains(QStringLiteral("cancelled"))) {
+			std::cerr << qUtf8Printable(refusedError) << "\n";
+			return fail("Expected a refused write to be reported with its file, not as a cancellation.");
+		}
+		bool stop = false;
+		QString cancelledError;
+		if (reader.streamEntryAt(notesIndex, [&stop](QByteArrayView) { stop = true; return false; }, &cancelledError, [&stop] { return stop; })
+			|| !cancelledError.contains(QStringLiteral("cancelled"))) {
+			std::cerr << qUtf8Printable(cancelledError) << "\n";
+			return fail("Expected a read its caller stopped to be reported as cancelled.");
+		}
+		QByteArray streamed;
+		if (!reader.streamEntryAt(notesIndex, [&streamed](QByteArrayView chunk) { streamed.append(chunk.data(), chunk.size()); return true; }, &error)
+			|| streamed != QByteArray("project notes\n")) {
+			return fail("Expected an accepted read to deliver the file.");
+		}
 	}
 
 	return EXIT_SUCCESS;

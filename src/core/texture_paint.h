@@ -42,6 +42,10 @@ QRect texturePixelBounds(QPoint first, QPoint last);
 // Internal raster services. Destination is ARGB32; source is the immutable
 // gesture-start layer. Blend-over is evaluated once per covered pixel against
 // that source, so overlapping stamps never multiply a gesture's opacity.
+// A segment's endpoints may lie anywhere in the three-by-three repeat even
+// without wrapping (an interactive stroke that has left the canvas); only the
+// part inside `clip` is painted. A shape's endpoints must satisfy
+// validTexturePaintPoint for the brush.
 bool paintTextureSegment(QImage* pixels, const QImage& source, QPoint from, QPoint to,
 	QRgb color, const TextureBrush& brush, QRect clip, const TextureProgress& progress = {});
 bool paintTextureShape(QImage* pixels, const QImage& source, TextureShape shape, QPoint from, QPoint to,

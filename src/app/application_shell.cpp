@@ -237,6 +237,16 @@ namespace {
 // Defined with the command helpers further down.
 QString modeCommandId(StudioMode mode);
 
+// Finished tasks the Activity panel keeps; older ones leave a long session's
+// list (unfinished tasks always stay).
+constexpr int kMaximumActivityPanelTasks = 200;
+// On a Recent Projects row: the folder was missing when the list was built.
+constexpr int kRecentProjectMissingRole = Qt::UserRole + 20;
+// Above this many characters the Code page's live outline and diagnostics
+// stand down, as folding does (kFoldCharacterLimit in code_editor.cpp): both
+// run over the whole document on the interface thread after each typing pause.
+constexpr qsizetype kLiveCodeAnalysisCharacterLimit = 512 * 1024;
+
 QString nativePath(const QString& path)
 {
 	return QDir::toNativeSeparators(path);
@@ -853,16 +863,22 @@ QString compilerCliEquivalent(const CompilerCommandRequest& request)
 	return parts.join(' ');
 }
 
-CompilerRegistryOptions compilerRegistryOptionsForProject(const QString& projectPath, const StudioSettings& settings)
+// `loadedManifest` is the project's manifest when the caller has just read it
+// (null reads it here; a project without one passes nothing either way).
+CompilerRegistryOptions compilerRegistryOptionsForProject(const QString& projectPath, const StudioSettings& settings, const ProjectManifest* loadedManifest = nullptr)
 {
 	CompilerRegistryOptions options;
 	options.workspaceRootPath = projectPath;
 	options.executableOverrides = settings.compilerToolPathOverrides();
 	options.probeVersions = false;
-	ProjectManifest manifest;
-	if (!projectPath.trimmed().isEmpty() && loadProjectManifest(projectPath, &manifest)) {
-		options.extraSearchPaths = effectiveProjectCompilerSearchPaths(manifest, options.extraSearchPaths);
-		options.executableOverrides = effectiveProjectCompilerToolOverrides(manifest, options.executableOverrides);
+	ProjectManifest read;
+	const ProjectManifest* manifest = loadedManifest;
+	if (!manifest && !projectPath.trimmed().isEmpty() && loadProjectManifest(projectPath, &read)) {
+		manifest = &read;
+	}
+	if (manifest) {
+		options.extraSearchPaths = effectiveProjectCompilerSearchPaths(*manifest, options.extraSearchPaths);
+		options.executableOverrides = effectiveProjectCompilerToolOverrides(*manifest, options.executableOverrides);
 	}
 	return options;
 }
@@ -1048,6 +1064,8 @@ ApplicationShell::~ApplicationShell()
 		m_gitStatusProcess->kill();
 		m_gitStatusProcess->waitForFinished(1000);
 	}
+	// Tasks finished in the last moments are still waiting to be written.
+	flushRecentActivity();
 	saveShellState();
 	m_settings.sync();
 }
@@ -1859,8 +1877,10 @@ void ApplicationShell::buildUi()
 
 	reportStartupStage(tr("Reading the workspace"));
 	seedActivityCenter();
+	// The dashboard ends by refreshing the context panels (problems, search,
+	// changed files, dependency graph, recent activity) itself; asking again
+	// here killed the Git status it had just started and waited for it to die.
 	refreshWorkspaceDashboard();
-	refreshWorkspaceContextPanels();
 	timing.mark("workspaceData");
 	reportStartupStage(tr("Reading setup and game installations"));
 	refreshSetupPanel();
@@ -1880,9 +1900,13 @@ void ApplicationShell::buildUi()
 	reportStartupStage(tr("Preparing the editors"));
 
 	// External change detection. One second is well under the time it takes a
-	// user to notice a file changed behind their back, and poll() only reads
-	// files whose metadata moved, so an idle studio costs a stat per open
-	// document per second.
+	// user to notice a file changed behind their back. poll() looks at each
+	// open document (size and modification time) and reads only the ones
+	// that moved, that the filesystem reported or that were written moments
+	// ago, plus each of them once in kDocumentWatchContentCheckPolls polls
+	// as the backstop for a rewrite that moves neither, so an idle studio
+	// costs a stat per open document per second and a read of each about
+	// four times a minute.
 	m_documentWatchTimer = new QTimer(this);
 	m_documentWatchTimer->setInterval(1000);
 	m_documentWatchTimer->setTimerType(Qt::CoarseTimer);
@@ -6119,9 +6143,19 @@ QWidget* ApplicationShell::buildCodePage()
 	});
 
 	m_codeFindBar = new CodeFindBar(m_codeEditor);
-	connect(m_codeEditor, &QPlainTextEdit::textChanged, m_codeFindBar, [this]() {
+	// The match count reads the document from its start. While the user
+	// types it follows a moment after the last key, not every key.
+	auto* findCountTimer = new QTimer(m_codeFindBar);
+	findCountTimer->setSingleShot(true);
+	findCountTimer->setInterval(200);
+	connect(findCountTimer, &QTimer::timeout, m_codeFindBar, [this]() {
 		if (m_codeFindBar->isVisible()) {
 			m_codeFindBar->refreshCount();
+		}
+	});
+	connect(m_codeEditor, &QPlainTextEdit::textChanged, findCountTimer, [this, findCountTimer]() {
+		if (m_codeFindBar->isVisible()) {
+			findCountTimer->start();
 		}
 	});
 
@@ -6594,7 +6628,7 @@ void ApplicationShell::refreshWorkspaceDashboard()
 	const OperationState state = health.overallState();
 	const QString effectiveInstallation = effectiveProjectInstallationId(manifest, m_settings.selectedGameInstallationId());
 	const QString effectiveEditorProfile = effectiveProjectEditorProfileId(manifest, m_settings.selectedEditorProfileId());
-	const CompilerRegistrySummary compilerRegistry = discoverCompilerTools(compilerRegistryOptionsForProject(projectPath, m_settings));
+	const CompilerRegistrySummary compilerRegistry = projectCompilerRegistry(manifestLoaded ? &manifest : nullptr);
 
 	// The strip says how the project stands; the header already names it and
 	// its folder.
@@ -6717,7 +6751,7 @@ void ApplicationShell::refreshRecentProjects()
 	const QString currentPath = normalizedProjectPath(m_settings.currentProjectPath());
 	for (const RecentProject& project : projects) {
 		const QString state = project.exists ? tr("Ready") : tr("Missing");
-		const QString timestamp = QLocale::system().toString(project.lastOpenedUtc.toLocalTime(), QLocale::ShortFormat);
+		const QString timestamp = QLocale().toString(project.lastOpenedUtc.toLocalTime(), QLocale::ShortFormat);
 		QString title = project.displayName;
 		if (!project.exists) {
 			title += separator + tr("missing");
@@ -6727,6 +6761,9 @@ void ApplicationShell::refreshRecentProjects()
 		auto* item = new QListWidgetItem(studioIcon(project.exists ? QStringLiteral("folder") : QStringLiteral("warning"), project.exists ? StudioIconTone::Muted : StudioIconTone::Warning),
 			QStringLiteral("%1\n%2").arg(title, nativePath(project.path) + separator + timestamp));
 		item->setData(Qt::UserRole, project.path);
+		// applyStateColors() tints a missing project from this, after every
+		// recorded activity, without asking the disk about each folder again.
+		item->setData(kRecentProjectMissingRole, !project.exists);
 		item->setToolTip(tr("%1\n%2\nLast opened %3. Double-click to open.").arg(project.displayName, nativePath(project.path), timestamp));
 		item->setData(Qt::AccessibleTextRole, tr("%1, %2, %3").arg(project.displayName, state, nativePath(project.path)));
 		if (!project.exists) {
@@ -7262,7 +7299,7 @@ void ApplicationShell::refreshProjectProblemsPanel()
 
 	m_projectProblems->clear();
 	const QString projectPath = m_settings.currentProjectPath();
-	const CompilerRegistrySummary compilerRegistry = discoverCompilerTools(compilerRegistryOptionsForProject(projectPath, m_settings));
+	const CompilerRegistrySummary compilerRegistry = projectCompilerRegistry();
 	const auto addProblem = [this](const QString& title, const QString& detail, OperationState state, const QString& filePath = QString(), const QString& virtualPath = QString()) {
 		auto* item = new QListWidgetItem(QStringLiteral("%1  %2\n%3").arg(studioStateGlyph(state), title, detail));
 		item->setToolTip(QStringLiteral("%1 (%2)\n%3").arg(title, localizedOperationStateName(state), detail));
@@ -7488,7 +7525,7 @@ void ApplicationShell::refreshProjectDependencyGraph()
 		manifest = defaultProjectManifest(projectPath);
 	}
 	const QString installId = effectiveProjectInstallationId(manifest, m_settings.selectedGameInstallationId());
-	const CompilerRegistrySummary compilerRegistry = discoverCompilerTools(compilerRegistryOptionsForProject(projectPath, m_settings));
+	const CompilerRegistrySummary compilerRegistry = projectCompilerRegistry(loaded ? &manifest : nullptr);
 	auto addNode = [this](const QString& label, const QString& detail, const QString& filePath = QString(), const QString& virtualPath = QString()) {
 		auto* item = new QListWidgetItem(QStringLiteral("%1\n%2").arg(label, detail));
 		item->setData(Qt::UserRole, filePath);
@@ -7549,12 +7586,15 @@ void ApplicationShell::refreshRecentActivityTimeline()
 		qint64 durationMs = 0;
 	};
 	QVector<ActivityTimelineEntry> tasks;
-	QStringList liveTaskIds;
-	for (const OperationTask& task : m_activity.tasks()) {
+	QSet<QString> liveTaskIds;
+	const QVector<OperationTask> liveTasks = m_activity.tasks();
+	for (const OperationTask& task : liveTasks) {
 		tasks.push_back({task.id, task.title, task.detail, task.source, task.state, task.resultSummary, task.updatedUtc, task.durationMs});
-		liveTaskIds.push_back(task.id);
+		liveTaskIds.insert(task.id);
 	}
-	for (const RecentActivityTask& task : m_settings.recentActivityTasks()) {
+	// The history is read from the settings once (recentActivity()), not for
+	// every task recorded.
+	for (const RecentActivityTask& task : recentActivity()) {
 		if (liveTaskIds.contains(task.id)) {
 			continue;
 		}
@@ -7571,7 +7611,7 @@ void ApplicationShell::refreshRecentActivityTimeline()
 	const int count = std::min(10, static_cast<int>(tasks.size()));
 	for (int index = 0; index < count; ++index) {
 		const ActivityTimelineEntry& task = tasks[index];
-		const QString timestamp = QLocale::system().toString(task.updatedUtc.toLocalTime(), QLocale::ShortFormat);
+		const QString timestamp = QLocale().toString(task.updatedUtc.toLocalTime(), QLocale::ShortFormat);
 		const QString detail = task.resultSummary.isEmpty() ? task.detail : task.resultSummary;
 		auto* item = new QListWidgetItem(QStringLiteral("%1  %2\n%3").arg(studioStateGlyph(task.state), task.title, detail.isEmpty() ? timestamp : timestamp + QStringLiteral("  %1  ").arg(QChar(0x00b7)) + detail));
 		item->setToolTip(QStringLiteral("%1 (%2)\n%3\n%4").arg(task.title, localizedOperationStateName(task.state), timestamp, detail));
@@ -8548,7 +8588,7 @@ void ApplicationShell::editSelectedLevelMapProperty()
 			statusBar()->showMessage(tr("Map edit failed: %1").arg(error));
 			return;
 		}
-		recordActivity(tr("Level map entities edited"), key, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+		recordActivity(tr("Level map entities edited"), key, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		statusBar()->showMessage(tr("%1 set to %2 on %n entit(y)(ies). Use Save Map to update the file after a change check and backup.", nullptr, static_cast<int>(several.size())).arg(key, value));
 		return;
@@ -8557,7 +8597,7 @@ void ApplicationShell::editSelectedLevelMapProperty()
 		statusBar()->showMessage(tr("Map edit failed: %1").arg(error));
 		return;
 	}
-	recordActivity(tr("Level map entity edited"), key, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map entity edited"), key, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Entity key edited; use Save Map to update the file after a change check and backup."));
 }
@@ -8603,7 +8643,7 @@ void ApplicationShell::moveSelectedLevelMapObject()
 		return;
 	}
 	recordActivity(tr("Level map selection moved"), tr("%1, %2, %3").arg(dx).arg(dy).arg(dz), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Moved %n object(s) by %1, %2, %3. Use Save Map to update the file after a change check and backup.", nullptr, count)
 		.arg(dx).arg(dy).arg(dz));
@@ -8696,7 +8736,7 @@ void ApplicationShell::placeLevelMapEntity(const QString& className, const QPoin
 	// so its keys are in the Inspector at once.
 	setLevelMapSelection(&m_levelMapDocument, {{LevelMapSelectionKind::Entity, entityId}});
 	recordActivity(tr("Level map entity added"), QStringLiteral("entity:%1 %2").arg(entityId).arg(className), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Added %1 as entity:%2 at %3 %4 %5. Use Save Map to update the file after a change check and backup.")
 		.arg(className).arg(entityId).arg(origin.x).arg(origin.y).arg(origin.z));
@@ -8751,7 +8791,7 @@ void ApplicationShell::placeLevelMapThing(int type, const QPointF& viewPoint)
 	}
 	m_lastAddedThingType = type;
 	recordActivity(tr("Level map thing added"), QStringLiteral("thing:%1 type %2").arg(thingId).arg(type), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Added type %1 as thing:%2 at %3 %4. Use Save Map to update the file after a change check and backup.")
 		.arg(type).arg(thingId).arg(position.x).arg(position.y));
@@ -9670,7 +9710,7 @@ void ApplicationShell::applyLevelMapTextureFromUi(const QString& texture)
 	}
 	applied = plan.changedCount();
 	rememberLevelMaterial(name);
-	recordActivity(tr("Level map texture applied"), name, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map texture applied"), name, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Applied %1 to %n face(s) and patch(es).", nullptr, applied).arg(name));
 }
@@ -9831,7 +9871,7 @@ void ApplicationShell::gradientLevelMapSectorsFromUi(LevelMapSectorField field)
 		statusBar()->showMessage(tr("Could not grade the sectors: %1").arg(error));
 		return;
 	}
-	recordActivity(tr("Level map sectors graded"), tr("%n sector(s)", nullptr, changed), QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map sectors graded"), tr("%n sector(s)", nullptr, changed), QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(m_levelMapDocument.undoStack.isEmpty() ? QString() : m_levelMapDocument.undoStack.last().description + QLatin1Char('.'));
 }
@@ -10070,16 +10110,24 @@ void ApplicationShell::setLevelMapClipMode(bool enabled)
 
 bool ApplicationShell::levelMapSelectionClippable() const
 {
+	// A selected brush answers at once; a selected entity needs a brush of its
+	// own. The entities are gathered and the brushes read once, not once per
+	// entity: this runs several times on every selection change.
+	QSet<int> entities;
 	for (const LevelMapSelectionRef& ref : m_levelMapDocument.selection) {
 		if (ref.kind == LevelMapSelectionKind::QuakeBrush) {
 			return true;
 		}
 		if (ref.kind == LevelMapSelectionKind::Entity) {
-			for (const LevelMapBrush& brush : m_levelMapDocument.brushes) {
-				if (brush.entityId == ref.objectId) {
-					return true;
-				}
-			}
+			entities.insert(ref.objectId);
+		}
+	}
+	if (entities.isEmpty()) {
+		return false;
+	}
+	for (const LevelMapBrush& brush : m_levelMapDocument.brushes) {
+		if (entities.contains(brush.entityId)) {
+			return true;
 		}
 	}
 	return false;
@@ -10945,8 +10993,11 @@ void ApplicationShell::refreshLevelCameraLinkedGroups()
 		m_levelMap3D->setLinkedGroups({});
 		return;
 	}
+	// The refresh that is running may already hold the scene context; it is
+	// lent rather than built again.
+	const LevelSceneSelectionContext* lent = m_levelRefreshShared.sceneContext && levelRefreshSharedCurrent() ? m_levelRefreshShared.sceneContext : nullptr;
 	m_levelMap3D->setLinkedGroups(levelLinkedGroupDisplay(boxes, m_levelMapDocument.openSceneGroups,
-		levelSceneSelectionContext(m_levelMapDocument).groupSelections, m_levelMapDocument.selection,
+		lent ? lent->groupSelections : levelSceneSelectionContext(m_levelMapDocument).groupSelections, m_levelMapDocument.selection,
 		m_levelMapShowLinkedGroups && m_levelMapShowLinkedGroups->isChecked()));
 }
 
@@ -11054,7 +11105,7 @@ bool ApplicationShell::applyLevelMapResize(const LevelMapVec3& mins, const Level
 				     .arg(maxs.x - mins.x, 0, 'g', 8)
 				     .arg(maxs.y - mins.y, 0, 'g', 8)
 				     .arg(maxs.z - mins.z, 0, 'g', 8);
-	recordActivity(tr("Level map selection resized"), size, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map selection resized"), size, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Resized %n object(s) to %1.", nullptr, static_cast<int>(m_levelMapDocument.selection.size())).arg(size));
 	return true;
@@ -11200,7 +11251,7 @@ void ApplicationShell::snapLevelMapSelectionFromUi()
 	}
 	const int moved = static_cast<int>(m_levelMapDocument.undoStack.last().moveSteps.size());
 	recordActivity(tr("Level map selection snapped"), tr("%n object(s)", nullptr, moved), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Snapped %n object(s) to the %1-unit grid.", nullptr, moved).arg(grid));
 }
@@ -11241,7 +11292,7 @@ void ApplicationShell::duplicateLevelMapSelectionFromUi(LevelDuplicateMode mode)
 	}
 	const int count = static_cast<int>(m_levelMapDocument.selection.size());
 	const QString what = count == 1 ? levelMapSelectionRefId(m_levelMapDocument.selection.first()) : tr("%n copies", nullptr, count);
-	recordActivity(tr("Level map objects duplicated"), what, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map objects duplicated"), what, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(count == 1 ? tr("Duplicated as %1; the copy is selected.").arg(what)
 					    : tr("Duplicated %1; the copies are selected.").arg(what));
@@ -11408,7 +11459,7 @@ void ApplicationShell::removeEntityInspectorKey()
 			return;
 		}
 		const int removed = m_levelMapDocument.undoStack.size() > before ? static_cast<int>(m_levelMapDocument.undoStack.constLast().propertySteps.size()) : 0;
-		recordActivity(tr("Level map entity key removed"), key, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+		recordActivity(tr("Level map entity key removed"), key, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		statusBar()->showMessage(tr("Removed %1 from %n entit(y)(ies). Undo restores it.", nullptr, removed).arg(key));
 		return;
@@ -11417,7 +11468,7 @@ void ApplicationShell::removeEntityInspectorKey()
 		statusBar()->showMessage(tr("Map edit failed: %1").arg(error));
 		return;
 	}
-	recordActivity(tr("Level map entity key removed"), key, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map entity key removed"), key, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Removed %1. Undo restores it.").arg(key));
 }
@@ -11507,6 +11558,9 @@ void ApplicationShell::runLevelMapCompile(const LevelMapDocument& document)
 	CompilerRunRequest runRequest;
 	runRequest.command = request;
 	runRequest.registerOutputs = true;
+	// No time limit: a full vis or light pass can take hours, and the run has
+	// Cancel and the work ring. The runner's default would kill it at five minutes.
+	runRequest.timeoutMs = 0;
 	const QString manifestRoot = request.workspaceRootPath.trimmed().isEmpty() ? QFileInfo(request.inputPath).absolutePath() : request.workspaceRootPath;
 	runRequest.manifestPath = newCompilerRunManifestPath(manifestRoot, request.profileId);
 	// Run Last Build repeats this profile on the open map, and the next map
@@ -11534,9 +11588,7 @@ void ApplicationShell::runLevelMapCompile(const LevelMapDocument& document)
 				m_activity.appendLog(taskId, OperationState::Running, entry.message);
 				// A streamed line updates the task's details only while the user
 				// is looking at that task; it never moves the selection.
-				if (selectedActivityTaskId() == taskId) {
-					refreshActivityDetails(taskId);
-				}
+				scheduleActivityDetailsRefresh(taskId);
 			}, Qt::QueuedConnection);
 		};
 		CompilerRunResult result = runCompilerCommand(runRequest, callbacks);
@@ -12163,7 +12215,7 @@ void ApplicationShell::refreshPackageEntryDetails(const QString& virtualPath)
 	if (!selectedEntry.modifiedUtc.isValid()) {
 		summaryLines << tr("Modified: unknown");
 	} else {
-		summaryLines << tr("Modified: %1").arg(QLocale::system().toString(selectedEntry.modifiedUtc.toLocalTime(), QLocale::LongFormat));
+		summaryLines << tr("Modified: %1").arg(QLocale().toString(selectedEntry.modifiedUtc.toLocalTime(), QLocale::LongFormat));
 	}
 	if (!selectedEntry.note.isEmpty()) {
 		summaryLines << tr("Note: %1").arg(selectedEntry.note);
@@ -12502,8 +12554,7 @@ void ApplicationShell::refreshCompilerPipelineSummary()
 	}
 	const QString selectedProfile = selectedCompilerProfileId();
 	m_compilerPipeline->clear();
-	const QString projectPath = m_settings.currentProjectPath();
-	const CompilerRegistrySummary registry = discoverCompilerTools(compilerRegistryOptionsForProject(projectPath, m_settings));
+	const CompilerRegistrySummary registry = projectCompilerRegistry();
 	refreshCompilerToolTable(registry);
 	const QVector<CompilerProfileDescriptor> profiles = compilerProfileDescriptors();
 	if (profiles.isEmpty()) {
@@ -12683,11 +12734,35 @@ void ApplicationShell::clearSelectedCompilerToolPath()
 	compilerToolPathsChanged(tr("%1 is found automatically again.").arg(descriptor.displayName));
 }
 
+CompilerRegistrySummary ApplicationShell::projectCompilerRegistry(const ProjectManifest* loadedManifest) const
+{
+	// Discovery walks the search paths on disk (PATH too, for every tool not
+	// found sooner), on this thread, so it is repeated only when the options
+	// change or the last answer is a minute old. The dashboard, the problems
+	// list, the dependency graph, the inspector and the status chips all ask
+	// after one change, and every recorded activity brings the chips up to
+	// date, an edit to a map included. Changing a tool's path changes the
+	// key, so that still shows at once.
+	const QString projectPath = m_settings.currentProjectPath();
+	const CompilerRegistryOptions options = compilerRegistryOptionsForProject(projectPath, m_settings, loadedManifest);
+	QStringList overrideKeys;
+	for (const CompilerToolPathOverride& entry : options.executableOverrides) {
+		overrideKeys << entry.toolId + QLatin1Char('=') + entry.executablePath;
+	}
+	const QString key = projectPath + QLatin1Char('|') + options.extraSearchPaths.join(QLatin1Char(';')) + QLatin1Char('|') + overrideKeys.join(QLatin1Char(';'));
+	if (key != m_compilerRegistryKey || !m_compilerRegistryAge.isValid() || m_compilerRegistryAge.elapsed() > 60000) {
+		m_compilerRegistry = discoverCompilerTools(options);
+		m_compilerRegistryKey = key;
+		m_compilerRegistryAge.start();
+	}
+	return m_compilerRegistry;
+}
+
 void ApplicationShell::compilerToolPathsChanged(const QString& message)
 {
-	// The status chip caches discovery for a few seconds; a changed path has
-	// to show everywhere at once.
-	m_compilerChipProbedAtMs = -1;
+	// Discovery is kept for a minute (projectCompilerRegistry()); a changed
+	// path has to show everywhere at once.
+	m_compilerRegistryAge.invalidate();
 	refreshCompilerPipelineSummary();
 	refreshBuildSurface();
 	refreshStatusChips();
@@ -12728,6 +12803,8 @@ void ApplicationShell::runSelectedCompilerProfile()
 	runRequest.command.extraSearchPaths = effectiveProjectCompilerSearchPaths(manifest);
 	runRequest.command.executableOverrides = effectiveProjectCompilerToolOverrides(manifest, m_settings.compilerToolPathOverrides());
 	runRequest.registerOutputs = true;
+	// No time limit, as for a Levels compile: the run has Cancel.
+	runRequest.timeoutMs = 0;
 	runRequest.manifestPath = QDir(manifest.rootPath).filePath(QStringLiteral(".slopstudio/compiler-runs/%1-%2.json").arg(profile.id, QDateTime::currentDateTimeUtc().toString(QStringLiteral("yyyyMMddTHHmmssZ"))));
 
 	if (profile.inputRequired && runRequest.command.inputPath.isEmpty()) {
@@ -12761,9 +12838,7 @@ void ApplicationShell::runSelectedCompilerProfile()
 				m_activity.appendLog(taskId, OperationState::Running, entry.message);
 				// A streamed line updates the task's details only while the user
 				// is looking at that task; it never moves the selection.
-				if (selectedActivityTaskId() == taskId) {
-					refreshActivityDetails(taskId);
-				}
+				scheduleActivityDetailsRefresh(taskId);
 			}, Qt::QueuedConnection);
 		};
 		CompilerRunResult result = runCompilerCommand(runRequest, callbacks);
@@ -12774,6 +12849,9 @@ void ApplicationShell::runSelectedCompilerProfile()
 	m_compilerRunThread = thread;
 	connect(thread, &QThread::finished, thread, &QObject::deleteLater);
 	thread->start();
+	// The compiler commands wait for this run, and Cancel Task becomes
+	// available (finishCompilerRun frees them).
+	refreshCommandEnablement();
 }
 
 void ApplicationShell::finishCompilerRun(const CompilerRunResult& result, const QString& taskId, const QString& projectPath)
@@ -12821,13 +12899,17 @@ void ApplicationShell::finishCompilerRun(const CompilerRunResult& result, const 
 
 	persistActivityTask(taskId);
 	refreshCompilerPipelineSummary();
-	refreshWorkspaceContextPanels();
+	// The dashboard ends by refreshing the context panels itself.
 	refreshWorkspaceDashboard();
 	refreshActivityCenter(taskId);
 	// Run Compiler Profile, Run Last Build and Re-run Last Compile are free
 	// again, and a new saved run may now be the open map's newest.
 	refreshCommandEnablement();
 	statusBar()->showMessage(summary);
+	// The window was asked to close while this ran (closeEvent()).
+	if (m_closeAfterBuild && !m_buildPipelineThread) {
+		QTimer::singleShot(0, this, [this]() { close(); });
+	}
 }
 
 void ApplicationShell::copySelectedCompilerCliEquivalent()
@@ -13521,8 +13603,8 @@ void ApplicationShell::openProjectPath(const QString& path)
 	recordActivity(tr("Open Project"), nativePath(normalized), tr("project"), OperationState::Completed, tr("Project folder ready."));
 	refreshSetupPanel();
 	refreshRecentProjects();
+	// The dashboard ends by refreshing the context panels itself.
 	refreshWorkspaceDashboard();
-	refreshWorkspaceContextPanels();
 	refreshCodeWorkspaceTree();
 	applyPreferencesToUi();
 	updateInspectorForProject(normalized);
@@ -13551,8 +13633,8 @@ void ApplicationShell::closeProject()
 	recordActivity(tr("Close Project"), nativePath(projectPath), tr("project"), OperationState::Completed, tr("Project closed. It stays in Recent Projects."));
 	refreshSetupPanel();
 	refreshRecentProjects();
+	// The dashboard ends by refreshing the context panels itself.
 	refreshWorkspaceDashboard();
-	refreshWorkspaceContextPanels();
 	refreshCodeWorkspaceTree();
 	applyPreferencesToUi();
 	updateInspector();
@@ -13884,19 +13966,131 @@ void ApplicationShell::persistActivityTask(const QString& taskId)
 		return;
 	}
 
-	RecentActivityTask recentTask;
-	recentTask.id = task.id;
-	recentTask.title = task.title;
-	recentTask.detail = task.detail;
-	recentTask.source = task.source;
-	recentTask.state = task.state;
-	recentTask.resultSummary = task.resultSummary;
-	recentTask.warnings = task.warnings;
-	recentTask.createdUtc = task.createdUtc;
-	recentTask.updatedUtc = task.updatedUtc;
-	recentTask.finishedUtc = task.finishedUtc;
-	m_settings.recordRecentActivityTask(recentTask);
-	m_settings.sync();
+	// The task's result, progress and timing. Its log and transitions stay
+	// with this session's Activity panel: nothing reads a stored log yet, and
+	// every write of the history rewrites all of it, so a few compiler logs
+	// would make each recorded edit cost their size. The record says its log
+	// was left out, as a stored tail that did not fit would.
+	RecentActivityTask record = recentActivityTaskFromOperationTask(task);
+	record.droppedLogEntryCount += static_cast<int>(record.log.size());
+	record.logTruncated = record.droppedLogEntryCount > 0;
+	record.log.clear();
+	record.transitions.clear();
+	const auto sameTask = [&record](const RecentActivityTask& other) {
+		return other.id == record.id;
+	};
+	// Reads the stored history on first use.
+	static_cast<void>(recentActivity());
+	m_recentActivity.removeIf(sameTask);
+	m_recentActivity.prepend(record);
+	if (m_recentActivity.size() > StudioSettings::kMaximumRecentActivityTasks) {
+		m_recentActivity.resize(StudioSettings::kMaximumRecentActivityTasks);
+	}
+	// Writing the history reads and rewrites every stored task, and a task is
+	// recorded for every edit to a map: the write waits for a pause in the
+	// work, and a burst of edits is written once. Only the newest tasks can
+	// still be in the history by then.
+	m_recentActivityUnsaved.removeIf(sameTask);
+	m_recentActivityUnsaved.append(record);
+	const qsizetype surplus = m_recentActivityUnsaved.size() - StudioSettings::kMaximumRecentActivityTasks;
+	if (surplus > 0) {
+		m_recentActivityUnsaved.remove(0, surplus);
+	}
+	if (!m_recentActivityTimer) {
+		m_recentActivityTimer = new QTimer(this);
+		m_recentActivityTimer->setSingleShot(true);
+		m_recentActivityTimer->setInterval(1500);
+		connect(m_recentActivityTimer, &QTimer::timeout, this, [this]() {
+			flushRecentActivity();
+		});
+	}
+	m_recentActivityTimer->start();
+}
+
+const QVector<RecentActivityTask>& ApplicationShell::recentActivity()
+{
+	if (!m_recentActivityLoaded) {
+		m_recentActivityLoaded = true;
+		m_recentActivity = m_settings.recentActivityTasks();
+	}
+	return m_recentActivity;
+}
+
+void ApplicationShell::flushRecentActivity()
+{
+	if (m_recentActivityTimer) {
+		m_recentActivityTimer->stop();
+	}
+	if (m_recentActivityUnsaved.isEmpty()) {
+		return;
+	}
+	// Oldest first, so the newest ends at the head of the stored list. Each
+	// record merges into what the store holds now, which keeps the tasks a
+	// second studio wrote meanwhile.
+	const QVector<RecentActivityTask> unsaved = std::exchange(m_recentActivityUnsaved, {});
+	for (const RecentActivityTask& task : unsaved) {
+		m_settings.recordRecentActivityTask(task);
+	}
+}
+
+void ApplicationShell::pruneActivityTasks(const QString& keepTaskId)
+{
+	// Every edit to a map records a task, and the panel is rebuilt from the
+	// whole list each time: a long session keeps its newest finished tasks,
+	// every task still going, and the ones the shell goes on updating.
+	const QStringList removed = m_activity.pruneTerminalTasks(kMaximumActivityPanelTasks,
+		{keepTaskId, m_setupActivityId, m_settingsActivityId, m_compilerRunActivityId, m_buildPipelineActivityId, m_packageExtractionTaskId});
+	for (const QString& id : removed) {
+		for (const QString& state : operationStateIds()) {
+			m_reportedTaskOutcomes.remove(QStringLiteral("%1/%2").arg(id, state));
+		}
+	}
+}
+
+QString ApplicationShell::activitySummaryText() const
+{
+	// Built here rather than taken from the model's summaryText(), which is
+	// plain English for the command line and its tests.
+	const QMap<OperationState, int> counts = m_activity.stateCounts();
+	QStringList parts;
+	for (const OperationState state : {OperationState::Queued, OperationState::Loading, OperationState::Running, OperationState::Warning,
+			 OperationState::Failed, OperationState::Cancelled, OperationState::Completed, OperationState::Idle}) {
+		const int count = counts.value(state, 0);
+		if (count <= 0) {
+			continue;
+		}
+		switch (state) {
+		case OperationState::Queued:
+			parts << tr("%n queued", nullptr, count);
+			break;
+		case OperationState::Loading:
+			parts << tr("%n loading", nullptr, count);
+			break;
+		case OperationState::Running:
+			parts << tr("%n running", nullptr, count);
+			break;
+		case OperationState::Warning:
+			parts << tr("%n with warnings", nullptr, count);
+			break;
+		case OperationState::Failed:
+			parts << tr("%n failed", nullptr, count);
+			break;
+		case OperationState::Cancelled:
+			parts << tr("%n cancelled", nullptr, count);
+			break;
+		case OperationState::Completed:
+			parts << tr("%n completed", nullptr, count);
+			break;
+		case OperationState::Idle:
+			parts << tr("%n idle", nullptr, count);
+			break;
+		}
+	}
+	if (parts.isEmpty()) {
+		return tr("No activity yet.");
+	}
+	//: Separates the counts in the Activity summary, as in "2 running, 1 failed, 14 completed".
+	return parts.join(tr(", "));
 }
 
 void ApplicationShell::updateSetupActivity()
@@ -13930,46 +14124,60 @@ void ApplicationShell::refreshActivityCenter(const QString& preferredTaskId)
 	}
 
 	const QString selectedId = preferredTaskId.isEmpty() ? selectedActivityTaskId() : preferredTaskId;
-	m_activitySummary->setText(m_activity.summaryText());
+	pruneActivityTasks(selectedId);
+	const QVector<OperationTask> tasks = m_activity.tasks();
+	const QString summary = activitySummaryText();
+	m_activitySummary->setText(summary);
 	if (m_activityToggle) {
 		int busy = 0;
-		for (const OperationTask& task : m_activity.tasks()) {
+		for (const OperationTask& task : tasks) {
 			if (!operationStateIsTerminal(task.state) && task.state != OperationState::Idle) {
 				++busy;
 			}
 		}
 		setStatusBarButtonText(m_activityToggle, busy > 0 ? tr("Activity (%n running)", nullptr, busy) : tr("Activity"));
-		m_activityToggle->setAccessibleDescription(m_activity.summaryText());
+		m_activityToggle->setAccessibleDescription(summary);
 	}
 	syncActivityWork();
-	m_activityTasks->clear();
-
-	int selectedRow = -1;
-	const QVector<OperationTask> tasks = m_activity.tasks();
 	// Every refresh follows a task change, so this is where finished work is
 	// spoken, announced to the screen reader, or flashed, each outcome once.
 	for (const OperationTask& task : tasks) {
 		noteTaskOutcome(task);
 	}
-	for (int index = 0; index < tasks.size(); ++index) {
-		const OperationTask& task = tasks[index];
-		const QString detail = task.detail.isEmpty() ? task.source : task.detail;
-		auto* item = new QListWidgetItem(QStringLiteral("%1  %2\n%3")
-			.arg(studioStateGlyph(task.state), task.title, detail));
-		item->setToolTip(QStringLiteral("%1 (%2)\n%3").arg(task.title, localizedOperationStateName(task.state), detail));
-		item->setData(Qt::AccessibleTextRole, QStringLiteral("%1, %2. %3").arg(task.title, localizedOperationStateName(task.state), detail));
-		item->setData(Qt::UserRole, task.id);
-		item->setData(Qt::UserRole + 1, operationStateId(task.state));
-		if (task.id == selectedId) {
-			selectedRow = index;
+
+	int selectedRow = -1;
+	{
+		// The rows are rebuilt with the list's signals held: clearing it would
+		// otherwise show "No task selected" and then the task again, which
+		// empties the details and sends a reader of the log back to its top
+		// each time anything at all is recorded. The details are brought up
+		// to date once, below.
+		const QSignalBlocker blocker(m_activityTasks);
+		m_activityTasks->clear();
+		for (int index = 0; index < tasks.size(); ++index) {
+			const OperationTask& task = tasks[index];
+			const QString detail = task.detail.isEmpty() ? task.source : task.detail;
+			auto* item = new QListWidgetItem(QStringLiteral("%1  %2\n%3")
+				.arg(studioStateGlyph(task.state), task.title, detail));
+			item->setToolTip(QStringLiteral("%1 (%2)\n%3").arg(task.title, localizedOperationStateName(task.state), detail));
+			item->setData(Qt::AccessibleTextRole, QStringLiteral("%1, %2. %3").arg(task.title, localizedOperationStateName(task.state), detail));
+			item->setData(Qt::UserRole, task.id);
+			item->setData(Qt::UserRole + 1, operationStateId(task.state));
+			if (task.id == selectedId) {
+				selectedRow = index;
+			}
+			m_activityTasks->addItem(item);
 		}
-		m_activityTasks->addItem(item);
+		if (tasks.isEmpty()) {
+			auto* item = new QListWidgetItem(tr("No activity"));
+			item->setFlags(Qt::NoItemFlags);
+			m_activityTasks->addItem(item);
+		} else {
+			m_activityTasks->setCurrentRow(selectedRow >= 0 ? selectedRow : 0);
+		}
 	}
 
 	if (tasks.isEmpty()) {
-		auto* item = new QListWidgetItem(tr("No activity"));
-		item->setFlags(Qt::NoItemFlags);
-		m_activityTasks->addItem(item);
 		m_activityCancel->setEnabled(false);
 		m_activityClearFinished->setEnabled(false);
 		refreshActivityDetails(QString());
@@ -13977,7 +14185,6 @@ void ApplicationShell::refreshActivityCenter(const QString& preferredTaskId)
 	}
 
 	m_activityClearFinished->setEnabled(true);
-	m_activityTasks->setCurrentRow(selectedRow >= 0 ? selectedRow : 0);
 	refreshActivityDetails(selectedActivityTaskId());
 	// Only the per-item state colours need re-applying here. Re-running the whole
 	// stylesheet would repolish every widget on every streamed log line.
@@ -13990,7 +14197,10 @@ void ApplicationShell::syncActivityWork()
 	// user, and the settings store's own record is a note, not a task.
 	WorkTracker& tracker = studioWorkTracker();
 	QSet<QString> busyIds;
-	for (const OperationTask& task : m_activity.tasks()) {
+	// Held const: looping over the returned list itself would detach it, a
+	// copy of every task and its log.
+	const QVector<OperationTask> tasks = m_activity.tasks();
+	for (const OperationTask& task : tasks) {
 		const bool busy = task.state == OperationState::Loading || task.state == OperationState::Running || task.state == OperationState::Queued;
 		if (!busy || task.id == m_setupActivityId || task.id == m_settingsActivityId) {
 			continue;
@@ -14082,6 +14292,10 @@ void ApplicationShell::refreshActivityDetails(const QString& taskId)
 		m_activityDrawer->setSubtitle(tr("No activity is selected."));
 		m_activityDrawer->setSections({});
 		m_activityCancel->setEnabled(false);
+		m_activityDetailsShown.clear();
+		m_activityLogTaskId.clear();
+		m_activityLogEntries = 0;
+		m_activityLogText.clear();
 		return;
 	}
 
@@ -14092,14 +14306,25 @@ void ApplicationShell::refreshActivityDetails(const QString& taskId)
 	m_activityState->setState(task.state, localizedOperationStateName(task.state));
 	m_activityState->setProgress(task.progress);
 
-	QStringList logLines;
-	for (const OperationLogEntry& entry : task.log) {
-		logLines << QStringLiteral("[%1] %2: %3")
-			.arg(QLocale::system().toString(entry.timestampUtc.toLocalTime(), QLocale::ShortFormat), localizedOperationStateName(entry.state), entry.message);
+	// A log only grows, so the text already built for this task is kept and
+	// the new entries are added to it: formatting every line again for each
+	// one a compiler prints is quadratic in the length of its output. The
+	// drawer in turn adds only the new text to what it shows.
+	if (m_activityLogTaskId != task.id || task.log.size() < m_activityLogEntries) {
+		m_activityLogTaskId = task.id;
+		m_activityLogEntries = 0;
+		m_activityLogText.clear();
 	}
-	if (logLines.isEmpty()) {
-		logLines << tr("No log entries.");
+	for (qsizetype index = m_activityLogEntries; index < task.log.size(); ++index) {
+		const OperationLogEntry& entry = task.log.at(index);
+		if (index > 0) {
+			m_activityLogText += QLatin1Char('\n');
+		}
+		m_activityLogText += QStringLiteral("[%1] %2: %3")
+			.arg(QLocale().toString(entry.timestampUtc.toLocalTime(), QLocale::ShortFormat), localizedOperationStateName(entry.state), entry.message);
 	}
+	m_activityLogEntries = task.log.size();
+	const QString logText = task.log.isEmpty() ? tr("No log entries.") : m_activityLogText;
 
 	QStringList summaryLines;
 	summaryLines << tr("Title: %1").arg(task.title);
@@ -14122,9 +14347,9 @@ void ApplicationShell::refreshActivityDetails(const QString& taskId)
 	QStringList rawLines;
 	rawLines << tr("Task id: %1").arg(task.id);
 	rawLines << tr("State id: %1").arg(operationStateId(task.state));
-	rawLines << tr("Created: %1").arg(QLocale::system().toString(task.createdUtc.toLocalTime(), QLocale::LongFormat));
-	rawLines << tr("Updated: %1").arg(QLocale::system().toString(task.updatedUtc.toLocalTime(), QLocale::LongFormat));
-	rawLines << tr("Finished: %1").arg(task.finishedUtc.isValid() ? QLocale::system().toString(task.finishedUtc.toLocalTime(), QLocale::LongFormat) : tr("not finished"));
+	rawLines << tr("Created: %1").arg(QLocale().toString(task.createdUtc.toLocalTime(), QLocale::LongFormat));
+	rawLines << tr("Updated: %1").arg(QLocale().toString(task.updatedUtc.toLocalTime(), QLocale::LongFormat));
+	rawLines << tr("Finished: %1").arg(task.finishedUtc.isValid() ? QLocale().toString(task.finishedUtc.toLocalTime(), QLocale::LongFormat) : tr("not finished"));
 	rawLines << tr("Progress current: %1").arg(task.progress.current);
 	rawLines << tr("Progress total: %1").arg(task.progress.total);
 	rawLines << tr("Warnings: %1").arg(task.warnings.size());
@@ -14134,12 +14359,49 @@ void ApplicationShell::refreshActivityDetails(const QString& taskId)
 	m_activityDrawer->setSubtitle(QStringLiteral("%1 / %2").arg(task.title, localizedOperationStateName(task.state)));
 	m_activityDrawer->setSections({
 		{QStringLiteral("summary"), tr("Summary"), task.resultSummary.isEmpty() ? task.detail : task.resultSummary, summaryLines.join('\n'), task.state},
-		{QStringLiteral("log"), tr("Log"), tr("%n entries", nullptr, task.log.size()), logLines.join('\n'), task.state},
+		{QStringLiteral("log"), tr("Log"), tr("%n entries", nullptr, task.log.size()), logText, task.state},
 		{QStringLiteral("warnings"), tr("Warnings"), tr("%n warnings", nullptr, task.warnings.size()), warningLines.join('\n'), task.warnings.isEmpty() ? OperationState::Completed : OperationState::Warning},
 		{QStringLiteral("raw"), tr("Raw Task"), task.id, rawLines.join('\n'), task.state},
 	});
-	m_activityDrawer->showSection(task.warnings.isEmpty() ? QStringLiteral("log") : QStringLiteral("warnings"));
+	// The drawer opens on the log, or on the warnings once the task has some;
+	// after that the section is the reader's choice, and a refresh of the
+	// same task (a streamed line, another task finishing) leaves it alone.
+	const QString openingSection = task.warnings.isEmpty() ? QStringLiteral("log") : QStringLiteral("warnings");
+	const QString shown = task.id + QLatin1Char('/') + openingSection;
+	if (shown != m_activityDetailsShown) {
+		m_activityDetailsShown = shown;
+		m_activityDrawer->showSection(openingSection);
+	}
 	m_activityCancel->setEnabled(operationStateAllowsCancellation(task.state));
+}
+
+void ApplicationShell::scheduleActivityDetailsRefresh(const QString& taskId)
+{
+	if (taskId.isEmpty()) {
+		return;
+	}
+	// A compiler prints thousands of lines, each arriving as its own queued
+	// call. The details are brought up to date at most a few times a second,
+	// however many lines arrived, and only for the task being looked at.
+	m_activityDetailsPending.insert(taskId);
+	if (!m_activityDetailsTimer) {
+		m_activityDetailsTimer = new QTimer(this);
+		m_activityDetailsTimer->setSingleShot(true);
+		m_activityDetailsTimer->setInterval(150);
+		connect(m_activityDetailsTimer, &QTimer::timeout, this, [this]() {
+			const QString selected = selectedActivityTaskId();
+			const bool wanted = m_activityDetailsPending.contains(selected);
+			m_activityDetailsPending.clear();
+			if (wanted) {
+				refreshActivityDetails(selected);
+			}
+		});
+	}
+	// Not restarted while it runs: a steady stream of lines must not put the
+	// refresh off for as long as it lasts.
+	if (!m_activityDetailsTimer->isActive()) {
+		m_activityDetailsTimer->start();
+	}
 }
 
 QString ApplicationShell::selectedActivityTaskId() const
@@ -14229,6 +14491,11 @@ void ApplicationShell::cancelSelectedActivityTask()
 void ApplicationShell::clearFinishedActivityTasks()
 {
 	if (m_activity.clearTerminalTasks()) {
+		// The outcomes already announced are kept per task; the cleared tasks
+		// take theirs with them.
+		m_reportedTaskOutcomes.removeIf([this](const QString& key) {
+			return !m_activity.contains(key.section(QLatin1Char('/'), 0, 0));
+		});
 		refreshActivityCenter();
 		statusBar()->showMessage(tr("Finished activities cleared"));
 		return;
@@ -14245,7 +14512,7 @@ void ApplicationShell::refreshInspectorDrawerForSettings()
 	const QVector<RecentProject> projects = m_settings.recentProjects();
 	const QVector<GameInstallationProfile> installations = m_settings.gameInstallations();
 	const QString selectedInstallationId = m_settings.selectedGameInstallationId();
-	const CompilerRegistrySummary compilerRegistry = discoverCompilerTools(compilerRegistryOptionsForProject(m_settings.currentProjectPath(), m_settings));
+	const CompilerRegistrySummary compilerRegistry = projectCompilerRegistry();
 	const AccessibilityPreferences preferences = m_settings.accessibilityPreferences();
 	const AiAutomationPreferences aiPreferences = m_settings.aiAutomationPreferences();
 	const QString selectedEditorProfileId = m_settings.selectedEditorProfileId();
@@ -14447,7 +14714,7 @@ void ApplicationShell::refreshInspectorDrawerForProject(const QString& path)
 	projectLines << tr("Path: %1").arg(nativePath(selectedProject.path));
 	projectLines << tr("State: %1").arg(selectedProject.exists ? tr("ready") : tr("missing"));
 	if (selectedProject.lastOpenedUtc.isValid()) {
-		projectLines << tr("Last opened: %1").arg(QLocale::system().toString(selectedProject.lastOpenedUtc.toLocalTime(), QLocale::LongFormat));
+		projectLines << tr("Last opened: %1").arg(QLocale().toString(selectedProject.lastOpenedUtc.toLocalTime(), QLocale::LongFormat));
 	}
 
 	ProjectManifest manifest;
@@ -14744,7 +15011,9 @@ void ApplicationShell::applyStateColors()
 	if (m_recentProjects) {
 		for (int index = 0; index < m_recentProjects->count(); ++index) {
 			QListWidgetItem* item = m_recentProjects->item(index);
-			if (item && !item->data(Qt::UserRole).toString().isEmpty() && !QFileInfo::exists(item->data(Qt::UserRole).toString())) {
+			// Whether the folder exists was settled when the list was built
+			// (refreshRecentProjects()); this runs after every recorded activity.
+			if (item && item->data(kRecentProjectMissingRole).toBool()) {
 				item->setForeground(warning);
 			}
 		}
@@ -14805,7 +15074,7 @@ void ApplicationShell::updateInspector()
 {
 	const QVector<RecentProject> projects = m_settings.recentProjects();
 	const QVector<GameInstallationProfile> installations = m_settings.gameInstallations();
-	const CompilerRegistrySummary compilerRegistry = discoverCompilerTools(compilerRegistryOptionsForProject(m_settings.currentProjectPath(), m_settings));
+	const CompilerRegistrySummary compilerRegistry = projectCompilerRegistry();
 	const AccessibilityPreferences preferences = m_settings.accessibilityPreferences();
 	const SetupSummary setup = m_settings.setupSummary();
 	QStringList lines;
@@ -14863,7 +15132,7 @@ void ApplicationShell::updateInspectorForProject(const QString& path)
 	lines << tr("Path: %1").arg(nativePath(selectedProject.path));
 	lines << tr("State: %1").arg(selectedProject.exists ? tr("ready") : tr("missing"));
 	if (selectedProject.lastOpenedUtc.isValid()) {
-		lines << tr("Last opened: %1").arg(QLocale::system().toString(selectedProject.lastOpenedUtc.toLocalTime(), QLocale::LongFormat));
+		lines << tr("Last opened: %1").arg(QLocale().toString(selectedProject.lastOpenedUtc.toLocalTime(), QLocale::LongFormat));
 	}
 	lines << QString();
 	lines << tr("Settings storage: %1").arg(nativePath(m_settings.storageLocation()));
@@ -16765,7 +17034,7 @@ bool ApplicationShell::confirmAssistantConsent(const AiTextConnection& connectio
 		return false;
 	}
 	if (remember->isChecked()) {
-		m_settings.setAiContextConsentGiven(m_settings.currentProjectPath(), QStringLiteral("%1@%2").arg(connection.connectorId, host), true);
+		m_settings.setAiContextConsentGiven(m_settings.currentProjectPath(), aiTextConnectionConsentKey(connection), true);
 	}
 	return true;
 }
@@ -16849,7 +17118,7 @@ void ApplicationShell::sendAssistantQuestion()
 		return;
 	}
 	if (!connection.local) {
-		const QString destination = QStringLiteral("%1@%2").arg(connection.connectorId, aiTextConnectionDestinationText(connection));
+		const QString destination = aiTextConnectionConsentKey(connection);
 		if (!m_settings.aiContextConsentGiven(m_settings.currentProjectPath(), destination) && !confirmAssistantConsent(connection, http)) {
 			setAssistantStatus(tr("Not sent. Nothing left this machine."));
 			return;
@@ -17344,12 +17613,15 @@ void ApplicationShell::refreshStatusChips()
 	// Every chip names its state in words next to the glyph, so the bar reads
 	// the same in a high-visibility theme or without colour.
 	const QString projectPath = m_settings.currentProjectPath();
+	// Read once: the project chip and the compiler chip both need it.
+	ProjectManifest projectManifest;
+	const bool projectManifestLoaded = !projectPath.isEmpty() && loadProjectManifest(projectPath, &projectManifest);
 	if (projectPath.isEmpty()) {
 		setStatusChip(m_projectChip, operationStateId(OperationState::Idle), tr("No project"),
 			tr("No project folder is open. Use File > Open Project Folder."));
 	} else {
-		ProjectManifest manifest;
-		const bool loaded = loadProjectManifest(projectPath, &manifest);
+		const ProjectManifest& manifest = projectManifest;
+		const bool loaded = projectManifestLoaded;
 		const ProjectHealthSummary health = buildProjectHealthSummary(manifest, m_settings.selectedGameInstallationId());
 		const OperationState state = loaded ? health.overallState() : OperationState::Warning;
 		setStatusChip(m_projectChip, operationStateId(state), QFileInfo(projectPath).fileName(),
@@ -17396,40 +17668,23 @@ void ApplicationShell::refreshStatusChips()
 				: tr("Installation needs review: %1").arg(nativePath(selected.rootPath)));
 	}
 
-	// Discovery walks the search paths on disk, on this thread, so it is
-	// repeated only when the options change or the last probe is a minute old.
-	// Every recorded activity brings the chips up to date, an edit to a map
-	// included: at a few seconds, editing after a pause stalled the page on the
-	// file system each time. Changing a tool's path changes the key, so that
-	// still shows at once.
-	const CompilerRegistryOptions registryOptions = compilerRegistryOptionsForProject(projectPath, m_settings);
-	QStringList overrideKeys;
-	for (const CompilerToolPathOverride& entry : registryOptions.executableOverrides) {
-		overrideKeys << QStringLiteral("%1=%2").arg(entry.toolId, entry.executablePath);
-	}
-	const QString compilerKey = QStringLiteral("%1|%2|%3").arg(projectPath, registryOptions.extraSearchPaths.join(QLatin1Char(';')),
-		overrideKeys.join(QLatin1Char(';')));
-	const qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
-	if (compilerKey != m_compilerChipKey || m_compilerChipProbedAtMs < 0 || nowMs - m_compilerChipProbedAtMs > 60000) {
-		const CompilerRegistrySummary registry = discoverCompilerTools(registryOptions);
-		m_compilerChipAvailable = 0;
-		for (const CompilerToolDiscovery& tool : registry.tools) {
-			if (tool.executableAvailable) {
-				++m_compilerChipAvailable;
-			}
+	// Discovery is kept for a minute (projectCompilerRegistry()); the manifest
+	// read for the project chip above serves it too.
+	const CompilerRegistrySummary registry = projectCompilerRegistry(projectManifestLoaded ? &projectManifest : nullptr);
+	int availableTools = 0;
+	for (const CompilerToolDiscovery& tool : registry.tools) {
+		if (tool.executableAvailable) {
+			++availableTools;
 		}
-		m_compilerChipTotal = static_cast<int>(registry.tools.size());
-		m_compilerChipKey = compilerKey;
-		m_compilerChipProbedAtMs = nowMs;
 	}
-	const int availableTools = m_compilerChipAvailable;
+	const int totalTools = static_cast<int>(registry.tools.size());
 	const OperationState compilerState = availableTools == 0 ? OperationState::Warning
-		: (availableTools < m_compilerChipTotal ? OperationState::Warning : OperationState::Completed);
+		: (availableTools < totalTools ? OperationState::Warning : OperationState::Completed);
 	setStatusChip(m_compilerChip, operationStateId(compilerState),
-		availableTools == 0 ? tr("No compilers") : tr("Compilers %1/%2").arg(availableTools).arg(m_compilerChipTotal),
+		availableTools == 0 ? tr("No compilers") : tr("Compilers %1/%2").arg(availableTools).arg(totalTools),
 		availableTools == 0
 			? tr("No compiler executables were found. Locate them on the Build > Toolchain tab, or put them on PATH.")
-			: tr("%1 of %2 compiler tools were found. The Build > Toolchain tab lists them.").arg(availableTools).arg(m_compilerChipTotal));
+			: tr("%1 of %2 compiler tools were found. The Build > Toolchain tab lists them.").arg(availableTools).arg(totalTools));
 
 	const AiAutomationPreferences ai = m_settings.aiAutomationPreferences();
 	const bool aiOff = ai.aiFreeMode || ai.projectAiFree;
@@ -17446,9 +17701,18 @@ void ApplicationShell::scheduleStatusChipRefresh()
 		return;
 	}
 	m_statusChipRefreshScheduled = true;
-	QTimer::singleShot(0, this, [this]() {
+	// A lone change shows on the next pass of the event loop, as before.
+	// Changes that keep coming (every selection change in a map asks for the
+	// chips through refreshCommandEnablement()) are answered a quarter of a
+	// second after the last such refresh: the chips read the project manifest
+	// and check the game installation on disk.
+	constexpr int minimumGapMs = 250;
+	const qint64 sinceLast = m_statusChipRefreshClock.isValid() ? m_statusChipRefreshClock.elapsed() : minimumGapMs;
+	const int delay = sinceLast >= minimumGapMs ? 0 : static_cast<int>(minimumGapMs - sinceLast);
+	QTimer::singleShot(delay, this, [this]() {
 		m_statusChipRefreshScheduled = false;
 		refreshStatusChips();
+		m_statusChipRefreshClock.start();
 	});
 }
 
@@ -18531,7 +18795,7 @@ void ApplicationShell::activateActivityTask(const QString& taskId)
 	if (!task.id.isEmpty()) {
 		source = task.source;
 	} else {
-		for (const RecentActivityTask& recent : m_settings.recentActivityTasks()) {
+		for (const RecentActivityTask& recent : recentActivity()) {
 			if (recent.id == taskId) {
 				source = recent.source;
 				break;
@@ -19671,7 +19935,9 @@ void ApplicationShell::refreshCommandEnablement()
 	}
 	const bool quakeFamilyMap = m_levelMapDocument.format == LevelMapFormat::QuakeMap || m_levelMapDocument.format == LevelMapFormat::Quake3Map;
 	m_commands->setEnabled(QStringLiteral("map.clipTool"), quakeFamilyMap);
-	m_commands->setEnabled(QStringLiteral("map.quickClip"), quakeFamilyMap && levelMapSelectionClippable());
+	// Asked once: each answer may read every brush of the map.
+	const bool clippable = quakeFamilyMap && levelMapSelectionClippable();
+	m_commands->setEnabled(QStringLiteral("map.quickClip"), clippable);
 	if (QAction* tool = m_commands->action(QStringLiteral("map.clipTool"))) {
 		// Loading a map turns the tool off behind a signal blocker, so the check
 		// is read back from the viewport rather than left to the signal.
@@ -19685,10 +19951,10 @@ void ApplicationShell::refreshCommandEnablement()
 	m_commands->setEnabled(QStringLiteral("map.selectMatching"), hasMap);
 	m_commands->setEnabled(QStringLiteral("map.selectNone"), hasMap && (hasSelection || levelComponentsActive() || !levelPickedSurfaceFaces().isEmpty()));
 	m_commands->setEnabled(QStringLiteral("map.invertSelection"), hasMap);
-	m_commands->setEnabled(QStringLiteral("map.clipSelection"), quakeFamilyMap && levelMapSelectionClippable());
-	m_commands->setEnabled(QStringLiteral("map.hollowSelection"), quakeFamilyMap && levelMapSelectionClippable());
-	m_commands->setEnabled(QStringLiteral("map.carve"), quakeFamilyMap && levelMapSelectionClippable());
-	m_commands->setEnabled(QStringLiteral("map.mergeBrushes"), quakeFamilyMap && levelMapSelectionClippable());
+	m_commands->setEnabled(QStringLiteral("map.clipSelection"), clippable);
+	m_commands->setEnabled(QStringLiteral("map.hollowSelection"), clippable);
+	m_commands->setEnabled(QStringLiteral("map.carve"), clippable);
+	m_commands->setEnabled(QStringLiteral("map.mergeBrushes"), clippable);
 	refreshLevelEditingCommands();
 	m_commands->setEnabled(QStringLiteral("map.drawSector"), levelMapDoomEditable());
 	if (QAction* tool = m_commands->action(QStringLiteral("map.drawSector"))) {
@@ -19820,6 +20086,33 @@ void ApplicationShell::closeEvent(QCloseEvent* event)
 		event->ignore();
 		return;
 	}
+	if (m_compilerRunThread || m_buildPipelineThread) {
+		// Closing with a compiler still at work would kill it without a word,
+		// and its worker reports back to this window: the user is asked, the
+		// run is told to stop, and the window closes once it has (see
+		// finishCompilerRun() and the pipeline thread's finished handler).
+		if (!m_closeAfterBuild
+			&& !confirmDestructiveAction(tr("Stop the Build"),
+				tr("A compile or build is still running. Stop it and close SlopStudio? Whatever it has not finished writing is lost."),
+				tr("Stop and Close"))) {
+			event->ignore();
+			return;
+		}
+		// The run may have ended while the question was open.
+		if (m_compilerRunThread || m_buildPipelineThread) {
+			m_closeAfterBuild = true;
+			if (m_compilerRunThread) {
+				m_compilerRunCancelRequested.store(true);
+			}
+			if (m_buildPipelineThread) {
+				m_buildPipelineCancelRequested.store(true);
+			}
+			statusBar()->showMessage(tr("Stopping the build. SlopStudio closes once it has stopped."));
+			event->ignore();
+			return;
+		}
+	}
+	m_closeAfterBuild = false;
 	if (!confirmCodeTabsHandled(tr("Save before closing?"))) {
 		event->ignore();
 		return;
@@ -19829,6 +20122,7 @@ void ApplicationShell::closeEvent(QCloseEvent* event)
 		return;
 	}
 	if (!confirmStagedPackageChangesHandled()) { event->ignore(); return; }
+	flushRecentActivity();
 	saveShellState();
 	// What is open now is the session the next start reopens: only a working
 	// session records one, and not while a crashed one is still on offer or
@@ -22234,8 +22528,8 @@ void ApplicationShell::handleExternalDocumentChange(const DocumentChangeEvent& e
 		// to lose by rebuilding them and no reason to ask first. The project's
 		// palette may be what changed.
 		m_documentWatcher.refreshBaseline(event.path);
+		// The dashboard ends by refreshing the context panels itself.
 		refreshWorkspaceDashboard();
-		refreshWorkspaceContextPanels();
 		refreshSetupPanel();
 		refreshTexturePaletteSources();
 		statusBar()->showMessage(tr("Reloaded the project manifest after an external change."));
@@ -23484,6 +23778,15 @@ void ApplicationShell::refreshCodeOutline()
 			refreshCodeBreadcrumb();
 			return;
 		}
+		// Finding the symbols reads the whole document on this thread a
+		// moment after every pause in typing; past the size at which folding
+		// stands down, the outline says so instead. Go to Symbol still reads
+		// the file when asked.
+		if (m_codeEditor->document()->characterCount() > kLiveCodeAnalysisCharacterLimit) {
+			m_codeOutline->addItem(disabledListItem(tr("This file is too large for the live outline and diagnostics.")));
+			refreshCodeBreadcrumb();
+			return;
+		}
 		const QVector<CodeSymbol> symbols = codeSymbolsInText(m_codeFilePath, m_codeEditor->toPlainText());
 		for (const CodeSymbol& symbol : symbols) {
 			const QString kind = symbol.kind.toLower();
@@ -23753,22 +24056,28 @@ void ApplicationShell::refreshCodeDiagnostics()
 		return;
 	}
 
-	const QByteArray bytes = m_codeEditor->toPlainText().toUtf8();
-	const AssetAnalysis analysis = analyzeAssetBytes(m_codeFilePath, bytes, bytes.size());
+	// The check below copies the whole document and reads all of it, on this
+	// thread, a moment after every pause in typing. Past the size at which
+	// folding stands down it would hold the editor each time, so the list
+	// says so instead; a language server's diagnostics still follow.
+	const bool tooLarge = m_codeEditor->document()->characterCount() > kLiveCodeAnalysisCharacterLimit;
+	if (tooLarge) {
+		m_codeDiagnostics->addItem(disabledListItem(tr("This file is too large for the live outline and diagnostics.")));
+	}
+	// The editor scope leaves out the remarks that only suit a read-only sample
+	// (long lines, the words ERROR or WARNING), and each finding carries its
+	// line, so nothing is read back out of a translated string.
+	const QVector<AssetTextDiagnostic> findings = tooLarge ? QVector<AssetTextDiagnostic>()
+		: assetTextDiagnostics(m_codeFilePath, m_codeEditor->toPlainText(), AssetTextDiagnosticScope::Editor);
 
 	QVector<StudioDiagnosticMarker> markers;
-	static const QRegularExpression linePattern(QStringLiteral(R"vs(^\s*(?:line\s+)?(\d+)\s*[:.]\s*(.*)$)vs"));
-	for (const QString& line : analysis.textDiagnosticLines) {
-		auto* item = new QListWidgetItem(line);
-		const QRegularExpressionMatch match = linePattern.match(line);
-		if (match.hasMatch()) {
-			StudioDiagnosticMarker marker;
-			marker.line = match.captured(1).toInt();
-			marker.severity = line.contains(QStringLiteral("error"), Qt::CaseInsensitive)
-				? QStringLiteral("error") : QStringLiteral("warning");
-			marker.message = match.captured(2);
-			markers.push_back(marker);
-			item->setData(Qt::UserRole, marker.line);
+	for (const AssetTextDiagnostic& finding : findings) {
+		auto* item = new QListWidgetItem(finding.text);
+		if (finding.line > 0) {
+			markers.push_back({finding.line, 0, 0, finding.severity, finding.message});
+			item->setData(Qt::UserRole, finding.line);
+		} else {
+			item->setFlags(Qt::ItemIsEnabled);
 		}
 		m_codeDiagnostics->addItem(item);
 	}
@@ -24375,7 +24684,7 @@ void ApplicationShell::applyDoomInspectorEdit(QTreeWidgetItem* item, int column,
 		});
 		return;
 	}
-	recordActivity(tr("Level map edited"), what, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map edited"), what, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	statusBar()->showMessage(tr("%1. Use Save Map to update the file after a change check and backup.").arg(what));
 	// As for entity keys: the grid rebuilds once its own signal has returned.
 	QTimer::singleShot(0, this, [this]() {
@@ -25056,7 +25365,7 @@ void ApplicationShell::applyEntityInspectorEdit(QTreeWidgetItem* item, int colum
 			});
 			return;
 		}
-		recordActivity(tr("Level map entities edited"), key, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+		recordActivity(tr("Level map entities edited"), key, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 		statusBar()->showMessage(key == QStringLiteral("spawnflags") && column == 0
 				? tr("%1 %2 on %n entit(y)(ies). Use Save Map to update the file after a change check and backup.", nullptr, static_cast<int>(several.size()))
 					  .arg(item->text(0), item->checkState(0) == Qt::Checked ? tr("set") : tr("cleared"))
@@ -25110,7 +25419,7 @@ void ApplicationShell::applyEntityInspectorEdit(QTreeWidgetItem* item, int colum
 		});
 		return;
 	}
-	recordActivity(tr("Level map entity edited"), key, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map entity edited"), key, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	statusBar()->showMessage(tr("%1 set to %2. Use Save Map to update the file after a change check and backup.").arg(key, value));
 	// Rebuilding the grid from inside its own itemChanged signal would delete
 	// the item that is still being edited, so the refresh waits a turn.
@@ -25573,7 +25882,7 @@ void ApplicationShell::moveLevelMapSelectionFromViewport(double dx, double dy, d
 	}
 	recordActivity(tr("Level map selection moved"),
 		tr("%1, %2, %3").arg(dx).arg(dy).arg(dz),
-		QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+		QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Moved %n object(s) by %1, %2, %3.", nullptr, m_levelMapDocument.selection.size())
 		.arg(dx).arg(dy).arg(dz));
@@ -26085,6 +26394,10 @@ void ApplicationShell::runSelectedBuildPipeline()
 	const QString projectPath = m_settings.currentProjectPath();
 	BuildPipelineRequest request = currentBuildPipelineRequest(false);
 	request.registerOutputs = !projectPath.isEmpty();
+	// No time limit on a stage: a full vis or light pass can take hours, and
+	// the build has Cancel and the work ring. The default would kill each
+	// stage at ten minutes.
+	request.stageTimeoutMs = 0;
 	ProjectManifest manifest;
 	if (loadProjectManifest(projectPath, &manifest) && !manifest.outputFolder.isEmpty()) {
 		// The manifest names its output folder from the project root, not from
@@ -26120,29 +26433,29 @@ void ApplicationShell::runSelectedBuildPipeline()
 		};
 		callbacks.logEntry = [this, taskId](const CompilerTaskLogEntry& entry) {
 			QMetaObject::invokeMethod(this, [this, taskId, entry]() {
-				m_activity.appendLog(taskId, operationStateFromId(entry.level), entry.message);
-				if (selectedActivityTaskId() == taskId) {
-					refreshActivityDetails(taskId);
-				}
+				// A log line's level ("info", "warning", "error") is not a task
+				// state: the task goes on running whatever a stage prints, and
+				// appendLog() sets the task's state to the one it is given.
+				m_activity.appendLog(taskId, OperationState::Running, entry.message);
+				scheduleActivityDetailsRefresh(taskId);
 			}, Qt::QueuedConnection);
 		};
 		callbacks.stageStarted = [this, taskId, stageCount](int stageIndex, const BuildPipelineStage& stage) {
 			QMetaObject::invokeMethod(this, [this, taskId, stageIndex, stageCount, stage]() {
 				m_activity.setProgress(taskId, stageIndex, stageCount);
 				m_activity.appendLog(taskId, OperationState::Running, tr("Stage started: %1").arg(stage.displayName));
-				if (selectedActivityTaskId() == taskId) {
-					refreshActivityDetails(taskId);
-				}
+				scheduleActivityDetailsRefresh(taskId);
 			}, Qt::QueuedConnection);
 		};
 		callbacks.stageFinished = [this, taskId, stageCount](int stageIndex, const BuildPipelineStageResult& result) {
 			QMetaObject::invokeMethod(this, [this, taskId, stageIndex, stageCount, result]() {
 				m_activity.setProgress(taskId, stageIndex + 1, stageCount);
-				m_activity.appendLog(taskId, result.state,
-					tr("Stage finished: %1").arg(result.stage.displayName));
-				if (selectedActivityTaskId() == taskId) {
-					refreshActivityDetails(taskId);
-				}
+				// One stage ending, however it ended, leaves the pipeline running:
+				// its result is said in words, and finishBuildPipeline() chooses
+				// the task's terminal state.
+				m_activity.appendLog(taskId, OperationState::Running,
+					tr("Stage finished: %1 (%2)").arg(result.stage.displayName, localizedOperationStateName(result.state)));
+				scheduleActivityDetailsRefresh(taskId);
 			}, Qt::QueuedConnection);
 		};
 
@@ -26185,6 +26498,10 @@ void ApplicationShell::runSelectedBuildPipeline()
 		}
 		if (m_buildAndLaunch) {
 			m_buildAndLaunch->setEnabled(!preparedLevelBuildWorkspaceActive() || preparedLevelBuildCanLaunch());
+		}
+		// The window was asked to close while this ran (closeEvent()).
+		if (m_closeAfterBuild && !m_compilerRunThread) {
+			QTimer::singleShot(0, this, [this]() { close(); });
 		}
 	});
 	thread->start();
@@ -26230,6 +26547,9 @@ void ApplicationShell::finishBuildPipeline(const BuildPipelineResult& result, co
 	// terminal transition has to be chosen once rather than completed first and
 	// corrected afterwards.
 	if (result.cancelled) {
+		// A warning recorded above left the task in a terminal state, and a
+		// terminal task refuses to be cancelled.
+		m_activity.transitionTask(taskId, OperationState::Running);
 		m_activity.cancelTask(taskId, tr("Cancelled by the user."));
 	} else if (!result.succeeded()) {
 		m_activity.failTask(taskId, result.errors.isEmpty()
@@ -27203,7 +27523,7 @@ void ApplicationShell::copyDiagnosticBundle()
 			newest.reasonDetail.isEmpty() ? newest.reasonId : newest.reasonDetail);
 	}
 
-	const CompilerRegistrySummary registry = discoverCompilerTools(compilerRegistryOptionsForProject(m_settings.currentProjectPath(), m_settings));
+	const CompilerRegistrySummary registry = projectCompilerRegistry();
 	lines << tr("Compilers:");
 	for (const CompilerToolDiscovery& tool : registry.tools) {
 		lines << tr("  %1: %2").arg(tool.descriptor.id,
@@ -27473,7 +27793,6 @@ void ApplicationShell::runSelfTest()
 	}
 
 	refreshWorkspaceDashboard();
-	refreshWorkspaceContextPanels();
 	refreshPackageBrowser();
 	refreshCompilerPipelineSummary();
 	refreshBuildSurface();

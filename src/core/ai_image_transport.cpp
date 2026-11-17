@@ -414,6 +414,12 @@ bool buildAiImageHttpRequest(const AiImageRequest& request, const QString& apiKe
 	if (!baseUrl.isValid() || (baseUrl.scheme() != QStringLiteral("http") && baseUrl.scheme() != QStringLiteral("https"))) {
 		return fail(QCoreApplication::translate("SlopStudioAiImageTransport", "The endpoint must be an http:// or https:// address."));
 	}
+	// A key over plain http can be read by anything between here and there.
+	if (!apiKey.isEmpty() && baseUrl.scheme() == QStringLiteral("http") && !aiEndpointIsLocal(base)) {
+		return fail(QCoreApplication::translate("SlopStudioAiImageTransport",
+			"This connector sends an API key, so its endpoint must be an https:// address unless it is on this computer. %1 would receive the key unencrypted.")
+				.arg(baseUrl.host()));
+	}
 	const QString model = request.model.trimmed();
 	if (model.isEmpty() && api != AiImageApi::StableDiffusionWebUi) {
 		return fail(QCoreApplication::translate("SlopStudioAiImageTransport", "No image model is set for this connector."));

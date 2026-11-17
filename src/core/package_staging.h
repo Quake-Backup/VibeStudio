@@ -16,6 +16,7 @@
 namespace slopstudio {
 
 struct PackageSubsetReview;
+struct PackageStagingPathIndex;
 
 enum class PackageStageOperationType {
 	Add,
@@ -148,6 +149,15 @@ struct PackageStagedEntry {
 	// Explicitly unavailable original bytes retained by a version-3 draft.
 	// This record preserves identity/history, never a readable empty payload.
 	QString unavailableReason;
+};
+
+// One member of PackageStagingModel::replaceOccurrences: the source occurrence
+// to replace and the file to replace it with, then what became of it.
+struct PackageOccurrenceReplacement {
+	int sourceOrdinal = -1;
+	QString sourceFilePath;
+	bool staged = false;
+	QString error;
 };
 
 struct PackageStageConflict {
@@ -384,6 +394,16 @@ public:
 	bool replaceOccurrence(int sourceOrdinal, const QString& sourceFilePath, QString* error = nullptr, const PackageReadControl& control = {}, PackageFileImportMode mode = PackageFileImportMode::Snapshot);
 	bool renameOccurrence(int sourceOrdinal, const QString& targetVirtualPath, QString* error = nullptr, PackageStageConflictResolution resolution = PackageStageConflictResolution::Block, const PackageReadControl& control = {});
 	bool deleteOccurrence(int sourceOrdinal, QString* error = nullptr, PackageStageConflictResolution resolution = PackageStageConflictResolution::Block, const PackageReadControl& control = {});
+	// The same edits for many occurrences, staged in the given order with one
+	// pass over the plan instead of one per occurrence. Call them inside an
+	// operation group, and cancel the group when they fail: members staged
+	// before a failure stay staged, as with the single calls. A deletion batch
+	// is refused whole when an ordinal is missing, ambiguous or named twice. A
+	// refused replacement is reported in its own record and does not stop the
+	// ones after it; cancellation does. Both return true when every member
+	// was staged.
+	bool deleteOccurrences(const QVector<int>& sourceOrdinals, QString* error = nullptr, PackageStageConflictResolution resolution = PackageStageConflictResolution::Block, const PackageReadControl& control = {});
+	bool replaceOccurrences(QVector<PackageOccurrenceReplacement>* replacements, const PackageReadControl& control = {}, PackageFileImportMode mode = PackageFileImportMode::Snapshot);
 	// Removes exactly one staged operation.
 	bool clearOperation(const QString& operationId, QString* error = nullptr, const PackageReadControl& control = {});
 	// Nested groups become one undo step. Cancelling a group rolls back the
@@ -517,6 +537,8 @@ private:
 	QVector<PackageEntry> m_metadata;
 	bool m_ready = false;
 	QString m_error;
+	// File rows by path, built on the first read by path and shared by copies.
+	std::shared_ptr<PackageStagingPathIndex> m_pathIndex;
 };
 
 // Shared GUI/CLI inspection adapter, including conflict diagnostics. Never

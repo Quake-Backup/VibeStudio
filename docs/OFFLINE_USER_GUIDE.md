@@ -974,7 +974,8 @@ Press <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move between
 controls. Two places use Tab themselves. In the code editor Tab indents; on
 Windows and Linux, <kbd>Ctrl</kbd>+<kbd>Tab</kbd> leaves the editor. In the
 Levels views Tab selects the next object, and <kbd>Esc</kbd> cancels a drag,
-then clears the selection, then leaves the view.
+then clears the selection, then leaves the view. Switching to another window
+in the middle of a drag cancels the drag as well.
 
 **Help** > **Keyboard Shortcuts** lists every command with its keys and the
 page they work on. **Change Keys…** gives a command keys of your own, and
@@ -1033,8 +1034,9 @@ The Workspace page is the studio's start page. Choose **Workspace** on the left 
 - **Releases** shows the project's unreleased changes and latest releases, with **Record Change…** and
   **Package and Release…**. See [Package and release](manual/releases.md).
 - **Workspace Details** shows the manifest and health details of the open or selected project.
-- **Recent Activity** charts recent tasks with their state and duration. Select one to see its full
-  log in the Activity Center.
+- **Recent Activity** charts recent tasks with their state and duration, those of earlier sessions
+  included. Select one from this session to see its full log in the Activity Center; a task from an
+  earlier session keeps its result, not its log.
 
 | Tab | What it shows |
 | --- | --- |
@@ -1200,7 +1202,9 @@ permission.
 
 Detection looks in common Steam library folders, including extra libraries listed by Steam, and in
 common GOG folders. It recognises a game by its folder name, its program and its data files, such as
-`id1/pak0.pak` for Quake. It looks for the program in the game folder and up to two folders below
+`id1/pak0.pak` for Quake, whatever the case of their names. A folder is offered as one game: the
+game whose data files are in it or, when none are found, the game whose name fits the folder best,
+at a lower match percentage. It looks for the program in the game folder and up to two folders below
 it, such as `bin/x64`; for a program kept deeper, add the installation with
 `install add <root> --install-executable <path>`. Detection only reads; nothing is saved until you
 import a candidate.
@@ -1817,7 +1821,8 @@ clipping, hollowing, component editing and patch tools. Unsupported actions are 
 
 - Click objects in a view or in the **Objects** list on the **Outliner** tab; <kbd>Ctrl</kbd>+click and <kbd>Shift</kbd>+click build a
   multiple selection in either place. In a 2D view, <kbd>Tab</kbd> selects the next object, and
-  <kbd>Ctrl</kbd>+<kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> add the next or previous one. In a Doom map, a
+  <kbd>Ctrl</kbd>+<kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> add the next or previous one. A closed group
+  is one stop, and while a group is open the keys stay among the objects inside it. In a Doom map, a
   click inside a room selects its sector.
 - Type in the **Objects** filter to narrow the list by name, or test properties with `key=value`, `key:text`,
   `key!=value`, `key<n` and `key>n`, such as `class=light`, `tag=3`, `texture:brick` or `light>200`. Every term must
@@ -6594,6 +6599,11 @@ The **Release** card holds the **Title**, **Version**, **Authors**, **Descriptio
 | Doom, Heretic and Hexen | WAD, with other files, such as a readme or native code, beside it |
 | Other games | ZIP of loose files |
 
+**File name** and **Game folder** are each a single name, such as `thepit` and `baseq3`. A name
+that holds `/`, `\` or `:`, starts with a dot, or ends with a dot or a space is listed under
+**Problems** and blocks publishing, because both names become part of the paths the release
+writes. Everything a release writes stays inside its output folder.
+
 **Next** beside the version offers the next patch, minor or major version. A version that has
 already been released cannot be published again unless you tick **Replace an earlier release of this
 version**.
@@ -6689,9 +6699,9 @@ ones use the project's and game's defaults. Publishing from the window saves the
 | --- | --- |
 | `title`, `version`, `description`, `website`, `license` | How the release is described. The title defaults to the project name, the version to `1.0.0`. |
 | `authors` | A list such as `["Ada <ada@example.com>"]`; the readme splits names from email addresses. |
-| `packageName` | The package file name without its extension. Defaults to a short form of the title. |
+| `packageName` | The package file name without its extension: a single name, not a path. Defaults to a short form of the title. |
 | `packageFormat` | `pk3`, `pak`, `wad` or `zip`. Empty chooses automatically. |
-| `gameFolder` | The folder players install into, such as `baseq3`, `id1` or a mod folder. |
+| `gameFolder` | The folder players install into, such as `baseq3`, `id1` or a mod folder: a single folder name, not a path. |
 | `stockSources` | The game's packages that count as provided. Empty uses the base game. |
 | `requires` | Content a release needs but does not ship: `name`, `path` and `url`. |
 | `include`, `exclude` | Patterns of project files that always or never ship. |
@@ -6862,6 +6872,8 @@ change the map in memory; save it in **Levels** afterwards (see
   with a tolerance, **Gradient** (linear, radial or reflected, optionally
   dithered), **Clone Stamp** and **Eyedropper**. **Wrap painting** lets strokes
   cross the edges, and **Tile Preview** shows a 3 × 3 repeat so seams stand out.
+  Without **Wrap painting**, a stroke dragged off the canvas paints only where
+  it crosses the canvas and resumes where the pointer comes back.
   **Mirror** repeats strokes across the centre lines, and with a graphics
   tablet **Pen pressure sets brush width**.
 - **Colours**: the paint colour and a **Secondary color**, used by right-click
@@ -6979,7 +6991,8 @@ copied in.
 
 **Stage Companion Maps** in the **Package** section adds normal, gloss and glow
 maps as PNG files beside the texture, named the way DarkPlaces-family ports or
-ioquake3's OpenGL2 renderer look for them.
+ioquake3's OpenGL2 renderer look for them. On a large canvas this takes a few
+seconds: the editor shows its progress and **Cancel Operation** stops it.
 
 ### Paint a model skin
 
@@ -9262,7 +9275,8 @@ selects it. The filter takes words and terms such as `ext=wav size>1mb` or
 Select a sound to see its waveform and its **Format** tab: codec, channels,
 sample rate, bit depth, bitrate and duration. **Metadata** shows the raw header
 details. Compressed sounds show their header details in the browser; open them
-with **Edit Sound** to see the decoded waveform.
+with **Edit Sound** to see the decoded waveform. A WAV that declares more than
+eight channels shows its format without a waveform.
 
 | Format | Browse and play | Edit |
 | --- | --- | --- |
@@ -9465,7 +9479,9 @@ Choose **Code** on the rail, or press <kbd>Ctrl</kbd>+<kbd>7</kbd>
   in the background; **Refresh Tree** scans again after you add files outside
   SlopStudio.
 - The **Outline** tab lists the functions, shaders or entity classes in the
-  open file; select one to jump to it.
+  open file; select one to jump to it. In a file of more than about half a
+  megabyte the outline and the built-in diagnostics stand down, as folding
+  does, and say so; a language server's diagnostics still show.
 - **Go to File** (<kbd>Ctrl</kbd>+<kbd>P</kbd>) opens any project file from
   anywhere in the studio.
 - **New Text File** (<kbd>Ctrl</kbd>+<kbd>N</kbd> on this page) starts an
@@ -9556,11 +9572,13 @@ original encoding and line endings. Searches include unsaved text in open tabs.
 
 Without a language server, definitions come from a project index of names, so
 they are textual; **Index Code** on the page header rebuilds it, and the
-**Index** tab shows its results. Find All References then uses a whole-word
+**Index** tab shows its results. After an edit the index refreshes by itself;
+only a scan you ask for is listed in the Activity Center. Find All References then uses a whole-word
 text search, and completion offers names from the file, the index and the
 language's keywords. The **Problems** tab lists what SlopStudio's checks find
-in the open file; problem lines are underlined, and the problem count above the
-editor jumps to the next one.
+in the open file (unterminated strings, unbalanced braces, unknown shader
+directives, malformed key/value pairs); problem lines are underlined, and the
+problem count above the editor jumps to the next one.
 
 ### Save your work
 
@@ -9744,6 +9762,10 @@ If the map has unsaved edits, SlopStudio asks first, because the compilers read 
 **Save** includes your edits, **Build Saved File** builds what is on disk, and **Cancel** stops.
 **Cancel** on the Build header stops a running build after the current stage.
 
+A build started from the window has no time limit: it runs until its tools finish or you cancel it.
+If you close SlopStudio while a compile or build is running, it asks first. **Stop and Close** stops
+the run and closes the window once it has stopped; **Cancel** leaves both as they are.
+
 | Pipeline | Stages | Input |
 | --- | --- | --- |
 | **Quake full compile** | QBSP, then VIS and LIGHT (SlopMap2) | `.map` |
@@ -9818,7 +9840,9 @@ Known-issue explanations use the SlopMap2 3.1.0 audit and keep ericw-tools issue
 numbers for reference. Reports fixed in that fork no longer add plan or map
 preflight warnings. Platform requirements are guidance; retained historical
 reports still need case-specific verification. Actual compiler warnings and
-errors remain visible. See the [issue reconciliation](plans/ericw-tools-remaining-bugs-resolution.md)
+errors remain visible. A known issue that matches a warning or error the compiler
+printed is added to the run's log as a note; it does not change how the run ended, and
+a compile that printed no warnings ends as completed. See the [issue reconciliation](plans/ericw-tools-remaining-bugs-resolution.md)
 for the evidence and remaining limits, including older/custom compiler builds.
 
 SlopMap2's `-embedsettings` option can store effective lighting settings in the
@@ -10232,7 +10256,13 @@ The ID is what the command line takes, as in `--provider claude-code` or
 
 SlopStudio reads keys only from these environment variables. It never asks you
 to type a key into the studio and never stores one in its settings, projects or
-logs. Do not paste keys into a question, a map, a script or a context file.
+logs. Do not paste keys into a question, a map, a script or a context file. A
+variable that is set but empty counts as missing.
+
+A key is sent only over `https://`, or to an endpoint on your own computer. If
+a connector that sends a key has an `http://` **Endpoint** on another machine,
+such as a proxy on your network, nothing is sent and the message asks for an
+`https://` address. An `http://` endpoint that needs no key still works.
 
 ### Ask the Assistant
 
@@ -10273,7 +10303,8 @@ own instructions to the model. The page you are on decides what starts ticked:
 | The project | The project manifest | Never |
 
 Point at an item to preview its first lines. Before anything leaves, paths
-inside your project become `<project>`, paths in your home folder become `~`,
+inside your project become `<project>`, paths in your home folder become `~`
+(with either slash, or the doubled backslashes of JSON and logs),
 and text shaped like a common provider key becomes `***`. Long items are cut to
 their first lines, and the request says so. The key check looks for known
 patterns only, so review what you tick.
@@ -10293,7 +10324,8 @@ through Claude Code or Codex, which sign in with your own login in an empty
 folder with their tools turned off; or to your custom command, which sends it
 wherever it is set up to. The box below the request,
 **Don't ask again for this project and** the host's name, is ticked; untick it
-to be asked every time. **Ask Again Before Sending** in **Settings** >
+to be asked every time. For a custom command the approval covers that exact
+command line: change the command, and SlopStudio asks again. **Ask Again Before Sending** in **Settings** >
 **AI and Automation** forgets every approval. Endpoints on your own computer
 (`localhost`, loopback addresses and `.localhost` names) never ask, because
 nothing leaves it.
@@ -10360,6 +10392,7 @@ missing:
 | … sends to …, off this machine, and cloud connectors are not allowed. | Tick **Allow cloud AI connectors**, or use a local runtime. Claude Code, Codex and Custom Command always need it. |
 | No model is set for … | Type the **Model** name. |
 | … needs an API key in the … environment variable, which is not set. | Set the variable, then restart SlopStudio. |
+| This connector sends an API key, so its endpoint must be an https:// address unless it is on this computer. … | Change the **Endpoint** to an `https://` address, or to one on your own computer. |
 | … was not found (looked in: …). | Install Claude Code or Codex, or choose **Browse** next to **Program** and pick the program. |
 | … is not signed in. | Run `claude auth login` or `codex login` in a terminal. |
 | … is older than SlopStudio needs … | Update the tool: `claude update` for Claude Code, `npm install -g @openai/codex@latest` for Codex. |
@@ -11569,12 +11602,13 @@ Options can go anywhere after `--cli`.
 | `--help` | Prints the full help and exits. |
 | `--version` | Prints the version and exits. |
 | `--json` | Prints one JSON object instead of text. Every command supports it. |
-| `--quiet` | Hides the text output of a successful command; errors still go to standard error. Ignored with `--json`. |
+| `--quiet` | Hides the text output of a successful command. When a command fails, its report and its errors go to standard error. Ignored with `--json`. |
 | `--verbose` | Adds timing and extra diagnostics to text output. Ignored with `--json`. |
-| `--settings-file <path>` | Reads and writes settings in this INI file instead of your own settings. |
+| `--settings-file <path>` | Reads and writes settings in this INI file instead of your own settings. The path is required. |
 | `--dry-run` | Shows what a command that writes files would do, without writing. |
 | `--overwrite` | Lets a command replace an existing output file. |
 | `--watch` | Streams progress lines from `build run`, `compiler run` and `compiler rerun` in text output. Nothing is streamed with `--json`. |
+| `--timeout-ms <n>` | Stops `compiler run`, or each stage of `build run`, after this many milliseconds; `0` means no limit. A value that is not a whole number is refused. |
 | `--task-state` | Adds task-state objects to JSON output where supported. |
 | `--exit-codes` | Prints the exit-code table below. |
 | `--renderer <automatic\|opengl\|vulkan>` | Chooses the 3D renderer for this run (`material render`, `render backends`, `render test`) without changing the setting. |
@@ -11582,7 +11616,28 @@ Options can go anywhere after `--cli`.
 The command line uses the same settings as the studio, so commands such as `install add`,
 `compiler set-path` or `editor select` change what the studio sees. In scripts and CI, pass
 `--settings-file` with a file of your own to keep them apart. `slopstudio --cli --settings-report`
-prints where the settings in use are stored.
+prints where the settings in use are stored. `--settings-file` with no path, an empty path (an
+unset shell variable) or another option where the path should be stops the studio and the command
+line with exit code 2, so a broken script never reaches your own settings. That message is plain
+text on standard error even with `--json`, because it comes before any command starts.
+
+An option takes its value as the next argument or inline: `--output ./out.map` and
+`--output=./out.map` mean the same. The next argument is never read as a value when it is itself an
+option, so `--output --overwrite` reports a missing output path. For a value that is spelled like an
+option, use the inline form, as in `--find=--watch`. Negative numbers such as `--delta -16,0,0` are
+values as usual.
+
+A near miss of `--dry-run`, `--overwrite`, `--json`, `--quiet`, `--verbose` or `--settings-file`,
+such as `--dryrun` or `--dry_run`, stops any command with exit code 2 before anything runs, and the
+message names the spelling that was meant. An unknown option in place of a command, and an unknown
+command, are named in the error, the latter with the commands of its family. Many commands refuse
+other options they do not know as well, but not every command does yet, so check a new script with
+`--dry-run` first. A value that is given but cannot be used, such as `--timeout-ms soon` or
+`map render --width 0`, is an error that names the accepted range, not a return to the default.
+
+On Windows the command line reads its arguments as Unicode and writes UTF-8, and sets the console's
+output code page to UTF-8 while a command runs, so paths and names in any script survive in both
+directions. When you redirect output to a file or a pipe, read it as UTF-8.
 
 ### Command families
 
@@ -11637,8 +11692,11 @@ slopstudio --cli package validate ./release.pk3 --json
 ```
 
 Render a map to an SVG picture, optionally with a compiler leak trail. The projection is `top`,
-`front` or `side`; without `--output` the SVG goes to standard output. `--grid` sets the grid spacing in map
+`front` or `side`; without `--output` the SVG goes to standard output. `--width` and `--height` set the
+picture size in pixels, each from 64 to 8192. `--grid` sets the grid spacing in map
 units, fractions such as `0.5` included; a grid too dense for the picture is left out with a warning.
+`--highlight` marks one object, such as `entity:3`. A size outside that range, a grid that is not above 0
+and a `--highlight` that names no object of the map are usage errors (exit code 2).
 `--block-grid` adds the compiler block grid as dashed lines, from the worldspawn `_blocksize` key (1024 units
 when it is missing; 0 leaves an axis unsplit), as the Levels views draw it with **Show Block Grid**; Doom maps have
 none and say so in a warning. With `--json` the report's `blockGrid` gives the `size` per axis, the `key` and
@@ -11665,6 +11723,15 @@ slopstudio --cli build list
 slopstudio --cli build plan quake-full --input ./maps/start.map
 slopstudio --cli build run quake-full --input ./maps/start.map --watch
 ```
+
+`build plan` exits with 0 only for a plan without errors. A missing input map, or a stage whose
+arguments cannot be resolved, exits with 3 as `compiler plan` does; the plan is still printed, and
+with `--json` it is still in `pipeline` beside `"ok": false`. A compiler that is not installed yet is
+a warning, so the plan can be reviewed before the tools are set up. For one run, `build plan` and
+`build run` take `--disable-stage ID`, `--stage-args ID=ARGUMENTS` and `--variable NAME=VALUE`, each
+repeatable and in either form (`--disable-stage vis` or `--disable-stage=vis`). Stage arguments are
+split at spaces, as `--extra-args` is; put double quotes round a part that contains spaces. A value
+without `=` is a usage error.
 
 Keep pipelines of your own in a project, as **Build Pipelines…** does, and run them:
 
@@ -11727,7 +11794,8 @@ More examples are on the pages for each area, such as [Packages](manual/packages
 
 ### Use JSON output in scripts
 
-With `--json`, a command prints one JSON object on standard output, even when it fails. Every object
+With `--json`, a command prints one JSON object on standard output, even when it fails, and even when
+the failure is an option or a command the command line does not know. Every object
 has the same core fields, plus fields of its own:
 
 | Field | Meaning |
@@ -11789,6 +11857,11 @@ if [ $? -eq 4 ]; then echo "release.pk3 has problems"; fi
 slopstudio --cli package validate .\release.pk3 --json | Out-File validation.json
 if ($LASTEXITCODE -eq 4) { Write-Host "release.pk3 has problems" }
 ```
+
+`package preview` and `asset inspect` exit with the same code in text and in JSON: 3 when no single
+entry answers the path or `--entry-index` (it is missing, or the path occurs more than once), and 1
+when the entry is there but its bytes cannot be read. The reason goes to standard error, or into
+`message` with `--json`.
 
 <details>
 <summary>Single-option reports</summary>
@@ -13171,6 +13244,10 @@ A diagnostics bundle describes your setup for a bug report.
 If SlopStudio closed unexpectedly, the next start shows the notice **The studio closed unexpectedly
 last time.** It does not reopen the files that were open, in case one of them caused the crash.
 
+Logging off or shutting the computer down is not a crash: the studio asks about unsaved work as it
+does when you close its window, and cancels the shutdown if you choose to keep working. This has
+not yet been tested on every system.
+
 - **Reopen Last Session** opens them again when you are ready.
 - **View Report** shows the crash report, or **Details** when none could be written.
 - **Help** > **Crash Reports…** lists every kept report, newest first, with **Copy Report** and
@@ -13383,6 +13460,13 @@ can draw on Windows and macOS. On Windows, Qt's `bin` folder
 must also be on PATH when the tests run, as in
 [Run from the build folder](manual/building-from-source.md#run-from-the-build-folder).
 
+To build only the studio and its translation catalogues, without the several hundred test programs,
+name the `slopstudio-app` target:
+
+```sh
+meson compile -C builddir slopstudio-app
+```
+
 ### Use the Windows helper script
 
 `scripts/meson_build.ps1` does the whole loop in one command. It needs PowerShell 7 (`pwsh`). It is
@@ -13392,19 +13476,36 @@ written for Windows, and it also runs on macOS and Linux when `pwsh` is installe
 pwsh -NoProfile -File scripts/meson_build.ps1
 ```
 
-The script finds `qmake6` through the `QMAKE` environment variable, your PATH, the `Qt6_DIR`, `QTDIR`
-or `QT_DIR` variables, or `C:\Qt`, and puts Qt's `bin` folder on PATH. On Windows, when `clang-cl` is
-on PATH and `CXX` is not set, it builds with `clang-cl`, re-creating a build folder that was set up
-with another compiler. It then configures, compiles, runs the tests and runs the repository's
-validation scripts.
+The script finds `qmake6` through the `QMAKE` environment variable, the Qt the build folder was
+configured with, your PATH, the `Qt6_DIR`, `QTDIR` or `QT_DIR` variables, or `C:\Qt`, and puts Qt's
+`bin` folder on PATH. On Windows, when `clang-cl` is on PATH and `CXX` is not set, it builds with
+`clang-cl`, re-creating a build folder that was set up with another compiler. It then configures if
+needed, compiles, runs the tests and runs the repository's validation scripts.
+
+A build folder that is already configured is left as it is, so a second run compiles only what
+changed. Ninja runs Meson again by itself when a build file changes. The script configures again
+only when you pass a warning option that differs from the folder's, when Meson itself was updated,
+or when you ask with `-Reconfigure` or `-ConfigureOnly`; it says which. It records the Qt it used in
+`slopstudio-build-env.json` in the build folder.
+
+> [!NOTE]
+> The warning level and warnings-as-errors are part of every compile command. Changing either in a
+> build folder compiles every file again, so keep one folder to one set of options and use another
+> folder (`-BuildDir`) for a different set.
+
+Only one run of the script uses a build folder at a time. A second run waits for the first, and
+says so: two builds in one folder make Ninja compile files again that were up to date, and Windows
+cannot relink a program that a test is running.
 
 | Parameter | Effect |
 | --- | --- |
 | `-BuildDir <folder>` | Build folder to use. The default is `builddir`. |
-| `-Backend <name>` | Meson backend. The default is `ninja`. |
-| `-WarningLevel <n>` | Meson warning level, such as `2`. |
-| `-WarningsAsErrors` | Fails the build on any warning. |
-| `-ConfigureOnly` | Configures and stops. |
+| `-Backend <name>` | Meson backend for a new build folder. The default is `ninja`. |
+| `-WarningLevel <n>` | Meson warning level, such as `2`. Left out, the folder keeps its level. |
+| `-WarningsAsErrors` | Fails the build on any warning. Left out, the folder keeps its setting. |
+| `-ConfigureOnly` | Configures, again if the folder is configured already, and stops. |
+| `-Reconfigure` | Configures again before compiling, and looks for Qt afresh. |
+| `-AppOnly` | Compiles the studio and its translation catalogues, the `slopstudio-app` target, and stops: no test programs, tests or validation. |
 | `-SkipTests` | Skips the Meson tests. |
 | `-SkipValidation` | Skips the validation scripts, which also check the CLI documentation, credits, samples and packaging. |
 
@@ -13489,16 +13590,27 @@ script through `pwsh`, so install PowerShell 7 on macOS and Linux too. Run them 
 
 | Task | What it does |
 | --- | --- |
-| **SlopStudio: build and validate** | The default build task: configures, compiles with warnings as errors, runs the tests and runs the validation scripts. |
-| **SlopStudio: compile** | Configures if needed, then compiles only. |
-| **SlopStudio: test** | The default test task: compiles, then runs the Meson tests without the validation scripts. |
-| **SlopStudio: build and launch app** | Compiles, then starts the studio with Qt on PATH. |
-| **SlopStudio: configure** | Configures only. |
-| **SlopStudio: strict warnings build** | Compiles with warnings as errors, without tests. |
+| **SlopStudio: build app** | The default build task: configures if needed, then compiles what changed and links the studio and its translation catalogues. It leaves the test programs alone. The debug configurations that build first run this. |
+| **SlopStudio: compile** | Configures if needed, then compiles what changed, test programs included. |
+| **SlopStudio: build and validate** | The full check before a commit: compiles everything that changed, runs the tests and runs the validation scripts. |
+| **SlopStudio: test** | The default test task: compiles what changed, then runs the Meson tests without the validation scripts. |
+| **SlopStudio: build and launch app** | Builds the studio, then starts it with Qt on PATH. |
+| **SlopStudio: configure** | Runs Meson's configure step again. The other tasks do this by themselves when it is needed. |
 | **SlopStudio: launch app (no build)** | Starts the program you already built. **SlopStudio: launch CLI help (no build)** prints its command-line help. |
 | **SlopStudio: build docs site** | Renders this manual as HTML in `build/docs-site` and reports any broken link. |
 | **SlopStudio: regenerate branding** | Rebuilds the logo, icons and installer art in `assets/branding`. |
 | **SlopStudio: check changelog and version** | Validates `CHANGELOG.md`. |
+
+Every task that builds uses `builddir` with warning level 2 and warnings as errors, so no task
+changes the options another one built with, and each compiles only the files that changed since
+the last build. The first build of a new or wiped folder compiles everything. If you build in
+`builddir` yourself with other options, for example `meson configure builddir -Dwerror=false`, the
+next task sets them back and compiles every file again; give such builds their own folder.
+
+Each test is its own program with the studio's libraries linked into it, several hundred in all.
+After a change to a library source, the tasks that build the tests link every one of them again,
+which takes minutes and rewrites tens of gigabytes. **SlopStudio: build app** links only the
+studio, so use it while you work and the others before you commit.
 
 The **Run and Debug** view offers **SlopStudio: debug app** and **SlopStudio: debug CLI help**, each
 in four versions: Windows or Unix, and build first or no build. The Windows versions use the Visual

@@ -129,6 +129,12 @@ bool buildAiSoundHttpRequest(const AiSoundRequest& request, const QString& apiKe
 	if (!url.isValid() || (url.scheme() != QStringLiteral("https") && url.scheme() != QStringLiteral("http"))) {
 		return fail(QCoreApplication::translate("SlopStudioAiAudioTransport", "The endpoint does not make a valid address."));
 	}
+	// A key over plain http can be read by anything between here and there.
+	if (!apiKey.isEmpty() && url.scheme() == QStringLiteral("http") && !aiEndpointIsLocal(base)) {
+		return fail(QCoreApplication::translate("SlopStudioAiAudioTransport",
+			"This connector sends an API key, so its endpoint must be an https:// address unless it is on this computer. %1 would receive the key unencrypted.")
+				.arg(url.host()));
+	}
 	if (!request.outputFormat.isEmpty()) {
 		QUrlQuery query(url);
 		query.addQueryItem(QStringLiteral("output_format"), request.outputFormat);

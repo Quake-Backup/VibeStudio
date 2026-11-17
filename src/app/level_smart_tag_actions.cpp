@@ -72,7 +72,7 @@ void ApplicationShell::applyLevelSmartTagFromUi(const QString& tagId, bool enabl
 		return;
 	}
 	const QString label = enabled ? tr("Make %1").arg(edit.tag.name) : tr("Make non-%1").arg(edit.tag.name);
-	recordActivity(label, edit.choice, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(label, edit.choice, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("%1 completed as one undo step.").arg(label), 6000);
 }

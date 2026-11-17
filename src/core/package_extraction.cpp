@@ -39,11 +39,16 @@ void addResult(PackageExtractionReport& report, const PackageExtractionEntryResu
 	}
 }
 
-bool safeFilesystemPath(const QString& path, QString* error)
+// Refuses a path with a symbolic link or a junction anywhere in it, or with a
+// file where a folder has to be. Every ancestor is examined, up to the top of
+// the filesystem. *passedThrough is set when `through` was one of the paths
+// examined: from that point on this walk is the walk of `through` itself.
+bool safeFilesystemPath(const QString& path, QString* error, const QString& through = {}, bool* passedThrough = nullptr)
 {
 	QString probe = QFileInfo(path).absoluteFilePath();
 	bool leaf = true;
 	while (!probe.isEmpty()) {
+		if (passedThrough && probe == through) { *passedThrough = true; }
 		const QFileInfo info(probe);
 		if (info.isSymLink() || info.isJunction()) {
 			*error = QCoreApplication::translate("SlopStudioPackageArchive", "Extraction refuses symbolic links and junctions in the output path: %1").arg(probe);
@@ -61,12 +66,23 @@ bool safeFilesystemPath(const QString& path, QString* error)
 	return true;
 }
 
-bool checkOutput(PackageInputProtectionSet& inputs, const QString& root, const QString& path, QString* error)
+// `resolvedRoot` is only for the preflight, which creates nothing: it reuses
+// one resolution of the root for the containment test. Every check made before
+// something is created or committed passes none and resolves the root afresh.
+bool checkOutput(PackageInputProtectionSet& inputs, const QString& root, const QString& path, QString* error,
+	const PackageOutputRoot* resolvedRoot = nullptr)
 {
 	bool protectedPath = false;
 	if (!inputs.check(path, &protectedPath)) { *error = inputs.errorString(); return false; }
-	if (!safeFilesystemPath(root, error) || !safeFilesystemPath(path, error)) { return false; }
-	if (!packagePathIsInsideDirectory(root, path)) { *error = QCoreApplication::translate("SlopStudioPackageArchive", "Output path escapes the selected root."); return false; }
+	// The walk of an output path examines the root and everything above it on
+	// its way up, the root itself more strictly than its own walk would (as a
+	// parent it must be a folder). The root is walked separately only if that
+	// walk never reached it, which a path built under the root always does.
+	bool rootExamined = false;
+	if (!safeFilesystemPath(path, error, QFileInfo(root).absoluteFilePath(), &rootExamined)) { return false; }
+	if (!rootExamined && !safeFilesystemPath(root, error)) { return false; }
+	const bool inside = resolvedRoot ? packagePathIsInsideOutputRoot(*resolvedRoot, path) : packagePathIsInsideDirectory(root, path);
+	if (!inside) { *error = QCoreApplication::translate("SlopStudioPackageArchive", "Output path escapes the selected root."); return false; }
 	if (protectedPath) { *error = QCoreApplication::translate("SlopStudioPackageArchive", "Extraction would replace or modify package source content."); return false; }
 	return true;
 }
@@ -182,6 +198,11 @@ PackageExtractionReport extractPackageEntries(const PackageArchiveReader& archiv
 		if (entry.kind == PackageEntryKind::File) { fileNames.insert(key); }
 	}
 	QVector<PackageExtractionEntryResult> planned;
+	// The preflight creates nothing, so one resolution of the output root
+	// serves all of it. Each output is checked again, against a root resolved
+	// at that moment, before its folder or file is made and before it is
+	// committed.
+	const PackageOutputRoot preflightRoot = resolvePackageOutputRoot(report.targetDirectory);
 	for (const qsizetype index : order) {
 		if (cancelled()) { return report; }
 		const auto& entry = entries.at(index);
@@ -190,14 +211,14 @@ PackageExtractionReport extractPackageEntries(const PackageArchiveReader& archiv
 		result.entryIndex = index; result.sourceOrdinal = entry.sourceOrdinal; result.dryRun = request.dryRun;
 		// Check the lexical path before canonicalization can hide a link.
 		const QString outputName = outputNames.value(index, entry.virtualPath);
-		result.outputPath = safePackageOutputPath(report.targetDirectory, outputName, &result.error);
+		result.outputPath = safePackageOutputPathUnder(preflightRoot, outputName, &result.error);
 		if (result.error.isEmpty() && !isSafePackageVirtualPath(entry.virtualPath)) {
 			result.error = QCoreApplication::translate("SlopStudioPackageArchive", "The selected source entry has an unsafe package path.");
 		}
 		const QString normalized = normalizePackageVirtualPath(outputName, false).normalizedPath;
 		if (result.error.isEmpty()) {
 			const QString lexical = QDir(report.targetDirectory).filePath(normalized);
-			if (checkOutput(inputs, report.targetDirectory, lexical, &result.error)) { result.outputPath = lexical; }
+			if (checkOutput(inputs, report.targetDirectory, lexical, &result.error, &preflightRoot)) { result.outputPath = lexical; }
 			if (cancelled()) { return report; }
 		}
 		const QString key = pathKey(normalized);

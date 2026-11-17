@@ -211,6 +211,12 @@ int main()
 	ok &= expect(cfgPreview.textLanguageId == QStringLiteral("cfg"), "CFG language id mismatch");
 	ok &= expect(!cfgPreview.textHighlightLines.isEmpty(), "CFG highlights should be populated");
 	ok &= expect(!cfgPreview.textDiagnosticLines.isEmpty(), "CFG diagnostics should be populated");
+	// The preview of a sample remarks on a compiler-style marker in its text;
+	// the same text open for editing has no problem to underline.
+	ok &= expect(cfgPreview.textDiagnosticLines.size() == 1 && cfgPreview.textDiagnosticLines.first().contains(QStringLiteral("compiler-style diagnostic marker"))
+			&& cfgPreview.textDiagnosticLines.first().contains(QStringLiteral("line 2")),
+		"the CFG preview should keep its remark on the WARNING marker");
+	ok &= expect(assetTextDiagnostics(QStringLiteral("scripts/autoexec.cfg"), cfgPreview.body).isEmpty(), "the same CFG has no findings for the editor");
 
 	const PackagePreview lumpPreview = buildPackageEntryPreview(archive, QStringLiteral("gfx/menu.lmp"));
 	ok &= expect(lumpPreview.kind == PackagePreviewKind::Image, "LMP preview kind mismatch");

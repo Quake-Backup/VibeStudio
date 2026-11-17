@@ -62,6 +62,24 @@ void appendUnique(QStringList* list, const QString& value)
 	}
 }
 
+// A release's package name and game folder each become one component of the
+// paths publishing writes (the package and readme, a mod's folder in the
+// release folder and in the distribution archive). Only a single name keeps
+// those inside the output folder: no separator or drive, not "." or "..", and
+// nothing a file system drops or hides (a leading dot, a trailing dot or space).
+bool singlePathComponent(const QString& name)
+{
+	if (name.isEmpty() || name.startsWith(QLatin1Char('.')) || name.endsWith(QLatin1Char('.')) || name.endsWith(QLatin1Char(' '))) {
+		return false;
+	}
+	for (const QChar ch : name) {
+		if (ch == QLatin1Char('/') || ch == QLatin1Char('\\') || ch == QLatin1Char(':') || ch.unicode() < 0x20) {
+			return false;
+		}
+	}
+	return true;
+}
+
 // Glob patterns are project-relative with '/' separators: `*` and `?` stay
 // within one folder, `**` crosses folders, and a pattern without '/' matches
 // a file name anywhere. Matching ignores case.
@@ -471,6 +489,23 @@ private:
 		m_plan.format = format == QStringLiteral("pk3") ? PackageArchiveFormat::Pk3 : format == QStringLiteral("pak") ? PackageArchiveFormat::Pak
 			: format == QStringLiteral("wad") ? PackageArchiveFormat::Wad : PackageArchiveFormat::Zip;
 		const QString packageName = m_request.release.packageName.isEmpty() ? QStringLiteral("release") : m_request.release.packageName;
+		// The window turns the file name into a slug; a manifest or a caller can
+		// still hold anything, and both names end up in the paths written.
+		bool namesUsable = true;
+		if (!singlePathComponent(packageName)) {
+			addProblem(QStringLiteral("package-name"), packageName, QCoreApplication::translate("SlopStudioReleasePlan",
+				"%1 is not a usable package file name. Use a single name without '/', '\\' or ':' that does not start with a dot or end with a dot or a space.").arg(packageName), {}, true);
+			namesUsable = false;
+		}
+		if (!m_request.release.gameFolder.isEmpty() && !singlePathComponent(m_request.release.gameFolder)) {
+			addProblem(QStringLiteral("game-folder"), m_request.release.gameFolder, QCoreApplication::translate("SlopStudioReleasePlan",
+				"%1 is not a usable game folder. Use a single folder name, such as a mod's folder, without '/', '\\' or ':' that does not start with a dot or end with a dot or a space.")
+				.arg(m_request.release.gameFolder), {}, true);
+			namesUsable = false;
+		}
+		if (!namesUsable) {
+			return false;
+		}
 		m_plan.packageFolder = m_request.release.gameFolder;
 		const QString baseFolder = gameDefinitionForKey(m_plan.gameKey).baseGameDirectory;
 		if (format == QStringLiteral("pak")) {

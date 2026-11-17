@@ -122,7 +122,7 @@ void ApplicationShell::roundLevelMapSelectionToGridFromUi()
 	}
 	const int objects = report.brushes + report.patches + report.entities;
 	recordActivity(tr("Level map selection rounded to the grid"), tr("%n object(s)", nullptr, objects), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Rounded %n object(s) to grid %1, point by point. Undo restores them.", nullptr, objects).arg(grid)
 			+ levelComponentUvFitNote(report.fittedFaces) + skippedNote,

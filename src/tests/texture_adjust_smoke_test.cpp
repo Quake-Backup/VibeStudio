@@ -6,6 +6,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 
@@ -59,6 +61,45 @@ int main(int argc, char** argv)
 		TextureColorAdjustment hue; hue.hue = 180;
 		ok &= expect(document.adjustColors(hue) && qBlue(document.activeLayer()->pixels.pixel(0, 0)) < qRed(document.activeLayer()->pixels.pixel(0, 0)), "half-turn hue shift turns blue towards orange");
 		document.undo();
+		{
+			// The hue, saturation and lightness shift is worked out once per distinct
+			// colour. Every texel must still equal converting it on its own: with
+			// more distinct colours than are remembered, with a few colours repeated
+			// in runs and scattered, and with transparent texels left alone.
+			TextureColorAdjustment shift; shift.hue = 37; shift.saturation = -20; shift.lightness = 15;
+			const auto shiftedAlone = [&](QRgb pixel) {
+				if (qAlpha(pixel) == 0) { return pixel; }
+				QColor color = QColor::fromRgb(qRed(pixel), qGreen(pixel), qBlue(pixel)).toHsl();
+				float h = 0, s = 0, l = 0; color.getHslF(&h, &s, &l);
+				if (h >= 0) { h = std::fmod(h + shift.hue / 360.0f + 1.0f, 1.0f); } else { h = 0; }
+				s = std::clamp(s * (100 + shift.saturation) / 100.0f, 0.0f, 1.0f);
+				l = shift.lightness > 0 ? l + (1 - l) * shift.lightness / 100.0f : l + l * shift.lightness / 100.0f;
+				color.setHslF(h, s, std::clamp(l, 0.0f, 1.0f));
+				const QColor rgb = color.toRgb();
+				return qRgba(rgb.red(), rgb.green(), rgb.blue(), qAlpha(pixel));
+			};
+			QImage many(320, 300, QImage::Format_ARGB32);
+			for (int y = 0; y < many.height(); ++y) {
+				for (int x = 0; x < many.width(); ++x) {
+					many.setPixel(x, y, qRgba(x & 255, y & 255, (((x >> 8) << 1) | (y >> 8)) * 60, (x + y) % 17 == 0 ? 0 : 255 - (x + 3 * y) % 200));
+				}
+			}
+			QImage few(64, 64, QImage::Format_ARGB32);
+			for (int y = 0; y < few.height(); ++y) {
+				for (int x = 0; x < few.width(); ++x) {
+					const int entry = y < 32 ? (x / 8 + y / 8) % 16 : (x * 7 + y * 13) % 16;
+					few.setPixel(x, y, qRgba(entry * 16, 255 - entry * 9, (entry * 53) % 256, 255));
+				}
+			}
+			for (const QImage& source : {many, few}) {
+				TextureDocument shifted = documentOf(source);
+				bool same = shifted.adjustColors(shift) && shifted.activeLayer()->pixels.format() == QImage::Format_ARGB32;
+				for (int y = 0; same && y < source.height(); ++y) {
+					for (int x = 0; same && x < source.width(); ++x) { same = shifted.activeLayer()->pixels.pixel(x, y) == shiftedAlone(source.pixel(x, y)); }
+				}
+				ok &= expect(same, "a colour shift gives every texel the value converting it alone gives");
+			}
+		}
 		TextureColorAdjustment gamma; gamma.gamma = 200;
 		ok &= expect(document.adjustColors(gamma) && qRed(document.activeLayer()->pixels.pixel(0, 0)) > 100, "gamma above 100% brightens midtones");
 		document.undo();

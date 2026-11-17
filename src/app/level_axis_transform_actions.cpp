@@ -241,7 +241,7 @@ void ApplicationShell::applyLevelAxisTransformFromUi(const QString& commandId)
 			return;
 		}
 		recordActivity(tr("Level map selection flipped"), tr("along world %1").arg(axis), QStringLiteral("level-map"),
-			OperationState::Warning, tr("Unsaved map edit"));
+			OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		statusBar()->showMessage(tr("Flipped the selection along the world %1 axis.").arg(axis));
 		return;
@@ -252,7 +252,7 @@ void ApplicationShell::applyLevelAxisTransformFromUi(const QString& commandId)
 	}
 	const QString degrees = QString::number(90 * transform.quarterTurns);
 	recordActivity(tr("Level map selection turned"), tr("%1° about world %2").arg(degrees, axis), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Turned the selection %1° about the world %2 axis.").arg(degrees, axis));
 }
@@ -340,7 +340,7 @@ void ApplicationShell::applyLevelViewTransformFromUi(const QString& commandId, Q
 		}
 		const bool horizontal = transform.kind == LevelViewTransformKind::FlipHorizontal;
 		recordActivity(tr("Level map selection flipped"), horizontal ? tr("horizontal") : tr("vertical"), QStringLiteral("level-map"),
-			OperationState::Warning, tr("Unsaved map edit"));
+			OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		statusBar()->showMessage(horizontal ? tr("Flipped the selection horizontally.") : tr("Flipped the selection vertically."));
 		return;
@@ -370,7 +370,7 @@ void ApplicationShell::applyLevelViewTransformFromUi(const QString& commandId, Q
 	case LevelViewTransformKind::FlipVertical:
 		break;
 	}
-	recordActivity(tr("Level map selection turned"), detail, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map selection turned"), detail, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(message);
 }

@@ -453,7 +453,7 @@ void ApplicationShell::shiftLevelCameraSurfaceFromUi(int delta, bool light)
 		return;
 	}
 	recordActivity(tr("Sector changed from the camera"), QStringLiteral("sector:%1").arg(target.objectId), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(light ? tr("Sector %1 light changed by %2.").arg(target.objectId).arg(delta)
 									 : (field == LevelMapSectorField::Floor ? tr("Sector %1 floor moved by %2.").arg(target.objectId).arg(delta)
@@ -536,7 +536,7 @@ void ApplicationShell::alignLevelWallTexturesFromUi(bool crosshair)
 		return;
 	}
 	recordActivity(tr("Wall textures aligned"), QStringLiteral("side:%1").arg(request.sidedef), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(aligned > 0 ? tr("Aligned %n walls with sidedef %1.", nullptr, aligned).arg(request.sidedef)
 										 : tr("The joined walls already line up."),
@@ -655,7 +655,7 @@ void ApplicationShell::shearLevelMapSelectionFromViewport(int axis, int along, d
 		unlocked = true;
 	}
 	recordActivity(tr("Level map selection sheared"), QString::number(m_levelMapDocument.selection.size()), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	const QStringList axes {tr("X"), tr("Y"), tr("Z")};
 	statusBar()->showMessage(unlocked ? tr("Sheared along %1 by %2 for each unit of %3, without texture lock: this map's face format cannot slant "
@@ -810,7 +810,7 @@ bool ApplicationShell::handleLevelTextureDragEvent(QEvent* event)
 			collapseLevelMapUndoSteps(&m_levelMapDocument, drag.steps, tr("Drag the texture of sidedef %1").arg(drag.sidedef),
 				tr("Put back the texture of sidedef %1").arg(drag.sidedef));
 			recordActivity(tr("Wall texture dragged in the camera"), QStringLiteral("side:%1").arg(drag.sidedef), QStringLiteral("level-map"),
-				OperationState::Warning, tr("Unsaved map edit"));
+				OperationState::Completed, tr("Unsaved map edit"));
 			refreshLevelMapWorkbench();
 			statusBar()->showMessage(tr("Sidedef %1 offsets are now %2, %3.").arg(drag.sidedef).arg(drag.offsetX + drag.movedX).arg(drag.offsetY + drag.movedY),
 				3000);
@@ -862,7 +862,7 @@ void ApplicationShell::nudgeLevelCameraTextureFromUi(int dx, int dy)
 		return;
 	}
 	recordActivity(tr("Wall texture moved from the camera"), QStringLiteral("side:%1").arg(target.objectId), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Sidedef %1 offsets are now %2, %3.").arg(target.objectId).arg(horizontal ? offsetX + dx : offsetX)
 								 .arg(horizontal ? offsetY : offsetY + dy),
@@ -875,10 +875,14 @@ QString ApplicationShell::levelSelectionSceneGroup() const
 	// groups; else the one group every selected object belongs to, directly or
 	// through the entity that owns it, unless that group is open for editing.
 	const LevelMapDocument& document = m_levelMapDocument;
-	if (document.selection.isEmpty() || document.format == LevelMapFormat::DoomWad) {
+	// A map with no layers or groups has no group to hold anything.
+	if (document.selection.isEmpty() || document.format == LevelMapFormat::DoomWad || document.scene.nodes.isEmpty()) {
 		return {};
 	}
-	if (const QStringList whole = levelSelectedSceneGroups(document); !whole.isEmpty()) {
+	// refreshLevelMapWorkbench() lends the selection context it built for this
+	// document; without it the answer names every object of the map again.
+	const LevelSceneSelectionContext* lent = m_levelRefreshShared.sceneContext && levelRefreshSharedCurrent() ? m_levelRefreshShared.sceneContext : nullptr;
+	if (const QStringList whole = lent ? levelSelectedSceneGroups(document, *lent) : levelSelectedSceneGroups(document); !whole.isEmpty()) {
 		return whole.size() == 1 ? whole.first() : QString();
 	}
 	QString group;
@@ -932,7 +936,7 @@ void ApplicationShell::createLinkedLevelDuplicateFromUi()
 	}
 	const LevelSceneNode* copy = levelSceneNode(m_levelMapDocument.scene, created);
 	const QString name = copy ? copy->name : created;
-	recordActivity(tr("Linked duplicate created"), name, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Linked duplicate created"), name, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(
 		tr("%1 is linked with %2, %3 units along x: an edit inside either is made to both.").arg(name, sourceName).arg(offset.x), 5000);
@@ -1086,7 +1090,7 @@ void ApplicationShell::replaceLevelMapKeyValuesFromUi()
 		statusBar()->showMessage(tr("Could not replace the values: %1").arg(error), 6000);
 		return;
 	}
-	recordActivity(tr("Key values replaced"), key->currentText(), QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Key values replaced"), key->currentText(), QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Replaced %1 on %n entit(y)(ies).", nullptr, replaced).arg(key->currentText()), 5000);
 }
@@ -1156,7 +1160,7 @@ void ApplicationShell::shearLevelMapSelectionFromUi()
 		return;
 	}
 	recordActivity(tr("Level map selection sheared"), QStringLiteral("%1 by %2").arg(axes.at(axis), axes.at(by)), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Sheared the selection along %1 by %2.").arg(axes.at(axis), axes.at(by)), 4000);
 }
@@ -1232,7 +1236,7 @@ void ApplicationShell::alignLevelMapSelectionFromUi(bool horizontal, int edge)
 		return;
 	}
 	recordActivity(tr("Level map objects aligned"), QStringList {QStringLiteral("x"), QStringLiteral("y"), QStringLiteral("z")}.at(axis),
-		QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+		QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Aligned %n object(s) along %1.", nullptr, moved).arg(QStringList {tr("X"), tr("Y"), tr("Z")}.at(axis)), 4000);
 }
@@ -1250,13 +1254,6 @@ void ApplicationShell::refreshLevelEditingCommands()
 	int brushCount = 0;
 	bool pointEntity = false;
 	bool ownedGeometry = false;
-	QSet<int> owners;
-	for (const LevelMapBrush& brush : document.brushes) {
-		owners.insert(brush.entityId);
-	}
-	for (const LevelMapPatch& patch : document.patches) {
-		owners.insert(patch.entityId);
-	}
 	int world = -1;
 	for (const LevelMapEntity& entity : document.entities) {
 		if (entity.className.compare(QStringLiteral("worldspawn"), Qt::CaseInsensitive) == 0) {
@@ -1264,24 +1261,33 @@ void ApplicationShell::refreshLevelEditingCommands()
 			break;
 		}
 	}
+	// The selected brushes and patches by id, so that the one pass over the
+	// map below answers who owns them. Looking each one up in turn made
+	// Select All on a large map quadratic, on every selection change.
+	QSet<int> selectedBrushes;
+	QSet<int> selectedPatches;
+	for (const LevelMapSelectionRef& ref : document.selection) {
+		if (ref.kind == LevelMapSelectionKind::QuakeBrush) {
+			selectedBrushes.insert(ref.objectId);
+		} else if (ref.kind == LevelMapSelectionKind::QuakePatch) {
+			selectedPatches.insert(ref.objectId);
+		}
+	}
+	QSet<int> owners;
+	for (const LevelMapBrush& brush : document.brushes) {
+		owners.insert(brush.entityId);
+		ownedGeometry = ownedGeometry || (brush.entityId != world && selectedBrushes.contains(brush.id));
+	}
+	for (const LevelMapPatch& patch : document.patches) {
+		owners.insert(patch.entityId);
+		ownedGeometry = ownedGeometry || (patch.entityId != world && selectedPatches.contains(patch.id));
+	}
 	for (const LevelMapSelectionRef& ref : document.selection) {
 		if (ref.kind == LevelMapSelectionKind::QuakeBrush) {
 			brushes = true;
 			++brushCount;
-			for (const LevelMapBrush& brush : document.brushes) {
-				if (brush.id == ref.objectId) {
-					ownedGeometry = ownedGeometry || brush.entityId != world;
-					break;
-				}
-			}
 		} else if (ref.kind == LevelMapSelectionKind::QuakePatch) {
 			brushes = true;
-			for (const LevelMapPatch& patch : document.patches) {
-				if (patch.id == ref.objectId) {
-					ownedGeometry = ownedGeometry || patch.entityId != world;
-					break;
-				}
-			}
 		} else if (ref.kind == LevelMapSelectionKind::Entity && ref.objectId != world) {
 			if (owners.contains(ref.objectId)) {
 				brushes = true;
@@ -1312,7 +1318,10 @@ void ApplicationShell::refreshLevelEditingCommands()
 	m_commands->setEnabled(QStringLiteral("map.shearSelection"), document.format != LevelMapFormat::Unknown && hasSelection);
 	m_commands->setEnabled(QStringLiteral("map.shearTool"), document.format != LevelMapFormat::Unknown);
 	m_commands->setEnabled(QStringLiteral("map.replaceKeyValues"), textMap);
-	const QStringList reached = textMap ? levelLinkedGroupsOfSelection(document) : QStringList();
+	// The context refreshLevelMapWorkbench() lends, while it is this document's.
+	const LevelSceneSelectionContext* lentContext = m_levelRefreshShared.sceneContext && levelRefreshSharedCurrent() ? m_levelRefreshShared.sceneContext : nullptr;
+	const QStringList reached = !textMap ? QStringList()
+		: lentContext ? levelLinkedGroupsOfSelection(document, *lentContext) : levelLinkedGroupsOfSelection(document);
 	m_commands->setEnabled(QStringLiteral("map.createLinkedDuplicate"), textMap && !levelSelectionSceneGroup().isEmpty());
 	m_commands->setEnabled(QStringLiteral("map.selectLinkedGroups"), !reached.isEmpty());
 	m_commands->setEnabled(QStringLiteral("map.updateLinkedGroups"), reached.size() == 1);
@@ -1407,7 +1416,7 @@ void ApplicationShell::moveLevelMapPrimitivesToEntityFromUi(bool lastSelected)
 	}
 	const int moved = report.movedBrushes + report.movedPatches;
 	const QString target = QStringLiteral("entity:%1 %2").arg(report.targetEntity).arg(report.targetClass);
-	recordActivity(tr("Brushes and patches moved to an entity"), target, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Brushes and patches moved to an entity"), target, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	QString message = tr("Moved %n brush(es) and patch(es) into %1; it kept its keys.", nullptr, moved).arg(target);
 	if (!report.removedEntities.isEmpty()) {
@@ -1430,7 +1439,7 @@ void ApplicationShell::moveLevelMapSelectedPrimitivesToWorldFromUi()
 	}
 	const int moved = report.movedBrushes + report.movedPatches;
 	recordActivity(tr("Selected brushes moved to the world"), tr("%n brush(es) and patch(es)", nullptr, moved), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	QString message = tr("Moved %n selected brush(es) and patch(es) to the world; their entities kept their keys.", nullptr, moved);
 	if (!report.removedEntities.isEmpty()) {
@@ -1495,7 +1504,7 @@ void ApplicationShell::setLevelMapDetailFromUi(bool detail)
 		return;
 	}
 	recordActivity(detail ? tr("Brushes made detail") : tr("Brushes made structural"), tr("%n brush(es)", nullptr, changed), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	const bool flags = levelMapUsesFaceFlags(m_levelMapDocument);
 	statusBar()->showMessage(detail ? (flags ? tr("Made %n brush(es) detail with the detail content flag.", nullptr, changed)
@@ -1535,7 +1544,7 @@ void ApplicationShell::intersectLevelMapSelectionFromUi()
 		statusBar()->showMessage(error, 6000);
 		return;
 	}
-	recordActivity(tr("Brushes intersected"), QString(), QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Brushes intersected"), QString(), QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("The brushes gave way to their overlap; Undo brings them back."), 5000);
 }
@@ -1631,7 +1640,7 @@ void ApplicationShell::placeLevelBrushEntity(const QString& className, const QPo
 		tr("Place %1").arg(className), tr("Remove the placed %1").arg(className));
 	m_lastTiedEntityClass = className;
 	recordActivity(tr("Brush entity placed"), QStringLiteral("entity:%1 %2").arg(entityId).arg(className), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Placed a %1 brush; drag its handles to size it, and its keys are in the Inspector.").arg(className), 6000);
 }

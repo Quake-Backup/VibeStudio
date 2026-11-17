@@ -6,6 +6,7 @@
 #include "core/bsp_inspect.h"
 #include "core/build_pipeline.h"
 #include "core/build_program_trust.h"
+#include "core/compiler_registry.h"
 #include "core/compiler_runner.h"
 #include "core/deflate.h"
 #include "core/document_watch.h"
@@ -38,6 +39,7 @@
 #include "app/texture_thumbnail_cache.h"
 #include "app/audio_playback.h"
 
+#include <QElapsedTimer>
 #include <QHash>
 #include <QMainWindow>
 #include <QPointer>
@@ -2174,10 +2176,28 @@ private:
 	void testAiTextConnection();
 	// Asks the connection to reply OK; `note` (a tool's sign-in) leads the result.
 	void sendAiTextTest(const AiTextConnection& connection, const QString& note);
+	// Remembers a finished task in the recent activity. The list is kept in
+	// memory and written to the settings a moment later (flushRecentActivity):
+	// a task is recorded for every edit to a map.
 	void persistActivityTask(const QString& taskId);
+	[[nodiscard]] const QVector<RecentActivityTask>& recentActivity();
+	void flushRecentActivity();
+	// Drops the oldest finished tasks of a long session from the Activity panel.
+	void pruneActivityTasks(const QString& keepTaskId);
+	// The Activity panel's one-line count of tasks by state, in the user's language.
+	[[nodiscard]] QString activitySummaryText() const;
 	void updateSetupActivity();
 	void refreshActivityCenter(const QString& preferredTaskId = QString());
 	void refreshActivityDetails(const QString& taskId);
+	// Brings the task's details up to date shortly, when it is the selected
+	// one. Streamed output calls this for every line, and the lines that
+	// arrive within one beat cost a single refresh.
+	void scheduleActivityDetailsRefresh(const QString& taskId);
+	// Tool discovery for the open project, kept for a minute: it walks the
+	// search paths on disk, and most refreshes of the window ask for it.
+	// compilerToolPathsChanged() forgets it. `loadedManifest` spares reading
+	// the project manifest again when the caller already has it.
+	[[nodiscard]] CompilerRegistrySummary projectCompilerRegistry(const ProjectManifest* loadedManifest = nullptr) const;
 	QString selectedActivityTaskId() const;
 	void cancelSelectedActivityTask();
 	void clearFinishedActivityTasks();
@@ -3249,6 +3269,22 @@ private:
 	StudioSoundCues* m_soundCuePlayer = nullptr;
 	// Tasks whose outcome was spoken, announced, or flashed already.
 	QSet<QString> m_reportedTaskOutcomes;
+	// The recent activity as the settings hold it, read once and kept here;
+	// the tasks finished since are written by m_recentActivityTimer.
+	QVector<RecentActivityTask> m_recentActivity;
+	QVector<RecentActivityTask> m_recentActivityUnsaved;
+	bool m_recentActivityLoaded = false;
+	QTimer* m_recentActivityTimer = nullptr;
+	// Streamed log lines waiting for one refresh of the task details.
+	QTimer* m_activityDetailsTimer = nullptr;
+	QSet<QString> m_activityDetailsPending;
+	// The task and section the details last opened on: a refresh of the same
+	// task leaves the reader on the section they chose.
+	QString m_activityDetailsShown;
+	// The selected task's log as shown, so a longer log formats its new lines only.
+	QString m_activityLogTaskId;
+	qsizetype m_activityLogEntries = 0;
+	QString m_activityLogText;
 	// Visible work in the status bar (see refreshWorkIndicator()): a ring
 	// beside the Activity button, shown while anything is busy. Its own
 	// repaint costs nothing else a layout; an icon swapped every tick would
@@ -3285,10 +3321,16 @@ private:
 	bool m_packageExtractionRunning = false;
 	QString m_packageExtractionTaskId;
 	bool m_statusChipRefreshScheduled = false;
-	QString m_compilerChipKey;
-	qint64 m_compilerChipProbedAtMs = -1;
-	int m_compilerChipAvailable = 0;
-	int m_compilerChipTotal = 0;
+	// Since the chips were last brought up to date; refreshes that follow at
+	// once wait for a quarter of a second to pass.
+	QElapsedTimer m_statusChipRefreshClock;
+	// projectCompilerRegistry()'s answer, the options it was found with, and when.
+	mutable CompilerRegistrySummary m_compilerRegistry;
+	mutable QString m_compilerRegistryKey;
+	mutable QElapsedTimer m_compilerRegistryAge;
+	// The window is closing once the compile or build it was asked to stop
+	// has stopped (see closeEvent()).
+	bool m_closeAfterBuild = false;
 	// The last pipeline run, kept so its per-stage results survive the next
 	// refresh of the Build page while the same pipeline and input are shown.
 	BuildPipelineResult m_lastBuildResult;

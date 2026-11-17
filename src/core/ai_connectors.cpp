@@ -633,7 +633,8 @@ AiCredentialStatus aiCredentialStatusForConnector(const QString& connectorId, co
 	}
 
 	status.source = QStringLiteral("environment");
-	status.configured = qEnvironmentVariableIsSet(status.lookupKey.toUtf8().constData());
+	// As the connections read it: a variable that is set but blank is no credential.
+	status.configured = !qEnvironmentVariable(status.lookupKey.toUtf8().constData()).trimmed().isEmpty();
 	status.redactedValue = status.configured ? QStringLiteral("%1=***").arg(status.lookupKey) : QStringLiteral("%1=<missing>").arg(status.lookupKey);
 	if (!status.configured) {
 		status.warnings.push_back(QCoreApplication::translate("SlopStudioAiConnectors", "Credential was not found in the environment."));

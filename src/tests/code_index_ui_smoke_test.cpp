@@ -1,6 +1,7 @@
 #include "app/application_shell.h"
 #include "app/code_editor.h"
 #include "app/code_index_worker.h"
+#include "app/studio_progress.h"
 #include "app/studio_theme.h"
 
 #include <QAction>
@@ -104,7 +105,8 @@ int main(int argc, char** argv)
 		auto* refresh = shell.findChild<QPushButton*>(QStringLiteral("codeIndexRefresh"));
 		auto* list = shell.findChild<QListWidget*>(QStringLiteral("codeIndex"));
 		auto* panel = shell.findChild<QWidget*>(QStringLiteral("codeIndexPanel"));
-		if (!editor || !worker || !indexAction || !definition || !status || !cancel || !refresh || !list || !panel) { return 1; }
+		auto* activity = shell.findChild<QListWidget*>(QStringLiteral("activityTasks"));
+		if (!editor || !worker || !indexAction || !definition || !status || !cancel || !refresh || !list || !panel || !activity) { return 1; }
 		int starts = 0, finishes = 0, scannedFiles = -1;
 		const auto onStart = worker->started;
 		const auto onFinish = worker->completed;
@@ -153,8 +155,23 @@ int main(int argc, char** argv)
 		ok &= expect(waitFor([&]() { return !worker->busy(); }) && status->text().contains(QStringLiteral("cancelled")) && !cancel->isEnabled(), "cancel publishes an explicit terminal UI state");
 		editor->completionsFor(QStringLiteral("live"));
 		ok &= expect(!worker->busy(), "completion must not restart a cancelled scan on each keystroke");
+		// A scan the user asks for is an Activity task; one the studio starts on
+		// its own after an edit is not, and leaves the Activity selection alone.
+		const auto indexTasks = [activity]() {
+			int count = 0;
+			for (int row = 0; row < activity->count(); ++row) {
+				if (activity->item(row)->text().contains(QStringLiteral("Index Code"))) { ++count; }
+			}
+			return count;
+		};
+		const auto selectedTask = [activity]() { return activity->currentItem() ? activity->currentItem()->data(Qt::UserRole).toString() : QString(); };
+		const int tasksBeforeRefresh = indexTasks();
 		refresh->click();
 		ok &= expect(waitFor([&]() { return !worker->busy(); }) && status->text().contains(QStringLiteral("ready")), "explicit refresh restarts indexing");
+		ok &= expect(indexTasks() == tasksBeforeRefresh + 1, "a scan the user asks for is an Activity task");
+		const int tasksBeforeEdit = indexTasks();
+		const QString watchedTask = selectedTask();
+		const int startsBeforeEdit = starts;
 		// Changes in an inactive document retire its old snapshot and debounce a new scan.
 		QTextCursor edit(unsaved);
 		edit.select(QTextCursor::Document);
@@ -163,6 +180,13 @@ int main(int argc, char** argv)
 		editor->insertPlainText(QStringLiteral("// completion probe\n"));
 		ok &= expect(waitFor([&]() { return editor->completionsFor(QStringLiteral("renamed")).contains(QStringLiteral("renamed_live")); }), "inactive document edits refresh the shared symbol snapshot");
 		ok &= expect(!editor->completionsFor(QStringLiteral("live")).contains(QStringLiteral("live_definition")), "removed live symbols do not linger in completion");
+		ok &= expect(waitFor([&]() { return !worker->busy(); }) && starts > startsBeforeEdit, "the edits were followed by a scan");
+		if (!expect(indexTasks() == tasksBeforeEdit && !watchedTask.isEmpty() && selectedTask() == watchedTask,
+				"a refresh after an edit is not an Activity task and leaves the Activity selection alone")) {
+			std::cerr << "tasks before=" << tasksBeforeEdit << " after=" << indexTasks() << " starts=" << starts - startsBeforeEdit << '\n';
+			ok = false;
+		}
+		ok &= expect(!studioWorkTracker().activeLabels().contains(QStringLiteral("Index Code")), "a finished scan is not left counted as work in progress");
 		auto* filter = panel->findChild<QLineEdit*>(QStringLiteral("codeIndexFilter"));
 		if (!filter) { return 1; }
 		filter->setText(QStringLiteral("renamed_live"));

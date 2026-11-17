@@ -65,6 +65,13 @@ can draw on Windows and macOS. On Windows, Qt's `bin` folder
 must also be on PATH when the tests run, as in
 [Run from the build folder](#run-from-the-build-folder).
 
+To build only the studio and its translation catalogues, without the several hundred test programs,
+name the `slopstudio-app` target:
+
+```sh
+meson compile -C builddir slopstudio-app
+```
+
 ## Use the Windows helper script
 
 `scripts/meson_build.ps1` does the whole loop in one command. It needs PowerShell 7 (`pwsh`). It is
@@ -74,19 +81,36 @@ written for Windows, and it also runs on macOS and Linux when `pwsh` is installe
 pwsh -NoProfile -File scripts/meson_build.ps1
 ```
 
-The script finds `qmake6` through the `QMAKE` environment variable, your PATH, the `Qt6_DIR`, `QTDIR`
-or `QT_DIR` variables, or `C:\Qt`, and puts Qt's `bin` folder on PATH. On Windows, when `clang-cl` is
-on PATH and `CXX` is not set, it builds with `clang-cl`, re-creating a build folder that was set up
-with another compiler. It then configures, compiles, runs the tests and runs the repository's
-validation scripts.
+The script finds `qmake6` through the `QMAKE` environment variable, the Qt the build folder was
+configured with, your PATH, the `Qt6_DIR`, `QTDIR` or `QT_DIR` variables, or `C:\Qt`, and puts Qt's
+`bin` folder on PATH. On Windows, when `clang-cl` is on PATH and `CXX` is not set, it builds with
+`clang-cl`, re-creating a build folder that was set up with another compiler. It then configures if
+needed, compiles, runs the tests and runs the repository's validation scripts.
+
+A build folder that is already configured is left as it is, so a second run compiles only what
+changed. Ninja runs Meson again by itself when a build file changes. The script configures again
+only when you pass a warning option that differs from the folder's, when Meson itself was updated,
+or when you ask with `-Reconfigure` or `-ConfigureOnly`; it says which. It records the Qt it used in
+`slopstudio-build-env.json` in the build folder.
+
+> [!NOTE]
+> The warning level and warnings-as-errors are part of every compile command. Changing either in a
+> build folder compiles every file again, so keep one folder to one set of options and use another
+> folder (`-BuildDir`) for a different set.
+
+Only one run of the script uses a build folder at a time. A second run waits for the first, and
+says so: two builds in one folder make Ninja compile files again that were up to date, and Windows
+cannot relink a program that a test is running.
 
 | Parameter | Effect |
 | --- | --- |
 | `-BuildDir <folder>` | Build folder to use. The default is `builddir`. |
-| `-Backend <name>` | Meson backend. The default is `ninja`. |
-| `-WarningLevel <n>` | Meson warning level, such as `2`. |
-| `-WarningsAsErrors` | Fails the build on any warning. |
-| `-ConfigureOnly` | Configures and stops. |
+| `-Backend <name>` | Meson backend for a new build folder. The default is `ninja`. |
+| `-WarningLevel <n>` | Meson warning level, such as `2`. Left out, the folder keeps its level. |
+| `-WarningsAsErrors` | Fails the build on any warning. Left out, the folder keeps its setting. |
+| `-ConfigureOnly` | Configures, again if the folder is configured already, and stops. |
+| `-Reconfigure` | Configures again before compiling, and looks for Qt afresh. |
+| `-AppOnly` | Compiles the studio and its translation catalogues, the `slopstudio-app` target, and stops: no test programs, tests or validation. |
 | `-SkipTests` | Skips the Meson tests. |
 | `-SkipValidation` | Skips the validation scripts, which also check the CLI documentation, credits, samples and packaging. |
 
@@ -171,16 +195,27 @@ script through `pwsh`, so install PowerShell 7 on macOS and Linux too. Run them 
 
 | Task | What it does |
 | --- | --- |
-| **SlopStudio: build and validate** | The default build task: configures, compiles with warnings as errors, runs the tests and runs the validation scripts. |
-| **SlopStudio: compile** | Configures if needed, then compiles only. |
-| **SlopStudio: test** | The default test task: compiles, then runs the Meson tests without the validation scripts. |
-| **SlopStudio: build and launch app** | Compiles, then starts the studio with Qt on PATH. |
-| **SlopStudio: configure** | Configures only. |
-| **SlopStudio: strict warnings build** | Compiles with warnings as errors, without tests. |
+| **SlopStudio: build app** | The default build task: configures if needed, then compiles what changed and links the studio and its translation catalogues. It leaves the test programs alone. The debug configurations that build first run this. |
+| **SlopStudio: compile** | Configures if needed, then compiles what changed, test programs included. |
+| **SlopStudio: build and validate** | The full check before a commit: compiles everything that changed, runs the tests and runs the validation scripts. |
+| **SlopStudio: test** | The default test task: compiles what changed, then runs the Meson tests without the validation scripts. |
+| **SlopStudio: build and launch app** | Builds the studio, then starts it with Qt on PATH. |
+| **SlopStudio: configure** | Runs Meson's configure step again. The other tasks do this by themselves when it is needed. |
 | **SlopStudio: launch app (no build)** | Starts the program you already built. **SlopStudio: launch CLI help (no build)** prints its command-line help. |
 | **SlopStudio: build docs site** | Renders this manual as HTML in `build/docs-site` and reports any broken link. |
 | **SlopStudio: regenerate branding** | Rebuilds the logo, icons and installer art in `assets/branding`. |
 | **SlopStudio: check changelog and version** | Validates `CHANGELOG.md`. |
+
+Every task that builds uses `builddir` with warning level 2 and warnings as errors, so no task
+changes the options another one built with, and each compiles only the files that changed since
+the last build. The first build of a new or wiped folder compiles everything. If you build in
+`builddir` yourself with other options, for example `meson configure builddir -Dwerror=false`, the
+next task sets them back and compiles every file again; give such builds their own folder.
+
+Each test is its own program with the studio's libraries linked into it, several hundred in all.
+After a change to a library source, the tasks that build the tests link every one of them again,
+which takes minutes and rewrites tens of gigabytes. **SlopStudio: build app** links only the
+studio, so use it while you work and the others before you commit.
 
 The **Run and Debug** view offers **SlopStudio: debug app** and **SlopStudio: debug CLI help**, each
 in four versions: Windows or Unix, and build first or no build. The Windows versions use the Visual

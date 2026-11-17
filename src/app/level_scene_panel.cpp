@@ -349,12 +349,22 @@ void LevelScenePanel::refresh() {
 	implicit->setData(0, Qt::UserRole, QString());
 	QHash<QString, QTreeWidgetItem*> items{{QString(), implicit}};
 	const auto lockedNodes = levelSceneLockedNodes(state);
+	// Every node by id, the first of an id as levelSceneNode() finds it: each
+	// node's chain of parents is walked twice below, after every edit, and a
+	// search of the list for each step made that quadratic in the nodes.
+	QHash<QString, const LevelSceneNode*> nodesById;
+	nodesById.reserve(state.nodes.size());
+	for (const auto& node : state.nodes) {
+		if (!nodesById.contains(node.id)) {
+			nodesById.insert(node.id, &node);
+		}
+	}
 	for (const auto& node : state.nodes) {
 		bool shown = node.visible;
-		const auto* owner = levelSceneNode(state, node.parentId);
+		const auto* owner = nodesById.value(node.parentId);
 		for (int depth = 0; owner && depth < kLevelSceneMaxDepth; ++depth) {
 			shown &= owner->visible;
-			owner = levelSceneNode(state, owner->parentId);
+			owner = nodesById.value(owner->parentId);
 		}
 		auto kind = node.kind == LevelSceneNodeKind::Layer ? tr("Layer") : tr("Group");
 		if (m_document->openSceneGroups.contains(node.id)) { kind += tr(" · Open"); }
@@ -390,10 +400,10 @@ void LevelScenePanel::refresh() {
 		item->setData(0, Qt::AccessibleDescriptionRole, tr("%1; %2; Direct members: %3").arg(node.name, kind).arg(node.objects.size()));
 		items.insert(node.id, item);
 		QStringList path{node.name};
-		const auto* ancestor = levelSceneNode(state, node.parentId);
+		const auto* ancestor = nodesById.value(node.parentId);
 		for (int depth = 0; ancestor && depth < kLevelSceneMaxDepth; ++depth) {
 			path.prepend(ancestor->name);
-			ancestor = levelSceneNode(state, ancestor->parentId);
+			ancestor = nodesById.value(ancestor->parentId);
 		}
 		const auto label = path.join(QStringLiteral(" / ")) + (lockedNodes.contains(node.id) ? tr(" · Locked") : QString());
 		m_parent->addItem(label, node.id);

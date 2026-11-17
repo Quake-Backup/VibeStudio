@@ -379,6 +379,8 @@ constexpr quint16 kWaveFormatIeeeFloat = 0x0003;
 constexpr quint16 kWaveFormatAlaw = 0x0006;
 constexpr quint16 kWaveFormatMulaw = 0x0007;
 constexpr quint16 kWaveFormatExtensible = 0xFFFE;
+// The most channels a waveform envelope is extracted and drawn for.
+constexpr int kWavePreviewChannelLimit = 8;
 
 struct WaveFormatInfo {
 	bool valid = false;
@@ -1585,22 +1587,38 @@ bool looksMalformedKeyValue(const QString& trimmed)
 	return !remainder.startsWith(QLatin1Char('"'));
 }
 
-QStringList textDiagnostics(const QString& languageId, const QString& text)
+// The local text check. Each finding keeps the line it names beside its display
+// text, so a caller never has to read the line back out of a translated string.
+QVector<AssetTextDiagnostic> textDiagnostics(const QString& languageId, const QString& text, AssetTextDiagnosticScope scope)
 {
-	QStringList diagnostics;
+	QVector<AssetTextDiagnostic> diagnostics;
+	// A finding on a line (0 for one about the text as a whole), in words.
+	const auto report = [&diagnostics](int line, const QString& message) {
+		AssetTextDiagnostic finding;
+		finding.line = line;
+		finding.severity = QStringLiteral("warning");
+		finding.message = message;
+		finding.text = line > 0 ? QCoreApplication::translate("SlopStudioAssetTools", "line %1: %2").arg(QString::number(line), message) : message;
+		diagnostics.push_back(finding);
+	};
 	const QStringList lines = text.split('\n');
 	const bool isShader = languageId == QStringLiteral("shader");
 	const bool isKeyValue = languageId == QStringLiteral("idtech-text");
+	// A long line and the words ERROR or WARNING are worth a remark beside a
+	// read-only sample. In a document being edited they are not problems: a
+	// comment that says "warning" would be underlined and counted as one.
+	const bool sampleHints = scope == AssetTextDiagnosticScope::Preview;
 	int braceBalance = 0;
 	int firstUnbalancedLine = 0;
 	bool inBlockComment = false;
-	for (int index = 0; index < lines.size() && diagnostics.size() < kMaxDiagnosticLines; ++index) {
+	int index = 0;
+	for (; index < lines.size() && diagnostics.size() < kMaxDiagnosticLines; ++index) {
 		const QString& rawLine = lines[index];
-		if (rawLine.size() > 160) {
-			diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "line %1: long line may wrap in compact editors").arg(index + 1);
+		if (sampleHints && rawLine.size() > 160) {
+			report(index + 1, QCoreApplication::translate("SlopStudioAssetTools", "long line may wrap in compact editors"));
 		}
-		if (rawLine.contains(QStringLiteral("ERROR"), Qt::CaseInsensitive) || rawLine.contains(QStringLiteral("WARNING"), Qt::CaseInsensitive)) {
-			diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "line %1: compiler-style diagnostic marker").arg(index + 1);
+		if (sampleHints && (rawLine.contains(QStringLiteral("ERROR"), Qt::CaseInsensitive) || rawLine.contains(QStringLiteral("WARNING"), Qt::CaseInsensitive))) {
+			report(index + 1, QCoreApplication::translate("SlopStudioAssetTools", "compiler-style diagnostic marker"));
 		}
 		QString line = rawLine;
 		if (inBlockComment) {
@@ -1627,7 +1645,7 @@ QStringList textDiagnostics(const QString& languageId, const QString& text)
 			continue;
 		}
 		if (unescapedQuoteCount(line) % 2 != 0) {
-			diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "line %1: unterminated quoted string").arg(index + 1);
+			report(index + 1, QCoreApplication::translate("SlopStudioAssetTools", "unterminated quoted string"));
 		}
 		const int opens = static_cast<int>(line.count(QLatin1Char('{')));
 		const int closes = static_cast<int>(line.count(QLatin1Char('}')));
@@ -1637,7 +1655,7 @@ QStringList textDiagnostics(const QString& languageId, const QString& text)
 			firstUnbalancedLine = index + 1;
 		}
 		if (braceBalance < 0) {
-			diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "line %1: unexpected closing brace").arg(index + 1);
+			report(index + 1, QCoreApplication::translate("SlopStudioAssetTools", "unexpected closing brace"));
 			braceBalance = 0;
 			firstUnbalancedLine = 0;
 		}
@@ -1648,25 +1666,49 @@ QStringList textDiagnostics(const QString& languageId, const QString& text)
 			}
 			const QString token = trimmed.left(tokenEnd).toLower();
 			if (!token.isEmpty() && !token.startsWith(QStringLiteral("q3map_")) && !shaderKnownDirectiveSet().contains(token)) {
-				diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "line %1: unknown shader directive '%2'").arg(index + 1).arg(token);
+				report(index + 1, QCoreApplication::translate("SlopStudioAssetTools", "unknown shader directive '%1'").arg(token));
 			}
 		}
 		if (isKeyValue && looksMalformedKeyValue(trimmed)) {
-			diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "line %1: malformed key/value pair").arg(index + 1);
+			report(index + 1, QCoreApplication::translate("SlopStudioAssetTools", "malformed key/value pair"));
 		}
 	}
+	if (index < lines.size()) {
+		// The check stopped at its limit with lines still unread. Whether a block
+		// or a comment is ever closed is only known at the end of the text: said
+		// here, every file with enough findings would also get a block "never
+		// closed" at whatever depth the last line read happened to be.
+		if (scope == AssetTextDiagnosticScope::Editor) {
+			report(0, QCoreApplication::translate("SlopStudioAssetTools", "The check stopped after %1 findings; the rest of the file was not read.").arg(diagnostics.size()));
+			diagnostics.last().severity = QStringLiteral("info");
+		}
+		return diagnostics;
+	}
 	if (braceBalance > 0) {
-		diagnostics << (firstUnbalancedLine > 0
-			? QCoreApplication::translate("SlopStudioAssetTools", "line %1: block opened here is never closed (brace balance %2)").arg(firstUnbalancedLine).arg(braceBalance)
-			: QCoreApplication::translate("SlopStudioAssetTools", "brace balance: %1").arg(braceBalance));
+		if (firstUnbalancedLine > 0) {
+			report(firstUnbalancedLine, QCoreApplication::translate("SlopStudioAssetTools", "block opened here is never closed (brace balance %1)").arg(braceBalance));
+		} else {
+			report(0, QCoreApplication::translate("SlopStudioAssetTools", "brace balance: %1").arg(braceBalance));
+		}
 	}
 	if (inBlockComment) {
-		diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "unterminated block comment reaches the end of the sample");
-	}
-	if (diagnostics.isEmpty()) {
-		diagnostics << QCoreApplication::translate("SlopStudioAssetTools", "No local text diagnostics.");
+		report(0, QCoreApplication::translate("SlopStudioAssetTools", "unterminated block comment reaches the end of the sample"));
 	}
 	return diagnostics;
+}
+
+// The findings as the preview and the CLI list them: one line each, or one
+// line saying there are none.
+QStringList textDiagnosticLines(const QVector<AssetTextDiagnostic>& diagnostics)
+{
+	QStringList lines;
+	for (const AssetTextDiagnostic& diagnostic : diagnostics) {
+		lines << diagnostic.text;
+	}
+	if (lines.isEmpty()) {
+		lines << QCoreApplication::translate("SlopStudioAssetTools", "No local text diagnostics.");
+	}
+	return lines;
 }
 
 AssetAnalysis analyzeText(const QString& virtualPath, const QByteArray& bytes, quint64 totalBytes)
@@ -1688,7 +1730,8 @@ AssetAnalysis analyzeText(const QString& virtualPath, const QByteArray& bytes, q
 	analysis.textSyntaxEngine = QCoreApplication::translate("SlopStudioAssetTools", "SlopStudio local script analysis");
 	analysis.textSaveState = QCoreApplication::translate("SlopStudioAssetTools", "clean read-only preview");
 	analysis.textHighlightLines = syntaxHighlights(languageId, decoded);
-	analysis.textDiagnosticLines = textDiagnostics(languageId, decoded);
+	analysis.textDiagnostics = textDiagnostics(languageId, decoded, AssetTextDiagnosticScope::Preview);
+	analysis.textDiagnosticLines = textDiagnosticLines(analysis.textDiagnostics);
 	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Language: %1").arg(analysis.textLanguageName);
 	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Syntax engine: %1").arg(analysis.textSyntaxEngine);
 	analysis.detailLines << QCoreApplication::translate("SlopStudioAssetTools", "Encoding: UTF-8");
@@ -2149,6 +2192,11 @@ AssetAnalysis analyzeAssetSample(const QString& virtualPath, const QByteArray& b
 	return analysis;
 }
 
+QVector<AssetTextDiagnostic> assetTextDiagnostics(const QString& virtualPath, const QString& text, AssetTextDiagnosticScope scope)
+{
+	return textDiagnostics(languageIdForPath(virtualPath), text, scope);
+}
+
 AssetAudioPeaks extractWavePeaks(const QByteArray& bytes, int bucketCount)
 {
 	AssetAudioPeaks peaks;
@@ -2162,6 +2210,15 @@ AssetAudioPeaks extractWavePeaks(const QByteArray& bytes, int bucketCount)
 	peaks.bitsPerSample = info.bitsPerSample;
 	if (!waveSampleFormatSupported(info)) {
 		peaks.error = QCoreApplication::translate("SlopStudioAssetTools", "Unsupported WAV sample format (%1, %2-bit).").arg(waveFormatTagName(info.effectiveFormatTag)).arg(info.bitsPerSample);
+		return peaks;
+	}
+	// A header can declare up to 65,535 channels in a file of any size. The
+	// envelope holds every channel at every bucket and the preview draws a lane
+	// and lists a block of lines for each, so a 64 KB file could ask for
+	// hundreds of megabytes and millions of lines. The limit is the one the
+	// audio editor decodes to (decodeAudioClip); the metadata still shows.
+	if (info.channels > kWavePreviewChannelLimit) {
+		peaks.error = QCoreApplication::translate("SlopStudioAssetTools", "This WAV declares %1 channels; the waveform is drawn for up to %2.").arg(info.channels).arg(kWavePreviewChannelLimit);
 		return peaks;
 	}
 	if (info.dataOffset < 0 || info.availableDataBytes <= 0 || info.blockAlign == 0) {

@@ -269,7 +269,9 @@ bool transferModelSkin(const ModelSurface &before, const ModelSurface &after, co
 		return fail(error, Text::tr("The indexed skin has no palette."));
 	const int width = outputSize.width(), height = outputSize.height(), sw = source.width(), sh = source.height();
 	QVector<QRgb> pixels(width * height, options.background.rgba());
-	QVector<int> indices(indexed ? width * height : 0, std::clamp(options.backgroundIndex, 0, int(table.size()) - 1));
+	// Only an indexed skin has a palette to clamp into; std::clamp(x, 0, -1)
+	// would be undefined (and stops a debug build) for the others.
+	QVector<int> indices(indexed ? width * height : 0, indexed ? std::clamp(options.backgroundIndex, 0, int(table.size()) - 1) : 0);
 	QVector<bool> covered(width * height, false);
 	ModelSkinTransferReport summary;
 	summary.size = outputSize;

@@ -5,7 +5,6 @@
 
 #include <QAccessible>
 #include <QCoreApplication>
-#include <QDateTime>
 #include <QEvent>
 #include <QFontMetrics>
 #include <QGuiApplication>
@@ -776,7 +775,9 @@ void UiResponsivenessMonitor::start()
 	if (m_timerId != 0) {
 		return;
 	}
-	m_lastBeatMs = QDateTime::currentMSecsSinceEpoch();
+	// A monotonic clock: the wall clock moves when the user or a time server
+	// sets it, and that is not the interface being held.
+	m_beatClock.start();
 	// Precise, so that the gap it measures is the stall and not the timer's
 	// own slack.
 	m_timerId = startTimer(m_interval, Qt::PreciseTimer);
@@ -826,13 +827,24 @@ void UiResponsivenessMonitor::timerEvent(QTimerEvent* event)
 		QObject::timerEvent(event);
 		return;
 	}
-	const qint64 now = QDateTime::currentMSecsSinceEpoch();
-	const qint64 gap = now - m_lastBeatMs;
-	m_lastBeatMs = now;
+	noteBeat(m_beatClock.isValid() ? m_beatClock.restart() : 0);
+}
+
+void UiResponsivenessMonitor::noteBeat(qint64 gapMilliseconds)
+{
 	// The timer was due `interval` after the last beat; what it waited beyond
 	// that is the time the interface thread was held.
-	const qint64 stall = gap - m_interval;
+	const qint64 stall = gapMilliseconds - m_interval;
 	if (stall < m_threshold) {
+		return;
+	}
+	// A gap of minutes is the computer asleep or the process suspended (the
+	// monotonic clock runs on through both on some systems), not a window
+	// that did not answer: it goes to the log and is neither counted nor
+	// reported as a pause.
+	if (gapMilliseconds >= kSuspensionGapMs) {
+		qInfo("ui-responsiveness: a gap of %lld ms is taken as the computer asleep or the process suspended, not as a pause",
+			static_cast<long long>(gapMilliseconds));
 		return;
 	}
 	++m_stallCount;

@@ -1361,6 +1361,10 @@ The texture editor provides a focusable canvas with arrow-key pixel movement,
 Space to apply a tool, Shift-arrow clipping selection, zoom/fit shortcuts, and a
 coordinate/RGBA readout. Named Qt controls expose brush, color, transform,
 palette, layers, selection operations, and package fields; scrollable properties accommodate larger text.
+A background operation disables the canvas and the inspector while it runs; when
+it ends, the control that had the keyboard focus has it again (a control the
+user moved to meanwhile keeps it), so the canvas keys and Ctrl+Z work without a
+click.
 Line/rectangle/ellipse tools accept two Space commands with arrow movement
 between them, expose pending endpoints in text, and cancel without editing.
 Brush shape, paint mode, fill tolerance, filled shapes and wrapping controls
@@ -2118,7 +2122,10 @@ for any of the three, so today they are menu- or palette-driven only.
 
 Two viewport details matter for keyboard users. The map viewport binds `Tab` and
 `Shift+Tab` to cycling the selection through object tiers, so `Tab` no longer
-leaves the widget; `Escape` is the documented way out, and it is staged — it
+leaves the widget. A closed group is one stop of the cycle, at the first of its
+members the cycle can reach, and what lies between its members in the map's
+order is still stepped onto; while a group is open the cycle keeps to the
+objects inside it. `Escape` is the documented way out, and it is staged — it
 first cancels an in-progress drag or rubber band and discards the preview, then
 clears the selection, and only then calls `focusNextChild()`. The model viewport
 takes `Qt::StrongFocus` and does not intercept `Tab`, so focus moves through it
@@ -2174,6 +2181,16 @@ are also available through labeled buttons/menus; undo and redo name the edit.
 Worker allocation and processing failures appear in the named operation-status
 label without replacing the document or history; cancellation remains a distinct
 status. Exact-sample no-op checks also run off the UI thread.
+Work disables the waveform and most commands while it runs, which moves the
+keyboard focus on. When the work ends, or the last step of an export or save
+ends, the control that had the focus has it again, so Space at the waveform
+still pauses the audition it started and Ctrl+Z still undoes; **Play** pressed
+on its own button regains the focus when its audition starts. A control the
+user moved to meanwhile keeps the focus. The multitrack session does the same
+for its timeline, track list and **Play Range**. During session playback the
+timeline's spoken description is left alone and brought up to date when
+playback pauses, ends or stops, rather than being announced twenty times a
+second.
 Save confirmation stays brief because the destination is already displayed in
 the document header; long paths cannot crowd the fixed status area at 200% scale.
 Named source, format, view-range, delivery, analysis, placement and recovery labels

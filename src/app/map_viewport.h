@@ -852,6 +852,9 @@ private:
 	// (kind, id) of each hidden object.
 	QSet<QPair<int, int>> m_hidden;
 	QSet<QString> m_effectiveHidden;
+	// m_effectiveHidden as (kind, id), so isHidden() names no object: it is
+	// asked for every object under a rubber band on every pointer move.
+	QSet<QPair<int, int>> m_effectiveHiddenKeys;
 	QSet<QString> m_sceneHidden;
 	QSet<QPair<int, int>> m_filtered;
 	bool m_showTargetLinks = true;

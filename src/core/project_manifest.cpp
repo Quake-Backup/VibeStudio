@@ -426,7 +426,7 @@ bool loadProjectManifest(const QString& projectRootPath, ProjectManifest* manife
 	}
 	if (!file.open(QIODevice::ReadOnly)) {
 		if (error) {
-			*error = QCoreApplication::translate("SlopStudioProjectManifest", "Unable to open project manifest.");
+			*error = QCoreApplication::translate("SlopStudioProjectManifest", "Unable to open project manifest %1: %2").arg(QDir::toNativeSeparators(manifestPath), file.errorString());
 		}
 		return false;
 	}
@@ -568,7 +568,7 @@ bool saveProjectManifest(const ProjectManifest& manifest, QString* error)
 	}
 	if (!rootDir.mkpath(projectManifestDirectoryName())) {
 		if (error) {
-			*error = QCoreApplication::translate("SlopStudioProjectManifest", "Unable to create project metadata directory.");
+			*error = QCoreApplication::translate("SlopStudioProjectManifest", "Unable to create project metadata directory %1.").arg(QDir::toNativeSeparators(rootDir.filePath(projectManifestDirectoryName())));
 		}
 		return false;
 	}
@@ -612,7 +612,7 @@ bool saveProjectManifest(const ProjectManifest& manifest, QString* error)
 	const QByteArray bytes = QJsonDocument(object).toJson(QJsonDocument::Indented);
 	if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit()) {
 		if (error) {
-			*error = QCoreApplication::translate("SlopStudioProjectManifest", "Unable to write project manifest.");
+			*error = QCoreApplication::translate("SlopStudioProjectManifest", "Unable to write project manifest %1: %2").arg(QDir::toNativeSeparators(file.fileName()), file.errorString());
 		}
 		return false;
 	}

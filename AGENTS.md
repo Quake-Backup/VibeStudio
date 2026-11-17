@@ -49,6 +49,11 @@ credits list.
 - Keep `docs/ACCESSIBILITY_LOCALIZATION.md` and `docs/INITIAL_SETUP.md` aligned when changing UI, setup, settings, accessibility, TTS, or localization behavior.
 - Keep `.editorconfig` formatting: tabs for C/C++ files, spaces for Markdown/YAML/JSON/Meson.
 
+## Build Folders
+- `builddir` is the folder the VS Code tasks build in, at warning level 2 with warnings as errors. Do not wipe it, delete it or configure it with other options: each of those compiles every file again for the next person who builds.
+- Build in `builddir` only through `scripts/meson_build.ps1`, which takes the folder's lock and waits for a build that is already running. For parallel or experimental work use a folder of your own (`-BuildDir builddir-<name>`, ignored by Git) and remove it when you are done.
+- While iterating, build the `slopstudio-app` target (`-AppOnly`) or the one test you need rather than everything: every test program links the core or app library statically, so a full compile relinks several hundred programs after any library change.
+
 ## Documentation, Branding, And Releases
 - `README.md` is a short landing page: what SlopStudio is, its honest status, install, quick start, CLI quick reference, credits. Keep it short; detail belongs in the manual or the design records.
 - The user manual in `docs/manual/` is the user-facing source of truth. Update it in the same change as user-visible behaviour, keep `docs/manual/manual.json` listing every page, then run `python scripts/generate_offline_guide.py` (never hand-edit `docs/OFFLINE_USER_GUIDE.md`). `python scripts/build_docs_site.py` must build without broken links.

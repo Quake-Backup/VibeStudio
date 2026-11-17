@@ -2,8 +2,9 @@
 // the results are checked against known pixels, and OpenGL and Vulkan are
 // compared with each other when both run. Covers clears, depth testing,
 // triangle ids, culling and winding, flat shading, translucency peeling,
-// wireframe coverage, textures with mip levels and cached uploads,
-// read-back of every target format, and the Levels camera's choices (shading
+// wireframe coverage, textures with mip levels and cached uploads (also after
+// a frame cancelled before its uploads ran), the device thread stopped while
+// another thread draws, read-back of every target format, and the Levels camera's choices (shading
 // off, the face grid, fog from the eye or an orthographic origin, and the far
 // clip's reversed depth), which OpenGL and Vulkan must also draw alike.
 //
@@ -14,16 +15,24 @@
 
 #include "core/level_camera_render.h"
 #include "core/render_device.h"
+#include "core/render_device_p.h"
 #include "core/render_shaders.h"
 
+#include <QElapsedTimer>
 #include <QGuiApplication>
 #include <QImage>
 #include <QMatrix4x4>
 #include <QVector3D>
 
+#include <atomic>
+#include <chrono>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include <memory>
+#include <mutex>
+#include <thread>
 
 using namespace slopstudio;
 
@@ -629,7 +638,8 @@ void checkWireScene(const QString& name, const FrameOutput& output)
 }
 
 // Mip levels chosen by explicit sizes, a cached texture reused across frames.
-FrameOutput mipScene(RenderDevice& device, quint64 cacheKey)
+// A zero key caches nothing.
+GpuFrame mipFrame(quint64 cacheKey)
 {
 	const QSize size(16, 16);
 	GpuFrame frame;
@@ -656,7 +666,7 @@ FrameOutput mipScene(RenderDevice& device, quint64 cacheKey)
 		{QPointF(0, 0), QPointF(0, 4), QPointF(4, 0)});
 	appendTriangle(&vertices, &flags, {QVector3D(16, 0, 90), QVector3D(0, 16, 90), QVector3D(16, 16, 90)}, qRgb(0, 0, 0), 0,
 		{QPointF(4, 0), QPointF(0, 4), QPointF(4, 4)});
-	frame.buffers = {{vertices, cacheKey}, {flags, cacheKey + 1}};
+	frame.buffers = {{vertices, cacheKey}, {flags, cacheKey != 0 ? cacheKey + 1 : 0}};
 	GpuSampler mip;
 	mip.minFilter = GpuFilter::Nearest;
 	mip.magFilter = GpuFilter::Nearest;
@@ -678,7 +688,12 @@ FrameOutput mipScene(RenderDevice& device, quint64 cacheKey)
 	pass.draws = {draw};
 	frame.passes = {pass};
 	frame.readbacks = {0};
-	return run(device, frame, 0);
+	return frame;
+}
+
+FrameOutput mipScene(RenderDevice& device, quint64 cacheKey)
+{
+	return run(device, mipFrame(cacheKey), 0);
 }
 
 void checkMipScene(const QString& name, const FrameOutput& first, const FrameOutput& second)
@@ -688,6 +703,87 @@ void checkMipScene(const QString& name, const FrameOutput& first, const FrameOut
 	}
 	expect(near(first.color.pixel(8, 8), qRgb(0, 255, 255)), name + QStringLiteral(": minified texture uses level 4: ") + hex(first.color.pixel(8, 8)));
 	expect(first.color == second.color, name + QStringLiteral(": a cached upload renders the same frame again"));
+}
+
+// A frame cancelled after the device has made room for its cached uploads,
+// but before their contents are copied, must not leave them cached: the next
+// frame with the same keys has to draw what a frame that caches nothing
+// draws. The cancel is timed to land while the device prepares the frame; a
+// large texture nothing samples keeps it preparing for long enough to hit.
+// `mustLand` makes a run where no cancel lands there a failure.
+void checkCancelledUploads(const QString& name, RenderDevice& device, bool mustLand)
+{
+	const FrameOutput reference = run(device, mipFrame(0), 0);
+	if (!expect(reference.ok, name + QStringLiteral(": the uncached mip frame failed: ") + reference.error)) {
+		return;
+	}
+	QImage ballast(2048, 2048, QImage::Format_ARGB32_Premultiplied);
+	ballast.fill(qRgb(90, 90, 90));
+	const auto slowFrame = [&ballast](quint64 cacheKey) {
+		GpuFrame frame = mipFrame(cacheKey);
+		GpuTextureData unused;
+		unused.levels = {ballast};
+		frame.textures.append(unused);
+		return frame;
+	};
+	const GpuFrameResult whole = device.render(slowFrame(0));
+	if (!expect(whole.success, name + QStringLiteral(": the slow mip frame failed: ") + whole.error + QStringLiteral(" / ") + whole.errorDetail)) {
+		return;
+	}
+	// A cancel seen before the device starts on the frame comes back at once;
+	// one seen between its passes comes back after the preparation.
+	const double preparing = 0.1;
+	double delay = whole.milliseconds / 4.0;
+	int landed = 0;
+	int attempts = 0;
+	for (; attempts < 60 && landed < 3; ++attempts) {
+		const quint64 cacheKey = 2000 + quint64(attempts) * 2;
+		std::atomic_bool cancel {false};
+		std::atomic_bool started {false};
+		std::thread canceller([&cancel, &started, delay]() {
+			while (!started.load()) {
+				std::this_thread::yield();
+			}
+			QElapsedTimer clock;
+			clock.start();
+			// Spun, not slept: the delay is a fraction of a frame.
+			while (double(clock.nsecsElapsed()) / 1.0e6 < delay) {
+				std::this_thread::yield();
+			}
+			cancel.store(true);
+		});
+		const GpuFrame frame = slowFrame(cacheKey);
+		started.store(true);
+		const GpuFrameResult result = device.render(frame, &cancel);
+		canceller.join();
+		if (result.success) {
+			// Too late: the frame finished, and its uploads are rightly cached.
+			delay /= 2.0;
+			continue;
+		}
+		if (!expect(result.cancelled, name + QStringLiteral(": a frame cancelled while it was prepared failed instead: ") + result.error + QStringLiteral(" / ") + result.errorDetail)) {
+			return;
+		}
+		if (result.milliseconds < preparing) {
+			// Too early: the device never started on the frame.
+			delay = delay * 1.5 + 0.2;
+			continue;
+		}
+		++landed;
+		const FrameOutput after = run(device, mipFrame(cacheKey), 0);
+		if (!expect(after.ok, name + QStringLiteral(": the frame after a cancelled one failed: ") + after.error)) {
+			return;
+		}
+		expect(after.color == reference.color,
+			name + QStringLiteral(": after a frame cancelled mid-way, its cached texture and buffers are uploaded again (centre pixel %1, expected %2)")
+					   .arg(hex(after.color.pixel(8, 8)), hex(reference.color.pixel(8, 8))));
+		// And once more from the cache the completed frame filled.
+		const FrameOutput cached = run(device, mipFrame(cacheKey), 0);
+		expect(cached.ok && cached.color == reference.color, name + QStringLiteral(": the uploads cached after a cancelled frame draw the same pixels"));
+	}
+	std::printf("%s: %d frame(s) cancelled while being prepared, then drawn again (%d attempts)\n", qPrintable(name), landed, attempts);
+	std::fflush(stdout);
+	expect(landed > 0 || !mustLand, name + QStringLiteral(": no cancel landed while a frame was being prepared, so cancelled uploads went unchecked"));
 }
 
 // Fixed-function culling: counter-clockwise on screen is the front.
@@ -785,6 +881,160 @@ void checkMalformed(const QString& name, RenderDevice& device)
 	expect(skipped.cancelled && !skipped.success, name + QStringLiteral(": a cancelled frame is skipped"));
 }
 
+// The device thread on its own: a device that starts at once and draws
+// nothing, so stopping and starting it does not involve a graphics driver.
+class IdleDevice final : public render_detail::DeviceThread {
+public:
+	IdleDevice()
+		: DeviceThread(RenderBackend::Vulkan)
+	{
+	}
+	~IdleDevice() override { stop(); }
+
+protected:
+	bool startDevice(RenderDeviceInfo* info) override
+	{
+		info->deviceName = QStringLiteral("idle");
+		return true;
+	}
+	void stopDevice() override {}
+	GpuFrameResult renderFrame(const GpuFrame&, const std::atomic_bool*) override
+	{
+		GpuFrameResult result;
+		result.success = true;
+		return result;
+	}
+	void releaseOwnerOnDevice(quint64) override {}
+	[[nodiscard]] bool formatSupportedOnDevice(GpuFormat) const override { return true; }
+};
+
+// A device stopped while another thread is between finding it running and
+// queuing a frame (what resetRenderBackend() and a retired lost device do to
+// a view that is drawing): render() has to come back, with an error, rather
+// than wait on a device thread that has already left. One thread draws in a
+// loop on the device it is handed while this one stops it at varying moments.
+// The frame is slow to check (every index of three draws is read), so a stop
+// usually lands in that gap.
+void checkStopWhileRendering()
+{
+	const QString name = QStringLiteral("device thread");
+	const QSize size(8, 8);
+	GpuFrame frame;
+	frame.size = size;
+	frame.targets = {{GpuFormat::Rgba8, {}}, {GpuFormat::R32Int, {}}, {GpuFormat::R32Float, {}}};
+	QByteArray vertices;
+	QByteArray flags;
+	appendTriangle(&vertices, &flags, {QVector3D(0, 0, 90), QVector3D(0, 8, 90), QVector3D(8, 0, 90)}, qRgb(255, 255, 255));
+	// Every index names vertex 0: nothing to rasterise.
+	const int indexCount = 600000;
+	frame.buffers = {{vertices, 0}, {flags, 0}, {QByteArray(qsizetype(indexCount) * 4, '\0'), 0}};
+	GpuDraw draw;
+	draw.program = int(GpuProgram::ModelSurface);
+	draw.vertexBuffers[0] = {0, 0};
+	draw.vertexBuffers[1] = {1, 0};
+	draw.indexBuffer = {2, 0};
+	draw.count = indexCount;
+	draw.uniforms = surfaceUniforms(pixelProjection(size), false);
+	GpuPass pass;
+	pass.colors = {0, 1, 2, -1};
+	pass.clear[1].integer = -1;
+	pass.draws = {draw, draw, draw};
+	frame.passes = {pass};
+	std::mutex handover;
+	std::shared_ptr<IdleDevice> current = std::make_shared<IdleDevice>();
+	const GpuFrameResult first = current->render(frame, nullptr);
+	if (!expect(first.success, name + QStringLiteral(": the indexed frame failed: ") + first.error + QStringLiteral(" / ") + first.errorDetail)) {
+		return;
+	}
+
+	std::atomic_bool finish {false};
+	std::atomic_bool finished {false};
+	std::atomic<int> drawn {0};
+	std::atomic<int> refused {0};
+	std::atomic<int> unexplained {0};
+	std::thread worker([&]() {
+		while (!finish.load()) {
+			std::shared_ptr<IdleDevice> device;
+			{
+				std::lock_guard lock(handover);
+				device = current;
+			}
+			const GpuFrameResult result = device->render(frame, nullptr);
+			if (result.success) {
+				++drawn;
+			} else {
+				++refused;
+				if (result.error.isEmpty()) {
+					++unexplained;
+				}
+				std::this_thread::yield();
+			}
+		}
+		finished.store(true);
+	});
+	// Generous for a busy machine: each wait below normally ends within milliseconds.
+	const qint64 patienceMilliseconds = 30000;
+	const auto waitUntil = [patienceMilliseconds](const auto& reached) {
+		QElapsedTimer clock;
+		clock.start();
+		while (!reached() && clock.elapsed() < patienceMilliseconds) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		}
+		return reached();
+	};
+	bool returned = true;
+	int stops = 0;
+	quint32 random = 20261117u;
+	for (int round = 0; round < 60 && returned; ++round) {
+		// Wait for a frame from the device now running, then stop it a varying
+		// moment later, while the worker is on its next ones.
+		const int before = drawn.load();
+		returned = waitUntil([&drawn, before]() { return drawn.load() > before; });
+		if (!returned) {
+			break;
+		}
+		random = random * 1664525u + 1013904223u;
+		const qint64 pauseMicroseconds = qint64((random >> 16) % 3000u);
+		QElapsedTimer clock;
+		clock.start();
+		while (clock.nsecsElapsed() / 1000 < pauseMicroseconds) {
+			std::this_thread::yield();
+		}
+		std::shared_ptr<IdleDevice> stopped;
+		{
+			std::lock_guard lock(handover);
+			stopped = current;
+		}
+		stopped->stop();
+		++stops;
+		// The stopped device now refuses every frame; a render() left waiting
+		// on it shows as no further refusals.
+		const int refusedBefore = refused.load();
+		returned = waitUntil([&refused, refusedBefore]() { return refused.load() > refusedBefore; });
+		if (!returned) {
+			break;
+		}
+		const std::shared_ptr<IdleDevice> next = std::make_shared<IdleDevice>();
+		std::lock_guard lock(handover);
+		current = next;
+	}
+	finish.store(true);
+	returned = returned && waitUntil([&finished]() { return finished.load(); });
+	if (!returned) {
+		// The worker is waiting on a device that will never answer, so it cannot
+		// be joined; leave without the usual shutdown.
+		std::fprintf(stderr, "FAIL: %s: render() did not return after its device was stopped (%d stops, %d frames drawn, %d refused)\n", qPrintable(name),
+			stops, drawn.load(), refused.load());
+		std::fflush(stderr);
+		std::_Exit(1);
+	}
+	worker.join();
+	std::printf("%s: %d frame(s) drawn and %d refused across %d stops\n", qPrintable(name), drawn.load(), refused.load(), stops);
+	std::fflush(stdout);
+	expect(stops == 60, name + QStringLiteral(": every round drew a frame and stopped its device (%1 of 60)").arg(stops));
+	expect(unexplained.load() == 0, name + QStringLiteral(": a frame refused by a stopped device says why (%1 did not)").arg(unexplained.load()));
+}
+
 } // namespace
 
 int main(int argc, char** argv)
@@ -802,6 +1052,7 @@ int main(int argc, char** argv)
 	RenderBackendChoice choice = RenderBackendChoice::Automatic;
 	expect(renderBackendChoiceFromId(QStringLiteral(" Vulkan "), &choice) && choice == RenderBackendChoice::Vulkan, QStringLiteral("choice ids parse"));
 	expect(!renderBackendChoiceFromId(QStringLiteral("software"), &choice), QStringLiteral("there is no software choice"));
+	checkStopWhileRendering();
 
 	struct Run {
 		RenderBackend backend;
@@ -830,6 +1081,9 @@ int main(int argc, char** argv)
 		}
 		expect(!info.deviceName.isEmpty() && !info.apiVersion.isEmpty() && info.maxTextureSize >= 2048, name + QStringLiteral(" reports its device"));
 		checkFormats(name, *device);
+		// Several rows of texels, each a different colour, uploaded and read back.
+		const RenderSelfTestResult selfTest = runRenderSelfTest(*device);
+		expect(selfTest.passed, name + QStringLiteral(": the self-test's texture is drawn texel for texel: ") + selfTest.error + QStringLiteral(" / ") + selfTest.errorDetail);
 		Run run;
 		run.backend = backend;
 		run.surface = surfaceScene(*device, false);
@@ -848,6 +1102,7 @@ int main(int argc, char** argv)
 		const FrameOutput mipFirst = mipScene(*device, 900);
 		const FrameOutput mipSecond = mipScene(*device, 900);
 		checkMipScene(name, mipFirst, mipSecond);
+		checkCancelledUploads(name, *device, required.contains(renderBackendId(backend)));
 		checkWinding(name, *device);
 		checkMalformed(name, *device);
 		device->releaseOwner(4);

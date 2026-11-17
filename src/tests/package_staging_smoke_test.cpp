@@ -1059,6 +1059,123 @@ int main()
 		ok &= expect(readFile(multiMapOut) == readFile(multiMapOutB), "a multi-map PWAD should survive two round trips byte-for-byte");
 	}
 
+	// Batch occurrence edits resolve every ordinal in one pass over the plan.
+	// They must stage exactly the operations, and leave exactly the plan, of
+	// the single calls they replace, repeated lump names included.
+	{
+		PackageArchive batchArchive;
+		ok &= expect(batchArchive.load(root.filePath(QStringLiteral("multimap.wad")), &error), "batch fixture should load");
+		const auto samePlan = [](const PackageStagingModel& left, const PackageStagingModel& right) {
+			const QVector<PackageStageOperation> leftOperations = left.operations();
+			const QVector<PackageStageOperation> rightOperations = right.operations();
+			if (leftOperations.size() != rightOperations.size()) { return false; }
+			for (qsizetype at = 0; at < leftOperations.size(); ++at) {
+				const PackageStageOperation& a = leftOperations.at(at);
+				const PackageStageOperation& b = rightOperations.at(at);
+				if (a.id != b.id || a.type != b.type || a.virtualPath != b.virtualPath || a.sourceOrdinal != b.sourceOrdinal
+					|| a.sourceFilePath != b.sourceFilePath || a.conflictResolution != b.conflictResolution) { return false; }
+			}
+			const QVector<PackageStagedEntry> leftEntries = left.plannedEntries();
+			const QVector<PackageStagedEntry> rightEntries = right.plannedEntries();
+			if (leftEntries.size() != rightEntries.size()) { return false; }
+			for (qsizetype at = 0; at < leftEntries.size(); ++at) {
+				const PackageStagedEntry& a = leftEntries.at(at);
+				const PackageStagedEntry& b = rightEntries.at(at);
+				if (a.virtualPath != b.virtualPath || a.sourceOrdinal != b.sourceOrdinal || a.source != b.source
+					|| a.sizeBytes != b.sizeBytes || a.operationId != b.operationId) { return false; }
+			}
+			return left.summary().conflictCount == right.summary().conflictCount && left.summary().deletedCount == right.summary().deletedCount
+				&& left.summary().replacedCount == right.summary().replacedCount;
+		};
+
+		// Map 2's THINGS, map 1's THINGS, map 2's SECTORS: out of source order.
+		const QVector<int> ordinals {5, 1, 7};
+		PackageStagingModel singleDelete;
+		PackageStagingModel batchDelete;
+		ok &= expect(singleDelete.loadBaseArchive(batchArchive, &error) && batchDelete.loadBaseArchive(batchArchive, &error), "batch fixtures should stage");
+		ok &= expect(singleDelete.beginOperationGroup(QStringLiteral("Delete lumps"), &error), "single deletions should open a group");
+		for (const int ordinal : ordinals) {
+			ok &= expect(singleDelete.deleteOccurrence(ordinal, &error), "a single occurrence deletion should stage");
+		}
+		ok &= expect(singleDelete.endOperationGroup(true, &error), "single deletions should commit");
+		ok &= expect(batchDelete.beginOperationGroup(QStringLiteral("Delete lumps"), &error)
+				&& batchDelete.deleteOccurrences(ordinals, &error) && error.isEmpty()
+				&& batchDelete.endOperationGroup(true, &error),
+			"a batch deletion should stage and commit");
+		ok &= expect(samePlan(singleDelete, batchDelete), "a batch deletion should stage the operations and plan of the single calls");
+		ok &= expect(plannedPaths(batchDelete) == QStringList({QStringLiteral("MAP01"), QStringLiteral("LINEDEFS"), QStringLiteral("SECTORS"),
+				QStringLiteral("MAP02"), QStringLiteral("LINEDEFS"), QStringLiteral("PLAYPAL")}),
+			"a batch deletion should remove exactly the named occurrences");
+		ok &= expect(batchDelete.operations().size() == 3 && batchDelete.operations().at(0).sourceOrdinal == 5
+				&& batchDelete.operations().at(0).virtualPath == QStringLiteral("THINGS") && batchDelete.operations().at(2).virtualPath == QStringLiteral("SECTORS"),
+			"a batch deletion should keep the requested order and each occurrence's path");
+		ok &= expect(batchDelete.undo() && !batchDelete.canUndo() && plannedPaths(batchDelete).size() == 9, "a grouped batch deletion should be one undo step");
+
+		PackageStagingModel refusedDelete;
+		ok &= expect(refusedDelete.loadBaseArchive(batchArchive, &error) && refusedDelete.beginOperationGroup(QStringLiteral("Refused"), &error), "refusal fixture should stage");
+		ok &= expect(!refusedDelete.deleteOccurrences({1, 1}, &error) && !error.isEmpty() && refusedDelete.operations().isEmpty(),
+			"an occurrence named twice should refuse the batch before anything is staged");
+		ok &= expect(!refusedDelete.deleteOccurrences({1, 99}, &error) && !error.isEmpty() && refusedDelete.operations().isEmpty(),
+			"a missing occurrence should refuse the batch before anything is staged");
+		ok &= expect(!refusedDelete.deleteOccurrences({-1}, &error) && refusedDelete.operations().isEmpty(), "a negative ordinal names no occurrence");
+		ok &= expect(refusedDelete.deleteOccurrences({}, &error) && error.isEmpty() && refusedDelete.operations().isEmpty(), "an empty batch should change nothing");
+		ok &= expect(refusedDelete.endOperationGroup(false, &error) && !refusedDelete.isModified(), "a refused batch should leave the document unmodified");
+
+		// Replacements: the same equivalence, and a refused member in the middle
+		// neither stops the batch nor consumes an operation id.
+		const QString newThings = root.filePath(QStringLiteral("batch-things.lmp"));
+		const QString newSectors = root.filePath(QStringLiteral("batch-sectors.lmp"));
+		ok &= expect(writeFile(newThings, QByteArray("things-one-new")) && writeFile(newSectors, QByteArray("sectors-two-new")), "replacement fixtures should be written");
+		PackageStagingModel singleReplace;
+		PackageStagingModel batchReplace;
+		ok &= expect(singleReplace.loadBaseArchive(batchArchive, &error) && batchReplace.loadBaseArchive(batchArchive, &error), "replacement fixtures should stage");
+		ok &= expect(singleReplace.beginOperationGroup(QStringLiteral("Replace lumps"), &error)
+				&& singleReplace.replaceOccurrence(1, newThings, &error, {}, PackageFileImportMode::VerifyOnly)
+				&& singleReplace.replaceOccurrence(7, newSectors, &error, {}, PackageFileImportMode::VerifyOnly)
+				&& singleReplace.endOperationGroup(true, &error),
+			"single occurrence replacements should stage");
+		QVector<PackageOccurrenceReplacement> replacements(3);
+		replacements[0].sourceOrdinal = 1;
+		replacements[0].sourceFilePath = newThings;
+		replacements[1].sourceOrdinal = 42;
+		replacements[1].sourceFilePath = newThings;
+		replacements[2].sourceOrdinal = 7;
+		replacements[2].sourceFilePath = newSectors;
+		ok &= expect(batchReplace.beginOperationGroup(QStringLiteral("Replace lumps"), &error), "batch replacements should open a group");
+		ok &= expect(!batchReplace.replaceOccurrences(&replacements, {}, PackageFileImportMode::VerifyOnly), "a batch with a refused member should report it");
+		ok &= expect(replacements.at(0).staged && replacements.at(0).error.isEmpty() && !replacements.at(1).staged && !replacements.at(1).error.isEmpty()
+				&& replacements.at(2).staged && replacements.at(2).error.isEmpty(),
+			"each replacement should carry its own result, and a refused one should not stop the rest");
+		ok &= expect(batchReplace.endOperationGroup(true, &error), "batch replacements should commit");
+		ok &= expect(samePlan(singleReplace, batchReplace), "batch replacements should stage the operations and plan of the single calls");
+		const QVector<PackageStagedEntry> replacedPlan = batchReplace.plannedEntries();
+		QByteArray replacedBytes;
+		ok &= expect(replacedPlan.size() == 9 && batchReplace.entryBytes(replacedPlan.at(1), &replacedBytes, &error) && replacedBytes == QByteArray("things-one-new")
+				&& batchReplace.entryBytes(replacedPlan.at(5), &replacedBytes, &error) && replacedBytes == QByteArray("things-two")
+				&& batchReplace.entryBytes(replacedPlan.at(7), &replacedBytes, &error) && replacedBytes == QByteArray("sectors-two-new"),
+			"batch replacements should change exactly the named occurrences");
+
+		// Reads by path go through an index built once per planned snapshot. A
+		// name two lumps share stays ambiguous, case still folds, and a new
+		// snapshot of an edited plan answers for that plan.
+		const PackageStagingArchive repeated(batchReplace, PackageStagingReadMode::InspectPlan);
+		for (int pass = 0; pass < 2; ++pass) {
+			ok &= expect(!repeated.readEntryBytes(QStringLiteral("THINGS"), &replacedBytes, &error) && error.contains(QStringLiteral("ambiguous")) && replacedBytes.isEmpty(),
+				"a path two staged lumps share should stay ambiguous on every read");
+			ok &= expect(repeated.readEntryBytes(QStringLiteral("playpal"), &replacedBytes, &error) && replacedBytes == QByteArray("palette"),
+				"a staged path should be found whatever its case");
+			ok &= expect(!repeated.readEntryBytes(QStringLiteral("NOSUCH"), &replacedBytes, &error) && !error.isEmpty() && !error.contains(QStringLiteral("ambiguous")),
+				"a missing staged path should be reported as unavailable");
+		}
+		PackageStagingModel oneThings = batchReplace;
+		ok &= expect(oneThings.deleteOccurrence(5, &error), "one of the repeated lumps should delete");
+		const PackageStagingArchive single(oneThings, PackageStagingReadMode::InspectPlan);
+		ok &= expect(single.readEntryBytes(QStringLiteral("THINGS"), &replacedBytes, &error) && replacedBytes == QByteArray("things-one-new"),
+			"once one occurrence is left, its path should read, and read the staged bytes");
+		ok &= expect(!repeated.readEntryBytes(QStringLiteral("THINGS"), &replacedBytes, &error) && error.contains(QStringLiteral("ambiguous")),
+			"an earlier snapshot should keep answering for its own plan");
+	}
+
 	// Two maps with no source order to read them in is genuinely ambiguous:
 	// nothing says which THINGS belongs to which marker, so the writer must
 	// refuse rather than emit an interleaved WAD no engine can read.

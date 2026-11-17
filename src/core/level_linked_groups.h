@@ -41,6 +41,9 @@
 
 namespace slopstudio {
 
+// core/level_scene.h
+struct LevelSceneSelectionContext;
+
 // What one group holds, as compared and copied.
 struct LevelLinkedContent {
 	// What copying or deleting the group acts on: its member entities with
@@ -99,6 +102,12 @@ void refreshLevelLinkBaselines(const LevelMapDocument& document, LevelSceneState
 // The linked groups the selection reaches: the closed groups it touches, else
 // the innermost open linked group holding a selected object.
 [[nodiscard]] QStringList levelLinkedGroupsOfSelection(const LevelMapDocument& document);
+// The same two answers from a selection context the caller already holds,
+// which must be levelSceneSelectionContext() of this document as it is now:
+// building one names every object of the map, and the Levels page asks both
+// after every selection change.
+[[nodiscard]] QStringList levelSelectedSceneGroups(const LevelMapDocument& document, const LevelSceneSelectionContext& context);
+[[nodiscard]] QStringList levelLinkedGroupsOfSelection(const LevelMapDocument& document, const LevelSceneSelectionContext& context);
 // Every member of the link sets of `groups`, as objects to select.
 [[nodiscard]] QVector<LevelMapSelectionRef> levelLinkedGroupsSelection(const LevelMapDocument& document, const QStringList& groups);
 

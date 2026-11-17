@@ -704,6 +704,30 @@ int main()
 	ok &= expect(longPeaks.valid && longPeaks.frameCount == longFrames, "long WAV frame count mismatch");
 	ok &= expect(peakValue(longPeaks, 0, longPeaks.bucketCount - 1, true) > 0.98f, "the envelope must reach the end of the data chunk");
 
+	// A header may declare any channel count up to 65,535 whatever the file's
+	// size. The envelope and the preview's lines grow with it, so past the
+	// editor's eight channels the metadata shows and the waveform does not.
+	const auto wavDeclaringChannels = [](quint16 channels) {
+		// 8-bit PCM, 4000 bytes of data: one byte for each channel in a frame.
+		QByteArray wav = stereoFullScaleWav(0x0001, 8, 2000, false);
+		const auto putLe16 = [&wav](qsizetype offset, quint16 value) {
+			wav[offset] = static_cast<char>(value & 0xff);
+			wav[offset + 1] = static_cast<char>((value >> 8) & 0xff);
+		};
+		putLe16(22, channels); // channel count
+		putLe16(32, channels); // block alignment
+		return wav;
+	};
+	const AssetAudioPeaks widePeaks = extractWavePeaks(wavDeclaringChannels(2000), 512);
+	ok &= expect(!widePeaks.valid && widePeaks.peaks.isEmpty() && widePeaks.error.contains(QStringLiteral("2000")),
+		"a WAV declaring thousands of channels should be refused an envelope, with the reason");
+	const AssetAnalysis wideAnalysis = analyzeAssetBytes(QStringLiteral("sound/wide.wav"), wavDeclaringChannels(2000), -1);
+	ok &= expect(wideAnalysis.kind == AssetPreviewKind::Audio && wideAnalysis.audioChannels == 2000 && !wideAnalysis.audioPeaks.valid
+			&& wideAnalysis.audioWaveformLines.size() == 1,
+		"its metadata should still show, with one line in place of the waveform");
+	const AssetAudioPeaks eightChannelPeaks = extractWavePeaks(wavDeclaringChannels(8), 16);
+	ok &= expect(eightChannelPeaks.valid && eightChannelPeaks.channels == 8 && eightChannelPeaks.frameCount == 500, "eight channels are still drawn");
+
 	// ---- WAV export ----------------------------------------------------------
 
 	const QString wavOutput = root.filePath(QStringLiteral("pickup-copy.wav"));
@@ -867,6 +891,65 @@ int main()
 	ok &= expect(linesContain(cfgAnalysis.textHighlightLines, QStringLiteral("vstr")), "CFG highlights should report vstr");
 	ok &= expect(linesContain(cfgAnalysis.textHighlightLines, QStringLiteral("comment")), "CFG highlights should report the comment line");
 	ok &= expect(linesContain(cfgAnalysis.textDiagnosticLines, QStringLiteral("unterminated quoted string")), "an unterminated string should be reported");
+
+	// Each finding carries its line beside its display text, so nothing has to
+	// read the line back out of a translated string.
+	const auto findingWith = [](const QVector<AssetTextDiagnostic>& findings, const QString& text) {
+		for (const AssetTextDiagnostic& finding : findings) {
+			if (finding.text.contains(text)) {
+				return finding;
+			}
+		}
+		return AssetTextDiagnostic();
+	};
+	const AssetTextDiagnostic openString = findingWith(cfgAnalysis.textDiagnostics, QStringLiteral("unterminated quoted string"));
+	ok &= expect(cfgAnalysis.textDiagnostics.size() == cfgAnalysis.textDiagnosticLines.size() && openString.line == 4
+			&& openString.severity == QStringLiteral("warning") && openString.message == QStringLiteral("unterminated quoted string")
+			&& openString.text == QStringLiteral("line 4: unterminated quoted string") && cfgAnalysis.textDiagnosticLines.contains(openString.text),
+		"a finding should carry its line, severity and message beside its display text");
+	ok &= expect(findingWith(brokenShader.textDiagnostics, QStringLiteral("never closed")).line == 2, "the unclosed block's finding should name line 2");
+	ok &= expect(shaderAnalysis.textDiagnostics.isEmpty(), "a clean text has no findings behind its one line saying so");
+
+	// A package preview remarks on long lines and on the words ERROR and
+	// WARNING in a sample. In a document being edited neither is a problem.
+	const QString hintedCfg = QStringLiteral("// WARNING: read this first\n") + QStringLiteral("seta name \"") + QString(200, QLatin1Char('x'))
+		+ QStringLiteral("\"\n") + QStringLiteral("set g_gametype \"3\n");
+	const QVector<AssetTextDiagnostic> previewFindings = assetTextDiagnostics(QStringLiteral("baseq3/hinted.cfg"), hintedCfg, AssetTextDiagnosticScope::Preview);
+	ok &= expect(previewFindings.size() == 3 && findingWith(previewFindings, QStringLiteral("compiler-style diagnostic marker")).line == 1
+			&& findingWith(previewFindings, QStringLiteral("long line")).line == 2,
+		"a preview should keep its remarks on markers and long lines");
+	ok &= expect(analyzeAssetBytes(QStringLiteral("baseq3/hinted.cfg"), hintedCfg.toUtf8(), -1).textDiagnosticLines.size() == 3,
+		"the analysed preview should list the same three lines");
+	const QVector<AssetTextDiagnostic> editorFindings = assetTextDiagnostics(QStringLiteral("baseq3/hinted.cfg"), hintedCfg);
+	ok &= expect(editorFindings.size() == 1 && editorFindings.first().line == 3 && editorFindings.first().severity == QStringLiteral("warning")
+			&& editorFindings.first().text.contains(QStringLiteral("unterminated quoted string")),
+		"the editor's findings should leave out the sample remarks and keep the real problem");
+	ok &= expect(assetTextDiagnostics(QStringLiteral("baseq3/clean.cfg"), QStringLiteral("seta cg_fov \"90\"\n")).isEmpty(), "a clean document has no findings");
+
+	// The check stops after 64 findings. What can only be said at the end of the
+	// text is then not said: a map whose brushes hold 64 long lines used to gain
+	// a block "never closed" at whatever depth the last line read was.
+	QString longLineMap = QStringLiteral("{\n\"classname\" \"worldspawn\"\n{\n");
+	for (int line = 0; line < 80; ++line) {
+		longLineMap += QStringLiteral("( 0 0 0 ) ( 0 1 0 ) ( 1 0 0 ) ") + QString(170, QLatin1Char('x')) + QStringLiteral(" 0 0 0 1 1\n");
+	}
+	longLineMap += QStringLiteral("}\n}\n");
+	const AssetAnalysis longLineAnalysis = analyzeAssetBytes(QStringLiteral("maps/long.map"), longLineMap.toUtf8(), -1);
+	ok &= expect(longLineAnalysis.textDiagnosticLines.size() == 64 && linesContain(longLineAnalysis.textDiagnosticLines, QStringLiteral("long line"))
+			&& !linesContain(longLineAnalysis.textDiagnosticLines, QStringLiteral("never closed")),
+		"a check that stopped at its limit must not conclude that a block is never closed");
+	ok &= expect(assetTextDiagnostics(QStringLiteral("maps/long.map"), longLineMap).isEmpty(), "the same map has no problems for the editor");
+	QString manyProblems = QStringLiteral("{\n");
+	for (int line = 0; line < 70; ++line) {
+		manyProblems += QStringLiteral("set name \"open\n");
+	}
+	const QVector<AssetTextDiagnostic> stoppedFindings = assetTextDiagnostics(QStringLiteral("baseq3/many.cfg"), manyProblems);
+	ok &= expect(stoppedFindings.size() == 65 && stoppedFindings.last().line == 0 && stoppedFindings.last().severity == QStringLiteral("info")
+			&& stoppedFindings.last().text.contains(QStringLiteral("stopped")) && findingWith(stoppedFindings, QStringLiteral("never closed")).text.isEmpty(),
+		"the editor should be told the check stopped, without a conclusion about the unread rest");
+	const QVector<AssetTextDiagnostic> unclosedFindings = assetTextDiagnostics(QStringLiteral("baseq3/unclosed.cfg"), QStringLiteral("{\nset name \"open\n"));
+	ok &= expect(unclosedFindings.size() == 2 && findingWith(unclosedFindings, QStringLiteral("never closed")).line == 1,
+		"a check that read the whole text still reports a block that is never closed");
 
 	const QByteArray quakeCBytes =
 		"void() player_run =\n"

@@ -276,6 +276,16 @@ bool checkResponsivenessMonitor()
 	QThread::msleep(300);
 	pump(100);
 	ok &= expect(stalls.size() == 1, "a stopped monitor reports nothing");
+	// A gap of minutes is the computer asleep or the process suspended: the
+	// monitor neither counts it nor reports it as a pause. One just short of
+	// that still is a pause.
+	monitor.noteBeat(UiResponsivenessMonitor::kSuspensionGapMs + 40 * 60 * 1000);
+	ok &= expect(stalls.size() == 1 && monitor.stallCount() == 1, "a sleep is not counted or reported as a pause");
+	monitor.noteBeat(UiResponsivenessMonitor::kSuspensionGapMs - 1);
+	ok &= expect(stalls.size() == 2 && monitor.stallCount() == 2 && stalls.last() == UiResponsivenessMonitor::kSuspensionGapMs - 1 - monitor.interval(),
+		"a long hold short of that is still a pause");
+	monitor.noteBeat(monitor.interval());
+	ok &= expect(stalls.size() == 2, "a beat on time is not a pause");
 	return ok;
 }
 

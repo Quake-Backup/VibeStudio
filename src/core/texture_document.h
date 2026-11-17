@@ -80,6 +80,9 @@ public:
 	bool redo();
 	bool beginStroke(QPoint point, QColor color, int width, QString* error = nullptr);
 	bool beginStroke(QPoint point, QColor color, const TextureBrush& brush, QString* error = nullptr);
+	// An interactive stroke begins on the canvas and may leave it: a later point
+	// can lie anywhere in the three-by-three repeat, wrapping brush or not, and
+	// only what crosses the editable area is painted. paintStroke() is stricter.
 	bool continueStroke(QPoint point, const TextureProgress& progress = {});
 	bool endStroke();
 	void cancelStroke();

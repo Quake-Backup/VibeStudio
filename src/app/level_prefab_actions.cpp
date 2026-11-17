@@ -58,7 +58,7 @@ void ApplicationShell::showLevelPrefab(bool capture, bool stage, const QString &
 	dialog.setInsertHandler([this](const LevelMapDocument &candidate, const LevelPrefabReport &report, QString *) {
 		m_levelMapDocument = candidate;
 		recordActivity(tr("Prefab inserted"), tr("%1 objects selected").arg(report.inserted.size()), QStringLiteral("level-map"),
-					   OperationState::Warning, tr("Unsaved map edit"));
+					   OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		statusBar()->showMessage(tr("Prefab inserted as one undo step. Save the map before building."));
 		return true;

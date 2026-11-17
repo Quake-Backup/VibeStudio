@@ -857,6 +857,19 @@ int main()
 
 		ok &= expect(archive.readEntryBytes(QStringLiteral("THINGS"), &bytes, &error), "duplicated THINGS lump should read");
 		ok &= expect(bytes == expectedThings, "duplicated lump reads must return the first archive-order match");
+		// A read by name searches the sorted entry list. It has to land on the
+		// same first match for every repeated name and whatever the case asked
+		// for, and miss cleanly before, between and after the listed names.
+		ok &= expect(archive.readEntryBytes(QStringLiteral("things"), &bytes, &error) && bytes == expectedThings,
+			"a duplicated lump asked for in another case must still be the first archive-order match");
+		ok &= expect(archive.readEntryBytes(QStringLiteral("BLOCKMAP"), &bytes, &error) && bytes == QByteArray("BLOCKMAP-MAP01")
+				&& archive.readEntryBytes(QStringLiteral("VERTEXES"), &bytes, &error) && bytes == QByteArray("VERTEXES-MAP01")
+				&& archive.readEntryBytes(QStringLiteral("LINEDEFS"), &bytes, &error) && bytes == QByteArray("LINEDEFS-MAP01"),
+			"the first and last names in sort order must also resolve to their first lump");
+		ok &= expect(archive.readEntryBytes(QStringLiteral("MAP08"), &bytes, &error) && bytes == QByteArray("MAP08-marker"), "a name that occurs once should read");
+		ok &= expect(!archive.readEntryBytes(QStringLiteral("AAAA"), &bytes, &error) && !archive.readEntryBytes(QStringLiteral("THING"), &bytes, &error)
+				&& !archive.readEntryBytes(QStringLiteral("THINGSX"), &bytes, &error) && !archive.readEntryBytes(QStringLiteral("ZZZZ"), &bytes, &error),
+			"names before, between and after the listed lumps must not be found");
 
 		// The same tie-break has to hold for the entry list the UI and the
 		// extractor walk, not just for findEntry.
@@ -985,6 +998,49 @@ int main()
 	ok &= expect(!archive.warnings().isEmpty(), "PK3 unsafe warning should be reported");
 	ok &= expect(archive.readEntryBytes(QStringLiteral("maps/test.map"), &bytes, &error), "PK3 stored entry bytes should read");
 	ok &= expect(bytes == QByteArray("{\n}"), "PK3 stored entry bytes mismatch");
+
+	// A tool that writes Windows separators records a directory as "textures\".
+	// It must list as a directory: as a zero-byte file called "textures" it
+	// would occupy the folder its own children need, and Extract All would
+	// refuse the whole archive.
+	{
+		const QVector<ZipInput> inputs = {
+			{QByteArray("textures\\"), QByteArray(), false, 0, false},
+			{QByteArray("textures\\wall.tga"), QByteArray("TGA"), false, 0, false},
+		};
+		QByteArray data;
+		const QVector<ZipPlaced> placed = placeZipEntries(&data, inputs);
+		const quint32 centralOffset = static_cast<quint32>(data.size());
+		for (const ZipPlaced& entry : placed) {
+			appendCentralRecord(&data, entry, {}, static_cast<quint32>(entry.stored.size()), entry.uncompressedSize,
+				static_cast<quint32>(entry.localOffset));
+		}
+		appendEndOfCentralDirectory(&data, static_cast<quint16>(placed.size()), static_cast<quint32>(data.size()) - centralOffset, centralOffset);
+		const QString backslashPath = packageDir.filePath(QStringLiteral("backslash.pk3"));
+		PackageArchive backslash;
+		ok &= expect(writeFile(backslashPath, data) && backslash.load(backslashPath, &error), "a PK3 with backslash separators should load");
+		int texturesRows = 0;
+		bool texturesIsDirectory = false;
+		for (const PackageEntry& entry : backslash.entries()) {
+			if (entry.virtualPath == QStringLiteral("textures")) {
+				++texturesRows;
+				texturesIsDirectory = entry.kind == PackageEntryKind::Directory;
+			}
+		}
+		ok &= expect(texturesRows == 1 && texturesIsDirectory, "a directory record ending in a backslash should list once, as a directory");
+		ok &= expect(backslash.summary().fileCount == 1, "a backslash directory record should not count as a file");
+		ok &= expect(backslash.readEntryBytes(QStringLiteral("textures/wall.tga"), &bytes, &error) && bytes == QByteArray("TGA"),
+			"a file under a backslash directory should read by its normalised path");
+		PackageExtractionRequest backslashExtract;
+		backslashExtract.targetDirectory = packageDir.filePath(QStringLiteral("backslash-output"));
+		backslashExtract.extractAll = true;
+		const PackageExtractionReport backslashReport = extractPackageEntries(backslash, backslashExtract);
+		ok &= expect(backslashReport.succeeded() && backslashReport.errorCount == 0, "Extract All should accept a backslash directory record");
+		QByteArray backslashBytes;
+		ok &= expect(readBackFile(QDir(backslashExtract.targetDirectory).filePath(QStringLiteral("textures/wall.tga")), &backslashBytes)
+				&& backslashBytes == QByteArray("TGA"),
+			"Extract All should write the file under the backslash directory");
+	}
 
 	// Content sniffing: the magic wins over the extension, and an extensionless
 	// file still opens.

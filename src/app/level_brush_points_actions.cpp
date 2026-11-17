@@ -145,7 +145,7 @@ void ApplicationShell::createLevelBrushFromPointsFromUi()
 		const LevelBrushPointsReport& report = dialog.report();
 		rememberLevelMaterial(dialog.material());
 		recordActivity(tr("Level map brush created from points"), QStringLiteral("brush:%1").arg(report.brushId), QStringLiteral("level-map"),
-			OperationState::Warning, tr("Unsaved map edit"));
+			OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		statusBar()->showMessage(tr("Created brush:%1. Corners: %2. Faces: %3. Undo removes it.").arg(report.brushId).arg(report.corners).arg(report.faces),
 			6000);

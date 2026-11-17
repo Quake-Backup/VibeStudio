@@ -265,7 +265,7 @@ bool ApplicationShell::applyLevelMaterialPaint(const QVector<LevelMaterialTarget
 	if (!prepareLevelMaterialPaint(m_levelMapDocument, targets, material, &plan, error) || !commitLevelMaterialPaint(&m_levelMapDocument, plan, error)) { return false; }
 	rememberLevelMaterial(plan.material());
 	if (plan.changedCount() > 0) {
-		recordActivity(tr("Map materials painted"), plan.material(), QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+		recordActivity(tr("Map materials painted"), plan.material(), QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 	}
 	showLevelMaterialPaintMessage(plan.changedCount() > 0 ? tr("Painted %n surface(s) with %1.", nullptr, plan.changedCount()).arg(plan.material())

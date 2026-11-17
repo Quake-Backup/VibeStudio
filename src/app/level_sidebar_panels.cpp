@@ -47,6 +47,7 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItemIterator>
 #include <QVBoxLayout>
+#include <QVariant>
 
 #include <algorithm>
 #include <cmath>
@@ -54,6 +55,9 @@
 namespace slopstudio {
 
 namespace {
+// On each Transform field: the value refreshLevelTransformPanel() gave it.
+constexpr char kLevelTransformShownProperty[] = "levelTransformShown";
+
 // Gives each row of a word-wrapped list the height of its text wrapped at
 // the list's width, and the list the height of its rows. The view's own
 // size hints measure a row on one line until it has been laid out.
@@ -230,7 +234,7 @@ void ApplicationShell::buildLevelMapSettings(SidebarPage* page)
 			refreshLevelMapSettings();
 			return;
 		}
-		recordActivity(tr("Worldspawn key changed"), key, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+		recordActivity(tr("Worldspawn key changed"), key, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		statusBar()->showMessage(tr("Set worldspawn %1. Undo puts it back.").arg(key), 4000);
 	});
@@ -328,7 +332,7 @@ void ApplicationShell::addLevelWorldspawnKey()
 		statusBar()->showMessage(tr("Could not add the key: %1").arg(error));
 		return;
 	}
-	recordActivity(tr("Worldspawn key changed"), key->currentText().trimmed(), QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Worldspawn key changed"), key->currentText().trimmed(), QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 }
 
@@ -1019,6 +1023,10 @@ void ApplicationShell::refreshLevelTransformPanel()
 			position->setValue(position->minimum());
 			size->setValue(size->minimum());
 		}
+		// What each field shows, as the field rounds it: only a value the user
+		// changed from this is applied (applyLevelTransformField).
+		position->setProperty(kLevelTransformShownProperty, position->value());
+		size->setProperty(kLevelTransformShownProperty, size->value());
 	}
 	const int count = static_cast<int>(m_levelMapDocument.selection.size());
 	m_levelTransformNote->setText(!bounded ? tr("Select objects to see and set where they are and how big.")
@@ -1043,10 +1051,14 @@ void ApplicationShell::applyLevelTransformField(bool size, int axis)
 	const double low[3] = {mins.x, mins.y, mins.z};
 	const double high[3] = {maxs.x, maxs.y, maxs.z};
 	const double wanted = spin->value();
-	// Only the field edited applies, and only when it moved by more than the
-	// spin box's own rounding, so typing Tab through the fields changes nothing.
+	// Only a field the user changed applies, so that Tab through the fields
+	// changes nothing. The field shows two decimals: a centre or size on an odd
+	// eighth of a unit reads back 0.005 from the selection's own, and telling
+	// an edit by that distance moved such a selection off the grid on focus
+	// loss. The value the field was given is what an untouched one still holds.
 	const double current = size ? high[axis] - low[axis] : (low[axis] + high[axis]) / 2.0;
-	if (std::abs(wanted - current) < 0.005) {
+	const QVariant shown = spin->property(kLevelTransformShownProperty);
+	if (wanted == current || (shown.isValid() && wanted == shown.toDouble())) {
 		return;
 	}
 	if (size) {
@@ -1070,7 +1082,7 @@ void ApplicationShell::applyLevelTransformField(bool size, int axis)
 		refreshLevelTransformPanel();
 		return;
 	}
-	recordActivity(tr("Level map selection moved"), QString::number(wanted), QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map selection moved"), QString::number(wanted), QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 }
 

@@ -383,6 +383,36 @@ void cliTests(const QString& executable, const QString& folder)
 		"build plan reads the project pipeline and --variable", QString::fromUtf8(QJsonDocument(planned).toJson()));
 	expect(result["programTrust"].toObject()["needsConfirmation"].toBool(), "the plan says the project's compiler needs trusting");
 
+	// `--option=value` means what `--option value` means, for a plan and a run;
+	// stage arguments split as --extra-args does, so a quoted part stays whole.
+	result = run({"build", "plan", "fast", "--workspace-root", project, "--input", map, "--variable=QUALITY=inline", "--disable-stage=vis",
+		"--stage-args=light=-bounce \"two words\""});
+	const QJsonArray inlineStages = result["pipeline"].toObject()["stages"].toArray();
+	const QStringList lightArguments = jsonStrings(inlineStages[2].toObject()["arguments"]);
+	expect(inlineStages.size() == 3 && inlineStages[1].toObject()["skipped"].toBool() && lightArguments.contains(QStringLiteral("inline"))
+			&& lightArguments.contains(QStringLiteral("-bounce")) && lightArguments.contains(QStringLiteral("two words")),
+		"build plan reads --variable=, --disable-stage= and --stage-args=", QString::fromUtf8(QJsonDocument(result["pipeline"].toObject()).toJson()));
+	result = run({"build", "run", "fast", "--workspace-root", project, "--input", map, "--dry-run", "--disable-stage=vis", "--disable-stage=light"});
+	const QJsonArray dryStages = result["pipeline"].toObject()["stages"].toArray();
+	expect(dryStages.size() == 3 && dryStages[1].toObject()["skipped"].toBool() && dryStages[2].toObject()["skipped"].toBool(),
+		"build run reads repeated --disable-stage=", QString::fromUtf8(QJsonDocument(result["pipeline"].toObject()).toJson()));
+	// A value that cannot be used is a usage error, never a silent default.
+	result = run({"build", "plan", "fast", "--workspace-root", project, "--input", map, "--stage-args", "light"}, 2);
+	expect(result["message"].toString().contains(QStringLiteral("--stage-args")), "--stage-args without = is named", result["message"].toString());
+	run({"build", "plan", "fast", "--workspace-root", project, "--input", map, "--variable=QUALITY"}, 2);
+	run({"build", "run", "fast", "--workspace-root", project, "--input", map, "--dry-run", "--stage-args=light"}, 2);
+	result = run({"build", "plan", "fast", "--workspace-root", project, "--input", map, "--timeout-ms", "soon"}, 2);
+	expect(result["message"].toString().contains(QStringLiteral("--timeout-ms")), "a --timeout-ms that is not a number is named", result["message"].toString());
+	run({"build", "run", "fast", "--workspace-root", project, "--input", map, "--dry-run", "--timeout-ms", "-1"}, 2);
+	// Zero means no limit.
+	run({"build", "plan", "fast", "--workspace-root", project, "--input", map, "--timeout-ms", "0"});
+
+	// A plan with errors is still printed whole, but it is not a success.
+	result = run({"build", "plan", "fast", "--workspace-root", project, "--input", QDir(project).filePath(QStringLiteral("maps/missing.map"))}, 3);
+	expect(!result["ok"].toBool() && result["pipeline"].toObject()["stages"].toArray().size() == 3
+			&& !result["pipeline"].toObject()["errors"].toArray().isEmpty() && result["message"].toString().contains(QStringLiteral("missing.map")),
+		"a plan with errors exits 3 and keeps the plan", QString::fromUtf8(QJsonDocument(result).toJson()));
+
 	// build run: the project's compiler path names the test program.
 	const QString bsp = QDir(project).filePath(QStringLiteral("maps/start.bsp"));
 	result = run({"build", "run", "mine", "--workspace-root", project, "--input", map, "--dry-run"});

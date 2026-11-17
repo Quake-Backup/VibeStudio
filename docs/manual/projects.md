@@ -23,8 +23,9 @@ The Workspace page is the studio's start page. Choose **Workspace** on the left 
 - **Releases** shows the project's unreleased changes and latest releases, with **Record Change…** and
   **Package and Release…**. See [Package and release](releases.md).
 - **Workspace Details** shows the manifest and health details of the open or selected project.
-- **Recent Activity** charts recent tasks with their state and duration. Select one to see its full
-  log in the Activity Center.
+- **Recent Activity** charts recent tasks with their state and duration, those of earlier sessions
+  included. Select one from this session to see its full log in the Activity Center; a task from an
+  earlier session keeps its result, not its log.
 
 | Tab | What it shows |
 | --- | --- |
@@ -190,7 +191,9 @@ permission.
 
 Detection looks in common Steam library folders, including extra libraries listed by Steam, and in
 common GOG folders. It recognises a game by its folder name, its program and its data files, such as
-`id1/pak0.pak` for Quake. It looks for the program in the game folder and up to two folders below
+`id1/pak0.pak` for Quake, whatever the case of their names. A folder is offered as one game: the
+game whose data files are in it or, when none are found, the game whose name fits the folder best,
+at a lower match percentage. It looks for the program in the game folder and up to two folders below
 it, such as `bin/x64`; for a program kept deeper, add the installation with
 `install add <root> --install-executable <path>`. Detection only reads; nothing is saved until you
 import a candidate.

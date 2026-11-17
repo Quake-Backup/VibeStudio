@@ -470,7 +470,8 @@ clipping, hollowing, component editing and patch tools. Unsupported actions are 
 
 - Click objects in a view or in the **Objects** list on the **Outliner** tab; <kbd>Ctrl</kbd>+click and <kbd>Shift</kbd>+click build a
   multiple selection in either place. In a 2D view, <kbd>Tab</kbd> selects the next object, and
-  <kbd>Ctrl</kbd>+<kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> add the next or previous one. In a Doom map, a
+  <kbd>Ctrl</kbd>+<kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> add the next or previous one. A closed group
+  is one stop, and while a group is open the keys stay among the objects inside it. In a Doom map, a
   click inside a room selects its sector.
 - Type in the **Objects** filter to narrow the list by name, or test properties with `key=value`, `key:text`,
   `key!=value`, `key<n` and `key>n`, such as `class=light`, `tag=3`, `texture:brick` or `light>200`. Every term must

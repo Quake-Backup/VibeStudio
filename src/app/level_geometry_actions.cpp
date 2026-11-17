@@ -361,8 +361,11 @@ void ApplicationShell::refreshLevelGeometryCommands()
 	}
 	m_commands->setEnabled(QStringLiteral("map.snapVertices"), textMap && brushes);
 	const auto picked = m_levelMapViewport ? m_levelMapViewport->pickedComponents() : QVector<LevelMapComponentSet>{};
+	// Asked once for the four commands below: the answer reads the map's
+	// brushes for a selection of entities.
+	const bool clippable = textMap && levelMapSelectionClippable();
 	for (const auto& id : {QStringLiteral("map.wrapMerge"),QStringLiteral("map.wrapMergePoints")}) {
-		m_commands->setEnabled(id,textMap && (levelComponentsActive() ? !picked.isEmpty() && !m_levelMapViewport->componentHandlesLimited() : levelMapSelectionClippable()));
+		m_commands->setEnabled(id,textMap && (levelComponentsActive() ? !picked.isEmpty() && !m_levelMapViewport->componentHandlesLimited() : clippable));
 	}
 	for (const auto& id : {QStringLiteral("map.nextComponent"),QStringLiteral("map.previousComponent")}) {
 		m_commands->setEnabled(id,textMap && levelComponentsActive() && m_levelMapViewport->componentHandleCount() && !m_levelMapViewport->componentHandlesLimited());
@@ -393,8 +396,8 @@ void ApplicationShell::refreshLevelGeometryCommands()
 	m_commands->setEnabled(QStringLiteral("map.roundToGrid"), document.format != LevelMapFormat::Unknown
 		&& (levelComponentsActive() ? !picked.isEmpty() || !levelComponentFacePicks().faces.isEmpty() : !document.selection.isEmpty()));
 	refreshLevelDeletionCommands();
-	m_commands->setEnabled(QStringLiteral("map.hollowTouching"), textMap && levelMapSelectionClippable());
-	m_commands->setEnabled(QStringLiteral("map.makeRoom"), textMap && levelMapSelectionClippable());
+	m_commands->setEnabled(QStringLiteral("map.hollowTouching"), clippable);
+	m_commands->setEnabled(QStringLiteral("map.makeRoom"), clippable);
 	refreshLevelCsgToolCommands();
 	m_commands->setEnabled(QStringLiteral("map.selectWholeEntities"), textMap && owned);
 	for (const QString& id : levelPatchMatrixCommandIds()) {
@@ -649,7 +652,7 @@ void ApplicationShell::snapLevelMapVerticesFromUi()
 		return;
 	}
 	recordActivity(tr("Brush vertices snapped to the grid"), tr("%n brush(es)", nullptr, snapped), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Snapped the vertices of %n brush(es) to grid %1.", nullptr, snapped).arg(grid) + levelMapSkippedNote(skipped), 5000);
 }
@@ -675,7 +678,7 @@ void ApplicationShell::hollowLevelMapTouchingFromUi()
 		return;
 	}
 	recordActivity(tr("Level map brushes hollowed"), tr("%n wall(s)", nullptr, static_cast<int>(m_levelMapDocument.selection.size())),
-		QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+		QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(
 		tr("Hollowed %n brush(es) into walls %1 units thick that meet without overlapping.", nullptr, hollowed).arg(thickness) + levelMapSkippedNote(skipped));
@@ -909,7 +912,7 @@ void ApplicationShell::thickenLevelPatchesFromUi()
 		return;
 	}
 	recordActivity(tr("Level patches thickened"), tr("%n patch(es) made", nullptr, static_cast<int>(created.size())), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Thickened %n patch(es); the new pieces are selected.", nullptr, static_cast<int>(ids.size())), 5000);
 }
@@ -1368,7 +1371,7 @@ void ApplicationShell::placeLevelPrefabFromPalette(const QString& payload, const
 		statusBar()->showMessage(tr("Could not place the prefab: %1").arg(error), 6000);
 		return;
 	}
-	recordActivity(tr("Prefab placed"), prefab.name, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Prefab placed"), prefab.name, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	QString message = tr("Placed %1 at %2, %3, %4; Insert Prefab… turns one before placing it.")
 						  .arg(prefab.name)
@@ -1396,7 +1399,7 @@ bool ApplicationShell::replaceLevelSelectionWithPrefab(const QString& path)
 		statusBar()->showMessage(tr("Could not replace the selection: %1").arg(error), 6000);
 		return false;
 	}
-	recordActivity(tr("Selection replaced with a prefab"), prefab.name, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Selection replaced with a prefab"), prefab.name, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Replaced the selection with %1; Undo puts it back.").arg(prefab.name), 6000);
 	return true;

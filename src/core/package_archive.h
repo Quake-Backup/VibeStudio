@@ -298,6 +298,9 @@ private:
 	QString m_error;
 	bool m_open = false;
 	QVector<PackageEntry> m_entries;
+	// True only while m_entries holds the order finalizeEntries sorted it into;
+	// a snapshot keeps its reader's order, so name lookups scan it instead.
+	bool m_entriesSorted = false;
 	QVector<PackageLoadWarning> m_warnings;
 	PackageArchiveSummary m_summary;
 	qint64 m_sourceSizeBytes = -1;

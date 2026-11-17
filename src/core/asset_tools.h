@@ -38,6 +38,30 @@ struct AssetAudioPeaks {
 	QString error;
 };
 
+// One finding of the local text check: an unbalanced brace, an unterminated
+// string, an unknown shader directive and so on.
+struct AssetTextDiagnostic {
+	// The 1-based line the finding names; 0 when it is about the text as a whole.
+	int line = 0;
+	// "warning" or "info": a stable id, not for display.
+	QString severity;
+	// The finding in words, translated ("unterminated quoted string").
+	QString message;
+	// As lists show it, with its line ("line 12: unterminated quoted string").
+	QString text;
+};
+
+// Who the local text check speaks to.
+enum class AssetTextDiagnosticScope {
+	// A package preview or a CLI report of a read-only sample: every finding,
+	// with the hints that only suit a sample (long lines, compiler-style
+	// ERROR/WARNING markers in the text).
+	Preview,
+	// A document being edited: real findings only, each of which is underlined
+	// in the editor and counted as a problem.
+	Editor,
+};
+
 struct AssetAnalysis {
 	AssetPreviewKind kind = AssetPreviewKind::Unknown;
 	QString kindId;
@@ -109,6 +133,10 @@ struct AssetAnalysis {
 	QString textSaveState;
 	QStringList textHighlightLines;
 	QStringList textDiagnosticLines;
+	// The findings behind textDiagnosticLines, each with its line and severity.
+	// Empty when the text is clean; textDiagnosticLines then holds one line
+	// saying so.
+	QVector<AssetTextDiagnostic> textDiagnostics;
 };
 
 struct AssetImageConversionRequest {
@@ -219,6 +247,14 @@ AssetAnalysis analyzeAssetBytes(const QString& virtualPath, const QByteArray& by
 // Analyze a bounded sample with a known unsigned archive size. A prefix remains
 // partial even when the declared total exceeds the signed file-offset range.
 AssetAnalysis analyzeAssetSample(const QString& virtualPath, const QByteArray& bytes, quint64 totalBytes, const IdTechPalette* palette = nullptr);
+
+// The local text check on its own, for text already in hand; the language
+// comes from the path's extension, as in analyzeAssetBytes(). An empty list
+// means nothing was found. The check stops after 64 findings: what can only be
+// said of the whole text (a block or comment never closed) is then left out,
+// and in the editor scope a last "info" entry with no line says it stopped.
+QVector<AssetTextDiagnostic> assetTextDiagnostics(const QString& virtualPath, const QString& text,
+	AssetTextDiagnosticScope scope = AssetTextDiagnosticScope::Editor);
 
 // Extracts a min/max envelope from a RIFF/WAVE payload. Supports 8-bit
 // unsigned, 16/24/32-bit signed PCM and 32-bit float, including

@@ -74,6 +74,10 @@ If the map has unsaved edits, SlopStudio asks first, because the compilers read 
 **Save** includes your edits, **Build Saved File** builds what is on disk, and **Cancel** stops.
 **Cancel** on the Build header stops a running build after the current stage.
 
+A build started from the window has no time limit: it runs until its tools finish or you cancel it.
+If you close SlopStudio while a compile or build is running, it asks first. **Stop and Close** stops
+the run and closes the window once it has stopped; **Cancel** leaves both as they are.
+
 | Pipeline | Stages | Input |
 | --- | --- | --- |
 | **Quake full compile** | QBSP, then VIS and LIGHT (SlopMap2) | `.map` |
@@ -148,7 +152,9 @@ Known-issue explanations use the SlopMap2 3.1.0 audit and keep ericw-tools issue
 numbers for reference. Reports fixed in that fork no longer add plan or map
 preflight warnings. Platform requirements are guidance; retained historical
 reports still need case-specific verification. Actual compiler warnings and
-errors remain visible. See the [issue reconciliation](../plans/ericw-tools-remaining-bugs-resolution.md)
+errors remain visible. A known issue that matches a warning or error the compiler
+printed is added to the run's log as a note; it does not change how the run ended, and
+a compile that printed no warnings ends as completed. See the [issue reconciliation](../plans/ericw-tools-remaining-bugs-resolution.md)
 for the evidence and remaining limits, including older/custom compiler builds.
 
 SlopMap2's `-embedsettings` option can store effective lighting settings in the

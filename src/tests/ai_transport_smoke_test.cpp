@@ -165,6 +165,29 @@ void checkRequests()
 	AiChatRequest empty = question(QStringLiteral("openai"), QStringLiteral("m"));
 	empty.messages.clear();
 	expect(!buildAiHttpRequest(empty, QString(), &http, &error), "An empty conversation is not sent.");
+
+	// A key never travels over plain http to another machine, whichever header would carry it.
+	const QString teamKey = QStringLiteral("team-secret-value-0123456789");
+	const std::pair<const char*, const char*> offMachine[] = {{"custom-http", "http://192.168.0.5:8000/v1"}, {"openai", "HTTP://proxy.example.test/v1"},
+		{"claude", "http://proxy.example.test"}, {"gemini", "http://proxy.example.test"}};
+	for (const auto& [connector, endpoint] : offMachine) {
+		AiHttpRequest refused;
+		error.clear();
+		expect(!buildAiHttpRequest(question(QString::fromLatin1(connector), QStringLiteral("m"), QString::fromLatin1(endpoint)), teamKey, &refused, &error)
+				&& error.contains(QStringLiteral("https://")) && !error.contains(teamKey) && refused.headers.isEmpty() && !refused.url.isValid(),
+			"A keyed request to an http:// endpoint off this machine is refused, and asks for https.");
+	}
+	expect(buildAiHttpRequest(question(QStringLiteral("custom-http"), QStringLiteral("m"), QStringLiteral("http://192.168.0.5:8000/v1")), QString(), &http, &error)
+			&& !hasHeader(http, "authorization"),
+		"Without a key, an http:// endpoint on the network is still asked.");
+	expect(buildAiHttpRequest(question(QStringLiteral("custom-http"), QStringLiteral("m"), QStringLiteral("https://192.168.0.5:8000/v1")), teamKey, &http, &error)
+			&& headerValue(http, "authorization") == "Bearer team-secret-value-0123456789",
+		"The same endpoint over https takes the key.");
+	for (const char* local : {"http://127.0.0.1:8000/v1", "http://localhost:8000/v1", "http://[::1]:8000/v1", "http://llm.localhost/v1"}) {
+		expect(buildAiHttpRequest(question(QStringLiteral("custom-http"), QStringLiteral("m"), QString::fromLatin1(local)), teamKey, &http, &error)
+				&& headerValue(http, "authorization") == "Bearer team-secret-value-0123456789",
+			"An http:// endpoint on this machine takes a key: nothing leaves it.");
+	}
 }
 
 void checkAnswers()
@@ -231,6 +254,38 @@ void checkRedaction()
 		"The project and home folders are named without the machine, in either slash style and case.");
 	expect(redactAiContextPaths(QStringLiteral("/home/ann/q/maps/a.map"), QStringLiteral("/home/ann/q"), QStringLiteral("/home/ann")) == QStringLiteral("<project>/maps/a.map"),
 		"Unix paths are redacted too.");
+	expect(redactAiContextPaths(QStringLiteral("/home/Ann/q/maps/a.map in /home/ann/notes"), QStringLiteral("/home/ann/q"), QStringLiteral("/home/ann"))
+			== QStringLiteral("/home/Ann/q/maps/a.map in ~/notes"),
+		"Unix paths keep their case: another spelling is another folder.");
+
+	// The doubled backslashes of JSON, C strings and logs, and separators mixed in one path.
+	const QString escaped = QString::fromLatin1(
+		R"({"file":"C:\\Users\\Mapper\\Mods\\Foundry\\maps\\a.map","cwd":"c:\\users\\mapper","mixed":"C:/Users/Mapper\\Mods\Foundry/b.map"})");
+	expect(redactAiContextPaths(escaped, QStringLiteral("C:/Users/Mapper/Mods/Foundry"), QStringLiteral("C:\\Users\\Mapper"))
+			== QString::fromLatin1(R"({"file":"<project>\\maps\\a.map","cwd":"~","mixed":"<project>/b.map"})"),
+		"Paths written with doubled backslashes or mixed separators are redacted as the plain ones are.");
+
+	// A network share compares without case, as a drive path does.
+	const QString shares = QString::fromLatin1(R"(\\NAS\Share\Proj\maps\a.map, \\nas\share\proj\b.map, //Nas/share/proj/c.map, "\\\\nas\\share\\proj\\d.map")");
+	expect(redactAiContextPaths(shares, QString::fromLatin1(R"(\\nas\share\proj)"), QString())
+			== QString::fromLatin1(R"(<project>\maps\a.map, <project>\b.map, <project>/c.map, "<project>\\d.map")"),
+		"A project on a network share is redacted whatever the case and slashes of the server's name.");
+
+	// Only the folder itself: a neighbour whose name starts the same way is another folder.
+	const QString neighbours = QStringLiteral("C:/Users/djones/x.map C:\\Users\\dj-old\\y C:/Users/dj_2/w C:/Users/dj.bak/z C:/Users/dj2 | C:/Users/dj/q.map \"C:/Users/dj\" (C:\\Users\\dj) "
+											  "C:/Users/dj:12 C:/Users/dj, C:/Users/dj. C:/Users/dj");
+	expect(redactAiContextPaths(neighbours, QString(), QStringLiteral("C:/Users/dj"))
+			== QStringLiteral("C:/Users/djones/x.map C:\\Users\\dj-old\\y C:/Users/dj_2/w C:/Users/dj.bak/z C:/Users/dj2 | ~/q.map \"~\" (~) ~:12 ~, ~. ~"),
+		"A folder whose name only starts like the home folder's is left alone; the home folder is redacted before a separator, a quote, punctuation or the end.");
+	expect(redactAiContextPaths(QStringLiteral("C:/Mods/Foundry2/a.map C:/Mods/Foundry/a.map C:/Mods/Foundry.zip"), QStringLiteral("C:/Mods/Foundry"), QString())
+			== QStringLiteral("C:/Mods/Foundry2/a.map <project>/a.map C:/Mods/Foundry.zip"),
+		"A sibling of the project, or a file named after it, is not called the project.");
+
+	// The connectors' own key shapes, and identifiers that only look alike.
+	const QString connectorKeys = QStringLiteral("eleven=sk_0123456789abcdef0123456789abcdef0123456789abcdef meshy=msy_AbCdEfGhIjKlMnOpQrStUvWxYz0123456789 "
+												 "code: sk_buff sk_receive_queue_len_total msy_dummy task_abcdefghijklmnopqrstuvwxyz sk_short123");
+	expect(redactAiText(connectorKeys) == QStringLiteral("eleven=*** meshy=*** code: sk_buff sk_receive_queue_len_total msy_dummy task_abcdefghijklmnopqrstuvwxyz sk_short123"),
+		"ElevenLabs- and Meshy-shaped keys are hidden; snake_case identifiers are not.");
 
 	AiHttpRequest http;
 	buildAiHttpRequest(question(QStringLiteral("gemini"), QStringLiteral("g")), QStringLiteral("AIzaSecretKeyValue123456"), &http);
@@ -410,6 +465,50 @@ void checkConnections()
 	expect(normalized.connectorModels.value(QStringLiteral("custom-http")) == QStringLiteral("team-model"), "Per-connector models survive normalization.");
 }
 
+// What a remembered "don't ask again" is filed under.
+void checkConsentKeys()
+{
+	// Every connector but the custom command keeps "<connector>@<destination>",
+	// so approvals already remembered still count.
+	AiTextConnection claude;
+	claude.connectorId = QStringLiteral("claude");
+	claude.endpoint = QStringLiteral("https://api.anthropic.com");
+	AiTextConnection team;
+	team.connectorId = QStringLiteral("custom-http");
+	team.endpoint = QStringLiteral("http://llm.example.invalid/v1");
+	AiTextConnection claudeCode;
+	claudeCode.connectorId = QStringLiteral("claude-code");
+	claudeCode.program = QStringLiteral("C:/Tools/claude.exe");
+	AiTextConnection codex;
+	codex.connectorId = QStringLiteral("codex");
+	codex.program = QStringLiteral("/usr/local/bin/codex");
+	expect(aiTextConnectionConsentKey(claude) == QStringLiteral("claude@api.anthropic.com")
+			&& aiTextConnectionConsentKey(team) == QStringLiteral("custom-http@llm.example.invalid")
+			&& aiTextConnectionConsentKey(claudeCode) == QStringLiteral("claude-code@Anthropic") && aiTextConnectionConsentKey(codex) == QStringLiteral("codex@OpenAI"),
+		"Providers and the login tools are remembered by connector and destination, as before.");
+
+	// A custom command is its whole command line, not just the program that runs it.
+	AiTextConnection first;
+	first.connectorId = QStringLiteral("custom-command");
+	first.endpoint = QStringLiteral("python ask_model.py --quiet");
+	first.program = QStringLiteral("C:/Python/python.exe");
+	AiTextConnection second = first;
+	second.endpoint = QStringLiteral("python send_elsewhere.py --quiet");
+	AiTextConnection spaced = first;
+	spaced.endpoint = QStringLiteral("  python ask_model.py --quiet \n");
+	AiTextConnection flagged = first;
+	flagged.endpoint = QStringLiteral("python ask_model.py --verbose");
+	const QString firstKey = aiTextConnectionConsentKey(first);
+	const QString prefix = QStringLiteral("custom-command@python.exe#");
+	expect(aiTextConnectionDestinationText(first) == QStringLiteral("python.exe") && firstKey.startsWith(prefix) && firstKey.size() == prefix.size() + 12
+			&& firstKey == firstKey.toLower(),
+		"A custom command's key is its program's name and a short digest of its command line, in the lower case the settings keep.");
+	expect(aiTextConnectionConsentKey(second) != firstKey && aiTextConnectionConsentKey(second).startsWith(prefix) && aiTextConnectionConsentKey(flagged) != firstKey,
+		"Another script, or other arguments, run by the same program is another command to approve.");
+	expect(aiTextConnectionConsentKey(spaced) == firstKey && aiTextConnectionConsentKey(first) == firstKey,
+		"The same command line gives the same key, whatever the spaces around it.");
+}
+
 void checkClient()
 {
 	FakeAiProvider provider;
@@ -519,6 +618,7 @@ int main(int argc, char** argv)
 	checkContext();
 	checkStructured();
 	checkConnections();
+	checkConsentKeys();
 	checkClient();
 	if (failures > 0) {
 		std::cerr << failures << " AI transport check(s) failed.\n";

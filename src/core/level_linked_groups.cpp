@@ -1218,7 +1218,14 @@ QStringList levelSelectedSceneGroups(const LevelMapDocument& document)
 	if (document.scene.nodes.isEmpty() || document.selection.isEmpty()) {
 		return {};
 	}
-	const LevelSceneSelectionContext context = levelSceneSelectionContext(document);
+	return levelSelectedSceneGroups(document, levelSceneSelectionContext(document));
+}
+
+QStringList levelSelectedSceneGroups(const LevelMapDocument& document, const LevelSceneSelectionContext& context)
+{
+	if (document.scene.nodes.isEmpty() || document.selection.isEmpty()) {
+		return {};
+	}
 	QSet<QString> selected;
 	for (const LevelMapSelectionRef& ref : document.selection) {
 		selected.insert(levelSceneCanonicalObject(document, levelMapSelectionRefId(ref)));
@@ -1244,7 +1251,15 @@ QStringList levelLinkedGroupsOfSelection(const LevelMapDocument& document)
 			[](const LevelSceneNode& node) { return !node.linkId.isEmpty(); })) {
 		return {};
 	}
-	const LevelSceneSelectionContext context = levelSceneSelectionContext(document);
+	return levelLinkedGroupsOfSelection(document, levelSceneSelectionContext(document));
+}
+
+QStringList levelLinkedGroupsOfSelection(const LevelMapDocument& document, const LevelSceneSelectionContext& context)
+{
+	if (document.selection.isEmpty() || std::none_of(document.scene.nodes.cbegin(), document.scene.nodes.cend(),
+			[](const LevelSceneNode& node) { return !node.linkId.isEmpty(); })) {
+		return {};
+	}
 	// Owners of the selected brushes and patches only.
 	QSet<int> selectedBrushes;
 	QSet<int> selectedPatches;

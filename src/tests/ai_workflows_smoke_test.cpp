@@ -3,6 +3,9 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QTemporaryDir>
 
 #include <cstdlib>
@@ -92,6 +95,56 @@ int main(int argc, char** argv)
 	if (slopstudio::cancelledAiWorkflowManifest(retried).state != slopstudio::OperationState::Cancelled) {
 		return fail("Expected cancellation state metadata.");
 	}
+
+	// Saving a manifest: the whole file or an error, never a claim of success
+	// over a file that was not written.
+	const QString savedPath = tempDir.filePath(QStringLiteral("manifests/run/asset.json"));
+	const QByteArray expectedBytes = QJsonDocument(slopstudio::aiWorkflowManifestJson(asset.manifest)).toJson(QJsonDocument::Indented);
+	const auto contents = [](const QString& path) {
+		QFile file(path);
+		return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray();
+	};
+	QString saveError = QStringLiteral("stale");
+	if (!slopstudio::saveAiWorkflowManifest(asset.manifest, savedPath, &saveError) || !saveError.isEmpty()) {
+		return fail("Expected the workflow manifest to save into a new folder.");
+	}
+	if (expectedBytes.isEmpty() || contents(savedPath) != expectedBytes) {
+		return fail("Expected the saved manifest to hold the manifest's JSON, whole.");
+	}
+	if (!slopstudio::saveAiWorkflowManifest(retried, savedPath, &saveError)
+		|| QJsonDocument::fromJson(contents(savedPath)).object().value(QStringLiteral("retryCount")).toInt() != retried.retryCount) {
+		return fail("Expected a second save to replace the manifest.");
+	}
+	if (QDir(QFileInfo(savedPath).absolutePath()).entryList(QDir::Files | QDir::Hidden).size() != 1) {
+		return fail("Expected saving to leave only the manifest in its folder.");
+	}
+	if (slopstudio::saveAiWorkflowManifest(asset.manifest, QString(), &saveError) || saveError.isEmpty()) {
+		return fail("Expected an empty manifest path to be refused with a reason.");
+	}
+	saveError.clear();
+	if (slopstudio::saveAiWorkflowManifest(asset.manifest, packageRoot, &saveError) || saveError.isEmpty() || !QFileInfo(packageRoot).isDir()) {
+		return fail("Expected a manifest path that is a folder to be refused with a reason.");
+	}
+#ifdef Q_OS_WIN
+	{
+		// Windows will not replace a file another handle holds open: the save
+		// has to say so, and the manifest already there has to stay whole.
+		const QByteArray before = contents(savedPath);
+		QFile held(savedPath);
+		if (!held.open(QIODevice::ReadOnly)) {
+			return fail("Expected to hold the saved manifest open.");
+		}
+		saveError.clear();
+		const bool replaced = slopstudio::saveAiWorkflowManifest(asset.manifest, savedPath, &saveError);
+		held.close();
+		if (replaced || saveError.isEmpty()) {
+			return fail("Expected a manifest that could not be replaced to be reported, not called saved.");
+		}
+		if (contents(savedPath) != before) {
+			return fail("Expected a failed save to leave the earlier manifest whole.");
+		}
+	}
+#endif
 
 	return EXIT_SUCCESS;
 }

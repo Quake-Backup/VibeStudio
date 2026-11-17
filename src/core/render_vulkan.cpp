@@ -1535,11 +1535,32 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 	++m_frame;
 	std::vector<Target*> targets(size_t(frame.targets.size()), nullptr);
 	std::vector<Image> transientImages;
+	// The cached textures and buffers this frame adds. Their contents arrive
+	// with the frame's command buffer, so a frame that is cancelled or fails
+	// before that buffer has run takes them out of the caches again: left in,
+	// the next frame would draw from images and buffers nothing was copied to.
+	std::vector<std::pair<quint64, quint64>> addedTextures;
+	std::vector<std::pair<quint64, quint64>> addedBuffers;
+	bool committed = false;
 	bool recording = false;
 	const auto cleanUp = [&]() {
 		if (recording) {
 			vkEndCommandBuffer(m_commands);
 			vkResetCommandBuffer(m_commands, 0);
+		}
+		if (!committed) {
+			for (const auto& key : addedTextures) {
+				if (const auto found = m_textures.find(key); found != m_textures.end()) {
+					destroyImage(&found->second.image);
+					m_textures.erase(found);
+				}
+			}
+			for (const auto& key : addedBuffers) {
+				if (const auto found = m_buffers.find(key); found != m_buffers.end()) {
+					destroyBuffer(&found->second.buffer);
+					m_buffers.erase(found);
+				}
+			}
 		}
 		for (Image& image : transientImages) {
 			destroyImage(&image);
@@ -1675,6 +1696,7 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 		cached.lastUsed = m_frame;
 		auto& stored = m_buffers[{frame.owner, data.cacheKey}];
 		stored = cached;
+		addedBuffers.push_back({frame.owner, data.cacheKey});
 		cachedBuffers[size_t(index)] = &stored;
 	}
 	for (int index = 0; index < frame.textures.size(); ++index) {
@@ -1698,6 +1720,7 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 			}
 			auto& stored = m_textures[{frame.owner, data.cacheKey}];
 			stored = cached;
+			addedTextures.push_back({frame.owner, data.cacheKey});
 			cachedTextures[size_t(index)] = &stored;
 			textureImages[size_t(index)] = &stored.image;
 		} else {
@@ -2002,6 +2025,8 @@ GpuFrameResult VulkanDevice::renderFrame(const GpuFrame& frame, const std::atomi
 												   : QCoreApplication::translate("SlopStudioRendering", "The Vulkan driver failed while drawing this view."),
 			QStringLiteral("submit: %1").arg(vulkanResult(status)));
 	}
+	// The uploads ran: what this frame cached now holds its data.
+	committed = true;
 	vkResetCommandBuffer(m_commands, 0);
 	if (!m_readback.memory.coherent && !frame.readbacks.isEmpty()) {
 		VkMappedMemoryRange range = vulkanStruct<VkMappedMemoryRange>(VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE);

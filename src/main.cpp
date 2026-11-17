@@ -24,9 +24,23 @@
 #include <QPointer>
 #include <QTimer>
 #include <QScopeGuard>
+#include <QSessionManager>
 #include <QThreadPool>
 
+#include <cstdio>
+#include <iostream>
 #include <memory>
+
+#if defined(Q_OS_WIN)
+// Windows only: the wide command line (CommandLineToArgvW) and the console
+// output code page. Every use below is guarded, and other systems keep the
+// portable path, where argv and the terminal are already UTF-8.
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <shellapi.h>
+#endif
 
 // The brand icon resource lives in the app library (assets/branding/slopstudio.qrc).
 // Q_INIT_RESOURCE must run from the global namespace, and calling it here makes
@@ -40,6 +54,23 @@ namespace {
 
 QStringList rawArguments(int argc, char** argv)
 {
+#if defined(Q_OS_WIN)
+	// argv arrives in the ANSI code page, which replaces every character
+	// outside it: a --settings-file or --open path in another script would
+	// name a different file. The wide command line keeps them, and is what
+	// QCoreApplication::arguments() reads on Windows too.
+	int wideCount = 0;
+	if (LPWSTR* wide = ::CommandLineToArgvW(::GetCommandLineW(), &wideCount)) {
+		QStringList wideArgs;
+		for (int index = 0; index < wideCount; ++index) {
+			wideArgs.push_back(QString::fromWCharArray(wide[index]));
+		}
+		::LocalFree(wide);
+		if (!wideArgs.isEmpty()) {
+			return wideArgs;
+		}
+	}
+#endif
 	QStringList args;
 	for (int index = 0; index < argc; ++index) {
 		args.push_back(QString::fromLocal8Bit(argv[index]));
@@ -81,6 +112,32 @@ QString flagValue(const QStringList& args, const QString& flag)
 QString settingsFileOverride(const QStringList& args)
 {
 	return flagValue(args, QStringLiteral("--settings-file"));
+}
+
+// Whether `--settings-file` was given without a usable path: nothing after
+// it, an empty or blank value (an unset shell variable), or another option
+// where the path should be. Such a run must stop rather than fall through to
+// the user's real preference store, which is the one thing the option exists
+// to keep scripts away from.
+bool settingsFileValueMissing(const QStringList& args)
+{
+	const QString flag = QStringLiteral("--settings-file");
+	const QString inlinePrefix = flag + QLatin1Char('=');
+	for (int index = 1; index < args.size(); ++index) {
+		const QString& argument = args.at(index);
+		QString value;
+		if (argument == flag) {
+			value = args.value(index + 1);
+		} else if (argument.startsWith(inlinePrefix)) {
+			value = argument.mid(inlinePrefix.size());
+		} else {
+			continue;
+		}
+		if (value.trimmed().isEmpty() || value.startsWith(QStringLiteral("--"))) {
+			return true;
+		}
+	}
+	return false;
 }
 
 // Every `--open <path>` in order. Each is handled exactly like a drop onto the
@@ -143,12 +200,26 @@ int main(int argc, char** argv)
 {
 	const QStringList args = rawArguments(argc, argv);
 
+	// Before anything reads settings, in the studio and on the command line
+	// alike. Plain English: no application, and so no translator, exists yet.
+	if (settingsFileValueMissing(args)) {
+		std::fputs("--settings-file requires a path.\n", stderr);
+		return 2;
+	}
 	const QString settingsOverride = settingsFileOverride(args);
 	if (!settingsOverride.isEmpty()) {
 		slopstudio::StudioSettings::setOverrideFilePath(settingsOverride);
 	}
 
 	if (args.contains(QStringLiteral("--cli"))) {
+#if defined(Q_OS_WIN)
+		// The command line writes UTF-8. A Windows console shows it as such
+		// only while its output code page says so; the console's own code page
+		// comes back when the command ends. Zero means there is no console.
+		const UINT previousConsoleCodePage = ::GetConsoleOutputCP();
+		const bool consoleCodePageChanged = previousConsoleCodePage != 0 && previousConsoleCodePage != CP_UTF8
+			&& ::SetConsoleOutputCP(CP_UTF8) != 0;
+#endif
 		// Commands that draw in 3D get a GUI application without a window, so
 		// they can use OpenGL as well as Vulkan; the rest stay console-only.
 		std::unique_ptr<QCoreApplication> app;
@@ -158,10 +229,20 @@ int main(int argc, char** argv)
 		} else {
 			app = std::make_unique<QCoreApplication>(argc, argv);
 		}
-		const auto imports = qScopeGuard([] {
+		const auto imports = qScopeGuard([=] {
 			QThreadPool::globalInstance()->waitForDone();
 			slopstudio::waitForPackageImportCleanup();
 			slopstudio::waitForPackageCopyCleanup();
+#if defined(Q_OS_WIN)
+			if (consoleCodePageChanged) {
+				// Everything written so far was UTF-8: send it before the
+				// console goes back to its own code page.
+				std::cout.flush();
+				std::cerr.flush();
+				std::fflush(nullptr);
+				::SetConsoleOutputCP(previousConsoleCodePage);
+			}
+#endif
 		});
 		configureApplicationMetadata(*app);
 		return slopstudio::cli::run(app->arguments());
@@ -263,6 +344,29 @@ int main(int argc, char** argv)
 
 	slopstudio::ApplicationShell shell;
 	shell.show();
+
+#ifndef QT_NO_SESSIONMANAGER
+	// Logging off or shutting the system down ends the process without a close
+	// event or atexit, so nothing would ask about unsaved work, the window
+	// state would be lost, and the next start would report a crash. When the
+	// session manager lets the studio ask, close the window as the user would:
+	// its own guards save, discard or refuse. A refusal cancels the shutdown;
+	// otherwise the session is recorded as ended cleanly at once, because the
+	// system may end the process before main() returns. Direct, as Qt requires
+	// for this signal: the answer is read when the slot returns.
+	QObject::connect(&app, &QGuiApplication::commitDataRequest, &shell, [&shell](QSessionManager& manager) {
+		if (!manager.allowsInteraction()) {
+			return;
+		}
+		const bool closed = shell.close();
+		manager.release();
+		if (closed) {
+			slopstudio::markSessionEndedCleanly();
+		} else {
+			manager.cancel();
+		}
+	}, Qt::DirectConnection);
+#endif
 
 	const QStringList paths = pathsToOpen(args);
 	if (!paths.isEmpty()) {

@@ -26,6 +26,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QPaintEvent>
 #include <QPointer>
 #include <QPushButton>
 #include <QScrollArea>
@@ -39,6 +40,7 @@
 #include <QTranslator>
 #include <QUuid>
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -57,6 +59,19 @@ bool expect(bool value, const char* message)
 	}
 	return value;
 }
+// The rectangle of every paint event a widget receives.
+class PaintLog final : public QObject
+{
+public:
+	QVector<QRect> rects;
+	bool eventFilter(QObject*, QEvent* event) override
+	{
+		if (event->type() == QEvent::Paint) {
+			rects.append(static_cast<QPaintEvent*>(event)->rect());
+		}
+		return false;
+	}
+};
 bool waitForEditButton(QPushButton* button)
 {
 	if (!button) { return false; }
@@ -324,6 +339,46 @@ int main(int argc, char** argv)
 		const auto* accessible = QAccessible::queryAccessibleInterface(waveform);
 		ok &= expect(accessible && accessible->role() == QAccessible::Graphic,
 		             "waveform exposes its accessible graphic role");
+		{
+			// Playback moves the playhead many times a second. That repaints the
+			// strip it left and the strip it entered, and a strip repainted alone
+			// shows exactly what a full repaint shows there.
+			app.processEvents();
+			PaintLog painted;
+			waveform->installEventFilter(&painted);
+			waveform->setPlayheadFrame(5000);
+			app.processEvents();
+			int widest = 0;
+			for (const QRect& rect : painted.rects) {
+				widest = std::max(widest, rect.width());
+			}
+			ok &= expect(!painted.rects.isEmpty() && widest < waveform->width() && waveform->playheadFrame() == 5000,
+			             "a moving playhead repaints its strips, not the whole waveform");
+			waveform->removeEventFilter(&painted);
+			const auto rendered = [&](const QRect& part) {
+				QImage image(waveform->size(), QImage::Format_ARGB32_Premultiplied);
+				image.fill(Qt::transparent);
+				if (part.isNull()) {
+					waveform->render(&image);
+				} else {
+					waveform->render(&image, part.topLeft(), QRegion(part));
+				}
+				return image;
+			};
+			const QImage full = rendered({});
+			bool samePixels = true;
+			const int playheadX = static_cast<int>(waveform->xForFrame(5000));
+			// Only the lanes: a playhead strip stops above the overview, whose
+			// antialiased columns differ by a few pixels between a clipped and a
+			// full render even with every column painted (as before strips).
+			const int overviewTop = waveform->height() - waveform->fontMetrics().height() - 24;
+			for (const int x : {9, 120, playheadX - 3, waveform->width() / 2, waveform->width() - 30}) {
+				const QRect part(x, 0, 9, overviewTop);
+				samePixels &= rendered(part).copy(part) == full.copy(part);
+			}
+			ok &= expect(samePixels, "a waveform strip repainted alone matches the same strip of a full repaint");
+			waveform->setPlayheadFrame(0);
+		}
 		auto* first = editor->findChild<QSpinBox*>(QStringLiteral("audioSelectionStart"));
 		auto* end = editor->findChild<QSpinBox*>(QStringLiteral("audioSelectionEnd"));
 		first->setValue(2205);
@@ -813,13 +868,18 @@ int main(int argc, char** argv)
 		ok &= expect(!editor->findChild<QAction*>(QStringLiteral("audioEditorPlay"))->isEnabled(),
 		             "no-playback build still enables editing with disabled transport");
 #endif
+		// An edit disables the waveform while it runs, which moves the keyboard
+		// focus on. It must come back, or Ctrl+Z and Space do nothing afterwards.
+		waveform->setFocus();
 		editor->applyEdit(QStringLiteral("trim"));
 		ok &= expect(editor->isBusy() &&
 		                 !editor->findChild<QAction*>(QStringLiteral("audioEditorExport"))->isEnabled(),
 		             "pending edit blocks racing export");
+		ok &= expect(editor->focusWidget() != waveform, "a running edit disables the waveform and moves the focus on");
 		ok &= finish(editor);
 		ok &= expect(editor->clip().frameCount() == 8820 && editor->hasChanges(),
 		             "trim commits edited PCM and dirty state");
+		ok &= expect(editor->focusWidget() == waveform, "the waveform has the keyboard focus again after an edit");
 		editor->undo();
 		ok &= expect(editor->clip().samples == decoded.clip.samples && !editor->hasChanges() &&
 		                 first->value() == 2205 && end->value() == 11025,
@@ -837,6 +897,8 @@ int main(int argc, char** argv)
 		ok &= finish(editor);
 		ok &= expect(editor->hasChanges() && QFileInfo::exists(saved),
 		             "quantized export does not mark the lossless document saved");
+		ok &= expect(editor->focusWidget() == waveform,
+		             "the focus survives a cancelled edit and both steps of an export (prepare, then write)");
 		ok &= finishRecovery(editor);
 		const QString checkpoint = editor->recoveryPath();
 		AudioProject recovered;

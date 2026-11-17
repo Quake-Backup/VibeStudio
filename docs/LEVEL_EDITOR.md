@@ -4473,7 +4473,10 @@ by default, written every minute for changed documents on a background worker.
 They never replace the actual map. Checkpoints include the serialized document,
 source fingerprint, map identity, revision and Doom node-staleness flag, with
 bounded metadata and a verified content hash. They start a fresh undo history
-when restored. Saving, explicitly discarding, or closing a document normally
+when restored, and the restored document is given a checkpoint of its own at
+once: restoring this session's own checkpoint retires that record with the
+document it replaces, and the restored one is unsaved work from its first
+moment. Saving, explicitly discarding, or closing a document normally
 retires its checkpoint, including a write already in flight. Separate document
 UUIDs prevent one studio instance from overwriting another's checkpoint.
 A restored checkpoint is retained until explicitly deleted in Recover Maps;

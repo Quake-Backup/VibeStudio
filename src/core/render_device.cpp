@@ -335,14 +335,23 @@ GpuFrameResult DeviceThread::render(const GpuFrame& frame, const std::atomic_boo
 		return result;
 	}
 	waitUntilStarted();
+	// Fills in why the device cannot draw; call with m_mutex held.
+	const auto notRunning = [this, &result]() {
+		if (m_info.available && !m_lost && !m_stopping) {
+			return false;
+		}
+		result.error = m_info.error;
+		result.errorDetail = m_info.errorDetail;
+		if (result.error.isEmpty()) {
+			result.error = QCoreApplication::translate("SlopStudioRendering", "The %1 renderer is not running.").arg(renderBackendDisplayName(m_backend));
+		}
+		return true;
+	};
 	{
+		// Before the frame is checked, so a device that never started says so
+		// rather than faulting a frame it would not have drawn.
 		std::lock_guard lock(m_mutex);
-		if (!m_info.available || m_lost || m_stopping) {
-			result.error = m_info.error;
-			result.errorDetail = m_info.errorDetail;
-			if (result.error.isEmpty()) {
-				result.error = QCoreApplication::translate("SlopStudioRendering", "The %1 renderer is not running.").arg(renderBackendDisplayName(m_backend));
-			}
+		if (notRunning()) {
 			return result;
 		}
 	}
@@ -358,6 +367,13 @@ GpuFrameResult DeviceThread::render(const GpuFrame& frame, const std::atomic_boo
 	bool done = false;
 	{
 		std::lock_guard lock(m_mutex);
+		// Checked again in the critical section that queues the job: stop()
+		// may have run while the frame was being checked, and its thread
+		// leaves once the queue is empty, so a job queued after that would
+		// never run and this caller would wait for good.
+		if (notRunning()) {
+			return result;
+		}
 		m_jobs.push_back([&]() {
 			QElapsedTimer timer;
 			timer.start();

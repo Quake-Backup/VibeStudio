@@ -422,7 +422,31 @@ struct DocumentWatcher::WatchState {
 	// Directory handed to the QFileSystemWatcher alongside the file, so a delete
 	// and recreate is still noticed after Qt drops the file path.
 	QString watchedDirectory;
+	// Polls since the content was last read. A quiet path is only looked at
+	// (size and modification time) until this reaches the watcher's content
+	// check interval.
+	int pollsSinceContentRead = 0;
 };
+
+namespace {
+
+// What a look at the path says without opening it: existence, size and
+// modification time, as `fingerprintDocumentFile` records them.
+DocumentFingerprint documentFileMetadata(const QString& normalizedPath)
+{
+	DocumentFingerprint fingerprint;
+	QFileInfo info(normalizedPath);
+	info.refresh();
+	if (!info.exists() || !info.isFile()) {
+		return fingerprint;
+	}
+	fingerprint.exists = true;
+	fingerprint.size = info.size();
+	fingerprint.modified = info.lastModified().toUTC();
+	return fingerprint;
+}
+
+} // namespace
 
 DocumentWatcher::DocumentWatcher()
 	: DocumentWatcher(true)
@@ -563,6 +587,7 @@ bool DocumentWatcher::registerPath(const QString& path, DocumentWatchRole role, 
 		existing->pendingFirstNotice = 0;
 		existing->sawMissing = false;
 		existing->rawNotifications = 0;
+		existing->pollsSinceContentRead = 0;
 		attachFilesystemWatch(*existing);
 		return true;
 	}
@@ -733,6 +758,7 @@ bool DocumentWatcher::refreshBaseline(const QString& path)
 	state->pendingFirstNotice = 0;
 	state->sawMissing = false;
 	state->rawNotifications = 0;
+	state->pollsSinceContentRead = 0;
 
 	// A file that was recreated after a delete is no longer known to the
 	// QFileSystemWatcher, so re-arm it here.
@@ -772,6 +798,16 @@ void DocumentWatcher::setHashSizeLimit(qint64 bytes)
 qint64 DocumentWatcher::hashSizeLimit() const
 {
 	return m_hashSizeLimit;
+}
+
+void DocumentWatcher::setContentCheckIntervalPolls(int polls)
+{
+	m_contentCheckPolls = std::max(1, polls);
+}
+
+int DocumentWatcher::contentCheckIntervalPolls() const
+{
+	return m_contentCheckPolls;
 }
 
 void DocumentWatcher::noteExternalNotification(const QString& path)
@@ -887,12 +923,30 @@ QVector<DocumentChangeEvent> DocumentWatcher::pollInternal(qint64 monotonicMsecs
 		const int rawNotifications = state.rawNotifications;
 		state.rawNotifications = 0;
 
-		// The fingerprint is recomputed every poll rather than only when the
-		// metadata moved: a rewrite can land inside the modification time's
-		// resolution and keep the same size, which would otherwise be invisible.
-		// Files above the hash size limit fall back to metadata anyway.
-		const DocumentFingerprint current = fingerprintDocumentFile(state.entry.path, m_hashSizeLimit);
+		// A quiet path is only looked at: reading and hashing every open
+		// document on every poll kept an idle studio reading megabytes a second.
+		// The content is read when the size or modification time moved, when the
+		// filesystem reported the path, while a change is settling, while the
+		// file is only moments old, and on every `contentCheckIntervalPolls()`th
+		// poll regardless: a tool can rewrite a file and put its modification
+		// time back, which a look alone would never see. Files above the hash
+		// size limit fall back to metadata anyway.
 		const DocumentFingerprint& reference = state.hasPendingFingerprint ? state.pendingFingerprint : state.entry.observed;
+		const bool contentCheckDue = state.pollsSinceContentRead + 1 >= m_contentCheckPolls;
+		if (!forceSettle && rawNotifications == 0 && !state.entry.pending && !contentCheckDue) {
+			const DocumentFingerprint look = documentFileMetadata(state.entry.path);
+			// A file written moments ago can be written again without its
+			// modification time moving (file systems step in up to two seconds,
+			// and Qt reports milliseconds), so a look says nothing about it yet.
+			const bool justWritten = look.exists
+				&& qAbs(look.modified.msecsTo(QDateTime::currentDateTimeUtc())) < kDocumentWatchRecentWriteMsecs;
+			if (!justWritten && look.metadataMatches(reference)) {
+				++state.pollsSinceContentRead;
+				continue;
+			}
+		}
+		state.pollsSinceContentRead = 0;
+		const DocumentFingerprint current = fingerprintDocumentFile(state.entry.path, m_hashSizeLimit);
 		const bool differs = !current.metadataMatches(reference) || !current.contentMatches(reference);
 
 		// Every filesystem notification counts, plus this poll itself when it saw

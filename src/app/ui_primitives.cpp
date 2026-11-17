@@ -20,8 +20,10 @@
 #include <QPainterPath>
 #include <QProgressBar>
 #include <QPushButton>
+#include <QScrollBar>
 #include <QSignalBlocker>
 #include <QStyle>
+#include <QTextCursor>
 #include <QTextEdit>
 #include <QVBoxLayout>
 
@@ -840,6 +842,24 @@ void DetailDrawer::refreshCurrentSection()
 	// A repeated context refresh must not erase a reader's text selection or
 	// scroll position, or relayout a large unchanged log/manifest.
 	if (m_displayedSectionId == m_currentSectionId && m_displayedContent == text) { return; }
+	// A log that grew (a compiler streaming its output) gains only its new
+	// lines: replacing the whole text would lay all of it out again for each
+	// one, drop the reader's selection and send the view back to the top. A
+	// reader at the end of the log stays at the end; one who scrolled up to
+	// read stays where they are.
+	const bool grew = m_displayedSectionId == m_currentSectionId && !m_displayedContent.isEmpty()
+		&& text.size() > m_displayedContent.size() && text.startsWith(m_displayedContent);
+	if (grew) {
+		QScrollBar* bar = m_content->verticalScrollBar();
+		const int position = bar ? bar->value() : 0;
+		const bool atEnd = bar && position >= bar->maximum();
+		QTextCursor cursor(m_content->document());
+		cursor.movePosition(QTextCursor::End);
+		cursor.insertText(text.mid(m_displayedContent.size()));
+		if (bar) { bar->setValue(atEnd ? bar->maximum() : position); }
+		m_displayedContent = text;
+		return;
+	}
 	m_displayedSectionId = m_currentSectionId;
 	m_displayedContent = text;
 	m_content->setPlainText(text);

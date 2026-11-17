@@ -108,7 +108,7 @@ QWidget* ApplicationShell::buildLevelSurfaceTools()
 			m_levelSurfacePublishing = true;
 			m_levelMapDocument = std::move(result.document);
 			recordActivity(result.pasted ? tr("Level surfaces pasted") : tr("Level surfaces adjusted"), m_levelMapDocument.sourcePath, QStringLiteral("level-map"),
-				OperationState::Warning, tr("Unsaved map edit"));
+				OperationState::Completed, tr("Unsaved map edit"));
 			refreshLevelMapWorkbench();
 			m_levelSurfacePublishing = false;
 		}

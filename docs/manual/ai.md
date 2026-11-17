@@ -236,7 +236,13 @@ The ID is what the command line takes, as in `--provider claude-code` or
 
 SlopStudio reads keys only from these environment variables. It never asks you
 to type a key into the studio and never stores one in its settings, projects or
-logs. Do not paste keys into a question, a map, a script or a context file.
+logs. Do not paste keys into a question, a map, a script or a context file. A
+variable that is set but empty counts as missing.
+
+A key is sent only over `https://`, or to an endpoint on your own computer. If
+a connector that sends a key has an `http://` **Endpoint** on another machine,
+such as a proxy on your network, nothing is sent and the message asks for an
+`https://` address. An `http://` endpoint that needs no key still works.
 
 ## Ask the Assistant
 
@@ -277,7 +283,8 @@ own instructions to the model. The page you are on decides what starts ticked:
 | The project | The project manifest | Never |
 
 Point at an item to preview its first lines. Before anything leaves, paths
-inside your project become `<project>`, paths in your home folder become `~`,
+inside your project become `<project>`, paths in your home folder become `~`
+(with either slash, or the doubled backslashes of JSON and logs),
 and text shaped like a common provider key becomes `***`. Long items are cut to
 their first lines, and the request says so. The key check looks for known
 patterns only, so review what you tick.
@@ -297,7 +304,8 @@ through Claude Code or Codex, which sign in with your own login in an empty
 folder with their tools turned off; or to your custom command, which sends it
 wherever it is set up to. The box below the request,
 **Don't ask again for this project and** the host's name, is ticked; untick it
-to be asked every time. **Ask Again Before Sending** in **Settings** >
+to be asked every time. For a custom command the approval covers that exact
+command line: change the command, and SlopStudio asks again. **Ask Again Before Sending** in **Settings** >
 **AI and Automation** forgets every approval. Endpoints on your own computer
 (`localhost`, loopback addresses and `.localhost` names) never ask, because
 nothing leaves it.
@@ -364,6 +372,7 @@ missing:
 | … sends to …, off this machine, and cloud connectors are not allowed. | Tick **Allow cloud AI connectors**, or use a local runtime. Claude Code, Codex and Custom Command always need it. |
 | No model is set for … | Type the **Model** name. |
 | … needs an API key in the … environment variable, which is not set. | Set the variable, then restart SlopStudio. |
+| This connector sends an API key, so its endpoint must be an https:// address unless it is on this computer. … | Change the **Endpoint** to an `https://` address, or to one on your own computer. |
 | … was not found (looked in: …). | Install Claude Code or Codex, or choose **Browse** next to **Program** and pick the program. |
 | … is not signed in. | Run `claude auth login` or `codex login` in a terminal. |
 | … is older than SlopStudio needs … | Update the tool: `claude update` for Claude Code, `npm install -g @openai/codex@latest` for Codex. |

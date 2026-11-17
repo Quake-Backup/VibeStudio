@@ -1,6 +1,7 @@
 #include "core/texture_adjust.h"
 
 #include <QCoreApplication>
+#include <QHash>
 #include <QSet>
 
 #include <algorithm>
@@ -158,6 +159,31 @@ QImage adjustTextureColors(const QImage& source, QRect area, const TextureColorA
 		after[value] = p;
 	}
 	const bool hsl = a.hue || a.saturation || a.lightness;
+	// The HSL round trip through QColor costs far more than everything else in
+	// this loop and depends on the colour alone. Game textures repeat a few
+	// hundred colours, so each distinct one is converted once. The table stops
+	// growing at a bound; colours beyond it are simply converted every time.
+	constexpr qsizetype hslMemoLimit = 65536;
+	QHash<QRgb, QRgb> hslMemo;
+	QRgb lastInput = 0, lastOutput = 0; bool haveLast = false;
+	const auto shifted = [&](QRgb input) {
+		if (haveLast && input == lastInput) { return lastOutput; }
+		const auto known = hslMemo.constFind(input);
+		QRgb output = 0;
+		if (known != hslMemo.cend()) { output = *known; }
+		else {
+			QColor color = QColor::fromRgb(qRed(input), qGreen(input), qBlue(input)).toHsl();
+			float h = 0, s = 0, l = 0; color.getHslF(&h, &s, &l);
+			if (h >= 0) { h = std::fmod(h + a.hue / 360.0f + 1.0f, 1.0f); } else { h = 0; }
+			s = std::clamp(s * (100 + a.saturation) / 100.0f, 0.0f, 1.0f);
+			l = a.lightness > 0 ? l + (1 - l) * a.lightness / 100.0f : l + l * a.lightness / 100.0f;
+			color.setHslF(h, s, std::clamp(l, 0.0f, 1.0f));
+			const QColor rgb = color.toRgb(); output = qRgb(rgb.red(), rgb.green(), rgb.blue());
+			if (hslMemo.size() < hslMemoLimit) { hslMemo.insert(input, output); }
+		}
+		lastInput = input; lastOutput = output; haveLast = true;
+		return output;
+	};
 	for (int y = area.top(); y <= area.bottom(); ++y) {
 		if ((y - area.top()) % 32 == 0 && !checkpoint(progress, y - area.top(), area.height(), error)) { return {}; }
 		auto* row = reinterpret_cast<QRgb*>(image.scanLine(y));
@@ -167,13 +193,8 @@ QImage adjustTextureColors(const QImage& source, QRect area, const TextureColorA
 			if (qAlpha(pixel) == 0) { continue; }
 			int r = before[qRed(pixel)], g = before[qGreen(pixel)], b = before[qBlue(pixel)];
 			if (hsl) {
-				QColor color = QColor::fromRgb(r, g, b).toHsl();
-				float h = 0, s = 0, l = 0; color.getHslF(&h, &s, &l);
-				if (h >= 0) { h = std::fmod(h + a.hue / 360.0f + 1.0f, 1.0f); } else { h = 0; }
-				s = std::clamp(s * (100 + a.saturation) / 100.0f, 0.0f, 1.0f);
-				l = a.lightness > 0 ? l + (1 - l) * a.lightness / 100.0f : l + l * a.lightness / 100.0f;
-				color.setHslF(h, s, std::clamp(l, 0.0f, 1.0f));
-				const QColor rgb = color.toRgb(); r = rgb.red(); g = rgb.green(); b = rgb.blue();
+				const QRgb moved = shifted(qRgb(r, g, b));
+				r = qRed(moved); g = qGreen(moved); b = qBlue(moved);
 			}
 			if (a.grayscale) { r = g = b = luma(qRgb(r, g, b)); }
 			row[x] = qRgba(after[r], after[g], after[b], qAlpha(pixel));
@@ -189,10 +210,12 @@ QImage filterTexturePixels(const QImage& source, QRect area, const TextureFilter
 	if (image.isNull()) { return {}; }
 	const int width = area.width(), height = area.height();
 	const QImage original = image;
+	// The working copy is ARGB32, so a texel is read straight from its row:
+	// Find Edges samples twelve neighbours for every texel.
 	const auto sample = [&](int x, int y) {
 		x = s.wrap ? wrapped(x, width) : std::clamp(x, 0, width - 1);
 		y = s.wrap ? wrapped(y, height) : std::clamp(y, 0, height - 1);
-		return original.pixel(area.left() + x, area.top() + y);
+		return reinterpret_cast<const QRgb*>(original.constScanLine(area.top() + y))[area.left() + x];
 	};
 	if (!checkpoint(progress, 0, height * 2, error)) { return {}; }
 	if (s.kind == TextureFilterKind::Noise) {
@@ -239,8 +262,9 @@ QImage filterTexturePixels(const QImage& source, QRect area, const TextureFilter
 	// Blur and sharpen: one separable box pass in premultiplied space.
 	QVector<TexturePremultiplied> channels(qsizetype(width) * height);
 	for (int y = 0; y < height; ++y) {
+		const auto* originalRow = reinterpret_cast<const QRgb*>(original.constScanLine(area.top() + y));
 		for (int x = 0; x < width; ++x) {
-			const QRgb pixel = original.pixel(area.left() + x, area.top() + y); const int alpha = qAlpha(pixel);
+			const QRgb pixel = originalRow[area.left() + x]; const int alpha = qAlpha(pixel);
 			channels[y * width + x] = {quint16(qRed(pixel) * alpha), quint16(qGreen(pixel) * alpha), quint16(qBlue(pixel) * alpha), quint16(alpha * 255)};
 		}
 	}
@@ -341,7 +365,10 @@ QImage seamlessTexturePixels(const QImage& source, QRect area, int blend, QStrin
 					const int partner = length - 1 - position;
 					const QPoint here = columns ? QPoint(area.left() + position, area.top() + line) : QPoint(area.left() + line, area.top() + position);
 					const QPoint there = columns ? QPoint(area.left() + partner, area.top() + line) : QPoint(area.left() + line, area.top() + partner);
-					image.setPixel(here, mixPremultiplied(before.pixel(here), before.pixel(there), weight));
+					// ARGB32 on both sides: texels are read and written in their rows.
+					const QRgb mixed = mixPremultiplied(reinterpret_cast<const QRgb*>(before.constScanLine(here.y()))[here.x()],
+						reinterpret_cast<const QRgb*>(before.constScanLine(there.y()))[there.x()], weight);
+					reinterpret_cast<QRgb*>(image.scanLine(here.y()))[here.x()] = mixed;
 				}
 			}
 		}

@@ -178,6 +178,56 @@ int runFakeCompiler(const QStringList& appArgs)
 		return EXIT_SUCCESS;
 	}
 
+	if (appArgs.contains(QStringLiteral("--fake-read-stdin"))) {
+		// Stands in for a tool that waits on its input ("press a key to continue"): it only ends
+		// once its input reaches end-of-file.
+		char byte = 0;
+		while (std::cin.get(byte)) {
+		}
+		std::cout << "STDIN-CLOSED\n" << std::flush;
+		return EXIT_SUCCESS;
+	}
+
+	if (appArgs.contains(QStringLiteral("--fake-ordinary-output"))) {
+		// What every healthy SlopMap2 run prints: qbsp's lump table
+		// (external/compilers/slopmap2/src/common/bspfile.cc, PrintLumpSize), and light's face counts
+		// and palette notice (src/light/trace_embree.cc, src/common/imglib.cc).
+		std::cout << "     12 clipnodes            96\n";
+		std::cout << "     40 marksurfaces         80\n";
+		std::cout << "\t3 shadow-casting skip faces\n";
+		std::cout << "INFO: using built-in palette.\n" << std::flush;
+		return EXIT_SUCCESS;
+	}
+
+	if (appArgs.contains(QStringLiteral("--fake-progress"))) {
+		// SlopMap2 redraws its progress with a carriage return and no line feed
+		// (external/compilers/slopmap2/src/common/log.cc, logging::percent), so a message printed
+		// mid-phase arrives behind every snapshot drawn before it.
+		std::cout << "[  0%]  ...\r[ 10%]  est: 00:00:03\r[.   ]\rWARNING: 34: microbrush\n";
+		std::cout << "[ 50%]  est: 00:00:01\r[100%] time elapsed: 00:00:01\n" << std::flush;
+		if (appArgs.contains(QStringLiteral("--fake-progress-fatal"))) {
+			std::cout << "[ 42%]  est: 00:00:03\r************ ERROR ************\n";
+			std::cout << "Failed to open maps/missing.map: No such file\n" << std::flush;
+			return 1;
+		}
+		return EXIT_SUCCESS;
+	}
+
+	if (appArgs.contains(QStringLiteral("--fake-issue-diagnostic"))) {
+		// A real warning that the upstream issue catalogue has context for (#192, custom palettes).
+		std::cout << "WARNING: unable to load palette from gfx/palette.lmp\n" << std::flush;
+		return EXIT_SUCCESS;
+	}
+
+	if (appArgs.contains(QStringLiteral("--fake-path-diagnostics"))) {
+		// A dotted folder, a .cpp file and a dotted texture folder: each holds a shorter listed
+		// extension (.c, .c, .wal) before the real one.
+		std::cout << "WARNING: C:/Users/john.clark/maps/e1m1.map:120: brush with duplicate planes\n";
+		std::cout << "common/mathlib.cpp:44: warning: unused variable\n";
+		std::cout << "WARNING: unable to find texture textures/base.wall/metal.tga\n" << std::flush;
+		return EXIT_SUCCESS;
+	}
+
 	if (appArgs.contains(QStringLiteral("--fake-quiet"))) {
 		return EXIT_SUCCESS;
 	}
@@ -497,6 +547,47 @@ int main(int argc, char** argv)
 		return fail("Expected a warning-free SlopMap2 run to reach Completed.");
 	}
 
+	// Every healthy SlopMap2 run prints words the upstream issue catalogue also uses: the lump table
+	// names "clipnodes" and "marksurfaces" (#136), light counts its "skip faces" (#255) and notes the
+	// "built-in palette" (#192). None of those lines is a diagnostic, so the run stays clean.
+	slopstudio::CompilerRunRequest ordinaryLightRequest = cleanRunRequest;
+	ordinaryLightRequest.command.extraArguments = {QStringLiteral("--fake-compiler"), QStringLiteral("--fake-ordinary-output")};
+	const slopstudio::CompilerRunResult ordinaryLightResult = slopstudio::runCompilerCommand(ordinaryLightRequest);
+	if (ordinaryLightResult.state != slopstudio::OperationState::Completed || !ordinaryLightResult.manifest.warnings.isEmpty()
+		|| !ordinaryLightResult.manifest.knownIssueWarnings.isEmpty()
+		|| joinContains(ordinaryLightResult.manifest.knownIssueNotes, QStringLiteral("matches upstream issue"))) {
+		return fail("Expected a healthy SlopMap2 light run to reach Completed with no upstream issue attached.");
+	}
+	const QString plainMapPath = root.filePath(QStringLiteral("maps/plain.map"));
+	if (!writeTextFile(plainMapPath, QByteArray("{\n\"classname\" \"worldspawn\"\n}\n"))) {
+		return fail("Expected a plain map fixture.");
+	}
+	slopstudio::CompilerRunRequest ordinaryBspRequest;
+	ordinaryBspRequest.command.profileId = QStringLiteral("slopmap2-bsp");
+	ordinaryBspRequest.command.inputPath = plainMapPath;
+	ordinaryBspRequest.command.outputPath = root.filePath(QStringLiteral("maps/plain.bsp"));
+	ordinaryBspRequest.command.workspaceRootPath = tempDir.path();
+	ordinaryBspRequest.command.extraArguments = {QStringLiteral("--fake-compiler"), QStringLiteral("--fake-ordinary-output")};
+	ordinaryBspRequest.command.executableOverrides.push_back({QStringLiteral("slopmap2-bsp"), QCoreApplication::applicationFilePath()});
+	if (!slopstudio::buildCompilerCommandPlan(ordinaryBspRequest.command).warnings.isEmpty()) {
+		return fail("Expected a plain map to plan a SlopMap2 bsp run without warnings.");
+	}
+	const slopstudio::CompilerRunResult ordinaryBspResult = slopstudio::runCompilerCommand(ordinaryBspRequest);
+	if (ordinaryBspResult.state != slopstudio::OperationState::Completed || !ordinaryBspResult.manifest.warnings.isEmpty()
+		|| !ordinaryBspResult.manifest.knownIssueWarnings.isEmpty()
+		|| joinContains(ordinaryBspResult.manifest.knownIssueNotes, QStringLiteral("matches upstream issue"))) {
+		return fail("Expected a healthy SlopMap2 bsp run, lump table and all, to reach Completed with no upstream issue attached.");
+	}
+	// A real diagnostic still gains its upstream context, as a note beside it and not as a second warning.
+	slopstudio::CompilerRunRequest issueRequest = cleanRunRequest;
+	issueRequest.command.extraArguments = {QStringLiteral("--fake-compiler"), QStringLiteral("--fake-issue-diagnostic")};
+	const slopstudio::CompilerRunResult issueResult = slopstudio::runCompilerCommand(issueRequest);
+	if (issueResult.state != slopstudio::OperationState::Warning || issueResult.manifest.warnings.size() != 1
+		|| !issueResult.manifest.knownIssueWarnings.isEmpty()
+		|| !joinContains(issueResult.manifest.knownIssueNotes, QStringLiteral("upstream issue #192"))) {
+		return fail("Expected a matching compiler warning to gain an upstream issue note without a warning of its own.");
+	}
+
 	// "-lit" writes a sibling coloured lighting file (ericw-tools light/light.cc).
 	slopstudio::CompilerCommandRequest litRequest = lightRequest;
 	litRequest.extraArguments = {QStringLiteral("-lit")};
@@ -536,6 +627,49 @@ int main(int argc, char** argv)
 	if (diagnosticsResult.diagnostics.at(2).channel != QStringLiteral("stderr")
 		|| diagnosticsResult.diagnostics.at(0).channel != QStringLiteral("stdout")) {
 		return fail("Expected stdout and stderr diagnostics to stay distinguishable.");
+	}
+
+	// Progress is redrawn with carriage returns: only what a terminal would show is the line.
+	slopstudio::CompilerRunRequest progressRequest = cleanRunRequest;
+	progressRequest.command.extraArguments = {QStringLiteral("--fake-compiler"), QStringLiteral("--fake-progress")};
+	const slopstudio::CompilerRunResult progressResult = slopstudio::runCompilerCommand(progressRequest);
+	if (progressResult.diagnostics.size() != 1 || progressResult.diagnostics.at(0).line != 34
+		|| progressResult.diagnostics.at(0).message != QStringLiteral("WARNING: 34: microbrush")
+		|| progressResult.diagnostics.at(0).rawLine.contains(QLatin1Char('\r'))) {
+		return fail("Expected a warning printed behind carriage-return progress to keep its line number and a clean message.");
+	}
+	QStringList progressLog;
+	for (const slopstudio::CompilerTaskLogEntry& entry : progressResult.manifest.taskLog) {
+		progressLog << entry.message;
+	}
+	if (!progressLog.contains(QStringLiteral("[100%] time elapsed: 00:00:01")) || progressLog.join(QLatin1Char('\n')).contains(QLatin1Char('\r'))
+		|| progressLog.join(QLatin1Char('\n')).contains(QStringLiteral("[ 10%]"))) {
+		return fail("Expected overwritten progress snapshots to stay out of the compiler log.");
+	}
+	progressRequest.command.extraArguments << QStringLiteral("--fake-progress-fatal");
+	const slopstudio::CompilerRunResult progressFatalResult = slopstudio::runCompilerCommand(progressRequest);
+	if (progressFatalResult.state != slopstudio::OperationState::Failed || progressFatalResult.diagnostics.size() != 2
+		|| progressFatalResult.diagnostics.last().level != QStringLiteral("error")
+		|| progressFatalResult.diagnostics.last().message != QStringLiteral("Failed to open maps/missing.map: No such file")
+		|| !progressFatalResult.diagnostics.last().rawLine.startsWith(QStringLiteral("************ ERROR ************"))) {
+		return fail("Expected a fatal error banner printed behind progress to be joined with its message.");
+	}
+
+	// A path ends at its real extension, not at the first listed one inside it.
+	slopstudio::CompilerRunRequest pathRequest = cleanRunRequest;
+	pathRequest.command.extraArguments = {QStringLiteral("--fake-compiler"), QStringLiteral("--fake-path-diagnostics")};
+	const slopstudio::CompilerRunResult pathResult = slopstudio::runCompilerCommand(pathRequest);
+	if (pathResult.diagnostics.size() != 3) {
+		return fail("Expected the three path diagnostics.");
+	}
+	if (!pathResult.diagnostics.at(0).filePath.endsWith(QStringLiteral("john.clark/maps/e1m1.map")) || pathResult.diagnostics.at(0).line != 120) {
+		return fail("Expected a dotted folder name not to cut a diagnostic's path short.");
+	}
+	if (!pathResult.diagnostics.at(1).filePath.endsWith(QStringLiteral("common/mathlib.cpp")) || pathResult.diagnostics.at(1).line != 44) {
+		return fail("Expected a .cpp file not to be read as a .c file.");
+	}
+	if (!pathResult.diagnostics.at(2).filePath.endsWith(QStringLiteral("textures/base.wall/metal.tga")) || pathResult.diagnostics.at(2).line != 0) {
+		return fail("Expected a dotted texture folder not to be read as a .wal file.");
 	}
 
 	// Colour escapes are taken out before a line is parsed or logged.
@@ -587,6 +721,32 @@ int main(int argc, char** argv)
 	}
 	if (!streamResult.cancelled || streamResult.stdoutText.contains(QStringLiteral("STREAM-LINE-2"))) {
 		return fail("Expected streamed output to allow cancellation before the process finished.");
+	}
+
+	// A time limit stops a run that outlives it: the fake tool runs for a second and a half, and the
+	// runner's shortest limit is one second. Zero means no limit, so the same run finishes.
+	slopstudio::CompilerRunRequest limitedRequest = cleanRunRequest;
+	limitedRequest.command.extraArguments = {QStringLiteral("--fake-compiler"), QStringLiteral("--fake-stream")};
+	limitedRequest.timeoutMs = 1;
+	const slopstudio::CompilerRunResult limitedResult = slopstudio::runCompilerCommand(limitedRequest);
+	if (!limitedResult.timedOut || limitedResult.state != slopstudio::OperationState::Failed) {
+		return fail("Expected a positive time limit to stop a run that outlives it.");
+	}
+	limitedRequest.timeoutMs = 0;
+	const slopstudio::CompilerRunResult unlimitedResult = slopstudio::runCompilerCommand(limitedRequest);
+	if (unlimitedResult.timedOut || unlimitedResult.exitCode != 0 || unlimitedResult.state != slopstudio::OperationState::Completed
+		|| !unlimitedResult.stdoutText.contains(QStringLiteral("STREAM-LINE-2"))) {
+		return fail("Expected a time limit of zero to mean no limit.");
+	}
+
+	// Nothing is written to a tool, so its input is closed: one that waits on it gets end-of-file
+	// and carries on instead of sitting there until the run is stopped.
+	slopstudio::CompilerRunRequest stdinRequest = cleanRunRequest;
+	stdinRequest.command.extraArguments = {QStringLiteral("--fake-compiler"), QStringLiteral("--fake-read-stdin")};
+	stdinRequest.timeoutMs = 15000;
+	const slopstudio::CompilerRunResult stdinResult = slopstudio::runCompilerCommand(stdinRequest);
+	if (stdinResult.timedOut || !stdinResult.stdoutText.contains(QStringLiteral("STDIN-CLOSED"))) {
+		return fail("Expected a tool that reads its input to get end-of-file.");
 	}
 
 	slopstudio::CompilerManifestRerunRequest rerunRequest;

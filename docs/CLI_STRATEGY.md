@@ -3561,7 +3561,9 @@ format or engine support. See [Editor Profiles](EDITOR_PROFILES.md).
 
 ## Output Contract
 - [x] `--json` emits stable machine-readable output for supported command families.
-- [x] `--quiet` suppresses non-error narration.
+- [x] `--quiet` suppresses non-error narration. Standard output is held, not
+  discarded: when the command fails, the held text goes to standard error, so
+  a report a handler printed on standard output is never lost.
 - [x] `--verbose` includes diagnostics and timing.
 - [x] `--manifest <path>` writes compiler command manifests.
 - [x] `--dry-run` shows planned package extraction writes, package save-as
@@ -3574,6 +3576,24 @@ format or engine support. See [Editor Profiles](EDITOR_PROFILES.md).
   ahead of `SLOPSTUDIO_RENDER_BACKEND` and the saved preference.
 - [x] Non-zero exit codes distinguish usage errors, not-found cases,
   validation failures, operation failures, and unavailable workflows.
+- [x] Arguments are read one way everywhere in the central handlers
+  (`src/cli/cli.cpp`). The two option tables beside `commandTokens()` say which
+  options take a value; an option read only with `hasOption()` belongs in the
+  boolean table, or it swallows the argument after it. `--option value` and
+  `--option=value` are the same. A registered option is never the value of the
+  option before it (`--output --overwrite` is a missing output), so a value
+  spelled like an option goes inline. Near misses of `--dry-run`, `--overwrite`,
+  `--json`, `--quiet`, `--verbose` and `--settings-file` are refused with exit
+  2 before anything runs; an unknown option and an unknown command are named,
+  through the same JSON error object as every other failure. A value that is
+  given but unusable (`--timeout-ms`, `map render --width`, `--height`,
+  `--grid`, `--highlight`, the speech ranges) is a usage error, never a silent
+  default. `--timeout-ms 0` means no limit for `compiler run` and `build run`.
+- [x] `--settings-file` without a usable path (nothing, an empty value, or
+  another option) stops the studio and the command line with exit 2 before any
+  settings access. On Windows `main()` reads the wide command line, so a
+  settings or `--open` path outside the ANSI code page survives, and the
+  command line sets the console output code page to UTF-8 for its run.
 
 ### Exit Codes
 

@@ -11,6 +11,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QRegularExpression>
+#include <QSaveFile>
 #include <QUuid>
 
 #include <algorithm>
@@ -419,14 +420,16 @@ bool saveAiWorkflowManifest(const AiWorkflowManifest& manifest, const QString& p
 		return false;
 	}
 
-	QFile file(info.absoluteFilePath());
-	if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+	// Written beside the target and renamed over it, so a full disk or a failed
+	// write is reported and never leaves a cut-off manifest in its place.
+	QSaveFile file(info.absoluteFilePath());
+	const QByteArray bytes = QJsonDocument(aiWorkflowManifestJson(manifest)).toJson(QJsonDocument::Indented);
+	if (!file.open(QIODevice::WriteOnly) || file.write(bytes) != bytes.size() || !file.commit()) {
 		if (error) {
 			*error = QCoreApplication::translate("SlopStudioAiWorkflows", "Unable to write AI workflow manifest.");
 		}
 		return false;
 	}
-	file.write(QJsonDocument(aiWorkflowManifestJson(manifest)).toJson(QJsonDocument::Indented));
 	return true;
 }
 

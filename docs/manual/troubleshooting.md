@@ -143,6 +143,10 @@ A diagnostics bundle describes your setup for a bug report.
 If SlopStudio closed unexpectedly, the next start shows the notice **The studio closed unexpectedly
 last time.** It does not reopen the files that were open, in case one of them caused the crash.
 
+Logging off or shutting the computer down is not a crash: the studio asks about unsaved work as it
+does when you close its window, and cancels the shutdown if you choose to keep working. This has
+not yet been tested on every system.
+
 - **Reopen Last Session** opens them again when you are ready.
 - **View Report** shows the crash report, or **Details** when none could be written.
 - **Help** > **Crash Reports…** lists every kept report, newest first, with **Copy Report** and

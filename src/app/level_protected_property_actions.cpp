@@ -8,9 +8,11 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFormLayout>
+#include <QHash>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSet>
 #include <QSignalBlocker>
 #include <QStatusBar>
 #include <QTimer>
@@ -29,19 +31,59 @@ bool editableEntities(const LevelMapDocument& document, const QVector<int>& ids)
 		return false;
 	}
 	const auto locked = levelSceneLockedObjects(document);
-	for (int id : ids) {
-		bool found = false;
-		for (const auto& entity : document.entities) {
-			if (entity.id == id) {
-				found = entity.className.compare(QStringLiteral("worldspawn"), Qt::CaseInsensitive) != 0;
+	// The selected entities in one pass over the map's, the first record of
+	// each id as before. A pass per selected entity made this quadratic, and
+	// it runs after every selection change.
+	const QSet<int> wanted(ids.cbegin(), ids.cend());
+	QHash<int, const LevelMapEntity*> entities;
+	entities.reserve(wanted.size());
+	for (const auto& entity : document.entities) {
+		if (wanted.contains(entity.id) && !entities.contains(entity.id)) {
+			entities.insert(entity.id, &entity);
+			if (entities.size() == wanted.size()) {
 				break;
 			}
 		}
-		if (!found || locked.contains(QStringLiteral("entity:%1").arg(id))) {
+	}
+	for (int id : ids) {
+		const LevelMapEntity* entity = entities.value(id);
+		if (!entity || entity->className.compare(QStringLiteral("worldspawn"), Qt::CaseInsensitive) == 0 ||
+		    locked.contains(QStringLiteral("entity:%1").arg(id))) {
 			return false;
 		}
 	}
 	return true;
+}
+
+// Whether a selected entity has protected properties to clear: it has some and
+// sits in a linked group with at least one other copy.
+bool clearableProtectedProperties(const LevelMapDocument& document, const QVector<int>& ids)
+{
+	// Few entities have protected properties, so ask that first; the scene is
+	// then read once for all of them rather than once per selected entity.
+	QSet<QString> wanted;
+	if (!document.scene.protectedProperties.isEmpty()) {
+		for (int id : ids) {
+			if (!levelProtectedEntityProperties(document, id).isEmpty()) {
+				wanted.insert(QStringLiteral("entity:%1").arg(id));
+			}
+		}
+	}
+	if (wanted.isEmpty()) {
+		return false;
+	}
+	for (const auto& node : document.scene.nodes) {
+		for (const auto& object : node.objects) {
+			// The first node that holds an object is its membership.
+			if (wanted.remove(object) && !node.linkId.isEmpty() && levelLinkedGroupNodes(document.scene, node.id).size() > 1) {
+				return true;
+			}
+		}
+		if (wanted.isEmpty()) {
+			break;
+		}
+	}
+	return false;
 }
 } // namespace
 
@@ -52,13 +94,8 @@ void ApplicationShell::refreshLevelProtectedPropertyCommands()
 	}
 	const auto ids = selectedLevelMapEntityIds();
 	const bool editable = editableEntities(m_levelMapDocument, ids);
-	bool clear = false;
-	for (int id : ids) {
-		const auto* node =
-		    levelSceneNode(m_levelMapDocument.scene, levelSceneMembership(m_levelMapDocument.scene, QStringLiteral("entity:%1").arg(id)));
-		clear |= node && !node->linkId.isEmpty() && levelLinkedGroupNodes(m_levelMapDocument.scene, node->id).size() > 1 &&
-		         !levelProtectedEntityProperties(m_levelMapDocument, id).isEmpty();
-	}
+	// Clearing is offered only for an editable selection.
+	const bool clear = editable && clearableProtectedProperties(m_levelMapDocument, ids);
 	m_commands->setEnabled(QStringLiteral("map.addProtectedProperty"), editable);
 	m_commands->setEnabled(QStringLiteral("map.clearProtectedProperties"), editable && clear);
 }

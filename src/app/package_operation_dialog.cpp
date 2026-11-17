@@ -365,12 +365,35 @@ public:
 			state->stage.staging = plan;
 			QString groupError;
 			if (!state->stage.staging.beginOperationGroup(tr("Stage package files"), &groupError)) { state->stage.errors << groupError; return; }
-			for (const auto& file : files) {
+			for (qsizetype at = 0; at < files.size();) {
 				if (workerControl.isCancelled()) { state->stage.cancelled = true; break; }
+				// Consecutive replacements of source occurrences share one pass
+				// over the package plan; one by one, each would recompute it.
+				qsizetype runEnd = at;
+				while (runEnd < files.size() && files.at(runEnd).replace && files.at(runEnd).sourceOrdinal >= 0) { ++runEnd; }
+				if (runEnd > at) {
+					QVector<PackageOccurrenceReplacement> run;
+					for (qsizetype member = at; member < runEnd; ++member) {
+						PackageOccurrenceReplacement replacement;
+						replacement.sourceOrdinal = files.at(member).sourceOrdinal;
+						replacement.sourceFilePath = files.at(member).sourcePath;
+						run.append(replacement);
+					}
+					state->stage.staging.replaceOccurrences(&run, workerControl);
+					if (workerControl.isCancelled()) { state->stage.cancelled = true; break; }
+					for (qsizetype member = at; member < runEnd; ++member) {
+						const auto& replaced = run.at(member - at);
+						if (replaced.staged) { ++state->stage.accepted; state->stage.acceptedPaths << files.at(member).virtualPath; }
+						else { state->stage.errors << tr("%1: %2").arg(files.at(member).virtualPath, replaced.error); }
+					}
+					at = runEnd;
+					continue;
+				}
+				const auto& file = files.at(at);
+				++at;
 				QString error;
 				const bool accepted = file.replace
-					? (file.sourceOrdinal >= 0 ? state->stage.staging.replaceOccurrence(file.sourceOrdinal, file.sourcePath, &error, workerControl)
-						: state->stage.staging.replaceFile(file.virtualPath, file.sourcePath, &error, workerControl))
+					? state->stage.staging.replaceFile(file.virtualPath, file.sourcePath, &error, workerControl)
 					: state->stage.staging.addFile(file.sourcePath, file.virtualPath, &error, file.resolution, workerControl);
 				if (workerControl.isCancelled()) { state->stage.cancelled = true; break; }
 				if (accepted) { ++state->stage.accepted; state->stage.acceptedPaths << file.virtualPath; }

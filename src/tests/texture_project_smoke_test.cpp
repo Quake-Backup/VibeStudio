@@ -62,6 +62,18 @@ int main(int argc, char** argv)
 	ok &= expect(!document.moveSelectedPixels({100, 0}), "move cannot silently clip pixels outside the canvas");
 	ok &= expect(document.clearSelectedPixels() && document.activeLayer()->pixels.pixelColor(2, 2).alpha() == 0 && document.undo(), "clear is reversible and uses explicit alpha replacement");
 	QImage paste(3, 3, QImage::Format_ARGB32); paste.fill(Qt::yellow);
+	{
+		// A refused paste names its own reason instead of always blaming the position.
+		QString reason; const QImage unpasted = document.activeLayer()->pixels; const auto revision = document.revision();
+		ok &= expect(!document.pastePixels(QImage(), {3, 3}, &reason) && reason.contains(QStringLiteral("no image")), "an empty clipboard is named as the reason nothing was pasted");
+		ok &= expect(!document.pastePixels(paste, {6, 6}, &reason) && reason.contains(QStringLiteral("intersect")), "a paste that misses the selection says so");
+		QImage oversized(4097, 1, QImage::Format_ARGB32); oversized.fill(Qt::yellow);
+		ok &= expect(!document.pastePixels(oversized, {0, 0}, &reason) && reason.contains(QStringLiteral("4096")) && !reason.contains(QStringLiteral("intersect")), "an oversized paste reports the size limit");
+		ok &= expect(document.activeLayer()->pixels == unpasted && document.revision() == revision, "refused pastes change nothing");
+		const TextureLayer layer = *document.activeLayer();
+		ok &= expect(document.setLayerProperties(layer.name, layer.visible, true, layer.opacity, layer.blend) && !document.pastePixels(paste, {3, 3}, &reason) &&
+			reason.contains(QStringLiteral("unlocked")) && document.undo() && !document.activeLayer()->locked, "a paste onto a locked layer says the layer needs unlocking");
+	}
 	ok &= expect(document.pastePixels(paste, {3, 3}) && document.activeLayer()->pixels.pixelColor(3, 3) == QColor(Qt::yellow) && document.activeLayer()->pixels.pixelColor(4, 4).alpha() == 0, "paste respects selection clipping");
 	document.clearSelection();
 	const QImage visible = document.image();

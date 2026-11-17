@@ -176,6 +176,64 @@ bool checkDetailRefresh(QApplication& app)
 	return ok;
 }
 
+// A log that grows (a compiler streaming its output) keeps what is on screen:
+// only the new lines are added, the reader's selection stays, a reader who
+// scrolled up stays where they are, and one at the end follows the end.
+bool checkDetailLogGrowth(QApplication& app)
+{
+	bool ok = true;
+	applyStudioTheme(app, studioThemeTokens(StudioTheme::Dark, UiDensity::Standard, 100));
+	QStringList lines;
+	for (int i = 0; i < 400; ++i) { lines << QStringLiteral("[12:00] Running: compiler line %1").arg(i); }
+	DetailDrawer drawer; drawer.resize(680, 400);
+	QVector<DetailSection> sections{{"summary", "Summary", "State", "Running", OperationState::Running},
+		{"log", "Log", "400 entries", lines.join('\n'), OperationState::Running}};
+	drawer.setSections(sections); drawer.showSection("log"); drawer.show();
+	app.processEvents(QEventLoop::ExcludeUserInputEvents);
+	auto* content = drawer.findChild<QTextEdit*>("detailContent");
+	if (!expect(content != nullptr, "detail content exists")) { return false; }
+	auto* scroll = content->verticalScrollBar();
+	if (!expect(scroll->maximum() > 0, "the log is longer than its view")) { return false; }
+
+	// A reader part-way through the log, with some of it selected.
+	QTextCursor cursor(content->document()); cursor.setPosition(9); cursor.setPosition(30, QTextCursor::KeepAnchor);
+	content->setTextCursor(cursor);
+	scroll->setValue(scroll->maximum() / 2);
+	const int reading = scroll->value();
+	int removed = 0, added = 0;
+	const auto connection = QObject::connect(content->document(), &QTextDocument::contentsChange, &drawer,
+		[&](int, int charsRemoved, int charsAdded) { removed += charsRemoved; added += charsAdded; });
+	const QString shown = content->toPlainText();
+	lines << QStringLiteral("[12:01] Running: compiler line 400") << QStringLiteral("[12:01] Running: compiler line 401");
+	sections[1].content = lines.join('\n'); sections[1].summary = "402 entries";
+	drawer.setSections(sections);
+	app.processEvents(QEventLoop::ExcludeUserInputEvents);
+	ok &= expect(content->toPlainText() == sections[1].content && drawer.currentSectionText() == sections[1].content, "a grown log shows all of its lines");
+	ok &= expect(removed == 0 && added == sections[1].content.size() - shown.size(), "a grown log adds its new text and replaces none of what is shown");
+	ok &= expect(content->textCursor().selectedText() == cursor.selectedText() && scroll->value() == reading && reading > 0,
+		"a reader who scrolled up keeps their place and their selection while the log grows");
+
+	// A reader at the end of the log follows it.
+	scroll->setValue(scroll->maximum());
+	const int oldMaximum = scroll->maximum();
+	for (int i = 402; i < 440; ++i) { lines << QStringLiteral("[12:02] Running: compiler line %1").arg(i); }
+	sections[1].content = lines.join('\n');
+	drawer.setSections(sections);
+	app.processEvents(QEventLoop::ExcludeUserInputEvents);
+	ok &= expect(scroll->maximum() > oldMaximum && scroll->value() == scroll->maximum(), "a reader at the end of the log stays at its end");
+
+	// Text that does not continue what is shown replaces it, and so does
+	// another section whose text happens to start the same way.
+	removed = 0;
+	sections[1].content = "Rewritten"; drawer.setSections(sections);
+	ok &= expect(content->toPlainText() == "Rewritten" && removed > 0, "a log that changed rather than grew is replaced");
+	sections[0].content = "Rewritten and more";
+	drawer.setSections(sections); drawer.showSection("summary");
+	ok &= expect(content->toPlainText() == "Rewritten and more" && drawer.currentSectionId() == "summary", "another section is shown whole");
+	QObject::disconnect(connection);
+	return ok;
+}
+
 // A notice's state edge and its wide margin sit on the leading side in both
 // directions; a style sheet border-left would stay on the left in RTL.
 bool checkNoticeEdge(QApplication& app)
@@ -825,6 +883,7 @@ int main(int argc, char** argv)
 
 	ok &= checkThemeTransitions(app, drawer);
 	ok &= checkDetailRefresh(app);
+	ok &= checkDetailLogGrowth(app);
 	ok &= checkNoticeEdge(app);
 	ok &= checkRailDivider(app);
 	ok &= checkRailGlyphs(app);

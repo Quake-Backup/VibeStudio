@@ -673,6 +673,10 @@ void AudioEditorDialog::runWork(const QString& title, std::function<void(AudioEd
 	if (isBusy()) {
 		return;
 	}
+	// refresh() disables the focused control while the work runs, which moves the
+	// focus on; the end of the work (or of a chain of it) gives it back, so Space
+	// on the waveform still pauses what it started and Ctrl+Z still undoes.
+	m_workFocus.begin();
 	stop();
 	auto state = std::make_shared<AudioEditorWork>();
 	m_work = state;
@@ -704,6 +708,7 @@ void AudioEditorDialog::runWork(const QString& title, std::function<void(AudioEd
 		if (m_work != state) {
 			return;
 		}
+		m_workFocus.ended(m_cancel);
 		m_work.reset();
 		if (state->cancel || state->result.cancelled) {
 			m_closeAfterSave = false;
@@ -718,6 +723,13 @@ void AudioEditorDialog::runWork(const QString& title, std::function<void(AudioEd
 			complete(*state);
 		}
 		refresh();
+		// The completion may have started the next step of a chain (prepare, then
+		// write): the focus goes back when the last one ends. Play is disabled
+		// while an audition it started is still loading; refreshPlayback() gives
+		// the focus back to it when that ends.
+		if (!isBusy()) {
+			m_workFocus.restore(m_playback && m_playback->state() == AudioPlayback::State::Loading);
+		}
 	});
 	connect(worker, &QThread::finished, worker, &QObject::deleteLater);
 	connect(qApp, &QCoreApplication::aboutToQuit, worker, [worker, state]() {
@@ -1923,5 +1935,9 @@ void AudioEditorDialog::refreshPlayback()
 	const bool seekable = SLOPSTUDIO_HAVE_AUDIO_PLAYBACK && !isBusy() && m_playback->canSeek();
 	m_seek->setEnabled(seekable);
 	m_seekFrame->setEnabled(seekable);
+	// Play was disabled while its audition loaded; see runWork().
+	if (!isBusy() && m_workFocus.waiting()) {
+		m_workFocus.restore(loading);
+	}
 }
 } // namespace slopstudio

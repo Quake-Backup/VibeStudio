@@ -1,6 +1,7 @@
 #pragma once
 #include "app/audio_recording.h"
 #include "app/audio_session_playback.h"
+#include "app/work_focus.h"
 #include "core/audio_arrangement.h"
 #include "core/audio_media.h"
 #include "core/audio_range.h"
@@ -135,6 +136,9 @@ class AudioSessionDialog final : public QDialog {
 	bool m_recoveryActive = false;
 	QHash<QString, AudioWaveformData> m_waveforms;
 	std::shared_ptr<AudioSessionWork> m_work;
+	// Work disables the timeline and track list, and preparing playback disables
+	// Play; these give the focus back when each ends.
+	WorkFocus m_workFocus{this}, m_playFocus{this};
 	QThread *m_thread = nullptr;
 	QPointer<AudioTakeDialog> m_take;
 	QPointer<AudioRecordingDialog> m_recording;

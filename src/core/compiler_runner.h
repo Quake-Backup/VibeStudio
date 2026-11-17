@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/compiler_known_issues.h"
 #include "core/compiler_profiles.h"
 
 #include <functional>
@@ -11,6 +12,8 @@ struct CompilerRunRequest {
 	QString manifestPath;
 	bool dryRun = false;
 	bool registerOutputs = false;
+	// How long the process may run before it is stopped. Zero or less means no
+	// limit: the run ends when the tool exits or the caller cancels it.
 	int timeoutMs = 5 * 60 * 1000;
 };
 
@@ -18,6 +21,7 @@ struct CompilerManifestRerunRequest {
 	QString manifestPath;
 	bool dryRun = false;
 	bool registerOutputs = true;
+	// As CompilerRunRequest::timeoutMs: zero or less means no limit.
 	int timeoutMs = 5 * 60 * 1000;
 };
 
@@ -52,6 +56,16 @@ CompilerRunResult runCompilerCommand(const CompilerRunRequest& request, const Co
 CompilerRunResult rerunCompilerCommandManifest(const CompilerCommandManifest& manifest, const CompilerRunCallbacks& callbacks = {}, const QString& manifestPath = QString());
 CompilerRunResult rerunCompilerCommandManifest(const CompilerCommandManifest& manifest, const CompilerManifestRerunRequest& request, const CompilerRunCallbacks& callbacks = {});
 QString compilerRunResultText(const CompilerRunResult& result);
+
+// The diagnostics a run reads from one channel of a tool's output, parsed line
+// by line as a live run parses them: carriage-return progress, colour escapes,
+// fatal-error banners and source locations.
+QVector<CompilerDiagnostic> compilerOutputDiagnostics(const QString& output, const QString& channel = QStringLiteral("stdout"));
+// The upstream issues a run notes beside its diagnostics. The catalogue is
+// matched against the diagnostic lines only: the rest of a healthy run's
+// output (lump tables, face counts, palette notices) uses its keywords too.
+QVector<CompilerKnownIssueMatch> compilerKnownIssuesForDiagnostics(const QVector<CompilerDiagnostic>& diagnostics, const QString& toolId = QString(),
+	const QString& profileId = QString());
 
 // Saved compiler runs. Run Profile in Levels and on the Build page, and
 // `compiler run`, keep each run's manifest in `<root>/.slopstudio/compiler-runs`,

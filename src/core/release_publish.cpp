@@ -299,6 +299,24 @@ ReleasePublishResult publishRelease(const ReleasePublishRequest& request)
 	const QString readmeName = baseName(plan) + QStringLiteral(".txt");
 	const QString prefix = modFolder(plan) ? plan.packageFolder + QLatin1Char('/') : QString();
 	result.packagePath = output.filePath(plan.packageFileName);
+	// Everything a release writes lies in its output folder. The planner refuses
+	// a package name or game folder that is not a single name; this holds for a
+	// plan put together any other way, before the first file is written. (QDir::
+	// filePath() returns an absolute name unchanged and keeps "..".) The package's
+	// place in the distribution archive is checked the same way, so the archive
+	// cannot extract outside the folder players unpack it into.
+	QStringList targets {result.packagePath, output.filePath(readmeName), output.filePath(releaseArchiveFileName(plan)), output.filePath(prefix + plan.packageFileName)};
+	for (const ReleaseEntry& entry : plan.entries) {
+		if (entry.loose) {
+			targets << output.filePath(prefix + entry.virtualPath);
+		}
+	}
+	for (const QString& target : std::as_const(targets)) {
+		if (!insideOrSame(result.outputDirectory, target)) {
+			return fail(QCoreApplication::translate("SlopStudioReleasePublish", "%1 is outside the release's output folder, so the release was not written. Check the package file name and the game folder.")
+				.arg(QDir::toNativeSeparators(QDir::cleanPath(target))));
+		}
+	}
 	const QString packagePhase = QCoreApplication::translate("SlopStudioReleasePublish", "Writing %1").arg(plan.packageFileName);
 	phase(packagePhase);
 	if (plan.formatId == QStringLiteral("wad")) {

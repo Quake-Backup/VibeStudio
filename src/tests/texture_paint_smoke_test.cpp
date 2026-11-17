@@ -61,6 +61,31 @@ int main(int argc, char** argv)
 			}
 		}
 	}
+	// An interactive stroke may leave the canvas without a wrapping brush. Every
+	// stamp outside is then clipped: not wrapped, and not clamped onto the border,
+	// which would draw a line along the edge while the pointer moves outside.
+	for (auto shape : {TextureBrushShape::Square, TextureBrushShape::Round}) {
+		for (int width : {1, 5, 16, 32}) {
+			for (bool selected : {false, true}) {
+				for (int seed = 0; seed < 36; ++seed) {
+					const auto anywhere = [](int value) { return QPoint(value % 51 - 17, value * 7 % 39 - 13); };
+					const QPoint start(seed * 5 % 17, seed * 3 % 13), middle = anywhere(seed * 13 + 3), last = anywhere(seed * 29 + 11);
+					TextureDocument stroked; stroked.create(size, Qt::transparent);
+					const QRect clip = selected ? QRect(2, 1, 10, 9) : QRect(QPoint(), size);
+					if (selected) { stroked.setSelection(clip); }
+					const TextureBrush brush{width, shape, TexturePaintMode::Replace, false};
+					QImage expected = referenceStroke(size, start, middle, brush, clip);
+					const QImage second = referenceStroke(size, middle, last, brush, clip);
+					for (int y = 0; y < size.height(); ++y) {
+						for (int x = 0; x < size.width(); ++x) { if (second.pixel(x, y) != 0) { expected.setPixel(x, y, second.pixel(x, y)); } }
+					}
+					const bool followed = stroked.beginStroke(start, Qt::red, brush, &error) && stroked.continueStroke(middle) && stroked.continueStroke(last);
+					stroked.endStroke();
+					ok &= expect(followed && stroked.image() == expected, "an unwrapped interactive stroke followed off the canvas paints exactly the stamps that cross it");
+				}
+			}
+		}
+	}
 	TextureDocument document;
 	document.create({8, 8}, Qt::blue); document.markSaved();
 	TextureBrush blend{3, TextureBrushShape::Square, TexturePaintMode::SourceOver};

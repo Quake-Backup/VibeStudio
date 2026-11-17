@@ -958,7 +958,7 @@ bool ApplicationShell::placeLevelAsset(const QString& payload, const QPointF& vi
 		}
 		setLevelMapSelection(&m_levelMapDocument, {{LevelMapSelectionKind::Entity, placed.entityId}});
 		recordActivity(tr("Level map entity added"), QStringLiteral("entity:%1 %2").arg(placed.entityId).arg(placed.entityClass), QStringLiteral("level-map"),
-			OperationState::Warning, tr("Unsaved map edit"));
+			OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		const QString done = tr("Placed %1 as %2 (entity:%3). Undo takes it out again.").arg(QFileInfo(request.virtualPath).fileName(), placed.entityClass).arg(placed.entityId);
 		statusBar()->showMessage(placed.warnings.isEmpty() ? done : done + QLatin1Char(' ') + placed.warnings.join(QLatin1Char(' ')), 5000);
@@ -981,7 +981,7 @@ bool ApplicationShell::placeLevelAsset(const QString& payload, const QPointF& vi
 	// The new entity is selected, so its keys are in the inspector at once.
 	setLevelMapSelection(&m_levelMapDocument, {{LevelMapSelectionKind::Entity, entityId}});
 	recordActivity(tr("Level map entity added"), QStringLiteral("entity:%1 %2").arg(entityId).arg(className), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Placed %1 as %2 (entity:%3). Undo takes it out again.").arg(QFileInfo(what).fileName(), className).arg(entityId), 5000);
 	return true;
@@ -1015,7 +1015,7 @@ bool ApplicationShell::assignLevelAsset(const QString& payload)
 		statusBar()->showMessage(tr("Could not set %1: %2").arg(key, error));
 		return false;
 	}
-	recordActivity(tr("Level map keys changed"), key, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Level map keys changed"), key, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Set %1 to %2 on %n entit(y)(ies) as one undo step.", nullptr, static_cast<int>(entities.size())).arg(key, value), 5000);
 	return true;

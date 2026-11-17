@@ -176,7 +176,7 @@ bool ApplicationShell::applyLevelMapEnabledMods(const QStringList& mods, QString
 	}
 	const QStringList enabled = levelMapEnabledMods(m_levelMapDocument);
 	recordActivity(tr("Mods changed"), enabled.isEmpty() ? tr("No mods enabled") : enabled.join(QStringLiteral(", ")), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	statusBar()->showMessage(tr("Mods changed. Undo puts them back."), 4000);
 	return true;

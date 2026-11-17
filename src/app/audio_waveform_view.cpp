@@ -103,8 +103,29 @@ void AudioWaveformView::setPlayheadFrame(qint64 frame)
 	if (m_playhead == frame) {
 		return;
 	}
+	// Playback moves the playhead many times a second. Only the strip it left
+	// and the strip it entered are repainted, and paintEvent() queries the
+	// envelope for those columns alone rather than for the whole view.
+	const QRect before = playheadStrip();
 	m_playhead = frame;
-	update();
+	const QRect after = playheadStrip();
+	if (!before.isEmpty()) {
+		update(before);
+	}
+	if (!after.isEmpty()) {
+		update(after);
+	}
+}
+
+QRect AudioWaveformView::playheadStrip() const
+{
+	if (!m_data.valid() || m_data.clip().frameCount() == 0 || m_playhead < m_visibleFirst || m_playhead > m_visibleEnd) {
+		return {};
+	}
+	const auto area = lanes();
+	// A two-pixel line across the lanes; a pixel either side covers rounding.
+	return QRect(int(std::floor(xForFrame(m_playhead))) - 2, int(std::floor(area.top())) - 1, 5,
+	             int(std::ceil(area.height())) + 2);
 }
 
 void AudioWaveformView::setHighContrast(bool enabled)
@@ -362,9 +383,13 @@ void AudioWaveformView::changeEvent(QEvent* event)
 	update();
 }
 
-void AudioWaveformView::paintEvent(QPaintEvent*)
+void AudioWaveformView::paintEvent(QPaintEvent* event)
 {
 	QPainter painter(this);
+	// The part being repainted, with a pixel to spare. A moving playhead repaints
+	// two thin strips, so envelope columns outside it are not queried: the
+	// painter would clip them away, but only after the work was done.
+	const QRectF dirty = QRectF(event->rect()).adjusted(-1, -1, 1, 1);
 	const QColor background = palette().color(QPalette::Base);
 	const QColor text = palette().color(QPalette::Text);
 	const QColor accent = m_highContrast ? text : palette().color(QPalette::Highlight);
@@ -379,6 +404,9 @@ void AudioWaveformView::paintEvent(QPaintEvent*)
 	const auto span = m_visibleEnd - m_visibleFirst;
 	const auto& clip = m_data.clip();
 	const int columns = std::max(1, static_cast<int>(area.width()));
+	// The lanes and the overview draw one line per column from the same left edge.
+	const int firstColumn = std::clamp(static_cast<int>(std::floor(dirty.left() - area.left())) - 1, 0, columns);
+	const int endColumn = std::clamp(static_cast<int>(std::ceil(dirty.right() - area.left())) + 1, firstColumn, columns);
 	const qreal laneHeight = area.height() / clip.channels;
 	// Fill first, then draw envelopes and dashed boundaries; selected audio
 	// remains legible without relying on colour alone.
@@ -409,7 +437,7 @@ void AudioWaveformView::paintEvent(QPaintEvent*)
 			}
 			painter.drawPath(line);
 		} else {
-			for (int x = 0; x < columns; ++x) {
+			for (int x = firstColumn; x < endColumn; ++x) {
 				const qint64 first = m_visibleFirst + x * span / columns;
 				const qint64 end =
 				    std::min(clip.frameCount(), std::max(first + 1, m_visibleFirst + (x + 1) * span / columns));
@@ -495,7 +523,9 @@ void AudioWaveformView::paintEvent(QPaintEvent*)
 	                 Qt::AlignLeft | Qt::AlignVCenter,
 	                 tr("Overview · %1 s").arg(clip.frameCount() / double(clip.sampleRate), 0, 'f', 3));
 	painter.setPen(QPen(accent, 1));
-	for (int x = 0; x < columns; ++x) {
+	// The overview lies below the lanes: a playhead strip does not reach it.
+	const bool overviewDirty = dirty.intersects(strip);
+	for (int x = overviewDirty ? firstColumn : endColumn; x < endColumn; ++x) {
 		const qint64 first = x * clip.frameCount() / columns;
 		const qint64 end = std::min(clip.frameCount(), std::max(first + 1, (x + 1) * clip.frameCount() / columns));
 		AudioExtrema value = m_data.range(0, first, end);

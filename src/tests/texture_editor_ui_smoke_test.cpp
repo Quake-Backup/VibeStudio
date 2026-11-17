@@ -208,8 +208,11 @@ int main(int argc, char** argv)
 		ok &= expect(editor->document().image().pixelColor(3, 4) == QColor(240, 50, 80) && editor->document().isDirty(), "cursor command paints the document");
 		editor->undo(); ok &= expect(!editor->document().isDirty(), "UI undo returns to clean imported surface");
 		editor->redo();
+		canvas->setFocus();
 		editor->applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("resize")}, {QStringLiteral("width"), 32}, {QStringLiteral("height"), 16}}});
+		ok &= expect(editor->isBusy() && !canvas->isEnabled() && editor->focusWidget() != canvas, "a running job disables the canvas, which moves the keyboard focus on");
 		ok &= expect(editor->isBusy() && !canvas->isEnabled() && settled(editor) && editor->document().image().size() == QSize(32, 16), "asynchronous operation blocks edits and commits results");
+		ok &= expect(canvas->isEnabled() && editor->focusWidget() == canvas, "the canvas has the keyboard focus again after a job, so its keys and Ctrl+Z still work");
 		editor->applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("rotate")}}}); editor->cancelPending();
 		ok &= expect(settled(editor) && editor->document().image().size() == QSize(32, 16), "cancel discards pending transformation");
 		const QString saved = root.filePath(QStringLiteral("ui-%1.png").arg(scale));
@@ -317,8 +320,39 @@ int main(int argc, char** argv)
 			extra->findChild<QSpinBox*>(QStringLiteral("textureBrushWidth"))->setValue(5);
 			extraCanvas->beginGesture({3, 8}); extraCanvas->continueGestureWithPressure({12, 8}, 0.2); extraCanvas->endGesture();
 			ok &= expect(extra->document().image().pixel(3, 6) == qRgb(0, 0, 255) && extra->document().image().pixel(12, 8) == qRgb(0, 0, 255) &&
-				extra->document().image().pixel(12, 6) != qRgb(0, 0, 255), "pen pressure narrows the stroke after its first stamp");
+				extra->document().image().pixel(12, 6) != qRgb(0, 0, 255), "pen pressure narrows a stroke that began at full width, as a mouse press does");
+			// A pen's own press carries a pressure: the first stamp is as narrow as the rest.
+			extraCanvas->beginGestureWithPressure({5, 3}, 0.2); extraCanvas->continueGestureWithPressure({12, 3}, 0.2); extraCanvas->endGesture();
+			ok &= expect(extra->document().image().pixel(5, 3) == qRgb(0, 0, 255) && extra->document().image().pixel(12, 3) == qRgb(0, 0, 255) &&
+				extra->document().image().pixel(5, 1) != qRgb(0, 0, 255) && extra->document().image().pixel(5, 2) != qRgb(0, 0, 255) &&
+				extra->document().image().pixel(5, 4) != qRgb(0, 0, 255) && extra->document().image().pixel(4, 3) != qRgb(0, 0, 255), "a light pen touch starts its stroke with a narrow stamp, not a full-width one");
+			extraCanvas->beginGestureWithPressure({5, 12}, 1.0); extraCanvas->endGesture();
+			ok &= expect(extra->document().image().pixel(3, 13) == qRgb(0, 0, 255) && extra->document().image().pixel(7, 14) == qRgb(0, 0, 255) && extra->document().image().pixel(7, 11) == qRgb(0, 0, 255), "a firm pen touch stamps the full brush width");
+			extra->findChild<QCheckBox*>(QStringLiteral("texturePressure"))->setChecked(false);
+			extraCanvas->beginGestureWithPressure({11, 12}, 0.2); extraCanvas->endGesture();
+			ok &= expect(extra->document().image().pixel(9, 10) == qRgb(0, 0, 255) && extra->document().image().pixel(13, 14) == qRgb(0, 0, 255), "with pen pressure off the first stamp keeps the full width");
+			extra->findChild<QCheckBox*>(QStringLiteral("texturePressure"))->setChecked(true);
+			extra->undo(); extra->undo(); extra->undo();
 			extra->findChild<QSpinBox*>(QStringLiteral("textureBrushWidth"))->setValue(1);
+			{
+				// A stroke dragged off the canvas and moved along its outside paints
+				// only where it crosses the canvas, not a line down the edge column.
+				const QRgb ink = qRgb(255, 128, 0); primary->setText(QStringLiteral("#ffff8000"));
+				extraCanvas->beginGesture({2, 1}); extraCanvas->continueGesture({-9, 1}); extraCanvas->continueGesture({-9, 4});
+				extraCanvas->continueGesture({1, 4}); extraCanvas->endGesture();
+				const QImage stroked = extra->document().image();
+				ok &= expect(stroked.pixel(0, 1) == ink && stroked.pixel(2, 1) == ink && stroked.pixel(0, 4) == ink && stroked.pixel(1, 4) == ink &&
+					stroked.pixel(0, 2) != ink && stroked.pixel(0, 3) != ink && stroked.pixel(2, 4) != ink, "a stroke that leaves the canvas paints no line along its edge");
+				extra->undo();
+				// With Wrap painting the same drag crosses the edge instead, with or without Tile Preview.
+				auto* wrapPainting = extra->findChild<QCheckBox*>(QStringLiteral("textureWrapPainting")); wrapPainting->setChecked(true);
+				extraCanvas->beginGesture({14, 1}); extraCanvas->continueGesture({17, 1}); extraCanvas->endGesture();
+				const QImage wrapped = extra->document().image();
+				ok &= expect(wrapped.pixel(14, 1) == ink && wrapped.pixel(15, 1) == ink && wrapped.pixel(0, 1) == ink && wrapped.pixel(1, 1) == ink && wrapped.pixel(2, 1) != ink,
+					"a wrapped stroke that leaves the canvas continues from the opposite edge");
+				extra->undo(); wrapPainting->setChecked(false); primary->setText(QStringLiteral("#ff0000ff"));
+				ok &= expect(extra->document().image().pixel(0, 1) != ink && extra->document().image().pixel(14, 1) != ink, "both edge strokes undo");
+			}
 			const QImage beforeAdjust = extra->document().image();
 			extra->findChild<QCheckBox*>(QStringLiteral("textureInvert"))->setChecked(true);
 			extra->findChild<QPushButton*>(QStringLiteral("applyTextureAdjustment"))->click();
@@ -359,6 +393,32 @@ int main(int argc, char** argv)
 			const QString companion = root.filePath(QStringLiteral("companion.png"));
 			ok &= expect(extra->exportCompanionMaps(companion, false, &error) && QFileInfo::exists(root.filePath(QStringLiteral("companion_norm.png"))) &&
 				QFileInfo::exists(root.filePath(QStringLiteral("companion_gloss.png"))), "companion maps export beside the texture name");
+			{
+				// The buttons derive and encode the maps as a job, with progress and
+				// Cancel, rather than freezing the editor; the result is the same.
+				const auto bytesOf = [&](const QString& name) { QFile file(root.filePath(name)); return file.open(QIODevice::ReadOnly) ? file.readAll() : QByteArray(); };
+				bool written = false;
+				extra->saveCompanionMapsToPath(root.filePath(QStringLiteral("companion-job.png")), false, [&]() { written = true; });
+				ok &= expect(extra->isBusy() && !extraCanvas->isEnabled() && extra->findChild<QWidget*>(QStringLiteral("textureOperationProgress"))->isVisible() &&
+					extra->findChild<QPushButton*>(QStringLiteral("cancelTextureOperation"))->isVisible(), "exporting companion maps is a visible, cancellable job");
+				ok &= expect(settled(extra) && written && !bytesOf(QStringLiteral("companion_norm.png")).isEmpty() &&
+					bytesOf(QStringLiteral("companion-job_norm.png")) == bytesOf(QStringLiteral("companion_norm.png")) &&
+					bytesOf(QStringLiteral("companion-job_gloss.png")) == bytesOf(QStringLiteral("companion_gloss.png")), "the job writes the same maps as the direct export");
+				written = false; extra->saveCompanionMapsToPath(root.filePath(QStringLiteral("companion-job.png")), false, [&]() { written = true; });
+				ok &= expect(settled(extra) && !written, "the companion job refuses to replace existing maps unless asked to");
+				QVector<TextureExportCompanion> staged; int stagings = 0;
+				extra->context = [&]() { return TextureEditorContext{root.path(), {}, true, false, {}, {}, {}}; };
+				extra->stageFiles = [&](const QVector<TextureExportCompanion>& files, bool, QString*) { staged = files; ++stagings; return true; };
+				extra->findChild<QLineEdit*>(QStringLiteral("texturePackagePath"))->setText(QStringLiteral("textures/extra.png"));
+				const auto direct = extra->companionMaps(QStringLiteral("textures/extra.png"));
+				extra->stageCompanionMaps();
+				ok &= expect(extra->isBusy() && stagings == 0, "staging companion maps derives them as a job first");
+				bool sameMaps = settled(extra) && stagings == 1 && staged.size() == direct.size() && staged.size() >= 2;
+				for (qsizetype index = 0; sameMaps && index < staged.size(); ++index) { sameMaps = staged[index].path == direct[index].path && staged[index].bytes == direct[index].bytes; }
+				ok &= expect(sameMaps && staged.first().path == QStringLiteral("textures/extra_norm.png"), "the job stages the same maps, named beside the package path");
+				extra->stageCompanionMaps(); extra->cancelPending();
+				ok &= expect(settled(extra) && stagings == 1, "cancelling the companion job stages nothing");
+			}
 			delete extra;
 			// A sprite opens with each frame as a layer, aligned on its origin.
 			TextureDocument sprite; sprite.create({8, 8}, Qt::transparent); sprite.paintStroke({QPoint(1, 1)}, Qt::red, TextureBrush{2});

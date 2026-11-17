@@ -403,6 +403,98 @@ bool runCoalesceSmoke()
 	return ok;
 }
 
+// A quiet path is only looked at (size and modification time); its content is
+// read when the look or the filesystem says something moved, while the file is
+// moments old, and on every `contentCheckIntervalPolls()`th poll as the
+// backstop for a rewrite that moves neither size nor time.
+bool runQuietPollSmoke()
+{
+	bool ok = true;
+	QTemporaryDir temporary;
+	ok &= expect(temporary.isValid(), "Quiet poll smoke needs a temporary directory.");
+	if (!temporary.isValid()) {
+		return false;
+	}
+
+	const QString path = QDir(temporary.path()).filePath(QStringLiteral("quiet.map"));
+	ok &= expect(writeFile(path, QByteArrayLiteral("alpha")), "Quiet fixture should be written.");
+
+	// Writes the file and gives it a modification time an hour old: a file
+	// written moments ago is read on every poll, because it could be written
+	// again inside its timestamp's resolution. Rewriting it this way with other
+	// bytes of the same length moves nothing but the content.
+	const QDateTime anHourAgo = QDateTime::fromMSecsSinceEpoch((QDateTime::currentMSecsSinceEpoch() / 1000 - 3600) * 1000, QTimeZone::utc());
+	const auto writeAnHourAgo = [&path, &anHourAgo](const QByteArray& bytes) {
+		if (!writeFile(path, bytes)) {
+			return false;
+		}
+		QFile file(path);
+		if (!file.open(QIODevice::ReadWrite)) {
+			return false;
+		}
+		const bool moved = file.setFileTime(anHourAgo, QFileDevice::FileModificationTime);
+		file.close();
+		return moved && QFileInfo(path).lastModified().toUTC() == anHourAgo;
+	};
+
+	DocumentWatcher watcher(false);
+	watcher.setCoalesceIntervalMsecs(0);
+	ok &= expect(watcher.contentCheckIntervalPolls() == kDocumentWatchContentCheckPolls, "The content check interval should start at its default.");
+
+	// Fresh from the writer, a same-size rewrite is found on the very next
+	// poll, whatever its modification time says.
+	ok &= expect(watcher.registerPath(path, DocumentWatchRole::LevelMap), "The quiet fixture should register.");
+	ok &= expect(writeFile(path, QByteArrayLiteral("fresh")), "The fresh fixture should be rewritten at the same size.");
+	const QVector<DocumentChangeEvent> fresh = watcher.pollAt(0);
+	ok &= expect(fresh.size() == 1 && fresh.first().kind == DocumentChangeKind::Modified, "A file written moments ago should be read on every poll.");
+
+	const bool aged = writeAnHourAgo(QByteArrayLiteral("alpha"));
+	ok &= expect(watcher.registerPath(path, DocumentWatchRole::LevelMap), "The aged fixture should register.");
+	if (aged && writeAnHourAgo(QByteArrayLiteral("bravo"))) {
+		const auto rewriteInvisibly = writeAnHourAgo;
+		// The save-time guard always reads, whatever the polls do.
+		ok &= expect(watcher.hasChangedSinceRegistered(path), "The save-time check should read the content.");
+		int quietPolls = 0;
+		QVector<DocumentChangeEvent> events;
+		for (int poll = 1; poll <= kDocumentWatchContentCheckPolls && events.isEmpty(); ++poll) {
+			events = watcher.pollAt(poll * 1'000);
+			if (events.isEmpty()) {
+				++quietPolls;
+			}
+		}
+		ok &= expect(quietPolls == kDocumentWatchContentCheckPolls - 1, "A path whose size and time did not move should not be read on every poll.");
+		ok &= expect(events.size() == 1 && events.first().kind == DocumentChangeKind::Modified,
+			"The periodic content check should find a rewrite that kept the size and the time.");
+
+		// A filesystem notification is reason enough to read at once.
+		ok &= expect(rewriteInvisibly(QByteArrayLiteral("delta")), "The fixture should be rewritten again.");
+		ok &= expect(watcher.pollAt(100'000).isEmpty(), "The look alone should still see nothing.");
+		watcher.noteExternalNotification(path);
+		const QVector<DocumentChangeEvent> notified = watcher.pollAt(101'000);
+		ok &= expect(notified.size() == 1 && notified.first().kind == DocumentChangeKind::Modified, "A notified path should be read on the next poll.");
+
+		// An interval of one reads on every poll, as a host that cannot wait asks.
+		watcher.setContentCheckIntervalPolls(1);
+		ok &= expect(rewriteInvisibly(QByteArrayLiteral("gamma")), "The fixture should be rewritten once more.");
+		const QVector<DocumentChangeEvent> everyPoll = watcher.pollAt(102'000);
+		ok &= expect(everyPoll.size() == 1 && everyPoll.first().kind == DocumentChangeKind::Modified, "An interval of one should read on every poll.");
+		watcher.setContentCheckIntervalPolls(0);
+		ok &= expect(watcher.contentCheckIntervalPolls() == 1, "The content check interval should never fall below one.");
+	} else {
+		std::cerr << "note: this file system would not take an old modification time; the quiet poll checks were skipped.\n";
+	}
+
+	// A change of size is seen by the look, on the very next poll, however old
+	// the file says it is.
+	watcher.setContentCheckIntervalPolls(kDocumentWatchContentCheckPolls);
+	ok &= expect(watcher.refreshBaseline(path), "The baseline should refresh.");
+	writeAnHourAgo(QByteArrayLiteral("a longer revision"));
+	ok &= expect(QFileInfo(path).size() == 17, "The fixture should grow.");
+	const QVector<DocumentChangeEvent> grown = watcher.pollAt(200'000);
+	ok &= expect(grown.size() == 1 && grown.first().kind == DocumentChangeKind::Modified, "A change of size should be reported on the next poll.");
+	return ok;
+}
+
 bool runRoleSmoke()
 {
 	bool ok = true;
@@ -567,6 +659,7 @@ int main()
 	ok &= runRemovalSmoke();
 	ok &= runReRegisterSmoke();
 	ok &= runCoalesceSmoke();
+	ok &= runQuietPollSmoke();
 	ok &= runRoleSmoke();
 	ok &= runVocabularySmoke();
 	ok &= runReportingSmoke();

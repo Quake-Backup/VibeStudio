@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app/audio_playback.h"
+#include "app/work_focus.h"
 #include "core/audio_clip.h"
 #include "core/audio_analysis.h"
 #include "core/audio_delivery.h"
@@ -149,6 +150,8 @@ private:
 	quint64 m_waveformRevision = 0;
 	quint64 m_recoverySerial = 0;
 	std::shared_ptr<AudioEditorWork> m_work;
+	// Work disables the waveform and most commands; this gives the focus back.
+	WorkFocus m_workFocus{this};
 	AudioWaveformView* m_waveform = nullptr;
 	QToolBar* m_viewControls = nullptr;
 	QScrollBar* m_pan = nullptr;

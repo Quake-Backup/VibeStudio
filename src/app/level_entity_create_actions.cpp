@@ -210,7 +210,7 @@ void ApplicationShell::createLevelEntityFromUi(const QString& className, const L
 		m_lastTiedEntityClass = report.className;
 	}
 	recordActivity(tr("Entity created"), QStringLiteral("entity:%1 %2").arg(report.entityId).arg(report.className), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	if (report.kind == EntityClassKind::Point) {
 		statusBar()->showMessage(tr("Created %1 as entity:%2 at %3 %4 %5. Undo removes it; save the map before building.")

@@ -56,6 +56,8 @@ protected:
 private:
 	[[nodiscard]] QRectF lanes() const;
 	[[nodiscard]] QRectF overview() const;
+	// The part of the widget the playhead line occupies, empty when it is out of view.
+	[[nodiscard]] QRect playheadStrip() const;
 	void zoom(double factor, qint64 anchor);
 	void overviewAt(double x);
 	void updateDescription();

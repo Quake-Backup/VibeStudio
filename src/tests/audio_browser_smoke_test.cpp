@@ -377,6 +377,28 @@ bool shellWorkflow(QApplication& app, const QString& root, int scale)
 	shell.close();
 	return ok;
 }
+// A WAV header can declare 65,535 channels. The view paints one lane per
+// channel on every repaint, so it must refuse such a count outright.
+bool waveformChannelGuard()
+{
+	bool ok = true;
+	WaveformView view; view.resize(480, 160);
+	const int most = WaveformView::kMaxWaveformChannels;
+	view.setPeaks(QVector<float>(2 * most * 16, 0.25f), most, 44100, 1000);
+	ok &= expect(view.hasPeaks(), "the preview waveform draws the most channels the decoders accept");
+	view.setPeaks(QVector<float>(2 * (most + 1) * 16, 0.25f), most + 1, 44100, 1000);
+	ok &= expect(!view.hasPeaks(), "the preview waveform refuses one channel more than the decoders accept");
+	const int declared = 65535;
+	view.setPeaks(QVector<float>(2 * declared, 0.25f), declared, 44100, 1000);
+	ok &= expect(!view.hasPeaks() && view.accessibleDescription() == view.accessibleSummary() &&
+	             view.accessibleSummary().contains(QStringLiteral("empty")),
+	             "a huge declared channel count leaves the preview waveform empty and says so");
+	QImage image(view.size(), QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent);
+	view.render(&image);
+	view.setPeaks(QVector<float>(2 * 2 * 16, 0.25f), 2, 44100, 1000);
+	ok &= expect(view.hasPeaks(), "the preview waveform recovers with the next valid sound");
+	return ok;
+}
 } // namespace
 
 int main(int argc, char** argv)
@@ -393,8 +415,9 @@ int main(int argc, char** argv)
 	StudioSettings::setOverrideFilePath(temporary.filePath(QStringLiteral("settings.ini")));
 	qputenv("SLOPSTUDIO_AUDIO_RECOVERY_ROOT", temporary.filePath(QStringLiteral("recovery")).toUtf8());
 	StudioSettings().setAudioRecoveryEnabled(false);
+	const bool guard = waveformChannelGuard();
 	const bool media = mediaLifecycle(), worker = workers(), ui = shellWorkflow(app, temporary.path(), 100);
 	const bool layout = shellWorkflow(app, temporary.path(), 200);
-	std::cout << "Audio browser checks " << (media && worker && ui && layout ? "passed" : "failed") << '\n';
-	return media && worker && ui && layout ? EXIT_SUCCESS : EXIT_FAILURE;
+	std::cout << "Audio browser checks " << (guard && media && worker && ui && layout ? "passed" : "failed") << '\n';
+	return guard && media && worker && ui && layout ? EXIT_SUCCESS : EXIT_FAILURE;
 }

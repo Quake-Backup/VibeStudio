@@ -320,7 +320,20 @@ bool ApplicationShell::recoverLevelDocument(const QString& path, QString* error)
 		return false;
 	}
 	adoptLevelMapDocument(std::move(document));
-
+	// Adopting a map retires this session's checkpoint, and that may be the
+	// very record just restored. The restored map is unsaved work, so it gets
+	// a checkpoint of its own now rather than at the next minute's tick;
+	// quietly, since the message below is the one to read.
+	if (m_levelRecoveryWriter && m_settings.levelRecoveryEnabled() && !m_levelRecoveryWriter->checkpoint(m_levelMapDocument, false)
+		&& m_levelRecoveryWriter->busy()) {
+		// A write of the map this one replaced is still finishing, and one
+		// write runs at a time: ask once more when it has had time to.
+		QTimer::singleShot(500, m_levelRecoveryWriter, [this]() {
+			if (m_settings.levelRecoveryEnabled()) {
+				m_levelRecoveryWriter->checkpoint(m_levelMapDocument, false);
+			}
+		});
+	}
 	statusBar()->showMessage(tr("Recovery opened. Review the map and save to keep it."));
 	return true;
 }

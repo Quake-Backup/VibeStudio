@@ -874,12 +874,13 @@ Options can go anywhere after `--cli`.
 | `--help` | Prints the full help and exits. |
 | `--version` | Prints the version and exits. |
 | `--json` | Prints one JSON object instead of text. Every command supports it. |
-| `--quiet` | Hides the text output of a successful command; errors still go to standard error. Ignored with `--json`. |
+| `--quiet` | Hides the text output of a successful command. When a command fails, its report and its errors go to standard error. Ignored with `--json`. |
 | `--verbose` | Adds timing and extra diagnostics to text output. Ignored with `--json`. |
-| `--settings-file <path>` | Reads and writes settings in this INI file instead of your own settings. |
+| `--settings-file <path>` | Reads and writes settings in this INI file instead of your own settings. The path is required. |
 | `--dry-run` | Shows what a command that writes files would do, without writing. |
 | `--overwrite` | Lets a command replace an existing output file. |
 | `--watch` | Streams progress lines from `build run`, `compiler run` and `compiler rerun` in text output. Nothing is streamed with `--json`. |
+| `--timeout-ms <n>` | Stops `compiler run`, or each stage of `build run`, after this many milliseconds; `0` means no limit. A value that is not a whole number is refused. |
 | `--task-state` | Adds task-state objects to JSON output where supported. |
 | `--exit-codes` | Prints the exit-code table below. |
 | `--renderer <automatic\|opengl\|vulkan>` | Chooses the 3D renderer for this run (`material render`, `render backends`, `render test`) without changing the setting. |
@@ -887,7 +888,28 @@ Options can go anywhere after `--cli`.
 The command line uses the same settings as the studio, so commands such as `install add`,
 `compiler set-path` or `editor select` change what the studio sees. In scripts and CI, pass
 `--settings-file` with a file of your own to keep them apart. `slopstudio --cli --settings-report`
-prints where the settings in use are stored.
+prints where the settings in use are stored. `--settings-file` with no path, an empty path (an
+unset shell variable) or another option where the path should be stops the studio and the command
+line with exit code 2, so a broken script never reaches your own settings. That message is plain
+text on standard error even with `--json`, because it comes before any command starts.
+
+An option takes its value as the next argument or inline: `--output ./out.map` and
+`--output=./out.map` mean the same. The next argument is never read as a value when it is itself an
+option, so `--output --overwrite` reports a missing output path. For a value that is spelled like an
+option, use the inline form, as in `--find=--watch`. Negative numbers such as `--delta -16,0,0` are
+values as usual.
+
+A near miss of `--dry-run`, `--overwrite`, `--json`, `--quiet`, `--verbose` or `--settings-file`,
+such as `--dryrun` or `--dry_run`, stops any command with exit code 2 before anything runs, and the
+message names the spelling that was meant. An unknown option in place of a command, and an unknown
+command, are named in the error, the latter with the commands of its family. Many commands refuse
+other options they do not know as well, but not every command does yet, so check a new script with
+`--dry-run` first. A value that is given but cannot be used, such as `--timeout-ms soon` or
+`map render --width 0`, is an error that names the accepted range, not a return to the default.
+
+On Windows the command line reads its arguments as Unicode and writes UTF-8, and sets the console's
+output code page to UTF-8 while a command runs, so paths and names in any script survive in both
+directions. When you redirect output to a file or a pipe, read it as UTF-8.
 
 ## Command families
 
@@ -942,8 +964,11 @@ slopstudio --cli package validate ./release.pk3 --json
 ```
 
 Render a map to an SVG picture, optionally with a compiler leak trail. The projection is `top`,
-`front` or `side`; without `--output` the SVG goes to standard output. `--grid` sets the grid spacing in map
+`front` or `side`; without `--output` the SVG goes to standard output. `--width` and `--height` set the
+picture size in pixels, each from 64 to 8192. `--grid` sets the grid spacing in map
 units, fractions such as `0.5` included; a grid too dense for the picture is left out with a warning.
+`--highlight` marks one object, such as `entity:3`. A size outside that range, a grid that is not above 0
+and a `--highlight` that names no object of the map are usage errors (exit code 2).
 `--block-grid` adds the compiler block grid as dashed lines, from the worldspawn `_blocksize` key (1024 units
 when it is missing; 0 leaves an axis unsplit), as the Levels views draw it with **Show Block Grid**; Doom maps have
 none and say so in a warning. With `--json` the report's `blockGrid` gives the `size` per axis, the `key` and
@@ -970,6 +995,15 @@ slopstudio --cli build list
 slopstudio --cli build plan quake-full --input ./maps/start.map
 slopstudio --cli build run quake-full --input ./maps/start.map --watch
 ```
+
+`build plan` exits with 0 only for a plan without errors. A missing input map, or a stage whose
+arguments cannot be resolved, exits with 3 as `compiler plan` does; the plan is still printed, and
+with `--json` it is still in `pipeline` beside `"ok": false`. A compiler that is not installed yet is
+a warning, so the plan can be reviewed before the tools are set up. For one run, `build plan` and
+`build run` take `--disable-stage ID`, `--stage-args ID=ARGUMENTS` and `--variable NAME=VALUE`, each
+repeatable and in either form (`--disable-stage vis` or `--disable-stage=vis`). Stage arguments are
+split at spaces, as `--extra-args` is; put double quotes round a part that contains spaces. A value
+without `=` is a usage error.
 
 Keep pipelines of your own in a project, as **Build Pipelines…** does, and run them:
 
@@ -1032,7 +1066,8 @@ More examples are on the pages for each area, such as [Packages](packages.md),
 
 ## Use JSON output in scripts
 
-With `--json`, a command prints one JSON object on standard output, even when it fails. Every object
+With `--json`, a command prints one JSON object on standard output, even when it fails, and even when
+the failure is an option or a command the command line does not know. Every object
 has the same core fields, plus fields of its own:
 
 | Field | Meaning |
@@ -1094,6 +1129,11 @@ if [ $? -eq 4 ]; then echo "release.pk3 has problems"; fi
 slopstudio --cli package validate .\release.pk3 --json | Out-File validation.json
 if ($LASTEXITCODE -eq 4) { Write-Host "release.pk3 has problems" }
 ```
+
+`package preview` and `asset inspect` exit with the same code in text and in JSON: 3 when no single
+entry answers the path or `--entry-index` (it is missing, or the path occurs more than once), and 1
+when the entry is there but its bytes cannot be read. The reason goes to standard error, or into
+`message` with `--json`.
 
 <details>
 <summary>Single-option reports</summary>

@@ -220,12 +220,16 @@ QVector<QImage> textureRgbaMipChain(const QImage& source, const TextureProgress&
 		for (int y = 0; y < next.height(); ++y) {
 			if (y % 64 == 0 && !report(progress, mips.size(), 16)) { return {}; }
 			auto* row = reinterpret_cast<QRgb*>(next.scanLine(y));
+			// Every level is ARGB32, so the two source rows are read directly.
+			const QRgb* const sourceRows[2] = {
+				reinterpret_cast<const QRgb*>(previous.constScanLine(std::min(y * 2, previous.height() - 1))),
+				reinterpret_cast<const QRgb*>(previous.constScanLine(std::min(y * 2 + 1, previous.height() - 1)))};
 			for (int x = 0; x < next.width(); ++x) {
 				qint64 sum[4]{}; int samples = 0;
 				for (int dy = 0; dy < 2; ++dy) {
 					for (int dx = 0; dx < 2; ++dx) {
-						const int sx = std::min(x * 2 + dx, previous.width() - 1), sy = std::min(y * 2 + dy, previous.height() - 1);
-						const QRgb pixel = previous.pixel(sx, sy); const int alpha = qAlpha(pixel);
+						const int sx = std::min(x * 2 + dx, previous.width() - 1);
+						const QRgb pixel = sourceRows[dy][sx]; const int alpha = qAlpha(pixel);
 						sum[0] += qRed(pixel) * alpha; sum[1] += qGreen(pixel) * alpha; sum[2] += qBlue(pixel) * alpha; sum[3] += alpha; ++samples;
 					}
 				}
@@ -250,12 +254,22 @@ QByteArray encodeDdsMipmapped(const QVector<QImage>& mips, const TextureProgress
 	put32(bytes, 76, 32); put32(bytes, 80, 0x41); put32(bytes, 88, 32);
 	put32(bytes, 92, 0x00ff0000); put32(bytes, 96, 0x0000ff00); put32(bytes, 100, 0x000000ff); put32(bytes, 104, 0xff000000);
 	put32(bytes, 108, 0x401008); // TEXTURE | MIPMAP | COMPLEX
+	// One allocation for the whole chain, filled through a pointer: appending
+	// four bytes per texel grew and bounds-checked the array millions of times.
+	qint64 total = bytes.size();
+	for (const QImage& mip : mips) { total += qint64(mip.width()) * mip.height() * 4; }
+	bytes.reserve(qsizetype(total));
 	for (qsizetype level = 0; level < mips.size(); ++level) {
 		if (!report(progress, level, mips.size())) { return {}; }
 		const QImage image = mips[level].convertToFormat(QImage::Format_ARGB32);
+		const qsizetype start = bytes.size();
+		bytes.resize(start + qsizetype(image.width()) * image.height() * 4);
+		char* out = bytes.data() + start;
 		for (int y = 0; y < image.height(); ++y) {
 			const auto* row = reinterpret_cast<const QRgb*>(image.constScanLine(y));
-			for (int x = 0; x < image.width(); ++x) { bytes += char(qBlue(row[x])); bytes += char(qGreen(row[x])); bytes += char(qRed(row[x])); bytes += char(qAlpha(row[x])); }
+			for (int x = 0; x < image.width(); ++x) {
+				*out++ = char(qBlue(row[x])); *out++ = char(qGreen(row[x])); *out++ = char(qRed(row[x])); *out++ = char(qAlpha(row[x]));
+			}
 		}
 	}
 	return bytes;

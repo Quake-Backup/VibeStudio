@@ -316,7 +316,7 @@ void ApplicationShell::replaceLevelMaterialFromDialog()
 	const QString source = request.find.trimmed();
 	const QString target = request.replace.trimmed();
 	recordActivity(tr("Level map texture replaced"), tr("%1 to %2").arg(source, target), QStringLiteral("level-map"),
-		OperationState::Warning, tr("Unsaved map edit"));
+		OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	QString message = tr("Replaced %1 with %2 on %n use(s).", nullptr, report.replaced).arg(source, target);
 	if (report.skipped > 0) {

@@ -326,6 +326,33 @@ bool runQuake(const QString& base)
 	ok &= expect(plan.packageFileName == QStringLiteral("pak0.pak") && plan.packageFolder == QStringLiteral("mymod"), "a mod folder's PAK is pak0.pak");
 	const ReleaseEntry* code = plan.entry(QStringLiteral("gamex86.dll"));
 	ok &= expect(code && code->loose && code->role == QStringLiteral("code"), "native game code ships beside the package");
+	ok &= expect(!hasProblem(plan, QStringLiteral("game-folder"), true) && !hasProblem(plan, QStringLiteral("package-name"), true),
+		"a mod folder and a package name that are single names are accepted", problemKinds(plan));
+
+	// The package name and the game folder become parts of the paths a release
+	// writes: anything but a single name is refused while planning.
+	for (const QString& folder : {QStringLiteral("../escape"), QStringLiteral("mods/mine"), QStringLiteral("mods\\mine"), QStringLiteral("C:\\Games"),
+			 QStringLiteral(".."), QStringLiteral(".hidden"), QStringLiteral("mymod.")}) {
+		ReleaseRequest unsafe = pak;
+		unsafe.release.gameFolder = folder;
+		plan = planRelease(unsafe);
+		ok &= expect(!plan.canPublish() && hasProblem(plan, QStringLiteral("game-folder"), true) && plan.entries.isEmpty(),
+			"a game folder that is not a single folder name blocks the release", folder + QLatin1Char(' ') + problemKinds(plan));
+	}
+	for (const QString& name : {QStringLiteral("../evil"), QStringLiteral("sub/evil"), QStringLiteral("C:/Windows/evil"), QStringLiteral("evil."), QStringLiteral(".evil"),
+			 QStringLiteral("evil ")}) {
+		ReleaseRequest unsafe = pak;
+		unsafe.release.packageName = name;
+		plan = planRelease(unsafe);
+		ok &= expect(!plan.canPublish() && hasProblem(plan, QStringLiteral("package-name"), true) && !hasProblem(plan, QStringLiteral("game-folder"), true),
+			"a package name that is not a single file name blocks the release", name + QLatin1Char(' ') + problemKinds(plan));
+	}
+	ReleaseRequest dotted = pak;
+	dotted.release.packageName = QStringLiteral("my-mod_v1.2");
+	dotted.release.gameFolder = QStringLiteral("my mod-2");
+	plan = planRelease(dotted);
+	ok &= expect(!hasProblem(plan, QStringLiteral("package-name"), true) && !hasProblem(plan, QStringLiteral("game-folder"), true) && plan.packageFolder == QStringLiteral("my mod-2"),
+		"dots, dashes and spaces inside a name are fine", problemKinds(plan));
 	return ok;
 }
 
@@ -604,6 +631,40 @@ bool runPublishDoomAndZip(const QString& base)
 		"the distribution archive puts the mod in its folder, with native code beside the PAK", archive.join(QLatin1Char(' ')));
 	ok &= expect(!packageEntries(mod.packagePath).contains(QStringLiteral("gamex86.dll")) && QFileInfo::exists(QDir(publish.outputDirectory).filePath(QStringLiteral("mymod/gamex86.dll"))),
 		"native code stays out of the PAK and is written beside it");
+
+	// The planner refuses names that are not single names; a plan altered
+	// afterwards still cannot make publishing write outside its output folder.
+	const QString guarded = QDir(base).filePath(QStringLiteral("out/guarded"));
+	const QString escaped = QDir(base).filePath(QStringLiteral("out/escaped"));
+	const auto refusedOutside = [&](const ReleasePlan& altered, bool dryRun) {
+		ReleasePublishRequest unsafe;
+		unsafe.plan = altered;
+		unsafe.projectRoot = quakeRoot;
+		unsafe.outputDirectory = guarded;
+		unsafe.readmeText = QStringLiteral("readme");
+		unsafe.writeRecord = false;
+		unsafe.dryRun = dryRun;
+		const ReleasePublishResult refused = publishRelease(unsafe);
+		return !refused.succeeded && refused.error.contains(QStringLiteral("outside")) && !refused.packageCommitted;
+	};
+	const auto nothingEscaped = [&]() {
+		return !QFileInfo::exists(escaped) && QDir(QDir(base).filePath(QStringLiteral("out"))).entryList({QStringLiteral("escaped*")}, QDir::AllEntries | QDir::NoDotAndDotDot).isEmpty()
+			&& QDir(guarded).entryList(QDir::Files).isEmpty();
+	};
+	ok &= expect(modPlan.canPublish() && !modPlan.entries.isEmpty(), "the mod plan to alter is ready", problemKinds(modPlan));
+	ReleasePlan altered = modPlan;
+	altered.packageFolder = QStringLiteral("../escaped");
+	ok &= expect(refusedOutside(altered, false) && nothingEscaped(), "a game folder leading out of the output folder is refused when publishing");
+	ok &= expect(refusedOutside(altered, true), "and in a dry run");
+	altered = modPlan;
+	altered.packageFileName = QStringLiteral("../escaped.pak");
+	ok &= expect(refusedOutside(altered, false) && nothingEscaped(), "a package file name leading out of the output folder is refused when publishing");
+	altered = modPlan;
+	altered.packageFileName = QDir(escaped).filePath(QStringLiteral("pak0.pak"));
+	ok &= expect(refusedOutside(altered, false) && nothingEscaped(), "an absolute package file name is refused when publishing");
+	altered = modPlan;
+	altered.release.packageName = QStringLiteral("../escaped");
+	ok &= expect(refusedOutside(altered, false) && nothingEscaped(), "a readme and archive named out of the output folder are refused when publishing");
 	return ok;
 }
 

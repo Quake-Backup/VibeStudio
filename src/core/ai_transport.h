@@ -248,6 +248,11 @@ struct AiTextConnection {
 // Where a request goes, as a person reads it: a host, the provider a
 // harness reaches ("Anthropic"), or "this machine".
 [[nodiscard]] QString aiTextConnectionDestinationText(const AiTextConnection& connection);
+// What a remembered "don't ask again" for a connection is stored under
+// (StudioSettings::aiContextConsentGiven): "<connector>@<destination>". A
+// custom command adds a digest of its whole command line, so approving one
+// command never covers another run by the same program.
+[[nodiscard]] QString aiTextConnectionConsentKey(const AiTextConnection& connection);
 // The connection named for a sentence: "Claude Code (claude-opus-5-5)",
 // "Codex" when the tool picks its own model, "Local GGUF Model (ggml) with
 // model.gguf".

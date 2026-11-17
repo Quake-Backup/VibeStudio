@@ -134,7 +134,11 @@ class WaveformView final : public QWidget {
 public:
 	explicit WaveformView(QWidget* parent = nullptr);
 
-	// `peaks` holds interleaved min/max pairs in the range [-1, 1].
+	// The most channels the view draws: the same limit as the audio decoders.
+	static constexpr int kMaxWaveformChannels = 8;
+
+	// `peaks` holds interleaved min/max pairs in the range [-1, 1]. A channel
+	// count outside 1..kMaxWaveformChannels leaves the view empty.
 	void setPeaks(const QVector<float>& peaks, int channels, int sampleRate, qint64 durationMs);
 	void clearPeaks();
 	[[nodiscard]] bool hasPeaks() const;

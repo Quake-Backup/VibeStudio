@@ -91,5 +91,65 @@ int main(int argc, char** argv)
 		return fail("Expected terminal tasks to clear.");
 	}
 
+	// A streamed log line carries a level ("info", "warning", "error"), which is
+	// not a task state: read as one it is Idle or Warning, and appendLog() gives
+	// the task the state it is handed. A caller that streams a running task's
+	// output therefore logs each line as Running, whatever its level.
+	if (slopstudio::operationStateFromId(QStringLiteral("info")) != slopstudio::OperationState::Idle
+		|| slopstudio::operationStateFromId(QStringLiteral("error")) != slopstudio::OperationState::Idle) {
+		return fail("Expected log levels not to be task states.");
+	}
+	const QString buildId = model.createTask(QStringLiteral("Build Pipeline"), QStringLiteral("maps/start.map"), QStringLiteral("build"), slopstudio::OperationState::Queued, true);
+	model.transitionTask(buildId, slopstudio::OperationState::Running, QStringLiteral("Running build pipeline."));
+	model.appendLog(buildId, slopstudio::OperationState::Running, QStringLiteral("light: 12 lights"));
+	model.appendLog(buildId, slopstudio::OperationState::Running, QStringLiteral("Stage finished: BSP (Warning)"));
+	if (model.task(buildId).state != slopstudio::OperationState::Running || !slopstudio::operationStateAllowsCancellation(model.task(buildId).state)
+		|| model.task(buildId).log.size() != 4) {
+		return fail("Expected streamed lines logged as Running to leave the task running and cancellable.");
+	}
+	// A warning leaves the task in a terminal state, and a terminal task refuses
+	// to be cancelled: a cancelled run is put back to Running first.
+	model.appendWarning(buildId, QStringLiteral("Stage BSP leaked."));
+	if (model.cancelTask(buildId, QStringLiteral("Cancelled by the user."))) {
+		return fail("Expected a task holding a warning to refuse cancellation as it stands.");
+	}
+	model.transitionTask(buildId, slopstudio::OperationState::Running);
+	if (!model.cancelTask(buildId, QStringLiteral("Cancelled by the user.")) || model.task(buildId).state != slopstudio::OperationState::Cancelled
+		|| model.task(buildId).resultSummary != QStringLiteral("Cancelled by the user.") || model.task(buildId).warnings.size() != 1) {
+		return fail("Expected a cancelled run to end Cancelled with its reason and keep its warning.");
+	}
+	model.clearTerminalTasks();
+
+	// A long session's history is bounded: the newest finished tasks stay, with
+	// every unfinished one and the ones the caller names.
+	QStringList finishedIds;
+	for (int index = 0; index < 6; ++index) {
+		const QString id = model.createTask(QStringLiteral("Edit %1").arg(index), QString(), QStringLiteral("level-map"));
+		model.completeTask(id, QStringLiteral("Unsaved map edit"));
+		finishedIds << id;
+	}
+	const QString runningId = model.createTask(QStringLiteral("Compile"), QString(), QStringLiteral("compiler"), slopstudio::OperationState::Running, true);
+	for (int index = 6; index < 9; ++index) {
+		const QString id = model.createTask(QStringLiteral("Edit %1").arg(index), QString(), QStringLiteral("level-map"));
+		model.completeTask(id, QStringLiteral("Unsaved map edit"));
+		finishedIds << id;
+	}
+	if (!model.pruneTerminalTasks(9).isEmpty() || model.tasks().size() != 10) {
+		return fail("Expected nothing to be pruned at the limit.");
+	}
+	const QStringList pruned = model.pruneTerminalTasks(4, {finishedIds.at(1)});
+	// The four newest finished tasks stay (5 to 8), the named one (1) stays, and
+	// the running task is never dropped.
+	if (pruned != QStringList({finishedIds.at(4), finishedIds.at(3), finishedIds.at(2), finishedIds.at(0)}) || model.tasks().size() != 6
+		|| !model.contains(runningId) || !model.contains(finishedIds.at(1)) || !model.contains(finishedIds.at(5)) || model.contains(finishedIds.at(4))) {
+		return fail("Expected pruning to keep the newest finished tasks, the named one and the running one.");
+	}
+	if (model.tasks().first().id != finishedIds.at(8) || model.tasks().last().id != finishedIds.at(1)) {
+		return fail("Expected pruning to keep the tasks newest first.");
+	}
+	if (!model.pruneTerminalTasks(0).contains(finishedIds.at(8)) || model.tasks().size() != 1 || !model.contains(runningId)) {
+		return fail("Expected a limit of none to leave only the unfinished task.");
+	}
+
 	return EXIT_SUCCESS;
 }

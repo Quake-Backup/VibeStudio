@@ -20,16 +20,20 @@
 #include <QImage>
 #include <QJsonDocument>
 #include <QLabel>
+#include <QPaintEvent>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QSet>
 #include <QTabWidget>
 #include <QTemporaryDir>
 #include <QThread>
 #include <QTimer>
+#include <QToolButton>
 #include <QTranslator>
 #include <QTreeWidget>
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 
@@ -43,6 +47,21 @@ bool expect(bool value, const char *name)
 	}
 	return value;
 }
+// The rectangle of every paint event a widget receives.
+class PaintLog final : public QObject {
+  public:
+	QVector<QRect> rects;
+	bool eventFilter(QObject *, QEvent *event) override
+	{
+		if (event->type() == QEvent::Paint) {
+			rects.append(static_cast<QPaintEvent *>(event)->rect());
+		}
+		return false;
+	}
+};
+// For counting the description announcements of one widget.
+QObject *watchedDescription = nullptr;
+int descriptionEvents = 0;
 bool finish(AudioSessionDialog &dialog)
 {
 	QElapsedTimer timer;
@@ -185,10 +204,26 @@ int main(int argc, char **argv)
 		}
 		return playback->snapshot().state == state;
 	};
+	// Play is disabled while playback prepares, which moves the keyboard focus
+	// off its button. It must come back, or Space on Play cannot pause.
+	QToolButton *playButton = nullptr;
+	for (auto *button : dialog.findChildren<QToolButton *>()) {
+		if (button->defaultAction() == dialog.findChild<QAction *>("sessionPlay")) {
+			playButton = button;
+		}
+	}
+	ok &= expect(playButton != nullptr, "Play Range has a tool button");
+	if (!playButton)
+		return EXIT_FAILURE;
+	playButton->setFocus();
 	dialog.prepareMix(true);
+	ok &= expect(playback->snapshot().state != AudioSessionPlaybackSnapshot::State::Preparing ||
+	                 dialog.focusWidget() != playButton,
+	             "preparing playback disables Play and moves the focus on");
 	ok &= expect(waitState(AudioSessionPlaybackSnapshot::State::Playing) &&
 	                 fake->locked([](auto &v) { return v.opens == 1; }) && coordinated == 1,
 	             "far timeline audition streams bounded blocks and coordinates other surfaces");
+	ok &= expect(dialog.focusWidget() == playButton, "Play has the keyboard focus again once playback has prepared");
 	dialog.prepareMix(true);
 	ok &= expect(waitState(AudioSessionPlaybackSnapshot::State::Paused), "streamed session can pause");
 	dialog.prepareMix(true);
@@ -211,8 +246,80 @@ int main(int argc, char **argv)
 		handoff = wav;
 		ok &= expect(path == dialog.sessionPath(), "handoff retains source session protection");
 	});
+	// Session work disables the timeline while it runs, which moves the keyboard
+	// focus on; it must come back when the work ends.
+	auto *focusTimeline = dialog.findChild<AudioSessionTimeline *>();
+	focusTimeline->setFocus();
 	dialog.prepareMix(false);
+	ok &= expect(dialog.isBusy() && dialog.focusWidget() != focusTimeline,
+	             "session work disables the timeline and moves the focus on");
 	ok &= expect(finish(dialog) && !handoff.isEmpty(), "mixdown reaches existing editor handoff");
+	ok &= expect(dialog.focusWidget() == focusTimeline, "the timeline has the keyboard focus again after session work");
+	{
+		// Playback moves the cursor some twenty times a second. That repaints the
+		// cursor's strip only, queries the waveform for that strip only, and
+		// leaves the spoken description until playback settles.
+		const auto &farClip = dialog.session().tracks[0].regions[0];
+		AudioSessionTimeline strip;
+		strip.setSession(dialog.session(), {{farClip.sourceId, AudioWaveformData::build(source.clip)}});
+		strip.setVisibleRange(farClip.position - 4000, farClip.position + farClip.length + 4000);
+		strip.resize(900, strip.sizeHint().height());
+		strip.show();
+		QCoreApplication::processEvents();
+		PaintLog painted;
+		strip.installEventFilter(&painted);
+		const auto whole = [&] {
+			QImage image(strip.size(), QImage::Format_ARGB32_Premultiplied);
+			image.fill(Qt::transparent);
+			strip.render(&image);
+			return image;
+		};
+		strip.setCursor(farClip.position + 6000);
+		QCoreApplication::processEvents();
+		painted.rects.clear();
+		const QString described = strip.accessibleDescription();
+		ok &= expect(described.contains(QString::number(farClip.position + 6000)), "a cursor the user moves is described at once");
+		watchedDescription = &strip;
+		descriptionEvents = 0;
+		const auto previousHandler = QAccessible::installUpdateHandler([](QAccessibleEvent *event) {
+			if (event->type() == QAccessible::DescriptionChanged && event->object() == watchedDescription) {
+				++descriptionEvents;
+			}
+		});
+		strip.trackCursor(farClip.position + 30000);
+		QCoreApplication::processEvents();
+		int widest = 0;
+		for (const QRect &rect : painted.rects) {
+			widest = std::max(widest, rect.width());
+		}
+		ok &= expect(!painted.rects.isEmpty() && widest < strip.width(),
+		             "a cursor moved by playback repaints its strips, not the whole timeline");
+		ok &= expect(strip.accessibleDescription() == described && descriptionEvents == 0,
+		             "a cursor moved by playback leaves the spoken description alone");
+		strip.settleCursor();
+		ok &= expect(strip.accessibleDescription().contains(QString::number(farClip.position + 30000)) && descriptionEvents == 1,
+		             "the description catches up, with one announcement, when playback settles");
+		strip.setCursor(farClip.position + 31000);
+		strip.settleCursor();
+		ok &= expect(descriptionEvents == 2, "each described cursor move is announced once");
+		QAccessible::installUpdateHandler(previousHandler);
+		watchedDescription = nullptr;
+		// A strip repainted on its own shows exactly what a full repaint shows there.
+		const QImage full = whole();
+		// The row through the middle of the clip's waveform, where lines alternate with the fill.
+		const int waveformRow = int(strip.regionRect(0, farClip).center().y()) + strip.fontMetrics().height() / 2;
+		bool samePixels = true, waveformSeen = false;
+		for (const int x : {150, 301, 452, 617, 783, 880}) {
+			const QRect part(x, 0, 7, strip.height());
+			QImage image(strip.size(), QImage::Format_ARGB32_Premultiplied);
+			image.fill(Qt::transparent);
+			strip.render(&image, part.topLeft(), QRegion(part));
+			samePixels &= image.copy(part) == full.copy(part);
+			waveformSeen |= QSet<QRgb>{full.pixel(x, waveformRow), full.pixel(x + 1, waveformRow), full.pixel(x + 2, waveformRow)}.size() > 1;
+		}
+		ok &= expect(samePixels, "a timeline strip repainted alone matches the same strip of a full repaint");
+		ok &= expect(waveformSeen, "the compared strips cross a clip's waveform");
+	}
 	const auto decoded = decodeAudioClip("mix.wav", handoff);
 	ok &= expect(decoded.succeeded() && decoded.clip.frameCount() == 4,
 	             "handoff preserves requested range and float samples");

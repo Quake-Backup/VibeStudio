@@ -351,14 +351,17 @@ QByteArray encodePatch(const QImage& indexed, const QImage& alpha, const Texture
 	// Zero-length posts advance the origin without drawing any pixel.
 	QByteArray bytes(8 + indexed.width() * 4, '\0'); put16(bytes, 0, quint16(indexed.width())); put16(bytes, 2, quint16(indexed.height()));
 	put16(bytes, 4, quint16(options.leftOffset)); put16(bytes, 6, quint16(options.topOffset));
+	// `alpha` is prepareAlpha()'s ARGB32 image: its texels are read directly.
+	const bool direct = alpha.format() == QImage::Format_ARGB32;
+	const auto drawn = [&](int x, int y) { return qAlpha(direct ? reinterpret_cast<const QRgb*>(alpha.constScanLine(y))[x] : alpha.pixel(x, y)) != 0; };
 	for (int x = 0; x < indexed.width(); ++x) {
 		if (!checkpoint(progress, x, indexed.width(), error)) { return {}; }
 		put32(bytes, 8 + x * 4, quint32(bytes.size())); int previous = -1;
 		const auto emptyPost = [&](int delta) { bytes += char(delta); bytes += QByteArray(3, '\0'); };
 		for (int y = 0; y < indexed.height();) {
-			if (qAlpha(alpha.pixel(x, y)) == 0) { ++y; continue; }
+			if (!drawn(x, y)) { ++y; continue; }
 			int length = 1;
-			while (length < 255 && y + length < indexed.height() && qAlpha(alpha.pixel(x, y + length)) != 0) { ++length; }
+			while (length < 255 && y + length < indexed.height() && drawn(x, y + length)) { ++length; }
 			int delta = y;
 			if (y >= 255) {
 				if (previous < 254) { emptyPost(254); previous = 254; }
@@ -481,9 +484,12 @@ namespace {
 QImage binaryPreview(const QImage& indexed, const QImage& prepared)
 {
 	QImage preview = indexed.convertToFormat(QImage::Format_ARGB32);
+	// `prepared` is prepareAlpha()'s ARGB32 image: its rows are read directly.
+	const bool direct = prepared.format() == QImage::Format_ARGB32;
 	for (int y = 0; y < prepared.height(); ++y) {
 		auto* row = reinterpret_cast<QRgb*>(preview.scanLine(y));
-		for (int x = 0; x < prepared.width(); ++x) { row[x] = (row[x] & 0x00ffffffu) | (prepared.pixel(x, y) & 0xff000000u); }
+		const auto* alpha = reinterpret_cast<const QRgb*>(prepared.constScanLine(y));
+		for (int x = 0; x < prepared.width(); ++x) { row[x] = (row[x] & 0x00ffffffu) | ((direct ? alpha[x] : prepared.pixel(x, y)) & 0xff000000u); }
 	}
 	return preview;
 }
@@ -491,9 +497,11 @@ QImage binaryPreview(const QImage& indexed, const QImage& prepared)
 // Transparent texels take index 255; quantization never assigns it otherwise.
 QImage withTransparentIndex(QImage indexed, const QImage& prepared)
 {
+	const bool direct = prepared.format() == QImage::Format_ARGB32;
 	for (int y = 0; y < prepared.height(); ++y) {
 		auto* row = indexed.scanLine(y);
-		for (int x = 0; x < prepared.width(); ++x) { if (qAlpha(prepared.pixel(x, y)) == 0) { row[x] = 255; } }
+		const auto* alpha = reinterpret_cast<const QRgb*>(prepared.constScanLine(y));
+		for (int x = 0; x < prepared.width(); ++x) { if (qAlpha(direct ? alpha[x] : prepared.pixel(x, y)) == 0) { row[x] = 255; } }
 	}
 	return indexed;
 }
@@ -519,6 +527,28 @@ IdTechPalette exportPalette(const QVector<QImage>& prepared, const TextureExport
 qint64 colorChanges(const QImage& image, const QImage& preview, bool skipTransparent)
 {
 	qint64 changed = 0;
+	// Every export and export preview counts its changed texels. QImage::pixel()
+	// checks its coordinates and dispatches on the format for each one, three
+	// times per texel here, so both images are read as ARGB32 rows instead. The
+	// conversion reports exactly what pixel() does for the formats exports are
+	// made from and previewed in; any other format keeps the per-texel accessor.
+	const auto rowsMatchPixel = [](const QImage& candidate) {
+		return candidate.format() == QImage::Format_ARGB32 || candidate.format() == QImage::Format_RGB32 || candidate.format() == QImage::Format_Indexed8;
+	};
+	if (rowsMatchPixel(image) && rowsMatchPixel(preview) && image.size() == preview.size()) {
+		const QImage before = image.convertToFormat(QImage::Format_ARGB32), after = preview.convertToFormat(QImage::Format_ARGB32);
+		if (!before.isNull() && !after.isNull()) {
+			for (int y = 0; y < before.height(); ++y) {
+				const auto* was = reinterpret_cast<const QRgb*>(before.constScanLine(y));
+				const auto* now = reinterpret_cast<const QRgb*>(after.constScanLine(y));
+				for (int x = 0; x < before.width(); ++x) {
+					if (skipTransparent && qAlpha(now[x]) == 0) { continue; }
+					if ((was[x] & 0x00ffffffu) != (now[x] & 0x00ffffffu)) { ++changed; }
+				}
+			}
+			return changed;
+		}
+	}
 	for (int y = 0; y < image.height(); ++y) {
 		for (int x = 0; x < image.width(); ++x) {
 			if (skipTransparent && qAlpha(preview.pixel(x, y)) == 0) { continue; }

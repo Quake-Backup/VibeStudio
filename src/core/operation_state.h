@@ -70,6 +70,10 @@ public:
 	bool failTask(const QString& taskId, const QString& resultSummary);
 	bool cancelTask(const QString& taskId, const QString& resultSummary = QString());
 	bool clearTerminalTasks();
+	// Bounds a long session's history: keeps every task that is not finished,
+	// every task named in `keepIds`, and the newest `maximumTerminal` finished
+	// tasks. Returns the ids of the tasks it dropped.
+	QStringList pruneTerminalTasks(int maximumTerminal, const QStringList& keepIds = {});
 
 	QMap<OperationState, int> stateCounts() const;
 	QString summaryText() const;

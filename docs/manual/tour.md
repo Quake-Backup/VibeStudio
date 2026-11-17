@@ -194,7 +194,8 @@ Press <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> to move between
 controls. Two places use Tab themselves. In the code editor Tab indents; on
 Windows and Linux, <kbd>Ctrl</kbd>+<kbd>Tab</kbd> leaves the editor. In the
 Levels views Tab selects the next object, and <kbd>Esc</kbd> cancels a drag,
-then clears the selection, then leaves the view.
+then clears the selection, then leaves the view. Switching to another window
+in the middle of a drag cancels the drag as well.
 
 **Help** > **Keyboard Shortcuts** lists every command with its keys and the
 page they work on. **Change Keys…** gives a command keys of your own, and

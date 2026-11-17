@@ -157,6 +157,11 @@ The **Release** card holds the **Title**, **Version**, **Authors**, **Descriptio
 | Doom, Heretic and Hexen | WAD, with other files, such as a readme or native code, beside it |
 | Other games | ZIP of loose files |
 
+**File name** and **Game folder** are each a single name, such as `thepit` and `baseq3`. A name
+that holds `/`, `\` or `:`, starts with a dot, or ends with a dot or a space is listed under
+**Problems** and blocks publishing, because both names become part of the paths the release
+writes. Everything a release writes stays inside its output folder.
+
 **Next** beside the version offers the next patch, minor or major version. A version that has
 already been released cannot be published again unless you tick **Replace an earlier release of this
 version**.
@@ -252,9 +257,9 @@ ones use the project's and game's defaults. Publishing from the window saves the
 | --- | --- |
 | `title`, `version`, `description`, `website`, `license` | How the release is described. The title defaults to the project name, the version to `1.0.0`. |
 | `authors` | A list such as `["Ada <ada@example.com>"]`; the readme splits names from email addresses. |
-| `packageName` | The package file name without its extension. Defaults to a short form of the title. |
+| `packageName` | The package file name without its extension: a single name, not a path. Defaults to a short form of the title. |
 | `packageFormat` | `pk3`, `pak`, `wad` or `zip`. Empty chooses automatically. |
-| `gameFolder` | The folder players install into, such as `baseq3`, `id1` or a mod folder. |
+| `gameFolder` | The folder players install into, such as `baseq3`, `id1` or a mod folder: a single folder name, not a path. |
 | `stockSources` | The game's packages that count as provided. Empty uses the base game. |
 | `requires` | Content a release needs but does not ship: `name`, `path` and `url`. |
 | `include`, `exclude` | Patterns of project files that always or never ship. |

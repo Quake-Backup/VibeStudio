@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <limits>
 
@@ -203,6 +204,95 @@ int main(int argc, char** argv)
 		ok &= expect(!applyAudioEdit(stereo, edit).succeeded(), "invalid edits must fail without a document mutation");
 	}
 	ok &= expect(stereo.samples[0] == -1.0f && stereo.channels == 2, "all edits leave their source unchanged");
+	{
+		// Every sample-wise edit, bit for bit, against the plain per-sample formula
+		// on an unaligned range of a three-channel sound.
+		AudioClip noise{3, 22050, QVector<float>(3 * 9001)};
+		quint32 seed = 0x2f6e2b1u;
+		for (float& sample : noise.samples) {
+			seed = seed * 1664525u + 1013904223u;
+			sample = static_cast<float>(static_cast<int>(seed >> 12) % 18001 - 9000) / 10000.0f;
+		}
+		const qint64 first = 37, end = 8191;
+		const int channels = noise.channels;
+		const auto reference = [&](const QString& operation, double decibels) {
+			QVector<float> out = noise.samples;
+			double gain = std::pow(10.0, decibels / 20.0);
+			QVector<double> means(channels, 0.0);
+			if (operation == QStringLiteral("remove-dc")) {
+				for (qint64 frame = first; frame < end; ++frame) {
+					for (int channel = 0; channel < channels; ++channel) {
+						means[channel] += noise.samples[frame * channels + channel];
+					}
+				}
+				for (double& mean : means) {
+					mean /= end - first;
+				}
+			}
+			if (operation == QStringLiteral("normalize")) {
+				double peak = 0;
+				for (qint64 sample = first * channels; sample < end * channels; ++sample) {
+					peak = std::max(peak, std::abs(static_cast<double>(noise.samples[sample])));
+				}
+				gain = peak > 0 ? gain / peak : 1.0;
+			}
+			for (qint64 frame = first; frame < end; ++frame) {
+				double scale = gain;
+				if (operation == QStringLiteral("fade-in") || operation == QStringLiteral("fade-out")) {
+					const double ramp = static_cast<double>(frame - first) / (end - first - 1);
+					scale = operation == QStringLiteral("fade-in") ? ramp : 1.0 - ramp;
+				}
+				for (int channel = 0; channel < channels; ++channel) {
+					const qint64 index = frame * channels + channel;
+					if (operation == QStringLiteral("reverse")) {
+						out[index] = noise.samples[(end - 1 - (frame - first)) * channels + channel];
+					} else if (operation == QStringLiteral("silence")) {
+						out[index] = 0;
+					} else if (operation == QStringLiteral("invert")) {
+						out[index] = -noise.samples[index];
+					} else if (operation == QStringLiteral("remove-dc")) {
+						out[index] = static_cast<float>(noise.samples[index] - means[channel]);
+					} else {
+						out[index] = static_cast<float>(noise.samples[index] * scale);
+					}
+				}
+			}
+			return out;
+		};
+		const auto sameBits = [](const QVector<float>& left, const QVector<float>& right) {
+			return left.size() == right.size() &&
+			       std::memcmp(left.constData(), right.constData(), static_cast<size_t>(left.size()) * sizeof(float)) == 0;
+		};
+		const QVector<float> original = noise.samples;
+		for (const char* name : {"reverse", "silence", "invert", "remove-dc", "fade-in", "fade-out", "gain", "normalize"}) {
+			const QString operation = QString::fromLatin1(name);
+			const auto edited = applyAudioEdit(noise, {operation, first, end, -3.5});
+			if (!expect(edited.succeeded() && sameBits(edited.clip.samples, reference(operation, -3.5)),
+			            "each sample-wise edit matches the per-sample formula bit for bit")) {
+				std::cerr << "  operation: " << name << '\n';
+				ok = false;
+			}
+		}
+		QVector<float> averaged(9001);
+		for (qint64 frame = 0; frame < averaged.size(); ++frame) {
+			double sum = 0;
+			for (int channel = 0; channel < channels; ++channel) {
+				sum += noise.samples[frame * channels + channel];
+			}
+			averaged[frame] = static_cast<float>(sum / channels);
+		}
+		const auto downmixed = applyAudioEdit(noise, {QStringLiteral("mono")});
+		ok &= expect(downmixed.succeeded() && downmixed.clip.channels == 1 && sameBits(downmixed.clip.samples, averaged),
+		             "the mono downmix matches the per-frame average bit for bit");
+		QVector<float> doubled(averaged.size() * 2);
+		for (qint64 frame = 0; frame < averaged.size(); ++frame) {
+			doubled[frame * 2] = doubled[frame * 2 + 1] = averaged[frame];
+		}
+		const auto widened = applyAudioEdit({1, 22050, averaged}, {QStringLiteral("stereo")});
+		ok &= expect(widened.succeeded() && widened.clip.channels == 2 && sameBits(widened.clip.samples, doubled),
+		             "the stereo conversion copies every frame to both channels");
+		ok &= expect(sameBits(noise.samples, original), "sample-wise edits never write into the sound they were given");
+	}
 	ok &= expect(applyAudioEdit(stereo, {QStringLiteral("gain")}, {[] { return true; }}).cancelled,
 	             "processing cancellation");
 	ok &= expect(decodeAudioClip(QStringLiteral("fixture.wav"), wav, {[] { return true; }}).cancelled,

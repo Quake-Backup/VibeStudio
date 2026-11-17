@@ -16,6 +16,12 @@ class AudioSessionTimeline final : public QWidget {
 	void setVisibleRange(qint64 first, qint64 end);
 	void setTimeRange(qint64 first, qint64 end);
 	void setCursor(qint64 frame);
+	// The cursor while playback moves it, some twenty times a second: only the
+	// cursor's strip is repainted, and the accessible description waits for
+	// settleCursor() (or the next setCursor()), which the owner calls when
+	// playback pauses, ends or stops. setCursor() describes at once.
+	void trackCursor(qint64 frame);
+	void settleCursor();
 	void setSnapFrames(qint64 frames);
 	void setMusicalSnap(AudioMusicalGrid grid);
 	void setMusicalRuler(bool enabled);
@@ -47,6 +53,8 @@ class AudioSessionTimeline final : public QWidget {
 	qint64 stepped(qint64 frame, int direction) const;
 	void paintMusicalRuler(QPainter &painter);
 	void describe();
+	void moveCursor(qint64 frame);
+	QRect cursorStrip() const;
 	AudioSession m_session;
 	AudioTempoTimeline m_time;
 	AudioMusicalGrid m_grid = AudioMusicalGrid::Beat;
@@ -58,5 +66,6 @@ class AudioSessionTimeline final : public QWidget {
 	qint64 m_rangeFirst = 0, m_rangeEnd = 0;
 	qint64 m_dragAnchor = 0, m_dragOriginal = 0, m_dragPosition = 0;
 	bool m_dragging = false;
+	bool m_describePending = false;
 };
 } // namespace slopstudio

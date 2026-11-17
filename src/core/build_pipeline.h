@@ -77,6 +77,8 @@ struct BuildPipelineRequest {
 	bool dryRun = false;
 	bool stopOnFailure = true;
 	bool registerOutputs = false;
+	// How long each stage may run (CompilerRunRequest::timeoutMs). Zero or less
+	// means no limit: a stage ends when its tool exits or the run is cancelled.
 	int stageTimeoutMs = 10 * 60 * 1000;
 };
 

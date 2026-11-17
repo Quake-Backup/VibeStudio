@@ -137,6 +137,7 @@ LevelMapCreateRequest NewLevelMapDialog::request() const
 struct LevelRecoveryWriter::Result {
 	QString id, path, error;
 	quint64 revision = 0;
+	bool announce = true;
 };
 
 LevelRecoveryWriter::LevelRecoveryWriter(QString directory, QObject* parent)
@@ -184,7 +185,7 @@ void LevelRecoveryWriter::retire()
 	removeRetired();
 }
 
-bool LevelRecoveryWriter::checkpoint(const LevelMapDocument& document)
+bool LevelRecoveryWriter::checkpoint(const LevelMapDocument& document, bool announce)
 {
 	if (m_thread || document.format == LevelMapFormat::Unknown || document.editState != QStringLiteral("modified") ||
 		(m_hasCheckpoint && m_savedRevision == document.revision)) {
@@ -196,6 +197,7 @@ bool LevelRecoveryWriter::checkpoint(const LevelMapDocument& document)
 	auto result = std::make_shared<Result>();
 	result->id = m_id;
 	result->revision = document.revision;
+	result->announce = announce;
 	m_result = result;
 	const QString directory = m_directory;
 	m_thread = QThread::create([snapshot = std::move(snapshot), result, directory]() {
@@ -211,7 +213,7 @@ bool LevelRecoveryWriter::checkpoint(const LevelMapDocument& document)
 			m_hasCheckpoint = true;
 		}
 		removeRetired();
-		if (current && finished) {
+		if (current && finished && (result->announce || !result->error.isEmpty())) {
 			finished(result->path, result->error);
 		}
 	});

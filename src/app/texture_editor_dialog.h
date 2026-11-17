@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app/work_focus.h"
 #include "core/texture_recovery.h"
 #include "core/texture_export.h"
 #include "core/level_map.h"
@@ -78,8 +79,15 @@ public:
 	// Normal, gloss and (when something glows) glow maps from the composite,
 	// named for DarkPlaces-family ports (_norm/_gloss/_glow) or ioquake3's
 	// OpenGL2 renderer (_n/_s/_glow), beside the package path or a PNG file.
+	// Deriving and encoding the maps takes seconds on a large canvas. The two
+	// buttons therefore run it as a job, with progress and Cancel:
+	// stageCompanionMaps() stages the maps when they are ready and
+	// saveCompanionMapsToPath() writes them, as saveExportToPath() does an export.
+	// companionMaps() and exportCompanionMaps() do the same work at once on the
+	// calling thread, for automation and tests.
 	[[nodiscard]] QVector<TextureExportCompanion> companionMaps(const QString& basePath) const;
 	void stageCompanionMaps();
+	void saveCompanionMapsToPath(const QString& basePngPath, bool overwrite, std::function<void()> completed = {});
 	bool exportCompanionMaps(const QString& basePngPath, bool overwrite, QString* error = nullptr);
 	void setPaletteResolution(const IdTechPaletteResolution& resolution, bool markChanged = true);
 	void refreshPaletteSource(const QString& paletteId = {}, bool markChanged = true);
@@ -140,6 +148,8 @@ private:
 	IdTechPaletteResolution m_palette;
 	QString m_source, m_savedPath, m_contextKey, m_packageTargetKey;
 	bool m_busy = false, m_cancelled = false, m_cancellable = false;
+	// A job disables the canvas and the inspector; this gives the focus back.
+	WorkFocus m_jobFocus{this};
 	bool m_closeApproved = false, m_recoveryScanned = false;
 	bool m_recoveredDraft = false;
 	QString m_recoveryDirectory, m_recoveryId;

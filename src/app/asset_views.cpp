@@ -1191,7 +1191,10 @@ void WaveformView::setPeaks(const QVector<float>& peaks, int channels, int sampl
 	m_durationMs = std::max<qint64>(0, durationMs);
 	m_playheadMs = 0;
 	m_selectionStartMs = m_selectionEndMs = m_selectionAnchorMs = 0;
-	if (m_channels <= 0 || m_peaks.size() < 2) {
+	// One lane is painted per channel on every repaint, so a header that claims
+	// thousands of channels must never reach paintEvent. The decoders accept at
+	// most eight; anything above that is shown as "could not be decoded".
+	if (m_channels <= 0 || m_channels > kMaxWaveformChannels || m_peaks.size() < 2) {
 		m_peaks.clear();
 		m_channels = 0;
 	}

@@ -195,7 +195,7 @@ void ApplicationShell::completeLevelSurfaceStroke(LevelSurfaceResult result)
 	const int changed = result.changedFaces + result.changedPatches;
 	if (changed > 0) {
 		m_levelSurfacePublishing = true; m_levelMapDocument = std::move(result.document);
-		recordActivity(tr("Level surface stroke applied"), m_levelMapDocument.sourcePath, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+		recordActivity(tr("Level surface stroke applied"), m_levelMapDocument.sourcePath, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench(); m_levelSurfacePublishing = false;
 	}
 	refreshLevelSurfaceTools();

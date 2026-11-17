@@ -171,7 +171,7 @@ void ApplicationShell::moveLevelSelectionToLayerFromUi(const QString& layerId)
 		statusBar()->showMessage(tr("The selection is already in %1; nothing changed.").arg(name), 5000);
 		return;
 	}
-	recordActivity(tr("Moved to layer"), name, QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+	recordActivity(tr("Moved to layer"), name, QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	QString message = tr("Moved the selection to %1 as one undo step.").arg(name);
 	if (const int groups = static_cast<int>(report.groups.size()); groups > 0) {

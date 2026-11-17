@@ -95,6 +95,19 @@ inline constexpr int kDocumentWatchCoalesceMsecs = 250;
 // proportionally to its size.
 inline constexpr int kDocumentWatchHashChunkBytes = 64 * 1024;
 
+// A path whose size and modification time have not moved, and that the
+// filesystem has not reported, has its content read on every this-many-th
+// poll only. That read is the backstop for a rewrite that keeps the size and
+// the modification time (a tool that puts the time back, a clock that
+// stepped); at the studio's one poll a second it is found within a quarter of
+// a minute.
+inline constexpr int kDocumentWatchContentCheckPolls = 15;
+
+// A file whose modification time is this close to now is read on every poll:
+// it can be rewritten again inside the timestamp's resolution (two seconds on
+// the coarsest file systems), with the same size, and look unchanged.
+inline constexpr int kDocumentWatchRecentWriteMsecs = 3000;
+
 // What a path looked like at one moment. `contentHash` is a SHA-1 digest of the
 // whole file, present only when the file existed and was within the hash size
 // limit.
@@ -241,8 +254,9 @@ public:
 	bool refreshBaseline(const QString& path);
 	int refreshAllBaselines();
 
-	// Re-reads every watched path and returns the changes that have settled.
-	// A path reports at most one event per call.
+	// Looks at every watched path, reads the ones that moved, were reported by
+	// the filesystem or are due their periodic content check, and returns the
+	// changes that have settled. A path reports at most one event per call.
 	QVector<DocumentChangeEvent> poll();
 	// `poll()` against a caller-supplied monotonic millisecond clock. All
 	// coalescing timing is derived from this value, so a test can step time
@@ -256,6 +270,11 @@ public:
 	[[nodiscard]] int coalesceIntervalMsecs() const;
 	void setHashSizeLimit(qint64 bytes);
 	[[nodiscard]] qint64 hashSizeLimit() const;
+	// How often `poll()` reads a quiet path's content rather than only looking
+	// at its size and modification time: every `polls`th poll of that path
+	// (1 reads on every poll). See `kDocumentWatchContentCheckPolls`.
+	void setContentCheckIntervalPolls(int polls);
+	[[nodiscard]] int contentCheckIntervalPolls() const;
 
 	// Marks a path as worth re-checking on the next poll. Called by the
 	// `QFileSystemWatcher` hookup, and usable directly by callers that learn of a
@@ -290,6 +309,7 @@ private:
 	QElapsedTimer m_clock;
 	int m_coalesceMsecs = kDocumentWatchCoalesceMsecs;
 	qint64 m_hashSizeLimit = kDocumentWatchHashSizeLimit;
+	int m_contentCheckPolls = kDocumentWatchContentCheckPolls;
 	qint64 m_totalNotifications = 0;
 	bool m_notificationsRequested = true;
 };

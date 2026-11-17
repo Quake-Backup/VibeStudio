@@ -54,7 +54,7 @@ bool ApplicationShell::copyLevelObjectsToClipboard(bool cut, QString* error)
 			return false;
 		}
 		recordActivity(tr("Level map objects cut"), tr("%n object(s)", nullptr, count), QStringLiteral("level-map"),
-			OperationState::Warning, tr("Unsaved map edit"));
+			OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		statusBar()->showMessage(tr("Cut %n map object(s) as one undo step. Save the map before building.", nullptr, count));
 	} else {

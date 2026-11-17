@@ -1,4 +1,9 @@
 {
+  // Every task that builds uses the same build folder with the same options
+  // (warning level 2, warnings as errors). The script leaves a configured
+  // folder alone, so a task only compiles what changed; a task that passed
+  // other options would change every compile command and compile every file
+  // again. See docs/manual/building-from-source.md.
   "version": "2.0.0",
   "tasks": [
     {
@@ -15,42 +20,19 @@
         "${workspaceFolder}/builddir",
         "-Backend",
         "ninja",
+        "-WarningLevel",
+        "2",
+        "-WarningsAsErrors",
         "-ConfigureOnly"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
       },
-      "problemMatcher": []
+      "problemMatcher": [],
+      "detail": "Run Meson's configure step again. The build tasks only need this after a change Meson cannot see, such as a new Qt."
     },
     {
-      "label": "SlopStudio: compile",
-      "type": "shell",
-      "command": "pwsh",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass",
-        "-File",
-        "${workspaceFolder}/scripts/meson_build.ps1",
-        "-BuildDir",
-        "${workspaceFolder}/builddir",
-        "-Backend",
-        "ninja",
-        "-SkipTests",
-        "-SkipValidation"
-      ],
-      "options": {
-        "cwd": "${workspaceFolder}"
-      },
-      "group": "build",
-      "problemMatcher": [
-        "$gcc",
-        "$msCompile"
-      ],
-      "detail": "Configure if needed, then compile the Meson build directory."
-    },
-    {
-      "label": "SlopStudio: build and validate",
+      "label": "SlopStudio: build app",
       "type": "shell",
       "command": "pwsh",
       "args": [
@@ -65,7 +47,8 @@
         "ninja",
         "-WarningLevel",
         "2",
-        "-WarningsAsErrors"
+        "-WarningsAsErrors",
+        "-AppOnly"
       ],
       "options": {
         "cwd": "${workspaceFolder}"
@@ -78,10 +61,10 @@
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Configure, compile with warnings as errors, run Meson tests, and run repository validation scripts."
+      "detail": "Configure if needed, then compile what changed and link the studio and its catalogues. Leaves the test programs alone."
     },
     {
-      "label": "SlopStudio: strict warnings build",
+      "label": "SlopStudio: compile",
       "type": "shell",
       "command": "pwsh",
       "args": [
@@ -108,7 +91,35 @@
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Compile with Meson werror enabled at the project warning level so SlopStudio warnings fail the build."
+      "detail": "Configure if needed, then compile what changed, test programs included, with warnings as errors."
+    },
+    {
+      "label": "SlopStudio: build and validate",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/scripts/meson_build.ps1",
+        "-BuildDir",
+        "${workspaceFolder}/builddir",
+        "-Backend",
+        "ninja",
+        "-WarningLevel",
+        "2",
+        "-WarningsAsErrors"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": "build",
+      "problemMatcher": [
+        "$gcc",
+        "$msCompile"
+      ],
+      "detail": "The full check before a commit: configure if needed, compile what changed with warnings as errors, run the Meson tests, and run the repository validation scripts."
     },
     {
       "label": "SlopStudio: test",
@@ -124,6 +135,9 @@
         "${workspaceFolder}/builddir",
         "-Backend",
         "ninja",
+        "-WarningLevel",
+        "2",
+        "-WarningsAsErrors",
         "-SkipValidation"
       ],
       "options": {
@@ -137,7 +151,7 @@
         "$gcc",
         "$msCompile"
       ],
-      "detail": "Compile, then run the Meson tests with Qt on PATH (skips repository validation)."
+      "detail": "Compile what changed, then run the Meson tests with Qt on PATH (skips repository validation)."
     },
     {
       "label": "SlopStudio: build and launch app",
@@ -150,13 +164,13 @@
         "-File",
         "${workspaceFolder}/.vscode/launch-slopstudio.ps1"
       ],
-      "dependsOn": "SlopStudio: compile",
+      "dependsOn": "SlopStudio: build app",
       "dependsOrder": "sequence",
       "options": {
         "cwd": "${workspaceFolder}"
       },
       "problemMatcher": [],
-      "detail": "Compile, then launch the app with Qt on PATH."
+      "detail": "Build the studio, then launch it with Qt on PATH."
     },
     {
       "label": "SlopStudio: launch app (no build)",

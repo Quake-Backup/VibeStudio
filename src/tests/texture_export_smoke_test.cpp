@@ -134,6 +134,38 @@ int main(int argc, char** argv)
 	ok &= expect(saveTextureExport(rgba, options, {}, destination, false, false, nullptr, &error) && read(destination) == targa.bytes && !saveTextureExport(rgba, options, {}, destination, false, false, nullptr, &error), "native export shares guarded publication and explicit overwrite");
 	bool changed = false;
 	ok &= expect(!saveTextureExport(rgba, options, {}, destination, true, false, nullptr, &error, [&](qint64 done, qint64 total) { if (done == total && !changed) { changed = true; put(destination, "outside changes"); } return true; }) && read(destination) == "outside changes", "destination fingerprint precedes encoding and rejects intervening edits");
+	{
+		// The changed-colour count every export reports, against counting texel by
+		// texel through QImage::pixel(): RGBA, opaque RGB and indexed sources, with
+		// previews that are RGBA (PNG, patch) or indexed (PCX, indexed PNG, mips).
+		QImage colourful(32, 16, QImage::Format_ARGB32);
+		for (int y = 0; y < colourful.height(); ++y) {
+			for (int x = 0; x < colourful.width(); ++x) {
+				const int grey = (x * 7 + y * 13) % 256;
+				colourful.setPixel(x, y, (x + y) % 5 == 0 ? qRgb(grey, grey, grey) : qRgb((x * 37 + y * 5) % 256, (x * 11 + y * 29) % 256, (x * 3 + y * 53) % 256));
+			}
+		}
+		QImage tabled(32, 16, QImage::Format_Indexed8); QList<QRgb> table;
+		for (int index = 0; index < 256; ++index) { table << (index % 3 == 0 ? qRgb(index, index, index) : qRgb(index, (index * 3) % 256, 255 - index)); }
+		tabled.setColorTable(table);
+		for (int y = 0; y < tabled.height(); ++y) { for (int x = 0; x < tabled.width(); ++x) { tabled.setPixel(x, y, (x * 5 + y * 19) % 256); } }
+		const auto counted = [](const QImage& before, const QImage& after) {
+			qint64 changed = 0;
+			for (int y = 0; y < before.height(); ++y) { for (int x = 0; x < before.width(); ++x) { changed += (before.pixel(x, y) & 0x00ffffffu) != (after.pixel(x, y) & 0x00ffffffu); } }
+			return changed;
+		};
+		bool exact = true, someChanged = false, someKept = false;
+		for (const QImage& source : {colourful, colourful.convertToFormat(QImage::Format_RGB32), tabled}) {
+			for (const auto format : {TextureExportFormat::Png, TextureExportFormat::Pcx, TextureExportFormat::IndexedPng, TextureExportFormat::DoomPatch, TextureExportFormat::QuakeMiptex}) {
+				TextureExportOptions counting; counting.format = format; counting.name = QStringLiteral("tex");
+				const auto result = encodeTextureExport(source, counting, palette);
+				const qint64 expected = result.succeeded ? counted(source, result.preview) : -1;
+				exact &= result.succeeded && result.preview.size() == source.size() && result.colorChangedPixels == expected;
+				someChanged |= expected > 0; someKept |= expected >= 0 && expected < qint64(source.width()) * source.height();
+			}
+		}
+		ok &= expect(exact && someChanged && someKept, "the changed-colour count of an export equals a texel-by-texel count for every source and preview format");
+	}
 	const QDir evidence(qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT"));
 	if (!qEnvironmentVariable("SLOPSTUDIO_TEST_CAPTURE_ROOT").isEmpty()) {
 		auto colored = palette; for (int index = 0; index < 256; ++index) { colored.palette.colors[index] = qRgb(index, (index * 3) % 256, 255 - index); }

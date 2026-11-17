@@ -12,12 +12,15 @@
 #include <QImage>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMessageBox>
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QStatusBar>
 #include <QTemporaryDir>
 #include <QThread>
+#include <QTimer>
 #include <QTranslator>
 
 #include <iostream>
@@ -148,6 +151,19 @@ int main(int argc, char** argv)
 		ok &= expect(listLevelMapRecoveries(directory).size() == 1 && !writer.checkpoint(document),
 					 "unchanged revision does not rewrite its checkpoint");
 		writer.retire();
+		// A checkpoint the caller has its own words for is written without a
+		// report; an ordinary one reports where it went.
+		QStringList reported;
+		writer.finished = [&reported](const QString& path, const QString&) { reported << path; };
+		ok &= expect(writer.checkpoint(document, false) && waitFor([&]() { return !writer.busy(); }) &&
+						 listLevelMapRecoveries(directory).size() == 1 && reported.isEmpty(),
+					 "a quiet checkpoint is written without a report");
+		writer.retire();
+		ok &= expect(writer.checkpoint(document) && waitFor([&]() { return !writer.busy() && reported.size() == 1; }) &&
+						 !reported.first().isEmpty(),
+					 "an ordinary checkpoint reports its path");
+		writer.finished = {};
+		writer.retire();
 	}
 	{
 		LevelRecoveryWriter writer(directory);
@@ -203,6 +219,66 @@ int main(int argc, char** argv)
 						 !editor->document()->isModified(),
 					 "map save refreshes an already-open clean Code view", error);
 		ok &= expect(shell.close(), "saved shell closes without a prompt");
+	}
+	{
+		// Restoring this session's own checkpoint retires that record with the
+		// map it replaces, so the restored map gets a checkpoint of its own at
+		// once rather than at the next minute's tick. The imported checkpoint
+		// from above is still there, and stays.
+		const auto others = [&]() {
+			QStringList paths;
+			for (const auto& record : listLevelMapRecoveries(directory)) {
+				if (QFileInfo(record.path).completeBaseName() != QStringLiteral("ca735c42-3593-4db0-8b26-5b8472f5a6ca")) {
+					paths << record.path;
+				}
+			}
+			return paths;
+		};
+		ApplicationShell shell;
+		ok &= expect(others().isEmpty() && shell.createLevelDocument({}, &error), "a second shell creates an untitled map", error);
+		shell.checkpointLevelDocument();
+		ok &= expect(waitFor([&]() { return others().size() == 1; }), "the untitled map has a checkpoint of its own");
+		const QString own = others().value(0);
+		// The map has unsaved edits, so restoring asks first: discard them.
+		QTimer answer;
+		answer.setInterval(20);
+		QObject::connect(&answer, &QTimer::timeout, &answer, []() {
+			QWidgetList candidates = QApplication::topLevelWidgets();
+			candidates.prepend(QApplication::activeModalWidget());
+			for (QWidget* candidate : std::as_const(candidates)) {
+				auto* box = qobject_cast<QMessageBox*>(candidate);
+				if (!box || !box->isVisible()) {
+					continue;
+				}
+				for (auto* button : box->buttons()) {
+					if (box->buttonRole(button) == QMessageBox::DestructiveRole) {
+						button->click();
+						return;
+					}
+				}
+			}
+		});
+		answer.start();
+		const bool restored = !own.isEmpty() && shell.recoverLevelDocument(own, &error);
+		answer.stop();
+		ok &= expect(restored && shell.levelDocument().sourcePath.isEmpty() && shell.levelDocument().brushes.size() == 6,
+					 "the shell restores its own checkpoint", error);
+		ok &= expect(waitFor([&]() { return others().size() == 1 && others().first() != own; }),
+					 "the restored map has a new checkpoint at once, and the record it came from is retired", others().join(QLatin1Char(' ')));
+		// Its report would otherwise follow the write within a moment and take
+		// the place of the message about the restored map.
+		QElapsedTimer settle;
+		settle.start();
+		while (settle.elapsed() < 400) {
+			QApplication::processEvents();
+			QThread::msleep(5);
+		}
+		ok &= expect(shell.statusBar()->currentMessage() != QStringLiteral("Map recovery checkpoint saved"),
+					 "the new checkpoint does not talk over the message about the restored map", shell.statusBar()->currentMessage());
+		const QString output = QDir(temp.path()).filePath(QStringLiteral("restored.map"));
+		ok &= expect(shell.saveLevelDocument(output, false, &error) && waitFor([&]() { return others().isEmpty(); }),
+					 "saving the restored map retires its checkpoint", error);
+		ok &= expect(shell.close(), "the saved shell closes without a prompt");
 	}
 	return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }

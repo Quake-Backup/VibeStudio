@@ -51,38 +51,6 @@ QString sourceIdForRelativePath(const QString& relativePath)
 	return id.toLower();
 }
 
-// Walks `relativePath` under `root`, matching each component without regard
-// to case, so "baseq3/pak0.pk3" finds "BaseQ3/PAK0.PK3" on a case-sensitive
-// filesystem. Empty when any component is missing.
-QString findCaseInsensitive(const QString& root, const QString& relativePath)
-{
-	QString current = QDir::cleanPath(root);
-	const QStringList parts = QDir::cleanPath(relativePath).split(QLatin1Char('/'), Qt::SkipEmptyParts);
-	for (qsizetype i = 0; i < parts.size(); ++i) {
-		const QString& part = parts[i];
-		const bool last = i == parts.size() - 1;
-		const QString direct = QDir(current).filePath(part);
-		const QFileInfo directInfo(direct);
-		if (directInfo.exists() && (last ? directInfo.isFile() : directInfo.isDir())) {
-			current = direct;
-			continue;
-		}
-		const QDir::Filters filters = (last ? QDir::Files : QDir::Dirs) | QDir::NoDotAndDotDot | QDir::Hidden;
-		QString found;
-		for (const QFileInfo& child : QDir(current).entryInfoList(filters)) {
-			if (child.fileName().compare(part, Qt::CaseInsensitive) == 0) {
-				found = child.absoluteFilePath();
-				break;
-			}
-		}
-		if (found.isEmpty()) {
-			return {};
-		}
-		current = found;
-	}
-	return QFileInfo(current).absoluteFilePath();
-}
-
 QJsonArray jsonStrings(const QStringList& values)
 {
 	QJsonArray array;
@@ -435,7 +403,9 @@ QVector<GameAssetRegisterSource> discoverGameStockSources(const GameInstallation
 		sources.push_back(source);
 	};
 	for (const GameStockPackage& candidate : gameStockPackageCandidates(installation.gameKey)) {
-		const QString found = findCaseInsensitive(root, candidate.relativePath);
+		// findInstallationFile (core/game_installation.h) matches each path
+		// component without regard to case, as the engines do.
+		const QString found = findInstallationFile(root, candidate.relativePath);
 		if (!found.isEmpty()) {
 			append(found, candidate.role, candidate.label);
 		}
@@ -944,7 +914,7 @@ GameAssetRegisterStatus gameAssetRegisterFreshness(const GameAssetRegister& reg,
 	QSet<QString> registered;
 	for (const GameAssetRegisterSource& source : reg.sources) {
 		registered.insert(source.id);
-		const QString absolute = QDir::isRelativePath(source.relativePath) ? findCaseInsensitive(root, source.relativePath) : source.relativePath;
+		const QString absolute = QDir::isRelativePath(source.relativePath) ? findInstallationFile(root, source.relativePath) : source.relativePath;
 		const QFileInfo info(absolute);
 		if (absolute.isEmpty() || !info.isFile()) {
 			status.fresh = false;

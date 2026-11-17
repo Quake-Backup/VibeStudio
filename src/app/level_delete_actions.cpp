@@ -99,7 +99,7 @@ void ApplicationShell::runLevelDeletionFromUi(bool componentsOnly)
 	const QString what = selection.size() == 1 ? levelMapSelectionRefId(selection.first()) : tr("%n objects", nullptr, static_cast<int>(selection.size()));
 	recordActivity(componentEdit ? tr("Level map components removed") : tr("Level map objects deleted"),
 		componentEdit ? tr("%n brush(es)", nullptr, result.componentReport.brushes) : what,
-		QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+		QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 	refreshLevelMapWorkbench();
 	if (componentEdit) {
 		// The surviving patches retain their exact point IDs. Removed brush

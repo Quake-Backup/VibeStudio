@@ -9502,10 +9502,11 @@ bool levelMapSelectionIsDeletable(const LevelMapDocument& document)
 		if (ref.kind != LevelMapSelectionKind::Entity) {
 			return false;
 		}
-		for (const LevelMapEntity& entity : document.entities) {
-			if (entity.id == ref.objectId && isWorldspawnEntity(entity)) {
-				return false;
-			}
+		// Asked about ten times after every selection change: find the entity
+		// by its id rather than by reading every entity for each selected one.
+		const LevelMapEntity* entity = entityById(&document, ref.objectId);
+		if (entity && isWorldspawnEntity(*entity)) {
+			return false;
 		}
 	}
 	return true;

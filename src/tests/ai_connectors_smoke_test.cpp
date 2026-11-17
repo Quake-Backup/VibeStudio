@@ -75,6 +75,23 @@ int main(int argc, char** argv)
 	if (slopstudio::aiCredentialStatusForConnector(QStringLiteral("local-offline")).configured != true) {
 		return fail("Expected local/offline connector not to require cloud credentials.");
 	}
+	// A credential counts as configured exactly when a connection would use it:
+	// a variable that is set but blank is missing.
+	qputenv("ANTHROPIC_API_KEY", "sk-ant-test-value-1234567890");
+	slopstudio::AiCredentialStatus credential = slopstudio::aiCredentialStatusForConnector(QStringLiteral("claude"));
+	if (!credential.configured || credential.redactedValue != QStringLiteral("ANTHROPIC_API_KEY=***") || !credential.warnings.isEmpty()) {
+		return fail("Expected a set credential variable to be configured, with its value hidden.");
+	}
+	qputenv("ANTHROPIC_API_KEY", "  \t ");
+	credential = slopstudio::aiCredentialStatusForConnector(QStringLiteral("claude"));
+	if (credential.configured || credential.redactedValue != QStringLiteral("ANTHROPIC_API_KEY=<missing>") || credential.warnings.isEmpty()) {
+		return fail("Expected a blank credential variable to count as missing.");
+	}
+	qunsetenv("ANTHROPIC_API_KEY");
+	credential = slopstudio::aiCredentialStatusForConnector(QStringLiteral("claude"));
+	if (credential.configured || credential.warnings.isEmpty()) {
+		return fail("Expected an unset credential variable to count as missing.");
+	}
 
 	slopstudio::AiAutomationPreferences defaults = slopstudio::defaultAiAutomationPreferences();
 	defaults.cloudConnectorsEnabled = true;

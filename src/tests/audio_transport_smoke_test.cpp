@@ -23,6 +23,7 @@
 #include <QSpinBox>
 #include <QTemporaryDir>
 #include <QTimer>
+#include <QToolButton>
 #include <QTranslator>
 #if SLOPSTUDIO_HAVE_AUDIO_PLAYBACK
 #include <QAudioDecoder>
@@ -367,9 +368,16 @@ bool editorTransport(QApplication& app)
 		editor.beforePlayback = [&]() { ++starts; };
 		volume->setValue(0);
 		loop->setChecked(true);
+		// Space on the waveform starts an audition. Preparing it disables the
+		// waveform, which moves the keyboard focus on; it must come back, or the
+		// next Space no longer pauses what the first one started.
+		waveform->setFocus();
 		play->trigger();
 		ok &= expect(editor.isBusy() && stop->isEnabled(), "Stop can cancel playback preparation");
+		ok &= expect(editor.focusWidget() != waveform, "preparing an audition disables the waveform and moves the focus on");
 		ok &= expect(waitUntil([&]() { return !editor.isBusy(); }), "playback prepares asynchronously");
+		ok &= expect(waveform->isEnabled() && editor.focusWidget() == waveform,
+		             "the waveform has the keyboard focus again once its audition is prepared");
 		const auto decoded = decodeAudioClip(QStringLiteral("prepared.wav"), fake->bytes);
 		const auto selected = input.samples.mid(6, 44100 * 2);
 		bool exact = decoded.succeeded() && decoded.clip.samples.size() == selected.size();
@@ -429,6 +437,40 @@ bool editorTransport(QApplication& app)
 		             "browser handoff also cancels pending preparation");
 		ok &= expect(!editor.hasChanges() && editor.clip().samples == input.samples,
 		             "transport operations never dirty or alter the document");
+		// Play pressed on its own button: the button is disabled while the audition
+		// is prepared and then while it loads, and has the focus again once it
+		// plays, so Space on it pauses. A control the user went to meanwhile keeps
+		// the focus instead.
+		QToolButton* playButton = nullptr;
+		for (auto* button : editor.findChildren<QToolButton*>()) {
+			if (button->defaultAction() == play) { playButton = button; }
+		}
+		ok &= expect(playButton != nullptr, "Play has a tool button");
+		if (playButton) {
+			for (const bool userMoves : {false, true}) {
+				fake->autoReady = false;
+				playButton->setFocus();
+				play->trigger();
+				ok &= expect(waitUntil([&]() { return !editor.isBusy(); }) && transport->state() == AudioPlayback::State::Loading &&
+				                 !play->isEnabled() && editor.focusWidget() != playButton,
+				             "Play is disabled, and without the focus, while its audition loads");
+				QApplication::processEvents();
+				// The user goes to the waveform. Not the volume slider: disabling Play
+				// can leave the focus there already, which is no move at all.
+				if (userMoves) {
+					ok &= expect(editor.focusWidget() != waveform, "the focus is not parked on the waveform");
+					waveform->setFocus();
+					ok &= expect(editor.focusWidget() == waveform, "the user moves the focus to the waveform");
+				}
+				emit fake->ready(fake->currentSession, true);
+				ok &= expect(transport->state() == AudioPlayback::State::Playing && play->isEnabled(), "the delayed audition starts");
+				ok &= expect(editor.focusWidget() == (userMoves ? static_cast<QWidget*>(waveform) : static_cast<QWidget*>(playButton)),
+				             userMoves ? "a control the user went to while the audition loaded keeps the focus"
+				                       : "Play has the keyboard focus again when its audition starts");
+				fake->autoReady = true;
+				stop->trigger();
+			}
+		}
 		play->trigger();
 		ok &= expect(waitUntil([&]() { return !editor.isBusy(); }), "prepare final layout state");
 #else

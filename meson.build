@@ -122,6 +122,12 @@ install_data(
 subdir('src')
 subdir('packaging')
 
+# The program and its translation catalogues without the tests:
+# `meson compile -C builddir slopstudio-app`. Every test program links the core or
+# app library statically, so a change to either relinks all of them in a plain
+# `meson compile`; that is most of the wait when you only want to run the studio.
+alias_target('slopstudio-app', slopstudio, compiled_translations)
+
 python_for_tests = find_program('python', 'python3', required: false)
 if python_for_tests.found()
   test('level-region-selection-cli-smoke', python_for_tests,

@@ -118,6 +118,8 @@ change the map in memory; save it in **Levels** afterwards (see
   with a tolerance, **Gradient** (linear, radial or reflected, optionally
   dithered), **Clone Stamp** and **Eyedropper**. **Wrap painting** lets strokes
   cross the edges, and **Tile Preview** shows a 3 × 3 repeat so seams stand out.
+  Without **Wrap painting**, a stroke dragged off the canvas paints only where
+  it crosses the canvas and resumes where the pointer comes back.
   **Mirror** repeats strokes across the centre lines, and with a graphics
   tablet **Pen pressure sets brush width**.
 - **Colours**: the paint colour and a **Secondary color**, used by right-click
@@ -235,7 +237,8 @@ copied in.
 
 **Stage Companion Maps** in the **Package** section adds normal, gloss and glow
 maps as PNG files beside the texture, named the way DarkPlaces-family ports or
-ioquake3's OpenGL2 renderer look for them.
+ioquake3's OpenGL2 renderer look for them. On a large canvas this takes a few
+seconds: the editor shows its progress and **Cancel Operation** stops it.
 
 ## Paint a model skin
 

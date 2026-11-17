@@ -333,7 +333,7 @@ void ApplicationShell::runLevelCsgToolCommandFromUi(const QString& commandId)
 			return;
 		}
 		recordActivity(shrink ? tr("Level map brushes shrunk") : tr("Level map brushes expanded"), tr("%n brush(es)", nullptr, report.changed),
-			QStringLiteral("level-map"), OperationState::Warning, tr("Unsaved map edit"));
+			QStringLiteral("level-map"), OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		const QString message = shrink ? tr("Shrank %n brush(es) by %1 units.", nullptr, report.changed).arg(units)
 									   : tr("Expanded %n brush(es) by %1 units.", nullptr, report.changed).arg(units);

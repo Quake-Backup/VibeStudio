@@ -389,7 +389,7 @@ void ApplicationShell::connectLevelBrushAssemble()
 		propagate(source->state);
 		show({});
 		recordActivity(tr("Level map brush assembled"), QStringLiteral("brush:%1").arg(report.brushId), QStringLiteral("level-map"),
-			OperationState::Warning, tr("Unsaved map edit"));
+			OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		statusBar()->showMessage(
 			tr("Created brush:%1. Corners: %2. Faces: %3. Undo removes it.").arg(report.brushId).arg(report.corners).arg(report.faces), 6000);

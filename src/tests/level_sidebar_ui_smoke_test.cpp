@@ -552,6 +552,67 @@ int main(int argc, char** argv)
 		}
 	}
 
+	// Transform: focus passing through the fields changes nothing, also when the
+	// centre lies on an odd eighth of a unit. The fields show two decimals, so
+	// such a centre reads back 0.005 away from the selection's own; that must
+	// not be taken for an edit.
+	if (select(shell, QStringLiteral("brush:%1").arg(box))) {
+		auto* sizeX = shell.findChild<QDoubleSpinBox*>(QStringLiteral("levelTransformSizeX"));
+		auto* centreX = shell.findChild<QDoubleSpinBox*>(QStringLiteral("levelTransformCentreX"));
+		const auto extent = [&shell]() {
+			const int id = brushNamed(shell.levelDocument(), QStringLiteral("studio/box"));
+			for (const LevelMapBrush& brush : shell.levelDocument().brushes) {
+				if (brush.id == id) {
+					return QPointF(brush.mins.x, brush.maxs.x);
+				}
+			}
+			return QPointF(-1.0, -1.0);
+		};
+		if (expect(sizeX && centreX && sizeX->isEnabled() && std::abs(sizeX->value() - 64) < 1e-6, "the Transform section shows the box's size",
+				sizeX ? QString::number(sizeX->value()) : QString())) {
+			// A size of 64.25 keeps the lower corner at 0: the centre is 32.125.
+			sizeX->setValue(64.25);
+			QMetaObject::invokeMethod(sizeX, "editingFinished", Qt::DirectConnection);
+			ok &= expect(until([&]() { return std::abs(extent().y() - 64.25) < 1e-9; }, 5000) && std::abs(extent().x()) < 1e-9,
+				"typing a size of 64.25 puts the box's centre on an odd eighth", QStringLiteral("%1 .. %2").arg(extent().x()).arg(extent().y()));
+			drain();
+			const QByteArray before = serializeLevelMap(shell.levelDocument()).bytes;
+			const auto steps = shell.levelDocument().undoStack.size();
+			const QString shown = centreX->text();
+			// The case the fields used to get wrong: what is shown is a full
+			// 0.005 from the centre, which read as an edit by that much.
+			ok &= expect(std::abs(centreX->value() - (extent().x() + extent().y()) / 2.0) >= 0.005, "the centre shown is rounded by a full 0.005",
+				QStringLiteral("%1 for %2").arg(centreX->value(), 0, 'g', 17).arg((extent().x() + extent().y()) / 2.0, 0, 'g', 17));
+			for (const QString& name : {QStringLiteral("levelTransformCentreX"), QStringLiteral("levelTransformCentreY"), QStringLiteral("levelTransformCentreZ"),
+					 QStringLiteral("levelTransformSizeX"), QStringLiteral("levelTransformSizeY"), QStringLiteral("levelTransformSizeZ")}) {
+				if (auto* field = shell.findChild<QDoubleSpinBox*>(name)) {
+					QMetaObject::invokeMethod(field, "editingFinished", Qt::DirectConnection);
+					drain();
+				}
+			}
+			ok &= expect(shell.levelDocument().undoStack.size() == steps && serializeLevelMap(shell.levelDocument()).bytes == before
+					&& std::abs(extent().x()) < 1e-9 && std::abs(extent().y() - 64.25) < 1e-9,
+				"focus passing through the Transform fields moves and resizes nothing",
+				QStringLiteral("centre shown as %1; %2 .. %3; %4 step(s) added")
+					.arg(shown).arg(extent().x(), 0, 'g', 12).arg(extent().y(), 0, 'g', 12).arg(shell.levelDocument().undoStack.size() - steps));
+			// A value the user did change still applies, by exactly what was typed.
+			centreX->setValue(40.0);
+			QMetaObject::invokeMethod(centreX, "editingFinished", Qt::DirectConnection);
+			ok &= expect(until([&]() { return std::abs(extent().x() - 7.875) < 1e-9; }, 5000) && std::abs(extent().y() - 72.125) < 1e-9,
+				"a typed centre still moves the box there", QStringLiteral("%1 .. %2").arg(extent().x(), 0, 'g', 12).arg(extent().y(), 0, 'g', 12));
+			drain();
+			shell.findChild<QAction*>(QStringLiteral("map.undo"))->trigger();
+			drain();
+			shell.findChild<QAction*>(QStringLiteral("map.undo"))->trigger();
+			ok &= expect(until([&]() { return std::abs(extent().y() - 64) < 1e-9 && std::abs(extent().x()) < 1e-9; }, 5000), "undo gives the box its size back",
+				QStringLiteral("%1 .. %2").arg(extent().x()).arg(extent().y()));
+		} else {
+			ok = false;
+		}
+	} else {
+		ok &= expect(false, "the box can be selected for the Transform fields");
+	}
+
 	// The 3D preview lights the selected box once its build is in: twelve
 	// triangles, six faces of two.
 	{
@@ -624,10 +685,110 @@ int main(int argc, char** argv)
 			QObject::disconnect(watch);
 			shell.findChild<QAction*>(QStringLiteral("map.undo"))->trigger();
 			drain();
+
+			// A shear being dragged is called off when the view loses the focus
+			// or its window, by cancelInteraction() and by a right press: the
+			// button's release may never arrive, and a shear left live would
+			// slant whatever is selected next by this box.
+			{
+				const QByteArray unsheared = serializeLevelMap(shell.levelDocument()).bytes;
+				const auto steps = shell.levelDocument().undoStack.size();
+				int shears = 0;
+				const auto counting = QObject::connect(view, &MapViewport::shearRequested, [&shears](int, int, double, double) { ++shears; });
+				QPointF grab;
+				const auto begin = [&]() {
+					grab = view->resizeHandlePosition(MapViewport::ResizeMaxVertical);
+					send(QEvent::MouseButtonPress, grab, Qt::LeftButton, Qt::LeftButton);
+					send(QEvent::MouseMove, grab + QPointF(48.0, 0.0), Qt::NoButton, Qt::LeftButton);
+					return view->isShearing();
+				};
+				// The release that follows a cancelled shear, and a pointer that
+				// moves with no button down, shear nothing.
+				const auto nothingSheared = [&]() {
+					send(QEvent::MouseMove, grab + QPointF(64.0, 0.0), Qt::NoButton, Qt::NoButton);
+					send(QEvent::MouseButtonRelease, grab + QPointF(64.0, 0.0), Qt::LeftButton, Qt::NoButton);
+					drain();
+					return !view->isShearing() && shears == 0 && shell.levelDocument().undoStack.size() == steps
+						&& serializeLevelMap(shell.levelDocument()).bytes == unsheared;
+				};
+				if (expect(view->hasResizeHandles() && begin(), "a shear begins on the handle again")) {
+					QFocusEvent out(QEvent::FocusOut, Qt::ActiveWindowFocusReason);
+					QCoreApplication::sendEvent(view, &out);
+					ok &= expect(!view->isShearing(), "losing the focus calls a shear off");
+					ok &= expect(nothingSheared(), "and the release after it shears nothing", QString::number(shears));
+				} else {
+					ok = false;
+				}
+				if (expect(begin(), "a second shear begins")) {
+					QEvent deactivate(QEvent::WindowDeactivate);
+					QCoreApplication::sendEvent(view, &deactivate);
+					ok &= expect(!view->isShearing() && nothingSheared(), "losing the window calls a shear off");
+				} else {
+					ok = false;
+				}
+				if (expect(begin(), "a third shear begins")) {
+					view->cancelInteraction();
+					ok &= expect(!view->isShearing() && nothingSheared(), "cancelInteraction calls a shear off");
+				} else {
+					ok = false;
+				}
+				if (expect(begin(), "a fourth shear begins")) {
+					send(QEvent::MouseButtonPress, grab + QPointF(48.0, 0.0), Qt::RightButton, Qt::LeftButton | Qt::RightButton);
+					ok &= expect(!view->isShearing(), "a right press calls a shear off, as it does a resize");
+					send(QEvent::MouseButtonRelease, grab + QPointF(48.0, 0.0), Qt::RightButton, Qt::LeftButton);
+					ok &= expect(nothingSheared(), "and the left release after it shears nothing");
+				} else {
+					ok = false;
+				}
+				ok &= expect(view->shearMode() && shearTool->isChecked(), "the Shear Tool stays on through all of it");
+				QObject::disconnect(counting);
+			}
+
 			QKeyEvent escape(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
 			QCoreApplication::sendEvent(view, &escape);
 			drain();
 			ok &= expect(!view->shearMode() && !shearTool->isChecked(), "Escape turns the Shear Tool off");
+
+			// A move being dragged goes the same way: after the view loses the
+			// focus the objects no longer follow the pointer, and the next
+			// release moves nothing.
+			{
+				bool found = false;
+				LevelMapVec3 low;
+				LevelMapVec3 high;
+				for (const LevelMapBrush& brush : shell.levelDocument().brushes) {
+					if (brush.id == box) {
+						found = true;
+						low = brush.mins;
+						high = brush.maxs;
+					}
+				}
+				if (expect(found && select(shell, QStringLiteral("brush:%1").arg(box)), "the box is there to drag")) {
+					const QByteArray unmoved = serializeLevelMap(shell.levelDocument()).bytes;
+					const auto steps = shell.levelDocument().undoStack.size();
+					// On the box's left side, a quarter of the way along it: clear
+					// of the handles at its corners and its middle.
+					const QPointF press = view->viewPointFor(low.x, low.y + (high.y - low.y) * 0.25);
+					send(QEvent::MouseButtonPress, press, Qt::LeftButton, Qt::LeftButton);
+					send(QEvent::MouseMove, press + QPointF(30.0, 0.0), Qt::NoButton, Qt::LeftButton);
+					send(QEvent::MouseMove, press + QPointF(60.0, 0.0), Qt::NoButton, Qt::LeftButton);
+					if (expect(view->isDragging(), "a drag of the box begins")) {
+						QFocusEvent out(QEvent::FocusOut, Qt::ActiveWindowFocusReason);
+						QCoreApplication::sendEvent(view, &out);
+						ok &= expect(!view->isDragging(), "losing the focus calls a move off");
+						send(QEvent::MouseMove, press + QPointF(90.0, 0.0), Qt::NoButton, Qt::NoButton);
+						send(QEvent::MouseButtonRelease, press + QPointF(90.0, 0.0), Qt::LeftButton, Qt::NoButton);
+						drain();
+						ok &= expect(!view->isDragging() && shell.levelDocument().undoStack.size() == steps
+								&& serializeLevelMap(shell.levelDocument()).bytes == unmoved,
+							"and the release after it moves nothing");
+					} else {
+						ok = false;
+					}
+				} else {
+					ok = false;
+				}
+			}
 		}
 	}
 

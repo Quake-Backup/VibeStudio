@@ -25,6 +25,28 @@ bool writeFile(const QString& path)
 	return file.write("fixture") > 0;
 }
 
+// The games a scan offered for one folder, in the order it reported them.
+QStringList gameKeysAt(const QVector<slopstudio::GameInstallationDetectionCandidate>& candidates, const QString& rootPath)
+{
+	QStringList keys;
+	for (const slopstudio::GameInstallationDetectionCandidate& candidate : candidates) {
+		if (QFileInfo(candidate.profile.rootPath) == QFileInfo(rootPath)) {
+			keys << candidate.profile.gameKey;
+		}
+	}
+	return keys;
+}
+
+const slopstudio::GameInstallationDetectionCandidate* candidateAt(const QVector<slopstudio::GameInstallationDetectionCandidate>& candidates, const QString& rootPath)
+{
+	for (const slopstudio::GameInstallationDetectionCandidate& candidate : candidates) {
+		if (QFileInfo(candidate.profile.rootPath) == QFileInfo(rootPath)) {
+			return &candidate;
+		}
+	}
+	return nullptr;
+}
+
 } // namespace
 
 int main()
@@ -112,6 +134,11 @@ int main()
 	if (!foundSteamQuake) {
 		return fail("Expected Steam Quake detection.");
 	}
+	// "Quake" is part of the names "Quake 2" and "Quake III", but a folder called
+	// "Quake" is not those games: one folder, one candidate.
+	if (gameKeysAt(steamCandidates, steamQuakeRoot) != QStringList {QStringLiteral("quake")}) {
+		return fail("Expected a folder named Quake to be offered as Quake only, not as Quake II or Quake III too.");
+	}
 
 	QTemporaryDir gogDir;
 	if (!gogDir.isValid()) {
@@ -143,6 +170,69 @@ int main()
 	}
 	if (!foundGogQuake3) {
 		return fail("Expected GOG Quake III detection.");
+	}
+	// "Quake III Arena" contains "Quake" and "Quake II" as well. The game whose
+	// package is in the folder wins and the name-only guesses are dropped.
+	if (gameKeysAt(gogCandidates, gogQuake3Root) != QStringList {QStringLiteral("quake3")}) {
+		return fail("Expected a Quake III Arena folder with its package to be offered as Quake III only.");
+	}
+
+	// Folder names decide only when no package is found, and then the closest
+	// name alone; packages found under another case still count.
+	QTemporaryDir namesDir;
+	if (!namesDir.isValid()) {
+		return fail("Expected temporary folder-name directory.");
+	}
+	QDir namesRoot(namesDir.path());
+	const QString emptyQuake2Root = namesRoot.filePath(QStringLiteral("Quake II"));
+	const QString shortQuake3Root = namesRoot.filePath(QStringLiteral("Quake 3"));
+	const QString mixedCaseRoot = namesRoot.filePath(QStringLiteral("retro"));
+	if (!namesRoot.mkpath(QStringLiteral("Quake II"))
+		|| !namesRoot.mkpath(QStringLiteral("Quake 3/baseq3")) || !writeFile(namesRoot.filePath(QStringLiteral("Quake 3/baseq3/pak0.pk3")))
+		|| !namesRoot.mkpath(QStringLiteral("retro/Id1")) || !writeFile(namesRoot.filePath(QStringLiteral("retro/Id1/PAK0.PAK")))) {
+		return fail("Expected folder-name fixtures.");
+	}
+	const QVector<slopstudio::GameInstallationDetectionCandidate> nameCandidates = slopstudio::detectGogGameInstallations({namesDir.path()});
+	if (gameKeysAt(nameCandidates, emptyQuake2Root) != QStringList {QStringLiteral("quake2")}) {
+		return fail("Expected an empty Quake II folder to be offered as Quake II only, not as Quake as well.");
+	}
+	const slopstudio::GameInstallationDetectionCandidate* emptyQuake2 = candidateAt(nameCandidates, emptyQuake2Root);
+	if (!emptyQuake2 || emptyQuake2->confidencePercent >= 80 || emptyQuake2->warnings.isEmpty() || !emptyQuake2->matchedPaths.isEmpty()) {
+		return fail("Expected a name-only candidate to stay a low-confidence guess with a warning.");
+	}
+	if (gameKeysAt(nameCandidates, shortQuake3Root) != QStringList {QStringLiteral("quake3")}) {
+		return fail("Expected a folder named Quake 3 with its package to be offered as Quake III only.");
+	}
+	const slopstudio::GameInstallationDetectionCandidate* shortQuake3 = candidateAt(nameCandidates, shortQuake3Root);
+	if (!shortQuake3 || shortQuake3->confidencePercent < 90) {
+		return fail("Expected a folder named Quake 3 to match by name and by package.");
+	}
+	// On Windows and macOS the filesystem already ignores case, so this only
+	// proves the lookup on a case-sensitive one.
+	if (gameKeysAt(nameCandidates, mixedCaseRoot) != QStringList {QStringLiteral("quake")}) {
+		return fail("Expected Id1/PAK0.PAK to be found as Quake's id1/pak0.pak.");
+	}
+	const slopstudio::GameInstallationDetectionCandidate* mixedCase = candidateAt(nameCandidates, mixedCaseRoot);
+	if (!mixedCase || mixedCase->matchedPaths.size() != 1 || !QFileInfo(mixedCase->matchedPaths.front()).isFile()
+		|| mixedCase->profile.basePackagePaths.size() != 1) {
+		return fail("Expected the mixed-case package to be recorded as an existing file.");
+	}
+	const QString foundMixedCase = slopstudio::findInstallationFile(mixedCaseRoot, QStringLiteral("id1/pak0.pak"));
+	if (foundMixedCase.isEmpty() || !QFileInfo(foundMixedCase).isFile()
+		|| QFileInfo(foundMixedCase) != QFileInfo(namesRoot.filePath(QStringLiteral("retro/Id1/PAK0.PAK")))) {
+		return fail("Expected the installation file lookup to ignore case.");
+	}
+	if (!slopstudio::findInstallationFile(mixedCaseRoot, QStringLiteral("id1/pak1.pak")).isEmpty()
+		|| !slopstudio::findInstallationFile(mixedCaseRoot, QStringLiteral("id1")).isEmpty()
+		|| !slopstudio::findInstallationFile(mixedCaseRoot, QString()).isEmpty()) {
+		return fail("Expected the installation file lookup to refuse missing files, folders and empty paths.");
+	}
+	slopstudio::GameInstallationProfile mixedCaseProfile;
+	mixedCaseProfile.rootPath = mixedCaseRoot;
+	mixedCaseProfile.gameKey = QStringLiteral("quake");
+	const slopstudio::GameInstallationValidation mixedCaseValidation = slopstudio::validateGameInstallationProfile(mixedCaseProfile);
+	if (!mixedCaseValidation.isUsable() || !mixedCaseValidation.warnings.isEmpty()) {
+		return fail("Expected validation to find the base package whatever its case.");
 	}
 
 	return EXIT_SUCCESS;

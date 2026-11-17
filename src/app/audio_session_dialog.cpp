@@ -582,10 +582,19 @@ AudioSessionDialog::AudioSessionDialog(QWidget *parent, AudioStreamDeviceFactory
 		const auto &snapshot = m_playback->snapshot();
 		using State = AudioSessionPlaybackSnapshot::State;
 		if (snapshot.state == State::Playing || snapshot.state == State::Paused || snapshot.state == State::Ended) {
-			m_timeline->setCursor(snapshot.position);
+			// Playback reports its position some twenty times a second. While it
+			// plays the timeline repaints only the cursor's strip and leaves its
+			// spoken description alone; a pause or the end describes the cursor.
+			if (snapshot.state == State::Playing) {
+				m_timeline->trackCursor(snapshot.position);
+			} else {
+				m_timeline->setCursor(snapshot.position);
+			}
 			const QSignalBlocker guard(m_cursor);
 			m_cursor->setValue(double(snapshot.position));
 			refreshMusicalPosition();
+		} else {
+			m_timeline->settleCursor();
 		}
 	});
 	m_recoveryDirectory = audioRecoveryDirectory();
@@ -943,6 +952,10 @@ void AudioSessionDialog::refreshTransport()
 	m_play->setEnabled(!isBusy() && state != State::Preparing && m_playback->available() &&
 	                   audioSessionFrames(session()) > 0);
 	m_stop->setEnabled(m_playback->available());
+	// See prepareMix(): Play lost the focus while playback prepared.
+	if (state != State::Preparing) {
+		m_playFocus.ended(m_cancel);
+	}
 	if (m_progress && !isBusy()) {
 		m_progress->setVisible(state == State::Preparing);
 		if (state == State::Preparing) {
@@ -950,6 +963,9 @@ void AudioSessionDialog::refreshTransport()
 			m_progress->setTextVisible(false);
 		}
 		m_cancel->setVisible(state == State::Preparing);
+	}
+	if (state != State::Preparing) {
+		m_playFocus.restore();
 	}
 }
 
@@ -1075,6 +1091,9 @@ void AudioSessionDialog::work(const QString &title, std::function<void(AudioSess
 		return;
 	}
 	stopPlayback();
+	// refresh() disables the focused control while the work runs, which moves the
+	// focus on; the end of the work (or of a chain of it) gives it back.
+	m_workFocus.begin();
 	auto state = std::make_shared<AudioSessionWork>();
 	state->audition = audition;
 	state->meterJob = meterJob;
@@ -1104,6 +1123,7 @@ void AudioSessionDialog::work(const QString &title, std::function<void(AudioSess
 		if (m_work != state) {
 			return;
 		}
+		m_workFocus.ended(m_cancel);
 		m_thread = nullptr;
 		m_work.reset();
 		const bool committed = state->saved.written || state->mixed.saved.written;
@@ -1119,6 +1139,11 @@ void AudioSessionDialog::work(const QString &title, std::function<void(AudioSess
 			complete(*state);
 		}
 		refresh();
+		// The completion may have started the next step of a chain: the focus goes
+		// back when the last one ends.
+		if (!m_work) {
+			m_workFocus.restore();
+		}
 	});
 	connect(thread, &QThread::finished, thread, &QObject::deleteLater);
 	connect(qApp, &QCoreApplication::aboutToQuit, thread, [thread, state] {
@@ -2073,6 +2098,9 @@ void AudioSessionDialog::prepareMix(bool audition)
 		config.deviceId = m_output->currentData().toByteArray();
 		config.sampleRate = session().sampleRate;
 		config.bufferFrames = m_buffer->currentData().toInt();
+		// Play is disabled while playback prepares, which moves the focus off it;
+		// refreshTransport() gives it back, so Space on Play pauses what it started.
+		m_playFocus.begin();
 		m_playback->start(session(), {qint64(m_first->value()), qint64(m_end->value()), m_loop->isChecked()}, config);
 		return;
 	}

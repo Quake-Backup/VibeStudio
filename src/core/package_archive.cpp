@@ -672,6 +672,7 @@ void PackageArchive::clear()
 	m_sourcePath.clear(); m_error.clear();
 	m_open = false;
 	m_entries.clear();
+	m_entriesSorted = false;
 	m_warnings.clear(); m_summary = {};
 	m_sourceSizeBytes = -1;
 	m_sourceModifiedUtc = {};
@@ -1054,7 +1055,7 @@ bool PackageArchive::loadPak(const QString& path, QString* error)
 	PackageContentDevice file(m_fileIdentity, m_loadControl);
 	if (!file.open(QIODevice::ReadOnly)) {
 		if (error) {
-			*error = QCoreApplication::translate("SlopStudioPackageArchive", "Unable to open PAK file.");
+			*error = QCoreApplication::translate("SlopStudioPackageArchive", "Unable to open PAK file %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
 		}
 		return false;
 	}
@@ -1150,7 +1151,7 @@ bool PackageArchive::loadWad(const QString& path, QString* error)
 	PackageContentDevice file(m_fileIdentity, m_loadControl);
 	if (!file.open(QIODevice::ReadOnly)) {
 		if (error) {
-			*error = QCoreApplication::translate("SlopStudioPackageArchive", "Unable to open WAD file.");
+			*error = QCoreApplication::translate("SlopStudioPackageArchive", "Unable to open WAD file %1: %2").arg(QDir::toNativeSeparators(path), file.errorString());
 		}
 		return false;
 	}
@@ -1330,7 +1331,10 @@ bool PackageArchive::loadZipFamily(const QString& path, PackageArchiveFormat for
 			continue;
 		}
 		if (!accountIndexPath(metadata.name, error)) { return false; }
-		const bool directoryEntry = metadata.name.endsWith('/');
+		// Tools that write Windows separators name a directory record "folder\".
+		// The normaliser below treats both separators alike, so the directory
+		// test has to as well, or the record lists as a zero-byte file.
+		const bool directoryEntry = metadata.name.endsWith('/') || metadata.name.endsWith('\\');
 		const PackageVirtualPath normalized = normalizePackageVirtualPath(metadata.name, false);
 		if (!normalized.isSafe()) {
 			if (!addWarning(metadata.name.trimmed(), QCoreApplication::translate("SlopStudioPackageArchive", "Skipped unsafe ZIP entry: %1").arg(packagePathIssueDisplayName(normalized.issue)), true, error)) { return false; }
@@ -1655,8 +1659,32 @@ const PackageEntry* PackageArchive::findEntry(const QString& virtualPath) const
 	if (!normalized.isSafe()) {
 		return nullptr;
 	}
+	const QString& needle = normalized.normalizedPath;
+	if (m_entriesSorted) {
+		// finalizeEntries left the list as directories then files, each run in
+		// case-insensitive path order with equal paths kept in archive order.
+		// The lower bound of a run is therefore the entry a front-to-back scan
+		// would have returned, including the first of a WAD's repeated lumps.
+		const auto pathLess = [](const PackageEntry& entry, const QString& path) {
+			return entry.virtualPath.compare(path, Qt::CaseInsensitive) < 0;
+		};
+		const auto begin = m_entries.cbegin();
+		const auto end = m_entries.cend();
+		const auto files = std::partition_point(begin, end, [](const PackageEntry& entry) {
+			return entry.kind == PackageEntryKind::Directory;
+		});
+		for (const bool directories : {true, false}) {
+			const auto first = directories ? begin : files;
+			const auto last = directories ? files : end;
+			const auto found = std::lower_bound(first, last, needle, pathLess);
+			if (found != last && found->virtualPath.compare(needle, Qt::CaseInsensitive) == 0) {
+				return &*found;
+			}
+		}
+		return nullptr;
+	}
 	for (const PackageEntry& entry : m_entries) {
-		if (entry.virtualPath.compare(normalized.normalizedPath, Qt::CaseInsensitive) == 0) {
+		if (entry.virtualPath.compare(needle, Qt::CaseInsensitive) == 0) {
 			return &entry;
 		}
 	}
@@ -1699,6 +1727,7 @@ bool PackageArchive::finalizeEntries(QString* error)
 	// that it is the archive-order first, so the tie has to be broken by the
 	// on-disk order that the loop above walked.
 	std::stable_sort(m_entries.begin(), m_entries.end(), entryPathLess);
+	m_entriesSorted = true;
 	PackageArchiveSummary summary; summary.sourcePath = m_sourcePath; summary.format = m_format;
 	summary.warningCount = static_cast<int>(m_warnings.size());
 	if (!collectPackageSummary(m_entries, &summary, m_loadControl, error) || !accountIndex(0, 0, error)) { return false; }
@@ -2567,9 +2596,13 @@ QString packageResolvedAbsolutePath(const QString& path, const PackageReadContro
 	return resolved;
 }
 
-bool packagePathIsInsideDirectory(const QString& rootDirectory, const QString& candidatePath)
+namespace {
+
+// The containment test for a root already in its comparable form. The
+// candidate is resolved on every call: that is what catches a link inside the
+// tree.
+bool comparableRootContains(const QString& root, const QString& candidatePath)
 {
-	const QString root = comparableDirectoryPath(rootDirectory);
 	const QString candidate = comparableDirectoryPath(candidatePath);
 	if (root.isEmpty() || candidate.isEmpty()) {
 		return false;
@@ -2581,13 +2614,15 @@ bool packagePathIsInsideDirectory(const QString& rootDirectory, const QString& c
 	return candidate.startsWith(rootWithSlash);
 }
 
-QString safePackageOutputPath(const QString& rootDirectory, const QString& virtualPath, QString* error)
+// `root` is the output root with its existing part resolved. `comparableRoot`
+// is its comparable form when the caller holds one; otherwise it is worked out
+// here, at the containment test.
+QString safeOutputPathUnderResolvedRoot(const QString& root, const QString* comparableRoot, const QString& virtualPath, QString* error)
 {
 	if (error) {
 		error->clear();
 	}
 
-	const QString root = canonicalizedAbsolutePath(rootDirectory);
 	if (root.isEmpty()) {
 		if (error) {
 			*error = QCoreApplication::translate("SlopStudioPackageArchive", "Output root is empty.");
@@ -2614,13 +2649,44 @@ QString safePackageOutputPath(const QString& rootDirectory, const QString& virtu
 	QString nativeRelative = normalized.normalizedPath;
 	nativeRelative.replace('/', QDir::separator());
 	const QString candidate = QDir(root).filePath(nativeRelative);
-	if (!packagePathIsInsideDirectory(root, candidate)) {
+	if (!comparableRootContains(comparableRoot ? *comparableRoot : comparableDirectoryPath(root), candidate)) {
 		if (error) {
 			*error = QCoreApplication::translate("SlopStudioPackageArchive", "Output path escapes the selected root.");
 		}
 		return {};
 	}
 	return QDir::cleanPath(candidate);
+}
+
+} // namespace
+
+bool packagePathIsInsideDirectory(const QString& rootDirectory, const QString& candidatePath)
+{
+	return comparableRootContains(comparableDirectoryPath(rootDirectory), candidatePath);
+}
+
+QString safePackageOutputPath(const QString& rootDirectory, const QString& virtualPath, QString* error)
+{
+	return safeOutputPathUnderResolvedRoot(canonicalizedAbsolutePath(rootDirectory), nullptr, virtualPath, error);
+}
+
+PackageOutputRoot resolvePackageOutputRoot(const QString& rootDirectory)
+{
+	PackageOutputRoot root;
+	root.resolved = canonicalizedAbsolutePath(rootDirectory);
+	root.comparable = comparableDirectoryPath(rootDirectory);
+	root.comparableResolved = comparableDirectoryPath(root.resolved);
+	return root;
+}
+
+bool packagePathIsInsideOutputRoot(const PackageOutputRoot& root, const QString& candidatePath)
+{
+	return comparableRootContains(root.comparable, candidatePath);
+}
+
+QString safePackageOutputPathUnder(const PackageOutputRoot& root, const QString& virtualPath, QString* error)
+{
+	return safeOutputPathUnderResolvedRoot(root.resolved, &root.comparableResolved, virtualPath, error);
 }
 
 QString packageExtractionReportText(const PackageExtractionReport& report)

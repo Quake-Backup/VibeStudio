@@ -361,11 +361,39 @@ AssetTextSearchReport findReplaceProjectText(const AssetTextSearchRequest& reque
 			}
 		}
 	};
+	// An open document arrives under the path its editor opened it by, and the
+	// root above is canonical. With a linked folder above the project
+	// (/home -> /data/home) the two disagree: every document would look as if it
+	// lay outside the root and be dropped, and the walk below would search the
+	// saved text instead. Such a path is re-expressed under the canonical root.
+	// Only the part above the project is resolved, through the topmost folder
+	// that is the root, so a link inside the project stays in the path and
+	// safeBuffer still refuses it.
+	const auto pathUnderRoot = [&](const QString& path) {
+		const QString absolute = QDir::cleanPath(QFileInfo(path).absoluteFilePath());
+		const QString lexical = QDir(report.rootPath).relativeFilePath(absolute);
+		if (!QDir::isAbsolutePath(lexical) && lexical != QStringLiteral("..") && !lexical.startsWith(QStringLiteral("../"))) { return absolute; }
+		QString resolved = absolute;
+		QString below;
+		QString current = absolute;
+		for (;;) {
+			const QFileInfo info(current);
+			const QString parent = info.absolutePath();
+			if (parent == current || info.fileName().isEmpty()) { break; }
+			below = below.isEmpty() ? info.fileName() : info.fileName() + QLatin1Char('/') + below;
+			const QString canonicalParent = QFileInfo(parent).canonicalFilePath();
+			if (!canonicalParent.isEmpty() && key(canonicalParent) == key(report.rootPath)) {
+				resolved = QDir::cleanPath(QDir(report.rootPath).filePath(below));
+			}
+			current = parent;
+		}
+		return resolved;
+	};
 	if (request.buffers.size() > filesLimit) {
 		limitReached = true;
 	} else {
 		for (const auto& buffer : request.buffers) {
-			if (!buffer.filePath.isEmpty()) { processFile(QDir::cleanPath(QFileInfo(buffer.filePath).absoluteFilePath()), &buffer); }
+			if (!buffer.filePath.isEmpty()) { processFile(pathUnderRoot(buffer.filePath), &buffer); }
 		}
 	}
 	QStringList directories {report.rootPath};

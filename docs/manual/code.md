@@ -21,7 +21,9 @@ Choose **Code** on the rail, or press <kbd>Ctrl</kbd>+<kbd>7</kbd>
   in the background; **Refresh Tree** scans again after you add files outside
   SlopStudio.
 - The **Outline** tab lists the functions, shaders or entity classes in the
-  open file; select one to jump to it.
+  open file; select one to jump to it. In a file of more than about half a
+  megabyte the outline and the built-in diagnostics stand down, as folding
+  does, and say so; a language server's diagnostics still show.
 - **Go to File** (<kbd>Ctrl</kbd>+<kbd>P</kbd>) opens any project file from
   anywhere in the studio.
 - **New Text File** (<kbd>Ctrl</kbd>+<kbd>N</kbd> on this page) starts an
@@ -112,11 +114,13 @@ original encoding and line endings. Searches include unsaved text in open tabs.
 
 Without a language server, definitions come from a project index of names, so
 they are textual; **Index Code** on the page header rebuilds it, and the
-**Index** tab shows its results. Find All References then uses a whole-word
+**Index** tab shows its results. After an edit the index refreshes by itself;
+only a scan you ask for is listed in the Activity Center. Find All References then uses a whole-word
 text search, and completion offers names from the file, the index and the
 language's keywords. The **Problems** tab lists what SlopStudio's checks find
-in the open file; problem lines are underlined, and the problem count above the
-editor jumps to the next one.
+in the open file (unterminated strings, unbalanced braces, unknown shader
+directives, malformed key/value pairs); problem lines are underlined, and the
+problem count above the editor jumps to the next one.
 
 ## Save your work
 

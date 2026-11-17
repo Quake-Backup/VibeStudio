@@ -134,24 +134,28 @@ AudioClipResult applyAudioEdit(const AudioClip& clip, const AudioEdit& edit, con
 	} else if (op == QStringLiteral("mono")) {
 		result.clip.channels = 1;
 		result.clip.samples.resize(clip.frameCount());
+		const float* const source = clip.samples.constData();
+		float* const target = result.clip.samples.data();
 		for (qint64 frame = 0; frame < clip.frameCount(); ++frame) {
 			if (frame % 4096 == 0 && cancelled()) {
 				return result;
 			}
 			double sum = 0;
 			for (int channel = 0; channel < clip.channels; ++channel) {
-				sum += clip.samples[frame * clip.channels + channel];
+				sum += source[frame * clip.channels + channel];
 			}
-			result.clip.samples[frame] = static_cast<float>(sum / clip.channels);
+			target[frame] = static_cast<float>(sum / clip.channels);
 		}
 	} else if (op == QStringLiteral("stereo")) {
 		result.clip.channels = 2;
 		result.clip.samples.resize(clip.frameCount() * 2);
+		const float* const source = clip.samples.constData();
+		float* const target = result.clip.samples.data();
 		for (qint64 frame = 0; frame < clip.frameCount(); ++frame) {
 			if (frame % 4096 == 0 && cancelled()) {
 				return result;
 			}
-			result.clip.samples[frame * 2] = result.clip.samples[frame * 2 + 1] = clip.samples[frame];
+			target[frame * 2] = target[frame * 2 + 1] = source[frame];
 		}
 	} else {
 		double gain = std::pow(10.0, edit.decibels / 20.0);
@@ -179,31 +183,64 @@ AudioClipResult applyAudioEdit(const AudioClip& clip, const AudioEdit& edit, con
 			}
 			gain = peak > 0 ? gain / peak : 1.0;
 		}
+		// The operation is resolved once and the samples are reached through
+		// plain pointers: comparing its name and checking the vector for sharing
+		// on every sample cost far more than the arithmetic, which is unchanged.
+		enum class Kind { Reverse, Silence, Invert, RemoveDc, FadeIn, FadeOut, Scale };
+		const Kind kind = op == QStringLiteral("reverse")     ? Kind::Reverse
+		                  : op == QStringLiteral("silence")   ? Kind::Silence
+		                  : op == QStringLiteral("invert")    ? Kind::Invert
+		                  : op == QStringLiteral("remove-dc") ? Kind::RemoveDc
+		                  : op == QStringLiteral("fade-in")   ? Kind::FadeIn
+		                  : op == QStringLiteral("fade-out")  ? Kind::FadeOut
+		                                                      : Kind::Scale;
+		const int channels = clip.channels;
+		const float* const source = clip.samples.constData();
+		// Detaches the result from the input once, so `source` stays the original.
+		float* const target = result.clip.samples.data();
+		const double* const mean = means.constData();
 		for (qint64 frame = edit.firstFrame; frame < end; ++frame) {
 			if (frame % 4096 == 0 && cancelled()) {
 				return result;
 			}
 			double scale = gain;
-			if (op == QStringLiteral("fade-in") || op == QStringLiteral("fade-out")) {
+			if (kind == Kind::FadeIn || kind == Kind::FadeOut) {
 				const double ramp = end - edit.firstFrame > 1
 				                        ? static_cast<double>(frame - edit.firstFrame) / (end - edit.firstFrame - 1)
 				                        : 0;
-				scale = op == QStringLiteral("fade-in") ? ramp : (end - edit.firstFrame > 1 ? 1.0 - ramp : 0.0);
+				scale = kind == Kind::FadeIn ? ramp : (end - edit.firstFrame > 1 ? 1.0 - ramp : 0.0);
 			}
-			for (int channel = 0; channel < clip.channels; ++channel) {
-				const qint64 index = frame * clip.channels + channel;
-				if (op == QStringLiteral("reverse")) {
-					result.clip.samples[index] =
-					    clip.samples[(end - 1 - (frame - edit.firstFrame)) * clip.channels + channel];
-				} else if (op == QStringLiteral("silence")) {
-					result.clip.samples[index] = 0;
-				} else if (op == QStringLiteral("invert")) {
-					result.clip.samples[index] = -clip.samples[index];
-				} else if (op == QStringLiteral("remove-dc")) {
-					result.clip.samples[index] = static_cast<float>(clip.samples[index] - means[channel]);
-				} else {
-					result.clip.samples[index] = static_cast<float>(clip.samples[index] * scale);
+			const qint64 base = frame * channels;
+			switch (kind) {
+			case Kind::Reverse: {
+				const qint64 mirrored = (end - 1 - (frame - edit.firstFrame)) * channels;
+				for (int channel = 0; channel < channels; ++channel) {
+					target[base + channel] = source[mirrored + channel];
 				}
+				break;
+			}
+			case Kind::Silence:
+				for (int channel = 0; channel < channels; ++channel) {
+					target[base + channel] = 0;
+				}
+				break;
+			case Kind::Invert:
+				for (int channel = 0; channel < channels; ++channel) {
+					target[base + channel] = -source[base + channel];
+				}
+				break;
+			case Kind::RemoveDc:
+				for (int channel = 0; channel < channels; ++channel) {
+					target[base + channel] = static_cast<float>(source[base + channel] - mean[channel]);
+				}
+				break;
+			case Kind::FadeIn:
+			case Kind::FadeOut:
+			case Kind::Scale:
+				for (int channel = 0; channel < channels; ++channel) {
+					target[base + channel] = static_cast<float>(source[base + channel] * scale);
+				}
+				break;
 			}
 		}
 	}

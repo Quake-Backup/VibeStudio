@@ -81,9 +81,9 @@ Texture Editor** brings a variant here to continue by hand. See
 - **Mirror** repeats strokes and shapes across the canvas centre lines (left
   and right, top and bottom, or both), shown as dashed guides. A pixel at x
   mirrors to width − 1 − x. Mirrored copies blend once per pixel like one stroke.
-- **Pen pressure sets brush width**: with a graphics tablet, each stroke
-  segment uses the brush width scaled by pressure, at least one texel. The
-  mouse always paints at full width. The canvas shows the stamp footprint, and
+- **Pen pressure sets brush width**: with a graphics tablet, the first stamp
+  and each stroke segment use the brush width scaled by pressure, at least one
+  texel. The mouse always paints at full width. The canvas shows the stamp footprint, and
   its mirrors, under the pointer and keyboard cursor.
 - **Rectangle Selection** clips painting, fill, paste, clear, palette remap,
   and flips to the active layer's selected pixels. The Selection section offers
@@ -109,6 +109,13 @@ Texture Editor** brings a variant here to continue by hand. See
   editing repeated tiles. Strokes retain their unwrapped path across a seam, and
   the selection clips pixels after wrapping. Without wrapping, only the center
   tile accepts edits. The preview does not change saved dimensions.
+- A stroke dragged off the canvas is followed outside it, up to one canvas size
+  away on each side. Without **Wrap painting** only the part that crosses the
+  canvas is painted: nothing is drawn along the border while the pointer moves
+  outside, and the stroke resumes where it comes back. With **Wrap painting**
+  it continues from the opposite edge, with or without **Tile Preview**. A
+  stroke still has to start on the canvas, and recipe strokes (`texture edit`)
+  still reject points off it.
 - **Offset and Wrap** moves active-layer pixels cyclically within the selection
   or full canvas. Negative offsets work; palette indices and hidden RGBA remain
   exact. **Offset Half Size** moves edge seams toward the center for repair
@@ -478,7 +485,10 @@ step. **Stage Companion Maps** in the Package section derives normal, gloss and
 PNGs beside the package path, named for DarkPlaces, FTE and QuakeSpasm ports
 (`_norm`, `_gloss`, `_glow`) or ioquake3's OpenGL2 renderer (`_n`, `_s`,
 `_glow`); **Export Companion Maps…** writes them as files instead. They use the
-Texture Generator's derivations (see `docs/AI_AUTOMATION.md`).
+Texture Generator's derivations (see `docs/AI_AUTOMATION.md`). Both run on the
+editor's cancellable worker with progress, like an export: deriving and encoding
+three maps takes seconds at the largest canvas. Staging rechecks the package
+when the maps are ready and stages nothing if it changed meanwhile.
 
 The Textures browser and thumbnails read the staged plan, so a new or replaced
 texture can be inspected and reopened before saving the package. Package
@@ -550,6 +560,11 @@ Selection remain usable when the typed paint color is invalid.
 Toolbar actions and properties can be reached through keyboard focus; Undo,
 Redo, Open, New, Save, and Save As have their standard shortcuts. If the platform
 theme supplies no Save As binding, the editor provides Ctrl+Shift+S.
+A background operation disables the canvas and the inspector while it runs.
+When it ends (for a save or an export, when its last step ends) the control
+that had the keyboard focus has it again, so the canvas keys and Ctrl+Z keep
+working without a click. A control you moved to meanwhile keeps the focus
+instead.
 
 The editor follows the studio palette, font scaling, and layout direction.
 Scroll areas keep the inspector available at large text sizes, and focus and

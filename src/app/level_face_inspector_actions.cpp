@@ -181,7 +181,7 @@ bool ApplicationShell::applyLevelFaceAttributesFromUi(const LevelFaceAttributesE
 	QString message;
 	if (report.changedFaces > 0) {
 		recordActivity(tr("Texture values changed"), tr("%n brush face(s)", nullptr, report.changedFaces), QStringLiteral("level-map"),
-			OperationState::Warning, tr("Unsaved map edit"));
+			OperationState::Completed, tr("Unsaved map edit"));
 		refreshLevelMapWorkbench();
 		message = tr("Set the texture values of %n brush face(s). The change is one undo step.", nullptr, report.changedFaces);
 	} else {

@@ -11,8 +11,10 @@
 #include <QComboBox>
 #include <QDir>
 #include <QEventLoop>
+#include <QJsonObject>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSet>
@@ -20,6 +22,7 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QTranslator>
+#include <QVBoxLayout>
 
 #include <iostream>
 
@@ -50,6 +53,56 @@ public:
 		return QStringLiteral("[%1 expanded]").arg(QString::fromUtf8(source));
 	}
 };
+
+// The rules by which the editors give keyboard focus back after a job that
+// disabled the focused control, on a plain window so each case is exact.
+bool workFocusContract(QApplication& app)
+{
+	bool ok = true;
+	QWidget window; auto* layout = new QVBoxLayout(&window);
+	auto* first = new QPushButton(QStringLiteral("first")); auto* second = new QPushButton(QStringLiteral("second"));
+	auto* third = new QPushButton(QStringLiteral("third")); auto* cancel = new QPushButton(QStringLiteral("cancel"));
+	for (auto* button : {first, second, third, cancel}) { layout->addWidget(button); }
+	cancel->hide(); window.show(); app.processEvents();
+	WorkFocus keeper(&window);
+	// What an editor does around one job: disable, return to the event loop, and
+	// later enable again.
+	const auto start = [&]() { keeper.begin(); first->setEnabled(false); cancel->show(); app.processEvents(); };
+	const auto finish = [&]() { keeper.ended(cancel); first->setEnabled(true); cancel->hide(); };
+
+	first->setFocus(); start();
+	ok &= expect(window.focusWidget() != first, QStringLiteral("disabling the focused control moves the focus on"));
+	finish(); keeper.restore();
+	ok &= expect(window.focusWidget() == first, QStringLiteral("the focus returns to the control that had it before the job"));
+
+	first->setFocus(); start(); third->setFocus(); finish(); keeper.restore();
+	ok &= expect(window.focusWidget() == third, QStringLiteral("a control the user went to during the job keeps the focus"));
+
+	first->setFocus(); start(); cancel->setFocus(); finish(); keeper.restore();
+	ok &= expect(window.focusWidget() == first, QStringLiteral("focus left on the job's own Cancel button returns to the earlier control"));
+
+	first->setFocus(); start(); finish();
+	start(); // a completion callback starts the next job of the chain
+	finish(); keeper.restore();
+	ok &= expect(window.focusWidget() == first, QStringLiteral("a chain of jobs returns the focus of its first job"));
+
+	first->setFocus(); start(); keeper.ended(cancel); cancel->hide(); keeper.restore();
+	first->setEnabled(true); keeper.restore();
+	ok &= expect(window.focusWidget() != first && !keeper.waiting(), QStringLiteral("a control still disabled when the job ends is not given the focus later"));
+
+	first->setFocus(); start(); keeper.ended(cancel); cancel->hide(); keeper.restore(true);
+	ok &= expect(keeper.waiting() && window.focusWidget() != first, QStringLiteral("the focus can be held for a control that is enabled a moment later"));
+	app.processEvents(); first->setEnabled(true); keeper.restore();
+	ok &= expect(window.focusWidget() == first && !keeper.waiting(), QStringLiteral("the held focus returns when its control is enabled"));
+
+	first->setFocus(); start(); keeper.ended(cancel); cancel->hide(); keeper.restore(true);
+	app.processEvents(); third->setFocus(); first->setEnabled(true); keeper.restore();
+	ok &= expect(window.focusWidget() == third && !keeper.waiting(), QStringLiteral("a control the user went to while the focus was held keeps it"));
+
+	second->setFocus(); start(); finish(); keeper.restore();
+	ok &= expect(window.focusWidget() == second, QStringLiteral("focus on a control the job never disabled stays where it is"));
+	return ok;
+}
 }
 
 int main(int argc, char** argv)
@@ -64,7 +117,7 @@ int main(int argc, char** argv)
 	QTemporaryDir temporary;
 	if (!temporary.isValid()) { return EXIT_FAILURE; }
 	StudioSettings::setOverrideFilePath(QDir(temporary.path()).filePath(QStringLiteral("profile.ini")));
-	bool ok = true;
+	bool ok = workFocusContract(app);
 	int pass = 0;
 	for (const auto theme : {StudioTheme::Dark, StudioTheme::HighContrastDark, StudioTheme::HighContrastLight}) {
 		const bool enlarged = pass != 0;
@@ -129,6 +182,24 @@ int main(int argc, char** argv)
 			for (const auto* id : {"newTexture", "openTexture", "saveTexture", "saveTextureAs", "undoTexture", "redoTexture"}) {
 				auto* action = editor.findChild<QAction*>(QString::fromLatin1(id));
 				ok &= expect(action && !action->shortcut().isEmpty() && action->shortcutContext() == Qt::WidgetWithChildrenShortcut && editor.actions().contains(action), QStringLiteral("document shortcut is scoped to its editor: ") + QString::fromLatin1(id));
+			}
+			if (pass == 0) {
+				// A job disables the canvas and the inspector, which moves the keyboard
+				// focus on. It must come back, or the canvas keys and Ctrl+Z do nothing
+				// until something is clicked.
+				canvas->setFocus();
+				editor.applyOperations({QJsonObject{{QStringLiteral("op"), QStringLiteral("flip")}, {QStringLiteral("axis"), QStringLiteral("horizontal")}}});
+				ok &= expect(editor.isBusy() && editor.focusWidget() != canvas, QStringLiteral("a running job disables the canvas and moves the focus on"));
+				ok &= expect(settled(editor) && canvas->isEnabled() && editor.focusWidget() == canvas, QStringLiteral("the canvas has the keyboard focus again after a job"));
+				sections->setCurrentIndex(1); app.processEvents();
+				auto* flip = editor.findChild<QPushButton*>(QStringLiteral("flipTextureHorizontal"));
+				if (!flip) { return EXIT_FAILURE; }
+				flip->setFocus(); flip->click();
+				ok &= expect(editor.isBusy() && editor.focusWidget() != flip, QStringLiteral("a running job disables the inspector and moves the focus on"));
+				ok &= expect(settled(editor) && editor.focusWidget() == flip, QStringLiteral("an inspector button has the keyboard focus again after its job"));
+				canvas->setFocus();
+				editor.saveProjectToPath(QDir(temporary.path()).filePath(QStringLiteral("focus.vtexture")), false);
+				ok &= expect(settled(editor) && !editor.hasUnsavedChanges() && editor.focusWidget() == canvas, QStringLiteral("the focus survives both jobs of a project save (prepare, then write)"));
 			}
 			std::cout << "theme=" << pass << " inspected_controls=" << inspected.size() << " focus_chain_widgets=" << focusChain.size() << '\n';
 		}

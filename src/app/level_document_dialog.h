@@ -40,7 +40,10 @@ public:
 	explicit LevelRecoveryWriter(QString directory, QObject* parent = nullptr);
 	~LevelRecoveryWriter() override;
 	void retire();
-	bool checkpoint(const LevelMapDocument& document);
+	// With `announce` off a write that succeeds is not reported through
+	// `finished`, for a checkpoint the caller has its own words for; one that
+	// fails always is.
+	bool checkpoint(const LevelMapDocument& document, bool announce = true);
 	QString directory() const { return m_directory; }
 	QString documentId() const { return m_id; }
 	bool busy() const { return m_thread != nullptr; }

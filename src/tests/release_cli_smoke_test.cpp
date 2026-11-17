@@ -250,6 +250,23 @@ int main(int argc, char** argv)
 	Run bad = run({QStringLiteral("release"), QStringLiteral("plan"), project, QStringLiteral("--release-version"), QStringLiteral("../x")});
 	expect(bad.exitCode == 2, "an unsafe version is refused", describe(bad));
 
+	// A manifest's package name and game folder reach the planner as written:
+	// ones that would lead out of the output folder block the release.
+	const QString unsafeProject = QDir(temp.path()).filePath(QStringLiteral("unsafemod"));
+	expect(fixtures::writeManifest(unsafeProject, QStringLiteral("quake3"),
+			   QJsonObject {{QStringLiteral("packageName"), QStringLiteral("../outside")}, {QStringLiteral("gameFolder"), QStringLiteral("mods/mine")}})
+			&& fixtures::addQuake3MenuScripts(unsafeProject), "the project with unsafe names is written");
+	Run unsafe = run({QStringLiteral("release"), QStringLiteral("publish"), unsafeProject, QStringLiteral("--installation"), id, QStringLiteral("--json")});
+	QStringList blockingKinds;
+	for (const QJsonValue& value : unsafe.json.value(QStringLiteral("plan")).toObject().value(QStringLiteral("problems")).toArray()) {
+		if (value.toObject().value(QStringLiteral("blocking")).toBool()) {
+			blockingKinds << value.toObject().value(QStringLiteral("kind")).toString();
+		}
+	}
+	expect(unsafe.exitCode == 4 && blockingKinds.contains(QStringLiteral("package-name")) && blockingKinds.contains(QStringLiteral("game-folder"))
+			&& !unsafe.json.contains(QStringLiteral("publication")) && !QFileInfo::exists(QDir(unsafeProject).filePath(QStringLiteral("build"))),
+		"a manifest's package name or game folder that names another folder blocks publishing, and nothing is written", describe(unsafe));
+
 	if (failures > 0) {
 		std::cerr << failures << " failure(s)\n";
 		return 1;

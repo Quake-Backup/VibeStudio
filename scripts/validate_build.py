@@ -454,6 +454,58 @@ def main() -> int:
                 print(merged, file=sys.stderr)
                 return 1
 
+        # Invocations that must fail, each with its exit code and the text that
+        # says why. The first group passes --settings-file itself: without a
+        # usable path the run has to stop (in the studio too, the last entry)
+        # rather than fall through to the developer's own settings.
+        isolated = ["--settings-file", str(settings_file)]
+        failing_checks = [
+            (["--cli", "--settings-file", "", "--version"], 2, "--settings-file requires a path."),
+            (["--cli", "--settings-file", "--json", "--version"], 2, "--settings-file requires a path."),
+            (["--cli", "--settings-file=", "--version"], 2, "--settings-file requires a path."),
+            (["--cli", "--version", "--settings-file"], 2, "--settings-file requires a path."),
+            (["--settings-file", "--self-test"], 2, "--settings-file requires a path."),
+            # An unknown option is named, in JSON too; a near miss of --dry-run
+            # never becomes a real run; an option is never another's value.
+            (isolated + ["--cli", "--json", "--frobnicate"], 2, "Unknown SlopStudio CLI option --frobnicate"),
+            (isolated + ["--cli", "install", "remove", "no-such-profile", "--dryrun"], 2, "did you mean --dry-run?"),
+            (isolated + ["--cli", "map", "edit", str(map_file), "--entity", "1", "--set", "light=1", "--output", "--overwrite"], 2, "--output"),
+            # A value that cannot be used is refused, not replaced by a default.
+            (isolated + ["--cli", "map", "render", str(map_file), "--width", "wide"], 2, "--width"),
+            (isolated + ["--cli", "compiler", "run", "slopmap2-bsp", "--input", str(map_file), "--dry-run", "--timeout-ms", "soon"], 2, "--timeout-ms"),
+            # A plan with errors is printed but is not a success; a missing
+            # entry is "not found" in text as in JSON; --quiet keeps a failing
+            # command's report (the output exists and --overwrite is absent).
+            (isolated + ["--cli", "--json", "build", "plan", "quake-full", "--input", str(package_root_path / "maps" / "missing.map")], 3, '"pipeline"'),
+            (isolated + ["--cli", "package", "preview", str(package_root_path), "textures/missing.txt"], 3, "Error:"),
+            (isolated + ["--cli", "--quiet", "map", "edit", str(map_file), "--entity", "1", "--set", "light=1", "--output", str(map_edit_file)], 4, "Written: no"),
+        ]
+        for cli_args, expected_code, expected in failing_checks:
+            try:
+                process = subprocess.run(
+                    [str(binary), *cli_args],
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    capture_output=True,
+                    cwd=runtime_directory,
+                    env=environment,
+                    check=False,
+                    timeout=180,
+                )
+            except subprocess.TimeoutExpired:
+                print(f"Command did not stop: {' '.join(cli_args)}", file=sys.stderr)
+                return 1
+            merged = f"{process.stdout}\n{process.stderr}"
+            if process.returncode != expected_code:
+                print(f"Expected exit {expected_code}, got {process.returncode}: {' '.join(cli_args)}", file=sys.stderr)
+                print(merged, file=sys.stderr)
+                return 1
+            if expected not in merged:
+                print(f"Expected text not found for {' '.join(cli_args)}: {expected}", file=sys.stderr)
+                print(merged, file=sys.stderr)
+                return 1
+
         if not manifest_file.exists():
             print(f"Compiler manifest was not written: {manifest_file}", file=sys.stderr)
             return 1

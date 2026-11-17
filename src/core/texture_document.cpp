@@ -135,9 +135,16 @@ bool validLayers(QSize size, const QVector<TextureLayer>& layers, int active, QS
 	return true;
 }
 
+// One visible, fully opaque, normally blended layer is its own composite: its
+// pixels are shared rather than rendered.
+bool singleLayerIsComposite(const QVector<TextureLayer>& layers)
+{
+	return layers.size() == 1 && layers.first().visible && layers.first().opacity == 100 && layers.first().blend == TextureBlendMode::Normal;
+}
+
 QImage compositeLayers(QSize size, const QVector<TextureLayer>& layers, QRect rectangle = {})
 {
-	if (layers.size() == 1 && layers.first().visible && layers.first().opacity == 100 && layers.first().blend == TextureBlendMode::Normal) {
+	if (singleLayerIsComposite(layers)) {
 		return rectangle.isEmpty() ? layers.first().pixels : layers.first().pixels.copy(rectangle);
 	}
 	if (rectangle.isEmpty()) { rectangle = QRect(QPoint(), size); }
@@ -229,7 +236,10 @@ const QImage& TextureDocument::image() const
 void TextureDocument::invalidateStrokeComposite(QPoint from, QPoint to)
 {
 	if (m_composite.isNull()) { return; }
-	if (m_state.layers.size() == 1 || m_composite.format() != QImage::Format_ARGB32) { invalidateComposite(); return; }
+	// Dropping the composite is free only while it is the layer's own pixels. A
+	// single layer with reduced opacity or a blend mode is rendered like any
+	// stack, so it too repaints just the rectangles the stroke touched.
+	if (singleLayerIsComposite(m_state.layers) || m_composite.format() != QImage::Format_ARGB32) { invalidateComposite(); return; }
 	const int bias = (m_brush.width - 1) / 2;
 	const QRect touched(std::min(from.x(), to.x()) - bias, std::min(from.y(), to.y()) - bias,
 		std::abs(from.x() - to.x()) + m_brush.width, std::abs(from.y() - to.y()) + m_brush.width);
@@ -474,11 +484,15 @@ bool TextureDocument::clearSelectedPixels(QString* error)
 
 bool TextureDocument::pastePixels(const QImage& pixels, QPoint position, QString* error)
 {
+	// Each refusal keeps its own reason: nothing to paste, a locked or hidden
+	// layer, an image too large to edit, or an image that misses the canvas.
+	if (pixels.isNull()) { return fail(error, QCoreApplication::translate("SlopStudioTexture", "The clipboard holds no image to paste.")); }
 	if (pixels.format() == QImage::Format_Indexed8) {
 		TextureDocument validated;
 		if (!validated.reset(pixels, error)) { return false; }
 	}
-	if (!editable(error) || !validTextureSize(pixels.size(), error) || qint64(position.x()) + pixels.width() <= editBounds().left() ||
+	if (!editable(error) || !validTextureSize(pixels.size(), error)) { return false; }
+	if (qint64(position.x()) + pixels.width() <= editBounds().left() ||
 		qint64(position.y()) + pixels.height() <= editBounds().top() || position.x() > editBounds().right() || position.y() > editBounds().bottom()) {
 		return fail(error, QCoreApplication::translate("SlopStudioTexture", "The pasted image must intersect the editable canvas area."));
 	}
@@ -580,7 +594,8 @@ bool TextureDocument::paintSegment(QPoint from, QPoint to, const TextureProgress
 		TextureBrush brush = m_brush;
 		brush.cloneOffset = {flipX ? -m_brush.cloneOffset.x() : m_brush.cloneOffset.x(), flipY ? -m_brush.cloneOffset.y() : m_brush.cloneOffset.y()};
 		const QPoint a = reflect(from), b = reflect(to);
-		if (!validTexturePaintPoint(a, m_state.size, brush.wrap) || !validTexturePaintPoint(b, m_state.size, brush.wrap)) { continue; }
+		// See continueStroke(): a stroke may run outside the canvas, mirrored or not.
+		if (!validTexturePaintPoint(a, m_state.size, true) || !validTexturePaintPoint(b, m_state.size, true)) { continue; }
 		if (!paintTextureSegment(&pixels, source, a, b, m_color, brush, editBounds(), progress)) { return false; }
 		invalidateStrokeComposite(a, b);
 	}
@@ -596,7 +611,12 @@ bool TextureDocument::setStrokeWidth(int width)
 
 bool TextureDocument::continueStroke(QPoint point, const TextureProgress& progress)
 {
-	if (!m_stroking || !validTexturePaintPoint(point, m_state.size, m_brush.wrap)) { return false; }
+	// A stroke starts on the canvas (beginStroke) but may leave it: the point is
+	// then followed outside, within the 3 × 3 repeat, and only what crosses the
+	// editable area is painted. Clamping it to the canvas instead would draw a
+	// line along the border while the pointer moves outside. paintStroke() keeps
+	// its own stricter check, so recipes still reject points off the canvas.
+	if (!m_stroking || !validTexturePaintPoint(point, m_state.size, true)) { return false; }
 	if (!paintSegment(m_lastPoint, point, progress)) { cancelStroke(); return false; }
 	m_lastPoint = point;
 	return true;

@@ -65,7 +65,9 @@ public:
 	// Shared gesture commands used by this widget's input and direct command tests.
 	void beginGesture(QPoint point, bool secondary = false);
 	void continueGesture(QPoint point);
-	// Pressure 0..1 scales the brush width of the current stroke (tablet input).
+	// Pressure 0..1 scales the brush width of the current stroke (tablet input),
+	// from its first stamp when the stroke begins with a pressure.
+	void beginGestureWithPressure(QPoint point, double pressure, bool secondary = false);
 	void continueGestureWithPressure(QPoint point, double pressure);
 	void endGesture();
 	void cancelGesture();
@@ -95,6 +97,9 @@ private:
 	[[nodiscard]] bool strokeTool() const;
 	[[nodiscard]] QColor gestureColor() const { return m_secondaryGesture ? m_secondary : m_color; }
 	[[nodiscard]] QPoint boundedPoint(QPoint point) const;
+	// The brush width a pen pressure gives; the full width when pressure is off.
+	[[nodiscard]] int pressureWidth(double pressure) const;
+	void startGesture(QPoint point, bool secondary, int strokeWidth);
 	void submitShape();
 	TextureDocument* m_document;
 	Tool m_tool = Tool::Pencil;
